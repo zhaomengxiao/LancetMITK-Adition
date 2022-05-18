@@ -1,0 +1,1354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>VCViewControls</class>
+ <widget class="QWidget" name="VCViewControls">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>480</width>
+    <height>996</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>QmitkTemplate</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_4">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>2</number>
+     </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>virtual correction</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="pushButton_CutImage">
+           <property name="text">
+            <string>CutImage</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_AddPoint">
+           <property name="text">
+            <string>AddPoint</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_autoDetect">
+           <property name="text">
+            <string>Auto Detect</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_Updata">
+           <property name="text">
+            <string>Updata</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_Init">
+           <property name="text">
+            <string>Init</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_8">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>Build COR</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_12">
+           <property name="text">
+            <string>Pelvis_left</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QPushButton" name="pushButton_FLC">
+           <property name="text">
+            <string>Build</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QPushButton" name="pushButton_PRC">
+           <property name="text">
+            <string>Build</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_21">
+           <property name="text">
+            <string>Femur_right</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>Pelvis_right</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_16">
+           <property name="text">
+            <string>Femur_left</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QPushButton" name="pushButton_FRC">
+           <property name="text">
+            <string>Build</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="pushButton_PLC">
+           <property name="text">
+            <string>Build</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLineEdit" name="lineEdit_PLC"/>
+         </item>
+         <item row="3" column="2">
+          <widget class="QLineEdit" name="lineEdit_PRC"/>
+         </item>
+         <item row="4" column="2">
+          <widget class="QLineEdit" name="lineEdit_FLC"/>
+         </item>
+         <item row="5" column="2">
+          <widget class="QLineEdit" name="lineEdit_FRC"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="5" column="1">
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Pelvis Surface</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_asis"/>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_pelvis"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>ASIS</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>PT</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_PT"/>
+           </item>
+          </layout>
+         </item>
+         <item row="5" column="3">
+          <widget class="QPushButton" name="pushButton_buildPelvis">
+           <property name="text">
+            <string>Build</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_3">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Initialize Pelvis Model</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QPushButton" name="pushButton_RotateXSub">
+           <property name="text">
+            <string>Rotate Pelvis X-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="3">
+          <widget class="QComboBox" name="comboBox_OpSide">
+           <item>
+            <property name="text">
+             <string>right</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>left</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="label_7">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Opratioin Side</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="pushButton_applyPelvicVC">
+           <property name="text">
+            <string>Pelvic Correction</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="pushButton_RotateXAdd">
+           <property name="text">
+            <string>Rotate Pelvis X+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_RotateXAdd">
+           <property name="prefix">
+            <string/>
+           </property>
+           <property name="suffix">
+            <string>°</string>
+           </property>
+           <property name="decimals">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <double>99.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_RotateXSub">
+           <property name="suffix">
+            <string>°</string>
+           </property>
+           <property name="decimals">
+            <number>1</number>
+           </property>
+           <property name="singleStep">
+            <double>0.100000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="1" column="0">
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="7" column="2">
+            <widget class="QLineEdit" name="lineEdit_objname_condylesL"/>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Femur Surface</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLineEdit" name="lineEdit_objname_femurL"/>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLabel" name="label_26">
+             <property name="text">
+              <string>Condyles</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QLineEdit" name="lineEdit_objname_trochanterL"/>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>FemurAxis</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>FemurCor</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_14">
+             <property name="text">
+              <string>Trochanter</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QLineEdit" name="lineEdit_objname_femurAxisL"/>
+           </item>
+           <item row="5" column="2">
+            <widget class="QLineEdit" name="lineEdit_objname_femurCorL"/>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_25">
+             <property name="text">
+              <string>BTrochanter</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLineEdit" name="lineEdit_objname_kneeL"/>
+           </item>
+           <item row="6" column="2">
+            <widget class="QLineEdit" name="lineEdit_objname_BTrochanterL"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_27">
+             <property name="text">
+              <string>Knee Surface</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLineEdit" name="lineEdit_objname_femurImageL"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_30">
+             <property name="text">
+              <string>Femur Image</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Initialize Left Femur Model</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="pushButton_buildFemurL">
+           <property name="minimumSize">
+            <size>
+             <width>110</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Build</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="2" column="0">
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_17">
+             <property name="text">
+              <string>FemurAxis</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_19">
+             <property name="text">
+              <string>Femur Surface</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_20">
+             <property name="text">
+              <string>FemurCor</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>Trochanter</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_femurAxisR"/>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_femurR"/>
+           </item>
+           <item row="8" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_condylesR"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_28">
+             <property name="text">
+              <string>Knee Surface</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_trochanterR"/>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="label_24">
+             <property name="text">
+              <string>Condyles</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_kneeR"/>
+           </item>
+           <item row="7" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_BTrochanterR"/>
+           </item>
+           <item row="6" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_femurCorR"/>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLabel" name="label_23">
+             <property name="text">
+              <string>BTrochanter</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="lineEdit_objname_femurImageR"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_29">
+             <property name="text">
+              <string>Femur Image</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="2" column="1">
+          <widget class="QPushButton" name="pushButton_buildFemurR">
+           <property name="minimumSize">
+            <size>
+             <width>110</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Build</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>Initialize Right Femur Model</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="pushButton_applyFemurVC">
+           <property name="toolTip">
+            <string>Do image processing</string>
+           </property>
+           <property name="text">
+            <string>Femur Correction</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QLabel" name="label_22">
+           <property name="text">
+            <string>FemoralVersionAngle</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_FemoralVersionAngleL"/>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_FemoralVersionAngleR"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_FemoralVersionAngle">
+           <property name="text">
+            <string>BuildFVA</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_31">
+           <property name="text">
+            <string>PelvisAngle:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_pelvisAngle"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_pelvisAngle">
+           <property name="text">
+            <string>BuildPA</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_5">
+      <attribute name="title">
+       <string>PreProcess</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="QPushButton" name="pushButton_cutLeftFemur">
+           <property name="text">
+            <string>CutLeftFemur</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_cutRightFemur">
+           <property name="text">
+            <string>CutRightFemur</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_cutImage">
+           <property name="text">
+            <string>CutImage</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_padImage">
+         <property name="text">
+          <string>padImage</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_overlay">
+         <property name="text">
+          <string>overlay</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_drr">
+         <property name="text">
+          <string>DRR</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_test">
+         <property name="text">
+          <string>test</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="spinBox_test"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_test2">
+         <property name="text">
+          <string>test2</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>Node operation</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QPushButton" name="pushButton_initPos">
+         <property name="text">
+          <string>Initial Pos</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_enabelT">
+         <property name="text">
+          <string>Enable Transform</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEdit_surfaceName"/>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_7">
+         <item row="2" column="2">
+          <widget class="QPushButton" name="pushButton_ryp">
+           <property name="text">
+            <string>RY+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QPushButton" name="pushButton_xm">
+           <property name="text">
+            <string>X-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QPushButton" name="pushButton_zp">
+           <property name="text">
+            <string>Z+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QPushButton" name="pushButton_rxp">
+           <property name="text">
+            <string>RX+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QPushButton" name="pushButton_ym">
+           <property name="text">
+            <string>Y-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pushButton_xp">
+           <property name="text">
+            <string>X+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QPushButton" name="pushButton_zm">
+           <property name="text">
+            <string>Z-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QPushButton" name="pushButton_yp">
+           <property name="text">
+            <string>Y+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="pushButton_rxm">
+           <property name="text">
+            <string>RX-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QPushButton" name="pushButton_rym">
+           <property name="text">
+            <string>RY-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QPushButton" name="pushButton_rzp">
+           <property name="text">
+            <string>RZ+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QPushButton" name="pushButton_rzm">
+           <property name="text">
+            <string>RZ-</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboBox_stemList">
+         <item>
+          <property name="text">
+           <string>1#1100-4201</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>9#1100-4209</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>选择假体</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_clip">
+         <property name="text">
+          <string>切割股骨</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_stemCenter">
+         <property name="text">
+          <string>股骨柄装配中心</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_cutFemur">
+         <property name="text">
+          <string>cut Femur</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_upSample">
+         <property name="text">
+          <string>upSample</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_cut">
+         <property name="text">
+          <string>打磨</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_9">
+         <item row="4" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
+            <widget class="QLabel" name="label_33">
+             <property name="text">
+              <string>Moving Node</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QmitkSingleNodeSelectionWidget" name="widget_MovingNode" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="5" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <item>
+            <widget class="QPushButton" name="pushButton_applyLandMark">
+             <property name="text">
+              <string>Apply LandMark</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_applyIcp">
+             <property name="text">
+              <string>Apply ICP</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_undo">
+             <property name="text">
+              <string>Un do</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_clearRegist">
+             <property name="text">
+              <string>Clear ALL</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="1" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QLabel" name="label_32">
+             <property name="text">
+              <string>Source LandMarks</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QmitkSingleNodeSelectionWidget" name="widget_SourcePset" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="2" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QLabel" name="label_31">
+             <property name="text">
+              <string>Target LandMarks</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QmitkSingleNodeSelectionWidget" name="widget_TargetPset" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_34">
+           <property name="text">
+            <string>Surface Registration</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QTextBrowser" name="textBrowser_trans_info"/>
+         </item>
+         <item row="3" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <item>
+            <widget class="QLabel" name="label_47">
+             <property name="text">
+              <string>ICP Points</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QmitkSingleNodeSelectionWidget" name="widget_IcpPset" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Measure</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QGridLayout" name="gridLayout_21">
+         <item row="1" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_14">
+           <item>
+            <widget class="QLabel" name="label_69">
+             <property name="text">
+              <string>Tears line</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QmitkSingleNodeSelectionWidget" name="widget_SourcePset_3" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="2" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_15">
+           <item>
+            <widget class="QLabel" name="label_70">
+             <property name="text">
+              <string>Cup major axis</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QmitkSingleNodeSelectionWidget" name="widget_TargetPset_3" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_71">
+           <property name="text">
+            <string>Inclination &amp; Anteversion</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_16">
+           <item>
+            <widget class="QLabel" name="label_72">
+             <property name="text">
+              <string>Cup minor axis </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QmitkSingleNodeSelectionWidget" name="widget_MovingNode_3" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="4" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_17">
+           <item>
+            <widget class="QPushButton" name="pushButton_applyTrans_3">
+             <property name="text">
+              <string>Apply Transform</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_undo_3">
+             <property name="text">
+              <string>Un do</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="5" column="1">
+          <widget class="QTextBrowser" name="textBrowser_trans_info_3"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_4">
+      <attribute name="title">
+       <string>5cut</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <layout class="QGridLayout" name="gridLayout_11">
+         <item row="4" column="1">
+          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_front" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QPushButton" name="pushButton_calAngle">
+           <property name="text">
+            <string>计算角度</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_backOblique" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QPushButton" name="pushButton_calNormalPlaneRMS">
+           <property name="text">
+            <string>计算法线共面性</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_back" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_37">
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>后</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_35">
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>远端</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_38">
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>前斜</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLabel" name="label_normalPlaneRMS">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_36">
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>后斜</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_39">
+           <property name="maximumSize">
+            <size>
+             <width>60</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>前</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_distal" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QmitkSingleNodeSelectionWidget" name="widget_plane_frontOblique" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QComboBox" name="comboBox">
+           <item>
+            <property name="text">
+             <string>法线模式</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>点集模式</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_genNormals">
+         <property name="text">
+          <string>生成法线</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_genPlanes">
+         <property name="text">
+          <string>生成平面</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_12">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_40">
+           <property name="text">
+            <string>反转法线</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="checkBox_disal">
+           <property name="text">
+            <string>远端</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="checkBox_ant">
+           <property name="text">
+            <string>前端</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QCheckBox" name="checkBox_antCham">
+           <property name="text">
+            <string>前斜</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QCheckBox" name="checkBox_post">
+           <property name="text">
+            <string>后端</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QCheckBox" name="checkBox_postCham">
+           <property name="text">
+            <string>后斜</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QTextBrowser" name="textBrowser_5Cut"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_pInPoly">
+         <property name="text">
+          <string>PointInPolygon</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_genPolygon">
+         <property name="text">
+          <string>genPolygon</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_seal">
+         <property name="text">
+          <string>sealImage</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QmitkSingleNodeSelectionWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QmitkSingleNodeSelectionWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,16 @@
+/**
+  \defgroup org_mitk_virtualcorrection org.mitk.virtualcorrection
+  \ingroup MITKPlugins
+
+  \brief Describe your plugin here.
+
+*/
+
+/**
+  \defgroup org_mitk_virtualcorrection_internal Internal
+  \ingroup org_mitk_virtualcorrection
+
+  \brief This subcategory includes the internal classes of the org.mitk.virtualcorrection plugin. Other
+  plugins must not rely on these classes. They contain implementation details and their interface
+  may change at any time. We mean it.
+*/

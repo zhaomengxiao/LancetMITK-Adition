@@ -1,0 +1,10 @@
+set(CPP_FILES
+./src/basic.cpp
+./src/leastsquaresfit.cpp
+)
+set(H_FILES
+./include/basic.h
+./include/leastsquaresfit.h
+)
+set(RESOURCE_FILES
+)
