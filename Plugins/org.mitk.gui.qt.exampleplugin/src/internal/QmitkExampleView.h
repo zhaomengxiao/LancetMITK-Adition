@@ -45,15 +45,19 @@ public:
   // associated signals and slots.
   void CreateQtPartControl(QWidget* parent) override;
 
+  //Test TKA auto position
+  void PlotCoord(vtkMatrix4x4* coord, mitk::DataStorage* ds, std::string name);
+
+  void DrawVector(mitk::Point3D p_start, mitk::Vector3D vector, double length, mitk::DataStorage* ds, std::string name);
+
+  void DrawCoord(vtkMatrix4x4* coord, mitk::DataStorage* ds, std::string name);
+
 private slots:
-  void OnImageChanged(const QmitkSingleNodeSelectionWidget::NodeList& nodes);
-  void ProcessSelectedImage();
+	void ShowDistalCut();
 
 private:
   // Typically a one-liner. Set the focus to the default widget.
   void SetFocus() override;
-
-  void EnableWidgets(bool enable);
 
   // Generated from the associated UI file, it encapsulates all the widgets
   // of our view.

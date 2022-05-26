@@ -10,23 +10,24 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-#include <berryISelectionService.h>
+#include "QmitkExampleView.h"
+
 #include <berryIWorkbenchWindow.h>
-
-#include <mitkNodePredicateAnd.h>
-#include <mitkNodePredicateDataType.h>
-#include <mitkNodePredicateNot.h>
-#include <mitkNodePredicateOr.h>
-#include <mitkNodePredicateProperty.h>
-
-#include <usModuleRegistry.h>
-
-#include <QMessageBox>
-
 #include <ExampleImageFilter.h>
 #include <ExampleImageInteractor.h>
+#include <mitkNodePredicateDataType.h>
+#include <usModuleRegistry.h>
+#include <vtkAppendPolyData.h>
+#include <vtkConeSource.h>
+#include <vtkCylinderSource.h>
+#include <vtkLineSource.h>
+#include <vtkSphereSource.h>
+#include <vtkTransformPolyDataFilter.h>
 
-#include "QmitkExampleView.h"
+#include "mitkApplyTransformMatrixOperation.h"
+#include "mitkInteractionConst.h"
+#include "mitkPointSet.h"
+#include "mitkSurface.h"
 
 namespace
 {
@@ -58,94 +59,245 @@ void QmitkExampleView::CreateQtPartControl(QWidget* parent)
   // Setting up the UI is a true pleasure when using .ui files, isn't it?
   m_Controls.setupUi(parent);
 
-  m_Controls.selectionWidget->SetDataStorage(this->GetDataStorage());
-  m_Controls.selectionWidget->SetSelectionIsOptional(true);
-  m_Controls.selectionWidget->SetEmptyInfo(QStringLiteral("Select an image"));
-  m_Controls.selectionWidget->SetNodePredicate(mitk::NodePredicateAnd::New(
-    mitk::TNodePredicateDataType<mitk::Image>::New(),
-    mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(
-      mitk::NodePredicateProperty::New("helper object"),
-      mitk::NodePredicateProperty::New("hidden object")))));
+  
 
   // Wire up the UI widgets with our functionality.
-  connect(m_Controls.selectionWidget, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &QmitkExampleView::OnImageChanged);
-  connect(m_Controls.processImageButton, SIGNAL(clicked()), this, SLOT(ProcessSelectedImage()));
+  
+  connect(m_Controls.pushButton_test, SIGNAL(clicked()), this, SLOT(ShowDistalCut()));
+}
 
-  // Make sure to have a consistent UI state at the very beginning.
-  this->OnImageChanged(m_Controls.selectionWidget->GetSelectedNodes());
+void QmitkExampleView::PlotCoord(vtkMatrix4x4* coord, mitk::DataStorage* ds, std::string name)
+{
+	mitk::DataNode::Pointer coordnode = mitk::DataNode::New();
+	coordnode->SetName(name);
+
+	mitk::Surface::Pointer mySphere = mitk::Surface::New();
+
+	double axisLength = 5.;
+
+	vtkSmartPointer<vtkSphereSource> vtkSphere = vtkSmartPointer<vtkSphereSource>::New();
+	vtkSmartPointer<vtkConeSource> vtkCone = vtkSmartPointer<vtkConeSource>::New();
+	vtkSmartPointer<vtkCylinderSource> vtkCylinder = vtkSmartPointer<vtkCylinderSource>::New();
+	vtkSmartPointer<vtkPolyData> axis = vtkSmartPointer<vtkPolyData>::New();
+	vtkSmartPointer<vtkLineSource> vtkLine = vtkSmartPointer<vtkLineSource>::New();
+	vtkSmartPointer<vtkLineSource> vtkLine2 = vtkSmartPointer<vtkLineSource>::New();
+	vtkSmartPointer<vtkLineSource> vtkLine3 = vtkSmartPointer<vtkLineSource>::New();
+
+	vtkSmartPointer<vtkAppendPolyData> appendPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
+	vtkSmartPointer<vtkPolyData> surface = vtkSmartPointer<vtkPolyData>::New();
+
+	// Y-Axis (start with y, cause cylinder is oriented in y by vtk default...)
+	vtkCone->SetDirection(0, 1, 0);
+	vtkCone->SetHeight(1.0);
+	vtkCone->SetRadius(0.4f);
+	vtkCone->SetResolution(16);
+	vtkCone->SetCenter(0.0, axisLength, 0.0);
+	vtkCone->Update();
+
+	vtkCylinder->SetRadius(0.05);
+	vtkCylinder->SetHeight(axisLength);
+	vtkCylinder->SetCenter(0.0, 0.5 * axisLength, 0.0);
+	vtkCylinder->Update();
+
+	appendPolyData->AddInputData(vtkCone->GetOutput());
+	appendPolyData->AddInputData(vtkCylinder->GetOutput());
+	appendPolyData->Update();
+	axis->DeepCopy(appendPolyData->GetOutput());
+
+	// y symbol
+	vtkLine->SetPoint1(-0.5, axisLength + 2., 0.0);
+	vtkLine->SetPoint2(0.0, axisLength + 1.5, 0.0);
+	vtkLine->Update();
+
+	vtkLine2->SetPoint1(0.5, axisLength + 2., 0.0);
+	vtkLine2->SetPoint2(-0.5, axisLength + 1., 0.0);
+	vtkLine2->Update();
+
+	appendPolyData->AddInputData(vtkLine->GetOutput());
+	appendPolyData->AddInputData(vtkLine2->GetOutput());
+	appendPolyData->AddInputData(axis);
+	appendPolyData->Update();
+	surface->DeepCopy(appendPolyData->GetOutput());
+
+	// X-axis
+	vtkSmartPointer<vtkTransform> XTransform = vtkSmartPointer<vtkTransform>::New();
+	XTransform->RotateZ(-90);
+	vtkSmartPointer<vtkTransformPolyDataFilter> TrafoFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+	TrafoFilter->SetTransform(XTransform);
+	TrafoFilter->SetInputData(axis);
+	TrafoFilter->Update();
+
+	// x symbol
+	vtkLine->SetPoint1(axisLength + 2., -0.5, 0.0);
+	vtkLine->SetPoint2(axisLength + 1., 0.5, 0.0);
+	vtkLine->Update();
+
+	vtkLine2->SetPoint1(axisLength + 2., 0.5, 0.0);
+	vtkLine2->SetPoint2(axisLength + 1., -0.5, 0.0);
+	vtkLine2->Update();
+
+	appendPolyData->AddInputData(vtkLine->GetOutput());
+	appendPolyData->AddInputData(vtkLine2->GetOutput());
+	appendPolyData->AddInputData(TrafoFilter->GetOutput());
+	appendPolyData->AddInputData(surface);
+	appendPolyData->Update();
+	surface->DeepCopy(appendPolyData->GetOutput());
+
+	// Z-axis
+	vtkSmartPointer<vtkTransform> ZTransform = vtkSmartPointer<vtkTransform>::New();
+	ZTransform->RotateX(90);
+	TrafoFilter->SetTransform(ZTransform);
+	TrafoFilter->SetInputData(axis);
+	TrafoFilter->Update();
+
+	// z symbol
+	vtkLine->SetPoint1(-0.5, 0.0, axisLength + 2.);
+	vtkLine->SetPoint2(0.5, 0.0, axisLength + 2.);
+	vtkLine->Update();
+
+	vtkLine2->SetPoint1(-0.5, 0.0, axisLength + 2.);
+	vtkLine2->SetPoint2(0.5, 0.0, axisLength + 1.);
+	vtkLine2->Update();
+
+	vtkLine3->SetPoint1(0.5, 0.0, axisLength + 1.);
+	vtkLine3->SetPoint2(-0.5, 0.0, axisLength + 1.);
+	vtkLine3->Update();
+
+	appendPolyData->AddInputData(vtkLine->GetOutput());
+	appendPolyData->AddInputData(vtkLine2->GetOutput());
+	appendPolyData->AddInputData(vtkLine3->GetOutput());
+	appendPolyData->AddInputData(TrafoFilter->GetOutput());
+	appendPolyData->AddInputData(surface);
+	appendPolyData->Update();
+	surface->DeepCopy(appendPolyData->GetOutput());
+
+	// Center
+	vtkSphere->SetRadius(0.5f);
+	vtkSphere->SetCenter(0.0, 0.0, 0.0);
+	vtkSphere->Update();
+
+	appendPolyData->AddInputData(vtkSphere->GetOutput());
+	appendPolyData->AddInputData(surface);
+	appendPolyData->Update();
+	surface->DeepCopy(appendPolyData->GetOutput());
+
+	// Scale
+	vtkSmartPointer<vtkTransform> ScaleTransform = vtkSmartPointer<vtkTransform>::New();
+	ScaleTransform->Scale(5., 5., 5.);
+
+	TrafoFilter->SetTransform(ScaleTransform);
+	TrafoFilter->SetInputData(surface);
+	TrafoFilter->Update();
+
+	mySphere->SetVtkPolyData(TrafoFilter->GetOutput());
+
+	coordnode->SetData(mySphere);
+
+	double ref[3]{ 0, 0, 0 };
+	mitk::Point3D refp{ ref };
+	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+	// execute the Operation
+	// here no undo is stored, because the movement-steps aren't interesting.
+	// only the start and the end is interisting to store for undo.
+	coordnode->GetData()->GetGeometry()->ExecuteOperation(doOp);
+	delete doOp;
+
+	ds->Add(coordnode);
+}
+
+void QmitkExampleView::ShowDistalCut()
+{
+	//获取切面法线
+
+	auto NormalPointSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("DistalCut");
+	//获取远端切面法线
+	auto NormalAntPointSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("AnteriorChamferCut");
+	auto _n0 = NormalPointSet->GetPoint(0);
+	auto _n1 = NormalPointSet->GetPoint(1);
+
+	auto _ref_n0 = NormalAntPointSet->GetPoint(0);
+
+	Eigen::Vector3d n0{ _n0.GetDataPointer() };
+	Eigen::Vector3d n1{ _n1.GetDataPointer() };
+	Eigen::Vector3d ref_n0{ _ref_n0.GetDataPointer() };
+
+	Eigen::Vector3d normal = (n1 - n0).normalized();
+	// if (flip)
+	// {
+	//   normal = -normal;
+	// }
+
+	//借助前端面法线得到假体的前后方向，建立坐标系
+	Eigen::Vector3d o{ n0 };
+	Eigen::Vector3d x{ normal };
+	Eigen::Vector3d tmp_y{ (ref_n0 - n0).normalized() };
+	Eigen::Vector3d z = x.cross(tmp_y);
+	Eigen::Vector3d y = z.cross(x);
+
+	//向锯片y方向（刀头后撤）平移60mm 作为初始定位点，
+	Eigen::Vector3d o_init = o + y * 60;
+
+	Eigen::Matrix4d T;
+	T.setIdentity();
+	T.block(0, 0, 3, 1) = x;
+	T.block(0, 1, 3, 1) = y;
+	T.block(0, 2, 3, 1) = z;
+	T.block(0, 3, 3, 1) = o_init;
+	T.transposeInPlace();
+
+	vtkNew<vtkMatrix4x4> mat;
+	mat->DeepCopy(T.data());
+
+	PlotCoord(mat, GetDataStorage(), "DistalCut_init");
+
+	DrawCoord(mat, GetDataStorage(), "DistalCut_init_2");
+
+	// vtkMatrix4x4::DeepCopy(MainStatic::G_NDI_Robot_PosteriorCut,T.data());
+}
+
+void QmitkExampleView::DrawVector(mitk::Point3D p_start,
+	mitk::Vector3D vector,
+	double length,
+	mitk::DataStorage* ds,
+	std::string name)
+{
+	mitk::Point3D p_end;
+	p_end = p_start + vector * length;
+
+	mitk::PointSet::Pointer pset = mitk::PointSet::New();
+	pset->InsertPoint(p_start);
+	pset->InsertPoint(p_end);
+
+	mitk::DataNode::Pointer dn = mitk::DataNode::New();
+	dn->SetData(pset);
+	dn->SetName(name);
+	dn->SetBoolProperty("show contour", true);
+	dn->SetFloatProperty("contoursize", 1);
+	dn->SetFloatProperty("pointsize", 3);
+
+	ds->Add(dn);
+}
+
+void QmitkExampleView::DrawCoord(vtkMatrix4x4* coord, mitk::DataStorage* ds, std::string name)
+{
+	double x[3]{ coord->GetElement(0, 0), coord->GetElement(1, 0), coord->GetElement(2, 0) };
+	double y[3]{ coord->GetElement(0, 1), coord->GetElement(1, 1), coord->GetElement(2, 1) };
+	double z[3]{ coord->GetElement(0, 2), coord->GetElement(1, 2), coord->GetElement(2, 2) };
+	double o[3]{ coord->GetElement(0, 3), coord->GetElement(1, 3), coord->GetElement(2, 3) };
+	mitk::Point3D p_start{ o };
+
+	mitk::Vector3D v_x{ x };
+	mitk::Vector3D v_y{ y };
+	mitk::Vector3D v_z{ z };
+	// x
+	DrawVector(p_start, v_x, 10, ds, name + "_x");
+	// y
+	DrawVector(p_start, v_y, 10, ds, name + "_y");
+	// z
+	DrawVector(p_start, v_z, 10, ds, name + "_z");
 }
 
 void QmitkExampleView::SetFocus()
 {
-  m_Controls.processImageButton->setFocus();
-}
-
-void QmitkExampleView::OnImageChanged(const QmitkSingleNodeSelectionWidget::NodeList&)
-{
-  this->EnableWidgets(m_Controls.selectionWidget->GetSelectedNode().IsNotNull());
-}
-
-void QmitkExampleView::EnableWidgets(bool enable)
-{
-  m_Controls.processImageButton->setEnabled(enable);
-}
-
-void QmitkExampleView::ProcessSelectedImage()
-{
-  auto selectedDataNode = m_Controls.selectionWidget->GetSelectedNode();
-  auto data = selectedDataNode->GetData();
-
-  // We don't use the auto keyword here, which would evaluate to a native
-  // image pointer. Instead, we want a smart pointer to ensure that
-  // the image isn't deleted somewhere else while we're using it.
-  mitk::Image::Pointer image = dynamic_cast<mitk::Image*>(data);
-
-  auto imageName = selectedDataNode->GetName();
-  auto offset = m_Controls.offsetSpinBox->value();
-
-  MITK_INFO << "Process image \"" << imageName << "\" ...";
-
-  // We're finally using the ExampleImageFilter from MitkExampleModule.
-  auto filter = ExampleImageFilter::New();
-  filter->SetInput(image);
-  filter->SetOffset(offset);
-
-  filter->Update();
-
-  mitk::Image::Pointer processedImage = filter->GetOutput();
-
-  if (processedImage.IsNull() || !processedImage->IsInitialized())
-    return;
-
-  MITK_INFO << "  done";
-
-  // Stuff the resulting image into a data node, set some properties,
-  // and add it to the data storage, which will eventually display the
-  // image in the application.
-  auto processedImageDataNode = mitk::DataNode::New();
-  processedImageDataNode->SetData(processedImage);
-
-  QString name = QString("%1 (Offset: %2)").arg(imageName.c_str()).arg(offset);
-  processedImageDataNode->SetName(name.toStdString());
-
-  // We don't really need to copy the level window, but if we wouldn't
-  // do it, the new level window would be initialized to display the image
-  // with optimal contrast in order to capture the whole range of pixel
-  // values. This is also true for the input image as long as one didn't
-  // modify its level window manually. Thus, the images would appear
-  // identical unless you compare the level window widget for both images.
-  mitk::LevelWindow levelWindow;
-
-  if (selectedDataNode->GetLevelWindow(levelWindow))
-    processedImageDataNode->SetLevelWindow(levelWindow);
-
-  // We also attach our ExampleImageInteractor, which allows us to paint
-  // on the resulting images by using the mouse as long as the CTRL key
-  // is pressed.
-  auto interactor = CreateExampleImageInteractor();
-
-  if (interactor.IsNotNull())
-    interactor->SetDataNode(processedImageDataNode);
-
-  this->GetDataStorage()->Add(processedImageDataNode);
+  m_Controls.pushButton_test->setFocus();
 }
