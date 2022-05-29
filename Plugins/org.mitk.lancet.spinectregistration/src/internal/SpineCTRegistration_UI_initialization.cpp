@@ -53,6 +53,8 @@ void SpineCTRegistration::CreateQtPartControl(QWidget *parent)
   InitNodeSelector(m_Controls.mitkNodeSelectWidget_LandmarkTargetPointset);
   InitNodeSelector(m_Controls.mitkNodeSelectWidget_IcpSrcSurface);
   InitNodeSelector(m_Controls.mitkNodeSelectWidget_IcpTargetPointset);
+  InitNodeSelector(m_Controls.mitkNodeSelectWidget_DEMO_Pointset_extractedballs);
+  InitNodeSelector(m_Controls.mitkNodeSelectWidget_DEMO_Pointset_stlballs);
 
   // Connect the signals and slots
   connect(m_Controls.mitkNodeSelectWidget_CTimage,
@@ -85,6 +87,16 @@ void SpineCTRegistration::CreateQtPartControl(QWidget *parent)
           this,
           &SpineCTRegistration::ChangeIcpTargetPointset);
 
+  connect(m_Controls.mitkNodeSelectWidget_DEMO_Pointset_extractedballs,
+	  &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+	  this,
+	  &SpineCTRegistration::ChangeDEMO_Pointset_extractedballs);
+
+  connect(m_Controls.mitkNodeSelectWidget_DEMO_Pointset_stlballs,
+	  &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged,
+	  this,
+	  &SpineCTRegistration::ChangeDEMO_Pointset_stlballs);
+
   connect(m_Controls.pushButton_ResetImageOrigin, &QPushButton::clicked, this, &SpineCTRegistration::ResetImage);
 
   connect(m_Controls.pushButton_Landmark, &QPushButton::clicked, this, &SpineCTRegistration::LandmarkRegistration);
@@ -101,9 +113,12 @@ void SpineCTRegistration::CreateQtPartControl(QWidget *parent)
   connect(
     m_Controls.pushButton_ReconstructBones, &QPushButton::clicked, this, &SpineCTRegistration::ReconstructSpineSurface);
 
-  connect(m_Controls.pushButton_checkNDI, &QPushButton::clicked, this, &SpineCTRegistration::CheckToolValidity);
+  connect(
+	  m_Controls.pushButton_DEMO_extractballs, &QPushButton::clicked, this, &SpineCTRegistration::GetSteelballCenters);
 
-  connect(m_Controls.pushButton_OptimizeTool, &QPushButton::clicked, this, &SpineCTRegistration::OptimizeTool);
+  connect(
+	  m_Controls.pushButton_DEMO_registration, &QPushButton::clicked, this, &SpineCTRegistration::DEMOregistration);
+
 }
 
 void SpineCTRegistration::InitNodeSelector(QmitkSingleNodeSelectionWidget *widget)
@@ -145,6 +160,16 @@ inline void SpineCTRegistration::ChangeIcpSrcSurface(QmitkSingleNodeSelectionWid
 inline void SpineCTRegistration::ChangeIcpTargetPointset(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
 {
   m_IcpTargetPointsetDataNode = m_Controls.mitkNodeSelectWidget_IcpTargetPointset->GetSelectedNode();
+}
+
+inline void SpineCTRegistration::ChangeDEMO_Pointset_extractedballs(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+	m_DEMO_Pointset_extractedballs = m_Controls.mitkNodeSelectWidget_DEMO_Pointset_extractedballs->GetSelectedNode();
+}
+
+inline void SpineCTRegistration::ChangeDEMO_Pointset_stlballs(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/)
+{
+	m_DEMO_Pointset_stlballs = m_Controls.mitkNodeSelectWidget_DEMO_Pointset_stlballs->GetSelectedNode();
 }
 
 //---------------------------Above: QT UI initialization------------------------------//

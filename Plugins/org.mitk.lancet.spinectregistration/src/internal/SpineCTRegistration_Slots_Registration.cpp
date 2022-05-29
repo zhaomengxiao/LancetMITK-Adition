@@ -36,12 +36,12 @@ found in the LICENSE file.
 #include <mitkImage.h>
 #include <vtkSphereSource.h>
 
-// Landmark registration (pointset to pointset)
+// Landmark registration (PointSet to PointSet)
 void SpineCTRegistration::LandmarkRegistration()
 {
   auto landmarkRegistrator = mitk::SurfaceRegistration::New();
 
-  MITK_INFO << "Proceedinng Landmark registration";
+  MITK_INFO << "Proceeding Landmark registration";
   if (m_LandmarkSrcPointsetDataNode != nullptr && m_LandmarkTargetPointsetDataNode != nullptr)
   {
     auto sourcePointset = dynamic_cast<mitk::PointSet *>(m_LandmarkSrcPointsetDataNode->GetData());

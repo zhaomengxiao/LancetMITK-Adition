@@ -34,12 +34,17 @@ found in the LICENSE file.
 #include <mitkImage.h>
 #include <vtkSphereSource.h>
 
-// Extract steelball centers as a pointset
+// Extract steelball centers as a pointset, needs 4 INPUTS
 void SpineCTRegistration::GetSteelballCenters()
 {
+
+	// INPUT 1: inputCtImage (MITK image)
   auto inputCtImage = dynamic_cast<mitk::Image *>(m_CtImageDataNode->GetData());
 
+
   // The isosurface of all steelballs as into a single polydata
+	
+	// INPUT 2: voxelThreshold (double)
   double voxelThreshold = m_Controls.lineEdit_SteelballThreshold->text().toDouble();
   auto mitkSteelBallSurfaces = mitk::Surface::New();
   mitk::ImageToSurfaceFilter::Pointer imageToSurfaceFilter = mitk::ImageToSurfaceFilter::New();
@@ -74,6 +79,7 @@ void SpineCTRegistration::GetSteelballCenters()
       vtkSingleSteelBallSurface->GetNumberOfCells(); // the total number of cells of a single mesh surface; each cell
                                                      // stores one facet of the mesh surface
 
+	// INPUT 3 & 4: facetNumberUpperThreshold (int) & facetNumberUpperThreshold (int)
     int facetNumberUpperThreshold = m_Controls.lineEdit_MaxFacetNumber->text().toInt();
     int facetNumberLowerThreshold = m_Controls.lineEdit_MinFacetNumber->text().toInt();
 
@@ -111,19 +117,19 @@ void SpineCTRegistration::GetSteelballCenters()
       centerOfAllSteelballs[1] = centerOfAllSteelballs[1] + cy;
       centerOfAllSteelballs[2] = centerOfAllSteelballs[2] + cz;
 
-      // Draw simulated spheres
-      auto vtkBallSource0 = vtkSmartPointer<vtkSphereSource>::New();
-      vtkBallSource0->SetCenter(cx, cy, cz);
-      vtkBallSource0->SetRadius(R);
-      vtkBallSource0->Update();
-      
-      auto tmpNode = mitk::DataNode::New();
-      
-      tmpNode->SetName("Single steelball sphere");
-      auto mitkSteelBallSurfacesNew1 = mitk::Surface::New();
-      mitkSteelBallSurfacesNew1->SetVtkPolyData(vtkBallSource0->GetOutput());
-      tmpNode->SetData(mitkSteelBallSurfacesNew1);
-      GetDataStorage()->Add(tmpNode);
+      // // Draw simulated spheres
+      // auto vtkBallSource0 = vtkSmartPointer<vtkSphereSource>::New();
+      // vtkBallSource0->SetCenter(cx, cy, cz);
+      // vtkBallSource0->SetRadius(R);
+      // vtkBallSource0->Update();
+      //
+      // auto tmpNode = mitk::DataNode::New();
+      //
+      // tmpNode->SetName("Single steelball sphere");
+      // auto mitkSteelBallSurfacesNew1 = mitk::Surface::New();
+      // mitkSteelBallSurfacesNew1->SetVtkPolyData(vtkBallSource0->GetOutput());
+      // tmpNode->SetData(mitkSteelBallSurfacesNew1);
+      // // GetDataStorage()->Add(tmpNode);
     }
 
      
@@ -184,20 +190,24 @@ void SpineCTRegistration::GetSteelballCenters()
     mitkSortedSingleSteelballCenterPointset->InsertPoint(mitkSingleSteelballCenterPointset->GetPoint(distanceRanks[i]));
   }
 
-  // draw extracted  steel ball surfaces
-  auto nodeSteelballSurfaces = mitk::DataNode::New();
-  nodeSteelballSurfaces->SetName("Steelball surfaces");
-  // add new node
-  nodeSteelballSurfaces->SetData(mitkSteelBallSurfaces);
-  GetDataStorage()->Add(nodeSteelballSurfaces);
+  // // draw extracted  steel ball surfaces
+  // auto nodeSteelballSurfaces = mitk::DataNode::New();
+  // nodeSteelballSurfaces->SetName("Steelball surfaces");
+  // // add new node
+  // nodeSteelballSurfaces->SetData(mitkSteelBallSurfaces);
+  // // GetDataStorage()->Add(nodeSteelballSurfaces);
+  //
+  // // add steel ball centers
+  // auto nodeSteelballCenters = mitk::DataNode::New();
+  // nodeSteelballCenters->SetName("Steelball centers");
+  // // add new node
+  // nodeSteelballCenters->SetData(mitkSingleSteelballCenterPointset);
+  // // GetDataStorage()->Add(nodeSteelballCenters);
 
-  // add steel ball centers
-  auto nodeSteelballCenters = mitk::DataNode::New();
-  nodeSteelballCenters->SetName("Steelball centers");
-  // add new node
-  nodeSteelballCenters->SetData(mitkSingleSteelballCenterPointset);
-  GetDataStorage()->Add(nodeSteelballCenters);
 
+
+	// OUTPUT: mitkSortedSingleSteelballCenterPointset (mitk::PointSet)
+  
   // add sorted steel ball centers
   auto nodeSortedSteelballCenters = mitk::DataNode::New();
   nodeSortedSteelballCenters->SetName("Sorted Steelball centers");

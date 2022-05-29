@@ -64,6 +64,8 @@ protected:
   void ChangeLandmarkTargetPointset(QmitkSingleNodeSelectionWidget::NodeList);
   void ChangeIcpSrcSurface(QmitkSingleNodeSelectionWidget::NodeList);
   void ChangeIcpTargetPointset(QmitkSingleNodeSelectionWidget::NodeList);
+  void SpineCTRegistration::ChangeDEMO_Pointset_extractedballs(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
+  void SpineCTRegistration::ChangeDEMO_Pointset_stlballs(QmitkSingleNodeSelectionWidget::NodeList /*nodes*/);
 
   // Extract steelball centers as a pointset
   void GetSteelballCenters();
@@ -87,28 +89,25 @@ protected:
   void TransformSurface();
   void TransformImage();
 
-  // NDI tool design
-
-  int metric[3]{0, 0, 0}; // a metric to measure whether the new tool meets all 3 design requirements ( {1, 1, 1} )
-
-  double inputTool[8] // {x0, x1, x2, x3, y0, y1, y2, y3}
-  {
-    0, 60, 0, 50,
-    70, 0, 0, 85
-  };
-
-  // {x0, x1, x2, x3, y0, y1, y2, y3}
-  // double optimizedTool[8]{0}; 
 
 
-  // {x0, x1, ...xN, y0, y1, ...yN}
-  double existingTools[16]{0, 70, 60, 0, 0, 0, 50, 50, 0, 0, 70, 0, 70, 51.97, 120, 25.9807};
+  // DEMO Spine IGT in MITK
+  // double * m_G_NDIcamera_CTdrf_matrix[16];
+  // double * m_G_NDIcamera_trackingDRF_matrix[16];
+	// double * m_G_NDIcamera_tool_matrix[16];
 
-  int existingToolNum{2};
+  double* m_G_renderWindow_patientCT_matrix = nullptr; // the image must be named as "Patient_CT"
+  double* m_G_patientCT_CTdrf_matrix = nullptr;
 
-  void CheckToolValidity();
-  void UpdateTool();
-  void OptimizeTool();
+ // Get m_G_patientCT_CTdrf_matrix, and move patientCT, so that F_tracking_DRF becomes the rendering window coordinate system
+  void DEMOregistration();
+  
+  mitk::DataNode* m_DEMO_Pointset_extractedballs;
+
+  mitk::DataNode* m_DEMO_Pointset_stlballs;
+
+
+
 
 };
 
