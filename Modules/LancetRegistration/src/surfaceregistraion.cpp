@@ -83,7 +83,6 @@ bool mitk::SurfaceRegistration::ComputeLandMarkResult()
 		landmarkTransform->SetTargetLandmarks(pTarget);
 		landmarkTransform->SetMode(VTK_LANDMARK_RIGIDBODY);
 		landmarkTransform->Update();
-
 		m_MatrixLandMark->DeepCopy(landmarkTransform->GetMatrix());
 		return true;
 	}

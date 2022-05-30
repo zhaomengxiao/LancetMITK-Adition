@@ -114,13 +114,14 @@ void SpineCTRegistration::DEMOregistration()
 
 // m_G_patientCT_CTdrf_matrix = landmarkRegistrator->GetResult()->GetData();
 
-	vtkSmartPointer<vtkMatrix4x4> patientCT_renderWindow_matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	auto patientCT_renderWindow_matrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	vtkMatrix4x4::Invert(inputCtImage->GetGeometry()->GetVtkMatrix(), patientCT_renderWindow_matrix);
 	vtkTransform* tmpTrans = vtkTransform::New();
 	tmpTrans->Identity();
 	tmpTrans->PostMultiply();
 	tmpTrans->SetMatrix(landmarkRegistrator->GetResult());
 	tmpTrans->Concatenate(patientCT_renderWindow_matrix);
+	tmpTrans->Update();
 
 	m_G_patientCT_CTdrf_matrix = tmpTrans->GetMatrix()->GetData();
 
@@ -129,7 +130,98 @@ void SpineCTRegistration::DEMOregistration()
 	inputCtImage->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(CTdrf_patientCT_matrix);
 
 
-
 }
 
+// void SpineCTRegistration::DEMOregistration()
+// {
+// 	auto inputCtImage = dynamic_cast<mitk::Image*>(m_CtImageDataNode->GetData());
+//
+// 	auto pointset_extractedballs = dynamic_cast<mitk::PointSet*>(m_DEMO_Pointset_extractedballs->GetData());
+//
+// 	m_G_renderWindow_patientCT_matrix = inputCtImage->GetGeometry()->GetVtkMatrix()->GetData();
+//
+//
+// 	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
+//
+// 	MITK_INFO << "Proceedinng Landmark registration";
+// 	if (m_LandmarkSrcPointsetDataNode != nullptr && m_LandmarkTargetPointsetDataNode != nullptr)
+// 	{
+//
+// 		auto sourcePointset = dynamic_cast<mitk::PointSet*>(m_DEMO_Pointset_extractedballs->GetData()); // source pointSet needs an extra offset: G_renderWindow_patientCT_matrix
+//
+// 		auto targetPointset = dynamic_cast<mitk::PointSet*>(m_DEMO_Pointset_stlballs->GetData());
+// 		landmarkRegistrator->SetLandmarksSrc(sourcePointset);
+// 		landmarkRegistrator->SetLandmarksTarget(targetPointset);
+// 		landmarkRegistrator->ComputeLandMarkResult();
+//
+//
+// 	}
+//
+// 	std::ostringstream os;
+// 	landmarkRegistrator->GetResult()->Print(os);
+//
+// 	m_Controls.textBrowser_DEMOigt->append("-------------Start landmark registration----------");
+// 	m_Controls.textBrowser_DEMOigt->append(QString::fromStdString(os.str()));
+// 	m_Controls.textBrowser_DEMOigt->append("-------------End landmark registration----------");
+//
+// 	// m_G_patientCT_CTdrf_matrix = landmarkRegistrator->GetResult()->GetData();
+//
+// 	// auto patientCT_renderWindow_matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+// 	// vtkMatrix4x4::Invert(inputCtImage->GetGeometry()->GetVtkMatrix(), patientCT_renderWindow_matrix);
+// 	vtkTransform* tmpTrans = vtkTransform::New();
+// 	tmpTrans->Identity();
+// 	tmpTrans->PostMultiply();
+// 	tmpTrans->SetMatrix(inputCtImage->GetGeometry()->GetVtkMatrix());
+// 	tmpTrans->Concatenate(landmarkRegistrator->GetResult());
+// 	tmpTrans->Update();
+//
+// 	// m_G_patientCT_CTdrf_matrix = tmpTrans->GetMatrix()->GetData();
+// 	//
+// 	// vtkSmartPointer<vtkMatrix4x4> CTdrf_patientCT_matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+// 	// vtkMatrix4x4::Invert(tmpTrans->GetMatrix(), CTdrf_patientCT_matrix);
+// 	inputCtImage->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+//
+//
+//
+// }
 
+
+vtkMatrix4x4* GetMatrixCtDrfToPatientCt(mitk::PointSet* pointset_steelballsInCtDrf, mitk::Image* inputCtImage, double voxelThreshold, double facetNumUpperBound, double facetNumLowerBound)
+{
+	auto pointset_extractedballs = ObtainSteelballCenters(inputCtImage, voxelThreshold, facetNumUpperBound, facetNumLowerBound);
+	
+	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
+
+	if (pointset_extractedballs != nullptr && pointset_steelballsInCtDrf != nullptr)
+	{
+
+		auto targetPointset = dynamic_cast<mitk::PointSet*>(pointset_extractedballs); // source pointSet needs an extra offset: G_renderWindow_patientCT_matrix
+
+		auto sourcePointset = dynamic_cast<mitk::PointSet*>(pointset_steelballsInCtDrf);
+		landmarkRegistrator->SetLandmarksSrc(sourcePointset);
+		landmarkRegistrator->SetLandmarksTarget(targetPointset);
+		landmarkRegistrator->ComputeLandMarkResult();
+
+	}
+
+	std::ostringstream os;
+	landmarkRegistrator->GetResult()->Print(os);
+
+
+
+	auto patientCT_renderWindow_matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	vtkMatrix4x4::Invert(inputCtImage->GetGeometry()->GetVtkMatrix(), patientCT_renderWindow_matrix);
+	vtkTransform* tmpTrans = vtkTransform::New();
+	tmpTrans->Identity();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(landmarkRegistrator->GetResult());
+	tmpTrans->Concatenate(patientCT_renderWindow_matrix);
+	tmpTrans->Update();
+
+
+	vtkSmartPointer<vtkMatrix4x4> CTdrf_patientCT_matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	vtkMatrix4x4::Invert(tmpTrans->GetMatrix(), CTdrf_patientCT_matrix);
+
+	return CTdrf_patientCT_matrix;
+
+}

@@ -17,6 +17,7 @@ found in the LICENSE file.
 
 #include <QmitkAbstractView.h>
 
+#include "mitkPointSet.h"
 #include "ui_SpineCTRegistrationControls.h"
 
 // #include <eigen3/Eigen/Eigen>
@@ -105,10 +106,17 @@ protected:
   mitk::DataNode* m_DEMO_Pointset_extractedballs;
 
   mitk::DataNode* m_DEMO_Pointset_stlballs;
-
-
-
+	   
 
 };
+
+
+// Software functions
+
+mitk::PointSet* ObtainSteelballCenters(mitk::Image* inputCtImage, double voxelThreshold, double facetNumUpperBound, double facetNumLowerBound);
+
+vtkMatrix4x4* GetMatrixCtDrfToPatientCt(mitk::PointSet* pointset_steelballsInCtDrf, mitk::Image* inputCtImage, double voxelThreshold, double facetNumUpperBound, double facetNumLowerBound);
+
+
 
 #endif // SpineCTRegistration_h
