@@ -2617,6 +2617,7 @@ void VCView::OnPushButtonApplyLandMarks()
         // here no undo is stored, because the movement-steps aren't interesting.
         // only the start and the end is interisting to store for undo.
         copyNode->GetData()->GetGeometry()->ExecuteOperation(doOp);
+		m_registSrc->GetData()->GetGeometry()->ExecuteOperation(doOp);///////test
         delete doOp;
 
         mitk::RenderingManager::GetInstance()->RequestUpdateAll();

@@ -1,0 +1,467 @@
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+// Blueberry
+#include <berryISelectionService.h>
+#include <berryIWorkbenchWindow.h>
+
+// Qmitk
+#include "MoveData.h"
+
+// Qt
+#include <QMessageBox>
+
+// mitk image
+#include <mitkImage.h>
+
+#include "mitkApplyTransformMatrixOperation.h"
+#include "mitkInteractionConst.h"
+#include "mitkNodePredicateAnd.h"
+#include "mitkNodePredicateDataType.h"
+#include "mitkNodePredicateNot.h"
+#include "mitkNodePredicateOr.h"
+#include "mitkNodePredicateProperty.h"
+#include "mitkPointSet.h"
+#include "mitkRotationOperation.h"
+#include "QmitkSingleNodeSelectionWidget.h"
+const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
+
+void MoveData::SetFocus()
+{
+	// Purposely not implemented
+}
+
+void MoveData::CreateQtPartControl(QWidget *parent)
+{
+  // create GUI widgets from the Qt Designer's .ui file
+  m_Controls.setupUi(parent);
+  InitPointSetSelector(m_Controls.mitkSelectWidget_directionPointSet);
+  connect(m_Controls.mitkSelectWidget_directionPointSet, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &MoveData::PointSetDirectionChanged);
+
+
+  connect(m_Controls.pushButton_clearMatrixContent, &QPushButton::clicked, this, &MoveData::ClearMatrixContent);
+  connect(m_Controls.pushButton_overwriteOffset, &QPushButton::clicked, this, &MoveData::OverwriteOffsetMatrix);
+  connect(m_Controls.pushButton_AppendOffsetMatrix, &QPushButton::clicked, this, &MoveData::AppendOffsetMatrix);
+
+  connect(m_Controls.pushButton_xp, &QPushButton::clicked, this, &MoveData::TranslatePlusX);
+  connect(m_Controls.pushButton_yp, &QPushButton::clicked, this, &MoveData::TranslatePlusY);
+  connect(m_Controls.pushButton_zp, &QPushButton::clicked, this, &MoveData::TranslatePlusZ);
+  connect(m_Controls.pushButton_xm, &QPushButton::clicked, this, &MoveData::TranslateMinusX);
+  connect(m_Controls.pushButton_ym, &QPushButton::clicked, this, &MoveData::TranslateMinusY);
+  connect(m_Controls.pushButton_zm, &QPushButton::clicked, this, &MoveData::TranslateMinusZ);
+  connect(m_Controls.pushButton_rxp, &QPushButton::clicked, this, &MoveData::RotatePlusX);
+  connect(m_Controls.pushButton_ryp, &QPushButton::clicked, this, &MoveData::RotatePlusY);
+  connect(m_Controls.pushButton_rzp, &QPushButton::clicked, this, &MoveData::RotatePlusZ);
+  connect(m_Controls.pushButton_rxm, &QPushButton::clicked, this, &MoveData::RotateMinusX);
+  connect(m_Controls.pushButton_rym, &QPushButton::clicked, this, &MoveData::RotateMinusY);
+  connect(m_Controls.pushButton_rzm, &QPushButton::clicked, this, &MoveData::RotateMinusZ);
+  connect(m_Controls.pushButton_translatePlus, &QPushButton::clicked, this, &MoveData::TranslatePlus);
+  connect(m_Controls.pushButton_translateMinus, &QPushButton::clicked, this, &MoveData::TranslateMinus);
+  connect(m_Controls.pushButton_RotatePlus, &QPushButton::clicked, this, &MoveData::RotatePlus);
+  connect(m_Controls.pushButton_RotateMinus, &QPushButton::clicked, this, &MoveData::RotateMinus);
+
+
+}
+
+void MoveData::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)
+{
+	widget->SetDataStorage(GetDataStorage());
+	widget->SetNodePredicate(mitk::NodePredicateAnd::New(
+		mitk::TNodePredicateDataType<mitk::PointSet>::New(),
+		mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(mitk::NodePredicateProperty::New("helper object"),
+			mitk::NodePredicateProperty::New("hidden object")))));
+
+	widget->SetSelectionIsOptional(true);
+	widget->SetAutoSelectNewNodes(true);
+	widget->SetEmptyInfo(QString("Please select a point set"));
+	widget->SetPopUpTitel(QString("Select point set"));
+}
+
+void MoveData::PointSetDirectionChanged(QmitkSingleNodeSelectionWidget::NodeList)
+{
+	m_DirectionPointset = m_Controls.mitkSelectWidget_directionPointSet->GetSelectedNode();
+}
+
+void MoveData::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes)
+{
+	std::string nodeName;
+	// iterate all selected objects, adjust warning visibility
+	foreach(mitk::DataNode::Pointer node, nodes)
+	{
+		if (node.IsNull())
+		{
+			return;
+		}
+
+		node->GetName(nodeName);
+
+		if (node != nullptr)
+		{
+			m_baseDataToMove = node->GetData();
+		}
+
+	}
+
+}
+
+void MoveData::Translate(double direction[3], double length, mitk::BaseData* data)
+{
+	if (data != nullptr)
+	{
+		// mitk::Point3D normalizedDirection;
+		double directionLength = sqrt((pow(direction[0], 2) + pow(direction[1], 2) + pow(direction[2], 2)));
+		// normalizedDirection[0] = direction[0] / directionLength;
+		// normalizedDirection[1] = direction[1] / directionLength;
+		// normalizedDirection[2] = direction[2] / directionLength;
+
+		mitk::Point3D movementVector;
+		movementVector[0] = length * direction[0] / directionLength;
+		movementVector[1] = length * direction[1] / directionLength;
+		movementVector[2] = length * direction[2] / directionLength;
+
+		auto* doOp = new mitk::PointOperation(mitk::OpMOVE, 0, movementVector, 0);
+		// execute the Operation
+		// here no undo is stored, because the movement-steps aren't interesting.
+		// only the start and the end is interesting to store for undo.
+		data->GetGeometry()->ExecuteOperation(doOp);
+		delete doOp;
+
+		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	}else
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+	}
+
+}
+
+void MoveData::Rotate(double center[3], double direction[3], double counterclockwiseDegree, mitk::BaseData* data)
+{
+	if (data != nullptr)
+	{
+		double normalizedDirection[3];
+		double directionLength = sqrt((pow(direction[0], 2) + pow(direction[1], 2) + pow(direction[2], 2)));
+		normalizedDirection[0] = direction[0] / directionLength;
+		normalizedDirection[1] = direction[1] / directionLength;
+		normalizedDirection[2] = direction[2] / directionLength;
+
+
+		mitk::Point3D rotateCenter{ center };
+		mitk::Vector3D rotateAxis{ normalizedDirection };
+		auto* doOp = new mitk::RotationOperation(mitk::OpROTATE, rotateCenter, rotateAxis, counterclockwiseDegree);
+		// execute the Operation
+		// here no undo is stored, because the movement-steps aren't interesting.
+		// only the start and the end is interesting to store for undo.
+		data->GetGeometry()->ExecuteOperation(doOp);
+		delete doOp;
+		
+		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+	}
+}
+
+void MoveData::TranslateMinusX()
+{
+	double direction[3]{ -1,0,0 };
+	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+}
+void MoveData::TranslateMinusY()
+{
+	double direction[3]{ 0,-1,0 };
+	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+}
+void MoveData::TranslateMinusZ()
+{
+	double direction[3]{ 0,0,-1 };
+	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+}
+void MoveData::TranslatePlusX()
+{
+	double direction[3]{ 11,0,0 };
+	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+}
+void MoveData::TranslatePlusY()
+{
+	double direction[3]{ 0,1,0 };
+	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+}
+void MoveData::TranslatePlusZ()
+{
+	double direction[3]{ 0,0,1 };
+	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+}
+void MoveData::RotatePlusX()
+{
+	if (m_baseDataToMove==nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+		return;
+	}
+	double direction[3]{ 1,0,0 };
+	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
+	double angle = m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
+	Rotate(center, direction, angle, m_baseDataToMove);
+}
+void MoveData::RotatePlusY()
+{
+	if (m_baseDataToMove == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+		return;
+	}
+	double direction[3]{ 0,1,0 };
+	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
+	double angle = m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
+	Rotate(center, direction, angle, m_baseDataToMove);
+}
+void MoveData::RotatePlusZ()
+{
+	if (m_baseDataToMove == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+		return;
+	}
+	double direction[3]{ 0,0,1 };
+	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
+	double angle = m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
+	Rotate(center, direction, angle, m_baseDataToMove);
+}
+void MoveData::RotateMinusX()
+{
+	if (m_baseDataToMove == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+		return;
+	}
+	double direction[3]{ 1,0,0 };
+	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
+	double angle = - m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
+	Rotate(center, direction, angle, m_baseDataToMove);
+}
+void MoveData::RotateMinusY()
+{
+	if (m_baseDataToMove == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+		return;
+	}
+	double direction[3]{ 0,1,0 };
+	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
+	double angle = - m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
+	Rotate(center, direction, angle, m_baseDataToMove);
+}
+void MoveData::RotateMinusZ()
+{
+	if (m_baseDataToMove == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+		return;
+	}
+	double direction[3]{ 0,0,1 };
+	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
+	double angle = - m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
+	Rotate(center, direction, angle, m_baseDataToMove);
+}
+
+void MoveData::OverwriteOffsetMatrix()
+{
+	if(m_baseDataToMove != nullptr)
+	{
+		m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(ObtainVtkMatrixFromUi());
+		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+	}
+	
+}
+
+void MoveData::AppendOffsetMatrix()
+{
+	if (m_baseDataToMove != nullptr)
+	{
+		auto tmpVtkTransform = vtkTransform::New();
+		tmpVtkTransform->PostMultiply();
+		tmpVtkTransform->Identity();
+		tmpVtkTransform->SetMatrix(m_baseDataToMove->GetGeometry()->GetVtkMatrix());
+		tmpVtkTransform->Concatenate(ObtainVtkMatrixFromUi());
+
+		m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkTransform->GetMatrix());
+		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+	}
+
+}
+
+void MoveData::TranslatePlus()
+{
+	if(m_DirectionPointset != nullptr)
+	{
+		auto tmpPointset = dynamic_cast<mitk::PointSet *> (m_DirectionPointset->GetData());
+		double direction[3]
+		{
+			tmpPointset->GetPoint(1,0)[0] - tmpPointset->GetPoint(0,0)[0],
+			tmpPointset->GetPoint(1,0)[1] - tmpPointset->GetPoint(0,0)[1],
+			tmpPointset->GetPoint(1,0)[2] - tmpPointset->GetPoint(0,0)[2]
+		};
+
+		Translate(direction, m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+
+	}else
+	{
+		m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+	}
+}
+
+void MoveData::TranslateMinus()
+{
+	if (m_DirectionPointset != nullptr)
+	{
+		auto tmpPointset = dynamic_cast<mitk::PointSet*> (m_DirectionPointset->GetData());
+		double direction[3]
+		{
+			tmpPointset->GetPoint(1,0)[0] - tmpPointset->GetPoint(0,0)[0],
+			tmpPointset->GetPoint(1,0)[1] - tmpPointset->GetPoint(0,0)[1],
+			tmpPointset->GetPoint(1,0)[2] - tmpPointset->GetPoint(0,0)[2]
+		};
+
+		Translate(direction, - m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+	}
+}
+
+void MoveData::RotatePlus()
+{
+	if (m_DirectionPointset != nullptr)
+	{
+		if (m_baseDataToMove == nullptr)
+		{
+			m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+			return;
+		}
+		auto tmpPointset = dynamic_cast<mitk::PointSet*> (m_DirectionPointset->GetData());
+		double direction[3]
+		{
+			tmpPointset->GetPoint(1,0)[0] - tmpPointset->GetPoint(0,0)[0],
+			tmpPointset->GetPoint(1,0)[1] - tmpPointset->GetPoint(0,0)[1],
+			tmpPointset->GetPoint(1,0)[2] - tmpPointset->GetPoint(0,0)[2]
+		};
+
+		double center[3]
+		{
+			tmpPointset->GetPoint(1,0)[0],
+			tmpPointset->GetPoint(1,0)[1],
+			tmpPointset->GetPoint(1,0)[2],
+
+		};
+
+		Rotate(center, direction, m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+	}
+}
+
+void MoveData::RotateMinus()
+{
+	if (m_DirectionPointset != nullptr)
+	{
+		if (m_baseDataToMove == nullptr)
+		{
+			m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+			return;
+		}
+		auto tmpPointset = dynamic_cast<mitk::PointSet*> (m_DirectionPointset->GetData());
+		double direction[3]
+		{
+			tmpPointset->GetPoint(1,0)[0] - tmpPointset->GetPoint(0,0)[0],
+			tmpPointset->GetPoint(1,0)[1] - tmpPointset->GetPoint(0,0)[1],
+			tmpPointset->GetPoint(1,0)[2] - tmpPointset->GetPoint(0,0)[2]
+		};
+
+		double center[3]
+		{
+			tmpPointset->GetPoint(1,0)[0],
+			tmpPointset->GetPoint(1,0)[1],
+			tmpPointset->GetPoint(1,0)[2],
+
+		};
+
+		Rotate(center, direction, - m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+	}
+}
+
+void MoveData::ClearMatrixContent(){
+	m_Controls.lineEdit_offsetMatrix_0->setText(QString::number(1));
+	m_Controls.lineEdit_offsetMatrix_1->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_2->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_3->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_4->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_5->setText(QString::number(1));
+	m_Controls.lineEdit_offsetMatrix_6->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_7->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_8->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_9->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_10->setText(QString::number(1));
+	m_Controls.lineEdit_offsetMatrix_11->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_12->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_13->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_14->setText(QString::number(0));
+	m_Controls.lineEdit_offsetMatrix_15->setText(QString::number(1));
+}
+
+
+
+vtkMatrix4x4* MoveData::ObtainVtkMatrixFromUi()
+	{
+	auto tmpMatrix = vtkMatrix4x4::New();
+
+	tmpMatrix->SetElement(0, 0, m_Controls.lineEdit_offsetMatrix_0->text().toDouble());
+	tmpMatrix->SetElement(1, 0, m_Controls.lineEdit_offsetMatrix_1->text().toDouble());
+	tmpMatrix->SetElement(2, 0, m_Controls.lineEdit_offsetMatrix_2->text().toDouble());
+	tmpMatrix->SetElement(3, 0, m_Controls.lineEdit_offsetMatrix_3->text().toDouble());
+	tmpMatrix->SetElement(0, 1, m_Controls.lineEdit_offsetMatrix_4->text().toDouble());
+	tmpMatrix->SetElement(1, 1, m_Controls.lineEdit_offsetMatrix_5->text().toDouble());
+	tmpMatrix->SetElement(2, 1, m_Controls.lineEdit_offsetMatrix_6->text().toDouble());
+	tmpMatrix->SetElement(3, 1, m_Controls.lineEdit_offsetMatrix_7->text().toDouble());
+	tmpMatrix->SetElement(0, 2, m_Controls.lineEdit_offsetMatrix_8->text().toDouble());
+	tmpMatrix->SetElement(1, 2, m_Controls.lineEdit_offsetMatrix_9->text().toDouble());
+	tmpMatrix->SetElement(2, 2, m_Controls.lineEdit_offsetMatrix_10->text().toDouble());
+	tmpMatrix->SetElement(3, 2, m_Controls.lineEdit_offsetMatrix_11->text().toDouble());
+	tmpMatrix->SetElement(0, 3, m_Controls.lineEdit_offsetMatrix_12->text().toDouble());
+	tmpMatrix->SetElement(1, 3, m_Controls.lineEdit_offsetMatrix_13->text().toDouble());
+	tmpMatrix->SetElement(2, 3, m_Controls.lineEdit_offsetMatrix_14->text().toDouble());
+	tmpMatrix->SetElement(3, 3, m_Controls.lineEdit_offsetMatrix_15->text().toDouble());
+
+	return tmpMatrix;
+}
+
+
+
