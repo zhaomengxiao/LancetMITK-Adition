@@ -52,13 +52,26 @@ protected:
 
 
   // Variables
-	//node op
+	
   mitk::BaseData* m_baseDataToMove{ nullptr };
   mitk::DataNode* m_DirectionPointset{ nullptr };
+  mitk::DataNode* m_LandmarkSourcePointset{ nullptr };
+  mitk::DataNode* m_LandmarkTargetPointset{ nullptr };
+  mitk::DataNode* m_IcpTargetPointset{ nullptr };
+  mitk::DataNode* m_IcpSourceSurface{ nullptr };
+  mitk::DataNode* m_MovingObject{ nullptr };
+  Eigen::Matrix4d m_eigenMatrixTmpRegistrationResult;
 
 	// slots
   void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
+  void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
+  void InitNodeSelector(QmitkSingleNodeSelectionWidget* widget);
   void PointSetDirectionChanged(QmitkSingleNodeSelectionWidget::NodeList);
+  void PointSetLandmarkSourceChanged(QmitkSingleNodeSelectionWidget::NodeList);
+  void PointSetLandmarkTargetChanged(QmitkSingleNodeSelectionWidget::NodeList);
+  void PointSetIcpTargetChanged(QmitkSingleNodeSelectionWidget::NodeList);
+  void SurfaceIcpSourceChanged(QmitkSingleNodeSelectionWidget::NodeList);
+  void MovingObjectChanged(QmitkSingleNodeSelectionWidget::NodeList);
 
 	// Toolset 1 (Intuitive)
   void Translate(double direction[3], double length, mitk::BaseData* data);
@@ -87,9 +100,14 @@ protected:
   void OverwriteOffsetMatrix();
   void AppendOffsetMatrix();
   vtkMatrix4x4* ObtainVtkMatrixFromUi();
+  void RealignImage(); //Realign the image and the rendering window coordinate systems (keep the spacing)
 
-  //Realign the image and the rendering window coordinate systems (keep the spacing)
-  void RealignImage();
+  // Toolset 3 (SurfaceRegistration)
+  void UpdateUiRegistrationMatrix();
+  void LandmarkRegistration();
+  void IcpRegistration();
+  vtkMatrix4x4* ObtainVtkMatrixFromRegistrationUi();
+  void AppendRegistrationMatrix();
 
 
 };

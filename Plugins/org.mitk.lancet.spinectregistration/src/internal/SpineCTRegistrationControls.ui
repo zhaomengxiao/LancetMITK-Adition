@@ -37,7 +37,7 @@
    <item row="1" column="0" colspan="2">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -480,20 +480,6 @@
        <string>IGT DEMO</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_19">
-         <property name="text">
-          <string>G_patientCT_CTdrf_matrix requirements:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QPushButton" name="pushButton_DEMO_extractballs">
-         <property name="text">
-          <string>Extract steelballs</string>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_10">
          <item>
@@ -511,6 +497,20 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item row="4" column="0">
+        <widget class="QPushButton" name="pushButton_DEMO_registration">
+         <property name="text">
+          <string>Get G_patientCT_CTdrf_matrix and set CTdrf as the rendering window coordinate</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_19">
+         <property name="text">
+          <string>G_patientCT_CTdrf_matrix requirements:</string>
+         </property>
+        </widget>
        </item>
        <item row="3" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_11">
@@ -530,7 +530,14 @@
          </item>
         </layout>
        </item>
-       <item row="6" column="0">
+       <item row="1" column="0">
+        <widget class="QPushButton" name="pushButton_DEMO_extractballs">
+         <property name="text">
+          <string>Extract steelballs</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -542,16 +549,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item row="4" column="0">
-        <widget class="QPushButton" name="pushButton_DEMO_registration">
-         <property name="text">
-          <string>Get G_patientCT_CTdrf_matrix</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QTextBrowser" name="textBrowser_DEMOigt"/>
        </item>
       </layout>
      </widget>

@@ -33,7 +33,9 @@ found in the LICENSE file.
 #include "mitkNodePredicateProperty.h"
 #include "mitkPointSet.h"
 #include "mitkRotationOperation.h"
+#include "mitkSurface.h"
 #include "QmitkSingleNodeSelectionWidget.h"
+#include "surfaceregistraion.h"
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
 
 void MoveData::SetFocus()
@@ -46,7 +48,18 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
   InitPointSetSelector(m_Controls.mitkSelectWidget_directionPointSet);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_LandmarkSrcPointset);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_LandmarkTargetPointset);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_IcpTargetPointset);
+  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_IcpSrcSurface);
+  InitNodeSelector(m_Controls.mitkNodeSelectWidget_MovingObject);
+
   connect(m_Controls.mitkSelectWidget_directionPointSet, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &MoveData::PointSetDirectionChanged);
+  connect(m_Controls.mitkNodeSelectWidget_LandmarkSrcPointset, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &MoveData::PointSetLandmarkTargetChanged);
+  connect(m_Controls.mitkNodeSelectWidget_LandmarkTargetPointset, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &MoveData::PointSetLandmarkSourceChanged);
+  connect(m_Controls.mitkNodeSelectWidget_IcpTargetPointset, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &MoveData::PointSetIcpTargetChanged);
+  connect(m_Controls.mitkNodeSelectWidget_IcpSrcSurface, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &MoveData::SurfaceIcpSourceChanged);
+  connect(m_Controls.mitkNodeSelectWidget_MovingObject, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &MoveData::SurfaceIcpSourceChanged);
 
 
   connect(m_Controls.pushButton_clearMatrixContent, &QPushButton::clicked, this, &MoveData::ClearMatrixContent);
@@ -70,6 +83,10 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_RotatePlus, &QPushButton::clicked, this, &MoveData::RotatePlus);
   connect(m_Controls.pushButton_RotateMinus, &QPushButton::clicked, this, &MoveData::RotateMinus);
   connect(m_Controls.pushButton_RealignImage, &QPushButton::clicked, this, &MoveData::RealignImage);
+  connect(m_Controls.pushButton_Landmark, &QPushButton::clicked, this, &MoveData::LandmarkRegistration);
+  connect(m_Controls.pushButton_ApplyRegistrationMatrix, &QPushButton::clicked, this, &MoveData::AppendRegistrationMatrix);
+  connect(m_Controls.pushButton_Icp, &QPushButton::clicked, this, &MoveData::IcpRegistration);
+  
 
 }
 
@@ -87,10 +104,58 @@ void MoveData::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)
 	widget->SetPopUpTitel(QString("Select point set"));
 }
 
+void MoveData::InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget)
+{
+	widget->SetDataStorage(GetDataStorage());
+	widget->SetNodePredicate(mitk::NodePredicateAnd::New(
+		mitk::TNodePredicateDataType<mitk::Surface>::New(),
+		mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(mitk::NodePredicateProperty::New("helper object"),
+			mitk::NodePredicateProperty::New("hidden object")))));
+
+	widget->SetSelectionIsOptional(true);
+	widget->SetAutoSelectNewNodes(true);
+	widget->SetEmptyInfo(QString("Please select a surface"));
+	widget->SetPopUpTitel(QString("Select surface"));
+}
+
+void MoveData::InitNodeSelector(QmitkSingleNodeSelectionWidget* widget)
+{
+	widget->SetDataStorage(GetDataStorage());
+	widget->SetNodePredicate(mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(
+		mitk::NodePredicateProperty::New("helper object"), mitk::NodePredicateProperty::New("hidden object"))));
+	widget->SetSelectionIsOptional(true);
+	widget->SetAutoSelectNewNodes(true);
+	widget->SetEmptyInfo(QString("Please select a node"));
+	widget->SetPopUpTitel(QString("Select node"));
+}
+
 void MoveData::PointSetDirectionChanged(QmitkSingleNodeSelectionWidget::NodeList)
 {
 	m_DirectionPointset = m_Controls.mitkSelectWidget_directionPointSet->GetSelectedNode();
 }
+void MoveData::PointSetLandmarkSourceChanged(QmitkSingleNodeSelectionWidget::NodeList)
+{
+	m_LandmarkSourcePointset = m_Controls.mitkNodeSelectWidget_LandmarkSrcPointset->GetSelectedNode();
+}
+void MoveData::PointSetLandmarkTargetChanged(QmitkSingleNodeSelectionWidget::NodeList)
+{
+	m_LandmarkTargetPointset = m_Controls.mitkNodeSelectWidget_LandmarkTargetPointset->GetSelectedNode();
+}
+void MoveData::PointSetIcpTargetChanged(QmitkSingleNodeSelectionWidget::NodeList)
+{
+	m_IcpTargetPointset = m_Controls.mitkNodeSelectWidget_IcpTargetPointset->GetSelectedNode();
+}
+void MoveData::SurfaceIcpSourceChanged(QmitkSingleNodeSelectionWidget::NodeList)
+{
+	m_IcpSourceSurface = m_Controls.mitkNodeSelectWidget_IcpSrcSurface->GetSelectedNode();
+}
+void MoveData::MovingObjectChanged(QmitkSingleNodeSelectionWidget::NodeList)
+{
+	m_MovingObject = m_Controls.mitkNodeSelectWidget_MovingObject->GetSelectedNode();
+}
+
+
+
 
 void MoveData::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, const QList<mitk::DataNode::Pointer>& nodes)
 {
@@ -302,18 +367,7 @@ void MoveData::AppendOffsetMatrix()
 		m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkTransform->GetMatrix());
 		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
-
-		// test VTK deepCopy function
-		// auto tmpVtkMatrix = vtkMatrix4x4::New();
-		// tmpVtkMatrix = tmpVtkTransform->GetMatrix();
-		// double* array0 = tmpVtkMatrix->GetData();
-		// MITK_INFO << "array0: "<<array0[0]<<array0[1]<<array0[2];
-		//
-		// tmpVtkMatrix->DeepCopy(array0);
-		// double* array1 = tmpVtkMatrix->GetData();
-		// MITK_INFO << "array1: " << array1[0] << array1[1] << array1[2];
-
-
+		
 	}
 	else
 	{
@@ -504,4 +558,141 @@ vtkMatrix4x4* MoveData::ObtainVtkMatrixFromUi()
 }
 
 
+void MoveData::UpdateUiRegistrationMatrix()
+{
+	m_Controls.lineEdit_RegistrationMatrix_0->setText(QString::number(m_eigenMatrixTmpRegistrationResult(0)));
+	m_Controls.lineEdit_RegistrationMatrix_1->setText(QString::number(m_eigenMatrixTmpRegistrationResult(1)));
+	m_Controls.lineEdit_RegistrationMatrix_2->setText(QString::number(m_eigenMatrixTmpRegistrationResult(2)));
+	m_Controls.lineEdit_RegistrationMatrix_3->setText(QString::number(m_eigenMatrixTmpRegistrationResult(3)));
+	m_Controls.lineEdit_RegistrationMatrix_4->setText(QString::number(m_eigenMatrixTmpRegistrationResult(4)));
+	m_Controls.lineEdit_RegistrationMatrix_5->setText(QString::number(m_eigenMatrixTmpRegistrationResult(5)));
+	m_Controls.lineEdit_RegistrationMatrix_6->setText(QString::number(m_eigenMatrixTmpRegistrationResult(6)));
+	m_Controls.lineEdit_RegistrationMatrix_7->setText(QString::number(m_eigenMatrixTmpRegistrationResult(7)));
+	m_Controls.lineEdit_RegistrationMatrix_8->setText(QString::number(m_eigenMatrixTmpRegistrationResult(8)));
+	m_Controls.lineEdit_RegistrationMatrix_9->setText(QString::number(m_eigenMatrixTmpRegistrationResult(9)));
+	m_Controls.lineEdit_RegistrationMatrix_10->setText(QString::number(m_eigenMatrixTmpRegistrationResult(10)));
+	m_Controls.lineEdit_RegistrationMatrix_11->setText(QString::number(m_eigenMatrixTmpRegistrationResult(11)));
+	m_Controls.lineEdit_RegistrationMatrix_12->setText(QString::number(m_eigenMatrixTmpRegistrationResult(12)));
+	m_Controls.lineEdit_RegistrationMatrix_13->setText(QString::number(m_eigenMatrixTmpRegistrationResult(13)));
+	m_Controls.lineEdit_RegistrationMatrix_14->setText(QString::number(m_eigenMatrixTmpRegistrationResult(14)));
+	m_Controls.lineEdit_RegistrationMatrix_15->setText(QString::number(m_eigenMatrixTmpRegistrationResult(15)));
+}
+
+void MoveData::LandmarkRegistration()
+{
+	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
+	m_LandmarkSourcePointset = m_Controls.mitkNodeSelectWidget_LandmarkSrcPointset->GetSelectedNode();
+	m_LandmarkTargetPointset = m_Controls.mitkNodeSelectWidget_LandmarkTargetPointset->GetSelectedNode();
+
+
+	MITK_INFO << "Proceeding Landmark registration";
+	if (m_LandmarkSourcePointset != nullptr && m_LandmarkTargetPointset != nullptr)
+	{
+		auto sourcePointset = dynamic_cast<mitk::PointSet*>(m_LandmarkSourcePointset->GetData());
+		auto targetPointset = dynamic_cast<mitk::PointSet*>(m_LandmarkTargetPointset->GetData());
+		landmarkRegistrator->SetLandmarksSrc(sourcePointset);
+		landmarkRegistrator->SetLandmarksTarget(targetPointset);
+		landmarkRegistrator->ComputeLandMarkResult();
+
+		Eigen::Matrix4d tmpRegistrationResult{ landmarkRegistrator->GetResult()->GetData() };
+		tmpRegistrationResult.transposeInPlace();
+		m_eigenMatrixTmpRegistrationResult = tmpRegistrationResult;
+		MITK_INFO << m_eigenMatrixTmpRegistrationResult;
+		UpdateUiRegistrationMatrix();
+	}else
+	{
+		m_Controls.textBrowser_moveData->append("Landmark source or target are is not ready");
+	}
+
+	std::ostringstream os;
+	landmarkRegistrator->GetResult()->Print(os);
+
+	m_Controls.textBrowser_moveData->append("-------------Start landmark registration----------");
+	m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
+}
+
+vtkMatrix4x4* MoveData::ObtainVtkMatrixFromRegistrationUi()
+{
+	auto tmpMatrix = vtkMatrix4x4::New();
+
+	tmpMatrix->SetElement(0, 0, m_Controls.lineEdit_RegistrationMatrix_0->text().toDouble());
+	tmpMatrix->SetElement(1, 0, m_Controls.lineEdit_RegistrationMatrix_1->text().toDouble());
+	tmpMatrix->SetElement(2, 0, m_Controls.lineEdit_RegistrationMatrix_2->text().toDouble());
+	tmpMatrix->SetElement(3, 0, m_Controls.lineEdit_RegistrationMatrix_3->text().toDouble());
+	tmpMatrix->SetElement(0, 1, m_Controls.lineEdit_RegistrationMatrix_4->text().toDouble());
+	tmpMatrix->SetElement(1, 1, m_Controls.lineEdit_RegistrationMatrix_5->text().toDouble());
+	tmpMatrix->SetElement(2, 1, m_Controls.lineEdit_RegistrationMatrix_6->text().toDouble());
+	tmpMatrix->SetElement(3, 1, m_Controls.lineEdit_RegistrationMatrix_7->text().toDouble());
+	tmpMatrix->SetElement(0, 2, m_Controls.lineEdit_RegistrationMatrix_8->text().toDouble());
+	tmpMatrix->SetElement(1, 2, m_Controls.lineEdit_RegistrationMatrix_9->text().toDouble());
+	tmpMatrix->SetElement(2, 2, m_Controls.lineEdit_RegistrationMatrix_10->text().toDouble());
+	tmpMatrix->SetElement(3, 2, m_Controls.lineEdit_RegistrationMatrix_11->text().toDouble());
+	tmpMatrix->SetElement(0, 3, m_Controls.lineEdit_RegistrationMatrix_12->text().toDouble());
+	tmpMatrix->SetElement(1, 3, m_Controls.lineEdit_RegistrationMatrix_13->text().toDouble());
+	tmpMatrix->SetElement(2, 3, m_Controls.lineEdit_RegistrationMatrix_14->text().toDouble());
+	tmpMatrix->SetElement(3, 3, m_Controls.lineEdit_RegistrationMatrix_15->text().toDouble());
+
+	return tmpMatrix;
+}
+
+
+void MoveData::AppendRegistrationMatrix()
+{
+	m_MovingObject = m_Controls.mitkNodeSelectWidget_MovingObject->GetSelectedNode();
+
+	if (m_MovingObject != nullptr)
+	{
+		auto tmpVtkTransform = vtkTransform::New();
+		tmpVtkTransform->PostMultiply();
+		tmpVtkTransform->Identity();
+		tmpVtkTransform->SetMatrix(m_MovingObject->GetData()->GetGeometry()->GetVtkMatrix());
+		tmpVtkTransform->Concatenate(ObtainVtkMatrixFromRegistrationUi());
+
+		m_MovingObject->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkTransform->GetMatrix());
+		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("Moving object is empty ~~");
+	}
+}
+
+
+void MoveData::IcpRegistration()
+{
+	auto icpRegistrator = mitk::SurfaceRegistration::New();
+
+	m_IcpSourceSurface = m_Controls.mitkNodeSelectWidget_IcpSrcSurface->GetSelectedNode();
+	m_IcpTargetPointset = m_Controls.mitkNodeSelectWidget_IcpTargetPointset->GetSelectedNode();
+
+	MITK_INFO << "Proceedinng ICP registration";
+
+	if (m_IcpSourceSurface != nullptr && m_IcpTargetPointset != nullptr)
+	{
+		auto icpTargetPointset = dynamic_cast<mitk::PointSet*>(m_IcpTargetPointset->GetData());
+		auto icpSrcSurface = dynamic_cast<mitk::Surface*>(m_IcpSourceSurface->GetData());
+		icpRegistrator->SetIcpPoints(icpTargetPointset);
+		icpRegistrator->SetSurfaceSrc(icpSrcSurface);
+		icpRegistrator->ComputeIcpResult();
+
+		Eigen::Matrix4d tmpRegistrationResult{ icpRegistrator->GetResult()->GetData() };
+		tmpRegistrationResult.transposeInPlace();
+
+		m_eigenMatrixTmpRegistrationResult = tmpRegistrationResult;
+		MITK_INFO << m_eigenMatrixTmpRegistrationResult;
+
+		UpdateUiRegistrationMatrix();
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("Icp source or target are is not ready");
+	}
+
+	std::ostringstream os;
+	icpRegistrator->GetResult()->Print(os);
+	m_Controls.textBrowser_moveData->append("-------------Start ICP registration----------");
+	m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
+};
 

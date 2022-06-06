@@ -74,9 +74,6 @@ protected:
   // Coarse reconstruction of the vertebrae
   void ReconstructSpineSurface();
 
-  // // Reset the origin of an mitk::Image to (0, 0, 0), realign the image's axes to the standard xyz axes
-  // void ResetImage();
-
   // Landmark registration (pointset to pointset)
   void LandmarkRegistration();
 
@@ -92,16 +89,12 @@ protected:
 
 
 
-  // DEMO Spine IGT in MITK
-  // double * m_G_NDIcamera_CTdrf_matrix[16];
-  // double * m_G_NDIcamera_trackingDRF_matrix[16];
-	// double * m_G_NDIcamera_tool_matrix[16];
+ 
 
   double* m_G_renderWindow_patientCT_matrix = nullptr; // the image must be named as "Patient_CT"
   double* m_G_patientCT_CTdrf_matrix = nullptr;
 
- // Get m_G_patientCT_CTdrf_matrix, and move patientCT, so that F_tracking_DRF becomes the rendering window coordinate system
-  void DEMOregistration();
+   void DEMOregistration();
   
   mitk::DataNode* m_DEMO_Pointset_extractedballs;
 
@@ -111,11 +104,22 @@ protected:
 };
 
 
-// Software functions
+// Test function for software-algorithm integration
 
-mitk::PointSet* ObtainSteelballCenters(mitk::Image* inputCtImage, double voxelThreshold, double facetNumUpperBound, double facetNumLowerBound);
+// The transformation matrix between the following 3 coordinate systems are fixed:
+	// - The MITK rendering window
+	// - The CT image (contains the steelballs)
+	// - The CT DRF (contains both steelballs and optical markers)
+// We hope to draw any other NDI tool in the MITK rendering window using its relative location to the CT DRF 
+// This function calculated the coordinate system transformation array (MITK rendering window --> any other tool)
+// This calculated array can be assigned to a vtkMatrix4X4 by "DeepCopy()" function
+// Note: If the "any other tool" is the tracking DRF, whose coordinate system is also fixed within the CT image frame,
+// then the CT DRF can be removed after the transformation between the tracking DRF and the MITK rendering window is calculated.  
+// The calculated array can be used to further get the transformation between a "new tool (e.g., a guided hand drill)" and the MITK rendering window.
+double* GetMatrixAnyToolDrfToRenderingWindow(mitk::PointSet* standardSteelballCenters /*from hardware design*/, mitk::Image* inputCtImage /*should contain steelballs*/, double voxelThreshold /*steelball: 3000*/,
+	double facetNumUpperBound /*1440*/, double facetNumLowerBound /*500*/, double arrayNdiCtDrf[16] /*NDI data*/,
+	double arrayNdiTrackingDrf[16] /*NDI data*/);
 
-vtkMatrix4x4* GetMatrixCtDrfToPatientCt(mitk::PointSet* pointset_steelballsInCtDrf, mitk::Image* inputCtImage, double voxelThreshold, double facetNumUpperBound, double facetNumLowerBound);
 
 
 
