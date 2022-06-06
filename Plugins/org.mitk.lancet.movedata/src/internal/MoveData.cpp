@@ -69,7 +69,7 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_translateMinus, &QPushButton::clicked, this, &MoveData::TranslateMinus);
   connect(m_Controls.pushButton_RotatePlus, &QPushButton::clicked, this, &MoveData::RotatePlus);
   connect(m_Controls.pushButton_RotateMinus, &QPushButton::clicked, this, &MoveData::RotateMinus);
-
+  connect(m_Controls.pushButton_RealignImage, &QPushButton::clicked, this, &MoveData::RealignImage);
 
 }
 
@@ -301,6 +301,19 @@ void MoveData::AppendOffsetMatrix()
 
 		m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkTransform->GetMatrix());
 		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+
+		// test VTK deepCopy function
+		// auto tmpVtkMatrix = vtkMatrix4x4::New();
+		// tmpVtkMatrix = tmpVtkTransform->GetMatrix();
+		// double* array0 = tmpVtkMatrix->GetData();
+		// MITK_INFO << "array0: "<<array0[0]<<array0[1]<<array0[2];
+		//
+		// tmpVtkMatrix->DeepCopy(array0);
+		// double* array1 = tmpVtkMatrix->GetData();
+		// MITK_INFO << "array1: " << array1[0] << array1[1] << array1[2];
+
+
 	}
 	else
 	{
@@ -417,6 +430,33 @@ void MoveData::RotateMinus()
 		m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
 	}
 }
+
+
+void MoveData::RealignImage()
+{
+	if(m_baseDataToMove != nullptr)
+	{
+
+		// Align the image's axes to the standard xyz axes
+		auto tmpVtkTransform = vtkSmartPointer<vtkTransform>::New();
+		vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+		tmpVtkTransform->Identity();
+		tmpVtkTransform->GetMatrix(tmpVtkMatrix);
+
+		m_baseDataToMove->GetGeometry(0)->SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(tmpVtkMatrix);
+		// SetIndexToWorldTransformByVtkMatrix(tmpVtkMatrix) will set the spacing as (1, 1, 1),
+		// because the spacing is determined by the matrix diagonal.
+		  // So SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(tmpVtkMatrix) which keep the spacing regardless of the
+		  // input matrix
+
+		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	}else
+	{
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+	}
+}
+
 
 void MoveData::ClearMatrixContent(){
 	m_Controls.lineEdit_offsetMatrix_0->setText(QString::number(1));

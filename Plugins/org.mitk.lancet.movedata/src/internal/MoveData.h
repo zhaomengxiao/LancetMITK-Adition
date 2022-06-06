@@ -60,7 +60,7 @@ protected:
   void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
   void PointSetDirectionChanged(QmitkSingleNodeSelectionWidget::NodeList);
 
-	// Toolset 1
+	// Toolset 1 (Intuitive)
   void Translate(double direction[3], double length, mitk::BaseData* data);
   void Rotate(double center[3], double direction[3], double counterclockwiseDegree, mitk::BaseData* data);
   void TranslatePlusX();
@@ -82,13 +82,14 @@ protected:
   void RotateMinus();
 
 
-  // Toolset 2 
+  // Toolset 2 (Matrix)
   void ClearMatrixContent();
   void OverwriteOffsetMatrix();
   void AppendOffsetMatrix();
   vtkMatrix4x4* ObtainVtkMatrixFromUi();
 
-
+  //Realign the image and the rendering window coordinate systems (keep the spacing)
+  void RealignImage();
 
 
 };
