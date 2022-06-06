@@ -29,7 +29,7 @@
       <item row="0" column="0">
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>2</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -130,7 +130,7 @@
                <item>
                 <widget class="QLabel" name="label">
                  <property name="text">
-                  <string>2-element poinset as the direction: </string>
+                  <string>2-element poinset as the direction / rotation axis: </string>
                  </property>
                 </widget>
                </item>
