@@ -214,6 +214,11 @@ void SpineCTRegistration::GetSteelballCenters()
   // add new node
   nodeSortedSteelballCenters->SetData(mitkSortedSingleSteelballCenterPointset);
   GetDataStorage()->Add(nodeSortedSteelballCenters);
+
+
+
+	
+
 }
 
 

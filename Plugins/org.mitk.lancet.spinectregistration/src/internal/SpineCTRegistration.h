@@ -74,8 +74,8 @@ protected:
   // Coarse reconstruction of the vertebrae
   void ReconstructSpineSurface();
 
-  // Reset the origin of an mitk::Image to (0, 0, 0), realign the image's axes to the standard xyz axes
-  void ResetImage();
+  // // Reset the origin of an mitk::Image to (0, 0, 0), realign the image's axes to the standard xyz axes
+  // void ResetImage();
 
   // Landmark registration (pointset to pointset)
   void LandmarkRegistration();

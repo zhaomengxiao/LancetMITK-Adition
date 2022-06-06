@@ -97,7 +97,7 @@ void SpineCTRegistration::CreateQtPartControl(QWidget *parent)
 	  this,
 	  &SpineCTRegistration::ChangeDEMO_Pointset_stlballs);
 
-  connect(m_Controls.pushButton_ResetImageOrigin, &QPushButton::clicked, this, &SpineCTRegistration::ResetImage);
+  // connect(m_Controls.pushButton_ResetImageOrigin, &QPushButton::clicked, this, &SpineCTRegistration::ResetImage);
 
   connect(m_Controls.pushButton_Landmark, &QPushButton::clicked, this, &SpineCTRegistration::LandmarkRegistration);
 

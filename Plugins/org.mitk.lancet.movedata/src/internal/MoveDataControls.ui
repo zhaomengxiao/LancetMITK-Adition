@@ -29,7 +29,7 @@
       <item row="0" column="0">
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>2</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -303,7 +303,7 @@
           <string>Matrix</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_6">
-          <item row="0" column="0">
+          <item row="1" column="0">
            <widget class="QGroupBox" name="groupBox_5">
             <property name="title">
              <string>Offset matrix to append (postmultiply) or overwirte (set as current offset matrix):</string>
@@ -484,6 +484,13 @@
               </layout>
              </item>
             </layout>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="pushButton_RealignImage">
+            <property name="text">
+             <string>Realign the image and the rendering window coordinate systems (keep the spacing)</string>
+            </property>
            </widget>
           </item>
          </layout>
