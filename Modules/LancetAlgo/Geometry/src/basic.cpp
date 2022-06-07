@@ -333,4 +333,36 @@ namespace lancetAlgorithm
 			return angle;
 		}
 	}
+
+	bool GetLinePlaneIntersection(double intersectionPoint[3], const double linePoint0[3], const double linePoint1[3], const double planePoint[3], const double planeNormal[3])
+	{
+		double vp1, vp2, vp3, n1, n2, n3, v1, v2, v3, m1, m2, m3, t, vpt;
+		vp1 = planeNormal[0];
+		vp2 = planeNormal[1];
+		vp3 = planeNormal[2];
+		n1 = planePoint[0];
+		n2 = planePoint[1];
+		n3 = planePoint[2];
+		v1 = linePoint0[0] - linePoint1[0];
+		v2 = linePoint0[1] - linePoint1[1];
+		v3 = linePoint0[2] - linePoint1[2];
+		m1 = linePoint0[0];
+		m2 = linePoint0[1];
+		m3 = linePoint0[2];
+		vpt = v1 * vp1 + v2 * vp2 + v3 * vp3;
+
+		if(vpt == 0)
+		{
+			return false;
+		}
+
+		t = ((n1 - m1) * vp1 + (n2 - m2) * vp2 + (n3 - m3) * vp3) / vpt;
+		intersectionPoint[0] = m1 + v1 * t;
+		intersectionPoint[1] = m2 + v2 * t;
+		intersectionPoint[2] = m3 + v3 * t;
+		return true;
+
+	}
+
+
 }

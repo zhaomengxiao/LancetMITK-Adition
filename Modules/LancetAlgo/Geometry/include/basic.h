@@ -119,6 +119,19 @@ namespace lancetAlgorithm
 	void projectToPlane(const double x[3], const double origin[3], const double normal[3], double xproj[3]);
 
 	/**
+	 * compute the intersection point of a line and a plane
+	 * return false if there is no intersection 
+	 *
+	 * @param linePoint0 [Input] One point on the line.
+	 * @param linePoint1 [Input] Another point on the line.
+	 * @param planePoint [Input] One point on the plane.
+	 * @param planeNormal [Input] The plane normal (don't need to be normalized)
+	 * @param intersectionPoint [Output] The intersection point
+	 */
+	bool GetLinePlaneIntersection(double intersectionPoint[3], const double linePoint0[3], const double linePoint1[3], const double planePoint[3], const double planeNormal[3]);
+
+
+	/**
 	 * compute if a point is on a ray within tolerance
 	 *
 	 * @param point  [Input] The coordinates of the x point.
@@ -143,6 +156,7 @@ namespace lancetAlgorithm
 	void CommonVerticalVector(const double vec1[3], const double vec2[3], double vertical_vec[3]);
 
 	bool IsSameDirection(const double vec1[3], const double vec2[3]);
+
 
 	//void RotateVectorToPlane(const double vec[3], const double rotateAxis[3], const double offsetAxis[3], double output[3]);
 }
