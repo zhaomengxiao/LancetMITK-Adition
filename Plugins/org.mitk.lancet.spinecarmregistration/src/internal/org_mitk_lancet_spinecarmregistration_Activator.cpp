@@ -11,15 +11,15 @@ found in the LICENSE file.
 ============================================================================*/
 
 
-#include "org_mitk_lancet_spinectregistration_Activator.h"
-#include "SpineCTRegistration.h"
+#include "org_mitk_lancet_spinecarmregistration_Activator.h"
+#include "SpineCArmRegistration.h"
 
 namespace mitk
 {
-  void org_mitk_lancet_spinectregistration_Activator::start(ctkPluginContext *context)
+  void org_mitk_lancet_spinecarmregistration_Activator::start(ctkPluginContext *context)
   {
-    BERRY_REGISTER_EXTENSION_CLASS(SpineCTRegistration, context)
+    BERRY_REGISTER_EXTENSION_CLASS(SpineCArmRegistration, context)
   }
 
-  void org_mitk_lancet_spinectregistration_Activator::stop(ctkPluginContext *context) { Q_UNUSED(context) }
+  void org_mitk_lancet_spinecarmregistration_Activator::stop(ctkPluginContext *context) { Q_UNUSED(context) }
 }

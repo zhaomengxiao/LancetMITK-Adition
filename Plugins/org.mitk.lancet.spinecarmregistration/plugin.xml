@@ -2,9 +2,9 @@
 <plugin>
 
   <extension point="org.blueberry.ui.views">
-    <view id="org.mitk.views.spinectregistration"
-          name="Spine CT Registration"
-          class="SpineCTRegistration"
+    <view id="org.mitk.views.spinecarmregistration"
+          name="Spine C arm registration"
+          class="SpineCArmRegistration"
           icon="resources/icon.xpm" />
   </extension>
 

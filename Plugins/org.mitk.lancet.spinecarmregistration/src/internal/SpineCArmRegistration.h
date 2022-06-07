@@ -11,26 +11,24 @@ found in the LICENSE file.
 ============================================================================*/
 
 
-#ifndef SpineCTRegistration_h
-#define SpineCTRegistration_h
+#ifndef SpineCArmRegistration_h
+#define SpineCArmRegistration_h
 
 #include <berryISelectionListener.h>
 
 #include <QmitkAbstractView.h>
 
-#include "ui_SpineCTRegistrationControls.h"
-
-// #include <eigen3/Eigen/Eigen>
+#include "ui_SpineCArmRegistrationControls.h"
 
 /**
-  \brief SpineCTRegistration
+  \brief SpineCArmRegistration
 
   \warning  This class is not yet documented. Use "git blame" and ask the author to provide basic documentation.
 
   \sa QmitkAbstractView
   \ingroup ${plugin_target}_internal
 */
-class SpineCTRegistration : public QmitkAbstractView
+class SpineCArmRegistration : public QmitkAbstractView
 {
   // this is needed for all Qt objects that should have a Qt meta-object
   // (everything that derives from QObject and wants to have signal/slots)
@@ -51,7 +49,7 @@ protected:
   /// \brief Called when the user clicks the GUI button
   void DoImageProcessing();
 
-  Ui::SpineCTRegistrationControls m_Controls;
+  Ui::SpineCArmRegistrationControls m_Controls;
 };
 
-#endif // SpineCTRegistration_h
+#endif // SpineCArmRegistration_h

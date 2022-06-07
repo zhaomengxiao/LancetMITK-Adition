@@ -3,17 +3,17 @@ set(SRC_CPP_FILES
 )
 
 set(INTERNAL_CPP_FILES
-  org_mitk_lancet_spinectregistration_Activator.cpp
-  SpineCTRegistration.cpp
+  org_mitk_lancet_spinecarmregistration_Activator.cpp
+  SpineCArmRegistration.cpp
 )
 
 set(UI_FILES
-  src/internal/SpineCTRegistrationControls.ui
+  src/internal/SpineCArmRegistrationControls.ui
 )
 
 set(MOC_H_FILES
-  src/internal/org_mitk_lancet_spinectregistration_Activator.h
-  src/internal/SpineCTRegistration.h
+  src/internal/org_mitk_lancet_spinecarmregistration_Activator.h
+  src/internal/SpineCArmRegistration.h
 )
 
 # list of resource files which can be used by the plug-in

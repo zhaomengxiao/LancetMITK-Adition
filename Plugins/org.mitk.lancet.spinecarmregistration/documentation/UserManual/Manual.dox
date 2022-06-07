@@ -1,11 +1,11 @@
 /**
-\page org_mitk_lancet_spinectregistration The Spinectregistration
+\page org_mitk_lancet_spinecarmregistration The Spinecarmregistration
 
-\imageMacro{icon.png,"Icon of Spinectregistration",2.00}
+\imageMacro{icon.png,"Icon of Spinecarmregistration",2.00}
 
 \tableofcontents
 
-\section org_mitk_lancet_spinectregistrationOverview Overview
+\section org_mitk_lancet_spinecarmregistrationOverview Overview
 Describe the features of your awesome plugin here
 <ul>
 <li>Increases productivity

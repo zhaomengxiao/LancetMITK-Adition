@@ -16,7 +16,7 @@ found in the LICENSE file.
 #include <berryIWorkbenchWindow.h>
 
 // Qmitk
-#include "SpineCTRegistration.h"
+#include "SpineCArmRegistration.h"
 
 // Qt
 #include <QMessageBox>
@@ -24,21 +24,21 @@ found in the LICENSE file.
 // mitk image
 #include <mitkImage.h>
 
-const std::string SpineCTRegistration::VIEW_ID = "org.mitk.views.spinectregistration";
+const std::string SpineCArmRegistration::VIEW_ID = "org.mitk.views.spinecarmregistration";
 
-void SpineCTRegistration::SetFocus()
+void SpineCArmRegistration::SetFocus()
 {
   m_Controls.buttonPerformImageProcessing->setFocus();
 }
 
-void SpineCTRegistration::CreateQtPartControl(QWidget *parent)
+void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
-  connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &SpineCTRegistration::DoImageProcessing);
+  connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &SpineCArmRegistration::DoImageProcessing);
 }
 
-void SpineCTRegistration::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
+void SpineCArmRegistration::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
                                                 const QList<mitk::DataNode::Pointer> &nodes)
 {
   // iterate all selected objects, adjust warning visibility
@@ -56,7 +56,7 @@ void SpineCTRegistration::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*so
   m_Controls.buttonPerformImageProcessing->setEnabled(false);
 }
 
-void SpineCTRegistration::DoImageProcessing()
+void SpineCArmRegistration::DoImageProcessing()
 {
   QList<mitk::DataNode::Pointer> nodes = this->GetDataManagerSelection();
   if (nodes.empty())

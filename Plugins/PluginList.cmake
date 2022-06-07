@@ -4,4 +4,5 @@ set(MITK_PLUGINS
   org.mitk.virtualcorrection:ON
   org.mitk.lancet.spinectregistration:ON
   org.mitk.lancet.movedata:ON
+  org.mitk.lancet.spinecarmregistration:ON
 )

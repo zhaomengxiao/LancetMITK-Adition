@@ -11,24 +11,24 @@ found in the LICENSE file.
 ============================================================================*/
 
 
-#ifndef org_mitk_lancet_spinectregistration_Activator_h
-#define org_mitk_lancet_spinectregistration_Activator_h
+#ifndef org_mitk_lancet_spinecarmregistration_Activator_h
+#define org_mitk_lancet_spinecarmregistration_Activator_h
 
 #include <ctkPluginActivator.h>
 
 namespace mitk
 {
-  class org_mitk_lancet_spinectregistration_Activator : public QObject, public ctkPluginActivator
+  class org_mitk_lancet_spinecarmregistration_Activator : public QObject, public ctkPluginActivator
   {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org_mitk_lancet_spinectregistration")
+    Q_PLUGIN_METADATA(IID "org_mitk_lancet_spinecarmregistration")
     Q_INTERFACES(ctkPluginActivator)
 
   public:
     void start(ctkPluginContext *context);
     void stop(ctkPluginContext *context);
 
-  }; // org_mitk_lancet_spinectregistration_Activator
+  }; // org_mitk_lancet_spinecarmregistration_Activator
 }
 
-#endif // org_mitk_lancet_spinectregistration_Activator_h
+#endif // org_mitk_lancet_spinecarmregistration_Activator_h

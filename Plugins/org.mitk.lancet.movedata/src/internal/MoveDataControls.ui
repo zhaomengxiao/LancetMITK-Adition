@@ -42,25 +42,33 @@
              <string>Movement along the given direction</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_10">
-             <item row="2" column="2">
-              <spacer name="horizontalSpacer_5">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
+             <item row="0" column="1">
+              <layout class="QVBoxLayout" name="verticalLayout">
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>2-element poinset as the translation direction / rotation axis: </string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QmitkSingleNodeSelectionWidget" name="mitkSelectWidget_directionPointSet" native="true">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item row="1" column="1">
               <layout class="QHBoxLayout" name="horizontalLayout_3">
                <item>
                 <widget class="QLabel" name="label_4">
                  <property name="text">
-                  <string>Translate or rotate</string>
+                  <string>Translate or rotate by </string>
                  </property>
                 </widget>
                </item>
@@ -79,6 +87,19 @@
                 </widget>
                </item>
               </layout>
+             </item>
+             <item row="2" column="0">
+              <spacer name="horizontalSpacer_6">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
              </item>
              <item row="2" column="1">
               <layout class="QGridLayout" name="gridLayout_9">
@@ -112,8 +133,8 @@
                </item>
               </layout>
              </item>
-             <item row="2" column="0">
-              <spacer name="horizontalSpacer_6">
+             <item row="2" column="2">
+              <spacer name="horizontalSpacer_5">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
                </property>
@@ -124,27 +145,6 @@
                 </size>
                </property>
               </spacer>
-             </item>
-             <item row="0" column="1" colspan="2">
-              <layout class="QHBoxLayout" name="horizontalLayout_2">
-               <item>
-                <widget class="QLabel" name="label">
-                 <property name="text">
-                  <string>2-element poinset as the direction / rotation axis: </string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QmitkSingleNodeSelectionWidget" name="mitkSelectWidget_directionPointSet" native="true">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>30</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-              </layout>
              </item>
             </layout>
            </widget>
@@ -825,7 +825,7 @@
         </widget>
         <widget class="QWidget" name="tab_4">
          <attribute name="title">
-          <string>To be added </string>
+          <string>Apply quaternion</string>
          </attribute>
         </widget>
        </widget>
