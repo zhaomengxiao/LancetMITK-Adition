@@ -18,6 +18,7 @@ found in the LICENSE file.
 // Qmitk
 #include "SpineCArmRegistration.h"
 
+
 // Qt
 #include <QMessageBox>
 

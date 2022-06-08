@@ -35,6 +35,8 @@ found in the LICENSE file.
 #include "mitkRotationOperation.h"
 #include "mitkSurface.h"
 #include "QmitkSingleNodeSelectionWidget.h"
+#include "QmitkDataStorageTreeModel.h"
+#include "QmitkDataStorageTreeModelInternalItem.h"
 #include "surfaceregistraion.h"
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
 
@@ -53,6 +55,8 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_IcpTargetPointset);
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_IcpSrcSurface);
   InitNodeSelector(m_Controls.mitkNodeSelectWidget_MovingObject);
+
+  m_NodetreeModel = new QmitkDataStorageTreeModel(this->GetDataStorage());
 
   connect(m_Controls.mitkSelectWidget_directionPointSet, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &MoveData::PointSetDirectionChanged);
   connect(m_Controls.mitkNodeSelectWidget_LandmarkSrcPointset, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &MoveData::PointSetLandmarkTargetChanged);
@@ -172,6 +176,7 @@ void MoveData::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/, con
 
 		if (node != nullptr)
 		{
+			m_currentSelectedNode = node;
 			m_baseDataToMove = node->GetData();
 		}
 
@@ -240,32 +245,151 @@ void MoveData::Rotate(double center[3], double direction[3], double counterclock
 void MoveData::TranslateMinusX()
 {
 	double direction[3]{ -1,0,0 };
-	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for(int i = 0; i < (parentRowCount+1); i++)
+	{
+		if(i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+			
+		}else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+		
+		Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+	}
 }
 void MoveData::TranslateMinusY()
 {
 	double direction[3]{ 0,-1,0 };
-	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+	}
 }
 void MoveData::TranslateMinusZ()
 {
 	double direction[3]{ 0,0,-1 };
-	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+	}
 }
 void MoveData::TranslatePlusX()
 {
-	double direction[3]{ 11,0,0 };
-	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+	double direction[3]{ 1,0,0 };
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+	}
 }
 void MoveData::TranslatePlusY()
 {
 	double direction[3]{ 0,1,0 };
-	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+	}
 }
 void MoveData::TranslatePlusZ()
 {
 	double direction[3]{ 0,0,1 };
-	Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
+	}
 }
 void MoveData::RotatePlusX()
 {
@@ -274,10 +398,32 @@ void MoveData::RotatePlusX()
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 		return;
 	}
+
 	double direction[3]{ 1,0,0 };
-	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
 	double angle = m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
-	Rotate(center, direction, angle, m_baseDataToMove);
+	mitk::Point<double, 3>::ValueType* center = m_currentSelectedNode->GetData()->GetGeometry()->GetCenter().GetDataPointer();
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+		
+		Rotate(center, direction, angle, m_baseDataToMove);
+	}
+
 }
 void MoveData::RotatePlusY()
 {
@@ -286,10 +432,31 @@ void MoveData::RotatePlusY()
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 		return;
 	}
+
 	double direction[3]{ 0,1,0 };
-	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
 	double angle = m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
-	Rotate(center, direction, angle, m_baseDataToMove);
+	mitk::Point<double, 3>::ValueType* center = m_currentSelectedNode->GetData()->GetGeometry()->GetCenter().GetDataPointer();
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		Rotate(center, direction, angle, m_baseDataToMove);
+	}
 }
 void MoveData::RotatePlusZ()
 {
@@ -298,10 +465,31 @@ void MoveData::RotatePlusZ()
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 		return;
 	}
+
 	double direction[3]{ 0,0,1 };
-	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
 	double angle = m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
-	Rotate(center, direction, angle, m_baseDataToMove);
+	mitk::Point<double, 3>::ValueType* center = m_currentSelectedNode->GetData()->GetGeometry()->GetCenter().GetDataPointer();
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		Rotate(center, direction, angle, m_baseDataToMove);
+	}
 }
 void MoveData::RotateMinusX()
 {
@@ -310,10 +498,31 @@ void MoveData::RotateMinusX()
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 		return;
 	}
+
 	double direction[3]{ 1,0,0 };
-	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
 	double angle = - m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
-	Rotate(center, direction, angle, m_baseDataToMove);
+	mitk::Point<double, 3>::ValueType* center = m_currentSelectedNode->GetData()->GetGeometry()->GetCenter().GetDataPointer();
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		Rotate(center, direction, angle, m_baseDataToMove);
+	}
 }
 void MoveData::RotateMinusY()
 {
@@ -322,10 +531,31 @@ void MoveData::RotateMinusY()
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 		return;
 	}
+
 	double direction[3]{ 0,1,0 };
-	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
 	double angle = - m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
-	Rotate(center, direction, angle, m_baseDataToMove);
+	mitk::Point<double, 3>::ValueType* center = m_currentSelectedNode->GetData()->GetGeometry()->GetCenter().GetDataPointer();
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		Rotate(center, direction, angle, m_baseDataToMove);
+	}
 }
 void MoveData::RotateMinusZ()
 {
@@ -334,181 +564,345 @@ void MoveData::RotateMinusZ()
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 		return;
 	}
+
 	double direction[3]{ 0,0,1 };
-	mitk::Point<double, 3>::ValueType* center = m_baseDataToMove->GetGeometry()->GetCenter().GetDataPointer();
 	double angle = - m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
-	Rotate(center, direction, angle, m_baseDataToMove);
+	mitk::Point<double, 3>::ValueType* center = m_currentSelectedNode->GetData()->GetGeometry()->GetCenter().GetDataPointer();
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		Rotate(center, direction, angle, m_baseDataToMove);
+	}
 }
 
 void MoveData::OverwriteOffsetMatrix()
 {
-	if(m_baseDataToMove != nullptr)
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
 	{
-		m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(ObtainVtkMatrixFromUi());
-		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		if (m_baseDataToMove != nullptr)
+		{
+			m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(ObtainVtkMatrixFromUi());
+			mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+		}
+
 	}
-	else
-	{
-		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
-	}
+
+	
 	
 }
 
 void MoveData::AppendOffsetMatrix()
 {
-	if (m_baseDataToMove != nullptr)
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
 	{
-		auto tmpVtkTransform = vtkTransform::New();
-		tmpVtkTransform->PostMultiply();
-		tmpVtkTransform->Identity();
-		tmpVtkTransform->SetMatrix(m_baseDataToMove->GetGeometry()->GetVtkMatrix());
-		tmpVtkTransform->Concatenate(ObtainVtkMatrixFromUi());
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
 
-		m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkTransform->GetMatrix());
-		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
 
-		
+		if (m_baseDataToMove != nullptr)
+		{
+			auto tmpVtkTransform = vtkTransform::New();
+			tmpVtkTransform->PostMultiply();
+			tmpVtkTransform->Identity();
+			tmpVtkTransform->SetMatrix(m_baseDataToMove->GetGeometry()->GetVtkMatrix());
+			tmpVtkTransform->Concatenate(ObtainVtkMatrixFromUi());
+
+			m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkTransform->GetMatrix());
+			mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+		}
+
 	}
-	else
-	{
-		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
-	}
-
 }
 
 void MoveData::TranslatePlus()
 {
-	if(m_DirectionPointset != nullptr)
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
 	{
-		auto tmpPointset = dynamic_cast<mitk::PointSet *> (m_DirectionPointset->GetData());
-		double direction[3]
+		if (i == parentRowCount)
 		{
-			tmpPointset->GetPoint(1,0)[0] - tmpPointset->GetPoint(0,0)[0],
-			tmpPointset->GetPoint(1,0)[1] - tmpPointset->GetPoint(0,0)[1],
-			tmpPointset->GetPoint(1,0)[2] - tmpPointset->GetPoint(0,0)[2]
-		};
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
 
-		Translate(direction, m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
 
-	}else
-	{
-		m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+		if (m_DirectionPointset != nullptr)
+		{
+			auto tmpPointset = dynamic_cast<mitk::PointSet*> (m_DirectionPointset->GetData());
+			double direction[3]
+			{
+				tmpPointset->GetPoint(1,0)[0] - tmpPointset->GetPoint(0,0)[0],
+				tmpPointset->GetPoint(1,0)[1] - tmpPointset->GetPoint(0,0)[1],
+				tmpPointset->GetPoint(1,0)[2] - tmpPointset->GetPoint(0,0)[2]
+			};
+
+			Translate(direction, m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+		}
+
 	}
+
 }
 
 void MoveData::TranslateMinus()
 {
-	if (m_DirectionPointset != nullptr)
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
 	{
-		auto tmpPointset = dynamic_cast<mitk::PointSet*> (m_DirectionPointset->GetData());
-		double direction[3]
+		if (i == parentRowCount)
 		{
-			tmpPointset->GetPoint(1,0)[0] - tmpPointset->GetPoint(0,0)[0],
-			tmpPointset->GetPoint(1,0)[1] - tmpPointset->GetPoint(0,0)[1],
-			tmpPointset->GetPoint(1,0)[2] - tmpPointset->GetPoint(0,0)[2]
-		};
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
 
-		Translate(direction, - m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
 
-	}
-	else
-	{
-		m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+		if (m_DirectionPointset != nullptr)
+		{
+			auto tmpPointset = dynamic_cast<mitk::PointSet*> (m_DirectionPointset->GetData());
+			double direction[3]
+			{
+				- tmpPointset->GetPoint(1,0)[0] + tmpPointset->GetPoint(0,0)[0],
+				- tmpPointset->GetPoint(1,0)[1] + tmpPointset->GetPoint(0,0)[1],
+				- tmpPointset->GetPoint(1,0)[2] + tmpPointset->GetPoint(0,0)[2]
+			};
+
+			Translate(direction, m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+		}
+
 	}
 }
 
 void MoveData::RotatePlus()
 {
-	if (m_DirectionPointset != nullptr)
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
 	{
-		if (m_baseDataToMove == nullptr)
+		if (i == parentRowCount)
 		{
-			m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
-			return;
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
 		}
-		auto tmpPointset = dynamic_cast<mitk::PointSet*> (m_DirectionPointset->GetData());
-		double direction[3]
+		else
 		{
-			tmpPointset->GetPoint(1,0)[0] - tmpPointset->GetPoint(0,0)[0],
-			tmpPointset->GetPoint(1,0)[1] - tmpPointset->GetPoint(0,0)[1],
-			tmpPointset->GetPoint(1,0)[2] - tmpPointset->GetPoint(0,0)[2]
-		};
-
-		double center[3]
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+		if (m_DirectionPointset != nullptr)
 		{
-			tmpPointset->GetPoint(1,0)[0],
-			tmpPointset->GetPoint(1,0)[1],
-			tmpPointset->GetPoint(1,0)[2],
+			if (m_baseDataToMove == nullptr)
+			{
+				m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+				return;
+			}
+			auto tmpPointset = dynamic_cast<mitk::PointSet*> (m_DirectionPointset->GetData());
+			double direction[3]
+			{
+				tmpPointset->GetPoint(1,0)[0] - tmpPointset->GetPoint(0,0)[0],
+				tmpPointset->GetPoint(1,0)[1] - tmpPointset->GetPoint(0,0)[1],
+				tmpPointset->GetPoint(1,0)[2] - tmpPointset->GetPoint(0,0)[2]
+			};
 
-		};
+			double center[3]
+			{
+				tmpPointset->GetPoint(1,0)[0],
+				tmpPointset->GetPoint(1,0)[1],
+				tmpPointset->GetPoint(1,0)[2],
 
-		Rotate(center, direction, m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+			};
+
+			Rotate(center, direction, m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+		}
 
 	}
-	else
-	{
-		m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
-	}
+	
 }
 
 void MoveData::RotateMinus()
 {
-	if (m_DirectionPointset != nullptr)
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
 	{
-		if (m_baseDataToMove == nullptr)
+		if (i == parentRowCount)
 		{
-			m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
-			return;
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
 		}
-		auto tmpPointset = dynamic_cast<mitk::PointSet*> (m_DirectionPointset->GetData());
-		double direction[3]
+		else
 		{
-			tmpPointset->GetPoint(1,0)[0] - tmpPointset->GetPoint(0,0)[0],
-			tmpPointset->GetPoint(1,0)[1] - tmpPointset->GetPoint(0,0)[1],
-			tmpPointset->GetPoint(1,0)[2] - tmpPointset->GetPoint(0,0)[2]
-		};
-
-		double center[3]
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+		if (m_DirectionPointset != nullptr)
 		{
-			tmpPointset->GetPoint(1,0)[0],
-			tmpPointset->GetPoint(1,0)[1],
-			tmpPointset->GetPoint(1,0)[2],
+			if (m_baseDataToMove == nullptr)
+			{
+				m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+				return;
+			}
+			auto tmpPointset = dynamic_cast<mitk::PointSet*> (m_DirectionPointset->GetData());
+			double direction[3]
+			{
+				- tmpPointset->GetPoint(1,0)[0] + tmpPointset->GetPoint(0,0)[0],
+				- tmpPointset->GetPoint(1,0)[1] + tmpPointset->GetPoint(0,0)[1],
+				- tmpPointset->GetPoint(1,0)[2] + tmpPointset->GetPoint(0,0)[2]
+			};
 
-		};
+			double center[3]
+			{
+				tmpPointset->GetPoint(1,0)[0],
+				tmpPointset->GetPoint(1,0)[1],
+				tmpPointset->GetPoint(1,0)[2],
 
-		Rotate(center, direction, - m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+			};
 
-	}
-	else
-	{
-		m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+			Rotate(center, direction, m_Controls.lineEdit_intuitiveValue_2->text().toDouble(), m_baseDataToMove);
+
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("Please reselect a pointset representing the direction ~");
+		}
+
 	}
 }
 
 
 void MoveData::RealignImage()
 {
-	if(m_baseDataToMove != nullptr)
+
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
 	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
 
-		// Align the image's axes to the standard xyz axes
-		auto tmpVtkTransform = vtkSmartPointer<vtkTransform>::New();
-		vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-		tmpVtkTransform->Identity();
-		tmpVtkTransform->GetMatrix(tmpVtkMatrix);
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
 
-		m_baseDataToMove->GetGeometry(0)->SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(tmpVtkMatrix);
-		// SetIndexToWorldTransformByVtkMatrix(tmpVtkMatrix) will set the spacing as (1, 1, 1),
-		// because the spacing is determined by the matrix diagonal.
-		  // So SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(tmpVtkMatrix) which keep the spacing regardless of the
-		  // input matrix
+		if (m_baseDataToMove != nullptr)
+		{
 
-		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+			// Align the image's axes to the standard xyz axes
+			auto tmpVtkTransform = vtkSmartPointer<vtkTransform>::New();
+			vtkSmartPointer<vtkMatrix4x4> tmpVtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+			tmpVtkTransform->Identity();
+			tmpVtkTransform->GetMatrix(tmpVtkMatrix);
 
-	}else
-	{
-		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+			m_baseDataToMove->GetGeometry(0)->SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(tmpVtkMatrix);
+			// SetIndexToWorldTransformByVtkMatrix(tmpVtkMatrix) will set the spacing as (1, 1, 1),
+			// because the spacing is determined by the matrix diagonal.
+			  // So SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(tmpVtkMatrix) which keep the spacing regardless of the
+			  // input matrix
+
+			mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+		}
 	}
+
 }
 
 
@@ -638,25 +1032,46 @@ vtkMatrix4x4* MoveData::ObtainVtkMatrixFromRegistrationUi()
 
 void MoveData::AppendRegistrationMatrix()
 {
-	m_MovingObject = m_Controls.mitkNodeSelectWidget_MovingObject->GetSelectedNode();
+	m_currentSelectedNode = m_Controls.mitkNodeSelectWidget_MovingObject->GetSelectedNode();
 
-	if (m_MovingObject != nullptr)
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+
+	for (int i = 0; i < (parentRowCount + 1); i++)
 	{
-		auto tmpVtkTransform = vtkTransform::New();
-		tmpVtkTransform->PostMultiply();
-		tmpVtkTransform->Identity();
-		tmpVtkTransform->SetMatrix(m_MovingObject->GetData()->GetGeometry()->GetVtkMatrix());
-		tmpVtkTransform->Concatenate(ObtainVtkMatrixFromRegistrationUi());
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
 
-		m_MovingObject->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkTransform->GetMatrix());
-		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
 
+		if (m_baseDataToMove != nullptr)
+		{
+			auto tmpVtkTransform = vtkTransform::New();
+			tmpVtkTransform->PostMultiply();
+			tmpVtkTransform->Identity();
+			tmpVtkTransform->SetMatrix(m_baseDataToMove->GetGeometry()->GetVtkMatrix());
+			tmpVtkTransform->Concatenate(ObtainVtkMatrixFromRegistrationUi());
+
+			m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkTransform->GetMatrix());
+			mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("Moving object is empty ~~");
+		}
 
 	}
-	else
-	{
-		m_Controls.textBrowser_moveData->append("Moving object is empty ~~");
-	}
+	
 }
 
 

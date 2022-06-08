@@ -18,6 +18,7 @@ found in the LICENSE file.
 
 #include <QmitkAbstractView.h>
 
+#include "QmitkDataStorageTreeModel.h"
 #include "QmitkSingleNodeSelectionWidget.h"
 #include "ui_MoveDataControls.h"
 
@@ -52,8 +53,12 @@ protected:
 
 
   // Variables
-	
+
+  QmitkDataStorageTreeModel* m_NodetreeModel{ nullptr };
   mitk::BaseData* m_baseDataToMove{ nullptr };
+  mitk::DataNode* m_currentSelectedNode{ nullptr };
+
+
   mitk::DataNode* m_DirectionPointset{ nullptr };
   mitk::DataNode* m_LandmarkSourcePointset{ nullptr };
   mitk::DataNode* m_LandmarkTargetPointset{ nullptr };
