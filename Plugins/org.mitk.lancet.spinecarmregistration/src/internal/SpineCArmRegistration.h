@@ -19,6 +19,7 @@ found in the LICENSE file.
 #include <QmitkAbstractView.h>
 
 #include "ui_SpineCArmRegistrationControls.h"
+#include "QmitkSingleNodeSelectionWidget.h"
 
 /**
   \brief SpineCArmRegistration
@@ -38,18 +39,24 @@ public:
   static const std::string VIEW_ID;
 
 protected:
+	Ui::SpineCArmRegistrationControls m_Controls;
   virtual void CreateQtPartControl(QWidget *parent) override;
-
   virtual void SetFocus() override;
+  void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
 
-  /// \brief called by QmitkFunctionality when DataManager's selection has changed
-  virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
-                                  const QList<mitk::DataNode::Pointer> &nodes) override;
+  void InitSceneSpatialLocalization();
+  
+  void ConfirmApPoint();
+  void ConfirmLtPoint();
 
-  /// \brief Called when the user clicks the GUI button
-  void DoImageProcessing();
 
-  Ui::SpineCArmRegistrationControls m_Controls;
+  
+  //utilities
+  void PlotCoordinate(mitk::DataStorage* ds, std::string name, double color[3]);
+  void DrawLine(double start[3], double end[3], double color[3], double opacity, const char* name);
+  void Get2LineIntersection(double intersection[3], double line0Start[3], double line0End[3], double line1Start[3], double line1End[3]);
+
+
 };
 
 #endif // SpineCArmRegistration_h
