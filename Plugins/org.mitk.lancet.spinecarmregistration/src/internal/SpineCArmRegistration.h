@@ -43,11 +43,32 @@ protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
   virtual void SetFocus() override;
   void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
+  void InitImageSelector(QmitkSingleNodeSelectionWidget* widget);
+  void InitNodeSelector(QmitkSingleNodeSelectionWidget* widget);
 
+	// Spatial locoalization simple
   void InitSceneSpatialLocalization();
-  
   void ConfirmApPoint();
   void ConfirmLtPoint();
+
+  // Spatial localization demo
+  double m_ArrayNdiToApImageCalibratorMarker[16];
+  double m_ArrayNdiToLtImageCalibratorMarker[16];
+  double m_ArrayRenderWindowToApImage[16]; // The geometry matrix of the input Ap image
+  double m_ArrayRenderWindowToLtImage[16]; // The geometry matrix of the input Lt image
+  double m_ArrayApImageCalibratorMarkerToRenderWindow[16];
+  double m_ArrayLtImageCalibratorMarkerToRenderWindow[16];
+  double m_ApSourceInApImageCalibratorCoordinate[3]; // x,y,z in Ap image calibrator coordinate
+  double m_LtSourceInLtImageCalibratorCoordinate[3]; // x,y,z in Lt image calibrator coordinate
+  double m_ArrayNdiToApImage[16];
+  double m_ArrayNdiToLtImage[16];
+
+  void GetMatrixApImageCalibratorMarkerToRenderWindow(); // Use landmark registration
+  void GetMatrixLtImageCalibratorMarkerToRenderWindow(); // Use landmark registration 
+  void GetMatrixNdiToApImage();
+  void GetMatrixNdiToLtImage();
+
+
 
 
   

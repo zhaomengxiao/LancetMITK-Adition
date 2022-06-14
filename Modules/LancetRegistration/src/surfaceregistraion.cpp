@@ -81,7 +81,8 @@ bool mitk::SurfaceRegistration::ComputeLandMarkResult()
 		vtkSmartPointer<vtkLandmarkTransform> landmarkTransform = vtkSmartPointer<vtkLandmarkTransform>::New();
 		landmarkTransform->SetSourceLandmarks(pSource);
 		landmarkTransform->SetTargetLandmarks(pTarget);
-		landmarkTransform->SetMode(VTK_LANDMARK_RIGIDBODY);
+		landmarkTransform->SetMode(VTK_LANDMARK_RIGIDBODY); // rigid: 6, similarity: 7, affine: 12
+
 		landmarkTransform->Update();
 		m_MatrixLandMark->DeepCopy(landmarkTransform->GetMatrix());
 		return true;

@@ -56,6 +56,18 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   m_Controls.setupUi(parent);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_spatialApPoint);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_spatialLtPoint);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_designLballs);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_APextractedLballs);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_LTextractedLballs);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_designMballs);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_APextractedMballs);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_LTextractedMballs);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_demoApPoint);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_demoLtPoint);
+  InitNodeSelector(m_Controls.mitkNodeSelectWidget_ndiAp);
+  InitNodeSelector(m_Controls.mitkNodeSelectWidget_ndiLt);
+  InitImageSelector(m_Controls.mitkNodeSelectWidget_ApImage);
+  InitImageSelector(m_Controls.mitkNodeSelectWidget_LtImage);
 
   //connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &SpineCArmRegistration::DoImageProcessing);
   connect(m_Controls.pushButton_InitSpatialScene, &QPushButton::clicked, this, &SpineCArmRegistration::InitSceneSpatialLocalization);
@@ -76,6 +88,31 @@ void SpineCArmRegistration::InitPointSetSelector(QmitkSingleNodeSelectionWidget*
 	widget->SetAutoSelectNewNodes(true);
 	widget->SetEmptyInfo(QString("Please select a point set"));
 	widget->SetPopUpTitel(QString("Select point set"));
+}
+
+void SpineCArmRegistration::InitImageSelector(QmitkSingleNodeSelectionWidget* widget)
+{
+	widget->SetDataStorage(GetDataStorage());
+	widget->SetNodePredicate(mitk::NodePredicateAnd::New(
+		mitk::TNodePredicateDataType<mitk::Image>::New(),
+		mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(mitk::NodePredicateProperty::New("helper object"),
+			mitk::NodePredicateProperty::New("hidden object")))));
+
+	widget->SetSelectionIsOptional(true);
+	widget->SetAutoSelectNewNodes(true);
+	widget->SetEmptyInfo(QString("Please select an image"));
+	widget->SetPopUpTitel(QString("Select image"));
+}
+
+void SpineCArmRegistration::InitNodeSelector(QmitkSingleNodeSelectionWidget* widget)
+{
+	widget->SetDataStorage(GetDataStorage());
+	widget->SetNodePredicate(mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(
+		mitk::NodePredicateProperty::New("helper object"), mitk::NodePredicateProperty::New("hidden object"))));
+	widget->SetSelectionIsOptional(true);
+	widget->SetAutoSelectNewNodes(true);
+	widget->SetEmptyInfo(QString("Please select a node"));
+	widget->SetPopUpTitel(QString("Select node"));
 }
 
 void SpineCArmRegistration::InitSceneSpatialLocalization()
@@ -114,7 +151,7 @@ void SpineCArmRegistration::InitSceneSpatialLocalization()
 	imagerPlaneSurface0->SetVtkPolyData(imagerPlaneSource0->GetOutput());
 	imagerPlaneNode0->SetData(imagerPlaneSurface0);
 	imagerPlaneNode0->SetName("AP imager");
-	imagerPlaneNode0->SetColor(1.0, 0.0, 0.0);
+	imagerPlaneNode0->SetColor(0.4, 0.0, 0.0);
 	imagerPlaneNode0->SetVisibility(true);
 	imagerPlaneNode0->SetOpacity(1.0);
 	GetDataStorage()->Add(imagerPlaneNode0);
@@ -149,7 +186,7 @@ void SpineCArmRegistration::InitSceneSpatialLocalization()
 	imagerPlaneSurface1->SetVtkPolyData(imagerPlaneSource1->GetOutput());
 	imagerPlaneNode1->SetData(imagerPlaneSurface1);
 	imagerPlaneNode1->SetName("LT imager");
-	imagerPlaneNode1->SetColor(0.0, 0.0, 1.0);
+	imagerPlaneNode1->SetColor(0.0, 0.0, 0.4);
 	imagerPlaneNode1->SetVisibility(true);
 	imagerPlaneNode1->SetOpacity(0.7);
 	GetDataStorage()->Add(imagerPlaneNode1);

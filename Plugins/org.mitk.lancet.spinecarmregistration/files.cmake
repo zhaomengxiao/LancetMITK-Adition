@@ -4,7 +4,8 @@ set(SRC_CPP_FILES
 
 set(INTERNAL_CPP_FILES
   org_mitk_lancet_spinecarmregistration_Activator.cpp
-  SpineCArmRegistration.cpp
+  SpineCArmRegistration_spatialSimple.cpp
+  SpineCArmRegistration_spatialDemo.cpp
 )
 
 set(UI_FILES
