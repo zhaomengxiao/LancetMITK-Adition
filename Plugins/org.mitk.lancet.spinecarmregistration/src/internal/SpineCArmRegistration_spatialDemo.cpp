@@ -116,13 +116,27 @@ void SpineCArmRegistration::GetMatrixNdiToApImage()
 		vtkMatrixApImageCalibratorMarkerToRenderWindow->DeepCopy(m_ArrayApImageCalibratorMarkerToRenderWindow);
 
 		vtkMatrix4x4::DeepCopy(m_ArrayNdiToApImageCalibratorMarker, ndiDataCarrier->GetGeometry()->GetVtkMatrix());
-		vtkMatrix4x4::DeepCopy(m_ArrayRenderWindowToApImage, apImage->GetGeometry()->GetVtkMatrix());
 
+		auto imageSpacing = apImage->GetGeometry()->GetSpacing();
+		auto tmpVtkMatrix = vtkMatrix4x4::New();
+		tmpVtkMatrix->Zero();
+		tmpVtkMatrix->SetElement(0, 0, 1 / imageSpacing[0]);
+		tmpVtkMatrix->SetElement(1, 1, 1 / imageSpacing[1]);
+		tmpVtkMatrix->SetElement(2, 2, 1 / imageSpacing[2]);
+		tmpVtkMatrix->SetElement(3, 3, 1 );
+
+		auto vtkTransformRenderWindowToApImage = vtkTransform::New();
+		vtkTransformRenderWindowToApImage->Identity();
+		vtkTransformRenderWindowToApImage->PreMultiply();
+		vtkTransformRenderWindowToApImage->SetMatrix(apImage->GetGeometry()->GetVtkMatrix());
+		vtkTransformRenderWindowToApImage->Concatenate(tmpVtkMatrix);
+
+		vtkMatrix4x4::DeepCopy(m_ArrayRenderWindowToApImage, vtkTransformRenderWindowToApImage->GetMatrix());
 
 		auto tmpTransform = vtkTransform::New();
 		tmpTransform->PostMultiply();
 		tmpTransform->Identity();
-		tmpTransform->SetMatrix(apImage->GetGeometry()->GetVtkMatrix());
+		tmpTransform->SetMatrix(vtkTransformRenderWindowToApImage->GetMatrix());
 		tmpTransform->Concatenate(vtkMatrixApImageCalibratorMarkerToRenderWindow);
 		tmpTransform->Concatenate(ndiDataCarrier->GetGeometry()->GetVtkMatrix());
 		
@@ -148,13 +162,29 @@ void SpineCArmRegistration::GetMatrixNdiToLtImage()
 		vtkMatrixLtImageCalibratorMarkerToRenderWindow->DeepCopy(m_ArrayLtImageCalibratorMarkerToRenderWindow);
 
 		vtkMatrix4x4::DeepCopy(m_ArrayNdiToLtImageCalibratorMarker, ndiDataCarrier->GetGeometry()->GetVtkMatrix());
-		vtkMatrix4x4::DeepCopy(m_ArrayRenderWindowToLtImage, ltImage->GetGeometry()->GetVtkMatrix());
+
+
+		auto imageSpacing = ltImage->GetGeometry()->GetSpacing();
+		auto tmpVtkMatrix = vtkMatrix4x4::New();
+		tmpVtkMatrix->Zero();
+		tmpVtkMatrix->SetElement(0, 0, 1 / imageSpacing[0]);
+		tmpVtkMatrix->SetElement(1, 1, 1 / imageSpacing[1]);
+		tmpVtkMatrix->SetElement(2, 2, 1 / imageSpacing[2]);
+		tmpVtkMatrix->SetElement(3, 3, 1);
+
+		auto vtkTransformRenderWindowToLtImage = vtkTransform::New();
+		vtkTransformRenderWindowToLtImage->Identity();
+		vtkTransformRenderWindowToLtImage->PreMultiply();
+		vtkTransformRenderWindowToLtImage->SetMatrix(ltImage->GetGeometry()->GetVtkMatrix());
+		vtkTransformRenderWindowToLtImage->Concatenate(tmpVtkMatrix);
+
+		vtkMatrix4x4::DeepCopy(m_ArrayRenderWindowToLtImage, vtkTransformRenderWindowToLtImage->GetMatrix());
 
 
 		auto tmpTransform = vtkTransform::New();
 		tmpTransform->PostMultiply();
 		tmpTransform->Identity();
-		tmpTransform->SetMatrix(ltImage->GetGeometry()->GetVtkMatrix());
+		tmpTransform->SetMatrix(vtkTransformRenderWindowToLtImage->GetMatrix());
 		tmpTransform->Concatenate(vtkMatrixLtImageCalibratorMarkerToRenderWindow);
 		tmpTransform->Concatenate(ndiDataCarrier->GetGeometry()->GetVtkMatrix());
 
@@ -166,5 +196,16 @@ void SpineCArmRegistration::GetMatrixNdiToLtImage()
 		m_Controls.textBrowser->append("Data missing, please make sure all the inputs are valid");
 	}
 }
+
+void SpineCArmRegistration::GetApSourceInApImage()
+{
+	
+}
+
+void SpineCArmRegistration::GetLtSourceInLtImage()
+{
+
+}
+
 
 

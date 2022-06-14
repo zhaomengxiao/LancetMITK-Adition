@@ -988,6 +988,8 @@ void MoveData::LandmarkRegistration()
 		landmarkRegistrator->SetLandmarksTarget(targetPointset);
 		landmarkRegistrator->ComputeLandMarkResult();
 
+		
+
 		Eigen::Matrix4d tmpRegistrationResult{ landmarkRegistrator->GetResult()->GetData() };
 		tmpRegistrationResult.transposeInPlace();
 		m_eigenMatrixTmpRegistrationResult = tmpRegistrationResult;
@@ -1003,6 +1005,10 @@ void MoveData::LandmarkRegistration()
 
 	m_Controls.textBrowser_moveData->append("-------------Start landmark registration----------");
 	m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
+
+	m_Controls.textBrowser_moveData->append("Max landmark registration error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
+	m_Controls.textBrowser_moveData->append("Average landmark registration error: " + QString::number(landmarkRegistrator->GetavgLandmarkError()));
+
 }
 
 vtkMatrix4x4* MoveData::ObtainVtkMatrixFromRegistrationUi()

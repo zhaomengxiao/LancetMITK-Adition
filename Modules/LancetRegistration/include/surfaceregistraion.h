@@ -62,6 +62,8 @@ namespace mitk
     itkGetMacro(LandmarksTarget, mitk::PointSet::Pointer);
     itkGetMacro(IcpPoints, mitk::PointSet::Pointer);
     itkGetMacro(MatrixLandMark, vtkMatrix4x4*);
+	itkGetMacro(maxLandmarkError, double);
+	itkGetMacro(avgLandmarkError, double);
     //itkGetMacro(MatrixICP, vtkMatrix4x4*);
 
         
@@ -70,6 +72,10 @@ namespace mitk
       ~SurfaceRegistration() override;
 
   private:
+
+	  double m_maxLandmarkError{ 0 };
+	  double m_avgLandmarkError{ 0 };
+
     mitk::PointSet::Pointer m_LandmarksSrc;
     mitk::Surface::Pointer m_SurfaceSrc;
 

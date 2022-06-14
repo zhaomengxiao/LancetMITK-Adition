@@ -309,7 +309,97 @@
        <string>Spatial localization demo</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_9">
-       <item row="2" column="0" colspan="2">
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_8">
+         <property name="title">
+          <string>C-arm images</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QLabel" name="label_15">
+              <property name="text">
+               <string>AP image:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_ApImage" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="QLabel" name="label_16">
+              <property name="text">
+               <string>LT image:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LtImage" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="title">
+          <string>2-deck calibrator position in NDI</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_9">
+            <item>
+             <widget class="QLabel" name="label_17">
+              <property name="text">
+               <string>AP position matrix (stored in an object):</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_ndiAp" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <item>
+             <widget class="QLabel" name="label_18">
+              <property name="text">
+               <string>LT position matrix (stored in an object):</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_ndiLt" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0">
         <widget class="QGroupBox" name="groupBox_9">
          <property name="title">
           <string>Steelballs</string>
@@ -426,13 +516,20 @@
          </layout>
         </widget>
        </item>
-       <item row="4" column="0" colspan="2">
+       <item row="3" column="0">
+        <widget class="QPushButton" name="pushButton_projectionModelReg">
+         <property name="text">
+          <string>Registrate the projection model</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
         <widget class="QGroupBox" name="groupBox_12">
          <property name="title">
           <string>2D point selection</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_8">
-          <item row="0" column="0">
+          <item row="1" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_15">
             <item>
              <widget class="QLabel" name="label_23">
@@ -450,14 +547,14 @@
             </item>
            </layout>
           </item>
-          <item row="0" column="1">
+          <item row="1" column="1">
            <widget class="QPushButton" name="pushButton_confirmDemoApPoint">
             <property name="text">
              <string>Confirm</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_16">
             <item>
              <widget class="QLabel" name="label_24">
@@ -475,51 +572,24 @@
             </item>
            </layout>
           </item>
-          <item row="1" column="1">
+          <item row="2" column="1">
            <widget class="QPushButton" name="pushButton_confirmDemoLtPoint">
             <property name="text">
              <string>Confirm</string>
             </property>
            </widget>
           </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="0" colspan="2">
-        <widget class="QGroupBox" name="groupBox_7">
-         <property name="title">
-          <string>2-deck calibrator position in NDI</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <item row="0" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_19">
             <item>
-             <widget class="QLabel" name="label_17">
+             <widget class="QLabel" name="label_27">
               <property name="text">
-               <string>AP position matrix (stored in an object):</string>
+               <string>3D pointset:</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_ndiAp" native="true">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
-            <item>
-             <widget class="QLabel" name="label_18">
-              <property name="text">
-               <string>LT position matrix (stored in an object):</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_ndiLt" native="true">
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_demo3Dpointset" native="true">
               <property name="enabled">
                <bool>true</bool>
               </property>
@@ -528,58 +598,6 @@
            </layout>
           </item>
          </layout>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QGroupBox" name="groupBox_8">
-         <property name="title">
-          <string>C-arm images</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
-             <widget class="QLabel" name="label_15">
-              <property name="text">
-               <string>AP image:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_ApImage" native="true">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="QLabel" name="label_16">
-              <property name="text">
-               <string>LT image:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LtImage" native="true">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="3" column="0" colspan="2">
-        <widget class="QPushButton" name="pushButton_projectionModelReg">
-         <property name="text">
-          <string>Registrate the projection model</string>
-         </property>
         </widget>
        </item>
       </layout>

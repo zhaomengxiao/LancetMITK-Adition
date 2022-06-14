@@ -54,19 +54,22 @@ protected:
   // Spatial localization demo
   double m_ArrayNdiToApImageCalibratorMarker[16];
   double m_ArrayNdiToLtImageCalibratorMarker[16];
-  double m_ArrayRenderWindowToApImage[16]; // The geometry matrix of the input Ap image
-  double m_ArrayRenderWindowToLtImage[16]; // The geometry matrix of the input Lt image
+  double m_ArrayRenderWindowToApImage[16]; // The geometry matrix of the input Ap image with spacing [1,1,1]
+  double m_ArrayRenderWindowToLtImage[16]; // The geometry matrix of the input Lt image with spacing [1,1,1]
   double m_ArrayApImageCalibratorMarkerToRenderWindow[16];
   double m_ArrayLtImageCalibratorMarkerToRenderWindow[16];
-  double m_ApSourceInApImageCalibratorCoordinate[3]; // x,y,z in Ap image calibrator coordinate
-  double m_LtSourceInLtImageCalibratorCoordinate[3]; // x,y,z in Lt image calibrator coordinate
-  double m_ArrayNdiToApImage[16];
-  double m_ArrayNdiToLtImage[16];
+  double m_ApSourceInApImage[3]; // x,y,z in Ap image coordinate (spacing [1,1,1])
+  double m_LtSourceInLtImage[3]; // x,y,z in Lt image coordinate (spacing [1,1,1])
+  double m_ArrayNdiToApImage[16]; // The transform from NDI coordinate to Ap image with image spacing [1,1,1]
+  double m_ArrayNdiToLtImage[16]; // The transform from NDI coordinate to Lt image with image spacing [1,1,1]
 
   void GetMatrixApImageCalibratorMarkerToRenderWindow(); // Use landmark registration
   void GetMatrixLtImageCalibratorMarkerToRenderWindow(); // Use landmark registration 
   void GetMatrixNdiToApImage();
   void GetMatrixNdiToLtImage();
+  void GetApSourceInApImage();
+  void GetLtSourceInLtImage();
+
 
 
 

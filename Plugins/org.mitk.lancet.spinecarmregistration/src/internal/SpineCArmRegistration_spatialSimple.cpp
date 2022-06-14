@@ -64,6 +64,7 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_LTextractedMballs);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_demoApPoint);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_demoLtPoint);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_demo3Dpointset);
   InitNodeSelector(m_Controls.mitkNodeSelectWidget_ndiAp);
   InitNodeSelector(m_Controls.mitkNodeSelectWidget_ndiLt);
   InitImageSelector(m_Controls.mitkNodeSelectWidget_ApImage);

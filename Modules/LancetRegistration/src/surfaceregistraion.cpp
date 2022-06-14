@@ -85,6 +85,52 @@ bool mitk::SurfaceRegistration::ComputeLandMarkResult()
 
 		landmarkTransform->Update();
 		m_MatrixLandMark->DeepCopy(landmarkTransform->GetMatrix());
+
+
+		// Compute the landmark registration final metric
+		int pointNum = m_LandmarksSrc->GetSize();
+		double maxLandmarkError{ 0 };
+		double sumLandmarkError{ 0 };
+		for (int i = 0; i < pointNum; i++)
+		{
+			auto sourcePoint = m_LandmarksSrc->GetPoint(i);
+			auto targetPoint = m_LandmarksTarget->GetPoint(i);
+			auto sourcePointMatrix = vtkMatrix4x4::New();
+			sourcePointMatrix->Identity();
+			sourcePointMatrix->SetElement(0, 3, sourcePoint[0]);
+			sourcePointMatrix->SetElement(1, 3, sourcePoint[1]);
+			sourcePointMatrix->SetElement(2, 3, sourcePoint[2]);
+
+			auto tmpTransform = vtkTransform::New();
+			tmpTransform->Identity();
+			tmpTransform->PostMultiply();
+			tmpTransform->SetMatrix(sourcePointMatrix);
+			tmpTransform->Concatenate(m_MatrixLandMark);
+
+			auto transformedSourcePointMatrix = tmpTransform->GetMatrix();
+
+
+			double transformedSourcePointArray[3]
+			{
+				transformedSourcePointMatrix->GetElement(0,3),
+				transformedSourcePointMatrix->GetElement(1,3),
+				transformedSourcePointMatrix->GetElement(2,3)
+			};
+
+			double currentError = sqrt(pow(targetPoint[0] - transformedSourcePointArray[0], 2) +
+				pow(targetPoint[1] - transformedSourcePointArray[1], 2) +
+				pow(targetPoint[2] - transformedSourcePointArray[2], 2));
+
+			sumLandmarkError = sumLandmarkError + currentError;
+			if (currentError > maxLandmarkError)
+			{
+				maxLandmarkError = currentError;
+			}
+		}
+
+		m_maxLandmarkError = maxLandmarkError;
+		m_avgLandmarkError = sumLandmarkError / pointNum;
+
 		return true;
 	}
 

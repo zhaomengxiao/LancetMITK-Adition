@@ -317,6 +317,50 @@ double* GetMatrixAnyToolDrfToRenderingWindow(mitk::PointSet* standardSteelballCe
 
 	vtkMatrix4x4* matrixRenderingWindowToCtDrf = landmarkRegistrator->GetResult();
 
+	// Calculate the registration metric
+	int pointNum = standardSteelballCenters->GetSize();
+	double maxLandmarkError{ 0 };
+	double sumLandmarkError{ 0 };
+	for(int i = 0; i < pointNum; i++)
+	{
+		auto sourcePoint = mitkSortedSingleSteelballCenterPointset->GetPoint(i);
+		auto targetPoint = standardSteelballCenters->GetPoint(i);
+		auto sourcePointMatrix = vtkMatrix4x4::New();
+		sourcePointMatrix->Identity();
+		sourcePointMatrix->SetElement(0, 3, sourcePoint[0]);
+		sourcePointMatrix->SetElement(1, 3, sourcePoint[1]);
+		sourcePointMatrix->SetElement(2, 3, sourcePoint[2]);
+
+		auto tmpTransform = vtkTransform::New();
+		tmpTransform->Identity();
+		tmpTransform->PostMultiply();
+		tmpTransform->SetMatrix(sourcePointMatrix);
+		tmpTransform->Concatenate(landmarkRegistrator->GetResult());
+
+		auto transformedSourcePointMatrix = tmpTransform->GetMatrix();
+
+		
+		double transformedSourcePointArray[3]
+		{
+			transformedSourcePointMatrix->GetElement(0,3),
+			transformedSourcePointMatrix->GetElement(1,3),
+			transformedSourcePointMatrix->GetElement(2,3)
+		};
+
+		double currentError = sqrt(pow(targetPoint[0]-transformedSourcePointArray[0],2)+
+		pow(targetPoint[1]-transformedSourcePointArray[1],2)+
+		pow(targetPoint[2]-transformedSourcePointArray[2],2));
+
+		sumLandmarkError = sumLandmarkError + currentError;
+		if(currentError > maxLandmarkError)
+		{
+			maxLandmarkError = currentError;
+		}
+	}
+
+	MITK_INFO << maxLandmarkError;
+	MITK_INFO << sumLandmarkError / pointNum;
+
 
 	//------------------------------CtDrf to trackingDrf-------------------------
 	auto toolMatrix = vtkMatrix4x4::New();
