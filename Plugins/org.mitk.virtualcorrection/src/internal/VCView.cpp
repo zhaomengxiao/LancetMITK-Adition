@@ -2577,15 +2577,21 @@ void VCView::OnPushButtonApplyLandMarks()
         m_surfaceRegistration = mitk::SurfaceRegistration::New();
     }
     MITK_INFO << "OnPushButtonApplyLandMark";
+	std::ostringstream os;
     if (m_sourcePset != nullptr && m_targetPset != nullptr)
     {
         auto sourcePointset = dynamic_cast<mitk::PointSet*>(m_sourcePset->GetData());
         auto targetPointset = dynamic_cast<mitk::PointSet*>(m_targetPset->GetData());
+
+		sourcePointset->Print(os);
+		m_Controls.textBrowser_trans_info->append(QString::fromStdString(os.str()));
+		targetPointset->Print(os);
+		m_Controls.textBrowser_trans_info->append(QString::fromStdString(os.str()));
         m_surfaceRegistration->SetLandmarksSrc(sourcePointset);
         m_surfaceRegistration->SetLandmarksTarget(targetPointset);
         m_surfaceRegistration->ComputeLandMarkResult();
     }
-    std::ostringstream os;
+   
     m_surfaceRegistration->GetResult()->Print(os);
     m_Controls.textBrowser_trans_info->append(QString::fromStdString(os.str()));
 
@@ -2617,7 +2623,7 @@ void VCView::OnPushButtonApplyLandMarks()
         // here no undo is stored, because the movement-steps aren't interesting.
         // only the start and the end is interisting to store for undo.
         copyNode->GetData()->GetGeometry()->ExecuteOperation(doOp);
-		m_registSrc->GetData()->GetGeometry()->ExecuteOperation(doOp);///////test
+		//m_registSrc->GetData()->GetGeometry()->ExecuteOperation(doOp);///////test
         delete doOp;
 
         mitk::RenderingManager::GetInstance()->RequestUpdateAll();
