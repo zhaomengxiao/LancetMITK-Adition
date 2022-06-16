@@ -74,6 +74,9 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_InitSpatialScene, &QPushButton::clicked, this, &SpineCArmRegistration::InitSceneSpatialLocalization);
   connect(m_Controls.pushButton_confirmApPoint, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmApPoint);
   connect(m_Controls.pushButton_confirmLtPoint, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmLtPoint);
+  connect(m_Controls.pushButton_projectionModelReg, &QPushButton::clicked, this, &SpineCArmRegistration::RegistertheProjectionModel);
+  connect(m_Controls.pushButton_confirmDemoApPoint, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmDemoApPoint);
+  connect(m_Controls.pushButton_confirmDemoLtPoint, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmDemoLtPoint);
 
 
 }
@@ -406,7 +409,34 @@ void SpineCArmRegistration::ConfirmLtPoint()
 	DrawLine(apPointArray, apSourceArray, colorApRay, 0.2, "AP ray");
 
 	double targetPointArray[3];
-	Get2LineIntersection(targetPointArray, apPointArray, apSourceArray, ltLinePointArray, ltSourceArray);
+	//Get2LineIntersection(targetPointArray, apPointArray, apSourceArray, ltLinePointArray, ltSourceArray);
+
+	// test replacing Get2LineIntersection
+	auto tmpPointset = mitk::PointSet::New();
+	tmpPointset->InsertPoint(apSource);
+	tmpPointset->InsertPoint(ltSource);
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetName("Line starts");
+	tmpNode->SetData(tmpPointset);
+	GetDataStorage()->Add(tmpNode);
+	m_linesStartsNode = tmpNode;
+
+	auto tmpPointset1 = mitk::PointSet::New();
+	tmpPointset1->InsertPoint(apPoint);
+	tmpPointset1->InsertPoint(ltLinePoint);
+	auto tmpNode1 = mitk::DataNode::New();
+	tmpNode1->SetName("Line ends");
+	tmpNode1->SetData(tmpPointset1);
+	GetDataStorage()->Add(tmpNode1);
+	m_linesEndsNode = tmpNode1;
+
+	GetLinesIntersection(targetPointArray);
+
+	GetDataStorage()->Remove(tmpNode);
+	GetDataStorage()->Remove(tmpNode1);
+
+
+
 
 	auto tmpSource = vtkSphereSource::New();
 	tmpSource->SetCenter(targetPointArray[0], targetPointArray[1], targetPointArray[2]);
@@ -535,6 +565,94 @@ void SpineCArmRegistration::Get2LineIntersection(double intersection[3], double 
 	intersection[0] = m[0];
 	intersection[1] = m[1];
 	intersection[2] = m[2];
+}
+
+void SpineCArmRegistration::GetLinesIntersection(double intersection[3])
+{
+	if(m_linesEndsNode != nullptr && m_linesStartsNode != nullptr)
+	{
+		
+		if(dynamic_cast<mitk::PointSet*>(m_linesEndsNode->GetData())->GetSize() == 
+			dynamic_cast<mitk::PointSet*>(m_linesStartsNode->GetData())->GetSize())
+		{
+			auto mitkStartsPointset = dynamic_cast<mitk::PointSet*>(m_linesStartsNode->GetData());
+			auto mitkEndsPointset = dynamic_cast<mitk::PointSet*>(m_linesEndsNode->GetData());
+
+			int lineNumber = dynamic_cast<mitk::PointSet*>(m_linesStartsNode->GetData())->GetSize();
+
+			Eigen::VectorXd d(3 * lineNumber);
+			// d << line0StartX, line0StartY, line0StartZ, line1StartX, line1StartY, line1StartZ;
+			Eigen::VectorXd d_End(3 * lineNumber);
+			// d_End << line0EndX, line0EndY, line0EndZ, line1EndX, line1EndY, line1EndZ;
+			for( int i = 0 ; i < lineNumber ; i++)
+			{
+				d[i * 3] = (mitkStartsPointset->GetPoint(i))[0];
+				d[i * 3 + 1] = (mitkStartsPointset->GetPoint(i))[1];
+				d[i * 3 + 2] = (mitkStartsPointset->GetPoint(i))[2];
+
+				d_End[i * 3] = (mitkEndsPointset->GetPoint(i))[0];
+				d_End[i * 3 + 1] = (mitkEndsPointset->GetPoint(i))[1];
+				d_End[i * 3 + 2] = (mitkEndsPointset->GetPoint(i))[2];
+			}
+
+			Eigen::VectorXd d_Substraction(3 * lineNumber);
+			d_Substraction = d_End - d;
+
+			Eigen::MatrixXd G(3 * lineNumber, lineNumber + 3);
+
+			for (int i = 0; i < 3 * lineNumber; i = i + 1)
+			{
+				for (int j = 0; j < 3 + lineNumber; j = j + 1)
+				{
+					G(i, j) = 0;
+
+					if (i % 3 == 0 && j == 0)
+					{
+						G(i, j) = 1;
+					}
+					if (i % 3 == 1 && j == 1)
+					{
+						G(i, j) = 1;
+					}
+					if (i % 3 == 2 && j == 2)
+					{
+						G(i, j) = 1;
+					}
+
+					if (j - 2 > 0)
+					{
+						for (int q = 0; q < 3; q = q + 1)
+						{
+							G(q + 3 * (j - 3), j) = -d_Substraction[q + 3 * (j - 3)];
+						}
+					}
+
+				}
+			}
+
+			Eigen::VectorXd m(3 + lineNumber);
+
+			Eigen::MatrixXd G_Transpose(3 * lineNumber, lineNumber + 3);
+			G_Transpose = G.transpose();
+
+			m = (G_Transpose * G).inverse() * G_Transpose * d;
+
+			// m_Controls.lineIntersectionTextBrowser->append(QString::number(m[0]));
+			// m_Controls.lineIntersectionTextBrowser->append(QString::number(m[1]));
+			// m_Controls.lineIntersectionTextBrowser->append(QString::number(m[2]));
+
+			intersection[0] = m[0];
+			intersection[1] = m[1];
+			intersection[2] = m[2];
+
+		}else
+		{
+			m_Controls.textBrowser->append("~~~ The start and end pointset do not have the same size ~~~");
+			
+		}
+	}
+
+
 }
 
 

@@ -1004,7 +1004,7 @@ void MoveData::LandmarkRegistration()
 	landmarkRegistrator->GetResult()->Print(os);
 
 	m_Controls.textBrowser_moveData->append("-------------Start landmark registration----------");
-	m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
+	// m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
 
 	m_Controls.textBrowser_moveData->append("Max landmark registration error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
 	m_Controls.textBrowser_moveData->append("Average landmark registration error: " + QString::number(landmarkRegistrator->GetavgLandmarkError()));

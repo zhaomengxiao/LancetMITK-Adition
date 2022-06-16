@@ -52,24 +52,28 @@ protected:
   void ConfirmLtPoint();
 
   // Spatial localization demo
-  double m_ArrayNdiToApImageCalibratorMarker[16];
-  double m_ArrayNdiToLtImageCalibratorMarker[16];
-  double m_ArrayRenderWindowToApImage[16]; // The geometry matrix of the input Ap image with spacing [1,1,1]
-  double m_ArrayRenderWindowToLtImage[16]; // The geometry matrix of the input Lt image with spacing [1,1,1]
+  double m_ArrayNdiToApImageCalibratorMarker[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+  double m_ArrayNdiToLtImageCalibratorMarker[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+  double m_ArrayRenderWindowToApImage[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // The geometry matrix of the input Ap image with spacing [1,1,1]
+  double m_ArrayRenderWindowToLtImage[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // The geometry matrix of the input Lt image with spacing [1,1,1]
   double m_ArrayApImageCalibratorMarkerToRenderWindow[16];
   double m_ArrayLtImageCalibratorMarkerToRenderWindow[16];
-  double m_ApSourceInApImage[3]; // x,y,z in Ap image coordinate (spacing [1,1,1])
-  double m_LtSourceInLtImage[3]; // x,y,z in Lt image coordinate (spacing [1,1,1])
-  double m_ArrayNdiToApImage[16]; // The transform from NDI coordinate to Ap image with image spacing [1,1,1]
-  double m_ArrayNdiToLtImage[16]; // The transform from NDI coordinate to Lt image with image spacing [1,1,1]
+  double m_ApSourceInApImage[3]{ 104.96, 104.96, 980 }; // x,y,z in Ap image coordinate (spacing [1,1,1])
+  double m_LtSourceInLtImage[3]{ 104.96, 104.96, 980 }; // x,y,z in Lt image coordinate (spacing [1,1,1])
+  double m_ArrayNdiToApImage[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // The transform from NDI coordinate to Ap image with image spacing [1,1,1]
+  double m_ArrayNdiToLtImage[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // The transform from NDI coordinate to Lt image with image spacing [1,1,1]
 
-  void GetMatrixApImageCalibratorMarkerToRenderWindow(); // Use landmark registration
-  void GetMatrixLtImageCalibratorMarkerToRenderWindow(); // Use landmark registration 
-  void GetMatrixNdiToApImage();
-  void GetMatrixNdiToLtImage();
-  void GetApSourceInApImage();
-  void GetLtSourceInLtImage();
-
+  bool GetMatrixApImageCalibratorMarkerToRenderWindow(); // Use landmark registration
+  bool GetMatrixLtImageCalibratorMarkerToRenderWindow(); // Use landmark registration 
+  bool GetMatrixNdiToApImage();
+  bool GetMatrixNdiToLtImage();
+  bool GetApSourceInApImage();
+  bool GetLtSourceInLtImage();
+  void RegistertheProjectionModel();
+  void InitDemoScene();
+  void ApplyRegistration();
+  void ConfirmDemoApPoint();
+  void ConfirmDemoLtPoint();
 
 
 
@@ -80,6 +84,9 @@ protected:
   void DrawLine(double start[3], double end[3], double color[3], double opacity, const char* name);
   void Get2LineIntersection(double intersection[3], double line0Start[3], double line0End[3], double line1Start[3], double line1End[3]);
 
+  void GetLinesIntersection(double intersection[3]);
+  mitk::DataNode* m_linesStartsNode{ nullptr };
+  mitk::DataNode* m_linesEndsNode{ nullptr };
 
 };
 

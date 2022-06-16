@@ -23,14 +23,14 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
        <string>Spatial localization simple</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_2">
          <property name="title">
           <string>Scene initialization</string>
@@ -54,7 +54,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_planeResolutionX">
                  <property name="text">
-                  <string>0.15</string>
+                  <string>0.205</string>
                  </property>
                 </widget>
                </item>
@@ -68,7 +68,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_planeResolutionY">
                  <property name="text">
-                  <string>0.15</string>
+                  <string>0.205</string>
                  </property>
                 </widget>
                </item>
@@ -86,7 +86,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_planePixNumX">
                  <property name="text">
-                  <string>2000</string>
+                  <string>1024</string>
                  </property>
                 </widget>
                </item>
@@ -100,7 +100,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_planePixNumY">
                  <property name="text">
-                  <string>2000</string>
+                  <string>1024</string>
                  </property>
                 </widget>
                </item>
@@ -134,7 +134,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_planeSourceX_0">
                  <property name="text">
-                  <string>150</string>
+                  <string>104.5</string>
                  </property>
                 </widget>
                </item>
@@ -148,7 +148,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_planeSourceY_0">
                  <property name="text">
-                  <string>150</string>
+                  <string>104.5</string>
                  </property>
                 </widget>
                </item>
@@ -162,7 +162,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_planeSourceZ_0">
                  <property name="text">
-                  <string>1010</string>
+                  <string>788</string>
                  </property>
                 </widget>
                </item>
@@ -180,7 +180,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_planeSourceX_1">
                  <property name="text">
-                  <string>150</string>
+                  <string>104.5</string>
                  </property>
                 </widget>
                </item>
@@ -194,7 +194,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_planeSourceY_1">
                  <property name="text">
-                  <string>150</string>
+                  <string>104.5</string>
                  </property>
                 </widget>
                </item>
@@ -208,7 +208,7 @@
                <item>
                 <widget class="QLineEdit" name="lineEdit_planeSourceZ_1">
                  <property name="text">
-                  <string>1000</string>
+                  <string>788</string>
                  </property>
                 </widget>
                </item>
@@ -220,21 +220,21 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="1" column="0">
         <widget class="QLabel" name="label_13">
          <property name="text">
           <string>Please move AP(LT) ray source and AP(LT) imager into AP(LT) coordinate's child node,</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="2" column="0">
         <widget class="QLabel" name="label_14">
          <property name="text">
           <string>then move the 2 parent nodes to proper positions, pick a point on AP image and then a point on LT image</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="3" column="0">
         <widget class="QGroupBox" name="groupBox_5">
          <property name="title">
           <string>AP image point selection</string>
@@ -268,7 +268,7 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="4" column="0">
         <widget class="QGroupBox" name="groupBox_6">
          <property name="title">
           <string>LT image point selection on the projection line</string>
@@ -602,18 +602,16 @@
        </item>
       </layout>
      </widget>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>GroupBox</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QTextBrowser" name="textBrowser"/>
-      </item>
-     </layout>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Output</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_10">
+       <item row="0" column="0">
+        <widget class="QTextBrowser" name="textBrowser"/>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>
