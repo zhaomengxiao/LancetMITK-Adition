@@ -23,7 +23,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -519,7 +519,7 @@
        <item row="3" column="0">
         <widget class="QPushButton" name="pushButton_projectionModelReg">
          <property name="text">
-          <string>Registrate the projection model</string>
+          <string>Register the projection model</string>
          </property>
         </widget>
        </item>
@@ -599,6 +599,300 @@
           </item>
          </layout>
         </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_4">
+      <attribute name="title">
+       <string>Camera PnP</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_16">
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_13">
+         <property name="title">
+          <string>C-arm image</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_13">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_24">
+            <item>
+             <widget class="QRadioButton" name="radioButton_ap">
+              <property name="text">
+               <string>AP image:</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButton_lt">
+              <property name="text">
+               <string>LT image</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1">
+           <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_image_pnp" native="true">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QGroupBox" name="groupBox_14">
+         <property name="title">
+          <string>2D point selection</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_15">
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_25">
+            <item>
+             <widget class="QLabel" name="label_32">
+              <property name="text">
+               <string>AP image point:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_ApPoint_pnp" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="pushButton_confirmApPoint_pnp">
+            <property name="text">
+             <string>Confirm</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_29">
+            <item>
+             <widget class="QLabel" name="label_33">
+              <property name="text">
+               <string>LT image point:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LtPoint_pnp" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="1">
+           <widget class="QPushButton" name="pushButton_confirmLtPoint_pnp">
+            <property name="text">
+             <string>Confirm</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_30">
+            <item>
+             <widget class="QLabel" name="label_37">
+              <property name="text">
+               <string>3D pointset:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_3Dpointset_pnp" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="groupBox_10">
+         <property name="title">
+          <string>L and M steelballs on 2-deck image calibrator</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_11">
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_27">
+            <item>
+             <widget class="QLabel" name="label_35">
+              <property name="text">
+               <string>M balls extracted:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_extractedMballs_pnp" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_26">
+            <item>
+             <widget class="QLabel" name="label_34">
+              <property name="text">
+               <string>L balls extracted:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_extractedLballs_pnp" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_22">
+            <item>
+             <widget class="QLabel" name="label_30">
+              <property name="text">
+               <string>L balls by design:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_designLballs_pnp" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_23">
+            <item>
+             <widget class="QLabel" name="label_31">
+              <property name="text">
+               <string>M balls by design:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_designMballs_pnp" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QGroupBox" name="groupBox_11">
+         <property name="title">
+          <string>PnP DRF</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_14">
+          <item row="1" column="0">
+           <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+             <string>Steelballs</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_12">
+             <item row="0" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_20">
+               <item>
+                <widget class="QLabel" name="label_28">
+                 <property name="text">
+                  <string>Desgin:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_designPnPballs" native="true">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="1" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_28">
+               <item>
+                <widget class="QLabel" name="label_36">
+                 <property name="text">
+                  <string>Extracted:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imagePnPballs" native="true">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_21">
+            <item>
+             <widget class="QLabel" name="label_29">
+              <property name="text">
+               <string>PnP marker NDI position:  </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_ndiPnP" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QPushButton" name="pushButton_projectionModelReg_pnp">
+         <property name="text">
+          <string>Register the projection model</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

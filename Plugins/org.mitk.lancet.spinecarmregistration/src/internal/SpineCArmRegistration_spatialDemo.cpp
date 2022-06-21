@@ -66,6 +66,9 @@ bool SpineCArmRegistration::GetMatrixApImageCalibratorMarkerToRenderWindow()
 
 		vtkMatrix4x4::DeepCopy(m_ArrayApImageCalibratorMarkerToRenderWindow,tmpMatrix);
 
+		m_Controls.textBrowser->append("AP Max landmark error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
+		m_Controls.textBrowser->append("AP Average landmark error: " + QString::number(landmarkRegistrator->GetavgLandmarkError()));
+
 		return true;
 
 	}
@@ -99,6 +102,10 @@ bool SpineCArmRegistration::GetMatrixLtImageCalibratorMarkerToRenderWindow()
 		auto tmpMatrix = landmarkRegistrator->GetResult();
 
 		vtkMatrix4x4::DeepCopy(m_ArrayLtImageCalibratorMarkerToRenderWindow, tmpMatrix);
+
+		m_Controls.textBrowser->append("LT Max landmark error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
+		m_Controls.textBrowser->append("LT Average landmark error: " + QString::number(landmarkRegistrator->GetavgLandmarkError()));
+
 
 		return true;
 	}

@@ -29,7 +29,7 @@
       <item row="2" column="0">
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -859,7 +859,7 @@
          </font>
         </property>
         <property name="text">
-         <string>(grandchild nodes are not affected)</string>
+         <string>( grandchild nodes are not affected )</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>

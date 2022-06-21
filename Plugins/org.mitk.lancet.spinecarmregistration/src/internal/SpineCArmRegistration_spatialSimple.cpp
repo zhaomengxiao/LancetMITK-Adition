@@ -65,10 +65,25 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_demoApPoint);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_demoLtPoint);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_demo3Dpointset);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_designLballs_pnp);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_designMballs_pnp);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_extractedLballs_pnp);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_extractedMballs_pnp);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_designPnPballs);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imagePnPballs);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_3Dpointset_pnp);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_ApPoint_pnp);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_LtPoint_pnp);
+
+
   InitNodeSelector(m_Controls.mitkNodeSelectWidget_ndiAp);
   InitNodeSelector(m_Controls.mitkNodeSelectWidget_ndiLt);
+  InitNodeSelector(m_Controls.mitkNodeSelectWidget_ndiPnP);
+
   InitImageSelector(m_Controls.mitkNodeSelectWidget_ApImage);
   InitImageSelector(m_Controls.mitkNodeSelectWidget_LtImage);
+  InitImageSelector(m_Controls.mitkNodeSelectWidget_image_pnp);
+
 
   //connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &SpineCArmRegistration::DoImageProcessing);
   connect(m_Controls.pushButton_InitSpatialScene, &QPushButton::clicked, this, &SpineCArmRegistration::InitSceneSpatialLocalization);
