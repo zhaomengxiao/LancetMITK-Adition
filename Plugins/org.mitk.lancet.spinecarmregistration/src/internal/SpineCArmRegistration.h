@@ -20,6 +20,7 @@ found in the LICENSE file.
 
 #include "ui_SpineCArmRegistrationControls.h"
 #include "QmitkSingleNodeSelectionWidget.h"
+#include <opencv2/calib3d/calib3d.hpp>
 
 /**
   \brief SpineCArmRegistration
@@ -51,7 +52,7 @@ protected:
   void ConfirmApPoint();
   void ConfirmLtPoint();
 
-  // Spatial localization demo
+  // Spatial localization demo using NDI marker on the 2-deck image calibrator
   double m_ArrayNdiToApImageCalibratorMarker[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
   double m_ArrayNdiToLtImageCalibratorMarker[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
   double m_ArrayRenderWindowToApImage[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // The geometry matrix of the input Ap image with spacing [1,1,1]
@@ -76,10 +77,29 @@ protected:
   void ConfirmDemoLtPoint();
 
 
+  // C arm registration using PnP algorithm
 
+  double m_ArrayNdiToPnpDrfMarker_pnp[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // from NavigationData
+  //double m_ArrayNdiToLtPnpDrfMarker_pnp[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // from NavigationData
+  double m_ArrayApImageToCamera_pnp[16]{ 1,0,0,104.96, 0,1,0,104.96, 0,0,1,0, 0,0,0,1 }; // Need source location, for mitk::Surface setup
+  //double m_ArrayLtImageToLtCamera_pnp[16]{ 1,0,0,104.96, 0,1,0,104.96, 0,0,1,0, 0,0,0,1 }; // Need source location, for mitk::Surface setup
+  double m_ArrayIntrinsicMatrix_pnp[9]; // Need source location
+  //double m_ArrayLtIntrinsicMatrix_pnp[9]; // Need source location
+  double m_ArrayRenderWindowToImage_pnp[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // The geometry matrix of the input Ap image with spacing [1,1,1]
+  //double m_ArrayRenderWindowToLtImage_pnp[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // The geometry matrix of the input Lt image with spacing [1,1,1]
+  double m_ArrayImageCalibratorMarkerToRenderWindow_pnp[16]; // obtained by landmark registration, for source localization
+  //double m_ArrayLtImageCalibratorMarkerToRenderWindow_pnp[16]; // obtained by landmark registration, for source localization
+  double m_SourceInImage_pnp[3]{ 104.96, 104.96, 980 }; // x,y,z in Ap image coordinate (spacing [1,1,1])
+  //double m_LtSourceInLtImage_pnp[3]{ 104.96, 104.96, 980 }; // x,y,z in Lt image coordinate (spacing [1,1,1])
+  double m_ArrayNdiToImage_pnp[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // Need PnP, the transform from NDI coordinate to Ap image with image spacing [1,1,1]
+  //double m_ArrayNdiToLtImage_pnp[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // Need PnP, the transform from NDI coordinate to Lt image with image spacing [1,1,1]
+
+  //bool GetMatrixImageCalibratorMarkerToRenderWindow_pnp(); // Use landmark registration
+  //bool GetIntrinsicMatrix();  // GetSourceInImage_pnp();
+  bool GetMatrixNdiToImage_pnp();
 
   
-  //utilities
+  // Utilities
   void PlotCoordinate(mitk::DataStorage* ds, std::string name, double color[3]);
   void DrawLine(double start[3], double end[3], double color[3], double opacity, const char* name);
   void Get2LineIntersection(double intersection[3], double line0Start[3], double line0End[3], double line1Start[3], double line1End[3]);
