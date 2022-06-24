@@ -6,4 +6,5 @@ set(MITK_PLUGINS
   org.mitk.lancet.movedata:ON
   org.mitk.lancet.spinecarmregistration:ON
   org.mitk.lancet.robot:ON
+  org.mitk.lancet.accuracytest:ON
 )
