@@ -92,6 +92,9 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_projectionModelReg, &QPushButton::clicked, this, &SpineCArmRegistration::RegistertheProjectionModel);
   connect(m_Controls.pushButton_confirmDemoApPoint, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmDemoApPoint);
   connect(m_Controls.pushButton_confirmDemoLtPoint, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmDemoLtPoint);
+  connect(m_Controls.pushButton_projectionModelReg_pnp, &QPushButton::clicked, this, &SpineCArmRegistration::RegisterProjectionModel_pnp);
+  connect(m_Controls.pushButton_confirmApPoint_pnp, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmApPoint_pnp);
+  connect(m_Controls.pushButton_confirmLtPoint_pnp, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmLtPoint_pnp);
 
 
 }
@@ -223,7 +226,7 @@ void SpineCArmRegistration::InitSceneSpatialLocalization()
 	raySourceNode1->SetVisibility(true);
 	raySourceNode1->SetOpacity(1.0);
 	GetDataStorage()->Add(raySourceNode1);
-		
+
 }
 
 void SpineCArmRegistration::PlotCoordinate(mitk::DataStorage* ds, std::string name, double color[3])

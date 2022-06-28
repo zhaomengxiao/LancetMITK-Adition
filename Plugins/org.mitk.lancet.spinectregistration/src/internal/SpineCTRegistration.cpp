@@ -164,7 +164,7 @@ void SpineCTRegistration::DEMOregistration()
 // }
 
 
-double* GetMatrixAnyToolDrfToRenderingWindow(mitk::PointSet* standardSteelballCenters /*from hardware design*/, mitk::Image* inputCtImage /*should contain steelballs*/, double voxelThreshold /*steelball voxel: 3000*/,
+double* GetMatrixRenderingWindowToTrackingDrf(mitk::PointSet* standardSteelballCenters /*from hardware design*/, mitk::Image* inputCtImage /*should contain steelballs*/, double voxelThreshold /*steelball voxel: 3000*/,
 	double facetNumUpperBound /*1440*/, double facetNumLowerBound /*500*/, double arrayNdiCtDrf[16] /*NDI data*/,
 	double arrayNdiTrackingDrf[16] /*NDI data*/)
 {

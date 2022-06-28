@@ -94,10 +94,14 @@ protected:
   double m_ArrayNdiToImage_pnp[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // Need PnP, the transform from NDI coordinate to Ap image with image spacing [1,1,1]
   //double m_ArrayNdiToLtImage_pnp[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }; // Need PnP, the transform from NDI coordinate to Lt image with image spacing [1,1,1]
 
-  //bool GetMatrixImageCalibratorMarkerToRenderWindow_pnp(); // Use landmark registration
-  //bool GetIntrinsicMatrix();  // GetSourceInImage_pnp();
+  bool GetMatrixImageCalibratorMarkerToRenderWindow_pnp(); // Use landmark registration
+  bool GetSourceInImage_pnp();
   bool GetMatrixNdiToImage_pnp();
-
+  void RegisterProjectionModel_pnp();
+  void InitScene_pnp();
+  void ApplyRegistration_pnp();
+  void ConfirmApPoint_pnp();
+  void ConfirmLtPoint_pnp();
   
   // Utilities
   void PlotCoordinate(mitk::DataStorage* ds, std::string name, double color[3]);

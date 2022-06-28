@@ -116,7 +116,7 @@ protected:
 // Note: If the "any other tool" is the tracking DRF, whose coordinate system is also fixed within the CT image frame,
 // then the CT DRF can be removed after the transformation between the tracking DRF and the MITK rendering window is calculated.  
 // The calculated array can be used to further get the transformation between a "new tool (e.g., a guided hand drill)" and the MITK rendering window.
-double* GetMatrixAnyToolDrfToRenderingWindow(mitk::PointSet* standardSteelballCenters /*from hardware design*/, mitk::Image* inputCtImage /*should contain steelballs*/, double voxelThreshold /*steelball: 3000*/,
+double* GetMatrixRenderingWindowToTrackingDrf(mitk::PointSet* standardSteelballCenters /*from hardware design*/, mitk::Image* inputCtImage /*should contain steelballs*/, double voxelThreshold /*steelball: 3000*/,
 	double facetNumUpperBound /*1440*/, double facetNumLowerBound /*500*/, double arrayNdiCtDrf[16] /*NDI data*/,
 	double arrayNdiTrackingDrf[16] /*NDI data*/);
 
