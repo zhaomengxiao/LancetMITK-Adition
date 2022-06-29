@@ -1,5 +1,5 @@
 mitk_create_module(LancetIGT
-  DEPENDS PUBLIC MitkIGTBase
+  DEPENDS PUBLIC MitkSceneSerialization MitkIGTBase
   PACKAGE_DEPENDS PRIVATE ITK VTK 
 )
 

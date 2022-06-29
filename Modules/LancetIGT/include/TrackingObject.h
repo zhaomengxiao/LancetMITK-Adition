@@ -23,6 +23,7 @@ found in the LICENSE file.
 #include "mitkPointSet.h"
 #include "mitkSurface.h"
 
+
 /**Documentation
   * \brief An object of this class represents a navigation object in the view of the software.
   *        A few informations like an identifier, a object, a surface and a mitk image
@@ -44,12 +45,25 @@ public:
 	itkGetMacro(Surface, mitk::Surface::Pointer);
 	itkGetMacro(Landmarks, mitk::PointSet::Pointer);
 	itkGetMacro(T_Object2ReferenceFrame, vtkSmartPointer<vtkMatrix4x4>);
+	itkGetMacro(Image, mitk::Image::Pointer);
 
 	itkSetMacro(Name, std::string);
 	itkSetMacro(ReferencFrameName, std::string);
 	itkSetMacro(Surface, mitk::Surface::Pointer);
 	itkSetMacro(Landmarks, mitk::PointSet::Pointer);
 	itkSetMacro(T_Object2ReferenceFrame, vtkSmartPointer<vtkMatrix4x4>);
+	itkSetMacro(Image, mitk::Image::Pointer);
+
+	/**
+	  * \brief Graft the data and information from one NavigationTool to another.
+	  *
+	  * Copies the content of data into this object.
+	  * This is a convenience method to setup a second NavigationTool object with all the meta
+	  * information of another NavigationTool object.
+	  * Note that this method is different than just using two
+	  * SmartPointers to the same NavigationTool object since separate DataObjects are
+	  * still maintained.
+	  */
 
 	//############################################################
 
@@ -57,20 +71,31 @@ protected:
 
 	//## data structure of a navigation tool object ##
 	std::string m_Name;
+
 	/** @brief Holds Name of Reference Frame. */
 	std::string m_ReferencFrameName;
 
 	/** @brief Holds Surface for object visualization. */
 	mitk::Surface::Pointer m_Surface;
 
-	// /** @brief Holds Surface for object registration. If there is no special setting, the same as ObjectSurfaceForShow*/
-	// mitk::Surface::Pointer m_ObjectSurfaceForRegistration;
+	/** @brief Holds Surface for object registration. If there is no special setting, the same as ObjectSurfaceForShow. 
+	 *
+	 * Keeping only the valid part of the surface helps prevent ICP registration to the wrong side surface.
+	 */
+	mitk::Surface::Pointer m_SurfaceForRegistration;
 
-	/** @brief Holds landmarks for object registration. */
+	/** @brief Holds landmarks for object landmark registration. */
 	mitk::PointSet::Pointer m_Landmarks;
+
+	/** @brief Holds ICP point set for object icp registration,only for visual suggestion, not a practical one */
+	mitk::PointSet::Pointer m_IcpPoints;
+
+	/** @brief Holds Volume Image of object. */
+	mitk::Image::Pointer m_Image;
 	
 	/** @brief Holds Transform Matrix for object registration.T_Object2ReferenceFrame */
 	vtkSmartPointer<vtkMatrix4x4>  m_T_Object2ReferenceFrame;
 };
+
 
 #endif
