@@ -101,7 +101,7 @@ void lancet::NavigationObjectVisualizationFilter::SetNavigationObject(unsigned i
 {
   std::vector<mitk::BaseData::Pointer> dataVector;
   dataVector.push_back(data);
-  SetRepresentationObjects(idx, dataVector);
+  SetNavigationObjects(idx, dataVector);
 }
 
 void lancet::NavigationObjectVisualizationFilter::SetNavigationObjects(unsigned int idx, const std::vector<mitk::BaseData::Pointer>& data)
@@ -241,7 +241,7 @@ void lancet::NavigationObjectVisualizationFilter::GenerateData()
 
     //show navigation object
     const std::vector<RepresentationPointer> navigationObject =
-      this->GetAllRepresentationObjects(index);
+      this->GetAllNavigationObjects(index);
     for (unsigned int dataIdx = 0; dataIdx < navigationObject.size(); dataIdx++)
     {
       if (navigationObject.at(dataIdx) == nullptr)

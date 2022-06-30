@@ -178,7 +178,15 @@ mitk::TrackingDeviceSource::Pointer lancet::TrackingDeviceSourceConfiguratorLanc
     return nullptr;
   }
   // create visualization filter
-  visualizationFilter = CreateNavigationDataObjectVisualizationFilter(referenceFilter, m_NavigationTools);
+  if (m_NavigationObject.IsNotNull())
+  {
+    visualizationFilter = CreateNavigationDataObjectVisualizationFilter(referenceFilter, m_NavigationTools,m_NavigationObject);
+  }
+  else
+  {
+    visualizationFilter = CreateNavigationDataObjectVisualizationFilter(referenceFilter, m_NavigationTools);
+  }
+  
   if (visualizationFilter.IsNull())
   {
     MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage;
