@@ -1,11 +1,21 @@
 set(H_FILES
-  include/TrackingObject.h
-  include/lancetNavigationObjectWriter.h
+  DataManagement/lancetNavigationObject.h
+  DataManagement/lancetTrackingDeviceSourceConfigurator.h
+  
+  IO/lancetNavigationObjectWriter.h
+
+  Algorithms/lancetNavigationDataInReferenceCoordFilter.h
+  Rendering/lancetNavigationObjectVisualizationFilter.h
 )
 
 set(CPP_FILES
-TrackingObject.cpp
-lancetNavigationObjectWriter.cpp
+  DataManagement/lancetNavigationObject.cpp
+  DataManagement/lancetTrackingDeviceSourceConfigurator.cpp
+  
+  IO/lancetNavigationObjectWriter.cpp
+  
+  Algorithms/lancetNavigationDataInReferenceCoordFilter.cpp
+  Rendering/lancetNavigationObjectVisualizationFilter.cpp
 )
 
 set(UI_FILES

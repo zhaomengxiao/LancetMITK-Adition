@@ -1,5 +1,7 @@
 mitk_create_module(LancetIGT
-  DEPENDS PUBLIC MitkSceneSerialization MitkIGTBase
+INCLUDE_DIRS
+    PUBLIC Algorithms Common DataManagement ExceptionHandling IO Rendering TrackingDevices TestingHelper
+  DEPENDS PUBLIC MitkSceneSerialization MitkIGTBase MitkIGT
   PACKAGE_DEPENDS PRIVATE ITK VTK 
 )
 

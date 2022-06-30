@@ -18,10 +18,10 @@ found in the LICENSE file.
 
 //mitk headers
 #include <mitkCommon.h>
-#include "TrackingObject.h"
 // #include "mitkNavigationToolStorageSerializer.h"
 #include <MitkLancetIGTExports.h>
 
+#include "lancetNavigationObject.h"
 #include "mitkDataNode.h"
 
 
@@ -64,6 +64,7 @@ namespace lancet
     std::string ConvertPointToString(mitk::Point3D point);
     std::string ConvertQuaternionToString(mitk::Quaternion quat);
     std::string ConvertAffineTransformToString(mitk::AffineTransform3D::Pointer affine);
+    std::string ConvertVtkMatrix4x4ToToString(vtkSmartPointer<vtkMatrix4x4> matrix);
   };
 } // namespace mitk
 #endif //NAVIGATIONOBJECTWRITER
