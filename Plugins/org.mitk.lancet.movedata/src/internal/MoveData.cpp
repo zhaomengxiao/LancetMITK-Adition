@@ -90,7 +90,10 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_Landmark, &QPushButton::clicked, this, &MoveData::LandmarkRegistration);
   connect(m_Controls.pushButton_ApplyRegistrationMatrix, &QPushButton::clicked, this, &MoveData::AppendRegistrationMatrix);
   connect(m_Controls.pushButton_Icp, &QPushButton::clicked, this, &MoveData::IcpRegistration);
-  
+  connect(m_Controls.pushButton_getgeometryWithSpacing, &QPushButton::clicked, this, &MoveData::GetObjectGeometryWithSpacing);
+  connect(m_Controls.pushButton_getgeometryWithoutSpacing, &QPushButton::clicked, this, &MoveData::GetObjectGeometryWithoutSpacing);
+
+
 
 }
 
@@ -1116,4 +1119,83 @@ void MoveData::IcpRegistration()
 	m_Controls.textBrowser_moveData->append("-------------Start ICP registration----------");
 	m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
 };
+
+
+void MoveData::GetObjectGeometryWithSpacing()
+{
+	if(m_baseDataToMove != nullptr)
+	{
+		auto tmpvtkMatrix = m_baseDataToMove->GetGeometry()->GetVtkMatrix();
+
+		m_Controls.lineEdit_offsetMatrix_0->setText(QString::number(tmpvtkMatrix->GetElement(0, 0)));
+		m_Controls.lineEdit_offsetMatrix_1->setText(QString::number(tmpvtkMatrix->GetElement(1, 0)));
+		m_Controls.lineEdit_offsetMatrix_2->setText(QString::number(tmpvtkMatrix->GetElement(2, 0)));
+		m_Controls.lineEdit_offsetMatrix_3->setText(QString::number(tmpvtkMatrix->GetElement(3, 0)));
+		m_Controls.lineEdit_offsetMatrix_4->setText(QString::number(tmpvtkMatrix->GetElement(0, 1)));
+		m_Controls.lineEdit_offsetMatrix_5->setText(QString::number(tmpvtkMatrix->GetElement(1, 1)));
+		m_Controls.lineEdit_offsetMatrix_6->setText(QString::number(tmpvtkMatrix->GetElement(2, 1)));
+		m_Controls.lineEdit_offsetMatrix_7->setText(QString::number(tmpvtkMatrix->GetElement(3, 1)));
+		m_Controls.lineEdit_offsetMatrix_8->setText(QString::number(tmpvtkMatrix->GetElement(0, 2)));
+		m_Controls.lineEdit_offsetMatrix_9->setText(QString::number(tmpvtkMatrix->GetElement(1, 2)));
+		m_Controls.lineEdit_offsetMatrix_10->setText(QString::number(tmpvtkMatrix->GetElement(2, 2)));
+		m_Controls.lineEdit_offsetMatrix_11->setText(QString::number(tmpvtkMatrix->GetElement(3, 2)));
+		m_Controls.lineEdit_offsetMatrix_12->setText(QString::number(tmpvtkMatrix->GetElement(0, 3)));
+		m_Controls.lineEdit_offsetMatrix_13->setText(QString::number(tmpvtkMatrix->GetElement(1, 3)));
+		m_Controls.lineEdit_offsetMatrix_14->setText(QString::number(tmpvtkMatrix->GetElement(2, 3)));
+		m_Controls.lineEdit_offsetMatrix_15->setText(QString::number(tmpvtkMatrix->GetElement(3, 3)));
+	}
+	
+
+}
+
+void MoveData::GetObjectGeometryWithoutSpacing()
+{
+	if (m_currentSelectedNode != nullptr)
+	{
+		auto initialMatrix = m_currentSelectedNode->GetData()->GetGeometry()->GetVtkMatrix();
+		auto spacing = m_currentSelectedNode->GetData()->GetGeometry()->GetSpacing();
+		auto spacingOffsetMatrix = vtkMatrix4x4::New();
+		spacingOffsetMatrix->Identity();
+		spacingOffsetMatrix->SetElement(0, 0, 1 / spacing[0]);
+		spacingOffsetMatrix->SetElement(1, 1, 1 / spacing[1]);
+		spacingOffsetMatrix->SetElement(2, 2, 1 / spacing[2]);
+
+		auto tmpTransform = vtkTransform::New();
+		tmpTransform->PreMultiply();
+		tmpTransform->Identity();
+		tmpTransform->SetMatrix(initialMatrix);
+		tmpTransform->Concatenate(spacingOffsetMatrix);
+
+		auto tmpvtkMatrix = tmpTransform->GetMatrix();
+
+
+		m_Controls.lineEdit_offsetMatrix_0->setText(QString::number(tmpvtkMatrix->GetElement(0, 0)));
+		m_Controls.lineEdit_offsetMatrix_1->setText(QString::number(tmpvtkMatrix->GetElement(1, 0)));
+		m_Controls.lineEdit_offsetMatrix_2->setText(QString::number(tmpvtkMatrix->GetElement(2, 0)));
+		m_Controls.lineEdit_offsetMatrix_3->setText(QString::number(tmpvtkMatrix->GetElement(3, 0)));
+		m_Controls.lineEdit_offsetMatrix_4->setText(QString::number(tmpvtkMatrix->GetElement(0, 1)));
+		m_Controls.lineEdit_offsetMatrix_5->setText(QString::number(tmpvtkMatrix->GetElement(1, 1)));
+		m_Controls.lineEdit_offsetMatrix_6->setText(QString::number(tmpvtkMatrix->GetElement(2, 1)));
+		m_Controls.lineEdit_offsetMatrix_7->setText(QString::number(tmpvtkMatrix->GetElement(3, 1)));
+		m_Controls.lineEdit_offsetMatrix_8->setText(QString::number(tmpvtkMatrix->GetElement(0, 2)));
+		m_Controls.lineEdit_offsetMatrix_9->setText(QString::number(tmpvtkMatrix->GetElement(1, 2)));
+		m_Controls.lineEdit_offsetMatrix_10->setText(QString::number(tmpvtkMatrix->GetElement(2, 2)));
+		m_Controls.lineEdit_offsetMatrix_11->setText(QString::number(tmpvtkMatrix->GetElement(3, 2)));
+		m_Controls.lineEdit_offsetMatrix_12->setText(QString::number(tmpvtkMatrix->GetElement(0, 3)));
+		m_Controls.lineEdit_offsetMatrix_13->setText(QString::number(tmpvtkMatrix->GetElement(1, 3)));
+		m_Controls.lineEdit_offsetMatrix_14->setText(QString::number(tmpvtkMatrix->GetElement(2, 3)));
+		m_Controls.lineEdit_offsetMatrix_15->setText(QString::number(tmpvtkMatrix->GetElement(3, 3)));
+	}
+
+	GetRenderWindowPart()->GetRenderingManager();
+
+
+}
+
+
+
+
+
+
+
 

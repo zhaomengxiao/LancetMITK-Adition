@@ -106,6 +106,10 @@ protected:
   void AppendOffsetMatrix();
   vtkMatrix4x4* ObtainVtkMatrixFromUi();
   void RealignImage(); //Realign the image and the rendering window coordinate systems (keep the spacing)
+  void GetObjectGeometryWithSpacing();
+  void GetObjectGeometryWithoutSpacing();
+
+
 
   // Toolset 3 (SurfaceRegistration)
   void UpdateUiRegistrationMatrix();
