@@ -31,9 +31,13 @@ found in the LICENSE file.
 // #include <opencv2/core.hpp>
 #include <vtkPlaneSource.h>
 #include <vtkSphereSource.h>
+#include <vtkTexture.h>
 #include <opencv2/opencv.hpp>
 
 #include "basic.h"
+#include "mitkLookupTable.h"
+#include "mitkLookupTableProperty.h"
+#include "mitkSmartPointerProperty.h"
 #include "surfaceregistraion.h"
 
 
@@ -338,25 +342,25 @@ void SpineCArmRegistration::InitScene_pnp()
 	// World coordinate
 	double color[3]{ 0,0,0 };
 	PlotCoordinate(GetDataStorage(), "NDI World coordinate", color);
-
+	
 	auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_image_pnp->GetSelectedNode()->GetData());
 	//auto ltImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_LtImage->GetSelectedNode()->GetData());
-
-
+	
+	
 	double resolutionPlane0[2]{ inputImage->GetGeometry()->GetSpacing()[0] ,inputImage->GetGeometry()->GetSpacing()[1] };
 	// double resolutionPlane1[2]{ ltImage->GetGeometry()->GetSpacing()[0] ,ltImage->GetGeometry()->GetSpacing()[1] };
 	MITK_INFO << "-------------------" << inputImage->GetGeometry()->GetSpacing()[0] << "---" << inputImage->GetGeometry()->GetSpacing()[1] << "---" << inputImage->GetGeometry()->GetSpacing()[2];
-
-
+	
+	
 	double pixelNum0[2]{ double((inputImage->GetDimensions())[0]), double((inputImage->GetDimensions())[1]) };
 	// double pixelNum1[2]{ double((ltImage->GetDimensions())[0]), double((ltImage->GetDimensions())[1]) };
 	MITK_INFO << "-------------------" << pixelNum0[0] << "---" << pixelNum0[1];
 	
 	double dimensionPlane0[2]{ pixelNum0[0] * resolutionPlane0[0], pixelNum0[1] * resolutionPlane0[1] };
 	// double dimensionPlane1[2]{ pixelNum1[0] * resolutionPlane1[0], pixelNum1[1] * resolutionPlane1[1] };
-
+	
 	MITK_INFO << "-------------------" << dimensionPlane0[0] << "---" << dimensionPlane0[1];
-
+	
 	auto imagerPlaneSource0 = vtkSmartPointer<vtkPlaneSource>::New();
 	auto raySource0 = vtkSmartPointer<vtkSphereSource>::New();
 	
@@ -369,21 +373,21 @@ void SpineCArmRegistration::InitScene_pnp()
 	{
 		PlotCoordinate(GetDataStorage(), "LT coordinate", color0);
 	}
-
+	
 	imagerPlaneSource0->SetOrigin(0, 0, 0);
 	imagerPlaneSource0->SetPoint1(dimensionPlane0[0], 0, 0);
 	imagerPlaneSource0->SetPoint2(0, dimensionPlane0[1], 0);
 	imagerPlaneSource0->Update();
-
+	
 	auto imagerPlaneNode0 = mitk::DataNode::New();
 	auto imagerPlaneSurface0 = mitk::Surface::New();
 	imagerPlaneSurface0->SetVtkPolyData(imagerPlaneSource0->GetOutput());
 	imagerPlaneNode0->SetData(imagerPlaneSurface0);
-
+	
 	if (m_Controls.radioButton_ap->isChecked())
 	{
 		imagerPlaneNode0->SetName("AP imager helper");
-		imagerPlaneNode0->SetColor(0.4, 0.0, 0.0);
+		imagerPlaneNode0->SetColor(0.4, 0, 0);
 	}else
 	{
 		imagerPlaneNode0->SetName("LT imager helper");
@@ -393,16 +397,16 @@ void SpineCArmRegistration::InitScene_pnp()
 	imagerPlaneNode0->SetVisibility(true);
 	imagerPlaneNode0->SetOpacity(0.5);
 	GetDataStorage()->Add(imagerPlaneNode0);
-
+	
 	raySource0->SetCenter(m_SourceInImage_pnp);
 	raySource0->SetRadius(17);
 	raySource0->Update();
-
+	
 	auto raySourceNode0 = mitk::DataNode::New();
 	auto raySourceSurface0 = mitk::Surface::New();
 	raySourceSurface0->SetVtkPolyData(raySource0->GetOutput());
 	raySourceNode0->SetData(raySourceSurface0);
-
+	
 	if (m_Controls.radioButton_ap->isChecked())
 	{
 		raySourceNode0->SetName("AP raySource");
@@ -417,6 +421,9 @@ void SpineCArmRegistration::InitScene_pnp()
 	raySourceNode0->SetVisibility(true);
 	raySourceNode0->SetOpacity(1.0);
 	GetDataStorage()->Add(raySourceNode0);
+
+
+
 }
 
 void SpineCArmRegistration::ApplyRegistration_pnp()
@@ -450,6 +457,41 @@ void SpineCArmRegistration::ApplyRegistration_pnp()
 	tmpApTrans->SetMatrix(tmpApMatrix);
 	tmpApTrans->Concatenate(matrixNdiToImage);
 	m_Controls.mitkNodeSelectWidget_image_pnp->GetSelectedNode()->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpApTrans->GetMatrix());
+
+
+	auto image = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_image_pnp->GetSelectedNode()->GetData());
+
+
+	// Apply texture
+	auto node = GetDataStorage()->GetNamedNode("AP imager helper");
+	if (m_Controls.radioButton_ap->isChecked())
+	{
+		mitk::SmartPointerProperty::Pointer prop = mitk::SmartPointerProperty::New(image);
+		GetDataStorage()->GetNamedNode("AP imager helper")->SetDoubleProperty("Texture minimum", 0.0);
+		GetDataStorage()->GetNamedNode("AP imager helper")->SetDoubleProperty("Texture maximum", 1600.0);
+		GetDataStorage()->GetNamedNode("AP imager helper")->SetProperty("Surface.Texture", prop);
+	}else
+	{
+		node = GetDataStorage()->GetNamedNode("LT imager helper");
+		mitk::SmartPointerProperty::Pointer prop = mitk::SmartPointerProperty::New(image);
+		GetDataStorage()->GetNamedNode("LT imager helper")->SetDoubleProperty("Texture minimum", 0.0);
+		GetDataStorage()->GetNamedNode("LT imager helper")->SetDoubleProperty("Texture maximum", 1600.0);
+		GetDataStorage()->GetNamedNode("LT imager helper")->SetProperty("Surface.Texture", prop);
+	}
+	// Remove shading
+	node->RemoveProperty("material.wireframeLineWidth");
+	node->RemoveProperty("material.pointSize");
+
+	node->RemoveProperty("material.ambientCoefficient");
+	node->RemoveProperty("material.diffuseCoefficient");
+	node->RemoveProperty("material.specularCoefficient");
+	node->RemoveProperty("material.specularPower");
+
+	node->RemoveProperty("material.representation");
+	node->RemoveProperty("material.interpolation");
+
+	
+	  
 
 }
 

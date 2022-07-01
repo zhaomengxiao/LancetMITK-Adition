@@ -29,7 +29,7 @@
       <item row="2" column="0">
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>2</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -316,14 +316,21 @@
           <string>Apply matrix</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_6">
-          <item row="0" column="0">
-           <widget class="QPushButton" name="pushButton_RealignImage">
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_getgeometryWithSpacing">
             <property name="text">
-             <string>Realign the image and the rendering window coordinate systems (keep the spacing)</string>
+             <string>Get geometry matrix (with spacing factor)</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
+           <widget class="QPushButton" name="pushButton_getgeometryWithoutSpacing">
+            <property name="text">
+             <string>Get geometry matrix (without spacing factor)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
            <widget class="QGroupBox" name="groupBox_5">
             <property name="title">
              <string>Offset matrix to append (postmultiply) or overwirte (set as current offset matrix):</string>
@@ -506,7 +513,14 @@
             </layout>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="pushButton_RealignImage">
+            <property name="text">
+             <string>Realign the image and the rendering window coordinate systems (keep the spacing)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
