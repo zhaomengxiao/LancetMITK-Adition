@@ -7,4 +7,5 @@ set(MITK_PLUGINS
   org.mitk.lancet.spinecarmregistration:ON
   org.mitk.lancet.robot:ON
   org.mitk.lancet.accuracytest:ON
+  org.mitk.lancet.imageregistration:ON
 )

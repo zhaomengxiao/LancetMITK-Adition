@@ -16,6 +16,7 @@ found in the LICENSE file.
 #include "mitkNavigationDataToNavigationDataFilter.h"
 #include "mitkNavigationData.h"
 #include "mitkBaseData.h"
+#include "lancetNavigationObject.h"
 #include "MitkLancetIGTExports.h"
 namespace lancet {
 
@@ -34,6 +35,9 @@ namespace lancet {
     itkFactorylessNewMacro(Self);
 
     itkCloneMacro(Self);
+
+    itkSetMacro(NavigationObject, NavigationObject::Pointer)
+    itkGetMacro(NavigationObject, NavigationObject::Pointer)
 
     /** Defines the rotation modes of this tracking device which results in different representations
      *  of quaternions.
@@ -214,6 +218,11 @@ namespace lancet {
     OffsetPointerMap m_OffsetList;
     OffsetPointerMap m_ObjRegList;
 
+
+    /** Holds the metadata of all tools identified by the tool name.
+     *  There is no need to set the metadata of the tools, so not
+     *  every tool has metadata available. */
+    NavigationObject::Pointer m_NavigationObject;
   private:
     RotationMode m_RotationMode; ///< defines the rotation mode Standard or Transposed, Standard is default
   };
