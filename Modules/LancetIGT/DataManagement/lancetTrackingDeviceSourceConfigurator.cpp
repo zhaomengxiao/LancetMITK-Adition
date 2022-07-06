@@ -172,11 +172,7 @@ mitk::TrackingDeviceSource::Pointer lancet::TrackingDeviceSourceConfiguratorLanc
 
   // create reference filter
   referenceFilter = CreateNavigationDataInReferenceCoordFilter(returnValue);
-  if (returnValue.IsNull())
-  {
-    MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage;
-    return nullptr;
-  }
+  
   // create visualization filter
   if (m_NavigationObject.IsNotNull())
   {
@@ -185,12 +181,6 @@ mitk::TrackingDeviceSource::Pointer lancet::TrackingDeviceSourceConfiguratorLanc
   else
   {
     visualizationFilter = CreateNavigationDataObjectVisualizationFilter(referenceFilter, m_NavigationTools);
-  }
-  
-  if (visualizationFilter.IsNull())
-  {
-    MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage;
-    return nullptr;
   }
 
   return returnValue;
@@ -218,21 +208,24 @@ lancet::NavigationObjectVisualizationFilter::Pointer
     mitk::NavigationDataSource::Pointer navigationDataSource, mitk::NavigationToolStorage::Pointer navigationTools)
   {
   lancet::NavigationObjectVisualizationFilter::Pointer returnValue = lancet::NavigationObjectVisualizationFilter::New();
-    for (unsigned int i = 0; i < navigationDataSource->GetNumberOfIndexedOutputs(); i++)
-    {
-    // Note: If all tools have the same name only the first tool will always be returned and
-    //       the others won't be updated during rendering.This could potentially lead to inconstencies
-      mitk::NavigationTool::Pointer currentTool =
-        navigationTools->GetToolByName(navigationDataSource->GetOutput(i)->GetName());
-    if (currentTool.IsNull())
-      {
-      this->m_ErrorMessage = "Error: did not find corresponding tool in tracking device after initialization.";
-      return nullptr;
-      }
-      returnValue->SetInput(i, navigationDataSource->GetOutput(i));
-    returnValue->SetRepresentationObject(i,currentTool->GetDataNode()->GetData());
-      returnValue->SetOffset(i, currentTool->GetToolRegistrationMatrix());
-    }
+    // for (unsigned int i = 0; i < navigationDataSource->GetNumberOfIndexedOutputs(); i++)
+    // {
+    // // Note: If all tools have the same name only the first tool will always be returned and
+    // //       the others won't be updated during rendering.This could potentially lead to inconstencies
+    //   mitk::NavigationTool::Pointer currentTool =
+    //     navigationTools->GetToolByName(navigationDataSource->GetOutput(i)->GetName());
+    // if (currentTool.IsNull())
+    //   {
+    //   this->m_ErrorMessage = "Error: did not find corresponding tool in tracking device after initialization.";
+    //   return nullptr;
+    //   }
+    //
+    // //   returnValue->SetInput(i, navigationDataSource->GetOutput(i));
+    // // returnValue->SetRepresentationObject(i,currentTool->GetDataNode()->GetData());
+    // //   returnValue->SetOffset(i, currentTool->GetToolRegistrationMatrix());
+    // }
+    returnValue->SetToolMetaDataCollection(navigationTools);
+    returnValue->ConnectTo(navigationDataSource);
   return returnValue;
   }
 

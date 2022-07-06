@@ -146,10 +146,15 @@ void lancet::NavigationObjectVisualizationFilter::GenerateData()
     }
     output->Graft(nd); // copy all information from input to output
 
-    //show navigation tool 
-    const std::vector<RepresentationPointer> data =
-      this->GetAllRepresentationObjects(index);
+    //show navigation tool
+    
 
+    //
+    // const std::vector<RepresentationPointer> data =
+    //   this->GetAllRepresentationObjects(index);
+    RepresentationPointer toolSurface = this->GetToolMetaData(index)->GetDataNode()->GetData();
+    std::vector<RepresentationPointer> data;
+    data.push_back(toolSurface);
     for (unsigned int dataIdx = 0; dataIdx < data.size(); dataIdx++)
     {
       if (data.at(dataIdx) == nullptr)
@@ -167,8 +172,8 @@ void lancet::NavigationObjectVisualizationFilter::GenerateData()
       }
 
       // check for offset
-      mitk::AffineTransform3D::Pointer offset = this->GetOffset(index);
-
+      //mitk::AffineTransform3D::Pointer offset = this->GetOffset(index);
+      mitk::AffineTransform3D::Pointer offset = this->GetToolMetaData(index)->GetToolRegistrationMatrix();
       // store the current scaling to set it after transformation
       mitk::Vector3D spacing = data.at(dataIdx)->GetGeometry()->GetSpacing();
       // clear spacing of data to be able to set it again afterwards
