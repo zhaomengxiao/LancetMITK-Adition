@@ -83,6 +83,8 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   InitImageSelector(m_Controls.mitkNodeSelectWidget_ApImage);
   InitImageSelector(m_Controls.mitkNodeSelectWidget_LtImage);
   InitImageSelector(m_Controls.mitkNodeSelectWidget_image_pnp);
+  InitImageSelector(m_Controls.mitkNodeSelectWidget_circleDetectInput);
+
 
 
   //connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &SpineCArmRegistration::DoImageProcessing);
@@ -95,7 +97,8 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_projectionModelReg_pnp, &QPushButton::clicked, this, &SpineCArmRegistration::RegisterProjectionModel_pnp);
   connect(m_Controls.pushButton_confirmApPoint_pnp, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmApPoint_pnp);
   connect(m_Controls.pushButton_confirmLtPoint_pnp, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmLtPoint_pnp);
-
+  connect(m_Controls.pushButton_detectCircle, &QPushButton::clicked, this, &SpineCArmRegistration::DetectCircles);
+  connect(m_Controls.pushButton_canny, &QPushButton::clicked, this, &SpineCArmRegistration::GetCannyEdge);
 
 }
 void SpineCArmRegistration::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)

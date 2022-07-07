@@ -21,6 +21,7 @@ found in the LICENSE file.
 #include "ui_SpineCArmRegistrationControls.h"
 #include "QmitkSingleNodeSelectionWidget.h"
 #include <opencv2/calib3d/calib3d.hpp>
+#include <itkHoughTransform2DCirclesImageFilter.h>
 
 /**
   \brief SpineCArmRegistration
@@ -102,7 +103,16 @@ protected:
   void ApplyRegistration_pnp();
   void ConfirmApPoint_pnp();
   void ConfirmLtPoint_pnp();
-  
+
+
+
+  // Hough circle detection
+  void DetectCircles();
+
+  // Canny edge detection
+  void GetCannyEdge();
+
+
   // Utilities
   void PlotCoordinate(mitk::DataStorage* ds, std::string name, double color[3]);
   void DrawLine(double start[3], double end[3], double color[3], double opacity, const char* name);
