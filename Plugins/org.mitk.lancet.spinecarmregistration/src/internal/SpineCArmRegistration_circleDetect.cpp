@@ -33,9 +33,11 @@ found in the LICENSE file.
 #include "itkGradientMagnitudeImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include <list>
+
+
 #include "itkCastImageFilter.h"
 #include "itkMath.h"
-
+#include "lancetNCC.h"
 
 void SpineCArmRegistration::DetectCircles()
 {
@@ -188,6 +190,105 @@ void SpineCArmRegistration::GetCannyEdge()
 	GetDataStorage()->Add(tmpNode);
 
 }
+
+
+int SpineCArmRegistration::TestNCC()
+{
+	GeoMatch GM;
+	int lowThreshold = 10;		//deafult value
+	int highThreashold = 100;	//deafult value
+
+	double minScore = 0.7;		//deafult value
+	double greediness = 0.8;		//deafult value
+
+	double total_time = 0;
+	double score = 0;
+	CvPoint result;
+
+	IplImage* templateImage = cvLoadImage("D:/Data/spine/2. Two projection project/TestNCC/Template.jpg", -1);
+	if (templateImage == NULL)
+	{
+		cout << "\nERROR: Could not load Template Image.\n";
+		return 0;
+	}
+
+	IplImage* searchImage = cvLoadImage("D:/Data/spine/2. Two projection project/TestNCC/Search1.jpg", -1);
+	if (searchImage == NULL)
+	{
+		cout << "\nERROR: Could not load Search Image.";
+		return 0;
+	}
+
+	CvSize templateSize = cvSize(templateImage->width, templateImage->height);
+	IplImage* grayTemplateImg = cvCreateImage(templateSize, IPL_DEPTH_8U, 1);
+
+
+	// Convert color image to gray image.
+	if (templateImage->nChannels == 3)
+	{
+		cvCvtColor(templateImage, grayTemplateImg, CV_RGB2GRAY);
+	}
+	else
+	{
+		cvCopy(templateImage, grayTemplateImg);
+	}
+	cout << "\n Edge Based Template Matching Program\n";
+	cout << " ------------------------------------\n";
+
+	if (!GM.CreateGeoMatchModel(grayTemplateImg, lowThreshold, highThreashold))
+	{
+		cout << "ERROR: could not create model...";
+		return 0;
+	}
+	// GM.DrawContours(templateImage, CV_RGB(255, 0, 0), 1);
+	GM.DrawContours(templateImage, cvScalar(255,0,0), 1);
+	cout << " Shape model created.." << "with  Low Threshold = " << lowThreshold << " High Threshold = " << highThreashold << endl;
+	CvSize searchSize = cvSize(searchImage->width, searchImage->height);
+	IplImage* graySearchImg = cvCreateImage(searchSize, IPL_DEPTH_8U, 1);
+
+	// Convert color image to gray image. 
+	if (searchImage->nChannels == 3)
+		cvCvtColor(searchImage, graySearchImg, CV_RGB2GRAY);
+	else
+	{
+		cvCopy(searchImage, graySearchImg);
+	}
+	cout << " Finding Shape Model.." << " Minumum Score = " << minScore << " Greediness = " << greediness << "\n\n";
+	cout << " ------------------------------------\n";
+	clock_t start_time1 = clock();
+	score = GM.FindGeoMatchModel(graySearchImg, minScore, greediness, &result);
+	clock_t finish_time1 = clock();
+	total_time = (double)(finish_time1 - start_time1) / CLOCKS_PER_SEC;
+
+	if (score > minScore) // if score is atleast 0.4
+	{
+		cout << " Found at [" << result.x << ", " << result.y << "]\n Score = " << score << "\n Searching Time = " << total_time * 1000 << "ms";
+		// GM.DrawContours(searchImage, result, CV_RGB(0, 255, 0), 1);
+		GM.DrawContours(searchImage, result, cvScalar(0, 255, 0), 1);
+	}
+	else
+		cout << " Object Not found";
+
+	cout << "\n ------------------------------------\n\n";
+	cout << "\n Press any key to exit!";
+
+	//Display result
+	cvNamedWindow("Template", CV_WINDOW_AUTOSIZE);
+	cvShowImage("Template", templateImage);
+	cvNamedWindow("Search Image", CV_WINDOW_AUTOSIZE);
+	cvShowImage("Search Image", searchImage);
+	// wait for both windows to be closed before releasing images
+	cvWaitKey(0);
+	cvDestroyWindow("Search Image");
+	cvDestroyWindow("Template");
+	cvReleaseImage(&searchImage);
+	cvReleaseImage(&graySearchImg);
+	cvReleaseImage(&templateImage);
+	cvReleaseImage(&grayTemplateImg);
+
+	return 1;
+}
+
 
 
 

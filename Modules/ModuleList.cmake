@@ -6,4 +6,5 @@ set(MITK_MODULES
   LancetDRR
   LancetIGT
   LancetRobot
+  LancetNCC
 )

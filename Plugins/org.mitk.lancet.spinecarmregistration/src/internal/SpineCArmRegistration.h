@@ -112,6 +112,8 @@ protected:
   // Canny edge detection
   void GetCannyEdge();
 
+  // Test NCC
+  int TestNCC();
 
   // Utilities
   void PlotCoordinate(mitk::DataStorage* ds, std::string name, double color[3]);

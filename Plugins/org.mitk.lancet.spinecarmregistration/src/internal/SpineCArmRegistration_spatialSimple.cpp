@@ -99,6 +99,7 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_confirmLtPoint_pnp, &QPushButton::clicked, this, &SpineCArmRegistration::ConfirmLtPoint_pnp);
   connect(m_Controls.pushButton_detectCircle, &QPushButton::clicked, this, &SpineCArmRegistration::DetectCircles);
   connect(m_Controls.pushButton_canny, &QPushButton::clicked, this, &SpineCArmRegistration::GetCannyEdge);
+  connect(m_Controls.pushButton_testNCC, &QPushButton::clicked, this, &SpineCArmRegistration::TestNCC);
 
 }
 void SpineCArmRegistration::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)

@@ -901,7 +901,7 @@
        <string>Steelball detection</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_19">
-       <item row="3" column="0">
+       <item row="4" column="0">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -913,6 +913,24 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="0" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_33">
+         <item>
+          <widget class="QLabel" name="label_38">
+           <property name="text">
+            <string>Input image:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_circleDetectInput" native="true">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item row="2" column="0">
         <widget class="QGroupBox" name="groupBox_16">
@@ -1126,23 +1144,12 @@
          </layout>
         </widget>
        </item>
-       <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_33">
-         <item>
-          <widget class="QLabel" name="label_38">
-           <property name="text">
-            <string>Input image:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_circleDetectInput" native="true">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
+       <item row="3" column="0">
+        <widget class="QPushButton" name="pushButton_testNCC">
+         <property name="text">
+          <string>Test NCC</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
