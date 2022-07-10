@@ -40,7 +40,7 @@ mitk::BaseData::Pointer lancet::NavigationObjectVisualizationFilter::GetRepresen
   return nullptr;
 }
 
-mitk::BaseData::Pointer lancet::NavigationObjectVisualizationFilter::GetNavigationObject(unsigned int idx) const
+mitk::BaseData::Pointer lancet::NavigationObjectVisualizationFilter::GetNavigationObjectData(unsigned int idx) const
 {
   auto iter = m_NavigationObjectVectorMap.find(idx);
   if (iter != m_NavigationObjectVectorMap.end())
@@ -59,7 +59,7 @@ std::vector<mitk::BaseData::Pointer> lancet::NavigationObjectVisualizationFilter
   return empty;
 }
 
-std::vector<mitk::BaseData::Pointer> lancet::NavigationObjectVisualizationFilter::GetAllNavigationObjects(unsigned int idx) const
+std::vector<mitk::BaseData::Pointer> lancet::NavigationObjectVisualizationFilter::GetAllNavigationObjectDatas(unsigned int idx) const
 {
   RepresentationVectorPointerMap::const_iterator iter = m_NavigationObjectVectorMap.find(idx);
   if (iter != m_NavigationObjectVectorMap.end())
@@ -97,14 +97,14 @@ void lancet::NavigationObjectVisualizationFilter::SetRepresentationObjects(unsig
   m_RepresentationVectorMap[idx] = data;
 }
 
-void lancet::NavigationObjectVisualizationFilter::SetNavigationObject(unsigned int idx, mitk::BaseData::Pointer data)
+void lancet::NavigationObjectVisualizationFilter::SetNavigationObjectData(unsigned int idx, mitk::BaseData::Pointer data)
 {
   std::vector<mitk::BaseData::Pointer> dataVector;
   dataVector.push_back(data);
-  SetNavigationObjects(idx, dataVector);
+  SetNavigationObjectDatas(idx, dataVector);
 }
 
-void lancet::NavigationObjectVisualizationFilter::SetNavigationObjects(unsigned int idx, const std::vector<mitk::BaseData::Pointer>& data)
+void lancet::NavigationObjectVisualizationFilter::SetNavigationObjectDatas(unsigned int idx, const std::vector<mitk::BaseData::Pointer>& data)
 {
   m_NavigationObjectVectorMap[idx] = data;
 }
@@ -245,18 +245,28 @@ void lancet::NavigationObjectVisualizationFilter::GenerateData()
     }
 
     //show navigation object
-    const std::vector<RepresentationPointer> navigationObject =
-      this->GetAllNavigationObjects(index);
-    for (unsigned int dataIdx = 0; dataIdx < navigationObject.size(); dataIdx++)
+    // const std::vector<RepresentationPointer> navigationObjectDatas =
+    //   this->GetAllNavigationObjectDatas(index);
+    std::vector<RepresentationPointer> navigationObjectDatas;
+    if (m_NavigationObject!=nullptr)
     {
-      if (navigationObject.at(dataIdx) == nullptr)
+      if (m_NavigationObject->GetReferencFrameName() == this->GetOutput(index)->GetName())
+      {
+        navigationObjectDatas.push_back(m_NavigationObject->GetDataNode()->GetData());
+        navigationObjectDatas.push_back(m_NavigationObject->GetImage());
+      }
+    }
+
+    for (unsigned int dataIdx = 0; dataIdx < navigationObjectDatas.size(); dataIdx++)
+    {
+      if (navigationObjectDatas.at(dataIdx) == nullptr)
       {
         MITK_WARN << "No BaseData associated with input " << index;
         continue;
       }
 
       // get the transform from data
-      mitk::AffineTransform3D::Pointer affineTransform = navigationObject.at(dataIdx)->GetGeometry()->GetIndexToWorldTransform();
+      mitk::AffineTransform3D::Pointer affineTransform = navigationObjectDatas.at(dataIdx)->GetGeometry()->GetIndexToWorldTransform();
       if (affineTransform.IsNull())
       {
         MITK_WARN << "AffineTransform IndexToWorldTransform not initialized!";
@@ -267,10 +277,10 @@ void lancet::NavigationObjectVisualizationFilter::GenerateData()
       mitk::AffineTransform3D::Pointer registrationMatrix = this->GetObjectRegistrationMatrix(index);
 
       // store the current scaling to set it after transformation
-      mitk::Vector3D spacing = navigationObject.at(dataIdx)->GetGeometry()->GetSpacing();
+      mitk::Vector3D spacing = navigationObjectDatas.at(dataIdx)->GetGeometry()->GetSpacing();
       // clear spacing of data to be able to set it again afterwards
       mitk::ScalarType scale[] = { 1.0, 1.0, 1.0 };
-      navigationObject.at(dataIdx)->GetGeometry()->SetSpacing(scale);
+      navigationObjectDatas.at(dataIdx)->GetGeometry()->SetSpacing(scale);
 
       /*now bring quaternion to affineTransform by using vnl_Quaternion*/
       affineTransform->SetIdentity();
@@ -322,17 +332,17 @@ void lancet::NavigationObjectVisualizationFilter::GenerateData()
         overallTransform->SetIdentity();
         overallTransform->Compose(registrationMatrix);
         overallTransform->Compose(affineTransform);
-        navigationObject.at(dataIdx)->GetGeometry()->SetIndexToWorldTransform(overallTransform);
+        navigationObjectDatas.at(dataIdx)->GetGeometry()->SetIndexToWorldTransform(overallTransform);
       }
       else
       {
-        navigationObject.at(dataIdx)->GetGeometry()->SetIndexToWorldTransform(affineTransform);
+        navigationObjectDatas.at(dataIdx)->GetGeometry()->SetIndexToWorldTransform(affineTransform);
       }
 
       // set the original spacing to keep scaling of the geometrical object
-      navigationObject.at(dataIdx)->GetGeometry()->SetSpacing(spacing);
-      navigationObject.at(dataIdx)->GetGeometry()->Modified();
-      navigationObject.at(dataIdx)->Modified();
+      navigationObjectDatas.at(dataIdx)->GetGeometry()->SetSpacing(spacing);
+      navigationObjectDatas.at(dataIdx)->GetGeometry()->Modified();
+      navigationObjectDatas.at(dataIdx)->Modified();
       output->SetDataValid(true); // operation was successful, therefore data of output is valid.
     }
   }

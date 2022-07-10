@@ -22,21 +22,22 @@ found in the LICENSE file.
 #include "mitkOptitrackTrackingDevice.h"
 
 
-lancet::TrackingDeviceSourceConfiguratorLancet::TrackingDeviceSourceConfiguratorLancet(mitk::NavigationToolStorage::Pointer NavigationTools, mitk::TrackingDevice::Pointer TrackingDevice)
+lancet::TrackingDeviceSourceConfiguratorLancet::TrackingDeviceSourceConfiguratorLancet(
+  mitk::NavigationToolStorage::Pointer NavigationTools, mitk::TrackingDevice::Pointer TrackingDevice)
 {
-//make a copy of the navigation tool storage because we will modify the storage
-if (NavigationTools.IsNotNull())
+  //make a copy of the navigation tool storage because we will modify the storage
+  if (NavigationTools.IsNotNull())
   {
-  m_NavigationTools = mitk::NavigationToolStorage::New();
-  for (unsigned int i=0; i<NavigationTools->GetToolCount(); i++)
-      {
+    m_NavigationTools = mitk::NavigationToolStorage::New();
+    for (unsigned int i = 0; i < NavigationTools->GetToolCount(); i++)
+    {
       m_NavigationTools->AddTool(NavigationTools->GetTool(i));
-      }
+    }
   }
 
-m_TrackingDevice = TrackingDevice;
-m_ToolCorrespondencesInToolStorage = std::vector<int>();
-m_ErrorMessage = "";
+  m_TrackingDevice = TrackingDevice;
+  m_ToolCorrespondencesInToolStorage = std::vector<int>();
+  m_ErrorMessage = "";
 }
 
 lancet::TrackingDeviceSourceConfiguratorLancet::TrackingDeviceSourceConfiguratorLancet(
@@ -61,7 +62,7 @@ lancet::TrackingDeviceSourceConfiguratorLancet::TrackingDeviceSourceConfigurator
 
 mitk::NavigationToolStorage::Pointer lancet::TrackingDeviceSourceConfiguratorLancet::GetUpdatedNavigationToolStorage()
 {
-return m_NavigationTools;
+  return m_NavigationTools;
 }
 
 
@@ -71,71 +72,39 @@ lancet::TrackingDeviceSourceConfiguratorLancet::~TrackingDeviceSourceConfigurato
 
 bool lancet::TrackingDeviceSourceConfiguratorLancet::IsCreateTrackingDeviceSourcePossible()
 {
-if (m_NavigationTools.IsNull())
+  if (m_NavigationTools.IsNull())
   {
-  m_ErrorMessage = "NavigationToolStorage is nullptr!";
-  return false;
+    m_ErrorMessage = "NavigationToolStorage is nullptr!";
+    return false;
   }
-else if (m_TrackingDevice.IsNull())
+  else if (m_TrackingDevice.IsNull())
   {
-  m_ErrorMessage = "TrackingDevice is nullptr!";
-  return false;
+    m_ErrorMessage = "TrackingDevice is nullptr!";
+    return false;
   }
-else
+  else
   {
-  for (unsigned int i=0; i<m_NavigationTools->GetToolCount(); i++)
+    for (unsigned int i = 0; i < m_NavigationTools->GetToolCount(); i++)
     {
-    if (m_NavigationTools->GetTool(i)->GetTrackingDeviceType() != m_TrackingDevice->GetType())
+      if (m_NavigationTools->GetTool(i)->GetTrackingDeviceType() != m_TrackingDevice->GetType())
       {
-      m_ErrorMessage = "At least one tool is not of the same type like the tracking device.";
-      return false;
+        m_ErrorMessage = "At least one tool is not of the same type like the tracking device.";
+        return false;
       }
     }
-  //TODO in case of Aurora: check if the tools are automatically detected by comparing the serial number
-  return true;
+    //TODO in case of Aurora: check if the tools are automatically detected by comparing the serial number
+    return true;
   }
 }
 
 mitk::TrackingDeviceSource::Pointer lancet::TrackingDeviceSourceConfiguratorLancet::CreateTrackingDeviceSource()
 {
   lancet::NavigationObjectVisualizationFilter::Pointer dummy; //this dummy is lost directly after creating the device
-return this->CreateTrackingDeviceSource(dummy);
-}
-
-mitk::TrackingDeviceSource::Pointer lancet::TrackingDeviceSourceConfiguratorLancet::CreateTrackingDeviceSource(lancet::NavigationObjectVisualizationFilter::Pointer&visualizationFilter)
-{
-  if (!this->IsCreateTrackingDeviceSourcePossible()) {MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage; return nullptr;}
-
-  mitk::TrackingDeviceSource::Pointer returnValue;
-
-  us::ModuleContext* context = us::GetModuleContext();
-
-  std::vector<us::ServiceReference<mitk::TrackingDeviceTypeCollection> > refs = context->GetServiceReferences<mitk::TrackingDeviceTypeCollection>();
-
-  if (refs.empty())
-  {
-    MITK_ERROR << "No tracking device service found!";
-  }
-
-  mitk::TrackingDeviceTypeCollection* deviceTypeCollection = context->GetService<mitk::TrackingDeviceTypeCollection>(refs.front());
-
-  //create tracking device source
-  returnValue = deviceTypeCollection->GetTrackingDeviceTypeInformation(m_TrackingDevice->GetType())->
-      CreateTrackingDeviceSource(m_TrackingDevice,m_NavigationTools, &m_ErrorMessage, &m_ToolCorrespondencesInToolStorage);
-
-  //TODO: insert other tracking systems?
-  if (returnValue.IsNull()) {MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage; return nullptr;}
-
-  //create visualization filter
-  visualizationFilter = CreateNavigationDataObjectVisualizationFilter(returnValue,m_NavigationTools);
-  if (visualizationFilter.IsNull()) {MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage; return nullptr;}
-
-  return returnValue;
+  return this->CreateTrackingDeviceSource(dummy);
 }
 
 mitk::TrackingDeviceSource::Pointer lancet::TrackingDeviceSourceConfiguratorLancet::CreateTrackingDeviceSource(
-  lancet::NavigationObjectVisualizationFilter::Pointer &visualizationFilter,
-  lancet::NavigationDataInReferenceCoordFilter::Pointer &referenceFilter)
+  lancet::NavigationObjectVisualizationFilter::Pointer& visualizationFilter)
 {
   if (!this->IsCreateTrackingDeviceSourcePossible())
   {
@@ -145,7 +114,55 @@ mitk::TrackingDeviceSource::Pointer lancet::TrackingDeviceSourceConfiguratorLanc
 
   mitk::TrackingDeviceSource::Pointer returnValue;
 
-  us::ModuleContext *context = us::GetModuleContext();
+  us::ModuleContext* context = us::GetModuleContext();
+
+  std::vector<us::ServiceReference<mitk::TrackingDeviceTypeCollection>> refs = context->GetServiceReferences<
+    mitk::TrackingDeviceTypeCollection>();
+
+  if (refs.empty())
+  {
+    MITK_ERROR << "No tracking device service found!";
+  }
+
+  mitk::TrackingDeviceTypeCollection* deviceTypeCollection = context->GetService<mitk::TrackingDeviceTypeCollection
+  >(refs.front());
+
+  //create tracking device source
+  returnValue = deviceTypeCollection->GetTrackingDeviceTypeInformation(m_TrackingDevice->GetType())->
+                                      CreateTrackingDeviceSource(m_TrackingDevice, m_NavigationTools, &m_ErrorMessage,
+                                                                 &m_ToolCorrespondencesInToolStorage);
+
+  //TODO: insert other tracking systems?
+  if (returnValue.IsNull())
+  {
+    MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage;
+    return nullptr;
+  }
+
+  //create visualization filter
+  visualizationFilter = CreateNavigationDataObjectVisualizationFilter(returnValue, m_NavigationTools);
+  if (visualizationFilter.IsNull())
+  {
+    MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage;
+    return nullptr;
+  }
+
+  return returnValue;
+}
+
+mitk::TrackingDeviceSource::Pointer lancet::TrackingDeviceSourceConfiguratorLancet::CreateTrackingDeviceSource(
+  lancet::NavigationObjectVisualizationFilter::Pointer& visualizationFilter,
+  lancet::NavigationDataInReferenceCoordFilter::Pointer& referenceFilter)
+{
+  if (!this->IsCreateTrackingDeviceSourcePossible())
+  {
+    MITK_WARN << "Cannot create tracking decive: " << m_ErrorMessage;
+    return nullptr;
+  }
+
+  mitk::TrackingDeviceSource::Pointer returnValue;
+
+  us::ModuleContext* context = us::GetModuleContext();
 
   std::vector<us::ServiceReference<mitk::TrackingDeviceTypeCollection>> refs =
     context->GetServiceReferences<mitk::TrackingDeviceTypeCollection>();
@@ -155,13 +172,14 @@ mitk::TrackingDeviceSource::Pointer lancet::TrackingDeviceSourceConfiguratorLanc
     MITK_ERROR << "No tracking device service found!";
   }
 
-  mitk::TrackingDeviceTypeCollection *deviceTypeCollection =
+  mitk::TrackingDeviceTypeCollection* deviceTypeCollection =
     context->GetService<mitk::TrackingDeviceTypeCollection>(refs.front());
 
   // create tracking device source
   returnValue = deviceTypeCollection->GetTrackingDeviceTypeInformation(m_TrackingDevice->GetType())
-                  ->CreateTrackingDeviceSource(
-                    m_TrackingDevice, m_NavigationTools, &m_ErrorMessage, &m_ToolCorrespondencesInToolStorage);
+                                    ->CreateTrackingDeviceSource(
+                                      m_TrackingDevice, m_NavigationTools, &m_ErrorMessage,
+                                      &m_ToolCorrespondencesInToolStorage);
 
   // TODO: insert other tracking systems?
   if (returnValue.IsNull())
@@ -172,11 +190,12 @@ mitk::TrackingDeviceSource::Pointer lancet::TrackingDeviceSourceConfiguratorLanc
 
   // create reference filter
   referenceFilter = CreateNavigationDataInReferenceCoordFilter(returnValue);
-  
+
   // create visualization filter
   if (m_NavigationObject.IsNotNull())
   {
-    visualizationFilter = CreateNavigationDataObjectVisualizationFilter(referenceFilter, m_NavigationTools,m_NavigationObject);
+    visualizationFilter = CreateNavigationDataObjectVisualizationFilter(referenceFilter, m_NavigationTools,
+                                                                        m_NavigationObject);
   }
   else
   {
@@ -193,10 +212,11 @@ std::string lancet::TrackingDeviceSourceConfiguratorLancet::GetErrorMessage()
 
 //############################ internal help methods ########################################
 lancet::NavigationDataInReferenceCoordFilter::Pointer
-  lancet::TrackingDeviceSourceConfiguratorLancet::CreateNavigationDataInReferenceCoordFilter(
-    mitk::NavigationDataSource::Pointer navigationDataSource)
+lancet::TrackingDeviceSourceConfiguratorLancet::CreateNavigationDataInReferenceCoordFilter(
+  mitk::NavigationDataSource::Pointer navigationDataSource)
 {
-  lancet::NavigationDataInReferenceCoordFilter::Pointer returnValue = lancet::NavigationDataInReferenceCoordFilter::New();
+  lancet::NavigationDataInReferenceCoordFilter::Pointer returnValue =
+    lancet::NavigationDataInReferenceCoordFilter::New();
 
   returnValue->ConnectTo(navigationDataSource);
   returnValue->Update();
@@ -204,82 +224,69 @@ lancet::NavigationDataInReferenceCoordFilter::Pointer
 }
 
 lancet::NavigationObjectVisualizationFilter::Pointer
-  lancet::TrackingDeviceSourceConfiguratorLancet::CreateNavigationDataObjectVisualizationFilter(
-    mitk::NavigationDataSource::Pointer navigationDataSource, mitk::NavigationToolStorage::Pointer navigationTools)
-  {
-  lancet::NavigationObjectVisualizationFilter::Pointer returnValue = lancet::NavigationObjectVisualizationFilter::New();
-    // for (unsigned int i = 0; i < navigationDataSource->GetNumberOfIndexedOutputs(); i++)
-    // {
-    // // Note: If all tools have the same name only the first tool will always be returned and
-    // //       the others won't be updated during rendering.This could potentially lead to inconstencies
-    //   mitk::NavigationTool::Pointer currentTool =
-    //     navigationTools->GetToolByName(navigationDataSource->GetOutput(i)->GetName());
-    // if (currentTool.IsNull())
-    //   {
-    //   this->m_ErrorMessage = "Error: did not find corresponding tool in tracking device after initialization.";
-    //   return nullptr;
-    //   }
-    //
-    // //   returnValue->SetInput(i, navigationDataSource->GetOutput(i));
-    // // returnValue->SetRepresentationObject(i,currentTool->GetDataNode()->GetData());
-    // //   returnValue->SetOffset(i, currentTool->GetToolRegistrationMatrix());
-    // }
-    returnValue->SetToolMetaDataCollection(navigationTools);
-    returnValue->ConnectTo(navigationDataSource);
+lancet::TrackingDeviceSourceConfiguratorLancet::CreateNavigationDataObjectVisualizationFilter(
+  mitk::NavigationDataSource::Pointer navigationDataSource, mitk::NavigationToolStorage::Pointer navigationTools)
+{
+  NavigationObjectVisualizationFilter::Pointer returnValue = NavigationObjectVisualizationFilter::New();
+  returnValue->SetToolMetaDataCollection(navigationTools);
+  returnValue->ConnectTo(navigationDataSource);
   return returnValue;
-  }
+}
 
 lancet::NavigationObjectVisualizationFilter::Pointer lancet::TrackingDeviceSourceConfiguratorLancet::
 CreateNavigationDataObjectVisualizationFilter(mitk::NavigationDataSource::Pointer navigationDataSource,
-  mitk::NavigationToolStorage::Pointer navigationTools, lancet::NavigationObject::Pointer navigationObject)
+                                              mitk::NavigationToolStorage::Pointer navigationTools,
+                                              NavigationObject::Pointer navigationObject)
 {
-  lancet::NavigationObjectVisualizationFilter::Pointer returnValue = lancet::NavigationObjectVisualizationFilter::New();
-  for (unsigned int i = 0; i < navigationDataSource->GetNumberOfIndexedOutputs(); i++)
-  {
-    // Note: If all tools have the same name only the first tool will always be returned and
-    //       the others won't be updated during rendering.This could potentially lead to inconstencies
-    mitk::NavigationTool::Pointer currentTool =
-      navigationTools->GetToolByName(navigationDataSource->GetOutput(i)->GetName());
-    if (currentTool.IsNull())
-    {
-      this->m_ErrorMessage = "Error: did not find corresponding tool in tracking device after initialization.";
-      return nullptr;
-    }
-    returnValue->SetInput(i, navigationDataSource->GetOutput(i));
-    returnValue->SetRepresentationObject(i, currentTool->GetDataNode()->GetData());
-    returnValue->SetOffset(i, currentTool->GetToolRegistrationMatrix());
-    if (navigationObject->GetReferencFrameName() == navigationDataSource->GetOutput(i)->GetName())
-    {
-      returnValue->SetNavigationObject(i, navigationObject->GetDataNode()->GetData());
-      mitk::AffineTransform3D::Pointer mat = mitk::AffineTransform3D::New();
-      mitk::TransferVtkMatrixToItkTransform<mitk::AffineTransform3D>(navigationObject->GetT_Object2ReferenceFrame(), mat);
-      returnValue->SetObjectRegistrationMatrix(i, mat);
-    }
-  }
+  NavigationObjectVisualizationFilter::Pointer returnValue = NavigationObjectVisualizationFilter::New();
+  returnValue->SetToolMetaDataCollection(navigationTools);
+  returnValue->ConnectTo(navigationDataSource);
+
+  //bool navigationObjectHasMatchedReferenceFrame = false;
+  returnValue->SetNavigationObject(navigationObject);
+  // for (unsigned int i = 0; i < navigationDataSource->GetNumberOfIndexedOutputs(); i++)
+  // {
+  //   if (navigationObject->GetReferencFrameName() == navigationDataSource->GetOutput(i)->GetName())
+  //   {
+  //     returnValue->SetNavigationObjectData(i, navigationObject->GetDataNode()->GetData());
+  //     mitk::AffineTransform3D::Pointer mat = mitk::AffineTransform3D::New();
+  //     mitk::TransferVtkMatrixToItkTransform<mitk::AffineTransform3D>(navigationObject->GetT_Object2ReferenceFrame(),
+  //                                                                    mat);
+  //     returnValue->SetObjectRegistrationMatrix(i, mat);
+  //     navigationObjectHasMatchedReferenceFrame = true;
+  //   }
+  // }
+  // if (!navigationObjectHasMatchedReferenceFrame)
+  // {
+  //   MITK_WARN << "There is no Navigation Tool < " << navigationObject->GetReferencFrameName() << " >, NavigationObject can't connect to it";
+  // }
   return returnValue;
 }
 
 int lancet::TrackingDeviceSourceConfiguratorLancet::GetToolNumberInToolStorage(unsigned int outputID)
-  {
+{
   if (outputID < m_ToolCorrespondencesInToolStorage.size()) return m_ToolCorrespondencesInToolStorage.at(outputID);
   else return -1;
-  }
+}
 
 std::string lancet::TrackingDeviceSourceConfiguratorLancet::GetToolIdentifierInToolStorage(unsigned int outputID)
-  {
-  if (outputID < m_ToolCorrespondencesInToolStorage.size()) return m_NavigationTools->GetTool(m_ToolCorrespondencesInToolStorage.at(outputID))->GetIdentifier();
+{
+  if (outputID < m_ToolCorrespondencesInToolStorage.size()) return m_NavigationTools->GetTool(
+    m_ToolCorrespondencesInToolStorage.at(outputID))->GetIdentifier();
   else return "";
-  }
+}
 
 std::vector<int> lancet::TrackingDeviceSourceConfiguratorLancet::GetToolNumbersInToolStorage()
-  {
+{
   return m_ToolCorrespondencesInToolStorage;
-  }
+}
 
 std::vector<std::string> lancet::TrackingDeviceSourceConfiguratorLancet::GetToolIdentifiersInToolStorage()
-  {
+{
   std::vector<std::string> returnValue = std::vector<std::string>();
-  for (unsigned int i=0; i<m_ToolCorrespondencesInToolStorage.size(); i++)
-    {returnValue.push_back(m_NavigationTools->GetTool(m_ToolCorrespondencesInToolStorage.at(i))->GetIdentifier());}
-  return returnValue;
+  for (unsigned int i = 0; i < m_ToolCorrespondencesInToolStorage.size(); i++)
+  {
+    returnValue.push_back(m_NavigationTools->GetTool(m_ToolCorrespondencesInToolStorage.at(i))->GetIdentifier());
   }
+  return returnValue;
+}

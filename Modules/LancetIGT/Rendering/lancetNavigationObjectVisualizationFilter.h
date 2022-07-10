@@ -96,7 +96,7 @@ namespace lancet {
     * \param data The BaseData to be associated to the index
     * \param index the index with which data will be associated
     */
-    void SetNavigationObject(unsigned int index, mitk::BaseData::Pointer data);
+    void SetNavigationObjectData(unsigned int index, mitk::BaseData::Pointer data);
 
     /**
      * \brief Set the representation objects vector of the input
@@ -104,7 +104,7 @@ namespace lancet {
      * \param data The BaseData vector to be associated to the index
      * \param index the index with which data will be associated
      */
-    void SetNavigationObjects(unsigned int index, const std::vector<mitk::BaseData::Pointer>& data);
+    void SetNavigationObjectDatas(unsigned int index, const std::vector<mitk::BaseData::Pointer>& data);
     /**
     * \brief Get the representation object associated with the index idx
     *
@@ -121,7 +121,7 @@ namespace lancet {
     * \return Returns the desired BaseData if it exists for the given input; Returns nullptr
     *         if no BaseData was found.
     */
-    mitk::BaseData::Pointer GetNavigationObject(unsigned int idx) const;
+    mitk::BaseData::Pointer GetNavigationObjectData(unsigned int idx) const;
 
     /**
      * \brief Get all the representation objects associated with the index idx
@@ -139,7 +139,7 @@ namespace lancet {
     * \return Returns the desired BaseData if it exists for the given input; Returns nullptr
     *         if no BaseData was found.
     */
-    std::vector<RepresentationPointer> GetAllNavigationObjects(unsigned int idx) const;
+    std::vector<RepresentationPointer> GetAllNavigationObjectDatas(unsigned int idx) const;
 
     virtual void SetTransformPosition(unsigned int index, bool applyTransform); ///< if set to true, the filter will use the position part of the input navigation data at the given index to transform the representation object. If set to false, it will not. If no value is set, it defaults to true.
     virtual bool GetTransformPosition(unsigned int index) const; ///< returns whether position part of the input navigation data at the given index is used for the transformation of the representation object.
