@@ -319,14 +319,14 @@
           <item row="1" column="0">
            <widget class="QPushButton" name="pushButton_getgeometryWithSpacing">
             <property name="text">
-             <string>Get geometry matrix (with spacing factor)</string>
+             <string>Get geometry matrix with spacing factor</string>
             </property>
            </widget>
           </item>
           <item row="2" column="0">
            <widget class="QPushButton" name="pushButton_getgeometryWithoutSpacing">
             <property name="text">
-             <string>Get geometry matrix (without spacing factor)</string>
+             <string>Get geometry matrix without spacing factor</string>
             </property>
            </widget>
           </item>

@@ -198,21 +198,31 @@ int SpineCArmRegistration::TestNCC()
 	int lowThreshold = 10;		//deafult value
 	int highThreashold = 100;	//deafult value
 
-	double minScore = 0.7;		//deafult value
+	double minScore = 0.5;		//deafult value
 	double greediness = 0.8;		//deafult value
 
 	double total_time = 0;
 	double score = 0;
 	CvPoint result;
 
-	IplImage* templateImage = cvLoadImage("D:/Data/spine/2. Two projection project/TestNCC/Template.jpg", -1);
+	auto sourceQbyteArray = m_Controls.lineEdit_NccSource->text().toLatin1();
+	auto sourcePath = sourceQbyteArray.data();
+	auto templateQbyteArray = m_Controls.lineEdit_NccTemplate->text().toLatin1();
+	auto templatePath = templateQbyteArray.data();
+
+
+	//IplImage* templateImage = cvLoadImage("D:/Data/spine/2. Two projection project/TestNCC/Template.jpg", -1);
+	IplImage* templateImage = cvLoadImage(templatePath, -1);
+
 	if (templateImage == NULL)
 	{
 		cout << "\nERROR: Could not load Template Image.\n";
 		return 0;
 	}
 
-	IplImage* searchImage = cvLoadImage("D:/Data/spine/2. Two projection project/TestNCC/Search1.jpg", -1);
+	//IplImage* searchImage = cvLoadImage("D:/Data/spine/2. Two projection project/TestNCC/Search1.jpg", -1);
+	IplImage* searchImage = cvLoadImage(sourcePath, -1);
+
 	if (searchImage == NULL)
 	{
 		cout << "\nERROR: Could not load Search Image.";

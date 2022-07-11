@@ -22,6 +22,9 @@ private:
 
 	void CreateDoubleMatrix(double**& matrix, CvSize size);
 	void ReleaseDoubleMatrix(double**& matrix, int size);
+
+	int NumOfDetectedTargets{ 0 };
+
 public:
 	GeoMatch(void);
 	GeoMatch(const void* templateArr);

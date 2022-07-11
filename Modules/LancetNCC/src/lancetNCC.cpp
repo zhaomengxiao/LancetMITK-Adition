@@ -322,7 +322,7 @@ double GeoMatch::FindGeoMatchModel(const void* srcarr, double minScore, double g
 				partialScore = partialSum / sumOfCoords;
 				// check termination criteria
 				// if partial score score is less than the score than needed to make the required score at that position
-				// break serching at that coordinate.
+				// break searching at that coordinate.
 				if (partialScore < (MIN((minScore - 1) + normGreediness * sumOfCoords, normMinScore * sumOfCoords)))
 					break;
 
