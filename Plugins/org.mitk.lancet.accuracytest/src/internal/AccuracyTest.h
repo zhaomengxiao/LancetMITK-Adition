@@ -40,7 +40,6 @@ class AccuracyTest : public QmitkAbstractView
 
 public:
   static const std::string VIEW_ID;
-
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -53,13 +52,24 @@ protected:
 
 
   bool CheckInitialization(bool requireRF = true); //<<< checks if the Probe and (if required) the Reference Frame is initialized. Displays a warning and returns false if not.
-
+public:
+	mitk::Point3D computeAverageOfPosition(mitk::PointSet::Pointer);
+	double eachDifference(const mitk::Point3D&, const mitk::Point3D&);
+	double standardError(const std::vector<double>&);
+	std::vector<double> distanceCompare(const std::vector<double>&);
+	double averageValueCompute(const std::vector<double>&);
 protected slots:
 	void SetProbe();
 	void SetReferenceFrame();
 	void UpdateTrackingTimer();
 	void AddPivotPoint();
-
+	void AddTopplePoint();
+	void AddTiltPoint();
+	void AddDistancePoint();
+	void compute();
+	void computeTopple();
+	void computeTilt();
+	void computeDistance();
 private:
   //mitk::NavigationTool::Pointer m_ToolToCalibrate; ///< tool that will be calibrated
   int m_IDofProbe; ///< id of the Probe (of the navigation data source)
@@ -69,7 +79,12 @@ private:
   
   mitk::PointSet::Pointer m_PointSetPivoting; //Used to record the coordinates of points captured by rotating the probe on an axis
   mitk::DataNode::Pointer m_PointSetPivotingNode; //Used to record the coordinates of points captured by rotating the probe on an axis
-
+  mitk::PointSet::Pointer m_PointSetTopple;
+  mitk::DataNode::Pointer m_PointSetToppleNode;
+  mitk::PointSet::Pointer m_PointSetTilt;
+  mitk::DataNode::Pointer m_PointSetTiltNode;
+  mitk::PointSet::Pointer m_distancePointSet;
+  mitk::DataNode::Pointer m_distancePointSetNode;
   QTimer* m_TrackingTimer; //<<< tracking timer that updates the status widgets
   Ui::AccuracyTestControls m_Controls;
 };
