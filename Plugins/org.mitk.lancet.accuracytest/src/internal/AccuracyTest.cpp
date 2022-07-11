@@ -24,67 +24,78 @@ found in the LICENSE file.
 // mitk image
 #include <mitkImage.h>
 #include <QTimer>
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
 const std::string AccuracyTest::VIEW_ID = "org.mitk.views.accuracytest";
 
 void AccuracyTest::SetFocus()
 {
-  m_Controls.m_pushButtonSetProbe->setFocus();
+	m_Controls.m_pushButtonSetProbe->setFocus();
 }
 
-void AccuracyTest::CreateQtPartControl(QWidget *parent)
+void AccuracyTest::CreateQtPartControl(QWidget* parent)
 {
-  //init members
-  m_IDofProbe = -1;
-  m_IDofRF = -1;
-  m_TrackingTimer = new QTimer(this);
+	//init members
+	m_IDofProbe = -1;
+	m_IDofRF = -1;
+	m_TrackingTimer = new QTimer(this);
 
-  m_PointSetPivoting = mitk::PointSet::New();
-  m_PointSetPivotingNode = mitk::DataNode::New();
-  m_PointSetPivotingNode->SetData(m_PointSetPivoting);
+	m_PointSetPivoting = mitk::PointSet::New();
+	m_PointSetPivotingNode = mitk::DataNode::New();
+	m_PointSetPivotingNode->SetData(m_PointSetPivoting);
 
-  m_PointSetTopple = mitk::PointSet::New();
-  m_PointSetToppleNode = mitk::DataNode::New();
-  m_PointSetToppleNode->SetData(m_PointSetTopple);
+	m_PointSetTopple = mitk::PointSet::New();
+	m_PointSetToppleNode = mitk::DataNode::New();
+	m_PointSetToppleNode->SetData(m_PointSetTopple);
 
-  m_PointSetTilt = mitk::PointSet::New();
-  m_PointSetTiltNode = mitk::DataNode::New();
-  m_PointSetTiltNode->SetData(m_PointSetTilt);
-  // create GUI widgets from the Qt Designer's .ui file
-  m_Controls.setupUi(parent);
+	m_PointSetTilt = mitk::PointSet::New();
+	m_PointSetTiltNode = mitk::DataNode::New();
+	m_PointSetTiltNode->SetData(m_PointSetTilt);
 
-  //init widget
+	m_distancePointSet = mitk::PointSet::New();
+	m_distancePointSetNode = mitk::DataNode::New();
+	m_distancePointSetNode->SetData(m_distancePointSet);
+	// create GUI widgets from the Qt Designer's .ui file
+	m_Controls.setupUi(parent);
 
-  m_Controls.m_PointListPivoting->SetPointSetNode(m_PointSetPivotingNode);
-  m_Controls.m_PointListTopple->SetPointSetNode(m_PointSetToppleNode);
-  m_Controls.m_PointListTilt->SetPointSetNode(m_PointSetTiltNode);
-  //connect
-  connect(m_TrackingTimer, SIGNAL(timeout()), this, SLOT(UpdateTrackingTimer()));
-  connect(m_Controls.m_pushButtonSetProbe, &QPushButton::clicked, this, &AccuracyTest::SetProbe);
-  connect(m_Controls.m_pushButtonSetRF, &QPushButton::clicked, this, &AccuracyTest::SetReferenceFrame);
-  connect(m_Controls.m_AddPoint, &QPushButton::clicked, this, &AccuracyTest::AddPivotPoint);
-  connect(m_Controls.m_compute, &QPushButton::clicked, this, &AccuracyTest::compute);
-  connect(m_Controls.m_AddPoint1, &QPushButton::clicked, this, &AccuracyTest::AddTopplePoint);
-  connect(m_Controls.m_compute1, &QPushButton::clicked, this, &AccuracyTest::computeTopple);
-  connect(m_Controls.m_AddPoint_2, &QPushButton::clicked, this, &AccuracyTest::AddTiltPoint);
-  connect(m_Controls.m_compute_2, &QPushButton::clicked, this, &AccuracyTest::computeTilt);
+	//init widget
+
+	m_Controls.m_PointListPivoting->SetPointSetNode(m_PointSetPivotingNode);
+	m_Controls.m_PointListTopple->SetPointSetNode(m_PointSetToppleNode);
+	m_Controls.m_PointListTilt->SetPointSetNode(m_PointSetTiltNode);
+	m_Controls.m_distancePointList->SetPointSetNode(m_distancePointSetNode);
+	//connect
+	connect(m_TrackingTimer, SIGNAL(timeout()), this, SLOT(UpdateTrackingTimer()));
+	connect(m_Controls.m_pushButtonSetProbe, &QPushButton::clicked, this, &AccuracyTest::SetProbe);
+	connect(m_Controls.m_pushButtonSetRF, &QPushButton::clicked, this, &AccuracyTest::SetReferenceFrame);
+	connect(m_Controls.m_AddPoint, &QPushButton::clicked, this, &AccuracyTest::AddPivotPoint);
+	connect(m_Controls.m_compute, &QPushButton::clicked, this, &AccuracyTest::compute);
+	connect(m_Controls.m_AddPoint1, &QPushButton::clicked, this, &AccuracyTest::AddTopplePoint);
+	connect(m_Controls.m_compute1, &QPushButton::clicked, this, &AccuracyTest::computeTopple);
+	connect(m_Controls.m_AddPoint_2, &QPushButton::clicked, this, &AccuracyTest::AddTiltPoint);
+	connect(m_Controls.m_compute_2, &QPushButton::clicked, this, &AccuracyTest::computeTilt);
+	connect(m_Controls.m_AddPoint_3, &QPushButton::clicked, this, &AccuracyTest::AddDistancePoint);
+	connect(m_Controls.m_compute_3, &QPushButton::clicked, this, &AccuracyTest::computeDistance);
 }
 
 void AccuracyTest::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
-                                                const QList<mitk::DataNode::Pointer> &nodes)
+	const QList<mitk::DataNode::Pointer>& nodes)
 {
-  // iterate all selected objects, adjust warning visibility
-  // foreach (mitk::DataNode::Pointer node, nodes)
-  // {
-  //   if (node.IsNotNull() && dynamic_cast<mitk::Image *>(node->GetData()))
-  //   {
-  //     m_Controls.labelWarning->setVisible(false);
-  //     m_Controls.buttonPerformImageProcessing->setEnabled(true);
-  //     return;
-  //   }
-  // }
-  //
-  // m_Controls.labelWarning->setVisible(true);
-  // m_Controls.buttonPerformImageProcessing->setEnabled(false);
+	// iterate all selected objects, adjust warning visibility
+	// foreach (mitk::DataNode::Pointer node, nodes)
+	// {
+	//   if (node.IsNotNull() && dynamic_cast<mitk::Image *>(node->GetData()))
+	//   {
+	//     m_Controls.labelWarning->setVisible(false);
+	//     m_Controls.buttonPerformImageProcessing->setEnabled(true);
+	//     return;
+	//   }
+	// }
+	//
+	// m_Controls.labelWarning->setVisible(true);
+	// m_Controls.buttonPerformImageProcessing->setEnabled(false);
 }
 
 
@@ -182,7 +193,7 @@ void AccuracyTest::AddPivotPoint()
 	point[0] = point_itk[0];
 	point[1] = point_itk[1];
 	point[2] = point_itk[2];
-	
+
 	m_PointSetPivoting->InsertPoint(m_PointSetPivoting->GetSize(), point);
 }
 
@@ -245,33 +256,64 @@ void AccuracyTest::AddTiltPoint()
 
 	m_PointSetTilt->InsertPoint(m_PointSetTilt->GetSize(), point);
 }
-//计算平均针尖位置
-mitk::Point3D AccuracyTest::computeAverageOfPosition(mitk::PointSet& pointGroup)
+
+void AccuracyTest::AddDistancePoint()
+{
+	if (!CheckInitialization()) { return; }
+	mitk::NavigationData::Pointer navDataTool = m_NavigationDataSourceOfRF->GetOutput(m_IDofRF);
+	mitk::Point3D point = m_NavigationDataSourceOfProbe->GetOutput(m_IDofProbe)->GetPosition();
+
+	//convert to itk transform
+	itk::Vector<double, 3> translation;
+	for (int k = 0; k < 3; k++) translation[k] = navDataTool->GetPosition()[k];
+	itk::Matrix<double, 3, 3> rotation;
+	for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotation[k][l] = navDataTool->GetOrientation().rotation_matrix_transpose()[k][l];
+	rotation = rotation.GetTranspose();
+	itk::Vector<double> point_itk;
+	point_itk[0] = point[0];
+	point_itk[1] = point[1];
+	point_itk[2] = point[2];
+
+	//compute point in reference frame coordinates
+	itk::Matrix<double, 3, 3> rotationInverse;
+	for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotationInverse[k][l] = rotation.GetInverse()[k][l];
+	point_itk = rotationInverse * (point_itk - translation);
+
+	//convert back and add landmark to pointset
+	point[0] = point_itk[0];
+	point[1] = point_itk[1];
+	point[2] = point_itk[2];
+
+	m_distancePointSet->InsertPoint(m_distancePointSet->GetSize(), point);
+}
+
+//Calculate the average tip position
+mitk::Point3D AccuracyTest::computeAverageOfPosition(mitk::PointSet::Pointer pointGroup)
 {
 	mitk::Point3D ret;
-	for (int index = 0; index < pointGroup.GetSize(); ++index)
+	for (int index = 0; index < pointGroup->GetSize(); ++index)
 	{
-		mitk::Point3D item = pointGroup.GetPoint(index);
+		mitk::Point3D item = pointGroup->GetPoint(index);
 		ret[0] += item[0];
 		ret[1] += item[1];
 		ret[2] += item[2];
 	}
-	ret[0] /= pointGroup.GetSize();
-	ret[1] /= pointGroup.GetSize();
-	ret[2] /= pointGroup.GetSize();
+	ret[0] /= pointGroup->GetSize();
+	ret[1] /= pointGroup->GetSize();
+	ret[2] /= pointGroup->GetSize();
 
 	return ret;
 }
-//每次测量与平均针尖位置的差
+//Difference between each measurement and the average needle tip position
 double AccuracyTest::eachDifference(const mitk::Point3D& point, const mitk::Point3D& positon)
 {
 	return sqrt((point[0] - positon[0]) * (point[0] - positon[0]) + (point[1] - positon[1]) * (point[1] - positon[1]) + (point[2] - positon[2]) * (point[2] - positon[2]));
 }
-//标准差
+//standardError
 double AccuracyTest::standardError(const std::vector<double>& pointset)
 {
 	double average_value = 0.0;
-	for (auto item: pointset)
+	for (auto item : pointset)
 	{
 		average_value += item;
 	}
@@ -285,18 +327,9 @@ double AccuracyTest::standardError(const std::vector<double>& pointset)
 
 	return sqrt(standard_error);
 }
-//每对点之间的距离
-double AccuracyTest::distanceCompute(const mitk::PointSet& p, const mitk::Point3D& point)
-{
-	mitk::Point3D src;
-	for (int index = 0; index < p.GetSize(); ++index)
-	{
-		src = p.GetPoint(0);
-	}
-	mitk::Point3D point1;
-	return sqrt((src[0] - point1[0]) * (src[0] - point1[0]) + (src[1] - point1[1]) * (src[1] - point1[1]) + (src[2] - point1[2]) * (src[2] - point1[2]));
-}
-//每一对点之间的距离，与已知的距离对比
+
+
+// distance Compare
 std::vector<double> AccuracyTest::distanceCompare(const std::vector<double>& dist_vec)
 {
 	std::vector<double> KnownDistance = { 45.95376083,37.18980932,37.20449293,32.6917076,32.7427404,34.18480307,34.25938296,41.03174218,
@@ -307,14 +340,11 @@ std::vector<double> AccuracyTest::distanceCompare(const std::vector<double>& dis
 	std::vector<double> computeDistance;
 	for (int i = 0; i < dist_vec.size(); ++i)
 	{
-		for (int k = 0; k < KnownDistance.size(); ++k)
-		{
-			computeDistance.push_back(dist_vec[i] - KnownDistance[k]);
-		}
+		computeDistance.push_back(dist_vec[i] - KnownDistance[i]);
 	}
 	return computeDistance;
 }
-//计算平均值
+//Calculate average
 double AccuracyTest::averageValueCompute(const std::vector<double>& dist)
 {
 	double averageValue = 0.0;
@@ -332,68 +362,50 @@ void AccuracyTest::compute()
 	double maximum_error = 0.0;
 	double standard_error = 0.0;
 	std::vector<double> error_vector;
+
 	//平均针尖位置
-	auto position = computeAverageOfPosition(*m_PointSetPivoting);
-	MITK_INFO << "平均针尖位置" << position;
+	auto position = computeAverageOfPosition(m_PointSetPivoting);
+	MITK_INFO << "position" << position;
+	string csvPath = "D:\\绕轴旋转.csv";
+	ofstream csvfile;
+	csvfile.open(csvPath,ios::out |ios::trunc);
+	csvfile << "工具绕轴旋转" << "," << "X" << "," << "Y" << "," << "Z" << "\n";
 	
 	mitk::Point3D error;
 	for (int index = 0; index < m_PointSetPivoting->GetSize(); ++index)
 	{
 		mitk::Point3D point = m_PointSetPivoting->GetPoint(index);
-		//每次测量与平均针尖位置的差
+
 		mistake = eachDifference(position, point);
 		error_vector.push_back(mistake);
+		
 		average_error += mistake;
 		if (maximum_error < mistake)
 		{
 			maximum_error = mistake;
 		}
+		
+		csvfile << "坐标(mm)" << "," << point[0] << "," << point[1] << "," << point[2] << "\n";
+		csvfile << "偏差(mm)" << "," << mistake << "\n";
 	}
+	
+	
 	//平均误差
 	average_error /= m_PointSetPivoting->GetSize();
 	//标准差
 	standard_error = standardError(error_vector);
+	csvfile << "maximum_error(mm)" << "," << maximum_error << "\n";
+	csvfile << "average_error(mm)" << "," << average_error << "\n";
+	csvfile << "standard_error(mm)" << "," << standard_error << "\n";
+	csvfile.close();
 
-	MITK_INFO << "每次测量与平均针尖位置的差" << mistake;
-	MITK_INFO << "平均误差" << average_error;
-	MITK_INFO << "最大误差" << maximum_error;
-	MITK_INFO << "标准差" << standard_error;
-	double distance = 0.0;
-	std::vector<double> distance_vector;
-	std::vector<double> distCompare;
-	//点与点之间的距离
-	for (int index = 1; index < m_PointSetPivoting->GetSize(); ++index)
+	for (int i = 0; i < error_vector.size(); ++i)
 	{
-		mitk::Point3D point = m_PointSetPivoting->GetPoint(index);
-		distance = distanceCompute(*m_PointSetPivoting,point);
-		distance_vector.push_back(distance); 
+		MITK_INFO << "每次测量与平均针尖位置的差" << error_vector[i];
 	}
-	distCompare = distanceCompare(distance_vector);
-	
-	double maxdisterror = distCompare[0];
-	double mindisterror = distCompare[0];
-	double averageValue = 0.0;
-	for (int i = 1; i < distCompare.size(); ++i)
-	{
-		if (distCompare[i] >maxdisterror)
-		{
-			//距离差值最大值
-			maxdisterror = distCompare[i];
-		}
-		if (distCompare[i] < mindisterror)
-		{
-			//距离差值最小值
-			mindisterror = distCompare[i];
-		}
-	}
-	//距离差值平均值
-	averageValue = averageValueCompute(distCompare);
-	//距离差值标准差
-	double standard = standardError(distCompare);
-	MITK_INFO << "距离差值最大值" << maxdisterror;
-	MITK_INFO << "距离差值最小值" << mindisterror;
-	MITK_INFO << "距离差值平均值" << averageValue;
-	MITK_INFO << "距离差值标准差" << standard;
+	MITK_INFO << "average_error" << average_error;
+	MITK_INFO << "maximum_error" << maximum_error;
+	MITK_INFO << "standard_error" << standard_error;
 }
 void AccuracyTest::computeTopple()
 {
@@ -403,14 +415,17 @@ void AccuracyTest::computeTopple()
 	double maximum_error = 0.0;
 	double standard_error = 0.0;
 	std::vector<double> error_vector;
-	//平均针尖位置
-	auto position = computeAverageOfPosition(*m_PointSetTopple);
+	
+	auto position = computeAverageOfPosition(m_PointSetTopple);
 	MITK_INFO << "position" << position;
+	string csvPath = "D:\\前后倾倒.csv";
+	ofstream csvfile;
+	csvfile.open(csvPath, ios::out | ios::trunc);
+	csvfile << "工具前后倾倒" << "," << "X" << "," << "Y" << "," << "Z" << "\n";
 	mitk::Point3D error;
 	for (int index = 0; index < m_PointSetTopple->GetSize(); ++index)
 	{
 		mitk::Point3D point = m_PointSetTopple->GetPoint(index);
-		//每次测量与平均针尖位置的差
 		mistake = eachDifference(position, point);
 		error_vector.push_back(mistake);
 		average_error += mistake;
@@ -418,47 +433,22 @@ void AccuracyTest::computeTopple()
 		{
 			maximum_error = mistake;
 		}
+		csvfile << "坐标(mm)" << "," << point[0] << "," << point[1] << "," << point[2] << "\n";
+		csvfile << "偏差(mm)" << "," << mistake << "\n";
 	}
-	//平均误差
+
 	average_error /= m_PointSetTopple->GetSize();
-	//标准差
+	
 	standard_error = standardError(error_vector);
+	csvfile << "maximum_error(mm)" << "," << maximum_error << "\n";
+	csvfile << "average_error(mm)" << "," << average_error << "\n";
+	csvfile << "standard_error(mm)" << "," << standard_error << "\n";
+	csvfile.close();
 	MITK_INFO << "mistake" << mistake;
+
 	MITK_INFO << "average_error" << average_error;
 	MITK_INFO << "maximum_error" << maximum_error;
 	MITK_INFO << "standard_error" << standard_error;
-	double distance = 0.0;
-	std::vector<double> distance_vector;
-	std::vector<double> distCompare;
-	//点与点之间的距离
-	for (int index = 1; index < m_PointSetTopple->GetSize(); ++index)
-	{
-		mitk::Point3D point = m_PointSetTopple->GetPoint(index);
-		distance = distanceCompute(*m_PointSetTopple, point);
-		distance_vector.push_back(distance);
-	}
-	distCompare = distanceCompare(distance_vector);
-
-	double maxdisterror = distCompare[0];
-	double mindisterror = distCompare[0];
-	double averageValue = 0.0;
-	for (int i = 1; i < distCompare.size(); ++i)
-	{
-		if (distCompare[i] > maxdisterror)
-		{
-			//距离差值最大值
-			maxdisterror = distCompare[i];
-		}
-		if (distCompare[i] < mindisterror)
-		{
-			//距离差值最小值
-			mindisterror = distCompare[i];
-		}
-	}
-	//距离差值平均值
-	averageValue = averageValueCompute(distCompare);
-	//距离差值标准差
-	double standard = standardError(distCompare);
 }
 void AccuracyTest::computeTilt()
 {
@@ -468,14 +458,17 @@ void AccuracyTest::computeTilt()
 	double maximum_error = 0.0;
 	double standard_error = 0.0;
 	std::vector<double> error_vector;
-	//平均针尖位置
-	auto position = computeAverageOfPosition(*m_PointSetTilt);
+	//Average needle tip position
+	auto position = computeAverageOfPosition(m_PointSetTilt);
 	MITK_INFO << "position" << position;
+	string csvPath = "D:\\左右倾倒.csv";
+	ofstream csvfile;
+	csvfile.open(csvPath, ios::out | ios::trunc);
+	csvfile << "工具左右倾倒" << "," << "X" << "," << "Y" << "," << "Z" << "\n";
 	mitk::Point3D error;
 	for (int index = 0; index < m_PointSetTilt->GetSize(); ++index)
 	{
 		mitk::Point3D point = m_PointSetTilt->GetPoint(index);
-		//每次测量与平均针尖位置的差
 		mistake = eachDifference(position, point);
 		error_vector.push_back(mistake);
 		average_error += mistake;
@@ -483,27 +476,58 @@ void AccuracyTest::computeTilt()
 		{
 			maximum_error = mistake;
 		}
+		csvfile << "坐标(mm)" << "," << point[0] << "," << point[1] << "," << point[2] << "\n";
+		csvfile << "偏差(mm)" << "," << mistake << "\n";
 	}
-	//平均误差
 	average_error /= m_PointSetTilt->GetSize();
-	//标准差
 	standard_error = standardError(error_vector);
+	csvfile << "maximum_error(mm)" << "," << maximum_error << "\n";
+	csvfile << "average_error(mm)" << "," << average_error << "\n";
+	csvfile << "standard_error(mm)" << "," << standard_error << "\n";
+	csvfile.close();
 	MITK_INFO << "mistake" << mistake;
 	MITK_INFO << "average_error" << average_error;
 	MITK_INFO << "maximum_error" << maximum_error;
 	MITK_INFO << "standard_error" << standard_error;
+}
+
+void AccuracyTest::computeDistance()
+{
 	double distance = 0.0;
 	std::vector<double> distance_vector;
+	double distanceDifference = 0.0;
 	std::vector<double> distCompare;
-	//点与点之间的距离
-	for (int index = 1; index < m_PointSetTilt->GetSize(); ++index)
+	mitk::Point3D point20;
+	point20 = m_distancePointSet->GetPoint(0);
+	string csvPath = "D:\\点与点距离测量.csv";
+	ofstream csvfile;
+	csvfile.open(csvPath, ios::out | ios::trunc);
+	csvfile << "距离测量" <<","<<"X"<<","<<"Y"<<","<<"Z"<<"\n";
+	csvfile << "20点坐标(mm)" << "," << point20[0] << "," << point20[1] << "," << point20[2] << "\n";
+	for (int index = 1; index < m_distancePointSet->GetSize(); ++index)
 	{
-		mitk::Point3D point = m_PointSetTilt->GetPoint(index);
-		distance = distanceCompute(*m_PointSetTilt, point);
+		mitk::Point3D point = m_distancePointSet->GetPoint(index);
+		//点与点之间的距离
+		distance = m_distancePointSet->GetPoint(0).EuclideanDistanceTo(point);
 		distance_vector.push_back(distance);
+
+		csvfile << "其余点坐标(mm)" << "," << point[0] << "," << point[1] << "," << point[2] << "\n";
+		csvfile << "其余点与20点的距离测量值(mm)" << "," << distance << "\n";
+	}
+	for (int i = 0; i < distance_vector.size(); ++i)
+	{
+	MITK_INFO << "序号:"<<i 
+		<<"---距离值："<<distance_vector[i];
 	}
 	distCompare = distanceCompare(distance_vector);
-
+	distCompare.push_back(distanceDifference);
+	for (int i = 0; i < distCompare.size()-1; ++i)
+	{
+		//csvfile << "其余点与20点的距离测量值(mm)" << "," << distance_vector[i] << "\n";
+		csvfile << "长度偏差(mm)" << "," << distCompare[i] << "\n";
+		MITK_INFO << "distCompare序号:" << i
+			<< "---距离值：" << distCompare[i];
+	}
 	double maxdisterror = distCompare[0];
 	double mindisterror = distCompare[0];
 	double averageValue = 0.0;
@@ -524,4 +548,12 @@ void AccuracyTest::computeTilt()
 	averageValue = averageValueCompute(distCompare);
 	//距离差值标准差
 	double standard = standardError(distCompare);
+	csvfile << "最大偏差(mm)" << "," << maxdisterror << "\n";
+	csvfile << "平均偏差(mm)" << "," << averageValue << "\n";
+	csvfile << "标准偏差(mm)" << "," << standard << "\n";
+	csvfile.close();
+	MITK_INFO << "距离差值最大值" << maxdisterror;
+	MITK_INFO << "距离差值最小值" << mindisterror;
+	MITK_INFO << "距离差值平均值" << averageValue;
+	MITK_INFO << "距离差值标准差" << standard;
 }

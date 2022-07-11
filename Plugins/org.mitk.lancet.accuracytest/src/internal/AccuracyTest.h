@@ -53,10 +53,9 @@ protected:
 
   bool CheckInitialization(bool requireRF = true); //<<< checks if the Probe and (if required) the Reference Frame is initialized. Displays a warning and returns false if not.
 public:
-	mitk::Point3D computeAverageOfPosition(mitk::PointSet&);
+	mitk::Point3D computeAverageOfPosition(mitk::PointSet::Pointer);
 	double eachDifference(const mitk::Point3D&, const mitk::Point3D&);
 	double standardError(const std::vector<double>&);
-	double distanceCompute(const mitk::PointSet&, const mitk::Point3D& point);
 	std::vector<double> distanceCompare(const std::vector<double>&);
 	double averageValueCompute(const std::vector<double>&);
 protected slots:
@@ -66,9 +65,11 @@ protected slots:
 	void AddPivotPoint();
 	void AddTopplePoint();
 	void AddTiltPoint();
+	void AddDistancePoint();
 	void compute();
 	void computeTopple();
 	void computeTilt();
+	void computeDistance();
 private:
   //mitk::NavigationTool::Pointer m_ToolToCalibrate; ///< tool that will be calibrated
   int m_IDofProbe; ///< id of the Probe (of the navigation data source)
@@ -82,7 +83,8 @@ private:
   mitk::DataNode::Pointer m_PointSetToppleNode;
   mitk::PointSet::Pointer m_PointSetTilt;
   mitk::DataNode::Pointer m_PointSetTiltNode;
-
+  mitk::PointSet::Pointer m_distancePointSet;
+  mitk::DataNode::Pointer m_distancePointSetNode;
   QTimer* m_TrackingTimer; //<<< tracking timer that updates the status widgets
   Ui::AccuracyTestControls m_Controls;
 };
