@@ -195,8 +195,8 @@ void SpineCArmRegistration::GetCannyEdge()
 int SpineCArmRegistration::TestNCC()
 {
 	GeoMatch GM;
-	int lowThreshold = 10;		//deafult value
-	int highThreashold = 100;	//deafult value
+	int lowThreshold = 10;		//deafult value; should be within [0,255]
+	int highThreashold = 100;	//deafult value; should be within [0,255]
 
 	double minScore = 0.5;		//deafult value
 	double greediness = 0.8;		//deafult value

@@ -32,6 +32,7 @@ public:
 
 	int CreateGeoMatchModel(const void* templateArr, double, double);
 	double FindGeoMatchModel(const void* srcarr, double minScore, double greediness, CvPoint* resultPoint);
+	// int FindAllGeoMatchModel(const void* srcarr, double minScore, double greediness, int);
 	void DrawContours(IplImage* pImage, CvPoint COG, CvScalar, int);
 	void DrawContours(IplImage* pImage, CvScalar, int);
 };

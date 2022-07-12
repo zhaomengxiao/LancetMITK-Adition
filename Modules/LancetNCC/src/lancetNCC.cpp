@@ -32,7 +32,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 	modelWidth = src->width;			//Save Template width
 
 	noOfCordinates = 0;											//initialize	
-	cordinates = new CvPoint[modelWidth * modelHeight];		//Allocate memory for coorinates of selected points in template image
+	cordinates = new CvPoint[modelWidth * modelHeight];		//Allocate memory for coordinates of selected points in template image
 
 	edgeMagnitude = new double[modelWidth * modelHeight];		//Allocate memory for edge magnitude for selected points
 	edgeDerivativeX = new double[modelWidth * modelHeight];			//Allocate memory for edge X derivative for selected points
@@ -62,8 +62,8 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 	{
 		for (j = 1; j < Ssize.width - 1; j++)
 		{
-			_sdx = (short*)(gx->data.ptr + gx->step * i);
-			_sdy = (short*)(gy->data.ptr + gy->step * i);
+			_sdx = (short*)(gx->data.ptr + gx->step * i); // Get the entire row
+			_sdy = (short*)(gy->data.ptr + gy->step * i); // Get the entire row
 			fdx = _sdx[j]; fdy = _sdy[j];        // read x, y derivatives
 
 			MagG = sqrt((float)(fdx * fdx) + (float)(fdy * fdy)); //Magnitude = Sqrt(gx^2 +gy^2)
@@ -122,7 +122,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 			if ((magMat[i][j] < leftPixel) || (magMat[i][j] < rightPixel))
 				(nmsEdges->data.ptr + nmsEdges->step * i)[j] = 0;
 			else
-				(nmsEdges->data.ptr + nmsEdges->step * i)[j] = (uchar)(magMat[i][j] / MaxGradient * 255);
+				(nmsEdges->data.ptr + nmsEdges->step * i)[j] = (uchar)(magMat[i][j] / MaxGradient * 255); // Normalized to [0,255] 
 
 			count++;
 		}
@@ -138,12 +138,12 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 	{
 		for (j = 1; j < Ssize.width; j++)
 		{
-			_sdx = (short*)(gx->data.ptr + gx->step * i);
-			_sdy = (short*)(gy->data.ptr + gy->step * i);
-			fdx = _sdx[j]; fdy = _sdy[j];
+			_sdx = (short*)(gx->data.ptr + gx->step * i); // Row vector
+			_sdy = (short*)(gy->data.ptr + gy->step * i); // Row vector
+			fdx = _sdx[j]; fdy = _sdy[j]; // read x,y derivatives
 
-			MagG = sqrt(fdx * fdx + fdy * fdy); //Magnitude = Sqrt(gx^2 +gy^2)
-			DirG = cvFastArctan((float)fdy, (float)fdx);	 //Direction = tan(y/x)
+			MagG = sqrt(fdx * fdx + fdy * fdy); // Magnitude = Sqrt(gx^2 +gy^2)
+			DirG = cvFastArctan((float)fdy, (float)fdx);	 // Direction = tan(y/x)
 
 			////((uchar*)(imgGDir->imageData + imgGDir->widthStep*i))[j]= MagG;
 			flag = 1;
@@ -157,7 +157,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 					////((uchar*)(imgGDir->imageData + imgGDir->widthStep*i))[j]=0;
 				}
 				else
-				{   // if any of 8 neighboring pixel is not greater than max contraxt remove from edge
+				{   // if any of 8 neighboring pixel is not greater than max contrast remove from edge
 					if ((((double)((nmsEdges->data.ptr + nmsEdges->step * (i - 1)))[j - 1]) < maxContrast) &&
 						(((double)((nmsEdges->data.ptr + nmsEdges->step * (i - 1)))[j]) < maxContrast) &&
 						(((double)((nmsEdges->data.ptr + nmsEdges->step * (i - 1)))[j + 1]) < maxContrast) &&
@@ -176,7 +176,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 			}
 
 			// save selected edge information
-			curX = i;	curY = j;
+			curX = i;	curY = j; // current x and current y
 			if (flag != 0)
 			{
 				if (fdx != 0 || fdy != 0)
@@ -188,7 +188,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 					edgeDerivativeX[noOfCordinates] = fdx;
 					edgeDerivativeY[noOfCordinates] = fdy;
 
-					//handle divide by zero
+					//handle divided by zero
 					if (MagG != 0)
 						edgeMagnitude[noOfCordinates] = 1 / MagG;  // gradient magnitude 
 					else
