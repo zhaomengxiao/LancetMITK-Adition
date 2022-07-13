@@ -195,8 +195,8 @@ void SpineCArmRegistration::GetCannyEdge()
 int SpineCArmRegistration::TestNCC()
 {
 	GeoMatch GM;
-	int lowThreshold = 10;		//deafult value; should be within [0,255]
-	int highThreashold = 100;	//deafult value; should be within [0,255]
+	int lowThreshold = 10;		//deafult value; should be within [0,255]; threshold for gradient collection
+	int highThreashold = 100;	//deafult value; should be within [0,255]; threshold for gradient collection
 
 	double minScore = 0.5;		//deafult value
 	double greediness = 0.8;		//deafult value
@@ -270,7 +270,7 @@ int SpineCArmRegistration::TestNCC()
 	clock_t finish_time1 = clock();
 	total_time = (double)(finish_time1 - start_time1) / CLOCKS_PER_SEC;
 
-	if (score > minScore) // if score is atleast 0.4
+	if (score > minScore) // if score is at least 0.4
 	{
 		cout << " Found at [" << result.x << ", " << result.y << "]\n Score = " << score << "\n Searching Time = " << total_time * 1000 << "ms";
 		// GM.DrawContours(searchImage, result, CV_RGB(0, 255, 0), 1);

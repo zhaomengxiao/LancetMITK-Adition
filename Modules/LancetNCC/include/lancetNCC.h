@@ -6,6 +6,8 @@
 #include <highgui.h>
 #include <math.h>
 
+// https://www.codeproject.com/Articles/99457/Edge-Based-Template-Matching#_comments
+
 class MITKLANCETNCC_EXPORT GeoMatch
 {
 private:

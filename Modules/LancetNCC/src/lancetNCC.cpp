@@ -133,7 +133,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 	int curX, curY;
 	int flag = 1;
 
-	//Hysterisis threshold
+	//Hysteresis threshold
 	for (i = 1; i < Ssize.height - 1; i++)
 	{
 		for (j = 1; j < Ssize.width; j++)
@@ -267,8 +267,8 @@ double GeoMatch::FindGeoMatchModel(const void* srcarr, double minScore, double g
 	cvSobel(src, Sdx, 1, 0, 3);  // find X derivatives
 	cvSobel(src, Sdy, 0, 1, 3); // find Y derivatives
 
-	// stoping criterias to search for model
-	double normMinScore = minScore / noOfCordinates; // precompute minumum score 
+	// stopping criteria to search for model
+	double normMinScore = minScore / noOfCordinates; // precompute minimum score 
 	double normGreediness = ((1 - greediness * minScore) / (1 - greediness)) / noOfCordinates; // precompute greedniness 
 
 	for (i = 0; i < Ssize.height; i++)
@@ -294,7 +294,7 @@ double GeoMatch::FindGeoMatchModel(const void* srcarr, double minScore, double g
 	{
 		for (j = 0; j < Ssize.width; j++)
 		{
-			partialSum = 0; // initilize partialSum measure
+			partialSum = 0; // initialize partialSum measure
 			for (m = 0; m < noOfCordinates; m++)
 			{
 				curX = i + cordinates[m].x;	// template X coordinate
@@ -308,8 +308,8 @@ double GeoMatch::FindGeoMatchModel(const void* srcarr, double minScore, double g
 				_Sdx = (short*)(Sdx->data.ptr + Sdx->step * (curX));
 				_Sdy = (short*)(Sdy->data.ptr + Sdy->step * (curX));
 
-				iSx = _Sdx[curY]; // get curresponding  X derivative from source image
-				iSy = _Sdy[curY];// get curresponding  Y derivative from source image
+				iSx = _Sdx[curY]; // get corresponding  X derivative from source image
+				iSy = _Sdy[curY]; // get corresponding  Y derivative from source image
 
 				if ((iSx != 0 || iSy != 0) && (iTx != 0 || iTy != 0))
 				{
