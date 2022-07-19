@@ -43,8 +43,6 @@ void lancet::NavigationDataInReferenceCoordFilter::GenerateData()
 
   if (m_RefToolIndex < this->GetNumberOfInputs())
   {
-
-
     // get reference tool matrix according to RefToolIndex
      const mitk::NavigationData *nd_ref = this->GetInput(m_RefToolIndex);
      refMatrix = NavigationDataToVtkMatrix4x4(nd_ref);
@@ -66,11 +64,11 @@ void lancet::NavigationDataInReferenceCoordFilter::GenerateData()
     vtkSmartPointer<vtkMatrix4x4> res_matrix = vtkMatrix4x4::New();
     GetReferenceMatrix4x4(in_matrix, refMatrix, res_matrix);
     // test ref itself should be i
-    if (i == m_RefToolIndex && !res_matrix->IsIdentity())
-    {
-      MITK_ERROR << "ref itself not Identity";
-
-    }
+    // if (i == m_RefToolIndex && !res_matrix->IsIdentity())
+    // {
+    //   MITK_ERROR << "ref itself not Identity";
+    //
+    // }
 
     output->Graft(nd); // copy all information from input to output
     output->SetPosition(vtkMatrix4x4ToPosition(res_matrix));
