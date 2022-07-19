@@ -1038,7 +1038,6 @@ vtkMatrix4x4* MoveData::ObtainVtkMatrixFromRegistrationUi()
 	return tmpMatrix;
 }
 
-
 void MoveData::AppendRegistrationMatrix()
 {
 	m_currentSelectedNode = m_Controls.mitkNodeSelectWidget_MovingObject->GetSelectedNode();
@@ -1082,7 +1081,6 @@ void MoveData::AppendRegistrationMatrix()
 	}
 	
 }
-
 
 void MoveData::IcpRegistration()
 {
