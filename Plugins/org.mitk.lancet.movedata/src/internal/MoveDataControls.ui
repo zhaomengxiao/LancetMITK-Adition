@@ -26,10 +26,46 @@
       <string>Toolsets</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+          <underline>true</underline>
+         </font>
+        </property>
+        <property name="text">
+         <string>Note: All the movement will be applied to both the parent and child nodes </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_12">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+          <underline>true</underline>
+         </font>
+        </property>
+        <property name="text">
+         <string>( grandchild nodes are not affected )</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="0">
        <widget class="QTabWidget" name="tabWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -587,23 +623,9 @@
           <item row="1" column="0">
            <widget class="QGroupBox" name="groupBox_7">
             <property name="title">
-             <string>ICP registration</string>
+             <string>Surface-points ICP registration</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_13">
-             <item row="0" column="1">
-              <layout class="QHBoxLayout" name="horizontalLayout_7">
-               <item>
-                <widget class="QLabel" name="label_10">
-                 <property name="text">
-                  <string>Target points:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_IcpTargetPointset" native="true"/>
-               </item>
-              </layout>
-             </item>
              <item row="0" column="0">
               <layout class="QHBoxLayout" name="horizontalLayout_6">
                <item>
@@ -618,6 +640,20 @@
                </item>
               </layout>
              </item>
+             <item row="0" column="1">
+              <layout class="QHBoxLayout" name="horizontalLayout_7">
+               <item>
+                <widget class="QLabel" name="label_10">
+                 <property name="text">
+                  <string>Target points:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_IcpTargetPointset" native="true"/>
+               </item>
+              </layout>
+             </item>
              <item row="0" column="2">
               <widget class="QPushButton" name="pushButton_Icp">
                <property name="text">
@@ -629,6 +665,50 @@
            </widget>
           </item>
           <item row="2" column="0">
+           <widget class="QGroupBox" name="groupBox_10">
+            <property name="title">
+             <string>Surface-surface ICP registration</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_16">
+             <item row="0" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_11">
+               <item>
+                <widget class="QLabel" name="label_13">
+                 <property name="text">
+                  <string>Source surface:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_srcSurface" native="true"/>
+               </item>
+              </layout>
+             </item>
+             <item row="0" column="1">
+              <layout class="QHBoxLayout" name="horizontalLayout_12">
+               <item>
+                <widget class="QLabel" name="label_14">
+                 <property name="text">
+                  <string>Target surface:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_targetSurface" native="true"/>
+               </item>
+              </layout>
+             </item>
+             <item row="0" column="2">
+              <widget class="QPushButton" name="pushButton_Icp_surfaceToSurface">
+               <property name="text">
+                <string>ICP Registration</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="3" column="0">
            <widget class="QGroupBox" name="groupBox_8">
             <property name="title">
              <string>Registration result matrix</string>
@@ -801,7 +881,7 @@
             </layout>
            </widget>
           </item>
-          <item row="3" column="0">
+          <item row="4" column="0">
            <widget class="QGroupBox" name="groupBox_9">
             <property name="title">
              <string>Apply (postmultiply) the registration matrix </string>
@@ -842,42 +922,6 @@
           <string>Apply quaternion</string>
          </attribute>
         </widget>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <italic>true</italic>
-          <bold>true</bold>
-          <underline>true</underline>
-         </font>
-        </property>
-        <property name="text">
-         <string>Note: All the movement will be applied to both the parent and child nodes </string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_12">
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <italic>true</italic>
-          <bold>true</bold>
-          <underline>true</underline>
-         </font>
-        </property>
-        <property name="text">
-         <string>( grandchild nodes are not affected )</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
        </widget>
       </item>
      </layout>

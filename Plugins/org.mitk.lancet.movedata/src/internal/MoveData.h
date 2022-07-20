@@ -118,7 +118,7 @@ protected:
   vtkMatrix4x4* ObtainVtkMatrixFromRegistrationUi();
   void AppendRegistrationMatrix();
 
-
+  void SurfaceToSurfaceIcp();
 };
 
 #endif // MoveData_h

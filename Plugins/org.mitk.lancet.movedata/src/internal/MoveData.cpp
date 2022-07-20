@@ -55,6 +55,8 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_IcpTargetPointset);
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_IcpSrcSurface);
   InitNodeSelector(m_Controls.mitkNodeSelectWidget_MovingObject);
+  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_srcSurface);
+  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_targetSurface);
 
   m_NodetreeModel = new QmitkDataStorageTreeModel(this->GetDataStorage());
 
@@ -92,7 +94,7 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_Icp, &QPushButton::clicked, this, &MoveData::IcpRegistration);
   connect(m_Controls.pushButton_getgeometryWithSpacing, &QPushButton::clicked, this, &MoveData::GetObjectGeometryWithSpacing);
   connect(m_Controls.pushButton_getgeometryWithoutSpacing, &QPushButton::clicked, this, &MoveData::GetObjectGeometryWithoutSpacing);
-
+  connect(m_Controls.pushButton_Icp_surfaceToSurface, &QPushButton::clicked, this, &MoveData::SurfaceToSurfaceIcp);
 
 
 }
@@ -1117,6 +1119,33 @@ void MoveData::IcpRegistration()
 	m_Controls.textBrowser_moveData->append("-------------Start ICP registration----------");
 	m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
 };
+
+void MoveData::SurfaceToSurfaceIcp()
+{
+	auto icpRegistrator = mitk::SurfaceRegistration::New();
+
+	
+	MITK_INFO << "Proceeding Surface-to-surface ICP registration";
+
+
+	icpRegistrator->SetSurfaceSrc(dynamic_cast<mitk::Surface*>(m_Controls.mitkNodeSelectWidget_srcSurface->GetSelectedNode()->GetData()));
+	icpRegistrator->SetSurfaceTarget(dynamic_cast<mitk::Surface*>(m_Controls.mitkNodeSelectWidget_targetSurface->GetSelectedNode()->GetData()));
+	icpRegistrator->ComputeSurfaceIcpResult();
+
+	Eigen::Matrix4d tmpRegistrationResult{ icpRegistrator->GetResult()->GetData() };
+	tmpRegistrationResult.transposeInPlace();
+	
+	m_eigenMatrixTmpRegistrationResult = tmpRegistrationResult;
+	MITK_INFO << m_eigenMatrixTmpRegistrationResult;
+	
+	UpdateUiRegistrationMatrix();
+	
+	
+	std::ostringstream os;
+	icpRegistrator->GetResult()->Print(os);
+	m_Controls.textBrowser_moveData->append("-------------Start ICP registration----------");
+	m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
+}
 
 
 void MoveData::GetObjectGeometryWithSpacing()

@@ -170,7 +170,6 @@ bool mitk::SurfaceRegistration::ComputeIcpResult()
   tmpTrans->Identity();
   tmpTrans->PostMultiply();
   tmpTrans->SetMatrix(m_SurfaceSrc->GetGeometry()->GetVtkMatrix());
-  auto correctedSurface = vtkSmartPointer<vtkPolyData>::New();
   vtkNew<vtkTransformFilter> transformFilter;
   transformFilter->SetInputData(m_SurfaceSrc->GetVtkPolyData());
   transformFilter->SetTransform(tmpTrans);
@@ -196,6 +195,82 @@ bool mitk::SurfaceRegistration::ComputeIcpResult()
 
 	return true;
 }
+
+bool mitk::SurfaceRegistration::ComputeSurfaceIcpResult()
+{
+	if (m_SurfaceSrc == nullptr || m_SurfaceTarget == nullptr)
+	{
+		MITK_ERROR << "SurfaceRegistration Error: icp src or target surface null";
+		return false;
+	}
+	// auto icpPoints = vtkSmartPointer<vtkPoints>::New();
+	// auto icpPoints_transed = vtkSmartPointer<vtkPoints>::New();
+	// for (int i = 0; i < m_IcpPoints->GetSize(); i++)
+	// {
+	// 	icpPoints->InsertNextPoint(m_IcpPoints->GetPoint(i).GetDataPointer());
+	// }
+
+	//The new transformation is computed under the result of the preceding transformation,
+	//but we don't move the source surface,so we move target icp points inversely.
+	//Reason: SetTarget should contain more points than SetSource 
+	// auto pTransform = vtkSmartPointer<vtkTransform>::New();
+	// pTransform->Identity();
+	// pTransform->Concatenate(GetResult());
+	// pTransform->Update();
+	// pTransform->Inverse();
+	// pTransform->TransformPoints(icpPoints, icpPoints_transed);
+	//
+	// auto pSource = vtkSmartPointer<vtkPolyData>::New();
+	// pSource->SetPoints(icpPoints_transed);
+
+	// In case m_SurfaceSrc does not have an identity geometry matrix
+	vtkTransform* tmpTrans = vtkTransform::New();
+	tmpTrans->Identity();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(m_SurfaceSrc->GetGeometry()->GetVtkMatrix());
+	vtkNew<vtkTransformFilter> transformFilter;
+	transformFilter->SetInputData(m_SurfaceSrc->GetVtkPolyData());
+	transformFilter->SetTransform(tmpTrans);
+	transformFilter->Update();
+
+	vtkSmartPointer<vtkIterativeClosestPointTransform> pIcp =
+		vtkSmartPointer<vtkIterativeClosestPointTransform>::New();
+	//pIcp->SetSource(pSource);
+	// pIcp->SetTarget(m_SurfaceSrc->GetVtkPolyData()); // the PolyData here must have an identity geometry matrix !
+	//pIcp->SetTarget(transformFilter->GetPolyDataOutput());
+
+	pIcp->GetLandmarkTransform()->SetModeToRigidBody();
+	pIcp->SetMaximumNumberOfIterations(1000);
+	pIcp->SetCheckMeanDistance(true);
+	pIcp->SetMaximumMeanDistance(0.0001);
+	auto matrixIcp = vtkMatrix4x4::New();
+	if(m_SurfaceTarget->GetVtkPolyData()->GetNumberOfPoints() >= m_SurfaceSrc->GetVtkPolyData()->GetNumberOfPoints())
+	{
+		pIcp->SetTarget(m_SurfaceTarget->GetVtkPolyData());
+		pIcp->SetSource(m_SurfaceSrc->GetVtkPolyData());
+
+		pIcp->Update();
+
+		matrixIcp->DeepCopy(pIcp->GetMatrix());
+		//matrixIcp->Invert();
+	}else
+	{
+		pIcp->SetTarget(m_SurfaceTarget->GetVtkPolyData());
+		pIcp->SetSource(m_SurfaceSrc->GetVtkPolyData());
+
+		pIcp->Update();
+
+		matrixIcp->DeepCopy(pIcp->GetMatrix());
+		matrixIcp->Invert();
+	}
+
+	
+
+	m_MatrixList.push_back(matrixIcp);
+
+	return true;
+}
+
 
 bool mitk::SurfaceRegistration::Undo()
 {

@@ -24,6 +24,7 @@ namespace mitk
     itkSetMacro(LandmarksTarget, mitk::PointSet::Pointer);
     itkSetMacro(IcpPoints, mitk::PointSet::Pointer);
     itkSetMacro(SurfaceSrc, mitk::Surface::Pointer);
+	itkSetMacro(SurfaceTarget, mitk::Surface::Pointer);
 
     /** @brief add target landmark to LandmarkTarget pointSet
       */
@@ -47,7 +48,11 @@ namespace mitk
      * @return bool.true if landmark matrix updated,false if nothing happens.
      */
 
+	 // Old ICP method: source is mitk::Surface; target is mitk::Pointset
     bool ComputeIcpResult();
+
+	// Surface-surface ICP: source and target should both be mitk::Surface
+	bool ComputeSurfaceIcpResult();
 
     /** @brief Give up the previous one registration result.
      *@return true if undo success,false if nothing to undo.
@@ -85,6 +90,10 @@ namespace mitk
     vtkMatrix4x4* m_MatrixLandMark;
     std::vector<vtkMatrix4x4*> m_MatrixList;
     vtkMatrix4x4* m_ResultMatrix;
+
+	// Surface-surface ICP
+	mitk::Surface::Pointer m_SurfaceTarget;
+
 
     bool m_ContinuesRegist{ false };
   };
