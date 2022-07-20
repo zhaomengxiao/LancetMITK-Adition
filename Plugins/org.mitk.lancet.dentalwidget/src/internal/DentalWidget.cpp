@@ -150,10 +150,42 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_Landmark, &QPushButton::clicked, this, &DentalWidget::LandmarkRegistration);
   connect(m_Controls.pushButton_Icp, &QPushButton::clicked, this, &DentalWidget::IcpRegistration);
   connect(m_Controls.pushButton_ApplyRegistrationMatrix, &QPushButton::clicked, this, &DentalWidget::AppendRegistrationMatrix);
+  connect(m_Controls.pushButton_registerIos, &QPushButton::clicked, this, &DentalWidget::RegisterIos);
+  connect(m_Controls.pushButton_fixIcp, &QPushButton::clicked, this, &DentalWidget::FineTuneRegister);
+  connect(m_Controls.pushButton_regReset, &QPushButton::clicked, this, &DentalWidget::ResetRegistration);
 
 
+  // Prepare some empty pointsets for registration purposes
+  auto pset_landmark_src = mitk::PointSet::New();
+  auto node_pset_landmark_src = mitk::DataNode::New();
+  node_pset_landmark_src->SetData(pset_landmark_src);
+  node_pset_landmark_src->SetName("landmark_src");
+  GetDataStorage()->Add(node_pset_landmark_src);
+
+  auto pset_landmark_target = mitk::PointSet::New();
+  auto node_pset_landmark_target = mitk::DataNode::New();
+  node_pset_landmark_target->SetData(pset_landmark_target);
+  node_pset_landmark_target->SetName("landmark_target");
+  GetDataStorage()->Add(node_pset_landmark_target);
+
+  auto pset_icp_target = mitk::PointSet::New();
+  auto node_pset_icp_target = mitk::DataNode::New();
+  node_pset_icp_target->SetData(pset_icp_target);
+  node_pset_icp_target->SetName("icp_target");
+  GetDataStorage()->Add(node_pset_icp_target);
+
+  auto pset_icp_fineTuning = mitk::PointSet::New();
+  auto node_pset_icp_fineTuning = mitk::DataNode::New();
+  node_pset_icp_fineTuning->SetData(pset_icp_fineTuning);
+  node_pset_icp_fineTuning->SetName("icp_fineTuning");
+  GetDataStorage()->Add(node_pset_icp_fineTuning);
+
+  m_eigenMatrixInitialOffset.setIdentity();
 
 }
+
+
+
 
 
 

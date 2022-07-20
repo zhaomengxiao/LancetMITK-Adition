@@ -53,6 +53,7 @@ protected:
 	mitk::DataNode* m_IcpSourceSurface{ nullptr };
 	mitk::DataNode* m_MovingObject{ nullptr };
 	Eigen::Matrix4d m_eigenMatrixTmpRegistrationResult;
+	Eigen::Matrix4d m_eigenMatrixInitialOffset;
 
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -101,6 +102,11 @@ protected:
   void AppendRegistrationMatrix();
 
 
+
+	// New registration function (landmark + icp)
+  void RegisterIos();
+  void FineTuneRegister();
+  void ResetRegistration();
 };
 
 #endif // DentalWidget_h

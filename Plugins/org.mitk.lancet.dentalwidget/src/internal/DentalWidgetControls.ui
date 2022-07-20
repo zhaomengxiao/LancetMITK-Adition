@@ -19,11 +19,20 @@
   <property name="windowTitle">
    <string>QmitkTemplate</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
+  <layout class="QGridLayout" name="gridLayout_16">
+   <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="currentIndex">
       <number>2</number>
+     </property>
+     <property name="tabsClosable">
+      <bool>false</bool>
+     </property>
+     <property name="tabBarAutoHide">
+      <bool>false</bool>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -41,7 +50,7 @@
             <item>
              <widget class="QLabel" name="label_2">
               <property name="text">
-               <string>阈值下限: </string>
+               <string>牙灰度阈值下限: </string>
               </property>
              </widget>
             </item>
@@ -144,7 +153,7 @@
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_5">
          <property name="title">
-          <string>移动或旋转数据（以给定方向平移 λ mm 或 以给定轴旋转 λ 度）</string>
+          <string>鼠标单击数据选中后，移动或旋转数据（以给定方向平移 λ mm 或 以给定轴旋转 λ 度）</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
           <item row="0" column="0">
@@ -303,9 +312,118 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_3">
+     <widget class="QWidget" name="tab_4">
       <attribute name="title">
        <string>表面配准</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_15">
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>一键配准</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_9">
+          <item row="0" column="0">
+           <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+             <string>请确认以下数据已就位</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_8">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>1. landmark_src: 口扫模型表面之 特征标记点群</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>2. landmark_target: CBCT重建模型表面 对应之 特征标记点群</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_12">
+               <property name="text">
+                <string>3. ios: 口扫模型表面数据(intraoral scan)，请重命名为“ios”</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_15">
+               <property name="text">
+                <string>4. icp_target: CBCT重建模型之 牙冠完整处的 表面点群</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_registerIos">
+            <property name="text">
+             <string>配准 并 移动 口扫模型</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="groupBox_10">
+         <property name="title">
+          <string>配准结果微修</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_11">
+          <item row="0" column="0">
+           <widget class="QGroupBox" name="groupBox_11">
+            <property name="title">
+             <string>请确认以下项目</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_10">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_17">
+               <property name="text">
+                <string>2. icp_fineTuning 已经包含点群数据；点群位于 ios 表面配准效果不佳处</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_16">
+               <property name="text">
+                <string>1. “一键配准”已进行</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_fixIcp">
+            <property name="text">
+             <string>微修配准结果 并 移动 口扫模型</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="pushButton_regReset">
+         <property name="text">
+          <string>配准重置</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <attribute name="title">
+       <string>Testing</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0">
@@ -324,7 +442,11 @@
              </widget>
             </item>
             <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LandmarkTargetPointset" native="true"/>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LandmarkTargetPointset" native="true">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -338,7 +460,11 @@
              </widget>
             </item>
             <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LandmarkSrcPointset" native="true"/>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LandmarkSrcPointset" native="true">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -368,7 +494,11 @@
              </widget>
             </item>
             <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_IcpTargetPointset" native="true"/>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_IcpTargetPointset" native="true">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -382,7 +512,11 @@
              </widget>
             </item>
             <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_IcpSrcSurface" native="true"/>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_IcpSrcSurface" native="true">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -587,7 +721,7 @@
             <item>
              <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_MovingObject" native="true">
               <property name="enabled">
-               <bool>true</bool>
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -607,7 +741,7 @@
      </widget>
     </widget>
    </item>
-   <item>
+   <item row="1" column="0">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>输出：</string>
