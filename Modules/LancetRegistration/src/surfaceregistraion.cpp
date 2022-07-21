@@ -14,6 +14,7 @@ found in the LICENSE file.
 
 #include "vtkLandmarkTransform.h"
 #include "vtkIterativeClosestPointTransform.h"
+#include "vtkImplicitPolyDataDistance.h"
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkTransformFilter.h>
@@ -192,6 +193,52 @@ bool mitk::SurfaceRegistration::ComputeIcpResult()
 	matrixIcp->Invert();
 
 	m_MatrixList.push_back(matrixIcp);
+
+
+	//------------- Calculate the ICP registration metric--------------------
+
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+	
+
+	vtkTransform* tmpTrans1 = vtkTransform::New();
+	tmpTrans1->Identity();
+	tmpTrans1->PostMultiply();
+	tmpTrans1->Concatenate(m_SurfaceSrc->GetGeometry()->GetVtkMatrix());
+	//tmpTrans1->SetMatrix(GetResult()->in);
+	auto tmpMatrix = vtkMatrix4x4::New();
+	//vtkMatrix4x4::Invert(GetResult(), tmpMatrix);
+	//tmpTrans1->Concatenate(tmpMatrix);
+	tmpTrans1->Concatenate(GetResult());
+
+	vtkNew<vtkTransformFilter> transformFilter1;
+	transformFilter1->SetInputData(m_SurfaceSrc->GetVtkPolyData());
+	transformFilter1->SetTransform(tmpTrans1);
+	transformFilter1->Update();
+
+	int pointNum = m_IcpPoints->GetSize();
+	double maxIcpError{ 0 };
+	double sumIcpError = 0;
+	for (int i = 0; i < pointNum; i++)
+	{
+		auto currentPoint = m_IcpPoints->GetPoint(i);
+		double tmpPoint[3]{ currentPoint[0],currentPoint[1],currentPoint[2] };
+
+		implicitPolyDataDistance->SetInput(transformFilter1->GetPolyDataOutput());
+
+		double currentError = implicitPolyDataDistance->EvaluateFunction(tmpPoint);
+
+
+		sumIcpError = sumIcpError + fabs(currentError);
+		if (fabs(currentError )> fabs(maxIcpError))
+		{
+			maxIcpError = fabs(currentError);
+		}
+	}
+
+	m_maxIcpError = maxIcpError;
+	m_avgIcpError = sumIcpError / pointNum;
+
+
 
 	return true;
 }

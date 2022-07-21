@@ -1005,15 +1005,15 @@ void MoveData::LandmarkRegistration()
 		m_Controls.textBrowser_moveData->append("Landmark source or target are is not ready");
 	}
 
-	std::ostringstream os;
-	landmarkRegistrator->GetResult()->Print(os);
+	//std::ostringstream os;
+	//landmarkRegistrator->GetResult()->Print(os);
 
 	m_Controls.textBrowser_moveData->append("-------------Start landmark registration----------");
 	// m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
 
-	m_Controls.textBrowser_moveData->append("Max landmark registration error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
+	m_Controls.textBrowser_moveData->append("Maximal landmark registration error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
 	m_Controls.textBrowser_moveData->append("Average landmark registration error: " + QString::number(landmarkRegistrator->GetavgLandmarkError()));
-
+	m_Controls.textBrowser_moveData->append("-------------Landmark registration succeeded----------");
 }
 
 vtkMatrix4x4* MoveData::ObtainVtkMatrixFromRegistrationUi()
@@ -1114,10 +1114,14 @@ void MoveData::IcpRegistration()
 		m_Controls.textBrowser_moveData->append("Icp source or target are is not ready");
 	}
 
-	std::ostringstream os;
-	icpRegistrator->GetResult()->Print(os);
-	m_Controls.textBrowser_moveData->append("-------------Start ICP registration----------");
-	m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
+	//std::ostringstream os;
+	//icpRegistrator->GetResult()->Print(os);
+	m_Controls.textBrowser_moveData->append("-------------Started ICP registration----------");
+	//m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
+
+	m_Controls.textBrowser_moveData->append("Maximal ICP registration error: " + QString::number(icpRegistrator->GetmaxIcpError()));
+	m_Controls.textBrowser_moveData->append("Average ICP registration error: " + QString::number(icpRegistrator->GetavgIcpError()));
+	m_Controls.textBrowser_moveData->append("-------------ICP registration succeeded----------");
 };
 
 void MoveData::SurfaceToSurfaceIcp()

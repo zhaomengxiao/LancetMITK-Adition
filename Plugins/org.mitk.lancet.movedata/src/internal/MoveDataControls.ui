@@ -19,920 +19,937 @@
   <property name="windowTitle">
    <string>QmitkTemplate</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_15">
+  <layout class="QGridLayout" name="gridLayout_3">
    <item row="0" column="0">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Toolsets</string>
+    <widget class="QLabel" name="label_3">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <italic>true</italic>
+       <bold>true</bold>
+       <underline>true</underline>
+      </font>
      </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <italic>true</italic>
-          <bold>true</bold>
-          <underline>true</underline>
-         </font>
-        </property>
-        <property name="text">
-         <string>Note: All the movement will be applied to both the parent and child nodes </string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_12">
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <italic>true</italic>
-          <bold>true</bold>
-          <underline>true</underline>
-         </font>
-        </property>
-        <property name="text">
-         <string>( grandchild nodes are not affected )</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QTabWidget" name="tabWidget">
-        <property name="currentIndex">
-         <number>2</number>
-        </property>
-        <widget class="QWidget" name="tab">
-         <attribute name="title">
-          <string>Intuitive</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_8">
-          <item row="1" column="0">
-           <widget class="QGroupBox" name="groupBox_4">
-            <property name="title">
-             <string>Movement along the given direction</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_10">
-             <item row="0" column="1">
-              <layout class="QVBoxLayout" name="verticalLayout">
-               <item>
-                <widget class="QLabel" name="label">
-                 <property name="text">
-                  <string>2-element poinset as the translation direction / rotation axis: </string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QmitkSingleNodeSelectionWidget" name="mitkSelectWidget_directionPointSet" native="true">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>30</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item row="1" column="1">
-              <layout class="QHBoxLayout" name="horizontalLayout_3">
-               <item>
-                <widget class="QLabel" name="label_4">
-                 <property name="text">
-                  <string>Translate or rotate by </string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="lineEdit_intuitiveValue_2">
-                 <property name="text">
-                  <string>2</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_2">
-                 <property name="text">
-                  <string>(mm or degrees)</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item row="2" column="0">
-              <spacer name="horizontalSpacer_6">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="2" column="1">
-              <layout class="QGridLayout" name="gridLayout_9">
-               <item row="0" column="0">
-                <widget class="QPushButton" name="pushButton_translatePlus">
-                 <property name="text">
-                  <string>Translate+</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QPushButton" name="pushButton_RotatePlus">
-                 <property name="text">
-                  <string>Rotate +</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QPushButton" name="pushButton_translateMinus">
-                 <property name="text">
-                  <string>Translate-</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QPushButton" name="pushButton_RotateMinus">
-                 <property name="text">
-                  <string>Rotate -</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item row="2" column="2">
-              <spacer name="horizontalSpacer_5">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QGroupBox" name="groupBox_3">
-            <property name="title">
-             <string>Movement by λ mm or degrees: (extrinsic rotation along X/Y/Z around object center)</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_2">
-             <item row="0" column="0">
-              <layout class="QGridLayout" name="gridLayout_7">
-               <item row="0" column="6">
-                <widget class="QPushButton" name="pushButton_rxm">
-                 <property name="text">
-                  <string>RX-</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="3">
-                <widget class="QPushButton" name="pushButton_xp">
-                 <property name="text">
-                  <string>X+</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="3">
-                <widget class="QPushButton" name="pushButton_zp">
-                 <property name="text">
-                  <string>Z+</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="4">
-                <widget class="QPushButton" name="pushButton_xm">
-                 <property name="text">
-                  <string>X-</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="4">
-                <widget class="QPushButton" name="pushButton_zm">
-                 <property name="text">
-                  <string>Z-</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="7">
-                <spacer name="horizontalSpacer_2">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="2" column="4">
-                <widget class="QPushButton" name="pushButton_ym">
-                 <property name="text">
-                  <string>Y-</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="5">
-                <widget class="QPushButton" name="pushButton_rxp">
-                 <property name="text">
-                  <string>RX+</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="3">
-                <widget class="QPushButton" name="pushButton_yp">
-                 <property name="text">
-                  <string>Y+</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="0">
-                <spacer name="horizontalSpacer">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="3" column="6">
-                <widget class="QPushButton" name="pushButton_rzm">
-                 <property name="text">
-                  <string>RZ-</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="5">
-                <widget class="QPushButton" name="pushButton_ryp">
-                 <property name="text">
-                  <string>RY+</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="6">
-                <widget class="QPushButton" name="pushButton_rym">
-                 <property name="text">
-                  <string>RY-</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="1">
-                <widget class="QLabel" name="label_5">
-                 <property name="text">
-                  <string>(mm or degrees)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="5">
-                <widget class="QPushButton" name="pushButton_rzp">
-                 <property name="text">
-                  <string>RZ+</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1">
-                <widget class="QLineEdit" name="lineEdit_intuitiveValue_1">
-                 <property name="text">
-                  <string>2</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLabel" name="label_6">
-                 <property name="layoutDirection">
-                  <enum>Qt::LeftToRight</enum>
-                 </property>
-                 <property name="text">
-                  <string>λ =</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tab_2">
-         <attribute name="title">
-          <string>Apply matrix</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_6">
-          <item row="1" column="0">
-           <widget class="QPushButton" name="pushButton_getgeometryWithSpacing">
-            <property name="text">
-             <string>Get geometry matrix with spacing factor</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="pushButton_getgeometryWithoutSpacing">
-            <property name="text">
-             <string>Get geometry matrix without spacing factor</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QGroupBox" name="groupBox_5">
-            <property name="title">
-             <string>Offset matrix to append (postmultiply) or overwirte (set as current offset matrix):</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_11">
-             <item row="0" column="0">
-              <layout class="QGridLayout" name="gridLayout">
-               <item row="0" column="2">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_4">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_2">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="3">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_8">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_1">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="3">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_9">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="1">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_3">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="4">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_13">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="2">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_5">
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="2">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_6">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <spacer name="horizontalSpacer_3">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="3" column="4">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_15">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="2">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_7">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="4">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_14">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="3">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_10">
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="3">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_11">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="4">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_12">
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="lineEdit_offsetMatrix_0">
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="5">
-                <spacer name="horizontalSpacer_4">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
-             </item>
-             <item row="1" column="0">
-              <layout class="QVBoxLayout" name="verticalLayout_4">
-               <item>
-                <widget class="QPushButton" name="pushButton_clearMatrixContent">
-                 <property name="text">
-                  <string>Clear current content (to identity)</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout">
-                 <item>
-                  <widget class="QPushButton" name="pushButton_AppendOffsetMatrix">
-                   <property name="text">
-                    <string>Append offset</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="pushButton_overwriteOffset">
-                   <property name="text">
-                    <string>Overwrite offset</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QPushButton" name="pushButton_RealignImage">
-            <property name="text">
-             <string>Realign the image and the rendering window coordinate systems (keep the spacing)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tab_3">
-         <attribute name="title">
-          <string>Surface registration</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_5">
-          <item row="0" column="0">
-           <widget class="QGroupBox" name="groupBox_6">
-            <property name="title">
-             <string>Landmark registration</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_12">
-             <item row="0" column="1">
-              <layout class="QHBoxLayout" name="horizontalLayout_5">
-               <item>
-                <widget class="QLabel" name="label_8">
-                 <property name="text">
-                  <string>Target points:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LandmarkTargetPointset" native="true"/>
-               </item>
-              </layout>
-             </item>
-             <item row="0" column="0">
-              <layout class="QHBoxLayout" name="horizontalLayout_4">
-               <item>
-                <widget class="QLabel" name="label_7">
-                 <property name="text">
-                  <string>Source points:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LandmarkSrcPointset" native="true"/>
-               </item>
-              </layout>
-             </item>
-             <item row="0" column="2">
-              <widget class="QPushButton" name="pushButton_Landmark">
-               <property name="text">
-                <string>Landmark Registration</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QGroupBox" name="groupBox_7">
-            <property name="title">
-             <string>Surface-points ICP registration</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_13">
-             <item row="0" column="0">
-              <layout class="QHBoxLayout" name="horizontalLayout_6">
-               <item>
-                <widget class="QLabel" name="label_9">
-                 <property name="text">
-                  <string>Source surface:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_IcpSrcSurface" native="true"/>
-               </item>
-              </layout>
-             </item>
-             <item row="0" column="1">
-              <layout class="QHBoxLayout" name="horizontalLayout_7">
-               <item>
-                <widget class="QLabel" name="label_10">
-                 <property name="text">
-                  <string>Target points:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_IcpTargetPointset" native="true"/>
-               </item>
-              </layout>
-             </item>
-             <item row="0" column="2">
-              <widget class="QPushButton" name="pushButton_Icp">
-               <property name="text">
-                <string>ICP Registration</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QGroupBox" name="groupBox_10">
-            <property name="title">
-             <string>Surface-surface ICP registration</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_16">
-             <item row="0" column="0">
-              <layout class="QHBoxLayout" name="horizontalLayout_11">
-               <item>
-                <widget class="QLabel" name="label_13">
-                 <property name="text">
-                  <string>Source surface:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_srcSurface" native="true"/>
-               </item>
-              </layout>
-             </item>
-             <item row="0" column="1">
-              <layout class="QHBoxLayout" name="horizontalLayout_12">
-               <item>
-                <widget class="QLabel" name="label_14">
-                 <property name="text">
-                  <string>Target surface:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_targetSurface" native="true"/>
-               </item>
-              </layout>
-             </item>
-             <item row="0" column="2">
-              <widget class="QPushButton" name="pushButton_Icp_surfaceToSurface">
-               <property name="text">
-                <string>ICP Registration</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QGroupBox" name="groupBox_8">
-            <property name="title">
-             <string>Registration result matrix</string>
-            </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_10">
-             <item>
-              <layout class="QGridLayout" name="gridLayout_14">
-               <item row="2" column="3">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_14">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_6">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="3">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_12">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_1">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="3">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_13">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="0">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_2">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="2">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_11">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="2">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_9">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="2">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_10">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_4">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="3">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_15">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="1">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_7">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="0">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_3">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="0">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_0">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="2">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_8">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_5">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QGroupBox" name="groupBox_9">
-            <property name="title">
-             <string>Apply (postmultiply) the registration matrix </string>
-            </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_9">
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_8">
-               <item>
-                <widget class="QLabel" name="label_11">
-                 <property name="text">
-                  <string>Moving object:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_MovingObject" native="true">
-                 <property name="enabled">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_ApplyRegistrationMatrix">
-               <property name="text">
-                <string>Apply the matrix</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tab_4">
-         <attribute name="title">
-          <string>Apply quaternion</string>
-         </attribute>
-        </widget>
-       </widget>
-      </item>
-     </layout>
+     <property name="text">
+      <string>Note: All the movement will be applied to both the parent and child nodes </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
     </widget>
    </item>
    <item row="1" column="0">
+    <widget class="QLabel" name="label_12">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <italic>true</italic>
+       <bold>true</bold>
+       <underline>true</underline>
+      </font>
+     </property>
+     <property name="text">
+      <string>( grandchild nodes are not affected )</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Intuitive</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_8">
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Movement along the given direction</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_10">
+          <item row="0" column="1">
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>2-element poinset as the translation direction / rotation axis: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkSelectWidget_directionPointSet" native="true">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>30</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Translate or rotate by </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_intuitiveValue_2">
+              <property name="text">
+               <string>2</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>(mm or degrees)</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <spacer name="horizontalSpacer_6">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="2" column="1">
+           <layout class="QGridLayout" name="gridLayout_9">
+            <item row="0" column="0">
+             <widget class="QPushButton" name="pushButton_translatePlus">
+              <property name="text">
+               <string>Translate+</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="pushButton_RotatePlus">
+              <property name="text">
+               <string>Rotate +</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="pushButton_translateMinus">
+              <property name="text">
+               <string>Translate-</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QPushButton" name="pushButton_RotateMinus">
+              <property name="text">
+               <string>Rotate -</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="2">
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>Movement by λ mm or degrees: (extrinsic rotation along X/Y/Z around object center)</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayout_7">
+            <item row="0" column="6">
+             <widget class="QPushButton" name="pushButton_rxm">
+              <property name="text">
+               <string>RX-</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="3">
+             <widget class="QPushButton" name="pushButton_xp">
+              <property name="text">
+               <string>X+</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="3">
+             <widget class="QPushButton" name="pushButton_zp">
+              <property name="text">
+               <string>Z+</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="4">
+             <widget class="QPushButton" name="pushButton_xm">
+              <property name="text">
+               <string>X-</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="4">
+             <widget class="QPushButton" name="pushButton_zm">
+              <property name="text">
+               <string>Z-</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="7">
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="2" column="4">
+             <widget class="QPushButton" name="pushButton_ym">
+              <property name="text">
+               <string>Y-</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="5">
+             <widget class="QPushButton" name="pushButton_rxp">
+              <property name="text">
+               <string>RX+</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="3">
+             <widget class="QPushButton" name="pushButton_yp">
+              <property name="text">
+               <string>Y+</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="3" column="6">
+             <widget class="QPushButton" name="pushButton_rzm">
+              <property name="text">
+               <string>RZ-</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="5">
+             <widget class="QPushButton" name="pushButton_ryp">
+              <property name="text">
+               <string>RY+</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="6">
+             <widget class="QPushButton" name="pushButton_rym">
+              <property name="text">
+               <string>RY-</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>(mm or degrees)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="5">
+             <widget class="QPushButton" name="pushButton_rzp">
+              <property name="text">
+               <string>RZ+</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="lineEdit_intuitiveValue_1">
+              <property name="text">
+               <string>2</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="label_6">
+              <property name="layoutDirection">
+               <enum>Qt::LeftToRight</enum>
+              </property>
+              <property name="text">
+               <string>λ =</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>Apply matrix</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_6">
+       <item row="1" column="0">
+        <widget class="QPushButton" name="pushButton_getgeometryWithSpacing">
+         <property name="text">
+          <string>Get geometry matrix with spacing factor</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="pushButton_getgeometryWithoutSpacing">
+         <property name="text">
+          <string>Get geometry matrix without spacing factor</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="title">
+          <string>Offset matrix to append (postmultiply) or overwirte (set as current offset matrix):</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_11">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayout">
+            <item row="0" column="2">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_4">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_2">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="3">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_8">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_1">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="3">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_9">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_3">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="4">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_13">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_5">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_6">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="3" column="4">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_15">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_7">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="4">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_14">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="3">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_10">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="3">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_11">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="4">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_12">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="lineEdit_offsetMatrix_0">
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="5">
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QPushButton" name="pushButton_clearMatrixContent">
+              <property name="text">
+               <string>Clear current content (to identity)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QPushButton" name="pushButton_AppendOffsetMatrix">
+                <property name="text">
+                 <string>Append offset</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_overwriteOffset">
+                <property name="text">
+                 <string>Overwrite offset</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="pushButton_RealignImage">
+         <property name="text">
+          <string>Realign the image and the rendering window coordinate systems (keep the spacing)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Surface registration</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>Landmark registration</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_12">
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="label_8">
+              <property name="text">
+               <string>Target points:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LandmarkTargetPointset" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>Source points:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LandmarkSrcPointset" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="pushButton_Landmark">
+            <property name="text">
+             <string>Landmark Registration</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="title">
+          <string>Surface-points ICP registration</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_13">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>Source surface:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_IcpSrcSurface" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>Target points:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_IcpTargetPointset" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="pushButton_Icp">
+            <property name="text">
+             <string>ICP Registration</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QGroupBox" name="groupBox_10">
+         <property name="title">
+          <string>Surface-surface ICP registration (WIP)</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_16">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_11">
+            <item>
+             <widget class="QLabel" name="label_13">
+              <property name="text">
+               <string>Source surface:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_srcSurface" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_12">
+            <item>
+             <widget class="QLabel" name="label_14">
+              <property name="text">
+               <string>Target surface:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_targetSurface" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="pushButton_Icp_surfaceToSurface">
+            <property name="text">
+             <string>ICP Registration</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QGroupBox" name="groupBox_8">
+         <property name="title">
+          <string>Registration result matrix</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <spacer name="horizontalSpacer_7">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <layout class="QGridLayout" name="gridLayout_14">
+            <item row="1" column="3">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_13">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_10">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="3">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_14">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_2">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_5">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_7">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_11">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_1">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_3">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="3">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_15">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="4">
+             <spacer name="horizontalSpacer_8">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_9">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_0">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_6">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_8">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="3">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_12">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="lineEdit_RegistrationMatrix_4">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QGroupBox" name="groupBox_9">
+         <property name="title">
+          <string>Apply (postmultiply) the registration matrix </string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>Moving object:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_MovingObject" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_ApplyRegistrationMatrix">
+            <property name="text">
+             <string>Apply the matrix</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_4">
+      <attribute name="title">
+       <string>Apply quaternion</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+   <item row="3" column="0">
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Output:</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_3">
+     <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="0">
        <widget class="QTextBrowser" name="textBrowser_moveData"/>
       </item>
