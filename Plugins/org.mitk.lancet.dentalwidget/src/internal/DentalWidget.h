@@ -107,6 +107,10 @@ protected:
   void RegisterIos();
   void FineTuneRegister();
   void ResetRegistration();
+
+
+	// Test clip polyData
+  void TestClipPolyData();
 };
 
 #endif // DentalWidget_h

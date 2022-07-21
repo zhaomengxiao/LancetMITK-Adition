@@ -8,6 +8,7 @@ set(INTERNAL_CPP_FILES
   DentalWidget_intuitiveMove.cpp
   DentalWidget_reconstructSurface.cpp
   DentalWidget_regisSurface.cpp
+  DentalWidget_clipPolyData.cpp
 )
 
 set(UI_FILES

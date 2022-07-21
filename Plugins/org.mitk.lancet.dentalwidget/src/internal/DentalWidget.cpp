@@ -127,6 +127,8 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_LandmarkTargetPointset);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_IcpTargetPointset);
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_IcpSrcSurface);
+  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_testInputSurface);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_testClipPoints);
 
   m_NodetreeModel = new QmitkDataStorageTreeModel(this->GetDataStorage());
 
@@ -153,6 +155,8 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_registerIos, &QPushButton::clicked, this, &DentalWidget::RegisterIos);
   connect(m_Controls.pushButton_fixIcp, &QPushButton::clicked, this, &DentalWidget::FineTuneRegister);
   connect(m_Controls.pushButton_regReset, &QPushButton::clicked, this, &DentalWidget::ResetRegistration);
+
+  connect(m_Controls.pushButton_testClip, &QPushButton::clicked, this, &DentalWidget::TestClipPolyData);
 
 
   // Prepare some empty pointsets for registration purposes

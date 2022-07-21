@@ -302,8 +302,8 @@ bool mitk::SurfaceRegistration::ComputeSurfaceIcpResult()
 		//matrixIcp->Invert();
 	}else
 	{
-		pIcp->SetTarget(m_SurfaceTarget->GetVtkPolyData());
-		pIcp->SetSource(m_SurfaceSrc->GetVtkPolyData());
+		pIcp->SetSource(m_SurfaceTarget->GetVtkPolyData());
+		pIcp->SetTarget(m_SurfaceSrc->GetVtkPolyData());
 
 		pIcp->Update();
 
