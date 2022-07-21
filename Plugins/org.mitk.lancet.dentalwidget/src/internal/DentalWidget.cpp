@@ -157,6 +157,7 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_regReset, &QPushButton::clicked, this, &DentalWidget::ResetRegistration);
 
   connect(m_Controls.pushButton_testClip, &QPushButton::clicked, this, &DentalWidget::TestClipPolyData);
+  connect(m_Controls.pushButton_registerIos_, &QPushButton::clicked, this, &DentalWidget::RegisterIos_);
 
 
   // Prepare some empty pointsets for registration purposes

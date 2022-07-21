@@ -105,6 +105,8 @@ protected:
 
 	// New registration function (landmark + icp)
   void RegisterIos();
+  void RegisterIos_();
+  void ClipTeeth();
   void FineTuneRegister();
   void ResetRegistration();
 

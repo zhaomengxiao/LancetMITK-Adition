@@ -4,6 +4,12 @@
 
 // mitk image
 #include <mitkImage.h>
+#include <vtkAppendPolyData.h>
+#include <vtkCleanPolyData.h>
+#include <vtkClipPolyData.h>
+#include <vtkPlanes.h>
+#include <ep/include/vtk-9.1/vtkTransformFilter.h>
+
 #include "mitkImageToSurfaceFilter.h"
 #include "mitkNodePredicateDataType.h"
 #include "mitkSurface.h"
@@ -506,4 +512,161 @@ void DentalWidget::ResetRegistration()
 }
 
 
+void DentalWidget::RegisterIos_()
+{
+	m_Controls.textBrowser->append("------ Registration started ------");
+
+	auto node_landmark_src = GetDataStorage()->GetNamedNode("landmark_src");
+
+	auto node_landmark_target = GetDataStorage()->GetNamedNode("landmark_target");
+
+	auto node_ios = GetDataStorage()->GetNamedNode("ios");
+
+	auto node_icp_target = GetDataStorage()->GetNamedNode("Reconstructed CBCT surface");
+
+
+	if(node_landmark_src==nullptr)
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'landmark_src' is missing !!!!!!");
+		return;
+	}
+	if (dynamic_cast<mitk::PointSet*>(node_landmark_src->GetData())->IsEmpty())
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'landmark_src' is empty !!!!!!");
+		return;
+	}
+	if (node_landmark_target == nullptr )
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'landmark_target' is missing !!!!!!");
+		return;
+	}
+	if (dynamic_cast<mitk::PointSet*>(node_landmark_target->GetData())->IsEmpty() )
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'landmark_target' is empty !!!!!!");
+		return;
+	}
+	if (node_ios == nullptr)
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'ios' is missing!!!!!!");
+		return;
+	}
+	if (node_icp_target == nullptr)
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'Reconstructed CBCT surface' is missing!!!!!!");
+		return;
+	}
+
+	ClipTeeth();
+
+	auto node_icp_src = GetDataStorage()->GetNamedNode("Clipped data");
+
+	// Landmark registration
+	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
+
+	landmarkRegistrator->SetLandmarksSrc(dynamic_cast<mitk::PointSet*>(node_landmark_src->GetData()));
+	landmarkRegistrator->SetLandmarksTarget(dynamic_cast<mitk::PointSet*>(node_landmark_target->GetData()));
+	landmarkRegistrator->ComputeLandMarkResult();
+
+	auto landmarkResult = landmarkRegistrator->GetResult();
+	Eigen::Matrix4d a{ landmarkResult->GetData() };
+	MITK_INFO << a;
+	auto landmarkTransform = vtkTransform::New();
+	landmarkTransform->Identity();
+	landmarkTransform->PostMultiply();
+	landmarkTransform->SetMatrix(landmarkResult);
+	landmarkTransform->Update();
+
+	// ICP registration
+	auto icpRegistrator = mitk::SurfaceRegistration::New();
+
+	// Prepare icp source: Clipped data
+	vtkNew<vtkTransformFilter> sourceFilter;
+	auto targetSurface = dynamic_cast<mitk::Surface*>(node_icp_src->GetData());
+	sourceFilter->SetInputData(targetSurface->GetVtkPolyData());
+	sourceFilter->SetTransform(landmarkTransform);
+	sourceFilter->Update();
+	
+	auto icpSource = mitk::Surface::New();
+	icpSource->SetVtkPolyData(sourceFilter->GetPolyDataOutput());
+	
+	icpRegistrator->SetSurfaceSrc(icpSource);
+	icpRegistrator->SetSurfaceTarget(dynamic_cast<mitk::Surface*>(node_icp_target->GetData()));
+	icpRegistrator->ComputeSurfaceIcpResult();
+	auto icpResult = icpRegistrator->GetResult();
+	
+	// Apply landmark & icp results to ios
+	auto combinedTransform = vtkTransform::New();
+	combinedTransform->Identity();
+	combinedTransform->PostMultiply();
+	combinedTransform->Concatenate(node_ios->GetData()->GetGeometry()->GetVtkMatrix());
+	combinedTransform->Concatenate(landmarkResult);
+	//combinedTransform->Concatenate(icpResult);
+	combinedTransform->Update();
+	
+	node_ios->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(combinedTransform->GetMatrix());
+	//
+
+}
+void DentalWidget::ClipTeeth()
+{
+	auto inputPolyData = dynamic_cast<mitk::Surface*>
+		(GetDataStorage()->GetNamedNode("ios")->GetData());
+
+	auto inputPointSet = dynamic_cast<mitk::PointSet*>
+		(GetDataStorage()->GetNamedNode("landmark_src")->GetData());
+
+	vtkSmartPointer<vtkAppendPolyData> appendFilter =
+		vtkSmartPointer<vtkAppendPolyData>::New();
+
+	vtkSmartPointer<vtkCleanPolyData> cleanFilter =
+		vtkSmartPointer<vtkCleanPolyData>::New();
+
+	int inputPointNum = inputPointSet->GetSize();
+
+	for (int i{ 0 }; i < inputPointNum; i++)
+	{
+		double tmpPoint[3]
+		{
+			inputPointSet->GetPoint(i)[0],
+			inputPointSet->GetPoint(i)[1],
+			inputPointSet->GetPoint(i)[2],
+		};
+
+		vtkNew<vtkClipPolyData> clip;
+		vtkNew<vtkPlanes> planes;
+		
+		double boxSize{ 6 };
+
+		
+
+		planes->SetBounds(
+			tmpPoint[0] - boxSize / 2,
+			tmpPoint[0] + boxSize / 2,
+			tmpPoint[1] - boxSize / 2,
+			tmpPoint[1] + boxSize / 2,
+			tmpPoint[2] - boxSize / 2,
+			tmpPoint[2] + boxSize / 2
+		);
+
+		clip->SetInputData(inputPolyData->GetVtkPolyData());
+		clip->SetClipFunction(planes);
+		clip->InsideOutOn();
+		clip->GenerateClippedOutputOn();
+		clip->Update();
+
+		appendFilter->AddInputData(clip->GetOutput());
+		appendFilter->Update();
+	}
+
+	cleanFilter->SetInputData(appendFilter->GetOutput());
+	cleanFilter->Update();
+
+
+	auto tmpNode = mitk::DataNode::New();
+	auto tmpData = mitk::Surface::New();
+	tmpData->SetVtkPolyData(cleanFilter->GetOutput());
+	tmpNode->SetData(tmpData);
+	tmpNode->SetName("Clipped data");
+	GetDataStorage()->Add(tmpNode);
+}
 

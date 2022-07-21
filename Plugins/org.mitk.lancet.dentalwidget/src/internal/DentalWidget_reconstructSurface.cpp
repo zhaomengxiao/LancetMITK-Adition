@@ -52,7 +52,7 @@ bool DentalWidget::ReconstructSurface()
 
 		// draw extracted surface
 		auto nodeSteelballSurfaces = mitk::DataNode::New();
-		nodeSteelballSurfaces->SetName("Reconstructed surface");
+		nodeSteelballSurfaces->SetName("Reconstructed CBCT surface");
 		// add new node
 		nodeSteelballSurfaces->SetData(mitkRecontructedSurfaces);
 		GetDataStorage()->Add(nodeSteelballSurfaces);
