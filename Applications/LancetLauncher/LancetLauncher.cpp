@@ -34,16 +34,10 @@ int main(int argc, char **argv)
 
   // We create the application id relying on a convention:
   // org.mitk.lancet.<configuration-name>
-  QString appId = "org.mitk.example.";
+  QString appId = "org.mitk.lancet.";
   QStringList appIdTokens = QFileInfo(selectedConfiguration).baseName().toLower().split('_', QString::SkipEmptyParts);
   appId += appIdTokens.size() > 1 ? appIdTokens.at(1) : appIdTokens.at(0);
 
-  // Special cases
-  if (appId == "org.mitk.example.exampleplugins")
-  {
-    appId = "org.mitk.qt.extapplication";
-  }
-  // appId = "org.mitk.views.vcview";
   app.setProperty(mitk::BaseApplication::PROP_APPLICATION, appId);
 
   return app.run();

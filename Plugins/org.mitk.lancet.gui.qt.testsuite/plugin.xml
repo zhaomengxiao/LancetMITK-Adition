@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+  <extension id="org.mitk.lancet.testsuite" point="org.blueberry.osgi.applications">
+    <application>
+      <run class="TestSuiteApplication"/>
+    </application>
+  </extension>
+
+  <extension point="org.blueberry.ui.perspectives">
+    <perspective
+      id="org.mitk.lancet.deviceconfig"
+      name="Device Configure"
+      icon="resources/perspectiveIcon1.png"
+      class="DevicePerspective">
+    </perspective>
+  </extension>
+
+  <extension point="org.blueberry.ui.perspectives">
+    <perspective
+      id="org.mitk.lancet.imageregist"
+      name="Image Registration"
+      icon="resources/perspectiveIcon2.png"
+      class="ImageRegistPerspective">
+    </perspective>
+  </extension>
+
+</plugin>
