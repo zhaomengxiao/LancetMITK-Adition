@@ -21,6 +21,7 @@ found in the LICENSE file.
 #include "QmitkDataStorageTreeModel.h"
 #include "QmitkSingleNodeSelectionWidget.h"
 #include "ui_DentalWidgetControls.h"
+#include "vtkPolyData.h"
 
 /**
   \brief DentalWidget
@@ -38,6 +39,8 @@ class DentalWidget : public QmitkAbstractView
 
 public:
   static const std::string VIEW_ID;
+  itkGetMacro(MatrixRegistrationResult, vtkMatrix4x4*);
+
 
 protected:
 
@@ -54,6 +57,10 @@ protected:
 	mitk::DataNode* m_MovingObject{ nullptr };
 	Eigen::Matrix4d m_eigenMatrixTmpRegistrationResult;
 	Eigen::Matrix4d m_eigenMatrixInitialOffset;
+
+	vtkMatrix4x4* m_MatrixRegistrationResult{ nullptr };
+	vtkMatrix4x4* m_InitialMatrix{ nullptr };
+
 
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -76,7 +83,7 @@ protected:
   void CheckUseSmoothing();
   
   bool ReconstructSurface();
-
+  bool AutoReconstructSurface();
 
   // Toolset 1 (Intuitive)
   void Translate(double direction[3], double length, mitk::BaseData* data);
@@ -108,11 +115,19 @@ protected:
   void RegisterIos_();
   void ClipTeeth();
   void FineTuneRegister();
+  void FineTuneRegister_();
   void ResetRegistration();
+  void ResetRegistration_();
 
 
 	// Test clip polyData
   void TestClipPolyData();
+
+	// Extract planning start & end points
+  void TestExtractPlan();
+
+  void ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vtkSmartPointer<vtkPolyData> teeth_polydata);
+
 };
 
 #endif // DentalWidget_h

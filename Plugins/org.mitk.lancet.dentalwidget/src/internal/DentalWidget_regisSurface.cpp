@@ -464,21 +464,70 @@ void DentalWidget::FineTuneRegister()
 }
 
 
+void DentalWidget::FineTuneRegister_()
+{
+	if(m_MatrixRegistrationResult==nullptr)
+	{
+		m_Controls.textBrowser->append("!!!!!! Please register first !!!!!!");
+		return;
+	}
+	   	
+	auto node_icp_targetPoints = GetDataStorage()->GetNamedNode("icp_fineTuning");
+	auto node_icp_srcSurface = GetDataStorage()->GetNamedNode("ios");
+
+	auto icp_targetPoints = dynamic_cast<mitk::PointSet*>(node_icp_targetPoints->GetData());
+	auto icp_srcSurface = dynamic_cast<mitk::Surface*>(node_icp_srcSurface->GetData());
+
+	if (icp_targetPoints->IsEmpty())
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'icp_fineTuning' is empty !!!!!!");
+		return;
+	}
+
+	m_Controls.textBrowser->append("------ Fine tuning started ------");
+
+	auto icpRegistrator = mitk::SurfaceRegistration::New();
+
+	icpRegistrator->SetSurfaceSrc(icp_srcSurface);
+	icpRegistrator->SetIcpPoints(icp_targetPoints);
+	icpRegistrator->ComputeIcpResult();
+	auto fixMatrix = icpRegistrator->GetResult();
+
+	// Apply the fixMatrix to icp_src_Surface
+	auto tmpTransform = vtkTransform::New();
+	tmpTransform->Identity();
+	tmpTransform->PostMultiply();
+	tmpTransform->Concatenate(icp_srcSurface->GetGeometry()->GetVtkMatrix());
+	tmpTransform->Concatenate(fixMatrix);
+	tmpTransform->Update();
+
+	icp_srcSurface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTransform->GetMatrix());
+
+	m_Controls.textBrowser->append("Maximal ICP error: "+ QString::number(icpRegistrator->GetmaxIcpError()));
+	m_Controls.textBrowser->append("Average ICP error: " + QString::number(icpRegistrator->GetavgIcpError()));
+
+
+	TestExtractPlan();
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	m_Controls.textBrowser->append("------ Fine tuning succeeded ------");
+
+
+}
+
 void DentalWidget::ResetRegistration()
 {
 	m_Controls.textBrowser->append("------ Reset started ------");
-	
+
 
 	auto tmpVtkMatrix = vtkMatrix4x4::New();
 	tmpVtkMatrix->DeepCopy(m_eigenMatrixInitialOffset.data());
 	GetDataStorage()->GetNamedNode("ios")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkMatrix);
 
-
-
 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("icp_fineTuning"));
 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("icp_target"));
 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("landmark_src"));
 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("landmark_target"));
+	
 
 	// Prepare some empty pointsets for registration purposes
 	auto pset_landmark_src = mitk::PointSet::New();
@@ -508,9 +557,60 @@ void DentalWidget::ResetRegistration()
 	m_Controls.textBrowser->append("------ Reset succeeded ------");
 
 
-	
+	TestExtractPlan();
 }
 
+void DentalWidget::ResetRegistration_()
+{
+	// Move ios to the initial position
+	m_Controls.textBrowser->append("------ Reset started ------");
+
+	if(!(m_MatrixRegistrationResult == nullptr))
+	{
+		m_MatrixRegistrationResult = nullptr;
+		GetDataStorage()->GetNamedNode("ios")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(m_InitialMatrix);
+	}
+
+	// Remove nodes if they exist 
+	if (GetDataStorage()->GetNamedNode("icp_fineTuning") != nullptr)
+	{
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("icp_fineTuning"));
+	}
+
+	if (GetDataStorage()->GetNamedNode("landmark_src") != nullptr)
+	{
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("landmark_src"));
+	}
+	
+	if (GetDataStorage()->GetNamedNode("landmark_target") != nullptr)
+	{
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("landmark_target"));
+	}
+
+	
+	// Prepare some empty pointsets for registration purposes
+	auto pset_landmark_src = mitk::PointSet::New();
+	auto node_pset_landmark_src = mitk::DataNode::New();
+	node_pset_landmark_src->SetData(pset_landmark_src);
+	node_pset_landmark_src->SetName("landmark_src");
+	GetDataStorage()->Add(node_pset_landmark_src);
+
+	auto pset_landmark_target = mitk::PointSet::New();
+	auto node_pset_landmark_target = mitk::DataNode::New();
+	node_pset_landmark_target->SetData(pset_landmark_target);
+	node_pset_landmark_target->SetName("landmark_target");
+	GetDataStorage()->Add(node_pset_landmark_target);
+
+	auto pset_icp_fineTuning = mitk::PointSet::New();
+	auto node_pset_icp_fineTuning = mitk::DataNode::New();
+	node_pset_icp_fineTuning->SetData(pset_icp_fineTuning);
+	node_pset_icp_fineTuning->SetName("icp_fineTuning");
+	GetDataStorage()->Add(node_pset_icp_fineTuning);
+
+
+	TestExtractPlan();
+	m_Controls.textBrowser->append("------ Reset succeeded ------");
+}
 
 void DentalWidget::RegisterIos_()
 {
@@ -524,6 +624,11 @@ void DentalWidget::RegisterIos_()
 
 	auto node_icp_target = GetDataStorage()->GetNamedNode("Reconstructed CBCT surface");
 
+	if (!(m_MatrixRegistrationResult == nullptr))
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: Please reset before register again !!!!!!");
+		return;
+	}
 
 	if(node_landmark_src==nullptr)
 	{
@@ -552,8 +657,13 @@ void DentalWidget::RegisterIos_()
 	}
 	if (node_icp_target == nullptr)
 	{
-		m_Controls.textBrowser->append("!!!!!! Error: 'Reconstructed CBCT surface' is missing!!!!!!");
-		return;
+		if(GetDataStorage()->GetNamedNode("CBCT")==nullptr)
+		{
+			m_Controls.textBrowser->append("!!!!!! Error: 'Reconstructed CBCT surface' is missing!!!!!!");
+			return;
+		}
+		AutoReconstructSurface();
+		node_icp_target = GetDataStorage()->GetNamedNode("Reconstructed CBCT surface");
 	}
 
 	ClipTeeth();
@@ -566,6 +676,7 @@ void DentalWidget::RegisterIos_()
 	landmarkRegistrator->SetLandmarksSrc(dynamic_cast<mitk::PointSet*>(node_landmark_src->GetData()));
 	landmarkRegistrator->SetLandmarksTarget(dynamic_cast<mitk::PointSet*>(node_landmark_target->GetData()));
 	landmarkRegistrator->ComputeLandMarkResult();
+
 
 	auto landmarkResult = landmarkRegistrator->GetResult();
 	Eigen::Matrix4d a{ landmarkResult->GetData() };
@@ -598,15 +709,25 @@ void DentalWidget::RegisterIos_()
 	auto combinedTransform = vtkTransform::New();
 	combinedTransform->Identity();
 	combinedTransform->PostMultiply();
+	m_InitialMatrix = vtkMatrix4x4::New();
+	m_InitialMatrix ->DeepCopy(node_ios->GetData()->GetGeometry()->GetVtkMatrix());
 	combinedTransform->Concatenate(node_ios->GetData()->GetGeometry()->GetVtkMatrix());
 	combinedTransform->Concatenate(landmarkResult);
-	//combinedTransform->Concatenate(icpResult);
+	combinedTransform->Concatenate(icpResult);
 	combinedTransform->Update();
 	
 	node_ios->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(combinedTransform->GetMatrix());
-	//
 
+	m_MatrixRegistrationResult = combinedTransform->GetMatrix();
+
+	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Clipped data"));
+
+	TestExtractPlan();
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	m_Controls.textBrowser->append("------ Registration succeeded ------");
 }
+
 void DentalWidget::ClipTeeth()
 {
 	auto inputPolyData = dynamic_cast<mitk::Surface*>
@@ -636,9 +757,7 @@ void DentalWidget::ClipTeeth()
 		vtkNew<vtkPlanes> planes;
 		
 		double boxSize{ 6 };
-
 		
-
 		planes->SetBounds(
 			tmpPoint[0] - boxSize / 2,
 			tmpPoint[0] + boxSize / 2,

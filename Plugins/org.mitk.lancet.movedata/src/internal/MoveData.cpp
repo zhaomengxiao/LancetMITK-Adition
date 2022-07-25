@@ -1149,6 +1149,10 @@ void MoveData::SurfaceToSurfaceIcp()
 	icpRegistrator->GetResult()->Print(os);
 	m_Controls.textBrowser_moveData->append("-------------Start ICP registration----------");
 	m_Controls.textBrowser_moveData->append(QString::fromStdString(os.str()));
+
+	m_Controls.textBrowser_moveData->append("Maximal ICP registration error: Surface-to-surface ICP is too time-consuming");
+	m_Controls.textBrowser_moveData->append("Average ICP registration error: Surface-to-surface ICP is too time-consuming");
+	m_Controls.textBrowser_moveData->append("-------------ICP registration succeeded----------");
 }
 
 

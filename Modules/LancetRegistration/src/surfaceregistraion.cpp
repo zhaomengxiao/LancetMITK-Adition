@@ -187,6 +187,7 @@ bool mitk::SurfaceRegistration::ComputeIcpResult()
 	pIcp->SetCheckMeanDistance(true);
 	pIcp->SetMaximumMeanDistance(0.0001);
 	pIcp->Update();
+	
 
   auto matrixIcp = vtkMatrix4x4::New();
 	matrixIcp->DeepCopy(pIcp->GetMatrix());
@@ -256,7 +257,7 @@ bool mitk::SurfaceRegistration::ComputeSurfaceIcpResult()
 	vtkTransform* tmpTrans = vtkTransform::New();
 	tmpTrans->Identity();
 	tmpTrans->PostMultiply();
-	tmpTrans->SetMatrix(m_SurfaceSrc->GetGeometry()->GetVtkMatrix());
+	tmpTrans->Concatenate(m_SurfaceSrc->GetGeometry()->GetVtkMatrix());
 	vtkNew<vtkTransformFilter> transformFilter;
 	transformFilter->SetInputData(m_SurfaceSrc->GetVtkPolyData());
 	transformFilter->SetTransform(tmpTrans);
@@ -280,6 +281,8 @@ bool mitk::SurfaceRegistration::ComputeSurfaceIcpResult()
 	pIcp->SetCheckMeanDistance(true);
 	pIcp->SetMaximumMeanDistance(0.0001);
 	auto matrixIcp = vtkMatrix4x4::New();
+
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
 	if(m_SurfaceTarget->GetVtkPolyData()->GetNumberOfPoints() >= m_SurfaceSrc->GetVtkPolyData()->GetNumberOfPoints())
 	{
 		pIcp->SetTarget(transformFilter1->GetOutput());
@@ -288,16 +291,81 @@ bool mitk::SurfaceRegistration::ComputeSurfaceIcpResult()
 		pIcp->Update();
 
 		matrixIcp->DeepCopy(pIcp->GetMatrix());
-		//matrixIcp->Invert();
+
+		//////////// Error calculation: too time consuming
+		
+		// auto pointNum = transformFilter->GetOutput()->GetNumberOfPoints();
+		// double maxIcpError{ 0 };
+		// double sumIcpError = 0;
+		// for (vtkIdType i = 0; i < pointNum; i++)
+		// {
+		// 	
+		// 	double tmpPoint[3];
+		//
+		// 	tmpTrans->Concatenate(matrixIcp);
+		// 	tmpTrans->Update();
+		// 	transformFilter->SetTransform(tmpTrans);
+		// 	transformFilter->SetInputData(m_SurfaceSrc->GetVtkPolyData());
+		// 	transformFilter->SetTransform(tmpTrans);
+		// 	transformFilter->Update();
+		// 	transformFilter->GetOutput()->GetPoint(i,tmpPoint);
+		//
+		// 	implicitPolyDataDistance->SetInput(transformFilter1->GetPolyDataOutput());
+		//
+		// 	double currentError = implicitPolyDataDistance->EvaluateFunction(tmpPoint);
+		//
+		// 	sumIcpError = sumIcpError + fabs(currentError);
+		// 	if (fabs(currentError) > fabs(maxIcpError))
+		// 	{
+		// 		maxIcpError = fabs(currentError);
+		// 	}
+		// }
+		//
+		// m_maxIcpError = maxIcpError;
+		// m_avgIcpError = sumIcpError / pointNum;
+		////////////
+		
 	}else
 	{
 		pIcp->SetSource(transformFilter1->GetOutput());
 		pIcp->SetTarget(transformFilter->GetOutput());
 
 		pIcp->Update();
-
 		matrixIcp->DeepCopy(pIcp->GetMatrix());
 		matrixIcp->Invert();
+
+		//////////// Error calculation: too time consuming
+
+		// auto pointNum = transformFilter1->GetOutput()->GetNumberOfPoints();
+		// double maxIcpError{ 0 };
+		// double sumIcpError = 0;
+		// for (vtkIdType i = 0; i < pointNum; i++)
+		// {
+		//
+		// 	double tmpPoint[3];
+		//
+		// 	tmpTrans1->Concatenate(matrixIcp);
+		// 	tmpTrans1->Update();
+		// 	transformFilter1->SetTransform(tmpTrans);
+		// 	transformFilter1->SetInputData(m_SurfaceTarget->GetVtkPolyData());
+		// 	transformFilter1->SetTransform(tmpTrans1);
+		// 	transformFilter1->Update();
+		// 	transformFilter1->GetOutput()->GetPoint(i, tmpPoint);
+		//
+		// 	implicitPolyDataDistance->SetInput(transformFilter->GetPolyDataOutput());
+		//
+		// 	double currentError = implicitPolyDataDistance->EvaluateFunction(tmpPoint);
+		//
+		// 	sumIcpError = sumIcpError + fabs(currentError);
+		// 	if (fabs(currentError) > fabs(maxIcpError))
+		// 	{
+		// 		maxIcpError = fabs(currentError);
+		// 	}
+		// }
+		//
+		// m_maxIcpError = maxIcpError;
+		// m_avgIcpError = sumIcpError / pointNum;
+		// ////////////
 	}
 
 	

@@ -9,6 +9,8 @@ set(INTERNAL_CPP_FILES
   DentalWidget_reconstructSurface.cpp
   DentalWidget_regisSurface.cpp
   DentalWidget_clipPolyData.cpp
+  DentalWidget_extractPlan.cpp
+  
 )
 
 set(UI_FILES
