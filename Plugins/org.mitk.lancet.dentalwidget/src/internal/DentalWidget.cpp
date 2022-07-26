@@ -122,14 +122,7 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   m_Controls.setupUi(parent);
 
   InitImageSelector(m_Controls.mitkNodeSelectWidget_intraopCt);
-  InitNodeSelector(m_Controls.mitkNodeSelectWidget_MovingObject);
-  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_LandmarkSrcPointset);
-  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_LandmarkTargetPointset);
-  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_IcpTargetPointset);
-  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_IcpSrcSurface);
-  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_testInputSurface);
-  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_testClipPoints);
-
+	
   m_NodetreeModel = new QmitkDataStorageTreeModel(this->GetDataStorage());
 
   //connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &DentalWidget::DoImageProcessing);
@@ -148,19 +141,10 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_rxm, &QPushButton::clicked, this, &DentalWidget::RotateMinusX);
   connect(m_Controls.pushButton_rym, &QPushButton::clicked, this, &DentalWidget::RotateMinusY);
   connect(m_Controls.pushButton_rzm, &QPushButton::clicked, this, &DentalWidget::RotateMinusZ);
-
-  connect(m_Controls.pushButton_Landmark, &QPushButton::clicked, this, &DentalWidget::LandmarkRegistration);
-  connect(m_Controls.pushButton_Icp, &QPushButton::clicked, this, &DentalWidget::IcpRegistration);
-  connect(m_Controls.pushButton_ApplyRegistrationMatrix, &QPushButton::clicked, this, &DentalWidget::AppendRegistrationMatrix);
-  // connect(m_Controls.pushButton_registerIos, &QPushButton::clicked, this, &DentalWidget::RegisterIos);
-  // connect(m_Controls.pushButton_fixIcp, &QPushButton::clicked, this, &DentalWidget::FineTuneRegister);
-  // connect(m_Controls.pushButton_regReset, &QPushButton::clicked, this, &DentalWidget::ResetRegistration);
-
-  connect(m_Controls.pushButton_testClip, &QPushButton::clicked, this, &DentalWidget::TestClipPolyData);
   connect(m_Controls.pushButton_registerIos_, &QPushButton::clicked, this, &DentalWidget::RegisterIos_);
   connect(m_Controls.pushButton_fixIcp_, &QPushButton::clicked, this, &DentalWidget::FineTuneRegister_);
   connect(m_Controls.pushButton_regReset_, &QPushButton::clicked, this, &DentalWidget::ResetRegistration_);
-  connect(m_Controls.pushButton_extractPlan, &QPushButton::clicked, this, &DentalWidget::ExtractAllPlans);
+  connect(m_Controls.pushButton_extractBallCenters, &QPushButton::clicked, this, &DentalWidget::GetSteelballCenters);
 
 
   // Prepare some empty pointsets for registration purposes
@@ -191,11 +175,6 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
 	  GetDataStorage()->Add(node_pset_icp_fineTuning);
   }
 
-  // auto pset_icp_target = mitk::PointSet::New();
-  // auto node_pset_icp_target = mitk::DataNode::New();
-  // node_pset_icp_target->SetData(pset_icp_target);
-  // node_pset_icp_target->SetName("icp_target");
-  // GetDataStorage()->Add(node_pset_icp_target);
 	
   m_eigenMatrixInitialOffset.setIdentity();
 

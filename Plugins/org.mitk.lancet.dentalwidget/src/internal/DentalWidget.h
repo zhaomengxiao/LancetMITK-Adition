@@ -80,12 +80,14 @@ protected:
   void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
   void InitNodeSelector(QmitkSingleNodeSelectionWidget* widget);
 
+
+  // Toolset 0: extract CT components
   void CheckUseSmoothing();
-  
   bool ReconstructSurface();
   bool AutoReconstructSurface();
+  bool GetSteelballCenters();
 
-  // Toolset 1 (Intuitive)
+  // Toolset 1 (Intuitive move operation)
   void Translate(double direction[3], double length, mitk::BaseData* data);
   void Rotate(double center[3], double direction[3], double counterclockwiseDegree, mitk::BaseData* data);
   void TranslatePlusX();
@@ -101,32 +103,16 @@ protected:
   void RotateMinusY();
   void RotateMinusZ();
 
-  // Toolset 3 (SurfaceRegistration)
-  void UpdateUiRegistrationMatrix();
-  void LandmarkRegistration();
-  void IcpRegistration();
-  vtkMatrix4x4* ObtainVtkMatrixFromRegistrationUi();
-  void AppendRegistrationMatrix();
 
-
-
-	// New registration function (landmark + icp)
-  void RegisterIos();
+	// Surface registration function (landmark + icp)
   void RegisterIos_();
-  void ClipTeeth();
-  void FineTuneRegister();
+  void ClipTeeth(); // use landmark_src to obtain nearby surface of ios
   void FineTuneRegister_();
-  void ResetRegistration();
   void ResetRegistration_();
 
 
-	// Test clip polyData
-  void TestClipPolyData();
-
 	// Extract planning start & end points
-  void TestExtractPlan();
   void ExtractAllPlans();
-
   void ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vtkSmartPointer<vtkPolyData> teeth_polydata, 
 	  double startPoint[3], double endPoint[3]);
 
