@@ -507,7 +507,8 @@ void DentalWidget::FineTuneRegister_()
 	m_Controls.textBrowser->append("Average ICP error: " + QString::number(icpRegistrator->GetavgIcpError()));
 
 
-	TestExtractPlan();
+	// TestExtractPlan();
+	ExtractAllPlans();
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 	m_Controls.textBrowser->append("------ Fine tuning succeeded ------");
 
@@ -556,8 +557,6 @@ void DentalWidget::ResetRegistration()
 
 	m_Controls.textBrowser->append("------ Reset succeeded ------");
 
-
-	TestExtractPlan();
 }
 
 void DentalWidget::ResetRegistration_()
@@ -608,7 +607,8 @@ void DentalWidget::ResetRegistration_()
 	GetDataStorage()->Add(node_pset_icp_fineTuning);
 
 
-	TestExtractPlan();
+	// TestExtractPlan();
+	ExtractAllPlans();
 	m_Controls.textBrowser->append("------ Reset succeeded ------");
 }
 
@@ -722,8 +722,9 @@ void DentalWidget::RegisterIos_()
 
 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Clipped data"));
 
-	TestExtractPlan();
+	// TestExtractPlan();
 
+	ExtractAllPlans();
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 	m_Controls.textBrowser->append("------ Registration succeeded ------");
 }

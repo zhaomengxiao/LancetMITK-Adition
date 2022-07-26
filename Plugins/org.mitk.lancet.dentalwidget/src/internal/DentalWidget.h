@@ -125,8 +125,10 @@ protected:
 
 	// Extract planning start & end points
   void TestExtractPlan();
+  void ExtractAllPlans();
 
-  void ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vtkSmartPointer<vtkPolyData> teeth_polydata);
+  void ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vtkSmartPointer<vtkPolyData> teeth_polydata, 
+	  double startPoint[3], double endPoint[3]);
 
 };
 

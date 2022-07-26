@@ -160,7 +160,7 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_registerIos_, &QPushButton::clicked, this, &DentalWidget::RegisterIos_);
   connect(m_Controls.pushButton_fixIcp_, &QPushButton::clicked, this, &DentalWidget::FineTuneRegister_);
   connect(m_Controls.pushButton_regReset_, &QPushButton::clicked, this, &DentalWidget::ResetRegistration_);
-  connect(m_Controls.pushButton_extractPlan, &QPushButton::clicked, this, &DentalWidget::TestExtractPlan);
+  connect(m_Controls.pushButton_extractPlan, &QPushButton::clicked, this, &DentalWidget::ExtractAllPlans);
 
 
   // Prepare some empty pointsets for registration purposes
