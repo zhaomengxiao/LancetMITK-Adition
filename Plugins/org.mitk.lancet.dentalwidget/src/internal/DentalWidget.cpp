@@ -18,8 +18,6 @@ found in the LICENSE file.
 // Qmitk
 #include "DentalWidget.h"
 
-// Qt
-#include <QMessageBox>
 
 // mitk image
 #include <mitkImage.h>
@@ -145,6 +143,7 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_fixIcp_, &QPushButton::clicked, this, &DentalWidget::FineTuneRegister_);
   connect(m_Controls.pushButton_regReset_, &QPushButton::clicked, this, &DentalWidget::ResetRegistration_);
   connect(m_Controls.pushButton_extractBallCenters, &QPushButton::clicked, this, &DentalWidget::GetSteelballCenters);
+  connect(m_Controls.pushButton_checkPrecision, &QPushButton::clicked, this, &DentalWidget::CheckPrecision);
 
 
   // Prepare some empty pointsets for registration purposes
@@ -173,6 +172,15 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
 	  node_pset_icp_fineTuning->SetData(pset_icp_fineTuning);
 	  node_pset_icp_fineTuning->SetName("icp_fineTuning");
 	  GetDataStorage()->Add(node_pset_icp_fineTuning);
+  }
+
+  if (GetDataStorage()->GetNamedNode("Precision_checkPoints") == nullptr)
+  {
+	  auto pset_precision = mitk::PointSet::New();
+	  auto node_pset_precision = mitk::DataNode::New();
+	  node_pset_precision->SetData(pset_precision);
+	  node_pset_precision->SetName("Precision_checkPoints");
+	  GetDataStorage()->Add(node_pset_precision);
   }
 
 	

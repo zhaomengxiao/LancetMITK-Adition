@@ -85,7 +85,40 @@ protected:
   void CheckUseSmoothing();
   bool ReconstructSurface();
   bool AutoReconstructSurface();
-  bool GetSteelballCenters();
+  
+
+	// Steelball center extraction
+  bool GetLooseSteelballCenters(); // very loose condition
+  void EnhancedGetSteelballCenters(); // stricter condition
+  void RemoveRedundantBalls(); // remove redundant centers
+  void GetSteelballCenters();
+
+  void TestEnhancedGetSteelballCenters();
+  
+  double GetPointDistance(const mitk::Point3D p0,const mitk::Point3D p1);
+  double testFingerPrint[6]{ 11.28, 16.1, 13.1, 23.54, 28.156, 20.03 };
+
+  double allBallFingerPrint[42]
+  {
+	  11.28, 20.77, 16.2, 15.65, 19.96, 10.95,
+	  11.28, 16.1, 13.1, 23.54, 28.156, 20.03,
+	  20.77, 16.1, 4.71, 22.7, 29.04, 29.86,
+	  16.2, 13.1, 4.71, 19.097, 25.65, 25.5,
+	  15.56, 23.54, 22.7, 19.097, 7.91, 16.76,
+	  19.96, 28.156, 29.04, 25.65, 7.91, 16.386,
+	  10.95, 20.03, 29.86, 25.5, 16.76, 16.386
+  };
+
+  double stdCenters[21]
+  {
+	  0, 0, 0,
+	  10, -1.5, -5,
+	  15.5, 13.5, -3,
+	  11.8, 11, -1.5,
+	  -7, 14, 0,
+	  -13.5, 14, -4.5,
+	  -10, -2, -4
+  };
 
   // Toolset 1 (Intuitive move operation)
   void Translate(double direction[3], double length, mitk::BaseData* data);
@@ -109,7 +142,7 @@ protected:
   void ClipTeeth(); // use landmark_src to obtain nearby surface of ios
   void FineTuneRegister_();
   void ResetRegistration_();
-
+  void CheckPrecision();
 
 	// Extract planning start & end points
   void ExtractAllPlans();

@@ -4,10 +4,8 @@
 
 // mitk image
 #include <mitkImage.h>
-#include <vtkAppendPolyData.h>
 #include <vtkCleanPolyData.h>
-#include <vtkClipPolyData.h>
-#include <vtkPlanes.h>
+#include <vtkImplicitPolyDataDistance.h>
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 
 #include "mitkImageToSurfaceFilter.h"
@@ -185,10 +183,11 @@ void DentalWidget::ResetRegistration_()
 	// Move ios to the initial position
 	m_Controls.textBrowser->append("------ Reset started ------");
 
-	if(!(m_MatrixRegistrationResult == nullptr))
+	if(!(m_MatrixRegistrationResult == nullptr) && GetDataStorage()->GetNamedNode("ios") != nullptr)
 	{
 		m_MatrixRegistrationResult = nullptr;
 		GetDataStorage()->GetNamedNode("ios")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(m_InitialMatrix);
+		ExtractAllPlans();
 	}
 
 	// Remove nodes if they exist 
@@ -207,6 +206,10 @@ void DentalWidget::ResetRegistration_()
 		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("landmark_target"));
 	}
 
+	if (GetDataStorage()->GetNamedNode("Precision_checkPoints") != nullptr)
+	{
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Precision_checkPoints"));
+	}
 	
 	// Prepare some empty pointsets for registration purposes
 	auto pset_landmark_src = mitk::PointSet::New();
@@ -227,6 +230,86 @@ void DentalWidget::ResetRegistration_()
 	node_pset_icp_fineTuning->SetName("icp_fineTuning");
 	GetDataStorage()->Add(node_pset_icp_fineTuning);
 
-	ExtractAllPlans();
+	auto pset_precision = mitk::PointSet::New();
+	auto node_pset_precision = mitk::DataNode::New();
+	node_pset_precision->SetData(pset_precision);
+	node_pset_precision->SetName("Precision_checkPoints");
+	GetDataStorage()->Add(node_pset_precision);
+
+	
 	m_Controls.textBrowser->append("------ Reset succeeded ------");
+}
+
+
+void DentalWidget::CheckPrecision()
+{
+	if (m_MatrixRegistrationResult == nullptr)
+	{
+		m_Controls.textBrowser->append("!!!!!! Please register first !!!!!!");
+		return;
+	}
+
+	auto node_targetPoints = GetDataStorage()->GetNamedNode("Precision_checkPoints");
+	auto node_srcSurface = GetDataStorage()->GetNamedNode("ios");
+
+	auto targetPoints = dynamic_cast<mitk::PointSet*>(node_targetPoints->GetData());
+	auto srcSurface = dynamic_cast<mitk::Surface*>(node_srcSurface->GetData());
+
+	if (targetPoints->IsEmpty())
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'Precision_checkPoints' is empty !!!!!!");
+		return;
+	}
+	
+	m_Controls.textBrowser->append("------ Precision checking started ------");
+
+
+	auto tmpTransform = vtkTransform::New();
+	tmpTransform->Identity();
+	tmpTransform->PostMultiply();
+	tmpTransform->Concatenate(srcSurface->GetGeometry()->GetVtkMatrix());
+
+	auto vtkFilter = vtkTransformFilter::New();
+	vtkFilter->SetTransform(tmpTransform);
+	vtkFilter->SetInputData(srcSurface->GetVtkPolyData());
+	vtkFilter->Update();
+
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+	implicitPolyDataDistance->SetInput(vtkFilter->GetPolyDataOutput());
+	//double d0 = implicitPolyDataDistance->EvaluateFunction(tmpCenter);
+	for (int i{0}; i < targetPoints->GetSize(); i++ )
+	{
+		auto tmp = targetPoints->GetPoint(i);
+		double p[3]
+		{
+			tmp[0],
+			tmp[1],
+			tmp[2],
+		};
+		double d = implicitPolyDataDistance->EvaluateFunction(p);
+
+		m_Controls.textBrowser->append("Point " + QString::number(i) +" error: " + QString::number(d));
+
+	}
+
+	// auto icpRegistrator = mitk::SurfaceRegistration::New();
+	//
+	// icpRegistrator->SetSurfaceSrc(icp_srcSurface);
+	// icpRegistrator->SetIcpPoints(icp_targetPoints);
+	// icpRegistrator->ComputeIcpResult();
+	// auto fixMatrix = icpRegistrator->GetResult();
+
+	// Apply the fixMatrix to icp_src_Surface
+	// auto tmpTransform = vtkTransform::New();
+	// tmpTransform->Identity();
+	// tmpTransform->PostMultiply();
+	// tmpTransform->Concatenate(icp_srcSurface->GetGeometry()->GetVtkMatrix());
+	// tmpTransform->Concatenate(fixMatrix);
+	// tmpTransform->Update();
+	//
+	// icp_srcSurface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTransform->GetMatrix());
+
+	
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	m_Controls.textBrowser->append("------ Precision checking started ------");
 }

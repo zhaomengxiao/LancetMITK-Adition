@@ -4,12 +4,8 @@
 
 // mitk image
 #include <mitkImage.h>
-#include <vtkAppendPolyData.h>
-#include <vtkCleanPolyData.h>
-#include <vtkClipPolyData.h>
 #include <vtkConnectivityFilter.h>
 #include <vtkImplicitPolyDataDistance.h>
-#include <vtkPlanes.h>
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 
 #include "mitkImageToSurfaceFilter.h"
