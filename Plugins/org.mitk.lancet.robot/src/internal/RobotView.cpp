@@ -58,7 +58,6 @@ void RobotView::CreateQtPartControl(QWidget *parent)
   if (!m_udp.bind(QHostAddress(ipAddress), port.toInt()))
   {
     MITK_ERROR << QString("bind to %1:%2 error!- %3").arg(ipAddress).arg(port.toInt()).arg(m_udp.error());
-    return;
   }
   MITK_INFO << QString("bind udp %1:%2 at fps:%3").arg(ipAddress).arg(port.toInt()).arg(m_udp.repetitiveHeartbeatInterval());
   m_udp.startRepetitiveHeartbeat();
@@ -75,10 +74,11 @@ void RobotView::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.SocketDisConnect, SIGNAL(clicked()),
 	  this, SLOT(DisConnectDevice()));
   connect(m_Controls.pushButton_SelfCheck, SIGNAL(clicked()),
-    this, SLOT(DisConnectDevice()));
+    this, SLOT(SelfCheck()));
   // connect(m_Controls.pushButtonMove, SIGNAL(QPushButton::click),
 	 //  this, SLOT(PrintToolPosition));
-
+  connect(m_Controls.pushbtnSendCommand, SIGNAL(clicked()),
+    this, SLOT(SendCommand()));
   
 }
 
@@ -150,4 +150,16 @@ void RobotView::SelfCheck()
   {
     MITK_ERROR << "robot not connect";
   }
+}
+
+void RobotView::SendCommand()
+{
+  MITK_INFO << "Send Command";
+  MITK_INFO << QString("try send %1 at ").arg(this->m_Controls.lineEditRoboticsAPI->text()).toStdString() << this->m_Controls.lineEditRoboticsParam->text();
+  if (false == m_device->RequestExecOperate( this->m_Controls.lineEditRoboticsAPI->text(), this->m_Controls.lineEditRoboticsParam->text().split(",")))
+  {
+    MITK_WARN << QString("call robot %1 %2 faild").arg(this->m_Controls.lineEditRoboticsAPI->text()).arg(this->m_Controls.lineEditRoboticsParam->text()).toStdString();
+    return;
+  }
+  MITK_INFO << "success";
 }

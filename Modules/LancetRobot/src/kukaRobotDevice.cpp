@@ -51,7 +51,11 @@ std::array<double, 6> KukaRobotDevice::GetTrackingData()
 
 bool KukaRobotDevice::RequestExecOperate(const QString& funname, const QStringList& param)
 {
-  qWarning() << "ExecOperateFunc " << funname << ", ParamLisr " << param;
+  MITK_INFO << "ExecOperateFunc " << funname.toStdString();
+  for (auto string : param)
+  {
+    MITK_INFO << "ParamList " << string.toStdString();
+  }
   if (funname.indexOf("movep") != -1 && param.size() == 6)
   {
     QThread::msleep(150);

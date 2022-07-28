@@ -62,6 +62,8 @@ public slots:
 	void UpdateToolPosition();
 
   void SelfCheck();
+
+  void SendCommand();
 	
 private:
 	KukaRobotDevice::Pointer m_device;

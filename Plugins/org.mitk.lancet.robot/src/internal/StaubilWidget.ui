@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>540</width>
-    <height>448</height>
+    <height>545</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
 </string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" colspan="3">
+   <item row="0" column="0" colspan="6">
     <layout class="QGridLayout" name="gridLayout_2">
      <item row="1" column="1">
       <widget class="QLineEdit" name="robotconnectstate">
@@ -321,6 +321,71 @@ QPushButton::pressed {
     </layout>
    </item>
    <item row="1" column="0">
+    <widget class="QLabel" name="label_20">
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 255, 255);</string>
+     </property>
+     <property name="text">
+      <string>API</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" colspan="2">
+    <widget class="QLineEdit" name="lineEditRoboticsAPI">
+     <property name="minimumSize">
+      <size>
+       <width>120</width>
+       <height>0</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QLabel" name="label_21">
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 255, 255);</string>
+     </property>
+     <property name="text">
+      <string>参数</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="4" colspan="2">
+    <widget class="QLineEdit" name="lineEditRoboticsParam">
+     <property name="minimumSize">
+      <size>
+       <width>360</width>
+       <height>0</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="6">
+    <widget class="QPushButton" name="pushbtnSendCommand">
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+	background:rgb(0, 183, 138);
+	border:1px groove gray;
+	border-radius:5px;
+	color:white;
+}
+QPushButton::hover{
+	background: rgb(237, 240, 243);
+	border:1px groove gray;
+	border-radius:5px;
+	color:black;
+}
+QPushButton::pressed { 
+	padding-left:6px;
+	padding-top:6px;
+}</string>
+     </property>
+     <property name="text">
+      <string>发送</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
     <widget class="QLabel" name="label_16">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -354,7 +419,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="1" column="2" rowspan="8">
+   <item row="2" column="5" rowspan="8">
     <layout class="QGridLayout" name="gridLayout_3">
      <item row="2" column="0">
       <widget class="QLabel" name="label_7">
@@ -919,7 +984,7 @@ color: rgb(0, 0, 0);</string>
      </item>
     </layout>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0" colspan="2">
     <widget class="QPushButton" name="kuka_mode_3">
      <property name="minimumSize">
       <size>
@@ -962,7 +1027,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item row="3" column="2" colspan="3">
     <widget class="QPushButton" name="kuka_mode_1">
      <property name="minimumSize">
       <size>
@@ -1005,7 +1070,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
+   <item row="4" column="0" colspan="2">
     <widget class="QPushButton" name="setInitialPoint">
      <property name="enabled">
       <bool>true</bool>
@@ -1063,7 +1128,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
+   <item row="4" column="2" colspan="3">
     <widget class="QPushButton" name="setIO">
      <property name="enabled">
       <bool>false</bool>
@@ -1109,7 +1174,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
+   <item row="5" column="2" colspan="3">
     <widget class="QPushButton" name="SetTcpInfo">
      <property name="enabled">
       <bool>false</bool>
@@ -1155,7 +1220,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="6" column="0" colspan="2">
     <widget class="QPushButton" name="pushButtonRecordA">
      <property name="enabled">
       <bool>true</bool>
@@ -1207,7 +1272,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
+   <item row="6" column="2" colspan="3">
     <widget class="QPushButton" name="pushButtonRecordB">
      <property name="enabled">
       <bool>true</bool>
@@ -1253,7 +1318,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
+   <item row="7" column="0" colspan="2">
     <widget class="QPushButton" name="pushButtonMoveA">
      <property name="enabled">
       <bool>true</bool>
@@ -1305,7 +1370,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item row="7" column="2" colspan="3">
     <widget class="QPushButton" name="pushButtonMoveB">
      <property name="enabled">
       <bool>true</bool>
@@ -1357,7 +1422,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="7" column="0">
+   <item row="8" column="0" colspan="2">
     <widget class="QPushButton" name="pushButtonRecordJ">
      <property name="enabled">
       <bool>true</bool>
@@ -1403,7 +1468,7 @@ QPushButton::pressed {
      </property>
     </widget>
    </item>
-   <item row="8" column="0">
+   <item row="9" column="0" colspan="2">
     <widget class="QComboBox" name="comboBox">
      <property name="font">
       <font>
@@ -1471,7 +1536,7 @@ QComboBox::down-arrow {
      </item>
     </widget>
    </item>
-   <item row="8" column="1">
+   <item row="9" column="2" colspan="3">
     <widget class="QPushButton" name="pushButtonMove">
      <property name="enabled">
       <bool>true</bool>
