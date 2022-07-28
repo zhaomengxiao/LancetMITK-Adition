@@ -20,19 +20,7 @@
    <string>QmitkTemplate</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="1">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>输出：</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QTextBrowser" name="textBrowser"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="0" column="1">
+   <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="enabled">
       <bool>true</bool>
@@ -308,8 +296,8 @@
       <attribute name="title">
        <string>表面配准</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_15">
-       <item row="0" column="1">
+      <layout class="QGridLayout" name="gridLayout_13">
+       <item row="0" column="0" colspan="2">
         <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
           <string>一键配准</string>
@@ -388,21 +376,7 @@
          </layout>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QPushButton" name="pushButton_checkPrecision">
-         <property name="text">
-          <string>获取验证点精度</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QPushButton" name="pushButton_regReset_">
-         <property name="text">
-          <string>配准重置</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
+       <item row="1" column="0" colspan="2">
         <widget class="QGroupBox" name="groupBox_10">
          <property name="title">
           <string>配准结果微修</string>
@@ -465,6 +439,20 @@
            </spacer>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="pushButton_checkPrecision">
+         <property name="text">
+          <string>获取验证点精度 (请在CBCT重建表面选点)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QPushButton" name="pushButton_regReset_">
+         <property name="text">
+          <string>配准重置</string>
+         </property>
         </widget>
        </item>
       </layout>
@@ -636,6 +624,18 @@
        </item>
       </layout>
      </widget>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>输出：</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QTextBrowser" name="textBrowser"/>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

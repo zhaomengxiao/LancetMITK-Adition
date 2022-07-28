@@ -478,6 +478,8 @@ void DentalWidget::GetSteelballCenters()
 {
 	// Initial preparation
 	m_Controls.textBrowser->append("------- Started steelball searching -------");
+	m_Controls.lineEdit_ballGrayValue->setText("---Pending---");
+
 	if (GetDataStorage()->GetNamedNode("Steelball centers") != nullptr)
 	{
 		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Steelball centers"));

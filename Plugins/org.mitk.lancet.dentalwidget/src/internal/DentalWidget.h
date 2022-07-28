@@ -88,8 +88,7 @@ protected:
   
 
 	// Steelball center extraction
-  bool GetLooseSteelballCenters(); // very loose condition
-  bool GetLooseSteelballCenters(double steelballVoxel);
+  bool GetLooseSteelballCenters(double steelballVoxel); // very loose condition
   void EnhancedGetSteelballCenters(); // stricter condition
   void RemoveRedundantBalls(); // remove redundant centers
   void GetSteelballCenters();
