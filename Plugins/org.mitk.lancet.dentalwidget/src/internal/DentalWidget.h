@@ -89,14 +89,11 @@ protected:
 
 	// Steelball center extraction
   bool GetLooseSteelballCenters(); // very loose condition
+  bool GetLooseSteelballCenters(double steelballVoxel);
   void EnhancedGetSteelballCenters(); // stricter condition
   void RemoveRedundantBalls(); // remove redundant centers
   void GetSteelballCenters();
-
-  void TestEnhancedGetSteelballCenters();
-  
   double GetPointDistance(const mitk::Point3D p0,const mitk::Point3D p1);
-  double testFingerPrint[6]{ 11.28, 16.1, 13.1, 23.54, 28.156, 20.03 };
 
   double allBallFingerPrint[42]
   {

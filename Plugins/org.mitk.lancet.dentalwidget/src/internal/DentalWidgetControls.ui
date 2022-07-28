@@ -188,7 +188,7 @@
             <item>
              <widget class="QLineEdit" name="lineEdit_ballMaxCell">
               <property name="text">
-               <string>1500</string>
+               <string>2000</string>
               </property>
              </widget>
             </item>
@@ -230,8 +230,11 @@
             </item>
             <item>
              <widget class="QLineEdit" name="lineEdit_ballGrayValue">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="text">
-               <string>7000</string>
+               <string>自动优化</string>
               </property>
              </widget>
             </item>
