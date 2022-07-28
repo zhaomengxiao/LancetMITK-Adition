@@ -47,6 +47,10 @@ public:
 
 	std::array<double,6> GetTrackingData();
 
+  //robotDevice api, move to RobotDevice abstract class later
+  bool RequestExecOperate(const QString& funname, const QStringList& param);
+
+
 private slots:
 	void IsRobotConnected(bool isConnect);
 

@@ -42,7 +42,6 @@ foreach(_demo_config_file ${_demo_configurations})
   get_filename_component(_name ${_demo_config_file} NAME_WE)
   mitkFunctionCreateProvisioningFile(FILE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}_${_name}.provisioning
                                      PLUGINS ${REQUIRED_PLUGINS} ${_plugins_for_all_demos}
-                                     NO_INSTALL
                                     )
   if(DESCRIPTION)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/LancetDescription.txt
@@ -69,8 +68,6 @@ mitkFunctionCreateBlueBerryApplication(
   DESCRIPTION "Lancet Application Framework Demo"
   SOURCES ${_source_files}
 #  PLUGINS ${ALL_REQUIRED_PLUGIN_TARGETS}
-  NO_PROVISIONING
-  NO_INSTALL
 )
 
 add_dependencies(${PROJECT_NAME} ${ALL_REQUIRED_PLUGIN_TARGETS})

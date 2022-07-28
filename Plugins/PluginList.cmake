@@ -8,4 +8,5 @@ set(MITK_PLUGINS
   org.mitk.lancet.robot:ON
   org.mitk.lancet.accuracytest:ON
   org.mitk.lancet.gui.qt.testsuite:ON
+  org.mitk.lancet.view.deviceconfig:ON
 )

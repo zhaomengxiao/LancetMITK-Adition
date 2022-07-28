@@ -41,5 +41,5 @@ void DevicePerspective::CreateInitialLayout(berry::IPageLayout::Pointer layout)
   // create folder with alignment "left"
   berry::IFolderLayout::Pointer left = layout->CreateFolder("left", berry::IPageLayout::LEFT, 0.5f, editorAreaId);
   // add emptyview1 to the folder
-  left->AddView("org.mitk.views.datamanager");
+  left->AddView("org.mitk.views.robotview");
 }

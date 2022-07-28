@@ -27,6 +27,7 @@ found in the LICENSE file.
 #include "robotsocket.h"
 #include "robotcontroler.h"
 
+
 const std::string RobotView::VIEW_ID = "org.mitk.views.robotview";
 
 void RobotView::SetFocus()
@@ -43,6 +44,25 @@ void RobotView::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
+
+  //udp
+  //m_udp = new UdpSocketRobotHeartbeat();
+  QString ipAddress = "172.31.1.148";
+  QString port = "30300";
+  QString remoteIpAddress = "172.31.1.147";
+  QString remotePort = "30300";
+
+  m_udp.setRepetitiveHeartbeatInterval(500);
+  m_udp.setRemoteHostPort(remotePort.toUInt());
+  m_udp.setRemoteHostAddress(remoteIpAddress);
+  if (!m_udp.bind(QHostAddress(ipAddress), port.toInt()))
+  {
+    MITK_ERROR << QString("bind to %1:%2 error!- %3").arg(ipAddress).arg(port.toInt()).arg(m_udp.error());
+    return;
+  }
+  MITK_INFO << QString("bind udp %1:%2 at fps:%3").arg(ipAddress).arg(port.toInt()).arg(m_udp.repetitiveHeartbeatInterval());
+  m_udp.startRepetitiveHeartbeat();
+
   // timer
   m_timer.setInterval(10);
 
@@ -54,9 +74,12 @@ void RobotView::CreateQtPartControl(QWidget *parent)
 	  this, SLOT(ConnectDevice()));
   connect(m_Controls.SocketDisConnect, SIGNAL(clicked()),
 	  this, SLOT(DisConnectDevice()));
+  connect(m_Controls.pushButton_SelfCheck, SIGNAL(clicked()),
+    this, SLOT(DisConnectDevice()));
   // connect(m_Controls.pushButtonMove, SIGNAL(QPushButton::click),
 	 //  this, SLOT(PrintToolPosition));
 
+  
 }
 
 void RobotView::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -115,4 +138,16 @@ void RobotView::UpdateToolPosition()
 	m_Controls.a->setText(QString::fromStdString(std::to_string(data[3])));
 	m_Controls.b->setText(QString::fromStdString(std::to_string(data[4])));
 	m_Controls.c->setText(QString::fromStdString(std::to_string(data[5])));
+}
+
+void RobotView::SelfCheck()
+{
+  if (m_device.IsNotNull() && m_device->GetIsConnected())
+  {
+    m_device->RequestExecOperate(/*"Robot",*/ "setio", { "20", "20" });
+  }
+  else
+  {
+    MITK_ERROR << "robot not connect";
+  }
 }

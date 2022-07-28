@@ -3,16 +3,21 @@ set(H_FILES
   include/robotUtil.h
   include/robotRegistration.h
   include/kukaRobotDevice.h
+  include/udpmessage.h
+  include/udpsocketrobotheartbeat.h
 )
 
 set(MOC_H_FILES
   include/kukaRobotDevice.h
+  include/udpsocketrobotheartbeat.h
 )
 
 set(CPP_FILES
   robotUtil.cpp
   robotRegistration.cpp
   kukaRobotDevice.cpp
+  udpmessage.cpp
+  udpsocketrobotheartbeat.cpp
 #  robotcontroler.cpp
 #  robotsocket.cpp
 )

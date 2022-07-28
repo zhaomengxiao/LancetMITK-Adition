@@ -49,6 +49,78 @@ std::array<double, 6> KukaRobotDevice::GetTrackingData()
 	return m_trackingData;
 }
 
+bool KukaRobotDevice::RequestExecOperate(const QString& funname, const QStringList& param)
+{
+  qWarning() << "ExecOperateFunc " << funname << ", ParamLisr " << param;
+  if (funname.indexOf("movep") != -1 && param.size() == 6)
+  {
+    QThread::msleep(150);
+    this->m_robotApi.movep(param.at(0).toDouble(),
+      param.at(1).toDouble(),
+      param.at(2).toDouble(),
+      param.at(3).toDouble(),
+      param.at(4).toDouble(),
+      param.at(5).toDouble());
+    return true;
+  }
+  if (funname.indexOf("movej") != -1 && param.size() == 6)
+  {
+    QThread::msleep(150);
+    this->m_robotApi.movej(param.at(0).toDouble(),
+      param.at(1).toDouble(),
+      param.at(2).toDouble(),
+      param.at(3).toDouble(),
+      param.at(4).toDouble(),
+      param.at(5).toDouble());
+    return true;
+  }
+  else if (funname.indexOf("movel") != -1 && param.size() == 6)
+  {
+    QThread::msleep(150);
+    this->m_robotApi.movel(param.at(0).toDouble(),
+      param.at(1).toDouble(),
+      param.at(2).toDouble(),
+      param.at(3).toDouble(),
+      param.at(4).toDouble(),
+      param.at(5).toDouble());
+    return true;
+  }
+  else if (funname.indexOf("setworkmode") != -1 && param.size() == 1)
+  {
+    QThread::msleep(300);
+    this->m_robotApi.setworkmode(param.at(0).toInt());
+    return true;
+  }
+  else if (funname.indexOf("setTcpNum") != -1 && param.size() == 2)
+  {
+    QThread::msleep(300);
+    this->m_robotApi.setTcpNum(param.at(0).toInt(), param.at(1).toInt());
+    return true;
+  }
+  else if (funname.indexOf("setio") != -1 && param.size() == 2)
+  {
+    this->m_robotApi.setio(param.at(0).toInt(), param.at(1).toInt());
+    return true;
+  }
+  else if (funname.indexOf("update") != -1 && param.size() == 0)
+  {
+    //emit this->(this->devicename(), this->realtimeData());
+    MITK_ERROR << "not support";
+    return false;
+  }
+  else if (funname.toLower().indexOf("applytcpvalue") != -1 && param.size() == 6)
+  {
+    qInfo() << "call movel function " << this->RequestExecOperate("movel", param) << " param " << param;
+    QThread::msleep(1000);
+    qInfo() << "call setworkmode 1-11 function " << this->RequestExecOperate("setworkmode", { "11" });
+    QThread::msleep(1000);
+    qInfo() << "call setworkmode 1-5 function " << this->RequestExecOperate("setworkmode", { "5" });
+    QThread::msleep(1000);
+    return true;
+  }
+  return false;
+}
+
 void KukaRobotDevice::IsRobotConnected(bool isConnect)
 {
 	m_IsConnected = isConnect;

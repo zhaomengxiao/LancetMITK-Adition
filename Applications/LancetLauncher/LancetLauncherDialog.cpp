@@ -18,6 +18,7 @@ found in the LICENSE file.
 #include <QEventLoop>
 #include <QPushButton>
 
+#include <iostream>
 LancetLauncherDialog::LancetLauncherDialog(QWidget *parent)
   : QDialog(parent), ui(new Ui::LancetLauncherDialog)
 {
@@ -29,13 +30,15 @@ LancetLauncherDialog::LancetLauncherDialog(QWidget *parent)
 
   // Get all LancetLauncher_*.provisioning files
   QDir appDir(QApplication::applicationDirPath());
+  QString appDirPath;
+  
+  std::cout << appDir.absolutePath().toStdString() << std::endl;
 #ifdef CMAKE_INTDIR
   appDir.cdUp();
 #endif
 
   provisioningFiles = appDir.entryList(
     QStringList(QApplication::applicationName() + "_*.provisioning"), QDir::Files | QDir::Readable, QDir::Name);
-
 #ifdef Q_OS_MAC
   /*
    * On Mac, if started from the build directory the .provisioning file is located at:
@@ -77,8 +80,8 @@ LancetLauncherDialog::LancetLauncherDialog(QWidget *parent)
     }
   }
 
-  if (ui->appList->currentRow() == -1)
-    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+  // if (ui->appList->currentRow() == -1)
+  //   ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 
 LancetLauncherDialog::~LancetLauncherDialog()
