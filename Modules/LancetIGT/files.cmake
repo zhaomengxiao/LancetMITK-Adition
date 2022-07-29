@@ -1,7 +1,21 @@
-file(GLOB_RECURSE H_FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/include/*" "${CMAKE_CURRENT_SOURCE_DIR}/Geometry/include/*" "${CMAKE_CURRENT_SOURCE_DIR}/Physiology/include/*" "${CMAKE_CURRENT_SOURCE_DIR}/Navigation/include/*")
+set(H_FILES
+  DataManagement/lancetNavigationObject.h
+  DataManagement/lancetTrackingDeviceSourceConfigurator.h
+  
+  IO/lancetNavigationObjectWriter.h
+
+  Algorithms/lancetNavigationDataInReferenceCoordFilter.h
+  Rendering/lancetNavigationObjectVisualizationFilter.h
+)
 
 set(CPP_FILES
-TrackingObeject.cpp
+  DataManagement/lancetNavigationObject.cpp
+  DataManagement/lancetTrackingDeviceSourceConfigurator.cpp
+  
+  IO/lancetNavigationObjectWriter.cpp
+  
+  Algorithms/lancetNavigationDataInReferenceCoordFilter.cpp
+  Rendering/lancetNavigationObjectVisualizationFilter.cpp
 )
 
 set(UI_FILES

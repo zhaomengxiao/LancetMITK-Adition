@@ -10,8 +10,16 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-#include <mitkImageAccessByItk.h>
-#include <mitkITKImageImport.h>
 
-#include <TrackingObject.h>
+#include "org_mitk_lancet_imageregistration_Activator.h"
+#include "ImageRegistration.h"
 
+namespace mitk
+{
+  void org_mitk_lancet_imageregistration_Activator::start(ctkPluginContext *context)
+  {
+    BERRY_REGISTER_EXTENSION_CLASS(ImageRegistration, context)
+  }
+
+  void org_mitk_lancet_imageregistration_Activator::stop(ctkPluginContext *context) { Q_UNUSED(context) }
+}
