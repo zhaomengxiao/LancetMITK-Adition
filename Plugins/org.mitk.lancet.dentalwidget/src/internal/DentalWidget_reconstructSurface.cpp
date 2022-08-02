@@ -474,7 +474,7 @@ void DentalWidget::RemoveRedundantBalls()
 
 }
 
-void DentalWidget::GetSteelballCenters()
+void DentalWidget::GetSteelballCenters_iosCBCT()
 {
 	// Initial preparation
 	m_Controls.textBrowser->append("------- Started steelball searching -------");
@@ -563,12 +563,18 @@ void DentalWidget::GetSteelballCenters()
 		EnhancedGetSteelballCenters();
 		int newNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
 
+		int limit{ 0 };
 		while (newNumOfCenters != oldNumOfCenters)
 		{
 			oldNumOfCenters = newNumOfCenters;
 			EnhancedGetSteelballCenters();
 			int newNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
-
+			limit += 1;
+			if(limit==searchIterations)
+			{
+				m_Controls.textBrowser->append("Maximal steelball center error: " + QString::number(newNumOfCenters));
+				break;
+			}
 		}
 
 		RemoveRedundantBalls();

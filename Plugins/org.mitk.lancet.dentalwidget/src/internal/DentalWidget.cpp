@@ -142,7 +142,7 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_registerIos_, &QPushButton::clicked, this, &DentalWidget::RegisterIos_);
   connect(m_Controls.pushButton_fixIcp_, &QPushButton::clicked, this, &DentalWidget::FineTuneRegister_);
   connect(m_Controls.pushButton_regReset_, &QPushButton::clicked, this, &DentalWidget::ResetRegistration_);
-  connect(m_Controls.pushButton_extractBallCenters, &QPushButton::clicked, this, &DentalWidget::GetSteelballCenters);
+  connect(m_Controls.pushButton_extractBallCenters, &QPushButton::clicked, this, &DentalWidget::GetSteelballCenters_iosCBCT);
   connect(m_Controls.pushButton_checkPrecision, &QPushButton::clicked, this, &DentalWidget::CheckPrecision);
 
 

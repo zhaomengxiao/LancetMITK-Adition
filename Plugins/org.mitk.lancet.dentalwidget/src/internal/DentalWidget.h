@@ -91,7 +91,7 @@ protected:
   bool GetLooseSteelballCenters(double steelballVoxel); // very loose condition
   void EnhancedGetSteelballCenters(); // stricter condition
   void RemoveRedundantBalls(); // remove redundant centers
-  void GetSteelballCenters();
+  void GetSteelballCenters_iosCBCT();
   double GetPointDistance(const mitk::Point3D p0,const mitk::Point3D p1);
 
   double allBallFingerPrint[42]
@@ -104,7 +104,7 @@ protected:
 	  19.96, 28.156, 29.04, 25.65, 7.91, 16.386,
 	  10.95, 20.03, 29.86, 25.5, 16.76, 16.386
   };
-
+  
   double stdCenters[21]
   {
 	  0, 0, 0,
@@ -116,7 +116,33 @@ protected:
 	  -10, -2, -4
   };
 
-  // Toolset 1 (Intuitive move operation)
+  // double allBallFingerPrint[42]
+  // {
+	 //  6.1859, 24.336, 28.356, 27.515, 18.772, 15.2943,
+	 //  6.1859, 18.767, 23.139, 24.983, 17.4638, 16.864,
+	 //  24.336, 18.767, 6.8939, 20.1648, 20.998, 16.384,
+	 //  28.356	,23.139	,6.8939		,16.071	,19.89	,25.75,
+	 //  27.515	,24.983	,20.1648	,16.071	,	10.037	,17.7394,
+	 //  18.772	,17.4638	,20.998	,19.89	,10.037		,8.2938,
+	 //  15.2943	,16.864	,16.384	,25.75	,17.7394	,8.2938
+  // };
+  //
+  // double stdCenters[21]
+  // {
+	 //  -47.61, 10.77, -25.92,
+	 //  -47.24, 16.20, -22.98,
+	 //  -43.81, 34.65, -23.17,
+	 //  -48.23, 39.12, -26,
+	 //  -57.99, 33.49,-37.46,
+	 //  -57.98, 23.94, -34.37,
+	 //  -57.94, 15.81, -36.01
+  // };
+
+
+  // hardware Model and CBCT registration
+
+
+  // Intuitive move operation
   void Translate(double direction[3], double length, mitk::BaseData* data);
   void Rotate(double center[3], double direction[3], double counterclockwiseDegree, mitk::BaseData* data);
   void TranslatePlusX();
@@ -133,7 +159,7 @@ protected:
   void RotateMinusZ();
 
 
-	// Surface registration function (landmark + icp)
+// intraoral scan and CBCT registration: Surface registration function (landmark + icp)
   void RegisterIos_();
   void ClipTeeth(); // use landmark_src to obtain nearby surface of ios
   void FineTuneRegister_();
