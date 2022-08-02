@@ -18,6 +18,7 @@ found in the LICENSE file.
 
 #include <QmitkAbstractView.h>
 
+#include "mitkPointSet.h"
 #include "QmitkDataStorageTreeModel.h"
 #include "QmitkSingleNodeSelectionWidget.h"
 #include "ui_DentalWidgetControls.h"
@@ -88,33 +89,41 @@ protected:
   
 
 	// Steelball center extraction
-  bool GetLooseSteelballCenters(double steelballVoxel); // very loose condition
-  void EnhancedGetSteelballCenters(); // stricter condition
-  void RemoveRedundantBalls(); // remove redundant centers
+  bool GetCoarseSteelballCenters(double steelballVoxel); // very loose condition
+  void ScreenCoarseSteelballCenters(); // strictest condition, each candidate must match the fingerprint 100% to be accepted 
+  void ScreenCoarseSteelballCenters(int requiredFingerprintNum, int totalFingerprintNum);
+  void RemoveRedundantCenters(); // remove redundant centers
   void GetSteelballCenters_iosCBCT();
-  double GetPointDistance(const mitk::Point3D p0,const mitk::Point3D p1);
+  void GetSteelballCenters_modelCBCT();
 
+  double GetPointDistance(const mitk::Point3D p0,const mitk::Point3D p1);
+  void UpdateAllBallFingerPrint(mitk::PointSet::Pointer stdSteelballCenters);
+
+  // double allBallFingerPrint[42]
+  // {
+	 //  11.28, 20.77, 16.2, 15.65, 19.96, 10.95,
+	 //  11.28, 16.1, 13.1, 23.54, 28.156, 20.03,
+	 //  20.77, 16.1, 4.71, 22.7, 29.04, 29.86,
+	 //  16.2, 13.1, 4.71, 19.097, 25.65, 25.5,
+	 //  15.56, 23.54, 22.7, 19.097, 7.91, 16.76,
+	 //  19.96, 28.156, 29.04, 25.65, 7.91, 16.386,
+	 //  10.95, 20.03, 29.86, 25.5, 16.76, 16.386
+  // };
   double allBallFingerPrint[42]
   {
-	  11.28, 20.77, 16.2, 15.65, 19.96, 10.95,
-	  11.28, 16.1, 13.1, 23.54, 28.156, 20.03,
-	  20.77, 16.1, 4.71, 22.7, 29.04, 29.86,
-	  16.2, 13.1, 4.71, 19.097, 25.65, 25.5,
-	  15.56, 23.54, 22.7, 19.097, 7.91, 16.76,
-	  19.96, 28.156, 29.04, 25.65, 7.91, 16.386,
-	  10.95, 20.03, 29.86, 25.5, 16.76, 16.386
+	  0
   };
   
-  double stdCenters[21]
-  {
-	  0, 0, 0,
-	  10, -1.5, -5,
-	  15.5, 13.5, -3,
-	  11.8, 11, -1.5,
-	  -7, 14, 0,
-	  -13.5, 14, -4.5,
-	  -10, -2, -4
-  };
+  // double stdCenters[21]
+  // {
+	 //  0, 0, 0,
+	 //  10, -1.5, -5,
+	 //  15.5, 13.5, -3,
+	 //  11.8, 11, -1.5,
+	 //  -7, 14, 0,
+	 //  -13.5, 14, -4.5,
+	 //  -10, -2, -4
+  // };
 
   // double allBallFingerPrint[42]
   // {
@@ -137,6 +146,17 @@ protected:
 	 //  -57.98, 23.94, -34.37,
 	 //  -57.94, 15.81, -36.01
   // };
+
+  double stdCenters[21]
+  {
+	  29.97436, -76.53379, -51.15766,
+	  25.42992, -80.65884, -51.80030,
+	  8.11930, -86.60384, -47.72123,
+	  2.53530, -83.51462, -50.29480,
+	  4.02108, -68.11822,-54.55366,
+	  13.91066, -68.38903, -56.32448,
+	  21.41421, -64.86712, -55.98294
+  };
 
 
   // hardware Model and CBCT registration

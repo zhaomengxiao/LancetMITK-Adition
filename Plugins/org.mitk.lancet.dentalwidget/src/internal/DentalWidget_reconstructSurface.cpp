@@ -112,7 +112,7 @@ bool DentalWidget::AutoReconstructSurface()
 	return false;
 }
 
-bool DentalWidget::GetLooseSteelballCenters(double steelballVoxel)
+bool DentalWidget::GetCoarseSteelballCenters(double steelballVoxel)
 {
 	if (GetDataStorage()->GetNamedNode("Steelball centers") != nullptr)
 	{
@@ -295,7 +295,7 @@ bool DentalWidget::GetLooseSteelballCenters(double steelballVoxel)
 
 	for (int i = 0; i < numberOfActualSteelballs; i++)
 	{
-		MITK_INFO << "Distance before sorting: " << distancesToPointSetCenter[i];
+		//MITK_INFO << "Distance before sorting: " << distancesToPointSetCenter[i];
 	}
 
 	for (int i = 0; i < numberOfActualSteelballs - 2; i++)
@@ -319,7 +319,7 @@ bool DentalWidget::GetLooseSteelballCenters(double steelballVoxel)
 
 	for (int i = 0; i < numberOfActualSteelballs; i++)
 	{
-		MITK_INFO << "Distance after sorting: " << distancesToPointSetCenter[i];
+		//MITK_INFO << "Distance after sorting: " << distancesToPointSetCenter[i];
 	}
 
 	auto mitkSortedSingleSteelballCenterPointset = mitk::PointSet::New();
@@ -365,7 +365,7 @@ double DentalWidget::GetPointDistance(const mitk::Point3D p0, const mitk::Point3
 	return distance;
 }
 
-void DentalWidget::EnhancedGetSteelballCenters()
+void DentalWidget::ScreenCoarseSteelballCenters()
 {
 	auto inputPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
 	int inputPoinSetNum = inputPointSet->GetSize();
@@ -437,10 +437,80 @@ void DentalWidget::EnhancedGetSteelballCenters()
 
 }
 
-void DentalWidget::RemoveRedundantBalls()
+void DentalWidget::ScreenCoarseSteelballCenters(int requiredFingerprintNum, int totalFingerprintNum)
 {
-	// EnhancedGetSteelballCenters();
-	// EnhancedGetSteelballCenters();
+	auto inputPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
+	int inputPoinSetNum = inputPointSet->GetSize();
+	auto steelballCenters = mitk::PointSet::New();
+
+	int lengthOfFingerPrint = totalFingerprintNum;
+	int numOfTargetSteelballs = totalFingerprintNum + 1;
+
+
+	for (int q{ 0 }; q < numOfTargetSteelballs; q++)
+	{
+		double fingerPrint[6]
+		{
+			allBallFingerPrint[6 * q],
+			allBallFingerPrint[6 * q + 1],
+			allBallFingerPrint[6 * q + 2],
+			allBallFingerPrint[6 * q + 3],
+			allBallFingerPrint[6 * q + 4],
+			allBallFingerPrint[6 * q + 5],
+		};
+
+
+		for (int i{ 0 }; i < inputPoinSetNum; i++)
+		{
+			int metric{ 0 };
+
+			for (int j{ 0 }; j < lengthOfFingerPrint; j++)
+			{
+				bool metSingleRequirement = false;
+				double standardDistance = fingerPrint[j];
+
+				for (int k{ 0 }; k < inputPoinSetNum; k++)
+				{
+					double tmpDistance = GetPointDistance(inputPointSet->GetPoint(i), inputPointSet->GetPoint(k));
+					if (fabs(tmpDistance - standardDistance) < 0.4)
+					{
+						metSingleRequirement = true;
+						metric += 1;
+						break;
+					}
+				}
+
+				// if (metSingleRequirement == false)
+				// {
+				// 	break;
+				// }
+
+			}
+
+			//m_Controls.textBrowser->append("metric: " + QString::number(metric));
+			if (metric >= requiredFingerprintNum)
+			{
+
+				// Add this point to the pointset
+				steelballCenters->InsertPoint(inputPointSet->GetPoint(i));
+				//break;
+			}
+
+		}
+
+	}
+
+	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Steelball centers"));
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetName("Steelball centers");
+	tmpNode->SetData(steelballCenters);
+	GetDataStorage()->Add(tmpNode);
+
+}
+
+void DentalWidget::RemoveRedundantCenters()
+{
 
 	auto inputPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
 
@@ -500,6 +570,8 @@ void DentalWidget::GetSteelballCenters_iosCBCT()
 		standartSteelballCenters->InsertPoint(p);
 	}
 
+	UpdateAllBallFingerPrint(standartSteelballCenters);
+
 	// Get maximal voxel
 	auto inputCtImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_intraopCt->GetSelectedNode()->GetData());
 
@@ -556,19 +628,19 @@ void DentalWidget::GetSteelballCenters_iosCBCT()
 		
 		double tmpVoxelThreshold = (1 - double(i) / searchIterations) * tmpMaxVoxel;
 
-		GetLooseSteelballCenters(tmpVoxelThreshold);
+		GetCoarseSteelballCenters(tmpVoxelThreshold);
 
 		int oldNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
 
-		EnhancedGetSteelballCenters();
+		ScreenCoarseSteelballCenters();
 		int newNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
 
 		int limit{ 0 };
 		while (newNumOfCenters != oldNumOfCenters)
 		{
 			oldNumOfCenters = newNumOfCenters;
-			EnhancedGetSteelballCenters();
-			int newNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
+			ScreenCoarseSteelballCenters();
+			newNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
 			limit += 1;
 			if(limit==searchIterations)
 			{
@@ -577,7 +649,7 @@ void DentalWidget::GetSteelballCenters_iosCBCT()
 			}
 		}
 
-		RemoveRedundantBalls();
+		RemoveRedundantCenters();
 
 		auto landmarkRegistrator = mitk::SurfaceRegistration::New();
 		landmarkRegistrator->SetLandmarksSrc(standartSteelballCenters);
@@ -607,3 +679,253 @@ void DentalWidget::GetSteelballCenters_iosCBCT()
 
 
 }
+
+void DentalWidget::GetSteelballCenters_modelCBCT()
+{
+	// Initial preparation
+	m_Controls.textBrowser->append("------- Started steelball searching -------");
+	m_Controls.lineEdit_ballGrayValue->setText("---Pending---");
+
+	if (GetDataStorage()->GetNamedNode("Steelball centers") != nullptr)
+	{
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Steelball centers"));
+	}
+
+	auto standartSteelballCenters = mitk::PointSet::New();
+	int stdCenterNum{ 7 };
+
+	for (int i{ 0 }; i < stdCenterNum; i++)
+	{
+		double tmpArray[3]
+		{
+			stdCenters[i * 3],
+			stdCenters[i * 3 + 1],
+			stdCenters[i * 3 + 2]
+		};
+		mitk::Point3D p(tmpArray);
+		standartSteelballCenters->InsertPoint(p);
+	}
+
+	UpdateAllBallFingerPrint(standartSteelballCenters);
+
+	// Get maximal voxel
+	auto inputCtImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_intraopCt->GetSelectedNode()->GetData());
+
+	// Get maximal voxel value 
+	auto inputVtkImage = inputCtImage->GetVtkImageData();
+	int dims[3];
+	inputVtkImage->GetDimensions(dims);
+
+	int tmpRegion[6]{ 0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1 };
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(inputVtkImage);
+	caster->SetOutputScalarTypeToDouble();
+	caster->Update();
+	double tmpMaxVoxel{ 0 };
+	double tmpMinVoxel{ 0 };
+
+	vtkImageIterator<double> iter(caster->GetOutput(), tmpRegion);
+	while (!iter.IsAtEnd())
+	{
+		double* inSI = iter.BeginSpan();
+		double* inSIEnd = iter.EndSpan();
+
+		while (inSI != inSIEnd)
+		{
+			if (double(*inSI) > tmpMaxVoxel)
+			{
+				tmpMaxVoxel = double(*inSI);
+			}
+			if (double(*inSI) < tmpMinVoxel)
+			{
+				tmpMinVoxel = double(*inSI);
+			}
+			++inSI;
+		}
+		iter.NextSpan();
+
+	}
+
+	int searchIterations{ 5 };
+
+	bool succeeded{ false };
+	double voxelThres{ tmpMaxVoxel };
+	int foundCenterNum{ 0 };
+
+	// Search for the best voxel value threshold
+	for (int i{ 0 }; i < searchIterations; i++)
+	{
+
+		//double tmpVoxelThreshold = (1 - double(i) / searchIterations) * tmpMaxVoxel;
+		double tmpVoxelThreshold = (1 - (4 / 8) * double(i) / searchIterations) * (tmpMaxVoxel - tmpMinVoxel) + tmpMinVoxel;
+
+		GetCoarseSteelballCenters(tmpVoxelThreshold);
+
+		int oldNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
+
+		ScreenCoarseSteelballCenters(4,6);
+		int newNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
+
+		int limit{ 0 };
+		while (newNumOfCenters != oldNumOfCenters)
+		{
+			oldNumOfCenters = newNumOfCenters;
+
+			ScreenCoarseSteelballCenters(4,6);
+			newNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
+			//limit += 1;
+			// if (limit == searchIterations)
+			// {
+			// 	//m_Controls.textBrowser->append("Maximal steelball center error: " + QString::number(newNumOfCenters));
+			// 	break;
+			// }
+		}
+
+		RemoveRedundantCenters();
+
+		if(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() > foundCenterNum)
+		{
+			foundCenterNum = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
+			voxelThres = tmpVoxelThreshold;
+			if(foundCenterNum == stdCenterNum)
+			{
+				break;
+			}
+		}
+
+	}
+	// m_Controls.textBrowser->append(QString::number(voxelThres));
+	// m_Controls.textBrowser->append(QString::number(foundCenterNum));
+
+
+	GetCoarseSteelballCenters(voxelThres);
+
+	int oldNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
+
+	ScreenCoarseSteelballCenters(4, 6);
+	int newNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
+
+	
+	while (newNumOfCenters != oldNumOfCenters)
+	{
+		oldNumOfCenters = newNumOfCenters;
+		ScreenCoarseSteelballCenters(4, 6);
+		newNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
+		
+	}
+
+	RemoveRedundantCenters();
+
+
+	int requiredFingerprintNum = 4;
+	auto inputPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
+	int inputPoinSetNum = 7;
+	int lengthOfFingerPrint = 6;
+	int numOfTargetSteelballs = 6 + 1;
+	int tmpLabel[7]{ 0 };
+
+	for (int q{ 0 }; q < numOfTargetSteelballs; q++)
+	{
+		double fingerPrint[6]
+		{
+			allBallFingerPrint[6 * q],
+			allBallFingerPrint[6 * q + 1],
+			allBallFingerPrint[6 * q + 2],
+			allBallFingerPrint[6 * q + 3],
+			allBallFingerPrint[6 * q + 4],
+			allBallFingerPrint[6 * q + 5],
+		};
+
+
+		for (int i{ 0 }; i < inputPoinSetNum; i++)
+		{
+			int metric{ 0 };
+
+			for (int j{ 0 }; j < lengthOfFingerPrint; j++)
+			{
+				bool metSingleRequirement = false;
+				double standardDistance = fingerPrint[j];
+
+				for (int k{ 0 }; k < inputPoinSetNum; k++)
+				{
+					double tmpDistance = GetPointDistance(inputPointSet->GetPoint(i), inputPointSet->GetPoint(k));
+					if (fabs(tmpDistance - standardDistance) < 0.4)
+					{
+						metSingleRequirement = true;
+						metric += 1;
+						break;
+					}
+				}
+
+				// if (metSingleRequirement == false)
+				// {
+				// 	break;
+				// }
+
+			}
+
+			//m_Controls.textBrowser->append("metric: " + QString::number(metric));
+			if (metric >= requiredFingerprintNum)
+			{
+				tmpLabel[q] = 1;
+			}
+
+		}
+
+	}
+
+	auto tmpPointset = mitk::PointSet::New();
+	for (int q{ 0 }; q < numOfTargetSteelballs; q++){
+		if(tmpLabel[q] == 1)
+		{
+			tmpPointset->InsertPoint(standartSteelballCenters->GetPoint(q));
+		}
+	}
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetName("Used standard points");
+	tmpNode->SetData(tmpPointset);
+	GetDataStorage()->Add(tmpNode);
+
+
+	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
+	landmarkRegistrator->SetLandmarksSrc(tmpPointset);
+	landmarkRegistrator->SetLandmarksTarget(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData()));
+
+	landmarkRegistrator->ComputeLandMarkResult();
+	double maxError = landmarkRegistrator->GetmaxLandmarkError();
+	double avgError = landmarkRegistrator->GetavgLandmarkError();
+
+	m_Controls.textBrowser->append("Maximum registration error: " + QString::number(maxError));
+	m_Controls.textBrowser->append("Average registration error: " + QString::number(avgError));
+
+	auto tmpMatrix = landmarkRegistrator->GetResult();
+
+	GetDataStorage()->GetNamedNode("std_modelWithPlan")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+}
+
+void DentalWidget::UpdateAllBallFingerPrint(mitk::PointSet::Pointer stdSteelballCenters)
+{
+	int pointNum = stdSteelballCenters->GetSize();
+
+	int currentIndex{ 0 };
+	for(int i{0}; i < pointNum; i++)
+	{
+
+		int currentColumn{ 0 };
+		for(int j{0}; j < pointNum; j++)
+		{
+			if(i != j)
+			{
+				allBallFingerPrint[currentIndex] = GetPointDistance(stdSteelballCenters->GetPoint(i), stdSteelballCenters->GetPoint(j));
+				//m_Controls.textBrowser->append(QString::number(currentIndex)+": "+ QString::number(allBallFingerPrint[3 * i + currentColumn]));
+				currentColumn += 1;
+				currentIndex += 1;
+			}
+		}
+	}
+	
+}
+
+

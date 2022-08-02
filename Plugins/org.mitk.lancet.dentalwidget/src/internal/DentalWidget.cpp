@@ -144,6 +144,7 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_regReset_, &QPushButton::clicked, this, &DentalWidget::ResetRegistration_);
   connect(m_Controls.pushButton_extractBallCenters, &QPushButton::clicked, this, &DentalWidget::GetSteelballCenters_iosCBCT);
   connect(m_Controls.pushButton_checkPrecision, &QPushButton::clicked, this, &DentalWidget::CheckPrecision);
+  connect(m_Controls.pushButton_ExtractBalls_modeltoCBCT, &QPushButton::clicked, this, &DentalWidget::GetSteelballCenters_modelCBCT);
 
 
   // Prepare some empty pointsets for registration purposes
