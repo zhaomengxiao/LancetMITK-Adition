@@ -313,3 +313,97 @@ void DentalWidget::CheckPrecision()
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 	m_Controls.textBrowser->append("------ Precision checking started ------");
 }
+
+
+void DentalWidget::RegisterModeltoCBCT()
+{
+	m_Controls.textBrowser->append("------ Registration started ------");
+
+	auto node_landmark_src = GetDataStorage()->GetNamedNode("std centers (partial)");
+
+	auto node_landmark_target = GetDataStorage()->GetNamedNode("Steelball centers");
+
+	auto node_model = GetDataStorage()->GetNamedNode("model");
+
+	if (!(m_ModelRegistrationResult == nullptr))
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: Please reset before register again !!!!!!");
+		return;
+	}
+
+	if (node_landmark_src == nullptr)
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'std centers (partial)' is missing !!!!!!");
+		return;
+	}
+
+	if (node_landmark_target == nullptr)
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'Steelball centers' is missing !!!!!!");
+		return;
+	}
+
+	if (node_model == nullptr)
+	{
+		m_Controls.textBrowser->append("!!!!!! Error: 'model' is missing !!!!!!");
+		return;
+	}
+
+	m_ModelInitalMatrix = vtkMatrix4x4::New();
+	m_ModelInitalMatrix ->DeepCopy(node_model->GetData()->GetGeometry()->GetVtkMatrix());
+
+	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
+
+	landmarkRegistrator->SetLandmarksSrc(dynamic_cast<mitk::PointSet*>(node_landmark_src->GetData()));
+	landmarkRegistrator->SetLandmarksTarget(dynamic_cast<mitk::PointSet*>(node_landmark_target->GetData()));
+	landmarkRegistrator->ComputeLandMarkResult();
+
+	m_Controls.textBrowser->append("Maximal registration error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
+	m_Controls.textBrowser->append("Average registration error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
+
+
+	m_ModelRegistrationResult = vtkMatrix4x4::New();
+	
+	m_ModelRegistrationResult->DeepCopy(landmarkRegistrator->GetResult());
+	
+	 auto tmpTransform = vtkTransform::New();
+	 tmpTransform->Identity();
+	 tmpTransform->PostMultiply();
+	 tmpTransform->Concatenate(m_ModelInitalMatrix);
+	 tmpTransform->Concatenate(m_ModelRegistrationResult);
+	 tmpTransform->Update();
+	
+	 node_model->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTransform->GetMatrix());
+
+	ExtractAllPlans_model();
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	m_Controls.textBrowser->append("------ Registration succeeded ------");
+}
+
+
+void DentalWidget::ResetModelRegistration()
+{
+	m_Controls.textBrowser->append("------ Reset started ------");
+
+	if(m_ModelRegistrationResult == nullptr)
+	{
+		m_Controls.textBrowser->append("Please register before reset!");
+		m_Controls.textBrowser->append("------ Reset failed ------");
+		return;
+	}
+
+	if (!(m_ModelRegistrationResult == nullptr) && GetDataStorage()->GetNamedNode("model") != nullptr)
+	{
+		m_ModelRegistrationResult = nullptr;
+		GetDataStorage()->GetNamedNode("model")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(m_ModelInitalMatrix);
+		ExtractAllPlans_model();
+		m_Controls.textBrowser->append("------ Reset succeeded ------");
+	}
+
+
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	
+}

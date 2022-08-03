@@ -68,7 +68,7 @@ void DentalWidget::ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vt
 				pow(implantCenter[2] - implant_polydata->GetCell(i)->GetPoints()->GetPoint(j)[2], 2)
 			);
 
-			if (fabs(maxDistance - tmpDistance) < 0.02)
+			if (fabs(maxDistance - tmpDistance) < 0.2)
 			{
 				mitk::Point3D p;
 				p[0] = implant_polydata->GetCell(i)->GetPoints()->GetPoint(j)[0];
@@ -80,6 +80,11 @@ void DentalWidget::ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vt
 		}
 	}
 
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(topBottomPoints);
+	tmpNode->SetName("TopBottomPoints");
+	//GetDataStorage()->Add(tmpNode);
+
 
 	// Divide topBottomPoints into 2 groups and find their centers
 	int numOfSearch = topBottomPoints->GetSize() / 2 - 1;
@@ -87,11 +92,13 @@ void DentalWidget::ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vt
 
 	auto currentPoint = topBottomPoints->GetPoint(0);
 	auto previousPoint = topBottomPoints->GetPoint(0);
+	auto checkPoint = topBottomPoints->GetPoint(0);
 
+	
 	for (int i{ 0 }; i < numOfSearch; i++)
 	{
 		mitk::Point3D nextPoint;
-		double minDistance = 50;
+		double minDistance = 20;
 		for (int j{ 0 }; j < topBottomPoints->GetSize(); j++)
 		{
 			auto p = topBottomPoints->GetPoint(j);
@@ -109,6 +116,7 @@ void DentalWidget::ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vt
 			}
 		}
 
+
 		tmpCenter[0] += nextPoint[0];
 		tmpCenter[1] += nextPoint[1];
 		tmpCenter[2] += nextPoint[2];
@@ -120,11 +128,16 @@ void DentalWidget::ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vt
 		currentPoint[0] = nextPoint[0];
 		currentPoint[1] = nextPoint[1];
 		currentPoint[2] = nextPoint[2];
+		
 	}
 
 	tmpCenter[0] = tmpCenter[0] / (numOfSearch + 1);
 	tmpCenter[1] = tmpCenter[1] / (numOfSearch + 1);
 	tmpCenter[2] = tmpCenter[2] / (numOfSearch + 1);
+
+	// tmpCenter[0] = tmpCenter[0] / n;
+	// tmpCenter[1] = tmpCenter[1] / n;
+	// tmpCenter[2] = tmpCenter[2] / n;
 
 	double oppositeCenter[3]
 	{
@@ -289,3 +302,106 @@ void DentalWidget::ExtractAllPlans()
 }
 
 
+void DentalWidget::ExtractAllPlans_model()
+{
+	auto inputData = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("model")->GetData());
+	vtkNew<vtkTransformFilter> transFilter;
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->Identity();
+	tmpTransform->PostMultiply();
+	tmpTransform->Concatenate(inputData->GetGeometry()->GetVtkMatrix());
+
+	transFilter->SetInputData(inputData->GetVtkPolyData());
+
+	transFilter->SetTransform(tmpTransform);
+	transFilter->Update();
+
+	// Divide the model into the teeth and implant
+	vtkNew<vtkConnectivityFilter> vtkConnectivityFilter;
+	vtkConnectivityFilter->SetInputData(transFilter->GetOutput());
+
+	vtkConnectivityFilter->SetExtractionModeToAllRegions();
+	vtkConnectivityFilter->Update();
+	int numModelSubcomponent = vtkConnectivityFilter->GetNumberOfExtractedRegions(); // should be 2
+
+	vtkConnectivityFilter->SetExtractionModeToSpecifiedRegions();
+
+	vtkConnectivityFilter->InitializeSpecifiedRegionList();
+	vtkConnectivityFilter->AddSpecifiedRegion(0);
+	vtkConnectivityFilter->Update();
+
+	vtkNew<vtkPolyData> teeth_polydata;
+	teeth_polydata->DeepCopy(vtkConnectivityFilter->GetPolyDataOutput());
+	int teeth_id = 0;
+
+	for (int i{ 0 }; i < numModelSubcomponent; i++)
+	{
+		vtkConnectivityFilter->SetExtractionModeToSpecifiedRegions();
+
+		vtkConnectivityFilter->InitializeSpecifiedRegionList();
+		vtkConnectivityFilter->AddSpecifiedRegion(i);
+		vtkConnectivityFilter->Update();
+
+		vtkNew<vtkPolyData> tmpSurface;
+		tmpSurface->DeepCopy(vtkConnectivityFilter->GetPolyDataOutput());
+
+		if (tmpSurface->GetNumberOfCells() > teeth_polydata->GetNumberOfCells())
+		{
+			teeth_id = i;
+			teeth_polydata->DeepCopy(vtkConnectivityFilter->GetPolyDataOutput());
+		}
+	}
+
+	// auto testNode = mitk::DataNode::New();
+	// testNode->SetName("Teeth");
+	// auto testSurface = mitk::Surface::New();
+	// testSurface->SetVtkPolyData(teeth_polydata);
+	// testNode->SetData(testSurface);
+	// GetDataStorage()->Add(testNode);
+
+	int counter{ 1 };
+	for (int i{ 0 }; i < numModelSubcomponent; i++)
+	{
+		if (i != teeth_id)
+		{
+			vtkConnectivityFilter->SetExtractionModeToSpecifiedRegions();
+
+			vtkConnectivityFilter->InitializeSpecifiedRegionList();
+			vtkConnectivityFilter->AddSpecifiedRegion(i);
+			vtkConnectivityFilter->Update();
+
+			vtkNew<vtkPolyData> tmpImplantSurface;
+			tmpImplantSurface->DeepCopy(vtkConnectivityFilter->GetPolyDataOutput());
+
+			double tmpStart[3]{ 0 };
+			double tmpEnd[3]{ 0 };
+			ExtractPlan(tmpImplantSurface, teeth_polydata, tmpStart, tmpEnd);
+
+			mitk::Point3D start;
+			start[0] = tmpStart[0];
+			start[1] = tmpStart[1];
+			start[2] = tmpStart[2];
+
+			mitk::Point3D end;
+			end[0] = tmpEnd[0];
+			end[1] = tmpEnd[1];
+			end[2] = tmpEnd[2];
+
+
+			if (GetDataStorage()->GetNamedNode("Implant_" + QString::number(counter).toLatin1()) != nullptr)
+			{
+				GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Implant_" + QString::number(counter).toLatin1()));
+			}
+
+			auto implantPointSet = mitk::PointSet::New();
+			implantPointSet->InsertPoint(start);
+			implantPointSet->InsertPoint(end);
+			auto tmpNode = mitk::DataNode::New();
+			tmpNode->SetName("Implant_" + QString::number(counter).toLatin1());
+			tmpNode->SetData(implantPointSet);
+			GetDataStorage()->Add(tmpNode);
+			counter += 1;
+		}
+	}
+
+}
