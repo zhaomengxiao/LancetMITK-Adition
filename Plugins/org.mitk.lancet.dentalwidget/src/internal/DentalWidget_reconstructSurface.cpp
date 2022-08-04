@@ -869,6 +869,11 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 		m_Controls.textBrowser->append("Please compare 'Steelball centers', 'std centers (partial)' and 'std centers (full)' carefully!");
 	}
 
+	if (avgError > 1)
+	{
+		m_Controls.textBrowser->append("!!!Warning: The found centers are highly problematic!!!");
+	}
+
 	m_Controls.textBrowser->append("------- End of steelball searching -------");
 
 	// auto tmpMatrix = landmarkRegistrator->GetResult();
