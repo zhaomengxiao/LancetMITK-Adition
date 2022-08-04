@@ -12,7 +12,7 @@
 #include "mitkNodePredicateDataType.h"
 #include "mitkSurface.h"
 #include "surfaceregistraion.h"
-
+#include "leastsquaresfit.h"
 
 void DentalWidget::ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vtkSmartPointer<vtkPolyData> teeth_polydata, double start[3], double end[3])
 {
@@ -87,14 +87,17 @@ void DentalWidget::ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vt
 
 
 	// Divide topBottomPoints into 2 groups and find their centers
-	int numOfSearch = topBottomPoints->GetSize() / 2 - 1;
+	// int numOfSearch = topBottomPoints->GetSize() / 2 - 1;
+	int numOfSearch = topBottomPoints->GetSize();
 	double tmpCenter[3]{ topBottomPoints->GetPoint(0)[0],topBottomPoints->GetPoint(0)[1],topBottomPoints->GetPoint(0)[2] };
 
 	auto currentPoint = topBottomPoints->GetPoint(0);
 	auto previousPoint = topBottomPoints->GetPoint(0);
 	auto checkPoint = topBottomPoints->GetPoint(0);
 
-	
+	auto testPointset = mitk::PointSet::New();
+
+	int count{ 1 };
 	for (int i{ 0 }; i < numOfSearch; i++)
 	{
 		mitk::Point3D nextPoint;
@@ -102,20 +105,29 @@ void DentalWidget::ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vt
 		for (int j{ 0 }; j < topBottomPoints->GetSize(); j++)
 		{
 			auto p = topBottomPoints->GetPoint(j);
-			if (sqrt(pow(p[0] - previousPoint[0], 2) + pow(p[1] - previousPoint[1], 2) + pow(p[2] - previousPoint[2], 2)) > 0.05)
+			double d = sqrt(pow(p[0] - currentPoint[0], 2) + pow(p[1] - currentPoint[1], 2) + pow(p[2] - currentPoint[2], 2));
+			double d1 = sqrt(pow(previousPoint[0] - currentPoint[0], 2) + pow(previousPoint[1] - currentPoint[1], 2) + pow(previousPoint[2] - currentPoint[2], 2));
+			double d2 = sqrt(pow(previousPoint[0] - p[0], 2) + pow(previousPoint[1] - p[1], 2) + pow(previousPoint[2] - p[2], 2));
+
+			if (d2 > d1)
 			{
-				double d = sqrt(pow(p[0] - currentPoint[0], 2) + pow(p[1] - currentPoint[1], 2) + pow(p[2] - currentPoint[2], 2));
-				if (d < minDistance && d > 0)
+				if (d < minDistance)
 				{
 					minDistance = d;
 					nextPoint[0] = p[0];
 					nextPoint[1] = p[1];
 					nextPoint[2] = p[2];
-
+									   
 				}
 			}
 		}
+		if (count > 15 && 
+			sqrt(pow(previousPoint[0] - nextPoint[0], 2) + pow(previousPoint[1] - nextPoint[1], 2) + pow(previousPoint[2] - nextPoint[2], 2)) < 0.05)
+		{
+			break;
+		}
 
+		testPointset->InsertPoint(nextPoint);
 
 		tmpCenter[0] += nextPoint[0];
 		tmpCenter[1] += nextPoint[1];
@@ -128,23 +140,92 @@ void DentalWidget::ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vt
 		currentPoint[0] = nextPoint[0];
 		currentPoint[1] = nextPoint[1];
 		currentPoint[2] = nextPoint[2];
-		
+
+		count += 1;
+	}
+	//
+	// tmpCenter[0] = tmpCenter[0] / (numOfSearch + 1);
+	// tmpCenter[1] = tmpCenter[1] / (numOfSearch + 1);
+	// tmpCenter[2] = tmpCenter[2] / (numOfSearch + 1);
+
+	auto testNode = mitk::DataNode::New();
+	testNode->SetName("test Pts");
+	testNode->SetData(testPointset);
+	//GetDataStorage()->Add(testNode);
+	
+	// fit circle 1 using testPointset
+	std::vector<double> inp_pointset(
+		3*(testPointset->GetSize()));
+	std::array<double, 3> outp_center;
+	double outp_radius;
+	std::array<double, 3> outp_normal;
+	for(int i{0}; i < (testPointset->GetSize()); i++)
+	{
+		inp_pointset[3*i] = testPointset->GetPoint(i)[0];
+		inp_pointset[3*i + 1] = testPointset->GetPoint(i)[1];
+		inp_pointset[3 * i + 2] = testPointset->GetPoint(i)[2];
+
 	}
 
-	tmpCenter[0] = tmpCenter[0] / (numOfSearch + 1);
-	tmpCenter[1] = tmpCenter[1] / (numOfSearch + 1);
-	tmpCenter[2] = tmpCenter[2] / (numOfSearch + 1);
 
-	// tmpCenter[0] = tmpCenter[0] / n;
-	// tmpCenter[1] = tmpCenter[1] / n;
-	// tmpCenter[2] = tmpCenter[2] / n;
+	lancetAlgorithm::fit_circle_3d(inp_pointset, outp_center, outp_radius, outp_normal);
 
-	double oppositeCenter[3]
+
+	tmpCenter[0] = outp_center[0];//tmpCenter[0] / count;
+	tmpCenter[1] = outp_center[1];//tmpCenter[1] / count;
+	tmpCenter[2] = outp_center[2];//tmpCenter[2] / count;
+
+	auto oppositePointset = mitk::PointSet::New();
+	double oppositeCenter[3]{ 0,0,0 };
+	int oppositeCount{ 0 };
+	for (int j{ 0 }; j < topBottomPoints->GetSize(); j++)
 	{
-		2 * implantCenter[0] - tmpCenter[0],
-		2 * implantCenter[1] - tmpCenter[1],
-		2 * implantCenter[2] - tmpCenter[2]
-	};
+		auto p = topBottomPoints->GetPoint(j);
+		double d = sqrt(pow(p[0] - tmpCenter[0], 2) + pow(p[1] - tmpCenter[1], 2) + pow(p[2] - tmpCenter[2], 2));
+		if(d > maxDistance)
+		{
+			oppositePointset->InsertPoint(p);
+			oppositeCenter[0] += p[0];
+			oppositeCenter[1] += p[1];
+			oppositeCenter[2] += p[2];
+			oppositeCount += 1;
+		}
+	}
+
+
+	// fit circle 1 using testPointset
+	std::vector<double> inp_pointset1(
+		3 * (oppositePointset->GetSize()));
+	std::array<double, 3> outp_center1;
+	double outp_radius1;
+	std::array<double, 3> outp_normal1;
+	for (int i{ 0 }; i < (oppositePointset->GetSize()); i++)
+	{
+		inp_pointset1[3 * i] = oppositePointset->GetPoint(i)[0];
+		inp_pointset1[3 * i + 1] = oppositePointset->GetPoint(i)[1];
+		inp_pointset1[3 * i + 2] = oppositePointset->GetPoint(i)[2];
+
+	}
+
+
+	lancetAlgorithm::fit_circle_3d(inp_pointset1, outp_center1, outp_radius1, outp_normal1);
+
+
+	oppositeCenter[0] = outp_center1[0];// / oppositeCount;
+	oppositeCenter[1] = outp_center1[1];// / oppositeCount;
+	oppositeCenter[2] = outp_center1[2];// / oppositeCount;
+
+	auto testOppositeNode = mitk::DataNode::New();
+	testOppositeNode->SetData(oppositePointset);
+	testOppositeNode->SetName("opposites");
+	//GetDataStorage()->Add(testOppositeNode);
+
+	// double oppositeCenter[3]
+	// {
+	// 	2 * implantCenter[0] - tmpCenter[0],
+	// 	2 * implantCenter[1] - tmpCenter[1],
+	// 	2 * implantCenter[2] - tmpCenter[2]
+	// };
 
 	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
 	implicitPolyDataDistance->SetInput(teeth_polydata);
