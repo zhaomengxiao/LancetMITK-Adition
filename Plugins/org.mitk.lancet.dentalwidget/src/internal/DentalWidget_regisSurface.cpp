@@ -359,7 +359,7 @@ void DentalWidget::RegisterModeltoCBCT()
 	landmarkRegistrator->ComputeLandMarkResult();
 
 	m_Controls.textBrowser->append("Maximal registration error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
-	m_Controls.textBrowser->append("Average registration error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
+	m_Controls.textBrowser->append("Average registration error: " + QString::number(landmarkRegistrator->GetavgLandmarkError()));
 
 
 	m_ModelRegistrationResult = vtkMatrix4x4::New();
