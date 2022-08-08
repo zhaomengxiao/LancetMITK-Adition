@@ -805,6 +805,7 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 
 		foundCenterNum = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
 		// m_Controls.textBrowser->append(QString::number(foundCenterNum));
+		m_Controls.lineEdit_ballGrayValue->setText(QString::number(tmpVoxelThreshold));
 		if(foundCenterNum >= 40)
 		{
 			break;
@@ -829,7 +830,7 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 	// m_Controls.textBrowser->append(QString::number(foundCenterNum));
 	
 	GetCoarseSteelballCenters(voxelThres);
-	
+	m_Controls.lineEdit_ballGrayValue->setText(QString::number(voxelThres));
 	IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
 	RearrangeSteelballs(4, 6, foundIDs);
 
