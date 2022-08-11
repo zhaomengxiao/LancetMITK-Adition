@@ -26,6 +26,7 @@ found in the LICENSE file.
 #include <vtkClipPolyData.h>
 #include <vtkPlane.h>
 #include <vtkPlaneSource.h>
+#include <ep/include/vtk-9.1/vtkTransformFilter.h>
 
 #include "mitkSurface.h"
 #include "vtkOBBTree.h"
@@ -46,7 +47,18 @@ bool HTOTest::CreateOneCutPlane()
 
 	// Get the OBB of tibia surface
 
-	auto tibiaPolyData = tibiaSurface->GetVtkPolyData();
+	auto initialTibiaPolyData = tibiaSurface->GetVtkPolyData();
+	vtkNew<vtkTransform> tibiaTransform;
+	tibiaTransform->SetMatrix(tibiaSurface->GetGeometry()->GetVtkMatrix());
+	vtkNew<vtkTransformFilter> tmpFilter;
+	tmpFilter->SetTransform(tibiaTransform);
+	tmpFilter->SetInputData(initialTibiaPolyData);
+	tmpFilter->Update();
+
+	vtkNew<vtkPolyData> tibiaPolyData;
+	tibiaPolyData->DeepCopy(tmpFilter->GetPolyDataOutput());
+
+
 	vtkNew<vtkOBBTree> obbTree;
 	obbTree->SetDataSet(tibiaPolyData);
 	obbTree->SetMaxLevel(2);
@@ -78,10 +90,42 @@ bool HTOTest::CreateOneCutPlane()
 	cutPlaneSource->SetPoint2(70, 0, 0);
 
 	cutPlaneSource->SetNormal(max);
-	//cutPlaneSource->SetCenter(tibiaPolyData->GetCenter());
-	cutPlaneSource->SetCenter(corner[0]+0.5*(max[0]+mid[0]+min[0]),
-		corner[1] + 0.5 * (max[1] + mid[1] + min[1]),
-		corner[2] + 0.5 * (max[2] + mid[2] + min[2]));
+	
+	// Determine the optimal plane location
+
+	vtkNew<vtkPolyData> largerSubpart_0;
+	vtkNew<vtkPolyData> smallerSubpart_0;
+	double origin_0[3]
+	{
+		corner[0] + 0.5 * (1.7 * max[0] + mid[0] + min[0]),
+		corner[1] + 0.5 * (1.7 * max[1] + mid[1] + min[1]),
+		corner[2] + 0.5 * (1.7 * max[2] + mid[2] + min[2])
+	};
+
+	vtkNew<vtkPolyData> largerSubpart_1;
+	vtkNew<vtkPolyData> smallerSubpart_1;
+	double origin_1[3]
+	{
+		corner[0] + 0.5 * (0.3 * max[0] + mid[0] + min[0]),
+		corner[1] + 0.5 * (0.3 * max[1] + mid[1] + min[1]),
+		corner[2] + 0.5 * (0.3 * max[2] + mid[2] + min[2])
+	};
+
+	CutPolyDataWithPlane(tibiaPolyData, largerSubpart_0, smallerSubpart_0, origin_0, max);
+	CutPolyDataWithPlane(tibiaPolyData, largerSubpart_1, smallerSubpart_1, origin_1, max);
+
+	if(smallerSubpart_0->GetNumberOfCells() >= smallerSubpart_1->GetNumberOfCells())
+	{
+		cutPlaneSource->SetCenter(origin_0);
+	}else
+	{
+		cutPlaneSource->SetCenter(origin_1);
+	}
+
+
+	// cutPlaneSource->SetCenter(corner[0]+0.5*(max[0]+mid[0]+min[0]),
+	// 	corner[1] + 0.5 * (max[1] + mid[1] + min[1]),
+	// 	corner[2] + 0.5 * (max[2] + mid[2] + min[2]));
 	cutPlaneSource->Update();
 
 	auto cutSurface = mitk::Surface::New();
@@ -174,10 +218,33 @@ bool HTOTest::CutTibiaWithOnePlane()
 
 	auto planeCenter = mitkCutSurface->GetGeometry()->GetCenter();
 
-	auto tmpVtkSurface = mitkCutSurface->GetVtkPolyData();
+	auto tmpVtkSurface_initial = mitkCutSurface->GetVtkPolyData();
 
-	auto tibiaVtkSurface = tibiaMitkSurface->GetVtkPolyData();
-	
+	auto tibiaVtkSurface_initial = tibiaMitkSurface->GetVtkPolyData();
+
+	// transform tmpVtkSurface
+	vtkNew<vtkTransform> cutPlaneTransform;
+	cutPlaneTransform->SetMatrix(mitkCutSurface->GetGeometry()->GetVtkMatrix());
+	vtkNew<vtkTransformFilter> cutPlaneTransformFilter;
+	cutPlaneTransformFilter->SetTransform(cutPlaneTransform);
+	cutPlaneTransformFilter->SetInputData(tmpVtkSurface_initial);
+	cutPlaneTransformFilter->Update();
+
+	vtkNew<vtkPolyData> tmpVtkSurface;
+	tmpVtkSurface->DeepCopy(cutPlaneTransformFilter->GetPolyDataOutput());
+
+	// transform tibiaVtkSurface
+	vtkNew<vtkTransform> tibiaTransform;
+	tibiaTransform->SetMatrix(tibiaMitkSurface->GetGeometry()->GetVtkMatrix());
+	vtkNew<vtkTransformFilter> tibiaTransformFilter;
+	tibiaTransformFilter->SetTransform(tibiaTransform);
+	tibiaTransformFilter->SetInputData(tibiaVtkSurface_initial);
+	tibiaTransformFilter->Update();
+
+
+	vtkNew<vtkPolyData> tibiaVtkSurface;
+	tibiaVtkSurface->DeepCopy(tibiaTransformFilter->GetPolyDataOutput());
+
 	// Obtain the normal of the mitkSurface
 	double p0[3]; double p1[3]; double p2[3];
 
