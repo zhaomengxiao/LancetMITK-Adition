@@ -23,6 +23,8 @@ found in the LICENSE file.
 
 // mitk image
 #include <mitkImage.h>
+#include <vtkAppendPolyData.h>
+#include <vtkCleanPolyData.h>
 #include <vtkClipPolyData.h>
 #include <vtkPlane.h>
 #include <vtkPlaneSource.h>
@@ -236,9 +238,7 @@ bool HTOTest::CutTibiaWithOnePlane()
 	auto mitkCutSurface = dynamic_cast<mitk::Surface*>(cutPlaneNode->GetData());
 
 	auto tibiaMitkSurface = dynamic_cast<mitk::Surface*>(tibiaSurfaceNode->GetData());
-
-	auto planeCenter = mitkCutSurface->GetGeometry()->GetCenter();
-
+	
 	auto tmpVtkSurface_initial = mitkCutSurface->GetVtkPolyData();
 
 	auto tibiaVtkSurface_initial = tibiaMitkSurface->GetVtkPolyData();
@@ -266,8 +266,8 @@ bool HTOTest::CutTibiaWithOnePlane()
 	vtkNew<vtkPolyData> tibiaVtkSurface;
 	tibiaVtkSurface->DeepCopy(tibiaTransformFilter->GetPolyDataOutput());
 	
-	double surfaceNormal[3];// { normalVector[0], normalVector[1], normalVector[2] };
-	double cutPlaneCenter[3];// { planeCenter[0], planeCenter[1], planeCenter[2] };
+	double surfaceNormal[3];
+	double cutPlaneCenter[3];
 
 	GetPlaneProperty(tmpVtkSurface, surfaceNormal, cutPlaneCenter);
 
@@ -346,12 +346,54 @@ bool HTOTest::CutTibiaWithTwoPlanes()
 	tibiaTransformFilter->Update();
 	vtkTibia->DeepCopy(tibiaTransformFilter->GetPolyDataOutput());
 
-	
+	double cutPlaneCenter_0[3];
+	double cutPlaneNormal_0[3];
+	double cutPlaneCenter_1[3];
+	double cutPlaneNormal_1[3];
+
+	GetPlaneProperty(vtkCutPlane_0, cutPlaneNormal_0, cutPlaneCenter_0);
+	GetPlaneProperty(vtkCutPlane_1, cutPlaneNormal_1, cutPlaneCenter_1);
+
 	vtkNew<vtkPolyData> largetPart;
+	vtkNew<vtkPolyData> tmpMiddlePart;
 	vtkNew<vtkPolyData> middlePart;
 	vtkNew<vtkPolyData> smallPart;
 
-	
+
+	// Cut and merge
+	CutPolyDataWithPlane(vtkTibia, largetPart, tmpMiddlePart, cutPlaneCenter_0, cutPlaneNormal_0);
+	CutPolyDataWithPlane(tmpMiddlePart, middlePart, smallPart, cutPlaneCenter_1, cutPlaneNormal_1);
+
+	vtkSmartPointer<vtkAppendPolyData> appendFilter =
+		vtkSmartPointer<vtkAppendPolyData>::New();
+	vtkSmartPointer<vtkCleanPolyData> cleanFilter =
+		vtkSmartPointer<vtkCleanPolyData>::New();
+
+	appendFilter->AddInputData(largetPart);
+	appendFilter->AddInputData(smallPart);
+	appendFilter->Update();
+
+	cleanFilter->SetInputData(appendFilter->GetOutput());
+	cleanFilter->Update();
+
+	auto proximalSurface = mitk::Surface::New();
+	auto distalSurface = mitk::Surface::New();
+
+	proximalSurface->SetVtkPolyData(middlePart);
+	distalSurface->SetVtkPolyData(cleanFilter->GetOutput());
+
+	auto proximalNode = mitk::DataNode::New();
+	auto distalNode = mitk::DataNode::New();
+
+	proximalNode->SetName("proximal tibia");
+	proximalNode->SetData(proximalSurface);
+	distalNode->SetName("distal tibia");
+	distalNode->SetData(distalSurface);
+
+	GetDataStorage()->Add(distalNode);
+	GetDataStorage()->Add(proximalNode);
+
+
 
 	return true;
 }
