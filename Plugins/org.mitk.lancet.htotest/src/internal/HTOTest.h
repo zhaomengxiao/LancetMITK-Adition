@@ -51,13 +51,13 @@ protected:
   //bool CreateTwoCutPlane();
   bool CreateCutPlane();
 
-  bool CutTibiaWithOnePlane();
+  
 
   bool CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut, 
 	  vtkSmartPointer<vtkPolyData> largerSubPart, 
 	  vtkSmartPointer<vtkPolyData> smallerSubPart,
 	  double planeOrigin[3], double planeNormal[3]);
-
+  bool CutTibiaWithOnePlane();
   bool CutTibiaWithTwoPlanes();
 
   bool CutTibia();
@@ -65,7 +65,7 @@ protected:
   bool CutTibiaSurface();
 
 
-
+  bool GetPlaneProperty(vtkSmartPointer<vtkPolyData> plane, double normal[3], double center[3]);
 
 };
 

@@ -154,6 +154,27 @@ bool HTOTest::CreateCutPlane()
 			return true;
 		}
 	}
+
+	if(m_Controls.radioButton_twoCuts->isChecked())
+	{
+		if (CreateOneCutPlane())
+		{
+			auto cutSurfaceNode = GetDataStorage()->GetNamedNode("tibia cut plane");
+			cutSurfaceNode->SetColor(0, 1, 0);
+			cutSurfaceNode->SetOpacity(0.5);
+			cutSurfaceNode->SetName("1st cut plane");
+
+			CreateOneCutPlane();
+			auto cutSurfaceNode2 = GetDataStorage()->GetNamedNode("tibia cut plane");
+			cutSurfaceNode2->SetColor(1, 0, 0);
+			cutSurfaceNode2->SetOpacity(0.5);
+			cutSurfaceNode2->SetName("2nd cut plane");
+
+			return true;
+		}
+
+	}
+
 	return false;
 }
 
@@ -244,25 +265,11 @@ bool HTOTest::CutTibiaWithOnePlane()
 
 	vtkNew<vtkPolyData> tibiaVtkSurface;
 	tibiaVtkSurface->DeepCopy(tibiaTransformFilter->GetPolyDataOutput());
+	
+	double surfaceNormal[3];// { normalVector[0], normalVector[1], normalVector[2] };
+	double cutPlaneCenter[3];// { planeCenter[0], planeCenter[1], planeCenter[2] };
 
-	// Obtain the normal of the mitkSurface
-	double p0[3]; double p1[3]; double p2[3];
-
-	tmpVtkSurface->GetCell(0)->GetPoints()->GetPoint(0, p0);
-	tmpVtkSurface->GetCell(0)->GetPoints()->GetPoint(1, p1);
-	tmpVtkSurface->GetCell(0)->GetPoints()->GetPoint(2, p2);
-
-	Eigen::Vector3d a(*p0,*(p0+1),*(p0+2));
-	Eigen::Vector3d b(*p1, *(p1 + 1), *(p1 + 2));
-	Eigen::Vector3d c(*p2, *(p2 + 1), *(p2 + 2));
-
-	Eigen::Vector3d tmpVector0 = b - a;
-	Eigen::Vector3d tmpVector1 = c - a;
-
-	Eigen::Vector3d normalVector = tmpVector0.cross(tmpVector1);
-
-	double surfaceNormal[3]{ normalVector[0],normalVector[1] ,normalVector[2] };
-	double cutPlaneCenter[3]{ planeCenter[0],planeCenter[1],planeCenter[2] };
+	GetPlaneProperty(tmpVtkSurface, surfaceNormal, cutPlaneCenter);
 
 	vtkNew<vtkPolyData> proximalTibiaSurface;
 	vtkNew<vtkPolyData> distalTibiaSurface;
@@ -286,6 +293,122 @@ bool HTOTest::CutTibiaWithOnePlane()
 	return true;
 }
 
+bool HTOTest::CutTibiaWithTwoPlanes()
+{
+	auto cutplane_0 = GetDataStorage()->GetNamedNode("1st cut plane");
+	auto cutplane_1 = GetDataStorage()->GetNamedNode("2nd cut plane");
+	auto tibiaNode = GetDataStorage()->GetNamedNode("tibiaSurface");
+
+	if(cutplane_0 == nullptr || cutplane_1 == nullptr)
+	{
+		m_Controls.textBrowser->append("'1st cut plane' or '2nd cut plane' is not ready");
+		return false;
+	}
+	if (tibiaNode == nullptr)
+	{
+		m_Controls.textBrowser->append("'tibiaSurface' is not ready");
+		return false;
+	}
+
+	auto mitkCutPlane_0 = dynamic_cast<mitk::Surface*>(cutplane_0->GetData());
+	auto mitkCutPlane_1 = dynamic_cast<mitk::Surface*>(cutplane_1->GetData());
+	auto mitkTibia = dynamic_cast<mitk::Surface*>(tibiaNode->GetData());
+
+	vtkNew<vtkPolyData> vtkCutPlane_0;
+	vtkNew<vtkPolyData> vtkCutPlane_1;
+	vtkNew<vtkPolyData> vtkTibia;
+	
+	// Append the geometry offset matrices
+	vtkNew<vtkTransform> cutPlaneTransform_0;
+	cutPlaneTransform_0->SetMatrix(mitkCutPlane_0->GetGeometry()->GetVtkMatrix());
+
+	vtkNew<vtkTransform> cutPlaneTransform_1;
+	cutPlaneTransform_1->SetMatrix(mitkCutPlane_1->GetGeometry()->GetVtkMatrix());
+
+	vtkNew<vtkTransform> tibiaTransform;
+	tibiaTransform->SetMatrix(mitkTibia->GetGeometry()->GetVtkMatrix());
+
+	vtkNew<vtkTransformFilter> cutPlaneTransformFilter_0;
+	cutPlaneTransformFilter_0->SetTransform(cutPlaneTransform_0);
+	cutPlaneTransformFilter_0->SetInputData(mitkCutPlane_0->GetVtkPolyData());
+	cutPlaneTransformFilter_0->Update();
+	vtkCutPlane_0->DeepCopy(cutPlaneTransformFilter_0->GetPolyDataOutput());
+
+	vtkNew<vtkTransformFilter> cutPlaneTransformFilter_1;
+	cutPlaneTransformFilter_1->SetTransform(cutPlaneTransform_1);
+	cutPlaneTransformFilter_1->SetInputData(mitkCutPlane_1->GetVtkPolyData());
+	cutPlaneTransformFilter_1->Update();
+	vtkCutPlane_1->DeepCopy(cutPlaneTransformFilter_1->GetPolyDataOutput());
+
+	vtkNew<vtkTransformFilter> tibiaTransformFilter;
+	tibiaTransformFilter->SetTransform(tibiaTransform);
+	tibiaTransformFilter->SetInputData(mitkTibia->GetVtkPolyData());
+	tibiaTransformFilter->Update();
+	vtkTibia->DeepCopy(tibiaTransformFilter->GetPolyDataOutput());
+
+	
+	vtkNew<vtkPolyData> largetPart;
+	vtkNew<vtkPolyData> middlePart;
+	vtkNew<vtkPolyData> smallPart;
+
+	
+
+	return true;
+}
 
 
+bool HTOTest::CutTibia()
+{
+	if (m_Controls.radioButton_oneCut->isChecked())
+	{
+		if(CutTibiaWithOnePlane())
+		{
+			return true;
+		}
+	}
+
+	if (m_Controls.radioButton_twoCuts->isChecked())
+	{
+		if(CutTibiaWithTwoPlanes())
+		{
+			return true;
+		}
+
+	}
+
+	return false;
+}
+
+
+
+bool HTOTest::GetPlaneProperty(vtkSmartPointer<vtkPolyData> plane, double normal[3], double center[3])
+{
+	auto tmpCenter = plane->GetCenter();
+
+	center[0] = *tmpCenter;
+	center[1] = *(tmpCenter + 1);
+	center[2] = *(tmpCenter + 2);
+
+	// Obtain the normal of the mitkSurface
+	double p0[3]; double p1[3]; double p2[3];
+
+	plane->GetCell(0)->GetPoints()->GetPoint(0, p0);
+	plane->GetCell(0)->GetPoints()->GetPoint(1, p1);
+	plane->GetCell(0)->GetPoints()->GetPoint(2, p2);
+
+	Eigen::Vector3d a(*p0, *(p0 + 1), *(p0 + 2));
+	Eigen::Vector3d b(*p1, *(p1 + 1), *(p1 + 2));
+	Eigen::Vector3d c(*p2, *(p2 + 1), *(p2 + 2));
+
+	Eigen::Vector3d tmpVector0 = b - a;
+	Eigen::Vector3d tmpVector1 = c - a;
+
+	Eigen::Vector3d normalVector = tmpVector0.cross(tmpVector1);
+
+	normal[0] = normalVector[0]; 
+	normal[1] = normalVector[1];
+	normal[2] = normalVector[2];
+
+	return true;
+}
 
