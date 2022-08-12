@@ -272,16 +272,27 @@ bool HTOTest::CutTibiaWithOnePlane()
 	double cutPlaneCenter[3];
 
 	GetPlaneProperty(tmpVtkSurface, surfaceNormal, cutPlaneCenter);
+	
 
 	vtkNew<vtkPolyData> proximalTibiaSurface;
 	vtkNew<vtkPolyData> distalTibiaSurface;
 
 	CutPolyDataWithPlane(tibiaVtkSurface, distalTibiaSurface, proximalTibiaSurface, cutPlaneCenter, surfaceNormal);
 
+	vtkSmartPointer<vtkCleanPolyData> proximalCleanFilter =
+		vtkSmartPointer<vtkCleanPolyData>::New();
+	vtkSmartPointer<vtkCleanPolyData> distalCleanFilter =
+		vtkSmartPointer<vtkCleanPolyData>::New();
+	proximalCleanFilter->SetInputData(proximalTibiaSurface);
+	proximalCleanFilter->Update();
+
+	distalCleanFilter->SetInputData(distalTibiaSurface);
+	distalCleanFilter->Update();
+
 	auto mitkProximalSurface = mitk::Surface::New();
 	auto mitkDistalSurface = mitk::Surface::New();
-	mitkProximalSurface->SetVtkPolyData(proximalTibiaSurface);
-	mitkDistalSurface->SetVtkPolyData(distalTibiaSurface);
+	mitkProximalSurface->SetVtkPolyData(proximalCleanFilter->GetOutput());
+	mitkDistalSurface->SetVtkPolyData(distalCleanFilter->GetOutput());
 	auto tmpNode0 = mitk::DataNode::New();
 	auto tmpNode1 = mitk::DataNode::New();
 	tmpNode0->SetData(mitkProximalSurface);
