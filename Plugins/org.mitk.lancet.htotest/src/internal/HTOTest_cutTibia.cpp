@@ -29,8 +29,10 @@ found in the LICENSE file.
 #include <vtkPlane.h>
 #include <vtkPlaneSource.h>
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
+#include "mitkBoundingShapeCropper.h"
 
 #include "mitkSurface.h"
+#include "mitkSurfaceToImageFilter.h"
 #include "vtkOBBTree.h"
 
 bool HTOTest::CreateOneCutPlane()
@@ -399,7 +401,7 @@ bool HTOTest::CutTibiaWithTwoPlanes()
 }
 
 
-bool HTOTest::CutTibia()
+bool HTOTest::CutTibiaSurface()
 {
 	if (m_Controls.radioButton_oneCut->isChecked())
 	{
@@ -421,6 +423,121 @@ bool HTOTest::CutTibia()
 	return false;
 }
 
+bool HTOTest::CutTibiaImage()
+{
+	auto proximalNode = GetDataStorage()->GetNamedNode("proximal tibia");
+	auto distalNode = GetDataStorage()->GetNamedNode("distal tibia");
+	auto imageNode = GetDataStorage()->GetNamedNode("tibiaImage");
+
+	if(proximalNode== nullptr || distalNode==nullptr)
+	{
+		m_Controls.textBrowser->append("'proximal tibia' or 'distal tibia' is missing");
+		return false;
+	}
+
+	if(imageNode ==nullptr)
+	{
+		m_Controls.textBrowser->append("'tibiaImage' is missing");
+		return false;
+	}
+
+	auto mitkProximalSurface = dynamic_cast<mitk::Surface*>(proximalNode->GetData());
+	auto proximalBounds = mitkProximalSurface->GetGeometry()->GetBounds();
+	auto proximalOrigin = mitkProximalSurface->GetGeometry()->GetOrigin();
+
+	auto mitkDistalSurface = dynamic_cast<mitk::Surface*>(distalNode->GetData());
+	auto distalBounds = mitkDistalSurface->GetGeometry()->GetBounds();
+	auto distalOrigin = mitkDistalSurface->GetGeometry()->GetOrigin();
+
+	auto image = dynamic_cast<mitk::Image*>(imageNode->GetData());
+
+	// Apply the geometric offset matrices
+	vtkNew<vtkPolyData> vtkDistal;
+	vtkNew<vtkPolyData> vtkProximal;
+
+	vtkNew<vtkTransform> distalTransform;
+	distalTransform->SetMatrix(mitkDistalSurface->GetGeometry()->GetVtkMatrix());
+
+	vtkNew<vtkTransform> proximalTransform;
+	proximalTransform->SetMatrix(mitkProximalSurface->GetGeometry()->GetVtkMatrix());
+
+	vtkNew<vtkTransformFilter> distalTransformFilter;
+	distalTransformFilter->SetTransform(distalTransform);
+	distalTransformFilter->SetInputData(mitkDistalSurface->GetVtkPolyData());
+	distalTransformFilter->Update();
+	vtkDistal->DeepCopy(distalTransformFilter->GetPolyDataOutput());
+
+	vtkNew<vtkTransformFilter> proximalTransformFilter;
+	proximalTransformFilter->SetTransform(proximalTransform);
+	proximalTransformFilter->SetInputData(mitkProximalSurface->GetVtkPolyData());
+	proximalTransformFilter->Update();
+	vtkProximal->DeepCopy(proximalTransformFilter->GetPolyDataOutput());
+
+	auto imageClone = image->Clone();
+
+	auto proximalImage = mitk::Image::New();
+	auto distalImage = mitk::Image::New();
+
+	auto surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	//surfaceToImageFilter->SetMakeOutputBinary(false);
+	surfaceToImageFilter->SetBackgroundValue(0);
+	//surfaceToImageFilter->SetUShortBinaryPixelType(false);
+	surfaceToImageFilter->SetImage(imageClone);
+	surfaceToImageFilter->SetInput(mitkProximalSurface);
+	
+
+	surfaceToImageFilter->Update();
+	proximalImage = surfaceToImageFilter->GetOutput()->Clone();
+
+	// Cut the proximal image
+	auto proximalBoundingBox = mitk::GeometryData::New();
+	proximalBoundingBox->SetGeometry(mitkProximalSurface->GetGeometry());
+
+	auto cutter = mitk::BoundingShapeCropper::New();
+	cutter->SetGeometry(proximalBoundingBox);
+	cutter->SetUseWholeInputRegion(false);
+	cutter->SetInput(proximalImage);
+	cutter->Update();
+
+	surfaceToImageFilter->SetInput(mitkDistalSurface);
+	surfaceToImageFilter->Update();
+	distalImage = surfaceToImageFilter->GetOutput()->Clone();
+
+	// Cut the distal image
+	auto distalBoundingBox = mitk::GeometryData::New();
+	distalBoundingBox->SetGeometry(mitkDistalSurface->GetGeometry());
+
+	auto cutterDistal = mitk::BoundingShapeCropper::New();
+	cutterDistal->SetGeometry(distalBoundingBox);
+	cutterDistal->SetUseWholeInputRegion(false);
+	cutterDistal->SetInput(distalImage);
+	cutterDistal->Update();
+
+
+	auto tmpNode0 = mitk::DataNode::New();
+	tmpNode0->SetName("distal tibia image");
+	tmpNode0->SetData(cutterDistal->GetOutput());
+	GetDataStorage()->Add(tmpNode0);
+
+	auto tmpNode1 = mitk::DataNode::New();
+	tmpNode1->SetName("proximal tibia image");
+	tmpNode1->SetData(cutter->GetOutput());
+	GetDataStorage()->Add(tmpNode1);
+
+	return true;
+}
+
+
+bool HTOTest::CutTibia()
+{
+	if(CutTibiaSurface() && CutTibiaImage())
+	{
+		return true;
+	}
+
+	return false;
+
+}
 
 
 bool HTOTest::GetPlaneProperty(vtkSmartPointer<vtkPolyData> plane, double normal[3], double center[3])
@@ -453,4 +570,7 @@ bool HTOTest::GetPlaneProperty(vtkSmartPointer<vtkPolyData> plane, double normal
 
 	return true;
 }
+
+
+
 

@@ -38,7 +38,7 @@ void HTOTest::CreateQtPartControl(QWidget *parent)
   //connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &HTOTest::DoImageProcessing);
   connect(m_Controls.pushButton_createCutPlane, &QPushButton::clicked, this, &HTOTest::CreateCutPlane);
   connect(m_Controls.pushButton_cutTibia, &QPushButton::clicked, this, &HTOTest::CutTibia);
-
+ 
 }
 
 

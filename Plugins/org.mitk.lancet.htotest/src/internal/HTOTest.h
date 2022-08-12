@@ -67,6 +67,7 @@ protected:
 
   bool GetPlaneProperty(vtkSmartPointer<vtkPolyData> plane, double normal[3], double center[3]);
 
+
 };
 
 #endif // HTOTest_h
