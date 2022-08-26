@@ -48,21 +48,22 @@ protected:
 
   //Cut tibia into two parts with a plane 
   bool CreateOneCutPlane();
-  //bool CreateTwoCutPlane();
-  bool CreateCutPlane();
-
+  bool CreateCutPlane(); // create one or two cut planes
   
-
   bool CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut, 
 	  vtkSmartPointer<vtkPolyData> largerSubPart, 
 	  vtkSmartPointer<vtkPolyData> smallerSubPart,
 	  double planeOrigin[3], double planeNormal[3]);
-  bool CutTibiaWithOnePlane();
-  bool CutTibiaWithTwoPlanes();
 
-  bool CutTibia();
-  bool CutTibiaImage();
-  bool CutTibiaSurface();
+  bool CutTibiaWithOnePlane(); // cut tibia surface with one plane
+  bool CutTibiaWithTwoPlanes(); // cut tibia surface with two planes
+  bool CutTibiaSurface(); // cut tibia surface with one or two planes
+
+  bool CutTibiaImage(); // cut tibia image with one or two planes
+
+  bool CutTibia(); // cut tibia image and surface
+  
+  
 
 
   bool GetPlaneProperty(vtkSmartPointer<vtkPolyData> plane, double normal[3], double center[3]);
