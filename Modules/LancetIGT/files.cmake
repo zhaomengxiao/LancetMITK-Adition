@@ -6,6 +6,10 @@ set(H_FILES
 
   Algorithms/lancetNavigationDataInReferenceCoordFilter.h
   Rendering/lancetNavigationObjectVisualizationFilter.h
+
+  TrackingDevices/lancetRobotTrackingTool.h
+  TrackingDevices/lancetKukaTrackingDeviceTypeInformation.h
+  TrackingDevices/kukaRobotDevice.h
 )
 
 set(CPP_FILES
@@ -16,12 +20,17 @@ set(CPP_FILES
   
   Algorithms/lancetNavigationDataInReferenceCoordFilter.cpp
   Rendering/lancetNavigationObjectVisualizationFilter.cpp
+
+  TrackingDevices/lancetRobotTrackingTool.cpp
+  TrackingDevices/lancetKukaTrackingDeviceTypeInformation.cpp
+  TrackingDevices/kukaRobotDevice.cpp
 )
 
 set(UI_FILES
 )
 
 set(MOC_H_FILES
+  TrackingDevices/kukaRobotDevice.h
 )
 
 set(RESOURCE_FILES
