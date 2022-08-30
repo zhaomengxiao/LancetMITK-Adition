@@ -26,8 +26,11 @@ found in the LICENSE file.
 #include <vtkAppendPolyData.h>
 #include <vtkCleanPolyData.h>
 #include <vtkClipPolyData.h>
+#include <vtkFeatureEdges.h>
 #include <vtkPlane.h>
 #include <vtkPlaneSource.h>
+#include <vtkSmoothPolyDataFilter.h>
+#include <vtkStripper.h>
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 #include "mitkBoundingShapeCropper.h"
 
@@ -207,14 +210,85 @@ bool HTOTest::CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut,
 	tibiaPart_1->DeepCopy(clipper->GetOutput());
 	int cellNum_1 = tibiaPart_1->GetNumberOfCells();
 
+	// Create the capping 
+	vtkNew<vtkFeatureEdges> boundaryEdges;
+	boundaryEdges->SetInputData(tibiaPart_0);
+	boundaryEdges->BoundaryEdgesOn();
+	boundaryEdges->FeatureEdgesOff();
+	boundaryEdges->NonManifoldEdgesOff();
+	boundaryEdges->ManifoldEdgesOff();
+
+	vtkNew<vtkStripper> boundaryStrips;
+	boundaryStrips->SetInputConnection(boundaryEdges->GetOutputPort());
+	boundaryStrips->Update();
+
+	// Change the polylines into polygons
+	vtkNew<vtkPolyData> boundaryPoly;
+	boundaryPoly->SetPoints(boundaryStrips->GetOutput()->GetPoints());
+	boundaryPoly->SetPolys(boundaryStrips->GetOutput()->GetLines());
+
+	vtkNew<vtkPolyData> boundaryPoly_copy;
+	boundaryPoly_copy->DeepCopy(boundaryPoly);
+
+	// Append the capping
+	vtkSmartPointer<vtkAppendPolyData> appendFilter =
+		vtkSmartPointer<vtkAppendPolyData>::New();
+	vtkSmartPointer<vtkCleanPolyData> cleanFilter =
+		vtkSmartPointer<vtkCleanPolyData>::New();
+	vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter =
+		vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+
+	appendFilter->AddInputData(tibiaPart_0);
+	appendFilter->AddInputData(boundaryPoly);
+	appendFilter->Update();
+
+	cleanFilter->SetInputData(appendFilter->GetOutput());
+	cleanFilter->Update();
+
+	smoothFilter->SetInputData(cleanFilter->GetOutput());
+	smoothFilter->SetNumberOfIterations(15);
+	smoothFilter->SetRelaxationFactor(0.1);
+	smoothFilter->FeatureEdgeSmoothingOff();
+	smoothFilter->BoundarySmoothingOn();
+	smoothFilter->Update();
+
+	vtkNew<vtkPolyData> tibia_0;
+	tibia_0->DeepCopy(smoothFilter->GetOutput());
+
+
+	vtkSmartPointer<vtkAppendPolyData> appendFilter2 =
+		vtkSmartPointer<vtkAppendPolyData>::New();
+	vtkSmartPointer<vtkCleanPolyData> cleanFilter2 =
+		vtkSmartPointer<vtkCleanPolyData>::New();
+	vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter2 =
+		vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+
+	appendFilter2->AddInputData(tibiaPart_1);
+	appendFilter2->AddInputData(boundaryPoly_copy);
+	appendFilter2->Update();
+
+	cleanFilter2->SetInputData(appendFilter2->GetOutput());
+	cleanFilter2->Update();
+
+	smoothFilter2->SetInputData(cleanFilter2->GetOutput());
+	smoothFilter2->SetNumberOfIterations(15);
+	smoothFilter2->SetRelaxationFactor(0.1);
+	smoothFilter2->FeatureEdgeSmoothingOff();
+	smoothFilter2->BoundarySmoothingOn();
+	smoothFilter2->Update();
+
+	vtkNew<vtkPolyData> tibia_1;
+	tibia_1->DeepCopy(smoothFilter2->GetOutput());
+
+
 	if(cellNum_1 >= cellNum_0)
 	{
-		largerSubPart->DeepCopy(tibiaPart_1);
-		smallerSubPart->DeepCopy(tibiaPart_0);
+		largerSubPart->DeepCopy(tibia_1);
+		smallerSubPart->DeepCopy(tibia_0);
 	}else
 	{
-		largerSubPart->DeepCopy(tibiaPart_0);
-		smallerSubPart->DeepCopy(tibiaPart_1);
+		largerSubPart->DeepCopy(tibia_0);
+		smallerSubPart->DeepCopy(tibia_1);
 	}
 
 	return true;

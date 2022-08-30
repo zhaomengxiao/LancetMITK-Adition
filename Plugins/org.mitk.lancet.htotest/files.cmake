@@ -6,6 +6,7 @@ set(INTERNAL_CPP_FILES
   org_mitk_lancet_htotest_Activator.cpp
   HTOTest.cpp
   HTOTest_cutTibia.cpp
+  HTOTest_register.cpp
 )
 
 set(UI_FILES

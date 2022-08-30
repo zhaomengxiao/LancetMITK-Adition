@@ -62,11 +62,13 @@ protected:
   bool CutTibiaImage(); // cut tibia image with one or two planes
 
   bool CutTibia(); // cut tibia image and surface
-  
-  
-
 
   bool GetPlaneProperty(vtkSmartPointer<vtkPolyData> plane, double normal[3], double center[3]);
+
+  // Register femur, proximal tibia and distal tibia
+  bool RegisterFemur();
+  bool RegisterPoximalTibia();
+  bool RegisterDistalTibia();
 
 
 };
