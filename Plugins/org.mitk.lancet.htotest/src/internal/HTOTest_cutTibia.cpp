@@ -35,6 +35,7 @@ found in the LICENSE file.
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 #include "mitkBoundingShapeCropper.h"
 #include <mitkRemeshing.h>
+#include <vtkPolyDataPlaneClipper.h>
 
 #include "mitkSurface.h"
 #include "mitkSurfaceToImageFilter.h"
@@ -198,73 +199,129 @@ bool HTOTest::CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut,
 	implicitPlane->SetNormal(planeNormal);
 	implicitPlane->SetOrigin(planeOrigin);
 
-	vtkNew<vtkClipPolyData> clipper;
-	clipper->SetInputData(dataToCut);
-	clipper->GenerateClippedOutputOn();
-	clipper->SetClipFunction(implicitPlane);
+	// vtkNew<vtkPolyDataPlaneClipper> planeClipper;
+	// planeClipper->SetPlane(implicitPlane);
+	// planeClipper->SetInputData(dataToCut);
+	// planeClipper->CappingOn();
+	// planeClipper->Update();
+	//
+	// auto tibiaPart_0 = planeClipper->GetOutput();
+	// auto tibiaPart_0_cap = planeClipper->GetCap();
+	// int cellNum_0 = tibiaPart_0->GetNumberOfCells();
+	//
+	// vtkSmartPointer<vtkAppendPolyData> appendFilter =
+	// 	vtkSmartPointer<vtkAppendPolyData>::New();
+	// vtkSmartPointer<vtkCleanPolyData> cleanFilter =
+	// 	vtkSmartPointer<vtkCleanPolyData>::New();
+	//
+	// appendFilter->AddInputData(tibiaPart_0);
+	// appendFilter->AddInputData(tibiaPart_0_cap);
+	// appendFilter->Update();
+	//
+	// cleanFilter->SetInputData(appendFilter->GetOutput());
+	// cleanFilter->Update();
+	//
+	// vtkNew<vtkPolyData> tibia_0;
+	// tibia_0->DeepCopy(cleanFilter->GetOutput());
+	//
+	// vtkNew<vtkPlane> implicitPlane1;
+	// double planeNormal1[3]{ -planeNormal[0], -planeNormal[1],-planeNormal[2] };
+	// implicitPlane1->SetNormal(planeNormal1);
+	// implicitPlane1->SetOrigin(planeOrigin);
+	//
+	// vtkNew<vtkPolyDataPlaneClipper> planeClipper1;
+	// planeClipper1->SetPlane(implicitPlane1);
+	// planeClipper1->SetInputData(dataToCut);
+	// planeClipper1->CappingOn();
+	// planeClipper1->Update();
+	//
+	// auto tibiaPart_1 = planeClipper1->GetOutput();
+	// auto tibiaPart_1_cap = planeClipper1->GetCap();
+	// int cellNum_1 = tibiaPart_1->GetNumberOfCells();
+	//
+	// vtkSmartPointer<vtkAppendPolyData> appendFilter1 =
+	// 	vtkSmartPointer<vtkAppendPolyData>::New();
+	// vtkSmartPointer<vtkCleanPolyData> cleanFilter1 =
+	// 	vtkSmartPointer<vtkCleanPolyData>::New();
+	//
+	// appendFilter1->AddInputData(tibiaPart_1);
+	// appendFilter1->AddInputData(tibiaPart_1_cap);
+	// appendFilter1->Update();
+	//
+	// cleanFilter1->SetInputData(appendFilter1->GetOutput());
+	// cleanFilter1->Update();
+	//
+	// vtkNew<vtkPolyData> tibia_1;
+	// tibia_1->DeepCopy(cleanFilter1->GetOutput());
 
-	clipper->Update();
-	vtkNew<vtkPolyData> tibiaPart_0;
-	tibiaPart_0->DeepCopy(clipper->GetClippedOutput());
-	int cellNum_0 = tibiaPart_0->GetNumberOfCells();
+	 vtkNew<vtkClipPolyData> clipper;
+	 clipper->SetInputData(dataToCut);
+	 clipper->GenerateClippedOutputOn();
+	 clipper->SetClipFunction(implicitPlane);
+	
+	 clipper->Update();
+	 vtkNew<vtkPolyData> tibiaPart_0;
+	 tibiaPart_0->DeepCopy(clipper->GetClippedOutput());
+	 int cellNum_0 = tibiaPart_0->GetNumberOfCells();
+	
+	 clipper->Update();
+	 vtkNew<vtkPolyData> tibiaPart_1;
+	 tibiaPart_1->DeepCopy(clipper->GetOutput());
+	 int cellNum_1 = tibiaPart_1->GetNumberOfCells();
 
-	clipper->Update();
-	vtkNew<vtkPolyData> tibiaPart_1;
-	tibiaPart_1->DeepCopy(clipper->GetOutput());
-	int cellNum_1 = tibiaPart_1->GetNumberOfCells();
 
 	// Create the capping 
-	vtkNew<vtkFeatureEdges> boundaryEdges;
-	boundaryEdges->SetInputData(tibiaPart_0);
-	boundaryEdges->BoundaryEdgesOn();
-	boundaryEdges->FeatureEdgesOff();
-	boundaryEdges->NonManifoldEdgesOff();
-	boundaryEdges->ManifoldEdgesOff();
-
-	vtkNew<vtkStripper> boundaryStrips;
-	boundaryStrips->SetInputConnection(boundaryEdges->GetOutputPort());
-	boundaryStrips->Update();
-
-	// Change the polylines into polygons
-	vtkNew<vtkPolyData> boundaryPoly;
-	boundaryPoly->SetPoints(boundaryStrips->GetOutput()->GetPoints());
-	boundaryPoly->SetPolys(boundaryStrips->GetOutput()->GetLines());
-
-
-	vtkNew<vtkPolyData> boundaryPoly_copy;
-	boundaryPoly_copy->DeepCopy(boundaryPoly);
-
-	// Append the capping
-	vtkSmartPointer<vtkAppendPolyData> appendFilter =
-		vtkSmartPointer<vtkAppendPolyData>::New();
-	vtkSmartPointer<vtkCleanPolyData> cleanFilter =
-		vtkSmartPointer<vtkCleanPolyData>::New();
-
-	appendFilter->AddInputData(tibiaPart_0);
-	appendFilter->AddInputData(boundaryPoly);
-	appendFilter->Update();
-
-	cleanFilter->SetInputData(appendFilter->GetOutput());
-	cleanFilter->Update();
+	 vtkNew<vtkFeatureEdges> boundaryEdges;
+	 boundaryEdges->SetInputData(tibiaPart_0);
+	 boundaryEdges->BoundaryEdgesOn();
+	 boundaryEdges->FeatureEdgesOff();
+	 boundaryEdges->NonManifoldEdgesOff();
+	 boundaryEdges->ManifoldEdgesOff();
 	
-	vtkNew<vtkPolyData> tibia_0;
-	tibia_0->DeepCopy(cleanFilter->GetOutput());
-
-
-	vtkSmartPointer<vtkAppendPolyData> appendFilter2 =
-		vtkSmartPointer<vtkAppendPolyData>::New();
-	vtkSmartPointer<vtkCleanPolyData> cleanFilter2 =
-		vtkSmartPointer<vtkCleanPolyData>::New();
-
-	appendFilter2->AddInputData(tibiaPart_1);
-	appendFilter2->AddInputData(boundaryPoly_copy);
-	appendFilter2->Update();
-
-	cleanFilter2->SetInputData(appendFilter2->GetOutput());
-	cleanFilter2->Update();
-
-	vtkNew<vtkPolyData> tibia_1;
-	tibia_1->DeepCopy(cleanFilter2->GetOutput());
+	 vtkNew<vtkStripper> boundaryStrips;
+	 boundaryStrips->SetInputConnection(boundaryEdges->GetOutputPort());
+	 boundaryStrips->Update();
+	
+	 // Change the polylines into polygons
+	 vtkNew<vtkPolyData> boundaryPoly;
+	 boundaryPoly->SetPoints(boundaryStrips->GetOutput()->GetPoints());
+	 boundaryPoly->SetPolys(boundaryStrips->GetOutput()->GetLines());
+	
+	
+	 vtkNew<vtkPolyData> boundaryPoly_copy;
+	 boundaryPoly_copy->DeepCopy(boundaryPoly);
+	
+	 // Append the capping
+	 vtkSmartPointer<vtkAppendPolyData> appendFilter =
+	 	vtkSmartPointer<vtkAppendPolyData>::New();
+	 vtkSmartPointer<vtkCleanPolyData> cleanFilter =
+	 	vtkSmartPointer<vtkCleanPolyData>::New();
+	
+	 appendFilter->AddInputData(tibiaPart_0);
+	 appendFilter->AddInputData(boundaryPoly);
+	 appendFilter->Update();
+	
+	 cleanFilter->SetInputData(appendFilter->GetOutput());
+	 cleanFilter->Update();
+	
+	 vtkNew<vtkPolyData> tibia_0;
+	 tibia_0->DeepCopy(cleanFilter->GetOutput());
+	
+	
+	 vtkSmartPointer<vtkAppendPolyData> appendFilter2 =
+	 	vtkSmartPointer<vtkAppendPolyData>::New();
+	 vtkSmartPointer<vtkCleanPolyData> cleanFilter2 =
+	 	vtkSmartPointer<vtkCleanPolyData>::New();
+	
+	 appendFilter2->AddInputData(tibiaPart_1);
+	 appendFilter2->AddInputData(boundaryPoly_copy);
+	 appendFilter2->Update();
+	
+	 cleanFilter2->SetInputData(appendFilter2->GetOutput());
+	 cleanFilter2->Update();
+	
+	 vtkNew<vtkPolyData> tibia_1;
+	 tibia_1->DeepCopy(cleanFilter2->GetOutput());
 
 
 	if(cellNum_1 >= cellNum_0)
@@ -354,9 +411,9 @@ bool HTOTest::CutTibiaWithOnePlane()
 	mitkProximalSurface->SetVtkPolyData(proximalTibiaSurface);
 	mitkDistalSurface->SetVtkPolyData(distalTibiaSurface);
 
-	// for visualization purpose: mitkProximalSurface and mitkProximalSurface have rough surfaces
-	// auto proximal_remehsed = mitk::Remeshing::Decimate(mitkProximalSurface,1,true,true);
-	// auto distal_remehsed = mitk::Remeshing::Decimate(mitkDistalSurface, 1, true, true);
+	//// for visualization purpose: mitkProximalSurface and mitkProximalSurface have rough surfaces
+	auto proximal_remehsed = mitk::Remeshing::Decimate(mitkProximalSurface,1,true,true);
+	auto distal_remehsed = mitk::Remeshing::Decimate(mitkDistalSurface, 1, true, true);
 
 	auto tmpNode0 = mitk::DataNode::New();
 	auto tmpNode1 = mitk::DataNode::New();
@@ -460,9 +517,9 @@ bool HTOTest::CutTibiaWithTwoPlanes()
 	proximalSurface->SetVtkPolyData(middlePart);
 	distalSurface->SetVtkPolyData(cleanFilter->GetOutput());
 
-	// for visualization purpose: mitkProximalSurface and mitkProximalSurface have rough surfaces
-	// auto proximal_remehsed = mitk::Remeshing::Decimate(proximalSurface, 1, true, true);
-	// auto distal_remehsed = mitk::Remeshing::Decimate(distalSurface, 1, true, true);
+	//// for visualization purpose: mitkProximalSurface and mitkProximalSurface have rough surfaces
+	auto proximal_remehsed = mitk::Remeshing::Decimate(proximalSurface, 1, true, true);
+	auto distal_remehsed = mitk::Remeshing::Decimate(distalSurface, 1, true, true);
 
 
 	auto proximalNode = mitk::DataNode::New();
