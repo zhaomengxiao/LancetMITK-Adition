@@ -20,7 +20,7 @@ namespace lancet
             std::string* errorMessage,
             std::vector<int>* toolCorrespondencesInToolStorage) override;
         static std::string GetTrackingDeviceName();
-        static mitk::TrackingDeviceData GetDeviceDataLancetVegaTrackingDevice();
+        static mitk::TrackingDeviceData GetDeviceDataLancetKukaTrackingDevice();
     };
 }
 #endif // LANCETKUKATRACKINGDEVICETYPEINFORMATION_H

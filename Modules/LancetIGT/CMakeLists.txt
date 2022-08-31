@@ -10,11 +10,17 @@ endif()
 mitk_create_module(LancetIGT
 INCLUDE_DIRS
     PUBLIC ${ADDITIONAL_INCLUDE_DIRS} Algorithms Common DataManagement ExceptionHandling IO Rendering TrackingDevices TestingHelper
-  DEPENDS PUBLIC MitkSceneSerialization MitkIGTBase MitkIGT
+  DEPENDS PUBLIC MitkSceneSerialization MitkIGTBase MitkIGT MitkIGTUI
   PACKAGE_DEPENDS
     PRIVATE ITK VTK 
     PUBLIC ${qt5_depends}
   ADDITIONAL_LIBS PUBLIC "${ADDITIONAL_LIBS}"
 )
 
-#add_subdirectory(cmdapps)
+if(MODULE_IS_ENABLED)
+  #configure_file(mitkIGTConfig.h.in ${PROJECT_BINARY_DIR}/mitkIGTConfig.h @ONLY)
+
+  add_subdirectory(autoload/DeviceRegistry)
+  #add_subdirectory(Tutorial)
+  #add_subdirectory(Testing)
+endif()

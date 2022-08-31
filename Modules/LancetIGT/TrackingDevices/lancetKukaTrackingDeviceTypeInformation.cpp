@@ -9,7 +9,7 @@ namespace lancet
         return "Kuka";
     }
 
-    mitk::TrackingDeviceData KukaRobotTypeInformation::GetDeviceDataLancetVegaTrackingDevice()
+    mitk::TrackingDeviceData KukaRobotTypeInformation::GetDeviceDataLancetKukaTrackingDevice()
     {
         mitk::TrackingDeviceData data = { KukaRobotTypeInformation::GetTrackingDeviceName(), "Kuka Robot", "cube", "X" };
         return data;
@@ -18,7 +18,7 @@ namespace lancet
     KukaRobotTypeInformation::KukaRobotTypeInformation()
     {
         this->m_DeviceName = GetTrackingDeviceName();
-        this->m_TrackingDeviceData.push_back(GetDeviceDataLancetVegaTrackingDevice());
+        this->m_TrackingDeviceData.push_back(GetDeviceDataLancetKukaTrackingDevice());
     }
 
     mitk::TrackingDeviceSource::Pointer KukaRobotTypeInformation::CreateTrackingDeviceSource(

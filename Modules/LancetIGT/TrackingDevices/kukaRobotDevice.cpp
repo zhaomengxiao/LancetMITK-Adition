@@ -172,7 +172,7 @@ bool KukaRobotDevice::RequestExecOperate(const QString& funname, const QStringLi
 KukaRobotDevice::KukaRobotDevice()
   :TrackingDevice()
 {
-  m_Data = lancet::KukaRobotTypeInformation::GetDeviceDataLancetVegaTrackingDevice();
+  m_Data = lancet::KukaRobotTypeInformation::GetDeviceDataLancetKukaTrackingDevice();
   m_6DTools.clear();
 }
 
