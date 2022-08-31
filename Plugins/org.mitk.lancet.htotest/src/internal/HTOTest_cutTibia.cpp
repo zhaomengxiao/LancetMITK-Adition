@@ -31,12 +31,15 @@ found in the LICENSE file.
 #include <vtkPlaneSource.h>
 #include <vtkSmoothPolyDataFilter.h>
 #include <vtkStripper.h>
+#include <vtkTriangleFilter.h>
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 #include "mitkBoundingShapeCropper.h"
+#include <mitkRemeshing.h>
 
 #include "mitkSurface.h"
 #include "mitkSurfaceToImageFilter.h"
 #include "vtkOBBTree.h"
+#include "vtkDelaunay2D.h"
 
 bool HTOTest::CreateOneCutPlane()
 {
@@ -227,6 +230,7 @@ bool HTOTest::CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut,
 	boundaryPoly->SetPoints(boundaryStrips->GetOutput()->GetPoints());
 	boundaryPoly->SetPolys(boundaryStrips->GetOutput()->GetLines());
 
+
 	vtkNew<vtkPolyData> boundaryPoly_copy;
 	boundaryPoly_copy->DeepCopy(boundaryPoly);
 
@@ -235,8 +239,6 @@ bool HTOTest::CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut,
 		vtkSmartPointer<vtkAppendPolyData>::New();
 	vtkSmartPointer<vtkCleanPolyData> cleanFilter =
 		vtkSmartPointer<vtkCleanPolyData>::New();
-	vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter =
-		vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
 
 	appendFilter->AddInputData(tibiaPart_0);
 	appendFilter->AddInputData(boundaryPoly);
@@ -244,24 +246,15 @@ bool HTOTest::CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut,
 
 	cleanFilter->SetInputData(appendFilter->GetOutput());
 	cleanFilter->Update();
-
-	smoothFilter->SetInputData(cleanFilter->GetOutput());
-	smoothFilter->SetNumberOfIterations(15);
-	smoothFilter->SetRelaxationFactor(0.1);
-	smoothFilter->FeatureEdgeSmoothingOff();
-	smoothFilter->BoundarySmoothingOn();
-	smoothFilter->Update();
-
+	
 	vtkNew<vtkPolyData> tibia_0;
-	tibia_0->DeepCopy(smoothFilter->GetOutput());
+	tibia_0->DeepCopy(cleanFilter->GetOutput());
 
 
 	vtkSmartPointer<vtkAppendPolyData> appendFilter2 =
 		vtkSmartPointer<vtkAppendPolyData>::New();
 	vtkSmartPointer<vtkCleanPolyData> cleanFilter2 =
 		vtkSmartPointer<vtkCleanPolyData>::New();
-	vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter2 =
-		vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
 
 	appendFilter2->AddInputData(tibiaPart_1);
 	appendFilter2->AddInputData(boundaryPoly_copy);
@@ -270,15 +263,8 @@ bool HTOTest::CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut,
 	cleanFilter2->SetInputData(appendFilter2->GetOutput());
 	cleanFilter2->Update();
 
-	smoothFilter2->SetInputData(cleanFilter2->GetOutput());
-	smoothFilter2->SetNumberOfIterations(15);
-	smoothFilter2->SetRelaxationFactor(0.1);
-	smoothFilter2->FeatureEdgeSmoothingOff();
-	smoothFilter2->BoundarySmoothingOn();
-	smoothFilter2->Update();
-
 	vtkNew<vtkPolyData> tibia_1;
-	tibia_1->DeepCopy(smoothFilter2->GetOutput());
+	tibia_1->DeepCopy(cleanFilter2->GetOutput());
 
 
 	if(cellNum_1 >= cellNum_0)
@@ -353,26 +339,31 @@ bool HTOTest::CutTibiaWithOnePlane()
 
 	CutPolyDataWithPlane(tibiaVtkSurface, distalTibiaSurface, proximalTibiaSurface, cutPlaneCenter, surfaceNormal);
 
-	vtkSmartPointer<vtkCleanPolyData> proximalCleanFilter =
-		vtkSmartPointer<vtkCleanPolyData>::New();
-	vtkSmartPointer<vtkCleanPolyData> distalCleanFilter =
-		vtkSmartPointer<vtkCleanPolyData>::New();
-	proximalCleanFilter->SetInputData(proximalTibiaSurface);
-	proximalCleanFilter->Update();
-
-	distalCleanFilter->SetInputData(distalTibiaSurface);
-	distalCleanFilter->Update();
+	// vtkSmartPointer<vtkCleanPolyData> proximalCleanFilter =
+	// 	vtkSmartPointer<vtkCleanPolyData>::New();
+	// vtkSmartPointer<vtkCleanPolyData> distalCleanFilter =
+	// 	vtkSmartPointer<vtkCleanPolyData>::New();
+	// proximalCleanFilter->SetInputData(proximalTibiaSurface);
+	// proximalCleanFilter->Update();
+	//
+	// distalCleanFilter->SetInputData(distalTibiaSurface);
+	// distalCleanFilter->Update();
 
 	auto mitkProximalSurface = mitk::Surface::New();
 	auto mitkDistalSurface = mitk::Surface::New();
-	mitkProximalSurface->SetVtkPolyData(proximalCleanFilter->GetOutput());
-	mitkDistalSurface->SetVtkPolyData(distalCleanFilter->GetOutput());
+	mitkProximalSurface->SetVtkPolyData(proximalTibiaSurface);
+	mitkDistalSurface->SetVtkPolyData(distalTibiaSurface);
+
+	// for visualization purpose: mitkProximalSurface and mitkProximalSurface have rough surfaces
+	// auto proximal_remehsed = mitk::Remeshing::Decimate(mitkProximalSurface,1,true,true);
+	// auto distal_remehsed = mitk::Remeshing::Decimate(mitkDistalSurface, 1, true, true);
+
 	auto tmpNode0 = mitk::DataNode::New();
 	auto tmpNode1 = mitk::DataNode::New();
 	tmpNode0->SetData(mitkProximalSurface);
-	tmpNode0->SetName("proximal tibia");
+	tmpNode0->SetName("proximal tibiaSurface");
 	tmpNode1->SetData(mitkDistalSurface);
-	tmpNode1->SetName("distal tibia");
+	tmpNode1->SetName("distal tibiaSurface");
 
 	GetDataStorage()->Add(tmpNode0);
 	GetDataStorage()->Add(tmpNode1);
@@ -469,18 +460,21 @@ bool HTOTest::CutTibiaWithTwoPlanes()
 	proximalSurface->SetVtkPolyData(middlePart);
 	distalSurface->SetVtkPolyData(cleanFilter->GetOutput());
 
+	// for visualization purpose: mitkProximalSurface and mitkProximalSurface have rough surfaces
+	// auto proximal_remehsed = mitk::Remeshing::Decimate(proximalSurface, 1, true, true);
+	// auto distal_remehsed = mitk::Remeshing::Decimate(distalSurface, 1, true, true);
+
+
 	auto proximalNode = mitk::DataNode::New();
 	auto distalNode = mitk::DataNode::New();
 
-	proximalNode->SetName("proximal tibia");
+	proximalNode->SetName("proximal tibiaSurface");
 	proximalNode->SetData(proximalSurface);
-	distalNode->SetName("distal tibia");
+	distalNode->SetName("distal tibiaSurface");
 	distalNode->SetData(distalSurface);
 
 	GetDataStorage()->Add(distalNode);
 	GetDataStorage()->Add(proximalNode);
-
-
 
 	return true;
 }
@@ -510,13 +504,13 @@ bool HTOTest::CutTibiaSurface()
 
 bool HTOTest::CutTibiaImage()
 {
-	auto proximalNode = GetDataStorage()->GetNamedNode("proximal tibia");
-	auto distalNode = GetDataStorage()->GetNamedNode("distal tibia");
+	auto proximalNode = GetDataStorage()->GetNamedNode("proximal tibiaSurface");
+	auto distalNode = GetDataStorage()->GetNamedNode("distal tibiaSurface");
 	auto imageNode = GetDataStorage()->GetNamedNode("tibiaImage");
 
 	if(proximalNode== nullptr || distalNode==nullptr)
 	{
-		m_Controls.textBrowser->append("'proximal tibia' or 'distal tibia' is missing");
+		m_Controls.textBrowser->append("'proximal tibiaSurface' or 'distal tibiaSurface' is missing");
 		return false;
 	}
 
@@ -600,14 +594,14 @@ bool HTOTest::CutTibiaImage()
 
 
 	auto tmpNode0 = mitk::DataNode::New();
-	tmpNode0->SetName("distal tibia image");
+	tmpNode0->SetName("distal tibiaImage");
 	tmpNode0->SetData(cutterDistal->GetOutput());
-	GetDataStorage()->Add(tmpNode0);
+	GetDataStorage()->Add(tmpNode0,distalNode);
 
 	auto tmpNode1 = mitk::DataNode::New();
-	tmpNode1->SetName("proximal tibia image");
+	tmpNode1->SetName("proximal tibiaImage");
 	tmpNode1->SetData(cutter->GetOutput());
-	GetDataStorage()->Add(tmpNode1);
+	GetDataStorage()->Add(tmpNode1, proximalNode);
 
 	return true;
 }
