@@ -16,7 +16,7 @@ found in the LICENSE file.
 #include <usModuleActivator.h>
 
 
-namespace mitk
+namespace lancet
 {
 
   /** Documentation:

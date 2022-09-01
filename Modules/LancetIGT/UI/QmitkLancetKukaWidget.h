@@ -43,6 +43,8 @@ private:
   void CreateConnections();
 
   void CreateQtPartControl(QWidget *parent);
+
+  void SelfCheck();
 protected:
 
   /** @return Returns the frame rate set in the m_frameRatePolaris ComboBox

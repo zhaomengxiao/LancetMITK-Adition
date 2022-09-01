@@ -8,6 +8,16 @@
 
 bool KukaRobotDevice::OpenConnection()
 {
+  m_udp.setRepetitiveHeartbeatInterval(500);
+  m_udp.setRemoteHostPort(m_RemotePort.toUInt());
+  m_udp.setRemoteHostAddress(QString::fromStdString(m_RemoteIpAddress));
+  if (!m_udp.bind(QHostAddress(QString::fromStdString(m_IpAddress)), m_Port.toInt()))
+  {
+    MITK_ERROR << QString("bind to %1:%2 error!- %3").arg(QString::fromStdString(m_IpAddress)).arg(m_Port.toInt()).arg(m_udp.error()).toStdString();
+  }
+  MITK_INFO << QString("bind udp %1:%2 at fps:%3").arg(QString::fromStdString(m_IpAddress)).arg(m_Port.toInt()).arg(m_udp.repetitiveHeartbeatInterval()).toStdString();
+  m_udp.startRepetitiveHeartbeat();
+
 	connect(&m_RobotApi, SIGNAL(signal_api_isRobotConnected(bool)),
 		this, SLOT(IsRobotConnected(bool)));
 
@@ -73,7 +83,7 @@ mitk::TrackingTool* KukaRobotDevice::AddTool(const char* toolName, const char* f
 
 unsigned KukaRobotDevice::GetToolCount() const
 {
-	return 0;
+  return static_cast<unsigned int>(this->m_6DTools.size());
 }
 
 void KukaRobotDevice::TrackTools()

@@ -4,19 +4,22 @@
 #include <mitkCommon.h>
 #include <mitkTrackingDevice.h>
 
-//KUKA ROBOT API
+
 #include "MitkLancetIGTExports.h"
-#include "robotapi.h"
+
 
 //qt
 #include <QObject>
 #include <QThread>
 #include <QMetaType>
 #include <QPointer>
+#include <QString>
 
-#include "mitkNDIPassiveTool.h"
 #include "mitkTrackingTool.h"
 
+//KUKA ROBOT API
+#include "robotapi.h"
+#include "udpsocketrobotheartbeat.h" //udp
 
 /** Documentation
   * \brief superclass for specific KUKA Robot Devices that use socket communication.
@@ -88,20 +91,28 @@ private:
 private:
 	bool m_IsConnected = false;
 	TrackingDeviceState m_State = Setup;///< current object state (Setup, Ready or Tracking)
-	RobotApi m_RobotApi;
+	
 	QPointer<QThread> m_Heartbeat;
 	std::array<double, 6> m_TrackingData = {};
-  std::string m_IpAddress { "172.31.1.148" } ;
-  std::string m_Port  {"30300"};
-  std::string m_RemoteIpAddress  {"172.31.1.147"};
-  std::string m_RemotePort {"30300"};
-  std::string m_DeviceName{"KUKA"};
 
   //track
   mutable std::mutex m_ToolsMutex; ///< mutex for coordinated access of tool container
   Tool6DContainerType m_6DTools; ///< container for all tracking tools
   ///< creates tracking thread that continuously polls serial interface for new tracking data
   std::thread m_Thread;                            ///< ID of tracking thread
+
+  //Robot
+  RobotApi m_RobotApi;
+  //Device Configure
+  std::string m_IpAddress{ "172.31.1.148" };
+  QString m_Port{ "30300" };
+  std::string m_RemoteIpAddress{ "172.31.1.147" };
+  QString m_RemotePort{ "30300" };
+  std::string m_DeviceName{ "Kuka" };
+
+  //communication
+  UdpSocketRobotHeartbeat m_udp;
+
 };
 
 

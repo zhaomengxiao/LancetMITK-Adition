@@ -48,11 +48,24 @@ void QmitkLancetKukaWidget::CreateQtPartControl(QWidget *parent)
   }
 }
 
+void QmitkLancetKukaWidget::SelfCheck()
+{
+  auto device = dynamic_cast<KukaRobotDevice*>( GetTrackingDevice().GetPointer());
+  if (device!=nullptr && device->GetIsConnected())
+  {
+    device->RequestExecOperate(/*"Robot",*/ "setio", { "20", "20" });
+  }
+  else
+  {
+    MITK_ERROR << "robot not connect";
+  }
+}
+
 void QmitkLancetKukaWidget::CreateConnections()
 {
   if (m_Controls)
   {
-    // connect((QObject*)(m_Controls->m_testConnectionPolaris), SIGNAL(clicked()), this, SLOT(TestConnection()));
+    connect((QObject*)(m_Controls->m_testConnectionPolaris), SIGNAL(clicked()), this, SLOT(TestConnection()));
     // connect((QObject*)(m_Controls->m_AutoScanPolaris), SIGNAL(clicked()), this, SLOT(AutoScanPorts()));
     //connect(m_Controls->m_frameRateComboBoxPolaris, SIGNAL(currentIndexChanged(int)), this, SLOT(SetTrackingFrequency(int)));
     //set a few UI components depending on Windows / Linux
@@ -129,44 +142,44 @@ void QmitkLancetKukaWidget::StoreUISettings()
 
 void QmitkLancetKukaWidget::LoadUISettings()
 {
-  std::string id = "org.mitk.modules.igt.ui.trackingdeviceconfigurationwidget";
-  if (this->GetPersistenceService())
-  {
-    int port = 0;
-    int portType = 0;
-    int polarisFrameRate = 0;
-
-    mitk::PropertyList::Pointer propList = this->GetPersistenceService()->GetPropertyList(id);
-    if (propList.IsNull())
-    {
-      MITK_ERROR << "Property list for this UI (" << id << ") is not available, could not load UI settings!"; return;
-    }
-
-    propList->Get("PolarisPortWin", port);
-    propList->Get("PortTypePolaris", portType);
-    propList->Get("PolarisFrameRate", polarisFrameRate);
-    this->SetPortTypeToGUI(portType);
-    this->SetPortValueToGUI(port);
-    m_Controls->m_frameRateComboBoxPolaris->setCurrentIndex(polarisFrameRate);
-  }
-  else
-  {
-    // QSettings as a fallback if the persistence service is not available
-    QSettings settings;
-    settings.beginGroup(QString::fromStdString(id));
-
-    //m_Controls->m_portSpinBoxPolaris->setValue(settings.value("portSpinBoxPolaris", 0).toInt());
-    //m_Controls->portTypePolaris->setCurrentIndex(settings.value("portTypePolaris", 0).toInt());
-    //framerates 20,30,60 --> divided by 30 = 0,1,2 --> index of combobox
-    m_Controls->m_frameRateComboBoxPolaris->setCurrentIndex((int)(settings.value("PolarisFrameRate", 0).toInt() / 30));
-
-    settings.endGroup();
-  }
+  // std::string id = "org.mitk.modules.igt.ui.trackingdeviceconfigurationwidget";
+  // if (this->GetPersistenceService())
+  // {
+  //   int port = 0;
+  //   int portType = 0;
+  //   int polarisFrameRate = 0;
+  //
+  //   mitk::PropertyList::Pointer propList = this->GetPersistenceService()->GetPropertyList(id);
+  //   if (propList.IsNull())
+  //   {
+  //     MITK_ERROR << "Property list for this UI (" << id << ") is not available, could not load UI settings!"; return;
+  //   }
+  //
+  //   propList->Get("PolarisPortWin", port);
+  //   propList->Get("PortTypePolaris", portType);
+  //   propList->Get("PolarisFrameRate", polarisFrameRate);
+  //   this->SetPortTypeToGUI(portType);
+  //   this->SetPortValueToGUI(port);
+  //   m_Controls->m_frameRateComboBoxPolaris->setCurrentIndex(polarisFrameRate);
+  // }
+  // else
+  // {
+  //   // QSettings as a fallback if the persistence service is not available
+  //   QSettings settings;
+  //   settings.beginGroup(QString::fromStdString(id));
+  //
+  //   //m_Controls->m_portSpinBoxPolaris->setValue(settings.value("portSpinBoxPolaris", 0).toInt());
+  //   //m_Controls->portTypePolaris->setCurrentIndex(settings.value("portTypePolaris", 0).toInt());
+  //   //framerates 20,30,60 --> divided by 30 = 0,1,2 --> index of combobox
+  //   m_Controls->m_frameRateComboBoxPolaris->setCurrentIndex((int)(settings.value("PolarisFrameRate", 0).toInt() / 30));
+  //
+  //   settings.endGroup();
+  // }
 }
 
 int QmitkLancetKukaWidget::GetVegaTrackingRate()
 {
-  uint index = m_Controls->m_frameRateComboBoxPolaris->currentIndex();
+  uint index =/* m_Controls->m_frameRateComboBoxPolaris->currentIndex()*/20;
   return index;
 }
 

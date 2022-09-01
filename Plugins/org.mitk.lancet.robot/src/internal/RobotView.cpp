@@ -19,13 +19,22 @@ found in the LICENSE file.
 // Qt
 #include <QMessageBox>
 #include <QPushButton>
-// mitk image
+// mitk 
 #include <mitkImage.h>
+#include <mitkTrackingDeviceSource.h>
 
 //robotapi
 #include "robotapi.h"
 #include "robotsocket.h"
 #include "robotcontroler.h"
+
+//micro service
+#include <usGetModuleContext.h>
+#include <usModule.h>
+#include <usServiceProperties.h>
+#include <usModuleContext.h>
+#include <usModuleInitialization.h>
+US_INITIALIZE_MODULE
 
 
 const std::string RobotView::VIEW_ID = "org.mitk.views.robotview";
@@ -45,22 +54,7 @@ void RobotView::CreateQtPartControl(QWidget *parent)
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
 
-  //udp
-  //m_udp = new UdpSocketRobotHeartbeat();
-  QString ipAddress = "172.31.1.148";
-  QString port = "30300";
-  QString remoteIpAddress = "172.31.1.147";
-  QString remotePort = "30300";
-
-  m_udp.setRepetitiveHeartbeatInterval(500);
-  m_udp.setRemoteHostPort(remotePort.toUInt());
-  m_udp.setRemoteHostAddress(remoteIpAddress);
-  if (!m_udp.bind(QHostAddress(ipAddress), port.toInt()))
-  {
-    MITK_ERROR << QString("bind to %1:%2 error!- %3").arg(ipAddress).arg(port.toInt()).arg(m_udp.error());
-  }
-  MITK_INFO << QString("bind udp %1:%2 at fps:%3").arg(ipAddress).arg(port.toInt()).arg(m_udp.repetitiveHeartbeatInterval());
-  m_udp.startRepetitiveHeartbeat();
+  
 
   // timer
   m_timer.setInterval(10);
@@ -102,7 +96,51 @@ void RobotView::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
 
 void RobotView::ConnectDevice()
 {
-	m_device->OpenConnection();
+  //try get Device from Micro service
+  us::ModuleContext* context = us::GetModuleContext();
+  std::vector<us::ServiceReference<mitk::NavigationDataSource> > refs = context->GetServiceReferences<mitk::NavigationDataSource>();
+  if (!refs.empty())
+  {
+    mitk::NavigationDataSource* navigationDataSource = context->GetService<
+      mitk::NavigationDataSource>(refs.front());
+
+    auto deviceSource = dynamic_cast<mitk::TrackingDeviceSource*>(navigationDataSource);
+    if (deviceSource != nullptr && deviceSource->GetTrackingDevice().IsNotNull())
+    {
+      auto device = deviceSource->GetTrackingDevice();
+      if (device->GetTrackingDeviceName() == "Kuka")
+      {
+        m_device = dynamic_cast<KukaRobotDevice*>(deviceSource->GetTrackingDevice().GetPointer());
+      }
+    }
+  }
+  else
+  {
+    MITK_ERROR << "No NavigationDataSource service found! new device create";
+  }
+  
+  if (m_device.IsNull())
+  {
+    //udp
+  //m_udp = new UdpSocketRobotHeartbeat();
+    // QString ipAddress = "172.31.1.148";
+    // QString port = "30300";
+    // QString remoteIpAddress = "172.31.1.147";
+    // QString remotePort = "30300";
+    //
+    // m_udp.setRepetitiveHeartbeatInterval(500);
+    // m_udp.setRemoteHostPort(remotePort.toUInt());
+    // m_udp.setRemoteHostAddress(remoteIpAddress);
+    // if (!m_udp.bind(QHostAddress(ipAddress), port.toInt()))
+    // {
+    //   MITK_ERROR << QString("bind to %1:%2 error!- %3").arg(ipAddress).arg(port.toInt()).arg(m_udp.error());
+    // }
+    // MITK_INFO << QString("bind udp %1:%2 at fps:%3").arg(ipAddress).arg(port.toInt()).arg(m_udp.repetitiveHeartbeatInterval());
+    // m_udp.startRepetitiveHeartbeat();
+
+    m_device = KukaRobotDevice::New();
+  }
+  m_device->OpenConnection();
 	if(m_device->GetIsConnected())
 	{
 		m_Controls.robotconnectstate->setText("Connected");

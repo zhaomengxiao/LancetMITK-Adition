@@ -17,12 +17,14 @@ found in the LICENSE file.
 //All Tracking devices, which should be available by default
 #include "lancetKukaTrackingDeviceTypeInformation.h"
 #include "UI/QmitkLancetKukaWidget.h"
+
+//micro service
 #include <usGetModuleContext.h>
 #include <usModule.h>
 #include <usServiceProperties.h>
 #include <usModuleContext.h>
 
-namespace mitk
+namespace lancet
 {
 
   LancetIGTActivator::LancetIGTActivator()
@@ -64,4 +66,4 @@ namespace mitk
 
 }
 
-US_EXPORT_MODULE_ACTIVATOR(mitk::LancetIGTActivator)
+US_EXPORT_MODULE_ACTIVATOR(lancet::LancetIGTActivator)
