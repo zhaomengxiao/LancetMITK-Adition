@@ -1,26 +1,13 @@
 #include "kukaRobotDevice.h"
 
 #include "mitkIGTTimeStamp.h"
-#include "mitkTrackingTool.h"
+
 #include "lancetKukaTrackingDeviceTypeInformation.h"
 
 #define d2r 57.2957795130
 
 bool KukaRobotDevice::OpenConnection()
 {
-  m_udp.setRepetitiveHeartbeatInterval(500);
-  m_udp.setRemoteHostPort(m_RemotePort.toUInt());
-  m_udp.setRemoteHostAddress(QString::fromStdString(m_RemoteIpAddress));
-  if (!m_udp.bind(QHostAddress(QString::fromStdString(m_IpAddress)), m_Port.toInt()))
-  {
-    MITK_ERROR << QString("bind to %1:%2 error!- %3").arg(QString::fromStdString(m_IpAddress)).arg(m_Port.toInt()).arg(m_udp.error()).toStdString();
-  }
-  MITK_INFO << QString("bind udp %1:%2 at fps:%3").arg(QString::fromStdString(m_IpAddress)).arg(m_Port.toInt()).arg(m_udp.repetitiveHeartbeatInterval()).toStdString();
-  m_udp.startRepetitiveHeartbeat();
-
-	connect(&m_RobotApi, SIGNAL(signal_api_isRobotConnected(bool)),
-		this, SLOT(IsRobotConnected(bool)));
-
 	m_RobotApi.connectrobot();
 
 	return m_IsConnected;
@@ -53,19 +40,24 @@ bool KukaRobotDevice::StartTracking()
 mitk::TrackingTool* KukaRobotDevice::GetTool(unsigned toolNumber) const
 {
   std::lock_guard<std::mutex> lock(m_ToolsMutex); // lock and unlock the mutex
-  if (toolNumber < m_6DTools.size())
-    return m_6DTools.at(toolNumber);
+  if (toolNumber < m_KukaEndEffectors.size())
+    return m_KukaEndEffectors.at(toolNumber);
   return nullptr;
 }
 
 mitk::TrackingTool* KukaRobotDevice::GetToolByName(std::string name) const
 {
   std::lock_guard<std::mutex> lock(m_ToolsMutex); // lock and unlock the mutex
-  auto end = m_6DTools.end();
-  for (auto iterator = m_6DTools.begin(); iterator != end; ++iterator)
+  auto end = m_KukaEndEffectors.end();
+  for (auto iterator = m_KukaEndEffectors.begin(); iterator != end; ++iterator)
     if (name.compare((*iterator)->GetToolName()) == 0)
       return *iterator;
   return nullptr;
+}
+
+mitk::TrackingTool* KukaRobotDevice::GetInternalTool()
+{
+  return m_KukaEndEffectors[0]; //only 1 end effector tracked;
 }
 
 mitk::TrackingTool* KukaRobotDevice::AddTool(const char* toolName, const char* fileName)
@@ -83,7 +75,7 @@ mitk::TrackingTool* KukaRobotDevice::AddTool(const char* toolName, const char* f
 
 unsigned KukaRobotDevice::GetToolCount() const
 {
-  return static_cast<unsigned int>(this->m_6DTools.size());
+  return static_cast<unsigned int>(this->m_KukaEndEffectors.size());
 }
 
 void KukaRobotDevice::TrackTools()
@@ -183,7 +175,20 @@ KukaRobotDevice::KukaRobotDevice()
   :TrackingDevice()
 {
   m_Data = lancet::KukaRobotTypeInformation::GetDeviceDataLancetKukaTrackingDevice();
-  m_6DTools.clear();
+  m_KukaEndEffectors.clear();
+  //udp service
+  m_udp.setRepetitiveHeartbeatInterval(500);
+  m_udp.setRemoteHostPort(m_RemotePort.toUInt());
+  m_udp.setRemoteHostAddress(QString::fromStdString(m_RemoteIpAddress));
+  if (!m_udp.bind(QHostAddress(QString::fromStdString(m_IpAddress)), m_Port.toInt()))
+  {
+    MITK_ERROR << QString("bind to %1:%2 error!- %3").arg(QString::fromStdString(m_IpAddress)).arg(m_Port.toInt()).arg(m_udp.error()).toStdString();
+  }
+  MITK_INFO << QString("bind udp %1:%2 at fps:%3").arg(QString::fromStdString(m_IpAddress)).arg(m_Port.toInt()).arg(m_udp.repetitiveHeartbeatInterval()).toStdString();
+  m_udp.startRepetitiveHeartbeat();
+
+  connect(&m_RobotApi, SIGNAL(signal_api_isRobotConnected(bool)),
+    this, SLOT(IsRobotConnected(bool)));
 }
 
 KukaRobotDevice::~KukaRobotDevice()
@@ -206,7 +211,7 @@ bool KukaRobotDevice::InternalAddTool(mitk::TrackingTool* tool)
     //todo add tool tcp to robot
     /* now that the tool is added to the device, add it to list too */
     m_ToolsMutex.lock();
-    this->m_6DTools.push_back(p);
+    this->m_KukaEndEffectors.push_back(p);
     m_ToolsMutex.unlock();
     this->Modified();
     return true;
@@ -216,7 +221,7 @@ bool KukaRobotDevice::InternalAddTool(mitk::TrackingTool* tool)
     MITK_INFO << "State Setup";
     /* In Setup mode, we only add it to the list, so that OpenConnection() can add it later */
     m_ToolsMutex.lock();
-    this->m_6DTools.push_back(p);
+    this->m_KukaEndEffectors.push_back(p);
     m_ToolsMutex.unlock();
     this->Modified();
     return true;
@@ -262,19 +267,12 @@ void KukaRobotDevice::ThreadStartTracking()
     return;
   }
 
-  // int returnvalue;
-  // returnvalue = m_capi.startTracking();
-  // if (warningOrError(returnvalue, "m_capi.startTracking()"))
-  // {
-  //   MITK_INFO << "TrackTools Return: startTracking warning";
-  //   return;
-  // }
-
   bool localStopTracking;
   // Because m_StopTracking is used by two threads, access has to be guarded by a mutex. To minimize thread locking, a local copy is used here
   this->m_StopTrackingMutex.lock(); // update the local copy of m_StopTracking
   localStopTracking = this->m_StopTracking;
   this->m_StopTrackingMutex.unlock();
+
   while ((this->GetState() == Tracking) && (localStopTracking == false))
   {
     //MITK_INFO << "tracking";
@@ -288,7 +286,6 @@ void KukaRobotDevice::ThreadStartTracking()
     m_TrackingData[5] = m_RobotApi.realtime_data.pose.c;
 
     Eigen::Quaterniond q;
-
     //kuka
     Eigen::AngleAxisd rx(m_TrackingData[3] / d2r, Eigen::Vector3d::UnitZ());
     Eigen::AngleAxisd ry(m_TrackingData[4] / d2r, Eigen::Vector3d::UnitY());
@@ -302,20 +299,19 @@ void KukaRobotDevice::ThreadStartTracking()
     //return rx.matrix()*ry.matrix()*rz.matrix(); // staubli
     q = rx * ry * rz;
    
-      mitk::TrackingTool::Pointer tool = GetTool(0);
-      mitk::Quaternion quaternion{ q.x(),q.y(),q.z(),q.w() };
-      tool->SetOrientation(quaternion);
-      mitk::Point3D position;
-      position[0] = m_TrackingData[0];
-      position[1] = m_TrackingData[1];
-      position[2] = m_TrackingData[2];
+    mitk::TrackingTool::Pointer tool = GetInternalTool();
+    mitk::Quaternion quaternion{ q.x(),q.y(),q.z(),q.w() };
+    tool->SetOrientation(quaternion);
+    mitk::Point3D position;
+    position[0] = m_TrackingData[0];
+    position[1] = m_TrackingData[1];
+    position[2] = m_TrackingData[2];
 
-      tool->SetPosition(position);
-      //tool->SetTrackingError(toolData.transform.error);
-      tool->SetErrorMessage("");
-      //tool->SetFrameNumber(toolData.frameNumber);
-
-      tool->SetDataValid(true);
+    tool->SetPosition(position);
+    tool->SetTrackingError(0);
+    tool->SetErrorMessage("");
+    //tool->SetFrameNumber(/*toolData.frameNumber*/); //todo add frameNumber in robot data for debug and frame-rate count ;
+    tool->SetDataValid(true);
 
     
     /* Update the local copy of m_StopTracking */

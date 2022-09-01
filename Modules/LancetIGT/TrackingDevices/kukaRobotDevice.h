@@ -36,7 +36,7 @@ public:
 	itkFactorylessNewMacro(Self);
 	itkCloneMacro(Self);
 
-  typedef std::vector<mitk::TrackingTool::Pointer> Tool6DContainerType;
+  typedef std::vector<mitk::TrackingTool::Pointer> KukaEndEffectorContainerType;
 
 	itkGetMacro(IsConnected, bool);
   /**
@@ -49,9 +49,11 @@ public:
      */
 	bool CloseConnection() override;
   /**
-      * @brief Starts the tracking.
-      * @return Returns true if the tracking is started. Returns false if there was an error.
-      */
+   * \brief Start the tracking.
+   *
+   * A new thread is created, which continuously reads the position and orientation information of each tool and stores them inside the tools.
+   * Call StopTracking() to stop the tracking thread.
+   */
 	bool StartTracking() override;
   /**
      * \param toolNumber The number of the tool which should be given back.
@@ -60,6 +62,8 @@ public:
      */
 	mitk::TrackingTool* GetTool(unsigned toolNumber) const override;
   mitk::TrackingTool* GetToolByName(std::string name) const override;
+
+  mitk::TrackingTool* GetInternalTool();
 
   mitk::TrackingTool* AddTool(const char* toolName, const char* fileName);
 	unsigned GetToolCount() const override;
@@ -76,7 +80,7 @@ protected:
   virtual ~KukaRobotDevice() override;
 
   /**
-    * \brief Add a passive 6D tool to the list of tracked tools and add tool tcp to robot. This method is used by AddTool
+    * \brief Add a kuka end effector tool to the list of tracked tools and add tool tcp to robot. This method is used by AddTool
     * @throw mitk::IGTHardwareException Throws an exception if there are errors while adding the tool.
     * \warning adding tools is not possible in tracking mode, only in setup and ready.
     */
@@ -97,7 +101,7 @@ private:
 
   //track
   mutable std::mutex m_ToolsMutex; ///< mutex for coordinated access of tool container
-  Tool6DContainerType m_6DTools; ///< container for all tracking tools
+  KukaEndEffectorContainerType m_KukaEndEffectors; ///< container for all tracking tools
   ///< creates tracking thread that continuously polls serial interface for new tracking data
   std::thread m_Thread;                            ///< ID of tracking thread
 
