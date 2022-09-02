@@ -94,7 +94,6 @@ private:
   void ThreadStartTracking();
 private:
 	bool m_IsConnected = false;
-	TrackingDeviceState m_State = Setup;///< current object state (Setup, Ready or Tracking)
 	
 	QPointer<QThread> m_Heartbeat;
 	std::array<double, 6> m_TrackingData = {};

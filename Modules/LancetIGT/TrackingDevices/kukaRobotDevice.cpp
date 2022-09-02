@@ -9,14 +9,25 @@
 bool KukaRobotDevice::OpenConnection()
 {
 	m_RobotApi.connectrobot();
-
-	return m_IsConnected;
+	if (GetState() == Ready)
+	{
+		MITK_WARN << "Ready after m_RobotApi.connectrobot();";
+	}
+	else {
+		MITK_WARN << "Setup after m_RobotApi.connectrobot();";
+	}
+	
+	//todo BUG:isRobotConnected will not turn ture immdiately
+	SetState(TrackingDeviceState::Ready);
+	m_Heartbeat = QThread::create(heartbeatThreadWorker, this);
+	m_Heartbeat->start();
+	return true;
 }
 
 bool KukaRobotDevice::CloseConnection()
 {
 	m_RobotApi.disconnectrobot();
-
+	SetState(TrackingDeviceState::Setup);
 	return !m_IsConnected;
 }
 
@@ -30,7 +41,7 @@ bool KukaRobotDevice::StartTracking()
   this->m_StopTracking = false;
   this->m_StopTrackingMutex.unlock();
 
-  m_Thread = std::thread(&KukaRobotDevice::ThreadStartTracking, this);
+  m_Thread = std::thread(&KukaRobotDevice::ThreadStartTracking, this);//todo start tracking agine crash here 
   // start a new thread that executes the TrackTools() method
   mitk::IGTTimeStamp::GetInstance()->Start(this);
   MITK_INFO << "lancet kuka robot start tracking";
@@ -187,8 +198,8 @@ KukaRobotDevice::KukaRobotDevice()
   MITK_INFO << QString("bind udp %1:%2 at fps:%3").arg(QString::fromStdString(m_IpAddress)).arg(m_Port.toInt()).arg(m_udp.repetitiveHeartbeatInterval()).toStdString();
   m_udp.startRepetitiveHeartbeat();
 
-  connect(&m_RobotApi, SIGNAL(signal_api_isRobotConnected(bool)),
-    this, SLOT(IsRobotConnected(bool)));
+  //connect(&m_RobotApi, SIGNAL(signal_api_isRobotConnected(bool)),
+   // this, SLOT(IsRobotConnected(bool)));//todo BUGFIX
 }
 
 KukaRobotDevice::~KukaRobotDevice()
@@ -235,14 +246,14 @@ void KukaRobotDevice::IsRobotConnected(bool isConnect)
 	m_IsConnected = isConnect;
 	if (isConnect)
 	{
-		m_State = TrackingDeviceState::Ready;
+		SetState(Ready);
 
 		m_Heartbeat = QThread::create(heartbeatThreadWorker, this);
 		m_Heartbeat->start();
 	}
 	else
 	{
-		m_State = TrackingDeviceState::Setup;
+		SetState(Setup);
 	}
 }
 

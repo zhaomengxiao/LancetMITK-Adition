@@ -121,35 +121,22 @@ void RobotView::ConnectDevice()
   
   if (m_device.IsNull())
   {
-    //udp
-  //m_udp = new UdpSocketRobotHeartbeat();
-    // QString ipAddress = "172.31.1.148";
-    // QString port = "30300";
-    // QString remoteIpAddress = "172.31.1.147";
-    // QString remotePort = "30300";
-    //
-    // m_udp.setRepetitiveHeartbeatInterval(500);
-    // m_udp.setRemoteHostPort(remotePort.toUInt());
-    // m_udp.setRemoteHostAddress(remoteIpAddress);
-    // if (!m_udp.bind(QHostAddress(ipAddress), port.toInt()))
-    // {
-    //   MITK_ERROR << QString("bind to %1:%2 error!- %3").arg(ipAddress).arg(port.toInt()).arg(m_udp.error());
-    // }
-    // MITK_INFO << QString("bind udp %1:%2 at fps:%3").arg(ipAddress).arg(port.toInt()).arg(m_udp.repetitiveHeartbeatInterval());
-    // m_udp.startRepetitiveHeartbeat();
-
     m_device = KukaRobotDevice::New();
   }
-  m_device->OpenConnection();
-	if(m_device->GetIsConnected())
-	{
-		m_Controls.robotconnectstate->setText("Connected");
-		m_timer.start();
-	}
-	else
-	{
-		m_Controls.robotconnectstate->setText("Disconnected");
-	}
+  if (m_device->GetState()==0)
+  {
+	  m_device->OpenConnection();
+  }
+  if (m_device->GetState() == 1)
+  {
+	  m_Controls.robotconnectstate->setText("Ready");
+  }
+  else
+  {
+	  m_Controls.robotconnectstate->setText("Tracking");
+	  m_timer.start();
+  }
+	
 }
 
 void RobotView::DisConnectDevice()
