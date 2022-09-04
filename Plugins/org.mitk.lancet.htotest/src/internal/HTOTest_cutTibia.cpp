@@ -36,9 +36,11 @@ found in the LICENSE file.
 #include "mitkBoundingShapeCropper.h"
 #include <mitkRemeshing.h>
 #include <vtkPolyDataPlaneClipper.h>
+#include <vtkFillHolesFilter.h>
 
 #include "mitkSurface.h"
 #include "mitkSurfaceToImageFilter.h"
+#include "mitkVtkInterpolationProperty.h"
 #include "vtkOBBTree.h"
 #include "vtkDelaunay2D.h"
 
@@ -415,12 +417,43 @@ bool HTOTest::CutTibiaWithOnePlane()
 	auto proximal_remehsed = mitk::Remeshing::Decimate(mitkProximalSurface,1,true,true);
 	auto distal_remehsed = mitk::Remeshing::Decimate(mitkDistalSurface, 1, true, true);
 
+	vtkNew<vtkFillHolesFilter> holeFiller0;
+	holeFiller0->SetInputData(proximal_remehsed->GetVtkPolyData());
+	holeFiller0->SetHoleSize(500);
+	holeFiller0->Update();
+	vtkNew<vtkPolyData> proximalTibia;
+	proximalTibia->DeepCopy(holeFiller0->GetOutput());
+	auto proximalSurface = mitk::Surface::New();
+	proximalSurface->SetVtkPolyData(proximalTibia);
+
+	vtkNew<vtkFillHolesFilter> holeFiller1;
+	holeFiller1->SetInputData(distal_remehsed->GetVtkPolyData());
+	holeFiller1->SetHoleSize(500);
+	holeFiller1->Update();
+	vtkNew<vtkPolyData> distalTibia;
+	distalTibia->DeepCopy(holeFiller1->GetOutput());
+	auto distalSurface = mitk::Surface::New();
+	distalSurface->SetVtkPolyData(distalTibia);
+
+
 	auto tmpNode0 = mitk::DataNode::New();
 	auto tmpNode1 = mitk::DataNode::New();
-	tmpNode0->SetData(mitkProximalSurface);
+	tmpNode0->SetData(proximalSurface);
 	tmpNode0->SetName("proximal tibiaSurface");
-	tmpNode1->SetData(mitkDistalSurface);
+
+	mitk::VtkInterpolationProperty::Pointer interpolationProp0;
+	tmpNode0->GetProperty(interpolationProp0, "material.interpolation");
+	interpolationProp0->SetInterpolationToFlat();
+	tmpNode0->SetProperty("material.interpolation", interpolationProp0);
+
+
+	tmpNode1->SetData(distalSurface);
 	tmpNode1->SetName("distal tibiaSurface");
+
+	mitk::VtkInterpolationProperty::Pointer interpolationProp1;
+	tmpNode1->GetProperty(interpolationProp1, "material.interpolation");
+	interpolationProp1->SetInterpolationToFlat();
+	tmpNode1->SetProperty("material.interpolation", interpolationProp1);
 
 	GetDataStorage()->Add(tmpNode0);
 	GetDataStorage()->Add(tmpNode1);
