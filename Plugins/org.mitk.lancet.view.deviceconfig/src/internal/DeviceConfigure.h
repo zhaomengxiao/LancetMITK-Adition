@@ -1,4 +1,4 @@
-﻿/*============================================================================
+/*============================================================================
 
 The Medical Imaging Interaction Toolkit (MITK)
 
@@ -11,32 +11,24 @@ found in the LICENSE file.
 ============================================================================*/
 
 
-#ifndef RobotView_h
-#define RobotView_h
+#ifndef DeviceConfigure_h
+#define DeviceConfigure_h
 
 #include <berryISelectionListener.h>
 
 #include <QmitkAbstractView.h>
-#include <kukaRobotDevice.h>
 
-#include "ui_StaubilWidget.h"
-//udp
-#include "udpsocketrobotheartbeat.h"
+#include "ui_DeviceConfigureControls.h"
+
 /**
-  \brief RobotView
+  \brief DeviceConfigure
 
   \warning  This class is not yet documented. Use "git blame" and ask the author to provide basic documentation.
 
   \sa QmitkAbstractView
   \ingroup ${plugin_target}_internal
 */
-enum class WorkingState
-{
-	ON,
-	OFF
-};
-
-class RobotView : public QmitkAbstractView
+class DeviceConfigure : public QmitkAbstractView
 {
   // this is needed for all Qt objects that should have a Qt meta-object
   // (everything that derives from QObject and wants to have signal/slots)
@@ -44,9 +36,8 @@ class RobotView : public QmitkAbstractView
 
 public:
   static const std::string VIEW_ID;
-  ~RobotView() override;
+
 protected:
-	
   virtual void CreateQtPartControl(QWidget *parent) override;
 
   virtual void SetFocus() override;
@@ -55,22 +46,10 @@ protected:
   virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
                                   const QList<mitk::DataNode::Pointer> &nodes) override;
 
-public slots:
-	void ConnectDevice();
-	void DisConnectDevice();
+  /// \brief Called when the user clicks the GUI button
+  void DoImageProcessing();
 
-	void UpdateToolPosition();
-
-  void SelfCheck();
-
-  void SendCommand();
-	
-private:
-	KukaRobotDevice::Pointer m_device;
-  UdpSocketRobotHeartbeat m_udp;
-	QTimer m_timer;
-	
-	Ui::StaubilWidget m_Controls;
+  Ui::DeviceConfigureControls m_Controls;
 };
 
-#endif // RobotView_h
+#endif // DeviceConfigure_h

@@ -1,0 +1,6 @@
+MITK_CREATE_MODULE( LancetIGTDeviceRegistry
+  INCLUDE_DIRS
+    PRIVATE src
+  DEPENDS PRIVATE MitkLancetIGT
+  AUTOLOAD_WITH MitkLancetIGT
+)
