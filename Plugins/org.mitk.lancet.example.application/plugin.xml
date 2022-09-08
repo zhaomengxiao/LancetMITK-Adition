@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+  <extension id="org.mitk.lancet.example.application" point="org.blueberry.osgi.applications">
+    <application>
+      <run class="QLancetExampleApplication"/>
+    </application>
+  </extension>
+
+  <extension point="org.blueberry.ui.perspectives">
+    <perspective
+      id="org.mitk.qlancetexampleperspective"
+      name="Lancet Example application Perspective"
+      class="QLancetExamplePerspective">
+    </perspective>
+  </extension>
+
+</plugin>
