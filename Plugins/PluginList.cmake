@@ -11,4 +11,6 @@ set(MITK_PLUGINS
   org.mitk.lancet.gui.qt.testsuite:ON
   org.mitk.lancet.view.deviceconfig:ON
   org.mitk.lancet.imageregistration:ON
+  org.mitk.lancet.example.application:ON
+  org.mitk.lancet.example.editor:ON
 )
