@@ -6,7 +6,7 @@ set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} ${MITK_VEGA_TRACKER_LIB})
 mitk_create_plugin(
   EXPORT_DIRECTIVE ROBOT_EXPORT
   EXPORTED_INCLUDE_SUFFIXES src
-  MODULE_DEPENDS MitkQtWidgetsExt MitkLancetRobot
+  MODULE_DEPENDS MitkQtWidgetsExt MitkLancetIGT
   #PACKAGE_DEPENDS ${qt5_depends}
 )
 #add_subdirectory(src/api/staubliapi)

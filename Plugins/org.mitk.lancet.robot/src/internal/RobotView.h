@@ -20,7 +20,8 @@ found in the LICENSE file.
 #include <kukaRobotDevice.h>
 
 #include "ui_StaubilWidget.h"
-
+//udp
+#include "udpsocketrobotheartbeat.h"
 /**
   \brief RobotView
 
@@ -60,9 +61,13 @@ public slots:
 
 	void UpdateToolPosition();
 
+  void SelfCheck();
+
+  void SendCommand();
 	
 private:
 	KukaRobotDevice::Pointer m_device;
+  UdpSocketRobotHeartbeat m_udp;
 	QTimer m_timer;
 	
 	Ui::StaubilWidget m_Controls;
