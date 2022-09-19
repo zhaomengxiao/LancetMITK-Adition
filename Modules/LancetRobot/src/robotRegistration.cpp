@@ -8,23 +8,28 @@
 #endif
 
 using namespace Eigen;
-void RobotRegistration::AddPose(vtkMatrix4x4* robot, vtkMatrix4x4* endTool, bool translationOnly)
+void RobotRegistration::AddPose(mitk::NavigationData::Pointer nd_robot2flange, mitk::NavigationData::Pointer nd_Ndi2RegistFrame, bool translationOnly)
 {
+  mitk::Matrix3D Rrobot2flange = nd_robot2flange->GetRotationMatrix();
+  mitk::Point3D Vrobot2flange = nd_robot2flange->GetPosition();
+  mitk::Matrix3D Rndi2RegistFrame = nd_Ndi2RegistFrame->GetRotationMatrix();
+  mitk::Point3D Vndi2RegistFrame = nd_Ndi2RegistFrame->GetPosition();
+
 	Matrix3d r;
-	r << robot->GetElement(0, 0), robot->GetElement(0, 1), robot->GetElement(0, 2), robot->GetElement(1, 0),
-		robot->GetElement(1, 1), robot->GetElement(1, 2), robot->GetElement(2, 0), robot->GetElement(2, 1),
-		robot->GetElement(2, 2);
+	r << Rrobot2flange(0, 0), Rrobot2flange(0, 1), Rrobot2flange(0, 2), Rrobot2flange(1, 0),
+		Rrobot2flange(1, 1), Rrobot2flange(1, 2), Rrobot2flange(2, 0), Rrobot2flange(2, 1),
+		Rrobot2flange(2, 2);
 
 	Vector3d v;
-	v << robot->GetElement(0, 3), robot->GetElement(1, 3), robot->GetElement(2, 3);
+	v << Vrobot2flange[0], Vrobot2flange[1], Vrobot2flange[2];
 
 	Matrix3d rn;
-	rn << endTool->GetElement(0, 0), endTool->GetElement(0, 1), endTool->GetElement(0, 2), endTool->GetElement(1, 0),
-		endTool->GetElement(1, 1), endTool->GetElement(1, 2), endTool->GetElement(2, 0), endTool->GetElement(2, 1),
-		endTool->GetElement(2, 2);
+	rn << Rndi2RegistFrame(0, 0), Rndi2RegistFrame(0, 1), Rndi2RegistFrame(0, 2), Rndi2RegistFrame(1, 0),
+		Rndi2RegistFrame(1, 1), Rndi2RegistFrame(1, 2), Rndi2RegistFrame(2, 0), Rndi2RegistFrame(2, 1),
+		Rndi2RegistFrame(2, 2);
 
 	Vector3d vn;
-	vn << endTool->GetElement(0, 3), endTool->GetElement(1, 3), endTool->GetElement(2, 3);
+  v << Vndi2RegistFrame[0], Vndi2RegistFrame[1], Vndi2RegistFrame[2];
 
 	this->m_translationOnly = translationOnly;
 	if (translationOnly)
