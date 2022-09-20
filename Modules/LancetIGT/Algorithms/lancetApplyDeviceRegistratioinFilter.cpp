@@ -12,25 +12,32 @@ found in the LICENSE file.
 
 #include "lancetApplyDeviceRegistratioinFilter.h"
 
-
-
-//matrix convert
-#include "mitkAffineTransform3D.h"
-#include "mitkMatrixConvert.h"
-#include "vtkQuaternion.h"
-
 lancet::ApplyDeviceRegistratioinFilter::ApplyDeviceRegistratioinFilter() : mitk::NavigationDataToNavigationDataFilter()
 {
-
+  m_NavigationDataOfRF = mitk::NavigationData::New();
+  m_RegistrationMatrix = mitk::AffineTransform3D::New();
 }
 
 
 lancet::ApplyDeviceRegistratioinFilter::~ApplyDeviceRegistratioinFilter()
 {
+  m_NavigationDataOfRF = nullptr;
+  m_RegistrationMatrix = nullptr;
 }
 
 void lancet::ApplyDeviceRegistratioinFilter::GenerateData()
 {
+  // only update data if m_Transform was set
+  if (m_NavigationDataOfRF.IsNull())
+  {
+    itkExceptionMacro("Invalid parameter: m_NavigationDataOfRF NULL.");
+    return;
+  }
+  if (m_RegistrationMatrix.IsNull())
+  {
+    itkExceptionMacro("Invalid parameter: m_RegistrationMatrix NULL.");
+    return;
+  }
   DataObjectPointerArraySizeType numberOfInputs = this->GetNumberOfInputs();
 
   if (numberOfInputs == 0)
@@ -38,117 +45,33 @@ void lancet::ApplyDeviceRegistratioinFilter::GenerateData()
 
   this->CreateOutputsForAllInputs();
 
-
-  vtkSmartPointer<vtkMatrix4x4> refMatrix = vtkMatrix4x4::New();
-
-  if (m_RefToolIndex < this->GetNumberOfInputs())
-  {
-    // get reference tool matrix according to RefToolIndex
-     const mitk::NavigationData *nd_ref = this->GetInput(m_RefToolIndex);
-     refMatrix = NavigationDataToVtkMatrix4x4(nd_ref);
-  }
- 
-  
-
   // generate output
   for (unsigned int i = 0; i < numberOfInputs; ++i)
   {
-    const mitk::NavigationData *nd = this->GetInput(i);
-    assert(nd);
+    const mitk::NavigationData *input = this->GetInput(i);
+    assert(input);
 
     mitk::NavigationData *output = this->GetOutput(i);
     assert(output);
 
-    //cal matrix in ref
-    vtkSmartPointer<vtkMatrix4x4> in_matrix = NavigationDataToVtkMatrix4x4(nd);
-    vtkSmartPointer<vtkMatrix4x4> res_matrix = vtkMatrix4x4::New();
-    GetReferenceMatrix4x4(in_matrix, refMatrix, res_matrix);
-    // test ref itself should be i
-    // if (i == m_RefToolIndex && !res_matrix->IsIdentity())
-    // {
-    //   MITK_ERROR << "ref itself not Identity";
-    //
-    // }
+    if (input->IsDataValid() == false)
+    {
+      output->SetDataValid(false);
+      continue;
+    }
+    //transform nd from move device to reference device coords
+    mitk::AffineTransform3D::Pointer inputTransform = input->GetAffineTransform3D();
 
-    output->Graft(nd); // copy all information from input to output
-    output->SetPosition(vtkMatrix4x4ToPosition(res_matrix));
-    output->SetOrientation(vtkMatrix4x4ToQuaternion(res_matrix));
-    output->SetDataValid(nd->IsDataValid());
+    inputTransform->Compose(m_RegistrationMatrix);
+    inputTransform->Compose(m_NavigationDataOfRF->GetAffineTransform3D());
+
+    mitk::NavigationData::Pointer res = mitk::NavigationData::New(inputTransform);
+
+    //copy information to output
+    output->Graft(input); // copy all information from input to output
+    output->SetPosition(res->GetPosition());
+    output->SetOrientation(res->GetOrientation());
+    //output->SetDataValid(input->IsDataValid());
   }
 }
-
-mitk::AffineTransform3D::Pointer lancet::ApplyDeviceRegistratioinFilter::NavigationDataToTransform(
-  const mitk::NavigationData *nd)
-{
-  mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-  affineTransform->SetIdentity();
-
-  // calculate the transform from the quaternions
-  static itk::QuaternionRigidTransform<double>::Pointer quatTransform =
-    itk::QuaternionRigidTransform<double>::New();
-
-  mitk::NavigationData::OrientationType orientation = nd->GetOrientation();
-  // convert mitk::ScalarType quaternion to double quaternion because of itk bug
-  vnl_quaternion<double> doubleQuaternion(orientation.x(), orientation.y(), orientation.z(), orientation.r());
-  quatTransform->SetIdentity();
-  quatTransform->SetRotation(doubleQuaternion);
-  quatTransform->Modified();
-
-  /* because of an itk bug, the transform can not be calculated with float data type.
-      To use it in the mitk geometry classes, it has to be transfered to mitk::ScalarType which is float */
-  static mitk::AffineTransform3D::MatrixType m;
-  mitk::TransferMatrix(quatTransform->GetMatrix(), m);
-  affineTransform->SetMatrix(m);
-
-  /*set the offset by convert from itkPoint to itkVector and setting offset of transform*/
-  mitk::Vector3D pos;
-  pos.SetVnlVector(nd->GetPosition().GetVnlVector());
-  affineTransform->SetOffset(pos);
-
-  affineTransform->Modified();
-  return affineTransform;
-}
-
-vtkMatrix4x4* lancet::ApplyDeviceRegistratioinFilter::NavigationDataToVtkMatrix4x4(const mitk::NavigationData *nd)
-{
-  mitk::AffineTransform3D::Pointer affineTransform = nd->GetAffineTransform3D();
-  vtkMatrix4x4* vtkmatrix4x4 = vtkMatrix4x4::New();
-  mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), vtkmatrix4x4);
-  return vtkmatrix4x4;
-}
-
-mitk::Point3D lancet::ApplyDeviceRegistratioinFilter::vtkMatrix4x4ToPosition(vtkMatrix4x4 *matrix4x4)
-{
-  mitk::Point3D p;
-  FillVector3D(p, matrix4x4->GetElement(0, 3), matrix4x4->GetElement(1, 3), matrix4x4->GetElement(2, 3));
-  return p;
-}
-
-mitk::NavigationData::OrientationType lancet::ApplyDeviceRegistratioinFilter::vtkMatrix4x4ToQuaternion(
-  vtkMatrix4x4 *matrix4x4)
-{
-  
-  double quat[4];
-  double matrix3x3[3][3];
-  matrix3x3[0][0] = matrix4x4->GetElement(0, 0);matrix3x3[0][1] = matrix4x4->GetElement(0, 1);matrix3x3[0][2] = matrix4x4->GetElement(0, 2);
-  matrix3x3[1][0] = matrix4x4->GetElement(1, 0);matrix3x3[1][1] = matrix4x4->GetElement(1, 1);matrix3x3[1][2] = matrix4x4->GetElement(1, 2);
-  matrix3x3[2][0] = matrix4x4->GetElement(2, 0);matrix3x3[2][1] = matrix4x4->GetElement(2, 1);matrix3x3[2][2] = matrix4x4->GetElement(2, 2);
-  vtkMatrix3x3ToQuaternion(matrix3x3, quat);
-  return mitk::NavigationData::OrientationType{quat[1], quat[2], quat[3], quat[0]};
-}
-
-void lancet::ApplyDeviceRegistratioinFilter::vtkMatrix4x4ToMatrix3x3(const vtkMatrix4x4 *matrix4x4,
-                                                                         double matrix3x3[3][3])
-{
-  matrix3x3[0][0] = matrix4x4->GetElement(0, 0);
-  matrix3x3[0][1] = matrix4x4->GetElement(0, 1);
-  matrix3x3[0][2] = matrix4x4->GetElement(0, 2);
-  matrix3x3[1][0] = matrix4x4->GetElement(1, 0);
-  matrix3x3[1][1] = matrix4x4->GetElement(1, 1);
-  matrix3x3[1][2] = matrix4x4->GetElement(1, 2);
-  matrix3x3[2][0] = matrix4x4->GetElement(2, 0);
-  matrix3x3[2][1] = matrix4x4->GetElement(2, 1);
-  matrix3x3[2][2] = matrix4x4->GetElement(2, 2);
-}
-
 
