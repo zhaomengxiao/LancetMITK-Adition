@@ -150,9 +150,13 @@ protected:
 	  21.41421, -64.86712, -55.98294
   };
 
-
-
-
+  // Register preop CBCT to intraop CBCT
+  bool PrepareCbctImages();
+  bool RetrieveRegistrationMatrix();
+  double m_preOpCtToIntraOpCtMatrix[16]{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+  bool AppendMatrix_regisCbct();
+  mitk::Geometry3D::Pointer InitializeWithImageGeometry(const mitk::BaseGeometry* geometry);
+  
   // Intuitive move operation
   void Translate(double direction[3], double length, mitk::BaseData* data);
   void Rotate(double center[3], double direction[3], double counterclockwiseDegree, mitk::BaseData* data);
