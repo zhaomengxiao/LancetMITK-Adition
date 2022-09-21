@@ -376,8 +376,9 @@ namespace lancet
     }
     else
     {
-      //SetState(Setup);
-		MITK_INFO << "!disconnect!";
+      SetState(Setup);
+	  m_Heartbeat->terminate();
+	  MITK_INFO << "!disconnect!";
     }
   }
 
