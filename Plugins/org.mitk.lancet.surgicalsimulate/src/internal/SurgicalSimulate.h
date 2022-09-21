@@ -21,6 +21,7 @@ found in the LICENSE file.
 
 #include "kukaRobotDevice.h"
 #include "lancetNavigationObjectVisualizationFilter.h"
+#include "lancetApplyDeviceRegistratioinFilter.h"
 #include "mitkTrackingDeviceSource.h"
 #include "robotRegistration.h"
 #include "ui_SurgicalSimulateControls.h"
@@ -42,6 +43,7 @@ class SurgicalSimulate : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
+  
 public slots:
   //Step1:Use a kuka Tracking Device
   void UseKuka();
@@ -81,7 +83,9 @@ protected:
   //*********Helper Function****************
   RobotRegistration m_RobotRegistration;
   mitk::NavigationData::Pointer GetNavigationDataInRef(mitk::NavigationData::Pointer nd, mitk::NavigationData::Pointer nd_ref);
-
+public:
+  ~SurgicalSimulate() override;
+protected:
   Ui::SurgicalSimulateControls m_Controls;
 
 
@@ -93,6 +97,7 @@ protected:
 
   lancet::NavigationObjectVisualizationFilter::Pointer m_KukaVisualizer;
   lancet::NavigationObjectVisualizationFilter::Pointer m_VegaVisualizer;
+  lancet::ApplyDeviceRegistratioinFilter::Pointer m_KukaApplyRegistrationFilter;
   QTimer* m_KukaVisualizeTimer{ nullptr };
   QTimer* m_VegaVisualizeTimer{ nullptr };
   mitk::NavigationToolStorage::Pointer  m_KukaToolStorage;

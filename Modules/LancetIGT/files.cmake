@@ -5,6 +5,7 @@ set(H_FILES
   IO/lancetNavigationObjectWriter.h
 
   Algorithms/lancetNavigationDataInReferenceCoordFilter.h
+  Algorithms/lancetApplyDeviceRegistratioinFilter.h
   Rendering/lancetNavigationObjectVisualizationFilter.h
 
   TrackingDevices/lancetRobotTrackingTool.h
@@ -21,6 +22,7 @@ set(CPP_FILES
   IO/lancetNavigationObjectWriter.cpp
   
   Algorithms/lancetNavigationDataInReferenceCoordFilter.cpp
+  Algorithms/lancetApplyDeviceRegistratioinFilter.cpp
   Rendering/lancetNavigationObjectVisualizationFilter.cpp
 
   TrackingDevices/lancetRobotTrackingTool.cpp

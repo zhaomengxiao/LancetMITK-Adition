@@ -29,6 +29,7 @@ found in the LICENSE file.
 //igt
 #include <lancetVegaTrackingDevice.h>
 #include <kukaRobotDevice.h>
+#include <lancetApplyDeviceRegistratioinFilter.h>
 
 #include "lancetTrackingDeviceSourceConfigurator.h"
 #include "mitkNavigationToolStorageDeserializer.h"
@@ -110,7 +111,9 @@ void SurgicalSimulate::UseVega()
   connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnVegaVisualizeTimer())); //connect the timer to the method OnTimer()
 
   m_VegaVisualizeTimer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
-  
+
+  auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+  mitk::RenderingManager::GetInstance()->InitializeViews(geo);
 }
 
 void SurgicalSimulate::GeneratePoses()
@@ -155,6 +158,18 @@ mitk::NavigationData::Pointer SurgicalSimulate::GetNavigationDataInRef(mitk::Nav
   res->Graft(nd);
   res->Compose(nd_ref->GetInverse());
   return res;
+}
+
+SurgicalSimulate::~SurgicalSimulate()
+{
+  if (m_KukaVisualizeTimer!=nullptr)
+  {
+    m_KukaVisualizeTimer->stop();
+  }
+  if (m_VegaVisualizeTimer != nullptr)
+  {
+    m_VegaVisualizeTimer->stop();
+  }
 }
 
 void SurgicalSimulate::UseKuka()
@@ -210,7 +225,8 @@ void SurgicalSimulate::StartTracking()
 	{
 		MITK_ERROR << "Tracking not start,Device State:" << m_KukaTrackingDevice->GetState();
 	}
-	
+  auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+  mitk::RenderingManager::GetInstance()->InitializeViews(geo);
 }
 
 void SurgicalSimulate::OnKukaVisualizeTimer()
@@ -223,11 +239,6 @@ void SurgicalSimulate::OnKukaVisualizeTimer()
 		m_KukaVisualizer->Update(); //todo Crash When close plugin
 		this->RequestRenderWindowUpdate();
 	}
-  
-
-  // auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
-  // mitk::RenderingManager::GetInstance()->InitializeViews(geo);
-  
 }
 
 void SurgicalSimulate::OnSelfCheck()
@@ -254,9 +265,6 @@ void SurgicalSimulate::OnVegaVisualizeTimer()
   // mitk::RenderingManager::GetInstance()->InitializeViews(geo);
 		this->RequestRenderWindowUpdate();
 	}
-  
-
-  
 }
 
 void SurgicalSimulate::OnRobotCapture()
@@ -277,22 +285,36 @@ void SurgicalSimulate::OnRobotCapture()
   }
   else
   {
-    m_RobotRegistration.Regist();
     vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
     m_RobotRegistration.GetRegistraionMatrix(matrix4x4);
     MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
     matrix4x4->Print(std::cout);
 
+	//For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
+	/*vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
+	matrix4x4->SetElement(0, 0, -0.48); matrix4x4->SetElement(0, 1, -0.19); matrix4x4->SetElement(0, 2, -0.86);
+	matrix4x4->SetElement(1, 0, -0.01); matrix4x4->SetElement(1, 1, -0.97); matrix4x4->SetElement(1, 2, 0.22);
+	matrix4x4->SetElement(2, 0, -0.88); matrix4x4->SetElement(2, 1, 0.11); matrix4x4->SetElement(2, 2, 0.46);
+	matrix4x4->SetElement(0, 3, 162.37);
+	matrix4x4->SetElement(1, 3, -530.45);
+	matrix4x4->SetElement(2, 3, -255.62);*/
+
     mitk::AffineTransform3D::Pointer affine_transform = mitk::AffineTransform3D::New();
 
     mitk::TransferVtkMatrixToItkTransform(matrix4x4, affine_transform.GetPointer());
 
-    m_KukaVisualizer->SetOffset(0, affine_transform);
+    //build ApplyDeviceRegistrationFilter
+	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
+	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
+	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(affine_transform);
+    auto indexOfRobotBaseRF = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfRobotBaseRF));
+	
+    
+	m_KukaVisualizeTimer->stop();
+    m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+    m_KukaVisualizeTimer->start();
   }
-
-
-  
-
 }
 
 void SurgicalSimulate::OnAutoMove()
