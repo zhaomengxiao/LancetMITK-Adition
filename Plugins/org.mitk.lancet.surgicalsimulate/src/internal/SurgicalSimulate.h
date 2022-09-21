@@ -42,6 +42,7 @@ class SurgicalSimulate : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
+  
 public slots:
   //Step1:Use a kuka Tracking Device
   void UseKuka();
@@ -81,7 +82,9 @@ protected:
   //*********Helper Function****************
   RobotRegistration m_RobotRegistration;
   mitk::NavigationData::Pointer GetNavigationDataInRef(mitk::NavigationData::Pointer nd, mitk::NavigationData::Pointer nd_ref);
-
+public:
+  ~SurgicalSimulate() override;
+protected:
   Ui::SurgicalSimulateControls m_Controls;
 
 

@@ -37,6 +37,18 @@ namespace lancet {
     itkFactorylessNewMacro(Self);
     itkCloneMacro(Self);
 
+    /**Documentation
+   * \brief Set the registration matrix between two devices,specifically from reference device/reference frame to move device
+   */
+    itkSetObjectMacro(RegistrationMatrix, mitk::AffineTransform3D);
+    itkGetObjectMacro(RegistrationMatrix, mitk::AffineTransform3D);
+
+    /**Documentation
+   * \brief Set The NavigationData(from Reference Device) of the reference frame which attached to MoveDevice;
+   * !If Not Set!, no displacement is allowed between the two devices after the registration is completed
+   */
+    itkSetObjectMacro(NavigationDataOfRF, mitk::NavigationData);
+    itkGetObjectMacro(NavigationDataOfRF, mitk::NavigationData);
 
   protected:
 
@@ -56,18 +68,7 @@ namespace lancet {
     */
     void GenerateData() override;
 
-    /**Documentation
-    * \brief Set the registration matrix between two devices,specifically from reference device/reference frame to move device 
-    */
-    itkSetObjectMacro(RegistrationMatrix, mitk::AffineTransform3D);
-    itkGetObjectMacro(RegistrationMatrix, mitk::AffineTransform3D);
-
-    /**Documentation
-   * \brief Set The NavigationData(from Reference Device) of the reference frame which attached to MoveDevice;
-   * !If Not Set!, no displacement is allowed between the two devices after the registration is completed
-   */
-    itkSetObjectMacro(NavigationDataOfRF, mitk::NavigationData);
-    itkGetObjectMacro(NavigationDataOfRF, mitk::NavigationData);
+   
 
     mitk::NavigationData::Pointer m_NavigationDataOfRF;
     mitk::AffineTransform3D::Pointer m_RegistrationMatrix; ///< The registration matrix between two devices, specifically: T ReferenceDevice to MoveDevice or T RF to MoveDevice
