@@ -67,7 +67,6 @@ public slots:
   void OnVirtualDevice1VisualizeTimer();
   void UseVirtualDevice2();
   void OnVirtualDevice2VisualizeTimer();
-  void OnApplyRegistrationFilter();
  
 protected:
 
