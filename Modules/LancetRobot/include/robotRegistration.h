@@ -5,9 +5,9 @@
 #include <itkObjectFactory.h>
 #include <mitkCommon.h>
 #include "MitkLancetRobotExports.h"
-#include "eigen3/Eigen/Eigen"
-#include <vector>
 
+#include <vector>
+#include <mitkNavigationData.h>
 
 class vtkMatrix4x4;
 class MITKLANCETROBOT_EXPORT RobotRegistration:public itk::Object
@@ -20,12 +20,12 @@ public:
 
 	/**
 	 * \brief Input required data for registration.
-	 * \param robot Pose matrix of robot arm: Namely, the transformation matrix from the robot base to the flange coordinates (Tb2f)
-	 * \param endTool The coordinates of the end tool, in the reference coordinates if there is a reference marker.
+	 * \param nd_robot2flange Pose matrix of robot arm: Namely, the transformation matrix from the robot base to the flange coordinates.
+	 * \param nd_Ndi2RegistFrame The coordinates of the end tool, in the reference coordinates if there is a reference marker.
 	 *
 	 * \param translationOnly Indicates that the current capture of robot arm movement is translational only.
 	 */
-	void AddPose(vtkMatrix4x4* robot, vtkMatrix4x4* endTool, bool translationOnly);
+	void AddPose(mitk::NavigationData::Pointer nd_robot2flange, mitk::NavigationData::Pointer nd_Ndi2RegistFrame, bool translationOnly);
 	bool PopLastPose();
 	bool PopLastPose(bool translationOnly);
 	void RemoveAllPose();

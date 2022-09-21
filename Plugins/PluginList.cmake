@@ -12,4 +12,6 @@ set(MITK_PLUGINS
   org.mitk.lancet.view.deviceconfig:ON
   org.mitk.lancet.imageregistration:ON
   org.mitk.lancet.htotest:ON
+  org.mitk.lancet.surgicalsimulate:ON
+
 )

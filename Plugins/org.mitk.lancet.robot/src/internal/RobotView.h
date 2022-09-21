@@ -66,7 +66,7 @@ public slots:
   void SendCommand();
 	
 private:
-	KukaRobotDevice::Pointer m_device;
+  lancet::KukaRobotDevice::Pointer m_device;
   UdpSocketRobotHeartbeat m_udp;
 	QTimer m_timer;
 	

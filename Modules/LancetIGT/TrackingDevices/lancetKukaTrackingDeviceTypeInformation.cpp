@@ -1,6 +1,6 @@
 #include "lancetKukaTrackingDeviceTypeInformation.h"
 #include "kukaRobotDevice.h"
-#include "LancetVegaTrackingDevice.h"
+#include "lancetVegaTrackingDevice.h"
 
 namespace lancet
 {
