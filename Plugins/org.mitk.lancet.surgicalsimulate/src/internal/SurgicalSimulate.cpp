@@ -290,27 +290,31 @@ void SurgicalSimulate::OnRobotCapture()
     MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
     matrix4x4->Print(std::cout);
 
+	//For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
+	/*vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
+	matrix4x4->SetElement(0, 0, -0.48); matrix4x4->SetElement(0, 1, -0.19); matrix4x4->SetElement(0, 2, -0.86);
+	matrix4x4->SetElement(1, 0, -0.01); matrix4x4->SetElement(1, 1, -0.97); matrix4x4->SetElement(1, 2, 0.22);
+	matrix4x4->SetElement(2, 0, -0.88); matrix4x4->SetElement(2, 1, 0.11); matrix4x4->SetElement(2, 2, 0.46);
+	matrix4x4->SetElement(0, 3, 162.37);
+	matrix4x4->SetElement(1, 3, -530.45);
+	matrix4x4->SetElement(2, 3, -255.62);*/
+
     mitk::AffineTransform3D::Pointer affine_transform = mitk::AffineTransform3D::New();
 
     mitk::TransferVtkMatrixToItkTransform(matrix4x4, affine_transform.GetPointer());
 
     //build ApplyDeviceRegistrationFilter
-    lancet::ApplyDeviceRegistratioinFilter::Pointer applyDeviceRegistration = lancet::ApplyDeviceRegistratioinFilter::New();
-    applyDeviceRegistration->ConnectTo(m_KukaSource);
-    applyDeviceRegistration->SetRegistrationMatrix(affine_transform);
+	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
+	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
+	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(affine_transform);
     auto indexOfRobotBaseRF = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
-    applyDeviceRegistration->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfRobotBaseRF));
-
-    m_KukaVisualizeTimer->stop();
-
-    m_KukaVisualizer->ConnectTo(applyDeviceRegistration);
-
+	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfRobotBaseRF));
+	
+    
+	m_KukaVisualizeTimer->stop();
+    m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
     m_KukaVisualizeTimer->start();
   }
-
-
-  
-
 }
 
 void SurgicalSimulate::OnAutoMove()

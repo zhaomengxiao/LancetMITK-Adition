@@ -21,6 +21,7 @@ found in the LICENSE file.
 
 #include "kukaRobotDevice.h"
 #include "lancetNavigationObjectVisualizationFilter.h"
+#include "lancetApplyDeviceRegistratioinFilter.h"
 #include "mitkTrackingDeviceSource.h"
 #include "robotRegistration.h"
 #include "ui_SurgicalSimulateControls.h"
@@ -96,6 +97,7 @@ protected:
 
   lancet::NavigationObjectVisualizationFilter::Pointer m_KukaVisualizer;
   lancet::NavigationObjectVisualizationFilter::Pointer m_VegaVisualizer;
+  lancet::ApplyDeviceRegistratioinFilter::Pointer m_KukaApplyRegistrationFilter;
   QTimer* m_KukaVisualizeTimer{ nullptr };
   QTimer* m_VegaVisualizeTimer{ nullptr };
   mitk::NavigationToolStorage::Pointer  m_KukaToolStorage;
