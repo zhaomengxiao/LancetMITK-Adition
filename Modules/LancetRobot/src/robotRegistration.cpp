@@ -29,7 +29,7 @@ void RobotRegistration::AddPose(mitk::NavigationData::Pointer nd_robot2flange, m
 		Rndi2RegistFrame(2, 2);
 
 	Vector3d vn;
-  v << Vndi2RegistFrame[0], Vndi2RegistFrame[1], Vndi2RegistFrame[2];
+    vn << Vndi2RegistFrame[0], Vndi2RegistFrame[1], Vndi2RegistFrame[2];
 
 	this->m_translationOnly = translationOnly;
 	if (translationOnly)
@@ -168,7 +168,25 @@ bool RobotRegistration::Regist()
 			MITK_WARN << R[i];
 		}
 	}
-
+	//print r v
+	MITK_INFO << "RV robot ";
+	for each (auto r in R)
+	{
+		MITK_INFO << r;
+	}
+	for each (auto v in V)
+	{
+		MITK_INFO << v;
+	}
+	MITK_INFO << "RV ndi base";
+	for each (auto rn in Rn)
+	{
+		MITK_INFO << rn;
+	}
+	for each (auto vn in Vn)
+	{
+		MITK_INFO << vn;
+	}
 	calculateR0();
 	calculateVe();
 	calculateV0();
