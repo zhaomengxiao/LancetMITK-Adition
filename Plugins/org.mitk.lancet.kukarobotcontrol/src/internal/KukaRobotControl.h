@@ -42,27 +42,55 @@ public:
   static const std::string VIEW_ID;
 
 protected:
-  virtual void CreateQtPartControl(QWidget *parent) override;
 
-  virtual void SetFocus() override;
-
-  /// Slots
-
-  /// Kuka connection
-  bool LoadToolStorage();
-  bool ConnectKuka(); // connection and micro-service registration
-
-  /// Kuka movement
-  bool RobotArmSelfCheck();
-
-
-  /// Member variables
-  
   Ui::KukaRobotControlControls m_Controls;
+
+  virtual void CreateQtPartControl(QWidget *parent) override;
+	
+  virtual void SetFocus() override;
+  
+  /// Kuka connection
   mitk::NavigationToolStorage::Pointer  m_KukaToolStorage;
   mitk::TrackingDeviceSource::Pointer m_KukaTrackingDeviceSource;
   lancet::KukaRobotDevice::Pointer m_KukaTrackingDevice;
   lancet::NavigationObjectVisualizationFilter::Pointer m_KukaVisualizer;
+  bool LoadToolStorage();
+  bool ConnectKuka();
+	
+  /// Kuka self check
+  bool RobotArmSelfCheck();
+
+
+
+	/// Mode 0: robot base space
+	///	Mode 1: robot internal TCP (flange) space
+	///	Mode 2: .....
+       // double m_matrixArray_flangeToSaw[16]{ 1,0,0,0, 0,1,0,0, 0,0,1,0 ,0,0,0,1 };
+
+  int m_movementSpaceMode{0};
+  vtkMatrix4x4* m_matrix_flangeSpaceToMovementSpace;
+  bool ConfigureflangeToMovementSpace(/*m_movementSpaceMode, m_matrix_robotBaseToMovementSpace*/);
+
+  /// Kuka translation
+  bool TranslateX_plus();
+  bool TranslateY_plus();
+  bool TranslateZ_plus();
+  bool TranslateX_minus();
+  bool TranslateY_minus();
+  bool TranslateZ_minus();
+
+  /// Kuka rotation
+  bool RotateX_plus();
+  bool RotateY_plus();
+  bool RotateZ_plus();
+  bool RotateX_minus();
+  bool RotateY_minus();
+  bool RotateZ_minus();
+
+  // Convert the transform matrix from movement space to robot base space
+  bool InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementMatrix, vtkMatrix4x4* movementMatrixInRobotBase);
+
+  
 
 };
 
