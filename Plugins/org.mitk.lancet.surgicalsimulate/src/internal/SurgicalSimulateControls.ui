@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>404</width>
-    <height>772</height>
+    <width>701</width>
+    <height>701</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -87,7 +87,7 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>220</y>
+     <y>270</y>
      <width>181</width>
      <height>80</height>
     </rect>
@@ -100,7 +100,7 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>360</y>
+     <y>370</y>
      <width>191</width>
      <height>81</height>
     </rect>
@@ -151,8 +151,8 @@
   <widget class="QGroupBox" name="groupBox_4">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>500</y>
+     <x>40</x>
+     <y>470</y>
      <width>120</width>
      <height>80</height>
     </rect>
@@ -164,8 +164,8 @@
   <widget class="QGroupBox" name="groupBox_5">
    <property name="geometry">
     <rect>
-     <x>60</x>
-     <y>630</y>
+     <x>40</x>
+     <y>570</y>
      <width>120</width>
      <height>80</height>
     </rect>
@@ -174,8 +174,47 @@
     <string>Auto Position</string>
    </property>
   </widget>
+  <widget class="QGroupBox" name="groupBox_6">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>180</y>
+     <width>624</width>
+     <height>67</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Tool to calibrate</string>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_4">
+    <item>
+     <widget class="QmitkToolTrackingStatusWidget" name="m_StatusWidgetToolToCalibrate" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>35</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>50</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QmitkToolTrackingStatusWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QmitkToolTrackingStatusWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
