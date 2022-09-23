@@ -237,9 +237,21 @@ bool KukaRobotControl::ConfigureflangeToMovementSpace()
 
 bool KukaRobotControl::InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementMatrix, vtkMatrix4x4* movementMatrixInRobotBase)
 {
-	if(m_Controls.comboBox_moveMode->currentIndex() == 0)
+	int index = m_Controls.comboBox_moveMode->currentIndex();
+	if(index < 1)
 	{
-		movementMatrixInRobotBase->DeepCopy(rawMovementMatrix);
+		vtkNew<vtkMatrix4x4> matrix_robotBaseToFlange;
+
+		mitk::NavigationData::Pointer nd_robotBaseToFlange = m_KukaTrackingDeviceSource->GetOutput(0)->Clone();
+
+		mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), matrix_robotBaseToFlange);
+
+		matrix_robotBaseToFlange->SetElement(0, 3, rawMovementMatrix->GetElement(0, 3) + matrix_robotBaseToFlange->GetElement(0, 3));
+		matrix_robotBaseToFlange->SetElement(1, 3, rawMovementMatrix->GetElement(1, 3) + matrix_robotBaseToFlange->GetElement(1, 3));
+		matrix_robotBaseToFlange->SetElement(2, 3, rawMovementMatrix->GetElement(2, 3) + matrix_robotBaseToFlange->GetElement(2, 3));
+
+
+		movementMatrixInRobotBase->DeepCopy(matrix_robotBaseToFlange);
 
 		m_Controls.textBrowser->append("Movement matrix in robot base has been updated.");
 		m_Controls.textBrowser->append("Translation: x: " + QString::number(movementMatrixInRobotBase->GetElement(0, 3)) +
