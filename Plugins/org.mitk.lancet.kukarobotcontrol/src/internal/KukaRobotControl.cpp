@@ -54,6 +54,7 @@ void KukaRobotControl::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_loadToolStorage, &QPushButton::clicked, this, &KukaRobotControl::LoadToolStorage);
   connect(m_Controls.pushButton_connectKuka, &QPushButton::clicked, this, &KukaRobotControl::ConnectKuka);
   connect(m_Controls.pushButton_selfCheck, &QPushButton::clicked, this, &KukaRobotControl::RobotArmSelfCheck);
+  connect(m_Controls.pushButton_startTracking, &QPushButton::clicked, this, &KukaRobotControl::StartKukaTracking);
   connect(m_Controls.pushButton_rzp, &QPushButton::clicked, this, &KukaRobotControl::RotateZ_plus);
 
 }
@@ -134,6 +135,34 @@ bool KukaRobotControl::ConnectKuka()
 	return true;
 	
 }
+
+bool KukaRobotControl::StartKukaTracking()
+{
+	if (m_KukaTrackingDevice->GetState() == 1) //ready
+	{
+		m_KukaTrackingDeviceSource->StartTracking();
+
+		//update visualize filter by timer
+		if (m_KukaVisualizeTimer == nullptr)
+		{
+			m_KukaVisualizeTimer = new QTimer(this);  //create a new timer
+		}
+		connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnKukaVisualizeTimer())); //connect the timer to the method OnTimer()
+
+		m_KukaVisualizeTimer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
+
+	}
+	else
+	{
+		MITK_ERROR << "Tracking can't start, Device State:" << m_KukaTrackingDevice->GetState();
+	}
+
+	auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+	mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+
+	return true;
+}
+
 
 bool KukaRobotControl::RobotArmSelfCheck()
 {

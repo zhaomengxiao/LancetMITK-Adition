@@ -54,9 +54,13 @@ protected:
   mitk::TrackingDeviceSource::Pointer m_KukaTrackingDeviceSource;
   lancet::KukaRobotDevice::Pointer m_KukaTrackingDevice;
   lancet::NavigationObjectVisualizationFilter::Pointer m_KukaVisualizer;
+  QTimer* m_KukaVisualizeTimer{ nullptr };
+
   bool LoadToolStorage();
   bool ConnectKuka();
-	
+
+  bool StartKukaTracking();
+
   /// Kuka self check
   bool RobotArmSelfCheck();
 

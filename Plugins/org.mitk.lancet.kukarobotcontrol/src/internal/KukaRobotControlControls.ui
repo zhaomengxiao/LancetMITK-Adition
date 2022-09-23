@@ -202,7 +202,7 @@
            <rect>
             <x>120</x>
             <y>30</y>
-            <width>422</width>
+            <width>426</width>
             <height>25</height>
            </rect>
           </property>
@@ -232,6 +232,13 @@
             <widget class="QPushButton" name="pushButton_connectKuka">
              <property name="text">
               <string>Connect</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_startTracking">
+             <property name="text">
+              <string>Start tracking</string>
              </property>
             </widget>
            </item>
