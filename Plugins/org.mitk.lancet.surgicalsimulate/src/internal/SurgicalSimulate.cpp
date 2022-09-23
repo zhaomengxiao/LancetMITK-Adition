@@ -62,12 +62,15 @@ void SurgicalSimulate::CreateQtPartControl(QWidget *parent)
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
   connect(m_Controls.pushButton_connectKuka, &QPushButton::clicked, this, &SurgicalSimulate::UseKuka);
+  //connect(m_Controls.pushButton_connectKuka, &QPushButton::clicked, this, &SurgicalSimulate::UseVirtualDevice2);
   connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &SurgicalSimulate::UseVega);
+  //connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &SurgicalSimulate::UseVirtualDevice1);
   connect(m_Controls.pushButton_captureRobot, &QPushButton::clicked, this, &SurgicalSimulate::OnRobotCapture);
   connect(m_Controls.pushButton_automove, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoMove);
   connect(m_Controls.pushButton_selfcheck, &QPushButton::clicked, this, &SurgicalSimulate::OnSelfCheck);
   connect(m_Controls.pushButton_resetRobotReg, &QPushButton::clicked, this, &SurgicalSimulate::OnResetRobotRegistration);
   connect(m_Controls.pushButton_startTracking, &QPushButton::clicked, this, &SurgicalSimulate::StartTracking);
+  
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -123,7 +126,8 @@ void SurgicalSimulate::UseVega()
 	  m_VegaVisualizeTimer = new QTimer(this);  //create a new timer
   }
   connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnVegaVisualizeTimer())); //connect the timer to the method OnTimer()
-
+  connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget())); //connect the timer to the method OnTimer()
+  ShowToolStatus_Vega();
   m_VegaVisualizeTimer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
 
   auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
@@ -232,7 +236,8 @@ void SurgicalSimulate::StartTracking()
 			m_KukaVisualizeTimer = new QTimer(this);  //create a new timer
 		}
 		connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnKukaVisualizeTimer())); //connect the timer to the method OnTimer()
-
+        connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget())); //connect the timer to the method OnTimer()
+        ShowToolStatus_Kuka();
 		m_KukaVisualizeTimer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
 	}
 	else
@@ -490,9 +495,10 @@ void SurgicalSimulate::UseVirtualDevice1()
     m_VirtualDevice1Timer = new QTimer(this);  //create a new timer
   }
   connect(m_VirtualDevice1Timer, SIGNAL(timeout()), this, SLOT(OnVirtualDevice1VisualizeTimer())); //connect the timer to the method OnTimer()
-
+  connect(m_VirtualDevice1Timer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget())); //connect the timer to the method OnTimer()
+  ShowToolStatus_Vega();
+  
   m_VirtualDevice1Timer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
-
   auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
   mitk::RenderingManager::GetInstance()->InitializeViews(geo);
   
@@ -547,10 +553,45 @@ void SurgicalSimulate::UseVirtualDevice2()
     m_VirtualDevice2Timer = new QTimer(this);  //create a new timer
   }
   connect(m_VirtualDevice2Timer, SIGNAL(timeout()), this, SLOT(OnVirtualDevice2VisualizeTimer())); //connect the timer to the method OnTimer()
-
+  connect(m_VirtualDevice2Timer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget())); //connect the timer to the method OnTimer()
+  ShowToolStatus_Kuka();
   m_VirtualDevice2Timer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
 
   auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
   mitk::RenderingManager::GetInstance()->InitializeViews(geo);
 }
+void SurgicalSimulate::UpdateToolStatusWidget()
+{
+    m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
+    m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
+}
 
+void SurgicalSimulate::ShowToolStatus_Vega()
+{
+    m_VegaNavigationData.clear();
+    for (std::size_t i = 0; i < m_VegaSource->GetNumberOfOutputs(); i++)
+    {
+        m_VegaNavigationData.push_back(m_VegaSource->GetOutput(i));
+    }
+    //initialize widget
+    m_Controls.m_StatusWidgetVegaToolToShow->RemoveStatusLabels();
+    m_Controls.m_StatusWidgetVegaToolToShow->SetShowPositions(true);
+    m_Controls.m_StatusWidgetVegaToolToShow->SetTextAlignment(Qt::AlignLeft);
+    m_Controls.m_StatusWidgetVegaToolToShow->SetNavigationDatas(&m_VegaNavigationData);
+    m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();
+}
+void SurgicalSimulate::ShowToolStatus_Kuka()
+{
+    m_KukaNavigationData.clear();
+    for (std::size_t i = 0; i < m_KukaSource->GetNumberOfOutputs(); i++)
+    {
+        m_KukaNavigationData.push_back(m_KukaSource->GetOutput(i));
+    }
+    //initialize widget
+    m_Controls.m_StatusWidgetKukaToolToShow->RemoveStatusLabels();
+    m_Controls.m_StatusWidgetKukaToolToShow->SetShowPositions(true); 
+    m_Controls.m_StatusWidgetKukaToolToShow->SetTextAlignment(Qt::AlignLeft);
+    m_Controls.m_StatusWidgetKukaToolToShow->SetNavigationDatas(&m_KukaNavigationData);
+    m_Controls.m_StatusWidgetKukaToolToShow->ShowStatusLabels();
+        
+}
