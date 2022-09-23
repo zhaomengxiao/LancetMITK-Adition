@@ -68,7 +68,11 @@ public slots:
   void OnVirtualDevice1VisualizeTimer();
   void UseVirtualDevice2();
   void OnVirtualDevice2VisualizeTimer();
- 
+  
+  //ShowToolStatus
+  void ShowToolStatus_Vega();
+  void ShowToolStatus_Kuka();
+  void UpdateToolStatusWidget();
 protected:
 
   virtual void CreateQtPartControl(QWidget *parent) override;
@@ -87,6 +91,8 @@ protected:
     void GeneratePoses();
 
     void CapturePose(bool translationOnly);
+
+
 
   //*********Helper Function****************
   RobotRegistration m_RobotRegistration;
@@ -126,6 +132,10 @@ protected:
   QTimer* m_VirtualDevice2Timer{ nullptr };
   mitk::NavigationToolStorage::Pointer  m_VirtualDevice1ToolStorage;
   mitk::NavigationToolStorage::Pointer  m_VirtualDevice2ToolStorage;
+  QTimer* m_ToolStatusTimer{ nullptr }; //<<< tracking timer that updates the status widgets
+
+  std::vector<mitk::NavigationData::Pointer> m_VegaNavigationData;
+  std::vector<mitk::NavigationData::Pointer> m_KukaNavigationData;
 };
 
 #endif // SurgicalSimulate_h
