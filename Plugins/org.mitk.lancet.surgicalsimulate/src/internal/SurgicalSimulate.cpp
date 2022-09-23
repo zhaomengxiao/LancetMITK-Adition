@@ -43,6 +43,20 @@ void SurgicalSimulate::SetFocus()
 }
 
 
+void SurgicalSimulate::OnVirtualDevice2VisualizeTimer()
+{
+  //Here we call the Update() method from the Visualization Filter. Internally the filter checks if
+ //new NavigationData is available. If we have a new NavigationData the cone position and orientation
+ //will be adapted.
+  if (m_VirtualDevice2Visualizer.IsNotNull())
+  {
+    m_VirtualDevice2Visualizer->Update();
+    auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+  mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+    this->RequestRenderWindowUpdate();
+  }
+}
+
 void SurgicalSimulate::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
@@ -440,5 +454,104 @@ void SurgicalSimulate::OnResetRobotRegistration()
 {
   m_RobotRegistration.RemoveAllPose();
   m_IndexOfRobotCapture = 0;
+}
+
+void SurgicalSimulate::UseVirtualDevice1()
+{
+  //read in filename
+  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/", tr("Tool Storage Files (*.IGTToolStorage)"));
+  if (filename.isNull()) return;
+
+  //read tool storage from disk
+  std::string errorMessage = "";
+  mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(GetDataStorage());
+  m_VirtualDevice1ToolStorage = myDeserializer->Deserialize(filename.toStdString());
+  m_VirtualDevice1ToolStorage->SetName(filename.toStdString());
+
+  //! [UseKuka 1]
+  //Here we want to use the VirtualDevice as a tracking device. Therefore we instantiate a object of the class
+  //KukaRobotDevice and make some settings which are necessary for a proper connection to the device.
+  MITK_INFO << "VirtualDevice1 tracking";
+  //QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
+  m_VirtualDevice1 = mitk::VirtualTrackingDevice::New();  //instantiate
+
+  //Create Navigation Data Source with the factory class, and the visualize filter.
+  lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
+    lancet::TrackingDeviceSourceConfiguratorLancet::New(m_VirtualDevice1ToolStorage, m_VirtualDevice1);
+
+  m_VirtualDevice1Source = kukaSourceFactory->CreateTrackingDeviceSource(m_VirtualDevice1Visualizer);
+
+  m_VirtualDevice1Source->Connect();
+
+  m_VirtualDevice1Source->StartTracking();
+
+  //update visualize filter by timer
+  if (m_VirtualDevice1Timer == nullptr)
+  {
+    m_VirtualDevice1Timer = new QTimer(this);  //create a new timer
+  }
+  connect(m_VirtualDevice1Timer, SIGNAL(timeout()), this, SLOT(OnVirtualDevice1VisualizeTimer())); //connect the timer to the method OnTimer()
+
+  m_VirtualDevice1Timer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
+
+  auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+  mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+  
+}
+
+void SurgicalSimulate::OnVirtualDevice1VisualizeTimer()
+{
+  //Here we call the Update() method from the Visualization Filter. Internally the filter checks if
+ //new NavigationData is available. If we have a new NavigationData the cone position and orientation
+ //will be adapted.
+  if (m_VirtualDevice1Visualizer.IsNotNull())
+  {
+    m_VirtualDevice1Visualizer->Update();
+    // auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+  // mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+    this->RequestRenderWindowUpdate();
+  }
+}
+
+void SurgicalSimulate::UseVirtualDevice2()
+{
+  //read in filename
+  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/", tr("Tool Storage Files (*.IGTToolStorage)"));
+  if (filename.isNull()) return;
+
+  //read tool storage from disk
+  std::string errorMessage = "";
+  mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(GetDataStorage());
+  m_VirtualDevice2ToolStorage = myDeserializer->Deserialize(filename.toStdString());
+  m_VirtualDevice2ToolStorage->SetName(filename.toStdString());
+
+  //! [UseKuka 1]
+  //Here we want to use the VirtualDevice as a tracking device. Therefore we instantiate a object of the class
+  //KukaRobotDevice and make some settings which are necessary for a proper connection to the device.
+  MITK_INFO << "VirtualDevice1 tracking";
+  //QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
+  m_VirtualDevice2 = mitk::VirtualTrackingDevice::New();  //instantiate
+
+  //Create Navigation Data Source with the factory class, and the visualize filter.
+  lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
+    lancet::TrackingDeviceSourceConfiguratorLancet::New(m_VirtualDevice2ToolStorage, m_VirtualDevice2);
+
+  m_VirtualDevice2Source = kukaSourceFactory->CreateTrackingDeviceSource(m_VirtualDevice2Visualizer);
+
+  m_VirtualDevice2Source->Connect();
+
+  m_VirtualDevice2Source->StartTracking();
+
+  //update visualize filter by timer
+  if (m_VirtualDevice2Timer == nullptr)
+  {
+    m_VirtualDevice2Timer = new QTimer(this);  //create a new timer
+  }
+  connect(m_VirtualDevice2Timer, SIGNAL(timeout()), this, SLOT(OnVirtualDevice2VisualizeTimer())); //connect the timer to the method OnTimer()
+
+  m_VirtualDevice2Timer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
+
+  auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+  mitk::RenderingManager::GetInstance()->InitializeViews(geo);
 }
 

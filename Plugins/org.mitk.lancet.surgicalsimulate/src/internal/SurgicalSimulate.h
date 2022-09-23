@@ -20,6 +20,8 @@ found in the LICENSE file.
 
 
 #include "kukaRobotDevice.h"
+#include "mitkVirtualTrackingDevice.h"
+#include "mitkVirtualTrackingTool.h"
 #include "lancetNavigationObjectVisualizationFilter.h"
 #include "lancetApplyDeviceRegistratioinFilter.h"
 #include "mitkTrackingDeviceSource.h"
@@ -59,7 +61,12 @@ public slots:
   void OnAutoMove();
   void OnResetRobotRegistration();
 
-  
+
+  //TEST
+  void UseVirtualDevice1();
+  void OnVirtualDevice1VisualizeTimer();
+  void UseVirtualDevice2();
+  void OnVirtualDevice2VisualizeTimer();
  
 protected:
 
@@ -106,6 +113,18 @@ protected:
   //robot registration
   unsigned int m_IndexOfRobotCapture{0};
   std::array<vtkMatrix4x4*, 10> m_AutoPoses{};
+
+  //filter test
+  mitk::VirtualTrackingDevice::Pointer m_VirtualDevice1;
+  mitk::VirtualTrackingDevice::Pointer m_VirtualDevice2;
+  mitk::TrackingDeviceSource::Pointer m_VirtualDevice1Source;
+  mitk::TrackingDeviceSource::Pointer m_VirtualDevice2Source;
+  lancet::NavigationObjectVisualizationFilter::Pointer m_VirtualDevice1Visualizer;
+  lancet::NavigationObjectVisualizationFilter::Pointer m_VirtualDevice2Visualizer;
+  QTimer* m_VirtualDevice1Timer{ nullptr };
+  QTimer* m_VirtualDevice2Timer{ nullptr };
+  mitk::NavigationToolStorage::Pointer  m_VirtualDevice1ToolStorage;
+  mitk::NavigationToolStorage::Pointer  m_VirtualDevice2ToolStorage;
 };
 
 #endif // SurgicalSimulate_h
