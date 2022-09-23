@@ -212,12 +212,6 @@ void SurgicalSimulate::UseKuka()
   m_KukaSource = kukaSourceFactory->CreateTrackingDeviceSource(m_KukaVisualizer);
 
   m_KukaSource->Connect();
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ "0.0","0.0","0.0","0.0","0.0","0.0" });
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 }
 
 void SurgicalSimulate::StartTracking()

@@ -373,6 +373,20 @@ namespace lancet
       m_Heartbeat = QThread::create(heartbeatThreadWorker, this);
       m_Heartbeat->start();
 	  MITK_INFO << "!connect!";
+
+      //must steps for robot working state correct
+      //set tcp
+    QThread::msleep(1000);
+    this->RequestExecOperate("movel", QStringList{ "0.0","0.0","0.0","0.0","0.0","0.0" });
+    QThread::msleep(1000);
+    this->RequestExecOperate("setworkmode", { "11" });
+    QThread::msleep(1000);
+    this->RequestExecOperate("setworkmode", { "5" });
+      //select tcp
+    this->RequestExecOperate( "setio", { "15", "15" });
+      // left
+    this->RequestExecOperate("setTcpNum", { "1", "3" });
+    this->RequestExecOperate("setworkmode", { "0" });
     }
     else
     {
