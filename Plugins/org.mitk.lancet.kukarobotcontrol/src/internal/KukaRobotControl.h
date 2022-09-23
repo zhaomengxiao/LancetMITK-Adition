@@ -40,6 +40,7 @@ class KukaRobotControl : public QmitkAbstractView
 
 public:
   static const std::string VIEW_ID;
+  ~KukaRobotControl() override;
 
 protected:
 
@@ -59,6 +60,7 @@ protected:
   bool LoadToolStorage();
   bool ConnectKuka();
 
+  void OnKukaVisualizeTimer();
   bool StartKukaTracking();
 
   /// Kuka self check

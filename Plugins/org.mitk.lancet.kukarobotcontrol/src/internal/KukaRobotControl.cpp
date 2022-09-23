@@ -59,6 +59,14 @@ void KukaRobotControl::CreateQtPartControl(QWidget *parent)
 
 }
 
+KukaRobotControl::~KukaRobotControl()
+{
+	if (m_KukaVisualizeTimer != nullptr)
+	{
+		m_KukaVisualizeTimer->stop();
+	}
+}
+
 bool KukaRobotControl::LoadToolStorage()
 {
 	// read in filename
@@ -136,6 +144,19 @@ bool KukaRobotControl::ConnectKuka()
 	
 }
 
+void KukaRobotControl::OnKukaVisualizeTimer()
+{
+	//Here we call the Update() method from the Visualization Filter. Internally the filter checks if
+ //new NavigationData is available. If we have a new NavigationData the cone position and orientation
+ //will be adapted.
+	if (m_KukaVisualizer.IsNotNull())
+	{
+		m_KukaVisualizer->Update(); //todo Crash When close plugin
+		this->RequestRenderWindowUpdate();
+	}
+}
+
+
 bool KukaRobotControl::StartKukaTracking()
 {
 	if (m_KukaTrackingDevice->GetState() == 1) //ready
@@ -147,7 +168,8 @@ bool KukaRobotControl::StartKukaTracking()
 		{
 			m_KukaVisualizeTimer = new QTimer(this);  //create a new timer
 		}
-		connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnKukaVisualizeTimer())); //connect the timer to the method OnTimer()
+		// connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, OnKukaVisualizeTimer()); //connect the timer to the method OnTimer()
+		connect(m_KukaVisualizeTimer, &QTimer::timeout, this, &KukaRobotControl::OnKukaVisualizeTimer);
 
 		m_KukaVisualizeTimer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
 
@@ -249,7 +271,7 @@ bool KukaRobotControl::RotateZ_plus()
 {
 	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
 	double axisZ[3]{ 0,0,1 };
-	double angle = 180* (m_Controls.lineEdit_intuitiveValue->text().toDouble())/3.14159;
+	double angle = 3.14159* (m_Controls.lineEdit_intuitiveValue->text().toDouble())/180;
 	affineTransform->Rotate3D(axisZ, angle);
 
 	vtkNew<vtkMatrix4x4> rawMovementMatrix;
