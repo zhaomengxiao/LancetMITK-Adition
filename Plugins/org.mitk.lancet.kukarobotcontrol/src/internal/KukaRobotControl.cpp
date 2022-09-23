@@ -55,8 +55,20 @@ void KukaRobotControl::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_connectKuka, &QPushButton::clicked, this, &KukaRobotControl::ConnectKuka);
   connect(m_Controls.pushButton_selfCheck, &QPushButton::clicked, this, &KukaRobotControl::RobotArmSelfCheck);
   connect(m_Controls.pushButton_startTracking, &QPushButton::clicked, this, &KukaRobotControl::StartKukaTracking);
-  connect(m_Controls.pushButton_rzp, &QPushButton::clicked, this, &KukaRobotControl::RotateZ_plus);
 
+  connect(m_Controls.pushButton_xm, &QPushButton::clicked, this, &KukaRobotControl::TranslateX_minus);
+  connect(m_Controls.pushButton_xp, &QPushButton::clicked, this, &KukaRobotControl::TranslateX_plus);
+  connect(m_Controls.pushButton_ym, &QPushButton::clicked, this, &KukaRobotControl::TranslateY_minus);
+  connect(m_Controls.pushButton_yp, &QPushButton::clicked, this, &KukaRobotControl::TranslateY_plus);
+  connect(m_Controls.pushButton_zm, &QPushButton::clicked, this, &KukaRobotControl::TranslateZ_minus);
+  connect(m_Controls.pushButton_zp, &QPushButton::clicked, this, &KukaRobotControl::TranslateZ_plus);
+
+  connect(m_Controls.pushButton_rxm, &QPushButton::clicked, this, &KukaRobotControl::RotateX_minus);
+  connect(m_Controls.pushButton_rxp, &QPushButton::clicked, this, &KukaRobotControl::RotateX_plus);
+  connect(m_Controls.pushButton_rym, &QPushButton::clicked, this, &KukaRobotControl::RotateY_minus);
+  connect(m_Controls.pushButton_ryp, &QPushButton::clicked, this, &KukaRobotControl::RotateY_plus);
+  connect(m_Controls.pushButton_rzm, &QPushButton::clicked, this, &KukaRobotControl::RotateZ_minus);
+  connect(m_Controls.pushButton_rzp, &QPushButton::clicked, this, &KukaRobotControl::RotateZ_plus);
 }
 
 KukaRobotControl::~KukaRobotControl()
@@ -131,12 +143,13 @@ bool KukaRobotControl::ConnectKuka()
 		m_KukaTrackingDeviceSource->RegisterAsMicroservice();
 
 		m_KukaTrackingDeviceSource->Connect(); // TODO: failed connection attempt causes crash
-		QThread::msleep(1000);
-		m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ "0.0","0.0","0.0","0.0","0.0","0.0" });
-		QThread::msleep(1000);
-		m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-		QThread::msleep(1000);
-		m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+		// QThread::msleep(1000);
+		// m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ "0.0","0.0","0.0","0.0","0.0","0.0" });
+		// QThread::msleep(1000);
+		// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+		// QThread::msleep(1000);
+		// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 
 	}
 
@@ -267,9 +280,220 @@ bool KukaRobotControl::InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementM
 	
 }
 
+bool KukaRobotControl::TranslateX_plus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axis[3]{ 1,0,0 };
+	axis[0] = axis[0] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
+	affineTransform->Translate(axis);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
+
+bool KukaRobotControl::TranslateX_minus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axis[3]{ 1,0,0 };
+	axis[0] = - axis[0] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
+	affineTransform->Translate(axis);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
+
+bool KukaRobotControl::TranslateY_plus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axis[3]{ 0,1,0 };
+	axis[1] = axis[1] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
+	affineTransform->Translate(axis);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
+
+bool KukaRobotControl::TranslateY_minus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axis[3]{ 0,1,0 };
+	axis[1] = - axis[1] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
+	affineTransform->Translate(axis);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
+
+bool KukaRobotControl::TranslateZ_plus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axis[3]{ 0,0,1 };
+	axis[2] = axis[2] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
+	affineTransform->Translate(axis);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
+
+bool KukaRobotControl::TranslateZ_minus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axis[3]{ 0,0,1 };
+	axis[2] = - axis[2] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
+	affineTransform->Translate(axis);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
+
+bool KukaRobotControl::RotateX_plus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axisZ[3]{ 1,0,0 };
+	double angle = 3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
+	affineTransform->Rotate3D(axisZ, angle);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
+
+bool KukaRobotControl::RotateX_minus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axisZ[3]{ 1,0,0 };
+	double angle = -3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
+	affineTransform->Rotate3D(axisZ, angle);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
+
+bool KukaRobotControl::RotateY_plus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axisZ[3]{ 0,1,0 };
+	double angle = 3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
+	affineTransform->Rotate3D(axisZ, angle);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
+
+bool KukaRobotControl::RotateY_minus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axisZ[3]{ 0,1,0 };
+	double angle = -3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
+	affineTransform->Rotate3D(axisZ, angle);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
+
 bool KukaRobotControl::RotateZ_plus()
 {
 	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
 	double axisZ[3]{ 0,0,1 };
 	double angle = 3.14159* (m_Controls.lineEdit_intuitiveValue->text().toDouble())/180;
 	affineTransform->Rotate3D(axisZ, angle);
@@ -287,5 +511,25 @@ bool KukaRobotControl::RotateZ_plus()
 	return true;
 }
 
+bool KukaRobotControl::RotateZ_minus()
+{
+	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+	affineTransform->SetIdentity();
+	double axisZ[3]{ 0,0,1 };
+	double angle = - 3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
+	affineTransform->Rotate3D(axisZ, angle);
+
+	vtkNew<vtkMatrix4x4> rawMovementMatrix;
+	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
+
+
+	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
+
+	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
+
+	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
+
+	return true;
+}
 
 
