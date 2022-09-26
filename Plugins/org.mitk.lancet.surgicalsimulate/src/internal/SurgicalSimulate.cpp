@@ -469,16 +469,17 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
   //run the filter
   probePoint->Update();
   //get output
-  mitk::Point3D target = probePoint->GetOutput(0);
-  MITK_INFO << "Captured Point: " << target;
+  mitk::PointSet::Pointer target = probePoint->GetOutput(0);
+ 
   // //create Surgaical plane
   // m_SurgicalPlan = lancet::PointPath::New();
-
+ /* mitk::Vector3D v { target.GetVectorFromOrigin()};*/
   //convert to robot coordinates
   mitk::AffineTransform3D::Pointer targetMatrix = mitk::AffineTransform3D::New();
-  targetMatrix->SetOffset(target.GetDataPointer());
+  targetMatrix->SetOffset(target->GetPoint(0).GetDataPointer());
+  MITK_INFO << "Captured Point: " << targetMatrix;
   //机器人配准结果  Tm2b
-  m_RobotRegistrationMatrix;
+ // m_RobotRegistrationMatrix;
 
   //台车marker Tndi2m
   auto robotBaseRFindex = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");

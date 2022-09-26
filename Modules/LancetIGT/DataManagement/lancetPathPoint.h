@@ -51,7 +51,6 @@ namespace lancet
 
 	  //## data structure of a navigation tool object ##
     mitk::Point3D::pointer m_Point;
-    mitk::AffineTransform3D m_Orientation;
 	};
 }
 
