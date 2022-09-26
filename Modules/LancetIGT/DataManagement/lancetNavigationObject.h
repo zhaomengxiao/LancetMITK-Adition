@@ -28,9 +28,9 @@ namespace lancet
 {
 	/**Documentation
 	  * \brief An object of this class represents a navigation object in the view of the software.
-	  *        A few informations like an identifier, a object, a surface and a mitk image
+	  *        Information like an identifier, a object, a surface and a mitk image
 	  *        are stored in such an object. The classes NavigationObjectReader and NavigationObjectWriter
-	  *        are availiable to write/read object to/from the harddisc. If you need a collection
+	  *        are available to write/read object to/from the hard-disc. If you need a collection
 	  *        of navigation object the class NavigationObjectStorage could be used.
 	  *
 	  * \ingroup IGT
@@ -129,7 +129,7 @@ namespace lancet
     /** @brief Holds the landmarks registration point obtained from the probe during the actual registration process. */
     mitk::PointSet::Pointer m_Landmarks_probe;
 
-		/** @brief Holds ICP point set for object icp registration,only for visual suggestion, not a practical one */
+		/** @brief Holds ICP point set for object icp registration, only for visual suggestion, do not strictly corresponds to m_IcpPoints_probe */
 		mitk::PointSet::Pointer m_IcpPoints;
 
     /** @brief Holds the ICP registration point obtained from the probe during the actual registration process. */

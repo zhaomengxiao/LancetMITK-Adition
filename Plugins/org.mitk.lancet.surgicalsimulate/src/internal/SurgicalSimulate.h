@@ -136,6 +136,32 @@ protected:
 
   std::vector<mitk::NavigationData::Pointer> m_VegaNavigationData;
   std::vector<mitk::NavigationData::Pointer> m_KukaNavigationData;
+
+
+
+  // Image registration using NavigationObject structure
+  void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
+
+	// Assemble a navigationObject with a Parent node;
+	// the name of the Parent node becomes the ReferencFrameName of the navigationObject
+	// the Parent node contains the surface for visualization and the following sub-nodes:
+	// 1. "surfaceToRf_matrix": optional; surface frame to reference frame transformation;
+	//   uses a point-set containing 4 points (4 columns of the matrix) to represent;
+	//   if empty, construct an identity matrix as default in NavigationObject and a subNode point-set as well;
+	// 2. "surface_backup": optional; a backup of the original surface data;
+	//   if empty, duplicate a surface as a subNode
+	// 3. "landmark_surface": compulsory, landmark points on the surface in the surface frame
+	//   if empty, prompt warning
+	// 4. "landmark_rf": optional, collected landmark points in the reference frame;
+	//   if empty, create an empty point-set in NavigationObject
+	// 5. "icp_surface": optional, icp points on the surface in the surface frame
+	//   if empty, do nothing
+	// 6. "icp_rf": optional, collected icp points in the reference frame, only for visualization purposes;
+	//   if empty, do nothing
+  bool AssembleNavigationObjectFromDataNode(mitk::DataNode* parentNode, lancet::NavigationObject* assembledObject);
+
+
+  bool RetoreDataNodeFromNavigationObject(mitk::DataNode* parentNode, lancet::NavigationObject* assembledObject);
 };
 
 #endif // SurgicalSimulate_h

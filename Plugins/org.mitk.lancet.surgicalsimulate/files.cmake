@@ -5,6 +5,7 @@ set(SRC_CPP_FILES
 set(INTERNAL_CPP_FILES
   org_mitk_lancet_surgicalsimulate_Activator.cpp
   SurgicalSimulate.cpp
+  SurgicalSimulate_imageRegistration.cpp
 )
 
 set(UI_FILES
