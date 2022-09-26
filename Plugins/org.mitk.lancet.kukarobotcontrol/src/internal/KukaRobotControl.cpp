@@ -246,12 +246,14 @@ bool KukaRobotControl::InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementM
 
 		mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), matrix_robotBaseToFlange);
 
-		matrix_robotBaseToFlange->SetElement(0, 3, rawMovementMatrix->GetElement(0, 3) + matrix_robotBaseToFlange->GetElement(0, 3));
-		matrix_robotBaseToFlange->SetElement(1, 3, rawMovementMatrix->GetElement(1, 3) + matrix_robotBaseToFlange->GetElement(1, 3));
-		matrix_robotBaseToFlange->SetElement(2, 3, rawMovementMatrix->GetElement(2, 3) + matrix_robotBaseToFlange->GetElement(2, 3));
+		vtkNew<vtkTransform> tmpTransform;
+		tmpTransform->Identity();
+		tmpTransform->PostMultiply();
+		tmpTransform->SetMatrix(matrix_robotBaseToFlange);
+		tmpTransform->Concatenate(rawMovementMatrix);
+		tmpTransform->Update();
 
-
-		movementMatrixInRobotBase->DeepCopy(matrix_robotBaseToFlange);
+		movementMatrixInRobotBase->DeepCopy(tmpTransform->GetMatrix());
 
 		m_Controls.textBrowser->append("Movement matrix in robot base has been updated.");
 		m_Controls.textBrowser->append("Translation: x: " + QString::number(movementMatrixInRobotBase->GetElement(0, 3)) +
