@@ -1,0 +1,8 @@
+project(org_mitk_lancet_statemachine_services)
+
+mitk_create_plugin(
+  EXPORT_DIRECTIVE LANCET_STATEMACHINE_SERVICES_PLUGIN
+  EXPORTED_INCLUDE_SUFFIXES src
+  MODULE_DEPENDS PUBLIC MitkCore
+  PACKAGE_DEPENDS PRIVATE Qt5|Scxml
+)

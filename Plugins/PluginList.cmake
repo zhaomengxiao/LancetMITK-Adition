@@ -1,4 +1,5 @@
 set(MITK_PLUGINS
+  org.mitk.lancet.statemachine.services:ON
   org.mitk.exampleplugin.eageractivation:ON
   org.mitk.gui.qt.exampleplugin:ON
   org.mitk.virtualcorrection:ON
