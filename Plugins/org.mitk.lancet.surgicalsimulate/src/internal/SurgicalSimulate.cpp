@@ -30,6 +30,8 @@ found in the LICENSE file.
 #include <lancetVegaTrackingDevice.h>
 #include <kukaRobotDevice.h>
 #include <lancetApplyDeviceRegistratioinFilter.h>
+#include <mitkNavigationDataToPointSetFilter.h>
+#include <lancetPathPoint.h>
 
 #include "lancetTrackingDeviceSourceConfigurator.h"
 #include "mitkNavigationToolStorageDeserializer.h"
@@ -70,7 +72,9 @@ void SurgicalSimulate::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_selfcheck, &QPushButton::clicked, this, &SurgicalSimulate::OnSelfCheck);
   connect(m_Controls.pushButton_resetRobotReg, &QPushButton::clicked, this, &SurgicalSimulate::OnResetRobotRegistration);
   connect(m_Controls.pushButton_startTracking, &QPushButton::clicked, this, &SurgicalSimulate::StartTracking);
-  
+  connect(m_Controls.pushButton_captureSurgicalPlane, &QPushButton::clicked, this, &SurgicalSimulate::OnCaptureProbeAsSurgicalPlane);
+  connect(m_Controls.pushButton_startAutoPosition, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoPositionStart);
+
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -312,14 +316,14 @@ void SurgicalSimulate::OnRobotCapture()
 	matrix4x4->SetElement(1, 3, -530.45);
 	matrix4x4->SetElement(2, 3, -255.62);*/
 
-    mitk::AffineTransform3D::Pointer affine_transform = mitk::AffineTransform3D::New();
+    m_RobotRegistrationMatrix = mitk::AffineTransform3D::New();
 
-    mitk::TransferVtkMatrixToItkTransform(matrix4x4, affine_transform.GetPointer());
+    mitk::TransferVtkMatrixToItkTransform(matrix4x4, m_RobotRegistrationMatrix.GetPointer());
 
     //build ApplyDeviceRegistrationFilter
 	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
 	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
-	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(affine_transform);
+	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
     auto indexOfRobotBaseRF = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
 	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfRobotBaseRF));
 	
@@ -452,6 +456,63 @@ void SurgicalSimulate::OnResetRobotRegistration()
 {
   m_RobotRegistration.RemoveAllPose();
   m_IndexOfRobotCapture = 0;
+}
+
+void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
+{
+  //create NavigationDataToPointSetFilter to get a point3D by probe in NDI coordinates
+  mitk::NavigationDataToPointSetFilter::Pointer probePoint = mitk::NavigationDataToPointSetFilter::New();
+  auto probeToolIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+  probePoint->SetInput(m_VegaSource->GetOutput(probeToolIndex));
+  probePoint->SetOperationMode(mitk::NavigationDataToPointSetFilter::Mode3DMean);
+  probePoint->SetNumberForMean(10);
+  //run the filter
+  probePoint->Update();
+  //get output
+  mitk::Point3D target = probePoint->GetOutput(0);
+  MITK_INFO << "Captured Point: " << target;
+  // //create Surgaical plane
+  // m_SurgicalPlan = lancet::PointPath::New();
+
+  //convert to robot coordinates
+  mitk::AffineTransform3D::Pointer targetMatrix = mitk::AffineTransform3D::New();
+  targetMatrix->SetOffset(target.GetDataPointer());
+  //机器人配准结果  Tm2b
+  m_RobotRegistrationMatrix;
+
+  //台车marker Tndi2m
+  auto robotBaseRFindex = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+  mitk::AffineTransform3D::Pointer Tndi2m = m_VegaSource->GetOutput(robotBaseRFindex)->GetAffineTransform3D();
+
+  vtkMatrix4x4* Tb2m = vtkMatrix4x4::New();
+  mitk::TransferItkTransformToVtkMatrix(m_RobotRegistrationMatrix.GetPointer(), Tb2m);
+  Tb2m->Invert();
+
+  vtkMatrix4x4* Tm2ndi = vtkMatrix4x4::New();
+  mitk::TransferItkTransformToVtkMatrix(Tndi2m.GetPointer(), Tm2ndi);
+  Tm2ndi->Invert();
+
+  vtkMatrix4x4* T_ndi = vtkMatrix4x4::New();
+  mitk::TransferItkTransformToVtkMatrix(targetMatrix.GetPointer(), T_ndi);
+
+  // T_robot = Tb2m * Tm2ndi * Tndi
+  vtkNew<vtkTransform> transform;
+  transform->PostMultiply();
+  transform->SetMatrix(T_ndi);
+  transform->Concatenate(Tm2ndi);
+  transform->Concatenate(Tb2m);
+  transform->Update();
+
+  m_T_robot = vtkMatrix4x4::New();
+  transform->GetMatrix(m_T_robot);
+
+  MITK_INFO << "Target in Robot Coords";
+  m_T_robot->Print(std::cout);
+}
+
+void SurgicalSimulate::OnAutoPositionStart()
+{
+  m_KukaTrackingDevice->RobotMove(m_T_robot);
 }
 
 void SurgicalSimulate::UseVirtualDevice1()

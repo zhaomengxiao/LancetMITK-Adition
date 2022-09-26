@@ -24,6 +24,7 @@ found in the LICENSE file.
 #include "mitkVirtualTrackingTool.h"
 #include "lancetNavigationObjectVisualizationFilter.h"
 #include "lancetApplyDeviceRegistratioinFilter.h"
+#include "lancetPathPoint.h"
 #include "mitkTrackingDeviceSource.h"
 #include "robotRegistration.h"
 #include "ui_SurgicalSimulateControls.h"
@@ -45,7 +46,7 @@ class SurgicalSimulate : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
-  
+
 public slots:
   //Step1:Use a kuka Tracking Device
   void UseKuka();
@@ -62,41 +63,46 @@ public slots:
   void OnAutoMove();
   void OnResetRobotRegistration();
 
+  //Step3:NavigationObject Registration
+
+  //Step4: Create Surgical Plane
+  void OnCaptureProbeAsSurgicalPlane();
+
+  //Step5: Run the Surgical Plane by robot auto move to position
+  void OnAutoPositionStart();
 
   //TEST
   void UseVirtualDevice1();
   void OnVirtualDevice1VisualizeTimer();
   void UseVirtualDevice2();
   void OnVirtualDevice2VisualizeTimer();
-  
+
   //ShowToolStatus
   void ShowToolStatus_Vega();
   void ShowToolStatus_Kuka();
   void UpdateToolStatusWidget();
 protected:
-
-  virtual void CreateQtPartControl(QWidget *parent) override;
+  virtual void CreateQtPartControl(QWidget* parent) override;
 
   virtual void SetFocus() override;
 
   /// \brief called by QmitkFunctionality when DataManager's selection has changed
   virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
-                                  const QList<mitk::DataNode::Pointer> &nodes) override;
+                                  const QList<mitk::DataNode::Pointer>& nodes) override;
 
-  
 
   // [Step2 Robot Registration]
-    /// \brief Generate poses that robot needs to move for registration.
-    ///We take the present pose of the robot arm as the initial pose, first translating five poses, and then moving five poses with rotation.
-    void GeneratePoses();
+  /// \brief Generate poses that robot needs to move for registration.
+  ///We take the present pose of the robot arm as the initial pose, first translating five poses, and then moving five poses with rotation.
+  void GeneratePoses();
 
-    void CapturePose(bool translationOnly);
-
+  void CapturePose(bool translationOnly);
 
 
   //*********Helper Function****************
   RobotRegistration m_RobotRegistration;
-  mitk::NavigationData::Pointer GetNavigationDataInRef(mitk::NavigationData::Pointer nd, mitk::NavigationData::Pointer nd_ref);
+  mitk::NavigationData::Pointer GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
+                                                       mitk::NavigationData::Pointer nd_ref);
 public:
   ~SurgicalSimulate() override;
 protected:
@@ -112,14 +118,19 @@ protected:
   lancet::NavigationObjectVisualizationFilter::Pointer m_KukaVisualizer;
   lancet::NavigationObjectVisualizationFilter::Pointer m_VegaVisualizer;
   lancet::ApplyDeviceRegistratioinFilter::Pointer m_KukaApplyRegistrationFilter;
-  QTimer* m_KukaVisualizeTimer{ nullptr };
-  QTimer* m_VegaVisualizeTimer{ nullptr };
-  mitk::NavigationToolStorage::Pointer  m_KukaToolStorage;
-  mitk::NavigationToolStorage::Pointer  m_VegaToolStorage;
+  QTimer* m_KukaVisualizeTimer{nullptr};
+  QTimer* m_VegaVisualizeTimer{nullptr};
+  mitk::NavigationToolStorage::Pointer m_KukaToolStorage;
+  mitk::NavigationToolStorage::Pointer m_VegaToolStorage;
 
   //robot registration
   unsigned int m_IndexOfRobotCapture{0};
   std::array<vtkMatrix4x4*, 10> m_AutoPoses{};
+  mitk::AffineTransform3D::Pointer m_RobotRegistrationMatrix;
+
+  //surgical plane
+  lancet::PointPath::Pointer m_SurgicalPlan;
+  vtkMatrix4x4* m_T_robot = nullptr;
 
   //filter test
   mitk::VirtualTrackingDevice::Pointer m_VirtualDevice1;
@@ -128,11 +139,11 @@ protected:
   mitk::TrackingDeviceSource::Pointer m_VirtualDevice2Source;
   lancet::NavigationObjectVisualizationFilter::Pointer m_VirtualDevice1Visualizer;
   lancet::NavigationObjectVisualizationFilter::Pointer m_VirtualDevice2Visualizer;
-  QTimer* m_VirtualDevice1Timer{ nullptr };
-  QTimer* m_VirtualDevice2Timer{ nullptr };
-  mitk::NavigationToolStorage::Pointer  m_VirtualDevice1ToolStorage;
-  mitk::NavigationToolStorage::Pointer  m_VirtualDevice2ToolStorage;
-  QTimer* m_ToolStatusTimer{ nullptr }; //<<< tracking timer that updates the status widgets
+  QTimer* m_VirtualDevice1Timer{nullptr};
+  QTimer* m_VirtualDevice2Timer{nullptr};
+  mitk::NavigationToolStorage::Pointer m_VirtualDevice1ToolStorage;
+  mitk::NavigationToolStorage::Pointer m_VirtualDevice2ToolStorage;
+  QTimer* m_ToolStatusTimer{nullptr}; //<<< tracking timer that updates the status widgets
 
   std::vector<mitk::NavigationData::Pointer> m_VegaNavigationData;
   std::vector<mitk::NavigationData::Pointer> m_KukaNavigationData;
