@@ -130,7 +130,7 @@ protected:
 
   //surgical plane
   lancet::PointPath::Pointer m_SurgicalPlan;
-  vtkMatrix4x4* m_T_robot = nullptr;
+  mitk::AffineTransform3D::Pointer m_T_robot;
 
   //filter test
   mitk::VirtualTrackingDevice::Pointer m_VirtualDevice1;

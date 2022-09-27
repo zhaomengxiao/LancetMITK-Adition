@@ -48,18 +48,18 @@ void SurgicalSimulate::SetFocus()
 void SurgicalSimulate::OnVirtualDevice2VisualizeTimer()
 {
   //Here we call the Update() method from the Visualization Filter. Internally the filter checks if
- //new NavigationData is available. If we have a new NavigationData the cone position and orientation
- //will be adapted.
+  //new NavigationData is available. If we have a new NavigationData the cone position and orientation
+  //will be adapted.
   if (m_VirtualDevice2Visualizer.IsNotNull())
   {
     m_VirtualDevice2Visualizer->Update();
     auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
-  mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+    mitk::RenderingManager::GetInstance()->InitializeViews(geo);
     this->RequestRenderWindowUpdate();
   }
 }
 
-void SurgicalSimulate::CreateQtPartControl(QWidget *parent)
+void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
@@ -70,15 +70,16 @@ void SurgicalSimulate::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_captureRobot, &QPushButton::clicked, this, &SurgicalSimulate::OnRobotCapture);
   connect(m_Controls.pushButton_automove, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoMove);
   connect(m_Controls.pushButton_selfcheck, &QPushButton::clicked, this, &SurgicalSimulate::OnSelfCheck);
-  connect(m_Controls.pushButton_resetRobotReg, &QPushButton::clicked, this, &SurgicalSimulate::OnResetRobotRegistration);
+  connect(m_Controls.pushButton_resetRobotReg, &QPushButton::clicked, this,
+          &SurgicalSimulate::OnResetRobotRegistration);
   connect(m_Controls.pushButton_startTracking, &QPushButton::clicked, this, &SurgicalSimulate::StartTracking);
-  connect(m_Controls.pushButton_captureSurgicalPlane, &QPushButton::clicked, this, &SurgicalSimulate::OnCaptureProbeAsSurgicalPlane);
+  connect(m_Controls.pushButton_captureSurgicalPlane, &QPushButton::clicked, this,
+          &SurgicalSimulate::OnCaptureProbeAsSurgicalPlane);
   connect(m_Controls.pushButton_startAutoPosition, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoPositionStart);
-
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
-                                                const QList<mitk::DataNode::Pointer> &nodes)
+                                          const QList<mitk::DataNode::Pointer>& nodes)
 {
   // iterate all selected objects, adjust warning visibility
   // foreach (mitk::DataNode::Pointer node, nodes)
@@ -98,12 +99,14 @@ void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*sourc
 void SurgicalSimulate::UseVega()
 {
   //read in filename
-  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/", tr("Tool Storage Files (*.IGTToolStorage)"));
+  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
+                                                  tr("Tool Storage Files (*.IGTToolStorage)"));
   if (filename.isNull()) return;
 
   //read tool storage from disk
   std::string errorMessage = "";
-  mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(GetDataStorage());
+  mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(
+    GetDataStorage());
   m_VegaToolStorage = myDeserializer->Deserialize(filename.toStdString());
   m_VegaToolStorage->SetName(filename.toStdString());
 
@@ -112,7 +115,7 @@ void SurgicalSimulate::UseVega()
   //KukaRobotDevice and make some settings which are necessary for a proper connection to the device.
   MITK_INFO << "Vega tracking";
   //QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
-  lancet::NDIVegaTrackingDevice::Pointer vegaTrackingDevice = lancet::NDIVegaTrackingDevice::New();  //instantiate
+  lancet::NDIVegaTrackingDevice::Pointer vegaTrackingDevice = lancet::NDIVegaTrackingDevice::New(); //instantiate
 
   //Create Navigation Data Source with the factory class, and the visualize filter.
   lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
@@ -127,12 +130,14 @@ void SurgicalSimulate::UseVega()
   //update visualize filter by timer
   if (m_VegaVisualizeTimer == nullptr)
   {
-	  m_VegaVisualizeTimer = new QTimer(this);  //create a new timer
+    m_VegaVisualizeTimer = new QTimer(this); //create a new timer
   }
-  connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnVegaVisualizeTimer())); //connect the timer to the method OnTimer()
-  connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget())); //connect the timer to the method OnTimer()
+  connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnVegaVisualizeTimer()));
+  //connect the timer to the method OnTimer()
+  connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget()));
+  //connect the timer to the method OnTimer()
   ShowToolStatus_Vega();
-  m_VegaVisualizeTimer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
+  m_VegaVisualizeTimer->start(100); //Every 100ms the method OnTimer() is called. -> 10fps
 
   auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
   mitk::RenderingManager::GetInstance()->InitializeViews(geo);
@@ -146,7 +151,6 @@ void SurgicalSimulate::GeneratePoses()
   vtkMatrix4x4* vtkMatrix = vtkMatrix4x4::New();
   mitk::TransferItkTransformToVtkMatrix(nd_robot2flange->GetAffineTransform3D().GetPointer(), vtkMatrix);
 
-  
 
   //
 }
@@ -156,16 +160,17 @@ void SurgicalSimulate::CapturePose(bool translationOnly)
   //Output sequence is the same as AddTool sequence
   //get navigation data of flange in robot coords,
   mitk::NavigationData::Pointer nd_robot2flange = m_KukaSource->GetOutput(0);
-  
+
   //get navigation data of RobotEndRF in ndi coords,
-  auto RobotEndRF = m_VegaToolStorage->GetToolIndexByName("RobotEndRF");
-  mitk::NavigationData::Pointer nd_Ndi2RobotEndRF = m_VegaSource->GetOutput(RobotEndRF);
+  //auto RobotEndRF = m_VegaToolStorage->GetToolIndexByName("RobotEndRF");
+  mitk::NavigationData::Pointer nd_Ndi2RobotEndRF = m_VegaSource->GetOutput("RobotEndRF");
   //get navigation data of RobotBaseRF in ndi coords,
-  auto RobotBaseRF = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
-  mitk::NavigationData::Pointer nd_Ndi2RobotBaseRF = m_VegaSource->GetOutput(RobotBaseRF);
+  //auto RobotBaseRF = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+  mitk::NavigationData::Pointer nd_Ndi2RobotBaseRF = m_VegaSource->GetOutput("RobotBaseRF");
   //get navigation data RobotEndRF in reference frame RobotBaseRF
-  mitk::NavigationData::Pointer nd_RobotBaseRF2RobotEndRF = GetNavigationDataInRef(nd_Ndi2RobotEndRF, nd_Ndi2RobotBaseRF);
-  
+  mitk::NavigationData::Pointer nd_RobotBaseRF2RobotEndRF = GetNavigationDataInRef(
+    nd_Ndi2RobotEndRF, nd_Ndi2RobotBaseRF);
+
   //add nd to registration module
   m_RobotRegistration.AddPose(nd_robot2flange, nd_RobotBaseRF2RobotEndRF, translationOnly);
 
@@ -174,7 +179,7 @@ void SurgicalSimulate::CapturePose(bool translationOnly)
 }
 
 mitk::NavigationData::Pointer SurgicalSimulate::GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
-  mitk::NavigationData::Pointer nd_ref)
+                                                                       mitk::NavigationData::Pointer nd_ref)
 {
   mitk::NavigationData::Pointer res = mitk::NavigationData::New();
   res->Graft(nd);
@@ -184,7 +189,7 @@ mitk::NavigationData::Pointer SurgicalSimulate::GetNavigationDataInRef(mitk::Nav
 
 SurgicalSimulate::~SurgicalSimulate()
 {
-  if (m_KukaVisualizeTimer!=nullptr)
+  if (m_KukaVisualizeTimer != nullptr)
   {
     m_KukaVisualizeTimer->stop();
   }
@@ -197,12 +202,14 @@ SurgicalSimulate::~SurgicalSimulate()
 void SurgicalSimulate::UseKuka()
 {
   //read in filename
-  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/", tr("Tool Storage Files (*.IGTToolStorage)"));
+  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
+                                                  tr("Tool Storage Files (*.IGTToolStorage)"));
   if (filename.isNull()) return;
 
   //read tool storage from disk
   std::string errorMessage = "";
-  mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(GetDataStorage());
+  mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(
+    GetDataStorage());
   m_KukaToolStorage = myDeserializer->Deserialize(filename.toStdString());
   m_KukaToolStorage->SetName(filename.toStdString());
 
@@ -211,7 +218,7 @@ void SurgicalSimulate::UseKuka()
   //KukaRobotDevice and make some settings which are necessary for a proper connection to the device.
   MITK_INFO << "Kuka tracking";
   //QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
-  m_KukaTrackingDevice = lancet::KukaRobotDevice::New();  //instantiate
+  m_KukaTrackingDevice = lancet::KukaRobotDevice::New(); //instantiate
 
   //Create Navigation Data Source with the factory class, and the visualize filter.
   lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
@@ -224,24 +231,26 @@ void SurgicalSimulate::UseKuka()
 
 void SurgicalSimulate::StartTracking()
 {
-	if (m_KukaTrackingDevice->GetState()==1) //ready
-	{
-		m_KukaSource->StartTracking();
+  if (m_KukaTrackingDevice->GetState() == 1) //ready
+  {
+    m_KukaSource->StartTracking();
 
-		//update visualize filter by timer
-		if (m_KukaVisualizeTimer == nullptr)
-		{
-			m_KukaVisualizeTimer = new QTimer(this);  //create a new timer
-		}
-		connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnKukaVisualizeTimer())); //connect the timer to the method OnTimer()
-        connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget())); //connect the timer to the method OnTimer()
-        ShowToolStatus_Kuka();
-		m_KukaVisualizeTimer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
-	}
-	else
-	{
-		MITK_ERROR << "Tracking not start,Device State:" << m_KukaTrackingDevice->GetState();
-	}
+    //update visualize filter by timer
+    if (m_KukaVisualizeTimer == nullptr)
+    {
+      m_KukaVisualizeTimer = new QTimer(this); //create a new timer
+    }
+    connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnKukaVisualizeTimer()));
+    //connect the timer to the method OnTimer()
+    connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget()));
+    //connect the timer to the method OnTimer()
+    ShowToolStatus_Kuka();
+    m_KukaVisualizeTimer->start(100); //Every 100ms the method OnTimer() is called. -> 10fps
+  }
+  else
+  {
+    MITK_ERROR << "Tracking not start,Device State:" << m_KukaTrackingDevice->GetState();
+  }
   auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
   mitk::RenderingManager::GetInstance()->InitializeViews(geo);
 }
@@ -249,20 +258,20 @@ void SurgicalSimulate::StartTracking()
 void SurgicalSimulate::OnKukaVisualizeTimer()
 {
   //Here we call the Update() method from the Visualization Filter. Internally the filter checks if
- //new NavigationData is available. If we have a new NavigationData the cone position and orientation
- //will be adapted.
-	if (m_KukaVisualizer.IsNotNull())
-	{
-		m_KukaVisualizer->Update(); //todo Crash When close plugin
-		this->RequestRenderWindowUpdate();
-	}
+  //new NavigationData is available. If we have a new NavigationData the cone position and orientation
+  //will be adapted.
+  if (m_KukaVisualizer.IsNotNull())
+  {
+    m_KukaVisualizer->Update(); //todo Crash When close plugin
+    this->RequestRenderWindowUpdate();
+  }
 }
 
 void SurgicalSimulate::OnSelfCheck()
 {
   // if (m_KukaTrackingDevice.IsNotNull() && m_KukaTrackingDevice->GetState()!=0)
   // {
-    m_KukaTrackingDevice->RequestExecOperate(/*"Robot",*/ "setio", { "20", "20" });
+  m_KukaTrackingDevice->RequestExecOperate(/*"Robot",*/ "setio", {"20", "20"});
   // }
   // else
   // {
@@ -273,27 +282,27 @@ void SurgicalSimulate::OnSelfCheck()
 void SurgicalSimulate::OnVegaVisualizeTimer()
 {
   //Here we call the Update() method from the Visualization Filter. Internally the filter checks if
- //new NavigationData is available. If we have a new NavigationData the cone position and orientation
- //will be adapted.
-	if (m_VegaVisualizer.IsNotNull())
-	{
-		m_VegaVisualizer->Update();
-		// auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
-  // mitk::RenderingManager::GetInstance()->InitializeViews(geo);
-		this->RequestRenderWindowUpdate();
-	}
+  //new NavigationData is available. If we have a new NavigationData the cone position and orientation
+  //will be adapted.
+  if (m_VegaVisualizer.IsNotNull())
+  {
+    m_VegaVisualizer->Update();
+    // auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+    // mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+    this->RequestRenderWindowUpdate();
+  }
 }
 
 void SurgicalSimulate::OnRobotCapture()
 {
-  if (m_IndexOfRobotCapture<5) //The first five translations, 
+  if (m_IndexOfRobotCapture < 5) //The first five translations, 
   {
     CapturePose(true);
     //Increase the count each time you click the button
     m_IndexOfRobotCapture++;
     MITK_INFO << "OnRobotCapture: " << m_IndexOfRobotCapture;
   }
-  else if (m_IndexOfRobotCapture < 10)//the last five rotations
+  else if (m_IndexOfRobotCapture < 10) //the last five rotations
   {
     CapturePose(false);
     //Increase the count each time you click the button
@@ -307,28 +316,27 @@ void SurgicalSimulate::OnRobotCapture()
     MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
     matrix4x4->Print(std::cout);
 
-	//For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
-	/*vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
-	matrix4x4->SetElement(0, 0, -0.48); matrix4x4->SetElement(0, 1, -0.19); matrix4x4->SetElement(0, 2, -0.86);
-	matrix4x4->SetElement(1, 0, -0.01); matrix4x4->SetElement(1, 1, -0.97); matrix4x4->SetElement(1, 2, 0.22);
-	matrix4x4->SetElement(2, 0, -0.88); matrix4x4->SetElement(2, 1, 0.11); matrix4x4->SetElement(2, 2, 0.46);
-	matrix4x4->SetElement(0, 3, 162.37);
-	matrix4x4->SetElement(1, 3, -530.45);
-	matrix4x4->SetElement(2, 3, -255.62);*/
+    //For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
+    /*vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
+    matrix4x4->SetElement(0, 0, -0.48); matrix4x4->SetElement(0, 1, -0.19); matrix4x4->SetElement(0, 2, -0.86);
+    matrix4x4->SetElement(1, 0, -0.01); matrix4x4->SetElement(1, 1, -0.97); matrix4x4->SetElement(1, 2, 0.22);
+    matrix4x4->SetElement(2, 0, -0.88); matrix4x4->SetElement(2, 1, 0.11); matrix4x4->SetElement(2, 2, 0.46);
+    matrix4x4->SetElement(0, 3, 162.37);
+    matrix4x4->SetElement(1, 3, -530.45);
+    matrix4x4->SetElement(2, 3, -255.62);*/
 
     m_RobotRegistrationMatrix = mitk::AffineTransform3D::New();
 
     mitk::TransferVtkMatrixToItkTransform(matrix4x4, m_RobotRegistrationMatrix.GetPointer());
-
+    m_VegaToolStorage->GetToolByName("RobotBaseRF")->SetToolRegistrationMatrix(m_RobotRegistrationMatrix);
     //build ApplyDeviceRegistrationFilter
-	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
-	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
-	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
-    auto indexOfRobotBaseRF = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
-	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfRobotBaseRF));
-	
-    
-	m_KukaVisualizeTimer->stop();
+    m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
+    m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
+    m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
+    m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
+
+
+    m_KukaVisualizeTimer->stop();
     m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
     m_KukaVisualizeTimer->start();
   }
@@ -340,20 +348,20 @@ void SurgicalSimulate::OnAutoMove()
   mitk::NavigationData::Pointer nd_robot2flange = m_KukaSource->GetOutput(0);
   mitk::AffineTransform3D::Pointer affine = mitk::AffineTransform3D::New();
   affine = nd_robot2flange->GetAffineTransform3D()->Clone();
-  double axisx[3]{ 1,0,0 };
-  double axisy[3]{ 0,1,0 };
-  double axisz[3]{ 0,0,1 };
+  double axisx[3]{1, 0, 0};
+  double axisy[3]{0, 1, 0};
+  double axisz[3]{0, 0, 1};
   vtkMatrix4x4* vtkMatrix = vtkMatrix4x4::New();
 
-  double trans1[3]{ 0,0,50 };
-  double trans2[3]{ 0,50,0 };
-  double trans3[3]{ 50,0,0 };
-  double trans4[3]{ 0,0,-50 };
-  double trans5[3]{ -25,0,0 };
-  double trans6[3]{ 0,-25,0 };
-  double trans7[3]{ 0,-25,0 };
-  double trans8[3]{ 25,0,0 };
-  double trans9[3]{ -25,0,0 };
+  double trans1[3]{0, 0, 50};
+  double trans2[3]{0, 50, 0};
+  double trans3[3]{50, 0, 0};
+  double trans4[3]{0, 0, -50};
+  double trans5[3]{-25, 0, 0};
+  double trans6[3]{0, -25, 0};
+  double trans7[3]{0, -25, 0};
+  double trans8[3]{25, 0, 0};
+  double trans9[3]{-25, 0, 0};
   switch (m_IndexOfRobotCapture)
   {
   case 1: //z+50
@@ -365,17 +373,17 @@ void SurgicalSimulate::OnAutoMove()
     break;
 
   case 2: //y+50
-    
+
 
     affine->Translate(trans2);
-    
+
     mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
 
     m_KukaTrackingDevice->RobotMove(vtkMatrix);
     break;
 
   case 3: //x+50
-    
+
 
     affine->Translate(trans3);
 
@@ -406,7 +414,7 @@ void SurgicalSimulate::OnAutoMove()
 
   case 6: //x rotate -20 degree y -25
 
-    affine->Rotate3D(axisx, -0.174*2);
+    affine->Rotate3D(axisx, -0.174 * 2);
     affine->Translate(trans6);
 
     mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
@@ -416,7 +424,7 @@ void SurgicalSimulate::OnAutoMove()
 
   case 7: //y rotate 10 degree y +25
 
-    affine->Rotate3D(axisy, 0.174 );
+    affine->Rotate3D(axisy, 0.174);
     affine->Translate(trans7);
     mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
 
@@ -425,7 +433,7 @@ void SurgicalSimulate::OnAutoMove()
 
   case 8: //y rotate -20 degree x +25
 
-    affine->Rotate3D(axisy, -0.174*2);
+    affine->Rotate3D(axisy, -0.174 * 2);
     affine->Translate(trans8);
     mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
 
@@ -441,15 +449,13 @@ void SurgicalSimulate::OnAutoMove()
     m_KukaTrackingDevice->RobotMove(vtkMatrix);
     break;
 
-  default: 
- 
+  default:
+
     mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
 
     m_KukaTrackingDevice->RobotMove(vtkMatrix);
     break;
   }
-  
-  
 }
 
 void SurgicalSimulate::OnResetRobotRegistration()
@@ -462,69 +468,73 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
 {
   //create NavigationDataToPointSetFilter to get a point3D by probe in NDI coordinates
   mitk::NavigationDataToPointSetFilter::Pointer probePoint = mitk::NavigationDataToPointSetFilter::New();
-  auto probeToolIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
-  probePoint->SetInput(m_VegaSource->GetOutput(probeToolIndex));
+  //auto probeToolIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+  probePoint->SetInput(m_VegaSource->GetOutput("Probe"));
   probePoint->SetOperationMode(mitk::NavigationDataToPointSetFilter::Mode3DMean);
   probePoint->SetNumberForMean(10);
   //run the filter
   probePoint->Update();
   //get output
   mitk::PointSet::Pointer target = probePoint->GetOutput(0);
- 
+
   // //create Surgaical plane
   // m_SurgicalPlan = lancet::PointPath::New();
- /* mitk::Vector3D v { target.GetVectorFromOrigin()};*/
+  /* mitk::Vector3D v { target.GetVectorFromOrigin()};*/
   //convert to robot coordinates
   mitk::AffineTransform3D::Pointer targetMatrix = mitk::AffineTransform3D::New();
   targetMatrix->SetOffset(target->GetPoint(0).GetDataPointer());
   MITK_INFO << "Captured Point: " << targetMatrix;
   //机器人配准结果  Tm2b
- // m_RobotRegistrationMatrix;
+  // m_RobotRegistrationMatrix;
 
-  //台车marker Tndi2m
-  auto robotBaseRFindex = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
-  mitk::AffineTransform3D::Pointer Tndi2m = m_VegaSource->GetOutput(robotBaseRFindex)->GetAffineTransform3D();
+  // //台车marker Tndi2m
+  // //auto robotBaseRFindex = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+  // mitk::AffineTransform3D::Pointer Tndi2m = m_VegaSource->GetOutput("RobotBaseRF")->GetAffineTransform3D();
+  //
+  // vtkMatrix4x4* Tb2m = vtkMatrix4x4::New();
+  // mitk::TransferItkTransformToVtkMatrix(m_RobotRegistrationMatrix.GetPointer(), Tb2m);
+  // Tb2m->Invert();
+  //
+  // vtkMatrix4x4* Tm2ndi = vtkMatrix4x4::New();
+  // mitk::TransferItkTransformToVtkMatrix(Tndi2m.GetPointer(), Tm2ndi);
+  // Tm2ndi->Invert();
+  //
+  // vtkMatrix4x4* T_ndi = vtkMatrix4x4::New();
+  // mitk::TransferItkTransformToVtkMatrix(targetMatrix.GetPointer(), T_ndi);
+  //
+  // // T_robot = Tb2m * Tm2ndi * Tndi
+  // vtkNew<vtkTransform> transform;
+  // transform->PostMultiply();
+  // transform->SetMatrix(T_ndi);
+  // transform->Concatenate(Tm2ndi);
+  // transform->Concatenate(Tb2m);
+  // transform->Update();
+  m_T_robot = mitk::AffineTransform3D::New();
+  m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", targetMatrix, m_T_robot);
 
-  vtkMatrix4x4* Tb2m = vtkMatrix4x4::New();
-  mitk::TransferItkTransformToVtkMatrix(m_RobotRegistrationMatrix.GetPointer(), Tb2m);
-  Tb2m->Invert();
-
-  vtkMatrix4x4* Tm2ndi = vtkMatrix4x4::New();
-  mitk::TransferItkTransformToVtkMatrix(Tndi2m.GetPointer(), Tm2ndi);
-  Tm2ndi->Invert();
-
-  vtkMatrix4x4* T_ndi = vtkMatrix4x4::New();
-  mitk::TransferItkTransformToVtkMatrix(targetMatrix.GetPointer(), T_ndi);
-
-  // T_robot = Tb2m * Tm2ndi * Tndi
-  vtkNew<vtkTransform> transform;
-  transform->PostMultiply();
-  transform->SetMatrix(T_ndi);
-  transform->Concatenate(Tm2ndi);
-  transform->Concatenate(Tb2m);
-  transform->Update();
-
-  m_T_robot = vtkMatrix4x4::New();
-  transform->GetMatrix(m_T_robot);
-
-  MITK_INFO << "Target in Robot Coords";
-  m_T_robot->Print(std::cout);
+  MITK_INFO << m_T_robot;
 }
 
 void SurgicalSimulate::OnAutoPositionStart()
 {
-  m_KukaTrackingDevice->RobotMove(m_T_robot);
+  vtkMatrix4x4* t = vtkMatrix4x4::New();
+  mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+  
+  
+  m_KukaTrackingDevice->RobotMove(t);
 }
 
 void SurgicalSimulate::UseVirtualDevice1()
 {
   //read in filename
-  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/", tr("Tool Storage Files (*.IGTToolStorage)"));
+  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
+                                                  tr("Tool Storage Files (*.IGTToolStorage)"));
   if (filename.isNull()) return;
 
   //read tool storage from disk
   std::string errorMessage = "";
-  mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(GetDataStorage());
+  mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(
+    GetDataStorage());
   m_VirtualDevice1ToolStorage = myDeserializer->Deserialize(filename.toStdString());
   m_VirtualDevice1ToolStorage->SetName(filename.toStdString());
 
@@ -533,7 +543,7 @@ void SurgicalSimulate::UseVirtualDevice1()
   //KukaRobotDevice and make some settings which are necessary for a proper connection to the device.
   MITK_INFO << "VirtualDevice1 tracking";
   //QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
-  m_VirtualDevice1 = mitk::VirtualTrackingDevice::New();  //instantiate
+  m_VirtualDevice1 = mitk::VirtualTrackingDevice::New(); //instantiate
 
   //Create Navigation Data Source with the factory class, and the visualize filter.
   lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
@@ -548,28 +558,29 @@ void SurgicalSimulate::UseVirtualDevice1()
   //update visualize filter by timer
   if (m_VirtualDevice1Timer == nullptr)
   {
-    m_VirtualDevice1Timer = new QTimer(this);  //create a new timer
+    m_VirtualDevice1Timer = new QTimer(this); //create a new timer
   }
-  connect(m_VirtualDevice1Timer, SIGNAL(timeout()), this, SLOT(OnVirtualDevice1VisualizeTimer())); //connect the timer to the method OnTimer()
-  connect(m_VirtualDevice1Timer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget())); //connect the timer to the method OnTimer()
+  connect(m_VirtualDevice1Timer, SIGNAL(timeout()), this, SLOT(OnVirtualDevice1VisualizeTimer()));
+  //connect the timer to the method OnTimer()
+  connect(m_VirtualDevice1Timer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget()));
+  //connect the timer to the method OnTimer()
   ShowToolStatus_Vega();
-  
-  m_VirtualDevice1Timer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
+
+  m_VirtualDevice1Timer->start(100); //Every 100ms the method OnTimer() is called. -> 10fps
   auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
   mitk::RenderingManager::GetInstance()->InitializeViews(geo);
-  
 }
 
 void SurgicalSimulate::OnVirtualDevice1VisualizeTimer()
 {
   //Here we call the Update() method from the Visualization Filter. Internally the filter checks if
- //new NavigationData is available. If we have a new NavigationData the cone position and orientation
- //will be adapted.
+  //new NavigationData is available. If we have a new NavigationData the cone position and orientation
+  //will be adapted.
   if (m_VirtualDevice1Visualizer.IsNotNull())
   {
     m_VirtualDevice1Visualizer->Update();
     // auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
-  // mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+    // mitk::RenderingManager::GetInstance()->InitializeViews(geo);
     this->RequestRenderWindowUpdate();
   }
 }
@@ -577,12 +588,14 @@ void SurgicalSimulate::OnVirtualDevice1VisualizeTimer()
 void SurgicalSimulate::UseVirtualDevice2()
 {
   //read in filename
-  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/", tr("Tool Storage Files (*.IGTToolStorage)"));
+  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
+                                                  tr("Tool Storage Files (*.IGTToolStorage)"));
   if (filename.isNull()) return;
 
   //read tool storage from disk
   std::string errorMessage = "";
-  mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(GetDataStorage());
+  mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(
+    GetDataStorage());
   m_VirtualDevice2ToolStorage = myDeserializer->Deserialize(filename.toStdString());
   m_VirtualDevice2ToolStorage->SetName(filename.toStdString());
 
@@ -591,7 +604,7 @@ void SurgicalSimulate::UseVirtualDevice2()
   //KukaRobotDevice and make some settings which are necessary for a proper connection to the device.
   MITK_INFO << "VirtualDevice1 tracking";
   //QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
-  m_VirtualDevice2 = mitk::VirtualTrackingDevice::New();  //instantiate
+  m_VirtualDevice2 = mitk::VirtualTrackingDevice::New(); //instantiate
 
   //Create Navigation Data Source with the factory class, and the visualize filter.
   lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
@@ -606,48 +619,51 @@ void SurgicalSimulate::UseVirtualDevice2()
   //update visualize filter by timer
   if (m_VirtualDevice2Timer == nullptr)
   {
-    m_VirtualDevice2Timer = new QTimer(this);  //create a new timer
+    m_VirtualDevice2Timer = new QTimer(this); //create a new timer
   }
-  connect(m_VirtualDevice2Timer, SIGNAL(timeout()), this, SLOT(OnVirtualDevice2VisualizeTimer())); //connect the timer to the method OnTimer()
-  connect(m_VirtualDevice2Timer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget())); //connect the timer to the method OnTimer()
+  connect(m_VirtualDevice2Timer, SIGNAL(timeout()), this, SLOT(OnVirtualDevice2VisualizeTimer()));
+  //connect the timer to the method OnTimer()
+  connect(m_VirtualDevice2Timer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget()));
+  //connect the timer to the method OnTimer()
   ShowToolStatus_Kuka();
-  m_VirtualDevice2Timer->start(100);  //Every 100ms the method OnTimer() is called. -> 10fps
+  m_VirtualDevice2Timer->start(100); //Every 100ms the method OnTimer() is called. -> 10fps
 
   auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
   mitk::RenderingManager::GetInstance()->InitializeViews(geo);
 }
+
 void SurgicalSimulate::UpdateToolStatusWidget()
 {
-    m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
-    m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
+  m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
+  m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
 }
 
 void SurgicalSimulate::ShowToolStatus_Vega()
 {
-    m_VegaNavigationData.clear();
-    for (std::size_t i = 0; i < m_VegaSource->GetNumberOfOutputs(); i++)
-    {
-        m_VegaNavigationData.push_back(m_VegaSource->GetOutput(i));
-    }
-    //initialize widget
-    m_Controls.m_StatusWidgetVegaToolToShow->RemoveStatusLabels();
-    m_Controls.m_StatusWidgetVegaToolToShow->SetShowPositions(true);
-    m_Controls.m_StatusWidgetVegaToolToShow->SetTextAlignment(Qt::AlignLeft);
-    m_Controls.m_StatusWidgetVegaToolToShow->SetNavigationDatas(&m_VegaNavigationData);
-    m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();
+  m_VegaNavigationData.clear();
+  for (std::size_t i = 0; i < m_VegaSource->GetNumberOfOutputs(); i++)
+  {
+    m_VegaNavigationData.push_back(m_VegaSource->GetOutput(i));
+  }
+  //initialize widget
+  m_Controls.m_StatusWidgetVegaToolToShow->RemoveStatusLabels();
+  m_Controls.m_StatusWidgetVegaToolToShow->SetShowPositions(true);
+  m_Controls.m_StatusWidgetVegaToolToShow->SetTextAlignment(Qt::AlignLeft);
+  m_Controls.m_StatusWidgetVegaToolToShow->SetNavigationDatas(&m_VegaNavigationData);
+  m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();
 }
+
 void SurgicalSimulate::ShowToolStatus_Kuka()
 {
-    m_KukaNavigationData.clear();
-    for (std::size_t i = 0; i < m_KukaSource->GetNumberOfOutputs(); i++)
-    {
-        m_KukaNavigationData.push_back(m_KukaSource->GetOutput(i));
-    }
-    //initialize widget
-    m_Controls.m_StatusWidgetKukaToolToShow->RemoveStatusLabels();
-    m_Controls.m_StatusWidgetKukaToolToShow->SetShowPositions(true); 
-    m_Controls.m_StatusWidgetKukaToolToShow->SetTextAlignment(Qt::AlignLeft);
-    m_Controls.m_StatusWidgetKukaToolToShow->SetNavigationDatas(&m_KukaNavigationData);
-    m_Controls.m_StatusWidgetKukaToolToShow->ShowStatusLabels();
-        
+  m_KukaNavigationData.clear();
+  for (std::size_t i = 0; i < m_KukaSource->GetNumberOfOutputs(); i++)
+  {
+    m_KukaNavigationData.push_back(m_KukaSource->GetOutput(i));
+  }
+  //initialize widget
+  m_Controls.m_StatusWidgetKukaToolToShow->RemoveStatusLabels();
+  m_Controls.m_StatusWidgetKukaToolToShow->SetShowPositions(true);
+  m_Controls.m_StatusWidgetKukaToolToShow->SetTextAlignment(Qt::AlignLeft);
+  m_Controls.m_StatusWidgetKukaToolToShow->SetNavigationDatas(&m_KukaNavigationData);
+  m_Controls.m_StatusWidgetKukaToolToShow->ShowStatusLabels();
 }
