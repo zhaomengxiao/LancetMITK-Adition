@@ -57,6 +57,22 @@ void SurgicalSimulate::InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widge
 	widget->SetPopUpTitel(QString("Select surface"));
 }
 
+void SurgicalSimulate::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)
+{
+	widget->SetDataStorage(GetDataStorage());
+	widget->SetNodePredicate(mitk::NodePredicateAnd::New(
+		mitk::TNodePredicateDataType<mitk::PointSet>::New(),
+		mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(mitk::NodePredicateProperty::New("helper object"),
+			mitk::NodePredicateProperty::New("hidden object")))));
+
+	widget->SetSelectionIsOptional(true);
+	widget->SetAutoSelectNewNodes(true);
+	widget->SetEmptyInfo(QString("Please select a point set"));
+	widget->SetPopUpTitel(QString("Select point set"));
+}
+
+
+
 bool SurgicalSimulate::AssembleNavigationObjectFromDataNode(mitk::DataNode* parentNode, lancet::NavigationObject* assembledObject)
 {
 	auto nodeTreeModel = new QmitkDataStorageTreeModel(this->GetDataStorage());
@@ -176,3 +192,104 @@ bool SurgicalSimulate::AssembleNavigationObjectFromDataNode(mitk::DataNode* pare
 
 	return false;
 }
+
+
+bool SurgicalSimulate::SetupNavigatedImage()
+{
+	// The surface node should have no offset, i.e., should have an identity matrix!
+	auto surfaceNode = m_Controls.mitkNodeSelectWidget_surface_regis->GetSelectedNode();
+	auto landmarkSrcNode = m_Controls.mitkNodeSelectWidget_landmark_src->GetSelectedNode();
+
+	if (surfaceNode == nullptr || landmarkSrcNode == nullptr)
+	{
+		m_Controls.textBrowser->append("Source surface or source landmarks is not ready!");
+		return false;
+	}
+
+	navigatedImage = lancet::NavigationObject::New();
+
+	auto matrix = dynamic_cast<mitk::Surface*>(surfaceNode->GetData())->GetGeometry()->GetVtkMatrix();
+
+	if(matrix ->IsIdentity() ==false)
+	{
+		vtkNew<vtkMatrix4x4> identityMatrix;
+		identityMatrix->Identity();
+		dynamic_cast<mitk::Surface*>(surfaceNode->GetData())->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+
+		m_Controls.textBrowser->append("Warning: the initial surface has a non-identity offset matrix; the matrix has been reset to identity!");
+	}
+
+	navigatedImage->SetDataNode(surfaceNode);
+
+	navigatedImage->SetLandmarks(dynamic_cast<mitk::PointSet*>(landmarkSrcNode->GetData()));
+
+	navigatedImage->SetReferencFrameName(surfaceNode->GetName());
+
+	m_Controls.textBrowser->append("--- navigatedImage has been set up ---");
+
+	return true;
+}
+
+bool SurgicalSimulate::CollectLanmarkProbe()
+{
+	if(navigatedImage == nullptr)
+	{
+		m_Controls.textBrowser->append("Please setup the navigationObject first!");
+		return false;
+	}
+
+	int landmark_surfaceNum = navigatedImage->GetLandmarks()->GetSize();
+	int landmark_rmNum = navigatedImage->GetLandmarks_probe()->GetSize();
+
+	if(landmark_surfaceNum == landmark_rmNum)
+	{
+		m_Controls.textBrowser->append("--- Enough landmarks have been collected ----");
+		return true;
+	}
+
+	auto pointSet_probeLandmark = navigatedImage->GetLandmarks_probe();
+
+	//get navigation data of RobotEndRF in ndi coords,
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto objectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+	if(probeIndex == -1 || objectRfIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ObjectRf' in the toolStorage!");
+	}
+
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToObjectRf = m_VegaSource->GetOutput(objectRfIndex);
+
+	mitk::NavigationData::Pointer nd_rfToProbe = GetNavigationDataInRef(nd_ndiToProbe, nd_ndiToObjectRf);
+
+
+	mitk::Point3D probeTipPointUnderRf = nd_rfToProbe->GetPosition();
+
+	pointSet_probeLandmark->InsertPoint(probeTipPointUnderRf);
+
+	m_Controls.textBrowser->append("Added landmark: " + QString::number(probeTipPointUnderRf[0]) +
+	"/ " + QString::number(probeTipPointUnderRf[1]) + "/ " + QString::number(probeTipPointUnderRf[2]));
+
+	return true;
+}
+
+
+bool SurgicalSimulate::ApplySurfaceRegistration()
+{
+	//build ApplyDeviceRegistrationFilter
+	m_surfaceRegistrationFilter = lancet::ApplySurfaceRegistratioinFilter::New();
+	m_surfaceRegistrationFilter->ConnectTo(m_VegaSource);
+	m_surfaceRegistrationFilter->SetnavigationImage(navigatedImage);
+	auto indexOfObjectRF = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+	m_surfaceRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfObjectRF));
+
+
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+	m_VegaVisualizeTimer->start();
+
+	return true;
+}
+
+
+

@@ -24,6 +24,7 @@ found in the LICENSE file.
 #include "mitkVirtualTrackingTool.h"
 #include "lancetNavigationObjectVisualizationFilter.h"
 #include "lancetApplyDeviceRegistratioinFilter.h"
+#include "lancetApplySurfaceRegistratioinFilter.h"
 #include "mitkTrackingDeviceSource.h"
 #include "robotRegistration.h"
 #include "ui_SurgicalSimulateControls.h"
@@ -140,8 +141,7 @@ protected:
 
 
   // Image registration using NavigationObject structure
-  void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
-
+ 
 	// Assemble a navigationObject with a Parent node;
 	// the name of the Parent node becomes the ReferencFrameName of the navigationObject
 	// the Parent node contains the surface for visualization and the following sub-nodes:
@@ -160,8 +160,18 @@ protected:
 	//   if empty, do nothing
   bool AssembleNavigationObjectFromDataNode(mitk::DataNode* parentNode, lancet::NavigationObject* assembledObject);
 
-
   bool RetoreDataNodeFromNavigationObject(mitk::DataNode* parentNode, lancet::NavigationObject* assembledObject);
+
+  lancet::ApplySurfaceRegistratioinFilter::Pointer m_surfaceRegistrationFilter;
+
+  void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
+  void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
+
+  lancet::NavigationObject* navigatedImage;
+
+  bool SetupNavigatedImage();
+  bool CollectLanmarkProbe();
+  bool ApplySurfaceRegistration();
 };
 
 #endif // SurgicalSimulate_h

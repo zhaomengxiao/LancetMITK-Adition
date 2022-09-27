@@ -21,6 +21,8 @@ found in the LICENSE file.
 #include <vtkSphereSource.h>
 #include <vtkTransformPolyDataFilter.h>
 
+#include "surfaceregistraion.h"
+
 std::string lancet::NavigationObject::GetName()
 {
   if (this->m_DataNode.IsNull()) { return ""; }
@@ -183,4 +185,24 @@ lancet::NavigationObject::~NavigationObject()
 itk::LightObject::Pointer lancet::NavigationObject::InternalClone() const
 {
   return DataObject::InternalClone();
+}
+
+
+bool lancet::NavigationObject::UpdateObjectToRfMatrix()
+{
+	if (m_Landmarks->GetSize() < 3 && m_Landmarks_probe->GetSize() < 3 )
+	{
+		return false;
+	}
+
+	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
+	landmarkRegistrator->SetLandmarksSrc(m_Landmarks_probe);
+	landmarkRegistrator->SetLandmarksTarget(m_Landmarks);
+	landmarkRegistrator->ComputeLandMarkResult();
+	auto landmarkMatrix = landmarkRegistrator->GetResult();
+
+	// TODO: add append ICP results to the matrix
+
+
+	return true;
 }
