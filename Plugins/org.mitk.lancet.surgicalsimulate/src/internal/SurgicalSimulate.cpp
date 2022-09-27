@@ -311,10 +311,11 @@ void SurgicalSimulate::OnRobotCapture()
   }
   else
   {
+	MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
     vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
     m_RobotRegistration.GetRegistraionMatrix(matrix4x4);
-    MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
-    matrix4x4->Print(std::cout);
+    
+    
 
     //For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
     /*vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
@@ -329,6 +330,9 @@ void SurgicalSimulate::OnRobotCapture()
 
     mitk::TransferVtkMatrixToItkTransform(matrix4x4, m_RobotRegistrationMatrix.GetPointer());
     m_VegaToolStorage->GetToolByName("RobotBaseRF")->SetToolRegistrationMatrix(m_RobotRegistrationMatrix);
+
+	MITK_INFO << "Robot Registration Matrix";
+	MITK_INFO << m_RobotRegistrationMatrix;
     //build ApplyDeviceRegistrationFilter
     m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
     m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
@@ -479,38 +483,17 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
 
   // //create Surgaical plane
   // m_SurgicalPlan = lancet::PointPath::New();
-  /* mitk::Vector3D v { target.GetVectorFromOrigin()};*/
   //convert to robot coordinates
   mitk::AffineTransform3D::Pointer targetMatrix = mitk::AffineTransform3D::New();
   targetMatrix->SetOffset(target->GetPoint(0).GetDataPointer());
   MITK_INFO << "Captured Point: " << targetMatrix;
-  //机器人配准结果  Tm2b
-  // m_RobotRegistrationMatrix;
 
-  // //台车marker Tndi2m
-  // //auto robotBaseRFindex = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
-  // mitk::AffineTransform3D::Pointer Tndi2m = m_VegaSource->GetOutput("RobotBaseRF")->GetAffineTransform3D();
-  //
-  // vtkMatrix4x4* Tb2m = vtkMatrix4x4::New();
-  // mitk::TransferItkTransformToVtkMatrix(m_RobotRegistrationMatrix.GetPointer(), Tb2m);
-  // Tb2m->Invert();
-  //
-  // vtkMatrix4x4* Tm2ndi = vtkMatrix4x4::New();
-  // mitk::TransferItkTransformToVtkMatrix(Tndi2m.GetPointer(), Tm2ndi);
-  // Tm2ndi->Invert();
-  //
-  // vtkMatrix4x4* T_ndi = vtkMatrix4x4::New();
-  // mitk::TransferItkTransformToVtkMatrix(targetMatrix.GetPointer(), T_ndi);
-  //
-  // // T_robot = Tb2m * Tm2ndi * Tndi
-  // vtkNew<vtkTransform> transform;
-  // transform->PostMultiply();
-  // transform->SetMatrix(T_ndi);
-  // transform->Concatenate(Tm2ndi);
-  // transform->Concatenate(Tb2m);
-  // transform->Update();
   m_T_robot = mitk::AffineTransform3D::New();
+  m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
   m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", targetMatrix, m_T_robot);
+
+  //use robot matrix,not change the end tool rotation,only apply the offset from probe;
+  m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
 
   MITK_INFO << m_T_robot;
 }
