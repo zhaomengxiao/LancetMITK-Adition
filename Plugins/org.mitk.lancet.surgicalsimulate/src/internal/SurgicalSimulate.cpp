@@ -348,7 +348,7 @@ void SurgicalSimulate::OnRobotCapture()
 
 	//tcp
 	std::array<double, 6> tcp;
-	//m_RobotRegistration.GetTCP(tcp);
+	m_RobotRegistration.GetTCP(tcp);
 
 	//For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
 	/*tcp[0] = 69.162;
