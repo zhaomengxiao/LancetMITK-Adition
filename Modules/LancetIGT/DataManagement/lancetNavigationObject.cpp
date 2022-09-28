@@ -220,5 +220,5 @@ bool lancet::NavigationObject::UpdateObjectToRfMatrix()
 	tmpMatrix->Invert();
 	m_T_Object2ReferenceFrame->DeepCopy(tmpMatrix);
 
-	
+	return true;
 }

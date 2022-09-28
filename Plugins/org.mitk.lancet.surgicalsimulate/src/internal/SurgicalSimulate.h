@@ -171,6 +171,7 @@ protected:
 
   bool SetupNavigatedImage();
   bool CollectLanmarkProbe();
+  bool CollectIcpProbe();
   bool ApplySurfaceRegistration();
 };
 

@@ -242,7 +242,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_metaImageNode" native="true"/>
+          <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_metaImageNode" native="true">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -305,6 +309,9 @@
           </item>
           <item row="1" column="0">
            <widget class="QPushButton" name="pushButton_collectIcp">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="text">
              <string>Collect ICP points</string>
             </property>
