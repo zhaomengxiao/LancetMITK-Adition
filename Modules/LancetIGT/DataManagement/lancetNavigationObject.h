@@ -64,6 +64,10 @@ namespace lancet
 		itkSetMacro(T_Object2ReferenceFrame, vtkSmartPointer<vtkMatrix4x4>);
 		itkSetMacro(Image, mitk::Image::Pointer);
 
+		// Calculate the transform matrix from the surface coordinate system (where landmark_surface lies) to the RF coordinate system;
+		// The surface and the landmark_surface should have an identity geometry matrix when the navigationObject is initialized, otherwise things will become too complicated
+		bool UpdateObjectToRfMatrix();
+
     //ToolName (only getter):
     /** @return Returns the name of this navigation tool. Returns an empty string if there is
      *          no name (for example because the data node has not been set yet).
@@ -141,9 +145,7 @@ namespace lancet
 		/** @brief Holds Transform Matrix for object registration.T_Object2ReferenceFrame */
 		vtkSmartPointer<vtkMatrix4x4> m_T_Object2ReferenceFrame;
 
-		// Calculate the transform matrix from the surface coordinate system (where landmark_surface lies) to the RF coordinate system;
-		// The surface and the landmark_surface should have an identity geometry matrix when the navigationObject is initialized, otherwise things will become too complicated
-		bool UpdateObjectToRfMatrix();
+		
 	};
 }
 

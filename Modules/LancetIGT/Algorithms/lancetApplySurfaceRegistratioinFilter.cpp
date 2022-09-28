@@ -54,7 +54,7 @@ void lancet::ApplySurfaceRegistratioinFilter::GenerateData()
 	auto surfaceToRfMatrix = mitk::AffineTransform3D::New();
 	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
 
-
+	m_navigationImage->UpdateObjectToRfMatrix();
 	mitk::TransferVtkMatrixToItkTransform(m_navigationImage->GetT_Object2ReferenceFrame(), surfaceToRfMatrix.GetPointer());
 	surfaceToRfMatrix->GetInverse(rfToSurfaceMatrix);
 

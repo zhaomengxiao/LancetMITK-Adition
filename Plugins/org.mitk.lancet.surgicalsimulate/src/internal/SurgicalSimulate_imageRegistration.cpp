@@ -285,7 +285,7 @@ bool SurgicalSimulate::ApplySurfaceRegistration()
 
 
 	m_VegaVisualizeTimer->stop();
-	m_VegaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationFilter);
 	m_VegaVisualizeTimer->start();
 
 	return true;

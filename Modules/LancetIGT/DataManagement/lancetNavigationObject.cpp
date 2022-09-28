@@ -199,7 +199,8 @@ bool lancet::NavigationObject::UpdateObjectToRfMatrix()
 	landmarkRegistrator->SetLandmarksSrc(m_Landmarks_probe);
 	landmarkRegistrator->SetLandmarksTarget(m_Landmarks);
 	landmarkRegistrator->ComputeLandMarkResult();
-	auto landmarkMatrix = landmarkRegistrator->GetResult();
+	
+	m_T_Object2ReferenceFrame = landmarkRegistrator->GetResult();
 
 	// TODO: add append ICP results to the matrix
 

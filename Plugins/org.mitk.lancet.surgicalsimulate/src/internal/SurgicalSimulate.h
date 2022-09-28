@@ -167,7 +167,7 @@ protected:
   void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
   void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
 
-  lancet::NavigationObject* navigatedImage;
+  lancet::NavigationObject::Pointer navigatedImage;
 
   bool SetupNavigatedImage();
   bool CollectLanmarkProbe();
