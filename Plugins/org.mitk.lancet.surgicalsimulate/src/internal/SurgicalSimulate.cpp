@@ -346,6 +346,32 @@ void SurgicalSimulate::OnRobotCapture()
     m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
     m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
 
+	//tcp
+	std::array<double, 6> tcp;
+	//m_RobotRegistration.GetTCP(tcp);
+
+	//For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
+	/*tcp[0] = 69.162;
+	tcp[1] = -22.335;
+	tcp[2] = -82.3293;
+	tcp[3] =0.2433;
+	tcp[4] = -3.089;
+	tcp[5] = -0.019;*/
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{QString::number( tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+	////select tcp
+	//m_KukaTrackingDevice->RequestExecOperate("setio", { "15", "15" });
+	//// left
+	//m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", "10" });
+	//m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
+
 
     m_KukaVisualizeTimer->stop();
     m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
