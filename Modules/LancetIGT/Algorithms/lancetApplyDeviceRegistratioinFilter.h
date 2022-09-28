@@ -45,10 +45,14 @@ namespace lancet {
 
     /**Documentation
    * \brief Set The NavigationData(from Reference Device) of the reference frame which attached to MoveDevice;
+   *
+   * must make sure NavigationDataOfRF update somewhere else.
+   *
    * !If Not Set!, no displacement is allowed between the two devices after the registration is completed
    */
     itkSetObjectMacro(NavigationDataOfRF, mitk::NavigationData);
     itkGetObjectMacro(NavigationDataOfRF, mitk::NavigationData);
+
 
   protected:
 
