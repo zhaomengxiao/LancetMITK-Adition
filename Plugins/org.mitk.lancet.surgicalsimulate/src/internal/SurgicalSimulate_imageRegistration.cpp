@@ -292,4 +292,39 @@ bool SurgicalSimulate::ApplySurfaceRegistration()
 }
 
 
+bool SurgicalSimulate::CollectIcpProbe()
+{
+	if (navigatedImage == nullptr)
+	{
+		m_Controls.textBrowser->append("Please setup the navigationObject first!");
+		return false;
+	}
+
+	
+
+	auto pointSet_probeIcp = navigatedImage->GetIcpPoints_probe();
+
+	//get navigation data of RobotEndRF in ndi coords,
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto objectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+	if (probeIndex == -1 || objectRfIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ObjectRf' in the toolStorage!");
+	}
+
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToObjectRf = m_VegaSource->GetOutput(objectRfIndex);
+
+	mitk::NavigationData::Pointer nd_rfToProbe = GetNavigationDataInRef(nd_ndiToProbe, nd_ndiToObjectRf);
+
+
+	mitk::Point3D probeTipPointUnderRf = nd_rfToProbe->GetPosition();
+
+	pointSet_probeIcp->InsertPoint(probeTipPointUnderRf);
+
+	m_Controls.textBrowser->append("Added icp point: " + QString::number(probeTipPointUnderRf[0]) +
+		"/ " + QString::number(probeTipPointUnderRf[1]) + "/ " + QString::number(probeTipPointUnderRf[2]));
+
+	return true;
+}
 

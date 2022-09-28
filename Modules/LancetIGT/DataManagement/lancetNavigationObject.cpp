@@ -200,10 +200,25 @@ bool lancet::NavigationObject::UpdateObjectToRfMatrix()
 	landmarkRegistrator->SetLandmarksTarget(m_Landmarks);
 	landmarkRegistrator->ComputeLandMarkResult();
 	
-	m_T_Object2ReferenceFrame = landmarkRegistrator->GetResult();
+	m_T_Object2ReferenceFrame->DeepCopy(landmarkRegistrator->GetResult());
 
 	// TODO: add append ICP results to the matrix
 
+	if(m_IcpPoints->GetSize() == 0)
+	{
+		return true;
+	}
 
-	return true;
+	auto combinedRegistrator = mitk::SurfaceRegistration::New();
+	combinedRegistrator->SetLandmarksTarget(m_Landmarks_probe);
+	combinedRegistrator->SetLandmarksSrc(m_Landmarks);
+	combinedRegistrator->SetIcpPoints(m_IcpPoints);
+	combinedRegistrator->ComputeLandMarkResult();
+	combinedRegistrator->ComputeIcpResult();
+
+	auto tmpMatrix = combinedRegistrator->GetResult();
+	tmpMatrix->Invert();
+	m_T_Object2ReferenceFrame->DeepCopy(tmpMatrix);
+
+	
 }
