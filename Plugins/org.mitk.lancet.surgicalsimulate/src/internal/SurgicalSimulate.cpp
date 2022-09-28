@@ -37,6 +37,10 @@ found in the LICENSE file.
 #include "mitkNavigationToolStorageDeserializer.h"
 #include <QtWidgets\qfiledialog.h>
 
+#include "mitkIGTIOException.h"
+#include "mitkNavigationToolStorageSerializer.h"
+#include "QmitkIGTCommonHelper.h"
+
 const std::string SurgicalSimulate::VIEW_ID = "org.mitk.views.surgicalsimulate";
 
 void SurgicalSimulate::SetFocus()
@@ -82,6 +86,8 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_captureSurgicalPlane, &QPushButton::clicked, this,
           &SurgicalSimulate::OnCaptureProbeAsSurgicalPlane);
   connect(m_Controls.pushButton_startAutoPosition, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoPositionStart);
+  connect(m_Controls.pushButton_saveRobotRegist, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
+  connect(m_Controls.pushButton_usePreRobotRegit, &QPushButton::clicked, this, &SurgicalSimulate::OnUsePreRobotRegitration);
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -336,6 +342,8 @@ void SurgicalSimulate::OnRobotCapture()
     m_RobotRegistrationMatrix = mitk::AffineTransform3D::New();
 
     mitk::TransferVtkMatrixToItkTransform(matrix4x4, m_RobotRegistrationMatrix.GetPointer());
+
+    //save robot registration matrix into reference tool
     m_VegaToolStorage->GetToolByName("RobotBaseRF")->SetToolRegistrationMatrix(m_RobotRegistrationMatrix);
 
 	MITK_INFO << "Robot Registration Matrix";
@@ -346,8 +354,11 @@ void SurgicalSimulate::OnRobotCapture()
     m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
     m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
 
+    m_KukaVisualizeTimer->stop();
+    m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+    m_KukaVisualizeTimer->start();
 	//tcp
-	std::array<double, 6> tcp;
+	std::array<double, 6> tcp{};
 	m_RobotRegistration.GetTCP(tcp);
 
 	//For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
@@ -372,10 +383,6 @@ void SurgicalSimulate::OnRobotCapture()
 	//m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", "10" });
 	//m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
 
-
-    m_KukaVisualizeTimer->stop();
-    m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
-    m_KukaVisualizeTimer->start();
   }
 }
 
@@ -501,6 +508,52 @@ void SurgicalSimulate::OnResetRobotRegistration()
 {
   m_RobotRegistration.RemoveAllPose();
   m_IndexOfRobotCapture = 0;
+}
+
+void SurgicalSimulate::OnSaveRobotRegistraion()
+{
+  if (m_VegaToolStorage.IsNotNull())
+  {
+    QFileDialog* fileDialog = new QFileDialog;
+    fileDialog->setDefaultSuffix("IGTToolStorage");
+    QString suffix = "IGT Tool Storage (*.IGTToolStorage)";
+    // Set default file name to LastFileSavePath + storage name
+    QString defaultFileName = QmitkIGTCommonHelper::GetLastFileSavePath() + "/" + QString::fromStdString(m_VegaToolStorage->GetName());
+    QString filename = fileDialog->getSaveFileName(nullptr, tr("Save Navigation Tool Storage"), defaultFileName, suffix, &suffix);
+
+    if (filename.isEmpty()) return; //canceled by the user
+
+    // check file suffix
+    QFileInfo file(filename);
+    if (file.suffix().isEmpty()) filename += ".IGTToolStorage";
+
+    //serialize tool storage
+    mitk::NavigationToolStorageSerializer::Pointer mySerializer = mitk::NavigationToolStorageSerializer::New();
+
+    try
+    {
+      mySerializer->Serialize(filename.toStdString(), m_VegaToolStorage);
+    }
+    catch (const mitk::IGTIOException & e)
+    {
+      m_Controls.textBrowser->append(QString::fromStdString("Error: " + std::string(e.GetDescription())));
+      return;
+    }
+    m_Controls.textBrowser->append(QString::fromStdString(m_VegaToolStorage->GetName()+" saved"));
+  }
+}
+
+void SurgicalSimulate::OnUsePreRobotRegitration()
+{
+  //build ApplyDeviceRegistrationFilter
+  m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
+  m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
+  m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix());
+  m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
+
+  m_KukaVisualizeTimer->stop();
+  m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+  m_KukaVisualizeTimer->start();
 }
 
 void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()

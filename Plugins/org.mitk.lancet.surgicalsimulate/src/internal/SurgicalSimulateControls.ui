@@ -43,7 +43,7 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>80</height>
+                <height>200</height>
                </size>
               </property>
               <property name="maximumSize">
@@ -68,7 +68,7 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>80</height>
+                <height>200</height>
                </size>
               </property>
               <property name="maximumSize">
@@ -176,7 +176,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -191,6 +191,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="pushButton_automove">
+         <property name="text">
+          <string>AutoMove</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="pushButton_resetRobotReg">
          <property name="text">
           <string>Reset</string>
@@ -198,9 +205,16 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_automove">
+        <widget class="QPushButton" name="pushButton_saveRobotRegist">
          <property name="text">
-          <string>AutoMove</string>
+          <string>Save</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_usePreRobotRegit">
+         <property name="text">
+          <string>Use Previous</string>
          </property>
         </widget>
        </item>

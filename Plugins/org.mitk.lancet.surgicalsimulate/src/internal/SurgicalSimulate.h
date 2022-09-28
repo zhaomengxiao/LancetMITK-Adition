@@ -63,6 +63,8 @@ public slots:
   void OnRobotCapture();
   void OnAutoMove();
   void OnResetRobotRegistration();
+  void OnSaveRobotRegistraion();
+  void OnUsePreRobotRegitration();
 
   //Step3:NavigationObject Registration
 
