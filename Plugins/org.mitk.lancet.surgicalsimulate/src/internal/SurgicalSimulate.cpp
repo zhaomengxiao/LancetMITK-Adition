@@ -357,6 +357,8 @@ void SurgicalSimulate::OnAutoMove()
 {
   //Use current pose as reference to generate new poses
   mitk::NavigationData::Pointer nd_robot2flange = m_KukaSource->GetOutput(0);
+  MITK_INFO << "nd_robot2flange";
+  MITK_INFO << nd_robot2flange;
   mitk::AffineTransform3D::Pointer affine = mitk::AffineTransform3D::New();
   affine = nd_robot2flange->GetAffineTransform3D()->Clone();
   double axisx[3]{1, 0, 0};

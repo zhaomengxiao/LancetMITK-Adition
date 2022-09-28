@@ -11,20 +11,6 @@ namespace lancet
   bool KukaRobotDevice::OpenConnection()
   {
     m_RobotApi.connectrobot();
-
-
-    /*if (GetState() == Ready)
-    {
-      MITK_WARN << "Ready after m_RobotApi.connectrobot();";
-    }
-    else {
-      MITK_WARN << "Setup after m_RobotApi.connectrobot();";
-    }*/
-
-    //todo BUG:isRobotConnected will not turn ture immdiately
-    //SetState(TrackingDeviceState::Ready);
-    /*m_Heartbeat = QThread::create(heartbeatThreadWorker, this);
-    m_Heartbeat->start();*/
     return true;
   }
 
@@ -321,11 +307,12 @@ namespace lancet
     m_udp.startRepetitiveHeartbeat();
 
     connect(&m_RobotApi, SIGNAL(signal_api_isRobotConnected(bool)),
-      this, SLOT(IsRobotConnected(bool)));//todo BUGFIX
+      this, SLOT(IsRobotConnected(bool)));
   }
 
   KukaRobotDevice::~KukaRobotDevice()
   {
+	  m_udp.disconnect();
   }
 
   bool KukaRobotDevice::InternalAddTool(mitk::TrackingTool* tool)
@@ -398,7 +385,7 @@ namespace lancet
 
   void KukaRobotDevice::heartbeatThreadWorker(KukaRobotDevice* _this)
   {
-    while (/*_this->m_IsConnected ==*/ true) //todo bugfix isConnected
+    while (_this->GetState()!=Setup)
     {
       _this->m_RobotApi.setspeed(50);
       QThread::msleep(500);
