@@ -353,7 +353,7 @@
         <string>Start (go to probe point)</string>
        </property>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>140</x>
@@ -374,7 +374,7 @@
          <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imageTargetPoint" native="true"/>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="pushButton_goToImagePoint">
           <property name="text">
            <string>Go to image point</string>
           </property>

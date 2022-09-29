@@ -89,6 +89,8 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_startAutoPosition, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoPositionStart);
   connect(m_Controls.pushButton_saveRobotRegist, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
   connect(m_Controls.pushButton_usePreRobotRegit, &QPushButton::clicked, this, &SurgicalSimulate::OnUsePreRobotRegitration);
+  connect(m_Controls.pushButton_goToImagePoint, &QPushButton::clicked, this, &SurgicalSimulate::GoToImagePoint);
+
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -369,6 +371,14 @@ void SurgicalSimulate::OnRobotCapture()
 	tcp[3] =0.2433;
 	tcp[4] = -3.089;
 	tcp[5] = -0.019;*/
+
+	//For Test Use, regard ball 2 as the TCP, the pose is the same as the flange  
+	tcp[0] = 0;
+	tcp[1] = 100;
+	tcp[2] = 138;
+	tcp[3] = 0;
+	tcp[4] = 0;
+	tcp[5] = 0;
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
 	//set tcp to robot
 	  //set tcp
