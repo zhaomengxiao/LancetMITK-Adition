@@ -89,7 +89,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_startAutoPosition, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoPositionStart);
   connect(m_Controls.pushButton_saveRobotRegist, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
   connect(m_Controls.pushButton_usePreRobotRegit, &QPushButton::clicked, this, &SurgicalSimulate::OnUsePreRobotRegitration);
-  connect(m_Controls.pushButton_goToImagePoint, &QPushButton::clicked, this, &SurgicalSimulate::GoToImagePoint);
+  connect(m_Controls.pushButton_confirmImageTarget, &QPushButton::clicked, this, &SurgicalSimulate::GoToImagePoint);
 
 }
 
@@ -372,7 +372,8 @@ void SurgicalSimulate::OnRobotCapture()
 	tcp[4] = -3.089;
 	tcp[5] = -0.019;*/
 
-	//For Test Use, regard ball 2 as the TCP, the pose is the same as the flange  
+	//For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
+	// https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
 	tcp[0] = 0;
 	tcp[1] = 100;
 	tcp[2] = 138;
@@ -565,6 +566,26 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   m_KukaVisualizeTimer->stop();
   m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
   m_KukaVisualizeTimer->start();
+
+
+  //For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
+  // https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
+  double tcp[6];
+  tcp[0] = 0;
+  tcp[1] = 100;
+  tcp[2] = 138;
+  tcp[3] = 0;
+  tcp[4] = 0;
+  tcp[5] = 0;
+  MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+  //set tcp to robot
+	//set tcp
+  QThread::msleep(1000);
+  m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+  QThread::msleep(1000);
+  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+  QThread::msleep(1000);
+  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 }
 
 void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
@@ -613,15 +634,16 @@ bool SurgicalSimulate::GoToImagePoint()
 	ndiToTargetMatrix->Compose(rfToSurfaceMatrix);
 	ndiToTargetMatrix->Compose(ndiToObjectRfMatrix);
 
+	m_T_robot = mitk::AffineTransform3D::New();
 	//use robot matrix,not change the end tool rotation,only apply the offset from probe;
 	m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
 	m_T_robot->SetOffset(ndiToTargetMatrix->GetOffset());
 
-	vtkMatrix4x4* t = vtkMatrix4x4::New();
-	mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
-
-
-	m_KukaTrackingDevice->RobotMove(t);
+	// vtkMatrix4x4* t = vtkMatrix4x4::New();
+	// mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+	//
+	//
+	// m_KukaTrackingDevice->RobotMove(t);
 
 	return true;
 }
