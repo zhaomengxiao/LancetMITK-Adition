@@ -187,6 +187,8 @@ protected:
   bool CollectLanmarkProbe();
   bool CollectIcpProbe();
   bool ApplySurfaceRegistration();
+
+  bool GoToImagePoint();
 };
 
 #endif // SurgicalSimulate_h

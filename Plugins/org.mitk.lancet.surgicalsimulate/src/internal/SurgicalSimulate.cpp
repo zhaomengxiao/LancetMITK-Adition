@@ -70,6 +70,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_metaImageNode);
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surface_regis);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
   connect(m_Controls.pushButton_connectKuka, &QPushButton::clicked, this, &SurgicalSimulate::UseKuka);
   //connect(m_Controls.pushButton_connectKuka, &QPushButton::clicked, this, &SurgicalSimulate::UseVirtualDevice2);
   connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &SurgicalSimulate::UseVega);
@@ -591,6 +592,36 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
 
   MITK_INFO << m_T_robot;
 }
+
+bool SurgicalSimulate::GoToImagePoint()
+{
+	auto targetPoint = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPoint->GetSelectedNode()->GetData())->GetPoint(0);
+	auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
+
+	auto surfaceToRfMatrix = mitk::AffineTransform3D::New();
+	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
+
+	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), surfaceToRfMatrix.GetPointer());
+	surfaceToRfMatrix->GetInverse(rfToSurfaceMatrix);
+
+	auto ndiToTargetMatrix = mitk::AffineTransform3D::New();
+	ndiToTargetMatrix->SetOffset(targetPoint.GetDataPointer());
+	ndiToTargetMatrix->Compose(rfToSurfaceMatrix);
+	ndiToTargetMatrix->Compose(ndiToObjectRfMatrix);
+
+	//use robot matrix,not change the end tool rotation,only apply the offset from probe;
+	m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
+	m_T_robot->SetOffset(ndiToTargetMatrix->GetOffset());
+
+	vtkMatrix4x4* t = vtkMatrix4x4::New();
+	mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+
+
+	m_KukaTrackingDevice->RobotMove(t);
+
+	return true;
+}
+
 
 void SurgicalSimulate::OnAutoPositionStart()
 {
