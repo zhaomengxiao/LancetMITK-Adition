@@ -55,7 +55,13 @@ void lancet::ApplySurfaceRegistratioinFilter::GenerateData()
 	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
 
 	//mitk::TransferVtkMatrixToItkTransform(m_RegistrationMatrix, surfaceToRfMatrix.GetPointer());
-	m_RegistrationMatrix->GetInverse(rfToSurfaceMatrix);
+	//m_RegistrationMatrix->GetInverse(rfToSurfaceMatrix);
+
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+	mitk::TransferItkTransformToVtkMatrix(m_RegistrationMatrix.GetPointer(), tmpMatrix);
+	tmpMatrix->Invert();
+
+	mitk::TransferVtkMatrixToItkTransform(tmpMatrix, rfToSurfaceMatrix.GetPointer());
 
 	auto ndiToSurface = mitk::AffineTransform3D::New();
 	ndiToSurface->Compose(rfToSurfaceMatrix);
