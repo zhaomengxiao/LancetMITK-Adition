@@ -59,7 +59,7 @@ void RobotView::CreateQtPartControl(QWidget *parent)
   // timer
   m_timer.setInterval(10);
 
-  m_device = KukaRobotDevice::New();
+  m_device = lancet::KukaRobotDevice::New();
 
   connect(&m_timer, SIGNAL(timeout()), this, SLOT(UpdateToolPosition()));
 
@@ -110,7 +110,7 @@ void RobotView::ConnectDevice()
       auto device = deviceSource->GetTrackingDevice();
       if (device->GetTrackingDeviceName() == "Kuka")
       {
-        m_device = dynamic_cast<KukaRobotDevice*>(deviceSource->GetTrackingDevice().GetPointer());
+        m_device = dynamic_cast<lancet::KukaRobotDevice*>(deviceSource->GetTrackingDevice().GetPointer());
       }
     }
   }
@@ -121,7 +121,7 @@ void RobotView::ConnectDevice()
   
   if (m_device.IsNull())
   {
-    m_device = KukaRobotDevice::New();
+    m_device = lancet::KukaRobotDevice::New();
   }
   if (m_device->GetState()==0)
   {
@@ -142,13 +142,13 @@ void RobotView::ConnectDevice()
 void RobotView::DisConnectDevice()
 {
 	m_device->CloseConnection();
-	if (m_device->GetIsConnected())
+	if (m_device->GetState()==0)
 	{
-		m_Controls.robotconnectstate->setText("Connected");
+		m_Controls.robotconnectstate->setText("Disconnected");
 	}
 	else
 	{
-		m_Controls.robotconnectstate->setText("Disconnected");
+		m_Controls.robotconnectstate->setText("Connected");		
 	}
 }
 
@@ -167,7 +167,7 @@ void RobotView::UpdateToolPosition()
 
 void RobotView::SelfCheck()
 {
-  if (m_device.IsNotNull() && m_device->GetIsConnected())
+  if (m_device.IsNotNull() && m_device->GetState()!=0)
   {
     m_device->RequestExecOperate(/*"Robot",*/ "setio", { "20", "20" });
   }

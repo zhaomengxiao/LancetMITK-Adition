@@ -28,9 +28,9 @@ namespace lancet
 {
 	/**Documentation
 	  * \brief An object of this class represents a navigation object in the view of the software.
-	  *        A few informations like an identifier, a object, a surface and a mitk image
+	  *        Information like an identifier, a object, a surface and a mitk image
 	  *        are stored in such an object. The classes NavigationObjectReader and NavigationObjectWriter
-	  *        are availiable to write/read object to/from the harddisc. If you need a collection
+	  *        are available to write/read object to/from the hard-disc. If you need a collection
 	  *        of navigation object the class NavigationObjectStorage could be used.
 	  *
 	  * \ingroup IGT
@@ -63,6 +63,10 @@ namespace lancet
     itkSetMacro(IcpPoints_probe, mitk::PointSet::Pointer);
 		itkSetMacro(T_Object2ReferenceFrame, vtkSmartPointer<vtkMatrix4x4>);
 		itkSetMacro(Image, mitk::Image::Pointer);
+
+		// Calculate the transform matrix from the surface coordinate system (where landmark_surface lies) to the RF coordinate system;
+		// The surface and the landmark_surface should have an identity geometry matrix when the navigationObject is initialized, otherwise things will become too complicated
+		bool UpdateObjectToRfMatrix();
 
     //ToolName (only getter):
     /** @return Returns the name of this navigation tool. Returns an empty string if there is
@@ -129,7 +133,7 @@ namespace lancet
     /** @brief Holds the landmarks registration point obtained from the probe during the actual registration process. */
     mitk::PointSet::Pointer m_Landmarks_probe;
 
-		/** @brief Holds ICP point set for object icp registration,only for visual suggestion, not a practical one */
+		/** @brief Holds ICP point set for object icp registration, only for visual suggestion, do not strictly corresponds to m_IcpPoints_probe */
 		mitk::PointSet::Pointer m_IcpPoints;
 
     /** @brief Holds the ICP registration point obtained from the probe during the actual registration process. */
@@ -140,6 +144,8 @@ namespace lancet
 
 		/** @brief Holds Transform Matrix for object registration.T_Object2ReferenceFrame */
 		vtkSmartPointer<vtkMatrix4x4> m_T_Object2ReferenceFrame;
+
+		
 	};
 }
 

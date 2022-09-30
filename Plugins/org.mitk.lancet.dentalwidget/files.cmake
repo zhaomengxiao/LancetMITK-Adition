@@ -10,6 +10,7 @@ set(INTERNAL_CPP_FILES
   DentalWidget_regisSurface.cpp
   DentalWidget_clipPolyData.cpp
   DentalWidget_extractPlan.cpp
+  DentalWidget_preIntraCbctRegis.cpp
   
 )
 

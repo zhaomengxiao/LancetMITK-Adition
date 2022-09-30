@@ -50,4 +50,7 @@ set(MITK_PLUGINS
   org.mitk.lancet.putfemurprosthesisaccuracy.editor:ON
   org.mitk.lancet.postoperativeoutcome:ON
   ##################    END   #######################
+  org.mitk.lancet.htotest:ON
+  org.mitk.lancet.surgicalsimulate:ON
+  org.mitk.lancet.kukarobotcontrol:ON
 )

@@ -1,10 +1,13 @@
 set(H_FILES
   DataManagement/lancetNavigationObject.h
   DataManagement/lancetTrackingDeviceSourceConfigurator.h
+  DataManagement/lancetPathPoint.h
   
   IO/lancetNavigationObjectWriter.h
 
   Algorithms/lancetNavigationDataInReferenceCoordFilter.h
+  Algorithms/lancetApplyDeviceRegistratioinFilter.h
+  Algorithms/lancetApplySurfaceRegistratioinFilter.h
   Rendering/lancetNavigationObjectVisualizationFilter.h
 
   TrackingDevices/lancetRobotTrackingTool.h
@@ -17,10 +20,13 @@ set(H_FILES
 set(CPP_FILES
   DataManagement/lancetNavigationObject.cpp
   DataManagement/lancetTrackingDeviceSourceConfigurator.cpp
+  DataManagement/lancetPathPoint.cpp
   
   IO/lancetNavigationObjectWriter.cpp
   
   Algorithms/lancetNavigationDataInReferenceCoordFilter.cpp
+  Algorithms/lancetApplyDeviceRegistratioinFilter.cpp
+  Algorithms/lancetApplySurfaceRegistratioinFilter.cpp
   Rendering/lancetNavigationObjectVisualizationFilter.cpp
 
   TrackingDevices/lancetRobotTrackingTool.cpp

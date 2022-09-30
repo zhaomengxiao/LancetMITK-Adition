@@ -120,7 +120,10 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   m_Controls.setupUi(parent);
 
   InitImageSelector(m_Controls.mitkNodeSelectWidget_intraopCt);
-	
+  InitImageSelector(m_Controls.mitkNodeSelectWidget_preopCT_reg);
+  InitImageSelector(m_Controls.mitkNodeSelectWidget_intraopCT_reg);
+  InitNodeSelector(m_Controls.mitkNodeSelectWidget_appendMatrix);
+
   m_NodetreeModel = new QmitkDataStorageTreeModel(this->GetDataStorage());
 
   //connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &DentalWidget::DoImageProcessing);
@@ -146,6 +149,9 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_checkPrecision, &QPushButton::clicked, this, &DentalWidget::CheckPrecision);
   connect(m_Controls.pushButton_modeltoCBCT, &QPushButton::clicked, this, &DentalWidget::RegisterModeltoCBCT);
   connect(m_Controls.pushButton_regResetModel, &QPushButton::clicked, this, &DentalWidget::ResetModelRegistration);
+  connect(m_Controls.pushButton_preprocessCt, &QPushButton::clicked, this, &DentalWidget::PrepareCbctImages);
+  connect(m_Controls.pushButton_retrieveMatrix, &QPushButton::clicked, this, &DentalWidget::RetrieveRegistrationMatrix);
+  connect(m_Controls.pushButton_appendOffsetMatrix, &QPushButton::clicked, this, &DentalWidget::AppendMatrix_regisCbct);
 
 
 
