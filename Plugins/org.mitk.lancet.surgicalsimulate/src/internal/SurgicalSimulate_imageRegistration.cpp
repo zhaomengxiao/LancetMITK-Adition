@@ -277,20 +277,26 @@ bool SurgicalSimulate::CollectLanmarkProbe()
 bool SurgicalSimulate::ApplySurfaceRegistration()
 {
 	//build ApplyDeviceRegistrationFilter
+	navigatedImage->UpdateObjectToRfMatrix();
 	m_surfaceRegistrationFilter = lancet::ApplySurfaceRegistratioinFilter::New();
 	m_surfaceRegistrationFilter->ConnectTo(m_VegaSource);
 	m_surfaceRegistrationFilter->SetnavigationImage(navigatedImage);
+	auto registrationMatrix = mitk::AffineTransform3D::New();
+	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), registrationMatrix.GetPointer());
+	m_surfaceRegistrationFilter->SetRegistrationMatrix(registrationMatrix);
+
 	auto indexOfObjectRF = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
 	m_surfaceRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfObjectRF));
 	
-	// save image(surface) registration matrix into its corresponding RF tool
-	m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
-	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
-	m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
-
 	m_VegaVisualizeTimer->stop();
 	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationFilter);
 	m_VegaVisualizeTimer->start();
+
+	// save image(surface) registration matrix into its corresponding RF tool
+	m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
+	navigatedImage->UpdateObjectToRfMatrix();
+	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
+	m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
 
 	return true;
 }
@@ -306,6 +312,7 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration()
 	navigatedImage->SetT_Object2ReferenceFrame(surfaceToRfMatrix);
 
 	m_surfaceRegistrationFilter->SetnavigationImage(navigatedImage);
+	m_surfaceRegistrationFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix());
 	auto indexOfObjectRF = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
 	m_surfaceRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfObjectRF));
 

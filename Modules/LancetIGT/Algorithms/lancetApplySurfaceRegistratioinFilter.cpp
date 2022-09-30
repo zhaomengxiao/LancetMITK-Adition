@@ -40,23 +40,22 @@ void lancet::ApplySurfaceRegistratioinFilter::GenerateData()
 		itkExceptionMacro("Invalid parameter: m_NavigationDataOfRF NULL.");
 		return;
 	}
-	// if (m_RegistrationMatrix.IsNull())
-	// {
-	// 	itkExceptionMacro("Invalid parameter: m_RegistrationMatrix NULL.");
-	// 	return;
-	// }
-	if (m_navigationImage.IsNull())
+	if (m_RegistrationMatrix.IsNull())
 	{
-		itkExceptionMacro("Invalid parameter: m_navigationImage NULL.");
+		itkExceptionMacro("Invalid parameter: m_RegistrationMatrix NULL.");
 		return;
 	}
+	// if (m_navigationImage.IsNull())
+	// {
+	// 	itkExceptionMacro("Invalid parameter: m_navigationImage NULL.");
+	// 	return;
+	// }
 
-	auto surfaceToRfMatrix = mitk::AffineTransform3D::New();
+	//auto surfaceToRfMatrix = mitk::AffineTransform3D::New();
 	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
 
-	m_navigationImage->UpdateObjectToRfMatrix();
-	mitk::TransferVtkMatrixToItkTransform(m_navigationImage->GetT_Object2ReferenceFrame(), surfaceToRfMatrix.GetPointer());
-	surfaceToRfMatrix->GetInverse(rfToSurfaceMatrix);
+	//mitk::TransferVtkMatrixToItkTransform(m_RegistrationMatrix, surfaceToRfMatrix.GetPointer());
+	m_RegistrationMatrix->GetInverse(rfToSurfaceMatrix);
 
 	auto ndiToSurface = mitk::AffineTransform3D::New();
 	ndiToSurface->Compose(rfToSurfaceMatrix);
