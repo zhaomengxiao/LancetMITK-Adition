@@ -630,14 +630,17 @@ bool SurgicalSimulate::GoToImagePoint()
 	surfaceToRfMatrix->GetInverse(rfToSurfaceMatrix);
 
 	auto ndiToTargetMatrix = mitk::AffineTransform3D::New();
+	m_T_robot = mitk::AffineTransform3D::New();
+
+	// auto targetMatrix = mitk::AffineTransform3D::New();
 	ndiToTargetMatrix->SetOffset(targetPoint.GetDataPointer());
 	ndiToTargetMatrix->Compose(rfToSurfaceMatrix);
 	ndiToTargetMatrix->Compose(ndiToObjectRfMatrix);
+	m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix, m_T_robot);
 
-	m_T_robot = mitk::AffineTransform3D::New();
 	//use robot matrix,not change the end tool rotation,only apply the offset from probe;
 	m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
-	m_T_robot->SetOffset(ndiToTargetMatrix->GetOffset());
+	//m_T_robot->SetOffset(ndiToTargetMatrix->GetOffset());
 
 	// vtkMatrix4x4* t = vtkMatrix4x4::New();
 	// mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
