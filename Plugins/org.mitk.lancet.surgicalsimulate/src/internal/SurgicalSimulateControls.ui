@@ -188,7 +188,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -271,20 +271,6 @@
           <string>Assemble simple navigation object</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_9">
-          <item row="0" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Surface: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surface_regis" native="true"/>
-            </item>
-           </layout>
-          </item>
           <item row="1" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
@@ -306,6 +292,27 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="label_8">
+              <property name="text">
+               <string>Surface: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surface_regis" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="pushButton_applyPreImageRegistration">
+            <property name="text">
+             <string>Apply preexisting registration</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -315,13 +322,6 @@
           <string>Simple image registration</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_8">
-          <item row="0" column="0">
-           <widget class="QPushButton" name="pushButton_collectLandmark">
-            <property name="text">
-             <string>Collect landmarks</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
            <widget class="QPushButton" name="pushButton_collectIcp">
             <property name="enabled">
@@ -332,10 +332,17 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="pushButton_collectLandmark">
+            <property name="text">
+             <string>Collect landmarks</string>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="0">
            <widget class="QPushButton" name="pushButton_applyRegistration">
             <property name="text">
-             <string>Apply registration</string>
+             <string>Apply new registration</string>
             </property>
            </widget>
           </item>

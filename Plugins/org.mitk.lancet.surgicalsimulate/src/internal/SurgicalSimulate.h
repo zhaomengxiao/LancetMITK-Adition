@@ -182,13 +182,16 @@ protected:
   void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
 
   lancet::NavigationObject::Pointer navigatedImage;
+  mitk::AffineTransform3D::Pointer m_imageRegistrationMatrix; // image(surface) to Rf matrix
+
 
   bool SetupNavigatedImage();
   bool CollectLanmarkProbe();
   bool CollectIcpProbe();
   bool ApplySurfaceRegistration();
+  bool ApplyPreexistingImageSurfaceRegistration();
 
-  bool GoToImagePoint();
+  bool InterpretImagePoint();
 };
 
 #endif // SurgicalSimulate_h

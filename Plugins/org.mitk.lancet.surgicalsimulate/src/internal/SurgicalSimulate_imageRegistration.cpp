@@ -282,7 +282,37 @@ bool SurgicalSimulate::ApplySurfaceRegistration()
 	m_surfaceRegistrationFilter->SetnavigationImage(navigatedImage);
 	auto indexOfObjectRF = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
 	m_surfaceRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfObjectRF));
+	
+	// save image(surface) registration matrix into its corresponding RF tool
+	m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
+	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
+	m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
 
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationFilter);
+	m_VegaVisualizeTimer->start();
+
+	return true;
+}
+
+
+bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration()
+{
+	// Apply preexisting surface registration result
+	m_surfaceRegistrationFilter = lancet::ApplySurfaceRegistratioinFilter::New();
+	m_surfaceRegistrationFilter->ConnectTo(m_VegaSource);
+	vtkNew<vtkMatrix4x4> surfaceToRfMatrix;
+	mitk::TransferItkTransformToVtkMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix().GetPointer(), surfaceToRfMatrix);
+	navigatedImage->SetT_Object2ReferenceFrame(surfaceToRfMatrix);
+
+	m_surfaceRegistrationFilter->SetnavigationImage(navigatedImage);
+	auto indexOfObjectRF = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+	m_surfaceRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfObjectRF));
+
+	// save image(surface) registration matrix into its corresponding RF tool
+	// m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
+	// mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
+	// m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
 
 	m_VegaVisualizeTimer->stop();
 	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationFilter);

@@ -71,6 +71,9 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surface_regis);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
+
+  m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
+
   connect(m_Controls.pushButton_connectKuka, &QPushButton::clicked, this, &SurgicalSimulate::UseKuka);
   //connect(m_Controls.pushButton_connectKuka, &QPushButton::clicked, this, &SurgicalSimulate::UseVirtualDevice2);
   connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &SurgicalSimulate::UseVega);
@@ -90,7 +93,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_saveRobotRegist, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
   connect(m_Controls.pushButton_usePreRobotRegit, &QPushButton::clicked, this, &SurgicalSimulate::OnUsePreRobotRegitration);
 
-  connect(m_Controls.pushButton_confirmImageTarget, &QPushButton::clicked, this, &SurgicalSimulate::GoToImagePoint);
+  connect(m_Controls.pushButton_confirmImageTarget, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImagePoint);
 
 
   connect(m_Controls.pushButton_setTCP, &QPushButton::clicked, this, &SurgicalSimulate::OnSetTCP);
@@ -569,6 +572,11 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   m_KukaVisualizeTimer->start();
 
 
+  
+
+
+
+
   //For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
   // https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
   double tcp[6];
@@ -627,7 +635,7 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
   MITK_INFO << m_T_robot;
 }
 
-bool SurgicalSimulate::GoToImagePoint()
+bool SurgicalSimulate::InterpretImagePoint()
 {
 	auto targetPoint = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPoint->GetSelectedNode()->GetData())->GetPoint(0);
 	auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
