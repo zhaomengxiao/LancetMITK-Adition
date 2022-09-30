@@ -65,6 +65,7 @@ public slots:
   void OnResetRobotRegistration();
   void OnSaveRobotRegistraion();
   void OnUsePreRobotRegitration();
+  void OnSetTCP();
 
   //Step3:NavigationObject Registration
 

@@ -194,39 +194,49 @@
       <attribute name="title">
        <string>Robot registration</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
+      <layout class="QGridLayout" name="gridLayout_11">
+       <item row="0" column="1">
         <widget class="QPushButton" name="pushButton_captureRobot">
          <property name="text">
           <string>Capture</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="2">
         <widget class="QPushButton" name="pushButton_automove">
          <property name="text">
           <string>AutoMove</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="3">
         <widget class="QPushButton" name="pushButton_resetRobotReg">
          <property name="text">
           <string>Reset</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="0" column="5">
+        <widget class="QPushButton" name="pushButton_usePreRobotRegit">
+         <property name="text">
+          <string>Use Previous</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
         <widget class="QPushButton" name="pushButton_saveRobotRegist">
          <property name="text">
           <string>Save</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_usePreRobotRegit">
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="lineEdit_tcp"/>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="pushButton_setTCP">
          <property name="text">
-          <string>Use Previous</string>
+          <string>SetTCP</string>
          </property>
         </widget>
        </item>

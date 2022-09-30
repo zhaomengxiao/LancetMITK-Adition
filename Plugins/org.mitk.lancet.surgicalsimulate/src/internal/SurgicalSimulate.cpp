@@ -89,7 +89,11 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_startAutoPosition, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoPositionStart);
   connect(m_Controls.pushButton_saveRobotRegist, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
   connect(m_Controls.pushButton_usePreRobotRegit, &QPushButton::clicked, this, &SurgicalSimulate::OnUsePreRobotRegitration);
+
   connect(m_Controls.pushButton_confirmImageTarget, &QPushButton::clicked, this, &SurgicalSimulate::GoToImagePoint);
+
+
+  connect(m_Controls.pushButton_setTCP, &QPushButton::clicked, this, &SurgicalSimulate::OnSetTCP);
 
 }
 
@@ -331,8 +335,6 @@ void SurgicalSimulate::OnRobotCapture()
     vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
     m_RobotRegistration.GetRegistraionMatrix(matrix4x4);
     
-    
-
     //For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
     /*vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
     matrix4x4->SetElement(0, 0, -0.48); matrix4x4->SetElement(0, 1, -0.19); matrix4x4->SetElement(0, 2, -0.86);
@@ -361,8 +363,10 @@ void SurgicalSimulate::OnRobotCapture()
     m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
     m_KukaVisualizeTimer->start();
 	//tcp
+
 	std::array<double, 6> tcp{};
 	m_RobotRegistration.GetTCP(tcp);
+
 
 	//For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
 	/*tcp[0] = 69.162;
@@ -372,6 +376,7 @@ void SurgicalSimulate::OnRobotCapture()
 	tcp[4] = -3.089;
 	tcp[5] = -0.019;*/
 
+
 	//For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
 	// https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
 	tcp[0] = 0;
@@ -380,6 +385,7 @@ void SurgicalSimulate::OnRobotCapture()
 	tcp[3] = 0;
 	tcp[4] = 0;
 	tcp[5] = 0;
+
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
 	//set tcp to robot
 	  //set tcp
@@ -389,13 +395,8 @@ void SurgicalSimulate::OnRobotCapture()
 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
 	QThread::msleep(1000);
 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
-	////select tcp
-	//m_KukaTrackingDevice->RequestExecOperate("setio", { "15", "15" });
-	//// left
-	//m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", "10" });
-	//m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
-
   }
+
 }
 
 void SurgicalSimulate::OnAutoMove()
@@ -586,6 +587,14 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
   QThread::msleep(1000);
   m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+}
+
+void SurgicalSimulate::OnSetTCP()
+{
+	QString tcpNum = m_Controls.lineEdit_tcp->text();
+
+	m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", tcpNum });
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
 }
 
 void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
