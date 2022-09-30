@@ -1,0 +1,159 @@
+\hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source}{}\doxysection{lancet\+IScxml\+State\+Machine\+Loader.\+cpp}
+\label{lancet_i_scxml_state_machine_loader_8cpp_source}\index{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/lancetIScxmlStateMachineLoader.cpp@{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/lancetIScxmlStateMachineLoader.cpp}}
+\mbox{\hyperlink{lancet_i_scxml_state_machine_loader_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00001}00001 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_i_scxml_state_machine_loader_8h}{LancetIScxmlStateMachineLoader.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00002}00002 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00003}00003 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelancet}{lancet}}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00004}00004 \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00005}\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp}{00005}}     \textcolor{keyword}{struct }\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp}{IScxmlStateMachineLoader::IScxmlStateMachineLoaderPrivateImp}}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00006}00006     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00007}\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_a6bb8a068f101df1e722c3a5b52367676}{00007}}         \textcolor{keywordtype}{bool} \mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_a6bb8a068f101df1e722c3a5b52367676}{isError}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00008}\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_ab1fec8b9d291e8a1a5e43032f41e858a}{00008}}         \textcolor{keywordtype}{bool} \mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_ab1fec8b9d291e8a1a5e43032f41e858a}{isWarning}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00009}\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_ae1ea32d74316e1c755eaef52cdfd6124}{00009}}         QString \mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_ae1ea32d74316e1c755eaef52cdfd6124}{fileName}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00010}\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_ae13e3a551e6306e1999985987387eef6}{00010}}         QString \mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_ae13e3a551e6306e1999985987387eef6}{propertyFileName}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00011}\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_afd276e116202c400d9617d6a72eb583b}{00011}}         QString \mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_afd276e116202c400d9617d6a72eb583b}{sid}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00012}\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_a2b1b06cd9e4afc0c59c485daf842e583}{00012}}         QStringList \mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_a2b1b06cd9e4afc0c59c485daf842e583}{listErrorMessage}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00013}\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_a9a1f268684d977c0621a4e71f7507429}{00013}}         QStringList \mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_a9a1f268684d977c0621a4e71f7507429}{listWarningMessage}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00014}\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_afe503bdb3f675c56494b994c12a4c124}{00014}}         \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxmlStateMachineState::StateType}} \mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_afe503bdb3f675c56494b994c12a4c124}{stateType}} = IScxmlStateMachineState::StateType::Ordinary;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00015}\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_ae937d2c6779474ff9cde2ddb6f94654a}{00015}}         IScxmlStateMachineState::Pointer \mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp_ae937d2c6779474ff9cde2ddb6f94654a}{manageStateMachine}} = IScxmlStateMachineState::Pointer(\textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00016}00016     \};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00017}00017 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00018}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a68160bacd1cd602bae6d3f01329db682}{00018}}     \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a68160bacd1cd602bae6d3f01329db682}{IScxmlStateMachineLoader::IScxmlStateMachineLoader}}()}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00019}00019         : \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader}{IScxmlStateMachineLoader}}(\textcolor{stringliteral}{"{}empty"{}}, \textcolor{stringliteral}{"{}empty"{}}, \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxmlStateMachineState}}::Admin,}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00020}00020             \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxmlStateMachineState}}::Pointer(),\textcolor{stringliteral}{"{}empty"{}})}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00021}00021     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00022}00022     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00023}00023 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00024}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a66d5d1b46ce3396f401001dcd6e4bb48}{00024}}     \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a68160bacd1cd602bae6d3f01329db682}{IScxmlStateMachineLoader::IScxmlStateMachineLoader}}(\textcolor{keyword}{const} QString\& filename,}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00025}00025         \textcolor{keyword}{const} QString\& propertyFileName, \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxmlStateMachineState::StateType}} type, }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00026}00026         IScxmlStateMachineState::Pointer manage, \textcolor{keyword}{const} QString\& \textcolor{keywordtype}{id})}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00027}00027         : imp(std::make\_shared<\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_loader_1_1_i_scxml_state_machine_loader_private_imp}{IScxmlStateMachineLoaderPrivateImp}}>())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00028}00028     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00029}00029         this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a9bb1c03368b112dc13b5f123168211fa}{SetInput}}(filename, propertyFileName, type, manage, \textcolor{keywordtype}{id});}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00030}00030     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00031}00031 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00032}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a9bb1c03368b112dc13b5f123168211fa}{00032}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a9bb1c03368b112dc13b5f123168211fa}{IScxmlStateMachineLoader::SetInput}}(\textcolor{keyword}{const} QString\& filename, \textcolor{keyword}{const} QString\& propertyFileName,}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00033}00033         \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxmlStateMachineState::StateType}} type, IScxmlStateMachineState::Pointer manage,}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00034}00034         \textcolor{keyword}{const} QString\& \textcolor{keywordtype}{id})}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00035}00035     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00036}00036         this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ac4ab9b7d076775e7c541cbdc803d80bd}{SetStateId}}(\textcolor{keywordtype}{id});}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00037}00037         this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a951b178a9ba7801bdbdcf3f0773d6548}{SetFileName}}(filename);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00038}00038         this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a458d2ce8fc1582e86c9c3151d9daf4e8}{SetStateType}}(type);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00039}00039         this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a779043cf4e64ffb730a6012f8290a7bf}{SetManageStateMachine}}(manage);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00040}00040         this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af25e93231f87f330e5deac92d8aab9a2}{SetPropertyFileName}}(propertyFileName);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00041}00041     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00042}00042 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00043}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a6606a41f4c02a78e99e447c18dcd75ec}{00043}}     QString \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a6606a41f4c02a78e99e447c18dcd75ec}{IScxmlStateMachineLoader::GetFileName}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00044}00044 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00045}00045         \textcolor{keywordflow}{return} this-\/>imp-\/>fileName;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00046}00046     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00047}00047 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00048}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a951b178a9ba7801bdbdcf3f0773d6548}{00048}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a951b178a9ba7801bdbdcf3f0773d6548}{IScxmlStateMachineLoader::SetFileName}}(\textcolor{keyword}{const} QString\& file)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00049}00049     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00050}00050         this-\/>imp-\/>fileName = file;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00051}00051     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00052}00052 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00053}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a72ae7555aa99108ca5790c1b8d63ae2a}{00053}}     QString \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a72ae7555aa99108ca5790c1b8d63ae2a}{IScxmlStateMachineLoader::GetPropertyFileName}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00054}00054 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00055}00055         \textcolor{keywordflow}{return} this-\/>imp-\/>propertyFileName;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00056}00056     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00057}00057 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00058}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af25e93231f87f330e5deac92d8aab9a2}{00058}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af25e93231f87f330e5deac92d8aab9a2}{IScxmlStateMachineLoader::SetPropertyFileName}}(\textcolor{keyword}{const} QString\& file)\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00059}00059 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00060}00060         this-\/>imp-\/>propertyFileName = file;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00061}00061     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00062}00062 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00063}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a19faf84899190440f41903a019360515}{00063}}     \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxmlStateMachineState::StateType}} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a19faf84899190440f41903a019360515}{IScxmlStateMachineLoader::GetStateType}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00064}00064 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00065}00065         \textcolor{keywordflow}{return} this-\/>imp-\/>stateType;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00066}00066     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00067}00067 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00068}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a458d2ce8fc1582e86c9c3151d9daf4e8}{00068}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a458d2ce8fc1582e86c9c3151d9daf4e8}{IScxmlStateMachineLoader::SetStateType}}(\textcolor{keyword}{const} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxmlStateMachineState::StateType}}\& type)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00069}00069     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00070}00070         this-\/>imp-\/>stateType = type;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00071}00071     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00072}00072 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00073}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af743d93652a8cf325b2c3aebfc5245b6}{00073}}     IScxmlStateMachineState::Pointer \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af743d93652a8cf325b2c3aebfc5245b6}{IScxmlStateMachineLoader::GetManageStateMachine}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00074}00074 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00075}00075         \textcolor{keywordflow}{return} this-\/>imp-\/>manageStateMachine;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00076}00076     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00077}00077 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00078}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a779043cf4e64ffb730a6012f8290a7bf}{00078}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a779043cf4e64ffb730a6012f8290a7bf}{IScxmlStateMachineLoader::SetManageStateMachine}}(IScxmlStateMachineState::Pointer manage)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00079}00079     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00080}00080         this-\/>imp-\/>manageStateMachine = manage;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00081}00081     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00082}00082 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00083}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af3e0a70a80ebe02f79354eeddabb99eb}{00083}}     QString \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af3e0a70a80ebe02f79354eeddabb99eb}{IScxmlStateMachineLoader::GetStateId}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00084}00084 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00085}00085         \textcolor{keywordflow}{return} this-\/>imp-\/>sid;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00086}00086     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00087}00087 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00088}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ac4ab9b7d076775e7c541cbdc803d80bd}{00088}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ac4ab9b7d076775e7c541cbdc803d80bd}{IScxmlStateMachineLoader::SetStateId}}(\textcolor{keyword}{const} QString\& \textcolor{keywordtype}{id})}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00089}00089     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00090}00090         this-\/>imp-\/>sid = id;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00091}00091     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00092}00092 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00093}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_acd3eb028757d1cf06dd81bf9701040fd}{00093}}     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_acd3eb028757d1cf06dd81bf9701040fd}{IScxmlStateMachineLoader::GetErrorState}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00094}00094 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00095}00095         \textcolor{keywordflow}{return} this-\/>imp-\/>isError;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00096}00096     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00097}00097 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00098}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aba52a2dbd6a21af3841fd26546af748e}{00098}}     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aba52a2dbd6a21af3841fd26546af748e}{IScxmlStateMachineLoader::GetWarningState}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00099}00099 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00100}00100         \textcolor{keywordflow}{return} this-\/>imp-\/>isWarning;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00101}00101     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00102}00102 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00103}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a1c8b2c063a1f380160fc7e093a427ec7}{00103}}     QStringList \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a1c8b2c063a1f380160fc7e093a427ec7}{IScxmlStateMachineLoader::GetErrorStringList}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00104}00104 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00105}00105         \textcolor{keywordflow}{return} this-\/>imp-\/>listErrorMessage;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00106}00106     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00107}00107 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00108}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a483a9751ac49c44bdcaeaae7cbe8c016}{00108}}     QStringList \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a483a9751ac49c44bdcaeaae7cbe8c016}{IScxmlStateMachineLoader::GetWarningStringList}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00109}00109 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00110}00110         \textcolor{keywordflow}{return} this-\/>imp-\/>listWarningMessage;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00111}00111     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00112}00112 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00113}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ad920aa4b8014deb01403256e6a537947}{00113}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ad920aa4b8014deb01403256e6a537947}{IScxmlStateMachineLoader::SetErrorState}}(\textcolor{keywordtype}{bool} is)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00114}00114     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00115}00115         this-\/>imp-\/>isError = is;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00116}00116     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00117}00117 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00118}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a04b8a26cedcad36c3402bfb72aa15910}{00118}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a04b8a26cedcad36c3402bfb72aa15910}{IScxmlStateMachineLoader::SetErrorStringList}}(\textcolor{keyword}{const} QStringList\& list)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00119}00119     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00120}00120         this-\/>imp-\/>listErrorMessage = list;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00121}00121     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00122}00122 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00123}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ac443e6b15c8bb54ff5261027cca1da20}{00123}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ac443e6b15c8bb54ff5261027cca1da20}{IScxmlStateMachineLoader::AppendErrorStringItem}}(\textcolor{keyword}{const} QString\& message)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00124}00124     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00125}00125         this-\/>imp-\/>listErrorMessage.push\_back(message);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00126}00126     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00127}00127 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00128}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_adeaa2172ec1244b825c4fc0f7fd132e0}{00128}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_adeaa2172ec1244b825c4fc0f7fd132e0}{IScxmlStateMachineLoader::RemoveErrorStringItem}}()}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00129}00129     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00130}00130         this-\/>imp-\/>listErrorMessage.clear();}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00131}00131     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00132}00132 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00133}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a79e43da375138dc13e28368ba5ab8713}{00133}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a79e43da375138dc13e28368ba5ab8713}{IScxmlStateMachineLoader::SetWarningState}}(\textcolor{keywordtype}{bool} warning)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00134}00134     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00135}00135         this-\/>imp-\/>isWarning = warning;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00136}00136     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00137}00137 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00138}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af3ceb7eec98b1282c4028e83b9413c32}{00138}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af3ceb7eec98b1282c4028e83b9413c32}{IScxmlStateMachineLoader::SetWarningStringList}}(\textcolor{keyword}{const} QStringList\& list)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00139}00139     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00140}00140         this-\/>imp-\/>listWarningMessage = list;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00141}00141     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00142}00142 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00143}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aa4b1c14e48a26934ac700bd24b49edc2}{00143}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aa4b1c14e48a26934ac700bd24b49edc2}{IScxmlStateMachineLoader::AppendWarningStringItem}}(\textcolor{keyword}{const} QString\& message)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00144}00144     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00145}00145         this-\/>imp-\/>listWarningMessage.push\_back(message);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00146}00146     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00147}00147 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00148}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a679b73cc3c9294d4b770e4060db218e8}{00148}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a679b73cc3c9294d4b770e4060db218e8}{IScxmlStateMachineLoader::RemoveWarningStringItem}}()}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00149}00149     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00150}00150         this-\/>imp-\/>listWarningMessage.clear();}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00151}00151     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00152}00152 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_loader_8cpp_source_l00153}00153 \}}
+
+\end{DoxyCode}

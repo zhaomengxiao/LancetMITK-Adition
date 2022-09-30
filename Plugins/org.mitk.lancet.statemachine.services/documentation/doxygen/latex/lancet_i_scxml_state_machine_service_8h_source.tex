@@ -1,0 +1,65 @@
+\hypertarget{lancet_i_scxml_state_machine_service_8h_source}{}\doxysection{lancet\+IScxml\+State\+Machine\+Service.\+h}
+\label{lancet_i_scxml_state_machine_service_8h_source}\index{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/lancetIScxmlStateMachineService.h@{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/lancetIScxmlStateMachineService.h}}
+\mbox{\hyperlink{lancet_i_scxml_state_machine_service_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00001}00001 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00015}00015 \textcolor{preprocessor}{\#ifndef LancetIScxmlStateMachineService\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00016}00016 \textcolor{preprocessor}{\#define LancetIScxmlStateMachineService\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00017}00017 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00018}00018 \textcolor{comment}{// Qt}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00019}00019 \textcolor{preprocessor}{\#include <QVariant>}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00020}00020 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00021}00021 \textcolor{preprocessor}{\#include <\mbox{\hyperlink{lancet_i_scxml_state_machine_state_8h}{lancetIScxmlStateMachineState.h}}>}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00022}00022 \textcolor{preprocessor}{\#include <org\_mitk\_lancet\_statemachine\_services\_Export.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00023}00023 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00024}00024 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelancet}{lancet}}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00025}00025 \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00048}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{00048}}     \textcolor{keyword}{class }LANCET\_STATEMACHINE\_SERVICES\_PLUGIN \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{IScxmlStateMachineService}} }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00049}00049         : \textcolor{keyword}{public} berry::Object}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00050}00050     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00051}00051     \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00052}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a1e64384eb9f6f318244f3290da494bdf}{00052}}         \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a1e64384eb9f6f318244f3290da494bdf}{berryObjectMacro}}(\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet::IScxmlStateMachineService}});}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00053}00053 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00054}00054         \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{IScxmlStateMachineService}}();}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00055}00055         \textcolor{keyword}{virtual} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{\string~IScxmlStateMachineService}}();}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00056}00056 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00060}00060         \textcolor{keyword}{virtual} IScxmlStateMachineState::Pointer GetAdminState() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00061}00061         \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetAdminState(\textcolor{keyword}{const} IScxmlStateMachineState::Pointer\&);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00062}00062 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00073}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a20c924fcd164e2e0135bc5b66a2ff5ae}{00073}}         \textcolor{keyword}{virtual} IScxmlStateMachineState::Pointer \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a20c924fcd164e2e0135bc5b66a2ff5ae}{CreateScxmlStateMachine}}(\textcolor{keyword}{const} QString\& scxmlfile,}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00074}00074             \textcolor{keyword}{const} QString\& propertyFileName, \textcolor{keywordtype}{int}, berry::SmartPointer<IScxmlStateMachineState>,}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00075}00075             \textcolor{keyword}{const} QString\&) = 0;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00076}00076 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00093}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_aff0bddd174cd9f722a40612cb390c405}{00093}}         \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_aff0bddd174cd9f722a40612cb390c405}{StartStateMachine}}() = 0;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00094}\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_abdb58f6209a612cf2f23aed1f06646ad}{00094}}         \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_abdb58f6209a612cf2f23aed1f06646ad}{StopStateMachine}}() = 0;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00095}00095 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00108}00108         \textcolor{keyword}{virtual} std::vector<IScxmlStateMachineState::Pointer> GetScxmlModuleStateMachines() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00109}00109         \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetScxmlModuleStateMachines(\textcolor{keyword}{const} std::vector<IScxmlStateMachineState::Pointer>\&);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00110}00110         \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetScxmlModuleStateMachines(\textcolor{keyword}{const} QString\& \textcolor{keywordtype}{id},}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00111}00111             \textcolor{keyword}{const} std::vector<IScxmlStateMachineState::Pointer>\&);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00112}00112 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00129}00129         \textcolor{keyword}{virtual} IScxmlStateMachineState::Pointer GetScxmlStateMachine(\textcolor{keyword}{const} QString\&) \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00130}00130         \textcolor{keyword}{virtual} IScxmlStateMachineState::Pointer}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00131}00131             GetScxmlStateMachine(IScxmlStateMachineState::Pointer, \textcolor{keyword}{const} QString\&) \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00132}00132 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00133}00133     \textcolor{keyword}{protected}:}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00134}00134         std::vector<IScxmlStateMachineState::Pointer>}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00135}00135             GetScxmlStateMachines(IScxmlStateMachineState::Pointer, \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxmlStateMachineState::StateType}}) \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00136}00136 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00137}00137         std::vector<IScxmlStateMachineState::Pointer>}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00138}00138             GetScxmlStateMachines(IScxmlStateMachineState::Pointer, \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxmlStateMachineState::StateType}},}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00139}00139                 std::vector<IScxmlStateMachineState::Pointer>\&) \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00140}00140     \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00141}00141         \textcolor{keyword}{static} \textcolor{keywordtype}{void} Initialize();}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00142}00142         \textcolor{keyword}{static} berry::SmartPointer<IScxmlStateMachineService> GetScxmlStateMachineService() \textcolor{comment}{/*final*/};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00143}00143     \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00144}00144         \textcolor{keyword}{struct }\mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_service_1_1_i_scxml_state_machine_service_private_imp}{IScxmlStateMachineServicePrivateImp}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00145}00145         std::shared\_ptr<IScxmlStateMachineServicePrivateImp> imp;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00146}00146     \};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00147}00147 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00148}00148 \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00149}00149 Q\_DECLARE\_INTERFACE(\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet::IScxmlStateMachineService}}, \textcolor{stringliteral}{"{}org.mitk.lancet.statemachine.services.IScxmlStateMachineService"{}})}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00150}00150 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxml_state_machine_service_8h_source_l00151}00151 \textcolor{preprocessor}{\#endif }\textcolor{comment}{// !LancetIScxmlStateMachineService\_H}}
+
+\end{DoxyCode}

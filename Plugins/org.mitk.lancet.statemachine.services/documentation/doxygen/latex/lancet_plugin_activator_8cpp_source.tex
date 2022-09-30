@@ -1,0 +1,61 @@
+\hypertarget{lancet_plugin_activator_8cpp_source}{}\doxysection{lancet\+Plugin\+Activator.\+cpp}
+\label{lancet_plugin_activator_8cpp_source}\index{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/internal/lancetPluginActivator.cpp@{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/internal/lancetPluginActivator.cpp}}
+\mbox{\hyperlink{lancet_plugin_activator_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00001}00001 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_plugin_activator_8h}{lancetPluginActivator.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00002}00002 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00003}00003 \textcolor{comment}{// us}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00004}00004 \textcolor{preprocessor}{\#include <usModuleRegistry.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00005}00005 \textcolor{preprocessor}{\#include <usModule.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00006}00006 \textcolor{preprocessor}{\#include <usModuleContext.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00007}00007 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00008}00008 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_scxml_state_machine_service_8h}{lancetScxmlStateMachineService.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00009}00009 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00010}00010 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelancet}{lancet}}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00011}00011 \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00012}00012   \textcolor{keyword}{const} std::string \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_a2775d5d1e345f42c811c568c491ed031}{org\_mitk\_lancet\_statemachine\_services\_Activator::PLUGIN\_ID}} = \textcolor{stringliteral}{"{}org.mitk.lancet.statemachine.services"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00013}00013 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00014}\mbox{\hyperlink{structlancet_1_1org__mitk__lancet__statemachine__services___activator_1_1_private_imp}{00014}}   \textcolor{keyword}{struct }\mbox{\hyperlink{structlancet_1_1org__mitk__lancet__statemachine__services___activator_1_1_private_imp}{org\_mitk\_lancet\_statemachine\_services\_Activator::PrivateImp}}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00015}00015   \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00016}\mbox{\hyperlink{structlancet_1_1org__mitk__lancet__statemachine__services___activator_1_1_private_imp_a7f1bf7b591e243999bba515d4d3b4e5b}{00016}}     \textcolor{keyword}{static} ctkPluginContext* \mbox{\hyperlink{structlancet_1_1org__mitk__lancet__statemachine__services___activator_1_1_private_imp_a7f1bf7b591e243999bba515d4d3b4e5b}{pluginContext}};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00017}\mbox{\hyperlink{structlancet_1_1org__mitk__lancet__statemachine__services___activator_1_1_private_imp_a9debc35a92641a3990f7f09ad7a3a0f7}{00017}}     ScxmlStateMachineService::Pointer \mbox{\hyperlink{structlancet_1_1org__mitk__lancet__statemachine__services___activator_1_1_private_imp_a9debc35a92641a3990f7f09ad7a3a0f7}{stateMachineService}} = ScxmlStateMachineService::Pointer(\textcolor{keyword}{nullptr});}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00018}00018   \};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00019}00019   ctkPluginContext* \mbox{\hyperlink{structlancet_1_1org__mitk__lancet__statemachine__services___activator_1_1_private_imp_a7f1bf7b591e243999bba515d4d3b4e5b}{org\_mitk\_lancet\_statemachine\_services\_Activator::PrivateImp::pluginContext}} = \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00020}00020 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00021}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_ac6c9913117ff895b0de9ea2836cc4b41}{00021}}     \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_ac6c9913117ff895b0de9ea2836cc4b41}{org\_mitk\_lancet\_statemachine\_services\_Activator::org\_mitk\_lancet\_statemachine\_services\_Activator}}()}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00022}00022     : imp(std::make\_shared<\mbox{\hyperlink{structlancet_1_1org__mitk__lancet__statemachine__services___activator_1_1_private_imp}{PrivateImp}}>())}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00023}00023     \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00024}00024     }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00025}00025     \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00026}00026 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00027}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_a861a834991def10d08afa8b7caf57cfb}{00027}}     \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_a861a834991def10d08afa8b7caf57cfb}{org\_mitk\_lancet\_statemachine\_services\_Activator::\string~org\_mitk\_lancet\_statemachine\_services\_Activator}}()}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00028}00028     \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00029}00029     \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00030}00030 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00031}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_a949fe6ee9d0a2fd44135ecd8fbf17cd7}{00031}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_a949fe6ee9d0a2fd44135ecd8fbf17cd7}{org\_mitk\_lancet\_statemachine\_services\_Activator::start}}(ctkPluginContext* context)}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00032}00032     \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00033}00033     this-\/>imp-\/>pluginContext = context;}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00034}00034 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00035}00035     \textcolor{comment}{// warning}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00036}00036     \textcolor{comment}{// The state machine service object does not intentionally run naked.}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00037}00037     \textcolor{comment}{// Fortunately, it does not affect the function logically.}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00038}00038     \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_service}{ScxmlStateMachineService}}* streakingServicePointer = \textcolor{keyword}{new} \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_service}{ScxmlStateMachineService}}();}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00039}00039     }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00040}00040     \textcolor{comment}{// register state machine service to mitk}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00041}00041     this-\/>imp-\/>stateMachineService = ScxmlStateMachineService::Pointer(streakingServicePointer);}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00042}00042     this-\/>imp-\/>pluginContext-\/>registerService<\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet::IScxmlStateMachineService}}>(streakingServicePointer);}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00043}00043     \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00044}00044 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00045}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_a4591d3e05b2a8fb848acc7f508fbffd5}{00045}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_a4591d3e05b2a8fb848acc7f508fbffd5}{org\_mitk\_lancet\_statemachine\_services\_Activator::stop}}(ctkPluginContext* context)}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00046}00046     \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00047}00047     this-\/>imp-\/>pluginContext-\/>ungetService(this-\/>imp-\/>pluginContext-\/>getServiceReference<\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet::IScxmlStateMachineService}}>());}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00048}00048     this-\/>imp-\/>pluginContext = \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00049}00049     \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00050}00050 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00051}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_a6068e601d02fe593bc0026953d7dc009}{00051}}   ctkPluginContext* \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__statemachine__services___activator_a6068e601d02fe593bc0026953d7dc009}{org\_mitk\_lancet\_statemachine\_services\_Activator::GetPluginContext}}()}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00052}00052   \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00053}00053     \textcolor{keywordflow}{return} \mbox{\hyperlink{structlancet_1_1org__mitk__lancet__statemachine__services___activator_1_1_private_imp_a7f1bf7b591e243999bba515d4d3b4e5b}{PrivateImp::pluginContext}};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00054}00054   \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00055}00055 \}}
+
+\end{DoxyCode}

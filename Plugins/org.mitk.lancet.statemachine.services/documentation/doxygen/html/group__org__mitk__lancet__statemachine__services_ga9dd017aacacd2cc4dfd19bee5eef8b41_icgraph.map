@@ -1,0 +1,9 @@
+<map id="lancet::plugin::GetMitkPluginName" name="lancet::plugin::GetMitkPluginName">
+<area shape="rect" id="node1" title="Returns the name of a Mitk style plug&#45;in." alt="" coords="951,101,1173,127"/>
+<area shape="rect" id="node2" href="$group__org__mitk__lancet__statemachine__services.html#ga87a41295b556466e9506013403fb849b" title="Returns the state name of the state machine ID." alt="" coords="752,93,903,135"/>
+<area shape="rect" id="node3" href="$group__org__mitk__lancet__statemachine__services.html#ga2a3121b97fbc820de62eb7ad991e86d9" title="Returns the state module name of the state machine ID." alt="" coords="530,5,689,47"/>
+<area shape="rect" id="node4" href="$group__org__mitk__lancet__statemachine__services.html#ga68d505d3383796cef4686ee834ee8e55" title="The absolute path of the Qt state machine property configuration file that returns the state machine ..." alt="" coords="280,91,467,132"/>
+<area shape="rect" id="node6" href="$group__org__mitk__lancet__statemachine__services.html#gaf1b75bcfd286abe8127eb716ec0ee5fd" title="The path of the Qt state machine configuration file that returns the state machine ID." alt="" coords="286,156,461,197"/>
+<area shape="rect" id="node7" href="$group__org__mitk__lancet__statemachine__services.html#ga4d29b579380622174c99b66c07e0a0eb" title="The directory of the Qt state machine configuration file that returns the state machine ID." alt="" coords="515,123,704,164"/>
+<area shape="rect" id="node5" href="$classlancet_1_1_scxml_state_machine_service.html#a382e28307cf4e83d3d6ded8bb43bdf1a" title=" " alt="" coords="5,124,232,165"/>
+</map>

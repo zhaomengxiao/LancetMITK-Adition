@@ -1,0 +1,765 @@
+\hypertarget{group__org__mitk__lancet__statemachine__services}{}\doxysection{Org\+\_\+mitk\+\_\+lancet\+\_\+statemachine\+\_\+services}
+\label{group__org__mitk__lancet__statemachine__services}\index{Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}}
+
+
+State Machine Service Module Data Model.  
+
+
+\doxysubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \mbox{\hyperlink{namespacelancet}{lancet}}
+\begin{DoxyCompactList}\small\item\em Scope of Lancet Robot Co., Ltd. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_loader}{lancet\+::\+Scxml\+State\+Machine\+Loader}}
+\begin{DoxyCompactList}\small\item\em Loader for state machine service to load external files. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_service}{lancet\+::\+Scxml\+State\+Machine\+Service}}
+\begin{DoxyCompactList}\small\item\em Private customized state machine service module entry. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler}{lancet\+::\+Scxm\+State\+Machine\+Handler}}
+\begin{DoxyCompactList}\small\item\em Event processing unit of private state machine element. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_state}{lancet\+::\+Scxml\+State\+Machine\+State}}
+\begin{DoxyCompactList}\small\item\em Customized state machine elements. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classlancet_1_1_state_machine_action_property}{lancet\+::\+State\+Machine\+Action\+Property}}
+\begin{DoxyCompactList}\small\item\em Attributes of a private custom state machine element. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader}{lancet\+::\+IScxml\+State\+Machine\+Loader}}
+\begin{DoxyCompactList}\small\item\em State Machine Loader, A complete state consists of attributes, SCXML, and events. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet\+::\+IScxml\+State\+Machine\+Service}}
+\begin{DoxyCompactList}\small\item\em This is the abstract class of state machine service. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{lancet\+::\+IScxml\+State\+Machine\+State}}
+\begin{DoxyCompactList}\small\item\em State description object of state machine. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler}{lancet\+::\+IScxm\+State\+Machine\+Handler}}
+\begin{DoxyCompactList}\small\item\em This is the event processing abstract class of the state machine unit. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classlancet_1_1_i_state_machine_action_property}{lancet\+::\+IState\+Machine\+Action\+Property}}
+\begin{DoxyCompactList}\small\item\em Attribute abstract class of state machine element. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN \mbox{\hyperlink{group__org__mitk__lancet__statemachine__services_gaccfed445ec8058f1a67a3e9c7eef67b8}{lancet\+::plugin\+::\+To\+Mitk\+Id}} (const QString \&qt\+State\+Id)
+\begin{DoxyCompactList}\small\item\em Change the state machine state ID to the plug-\/in ID in Mitk format. \end{DoxyCompactList}\item 
+QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN \mbox{\hyperlink{group__org__mitk__lancet__statemachine__services_ga9dd017aacacd2cc4dfd19bee5eef8b41}{lancet\+::plugin\+::\+Get\+Mitk\+Plugin\+Name}} (const QString \&)
+\begin{DoxyCompactList}\small\item\em Returns the name of a Mitk style plug-\/in. \end{DoxyCompactList}\item 
+QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN \mbox{\hyperlink{group__org__mitk__lancet__statemachine__services_ga2d14e1310f2bce5ab48f9a5438aeca46}{lancet\+::plugin\+::\+Get\+Mitk\+Plugin\+Product\+Name}} (const QString \&)
+\begin{DoxyCompactList}\small\item\em Returns the product ID of the Mitk plug-\/in. \end{DoxyCompactList}\item 
+QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN \mbox{\hyperlink{group__org__mitk__lancet__statemachine__services_ga87a41295b556466e9506013403fb849b}{lancet\+::state\+\_\+machine\+::\+Get\+State\+Name}} (const QString \&)
+\begin{DoxyCompactList}\small\item\em Returns the state name of the state machine ID. \end{DoxyCompactList}\item 
+QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN \mbox{\hyperlink{group__org__mitk__lancet__statemachine__services_ga2a3121b97fbc820de62eb7ad991e86d9}{lancet\+::state\+\_\+machine\+::\+Get\+Module\+State\+Name}} (const QString \&)
+\begin{DoxyCompactList}\small\item\em Returns the state module name of the state machine ID. \end{DoxyCompactList}\item 
+QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN \mbox{\hyperlink{group__org__mitk__lancet__statemachine__services_gaf1b75bcfd286abe8127eb716ec0ee5fd}{lancet\+::state\+\_\+machine\+::\+Get\+State\+Scxml\+File\+Name}} (const QString \&, const QString \&, int)
+\begin{DoxyCompactList}\small\item\em The path of the Qt state machine configuration file that returns the state machine ID. \end{DoxyCompactList}\item 
+QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN \mbox{\hyperlink{group__org__mitk__lancet__statemachine__services_ga4d29b579380622174c99b66c07e0a0eb}{lancet\+::state\+\_\+machine\+::\+Get\+State\+Scxml\+Folder\+Name}} (const QString \&, const QString \&, int)
+\begin{DoxyCompactList}\small\item\em The directory of the Qt state machine configuration file that returns the state machine ID. \end{DoxyCompactList}\item 
+QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN \mbox{\hyperlink{group__org__mitk__lancet__statemachine__services_ga68d505d3383796cef4686ee834ee8e55}{lancet\+::state\+\_\+machine\+::\+Get\+State\+Property\+File\+Name}} (const QString \&, const QString \&, int, const QString \&=\char`\"{}\+\_\+subsidiary.\+json\char`\"{})
+\begin{DoxyCompactList}\small\item\em The absolute path of the Qt state machine property configuration file that returns the state machine ID. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+State Machine Service Module Data Model. 
+
+The state machine service model has very high compatibility and extensibility. Relatively speaking, there will be certain sacrifices in code understanding and readability.
+
+At the design stage, according to the positioning and requirements of the module, the module has a high degree of scalability and configurability, that is, the user configures different state machine {\itshape .scxml} files according to different business needs, instead of rewriting the code of the state machine module.\hypertarget{group__org__mitk__lancet__statemachine__services_Description}{}\doxysubsection{Description}\label{group__org__mitk__lancet__statemachine__services_Description}
+{\bfseries{Structural design}}
+
+The state machine service module is composed of service, state, loader and handler elements, and follows the guidelines of boundary and singleness.\+If you need to extend it, please follow the style below. In theory, the state machine service can manage the state of a button.
+
+State level diagram\+: 
+
+Class Diagram\+: 
+
+{\ttfamily Service\+:} 
+
+It is the only access to the communication between the inner boundary and the outside world. Because of the positioning of this module, the attributes of the inner boundary are basically transparent to the outside world. At the same time, the inner boundary completely ignores how the outside world operates, how to operate and other behaviors, and it is free to play by the outside world.
+
+{\ttfamily State\+:} 
+
+It is the main role of the internal bound state machine management. It not only describes its own attributes in detail, but also has a close relationship with the above and the following. To sum up, the data structure of the state is a two-\/way linked list to contact the context, and uses its own attributes to strengthen the context association.
+
+{\ttfamily Loader\+:} 
+
+The loader is responsible for parsing external parameters and converting them into universally recognizable data objects ({\itshape \#\+IScxml\+State\+Machine\+State}) with internal bounds. The loader is driven by the service.\+The format of external files is explained in {\bfseries{Document structure design}}.
+
+{\ttfamily Handler\+:} 
+
+The state machine event processing role is responsible for processing the state machine events or monitoring the state of the state machine. When there are changes, it will feed back in the form of {\itshape Qt signals}.
+
+{\bfseries{Document structure design}}
+
+External files consist of {\itshape state machine(.scxml)}, {\itshape state attribute(\+\_\+subsidiary.\+json)}, and {\itshape state style file($\ast$.qss)}.
+
+{\bfseries{.scxml}}\+:
+
+An XML form that describes the transition process of the whole state. One project in {\itshape Qt labs} is {\itshape QScxml}, which is based on the upper layer of {\itshape QState\+Machine}. It can directly read files in SCXML format to generate internal state objects and members, and can directly perform state transition in Qt, which is very convenient. You may refer to {\itshape Qt\textquotesingle{}s SCXML} module.
+
+\begin{DoxyWarning}{Warning}
+There are no explicit naming rules for background processing states, such as initialization and termination. However, if you need to map the state to the interface directly or briefly, please follow the naming style of the {\itshape mitk plug-\/in}. eg.{\bfseries{org\+\_\+mitk\+\_\+lancet\+\_\+\%$\ast$\%}}
+\end{DoxyWarning}
+{\bfseries{\+\_\+subsidiary.\+json}}\+:
+
+The external file describing the status attribute is appended after the naming is restricted to the target status {\bfseries{\+\_\+subsidiary}}, which is mandatory. Otherwise, the state machine service module will not be able to effectively recognize or parse its contents. The final interpretation right of the elements in the file is left to the {\itshape Loader}.
+
+\begin{DoxyNote}{Note}
+If there is a new service access, you need to extend the configuration of the status attribute. Maybe you need a new {\itshape loader} to meet your needs.
+\end{DoxyNote}
+{\bfseries{.qss}}\+: Qt layout style explanation file, which is to meet the frequent changes in the interface style. If you are interested in this, you may need to know the Qt QSS style.
+
+{\bfseries{Why this design}}
+
+This design style may be too cumbersome, but the core idea of the main framework is high scalability, flexibility and other features. It may be a little far fetched to force the {\itshape UI} attributes here, but when the minimum UI attributes are placed here, the state mapping at all levels of the interface will be based on the state machine service. Imagine the following, with other business requirements involved, Maybe we can complete the interface mapping of the interface state without writing the code of the state machine and Ui. This should be the idea we follow. Extreme laziness is the best.
+
+{\bfseries{How to use}}
+
+Scxml sample file\+:
+
+The Qt SCXML module provides functionality to create state machines from SCXML files. This includes both dynamically creating state machines (loading the SCXML file and instantiating states and transitions) and generating a C++ file that has a class implementing the state machine. It also contains functionality to support data models and executable content.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{<?xml version=\textcolor{stringliteral}{"{}1.0"{}} encoding=\textcolor{stringliteral}{"{}UTF-\/8"{}}?>}
+\DoxyCodeLine{<!-\/-\/}
+\DoxyCodeLine{    Hip software flow status machine definition}
+\DoxyCodeLine{    -\/Initialization}
+\DoxyCodeLine{    -\/MedicalrecordManagement}
+\DoxyCodeLine{    -\/StDevelopmentSurgicalProtocol}
+\DoxyCodeLine{    -\/HardwarePreparation}
+\DoxyCodeLine{    -\/SurgicalRegistration}
+\DoxyCodeLine{    -\/AcetabularPreparation}
+\DoxyCodeLine{    -\/FemurPreparation}
+\DoxyCodeLine{    -\/SurgicalOutcomes}
+\DoxyCodeLine{}
+\DoxyCodeLine{    Rules \textcolor{keywordflow}{for} state name definition <Process editor plugin name> (all lower \textcolor{keywordflow}{case} letters)}
+\DoxyCodeLine{    .eg <org\_mitk\_lancet\_tha\_medicalrecordmanagement>.}
+\DoxyCodeLine{}
+\DoxyCodeLine{    Jump \textcolor{keyword}{event} name definition rules: to\_<Process editor plugin name> (all lower \textcolor{keywordflow}{case} letters)}
+\DoxyCodeLine{    .eg to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement.}
+\DoxyCodeLine{-\/-\/>}
+\DoxyCodeLine{<scxml}
+\DoxyCodeLine{    xmlns=\textcolor{stringliteral}{"{}http://www.w3.org/2005/07/scxml"{}}}
+\DoxyCodeLine{    version=\textcolor{stringliteral}{"{}1.0"{}}}
+\DoxyCodeLine{    binding=\textcolor{stringliteral}{"{}early"{}}}
+\DoxyCodeLine{    xmlns:qt=\textcolor{stringliteral}{"{}http://www.qt.io/2015/02/scxml-\/ext"{}}}
+\DoxyCodeLine{    datamodel=\textcolor{stringliteral}{"{}ecmascript"{}}}
+\DoxyCodeLine{    name=\textcolor{stringliteral}{"{}LancetThaScxmlStateMachineDebug"{}}}
+\DoxyCodeLine{    qt:editorversion=\textcolor{stringliteral}{"{}4.13.1"{}}}
+\DoxyCodeLine{    initial=\textcolor{stringliteral}{"{}initialization"{}}}
+\DoxyCodeLine{>}
+\DoxyCodeLine{    <!-\/-\/}
+\DoxyCodeLine{        name: initialization}
+\DoxyCodeLine{        Sub processes Scxml files: initialization.scxml}
+\DoxyCodeLine{        events:}
+\DoxyCodeLine{            \textcolor{keyword}{event} name                                                      target state}
+\DoxyCodeLine{            to\_applicationquit                                              applicationquit}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement                  org\_mitk\_lancet\_tha\_medicalrecordmanagement}
+\DoxyCodeLine{    -\/-\/>}
+\DoxyCodeLine{    <state \textcolor{keywordtype}{id}=\textcolor{stringliteral}{"{}initialization"{}}>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_applicationquit"{}} target=\textcolor{stringliteral}{"{}applicationquit"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}}/>}
+\DoxyCodeLine{    </state>}
+\DoxyCodeLine{}
+\DoxyCodeLine{    <!-\/-\/}
+\DoxyCodeLine{        name: org\_mitk\_lancet\_tha\_medicalrecordmanagement}
+\DoxyCodeLine{        Sub processes Scxml files: medicalrecordmanagement.scxml}
+\DoxyCodeLine{        events:}
+\DoxyCodeLine{            \textcolor{keyword}{event} name                                                      target state}
+\DoxyCodeLine{            to\_applicationquit                                              applicationquit}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol            org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_linkinghardware                          org\_mitk\_lancet\_tha\_linkinghardware}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicalregistration                     org\_mitk\_lancet\_tha\_surgicalregistration}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_acetabularpreparation                    org\_mitk\_lancet\_tha\_acetabularpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_femurpreparation                         org\_mitk\_lancet\_tha\_femurpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicaloutcomes                         org\_mitk\_lancet\_tha\_surgicaloutcomes}
+\DoxyCodeLine{    -\/-\/>}
+\DoxyCodeLine{    <state \textcolor{keywordtype}{id}=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}}>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_applicationquit"{}} target=\textcolor{stringliteral}{"{}applicationquit"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_linkinghardware"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_linkinghardware"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicalregistration"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicalregistration"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_acetabularpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_acetabularpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_femurpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_femurpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicaloutcomes"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicaloutcomes"{}}/>}
+\DoxyCodeLine{    </state>}
+\DoxyCodeLine{}
+\DoxyCodeLine{}
+\DoxyCodeLine{    <!-\/-\/}
+\DoxyCodeLine{        name: org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol}
+\DoxyCodeLine{        Sub processes Scxml files: medicalrecordmanagement.scxml}
+\DoxyCodeLine{        events:}
+\DoxyCodeLine{            \textcolor{keyword}{event} name                                                      target state}
+\DoxyCodeLine{            to\_applicationquit                                              applicationquit}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement                  org\_mitk\_lancet\_tha\_medicalrecordmanagement}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_linkinghardware                          org\_mitk\_lancet\_tha\_linkinghardware}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicalregistration                     org\_mitk\_lancet\_tha\_surgicalregistration}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_acetabularpreparation                    org\_mitk\_lancet\_tha\_acetabularpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_femurpreparation                         org\_mitk\_lancet\_tha\_femurpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicaloutcomes                         org\_mitk\_lancet\_tha\_surgicaloutcomes}
+\DoxyCodeLine{    -\/-\/>}
+\DoxyCodeLine{    <state \textcolor{keywordtype}{id}=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}}>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_applicationquit"{}} target=\textcolor{stringliteral}{"{}applicationquit"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_linkinghardware"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_linkinghardware"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicalregistration"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicalregistration"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_acetabularpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_acetabularpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_femurpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_femurpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicaloutcomes"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicaloutcomes"{}}/>}
+\DoxyCodeLine{    </state>}
+\DoxyCodeLine{}
+\DoxyCodeLine{}
+\DoxyCodeLine{    <!-\/-\/}
+\DoxyCodeLine{        name: org\_mitk\_lancet\_tha\_linkinghardware}
+\DoxyCodeLine{        Sub processes Scxml files: linkinghardware.scxml}
+\DoxyCodeLine{        events:}
+\DoxyCodeLine{            \textcolor{keyword}{event} name                                                      target state}
+\DoxyCodeLine{            to\_applicationquit                                              applicationquit}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement                  org\_mitk\_lancet\_tha\_medicalrecordmanagement}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol            org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicalregistration                     org\_mitk\_lancet\_tha\_surgicalregistration}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_acetabularpreparation                    org\_mitk\_lancet\_tha\_acetabularpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_femurpreparation                         org\_mitk\_lancet\_tha\_femurpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicaloutcomes                         org\_mitk\_lancet\_tha\_surgicaloutcomes}
+\DoxyCodeLine{    -\/-\/>}
+\DoxyCodeLine{    <state \textcolor{keywordtype}{id}=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_linkinghardware"{}}>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_applicationquit"{}} target=\textcolor{stringliteral}{"{}applicationquit"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicalregistration"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicalregistration"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_acetabularpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_acetabularpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_femurpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_femurpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicaloutcomes"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicaloutcomes"{}}/>}
+\DoxyCodeLine{    </state>}
+\DoxyCodeLine{}
+\DoxyCodeLine{    <!-\/-\/}
+\DoxyCodeLine{        name: org\_mitk\_lancet\_tha\_surgicalregistration}
+\DoxyCodeLine{        Sub processes Scxml files: surgicalregistration.scxml}
+\DoxyCodeLine{        events:}
+\DoxyCodeLine{            \textcolor{keyword}{event} name                                                      target state}
+\DoxyCodeLine{            to\_applicationquit                                              applicationquit}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement                  org\_mitk\_lancet\_tha\_medicalrecordmanagement}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol            org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_linkinghardware                          org\_mitk\_lancet\_tha\_linkinghardware}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_acetabularpreparation                    org\_mitk\_lancet\_tha\_acetabularpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_femurpreparation                         org\_mitk\_lancet\_tha\_femurpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicaloutcomes                         org\_mitk\_lancet\_tha\_surgicaloutcomes}
+\DoxyCodeLine{    -\/-\/>}
+\DoxyCodeLine{    <state \textcolor{keywordtype}{id}=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicalregistration"{}}>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_applicationquit"{}} target=\textcolor{stringliteral}{"{}applicationquit"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_linkinghardware"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_linkinghardware"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_acetabularpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_acetabularpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_femurpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_femurpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicaloutcomes"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicaloutcomes"{}}/>}
+\DoxyCodeLine{    </state>}
+\DoxyCodeLine{}
+\DoxyCodeLine{}
+\DoxyCodeLine{    <!-\/-\/}
+\DoxyCodeLine{        name: org\_mitk\_lancet\_tha\_acetabularpreparation}
+\DoxyCodeLine{        Sub processes Scxml files: acetabularpreparation.scxml}
+\DoxyCodeLine{        events:}
+\DoxyCodeLine{            \textcolor{keyword}{event} name                                                      target state}
+\DoxyCodeLine{            to\_applicationquit                                              applicationquit}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement                  org\_mitk\_lancet\_tha\_medicalrecordmanagement}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol            org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_linkinghardware                          org\_mitk\_lancet\_tha\_linkinghardware}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicalregistration                     org\_mitk\_lancet\_tha\_surgicalregistration}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_femurpreparation                         org\_mitk\_lancet\_tha\_femurpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicaloutcomes                         org\_mitk\_lancet\_tha\_surgicaloutcomes}
+\DoxyCodeLine{    -\/-\/>}
+\DoxyCodeLine{    <state \textcolor{keywordtype}{id}=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_acetabularpreparation"{}}>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_applicationquit"{}} target=\textcolor{stringliteral}{"{}applicationquit"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_linkinghardware"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_linkinghardware"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicalregistration"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicalregistration"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_femurpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_femurpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicaloutcomes"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicaloutcomes"{}}/>}
+\DoxyCodeLine{    </state>}
+\DoxyCodeLine{}
+\DoxyCodeLine{}
+\DoxyCodeLine{    <!-\/-\/}
+\DoxyCodeLine{        name: org\_mitk\_lancet\_tha\_femurpreparation}
+\DoxyCodeLine{        Sub processes Scxml files: femurpreparation.scxml}
+\DoxyCodeLine{        events:}
+\DoxyCodeLine{            \textcolor{keyword}{event} name                                                      target state}
+\DoxyCodeLine{            to\_applicationquit                                              applicationquit}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement                  org\_mitk\_lancet\_tha\_medicalrecordmanagement}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol            org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_linkinghardware                          org\_mitk\_lancet\_tha\_linkinghardware}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicalregistration                     org\_mitk\_lancet\_tha\_surgicalregistration}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_acetabularpreparation                    org\_mitk\_lancet\_tha\_acetabularpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicaloutcomes                         org\_mitk\_lancet\_tha\_surgicaloutcomes}
+\DoxyCodeLine{    -\/-\/>}
+\DoxyCodeLine{    <state \textcolor{keywordtype}{id}=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_femurpreparation"{}}>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_applicationquit"{}} target=\textcolor{stringliteral}{"{}applicationquit"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_linkinghardware"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_linkinghardware"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicalregistration"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicalregistration"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_acetabularpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_acetabularpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicaloutcomes"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicaloutcomes"{}}/>}
+\DoxyCodeLine{    </state>}
+\DoxyCodeLine{}
+\DoxyCodeLine{    <!-\/-\/}
+\DoxyCodeLine{        name: org\_mitk\_lancet\_tha\_surgicaloutcomes}
+\DoxyCodeLine{        Sub processes Scxml files: surgicaloutcomes.scxml}
+\DoxyCodeLine{        events:}
+\DoxyCodeLine{            \textcolor{keyword}{event} name                                                      target state}
+\DoxyCodeLine{            to\_applicationquit                                              applicationquit}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement                  org\_mitk\_lancet\_tha\_medicalrecordmanagement}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol            org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_linkinghardware                          org\_mitk\_lancet\_tha\_linkinghardware}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_surgicalregistration                     org\_mitk\_lancet\_tha\_surgicalregistration}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_acetabularpreparation                    org\_mitk\_lancet\_tha\_acetabularpreparation}
+\DoxyCodeLine{            to\_org\_mitk\_lancet\_tha\_femurpreparation                         org\_mitk\_lancet\_tha\_femurpreparation}
+\DoxyCodeLine{    -\/-\/>}
+\DoxyCodeLine{    <state \textcolor{keywordtype}{id}=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicaloutcomes"{}}>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_applicationquit"{}} target=\textcolor{stringliteral}{"{}applicationquit"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_medicalrecordmanagement"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_stdevelopmentsurgicalprotocol"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_linkinghardware"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_linkinghardware"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicalregistration"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicalregistration"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_acetabularpreparation"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_acetabularpreparation"{}}/>}
+\DoxyCodeLine{        <transition type=\textcolor{stringliteral}{"{}internal"{}} \textcolor{keyword}{event}=\textcolor{stringliteral}{"{}to\_org\_mitk\_lancet\_tha\_surgicaloutcomes"{}} target=\textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_surgicaloutcomes"{}}/>}
+\DoxyCodeLine{    </state>}
+\DoxyCodeLine{}
+\DoxyCodeLine{    <\textcolor{keyword}{final} \textcolor{keywordtype}{id}=\textcolor{stringliteral}{"{}applicationquit"{}}>}
+\DoxyCodeLine{}
+\DoxyCodeLine{    </\textcolor{keyword}{final}>}
+\DoxyCodeLine{</scxml>}
+
+\end{DoxyCode}
+
+
+Status Properties Sample File\+:
+
+The attributes that describe the state (unit) in detail, including data structure, interface style, etc.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    \textcolor{stringliteral}{"{}properties"{}}:}
+\DoxyCodeLine{    \{}
+\DoxyCodeLine{        \textcolor{stringliteral}{"{}id"{}}: \textcolor{stringliteral}{"{}org\_mitk\_lancet\_tka\_medicalrecordmanagement"{}},}
+\DoxyCodeLine{        \textcolor{stringliteral}{"{}objectName"{}}: \textcolor{stringliteral}{"{}ActionMedicalRecordManagement"{}},}
+\DoxyCodeLine{        \textcolor{stringliteral}{"{}uiName"{}}: \textcolor{stringliteral}{"{}MedicalRecordManagement"{}},}
+\DoxyCodeLine{        \textcolor{stringliteral}{"{}theme"{}}:}
+\DoxyCodeLine{        \{}
+\DoxyCodeLine{            \textcolor{stringliteral}{"{}defaultStyle"{}}:}
+\DoxyCodeLine{            \{}
+\DoxyCodeLine{                \textcolor{stringliteral}{"{}actionQssFilePath"{}}: \textcolor{stringliteral}{"{}:/resources/qss/tha/medicalrecordmanagement/action\_medicalrecordmanagement\_default.qss"{}},}
+\DoxyCodeLine{                \textcolor{stringliteral}{"{}editorQssFilePath"{}}: \textcolor{stringliteral}{"{}:/resources/qss/tha/medicalrecordmanagement/editor\_medicalrecordmanagement\_default.qss"{}},}
+\DoxyCodeLine{                \textcolor{stringliteral}{"{}viewQssFilePath"{}}: \textcolor{stringliteral}{"{}:/resources/qss/tha/medicalrecordmanagement/view\_medicalrecordmanagement\_default.qss"{}}}
+\DoxyCodeLine{            \}}
+\DoxyCodeLine{        \}}
+\DoxyCodeLine{    \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Qt Qss Sample File\+:
+
+Formulate the display style of Qt components. Refer to Qt API document for detailed usage.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{*}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    color: beige;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{QLabel, QAbstractButton}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    font: bold;}
+\DoxyCodeLine{    color: yellow;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{QFrame}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    background-\/color: rgba(96,96,255,60\%);}
+\DoxyCodeLine{    border-\/color: rgb(32,32,196);}
+\DoxyCodeLine{    border-\/width: 3px;}
+\DoxyCodeLine{    border-\/style: solid;}
+\DoxyCodeLine{    border-\/radius: 5;}
+\DoxyCodeLine{    padding: 3px;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{QAbstractButton}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,}
+\DoxyCodeLine{                             stop:0 lightblue, stop:0.5 darkblue);}
+\DoxyCodeLine{    border-\/width: 3px;}
+\DoxyCodeLine{    border-\/color: darkblue;}
+\DoxyCodeLine{    border-\/style: solid;}
+\DoxyCodeLine{    border-\/radius: 5;}
+\DoxyCodeLine{    padding: 3px;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{QAbstractButton:pressed}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,}
+\DoxyCodeLine{                             stop:0.5 darkblue, stop:1 lightblue);}
+\DoxyCodeLine{    border-\/color: beige;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Import External Files\+:
+
+You should have {\itshape .scxml}, {\itshape \+\_\+subsidiary.\+json}, {\itshape .qss} files before importing external files.\+Then you need to use the service import interface to parse the external file into a valid state machine service element.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{auto} context = org\_mitk\_lancet\_tha\_application\_Activator::GetPluginContext();}
+\DoxyCodeLine{\textcolor{keyword}{auto} stateMachineServiceRef = context-\/>getServiceReference<\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet::IScxmlStateMachineService}}>();}
+\DoxyCodeLine{\textcolor{keyword}{auto} stateMachineService = context-\/>getService<\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet::IScxmlStateMachineService}}>(stateMachineServiceRef);}
+\DoxyCodeLine{\textcolor{comment}{// F:/Examples/ExampleQtScxmlStateMachine/LancetThaScxmlStateMachine\_debug.scxml}}
+\DoxyCodeLine{\textcolor{keywordflow}{if} (\textcolor{keyword}{nullptr} != stateMachineService)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    \textcolor{comment}{//qRegisterMetaType<lancet::IScxmlStateMachineState>("{}lancet::IScxmlStateMachineState"{});}}
+\DoxyCodeLine{    stateMachineService-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a141259f61e8df338565c9bbba315c5fe}{Initialize}}();}
+\DoxyCodeLine{    stateMachineService-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a20c924fcd164e2e0135bc5b66a2ff5ae}{CreateScxmlStateMachine}}(}
+\DoxyCodeLine{        \textcolor{stringliteral}{"{}Y:/LancetMitk\_SBD/MITK-\/build/bin/resources/org\_mitk\_lancet\_tha\_application.scxml"{}},}
+\DoxyCodeLine{        \textcolor{stringliteral}{"{}empty"{}},}
+\DoxyCodeLine{        lancet::IScxmlStateMachineState::StateType::Admin,}
+\DoxyCodeLine{        lancet::IScxmlStateMachineState::Pointer(\textcolor{keyword}{nullptr}), \textcolor{stringliteral}{"{}org\_mitk\_lancet\_tha\_application"{}});}
+\DoxyCodeLine{}
+\DoxyCodeLine{    std::cout << stateMachineService-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_ae9cdd16135f27c49917c80f3da0e6d19}{GetAdminState}}()-\/>ToString().toStdString();}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+How to map to interface\+:
+
+Before operating this behavior, you should and must import an external file or create a state machine element. After that, you can traverse the state machine service element to generate a formatted interface. The style of the interface can be configured through the properties of the state element.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{auto} context = org\_mitk\_lancet\_tha\_application\_Activator::GetPluginContext();}
+\DoxyCodeLine{\textcolor{keyword}{auto} stateMachineServiceRef = context-\/>getServiceReference<\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet::IScxmlStateMachineService}}>();}
+\DoxyCodeLine{\textcolor{keyword}{auto} stateMachineService = context-\/>getService<\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet::IScxmlStateMachineService}}>(stateMachineServiceRef);}
+\DoxyCodeLine{\textcolor{keywordflow}{if} (stateMachineService != \textcolor{keyword}{nullptr} \&\& stateMachineService-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_ae9cdd16135f27c49917c80f3da0e6d19}{GetAdminState}}().IsNotNull())}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    \textcolor{keywordflow}{for} (\textcolor{keyword}{auto} item : stateMachineService-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_ae9cdd16135f27c49917c80f3da0e6d19}{GetAdminState}}()-\/>GetSubStateMachines())}
+\DoxyCodeLine{    \{}
+\DoxyCodeLine{        \textcolor{comment}{// proprety}}
+\DoxyCodeLine{        \textcolor{comment}{//QString itemActionId = item-\/>GetStateId();}}
+\DoxyCodeLine{        QString itemActionUiName = item-\/>GetActionProperty()-\/>GetStateUiName();}
+\DoxyCodeLine{        QString itemActionObjectName = item-\/>GetActionProperty()-\/>GetStateObjectName();}
+\DoxyCodeLine{}
+\DoxyCodeLine{        \textcolor{comment}{// qss}}
+\DoxyCodeLine{        QString itemActionQSS = item-\/>GetActionProperty()-\/>GetActionQss();}
+\DoxyCodeLine{}
+\DoxyCodeLine{        \textcolor{keyword}{auto} action = menuBar-\/>addAction(itemActionUiName);}
+\DoxyCodeLine{        action-\/>setObjectName(itemActionObjectName);}
+\DoxyCodeLine{}
+\DoxyCodeLine{        \textcolor{comment}{// You may customize the interface status trigger unit components.}}
+\DoxyCodeLine{        \textcolor{comment}{// Widget-\/>setStyleSheet(itemActionQSS);}}
+\DoxyCodeLine{    connect(action, \&QAction::triggered, \textcolor{keyword}{this}, \&MyWidget::onStateMachine\_ActionClicked);}
+\DoxyCodeLine{    \}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+How to focus on events\+:
+
+tate machine events provide the most basic state jump events. Of course, this module can realize more than these businesses. Other additional functions require selfless contributions from contributors.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{// connect to state machine for Qt.}}
+\DoxyCodeLine{\textcolor{keyword}{auto} adminStateHandle = stateMachineService-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_ae9cdd16135f27c49917c80f3da0e6d19}{GetAdminState}}()-\/>GetStateMachineHandler();}
+\DoxyCodeLine{connect(adminStateHandle.GetPointer(), SIGNAL(StateEnter(IScxmlStateMachineState*)),}
+\DoxyCodeLine{    \textcolor{keyword}{this}, SLOT(onModuleStateMachineStateEnter(IScxmlStateMachineState*)));}
+\DoxyCodeLine{connect(adminStateHandle.GetPointer(), SIGNAL(StateExit(IScxmlStateMachineState*)),}
+\DoxyCodeLine{    \textcolor{keyword}{this}, SLOT(onModuleStateMachineStateExit(IScxmlStateMachineState*)));}
+\DoxyCodeLine{stateMachineService-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_aff0bddd174cd9f722a40612cb390c405}{StartStateMachine}}();}
+
+\end{DoxyCode}
+ 
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{group__org__mitk__lancet__statemachine__services_ga9dd017aacacd2cc4dfd19bee5eef8b41}\label{group__org__mitk__lancet__statemachine__services_ga9dd017aacacd2cc4dfd19bee5eef8b41}} 
+\index{Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}!GetMitkPluginName@{GetMitkPluginName}}
+\index{GetMitkPluginName@{GetMitkPluginName}!Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}}
+\doxysubsubsection{\texorpdfstring{GetMitkPluginName()}{GetMitkPluginName()}}
+{\footnotesize\ttfamily QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN lancet\+::plugin\+::\+Get\+Mitk\+Plugin\+Name (\begin{DoxyParamCaption}\item[{const QString \&}]{mitk\+Plugin\+Id }\end{DoxyParamCaption})}
+
+
+
+Returns the name of a Mitk style plug-\/in. 
+
+eg. Enter org\+\_\+mitk\+\_\+lancet\+\_\+tha\+\_\+stdevelopmentsurgicalprotocol, Output stdevelopmentsurgicalprotocol 
+
+Definition at line \mbox{\hyperlink{lancet_naming_formats_8cpp_source_l00017}{17}} of file \mbox{\hyperlink{lancet_naming_formats_8cpp_source}{lancet\+Naming\+Formats.\+cpp}}.
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_ga9dd017aacacd2cc4dfd19bee5eef8b41_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{group__org__mitk__lancet__statemachine__services_ga2d14e1310f2bce5ab48f9a5438aeca46}\label{group__org__mitk__lancet__statemachine__services_ga2d14e1310f2bce5ab48f9a5438aeca46}} 
+\index{Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}!GetMitkPluginProductName@{GetMitkPluginProductName}}
+\index{GetMitkPluginProductName@{GetMitkPluginProductName}!Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}}
+\doxysubsubsection{\texorpdfstring{GetMitkPluginProductName()}{GetMitkPluginProductName()}}
+{\footnotesize\ttfamily QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN lancet\+::plugin\+::\+Get\+Mitk\+Plugin\+Product\+Name (\begin{DoxyParamCaption}\item[{const QString \&}]{mitk\+Plugin\+Id }\end{DoxyParamCaption})}
+
+
+
+Returns the product ID of the Mitk plug-\/in. 
+
+The plug-\/in ID format is org\+\_\+ mitk\+\_\+\%\{Product\+ID\}\+\_\+\%\{Item ID\}\+\_\+\%\{plug-\/in name\}.
+
+\begin{DoxyReturn}{Returns}
+\%\{Product\+ID\}. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{lancet_naming_formats_8cpp_source_l00023}{23}} of file \mbox{\hyperlink{lancet_naming_formats_8cpp_source}{lancet\+Naming\+Formats.\+cpp}}.
+
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_ga2d14e1310f2bce5ab48f9a5438aeca46_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{group__org__mitk__lancet__statemachine__services_ga2a3121b97fbc820de62eb7ad991e86d9}\label{group__org__mitk__lancet__statemachine__services_ga2a3121b97fbc820de62eb7ad991e86d9}} 
+\index{Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}!GetModuleStateName@{GetModuleStateName}}
+\index{GetModuleStateName@{GetModuleStateName}!Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}}
+\doxysubsubsection{\texorpdfstring{GetModuleStateName()}{GetModuleStateName()}}
+{\footnotesize\ttfamily QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN lancet\+::state\+\_\+machine\+::\+Get\+Module\+State\+Name (\begin{DoxyParamCaption}\item[{const QString \&}]{state\+Id }\end{DoxyParamCaption})}
+
+
+
+Returns the state module name of the state machine ID. 
+
+The plug-\/in ID format is org\+\_\+ mitk\+\_\+\%\{Product\+ID\}\+\_\+\%\{Item ID\}\+\_\+\%\{plug-\/in name\}.
+
+
+\begin{DoxyParams}{Parameters}
+{\em qt\+State\+Id} & Qt style state machine ID.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\%\{plug-\/in name\}. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{lancet_naming_formats_8cpp_source_l00036}{36}} of file \mbox{\hyperlink{lancet_naming_formats_8cpp_source}{lancet\+Naming\+Formats.\+cpp}}.
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_ga2a3121b97fbc820de62eb7ad991e86d9_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{group__org__mitk__lancet__statemachine__services_ga87a41295b556466e9506013403fb849b}\label{group__org__mitk__lancet__statemachine__services_ga87a41295b556466e9506013403fb849b}} 
+\index{Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}!GetStateName@{GetStateName}}
+\index{GetStateName@{GetStateName}!Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}}
+\doxysubsubsection{\texorpdfstring{GetStateName()}{GetStateName()}}
+{\footnotesize\ttfamily QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN lancet\+::state\+\_\+machine\+::\+Get\+State\+Name (\begin{DoxyParamCaption}\item[{const QString \&}]{state\+Id }\end{DoxyParamCaption})}
+
+
+
+Returns the state name of the state machine ID. 
+
+The plug-\/in ID format is org\+\_\+ mitk\+\_\+\%\{Product\+ID\}\+\_\+\%\{Item ID\}\+\_\+\%\{plug-\/in name\}.
+
+
+\begin{DoxyParams}{Parameters}
+{\em qt\+State\+Id} & Qt style state machine ID.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\%\{plug-\/in name\}. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{lancet_naming_formats_8cpp_source_l00030}{30}} of file \mbox{\hyperlink{lancet_naming_formats_8cpp_source}{lancet\+Naming\+Formats.\+cpp}}.
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_ga87a41295b556466e9506013403fb849b_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_ga87a41295b556466e9506013403fb849b_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{group__org__mitk__lancet__statemachine__services_ga68d505d3383796cef4686ee834ee8e55}\label{group__org__mitk__lancet__statemachine__services_ga68d505d3383796cef4686ee834ee8e55}} 
+\index{Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}!GetStatePropertyFileName@{GetStatePropertyFileName}}
+\index{GetStatePropertyFileName@{GetStatePropertyFileName}!Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}}
+\doxysubsubsection{\texorpdfstring{GetStatePropertyFileName()}{GetStatePropertyFileName()}}
+{\footnotesize\ttfamily QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN lancet\+::state\+\_\+machine\+::\+Get\+State\+Property\+File\+Name (\begin{DoxyParamCaption}\item[{const QString \&}]{parent\+File\+Name,  }\item[{const QString \&}]{state\+Id,  }\item[{int}]{type,  }\item[{const QString \&}]{format = {\ttfamily \char`\"{}\+\_\+subsidiary.json\char`\"{}} }\end{DoxyParamCaption})}
+
+
+
+The absolute path of the Qt state machine property configuration file that returns the state machine ID. 
+
+Path is absolute.
+
+
+\begin{DoxyParams}{Parameters}
+{\em parent\+Scxml\+File} & SCXML file path of parent assembly. \\
+\hline
+{\em State\+Id} & Qt style state machine ID. \\
+\hline
+{\em type} & State type. \\
+\hline
+{\em format} & Suffix format of property configuration file.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The absolute path of the property configuration file. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{lancet_naming_formats_8cpp_source_l00064}{64}} of file \mbox{\hyperlink{lancet_naming_formats_8cpp_source}{lancet\+Naming\+Formats.\+cpp}}.
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_ga68d505d3383796cef4686ee834ee8e55_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_ga68d505d3383796cef4686ee834ee8e55_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{group__org__mitk__lancet__statemachine__services_gaf1b75bcfd286abe8127eb716ec0ee5fd}\label{group__org__mitk__lancet__statemachine__services_gaf1b75bcfd286abe8127eb716ec0ee5fd}} 
+\index{Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}!GetStateScxmlFileName@{GetStateScxmlFileName}}
+\index{GetStateScxmlFileName@{GetStateScxmlFileName}!Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}}
+\doxysubsubsection{\texorpdfstring{GetStateScxmlFileName()}{GetStateScxmlFileName()}}
+{\footnotesize\ttfamily QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN lancet\+::state\+\_\+machine\+::\+Get\+State\+Scxml\+File\+Name (\begin{DoxyParamCaption}\item[{const QString \&}]{parent\+File\+Name,  }\item[{const QString \&}]{state\+Id,  }\item[{int}]{type }\end{DoxyParamCaption})}
+
+
+
+The path of the Qt state machine configuration file that returns the state machine ID. 
+
+Path is absolute.
+
+
+\begin{DoxyParams}{Parameters}
+{\em parent\+Scxml\+File} & SCXML file path of parent assembly. \\
+\hline
+{\em State\+Id} & Qt style state machine ID. \\
+\hline
+{\em type} & State type.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+SCXML file absolute path for status. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{lancet_naming_formats_8cpp_source_l00042}{42}} of file \mbox{\hyperlink{lancet_naming_formats_8cpp_source}{lancet\+Naming\+Formats.\+cpp}}.
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_gaf1b75bcfd286abe8127eb716ec0ee5fd_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_gaf1b75bcfd286abe8127eb716ec0ee5fd_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{group__org__mitk__lancet__statemachine__services_ga4d29b579380622174c99b66c07e0a0eb}\label{group__org__mitk__lancet__statemachine__services_ga4d29b579380622174c99b66c07e0a0eb}} 
+\index{Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}!GetStateScxmlFolderName@{GetStateScxmlFolderName}}
+\index{GetStateScxmlFolderName@{GetStateScxmlFolderName}!Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}}
+\doxysubsubsection{\texorpdfstring{GetStateScxmlFolderName()}{GetStateScxmlFolderName()}}
+{\footnotesize\ttfamily QString LANCET\+\_\+\+STATEMACHINE\+\_\+\+SERVICES\+\_\+\+PLUGIN lancet\+::state\+\_\+machine\+::\+Get\+State\+Scxml\+Folder\+Name (\begin{DoxyParamCaption}\item[{const QString \&}]{parent\+File\+Name,  }\item[{const QString \&}]{state\+Id,  }\item[{int}]{type }\end{DoxyParamCaption})}
+
+
+
+The directory of the Qt state machine configuration file that returns the state machine ID. 
+
+Path is absolute.
+
+
+\begin{DoxyParams}{Parameters}
+{\em parent\+Scxml\+File} & SCXML file path of parent assembly. \\
+\hline
+{\em State\+Id} & Qt style state machine ID. \\
+\hline
+{\em type} & State type.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+SCXML file absolute directory for status. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{lancet_naming_formats_8cpp_source_l00050}{50}} of file \mbox{\hyperlink{lancet_naming_formats_8cpp_source}{lancet\+Naming\+Formats.\+cpp}}.
+
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_ga4d29b579380622174c99b66c07e0a0eb_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__org__mitk__lancet__statemachine__services_ga4d29b579380622174c99b66c07e0a0eb_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{group__org__mitk__lancet__statemachine__services_gaccfed445ec8058f1a67a3e9c7eef67b8}\label{group__org__mitk__lancet__statemachine__services_gaccfed445ec8058f1a67a3e9c7eef67b8}} 
+\index{Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}!ToMitkId@{ToMitkId}}
+\index{ToMitkId@{ToMitkId}!Org\_mitk\_lancet\_statemachine\_services@{Org\_mitk\_lancet\_statemachine\_services}}
+\doxysubsubsection{\texorpdfstring{ToMitkId()}{ToMitkId()}}
+{\footnotesize\ttfamily QString lancet\+::plugin\+::\+To\+Mitk\+Id (\begin{DoxyParamCaption}\item[{const QString \&}]{qt\+State\+Id }\end{DoxyParamCaption})}
+
+
+
+Change the state machine state ID to the plug-\/in ID in Mitk format. 
+
+The style of Qt state machine state ID is underlined as a separator. eg. org\+\_\+mitk\+\_\+lancet\+\_\+tha\+\_\+stdevelopmentsurgicalprotocol
+
+The style of Mitk plug-\/in ID is to use the dot as the separator. eg. org.\+mitk.\+lancet.\+tha.\+stdevelopmentsurgicalprotocol
+
+
+\begin{DoxyParams}{Parameters}
+{\em qt\+State\+Id} & Qt style state machine ID. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Mitk plug-\/in ID. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{lancet_naming_formats_8cpp_source_l00011}{11}} of file \mbox{\hyperlink{lancet_naming_formats_8cpp_source}{lancet\+Naming\+Formats.\+cpp}}.
+

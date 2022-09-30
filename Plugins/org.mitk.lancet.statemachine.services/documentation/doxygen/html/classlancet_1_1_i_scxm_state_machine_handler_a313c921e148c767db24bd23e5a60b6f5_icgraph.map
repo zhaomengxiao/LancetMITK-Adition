@@ -1,0 +1,4 @@
+<map id="lancet::IScxmStateMachineHandler::IsDispatchableTarget" name="lancet::IScxmStateMachineHandler::IsDispatchableTarget">
+<area shape="rect" id="node1" title="Returns true if a message to target can be dispatched by this state machine." alt="" coords="248,5,443,47"/>
+<area shape="rect" id="node2" href="$classlancet_1_1_i_scxm_state_machine_handler.html#a012fab2df18f5af52aeb36dc5d4480a2" title=" " alt="" coords="5,5,200,47"/>
+</map>

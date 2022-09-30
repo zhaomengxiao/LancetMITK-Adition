@@ -1,0 +1,504 @@
+\hypertarget{classlancet_1_1_i_scxm_state_machine_handler}{}\doxysection{lancet\+::IScxm\+State\+Machine\+Handler Class Reference}
+\label{classlancet_1_1_i_scxm_state_machine_handler}\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+
+
+This is the event processing abstract class of the state machine unit.  
+
+
+
+
+{\ttfamily \#include $<$lancet\+IScxm\+State\+Machine\+Handler.\+h$>$}
+
+
+
+Inheritance diagram for lancet\+::IScxm\+State\+Machine\+Handler\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=226pt]{classlancet_1_1_i_scxm_state_machine_handler__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for lancet\+::IScxm\+State\+Machine\+Handler\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=226pt]{classlancet_1_1_i_scxm_state_machine_handler__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structlancet_1_1_i_scxm_state_machine_handler_1_1_i_scxm_state_machine_handler_private_imp}{IScxm\+State\+Machine\+Handler\+Private\+Imp}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Signals}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ad822f05368f2755505116998b3ebe142}{State\+Enter}} (\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $\ast$)
+\begin{DoxyCompactList}\small\item\em Event triggered when the sub state of the state machine enters. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a7d5f1e4a3ebd6b5f43414e9355ddeefa}{State\+Exit}} (\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $\ast$)
+\begin{DoxyCompactList}\small\item\em Event triggered when the sub state of the state machine exits. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a701254a50336d70e746517789b339828}{berry\+Object\+Macro}} (\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler}{lancet\+::\+IScxm\+State\+Machine\+Handler}})
+\item 
+\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a16138950c2d2682ac964b286fc02300e}{IScxm\+State\+Machine\+Handler}} ()
+\item 
+\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a829ef14f13e853329b013db75acc779d}{IScxm\+State\+Machine\+Handler}} (berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$)
+\item 
+virtual \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ab18c37ecb7a771f3c64879d65b694ad3}{$\sim$\+IScxm\+State\+Machine\+Handler}} ()
+\item 
+virtual bool \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2b8e9f203a49c6520918130649859a08}{Init}} (berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$ state)=0
+\begin{DoxyCompactList}\small\item\em Initialize the event processing class. \end{DoxyCompactList}\item 
+virtual bool \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_abf7b288798b253703314d8b5ee4ddccd}{Init\+Qt\+Event\+For\+State\+Machine}} (berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$)
+\begin{DoxyCompactList}\small\item\em Initialize the event of Qt style state machine state object. \end{DoxyCompactList}\item 
+virtual bool \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ae45ca63cdf2a1be5079604b11a94f454}{Start\+State\+Machine}} ()=0
+\begin{DoxyCompactList}\small\item\em Start or stop the state machine. \end{DoxyCompactList}\item 
+virtual bool \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a342f3f3806bf7b2ceaa3641b426f533c}{Stop\+State\+Machine}} ()=0
+\item 
+virtual bool \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a313c921e148c767db24bd23e5a60b6f5}{Is\+Dispatchable\+Target}} (const QString \&sessionid)
+\begin{DoxyCompactList}\small\item\em Returns true if a message to target can be dispatched by this state machine. \end{DoxyCompactList}\item 
+virtual bool \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a012fab2df18f5af52aeb36dc5d4480a2}{Is\+Dispatchable\+Target}} (berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$ state)
+\item 
+virtual berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$ \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{Get\+Assignor}} () const
+\item 
+virtual void \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ad92eb976ff62c8593516a851635b282b}{Set\+Assignor}} (berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$)
+\item 
+virtual berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$ \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2367d94b0f94e1b0d53cd9e58f37a51d}{Get\+Active\+State\+Machine}} () const
+\item 
+virtual void \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a22a59f026bb28a61456fa9a4c237f15e}{Set\+Active\+State\+Machine}} (berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$)
+\item 
+virtual berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$ \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a987c3df59fe3092399fcdbffda816754}{Get\+Last\+Active\+State\+Machine}} () const
+\item 
+virtual void \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a6005d083b734e1e8078a07bce66e37d7}{Set\+Last\+Active\+State\+Machine}} (berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$)
+\item 
+virtual bool \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a3a3f4676f5d5a21371b82ce390d97d1b}{To\+Target\+State}} (const QString \&id)
+\begin{DoxyCompactList}\small\item\em Jump to the state of the state machine. \end{DoxyCompactList}\item 
+virtual bool \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a1081949ecdc810ab58186d7aa0e153bc}{To\+Target\+State}} (const berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$ \&)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This is the event processing abstract class of the state machine unit. 
+
+Monitors various states and signal events of the state machine. This class exists to simplify the methods of external users, and is also one of the extension interfaces reserved for external users.
+
+When you try to extend this part, you should inherit this class and override its \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2b8e9f203a49c6520918130649859a08}{Init()}}, \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ae45ca63cdf2a1be5079604b11a94f454}{Start\+State\+Machine()}}, \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a342f3f3806bf7b2ceaa3641b426f533c}{Stop\+State\+Machine()}} methods. You can do whatever you want with the rest of the extension parts.
+
+\begin{DoxyPrecond}{Precondition}
+The external state must be created or imported, otherwise the function is invalid.
+\end{DoxyPrecond}
+\begin{DoxyAuthor}{Author}
+Sun 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+V1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+2022-\/09-\/26 16\+:28\+:30 
+\end{DoxyDate}
+\begin{DoxyRemark}{Remarks}
+Non
+\end{DoxyRemark}
+Contact\+: \href{mailto:sh4a01@163.com}{\texttt{ sh4a01@163.\+com}} 
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8h_source_l00058}{58}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8h_source}{lancet\+IScxm\+State\+Machine\+Handler.\+h}}.
+
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a16138950c2d2682ac964b286fc02300e}\label{classlancet_1_1_i_scxm_state_machine_handler_a16138950c2d2682ac964b286fc02300e}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!IScxmStateMachineHandler@{IScxmStateMachineHandler}}
+\index{IScxmStateMachineHandler@{IScxmStateMachineHandler}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{IScxmStateMachineHandler()}{IScxmStateMachineHandler()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+IScxm\+State\+Machine\+Handler (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00019}{19}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a829ef14f13e853329b013db75acc779d}\label{classlancet_1_1_i_scxm_state_machine_handler_a829ef14f13e853329b013db75acc779d}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!IScxmStateMachineHandler@{IScxmStateMachineHandler}}
+\index{IScxmStateMachineHandler@{IScxmStateMachineHandler}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{IScxmStateMachineHandler()}{IScxmStateMachineHandler()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+IScxm\+State\+Machine\+Handler (\begin{DoxyParamCaption}\item[{berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$}]{o }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00024}{24}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxm_state_machine_handler_a829ef14f13e853329b013db75acc779d_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_ab18c37ecb7a771f3c64879d65b694ad3}\label{classlancet_1_1_i_scxm_state_machine_handler_ab18c37ecb7a771f3c64879d65b694ad3}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!````~IScxmStateMachineHandler@{$\sim$IScxmStateMachineHandler}}
+\index{````~IScxmStateMachineHandler@{$\sim$IScxmStateMachineHandler}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{$\sim$IScxmStateMachineHandler()}{~IScxmStateMachineHandler()}}
+{\footnotesize\ttfamily lancet\+::\+IScxm\+State\+Machine\+Handler\+::$\sim$\+IScxm\+State\+Machine\+Handler (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00030}{30}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a701254a50336d70e746517789b339828}\label{classlancet_1_1_i_scxm_state_machine_handler_a701254a50336d70e746517789b339828}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!berryObjectMacro@{berryObjectMacro}}
+\index{berryObjectMacro@{berryObjectMacro}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{berryObjectMacro()}{berryObjectMacro()}}
+{\footnotesize\ttfamily lancet\+::\+IScxm\+State\+Machine\+Handler\+::berry\+Object\+Macro (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler}{lancet\+::\+IScxm\+State\+Machine\+Handler}}}]{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a2367d94b0f94e1b0d53cd9e58f37a51d}\label{classlancet_1_1_i_scxm_state_machine_handler_a2367d94b0f94e1b0d53cd9e58f37a51d}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!GetActiveStateMachine@{GetActiveStateMachine}}
+\index{GetActiveStateMachine@{GetActiveStateMachine}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{GetActiveStateMachine()}{GetActiveStateMachine()}}
+{\footnotesize\ttfamily berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$ lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Get\+Active\+State\+Machine (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00120}{120}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}\label{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!GetAssignor@{GetAssignor}}
+\index{GetAssignor@{GetAssignor}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{GetAssignor()}{GetAssignor()}}
+{\footnotesize\ttfamily berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$ lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Get\+Assignor (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00109}{109}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a987c3df59fe3092399fcdbffda816754}\label{classlancet_1_1_i_scxm_state_machine_handler_a987c3df59fe3092399fcdbffda816754}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!GetLastActiveStateMachine@{GetLastActiveStateMachine}}
+\index{GetLastActiveStateMachine@{GetLastActiveStateMachine}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{GetLastActiveStateMachine()}{GetLastActiveStateMachine()}}
+{\footnotesize\ttfamily berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$ lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Get\+Last\+Active\+State\+Machine (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00130}{130}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a2b8e9f203a49c6520918130649859a08}\label{classlancet_1_1_i_scxm_state_machine_handler_a2b8e9f203a49c6520918130649859a08}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!Init@{Init}}
+\index{Init@{Init}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{Init()}{Init()}}
+{\footnotesize\ttfamily virtual bool lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Init (\begin{DoxyParamCaption}\item[{berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$}]{state }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Initialize the event processing class. 
+
+This interface is a pure virtual property, and the inheritor needs to override this method to achieve initialization.
+
+\begin{DoxyWarning}{Warning}
+If the parameter input is empty, the event processing function is invalid.
+\end{DoxyWarning}
+
+\begin{DoxyParams}{Parameters}
+{\em state} & Monitoring state machine state objects.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns true if successful, otherwise false. 
+\end{DoxyReturn}
+
+
+Implemented in \mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler_a1f4a50a2f1593561994bc93f15b00aee}{lancet\+::\+Scxm\+State\+Machine\+Handler}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_abf7b288798b253703314d8b5ee4ddccd}\label{classlancet_1_1_i_scxm_state_machine_handler_abf7b288798b253703314d8b5ee4ddccd}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!InitQtEventForStateMachine@{InitQtEventForStateMachine}}
+\index{InitQtEventForStateMachine@{InitQtEventForStateMachine}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{InitQtEventForStateMachine()}{InitQtEventForStateMachine()}}
+{\footnotesize\ttfamily bool lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Init\+Qt\+Event\+For\+State\+Machine (\begin{DoxyParamCaption}\item[{berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$}]{state }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Initialize the event of Qt style state machine state object. 
+
+This method is not automatic. The inheritor should call this method in the init() method to initialize QT style state machine events.
+
+This interface is not recommended to be rewritten. The attributes of this class are for internal event business processing.
+
+
+\begin{DoxyParams}{Parameters}
+{\em state} & Monitoring state machine state objects.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns true if successful, otherwise false.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2b8e9f203a49c6520918130649859a08}{Init()}} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00034}{34}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxm_state_machine_handler_abf7b288798b253703314d8b5ee4ddccd_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a012fab2df18f5af52aeb36dc5d4480a2}\label{classlancet_1_1_i_scxm_state_machine_handler_a012fab2df18f5af52aeb36dc5d4480a2}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!IsDispatchableTarget@{IsDispatchableTarget}}
+\index{IsDispatchableTarget@{IsDispatchableTarget}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{IsDispatchableTarget()}{IsDispatchableTarget()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily bool lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Is\+Dispatchable\+Target (\begin{DoxyParamCaption}\item[{berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$}]{state }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00100}{100}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxm_state_machine_handler_a012fab2df18f5af52aeb36dc5d4480a2_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a313c921e148c767db24bd23e5a60b6f5}\label{classlancet_1_1_i_scxm_state_machine_handler_a313c921e148c767db24bd23e5a60b6f5}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!IsDispatchableTarget@{IsDispatchableTarget}}
+\index{IsDispatchableTarget@{IsDispatchableTarget}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{IsDispatchableTarget()}{IsDispatchableTarget()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily bool lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Is\+Dispatchable\+Target (\begin{DoxyParamCaption}\item[{const QString \&}]{sessionid }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Returns true if a message to target can be dispatched by this state machine. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000001}{Deprecated}}]Qt does not provide an interface for this method, so this interface may be deleted in future versions.\end{DoxyRefDesc}
+
+
+
+\begin{DoxyParams}{Parameters}
+{\em sessionid} & is the session ID of the current state machine. \\
+\hline
+{\em state} & is target state object.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{lancet\+::\+IScxml\+State\+Machine\+State}}, berry\+::\+Smart\+Pointer
+\end{DoxySeeAlso}
+\mbox{\hyperlink{}{QScxml\+State\+Machine\#is\+Dispatchable\+Target(const QString \&target) const }} 
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00090}{90}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxm_state_machine_handler_a313c921e148c767db24bd23e5a60b6f5_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxm_state_machine_handler_a313c921e148c767db24bd23e5a60b6f5_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a22a59f026bb28a61456fa9a4c237f15e}\label{classlancet_1_1_i_scxm_state_machine_handler_a22a59f026bb28a61456fa9a4c237f15e}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!SetActiveStateMachine@{SetActiveStateMachine}}
+\index{SetActiveStateMachine@{SetActiveStateMachine}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{SetActiveStateMachine()}{SetActiveStateMachine()}}
+{\footnotesize\ttfamily void lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Set\+Active\+State\+Machine (\begin{DoxyParamCaption}\item[{berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$}]{state }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00125}{125}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_ad92eb976ff62c8593516a851635b282b}\label{classlancet_1_1_i_scxm_state_machine_handler_ad92eb976ff62c8593516a851635b282b}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!SetAssignor@{SetAssignor}}
+\index{SetAssignor@{SetAssignor}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{SetAssignor()}{SetAssignor()}}
+{\footnotesize\ttfamily void lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Set\+Assignor (\begin{DoxyParamCaption}\item[{berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$}]{as }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00114}{114}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxm_state_machine_handler_ad92eb976ff62c8593516a851635b282b_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a6005d083b734e1e8078a07bce66e37d7}\label{classlancet_1_1_i_scxm_state_machine_handler_a6005d083b734e1e8078a07bce66e37d7}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!SetLastActiveStateMachine@{SetLastActiveStateMachine}}
+\index{SetLastActiveStateMachine@{SetLastActiveStateMachine}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{SetLastActiveStateMachine()}{SetLastActiveStateMachine()}}
+{\footnotesize\ttfamily void lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Set\+Last\+Active\+State\+Machine (\begin{DoxyParamCaption}\item[{berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$}]{state }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00135}{135}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_ae45ca63cdf2a1be5079604b11a94f454}\label{classlancet_1_1_i_scxm_state_machine_handler_ae45ca63cdf2a1be5079604b11a94f454}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!StartStateMachine@{StartStateMachine}}
+\index{StartStateMachine@{StartStateMachine}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{StartStateMachine()}{StartStateMachine()}}
+{\footnotesize\ttfamily virtual bool lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Start\+State\+Machine (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Start or stop the state machine. 
+
+Starting the work of Qt state machine will not affect or operate the embedded sub state machine of Qt state machine.
+
+Stopping the Qt state machine will stop all embedded sub Qt state machines.
+
+\begin{DoxyPrecond}{Precondition}
+This class must be initialized before executing this operation.
+\end{DoxyPrecond}
+\begin{DoxyReturn}{Returns}
+Returns true if successful, otherwise false.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2b8e9f203a49c6520918130649859a08}{Init()}}, \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_abf7b288798b253703314d8b5ee4ddccd}{Init\+Qt\+Event\+For\+State\+Machine()}} 
+\end{DoxySeeAlso}
+
+
+Implemented in \mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler_a81c8330aeda3a79f42b4043229d8bca9}{lancet\+::\+Scxm\+State\+Machine\+Handler}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_ad822f05368f2755505116998b3ebe142}\label{classlancet_1_1_i_scxm_state_machine_handler_ad822f05368f2755505116998b3ebe142}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!StateEnter@{StateEnter}}
+\index{StateEnter@{StateEnter}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{StateEnter}{StateEnter}}
+{\footnotesize\ttfamily void lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+State\+Enter (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $\ast$}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+
+
+Event triggered when the sub state of the state machine enters. 
+
+This event will only be triggered when the sub state enters for the first time, and the state exit signal will be triggered when the state machine switches the sub state.
+
+\begin{DoxyPrecond}{Precondition}
+The class is initialized and the state machine is working.
+\end{DoxyPrecond}
+
+\begin{DoxyParams}{Parameters}
+{\em state} & Sub state object of trigger signal.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{lancet\+::\+IScxml\+State\+Machine\+State}}, \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2b8e9f203a49c6520918130649859a08}{Init()}}, \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ae45ca63cdf2a1be5079604b11a94f454}{Start\+State\+Machine()}} 
+\end{DoxySeeAlso}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a7d5f1e4a3ebd6b5f43414e9355ddeefa}\label{classlancet_1_1_i_scxm_state_machine_handler_a7d5f1e4a3ebd6b5f43414e9355ddeefa}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!StateExit@{StateExit}}
+\index{StateExit@{StateExit}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{StateExit}{StateExit}}
+{\footnotesize\ttfamily void lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+State\+Exit (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $\ast$}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [signal]}}
+
+
+
+Event triggered when the sub state of the state machine exits. 
+
+This event will only be triggered when the sub state exits for the first time, and the state enters signal will be triggered when the state machine switches the sub state.
+
+\begin{DoxyPrecond}{Precondition}
+The class is initialized and the state machine is working.
+\end{DoxyPrecond}
+
+\begin{DoxyParams}{Parameters}
+{\em state} & Sub state object of trigger signal.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{lancet\+::\+IScxml\+State\+Machine\+State}}, \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2b8e9f203a49c6520918130649859a08}{Init()}}, \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ae45ca63cdf2a1be5079604b11a94f454}{Start\+State\+Machine()}} 
+\end{DoxySeeAlso}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a342f3f3806bf7b2ceaa3641b426f533c}\label{classlancet_1_1_i_scxm_state_machine_handler_a342f3f3806bf7b2ceaa3641b426f533c}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!StopStateMachine@{StopStateMachine}}
+\index{StopStateMachine@{StopStateMachine}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{StopStateMachine()}{StopStateMachine()}}
+{\footnotesize\ttfamily virtual bool lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+Stop\+State\+Machine (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler_a8e77278ad457ce54faf3cf1b23b9f68b}{lancet\+::\+Scxm\+State\+Machine\+Handler}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a1081949ecdc810ab58186d7aa0e153bc}\label{classlancet_1_1_i_scxm_state_machine_handler_a1081949ecdc810ab58186d7aa0e153bc}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!ToTargetState@{ToTargetState}}
+\index{ToTargetState@{ToTargetState}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{ToTargetState()}{ToTargetState()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily bool lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+To\+Target\+State (\begin{DoxyParamCaption}\item[{const berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$ \&}]{state }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00151}{151}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxm_state_machine_handler_a1081949ecdc810ab58186d7aa0e153bc_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxm_state_machine_handler_a3a3f4676f5d5a21371b82ce390d97d1b}\label{classlancet_1_1_i_scxm_state_machine_handler_a3a3f4676f5d5a21371b82ce390d97d1b}} 
+\index{lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}!ToTargetState@{ToTargetState}}
+\index{ToTargetState@{ToTargetState}!lancet::IScxmStateMachineHandler@{lancet::IScxmStateMachineHandler}}
+\doxysubsubsection{\texorpdfstring{ToTargetState()}{ToTargetState()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily bool lancet\+::\+IScxm\+State\+Machine\+Handler\+::\+To\+Target\+State (\begin{DoxyParamCaption}\item[{const QString \&}]{id }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Jump to the state of the state machine. 
+
+\begin{DoxyPrecond}{Precondition}
+The state machine is in working state.
+\end{DoxyPrecond}
+\begin{DoxyWarning}{Warning}
+This behavior may fail due to many factors, such as state machine logic control, state input error, etc. When using this interface, be sure to monitor its return value.
+\end{DoxyWarning}
+
+\begin{DoxyParams}{Parameters}
+{\em id} & ID code of the status, corresponding to the.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns true if successful, otherwise false.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ae45ca63cdf2a1be5079604b11a94f454}{Start\+State\+Machine()}} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source_l00140}{140}} of file \mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp_source}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxm_state_machine_handler_a3a3f4676f5d5a21371b82ce390d97d1b_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=217pt]{classlancet_1_1_i_scxm_state_machine_handler_a3a3f4676f5d5a21371b82ce390d97d1b_icgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+E\+:/\+Lancet\+MITK-\/\+Adition/\+Plugins/org.\+mitk.\+lancet.\+statemachine.\+services/src/\mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8h}{lancet\+IScxm\+State\+Machine\+Handler.\+h}}\item 
+E\+:/\+Lancet\+MITK-\/\+Adition/\+Plugins/org.\+mitk.\+lancet.\+statemachine.\+services/src/\mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp}{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}}\end{DoxyCompactItemize}

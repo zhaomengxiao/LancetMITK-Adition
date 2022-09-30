@@ -1,0 +1,5 @@
+<map id="lancet::IScxmlStateMachineService::GetScxmlStateMachineService" name="lancet::IScxmlStateMachineService::GetScxmlStateMachineService">
+<area shape="rect" id="node1" title=" " alt="" coords="257,51,509,92"/>
+<area shape="rect" id="node2" href="$classlancet_1_1_i_scxml_state_machine_state.html#aa071b55afb64d612a884727fab51663c" title="Returns the state machine service object." alt="" coords="5,5,209,47"/>
+<area shape="rect" id="node3" href="$classlancet_1_1_i_scxm_state_machine_handler.html#a3a3f4676f5d5a21371b82ce390d97d1b" title="Jump to the state of the state machine." alt="" coords="16,95,199,136"/>
+</map>

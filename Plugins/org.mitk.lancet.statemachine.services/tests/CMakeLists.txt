@@ -1,0 +1,7 @@
+project(org_mitk_lancet_statemachine_services_test)
+
+target_include_directories(org_mitk_lancet_statemachine_services PUBLIC ${CMAKE_SOURCE_DIR}/../src)
+
+add_executable(org_mitk_lancet_statemachine_services_test main.cpp)
+
+target_link_libraries(org_mitk_lancet_statemachine_services_test org_mitk_lancet_statemachine_services)

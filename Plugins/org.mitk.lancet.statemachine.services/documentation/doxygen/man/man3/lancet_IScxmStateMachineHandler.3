@@ -1,0 +1,365 @@
+.TH "lancet::IScxmStateMachineHandler" 3 "Mon Sep 26 2022" "Version 1.0.0" "org.mitk.lancet.statemachine.services" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+lancet::IScxmStateMachineHandler \- This is the event processing abstract class of the state machine unit\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <lancetIScxmStateMachineHandler\&.h>\fP
+.PP
+Inherits QObject, and berry::Object\&.
+.PP
+Inherited by \fBlancet::ScxmStateMachineHandler\fP\&.
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBIScxmStateMachineHandlerPrivateImp\fP"
+.br
+.in -1c
+.SS "Signals"
+
+.in +1c
+.ti -1c
+.RI "void \fBStateEnter\fP (\fBIScxmlStateMachineState\fP *)"
+.br
+.RI "Event triggered when the sub state of the state machine enters\&. "
+.ti -1c
+.RI "void \fBStateExit\fP (\fBIScxmlStateMachineState\fP *)"
+.br
+.RI "Event triggered when the sub state of the state machine exits\&. "
+.in -1c
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBberryObjectMacro\fP (\fBlancet::IScxmStateMachineHandler\fP)"
+.br
+.ti -1c
+.RI "\fBIScxmStateMachineHandler\fP ()"
+.br
+.ti -1c
+.RI "\fBIScxmStateMachineHandler\fP (berry::SmartPointer< \fBIScxmlStateMachineState\fP >)"
+.br
+.ti -1c
+.RI "virtual \fB~IScxmStateMachineHandler\fP ()"
+.br
+.ti -1c
+.RI "virtual bool \fBInit\fP (berry::SmartPointer< \fBIScxmlStateMachineState\fP > state)=0"
+.br
+.RI "Initialize the event processing class\&. "
+.ti -1c
+.RI "virtual bool \fBInitQtEventForStateMachine\fP (berry::SmartPointer< \fBIScxmlStateMachineState\fP >)"
+.br
+.RI "Initialize the event of Qt style state machine state object\&. "
+.ti -1c
+.RI "virtual bool \fBStartStateMachine\fP ()=0"
+.br
+.RI "Start or stop the state machine\&. "
+.ti -1c
+.RI "virtual bool \fBStopStateMachine\fP ()=0"
+.br
+.ti -1c
+.RI "virtual bool \fBIsDispatchableTarget\fP (const QString &sessionid)"
+.br
+.RI "Returns true if a message to target can be dispatched by this state machine\&. "
+.ti -1c
+.RI "virtual bool \fBIsDispatchableTarget\fP (berry::SmartPointer< \fBIScxmlStateMachineState\fP > state)"
+.br
+.ti -1c
+.RI "virtual berry::SmartPointer< \fBIScxmlStateMachineState\fP > \fBGetAssignor\fP () const"
+.br
+.ti -1c
+.RI "virtual void \fBSetAssignor\fP (berry::SmartPointer< \fBIScxmlStateMachineState\fP >)"
+.br
+.ti -1c
+.RI "virtual berry::SmartPointer< \fBIScxmlStateMachineState\fP > \fBGetActiveStateMachine\fP () const"
+.br
+.ti -1c
+.RI "virtual void \fBSetActiveStateMachine\fP (berry::SmartPointer< \fBIScxmlStateMachineState\fP >)"
+.br
+.ti -1c
+.RI "virtual berry::SmartPointer< \fBIScxmlStateMachineState\fP > \fBGetLastActiveStateMachine\fP () const"
+.br
+.ti -1c
+.RI "virtual void \fBSetLastActiveStateMachine\fP (berry::SmartPointer< \fBIScxmlStateMachineState\fP >)"
+.br
+.ti -1c
+.RI "virtual bool \fBToTargetState\fP (const QString &id)"
+.br
+.RI "Jump to the state of the state machine\&. "
+.ti -1c
+.RI "virtual bool \fBToTargetState\fP (const berry::SmartPointer< \fBIScxmlStateMachineState\fP > &)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+This is the event processing abstract class of the state machine unit\&. 
+
+Monitors various states and signal events of the state machine\&. This class exists to simplify the methods of external users, and is also one of the extension interfaces reserved for external users\&.
+.PP
+When you try to extend this part, you should inherit this class and override its \fBInit()\fP, \fBStartStateMachine()\fP, \fBStopStateMachine()\fP methods\&. You can do whatever you want with the rest of the extension parts\&.
+.PP
+\fBPrecondition\fP
+.RS 4
+The external state must be created or imported, otherwise the function is invalid\&.
+.RE
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBVersion\fP
+.RS 4
+V1\&.0\&.0 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-09-26 16:28:30 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+Non
+.RE
+.PP
+Contact: sh4a01@163.com 
+.PP
+Definition at line \fB58\fP of file \fBlancetIScxmStateMachineHandler\&.h\fP\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "lancet::IScxmStateMachineHandler::IScxmStateMachineHandler ()"
+
+.PP
+Definition at line \fB19\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "lancet::IScxmStateMachineHandler::IScxmStateMachineHandler (berry::SmartPointer< \fBIScxmlStateMachineState\fP > o)"
+
+.PP
+Definition at line \fB24\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "lancet::IScxmStateMachineHandler::~IScxmStateMachineHandler ()\fC [virtual]\fP"
+
+.PP
+Definition at line \fB30\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "lancet::IScxmStateMachineHandler::berryObjectMacro (\fBlancet::IScxmStateMachineHandler\fP)"
+
+.SS "berry::SmartPointer< \fBIScxmlStateMachineState\fP > lancet::IScxmStateMachineHandler::GetActiveStateMachine () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB120\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "berry::SmartPointer< \fBIScxmlStateMachineState\fP > lancet::IScxmStateMachineHandler::GetAssignor () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB109\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "berry::SmartPointer< \fBIScxmlStateMachineState\fP > lancet::IScxmStateMachineHandler::GetLastActiveStateMachine () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB130\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "virtual bool lancet::IScxmStateMachineHandler::Init (berry::SmartPointer< \fBIScxmlStateMachineState\fP > state)\fC [pure virtual]\fP"
+
+.PP
+Initialize the event processing class\&. This interface is a pure virtual property, and the inheritor needs to override this method to achieve initialization\&.
+.PP
+\fBWarning\fP
+.RS 4
+If the parameter input is empty, the event processing function is invalid\&.
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIstate\fP Monitoring state machine state objects\&.
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Returns true if successful, otherwise false\&. 
+.RE
+.PP
+
+.PP
+Implemented in \fBlancet::ScxmStateMachineHandler\fP\&.
+.SS "bool lancet::IScxmStateMachineHandler::InitQtEventForStateMachine (berry::SmartPointer< \fBIScxmlStateMachineState\fP > state)\fC [virtual]\fP"
+
+.PP
+Initialize the event of Qt style state machine state object\&. This method is not automatic\&. The inheritor should call this method in the init() method to initialize QT style state machine events\&.
+.PP
+This interface is not recommended to be rewritten\&. The attributes of this class are for internal event business processing\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIstate\fP Monitoring state machine state objects\&.
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Returns true if successful, otherwise false\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+\fBInit()\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB34\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "bool lancet::IScxmStateMachineHandler::IsDispatchableTarget (berry::SmartPointer< \fBIScxmlStateMachineState\fP > state)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB100\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "bool lancet::IScxmStateMachineHandler::IsDispatchableTarget (const QString & sessionid)\fC [virtual]\fP"
+
+.PP
+Returns true if a message to target can be dispatched by this state machine\&. 
+.PP
+\fBDeprecated\fP
+.RS 4
+Qt does not provide an interface for this method, so this interface may be deleted in future versions\&.
+.RE
+.PP
+.PP
+\fBParameters\fP
+.RS 4
+\fIsessionid\fP is the session ID of the current state machine\&. 
+.br
+\fIstate\fP is target state object\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState\fP, berry::SmartPointer
+.RE
+.PP
+\fBQScxmlStateMachine#isDispatchableTarget(const QString &target) const \fP 
+.PP
+Definition at line \fB90\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "void lancet::IScxmStateMachineHandler::SetActiveStateMachine (berry::SmartPointer< \fBIScxmlStateMachineState\fP > state)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB125\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "void lancet::IScxmStateMachineHandler::SetAssignor (berry::SmartPointer< \fBIScxmlStateMachineState\fP > as)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB114\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "void lancet::IScxmStateMachineHandler::SetLastActiveStateMachine (berry::SmartPointer< \fBIScxmlStateMachineState\fP > state)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB135\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "virtual bool lancet::IScxmStateMachineHandler::StartStateMachine ()\fC [pure virtual]\fP"
+
+.PP
+Start or stop the state machine\&. Starting the work of Qt state machine will not affect or operate the embedded sub state machine of Qt state machine\&.
+.PP
+Stopping the Qt state machine will stop all embedded sub Qt state machines\&.
+.PP
+\fBPrecondition\fP
+.RS 4
+This class must be initialized before executing this operation\&.
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Returns true if successful, otherwise false\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+\fBInit()\fP, \fBInitQtEventForStateMachine()\fP 
+.RE
+.PP
+
+.PP
+Implemented in \fBlancet::ScxmStateMachineHandler\fP\&.
+.SS "void lancet::IScxmStateMachineHandler::StateEnter (\fBIScxmlStateMachineState\fP *)\fC [signal]\fP"
+
+.PP
+Event triggered when the sub state of the state machine enters\&. This event will only be triggered when the sub state enters for the first time, and the state exit signal will be triggered when the state machine switches the sub state\&.
+.PP
+\fBPrecondition\fP
+.RS 4
+The class is initialized and the state machine is working\&.
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIstate\fP Sub state object of trigger signal\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState\fP, \fBInit()\fP, \fBStartStateMachine()\fP 
+.RE
+.PP
+
+.SS "void lancet::IScxmStateMachineHandler::StateExit (\fBIScxmlStateMachineState\fP *)\fC [signal]\fP"
+
+.PP
+Event triggered when the sub state of the state machine exits\&. This event will only be triggered when the sub state exits for the first time, and the state enters signal will be triggered when the state machine switches the sub state\&.
+.PP
+\fBPrecondition\fP
+.RS 4
+The class is initialized and the state machine is working\&.
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIstate\fP Sub state object of trigger signal\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState\fP, \fBInit()\fP, \fBStartStateMachine()\fP 
+.RE
+.PP
+
+.SS "virtual bool lancet::IScxmStateMachineHandler::StopStateMachine ()\fC [pure virtual]\fP"
+
+.PP
+Implemented in \fBlancet::ScxmStateMachineHandler\fP\&.
+.SS "bool lancet::IScxmStateMachineHandler::ToTargetState (const berry::SmartPointer< \fBIScxmlStateMachineState\fP > & state)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB151\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+.SS "bool lancet::IScxmStateMachineHandler::ToTargetState (const QString & id)\fC [virtual]\fP"
+
+.PP
+Jump to the state of the state machine\&. 
+.PP
+\fBPrecondition\fP
+.RS 4
+The state machine is in working state\&.
+.RE
+.PP
+\fBWarning\fP
+.RS 4
+This behavior may fail due to many factors, such as state machine logic control, state input error, etc\&. When using this interface, be sure to monitor its return value\&.
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIid\fP ID code of the status, corresponding to the\&.
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Returns true if successful, otherwise false\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+\fBStartStateMachine()\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB140\fP of file \fBlancetIScxmStateMachineHandler\&.cpp\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for org\&.mitk\&.lancet\&.statemachine\&.services from the source code\&.

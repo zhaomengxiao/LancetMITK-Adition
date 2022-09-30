@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="org.mitk.lancet.linkinghardwareeditor">
+    <file>icon.xpm</file>
+    <file>img.png</file>
+  </qresource>
+</RCC>

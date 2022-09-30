@@ -1,0 +1,81 @@
+.TH "lancet::ScxmlStateMachineLoader" 3 "Mon Sep 26 2022" "Version 1.0.0" "org.mitk.lancet.statemachine.services" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+lancet::ScxmlStateMachineLoader \- Loader for state machine service to load external files\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <lancetScxmlStateMachineLoader\&.h>\fP
+.PP
+Inherits \fBlancet::IScxmlStateMachineLoader\fP\&.
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBScxmlStateMachineLoaderPrivateImp\fP"
+.br
+.in -1c
+.SS "Protected Member Functions"
+
+.in +1c
+.ti -1c
+.RI "bool \fBGetQtScxmlStateMachineOutput\fP (QSharedPointer< QScxmlStateMachine > &)"
+.br
+.ti -1c
+.RI "bool \fBOpenSubsidiaryFile\fP (const QString &filename, QString &readall)"
+.br
+.ti -1c
+.RI "berry::SmartPointer< \fBStateMachineActionProperty\fP > \fBParseSubsidiaryDescriptionInfo\fP (const QJsonDocument &)"
+.br
+.in -1c
+.SS "Additional Inherited Members"
+.SH "Detailed Description"
+.PP 
+Loader for state machine service to load external files\&. 
+
+This class is inherited from \fBlancet::IScxmlStateMachineLoader\fP\&. Please refer to superclass for details\&.
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBVersion\fP
+.RS 4
+V1\&.0\&.0 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-09-26 17:31:18 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+Non
+.RE
+.PP
+Contact: sh4a01@163.com 
+.PP
+Definition at line \fB28\fP of file \fBlancetScxmlStateMachineLoader\&.h\fP\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "bool lancet::ScxmlStateMachineLoader::GetQtScxmlStateMachineOutput (QSharedPointer< QScxmlStateMachine > & pointer)\fC [protected]\fP"
+
+.PP
+Definition at line \fB78\fP of file \fBlancetScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "bool lancet::ScxmlStateMachineLoader::OpenSubsidiaryFile (const QString & filename, QString & readall)\fC [protected]\fP"
+
+.PP
+Definition at line \fB101\fP of file \fBlancetScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "berry::SmartPointer< \fBStateMachineActionProperty\fP > lancet::ScxmlStateMachineLoader::ParseSubsidiaryDescriptionInfo (const QJsonDocument & qjsonDoc)\fC [protected]\fP"
+
+.PP
+Definition at line \fB132\fP of file \fBlancetScxmlStateMachineLoader\&.cpp\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for org\&.mitk\&.lancet\&.statemachine\&.services from the source code\&.

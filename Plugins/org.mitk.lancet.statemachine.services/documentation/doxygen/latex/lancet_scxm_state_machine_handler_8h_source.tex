@@ -1,0 +1,37 @@
+\hypertarget{lancet_scxm_state_machine_handler_8h_source}{}\doxysection{lancet\+Scxm\+State\+Machine\+Handler.\+h}
+\label{lancet_scxm_state_machine_handler_8h_source}\index{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/internal/lancetScxmStateMachineHandler.h@{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/internal/lancetScxmStateMachineHandler.h}}
+\mbox{\hyperlink{lancet_scxm_state_machine_handler_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00001}00001 \textcolor{preprocessor}{\#ifndef LancetScxmStateMachineHandler\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00002}00002 \textcolor{preprocessor}{\#define LancetScxmStateMachineHandler\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00003}00003 }
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00004}00004 \textcolor{comment}{// berry}}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00005}00005 \textcolor{preprocessor}{\#include <berryObject.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00006}00006 \textcolor{preprocessor}{\#include <berryMacros.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00007}00007 }
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00008}00008 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8h}{lancetIScxmStateMachineHandler.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00009}00009 }
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00010}00010 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelancet}{lancet}}}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00011}00011 \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00012}00012 \textcolor{keyword}{class }IScxmlStateMachineState;}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00013}00013 }
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00029}\mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler}{00029}} \textcolor{keyword}{class }LANCET\_STATEMACHINE\_SERVICES\_PLUGIN }
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00030}00030     \mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler}{ScxmStateMachineHandler}} : \textcolor{keyword}{public} \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler}{IScxmStateMachineHandler}}}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00031}00031 \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00032}00032     Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00033}00033 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00034}\mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler_a1740fb9428279a83bc631328acff2109}{00034}}     \mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler_a1740fb9428279a83bc631328acff2109}{berryObjectMacro}}(\mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler}{lancet::ScxmStateMachineHandler}});}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00035}00035 }
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00036}00036     \mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler}{ScxmStateMachineHandler}}();}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00037}00037     \mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler}{ScxmStateMachineHandler}}(berry::SmartPointer<IScxmlStateMachineState>);}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00038}00038     \textcolor{keyword}{virtual} \mbox{\hyperlink{classlancet_1_1_scxm_state_machine_handler}{\string~ScxmStateMachineHandler}}() \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00039}00039 }
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00040}00040     \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} StartStateMachine() \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00041}00041     \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} StopStateMachine() \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00042}00042 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00043}00043     \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} Init(berry::SmartPointer<IScxmlStateMachineState>) \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00044}00044 \};}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00045}00045 \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxm_state_machine_handler_8h_source_l00046}00046 \textcolor{preprocessor}{\#endif }\textcolor{comment}{// !LancetScxmStateMachineHandler\_H}}
+
+\end{DoxyCode}

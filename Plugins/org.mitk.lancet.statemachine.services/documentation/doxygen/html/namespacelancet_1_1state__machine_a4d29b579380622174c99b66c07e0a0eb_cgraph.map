@@ -1,0 +1,6 @@
+<map id="lancet::state_machine::GetStateScxmlFolderName" name="lancet::state_machine::GetStateScxmlFolderName">
+<area shape="rect" id="node1" title=" " alt="" coords="5,39,195,80"/>
+<area shape="rect" id="node2" href="$group__org__mitk__lancet__statemachine__services.html#ga2d14e1310f2bce5ab48f9a5438aeca46" title="Returns the product ID of the Mitk plug&#45;in." alt="" coords="243,5,432,47"/>
+<area shape="rect" id="node3" href="$namespacelancet_1_1state__machine.html#a87a41295b556466e9506013403fb849b" title=" " alt="" coords="262,71,413,112"/>
+<area shape="rect" id="node4" href="$group__org__mitk__lancet__statemachine__services.html#ga9dd017aacacd2cc4dfd19bee5eef8b41" title="Returns the name of a Mitk style plug&#45;in." alt="" coords="480,78,703,105"/>
+</map>

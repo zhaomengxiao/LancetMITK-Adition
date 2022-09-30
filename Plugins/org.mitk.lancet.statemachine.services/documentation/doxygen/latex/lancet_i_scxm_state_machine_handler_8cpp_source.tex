@@ -1,0 +1,253 @@
+\hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source}{}\doxysection{lancet\+IScxm\+State\+Machine\+Handler.\+cpp}
+\label{lancet_i_scxm_state_machine_handler_8cpp_source}\index{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/lancetIScxmStateMachineHandler.cpp@{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/lancetIScxmStateMachineHandler.cpp}}
+\mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00001}00001 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_i_scxm_state_machine_handler_8h}{LancetIScxmStateMachineHandler.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00002}00002 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_i_scxml_state_machine_state_8h}{LancetIScxmlStateMachineState.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00003}00003 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00004}00004 \textcolor{preprocessor}{\#include <QStringList>}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00005}00005 \textcolor{preprocessor}{\#include <QScxmlStateMachine>}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00006}00006 \textcolor{preprocessor}{\#include <\mbox{\hyperlink{lancet_i_scxml_state_machine_state_8h}{src/lancetIScxmlStateMachineState.h}}>}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00007}00007 \textcolor{preprocessor}{\#include <\mbox{\hyperlink{lancet_i_scxml_state_machine_service_8h}{src/lancetIScxmlStateMachineService.h}}>}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00008}00008 \textcolor{preprocessor}{\#include <QDebug>}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00009}00009 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00010}00010 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelancet}{lancet}}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00011}00011 \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00012}\mbox{\hyperlink{structlancet_1_1_i_scxm_state_machine_handler_1_1_i_scxm_state_machine_handler_private_imp}{00012}}     \textcolor{keyword}{struct }\mbox{\hyperlink{structlancet_1_1_i_scxm_state_machine_handler_1_1_i_scxm_state_machine_handler_private_imp}{IScxmStateMachineHandler::IScxmStateMachineHandlerPrivateImp}}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00013}00013     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00014}\mbox{\hyperlink{structlancet_1_1_i_scxm_state_machine_handler_1_1_i_scxm_state_machine_handler_private_imp_a78b12da9c5cdd33bdebdb2f4ec3e2ba9}{00014}}         IScxmlStateMachineState::Pointer \mbox{\hyperlink{structlancet_1_1_i_scxm_state_machine_handler_1_1_i_scxm_state_machine_handler_private_imp_a78b12da9c5cdd33bdebdb2f4ec3e2ba9}{stateAssignor}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00015}\mbox{\hyperlink{structlancet_1_1_i_scxm_state_machine_handler_1_1_i_scxm_state_machine_handler_private_imp_a24624ed79f48d1e1999e88f3c3c8cf9b}{00015}}         berry::SmartPointer<IScxmlStateMachineState> \mbox{\hyperlink{structlancet_1_1_i_scxm_state_machine_handler_1_1_i_scxm_state_machine_handler_private_imp_a24624ed79f48d1e1999e88f3c3c8cf9b}{stateActive}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00016}\mbox{\hyperlink{structlancet_1_1_i_scxm_state_machine_handler_1_1_i_scxm_state_machine_handler_private_imp_ae4be48cd65128e41193f20880150c88f}{00016}}         berry::SmartPointer<IScxmlStateMachineState> \mbox{\hyperlink{structlancet_1_1_i_scxm_state_machine_handler_1_1_i_scxm_state_machine_handler_private_imp_ae4be48cd65128e41193f20880150c88f}{lastStateActive}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00017}00017     \};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00018}00018 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00019}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a16138950c2d2682ac964b286fc02300e}{00019}}     \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a16138950c2d2682ac964b286fc02300e}{IScxmStateMachineHandler::IScxmStateMachineHandler}}()}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00020}00020         : \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler}{IScxmStateMachineHandler}}(berry::SmartPointer<\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxmlStateMachineState}}>(nullptr))}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00021}00021     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00022}00022     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00023}00023 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00024}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a829ef14f13e853329b013db75acc779d}{00024}}     \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a16138950c2d2682ac964b286fc02300e}{IScxmStateMachineHandler::IScxmStateMachineHandler}}(berry::SmartPointer<IScxmlStateMachineState> o)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00025}00025         : imp(std::make\_shared<\mbox{\hyperlink{structlancet_1_1_i_scxm_state_machine_handler_1_1_i_scxm_state_machine_handler_private_imp}{IScxmStateMachineHandlerPrivateImp}}>())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00026}00026     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00027}00027         this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ad92eb976ff62c8593516a851635b282b}{SetAssignor}}(o);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00028}00028     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00029}00029 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00030}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ab18c37ecb7a771f3c64879d65b694ad3}{00030}}     \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ab18c37ecb7a771f3c64879d65b694ad3}{IScxmStateMachineHandler::\string~IScxmStateMachineHandler}}()}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00031}00031     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00032}00032     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00033}00033 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00034}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_abf7b288798b253703314d8b5ee4ddccd}{00034}}     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_abf7b288798b253703314d8b5ee4ddccd}{IScxmStateMachineHandler::InitQtEventForStateMachine}}(berry::SmartPointer<IScxmlStateMachineState> state)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00035}00035     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00036}00036         \textcolor{keywordflow}{if} (state.IsNotNull() \&\& \textcolor{keyword}{false} == state-\/>GetQtStateMachine().isNull())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00037}00037         \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00038}00038             \textcolor{comment}{// dataModelChanged}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00039}00039             QObject::connect(state-\/>GetQtStateMachine().data(), SIGNAL(dataModelChanged(QScxmlDataModel*)), }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00040}00040                 \textcolor{keyword}{this}, SLOT(onScxmlStateMachine\_dataModelChanged(QScxmlDataModel*)));}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00041}00041             \textcolor{comment}{// initialValuesChanged}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00042}00042             QObject::connect(state-\/>GetQtStateMachine().data(), SIGNAL(initialValuesChanged(\textcolor{keyword}{const} QVariantMap\&)),}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00043}00043                 \textcolor{keyword}{this}, SLOT(onScxmlStateMachine\_initialValuesChanged(\textcolor{keyword}{const} QVariantMap\&)));}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00044}00044             \textcolor{comment}{// initializedChanged}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00045}00045             QObject::connect(state-\/>GetQtStateMachine().data(), SIGNAL(initializedChanged(\textcolor{keywordtype}{bool})),}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00046}00046                 \textcolor{keyword}{this}, SLOT(onScxmlStateMachine\_initializedChanged(\textcolor{keywordtype}{bool})));}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00047}00047             \textcolor{comment}{// invokedServicesChanged}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00048}00048             QObject::connect(state-\/>GetQtStateMachine().data(), }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00049}00049                 SIGNAL(invokedServicesChanged(\textcolor{keyword}{const} QVector<QScxmlInvokableService*>\&)),}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00050}00050                 \textcolor{keyword}{this}, SLOT(onScxmlStateMachine\_invokedServicesChanged(\textcolor{keyword}{const} QVector<QScxmlInvokableService*>\&)));}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00051}00051             \textcolor{comment}{// loaderChanged}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00052}00052             \textcolor{comment}{//QObject::connect(state-\/>GetQtStateMachine().data(), SIGNAL(loaderChanged(QScxmlCompiler::Loader*)),}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00053}00053             \textcolor{comment}{//  this, SLOT(onScxmlStateMachine\_loaderChanged(QScxmlCompiler::Loader*)));}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00054}00054             \textcolor{comment}{// log}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00055}00055             QObject::connect(state-\/>GetQtStateMachine().data(), SIGNAL(log(\textcolor{keyword}{const} QString\&, \textcolor{keyword}{const} QString\&)),}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00056}00056                 \textcolor{keyword}{this}, SLOT(onScxmlStateMachine\_log(\textcolor{keyword}{const} QString\&, \textcolor{keyword}{const} QString\&)));}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00057}00057             \textcolor{comment}{// reachedStableState}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00058}00058             QObject::connect(state-\/>GetQtStateMachine().data(), SIGNAL(reachedStableState()),}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00059}00059                 \textcolor{keyword}{this}, SLOT(onScxmlStateMachine\_reachedStableState()));}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00060}00060             \textcolor{comment}{// runningChanged}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00061}00061             QObject::connect(state-\/>GetQtStateMachine().data(), SIGNAL(runningChanged(\textcolor{keywordtype}{bool})),}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00062}00062                 \textcolor{keyword}{this}, SLOT(onScxmlStateMachine\_runningChanged(\textcolor{keywordtype}{bool})));}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00063}00063             \textcolor{comment}{// tableDataChanged}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00064}00064             QObject::connect(state-\/>GetQtStateMachine().data(), SIGNAL(tableDataChanged(QScxmlTableData*)),}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00065}00065                 \textcolor{keyword}{this}, SLOT(onScxmlStateMachine\_tableDataChanged(QScxmlTableData*)));}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00066}00066             \textcolor{comment}{// finished}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00067}00067             QObject::connect(state-\/>GetQtStateMachine().data(), SIGNAL(finished()),}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00068}00068                 \textcolor{keyword}{this}, SLOT(onScxmlStateMachine\_finished()));}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00069}00069 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00070}00070             \textcolor{keywordflow}{for} (IScxmlStateMachineState::Pointer item\_state : state-\/>GetSubStateMachines())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00071}00071             \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00072}00072                 \textcolor{keywordflow}{if} (item\_state.IsNotNull())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00073}00073                 \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00074}00074                     \textcolor{keyword}{auto} retval =}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00075}00075                     state-\/>GetQtStateMachine()-\/>connectToState(item\_state-\/>GetStateId(),}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00076}00076                         \textcolor{keyword}{this}, SLOT(onScxmlStateMachine\_stateChange(\textcolor{keywordtype}{bool})));}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00077}00077                     \textcolor{keywordflow}{if} (retval == \textcolor{keyword}{false}) }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00078}00078                     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00079}00079                         \textcolor{comment}{// Can't connect to state}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00080}00080                         qDebug() << \textcolor{stringliteral}{"{}IScxmStateMachineHandler::InitQtEventForStateMachine Not "{}} << item\_state-\/>GetStateId();}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00081}00081                     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00082}00082                 \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00083}00083             \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00084}00084 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00085}00085             \textcolor{keywordflow}{return} \textcolor{keyword}{true};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00086}00086         \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00087}00087         \textcolor{keywordflow}{return} \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00088}00088     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00089}00089 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00090}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a313c921e148c767db24bd23e5a60b6f5}{00090}}     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a313c921e148c767db24bd23e5a60b6f5}{IScxmStateMachineHandler::IsDispatchableTarget}}(\textcolor{keyword}{const} QString\& sessionid)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00091}00091     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00092}00092         \textcolor{keywordflow}{if} (this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}().IsNotNull()}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00093}00093             \&\& \textcolor{keyword}{false} == this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}()-\/>GetQtStateMachine().isNull())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00094}00094         \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00095}00095             \textcolor{keywordflow}{return} this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}()-\/>GetQtStateMachine()-\/>isDispatchableTarget(sessionid);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00096}00096         \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00097}00097         \textcolor{keywordflow}{return} \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00098}00098     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00099}00099 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00100}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a012fab2df18f5af52aeb36dc5d4480a2}{00100}}     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a313c921e148c767db24bd23e5a60b6f5}{IScxmStateMachineHandler::IsDispatchableTarget}}(berry::SmartPointer<IScxmlStateMachineState> state)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00101}00101     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00102}00102         \textcolor{keywordflow}{if} (state.IsNotNull())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00103}00103         \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00104}00104             \textcolor{keywordflow}{return} this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a313c921e148c767db24bd23e5a60b6f5}{IsDispatchableTarget}}(state-\/>GetStateId());}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00105}00105         \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00106}00106         \textcolor{keywordflow}{return} \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00107}00107     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00108}00108 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00109}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{00109}}     berry::SmartPointer<IScxmlStateMachineState> \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{IScxmStateMachineHandler::GetAssignor}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00110}00110 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00111}00111         \textcolor{keywordflow}{return} this-\/>imp-\/>stateAssignor;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00112}00112     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00113}00113 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00114}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ad92eb976ff62c8593516a851635b282b}{00114}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ad92eb976ff62c8593516a851635b282b}{IScxmStateMachineHandler::SetAssignor}}(berry::SmartPointer<IScxmlStateMachineState> as)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00115}00115     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00116}00116         this-\/>imp-\/>stateAssignor = as;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00117}00117     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00118}00118 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00119}00119     berry::SmartPointer<IScxmlStateMachineState> }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00120}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2367d94b0f94e1b0d53cd9e58f37a51d}{00120}}         \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2367d94b0f94e1b0d53cd9e58f37a51d}{IScxmStateMachineHandler::GetActiveStateMachine}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00121}00121 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00122}00122         \textcolor{keywordflow}{return} this-\/>imp-\/>stateActive;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00123}00123     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00124}00124 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00125}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a22a59f026bb28a61456fa9a4c237f15e}{00125}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a22a59f026bb28a61456fa9a4c237f15e}{IScxmStateMachineHandler::SetActiveStateMachine}}(berry::SmartPointer<IScxmlStateMachineState> state)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00126}00126     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00127}00127         this-\/>imp-\/>stateActive = state;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00128}00128     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00129}00129 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00130}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a987c3df59fe3092399fcdbffda816754}{00130}}     berry::SmartPointer<IScxmlStateMachineState> \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a987c3df59fe3092399fcdbffda816754}{IScxmStateMachineHandler::GetLastActiveStateMachine}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00131}00131 \textcolor{keyword}{    }\{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00132}00132         \textcolor{keywordflow}{return} this-\/>imp-\/>lastStateActive;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00133}00133     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00134}00134 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00135}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a6005d083b734e1e8078a07bce66e37d7}{00135}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a6005d083b734e1e8078a07bce66e37d7}{IScxmStateMachineHandler::SetLastActiveStateMachine}}(berry::SmartPointer<IScxmlStateMachineState> state)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00136}00136     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00137}00137         this-\/>imp-\/>lastStateActive = state;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00138}00138     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00139}00139 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00140}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a3a3f4676f5d5a21371b82ce390d97d1b}{00140}}     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a3a3f4676f5d5a21371b82ce390d97d1b}{IScxmStateMachineHandler::ToTargetState}}(\textcolor{keyword}{const} QString\& \textcolor{keywordtype}{id})}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00141}00141     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00142}00142         berry::SmartPointer<IScxmlStateMachineState> targetState;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00143}00143         \textcolor{keyword}{auto} stateMachineService = \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a68b352bb012a33bfe28a6fec50a79f3d}{IScxmlStateMachineService::GetScxmlStateMachineService}}();}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00144}00144         \textcolor{keywordflow}{if} (stateMachineService.IsNotNull())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00145}00145         \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00146}00146             targetState = stateMachineService-\/>GetScxmlStateMachine(this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}(), \textcolor{keywordtype}{id});}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00147}00147         \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00148}00148         \textcolor{keywordflow}{return} this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a3a3f4676f5d5a21371b82ce390d97d1b}{ToTargetState}}(targetState);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00149}00149     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00150}00150 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00151}\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a1081949ecdc810ab58186d7aa0e153bc}{00151}}     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a3a3f4676f5d5a21371b82ce390d97d1b}{IScxmStateMachineHandler::ToTargetState}}(\textcolor{keyword}{const} berry::SmartPointer<IScxmlStateMachineState>\& state)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00152}00152     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00153}00153         \textcolor{keywordflow}{if} (\textcolor{comment}{/*this-\/>IsDispatchableTarget(state) \&\& */}this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}().IsNotNull()}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00154}00154             \&\& \textcolor{keyword}{false} == this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}()-\/>GetQtStateMachine().isNull())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00155}00155         \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00156}00156             QString submit = QString(\textcolor{stringliteral}{"{}to\_\%1"{}}).arg(state-\/>GetStateId());}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00157}00157             qDebug() << submit;}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00158}00158             qDebug() << this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}()-\/>GetQtStateMachine()-\/>activeStateNames();}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00159}00159             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}()-\/>GetQtStateMachine()-\/>submitEvent(submit);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00160}00160             \textcolor{keywordflow}{return} \textcolor{keyword}{true};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00161}00161         \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00162}00162         \textcolor{keywordflow}{return} \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00163}00163     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00164}00164 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00165}00165     \textcolor{keywordtype}{void} IScxmStateMachineHandler::onScxmlStateMachine\_stateChange(\textcolor{keywordtype}{bool} active)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00166}00166     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00167}00167         \textcolor{keywordflow}{if} (\textcolor{keyword}{false} == active)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00168}00168         \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00169}00169             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a6005d083b734e1e8078a07bce66e37d7}{SetLastActiveStateMachine}}(this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2367d94b0f94e1b0d53cd9e58f37a51d}{GetActiveStateMachine}}());}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00170}00170             emit this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a7d5f1e4a3ebd6b5f43414e9355ddeefa}{StateExit}}(this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a987c3df59fe3092399fcdbffda816754}{GetLastActiveStateMachine}}().GetPointer());}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00171}00171             \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00172}00172         \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00173}00173 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00174}00174         \textcolor{keywordflow}{if} (this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}().IsNotNull() \&\& !this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}()-\/>GetQtStateMachine().isNull())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00175}00175         \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00176}00176             \textcolor{keyword}{auto} stateMachineService = \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a68b352bb012a33bfe28a6fec50a79f3d}{IScxmlStateMachineService::GetScxmlStateMachineService}}();}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00177}00177             \textcolor{keywordflow}{if} (stateMachineService.IsNull())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00178}00178             \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00179}00179                 \textcolor{comment}{// Do nothing}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00180}00180                 \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00181}00181             \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00182}00182 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00183}00183             \textcolor{comment}{// find active state and update it.}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00184}00184             \textcolor{keywordflow}{for} (\textcolor{keyword}{auto} substate : this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}()-\/>GetSubStateMachines())}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00185}00185             \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00186}00186                 \textcolor{keywordtype}{bool} is\_active = this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ac0739529880b17e915cc1eb9dc836374}{GetAssignor}}()-\/>GetQtStateMachine()-\/>activeStateNames()}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00187}00187                     .contains(substate-\/>GetStateId().toLower());}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00188}00188                 \textcolor{keywordflow}{if} (active \&\& substate.IsNotNull()  \&\& is\_active)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00189}00189                 \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00190}00190                     this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a22a59f026bb28a61456fa9a4c237f15e}{SetActiveStateMachine}}(substate);}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00191}00191                     emit this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_ad822f05368f2755505116998b3ebe142}{StateEnter}}(this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxm_state_machine_handler_a2367d94b0f94e1b0d53cd9e58f37a51d}{GetActiveStateMachine}}().GetPointer());}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00192}00192                     \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00193}00193                 \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00194}00194             \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00195}00195         \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00196}00196     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00197}00197 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00198}00198     \textcolor{keywordtype}{void} IScxmStateMachineHandler::onScxmlStateMachine\_finished()}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00199}00199     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00200}00200         qDebug() << \textcolor{stringliteral}{"{}\(\backslash\)033[0;34m"{}} << QString(\textcolor{stringliteral}{"{}file(\%1) line(\%2) func(\%3)"{}}).arg(\_\_FILE\_\_).arg(\_\_LINE\_\_).arg(\_\_FUNCTION\_\_) << QString(\textcolor{stringliteral}{"{}log"{}}) << \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00201}00201     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00202}00202 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00203}00203     \textcolor{keywordtype}{void} IScxmStateMachineHandler::onScxmlStateMachine\_dataModelChanged(QScxmlDataModel* model)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00204}00204     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00205}00205         qDebug() << \textcolor{stringliteral}{"{}\(\backslash\)033[0;34m"{}} << QString(\textcolor{stringliteral}{"{}file(\%1) line(\%2) func(\%3)"{}}).arg(\_\_FILE\_\_).arg(\_\_LINE\_\_).arg(\_\_FUNCTION\_\_) << QString(\textcolor{stringliteral}{"{}log"{}}) << \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00206}00206     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00207}00207 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00208}00208     \textcolor{keywordtype}{void} IScxmStateMachineHandler::onScxmlStateMachine\_initialValuesChanged(\textcolor{keyword}{const} QVariantMap\& initialValues)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00209}00209     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00210}00210         qDebug() << \textcolor{stringliteral}{"{}\(\backslash\)033[0;34m"{}} << QString(\textcolor{stringliteral}{"{}file(\%1) line(\%2) func(\%3)"{}}).arg(\_\_FILE\_\_).arg(\_\_LINE\_\_).arg(\_\_FUNCTION\_\_) << QString(\textcolor{stringliteral}{"{}log"{}}) << \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00211}00211     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00212}00212 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00213}00213     \textcolor{keywordtype}{void} IScxmStateMachineHandler::onScxmlStateMachine\_initializedChanged(\textcolor{keywordtype}{bool} initialized)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00214}00214     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00215}00215         qDebug() << \textcolor{stringliteral}{"{}\(\backslash\)033[0;34m"{}} << QString(\textcolor{stringliteral}{"{}file(\%1) line(\%2) func(\%3)"{}}).arg(\_\_FILE\_\_).arg(\_\_LINE\_\_).arg(\_\_FUNCTION\_\_) << QString(\textcolor{stringliteral}{"{}log"{}}) << \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00216}00216     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00217}00217 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00218}00218     \textcolor{keywordtype}{void} IScxmStateMachineHandler::onScxmlStateMachine\_invokedServicesChanged(\textcolor{keyword}{const} QVector<QScxmlInvokableService*>\& invokedServices)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00219}00219     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00220}00220         qDebug() << \textcolor{stringliteral}{"{}\(\backslash\)033[0;34m"{}} << QString(\textcolor{stringliteral}{"{}file(\%1) line(\%2) func(\%3)"{}}).arg(\_\_FILE\_\_).arg(\_\_LINE\_\_).arg(\_\_FUNCTION\_\_) << QString(\textcolor{stringliteral}{"{}log"{}}) << \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00221}00221     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00222}00222 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00223}00223     \textcolor{comment}{//void IScxmStateMachineHandler::onScxmlStateMachine\_loaderChanged(QScxmlCompiler::Loader* loader)}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00224}00224     \textcolor{comment}{//\{}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00225}00225     \textcolor{comment}{//  qDebug() << "{}\(\backslash\)033[0;34m"{} << QString("{}file(\%1) line(\%2) func(\%3)"{}).arg(\_\_FILE\_\_).arg(\_\_LINE\_\_).arg(\_\_FUNCTION\_\_) << QString("{}log"{}) << "{}\(\backslash\)033[0m"{};}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00226}00226     \textcolor{comment}{//\}}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00227}00227 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00228}00228     \textcolor{keywordtype}{void} IScxmStateMachineHandler::onScxmlStateMachine\_log(\textcolor{keyword}{const} QString\& label, \textcolor{keyword}{const} QString\& msg)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00229}00229     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00230}00230         qDebug() << \textcolor{stringliteral}{"{}\(\backslash\)033[0;34m"{}} << QString(\textcolor{stringliteral}{"{}file(\%1) line(\%2) func(\%3)"{}}).arg(\_\_FILE\_\_).arg(\_\_LINE\_\_).arg(\_\_FUNCTION\_\_) << QString(\textcolor{stringliteral}{"{}log"{}}) << \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00231}00231     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00232}00232 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00233}00233     \textcolor{keywordtype}{void} IScxmStateMachineHandler::onScxmlStateMachine\_reachedStableState()}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00234}00234     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00235}00235         qDebug() << \textcolor{stringliteral}{"{}\(\backslash\)033[0;34m"{}} << QString(\textcolor{stringliteral}{"{}file(\%1) line(\%2) func(\%3)"{}}).arg(\_\_FILE\_\_).arg(\_\_LINE\_\_).arg(\_\_FUNCTION\_\_) << QString(\textcolor{stringliteral}{"{}log"{}}) << \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00236}00236     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00237}00237 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00238}00238     \textcolor{keywordtype}{void} IScxmStateMachineHandler::onScxmlStateMachine\_runningChanged(\textcolor{keywordtype}{bool} running)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00239}00239     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00240}00240         qDebug() << \textcolor{stringliteral}{"{}\(\backslash\)033[0;34m"{}} << QString(\textcolor{stringliteral}{"{}file(\%1) line(\%2) func(\%3)"{}}).arg(\_\_FILE\_\_).arg(\_\_LINE\_\_).arg(\_\_FUNCTION\_\_) << QString(\textcolor{stringliteral}{"{}log"{}}) << \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00241}00241     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00242}00242 }
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00243}00243     \textcolor{keywordtype}{void} IScxmStateMachineHandler::onScxmlStateMachine\_tableDataChanged(QScxmlTableData* tableData)}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00244}00244     \{}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00245}00245         qDebug() << \textcolor{stringliteral}{"{}\(\backslash\)033[0;34m"{}} << QString(\textcolor{stringliteral}{"{}file(\%1) line(\%2) func(\%3)"{}}).arg(\_\_FILE\_\_).arg(\_\_LINE\_\_).arg(\_\_FUNCTION\_\_) << QString(\textcolor{stringliteral}{"{}log"{}}) << \textcolor{stringliteral}{"{}\(\backslash\)033[0m"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00246}00246     \}}
+\DoxyCodeLine{\Hypertarget{lancet_i_scxm_state_machine_handler_8cpp_source_l00247}00247 \}}
+
+\end{DoxyCode}

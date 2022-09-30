@@ -1,0 +1,426 @@
+\hypertarget{classlancet_1_1_i_scxml_state_machine_service}{}\doxysection{lancet\+::IScxml\+State\+Machine\+Service Class Reference}
+\label{classlancet_1_1_i_scxml_state_machine_service}\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+
+
+This is the abstract class of state machine service.  
+
+
+
+
+{\ttfamily \#include $<$lancet\+IScxml\+State\+Machine\+Service.\+h$>$}
+
+
+
+Inheritance diagram for lancet\+::IScxml\+State\+Machine\+Service\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=219pt]{classlancet_1_1_i_scxml_state_machine_service__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for lancet\+::IScxml\+State\+Machine\+Service\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=219pt]{classlancet_1_1_i_scxml_state_machine_service__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structlancet_1_1_i_scxml_state_machine_service_1_1_i_scxml_state_machine_service_private_imp}{IScxml\+State\+Machine\+Service\+Private\+Imp}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a1e64384eb9f6f318244f3290da494bdf}{berry\+Object\+Macro}} (\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet\+::\+IScxml\+State\+Machine\+Service}})
+\item 
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a74ed0f9c3b523ab302ab0df755da3dd3}{IScxml\+State\+Machine\+Service}} ()
+\item 
+virtual \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a052474845c45a928582c09d12304038f}{$\sim$\+IScxml\+State\+Machine\+Service}} ()
+\item 
+virtual IScxml\+State\+Machine\+State\+::\+Pointer \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_ae9cdd16135f27c49917c80f3da0e6d19}{Get\+Admin\+State}} () const
+\begin{DoxyCompactList}\small\item\em Return to the top manager of the state machine management module. \end{DoxyCompactList}\item 
+virtual void \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_aacb2d2d8114744c1fed90fa264400178}{Set\+Admin\+State}} (const IScxml\+State\+Machine\+State\+::\+Pointer \&)
+\item 
+virtual IScxml\+State\+Machine\+State\+::\+Pointer \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a20c924fcd164e2e0135bc5b66a2ff5ae}{Create\+Scxml\+State\+Machine}} (const QString \&scxmlfile, const QString \&property\+File\+Name, int, berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$, const QString \&)=0
+\item 
+virtual bool \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_aff0bddd174cd9f722a40612cb390c405}{Start\+State\+Machine}} ()=0
+\begin{DoxyCompactList}\small\item\em Start or stop the. \end{DoxyCompactList}\item 
+virtual bool \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_abdb58f6209a612cf2f23aed1f06646ad}{Stop\+State\+Machine}} ()=0
+\item 
+virtual std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a4eb7a274d049b55bbf915171eeb5c161}{Get\+Scxml\+Module\+State\+Machines}} () const
+\begin{DoxyCompactList}\small\item\em Set or obtain the state set under the module state machine object. \end{DoxyCompactList}\item 
+virtual void \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a4ae5ce17cedc0ec254ca92823b63b46a}{Set\+Scxml\+Module\+State\+Machines}} (const std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ \&)
+\item 
+virtual void \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a6ea376c2b8276085547181cbee749dfc}{Set\+Scxml\+Module\+State\+Machines}} (const QString \&id, const std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ \&)
+\item 
+virtual IScxml\+State\+Machine\+State\+::\+Pointer \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a7c3df848eda901a3641e5a80b3101380}{Get\+Scxml\+State\+Machine}} (const QString \&) const
+\begin{DoxyCompactList}\small\item\em Get or set the sub level state set. For details, refer to. \end{DoxyCompactList}\item 
+virtual IScxml\+State\+Machine\+State\+::\+Pointer \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a26f1a1d9b44af0610421987a7b0af9d6}{Get\+Scxml\+State\+Machine}} (IScxml\+State\+Machine\+State\+::\+Pointer, const QString \&) const
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a141259f61e8df338565c9bbba315c5fe}{Initialize}} ()
+\item 
+static berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{IScxml\+State\+Machine\+Service}} $>$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a68b352bb012a33bfe28a6fec50a79f3d}{Get\+Scxml\+State\+Machine\+Service}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_af7f3bef288d14e48851bda988faa96be}{Get\+Scxml\+State\+Machines}} (IScxml\+State\+Machine\+State\+::\+Pointer, \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxml\+State\+Machine\+State\+::\+State\+Type}}) const
+\item 
+std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a6ba0b95a29f263d38f9c0717ce8a6546}{Get\+Scxml\+State\+Machines}} (IScxml\+State\+Machine\+State\+::\+Pointer, \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxml\+State\+Machine\+State\+::\+State\+Type}}, std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ \&) const
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This is the abstract class of state machine service. 
+
+It manages and loads multi-\/dimensional state and state machine, and provides the entry point of state management module to the outside. Derived classes should inherit {\ttfamily QObject} on the basis of abstract classes.
+
+\begin{DoxyPrecond}{Precondition}
+
+\end{DoxyPrecond}
+The middleware must be loaded using the or Qt plug-\/in framework.
+
+\begin{DoxySeeAlso}{See also}
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{lancet\+::\+IScxml\+State\+Machine\+State}}
+\end{DoxySeeAlso}
+\begin{DoxyAuthor}{Author}
+Sun 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+V1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+2022-\/09-\/23 18\+:11\+:22 
+\end{DoxyDate}
+\begin{DoxyRemark}{Remarks}
+Nothing.
+\end{DoxyRemark}
+Contact\+: \href{mailto:sh4a01@163.com}{\texttt{ sh4a01@163.\+com}} \begin{Desc}
+\item[Examples]\par
+\mbox{\hyperlink{_e_1_2_lancet_m_i_t_k-_adition_2_plugins_2org_8mitk_8lancet_8statemachine_8services_2src_2lancetd58ece8475c91ff80692d717c94a99dd}{E\+:/\+Lancet\+MITK-\/\+Adition/\+Plugins/org.\+mitk.\+lancet.\+statemachine.\+services/src/lancet\+IScxml\+State\+Machine\+Service.\+h}}.\end{Desc}
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8h_source_l00048}{48}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8h_source}{lancet\+IScxml\+State\+Machine\+Service.\+h}}.
+
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a74ed0f9c3b523ab302ab0df755da3dd3}\label{classlancet_1_1_i_scxml_state_machine_service_a74ed0f9c3b523ab302ab0df755da3dd3}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!IScxmlStateMachineService@{IScxmlStateMachineService}}
+\index{IScxmlStateMachineService@{IScxmlStateMachineService}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{IScxmlStateMachineService()}{IScxmlStateMachineService()}}
+{\footnotesize\ttfamily lancet\+::\+IScxml\+State\+Machine\+Service\+::\+IScxml\+State\+Machine\+Service (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00021}{21}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a052474845c45a928582c09d12304038f}\label{classlancet_1_1_i_scxml_state_machine_service_a052474845c45a928582c09d12304038f}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!````~IScxmlStateMachineService@{$\sim$IScxmlStateMachineService}}
+\index{````~IScxmlStateMachineService@{$\sim$IScxmlStateMachineService}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{$\sim$IScxmlStateMachineService()}{~IScxmlStateMachineService()}}
+{\footnotesize\ttfamily lancet\+::\+IScxml\+State\+Machine\+Service\+::$\sim$\+IScxml\+State\+Machine\+Service (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00028}{28}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a1e64384eb9f6f318244f3290da494bdf}\label{classlancet_1_1_i_scxml_state_machine_service_a1e64384eb9f6f318244f3290da494bdf}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!berryObjectMacro@{berryObjectMacro}}
+\index{berryObjectMacro@{berryObjectMacro}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{berryObjectMacro()}{berryObjectMacro()}}
+{\footnotesize\ttfamily lancet\+::\+IScxml\+State\+Machine\+Service\+::berry\+Object\+Macro (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet\+::\+IScxml\+State\+Machine\+Service}}}]{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a20c924fcd164e2e0135bc5b66a2ff5ae}\label{classlancet_1_1_i_scxml_state_machine_service_a20c924fcd164e2e0135bc5b66a2ff5ae}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!CreateScxmlStateMachine@{CreateScxmlStateMachine}}
+\index{CreateScxmlStateMachine@{CreateScxmlStateMachine}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{CreateScxmlStateMachine()}{CreateScxmlStateMachine()}}
+{\footnotesize\ttfamily virtual IScxml\+State\+Machine\+State\+::\+Pointer lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Create\+Scxml\+State\+Machine (\begin{DoxyParamCaption}\item[{const QString \&}]{scxmlfile,  }\item[{const QString \&}]{property\+File\+Name,  }\item[{int}]{,  }\item[{berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxml\+State\+Machine\+State}} $>$}]{,  }\item[{const QString \&}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_service_a382e28307cf4e83d3d6ded8bb43bdf1a}{lancet\+::\+Scxml\+State\+Machine\+Service}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_ae9cdd16135f27c49917c80f3da0e6d19}\label{classlancet_1_1_i_scxml_state_machine_service_ae9cdd16135f27c49917c80f3da0e6d19}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!GetAdminState@{GetAdminState}}
+\index{GetAdminState@{GetAdminState}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{GetAdminState()}{GetAdminState()}}
+{\footnotesize\ttfamily IScxml\+State\+Machine\+State\+::\+Pointer lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Get\+Admin\+State (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Return to the top manager of the state machine management module. 
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00034}{34}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxml_state_machine_service_ae9cdd16135f27c49917c80f3da0e6d19_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a4eb7a274d049b55bbf915171eeb5c161}\label{classlancet_1_1_i_scxml_state_machine_service_a4eb7a274d049b55bbf915171eeb5c161}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!GetScxmlModuleStateMachines@{GetScxmlModuleStateMachines}}
+\index{GetScxmlModuleStateMachines@{GetScxmlModuleStateMachines}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{GetScxmlModuleStateMachines()}{GetScxmlModuleStateMachines()}}
+{\footnotesize\ttfamily std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Get\+Scxml\+Module\+State\+Machines (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Set or obtain the state set under the module state machine object. 
+
+This is just a convenient method. The data source is provided by the state object.
+
+\begin{DoxyPrecond}{Precondition}
+The state machine service can effectively trigger this method function only after initialization, otherwise it is invalid.
+\end{DoxyPrecond}
+\begin{DoxySeeAlso}{See also}
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{lancet\+::\+IScxml\+State\+Machine\+State}} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00044}{44}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxml_state_machine_service_a4eb7a274d049b55bbf915171eeb5c161_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a7c3df848eda901a3641e5a80b3101380}\label{classlancet_1_1_i_scxml_state_machine_service_a7c3df848eda901a3641e5a80b3101380}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!GetScxmlStateMachine@{GetScxmlStateMachine}}
+\index{GetScxmlStateMachine@{GetScxmlStateMachine}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{GetScxmlStateMachine()}{GetScxmlStateMachine()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily IScxml\+State\+Machine\+State\+::\+Pointer lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Get\+Scxml\+State\+Machine (\begin{DoxyParamCaption}\item[{const QString \&}]{id }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Get or set the sub level state set. For details, refer to. 
+
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a14662b307b6108ed87ed79c521ddd59a}{lancet\+::\+IScxml\+State\+Machine\+State\+::\+Set\+Sub\+State\+Machines()}}
+
+or 
+
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_ad64875b9a11e821cca5985e8ac752612}{lancet\+::\+IScxml\+State\+Machine\+State\+::\+Get\+Sub\+State\+Machines()}}
+
+Get or set the sub level state set of the target state object. The service object does not record any data of this type, but is an operation state object. Then think backward. When you need this type of operation, you should also pay attention to the properties of the state object.
+
+\begin{DoxyPrecond}{Precondition}
+The state machine service can effectively trigger this method function only after initialization, otherwise it is invalid.
+\end{DoxyPrecond}
+\begin{DoxyReturn}{Returns}
+Child State Object Set. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00078}{78}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxml_state_machine_service_a7c3df848eda901a3641e5a80b3101380_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxml_state_machine_service_a7c3df848eda901a3641e5a80b3101380_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a26f1a1d9b44af0610421987a7b0af9d6}\label{classlancet_1_1_i_scxml_state_machine_service_a26f1a1d9b44af0610421987a7b0af9d6}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!GetScxmlStateMachine@{GetScxmlStateMachine}}
+\index{GetScxmlStateMachine@{GetScxmlStateMachine}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{GetScxmlStateMachine()}{GetScxmlStateMachine()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily IScxml\+State\+Machine\+State\+::\+Pointer lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Get\+Scxml\+State\+Machine (\begin{DoxyParamCaption}\item[{IScxml\+State\+Machine\+State\+::\+Pointer}]{state,  }\item[{const QString \&}]{id }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00093}{93}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_af7f3bef288d14e48851bda988faa96be}\label{classlancet_1_1_i_scxml_state_machine_service_af7f3bef288d14e48851bda988faa96be}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!GetScxmlStateMachines@{GetScxmlStateMachines}}
+\index{GetScxmlStateMachines@{GetScxmlStateMachines}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{GetScxmlStateMachines()}{GetScxmlStateMachines()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Get\+Scxml\+State\+Machines (\begin{DoxyParamCaption}\item[{IScxml\+State\+Machine\+State\+::\+Pointer}]{state,  }\item[{\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxml\+State\+Machine\+State\+::\+State\+Type}}}]{type }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00111}{111}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=243pt]{classlancet_1_1_i_scxml_state_machine_service_af7f3bef288d14e48851bda988faa96be_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxml_state_machine_service_af7f3bef288d14e48851bda988faa96be_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a6ba0b95a29f263d38f9c0717ce8a6546}\label{classlancet_1_1_i_scxml_state_machine_service_a6ba0b95a29f263d38f9c0717ce8a6546}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!GetScxmlStateMachines@{GetScxmlStateMachines}}
+\index{GetScxmlStateMachines@{GetScxmlStateMachines}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{GetScxmlStateMachines()}{GetScxmlStateMachines()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Get\+Scxml\+State\+Machines (\begin{DoxyParamCaption}\item[{IScxml\+State\+Machine\+State\+::\+Pointer}]{state,  }\item[{\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxml\+State\+Machine\+State\+::\+State\+Type}}}]{type,  }\item[{std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ \&}]{out }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00119}{119}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxml_state_machine_service_a6ba0b95a29f263d38f9c0717ce8a6546_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a68b352bb012a33bfe28a6fec50a79f3d}\label{classlancet_1_1_i_scxml_state_machine_service_a68b352bb012a33bfe28a6fec50a79f3d}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!GetScxmlStateMachineService@{GetScxmlStateMachineService}}
+\index{GetScxmlStateMachineService@{GetScxmlStateMachineService}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{GetScxmlStateMachineService()}{GetScxmlStateMachineService()}}
+{\footnotesize\ttfamily berry\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{IScxml\+State\+Machine\+Service}} $>$ lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Get\+Scxml\+State\+Machine\+Service (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00143}{143}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxml_state_machine_service_a68b352bb012a33bfe28a6fec50a79f3d_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a141259f61e8df338565c9bbba315c5fe}\label{classlancet_1_1_i_scxml_state_machine_service_a141259f61e8df338565c9bbba315c5fe}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!Initialize@{Initialize}}
+\index{Initialize@{Initialize}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{Initialize()}{Initialize()}}
+{\footnotesize\ttfamily void lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Initialize (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00137}{137}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_aacb2d2d8114744c1fed90fa264400178}\label{classlancet_1_1_i_scxml_state_machine_service_aacb2d2d8114744c1fed90fa264400178}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!SetAdminState@{SetAdminState}}
+\index{SetAdminState@{SetAdminState}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{SetAdminState()}{SetAdminState()}}
+{\footnotesize\ttfamily void lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Set\+Admin\+State (\begin{DoxyParamCaption}\item[{const IScxml\+State\+Machine\+State\+::\+Pointer \&}]{state }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00039}{39}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxml_state_machine_service_aacb2d2d8114744c1fed90fa264400178_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a6ea376c2b8276085547181cbee749dfc}\label{classlancet_1_1_i_scxml_state_machine_service_a6ea376c2b8276085547181cbee749dfc}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!SetScxmlModuleStateMachines@{SetScxmlModuleStateMachines}}
+\index{SetScxmlModuleStateMachines@{SetScxmlModuleStateMachines}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{SetScxmlModuleStateMachines()}{SetScxmlModuleStateMachines()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Set\+Scxml\+Module\+State\+Machines (\begin{DoxyParamCaption}\item[{const QString \&}]{id,  }\item[{const std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ \&}]{vec }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00064}{64}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxml_state_machine_service_a6ea376c2b8276085547181cbee749dfc_cgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_a4ae5ce17cedc0ec254ca92823b63b46a}\label{classlancet_1_1_i_scxml_state_machine_service_a4ae5ce17cedc0ec254ca92823b63b46a}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!SetScxmlModuleStateMachines@{SetScxmlModuleStateMachines}}
+\index{SetScxmlModuleStateMachines@{SetScxmlModuleStateMachines}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{SetScxmlModuleStateMachines()}{SetScxmlModuleStateMachines()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Set\+Scxml\+Module\+State\+Machines (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ IScxml\+State\+Machine\+State\+::\+Pointer $>$ \&}]{vec }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source_l00056}{56}} of file \mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp_source}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}.
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classlancet_1_1_i_scxml_state_machine_service_a4ae5ce17cedc0ec254ca92823b63b46a_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=274pt]{classlancet_1_1_i_scxml_state_machine_service_a4ae5ce17cedc0ec254ca92823b63b46a_icgraph}
+\end{center}
+\end{figure}
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_aff0bddd174cd9f722a40612cb390c405}\label{classlancet_1_1_i_scxml_state_machine_service_aff0bddd174cd9f722a40612cb390c405}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!StartStateMachine@{StartStateMachine}}
+\index{StartStateMachine@{StartStateMachine}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{StartStateMachine()}{StartStateMachine()}}
+{\footnotesize\ttfamily virtual bool lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Start\+State\+Machine (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Start or stop the. 
+
+state machine
+
+.
+
+The state machine service is multi-\/dimensional. Here, the state machine of the top-\/level state object is operated. Starting is only effective for the state machine of the top-\/level state, and stopping recursively stops all started sub state machines.
+
+\begin{DoxyPrecond}{Precondition}
+The state machine service can effectively trigger this method function only after initialization, otherwise it is invalid.
+\end{DoxyPrecond}
+\begin{DoxyReturn}{Returns}
+Returns true if successful, otherwise false.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service_a20c924fcd164e2e0135bc5b66a2ff5ae}{lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Create\+Scxml\+State\+Machine()}} 
+\end{DoxySeeAlso}
+
+
+Implemented in \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_service_a621c28b6f51a664aa23f3c23d3fbc322}{lancet\+::\+Scxml\+State\+Machine\+Service}}.
+
+\mbox{\Hypertarget{classlancet_1_1_i_scxml_state_machine_service_abdb58f6209a612cf2f23aed1f06646ad}\label{classlancet_1_1_i_scxml_state_machine_service_abdb58f6209a612cf2f23aed1f06646ad}} 
+\index{lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}!StopStateMachine@{StopStateMachine}}
+\index{StopStateMachine@{StopStateMachine}!lancet::IScxmlStateMachineService@{lancet::IScxmlStateMachineService}}
+\doxysubsubsection{\texorpdfstring{StopStateMachine()}{StopStateMachine()}}
+{\footnotesize\ttfamily virtual bool lancet\+::\+IScxml\+State\+Machine\+Service\+::\+Stop\+State\+Machine (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implemented in \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_service_a237a419b07af9c0a6ad6a8baaee182f4}{lancet\+::\+Scxml\+State\+Machine\+Service}}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+E\+:/\+Lancet\+MITK-\/\+Adition/\+Plugins/org.\+mitk.\+lancet.\+statemachine.\+services/src/\mbox{\hyperlink{lancet_i_scxml_state_machine_service_8h}{lancet\+IScxml\+State\+Machine\+Service.\+h}}\item 
+E\+:/\+Lancet\+MITK-\/\+Adition/\+Plugins/org.\+mitk.\+lancet.\+statemachine.\+services/src/\mbox{\hyperlink{lancet_i_scxml_state_machine_service_8cpp}{lancet\+IScxml\+State\+Machine\+Service.\+cpp}}\end{DoxyCompactItemize}

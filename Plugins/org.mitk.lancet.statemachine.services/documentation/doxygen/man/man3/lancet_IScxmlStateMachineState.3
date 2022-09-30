@@ -1,0 +1,454 @@
+.TH "lancet::IScxmlStateMachineState" 3 "Mon Sep 26 2022" "Version 1.0.0" "org.mitk.lancet.statemachine.services" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+lancet::IScxmlStateMachineState \- State description object of state machine\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <lancetIScxmlStateMachineState\&.h>\fP
+.PP
+Inherits QObject, and berry::Object\&.
+.PP
+Inherited by \fBlancet::ScxmlStateMachineState\fP\&.
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBIScxmlStateMachineStatePrivateImp\fP"
+.br
+.in -1c
+.SS "Public Types"
+
+.in +1c
+.ti -1c
+.RI "enum \fBStateType\fP { \fBAdmin\fP, \fBModule\fP, \fBOrdinary\fP }"
+.br
+.RI "State type description of state machine\&. "
+.in -1c
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBberryObjectMacro\fP (\fBlancet::IScxmlStateMachineState\fP)"
+.br
+.ti -1c
+.RI "\fBIScxmlStateMachineState\fP (IScxmlStateMachineState::Pointer manage, \fBStateType\fP type, const QString &id)"
+.br
+.RI "\fBIScxmlStateMachineState\fP Class Construction Method\&. "
+.ti -1c
+.RI "virtual \fB~IScxmlStateMachineState\fP ()"
+.br
+.ti -1c
+.RI "virtual \fBStateType\fP \fBGetStateType\fP () const"
+.br
+.RI "Type of return status\&. "
+.ti -1c
+.RI "virtual \fBStateType\fP \fBGetSubStateType\fP () const"
+.br
+.ti -1c
+.RI "virtual QString \fBGetStateId\fP () const"
+.br
+.RI "Returns the unique ID of the status object\&. "
+.ti -1c
+.RI "virtual QSharedPointer< QScxmlStateMachine > \fBGetQtStateMachine\fP () const"
+.br
+.RI "Returns a Qt style state machine instance\&. "
+.ti -1c
+.RI "virtual void \fBSetQtStateMachine\fP (const QSharedPointer< QScxmlStateMachine > &)"
+.br
+.ti -1c
+.RI "virtual IScxmlStateMachineState::Pointer \fBGetLastActiveState\fP () const final"
+.br
+.RI "The last activated sub state of the return state\&. "
+.ti -1c
+.RI "virtual void \fBSetLastActiveState\fP (IScxmlStateMachineState::Pointer) final"
+.br
+.ti -1c
+.RI "virtual IScxmlStateMachineState::Pointer \fBGetActiveState\fP () const final"
+.br
+.RI "The current activated sub state of the return state\&. "
+.ti -1c
+.RI "virtual void \fBSetActiveState\fP (IScxmlStateMachineState::Pointer) final"
+.br
+.ti -1c
+.RI "virtual QString \fBGetSubStateMachineScxmlFile\fP () const final"
+.br
+.RI "Returns the SCXML configuration file name\&. "
+.ti -1c
+.RI "virtual QString \fBGetSubStateMachineScxmlAbsoluteFile\fP () const final"
+.br
+.RI "Returns the absolute path of the SCXML configuration file\&. "
+.ti -1c
+.RI "virtual void \fBSetSubStateMachineScxmlAbsoluteFile\fP (const QString &) final"
+.br
+.ti -1c
+.RI "virtual berry::SmartPointer< \fBIScxmlStateMachineState\fP > \fBGetManageStateMachine\fP () const"
+.br
+.RI "Return Status Manager Object\&. "
+.ti -1c
+.RI "virtual void \fBSetManageStateMachine\fP (const berry::SmartPointer< \fBIScxmlStateMachineState\fP > &)"
+.br
+.ti -1c
+.RI "virtual std::vector< berry::SmartPointer< \fBIScxmlStateMachineState\fP > > \fBGetSubStateMachines\fP () const"
+.br
+.RI "Return Status Manager Object\&. "
+.ti -1c
+.RI "virtual void \fBAppendSubStateMachineItem\fP (const berry::SmartPointer< \fBIScxmlStateMachineState\fP > &)"
+.br
+.ti -1c
+.RI "virtual bool \fBRemoveSubStateMachineItem\fP (const QString &)"
+.br
+.ti -1c
+.RI "virtual bool \fBRemoveSubStateMachineItem\fP (const berry::SmartPointer< \fBIScxmlStateMachineState\fP > &)"
+.br
+.ti -1c
+.RI "virtual void \fBSetSubStateMachines\fP (std::vector< berry::SmartPointer< \fBIScxmlStateMachineState\fP > >)"
+.br
+.ti -1c
+.RI "virtual berry::SmartPointer< \fBIStateMachineActionProperty\fP > \fBGetActionProperty\fP () const"
+.br
+.RI "Return the attribute representation object of components in Qt interface\&. "
+.ti -1c
+.RI "virtual void \fBSetActionProperty\fP (const berry::SmartPointer< \fBIStateMachineActionProperty\fP > &)"
+.br
+.ti -1c
+.RI "virtual bool \fBGetActive\fP () const"
+.br
+.ti -1c
+.RI "virtual void \fBSetActive\fP (bool)"
+.br
+.ti -1c
+.RI "virtual berry::SmartPointer< \fBIScxmStateMachineHandler\fP > \fBGetStateMachineHandler\fP () const"
+.br
+.ti -1c
+.RI "virtual void \fBSetStateMachineHandler\fP (berry::SmartPointer< \fBIScxmStateMachineHandler\fP >)"
+.br
+.ti -1c
+.RI "virtual QString \fBToString\fP () const override"
+.br
+.RI "Override berry::ToString()\&. "
+.ti -1c
+.RI "virtual QString \fBToString\fP (bool isDebug) const"
+.br
+.ti -1c
+.RI "virtual berry::SmartPointer< \fBIScxmlStateMachineService\fP > \fBGetStateMachineService\fP () const final"
+.br
+.RI "Returns the state machine service object\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+State description object of state machine\&. 
+
+The state machine is generally presented as follows and managed in a tree structure\&.
+.IP "\(bu" 2
+StateType::Admin
+.IP "  \(bu" 4
+StateType::Module
+.IP "    \(bu" 6
+StateType::Ordinary
+.IP "    \(bu" 6
+StateType::Ordinary
+.PP
+
+.IP "  \(bu" 4
+StateType::Module
+.IP "    \(bu" 6
+StateType::Ordinary
+.IP "    \(bu" 6
+\&.\&.\&.
+.PP
+
+.IP "  \(bu" 4
+\&.\&.\&.
+.PP
+
+.PP
+.PP
+\fBWarning\fP
+.RS 4
+Only one StateType::Admin instance object can exist in a process\&. Otherwise, the previous instance will be overwritten 
+.RE
+.PP
+
+.PP
+Definition at line \fB53\fP of file \fBlancetIScxmlStateMachineState\&.h\fP\&.
+.SH "Member Enumeration Documentation"
+.PP 
+.SS "enum \fBlancet::IScxmlStateMachineState::StateType\fP"
+
+.PP
+State type description of state machine\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIAdmin \fP\fP
+Top level state machine state type\&. 
+.TP
+\fB\fIModule \fP\fP
+Module state machine state type\&. 
+.TP
+\fB\fIOrdinary \fP\fP
+Common state machine state type\&. 
+.PP
+\fBExamples\fP
+.in +1c
+\fBE:/LancetMITK\-Adition/Plugins/org\&.mitk\&.lancet\&.statemachine\&.services/src/lancetIScxmlStateMachineService\&.h\fP\&.
+.PP
+Definition at line \fB63\fP of file \fBlancetIScxmlStateMachineState\&.h\fP\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "lancet::IScxmlStateMachineState::IScxmlStateMachineState (IScxmlStateMachineState::Pointer manage, \fBStateType\fP type, const QString & id)"
+
+.PP
+\fBIScxmlStateMachineState\fP Class Construction Method\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fImanage\fP State Manager Instance Object\&.If the new target state type is Admin, please leave it blank\&. 
+.br
+\fItype\fP The type of state\&. Admin has uniqueness and coverage\&. 
+.br
+\fIid\fP The ID of the status\&. The ID value should be the unique value of the 
+.RE
+.PP
+mitk
+.PP
+plug-in style\&. 
+.PP
+Definition at line \fB27\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "lancet::IScxmlStateMachineState::~IScxmlStateMachineState ()\fC [virtual]\fP"
+
+.PP
+Definition at line \fB36\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "void lancet::IScxmlStateMachineState::AppendSubStateMachineItem (const berry::SmartPointer< \fBIScxmlStateMachineState\fP > & state)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB187\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "lancet::IScxmlStateMachineState::berryObjectMacro (\fBlancet::IScxmlStateMachineState\fP)"
+
+.SS "berry::SmartPointer< \fBIStateMachineActionProperty\fP > lancet::IScxmlStateMachineState::GetActionProperty () const\fC [virtual]\fP"
+
+.PP
+Return the attribute representation object of components in Qt interface\&. 
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IStateMachineActionProperty\fP, berry::SmartPointer 
+.RE
+.PP
+
+.PP
+Definition at line \fB218\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "bool lancet::IScxmlStateMachineState::GetActive () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB227\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "IScxmlStateMachineState::Pointer lancet::IScxmlStateMachineState::GetActiveState () const\fC [final]\fP, \fC [virtual]\fP"
+
+.PP
+The current activated sub state of the return state\&. 
+.PP
+\fBSee also\fP
+.RS 4
+lancet::IScxmlStateMachineState::Pointer \fBlancet::IScxmlStateMachineState::GetLastActiveState()\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB136\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "IScxmlStateMachineState::Pointer lancet::IScxmlStateMachineState::GetLastActiveState () const\fC [final]\fP, \fC [virtual]\fP"
+
+.PP
+The last activated sub state of the return state\&. Because the state machine module is managed in a tree structure, the returned object may be a Module or an Ordinance attribute\&. Users can flexibly use this state object according to their business\&.
+.PP
+\fBSee also\fP
+.RS 4
+lancet::IScxmlStateMachineState::Pointer \fBlancet::IScxmlStateMachineState::GetActiveState()\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB115\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "berry::SmartPointer< \fBIScxmlStateMachineState\fP > lancet::IScxmlStateMachineState::GetManageStateMachine () const\fC [virtual]\fP"
+
+.PP
+Return Status Manager Object\&. 
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState\fP, berry::SmartPointer 
+.RE
+.PP
+
+.PP
+Definition at line \fB172\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "QSharedPointer< QScxmlStateMachine > lancet::IScxmlStateMachineState::GetQtStateMachine () const\fC [virtual]\fP"
+
+.PP
+Returns a Qt style state machine instance\&. 
+.PP
+\fBSee also\fP
+.RS 4
+QScxmlStateMachine(
+.RE
+.PP
+Qt 5\&.12\&.10
+.PP
+) 
+.PP
+Definition at line \fB56\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "QString lancet::IScxmlStateMachineState::GetStateId () const\fC [virtual]\fP"
+
+.PP
+Returns the unique ID of the status object\&. 
+.PP
+\fBNote\fP
+.RS 4
+You should probably guide mitk's plug-in id naming style\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB51\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "berry::SmartPointer< \fBIScxmStateMachineHandler\fP > lancet::IScxmlStateMachineState::GetStateMachineHandler () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB238\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "berry::SmartPointer< \fBIScxmlStateMachineService\fP > lancet::IScxmlStateMachineState::GetStateMachineService () const\fC [final]\fP, \fC [virtual]\fP"
+
+.PP
+Returns the state machine service object\&. This method shields derived classes from re implementation\&.
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineService\fP, berry::SmartPointer 
+.RE
+.PP
+
+.PP
+Definition at line \fB110\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "\fBIScxmlStateMachineState::StateType\fP lancet::IScxmlStateMachineState::GetStateType () const\fC [virtual]\fP"
+
+.PP
+Type of return status\&. 
+.PP
+Definition at line \fB40\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "std::vector< berry::SmartPointer< \fBIScxmlStateMachineState\fP > > lancet::IScxmlStateMachineState::GetSubStateMachines () const\fC [virtual]\fP"
+
+.PP
+Return Status Manager Object\&. 
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState\fP, berry::SmartPointer 
+.RE
+.PP
+
+.PP
+Definition at line \fB182\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "QString lancet::IScxmlStateMachineState::GetSubStateMachineScxmlAbsoluteFile () const\fC [final]\fP, \fC [virtual]\fP"
+
+.PP
+Returns the absolute path of the SCXML configuration file\&. 
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState::GetSubStateMachineScxmlFile()\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB162\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "QString lancet::IScxmlStateMachineState::GetSubStateMachineScxmlFile () const\fC [final]\fP, \fC [virtual]\fP"
+
+.PP
+Returns the SCXML configuration file name\&. 
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState::GetSubStateMachineScxmlAbsoluteFile()\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB157\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "\fBIScxmlStateMachineState::StateType\fP lancet::IScxmlStateMachineState::GetSubStateType () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB45\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "bool lancet::IScxmlStateMachineState::RemoveSubStateMachineItem (const berry::SmartPointer< \fBIScxmlStateMachineState\fP > & state)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB208\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "bool lancet::IScxmlStateMachineState::RemoveSubStateMachineItem (const QString & stateId)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB195\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineState::SetActionProperty (const berry::SmartPointer< \fBIStateMachineActionProperty\fP > & property)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB223\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineState::SetActive (bool active)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB232\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineState::SetActiveState (IScxmlStateMachineState::Pointer state)\fC [final]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB145\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineState::SetLastActiveState (IScxmlStateMachineState::Pointer state)\fC [final]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB124\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineState::SetManageStateMachine (const berry::SmartPointer< \fBIScxmlStateMachineState\fP > & state)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB177\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineState::SetQtStateMachine (const QSharedPointer< QScxmlStateMachine > & stateMachine)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB61\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineState::SetStateMachineHandler (berry::SmartPointer< \fBIScxmStateMachineHandler\fP > handler)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB243\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineState::SetSubStateMachines (std::vector< berry::SmartPointer< \fBIScxmlStateMachineState\fP > > vecStates)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB213\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineState::SetSubStateMachineScxmlAbsoluteFile (const QString & file)\fC [final]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB167\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "QString lancet::IScxmlStateMachineState::ToString () const\fC [override]\fP, \fC [virtual]\fP"
+
+.PP
+Override berry::ToString()\&. 
+.PP
+\fBSee also\fP
+.RS 4
+berry::ToString() 
+.RE
+.PP
+\fBTodo\fP
+.RS 4
+To be realized \fBIScxmlStateMachineState::ToString(bool) const\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB66\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+.SS "QString lancet::IScxmlStateMachineState::ToString (bool isDebug) const\fC [virtual]\fP"
+AdminState -MouduleState -OrdinaryState -MouduleState -\&.\&.\&.
+.PP
+Definition at line \fB71\fP of file \fBlancetIScxmlStateMachineState\&.cpp\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for org\&.mitk\&.lancet\&.statemachine\&.services from the source code\&.

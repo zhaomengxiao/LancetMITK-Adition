@@ -1,0 +1,266 @@
+.TH "lancet::IScxmlStateMachineService" 3 "Mon Sep 26 2022" "Version 1.0.0" "org.mitk.lancet.statemachine.services" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+lancet::IScxmlStateMachineService \- This is the abstract class of state machine service\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <lancetIScxmlStateMachineService\&.h>\fP
+.PP
+Inherits berry::Object\&.
+.PP
+Inherited by \fBlancet::ScxmlStateMachineService\fP\&.
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBIScxmlStateMachineServicePrivateImp\fP"
+.br
+.in -1c
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBberryObjectMacro\fP (\fBlancet::IScxmlStateMachineService\fP)"
+.br
+.ti -1c
+.RI "\fBIScxmlStateMachineService\fP ()"
+.br
+.ti -1c
+.RI "virtual \fB~IScxmlStateMachineService\fP ()"
+.br
+.ti -1c
+.RI "virtual IScxmlStateMachineState::Pointer \fBGetAdminState\fP () const"
+.br
+.RI "Return to the top manager of the state machine management module\&. "
+.ti -1c
+.RI "virtual void \fBSetAdminState\fP (const IScxmlStateMachineState::Pointer &)"
+.br
+.ti -1c
+.RI "virtual IScxmlStateMachineState::Pointer \fBCreateScxmlStateMachine\fP (const QString &scxmlfile, const QString &propertyFileName, int, berry::SmartPointer< \fBIScxmlStateMachineState\fP >, const QString &)=0"
+.br
+.ti -1c
+.RI "virtual bool \fBStartStateMachine\fP ()=0"
+.br
+.RI "Start or stop the\&. "
+.ti -1c
+.RI "virtual bool \fBStopStateMachine\fP ()=0"
+.br
+.ti -1c
+.RI "virtual std::vector< IScxmlStateMachineState::Pointer > \fBGetScxmlModuleStateMachines\fP () const"
+.br
+.RI "Set or obtain the state set under the module state machine object\&. "
+.ti -1c
+.RI "virtual void \fBSetScxmlModuleStateMachines\fP (const std::vector< IScxmlStateMachineState::Pointer > &)"
+.br
+.ti -1c
+.RI "virtual void \fBSetScxmlModuleStateMachines\fP (const QString &id, const std::vector< IScxmlStateMachineState::Pointer > &)"
+.br
+.ti -1c
+.RI "virtual IScxmlStateMachineState::Pointer \fBGetScxmlStateMachine\fP (const QString &) const"
+.br
+.RI "Get or set the sub level state set\&. For details, refer to\&. "
+.ti -1c
+.RI "virtual IScxmlStateMachineState::Pointer \fBGetScxmlStateMachine\fP (IScxmlStateMachineState::Pointer, const QString &) const"
+.br
+.in -1c
+.SS "Static Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "static void \fBInitialize\fP ()"
+.br
+.ti -1c
+.RI "static berry::SmartPointer< \fBIScxmlStateMachineService\fP > \fBGetScxmlStateMachineService\fP ()"
+.br
+.in -1c
+.SS "Protected Member Functions"
+
+.in +1c
+.ti -1c
+.RI "std::vector< IScxmlStateMachineState::Pointer > \fBGetScxmlStateMachines\fP (IScxmlStateMachineState::Pointer, \fBIScxmlStateMachineState::StateType\fP) const"
+.br
+.ti -1c
+.RI "std::vector< IScxmlStateMachineState::Pointer > \fBGetScxmlStateMachines\fP (IScxmlStateMachineState::Pointer, \fBIScxmlStateMachineState::StateType\fP, std::vector< IScxmlStateMachineState::Pointer > &) const"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+This is the abstract class of state machine service\&. 
+
+It manages and loads multi-dimensional state and state machine, and provides the entry point of state management module to the outside\&. Derived classes should inherit \fCQObject\fP on the basis of abstract classes\&.
+.PP
+\fBPrecondition\fP
+.RS 4
+.RE
+.PP
+The middleware must be loaded using the or Qt plug-in framework\&.
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState\fP
+.RE
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBVersion\fP
+.RS 4
+V1\&.0\&.0 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-09-23 18:11:22 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+Nothing\&.
+.RE
+.PP
+Contact: sh4a01@163.com 
+.PP
+\fBExamples\fP
+.in +1c
+\fBE:/LancetMITK\-Adition/Plugins/org\&.mitk\&.lancet\&.statemachine\&.services/src/lancetIScxmlStateMachineService\&.h\fP\&.
+.PP
+Definition at line \fB48\fP of file \fBlancetIScxmlStateMachineService\&.h\fP\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "lancet::IScxmlStateMachineService::IScxmlStateMachineService ()"
+
+.PP
+Definition at line \fB21\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "lancet::IScxmlStateMachineService::~IScxmlStateMachineService ()\fC [virtual]\fP"
+
+.PP
+Definition at line \fB28\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "lancet::IScxmlStateMachineService::berryObjectMacro (\fBlancet::IScxmlStateMachineService\fP)"
+
+.SS "virtual IScxmlStateMachineState::Pointer lancet::IScxmlStateMachineService::CreateScxmlStateMachine (const QString & scxmlfile, const QString & propertyFileName, int, berry::SmartPointer< \fBIScxmlStateMachineState\fP >, const QString &)\fC [pure virtual]\fP"
+
+.PP
+Implemented in \fBlancet::ScxmlStateMachineService\fP\&.
+.SS "IScxmlStateMachineState::Pointer lancet::IScxmlStateMachineService::GetAdminState () const\fC [virtual]\fP"
+
+.PP
+Return to the top manager of the state machine management module\&. 
+.PP
+Definition at line \fB34\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "std::vector< IScxmlStateMachineState::Pointer > lancet::IScxmlStateMachineService::GetScxmlModuleStateMachines () const\fC [virtual]\fP"
+
+.PP
+Set or obtain the state set under the module state machine object\&. This is just a convenient method\&. The data source is provided by the state object\&.
+.PP
+\fBPrecondition\fP
+.RS 4
+The state machine service can effectively trigger this method function only after initialization, otherwise it is invalid\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB44\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "IScxmlStateMachineState::Pointer lancet::IScxmlStateMachineService::GetScxmlStateMachine (const QString & id) const\fC [virtual]\fP"
+
+.PP
+Get or set the sub level state set\&. For details, refer to\&. \fBlancet::IScxmlStateMachineState::SetSubStateMachines()\fP
+.PP
+or 
+.PP
+\fBlancet::IScxmlStateMachineState::GetSubStateMachines()\fP
+.PP
+Get or set the sub level state set of the target state object\&. The service object does not record any data of this type, but is an operation state object\&. Then think backward\&. When you need this type of operation, you should also pay attention to the properties of the state object\&.
+.PP
+\fBPrecondition\fP
+.RS 4
+The state machine service can effectively trigger this method function only after initialization, otherwise it is invalid\&.
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Child State Object Set\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB78\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "IScxmlStateMachineState::Pointer lancet::IScxmlStateMachineService::GetScxmlStateMachine (IScxmlStateMachineState::Pointer state, const QString & id) const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB93\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "std::vector< IScxmlStateMachineState::Pointer > lancet::IScxmlStateMachineService::GetScxmlStateMachines (IScxmlStateMachineState::Pointer state, \fBIScxmlStateMachineState::StateType\fP type) const\fC [protected]\fP"
+
+.PP
+Definition at line \fB111\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "std::vector< IScxmlStateMachineState::Pointer > lancet::IScxmlStateMachineService::GetScxmlStateMachines (IScxmlStateMachineState::Pointer state, \fBIScxmlStateMachineState::StateType\fP type, std::vector< IScxmlStateMachineState::Pointer > & out) const\fC [protected]\fP"
+
+.PP
+Definition at line \fB119\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "berry::SmartPointer< \fBIScxmlStateMachineService\fP > lancet::IScxmlStateMachineService::GetScxmlStateMachineService ()\fC [static]\fP"
+
+.PP
+Definition at line \fB143\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineService::Initialize ()\fC [static]\fP"
+
+.PP
+Definition at line \fB137\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineService::SetAdminState (const IScxmlStateMachineState::Pointer & state)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB39\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineService::SetScxmlModuleStateMachines (const QString & id, const std::vector< IScxmlStateMachineState::Pointer > & vec)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB64\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineService::SetScxmlModuleStateMachines (const std::vector< IScxmlStateMachineState::Pointer > & vec)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB56\fP of file \fBlancetIScxmlStateMachineService\&.cpp\fP\&.
+.SS "virtual bool lancet::IScxmlStateMachineService::StartStateMachine ()\fC [pure virtual]\fP"
+
+.PP
+Start or stop the\&. state machine
+.PP
+\&.
+.PP
+The state machine service is multi-dimensional\&. Here, the state machine of the top-level state object is operated\&. Starting is only effective for the state machine of the top-level state, and stopping recursively stops all started sub state machines\&.
+.PP
+\fBPrecondition\fP
+.RS 4
+The state machine service can effectively trigger this method function only after initialization, otherwise it is invalid\&.
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Returns true if successful, otherwise false\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineService::CreateScxmlStateMachine()\fP 
+.RE
+.PP
+
+.PP
+Implemented in \fBlancet::ScxmlStateMachineService\fP\&.
+.SS "virtual bool lancet::IScxmlStateMachineService::StopStateMachine ()\fC [pure virtual]\fP"
+
+.PP
+Implemented in \fBlancet::ScxmlStateMachineService\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for org\&.mitk\&.lancet\&.statemachine\&.services from the source code\&.

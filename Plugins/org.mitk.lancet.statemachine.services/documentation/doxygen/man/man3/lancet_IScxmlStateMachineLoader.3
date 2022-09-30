@@ -1,0 +1,323 @@
+.TH "lancet::IScxmlStateMachineLoader" 3 "Mon Sep 26 2022" "Version 1.0.0" "org.mitk.lancet.statemachine.services" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+lancet::IScxmlStateMachineLoader \- State Machine Loader, A complete state consists of attributes, SCXML, and events\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <lancetIScxmlStateMachineLoader\&.h>\fP
+.PP
+Inherits berry::Object\&.
+.PP
+Inherited by \fBlancet::ScxmlStateMachineLoader\fP\&.
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBIScxmlStateMachineLoaderPrivateImp\fP"
+.br
+.in -1c
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBberryObjectMacro\fP (\fBlancet::IScxmlStateMachineLoader\fP)"
+.br
+.ti -1c
+.RI "\fBIScxmlStateMachineLoader\fP ()"
+.br
+.ti -1c
+.RI "\fBIScxmlStateMachineLoader\fP (const QString &filename, const QString &propertyFileName, \fBIScxmlStateMachineState::StateType\fP type, IScxmlStateMachineState::Pointer manage, const QString &id)"
+.br
+.RI "Parametric construction method\&. "
+.ti -1c
+.RI "virtual void \fBSetInput\fP (const QString &filename, const QString &propertyFileName, \fBIScxmlStateMachineState::StateType\fP type, IScxmlStateMachineState::Pointer manage, const QString &id)"
+.br
+.RI "Set the input parameter set of the loader\&. "
+.ti -1c
+.RI "virtual berry::SmartPointer< \fBIScxmlStateMachineState\fP > \fBGetOutput\fP ()=0"
+.br
+.RI "Output the loaded state object according to the configuration of the loader\&. "
+.ti -1c
+.RI "virtual QString \fBGetFileName\fP () const"
+.br
+.RI "Qt style scxml configuration file\&. You must enter an absolute path\&. "
+.ti -1c
+.RI "virtual void \fBSetFileName\fP (const QString &)"
+.br
+.ti -1c
+.RI "virtual QString \fBGetPropertyFileName\fP () const"
+.br
+.RI "The json file described by the user-defined status attribute\&. You must enter an absolute path\&. "
+.ti -1c
+.RI "virtual void \fBSetPropertyFileName\fP (const QString &) const"
+.br
+.ti -1c
+.RI "virtual \fBIScxmlStateMachineState::StateType\fP \fBGetStateType\fP () const"
+.br
+.RI "Definition property type of state\&. "
+.ti -1c
+.RI "virtual void \fBSetStateType\fP (const \fBIScxmlStateMachineState::StateType\fP &)"
+.br
+.ti -1c
+.RI "virtual IScxmlStateMachineState::Pointer \fBGetManageStateMachine\fP () const"
+.br
+.RI "Manager Object\&. "
+.ti -1c
+.RI "virtual void \fBSetManageStateMachine\fP (IScxmlStateMachineState::Pointer)"
+.br
+.ti -1c
+.RI "virtual QString \fBGetStateId\fP () const"
+.br
+.RI "Load the unique ID identifier of the target state\&. "
+.ti -1c
+.RI "virtual void \fBSetStateId\fP (const QString &)"
+.br
+.ti -1c
+.RI "virtual bool \fBGetErrorState\fP () const"
+.br
+.RI "Abnormal status and information produced by the loader\&. "
+.ti -1c
+.RI "virtual bool \fBGetWarningState\fP () const"
+.br
+.ti -1c
+.RI "virtual QStringList \fBGetErrorStringList\fP () const"
+.br
+.ti -1c
+.RI "virtual QStringList \fBGetWarningStringList\fP () const"
+.br
+.in -1c
+.SS "Protected Member Functions"
+
+.in +1c
+.ti -1c
+.RI "virtual void \fBSetErrorState\fP (bool)"
+.br
+.ti -1c
+.RI "virtual void \fBSetErrorStringList\fP (const QStringList &)"
+.br
+.ti -1c
+.RI "virtual void \fBAppendErrorStringItem\fP (const QString &)"
+.br
+.ti -1c
+.RI "virtual void \fBRemoveErrorStringItem\fP ()"
+.br
+.ti -1c
+.RI "virtual void \fBSetWarningState\fP (bool)"
+.br
+.ti -1c
+.RI "virtual void \fBSetWarningStringList\fP (const QStringList &)"
+.br
+.ti -1c
+.RI "virtual void \fBAppendWarningStringItem\fP (const QString &)"
+.br
+.ti -1c
+.RI "virtual void \fBRemoveWarningStringItem\fP ()"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+State Machine Loader, A complete state consists of attributes, SCXML, and events\&. 
+
+This is implemented based on the QtScxml module, which converts the state of the state machine from the configuration file to the property objects of the 
+.PP
+Qt state machine
+.PP
+and the lancet state machine\&.
+.PP
+This class is not responsible for state machine event processing\&.
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState\fP, QScxmlStateMachine, \fBlancet::IScxmlStateMachineLoader::GetOutput()\fP
+.RE
+.PP
+\fBNote\fP
+.RS 4
+The user shall implement the following interfaces: \fBlancet::IScxmlStateMachineLoader::GetOutput()\fP
+.RE
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+
+.PP
+Definition at line \fB47\fP of file \fBlancetIScxmlStateMachineLoader\&.h\fP\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "lancet::IScxmlStateMachineLoader::IScxmlStateMachineLoader ()"
+
+.PP
+Definition at line \fB18\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "lancet::IScxmlStateMachineLoader::IScxmlStateMachineLoader (const QString & filename, const QString & propertyFileName, \fBIScxmlStateMachineState::StateType\fP type, IScxmlStateMachineState::Pointer manage, const QString & id)\fC [explicit]\fP"
+
+.PP
+Parametric construction method\&. You should probably refer to the description of the \\f \fBSetInput()\fP interface, which is clearer than what is explained here\&.
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineLoader::SetInput()\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB24\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "void lancet::IScxmlStateMachineLoader::AppendErrorStringItem (const QString & message)\fC [protected]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB123\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::AppendWarningStringItem (const QString & message)\fC [protected]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB143\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "lancet::IScxmlStateMachineLoader::berryObjectMacro (\fBlancet::IScxmlStateMachineLoader\fP)"
+
+.SS "bool lancet::IScxmlStateMachineLoader::GetErrorState () const\fC [virtual]\fP"
+
+.PP
+Abnormal status and information produced by the loader\&. 
+.PP
+Definition at line \fB93\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "QStringList lancet::IScxmlStateMachineLoader::GetErrorStringList () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB103\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "QString lancet::IScxmlStateMachineLoader::GetFileName () const\fC [virtual]\fP"
+
+.PP
+Qt style scxml configuration file\&. You must enter an absolute path\&. 
+.PP
+Definition at line \fB43\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "IScxmlStateMachineState::Pointer lancet::IScxmlStateMachineLoader::GetManageStateMachine () const\fC [virtual]\fP"
+
+.PP
+Manager Object\&. 
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB73\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "virtual berry::SmartPointer< \fBIScxmlStateMachineState\fP > lancet::IScxmlStateMachineLoader::GetOutput ()\fC [pure virtual]\fP"
+
+.PP
+Output the loaded state object according to the configuration of the loader\&. The derived class must implement this interface from the new one, which is also the only interface extended by the derived class\&.
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineState\fP 
+.RE
+.PP
+
+.SS "QString lancet::IScxmlStateMachineLoader::GetPropertyFileName () const\fC [virtual]\fP"
+
+.PP
+The json file described by the user-defined status attribute\&. You must enter an absolute path\&. 
+.PP
+Definition at line \fB53\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "QString lancet::IScxmlStateMachineLoader::GetStateId () const\fC [virtual]\fP"
+
+.PP
+Load the unique ID identifier of the target state\&. 
+.PP
+Definition at line \fB83\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "\fBIScxmlStateMachineState::StateType\fP lancet::IScxmlStateMachineLoader::GetStateType () const\fC [virtual]\fP"
+
+.PP
+Definition property type of state\&. 
+.PP
+Definition at line \fB63\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "bool lancet::IScxmlStateMachineLoader::GetWarningState () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB98\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "QStringList lancet::IScxmlStateMachineLoader::GetWarningStringList () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB108\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::RemoveErrorStringItem ()\fC [protected]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB128\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::RemoveWarningStringItem ()\fC [protected]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB148\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::SetErrorState (bool is)\fC [protected]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB113\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::SetErrorStringList (const QStringList & list)\fC [protected]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB118\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::SetFileName (const QString & file)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB48\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::SetInput (const QString & filename, const QString & propertyFileName, \fBIScxmlStateMachineState::StateType\fP type, IScxmlStateMachineState::Pointer manage, const QString & id)\fC [virtual]\fP"
+
+.PP
+Set the input parameter set of the loader\&. These parameters include the scxml state machine configuration file of Qt, the font attribute description file (\fCjson\fP) customized by lancet, and the basic attributes of the state to be loaded\&. For these basic attributes, refer to 
+.PP
+lancet::#IScxmlStateMachineState
+.PP
+\fBParameters\fP
+.RS 4
+\fIfilename\fP Qt style files with scxml suffix\&. Please enter an absolute file address\&. 
+.br
+\fIpropertyFileName\fP The json file described by the user-defined status attribute\&. Please enter the absolute file address\&. 
+.br
+\fItype\fP Definition property type of state\&. 
+.br
+\fImanage\fP Manager Object\&. 
+.br
+\fIid\fP Unique ID code of the status\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+\fBlancet::IScxmlStateMachineLoader::SetFileName()\fP \fBlancet::IScxmlStateMachineLoader::SetPropertyFileName()\fP \fBlancet::IScxmlStateMachineLoader::SetStateType()\fP \fBlancet::IScxmlStateMachineLoader::SetManageStateMachine()\fP \fBlancet::IScxmlStateMachineLoader::SetStateId()\fP \fBlancet::IScxmlStateMachineLoader::GetOutput()\fP 
+.RE
+.PP
+
+.PP
+Definition at line \fB32\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::SetManageStateMachine (IScxmlStateMachineState::Pointer manage)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB78\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::SetPropertyFileName (const QString & file) const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB58\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::SetStateId (const QString & id)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB88\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::SetStateType (const \fBIScxmlStateMachineState::StateType\fP & type)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB68\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::SetWarningState (bool warning)\fC [protected]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB133\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+.SS "void lancet::IScxmlStateMachineLoader::SetWarningStringList (const QStringList & list)\fC [protected]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB138\fP of file \fBlancetIScxmlStateMachineLoader\&.cpp\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for org\&.mitk\&.lancet\&.statemachine\&.services from the source code\&.

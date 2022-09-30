@@ -1,0 +1,7 @@
+<map id="lancet::state_machine::GetStateScxmlFileName" name="lancet::state_machine::GetStateScxmlFileName">
+<area shape="rect" id="node1" title=" " alt="" coords="5,35,180,76"/>
+<area shape="rect" id="node2" href="$namespacelancet_1_1state__machine.html#a87a41295b556466e9506013403fb849b" title=" " alt="" coords="485,5,635,47"/>
+<area shape="rect" id="node4" href="$namespacelancet_1_1state__machine.html#a4d29b579380622174c99b66c07e0a0eb" title=" " alt="" coords="228,64,417,105"/>
+<area shape="rect" id="node3" href="$group__org__mitk__lancet__statemachine__services.html#ga9dd017aacacd2cc4dfd19bee5eef8b41" title="Returns the name of a Mitk style plug&#45;in." alt="" coords="703,13,925,39"/>
+<area shape="rect" id="node5" href="$group__org__mitk__lancet__statemachine__services.html#ga2d14e1310f2bce5ab48f9a5438aeca46" title="Returns the product ID of the Mitk plug&#45;in." alt="" coords="465,71,655,112"/>
+</map>

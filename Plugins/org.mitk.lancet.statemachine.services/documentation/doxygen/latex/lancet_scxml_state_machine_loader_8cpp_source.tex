@@ -1,0 +1,165 @@
+\hypertarget{lancet_scxml_state_machine_loader_8cpp_source}{}\doxysection{lancet\+Scxml\+State\+Machine\+Loader.\+cpp}
+\label{lancet_scxml_state_machine_loader_8cpp_source}\index{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/internal/lancetScxmlStateMachineLoader.cpp@{E:/LancetMITK-\/Adition/Plugins/org.mitk.lancet.statemachine.services/src/internal/lancetScxmlStateMachineLoader.cpp}}
+\mbox{\hyperlink{lancet_scxml_state_machine_loader_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00001}00001 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_scxml_state_machine_loader_8h}{lancetScxmlStateMachineLoader.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00002}00002 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_scxm_state_machine_state_8h}{lancetScxmStateMachineState.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00003}00003 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_state_machine_action_property_8h}{lancetStateMachineActionProperty.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00004}00004 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00005}00005 \textcolor{comment}{// Qt}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00006}00006 \textcolor{preprocessor}{\#include <QDir>}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00007}00007 \textcolor{preprocessor}{\#include <QFile>}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00008}00008 \textcolor{preprocessor}{\#include <QJsonObject>}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00009}00009 \textcolor{preprocessor}{\#include <QJsonDocument>}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00010}00010 \textcolor{preprocessor}{\#include <QJsonParseError>}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00011}00011 \textcolor{preprocessor}{\#include <QScxmlStateMachine>}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00012}00012 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00013}00013 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelancet}{lancet}}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00014}00014 \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00015}\mbox{\hyperlink{structlancet_1_1_scxml_state_machine_loader_1_1_scxml_state_machine_loader_private_imp}{00015}}     \textcolor{keyword}{struct }\mbox{\hyperlink{structlancet_1_1_scxml_state_machine_loader_1_1_scxml_state_machine_loader_private_imp}{ScxmlStateMachineLoader::ScxmlStateMachineLoaderPrivateImp}}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00016}00016     \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00017}\mbox{\hyperlink{structlancet_1_1_scxml_state_machine_loader_1_1_scxml_state_machine_loader_private_imp_a1de91100a6ac4871ad73af140e625a84}{00017}}         QJsonDocument \mbox{\hyperlink{structlancet_1_1_scxml_state_machine_loader_1_1_scxml_state_machine_loader_private_imp_a1de91100a6ac4871ad73af140e625a84}{jsonDoc}};}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00018}\mbox{\hyperlink{structlancet_1_1_scxml_state_machine_loader_1_1_scxml_state_machine_loader_private_imp_ab27415538bbaa36516d44c496169b0a5}{00018}}         QJsonParseError \mbox{\hyperlink{structlancet_1_1_scxml_state_machine_loader_1_1_scxml_state_machine_loader_private_imp_ab27415538bbaa36516d44c496169b0a5}{jsonError}};}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00019}00019     \};}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00020}00020 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00021}00021     ScxmlStateMachineLoader::ScxmlStateMachineLoader()}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00022}00022         : \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader}{IScxmlStateMachineLoader}}(\textcolor{stringliteral}{"{}empty"{}}, \textcolor{stringliteral}{"{}empty"{}}, \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxmlStateMachineState}}::Ordinary, }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00023}00023             \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{IScxmlStateMachineState}}::Pointer(nullptr), \textcolor{stringliteral}{"{}empty"{}})}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00024}00024         , imp(std::make\_shared<\mbox{\hyperlink{structlancet_1_1_scxml_state_machine_loader_1_1_scxml_state_machine_loader_private_imp}{ScxmlStateMachineLoaderPrivateImp}}>())}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00025}00025     \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00026}00026     \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00027}00027 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00028}00028     ScxmlStateMachineLoader::ScxmlStateMachineLoader(\textcolor{keyword}{const} QString\& filename, \textcolor{keyword}{const} QString\& propertyFileName,}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00029}00029         \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxmlStateMachineState::StateType}} type,}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00030}00030         IScxmlStateMachineState::Pointer manage, \textcolor{keyword}{const} QString\& \textcolor{keywordtype}{id})}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00031}00031         : \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader}{IScxmlStateMachineLoader}}(filename, propertyFileName, type, manage, id)}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00032}00032         , imp(std::make\_shared<ScxmlStateMachineLoaderPrivateImp>())}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00033}00033     \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00034}00034 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00035}00035     \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00036}00036 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00037}00037     berry::SmartPointer<IScxmlStateMachineState> ScxmlStateMachineLoader::GetOutput()}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00038}00038     \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00039}00039         QString readall = QString(\textcolor{stringliteral}{"{}empty"{}});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00040}00040         berry::SmartPointer<IScxmlStateMachineState> retval\_state =}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00041}00041             berry::SmartPointer<ScxmlStateMachineState>(\textcolor{keyword}{new} ScxmlStateMachineState(this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af743d93652a8cf325b2c3aebfc5245b6}{GetManageStateMachine}}(),}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00042}00042                 this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a19faf84899190440f41903a019360515}{GetStateType}}(), this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_af3e0a70a80ebe02f79354eeddabb99eb}{GetStateId}}()));}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00043}00043 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00044}00044         \textcolor{keyword}{auto} scxmlStateMachine  = QSharedPointer<QScxmlStateMachine>();}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00045}00045 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00046}00046         \textcolor{comment}{// If loading the. scxml file fails, exit the stack of the current function.}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00047}00047         \textcolor{keywordflow}{if} (\textcolor{keyword}{false} == this-\/>\mbox{\hyperlink{classlancet_1_1_scxml_state_machine_loader_a6c454c1eb59dac0c3507c8fd65f479fb}{GetQtScxmlStateMachineOutput}}(scxmlStateMachine))}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00048}00048         \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00049}00049             \textcolor{comment}{// skipping the attribute resolution phase.}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00050}00050             \textcolor{keywordflow}{goto} QUIT\_FUNCTION;}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00051}00051         \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00052}00052         retval\_state-\/>SetQtStateMachine(scxmlStateMachine);}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00053}00053         retval\_state-\/>SetSubStateMachineScxmlAbsoluteFile(this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a6606a41f4c02a78e99e447c18dcd75ec}{GetFileName}}());}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00054}00054 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00055}00055         \textcolor{comment}{// Other ancillary information of resolution status.}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00056}00056         \textcolor{comment}{// format for \$\{ScxmlStateMachineState::GetStateId()\}\_subsidiary.json}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00057}00057         \textcolor{comment}{// eg. org\_mitk\_lancet\_tka\_medicalrecordmanagement\_subsidiary.json}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00058}00058         \textcolor{keywordflow}{if} (!this-\/>\mbox{\hyperlink{classlancet_1_1_scxml_state_machine_loader_a3707b566530f83b6b37929461c35b252}{OpenSubsidiaryFile}}(this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a72ae7555aa99108ca5790c1b8d63ae2a}{GetPropertyFileName}}(), readall))}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00059}00059         \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00060}00060             \textcolor{comment}{//skipping the property resolution phase.}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00061}00061             \textcolor{keywordflow}{goto} QUIT\_FUNCTION;}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00062}00062         \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00063}00063         }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00064}00064         \textcolor{comment}{// Check .json format.}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00065}00065         this-\/>imp-\/>jsonDoc = QJsonDocument::fromJson(readall.toUtf8(), \&this-\/>imp-\/>jsonError);}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00066}00066         \textcolor{keywordflow}{if} (this-\/>imp-\/>jsonError.error != QJsonParseError::NoError)}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00067}00067         \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00068}00068             \textcolor{comment}{// .json file format parsing error,skipping the property resolution phase.}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00069}00069             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a79e43da375138dc13e28368ba5ab8713}{SetWarningState}}(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00070}00070             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aa4b1c14e48a26934ac700bd24b49edc2}{AppendWarningStringItem}}(\textcolor{stringliteral}{"{}[loading-\/json-\/file] format error "{}} + this-\/>imp-\/>jsonError.errorString());}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00071}00071         \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00072}00072         retval\_state-\/>SetActionProperty(this-\/>\mbox{\hyperlink{classlancet_1_1_scxml_state_machine_loader_a1835d5727fb08dd44b2165495f714309}{ParseSubsidiaryDescriptionInfo}}(this-\/>imp-\/>jsonDoc));}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00073}00073 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00074}00074         QUIT\_FUNCTION:}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00075}00075         \textcolor{keywordflow}{return} retval\_state;}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00076}00076     \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00077}00077 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00078}\mbox{\hyperlink{classlancet_1_1_scxml_state_machine_loader_a6c454c1eb59dac0c3507c8fd65f479fb}{00078}}     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_loader_a6c454c1eb59dac0c3507c8fd65f479fb}{ScxmlStateMachineLoader::GetQtScxmlStateMachineOutput}}(QSharedPointer<QScxmlStateMachine>\& pointer)}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00079}00079     \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00080}00080         \textcolor{keywordflow}{if} (\textcolor{keyword}{false} == QFile::exists(this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a6606a41f4c02a78e99e447c18dcd75ec}{GetFileName}}()))}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00081}00081         \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00082}00082             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ad920aa4b8014deb01403256e6a537947}{SetErrorState}}(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00083}00083             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ac443e6b15c8bb54ff5261027cca1da20}{AppendErrorStringItem}}(\textcolor{stringliteral}{"{}[loading-\/open-\/scxml-\/file] Not find file "{}} + this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a6606a41f4c02a78e99e447c18dcd75ec}{GetFileName}}());}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00084}00084             \textcolor{keywordflow}{return} \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00085}00085         \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00086}00086 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00087}00087         pointer =}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00088}00088             QSharedPointer<QScxmlStateMachine>(QScxmlStateMachine::fromFile(this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a6606a41f4c02a78e99e447c18dcd75ec}{GetFileName}}()));}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00089}00089 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00090}00090         \textcolor{comment}{// Sync. scxml file load error information.}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00091}00091         this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ad920aa4b8014deb01403256e6a537947}{SetErrorState}}(pointer.isNull() || \textcolor{keyword}{false} == pointer-\/>parseErrors().isEmpty());}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00092}00092 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00093}00093         \textcolor{keywordflow}{for} (\textcolor{keyword}{auto} err\_loading\_item : pointer-\/>parseErrors())}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00094}00094         \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00095}00095             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_ac443e6b15c8bb54ff5261027cca1da20}{AppendErrorStringItem}}(\textcolor{stringliteral}{"{}[loading-\/open-\/scxml-\/file] "{}} + err\_loading\_item.toString());}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00096}00096         \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00097}00097 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00098}00098         \textcolor{keywordflow}{return} !this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_acd3eb028757d1cf06dd81bf9701040fd}{GetErrorState}}();}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00099}00099     \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00100}00100 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00101}\mbox{\hyperlink{classlancet_1_1_scxml_state_machine_loader_a3707b566530f83b6b37929461c35b252}{00101}}     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_loader_a3707b566530f83b6b37929461c35b252}{ScxmlStateMachineLoader::OpenSubsidiaryFile}}(\textcolor{keyword}{const} QString\& filename, QString\& readall)}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00102}00102     \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00103}00103         QString subsidiaryFile = filename;}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00104}00104 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00105}00105         \textcolor{comment}{// Check whether the file exists and the disk.}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00106}00106         \textcolor{keywordflow}{if} (\textcolor{keyword}{false} == QFile::exists(subsidiaryFile))}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00107}00107         \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00108}00108             \textcolor{comment}{// The target attribute description file cannot be found}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00109}00109             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a79e43da375138dc13e28368ba5ab8713}{SetWarningState}}(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00110}00110             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aa4b1c14e48a26934ac700bd24b49edc2}{AppendWarningStringItem}}(\textcolor{stringliteral}{"{}[loading-\/open-\/json-\/file] Target file not found: "{}} + subsidiaryFile);}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00111}00111             \textcolor{keywordflow}{return} \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00112}00112         \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00113}00113 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00114}00114         QFile fp(subsidiaryFile);}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00115}00115         \textcolor{keywordflow}{if} (\textcolor{keyword}{false} == fp.open(QIODevice::ReadOnly | QIODevice::Text))}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00116}00116         \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00117}00117             \textcolor{comment}{// Failed to open the target property description file}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00118}00118             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a79e43da375138dc13e28368ba5ab8713}{SetWarningState}}(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00119}00119             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aa4b1c14e48a26934ac700bd24b49edc2}{AppendWarningStringItem}}(\textcolor{stringliteral}{"{}[loading-\/open-\/json-\/file] Fail to open file: "{}} + subsidiaryFile);}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00120}00120             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aa4b1c14e48a26934ac700bd24b49edc2}{AppendWarningStringItem}}(\textcolor{stringliteral}{"{}[loading-\/open-\/json-\/file] Detailed error information: "{}} + fp.errorString());}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00121}00121             fp.close();}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00122}00122             \textcolor{keywordflow}{return} \textcolor{keyword}{false};}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00123}00123         \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00124}00124         readall = fp.readAll();}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00125}00125 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00126}00126         this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a79e43da375138dc13e28368ba5ab8713}{SetWarningState}}(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00127}00127         this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aa4b1c14e48a26934ac700bd24b49edc2}{AppendWarningStringItem}}(\textcolor{stringliteral}{"{}[loading-\/open-\/json-\/file] file found: "{}} + subsidiaryFile);}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00128}00128         \textcolor{keywordflow}{return} \textcolor{keyword}{true};}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00129}00129     \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00130}00130 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00131}00131     berry::SmartPointer<StateMachineActionProperty> }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00132}\mbox{\hyperlink{classlancet_1_1_scxml_state_machine_loader_a1835d5727fb08dd44b2165495f714309}{00132}}         \mbox{\hyperlink{classlancet_1_1_scxml_state_machine_loader_a1835d5727fb08dd44b2165495f714309}{ScxmlStateMachineLoader::ParseSubsidiaryDescriptionInfo}}(\textcolor{keyword}{const} QJsonDocument\& qjsonDoc)}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00133}00133     \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00134}00134         berry::SmartPointer<StateMachineActionProperty> retval\_property(\textcolor{keyword}{new} \mbox{\hyperlink{classlancet_1_1_state_machine_action_property}{StateMachineActionProperty}}());}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00135}00135 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00136}00136         \textcolor{keywordflow}{if} (qjsonDoc.isNull() || qjsonDoc.isEmpty())}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00137}00137         \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00138}00138             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a79e43da375138dc13e28368ba5ab8713}{SetWarningState}}(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00139}00139             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aa4b1c14e48a26934ac700bd24b49edc2}{AppendWarningStringItem}}(\textcolor{stringliteral}{"{}[laoding-\/property-\/file] Enter an empty JSON format object."{}});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00140}00140             \textcolor{keywordflow}{return} berry::SmartPointer<StateMachineActionProperty>();}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00141}00141         \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00142}00142 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00143}00143         \textcolor{keyword}{auto} jsonRootObject = qjsonDoc.object().value(\textcolor{stringliteral}{"{}properties"{}});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00144}00144         \textcolor{comment}{//auto jsonRootObject = qjsonDoc.object()["{}properties"{}];}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00145}00145         \textcolor{keywordflow}{if} (jsonRootObject.isNull() || \textcolor{keyword}{false} == jsonRootObject.isObject())}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00146}00146         \{}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00147}00147             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_a79e43da375138dc13e28368ba5ab8713}{SetWarningState}}(\textcolor{keyword}{true});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00148}00148             this-\/>\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_loader_aa4b1c14e48a26934ac700bd24b49edc2}{AppendWarningStringItem}}(\textcolor{stringliteral}{"{}[laoding-\/property-\/file] File format error, skip status attribute loading."{}});}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00149}00149             \textcolor{keywordflow}{return} retval\_property;}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00150}00150         \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00151}00151 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00152}00152         retval\_property-\/>SetStateId(jsonRootObject.toObject()[\textcolor{stringliteral}{"{}id"{}}].toString());}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00153}00153         retval\_property-\/>SetStateObjectName(jsonRootObject.toObject()[\textcolor{stringliteral}{"{}objectName"{}}].toString());}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00154}00154         retval\_property-\/>SetStateUiName(jsonRootObject.toObject()[\textcolor{stringliteral}{"{}uiName"{}}].toString());}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00155}00155 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00156}00156         \textcolor{keywordflow}{return} retval\_property;}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00157}00157     \}}
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00158}00158 }
+\DoxyCodeLine{\Hypertarget{lancet_scxml_state_machine_loader_8cpp_source_l00159}00159 \}}
+
+\end{DoxyCode}

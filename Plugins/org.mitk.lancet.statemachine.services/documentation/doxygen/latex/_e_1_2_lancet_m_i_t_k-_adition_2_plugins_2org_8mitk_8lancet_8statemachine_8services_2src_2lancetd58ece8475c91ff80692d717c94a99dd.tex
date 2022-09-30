@@ -1,0 +1,72 @@
+\hypertarget{_e_1_2_lancet_m_i_t_k-_adition_2_plugins_2org_8mitk_8lancet_8statemachine_8services_2src_2lancetd58ece8475c91ff80692d717c94a99dd}{}\doxysection{E\+:/\+Lancet\+MITK-\/\+Adition/\+Plugins/org.\+mitk.\+lancet.\+statemachine.\+services/src/lancet\+IScxml\+State\+Machine\+Service.\+h}
+Load external configuration files to the state machine service module.
+
+Load external configuration files to the state machine service module.\+The derivation should pay attention to the multidimensional existence of state machine or sub state.
+
+\begin{DoxySeeAlso}{See also}
+\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state}{lancet\+::\+IScxml\+State\+Machine\+State}}
+\end{DoxySeeAlso}
+
+\begin{DoxyCodeInclude}{0}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#ifndef LancetIScxmlStateMachineService\_H}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define LancetIScxmlStateMachineService\_H}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{// Qt}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include <QVariant>}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include <\mbox{\hyperlink{lancet_i_scxml_state_machine_state_8h}{lancetIScxmlStateMachineState.h}}>}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include <org\_mitk\_lancet\_statemachine\_services\_Export.h>}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelancet}{lancet}}}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    \textcolor{keyword}{class }LANCET\_STATEMACHINE\_SERVICES\_PLUGIN IScxmlStateMachineService }
+\DoxyCodeLine{        : \textcolor{keyword}{public} berry::Object}
+\DoxyCodeLine{    \{}
+\DoxyCodeLine{    \textcolor{keyword}{public}:}
+\DoxyCodeLine{        berryObjectMacro(\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet::IScxmlStateMachineService}});}
+\DoxyCodeLine{}
+\DoxyCodeLine{        IScxmlStateMachineService();}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} \string~IScxmlStateMachineService();}
+\DoxyCodeLine{}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} IScxmlStateMachineState::Pointer GetAdminState() \textcolor{keyword}{const};}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetAdminState(\textcolor{keyword}{const} IScxmlStateMachineState::Pointer\&);}
+\DoxyCodeLine{}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} IScxmlStateMachineState::Pointer CreateScxmlStateMachine(\textcolor{keyword}{const} QString\& scxmlfile,}
+\DoxyCodeLine{            \textcolor{keyword}{const} QString\& propertyFileName, \textcolor{keywordtype}{int}, berry::SmartPointer<IScxmlStateMachineState>,}
+\DoxyCodeLine{            \textcolor{keyword}{const} QString\&) = 0;}
+\DoxyCodeLine{}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} StartStateMachine() = 0;}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} StopStateMachine() = 0;}
+\DoxyCodeLine{}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} std::vector<IScxmlStateMachineState::Pointer> GetScxmlModuleStateMachines() \textcolor{keyword}{const};}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetScxmlModuleStateMachines(\textcolor{keyword}{const} std::vector<IScxmlStateMachineState::Pointer>\&);}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetScxmlModuleStateMachines(\textcolor{keyword}{const} QString\& \textcolor{keywordtype}{id},}
+\DoxyCodeLine{            \textcolor{keyword}{const} std::vector<IScxmlStateMachineState::Pointer>\&);}
+\DoxyCodeLine{}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} IScxmlStateMachineState::Pointer GetScxmlStateMachine(\textcolor{keyword}{const} QString\&) \textcolor{keyword}{const};}
+\DoxyCodeLine{        \textcolor{keyword}{virtual} IScxmlStateMachineState::Pointer}
+\DoxyCodeLine{            GetScxmlStateMachine(IScxmlStateMachineState::Pointer, \textcolor{keyword}{const} QString\&) \textcolor{keyword}{const};}
+\DoxyCodeLine{}
+\DoxyCodeLine{    \textcolor{keyword}{protected}:}
+\DoxyCodeLine{        std::vector<IScxmlStateMachineState::Pointer>}
+\DoxyCodeLine{            GetScxmlStateMachines(IScxmlStateMachineState::Pointer, \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxmlStateMachineState::StateType}}) \textcolor{keyword}{const};}
+\DoxyCodeLine{}
+\DoxyCodeLine{        std::vector<IScxmlStateMachineState::Pointer>}
+\DoxyCodeLine{            GetScxmlStateMachines(IScxmlStateMachineState::Pointer, \mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_state_a540292df444554a44e5ecb58b044c31f}{IScxmlStateMachineState::StateType}},}
+\DoxyCodeLine{                std::vector<IScxmlStateMachineState::Pointer>\&) \textcolor{keyword}{const};}
+\DoxyCodeLine{    \textcolor{keyword}{public}:}
+\DoxyCodeLine{        \textcolor{keyword}{static} \textcolor{keywordtype}{void} Initialize();}
+\DoxyCodeLine{        \textcolor{keyword}{static} berry::SmartPointer<IScxmlStateMachineService> GetScxmlStateMachineService() \textcolor{comment}{/*final*/};}
+\DoxyCodeLine{    \textcolor{keyword}{private}:}
+\DoxyCodeLine{        \textcolor{keyword}{struct }IScxmlStateMachineServicePrivateImp;}
+\DoxyCodeLine{        std::shared\_ptr<IScxmlStateMachineServicePrivateImp> imp;}
+\DoxyCodeLine{    \};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{Q\_DECLARE\_INTERFACE(\mbox{\hyperlink{classlancet_1_1_i_scxml_state_machine_service}{lancet::IScxmlStateMachineService}}, \textcolor{stringliteral}{"{}org.mitk.lancet.statemachine.services.IScxmlStateMachineService"{}})}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#endif }\textcolor{comment}{// !LancetIScxmlStateMachineService\_H}}
+
+\end{DoxyCodeInclude}
+ 
