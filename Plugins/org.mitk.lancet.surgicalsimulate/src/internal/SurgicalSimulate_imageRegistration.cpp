@@ -298,6 +298,27 @@ bool SurgicalSimulate::ApplySurfaceRegistration()
 	return true;
 }
 
+bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
+{
+	m_surfaceRegistrationStaticImageFilter = lancet::ApplySurfaceRegistratioinStaticImageFilter::New();
+	m_surfaceRegistrationStaticImageFilter->ConnectTo(m_VegaSource);
+	m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
+	navigatedImage->UpdateObjectToRfMatrix();
+	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
+
+	m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
+
+	m_surfaceRegistrationStaticImageFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix());
+
+	m_surfaceRegistrationStaticImageFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("ObjectRf"));
+
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationStaticImageFilter);
+	m_VegaVisualizeTimer->start();
+
+	return true;
+}
+
 bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 {
 	// Apply preexisting surface registration result

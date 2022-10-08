@@ -96,6 +96,8 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_confirmImageTarget, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImagePoint);
   connect(m_Controls.pushButton_applyPreImageRegistration, &QPushButton::clicked, this, &SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration);
   connect(m_Controls.pushButton_applyPreImageRegistrationNew, &QPushButton::clicked, this, &SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage);
+  connect(m_Controls.pushButton_applyRegistrationNew, &QPushButton::clicked, this, &SurgicalSimulate::ApplySurfaceRegistration_staticImage);
+
 	connect(m_Controls.pushButton_saveNdiTools, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
 
 
