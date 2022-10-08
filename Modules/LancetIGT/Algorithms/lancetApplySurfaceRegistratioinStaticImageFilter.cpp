@@ -10,26 +10,26 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-#include "lancetApplySurfaceRegistratioinFilter.h"
+#include "lancetApplySurfaceRegistratioinStaticImageFilter.h"
 
 #include "mitkMatrixConvert.h"
 
-lancet::ApplySurfaceRegistratioinFilter::ApplySurfaceRegistratioinFilter() : mitk::NavigationDataToNavigationDataFilter()
+lancet::ApplySurfaceRegistratioinStaticImageFilter::ApplySurfaceRegistratioinStaticImageFilter() : mitk::NavigationDataToNavigationDataFilter()
 {
   m_NavigationDataOfRF = mitk::NavigationData::New();
   m_RegistrationMatrix = mitk::AffineTransform3D::New();
-  m_navigationImage = lancet::NavigationObject::New();
+  //m_navigationImage = lancet::NavigationObject::New();
 }
 
 
-lancet::ApplySurfaceRegistratioinFilter::~ApplySurfaceRegistratioinFilter()
+lancet::ApplySurfaceRegistratioinStaticImageFilter::~ApplySurfaceRegistratioinStaticImageFilter()
 {
   m_NavigationDataOfRF = nullptr;
   m_RegistrationMatrix = nullptr;
-  m_navigationImage = nullptr;
+  // m_navigationImage = nullptr;
 }
 
-void lancet::ApplySurfaceRegistratioinFilter::GenerateData()
+void lancet::ApplySurfaceRegistratioinStaticImageFilter::GenerateData()
 {
 	// Assign the input directly to the output
 	// Change the image(surface) geometry matrix separately
@@ -67,7 +67,13 @@ void lancet::ApplySurfaceRegistratioinFilter::GenerateData()
 	ndiToSurface->Compose(rfToSurfaceMatrix);
 	ndiToSurface->Compose(m_NavigationDataOfRF->GetAffineTransform3D());
 
-	dynamic_cast<mitk::Surface*>(m_navigationImage->GetDataNode()->GetData())->GetGeometry()->SetIndexToWorldTransform(ndiToSurface);
+	vtkNew<vtkMatrix4x4> vtkMatrixSurfaceToNdi;
+	mitk::TransferItkTransformToVtkMatrix(ndiToSurface.GetPointer(), vtkMatrixSurfaceToNdi);
+	vtkMatrixSurfaceToNdi->Invert();
+	auto affineSurfaceToNdi = mitk::AffineTransform3D::New();
+	mitk::TransferVtkMatrixToItkTransform(vtkMatrixSurfaceToNdi, affineSurfaceToNdi.GetPointer());
+
+	// dynamic_cast<mitk::Surface*>(m_navigationImage->GetDataNode()->GetData())->GetGeometry()->SetIndexToWorldTransform(ndiToSurface);
 
 	// Assign the input directly to the output
 	DataObjectPointerArraySizeType numberOfInputs = this->GetNumberOfInputs();
@@ -92,10 +98,15 @@ void lancet::ApplySurfaceRegistratioinFilter::GenerateData()
 			continue;
 		}
 
+		mitk::AffineTransform3D::Pointer inputTransform = input->GetAffineTransform3D();
+		inputTransform->Compose(affineSurfaceToNdi);
+
+		mitk::NavigationData::Pointer res = mitk::NavigationData::New(inputTransform);
+
 		//copy information to output
 		output->Graft(input); // copy all information from input to output
-		output->SetPosition(input->GetPosition());
-		output->SetOrientation(input->GetOrientation());
+		output->SetPosition(res->GetPosition());
+		output->SetOrientation(res->GetOrientation());
 		//output->SetDataValid(input->IsDataValid());
 	}
 }

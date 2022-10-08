@@ -25,6 +25,7 @@ found in the LICENSE file.
 #include "lancetNavigationObjectVisualizationFilter.h"
 #include "lancetApplyDeviceRegistratioinFilter.h"
 #include "lancetApplySurfaceRegistratioinFilter.h"
+#include "lancetApplySurfaceRegistratioinStaticImageFilter.h"
 #include "lancetPathPoint.h"
 #include "mitkTrackingDeviceSource.h"
 #include "robotRegistration.h"
@@ -177,6 +178,7 @@ protected:
   bool RetoreDataNodeFromNavigationObject(mitk::DataNode* parentNode, lancet::NavigationObject* assembledObject);
 
   lancet::ApplySurfaceRegistratioinFilter::Pointer m_surfaceRegistrationFilter;
+  lancet::ApplySurfaceRegistratioinStaticImageFilter::Pointer m_surfaceRegistrationStaticImageFilter;
 
   void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
   void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
@@ -186,11 +188,15 @@ protected:
 
 
   bool SetupNavigatedImage();
-  bool CollectLanmarkProbe();
+  bool CollectLandmarkProbe();
   bool CollectIcpProbe();
   bool ApplySurfaceRegistration();
   bool ApplyPreexistingImageSurfaceRegistration();
 
+  bool ApplySurfaceRegistration_staticImage();
+  bool ApplyPreexistingImageSurfaceRegistration_staticImage();
+
+  // Get the coordinate of the image point in the robot base frame
   bool InterpretImagePoint();
 };
 

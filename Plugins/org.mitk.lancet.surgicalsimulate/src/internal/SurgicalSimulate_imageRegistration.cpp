@@ -230,7 +230,7 @@ bool SurgicalSimulate::SetupNavigatedImage()
 	return true;
 }
 
-bool SurgicalSimulate::CollectLanmarkProbe()
+bool SurgicalSimulate::CollectLandmarkProbe()
 {
 	if(navigatedImage == nullptr)
 	{
@@ -295,11 +295,22 @@ bool SurgicalSimulate::ApplySurfaceRegistration()
 	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationFilter);
 	m_VegaVisualizeTimer->start();
 
-	// save image(surface) registration matrix into its corresponding RF tool
-	// m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
-	// navigatedImage->UpdateObjectToRfMatrix();
-	// mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
+	return true;
+}
+
+bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
+{
+	// Apply preexisting surface registration result
+	m_surfaceRegistrationStaticImageFilter = lancet::ApplySurfaceRegistratioinStaticImageFilter::New();
+	m_surfaceRegistrationStaticImageFilter->ConnectTo(m_VegaSource);
 	
+	m_surfaceRegistrationStaticImageFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix());
+	m_surfaceRegistrationStaticImageFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("ObjectRf"));
+
+
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationStaticImageFilter);
+	m_VegaVisualizeTimer->start();
 
 	return true;
 }
