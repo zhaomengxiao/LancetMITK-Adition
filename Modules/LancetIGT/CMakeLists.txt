@@ -10,7 +10,7 @@ endif()
 mitk_create_module(LancetIGT
 INCLUDE_DIRS
     PUBLIC ${ADDITIONAL_INCLUDE_DIRS} Algorithms Common DataManagement ExceptionHandling IO Rendering TrackingDevices TestingHelper
-  DEPENDS PUBLIC MitkSceneSerialization MitkIGTBase MitkIGT MitkIGTUI MitkLancetRobot MitkLancetRegistration
+  DEPENDS PUBLIC MitkSceneSerialization MitkIGTBase MitkIGT MitkLancetRobot MitkLancetRegistration
   PACKAGE_DEPENDS
     PRIVATE ITK VTK 
     PUBLIC ${qt5_depends}
@@ -22,5 +22,5 @@ if(MODULE_IS_ENABLED)
 
   add_subdirectory(autoload/DeviceRegistry)
   #add_subdirectory(Tutorial)
-  #add_subdirectory(Testing)
+  add_subdirectory(test)
 endif()

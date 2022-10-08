@@ -8,13 +8,15 @@ set(H_FILES
   Algorithms/lancetNavigationDataInReferenceCoordFilter.h
   Algorithms/lancetApplyDeviceRegistratioinFilter.h
   Algorithms/lancetApplySurfaceRegistratioinFilter.h
+  Algorithms/lancetTreeCoords.h
+
   Rendering/lancetNavigationObjectVisualizationFilter.h
 
   TrackingDevices/lancetRobotTrackingTool.h
   TrackingDevices/lancetKukaTrackingDeviceTypeInformation.h
   TrackingDevices/kukaRobotDevice.h
 
-  UI/QmitkLancetKukaWidget.cpp
+  #UI/QmitkLancetKukaWidget.cpp
 )
 
 set(CPP_FILES
@@ -27,21 +29,22 @@ set(CPP_FILES
   Algorithms/lancetNavigationDataInReferenceCoordFilter.cpp
   Algorithms/lancetApplyDeviceRegistratioinFilter.cpp
   Algorithms/lancetApplySurfaceRegistratioinFilter.cpp
+  Algorithms/lancetTreeCoords.cpp
   Rendering/lancetNavigationObjectVisualizationFilter.cpp
 
   TrackingDevices/lancetRobotTrackingTool.cpp
   TrackingDevices/lancetKukaTrackingDeviceTypeInformation.cpp
   TrackingDevices/kukaRobotDevice.cpp
 
-  UI/QmitkLancetKukaWidget.cpp
+  #UI/QmitkLancetKukaWidget.cpp
 )
 
 set(UI_FILES
-  UI/QmitkLancetKukaWidget.ui
+  #UI/QmitkLancetKukaWidget.ui
 )
 
 set(MOC_H_FILES
-  UI/QmitkLancetKukaWidget.h
+  #UI/QmitkLancetKukaWidget.h
   TrackingDevices/kukaRobotDevice.h
 )
 

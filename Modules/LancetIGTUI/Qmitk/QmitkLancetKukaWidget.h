@@ -15,14 +15,14 @@ found in the LICENSE file.
 
 #include "ui_QmitkLancetKukaWidget.h"
 #include "QmitkNDIAbstractDeviceWidget.h"
-#include "MitkLancetIGTExports.h"
+#include "MitkLancetIGTUIExports.h"
 
 /** Documentation:
 *   \brief Implementation of a configuration widget for NDI Polaris Devices.
 *
 *   \ingroup IGTUI
 */
-class MITKLANCETIGT_EXPORT QmitkLancetKukaWidget : public QmitkNDIAbstractDeviceWidget
+class MITKLANCETIGTUI_EXPORT QmitkLancetKukaWidget : public QmitkNDIAbstractDeviceWidget
 {
   Q_OBJECT // this is needed for all Qt objects that should have a MOC object (everything that derives from QObject)
 

@@ -40,7 +40,7 @@ found in the LICENSE file.
 #include "mitkIGTIOException.h"
 #include "mitkNavigationToolStorageSerializer.h"
 #include "QmitkIGTCommonHelper.h"
-
+#include "lancetTreeCoords.h"
 const std::string SurgicalSimulate::VIEW_ID = "org.mitk.views.surgicalsimulate";
 
 void SurgicalSimulate::SetFocus()
@@ -547,7 +547,9 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   //build ApplyDeviceRegistrationFilter
   m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
   m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
-  m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix());
+  m_RobotRegistrationMatrix = m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix();
+  m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
+  m_VegaSource->Update();
   m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
 
   m_KukaVisualizeTimer->stop();
@@ -587,6 +589,56 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
   m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
   m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", targetMatrix, m_T_robot);
 
+  //========
+  //convert from ndi to robot use navigationTree
+  //========
+    //build the tree
+  NavigationTree::Pointer tree = NavigationTree::New();
+
+  NavigationNode::Pointer ndi = NavigationNode::New();
+  ndi->SetNavigationData(mitk::NavigationData::New());
+  ndi->SetNodeName("ndi");
+
+  tree->Init(ndi);
+
+  NavigationNode::Pointer robotBaseRF = NavigationNode::New();
+  robotBaseRF->SetNodeName("RobotBaseRF");
+  robotBaseRF->SetNavigationData(m_VegaSource->GetOutput("RobotBaseRF"));
+
+  tree->AddChild(robotBaseRF, ndi);
+
+  NavigationNode::Pointer robot = NavigationNode::New();
+  robot->SetNodeName("Robot");
+  robot->SetNavigationData(mitk::NavigationData::New(m_RobotRegistrationMatrix));
+
+  tree->AddChild(robot, robotBaseRF);
+
+    //use tree
+  mitk::NavigationData::Pointer treeRes =  tree->GetNavigationData(mitk::NavigationData::New(targetMatrix), "ndi", "Robot");
+  mitk::AffineTransform3D::Pointer treeResMatrix = treeRes->GetAffineTransform3D();
+
+  m_T_robot = treeResMatrix;
+
+  MITK_INFO << "tree res";
+  MITK_INFO << treeResMatrix;
+  //========
+  //convert from ndi to robot use navigationTree
+  //========
+  
+  //by hand
+  //Td2e = Td2c*Tc2a*Ta2e
+	//  = Tc2d^-1 * Ta2c^-1 *Ta2e
+	//  = m_ndD^-1 * m_ndC^-1 *m_ndInput
+  mitk::NavigationData::Pointer byhand = mitk::NavigationData::New(targetMatrix);
+  byhand->Compose(m_VegaSource->GetOutput("RobotBaseRF")->GetInverse());
+  byhand->Compose(mitk::NavigationData::New(m_RobotRegistrationMatrix)->GetInverse());
+  MITK_INFO << "by hand:";
+  MITK_INFO << byhand->GetAffineTransform3D();
+
+  MITK_INFO << "correct:";
+  MITK_INFO << m_T_robot;
+
+
   //use robot matrix,not change the end tool rotation,only apply the offset from probe;
   m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
 
@@ -625,11 +677,10 @@ bool SurgicalSimulate::GoToImagePoint()
 
 void SurgicalSimulate::OnAutoPositionStart()
 {
-  vtkMatrix4x4* t = vtkMatrix4x4::New();
-  mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+   vtkMatrix4x4* t = vtkMatrix4x4::New();
+   mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
   
-  
-  m_KukaTrackingDevice->RobotMove(t);
+   m_KukaTrackingDevice->RobotMove(t);
 }
 
 void SurgicalSimulate::UseVirtualDevice1()

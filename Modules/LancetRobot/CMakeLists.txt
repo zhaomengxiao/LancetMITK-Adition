@@ -16,4 +16,4 @@ MITK_CREATE_MODULE(
   #FORCE_STATIC
 )
 
-#add_subdirectory(autoload)
+add_subdirectory(test)
