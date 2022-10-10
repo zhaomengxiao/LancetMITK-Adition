@@ -24,22 +24,27 @@ int main(int argc, char **argv)
   app.setOrganizationName("Lancet");
   app.initializeQt();
 
-  //LancetLauncherDialog demoDialog;
-  //QString selectedConfiguration = demoDialog.getDemoConfiguration();
+  LancetLauncherDialog demoDialog;
+  QString selectedConfiguration = demoDialog.getDemoConfiguration();
 
-  //if (selectedConfiguration.isEmpty())
-  //  return EXIT_SUCCESS;
+  if (selectedConfiguration.isEmpty())
+    return EXIT_SUCCESS;
 
-  //app.setProvisioningFilePath(selectedConfiguration);
+  app.setProvisioningFilePath(selectedConfiguration);
 
-  //// We create the application id relying on a convention:
-  //// org.mitk.lancet.<configuration-name>
-  //QString appId = "org.mitk.lancet.";
-  //QStringList appIdTokens = QFileInfo(selectedConfiguration).baseName().toLower().split('_', QString::SkipEmptyParts);
-  //appId += appIdTokens.size() > 1 ? appIdTokens.at(1) : appIdTokens.at(0);
+  // We create the application id relying on a convention:
+  // org.mitk.lancet.<configuration-name>
+  QString appId = "org.mitk.lancet.";
+  QStringList appIdTokens = QFileInfo(selectedConfiguration).baseName().toLower().split('_', QString::SkipEmptyParts);
+  appId += appIdTokens.size() > 1 ? appIdTokens.at(1) : appIdTokens.at(0);
 
-  //app.setProperty(mitk::BaseApplication::PROP_APPLICATION, appId);
-  app.setProvisioningFilePath("Y:/LancetMitk_SBD/MITK-build/bin/LancetLauncher_THA.provisioning");
-  app.setProperty(mitk::BaseApplication::PROP_APPLICATION, "org.mitk.lancet.tha.application");
+  if (appId == "org.mitk.lancet.tha")
+  {
+    appId = "org.mitk.lancet.tha.application";
+  }
+
+  app.setProperty(mitk::BaseApplication::PROP_APPLICATION, appId);
+  //app.setProvisioningFilePath("Y:/LancetMitk_SBD/MITK-build/bin/LancetLauncher_THA.provisioning");
+  //app.setProperty(mitk::BaseApplication::PROP_APPLICATION, "org.mitk.lancet.tha.application");
   return app.run();
 }
