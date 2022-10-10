@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="org.mitk.lancet.putmolarcupprosthesisaccuracy.editor">
+  <qresource prefix="org.mitk.lancet.putmolarcupprosthesisaccuracyeditor">
     <file>icon.xpm</file>
     <file>img.png</file>
     <file>registration/femoral_checkpoint.png</file>
@@ -38,5 +38,6 @@
 	<file>navigation/cup_reaming11.png</file>
 	<file>navigation/cup_Result.png</file>
 	<file>navigation/Femur.png</file>
+	<file>putmolarcupprosthesisaccuracyeditor.qss</file>
   </qresource>
 </RCC>

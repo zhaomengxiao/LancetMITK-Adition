@@ -32,7 +32,7 @@
    <string>硬件准备</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background:#d4deea;</string>
+   <string notr="true"/>
   </property>
   <property name="currentIndex" stdset="0">
    <number>0</number>
@@ -95,7 +95,7 @@ background-color: rgb(0, 0, 0);
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_5">
+     <widget class="Line" name="line1">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -103,8 +103,10 @@ background-color: rgb(0, 0, 0);
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -160,10 +162,7 @@ background-color: rgb(0, 0, 0);
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">QRadioButton::indicator:checked {image: url(:\org.mitk.lancet.pelvisroughregistrations/image/radio_on.png);}
-QRadioButton:checked {color: rgb(55,174,150);}
-QRadioButton::indicator:unchecked{ image: url(:\org.mitk.lancet.pelvisroughregistrations/image/radio.png);}
-QRadioButton:unchecked{ color:black; }</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 髋臼后侧</string>
@@ -179,11 +178,7 @@ QRadioButton:unchecked{ color:black; }</string>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">QRadioButton::indicator:checked {image: url(:\org.mitk.lancet.pelvisroughregistrations/image/radio_on.png);}
-QRadioButton:checked {color: rgb(55,174,150);}
-QRadioButton::indicator:unchecked{ image: url(:\org.mitk.lancet.pelvisroughregistrations/image/radio.png);}
-QRadioButton:unchecked{ color:black; }
-</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 髋臼前侧</string>
@@ -199,10 +194,7 @@ QRadioButton:unchecked{ color:black; }
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">QRadioButton::indicator:checked {image: url(:\org.mitk.lancet.pelvisroughregistrations/image/radio_on.png);}
-QRadioButton:checked {color: rgb(55,174,150);}
-QRadioButton::indicator:unchecked{ image: url(:\org.mitk.lancet.pelvisroughregistrations/image/radio.png);}
-QRadioButton:unchecked{ color:black; }</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 髋臼外侧</string>
@@ -255,24 +247,7 @@ QRadioButton:unchecked{ color:black; }</string>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton::pressed { 
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>捕  获</string>
@@ -346,24 +321,7 @@ QPushButton::pressed {
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton::pressed { 
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>清除单一标记点</string>
@@ -431,24 +389,7 @@ QPushButton::pressed {
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton::pressed { 
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>清除所有标记点</string>
@@ -484,7 +425,7 @@ QPushButton::pressed {
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_8">
+     <widget class="Line" name="line2">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -492,8 +433,10 @@ QPushButton::pressed {
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:\org.mitk.lancet.pelvisroughregistrations/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>

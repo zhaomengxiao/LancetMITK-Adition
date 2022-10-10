@@ -36,7 +36,9 @@ found in the LICENSE file.
 
 // mitk gui qt common plugin
 #include <QmitkMultiWidgetDecorationManager.h>
-
+// Qt
+#include <QMessageBox>
+#include <QDir>
 
 const QString QFemurMarkerPointEditor::EDITOR_ID = "org.mitk.lancet.femurmarkerpoint.editor";
 
@@ -64,6 +66,18 @@ QFemurMarkerPointEditor::~QFemurMarkerPointEditor()
 void QFemurMarkerPointEditor::CreatePartControl(QWidget* parent)
 {
 	m_Controls.setupUi(parent);
+	auto test_dir = QDir(":/org.mitk.lancet.femurmarkerpointeditor/");
+	QFile qss(test_dir.absoluteFilePath("femurmarkerpointeditor.qss"));
+	if (!qss.open(QIODevice::ReadOnly))
+	{
+		qWarning() << __func__ << __LINE__ << ":" << "error load file "
+			<< test_dir.absoluteFilePath("femurmarkerpointeditor.qss") << "\n"
+			<< "error: " << qss.errorString();
+	}
+	// pos
+	qInfo() << "log.file.pos " << qss.pos();
+	m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
+	qss.close();
 }
 
 void QFemurMarkerPointEditor::SetFocus()

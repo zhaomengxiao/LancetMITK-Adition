@@ -37,6 +37,9 @@ found in the LICENSE file.
 // mitk gui qt common plugin
 #include <QmitkMultiWidgetDecorationManager.h>
 
+// Qt
+#include <QMessageBox>
+#include <QDir>
 
 const QString QMedicalRecordManagementEditor::EDITOR_ID = "org_mitk_lancet_medicalrecordmanagement_editor";
 
@@ -64,6 +67,18 @@ QMedicalRecordManagementEditor::~QMedicalRecordManagementEditor()
 void QMedicalRecordManagementEditor::CreatePartControl(QWidget* parent)
 {
 	m_Controls.setupUi(parent);
+	auto test_dir = QDir(":/org.mitk.lancet.medicalrecordmanagementeditor/");
+	QFile qss(test_dir.absoluteFilePath("medicalrecordmanagementeditor.qss"));
+	if (!qss.open(QIODevice::ReadOnly))
+	{
+		qWarning() << __func__ << __LINE__ << ":" << "error load file "
+			<< test_dir.absoluteFilePath("medicalrecordmanagementeditor.qss") << "\n"
+			<< "error: " << qss.errorString();
+	}
+	// pos
+	qInfo() << "log.file.pos " << qss.pos();
+	m_Controls.tableWidget->setStyleSheet(QLatin1String(qss.readAll()));
+	qss.close();
 }
 
 void QMedicalRecordManagementEditor::SetFocus()

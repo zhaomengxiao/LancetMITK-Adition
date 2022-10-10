@@ -37,6 +37,9 @@ found in the LICENSE file.
 // mitk gui qt common plugin
 #include <QmitkMultiWidgetDecorationManager.h>
 
+// Qt
+#include <QMessageBox>
+#include <QDir>
 
 const QString QContusionAccuracyEditor::EDITOR_ID = "org.mitk.lancet.contusionaccuracy.editor";
 
@@ -64,6 +67,18 @@ QContusionAccuracyEditor::~QContusionAccuracyEditor()
 void QContusionAccuracyEditor::CreatePartControl(QWidget* parent)
 {
 	m_Controls.setupUi(parent);
+	auto test_dir = QDir(":/org.mitk.lancet.contusionaccuracyeditor/");
+	QFile qss(test_dir.absoluteFilePath("contusionaccuracyeditor.qss"));
+	if (!qss.open(QIODevice::ReadOnly))
+	{
+		qWarning() << __func__ << __LINE__ << ":" << "error load file "
+			<< test_dir.absoluteFilePath("contusionaccuracyeditor.qss") << "\n"
+			<< "error: " << qss.errorString();
+	}
+	// pos
+	qInfo() << "log.file.pos " << qss.pos();
+	m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
+	qss.close();
 }
 
 void QContusionAccuracyEditor::SetFocus()

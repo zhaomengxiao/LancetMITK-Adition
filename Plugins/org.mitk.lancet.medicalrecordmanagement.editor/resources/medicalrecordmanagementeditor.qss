@@ -1,0 +1,31 @@
+QHeaderView
+{
+    background:transparent;
+}
+QHeaderView::section,QTableCornerButton:section
+{ 
+	margin:0px; 
+	color: white; 
+	border:1px solid #242424; 
+	background:rgb(0,183,138); 
+	font:14pt 'ºÚÌå';
+	min-height:35px;
+    max-height:35px;
+    margin-left:0px;
+    padding-left:0px
+}
+QTableWidget
+{
+	background-color:white;
+	border:none;
+	font:14pt 'ºÚÌå';
+    color:black;
+}
+QTableWidget::item:hover
+{
+	background-color:#d4deea
+}
+QTableWidget::item:selected
+{
+	background-color:#d4deea
+}

@@ -19,6 +19,8 @@ found in the LICENSE file.
 #include "QLinkingHardware.h"
 
 // Qt
+
+#include <QDir>
 #include <QMessageBox>
 
 // mitk image
@@ -35,15 +37,36 @@ const std::string QLinkingHardware::VIEW_ID = "org.mitk.views.qlinkinghardware";
 void QLinkingHardware::SetFocus(){}
 QLinkingHardware::~QLinkingHardware()
 {
-
 }
 void QLinkingHardware::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent); 
   m_Controls.pushButton_success->setEnabled(true);
-  QFile qss(":/resources/linkinghardware.qss");
-  qApp->setStyleSheet(qss.readAll());
+ 
+  auto test_dir = QDir(":/org.mitk.lancet.linkinghardware/");
+  QFile qss(test_dir.absoluteFilePath("linkinghardware.qss"));
+
+  if (!qss.open(QIODevice::ReadOnly))
+  {
+	  
+	  qWarning() << __func__ << __LINE__ << ":" << "error load file "
+		  << test_dir.absoluteFilePath("linkinghardware.qss") << "\n"
+		  << "error: " << qss.errorString();
+  }
+  // pos
+  qInfo() << "log.file.pos " << qss.pos();
+
+  m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
+  ////m_Controls.widget->setStyleSheet(qss.readAll());
+  //if (qss.pos() != 0)
+  //{
+	 // qss.seek(0);
+  //}
+
+  //qDebug() << __func__ << __LINE__ << ":"
+	 // << QFile::exists(test_dir.absoluteFilePath("linkinghardware.qss"))  // True
+	 // << "?" << QLatin1String(qss.readAll());
   qss.close();
 }
 void QLinkingHardware::setStartHardware(int staubli, int ndi)

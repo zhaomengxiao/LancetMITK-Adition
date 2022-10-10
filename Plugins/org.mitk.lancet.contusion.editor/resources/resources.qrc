@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="org.mitk.lancet.contusion.editor">
+  <qresource prefix="org.mitk.lancet.contusioneditor">
     <file>icon.xpm</file>
     <file>img.png</file>
     <file>registration/femoral_checkpoint.png</file>
@@ -30,5 +30,6 @@
     <file>registration/robot_validation_left.png</file>
     <file>registration/robot_validation_right.png</file>
     <file>registration/robot_validation_up.png</file>
+    <file>contusioneditor.qss</file>
   </qresource>
 </RCC>

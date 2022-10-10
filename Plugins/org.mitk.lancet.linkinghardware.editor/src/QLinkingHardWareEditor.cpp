@@ -36,7 +36,9 @@ found in the LICENSE file.
 
 // mitk gui qt common plugin
 #include <QmitkMultiWidgetDecorationManager.h>
-
+// Qt
+#include <QMessageBox>
+#include <QDir>
 
 const QString QLinkingHardWareEditor::EDITOR_ID = "org.mitk.lancet.linkinghardware.editor";
 
@@ -64,6 +66,18 @@ QLinkingHardWareEditor::~QLinkingHardWareEditor()
 void QLinkingHardWareEditor::CreatePartControl(QWidget* parent)
 {
 	m_Controls.setupUi(parent);
+	auto test_dir = QDir(":/org.mitk.lancet.linkinghardwareeditor/");
+	QFile qss(test_dir.absoluteFilePath("linkinghardwareeditor.qss"));
+	if (!qss.open(QIODevice::ReadOnly))
+	{
+		qWarning() << __func__ << __LINE__ << ":" << "error load file "
+			<< test_dir.absoluteFilePath("linkinghardwareeditor.qss") << "\n"
+			<< "error: " << qss.errorString();
+	}
+	// pos
+	qInfo() << "log.file.pos " << qss.pos();
+	m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
+	qss.close();
 }
 
 void QLinkingHardWareEditor::SetFocus()

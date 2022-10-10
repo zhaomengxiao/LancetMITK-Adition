@@ -19,6 +19,7 @@ found in the LICENSE file.
 #include "QPutFemurProsthesisAccuracy.h"
 
 // Qt
+#include <QDir>
 #include <QMessageBox>
 
 // mitk image
@@ -34,6 +35,18 @@ void QPutFemurProsthesisAccuracy::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
+  auto test_dir = QDir(":/org.mitk.lancet.putfemurprosthesisaccuracy/");
+  QFile qss(test_dir.absoluteFilePath("putfemurprosthesisaccuracy.qss"));
+  if (!qss.open(QIODevice::ReadOnly))
+  {
+	  qWarning() << __func__ << __LINE__ << ":" << "error load file "
+		  << test_dir.absoluteFilePath("putfemurprosthesisaccuracy.qss") << "\n"
+		  << "error: " << qss.errorString();
+  }
+  // pos
+  qInfo() << "log.file.pos " << qss.pos();
+  m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
+  qss.close();
 }
 
 void QPutFemurProsthesisAccuracy::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,

@@ -41,5 +41,6 @@
     <file>login/name.png</file>
     <file>login/password.png</file>
     <file>icon.xpm</file>
+    <file>roboticsregistrations.qss</file>
   </qresource>
 </RCC>

@@ -40,6 +40,8 @@
     <file>login/login_up.png</file>
     <file>login/name.png</file>
     <file>login/password.png</file>
+	<file>login/16x16_down.png</file>
     <file>icon.xpm</file>
+	<file>implantplanning.qss</file>
   </qresource>
 </RCC>

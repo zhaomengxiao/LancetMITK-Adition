@@ -32,7 +32,7 @@
    <string>硬件准备</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background:#d4deea;</string>
+   <string notr="true"/>
   </property>
   <property name="currentIndex" stdset="0">
    <number>0</number>
@@ -136,29 +136,7 @@ background-color: rgb(0, 0, 0);
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QProgressBar {
-	/* 外边框 */
-	border:1px solid black;
-	
-	/* 倒角 */
-	border-radius:5px;
-	
-	background-image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/scrool.png);
-	/* 字体对齐方式 */
-	text-align:center;
-}
-
-/* 进度条 */
-QProgressBar::chunk {
-	/* 颜色 */
-	background-color:rgb(0, 183, 138);
-	
-	/* 步进距离 */
-	width:5px;
-	
-	/* 进度条中间空白区域宽度 */
-	margin:1px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="value">
          <number>0</number>
@@ -181,7 +159,7 @@ QProgressBar::chunk {
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_5">
+     <widget class="Line" name="line1">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -191,6 +169,9 @@ QProgressBar::chunk {
       <property name="styleSheet">
        <string notr="true">border-image: url(:/image/fenge.png);
 </string>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -229,21 +210,13 @@ QProgressBar::chunk {
         <property name="font">
          <font>
           <family>黑体</family>
-          <pointsize>-1</pointsize>
           <weight>50</weight>
           <italic>false</italic>
           <bold>false</bold>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QCheckBox::indicator:unchecked {image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/radio.png);}
-QCheckBox{
-	font: 18px &quot;黑体&quot;;
-    color:black;
-}
-QCheckBox::indicator:hover {image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/radio_on.png);}
-QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/radio_success.png);}
-</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string> 近端检查点</string>
@@ -295,24 +268,7 @@ QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.putfemurprosthesisacc
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton::pressed { 
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>捕  获</string>
@@ -363,21 +319,13 @@ QPushButton::pressed {
         <property name="font">
          <font>
           <family>黑体</family>
-          <pointsize>-1</pointsize>
           <weight>50</weight>
           <italic>false</italic>
           <bold>false</bold>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QCheckBox::indicator:unchecked {image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/radio.png);}
-QCheckBox{
-	font: 18px &quot;黑体&quot;;
-    color:black;
-}
-QCheckBox::indicator:hover {image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/radio_on.png);}
-QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/radio_success.png);}
-</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string> 远端检查点</string>
@@ -432,24 +380,7 @@ QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.putfemurprosthesisacc
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton::pressed { 
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>捕  获</string>
@@ -514,11 +445,7 @@ QPushButton::pressed {
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">QFrame#frame{
-background-color: transparent; 
-border: 2px solid white; 
-border-radius: 5px;
-}</string>
+          <string notr="true"/>
          </property>
          <property name="frameShape">
           <enum>QFrame::Box</enum>
@@ -610,10 +537,7 @@ border-radius: 5px;
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">.QLabel {
-	color: rgb(0, 0, 0);
-  background-color:transparent;
-}</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;对比&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;术侧&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -670,11 +594,7 @@ border-radius: 5px;
                </font>
               </property>
               <property name="styleSheet">
-               <string notr="true">QLabel {
-	color: rgb(0, 0, 0);
-  border-radius: 5px;
-  background-color: transparent;
-}</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:28pt;&quot;&gt;N/A&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -790,11 +710,7 @@ border-radius: 5px;
                </font>
               </property>
               <property name="styleSheet">
-               <string notr="true">QLabel {
-	color: rgb(0, 0, 0);
-  border-radius: 5px;
-  background-color: transparent;
-}</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:28pt;&quot;&gt;N/A&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -866,11 +782,7 @@ border-radius: 5px;
                </font>
               </property>
               <property name="styleSheet">
-               <string notr="true">QLabel {
-	color: rgb(0, 0, 0);
-  border-radius: 5px;
-  background-color: transparent;
-}</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:28pt;&quot;&gt;N/A&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -964,12 +876,7 @@ border-radius: 5px;
                </font>
               </property>
               <property name="styleSheet">
-               <string notr="true">QLabel {
-	color: rgb(0, 0, 0);
-  border-radius: 5px;
-  background-color: transparent;
-
-}</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;N/A&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1003,10 +910,7 @@ border-radius: 5px;
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">.QLabel {
-	color: rgb(0, 0, 0);
-  background-color:transparent;
-}</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;对比&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;对侧&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1025,10 +929,7 @@ border-radius: 5px;
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">.QLabel {
-	color: rgb(0, 0, 0);
-  background-color:transparent;
-}</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;腿长&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;(mm)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1047,10 +948,7 @@ border-radius: 5px;
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">.QLabel {
-	color: rgb(0, 0, 0);
-  background-color:transparent;
-}</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;偏距&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;(mm)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1104,7 +1002,7 @@ border-radius: 5px;
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_8">
+     <widget class="Line" name="line2">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -1112,8 +1010,10 @@ border-radius: 5px;
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:/org.mitk.lancet.putfemurprosthesisaccuracy/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>

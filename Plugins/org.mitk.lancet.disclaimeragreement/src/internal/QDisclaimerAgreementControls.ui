@@ -32,7 +32,7 @@
    <string>硬件准备</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background:#d4deea;</string>
+   <string notr="true"/>
   </property>
   <property name="currentIndex" stdset="0">
    <number>0</number>
@@ -50,6 +50,21 @@
     <string notr="true"/>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_4">
+    <property name="spacing">
+     <number>6</number>
+    </property>
+    <property name="leftMargin">
+     <number>9</number>
+    </property>
+    <property name="topMargin">
+     <number>9</number>
+    </property>
+    <property name="rightMargin">
+     <number>9</number>
+    </property>
+    <property name="bottomMargin">
+     <number>9</number>
+    </property>
     <item>
      <widget class="QWidget" name="widget_2" native="true">
       <property name="sizePolicy">
@@ -95,7 +110,7 @@ background-color: rgb(0, 0, 0);
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_5">
+     <widget class="Line" name="line1">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -103,8 +118,10 @@ background-color: rgb(0, 0, 0);
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:/org.mitk.lancet.disclaimeragreement/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -377,24 +394,7 @@ background-color: rgb(0, 0, 0);
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.disclaimeragreement/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.disclaimeragreement/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.disclaimeragreement/login/Agree.png);
-	color:balck;
-}
-QPushButton::pressed { 
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>同  意</string>
@@ -430,7 +430,7 @@ QPushButton::pressed {
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_8">
+     <widget class="Line" name="line2">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -438,8 +438,10 @@ QPushButton::pressed {
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:/org.mitk.lancet.disclaimeragreement/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -457,25 +459,6 @@ QPushButton::pressed {
       <property name="styleSheet">
        <string notr="true"/>
       </property>
-      <widget class="QLabel" name="label">
-       <property name="geometry">
-        <rect>
-         <x>2</x>
-         <y>2</y>
-         <width>54</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>黑体</family>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
      </widget>
     </item>
     <item>

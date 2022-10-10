@@ -32,7 +32,7 @@
    <string>硬件准备</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background:#d4deea;</string>
+   <string notr="true"/>
   </property>
   <property name="currentIndex" stdset="0">
    <number>0</number>
@@ -50,6 +50,21 @@
     <string notr="true"/>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_4">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>9</number>
+    </property>
+    <property name="topMargin">
+     <number>9</number>
+    </property>
+    <property name="rightMargin">
+     <number>9</number>
+    </property>
+    <property name="bottomMargin">
+     <number>9</number>
+    </property>
     <item>
      <widget class="QWidget" name="widget_2" native="true">
       <property name="sizePolicy">
@@ -79,7 +94,23 @@ background-color: rgb(0, 0, 0);
      </widget>
     </item>
     <item>
-     <widget class="Line" name="line_5">
+     <spacer name="verticalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="Line" name="line1">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -87,13 +118,31 @@ background-color: rgb(0, 0, 0);
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_4">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
     </item>
     <item>
      <widget class="QFrame" name="frame_2">
@@ -118,23 +167,13 @@ background-color: rgb(0, 0, 0);
          <property name="font">
           <font>
            <family>黑体</family>
-           <pointsize>-1</pointsize>
            <weight>50</weight>
            <italic>false</italic>
            <bold>false</bold>
           </font>
          </property>
          <property name="styleSheet">
-          <string notr="true">QCheckBox::indicator:unchecked {image:  url(:/org.mitk.lancet.qctmark//image/radio_success.png);}
-QCheckBox{
-	font: 18px &quot;黑体&quot;;
-    color:black;
-}
-QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.qctmark//image/radio.png);;color:green;}
-QCheckBox:unchecked {color:black;}
-QCheckBox:checked {color: rgb(55,174,150);}
-
-</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 髂前上棘(手术侧)</string>
@@ -150,16 +189,7 @@ QCheckBox:checked {color: rgb(55,174,150);}
        <item>
         <widget class="QCheckBox" name="checkBox_2">
          <property name="styleSheet">
-          <string notr="true">QCheckBox::indicator:unchecked {image:  url(:/org.mitk.lancet.qctmark//image/radio_success.png);}
-QCheckBox{
-	font: 18px &quot;黑体&quot;;
-    color:black;
-}
-QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.qctmark//image/radio.png);;color:green;}
-QCheckBox:unchecked {color:black;}
-QCheckBox:checked {color: rgb(55,174,150);}
-
-</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 髂前上棘(非手术侧)</string>
@@ -172,16 +202,7 @@ QCheckBox:checked {color: rgb(55,174,150);}
        <item>
         <widget class="QCheckBox" name="checkBox_3">
          <property name="styleSheet">
-          <string notr="true">QCheckBox::indicator:unchecked {image:  url(:/org.mitk.lancet.qctmark//image/radio_success.png);}
-QCheckBox{
-	font: 18px &quot;黑体&quot;;
-    color:black;
-}
-QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.qctmark//image/radio.png);;color:green;}
-QCheckBox:unchecked {color:black;}
-QCheckBox:checked {color: rgb(55,174,150);}
-
-</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 中轴线</string>
@@ -194,15 +215,7 @@ QCheckBox:checked {color: rgb(55,174,150);}
        <item>
         <widget class="QCheckBox" name="checkBox_4">
          <property name="styleSheet">
-          <string notr="true">QCheckBox::indicator:unchecked {image:  url(:/org.mitk.lancet.qctmark//image/radio_success.png);}
-QCheckBox{
-	font: 18px &quot;黑体&quot;;
-    color:black;
-}
-QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.qctmark//image/radio.png);;color:green;}
-QCheckBox:unchecked {color:black;}
-QCheckBox:checked {color: rgb(55,174,150);}
-</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 髋臼后侧</string>
@@ -215,15 +228,7 @@ QCheckBox:checked {color: rgb(55,174,150);}
        <item>
         <widget class="QCheckBox" name="checkBox_5">
          <property name="styleSheet">
-          <string notr="true">QCheckBox::indicator:unchecked {image:  url(:/org.mitk.lancet.qctmark//image/radio_success.png);}
-QCheckBox{
-	font: 18px &quot;黑体&quot;;
-    color:black;
-}
-QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.qctmark//image/radio.png);;color:green;}
-QCheckBox:unchecked {color:black;}
-QCheckBox:checked {color: rgb(55,174,150);}
-</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 髋臼前侧</string>
@@ -236,15 +241,7 @@ QCheckBox:checked {color: rgb(55,174,150);}
        <item>
         <widget class="QCheckBox" name="checkBox_6">
          <property name="styleSheet">
-          <string notr="true">QCheckBox::indicator:unchecked {image:  url(:/org.mitk.lancet.qctmark//image/radio_success.png);}
-QCheckBox{
-	font: 18px &quot;黑体&quot;;
-    color:black;
-}
-QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.qctmark//image/radio.png);;color:green;}
-QCheckBox:unchecked {color:black;}
-QCheckBox:checked {color: rgb(55,174,150);}
-</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 髋臼外侧</string>
@@ -257,15 +254,7 @@ QCheckBox:checked {color: rgb(55,174,150);}
        <item>
         <widget class="QCheckBox" name="checkBox_7">
          <property name="styleSheet">
-          <string notr="true">QCheckBox::indicator:unchecked {image:  url(:/org.mitk.lancet.qctmark//image/radio_success.png);}
-QCheckBox{
-	font: 18px &quot;黑体&quot;;
-    color:black;
-}
-QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.qctmark//image/radio.png);;color:green;}
-QCheckBox:unchecked {color:black;}
-QCheckBox:checked {color: rgb(55,174,150);}
-</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 左旋转子</string>
@@ -278,15 +267,7 @@ QCheckBox:checked {color: rgb(55,174,150);}
        <item>
         <widget class="QCheckBox" name="checkBox_8">
          <property name="styleSheet">
-          <string notr="true">QCheckBox::indicator:unchecked {image:  url(:/org.mitk.lancet.qctmark//image/radio_success.png);}
-QCheckBox{
-	font: 18px &quot;黑体&quot;;
-    color:black;
-}
-QCheckBox::indicator:checked {image: url(:/org.mitk.lancet.qctmark//image/radio.png);;color:green;}
-QCheckBox:unchecked {color:black;}
-QCheckBox:checked {color: rgb(55,174,150);}
-</string>
+          <string notr="true"/>
          </property>
          <property name="text">
           <string> 右旋转子</string>
@@ -295,6 +276,22 @@ QCheckBox:checked {color: rgb(55,174,150);}
           <bool>true</bool>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_9">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -307,7 +304,7 @@ QCheckBox:checked {color: rgb(55,174,150);}
       <property name="sizeHint" stdset="0">
        <size>
         <width>20</width>
-        <height>40</height>
+        <height>20</height>
        </size>
       </property>
      </spacer>
@@ -348,24 +345,7 @@ QCheckBox:checked {color: rgb(55,174,150);}
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.qctmark/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.qctmark//image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.qctmark//image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton:pressed{
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>捕 获 点</string>
@@ -392,6 +372,22 @@ QPushButton:pressed{
        </spacer>
       </item>
      </layout>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_6">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>10</height>
+       </size>
+      </property>
+     </spacer>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -423,24 +419,7 @@ QPushButton:pressed{
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.qctmark//image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.qctmark//image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.qctmark//image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton:pressed{
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>测量距离</string>
@@ -461,6 +440,22 @@ QPushButton:pressed{
        </spacer>
       </item>
      </layout>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_7">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>10</height>
+       </size>
+      </property>
+     </spacer>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -492,24 +487,7 @@ QPushButton:pressed{
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.qctmark//image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.qctmark//image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.qctmark//image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton:pressed{
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>清 除 点</string>
@@ -530,6 +508,22 @@ QPushButton:pressed{
        </spacer>
       </item>
      </layout>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_8">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>10</height>
+       </size>
+      </property>
+     </spacer>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -561,24 +555,7 @@ QPushButton:pressed{
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.qctmark//image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.qctmark//image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.qctmark//image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton:pressed{
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>清除测量</string>
@@ -605,16 +582,19 @@ QPushButton:pressed{
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Expanding</enum>
+      </property>
       <property name="sizeHint" stdset="0">
        <size>
         <width>20</width>
-        <height>170</height>
+        <height>40</height>
        </size>
       </property>
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_8">
+     <widget class="Line" name="line2">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -622,13 +602,31 @@ QPushButton:pressed{
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_5">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>10</height>
+       </size>
+      </property>
+     </spacer>
     </item>
     <item>
      <widget class="QWidget" name="widgetInfo" native="true">
@@ -641,25 +639,6 @@ QPushButton:pressed{
       <property name="styleSheet">
        <string notr="true"/>
       </property>
-      <widget class="QLabel" name="label">
-       <property name="geometry">
-        <rect>
-         <x>2</x>
-         <y>2</y>
-         <width>54</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>黑体</family>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
      </widget>
     </item>
     <item>

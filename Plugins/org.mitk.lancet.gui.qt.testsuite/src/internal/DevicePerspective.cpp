@@ -38,7 +38,6 @@ void DevicePerspective::CreateInitialLayout(berry::IPageLayout::Pointer layout)
   right->AddView("org.mitk.views.qdisclaimeragreement");
   right->AddView("org.mitk.views.qimplantplanning");
   right->AddView("org.mitk.views.qlinkinghardware");
-  right->AddView("org.mitk.lancet.linkinghardware.editor");
   right->AddView("org.mitk.views.qroboticsregistrations");
   right->AddView("org.mitk.views.qroboticsregistrationsaccuracy");
   right->AddView("org.mitk.views.qfemurmarkerpoint");

@@ -32,7 +32,7 @@
    <string>硬件准备</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background:#d4deea;</string>
+   <string notr="true"/>
   </property>
   <property name="currentIndex" stdset="0">
    <number>0</number>
@@ -136,29 +136,7 @@ background-color: rgb(0, 0, 0);
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QProgressBar {
-	/* 外边框 */
-	border:1px solid black;
-	
-	/* 倒角 */
-	border-radius:5px;
-	
-	background-image: url(:/org.mitk.lancet.putmolarcupprosthesisaccuracy/image/scrool.png);
-	/* 字体对齐方式 */
-	text-align:center;
-}
-
-/* 进度条 */
-QProgressBar::chunk {
-	/* 颜色 */
-	background-color:rgb(0, 183, 138);
-	
-	/* 步进距离 */
-	width:5px;
-	
-	/* 进度条中间空白区域宽度 */
-	margin:1px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="value">
          <number>0</number>
@@ -181,7 +159,7 @@ QProgressBar::chunk {
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_5">
+     <widget class="Line" name="line1">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -189,8 +167,10 @@ QProgressBar::chunk {
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:/org.mitk.lancet.putmolarcupprosthesisaccuracy/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -254,19 +234,13 @@ QProgressBar::chunk {
         <property name="font">
          <font>
           <family>Arial</family>
-          <pointsize>-1</pointsize>
           <weight>50</weight>
           <italic>false</italic>
           <bold>false</bold>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QDoubleSpinBox{
-color: rgb(0, 170, 127);
-border-radius: 5px;
-background-color: transparent;
-font:58px 'Arial';
-}</string>
+         <string notr="true"/>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -329,19 +303,13 @@ font:58px 'Arial';
         <property name="font">
          <font>
           <family>Arial</family>
-          <pointsize>-1</pointsize>
           <weight>50</weight>
           <italic>false</italic>
           <bold>false</bold>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QDoubleSpinBox{
-color: rgb(0, 170, 127);
-border-radius: 5px;
-background-color: transparent;
-font:58px 'Arial';
-}</string>
+         <string notr="true"/>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -414,12 +382,7 @@ font:58px 'Arial';
       <item>
        <widget class="QDoubleSpinBox" name="doubleSpinBox_PlanInclination">
         <property name="styleSheet">
-         <string notr="true">QDoubleSpinBox{
-color: rgb(0, 170, 127);
-border-radius: 5px;
-background-color: transparent;
-font:58px 'Arial';
-}</string>
+         <string notr="true"/>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -485,12 +448,7 @@ font:58px 'Arial';
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">QDoubleSpinBox{
-color: rgb(0, 170, 127);
-border-radius: 5px;
-background-color: transparent;
-font:58px 'Arial';
-}</string>
+         <string notr="true"/>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -554,24 +512,7 @@ font:58px 'Arial';
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.putmolarcupprosthesisaccuracy/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.putmolarcupprosthesisaccuracy/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.putmolarcupprosthesisaccuracy/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton::pressed { 
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>捕  获</string>
@@ -636,24 +577,7 @@ QPushButton::pressed {
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.putmolarcupprosthesisaccuracy/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.putmolarcupprosthesisaccuracy/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.putmolarcupprosthesisaccuracy/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton::pressed { 
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>清除</string>
@@ -689,7 +613,7 @@ QPushButton::pressed {
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_8">
+     <widget class="Line" name="line2">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -697,8 +621,10 @@ QPushButton::pressed {
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:/org.mitk.lancet.putmolarcupprosthesisaccuracy/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>

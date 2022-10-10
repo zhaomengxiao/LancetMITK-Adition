@@ -31,5 +31,6 @@
     <file>image/scrool.png</file>
     <file>image/value.png</file>
     <file>icon.xpm</file>
+    <file>pelvisroughregistrations.qss</file>
   </qresource>
 </RCC>

@@ -32,7 +32,7 @@
    <string>硬件准备</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background:#d4deea;</string>
+   <string notr="true"/>
   </property>
   <property name="currentIndex" stdset="0">
    <number>0</number>
@@ -95,7 +95,7 @@ background-color: rgb(0, 0, 0);
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_5">
+     <widget class="Line" name="line1">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -103,8 +103,10 @@ background-color: rgb(0, 0, 0);
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:/org.mitk.lancet.contusion/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -136,13 +138,13 @@ background-color: rgb(0, 0, 0);
        <widget class="QLabel" name="label_4">
         <property name="minimumSize">
          <size>
-          <width>150</width>
+          <width>160</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
+          <width>160</width>
           <height>16777215</height>
          </size>
         </property>
@@ -162,6 +164,12 @@ background-color: rgb(0, 0, 0);
       </item>
       <item>
        <widget class="QDoubleSpinBox" name="doubleSpinBox_CupSize">
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>120</width>
@@ -171,18 +179,13 @@ background-color: rgb(0, 0, 0);
         <property name="font">
          <font>
           <family>Arial</family>
-          <pointsize>-1</pointsize>
           <weight>50</weight>
           <italic>false</italic>
           <bold>false</bold>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QDoubleSpinBox{
-border-radius: 5px;
-background-color: transparent;
-font:36px 'Arial';
-}</string>
+         <string notr="true"/>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -197,7 +200,10 @@ font:36px 'Arial';
          <string>mm</string>
         </property>
         <property name="decimals">
-         <number>1</number>
+         <number>0</number>
+        </property>
+        <property name="value">
+         <double>62.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -228,13 +234,13 @@ font:36px 'Arial';
        <widget class="QLabel" name="label_5">
         <property name="minimumSize">
          <size>
-          <width>150</width>
+          <width>160</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>96</width>
+          <width>160</width>
           <height>16777215</height>
          </size>
         </property>
@@ -254,6 +260,12 @@ font:36px 'Arial';
       </item>
       <item>
        <widget class="QDoubleSpinBox" name="doubleSpinBox_ActeabulumSize">
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>120</width>
@@ -263,18 +275,13 @@ font:36px 'Arial';
         <property name="font">
          <font>
           <family>Arial</family>
-          <pointsize>-1</pointsize>
           <weight>50</weight>
           <italic>false</italic>
           <bold>false</bold>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QDoubleSpinBox{
-border-radius: 5px;
-background-color: transparent;
-font:36px 'Arial';
-}</string>
+         <string notr="true"/>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -286,7 +293,10 @@ font:36px 'Arial';
          <string>mm</string>
         </property>
         <property name="decimals">
-         <number>1</number>
+         <number>0</number>
+        </property>
+        <property name="value">
+         <double>62.000000000000000</double>
         </property>
        </widget>
       </item>
@@ -332,20 +342,7 @@ font:36px 'Arial';
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QComboBox {
-    border: 1px solid gray;
-    border-radius: 10px;
-    padding: 1px 2px 1px 10px; 
-}
-QComboBox::drop-down {
-    subcontrol-origin: padding;
-    subcontrol-position: top right; 
-    border-left-width: 1px;
-    border-left-color: darkgray;
-}
-QComboBox::down-arrow {    
-	image: url(:/org.mitk.lancet.contusion//login/down1.png);
-}</string>
+         <string notr="true"/>
         </property>
         <item>
          <property name="text">
@@ -403,24 +400,7 @@ QComboBox::down-arrow {
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QComboBox {
-    border: 1px solid gray;
-    border-radius: 10px;
-    padding: 1px 2px 1px 10px; 
-}
-QComboBox::drop-down {
-    subcontrol-origin: padding;
-    subcontrol-position: top right; 
-    border-left-width: 1px;
-    border-left-color: darkgray;
-}
-QComboBox::down-arrow {    
-	image: url(:/org.mitk.lancet.contusion/login/down1.png);
-}
-QComboBox QAbstractItemView::item { 
-	min-height: 20px; 
-}
-</string>
+         <string notr="true"/>
         </property>
         <property name="currentIndex">
          <number>0</number>
@@ -531,24 +511,7 @@ QComboBox QAbstractItemView::item {
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.contusion/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.contusion/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.contusion/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton:pressed{
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>自动定位</string>
@@ -606,24 +569,7 @@ QPushButton:pressed{
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.contusion/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.contusion/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.contusion/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton:pressed{
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>自由打磨</string>
@@ -675,24 +621,7 @@ QPushButton:pressed{
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.contusion/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.contusion/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.contusion/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton:pressed{
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>边界打磨</string>
@@ -744,24 +673,7 @@ QPushButton:pressed{
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QPushButton{
-	border-image: url(:/org.mitk.lancet.contusion/image/default.png);
-	color:white;
-}
-QPushButton::hover
-{
-	border-image: url(:/org.mitk.lancet.contusion/image/on.png);
-	color:balck;
-}
-QPushButton::disabled
-{
-	border-image: url(:/org.mitk.lancet.contusion/image/disabled.png);	
-	color: rgb(153, 153, 153);
-}
-QPushButton:pressed{
-	padding-left:6px;
-	padding-top:6px;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="text">
          <string>打磨完成</string>
@@ -797,7 +709,7 @@ QPushButton:pressed{
      </spacer>
     </item>
     <item>
-     <widget class="Line" name="line_8">
+     <widget class="Line" name="line2">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -805,8 +717,10 @@ QPushButton:pressed{
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">border-image: url(:/org.mitk.lancet.contusion/image/fenge.png);
-</string>
+       <string notr="true"/>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
