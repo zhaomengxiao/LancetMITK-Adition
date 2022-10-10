@@ -1,0 +1,6 @@
+MITK_CREATE_MODULE( LancetIGTUIConfigurationWidgetRegistry
+  INCLUDE_DIRS
+    PRIVATE src
+  DEPENDS PRIVATE MitkLancetIGTUI
+  AUTOLOAD_WITH MitkIGTUI
+)
