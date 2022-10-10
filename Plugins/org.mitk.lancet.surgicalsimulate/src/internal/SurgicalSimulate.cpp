@@ -78,17 +78,22 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_captureRobot, &QPushButton::clicked, this, &SurgicalSimulate::OnRobotCapture);
   connect(m_Controls.pushButton_automove, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoMove);
   connect(m_Controls.pushButton_selfcheck, &QPushButton::clicked, this, &SurgicalSimulate::OnSelfCheck);
-  connect(m_Controls.pushButton_resetRobotReg, &QPushButton::clicked, this, &SurgicalSimulate::OnResetRobotRegistration);
-  connect(m_Controls.pushButton_assembleNavigationObject, &QPushButton::clicked, this, &SurgicalSimulate::SetupNavigatedImage);
+  connect(m_Controls.pushButton_resetRobotReg, &QPushButton::clicked, this,
+          &SurgicalSimulate::OnResetRobotRegistration);
+  connect(m_Controls.pushButton_assembleNavigationObject, &QPushButton::clicked, this,
+          &SurgicalSimulate::SetupNavigatedImage);
   connect(m_Controls.pushButton_collectLandmark, &QPushButton::clicked, this, &SurgicalSimulate::CollectLanmarkProbe);
-  connect(m_Controls.pushButton_applyRegistration, &QPushButton::clicked, this, &SurgicalSimulate::ApplySurfaceRegistration);
+  connect(m_Controls.pushButton_applyRegistration, &QPushButton::clicked, this,
+          &SurgicalSimulate::ApplySurfaceRegistration);
   connect(m_Controls.pushButton_collectIcp, &QPushButton::clicked, this, &SurgicalSimulate::CollectIcpProbe);
   connect(m_Controls.pushButton_startTracking, &QPushButton::clicked, this, &SurgicalSimulate::StartTracking);
   connect(m_Controls.pushButton_captureSurgicalPlane, &QPushButton::clicked, this,
           &SurgicalSimulate::OnCaptureProbeAsSurgicalPlane);
   connect(m_Controls.pushButton_startAutoPosition, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoPositionStart);
-  connect(m_Controls.pushButton_saveRobotRegist, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
-  connect(m_Controls.pushButton_usePreRobotRegit, &QPushButton::clicked, this, &SurgicalSimulate::OnUsePreRobotRegitration);
+  connect(m_Controls.pushButton_saveRobotRegist, &QPushButton::clicked, this,
+          &SurgicalSimulate::OnSaveRobotRegistraion);
+  connect(m_Controls.pushButton_usePreRobotRegit, &QPushButton::clicked, this,
+          &SurgicalSimulate::OnUsePreRobotRegitration);
   connect(m_Controls.pushButton_setTCP, &QPushButton::clicked, this, &SurgicalSimulate::OnSetTCP);
 }
 
@@ -326,18 +331,9 @@ void SurgicalSimulate::OnRobotCapture()
   }
   else
   {
-	MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
+    MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
     vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
     m_RobotRegistration.GetRegistraionMatrix(matrix4x4);
-    
-    //For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
-    /*vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
-    matrix4x4->SetElement(0, 0, -0.48); matrix4x4->SetElement(0, 1, -0.19); matrix4x4->SetElement(0, 2, -0.86);
-    matrix4x4->SetElement(1, 0, -0.01); matrix4x4->SetElement(1, 1, -0.97); matrix4x4->SetElement(1, 2, 0.22);
-    matrix4x4->SetElement(2, 0, -0.88); matrix4x4->SetElement(2, 1, 0.11); matrix4x4->SetElement(2, 2, 0.46);
-    matrix4x4->SetElement(0, 3, 162.37);
-    matrix4x4->SetElement(1, 3, -530.45);
-    matrix4x4->SetElement(2, 3, -255.62);*/
 
     m_RobotRegistrationMatrix = mitk::AffineTransform3D::New();
 
@@ -346,50 +342,57 @@ void SurgicalSimulate::OnRobotCapture()
     //save robot registration matrix into reference tool
     m_VegaToolStorage->GetToolByName("RobotBaseRF")->SetToolRegistrationMatrix(m_RobotRegistrationMatrix);
 
-	MITK_INFO << "Robot Registration Matrix";
-	MITK_INFO << m_RobotRegistrationMatrix;
+    MITK_INFO << "Robot Registration Matrix";
+    MITK_INFO << m_RobotRegistrationMatrix;
     //build ApplyDeviceRegistrationFilter
     m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
     m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
     m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
-    m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
+    m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));
+    //must make sure NavigationDataOfRF update somewhere else.
 
     m_KukaVisualizeTimer->stop();
     m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
     m_KukaVisualizeTimer->start();
-	//tcp
+    //tcp
 
-	std::array<double, 6> tcp{};
-	m_RobotRegistration.GetTCP(tcp);
+    std::array<double, 6> tcp{};
+    m_RobotRegistration.GetTCP(tcp);
 
 
-	//For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
-	/*tcp[0] = 69.162;
-	tcp[1] = -22.335;
-	tcp[2] = -82.3293;
-	tcp[3] =0.2433;
-	tcp[4] = -3.089;
-	tcp[5] = -0.019;*/
-	
-	//For Test Use ,7L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
-	/*tcp[0] = 23.80;
-	tcp[1] = 47.49;
-	tcp[2] = 95;
-	tcp[3] =1.575;
-	tcp[4] = -3.141;
-	tcp[5] = 0;*/
-	
-	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
-	//set tcp to robot
-	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{QString::number( tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+    //For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
+    /*tcp[0] = 69.162;
+    tcp[1] = -22.335;
+    tcp[2] = -82.3293;
+    tcp[3] =0.2433;
+    tcp[4] = -3.089;
+    tcp[5] = -0.019;*/
+
+    //For Test Use ,7L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
+    /*tcp[0] = 23.80;
+    tcp[1] = 47.49;
+    tcp[2] = 95;
+    tcp[3] =1.575;
+    tcp[4] = -3.141;
+    tcp[5] = 0;*/
+
+    //store tcp into toolstorage
+    m_KukaToolStorage->GetTool(0)->SetTCP(tcp.data());
+
+    MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+    //set tcp to robot
+    //set tcp
+    QThread::msleep(1000);
+    m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{
+                                               QString::number(tcp[0]), QString::number(tcp[1]),
+                                               QString::number(tcp[2]), QString::number(tcp[3]),
+                                               QString::number(tcp[4]), QString::number(tcp[5])
+                                             });
+    QThread::msleep(1000);
+    m_KukaTrackingDevice->RequestExecOperate("setworkmode", {"11"});
+    QThread::msleep(1000);
+    m_KukaTrackingDevice->RequestExecOperate("setworkmode", {"5"});
   }
-
 }
 
 void SurgicalSimulate::OnAutoMove()
@@ -524,8 +527,10 @@ void SurgicalSimulate::OnSaveRobotRegistraion()
     fileDialog->setDefaultSuffix("IGTToolStorage");
     QString suffix = "IGT Tool Storage (*.IGTToolStorage)";
     // Set default file name to LastFileSavePath + storage name
-    QString defaultFileName = QmitkIGTCommonHelper::GetLastFileSavePath() + "/" + QString::fromStdString(m_VegaToolStorage->GetName());
-    QString filename = fileDialog->getSaveFileName(nullptr, tr("Save Navigation Tool Storage"), defaultFileName, suffix, &suffix);
+    QString defaultFileName = QmitkIGTCommonHelper::GetLastFileSavePath() + "/" + QString::fromStdString(
+      m_VegaToolStorage->GetName());
+    QString filename = fileDialog->getSaveFileName(nullptr, tr("Save NDI Tool Storage"), defaultFileName, suffix,
+                                                   &suffix);
 
     if (filename.isEmpty()) return; //canceled by the user
 
@@ -540,12 +545,44 @@ void SurgicalSimulate::OnSaveRobotRegistraion()
     {
       mySerializer->Serialize(filename.toStdString(), m_VegaToolStorage);
     }
+    catch (const mitk::IGTIOException& e)
+    {
+      m_Controls.textBrowser->append(QString::fromStdString("Error: " + std::string(e.GetDescription())));
+      return;
+    }
+    m_Controls.textBrowser->append(QString::fromStdString(m_VegaToolStorage->GetName() + " saved"));
+  }
+
+  if (m_KukaToolStorage.IsNotNull())
+  {
+    QFileDialog* fileDialog = new QFileDialog;
+    fileDialog->setDefaultSuffix("IGTToolStorage");
+    QString suffix = "IGT Tool Storage (*.IGTToolStorage)";
+    // Set default file name to LastFileSavePath + storage name
+    QString defaultFileName = QmitkIGTCommonHelper::GetLastFileSavePath() + "/" + QString::fromStdString(
+      m_KukaToolStorage->GetName());
+    QString filename = fileDialog->getSaveFileName(nullptr, tr("Save KUKA Tool Storage"), defaultFileName, suffix,
+      &suffix);
+
+    if (filename.isEmpty()) return; //canceled by the user
+
+    // check file suffix
+    QFileInfo file(filename);
+    if (file.suffix().isEmpty()) filename += ".IGTToolStorage";
+
+    //serialize tool storage
+    mitk::NavigationToolStorageSerializer::Pointer mySerializer = mitk::NavigationToolStorageSerializer::New();
+
+    try
+    {
+      mySerializer->Serialize(filename.toStdString(), m_KukaToolStorage);
+    }
     catch (const mitk::IGTIOException & e)
     {
       m_Controls.textBrowser->append(QString::fromStdString("Error: " + std::string(e.GetDescription())));
       return;
     }
-    m_Controls.textBrowser->append(QString::fromStdString(m_VegaToolStorage->GetName()+" saved"));
+    m_Controls.textBrowser->append(QString::fromStdString(m_KukaToolStorage->GetName() + " saved"));
   }
 }
 
@@ -557,34 +594,41 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   m_RobotRegistrationMatrix = m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix();
   m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
   m_VegaSource->Update();
-  m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
+  m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));
+  //must make sure NavigationDataOfRF update somewhere else.
 
-  //TODO: store tcp into toolstorage
+
   //For Test Use ,7L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
-  std::array<double, 6> tcp;
-	//design
+  //std::array<double, 6> tcp;
+  //design
   /*tcp[0] = 23.80;
 	tcp[1] = 47.49;
 	tcp[2] = 95;
 	tcp[3] =1.575;
 	tcp[4] = -3.141;
 	tcp[5] = 0;*/
-	//algo
-	tcp[0] = 22.5281;
-	tcp[1] = 45.9194;
-	tcp[2] = 93.4865;
-	tcp[3] = 1.575;
-	tcp[4] = -3.141;
-	tcp[5] = 0;
+  //algo
+  /*tcp[0] = 22.5281;
+  tcp[1] = 45.9194;
+  tcp[2] = 93.4865;
+  tcp[3] = 1.575;
+  tcp[4] = -3.141;
+  tcp[5] = 0;*/
 
-	//set tcp to robot
-	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+  //recover tcp from kukaToolStorage
+  auto tcp = m_KukaToolStorage->GetTool(0)->GetTCP();
+
+  //set tcp to robot
+  //set tcp
+  QThread::msleep(1000);
+  m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{
+                                             QString::number(tcp[0]), QString::number(tcp[1]), QString::number(tcp[2]),
+                                             QString::number(tcp[3]), QString::number(tcp[4]), QString::number(tcp[5])
+                                           });
+  QThread::msleep(1000);
+  m_KukaTrackingDevice->RequestExecOperate("setworkmode", {"11"});
+  QThread::msleep(1000);
+  m_KukaTrackingDevice->RequestExecOperate("setworkmode", {"5"});
 
   m_KukaVisualizeTimer->stop();
   m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
@@ -593,10 +637,26 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
 
 void SurgicalSimulate::OnSetTCP()
 {
-	QString tcpNum = m_Controls.lineEdit_tcp->text();
+  QString tcpNum = m_Controls.lineEdit_tcp->text();
 
-	m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", tcpNum });
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
+  // m_KukaTrackingDevice->RequestExecOperate("setTcpNum", {"1", tcpNum});
+  // m_KukaTrackingDevice->RequestExecOperate("setworkmode", {"0"});
+
+  //
+  //recover tcp from kukaToolStorage
+  auto tcp = m_KukaToolStorage->GetTool(tcpNum.toInt())->GetTCP();
+
+
+  //set tcp
+  QThread::msleep(1000);
+  m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{
+                                             QString::number(tcp[0]), QString::number(tcp[1]), QString::number(tcp[2]),
+                                             QString::number(tcp[3]), QString::number(tcp[4]), QString::number(tcp[5])
+    });
+  QThread::msleep(1000);
+  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+  QThread::msleep(1000);
+  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 }
 
 void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
@@ -626,7 +686,7 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
   //========
   //convert from ndi to robot use navigationTree
   //========
-    //build the tree
+  //build the tree
   NavigationTree::Pointer tree = NavigationTree::New();
 
   NavigationNode::Pointer ndi = NavigationNode::New();
@@ -647,8 +707,9 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
 
   tree->AddChild(robot, robotBaseRF);
 
-    //use tree
-  mitk::NavigationData::Pointer treeRes =  tree->GetNavigationData(mitk::NavigationData::New(targetMatrix), "ndi", "Robot");
+  //use tree
+  mitk::NavigationData::Pointer treeRes = tree->GetNavigationData(mitk::NavigationData::New(targetMatrix), "ndi",
+                                                                  "Robot");
   mitk::AffineTransform3D::Pointer treeResMatrix = treeRes->GetAffineTransform3D();
 
   m_T_robot = treeResMatrix;
@@ -658,11 +719,11 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
   //========
   //convert from ndi to robot use navigationTree
   //========
-  
+
   //by hand
   //Td2e = Td2c*Tc2a*Ta2e
-	//  = Tc2d^-1 * Ta2c^-1 *Ta2e
-	//  = m_ndD^-1 * m_ndC^-1 *m_ndInput
+  //  = Tc2d^-1 * Ta2c^-1 *Ta2e
+  //  = m_ndD^-1 * m_ndC^-1 *m_ndInput
   mitk::NavigationData::Pointer byhand = mitk::NavigationData::New(targetMatrix);
   byhand->Compose(m_VegaSource->GetOutput("RobotBaseRF")->GetInverse());
   byhand->Compose(mitk::NavigationData::New(m_RobotRegistrationMatrix)->GetInverse());
@@ -681,40 +742,41 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
 
 bool SurgicalSimulate::GoToImagePoint()
 {
-	auto targetPoint = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPoint->GetSelectedNode()->GetData())->GetPoint(0);
-	auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
+  auto targetPoint = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPoint->GetSelectedNode()->
+                                                              GetData())->GetPoint(0);
+  auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
 
-	auto surfaceToRfMatrix = mitk::AffineTransform3D::New();
-	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
+  auto surfaceToRfMatrix = mitk::AffineTransform3D::New();
+  auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
 
-	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), surfaceToRfMatrix.GetPointer());
-	surfaceToRfMatrix->GetInverse(rfToSurfaceMatrix);
+  mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), surfaceToRfMatrix.GetPointer());
+  surfaceToRfMatrix->GetInverse(rfToSurfaceMatrix);
 
-	auto ndiToTargetMatrix = mitk::AffineTransform3D::New();
-	ndiToTargetMatrix->SetOffset(targetPoint.GetDataPointer());
-	ndiToTargetMatrix->Compose(rfToSurfaceMatrix);
-	ndiToTargetMatrix->Compose(ndiToObjectRfMatrix);
+  auto ndiToTargetMatrix = mitk::AffineTransform3D::New();
+  ndiToTargetMatrix->SetOffset(targetPoint.GetDataPointer());
+  ndiToTargetMatrix->Compose(rfToSurfaceMatrix);
+  ndiToTargetMatrix->Compose(ndiToObjectRfMatrix);
 
-	//use robot matrix,not change the end tool rotation,only apply the offset from probe;
-	m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
-	m_T_robot->SetOffset(ndiToTargetMatrix->GetOffset());
+  //use robot matrix,not change the end tool rotation,only apply the offset from probe;
+  m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
+  m_T_robot->SetOffset(ndiToTargetMatrix->GetOffset());
 
-	vtkMatrix4x4* t = vtkMatrix4x4::New();
-	mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+  vtkMatrix4x4* t = vtkMatrix4x4::New();
+  mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
 
 
-	m_KukaTrackingDevice->RobotMove(t);
+  m_KukaTrackingDevice->RobotMove(t);
 
-	return true;
+  return true;
 }
 
 
 void SurgicalSimulate::OnAutoPositionStart()
 {
-   vtkMatrix4x4* t = vtkMatrix4x4::New();
-   mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
-  
-   m_KukaTrackingDevice->RobotMove(t);
+  vtkMatrix4x4* t = vtkMatrix4x4::New();
+  mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+
+  m_KukaTrackingDevice->RobotMove(t);
 }
 
 void SurgicalSimulate::UseVirtualDevice1()
