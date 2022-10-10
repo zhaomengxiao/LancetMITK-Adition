@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Hip software flow status machine definition
+	-medicalrecordmanagement
+	
+	Rules for state name definition <Process editor plugin name> (all lower case letters) 
+	.eg <org_mitk_lancet_tka_medicalrecordmanagement>.
+	
+	Jump event name definition rules: to_<Process editor plugin name> (all lower case letters) 
+	.eg to_org_mitk_lancet_tka_medicalrecordmanagement.
+-->
+<scxml 
+	xmlns="http://www.w3.org/2005/07/scxml" 
+	version="1.0" 
+	binding="early" 
+	xmlns:qt="http://www.qt.io/2015/02/scxml-ext" 
+	datamodel="ecmascript" 
+	name="LancetThaMedicalRecordManagementStateMachine" 
+	qt:editorversion="4.13.1" 
+	initial="org_mitk_lancet_tha_medicalrecordmanagement"
+>
+	<!--
+		name: org_mitk_lancet_tka_medicalrecordmanagement
+		events: 
+			event name														target state
+			to_exit															exit
+	-->
+	<state id="org_mitk_lancet_tha_medicalrecordmanagement">
+		<transition event="to_exit" target="exit"/>
+	</state>
+
+    <final id="exit">
+        
+    </final>
+</scxml>

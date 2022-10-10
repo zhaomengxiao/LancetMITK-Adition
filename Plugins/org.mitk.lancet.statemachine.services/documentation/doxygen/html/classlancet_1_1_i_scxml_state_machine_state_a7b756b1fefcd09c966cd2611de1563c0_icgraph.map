@@ -1,8 +1,0 @@
-<map id="lancet::IScxmlStateMachineState::GetStateMachineHandler" name="lancet::IScxmlStateMachineState::GetStateMachineHandler">
-<area shape="rect" id="node1" title=" " alt="" coords="472,104,679,145"/>
-<area shape="rect" id="node2" href="$classlancet_1_1_i_scxml_state_machine_state.html#a5fd7728dd4ba5710e5061310ac63088b" title="The current activated sub state of the return state." alt="" coords="239,5,424,47"/>
-<area shape="rect" id="node3" href="$classlancet_1_1_i_scxml_state_machine_state.html#aef27950c4eeb7e599447d578fe55f0af" title="The last activated sub state of the return state." alt="" coords="239,71,424,112"/>
-<area shape="rect" id="node5" href="$classlancet_1_1_i_scxml_state_machine_state.html#a80580b20ae0c9f3b40bead6a78eefcc2" title=" " alt="" coords="239,136,424,177"/>
-<area shape="rect" id="node6" href="$classlancet_1_1_i_scxml_state_machine_state.html#a72f2d8425f59372806d9399b56f9c500" title=" " alt="" coords="239,201,424,243"/>
-<area shape="rect" id="node4" href="$classlancet_1_1_i_scxml_state_machine_state.html#aa5bdfffc154b111ddfe6f8194d9459a4" title=" " alt="" coords="5,71,191,112"/>
-</map>

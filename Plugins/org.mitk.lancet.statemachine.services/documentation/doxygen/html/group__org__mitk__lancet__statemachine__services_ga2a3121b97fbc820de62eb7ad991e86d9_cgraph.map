@@ -1,5 +1,0 @@
-<map id="lancet::state_machine::GetModuleStateName" name="lancet::state_machine::GetModuleStateName">
-<area shape="rect" id="node1" title="Returns the state module name of the state machine ID." alt="" coords="5,5,164,47"/>
-<area shape="rect" id="node2" href="$group__org__mitk__lancet__statemachine__services.html#ga87a41295b556466e9506013403fb849b" title="Returns the state name of the state machine ID." alt="" coords="212,5,363,47"/>
-<area shape="rect" id="node3" href="$group__org__mitk__lancet__statemachine__services.html#ga9dd017aacacd2cc4dfd19bee5eef8b41" title="Returns the name of a Mitk style plug&#45;in." alt="" coords="411,13,633,39"/>
-</map>

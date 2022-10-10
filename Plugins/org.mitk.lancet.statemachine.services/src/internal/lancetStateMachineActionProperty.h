@@ -33,6 +33,8 @@ namespace lancet
 		StateMachineActionProperty();
 		StateMachineActionProperty(const QString&);
 		StateMachineActionProperty(const berry::SmartPointer<IScxmlStateMachineState>&);
+	protected:
+		virtual void Initialize() override;
 	};
 }
 

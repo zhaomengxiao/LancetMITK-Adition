@@ -1,5 +1,0 @@
-<map id="lancet::IScxmlStateMachineService::SetScxmlModuleStateMachines" name="lancet::IScxmlStateMachineService::SetScxmlModuleStateMachines">
-<area shape="rect" id="node1" title=" " alt="" coords="5,29,264,71"/>
-<area shape="rect" id="node2" href="$classlancet_1_1_i_scxml_state_machine_service.html#a7c3df848eda901a3641e5a80b3101380" title="Get or set the sub level state set. For details, refer to." alt="" coords="312,29,523,71"/>
-<area shape="rect" id="node3" href="$classlancet_1_1_i_scxml_state_machine_service.html#ae9cdd16135f27c49917c80f3da0e6d19" title="Return to the top manager of the state machine management module." alt="" coords="571,29,756,71"/>
-</map>

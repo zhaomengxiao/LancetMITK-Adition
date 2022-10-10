@@ -149,9 +149,16 @@ namespace lancet
 			return retval_property;
 		}
 
-		retval_property->SetStateId(jsonRootObject.toObject()["id"].toString());
-		retval_property->SetStateObjectName(jsonRootObject.toObject()["objectName"].toString());
-		retval_property->SetStateUiName(jsonRootObject.toObject()["uiName"].toString());
+		retval_property->SetKeywordValue(StateMachineActionProperty::Keywords::ID,
+			jsonRootObject.toObject()["id"].toString());
+		retval_property->SetKeywordValue(StateMachineActionProperty::Keywords::UI_NAME,
+			jsonRootObject.toObject()["uiName"].toString());
+		retval_property->SetKeywordValue(StateMachineActionProperty::Keywords::OBJECT_NAME,
+			jsonRootObject.toObject()["objectName"].toString());
+		retval_property->SetKeywordValue(StateMachineActionProperty::Keywords::EDITOR_ID,
+			jsonRootObject.toObject()["editorWidgetIdentify"].toString());
+		retval_property->SetKeywordValue(StateMachineActionProperty::Keywords::FUNCTION_ID,
+			jsonRootObject.toObject()["fucntionWidgetIdentify"].toString());
 
 		return retval_property;
 	}

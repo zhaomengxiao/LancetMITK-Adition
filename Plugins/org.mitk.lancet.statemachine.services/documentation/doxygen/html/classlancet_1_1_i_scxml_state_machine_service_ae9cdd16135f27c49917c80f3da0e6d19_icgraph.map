@@ -1,9 +1,0 @@
-<map id="lancet::IScxmlStateMachineService::GetAdminState" name="lancet::IScxmlStateMachineService::GetAdminState">
-<area shape="rect" id="node1" title="Return to the top manager of the state machine management module." alt="" coords="619,184,804,225"/>
-<area shape="rect" id="node2" href="$classlancet_1_1_i_scxml_state_machine_service.html#a4eb7a274d049b55bbf915171eeb5c161" title="Set or obtain the state set under the module state machine object." alt="" coords="312,5,571,47"/>
-<area shape="rect" id="node3" href="$classlancet_1_1_i_scxml_state_machine_service.html#a7c3df848eda901a3641e5a80b3101380" title="Get or set the sub level state set. For details, refer to." alt="" coords="336,95,547,136"/>
-<area shape="rect" id="node5" href="$classlancet_1_1_i_scxml_state_machine_service.html#a4ae5ce17cedc0ec254ca92823b63b46a" title=" " alt="" coords="312,184,571,225"/>
-<area shape="rect" id="node6" href="$classlancet_1_1_scxml_state_machine_service.html#a621c28b6f51a664aa23f3c23d3fbc322" title="Start or stop the." alt="" coords="350,249,533,291"/>
-<area shape="rect" id="node7" href="$classlancet_1_1_scxml_state_machine_service.html#a237a419b07af9c0a6ad6a8baaee182f4" title=" " alt="" coords="350,315,533,356"/>
-<area shape="rect" id="node4" href="$classlancet_1_1_i_scxml_state_machine_service.html#a6ea376c2b8276085547181cbee749dfc" title=" " alt="" coords="5,95,264,136"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="lancet::IScxmlStateMachineState::GetSubStateMachineScxmlAbsoluteFile" name="lancet::IScxmlStateMachineState::GetSubStateMachineScxmlAbsoluteFile">
-<area shape="rect" id="node1" title="Returns the absolute path of the SCXML configuration file." alt="" coords="529,27,752,83"/>
-<area shape="rect" id="node2" href="$classlancet_1_1_i_scxml_state_machine_state.html#a498207321307991b531c2b7e5bffdf56" title="Returns the SCXML configuration file name." alt="" coords="239,5,481,47"/>
-<area shape="rect" id="node3" href="$classlancet_1_1_i_scxml_state_machine_state.html#aa5bdfffc154b111ddfe6f8194d9459a4" title=" " alt="" coords="5,35,191,76"/>
-</map>

@@ -1,0 +1,17 @@
+{
+	"properties":
+	{
+		"id": "1::error::id",
+		"objectName": "1::error::objectName",
+		"uiName": "1::error::uiName",
+		"theme": 
+		{
+			"defaultStyle":
+			{
+				"QMainWindowMenuBarStyle": "Y:\LancetMitk_SBD\MITK-build\bin\resources_temp\tha\qss\mainWindowMenuBarStyle.qss",
+				"editorQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/editor_medicalrecordmanagement_default.qss",
+				"viewQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/view_medicalrecordmanagement_default.qss"
+			}
+		}
+	}
+}

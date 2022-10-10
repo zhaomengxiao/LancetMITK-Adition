@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Hip software flow status machine definition
+	-Initialization
+	-medicalrecordmanagement
+	-stdevelopmentsurgicalprotocol
+	-HardwarePreparation
+	-SurgicalRegistration
+	-AcetabularPreparation
+	-FemurPreparation
+	-SurgicalOutcomes
+	
+	Rules for state name definition <Process editor plugin name> (all lower case letters) 
+	.eg <org_mitk_lancet_tha_medicalrecordmanagement>.
+	
+	Jump event name definition rules: to_<Process editor plugin name> (all lower case letters) 
+	.eg to_org_mitk_lancet_tha_medicalrecordmanagement.
+-->
+<scxml 
+	xmlns="http://www.w3.org/2005/07/scxml" 
+	version="1.0" 
+	binding="early" 
+	xmlns:qt="http://www.qt.io/2015/02/scxml-ext" 
+	datamodel="ecmascript" 
+	name="LancetThaScxmlStateMachineDebug" 
+	qt:editorversion="4.13.1" 
+	initial="initialization"
+>
+	<!--
+		name: initialization
+		Sub processes Scxml files: initialization.scxml
+		events: 
+			event name														target state
+			to_exit															exit
+			to_org_mitk_lancet_tha_medicalrecordmanagement					org_mitk_lancet_tha_medicalrecordmanagement
+	-->
+	<state id="initialization">
+		<transition type="internal" event="to_exit" target="exit"/>
+		<transition type="internal" event="to_org_mitk_lancet_tha_medicalrecordmanagement" target="org_mitk_lancet_tha_medicalrecordmanagement"/>
+		<onentry>
+			<send event="to_org_mitk_lancet_tha_medicalrecordmanagement">
+				 <param name="Note" expr="This is automatic"/>
+			</send>
+		</onentry>
+	</state>
+
+	<!--
+		name: org_mitk_lancet_tha_medicalrecordmanagement
+		Sub processes Scxml files: medicalrecordmanagement.scxml
+		events: 
+			event name														target state
+			to_exit															exit
+			to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol			org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+			to_org_mitk_lancet_tha_linkinghardware							org_mitk_lancet_tha_linkinghardware
+			to_org_mitk_lancet_tha_surgicalregistration						org_mitk_lancet_tha_surgicalregistration
+			to_org_mitk_lancet_tha_acetabularpreparation					org_mitk_lancet_tha_acetabularpreparation
+			to_org_mitk_lancet_tha_femurpreparation							org_mitk_lancet_tha_femurpreparation
+			to_org_mitk_lancet_tha_surgicaloutcomes							org_mitk_lancet_tha_surgicaloutcomes
+	-->
+    <state id="org_mitk_lancet_tha_medicalrecordmanagement">
+        <transition type="internal" event="to_exit" target="exit"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol" target="org_mitk_lancet_tha_stdevelopmentsurgicalprotocol"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_linkinghardware" target="org_mitk_lancet_tha_linkinghardware"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicalregistration" target="org_mitk_lancet_tha_surgicalregistration"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_acetabularpreparation" target="org_mitk_lancet_tha_acetabularpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_femurpreparation" target="org_mitk_lancet_tha_femurpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicaloutcomes" target="org_mitk_lancet_tha_surgicaloutcomes"/>
+    </state>
+	
+	
+	<!--
+		name: org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+		Sub processes Scxml files: stdevelopmentsurgicalprotocol.scxml
+		events: 
+			event name														target state
+			to_exit															exit
+			to_org_mitk_lancet_tha_medicalrecordmanagement				org_mitk_lancet_tha_medicalrecordmanagement
+			to_org_mitk_lancet_tha_linkinghardware							org_mitk_lancet_tha_linkinghardware
+			to_org_mitk_lancet_tha_surgicalregistration						org_mitk_lancet_tha_surgicalregistration
+			to_org_mitk_lancet_tha_acetabularpreparation					org_mitk_lancet_tha_acetabularpreparation
+			to_org_mitk_lancet_tha_femurpreparation							org_mitk_lancet_tha_femurpreparation
+			to_org_mitk_lancet_tha_surgicaloutcomes							org_mitk_lancet_tha_surgicaloutcomes
+	-->
+    <state id="org_mitk_lancet_tha_stdevelopmentsurgicalprotocol">
+        <transition type="internal" event="to_exit" target="exit"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_medicalrecordmanagement" target="org_mitk_lancet_tha_medicalrecordmanagement"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_linkinghardware" target="org_mitk_lancet_tha_linkinghardware"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicalregistration" target="org_mitk_lancet_tha_surgicalregistration"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_acetabularpreparation" target="org_mitk_lancet_tha_acetabularpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_femurpreparation" target="org_mitk_lancet_tha_femurpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicaloutcomes" target="org_mitk_lancet_tha_surgicaloutcomes"/>
+    </state>
+	
+	
+	<!--
+		name: org_mitk_lancet_tha_linkinghardware
+		Sub processes Scxml files: linkinghardware.scxml
+		events: 
+			event name														target state
+			to_exit															exit
+			to_org_mitk_lancet_tha_medicalrecordmanagement					org_mitk_lancet_tha_medicalrecordmanagement
+			to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol			org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+			to_org_mitk_lancet_tha_surgicalregistration						org_mitk_lancet_tha_surgicalregistration
+			to_org_mitk_lancet_tha_acetabularpreparation					org_mitk_lancet_tha_acetabularpreparation
+			to_org_mitk_lancet_tha_femurpreparation							org_mitk_lancet_tha_femurpreparation
+			to_org_mitk_lancet_tha_surgicaloutcomes							org_mitk_lancet_tha_surgicaloutcomes
+	-->
+	<state id="org_mitk_lancet_tha_linkinghardware">
+        <transition type="internal" event="to_exit" target="exit"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_medicalrecordmanagement" target="org_mitk_lancet_tha_medicalrecordmanagement"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol" target="org_mitk_lancet_tha_stdevelopmentsurgicalprotocol"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicalregistration" target="org_mitk_lancet_tha_surgicalregistration"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_acetabularpreparation" target="org_mitk_lancet_tha_acetabularpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_femurpreparation" target="org_mitk_lancet_tha_femurpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicaloutcomes" target="org_mitk_lancet_tha_surgicaloutcomes"/>
+    </state>
+	
+	<!--
+		name: org_mitk_lancet_tha_surgicalregistration
+		Sub processes Scxml files: surgicalregistration.scxml
+		events: 
+			event name														target state
+			to_exit															exit
+			to_org_mitk_lancet_tha_medicalrecordmanagement					org_mitk_lancet_tha_medicalrecordmanagement
+			to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol			org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+			to_org_mitk_lancet_tha_linkinghardware							org_mitk_lancet_tha_linkinghardware
+			to_org_mitk_lancet_tha_acetabularpreparation					org_mitk_lancet_tha_acetabularpreparation
+			to_org_mitk_lancet_tha_femurpreparation							org_mitk_lancet_tha_femurpreparation
+			to_org_mitk_lancet_tha_surgicaloutcomes							org_mitk_lancet_tha_surgicaloutcomes
+	-->
+	<state id="org_mitk_lancet_tha_surgicalregistration">
+        <transition type="internal" event="to_exit" target="exit"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_medicalrecordmanagement" target="org_mitk_lancet_tha_medicalrecordmanagement"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol" target="org_mitk_lancet_tha_stdevelopmentsurgicalprotocol"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_linkinghardware" target="org_mitk_lancet_tha_linkinghardware"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_acetabularpreparation" target="org_mitk_lancet_tha_acetabularpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_femurpreparation" target="org_mitk_lancet_tha_femurpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicaloutcomes" target="org_mitk_lancet_tha_surgicaloutcomes"/>
+    </state>
+	
+	
+	<!--
+		name: org_mitk_lancet_tha_acetabularpreparation
+		Sub processes Scxml files: acetabularpreparation.scxml
+		events: 
+			event name														target state
+			to_exit															exit
+			to_org_mitk_lancet_tha_medicalrecordmanagement					org_mitk_lancet_tha_medicalrecordmanagement
+			to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol			org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+			to_org_mitk_lancet_tha_linkinghardware							org_mitk_lancet_tha_linkinghardware
+			to_org_mitk_lancet_tha_surgicalregistration						org_mitk_lancet_tha_surgicalregistration
+			to_org_mitk_lancet_tha_femurpreparation							org_mitk_lancet_tha_femurpreparation
+			to_org_mitk_lancet_tha_surgicaloutcomes							org_mitk_lancet_tha_surgicaloutcomes
+	-->
+	<state id="org_mitk_lancet_tha_acetabularpreparation">
+        <transition type="internal" event="to_exit" target="exit"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_medicalrecordmanagement" target="org_mitk_lancet_tha_medicalrecordmanagement"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol" target="org_mitk_lancet_tha_stdevelopmentsurgicalprotocol"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_linkinghardware" target="org_mitk_lancet_tha_linkinghardware"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicalregistration" target="org_mitk_lancet_tha_surgicalregistration"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_femurpreparation" target="org_mitk_lancet_tha_femurpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicaloutcomes" target="org_mitk_lancet_tha_surgicaloutcomes"/>
+    </state>
+	
+	
+	<!--
+		name: org_mitk_lancet_tha_femurpreparation
+		Sub processes Scxml files: femurpreparation.scxml
+		events: 
+			event name														target state
+			to_exit															exit
+			to_org_mitk_lancet_tha_medicalrecordmanagement					org_mitk_lancet_tha_medicalrecordmanagement
+			to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol			org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+			to_org_mitk_lancet_tha_linkinghardware							org_mitk_lancet_tha_linkinghardware
+			to_org_mitk_lancet_tha_surgicalregistration						org_mitk_lancet_tha_surgicalregistration
+			to_org_mitk_lancet_tha_acetabularpreparation					org_mitk_lancet_tha_acetabularpreparation
+			to_org_mitk_lancet_tha_surgicaloutcomes							org_mitk_lancet_tha_surgicaloutcomes
+	-->
+	<state id="org_mitk_lancet_tha_femurpreparation">
+        <transition type="internal" event="to_exit" target="exit"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_medicalrecordmanagement" target="org_mitk_lancet_tha_medicalrecordmanagement"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol" target="org_mitk_lancet_tha_stdevelopmentsurgicalprotocol"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_linkinghardware" target="org_mitk_lancet_tha_linkinghardware"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicalregistration" target="org_mitk_lancet_tha_surgicalregistration"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_acetabularpreparation" target="org_mitk_lancet_tha_acetabularpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicaloutcomes" target="org_mitk_lancet_tha_surgicaloutcomes"/>
+    </state>
+	
+	<!--
+		name: org_mitk_lancet_tha_surgicaloutcomes
+		Sub processes Scxml files: surgicaloutcomes.scxml
+		events: 
+			event name														target state
+			to_exit															exit
+			to_org_mitk_lancet_tha_medicalrecordmanagement					org_mitk_lancet_tha_medicalrecordmanagement
+			to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol			org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+			to_org_mitk_lancet_tha_linkinghardware							org_mitk_lancet_tha_linkinghardware
+			to_org_mitk_lancet_tha_surgicalregistration						org_mitk_lancet_tha_surgicalregistration
+			to_org_mitk_lancet_tha_acetabularpreparation					org_mitk_lancet_tha_acetabularpreparation
+			to_org_mitk_lancet_tha_femurpreparation							org_mitk_lancet_tha_femurpreparation
+	-->
+	<state id="org_mitk_lancet_tha_surgicaloutcomes">
+        <transition type="internal" event="to_exit" target="exit"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_medicalrecordmanagement" target="org_mitk_lancet_tha_medicalrecordmanagement"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol" target="org_mitk_lancet_tha_stdevelopmentsurgicalprotocol"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_linkinghardware" target="org_mitk_lancet_tha_linkinghardware"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_surgicalregistration" target="org_mitk_lancet_tha_surgicalregistration"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_acetabularpreparation" target="org_mitk_lancet_tha_acetabularpreparation"/>
+        <transition type="internal" event="to_org_mitk_lancet_tha_femurpreparation" target="org_mitk_lancet_tha_femurpreparation"/>
+    </state>
+
+    <final id="exit">
+        
+    </final>
+</scxml>

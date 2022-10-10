@@ -1,0 +1,25 @@
+QMenuBar
+{
+  spacing: 30px;
+}
+
+QMenuBar::item
+{
+  color: white;
+  min-width: 80px;
+  border-radius: 4px;
+  backgound-color: rgb(50,170,145);
+}
+
+QMenuBar::item:selected
+{
+  color: #333333;
+  border-radius: 4px;
+  backgound-color: rgb(236,240,243);
+}
+
+QMenuBar::item:pressed
+{
+  padding-left:5px;
+  padding-top:5px;
+}

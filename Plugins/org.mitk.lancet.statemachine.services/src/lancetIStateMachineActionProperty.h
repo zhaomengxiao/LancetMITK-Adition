@@ -15,7 +15,15 @@ namespace lancet
 	 * 
 	 * The attribute data class of the state machine element with a custom style is 
 	 * required. Please inherit this class to implement.
-	 *
+	 * 
+	 * \note Keyword List
+	 *		-# id: Unique ID identification code of the status.
+	 *		-# objectName: Object name of interface mapping object.
+	 *		-# uiName: Text information of interface mapping object.
+	 *		-# editorWidgetIdentify: Editor plug-in ID ID code of the status.
+	 *		-# fucntionWidgetIdentify: Status feature plug-in ID identifier.
+	 *		-# themes: Style style sheet for status.
+	 * 
 	 * \author Sun
 	 * \version V1.0.0
 	 * \date 2022-09-23 18:11:22
@@ -33,7 +41,39 @@ namespace lancet
 		IStateMachineActionProperty(const QString&);
 		IStateMachineActionProperty(const berry::SmartPointer<IScxmlStateMachineState>&);
 
+		struct LANCET_STATEMACHINE_SERVICES_PLUGIN Keywords
+		{
+			static const char* const ID;
+			static const char* const OBJECT_NAME;
+			static const char* const UI_NAME;
+			static const char* const EDITOR_ID;
+			static const char* const FUNCTION_ID;
+		};
+
+		class LANCET_STATEMACHINE_SERVICES_PLUGIN IQActionStyleProperty
+		{
+		public:
+			IQActionStyleProperty();
+			struct LANCET_STATEMACHINE_SERVICES_PLUGIN IThemeStyle
+			{
+				QString editorWidgetQssFilePath;
+				QString fucntionWidgetQssFilePath;
+			};
+
+			virtual QList<QString> GetStyleThemes() const;
+
+			virtual bool HasStyle(const QString&) const;
+			virtual IThemeStyle GetStyle(const QString& theme) const;
+			virtual void SetStyle(const QString&, const IThemeStyle&);
+		private:
+			struct IQActionStylePropertyPrivateImp;
+			std::shared_ptr<IQActionStylePropertyPrivateImp> imp;
+		};
 	public:
+		virtual bool IsValidKeywordKey(const QString&) const;
+		virtual QVariant GetKeywordValue(const QString&) const;
+		virtual void SetKeywordValue(const QString& ,const QVariant&);
+
 		virtual QString GetStateId() const;
 		virtual void SetStateId(const QString&);
 
@@ -42,11 +82,8 @@ namespace lancet
 
 		virtual QString GetStateUiName() const;
 		virtual void SetStateUiName(const QString&);
-
-		virtual QString GetStateIcon() const;
-		virtual void SetStateIcon(const QString&);
-		// todo
-		// theme
+	protected:
+		virtual void Initialize() = 0;
 	private:
 		struct IStateMachineActionPropertyPrivateImp;
 		std::shared_ptr<IStateMachineActionPropertyPrivateImp> imp;

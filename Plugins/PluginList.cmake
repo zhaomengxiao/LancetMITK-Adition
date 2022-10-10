@@ -1,4 +1,5 @@
 set(MITK_PLUGINS
+  org.mitk.lancet.statemachine.services:ON
   org.mitk.exampleplugin.eageractivation:ON
   org.mitk.gui.qt.exampleplugin:ON
   org.mitk.virtualcorrection:ON
@@ -11,7 +12,7 @@ set(MITK_PLUGINS
   org.mitk.lancet.gui.qt.testsuite:ON
   org.mitk.lancet.view.deviceconfig:ON
   org.mitk.lancet.imageregistration:ON
-  ##################   BEGIN    ####################
+  ##################   BEGIN(THA)    ####################
   org.mitk.lancet.medicalrecordmanagement:ON
   org.mitk.lancet.medicalrecordmanagement.editor:ON
   org.mitk.lancet.qctmark:ON
@@ -49,8 +50,9 @@ set(MITK_PLUGINS
   org.mitk.lancet.putfemurprosthesisaccuracy:ON
   org.mitk.lancet.putfemurprosthesisaccuracy.editor:ON
   org.mitk.lancet.postoperativeoutcome:ON
-  ##################    END   #######################
+  ##################    END(THA)   #######################
   org.mitk.lancet.htotest:ON
   org.mitk.lancet.surgicalsimulate:ON
   org.mitk.lancet.kukarobotcontrol:ON
+  org.mitk.lancet.tha.application:ON
 )

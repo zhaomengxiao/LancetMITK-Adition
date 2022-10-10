@@ -1,8 +1,0 @@
-<map id="lancet::IScxmStateMachineHandler::GetAssignor" name="lancet::IScxmStateMachineHandler::GetAssignor">
-<area shape="rect" id="node1" title=" " alt="" coords="491,104,673,145"/>
-<area shape="rect" id="node2" href="$classlancet_1_1_i_scxm_state_machine_handler.html#a313c921e148c767db24bd23e5a60b6f5" title="Returns true if a message to target can be dispatched by this state machine." alt="" coords="248,5,443,47"/>
-<area shape="rect" id="node4" href="$classlancet_1_1_scxm_state_machine_handler.html#a81c8330aeda3a79f42b4043229d8bca9" title="Start or stop the state machine." alt="" coords="254,71,437,112"/>
-<area shape="rect" id="node5" href="$classlancet_1_1_scxm_state_machine_handler.html#a8e77278ad457ce54faf3cf1b23b9f68b" title=" " alt="" coords="255,136,436,177"/>
-<area shape="rect" id="node6" href="$classlancet_1_1_i_scxm_state_machine_handler.html#a3a3f4676f5d5a21371b82ce390d97d1b" title="Jump to the state of the state machine." alt="" coords="254,225,437,267"/>
-<area shape="rect" id="node3" href="$classlancet_1_1_i_scxm_state_machine_handler.html#a012fab2df18f5af52aeb36dc5d4480a2" title=" " alt="" coords="5,5,200,47"/>
-</map>
