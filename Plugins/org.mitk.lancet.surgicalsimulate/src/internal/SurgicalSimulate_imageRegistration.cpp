@@ -327,7 +327,9 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
 	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
 	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
 	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
-	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_surfaceRegistrationStaticImageFilter->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
+	
+	auto robotBaseRFIndex = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_surfaceRegistrationStaticImageFilter->GetOutput(robotBaseRFIndex));//must make sure NavigationDataOfRF update somewhere else.
 
 	m_KukaVisualizeTimer->stop();
 	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
@@ -380,7 +382,8 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
 	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
 	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
-	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_surfaceRegistrationStaticImageFilter->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
+	auto robotBaseRFIndex = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_surfaceRegistrationStaticImageFilter->GetOutput(robotBaseRFIndex));//must make sure NavigationDataOfRF update somewhere else.
 
 	m_KukaVisualizeTimer->stop();
 	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
