@@ -316,12 +316,49 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
 	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationStaticImageFilter);
 	m_VegaVisualizeTimer->start();
 
+
+	// Reconnect the robot pipeline so that its tcp can be visualized in the image frame as well
+	// Only takes place when the robot is registered or the previous robot registration is applied
+	if (m_RobotRegistrationMatrix.IsNull())
+	{
+		return true;
+	}
+
+	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
+	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
+	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
+	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_surfaceRegistrationStaticImageFilter->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
+
+	m_KukaVisualizeTimer->stop();
+	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+	m_KukaVisualizeTimer->start();
+
+	// set TCP
+	  //For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
+  // https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
+	double tcp[6];
+	tcp[0] = 0;
+	tcp[1] = 100;
+	tcp[2] = 138;
+	tcp[3] = 0;
+	tcp[4] = 0;
+	tcp[5] = 0;
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
 	return true;
 }
 
 bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 {
-	// Apply preexisting surface registration result
+	// Apply preexisting surface registration result to all the NDI tools
 	m_surfaceRegistrationStaticImageFilter = lancet::ApplySurfaceRegistratioinStaticImageFilter::New();
 	m_surfaceRegistrationStaticImageFilter->ConnectTo(m_VegaSource);
 	
@@ -332,6 +369,43 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 	m_VegaVisualizeTimer->stop();
 	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationStaticImageFilter);
 	m_VegaVisualizeTimer->start();
+
+	// Reconnect the robot pipeline so that its tcp can be visualized in the image frame as well
+	// Only takes place when the robot is registered or the previous robot registration is applied
+	if (m_RobotRegistrationMatrix.IsNull())
+	{
+		return true;
+	}
+
+	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
+	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
+	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
+	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_surfaceRegistrationStaticImageFilter->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
+
+	m_KukaVisualizeTimer->stop();
+	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+	m_KukaVisualizeTimer->start();
+
+	// set TCP
+	  //For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
+  // https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
+	double tcp[6];
+	tcp[0] = 0;
+	tcp[1] = 100;
+	tcp[2] = 138;
+	tcp[3] = 0;
+	tcp[4] = 0;
+	tcp[5] = 0;
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
 
 	return true;
 }
