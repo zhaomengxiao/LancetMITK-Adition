@@ -196,8 +196,11 @@ protected:
   bool ApplySurfaceRegistration_staticImage();
   bool ApplyPreexistingImageSurfaceRegistration_staticImage();
 
-  // Get the coordinate of the image point in the robot base frame
+  // Get the coordinate of the image point in the robot (internal) base frame
   bool InterpretImagePoint();
+
+  // Get the coordinate of the image line in the robot (internal) base frame
+  bool InterpretImageLine();
 };
 
 #endif // SurgicalSimulate_h

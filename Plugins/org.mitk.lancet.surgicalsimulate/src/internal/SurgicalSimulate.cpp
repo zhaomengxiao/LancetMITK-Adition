@@ -71,6 +71,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surface_regis);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetLine);
 
   m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
 
@@ -102,6 +103,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 
 
   connect(m_Controls.pushButton_setTCP, &QPushButton::clicked, this, &SurgicalSimulate::OnSetTCP);
+  connect(m_Controls.pushButton_confirmImageTargetLine, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImageLine);
 
 }
 
@@ -700,7 +702,7 @@ bool SurgicalSimulate::InterpretImagePoint()
 	auto targetPoint = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPoint->GetSelectedNode()->GetData())->GetPoint(0);
 	auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
 
-	auto surfaceToRfMatrix = mitk::AffineTransform3D::New();
+	//auto surfaceToRfMatrix = mitk::AffineTransform3D::New();
 	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
 
 
@@ -710,10 +712,7 @@ bool SurgicalSimulate::InterpretImagePoint()
 	tmpMatrix->Invert();
 
 	mitk::TransferVtkMatrixToItkTransform(tmpMatrix, rfToSurfaceMatrix.GetPointer());
-
-	// mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), surfaceToRfMatrix.GetPointer());
-	// surfaceToRfMatrix->GetInverse(rfToSurfaceMatrix);
-
+	
 	auto ndiToTargetMatrix = mitk::AffineTransform3D::New();
 	m_T_robot = mitk::AffineTransform3D::New();
 
@@ -736,17 +735,97 @@ bool SurgicalSimulate::InterpretImagePoint()
 
 	m_Controls.textBrowser->append(QString::number(m_T_robot->GetOffset()[0])+ "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
 
-
-
-	//use robot matrix,not change the end tool rotation,only apply the offset from probe;
 	m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
-	//m_T_robot->SetOffset(ndiToTargetMatrix->GetOffset());
 
-	// vtkMatrix4x4* t = vtkMatrix4x4::New();
-	// mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+	return true;
+}
+
+bool SurgicalSimulate::InterpretImageLine()
+{
+	auto targetLinePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPoint->GetSelectedNode()->GetData());
+	auto targetPoint_0 = targetLinePoints->GetPoint(0); // TCP frame origin should move to this point
+	auto targetPoint_1 = targetLinePoints->GetPoint(1);
+
+	// Interpret targetPoint_0 from image frame to robot (internal) base frame
+	auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
+
+	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
+
+	auto registrationMatrix_surfaceToRF = m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix();
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+	mitk::TransferItkTransformToVtkMatrix(registrationMatrix_surfaceToRF.GetPointer(), tmpMatrix);
+	tmpMatrix->Invert();
+
+	mitk::TransferVtkMatrixToItkTransform(tmpMatrix, rfToSurfaceMatrix.GetPointer());
+
+	auto ndiToTargetMatrix_0 = mitk::AffineTransform3D::New();
+	ndiToTargetMatrix_0->SetOffset(targetPoint_0.GetDataPointer());
+	ndiToTargetMatrix_0->Compose(rfToSurfaceMatrix);
+	ndiToTargetMatrix_0->Compose(ndiToObjectRfMatrix);
+	auto targetUnderBase_0 = mitk::AffineTransform3D::New();
+	m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_0, targetUnderBase_0);
+	auto targetPointUnderBase_0 = targetUnderBase_0->GetOffset();
+
+	auto ndiToTargetMatrix_1 = mitk::AffineTransform3D::New();
+	ndiToTargetMatrix_1->SetOffset(targetPoint_1.GetDataPointer());
+	ndiToTargetMatrix_1->Compose(rfToSurfaceMatrix);
+	ndiToTargetMatrix_1->Compose(ndiToObjectRfMatrix);
+	auto targetUnderBase_1 = mitk::AffineTransform3D::New();
+	m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_1, targetUnderBase_1);
+	auto targetPointUnderBase_1 = targetUnderBase_1->GetOffset();
+
+	
+	// fine tune the direction
+	// m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
+	auto currentPostureUnderBase = m_KukaSource->GetOutput(0)->GetAffineTransform3D();
+	vtkNew<vtkMatrix4x4> vtkCurrentPoseUnderBase;
+	mitk::TransferItkTransformToVtkMatrix(currentPostureUnderBase.GetPointer(), vtkCurrentPoseUnderBase);
+
+	Eigen::Vector3d currentXunderBase;
+	currentXunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 0);
+	currentXunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 0);
+	currentXunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 0);
+
+	MITK_INFO << "currentXunderBase" << currentXunderBase;
+
+	// Eigen::Vector3d currentYunderBase;
+	// currentYunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 1);
+	// currentYunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 1);
+	// currentYunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 1);
 	//
-	//
-	// m_KukaTrackingDevice->RobotMove(t);
+	// Eigen::Vector3d currentZunderBase;
+	// currentZunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 2);
+	// currentZunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 2);
+	// currentZunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 2);
+
+	Eigen::Vector3d targetXunderBase;
+	targetXunderBase[0] = targetPointUnderBase_1[0] - targetPointUnderBase_0[0];
+	targetXunderBase[1] = targetPointUnderBase_1[1] - targetPointUnderBase_0[1];
+	targetXunderBase[2] = targetPointUnderBase_1[2] - targetPointUnderBase_0[2];
+
+	MITK_INFO << "targetXunderBase" << targetXunderBase;
+
+	Eigen::Vector3d rotationAxis;
+	rotationAxis = currentXunderBase.cross(targetXunderBase);
+	rotationAxis.normalize();
+	double rotationAngle = asin(rotationAxis.norm());
+
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->PostMultiply();
+	tmpTransform->Identity();
+	tmpTransform->SetMatrix(vtkCurrentPoseUnderBase);
+	tmpTransform->RotateWXYZ(rotationAngle,rotationAxis[0], rotationAxis[1], rotationAxis[2]);
+	tmpTransform->Update();
+
+	auto targetPoseUnderBase = mitk::AffineTransform3D::New();
+	mitk::TransferVtkMatrixToItkTransform(tmpTransform->GetMatrix(), targetPoseUnderBase.GetPointer());
+
+	// Assemble m_T_robot
+	m_T_robot = mitk::AffineTransform3D::New();
+	m_T_robot->SetMatrix(targetPoseUnderBase->GetMatrix());
+	m_T_robot->SetOffset(targetPointUnderBase_0);
+
+	m_Controls.textBrowser->append("result Line target point:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
 
 	return true;
 }
