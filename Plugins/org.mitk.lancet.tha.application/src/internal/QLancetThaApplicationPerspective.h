@@ -6,8 +6,10 @@
 
 // Qt
 #include <QObject>
+#include "org_mitk_lancet_tha_application_Export.h"
 
-class QLancetThaApplicationPerspective : public QObject, public berry::IPerspectiveFactory
+class org_mitk_lancet_tha_application_EXPORT QLancetThaApplicationPerspective
+	: public QObject, public berry::IPerspectiveFactory
 {
 	Q_OBJECT
 	Q_INTERFACES(berry::IPerspectiveFactory)

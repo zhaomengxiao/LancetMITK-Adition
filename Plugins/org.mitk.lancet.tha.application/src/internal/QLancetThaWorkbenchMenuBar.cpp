@@ -60,7 +60,9 @@ bool QLancetThaWorkbenchMenuBar::OpenStateWidget(
 	{
 		// Warning
 		return false;
-	}
+	}	
+	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
+		<< QString("State id : %1 \n").arg(state->GetStateId()) << "\033[0m";
 	berry::IWorkbenchWindow::Pointer window = berry::PlatformUI::GetWorkbench()->GetActiveWorkbenchWindow();
 	berry::WorkbenchPage::Pointer activePage = window->GetActivePage().Cast<berry::WorkbenchPage>();
 
@@ -121,6 +123,8 @@ bool QLancetThaWorkbenchMenuBar::CloseStateWidget(
 		// Warning
 		return false;
 	}
+	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
+		<< QString("State id : %1 \n").arg(state->GetStateId()) << "\033[0m";
 
 	// Correctness filtering
 	// The bug does not exist logically and may be removed later.
@@ -146,9 +150,10 @@ bool QLancetThaWorkbenchMenuBar::CloseStateWidget(
 
 	for (auto item_editor : window->GetActivePage()->GetEditors())
 	{
-		qDebug() << "item_editor: " << item_editor->GetSite()->GetId();
+		qDebug() << "try compture item_editor: " << item_editor->GetSite()->GetId();
 		if (item_editor->GetSite()->GetId().toLower() == editorId.toLower())
 		{
+			qInfo() << "close item_editor : " << item_editor->GetSite()->GetId();
 			window->GetActivePage()->CloseEditor(item_editor, false);
 			break;
 		}
@@ -169,6 +174,12 @@ QLancetThaWorkbenchMenuBar::GetStateMachineService() const
 			context->getService<lancet::IScxmlStateMachineService>(serviceRef);
 	}
 	return this->imp->stateMachineService;
+}
+
+void QLancetThaWorkbenchMenuBar::SetStateMachineService(
+	berry::SmartPointer<lancet::IScxmlStateMachineService> service)
+{
+	this->imp->stateMachineService = service;
 }
 
 bool QLancetThaWorkbenchMenuBar::InitializeStateMachineForUi()
@@ -209,6 +220,8 @@ void QLancetThaWorkbenchMenuBar::resizeEvent(QResizeEvent* event)
 
 void QLancetThaWorkbenchMenuBar::onStateMachineModuleEnter(IScxmlStateMachineState* state)
 {
+	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
+		<< QString("State id : %1 \n").arg(state->GetStateId()) << "\033[0m";
 	if (state && state->GetStateMachineHandler().IsNotNull())
 	{
 		state->GetStateMachineHandler()->StartStateMachine();
@@ -217,6 +230,8 @@ void QLancetThaWorkbenchMenuBar::onStateMachineModuleEnter(IScxmlStateMachineSta
 
 void QLancetThaWorkbenchMenuBar::onStateMachineModuleExit(IScxmlStateMachineState* state)
 {
+	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
+		<< QString("State id : %1 \n").arg(state->GetStateId()) << "\033[0m";
 	if (state && state->GetStateMachineHandler().IsNotNull())
 	{
 		state->GetStateMachineHandler()->StopStateMachine();
@@ -225,9 +240,9 @@ void QLancetThaWorkbenchMenuBar::onStateMachineModuleExit(IScxmlStateMachineStat
 
 void QLancetThaWorkbenchMenuBar::onStateMachineElementEnter(IScxmlStateMachineState* state)
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3) \n").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__)
+	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
 		<< QString("State id : %1 \n").arg(state->GetStateId())
-		<< QString("Address %1 \n").arg(QString::number(int(state), 16));
+		<< QString("Address %1 \n").arg(QString::number(int(state), 16)) << "\033[0m";
 
 	if (state && state->GetStateId() != "exit")
 	{
@@ -237,9 +252,9 @@ void QLancetThaWorkbenchMenuBar::onStateMachineElementEnter(IScxmlStateMachineSt
 
 void QLancetThaWorkbenchMenuBar::onStateMachineElementExit(IScxmlStateMachineState* state)
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3) \n").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__)
+	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
 		<< QString("State id : %1 \n").arg(state->GetStateId())
-		<< QString("Address %1 \n").arg(QString::number(int(state), 16));
+		<< QString("Address %1 \n").arg(QString::number(int(state), 16)) << "\033[0m";
 	if (state && state->GetStateId() != "exit")
 	{
 		this->CloseStateWidget(IScxmlStateMachineState::Pointer(state));
@@ -346,7 +361,7 @@ QAction* QLancetThaWorkbenchMenuBar::InitializeAction(QMenu* menu,
 {
 	QAction* retval = 
 		menu ? menu->addAction("empty") : this->ui->menubarApplication->addAction("empty");
-
+	
 	connect(retval, SIGNAL(triggered(bool)), this, SLOT(onActionClicked(bool)));
 	// setting property 
 	if (state.IsNotNull())

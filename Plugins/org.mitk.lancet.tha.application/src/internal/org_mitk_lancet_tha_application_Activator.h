@@ -3,8 +3,11 @@
 #define org_mitk_lancet_tha_application_Activator_H
 
 #include <ctkPluginActivator.h>
+#include "org_mitk_lancet_tha_application_Export.h"
 
-class org_mitk_lancet_tha_application_Activator : public QObject, public ctkPluginActivator
+
+class org_mitk_lancet_tha_application_EXPORT org_mitk_lancet_tha_application_Activator
+	: public QObject, public ctkPluginActivator
 {
 	Q_OBJECT
 	Q_PLUGIN_METADATA(IID "org_mitk_lancet_tha_application")

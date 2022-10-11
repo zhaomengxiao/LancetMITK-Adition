@@ -52,6 +52,7 @@ void QLancetThaApplicationWorkbenchWindowAdvisor::PostWindowCreate()
 
 	QVBoxLayout* layout = new QVBoxLayout();
 	mainWindow->centralWidget()->setLayout(layout);
+	layout->setMargin(0);
 
 	QWidget* mainWndMenuWidget = new QWidget(mainWindow->centralWidget());
 	mainWndMenuWidget->setMinimumHeight(40);
@@ -68,8 +69,19 @@ void QLancetThaApplicationWorkbenchWindowAdvisor::PostWindowCreate()
 	menuBar->setStyleSheet("background-color:rgb(255,0,0)");
 	menuBar->InitializeStateMachineForUi();
 
-	menuBar->GetModuleMenuBar()->setStyleSheet("background-color:rgb(0,255,0);  QMenuBar::item {spacing:50px; padding: 10px 10px;} ");
-	menuBar->GetApplicationToolBar()->setStyleSheet("background-color:rgb(0,0,255)");
+	menuBar->GetModuleMenuBar()->setStyleSheet(
+		"\
+		QMenuBar::item{\
+		margin - top: 10px; \
+		margin - left: 30px; \
+		font - size:12px; \
+		padding:6px 45px 6px 45px; \
+		background: transparent; \
+		border - radius:4px; \
+		border - image:url(: / default.png); \
+		}\
+		");
+
 
 	mainWindow->addToolBar(Qt::ToolBarArea::TopToolBarArea, menuBar);
 

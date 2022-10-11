@@ -4,8 +4,10 @@
 // berry
 #include <berryActionBarAdvisor.h>
 #include <berryIActionBarConfigurer.h>
+#include "org_mitk_lancet_tha_application_Export.h"
 
-class QLancetThaWorkbenBarAdvisor : public berry::ActionBarAdvisor 
+class org_mitk_lancet_tha_application_EXPORT QLancetThaWorkbenBarAdvisor 
+	: public berry::ActionBarAdvisor
 {
 public:
 	QLancetThaWorkbenBarAdvisor(berry::SmartPointer<berry::IActionBarConfigurer> configurer);

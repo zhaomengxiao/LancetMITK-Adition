@@ -4,13 +4,14 @@
 //berry
 #include <berryWorkbenchAdvisor.h>
 #include <berryWorkbenchWindowAdvisor.h>
+#include "org_mitk_lancet_tha_application_Export.h"
 
 namespace lancet
 {
 	class IScxmlStateMachineState;
 }
 
-class QLancetThaApplicationWorkbenchWindowAdvisor 
+class org_mitk_lancet_tha_application_EXPORT QLancetThaApplicationWorkbenchWindowAdvisor
 	: public QObject, public berry::WorkbenchWindowAdvisor
 {
 	Q_OBJECT

@@ -7,9 +7,10 @@
 // Qt
 #include <QObject>
 #include <QVariant>
-//#include <QScopedPointer>
+#include "org_mitk_lancet_tha_application_Export.h"
 
-class QLancetThaApplication : public QObject, public berry::IApplication
+class org_mitk_lancet_tha_application_EXPORT QLancetThaApplication 
+	: public QObject, public berry::IApplication
 {
 	Q_OBJECT
 	Q_INTERFACES(berry::IApplication)

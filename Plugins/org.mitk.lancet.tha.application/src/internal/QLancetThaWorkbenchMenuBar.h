@@ -8,6 +8,8 @@
 // berry
 #include <berrySmartPointer.h>
 
+#include "org_mitk_lancet_tha_application_Export.h"
+
 namespace Ui
 {
 	class QLancetThaWorkbenchMenuBarForm;
@@ -20,7 +22,8 @@ namespace lancet
 }
 
 class QResizeEvent;
-class QLancetThaWorkbenchMenuBar : public QToolBar
+class org_mitk_lancet_tha_application_EXPORT QLancetThaWorkbenchMenuBar
+	: public QToolBar
 {
 	Q_OBJECT
 		typedef lancet::IScxmlStateMachineState IScxmlStateMachineState;
@@ -37,6 +40,8 @@ public:
 
 	virtual berry::SmartPointer<lancet::IScxmlStateMachineService> 
 		GetStateMachineService() const;
+	virtual void SetStateMachineService(
+		berry::SmartPointer<lancet::IScxmlStateMachineService>);
 
 	virtual bool InitializeStateMachineForUi();
 protected:
