@@ -35,14 +35,12 @@ class QLinkingHardware : public QmitkAbstractView
   Q_OBJECT
 
 public:
-  static const std::string VIEW_ID;
-  ~QLinkingHardware() override;
-  void setStartHardware(int staubli, int ndi);
-
+	static const std::string VIEW_ID;
+	~QLinkingHardware() override;
 
 	virtual void CreateQtPartControl(QWidget* parent) override;
 	virtual void SetFocus() override;
-	//void setStartHardware(int staubli, int ndi);
+	void setStartHardware(int staubli, int ndi);
 
 Q_SIGNALS:
 	void signalHardWareFinished();

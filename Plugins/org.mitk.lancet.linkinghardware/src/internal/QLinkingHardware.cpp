@@ -29,6 +29,7 @@ found in the LICENSE file.
 #include <berryIQtStyleManager.h>
 #include "org_mitk_lancet_linkinghardware_Activator.h"
 
+// THA
 //#include "MarkerStatusFrame.h"
 //#include "IGTController.h"
 //#include "Log.h"
@@ -42,6 +43,7 @@ void QLinkingHardware::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent); 
+  this->setStartHardware(1, 1);
   m_Controls.pushButton_success->setEnabled(true);
  
   auto test_dir = QDir(":/org.mitk.lancet.linkinghardware/");
@@ -68,11 +70,15 @@ void QLinkingHardware::CreateQtPartControl(QWidget *parent)
 	 // << QFile::exists(test_dir.absoluteFilePath("linkinghardware.qss"))  // True
 	 // << "?" << QLatin1String(qss.readAll());
   qss.close();
+
+  connect(m_Controls.pushButton_auto, &QPushButton::clicked, this, &QLinkingHardware::on_pushButton_auto_clicked);
+  connect(m_Controls.pushButton_success, &QPushButton::clicked, this, &QLinkingHardware::on_pushButton_success_clicked);
 }
 void QLinkingHardware::setStartHardware(int staubli, int ndi)
 {
 	QString str = "--staubli::" + QString::number(staubli) + "--ndi::" + QString::number(ndi);
-	//Log::write("HardWareWidget::setStartHardware" + str);
+	//Log::write("QLinkingHardware::setStartHardware" + str);
+	MITK_INFO << "QLinkingHardware:" << __func__ + str << ": log";
 	if (staubli == 0 && ndi == 0)
 	{
 		m_Controls.checkBox_startNDI->setChecked(true);
@@ -97,51 +103,54 @@ void QLinkingHardware::setStartHardware(int staubli, int ndi)
 
 void QLinkingHardware::on_pushButton_auto_clicked()
 {
-	//Log::write("HardWareWidget::on_pushButton_auto_clicked");
+	MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
 	m_Controls.pushButton_auto->setEnabled(false);
 	m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("正在检测"));
-	//if (isauto)
-	//{
+	if (isauto)
+	{
 	//	IGTController *igt = IGTController::getInStance(); 
 	//	this->RobotStatusConnect = connect(igt, &IGTController::RobotStatus, this, &HardWareWidget::RobotStatus);
 	//	this->NDIStatusConnect = connect(igt, &IGTController::NDIStatus, this, &HardWareWidget::NDIStatus);
 	//	igt->Initialize();
-	//}
-	//else
-	//{
+	}
+	else
+	{
 	//	IGTController *igt = IGTController::getInStance();
 	//	igt->Initialize();
-	//}
+	}
 }
 void QLinkingHardware::RobotStatus(int i)
 {
-	//Log::write("HardWareWidget::RobotStatus::" + QString::number(i));
+	//Log::write("QLinkingHardware::RobotStatus::" + QString::number(i));
+	MITK_INFO << "QLinkingHardware:" << __func__ + QString::number(i) << ": log";
 	staubliStatus = i;
 }
 
 void QLinkingHardware::NDIStatus(int i)
 {
-	//Log::write("HardWareWidget::NDIStatus:" + QString::number(i));
-	//ndiStatus = i;
-	//this->setStartHardware(staubliStatus, ndiStatus);
-	//emit signalStatus(staubliStatus, ndiStatus);
-	//if (staubliStatus != 0 || ndiStatus != 0)
-	//{
-	//	m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("重新检测"));
-	//	m_Controls.pushButton_auto->setEnabled(true);
-	//	isauto = false;
-	//}
-	//else
-	//{
-	//	m_Controls.pushButton_success->setEnabled(true);
-	//	m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("检测成功"));
-	//	disconnect(this->RobotStatusConnect);
-	//	disconnect(this->NDIStatusConnect);
-	//}
+	//Log::write("QLinkingHardware::NDIStatus:" + QString::number(i));
+	MITK_INFO << "QLinkingHardware:" << __func__ + QString::number(i) << ": log";
+	ndiStatus = i;
+	this->setStartHardware(staubliStatus, ndiStatus);
+	emit signalStatus(staubliStatus, ndiStatus);
+	if (staubliStatus != 0 || ndiStatus != 0)
+	{
+		m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("重新检测"));
+		m_Controls.pushButton_auto->setEnabled(true);
+		isauto = false;
+	}
+	else
+	{
+		m_Controls.pushButton_success->setEnabled(true);
+		m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("检测成功"));
+		disconnect(this->RobotStatusConnect);
+		disconnect(this->NDIStatusConnect);
+	}
 }
 
 void QLinkingHardware::on_pushButton_success_clicked()
 {
-	//Log::write("HardWareWidget::on_pushButton_success_clicked");
+	//Log::write("QLinkingHardware::on_pushButton_success_clicked");
+	MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
 	emit signalHardWareFinished();
 }

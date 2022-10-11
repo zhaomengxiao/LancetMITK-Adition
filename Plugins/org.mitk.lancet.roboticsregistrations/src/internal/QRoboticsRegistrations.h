@@ -37,6 +37,17 @@ class QRoboticsRegistrations : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
+Q_SIGNALS:
+  void signalAction(int);
+private Q_SLOTS:
+  void on_comboBox_ToolType_currentIndexChanged(int index);
+  void on_comboBox_TCPType_currentIndexChanged(int index);
+  void on_signalReadBackups();
+
+  void on_pushButtonAddPoint_clicked();
+  void on_pushButtonCalResult_clicked();
+  void on_pushButtonRobotVerify_clicked();
+
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -50,6 +61,17 @@ protected:
   void DoImageProcessing();
 
   Ui::QRoboticsRegistrationsControls m_Controls;
+  enum
+  {
+	  RIO_REGISTRATION = 3,
+	  PROBE_CHECKPOINT,
+	  FEMORAL_CHECKPOINT,
+	  FEMUR_LANDMARK,
+	  FEMUR_REGISTRATION,
+	  PELVIS_CHECKPOINT,
+	  PELVIS_LANDMARK,
+	  PELVIS_REGISTRATION,
+  };
 };
 
 #endif // QRoboticsRegistrations_h

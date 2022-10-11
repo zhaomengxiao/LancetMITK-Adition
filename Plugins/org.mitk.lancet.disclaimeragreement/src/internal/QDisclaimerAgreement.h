@@ -37,6 +37,14 @@ class QDisclaimerAgreement : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
+  void on_signalOpen(QString, QString);
+
+Q_SIGNALS:
+	void signalHardWare();
+
+public Q_SLOTS:
+  void onButtonAgree_clicked(bool checked = false);
+
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -45,9 +53,6 @@ protected:
   /// \brief called by QmitkFunctionality when DataManager's selection has changed
   virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
                                   const QList<mitk::DataNode::Pointer> &nodes) override;
-
-  /// \brief Called when the user clicks the GUI button
-  void DoImageProcessing();
 
   Ui::QDisclaimerAgreementControls m_Controls;
 };

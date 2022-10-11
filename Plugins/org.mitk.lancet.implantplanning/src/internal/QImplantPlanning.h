@@ -37,6 +37,14 @@ class QImplantPlanning : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
+public Q_SLOTS:
+	void on_comboBox_ProsthesisType_currentIndexChanged(int index);
+	void on_comboBox_PlanCupSize_currentIndexChanged(int index);
+	void on_comboBox_PlanFemoralSize_currentIndexChanged(int index);
+	void on_comboBox_PlanHeadLength_currentIndexChanged(int index);
+	void on_signalReadBackups();
+	void on_signalProsthesisType();
+
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -46,8 +54,7 @@ protected:
   virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
                                   const QList<mitk::DataNode::Pointer> &nodes) override;
 
-  /// \brief Called when the user clicks the GUI button
-  void DoImageProcessing();
+  void PlanFemoralSizeChanged();
 
   Ui::QImplantPlanningControls m_Controls;
 };

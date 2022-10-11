@@ -25,6 +25,9 @@ found in the LICENSE file.
 // mitk image
 #include <mitkImage.h>
 
+// THA
+//#include "Log.h"
+//#include "IGTController.h"
 const std::string QDisclaimerAgreement::VIEW_ID = "org.mitk.views.qdisclaimeragreement";
 
 void QDisclaimerAgreement::SetFocus()
@@ -46,7 +49,9 @@ void QDisclaimerAgreement::CreateQtPartControl(QWidget *parent)
   // pos
   qInfo() << "log.file.pos " << qss.pos();
   m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
-  qss.close();
+  qss.close(); 
+  
+  connect(m_Controls.pushButtonAgree, &QPushButton::clicked, this, &QDisclaimerAgreement::onButtonAgree_clicked);
 }
 
 void QDisclaimerAgreement::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -54,8 +59,30 @@ void QDisclaimerAgreement::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*s
 {
   // iterate all selected objects, adjust warning visibility
 }
-
-void QDisclaimerAgreement::DoImageProcessing()
+void QDisclaimerAgreement::onButtonAgree_clicked(bool checked)
 {
-	
+	//Log::write("QDisclaimerAgreement::on_pushButtonAgree_clicked");
+	MITK_INFO << "QDisclaimerAgreement:" << __func__ << ": log";
+	Q_UNUSED(checked);
+	m_Controls.pushButtonAgree->setText("");
+	m_Controls.pushButtonAgree->setDisabled(true);
+	emit signalHardWare();
+}
+void QDisclaimerAgreement::on_signalOpen(QString name, QString id)
+{
+	//Log::write("QDisclaimerAgreement::on_signalOpen");
+	MITK_INFO << "QDisclaimerAgreement:" << __func__ << ": log";
+	m_Controls.label_14->setText(name);
+	m_Controls.label_15->setText(id);
+	m_Controls.label_14->update();
+	m_Controls.label_15->update();
+	//if (IGTController::side == RIGHT)
+	//{
+	//	m_Controls.label_16->setText("ÓÒ÷Å¾Ê");
+	//}
+	//else
+	//{
+	//	m_Controls.label_16->setText("×ó÷Å¾Ê");
+	//}
+	m_Controls.label_16->update();
 }

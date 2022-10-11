@@ -20,6 +20,9 @@ found in the LICENSE file.
 
 #include "ui_QCTMarkerControls.h"
 
+#include <mitkPointSetDataInteractor.h>
+
+#include "mitkPointSet.h"
 /**
   \brief QCTMarker
 
@@ -30,26 +33,38 @@ found in the LICENSE file.
 */
 class QCTMarker : public QmitkAbstractView
 {
-  // this is needed for all Qt objects that should have a Qt meta-object
-  // (everything that derives from QObject and wants to have signal/slots)
-  Q_OBJECT
+	// this is needed for all Qt objects that should have a Qt meta-object
+	// (everything that derives from QObject and wants to have signal/slots)
+	Q_OBJECT
 
 public:
-  static const std::string VIEW_ID;
+	static const std::string VIEW_ID;
 
+	void on_initial();
+
+Q_SIGNALS:
+	void signalCapture(int, int);
+
+public Q_SLOTS:
+	void onButtonCapturePoint_clicked();
+	void onButtonClean_clicked();
+	void onButtonShowDistance_clicked();
+	void onButtonClearDistance_clicked();
+	void toggled(bool);
 protected:
-  virtual void CreateQtPartControl(QWidget *parent) override;
+	virtual void CreateQtPartControl(QWidget* parent) override;
 
-  virtual void SetFocus() override;
+	virtual void SetFocus() override;
 
-  /// \brief called by QmitkFunctionality when DataManager's selection has changed
-  virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
-                                  const QList<mitk::DataNode::Pointer> &nodes) override;
+	/// \brief called by QmitkFunctionality when DataManager's selection has changed
+	virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
+		const QList<mitk::DataNode::Pointer>& nodes) override;
 
-  /// \brief Called when the user clicks the GUI button
-  void DoImageProcessing();
+	/// \brief Called when the user clicks the GUI button
 
-  Ui::QCTMarkerControls m_Controls;
+	Ui::QCTMarkerControls m_Controls;
+	QList<QCheckBox*> checkBoxList;
+	int lastPoint;
 };
 
 #endif // QCTMarker_h
