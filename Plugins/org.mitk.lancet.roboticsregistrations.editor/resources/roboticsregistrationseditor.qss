@@ -1,0 +1,4 @@
+QWidget
+{
+    border-image: url(:/org.mitk.lancet.roboticsregistrationseditor/registration/robot_registration_setup.png);
+}

@@ -1,0 +1,18 @@
+{
+	"properties":
+	{
+		"id": "org_mitk_lancet_tha_femurcontusion",
+		"objectName": "ActionFemurContusion",
+		"uiName": "股骨制备",
+		"editorWidgetIdentify": "org_mitk_lancet_femurcontusion_editor",
+		"fucntionWidgetIdentify": "org_mitk_views_qfemurcontusion",
+		"theme": 
+		{
+			"defaultStyle":
+			{
+				"editorWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/action_medicalrecordmanagement_default_qss",
+				"fucntionWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/editor_medicalrecordmanagement_default_qss"
+			}
+		}
+	}
+}

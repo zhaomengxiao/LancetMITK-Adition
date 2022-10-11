@@ -1,0 +1,85 @@
+QWidget
+{
+    background-color:#d4deea;
+	border:none;
+	color:black;
+}
+
+QFrame#line1
+{
+    border-image: url(:/org.mitk.lancet.femurroughregistrations/image/fenge.png);
+}
+QFrame#line2
+{
+    border-image: url(:/org.mitk.lancet.femurroughregistrations/image/fenge.png);
+}
+QRadioButton
+{
+	font: 18px "黑体";
+    color:black;
+}
+QRadioButton:checked 
+{
+	color: rgb(55,174,150);
+}
+QRadioButton:unchecked
+{ 
+	color:black; 
+}
+QRadioButton::indicator:hover 
+{
+	image: url(:/org.mitk.lancet.femurroughregistrations/image/radio_on.png);
+}
+QRadioButton::indicator:checked 
+{
+	image: url(:/org.mitk.lancet.femurroughregistrations/image/radio_success.png);
+	width:25px;
+    height:25px;
+}
+QRadioButton::indicator:unchecked 
+{
+	image: url(:/org.mitk.lancet.femurroughregistrations/image/radio.png);
+	width:25px;
+    height:25px;
+}
+QProgressBar {
+	/* 外边框 */
+	border:1px solid black;
+	
+	/* 倒角 */
+	border-radius:5px;
+	
+	background-image: url(:/org.mitk.lancet.femurroughregistrations/image/scrool.png);
+	/* 字体对齐方式 */
+	text-align:center;
+}
+
+/* 进度条 */
+QProgressBar::chunk {
+	/* 颜色 */
+	background-color:rgb(0, 183, 138);
+	
+	/* 步进距离 */
+	width:5px;
+	
+	/* 进度条中间空白区域宽度 */
+	margin:1px;
+}
+QPushButton{
+	border-image: url(:/org.mitk.lancet.femurroughregistrations/image/default.png);
+	color:white;
+}
+QPushButton::hover
+{
+	border-image: url(:/org.mitk.lancet.femurroughregistrations/image/on.png);
+	color:balck;
+}
+QPushButton::disabled
+{
+	border-image: url(:/org.mitk.lancet.femurroughregistrations/image/disabled.png);	
+	color: rgb(153, 153, 153);
+}
+QPushButton::pressed { 
+	padding-left:6px;
+	padding-top:6px;
+}

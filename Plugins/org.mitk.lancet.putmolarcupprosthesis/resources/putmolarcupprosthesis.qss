@@ -1,0 +1,54 @@
+QWidget
+{
+    background-color:#d4deea;
+	border:none;
+	color:black;
+}
+
+QFrame#line1
+{
+    border-image: url(:/org.mitk.lancet.putmolarcupprosthesis/image/fenge.png);
+}
+QFrame#line2
+{
+    border-image: url(:/org.mitk.lancet.putmolarcupprosthesis/image/fenge.png);
+}
+QDoubleSpinBox
+{
+	border-radius: 5px;
+	background-color: transparent;
+	font:36px 'Arial';
+}
+QComboBox {
+    border: 1px solid gray;
+    border-radius: 10px;
+    padding: 1px 2px 1px 10px; 
+}
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right; 
+    border-left-width: 1px;
+    border-left-color: darkgray;
+}
+QComboBox::down-arrow {    
+	image: url(:/org.mitk.lancet.putmolarcupprosthesis/login/down1.png);
+}
+
+QPushButton{
+	border-image: url(:/org.mitk.lancet.putmolarcupprosthesis/image/default.png);
+	color:white;
+}
+QPushButton::hover
+{
+	border-image: url(:/org.mitk.lancet.putmolarcupprosthesis/image/on.png);
+	color:balck;
+}
+QPushButton::disabled
+{
+	border-image: url(:/org.mitk.lancet.putmolarcupprosthesis/image/disabled.png);	
+	color: rgb(153, 153, 153);
+}
+QPushButton:pressed{
+	padding-left:6px;
+	padding-top:6px;
+}
