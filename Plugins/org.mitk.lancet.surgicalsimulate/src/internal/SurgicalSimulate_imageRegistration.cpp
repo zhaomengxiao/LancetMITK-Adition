@@ -342,7 +342,7 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
 	tcp[0] = 0;
 	tcp[1] = 100;
 	tcp[2] = 138;
-	tcp[3] = 0;
+	tcp[3] = -0.813428203;
 	tcp[4] = 0;
 	tcp[5] = 0;
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
@@ -396,7 +396,7 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 	tcp[0] = 0;
 	tcp[1] = 100;
 	tcp[2] = 138;
-	tcp[3] = 0;
+	tcp[3] = -0.813428203;
 	tcp[4] = 0;
 	tcp[5] = 0;
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];

@@ -785,7 +785,7 @@ bool SurgicalSimulate::InterpretImageLine()
 	currentXunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 0);
 	currentXunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 0);
 	currentXunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 0);
-
+	currentXunderBase.normalize();
 	MITK_INFO << "currentXunderBase" << currentXunderBase;
 
 	// Eigen::Vector3d currentYunderBase;
@@ -803,22 +803,37 @@ bool SurgicalSimulate::InterpretImageLine()
 	targetXunderBase[1] = targetPointUnderBase_1[1] - targetPointUnderBase_0[1];
 	targetXunderBase[2] = targetPointUnderBase_1[2] - targetPointUnderBase_0[2];
 
+	targetXunderBase.normalize();
+
 	MITK_INFO << "targetXunderBase" << targetXunderBase;
 
 	Eigen::Vector3d rotationAxis;
 	rotationAxis = currentXunderBase.cross(targetXunderBase);
-	rotationAxis.normalize();
-	double rotationAngle = asin(rotationAxis.norm());
+	rotationAxis;
+
+	double rotationAngle;
+	if (currentXunderBase.dot(targetXunderBase) > 0) {
+		rotationAngle = 180 * asin(rotationAxis.norm()) / 3.1415926;
+	}
+	else {
+		rotationAngle = 180 - 180 * asin(rotationAxis.norm()) / 3.1415926;
+	}
+	
 
 	vtkNew<vtkTransform> tmpTransform;
 	tmpTransform->PostMultiply();
 	tmpTransform->Identity();
 	tmpTransform->SetMatrix(vtkCurrentPoseUnderBase);
-	tmpTransform->RotateWXYZ(rotationAngle,rotationAxis[0], rotationAxis[1], rotationAxis[2]);
+	tmpTransform->RotateWXYZ(rotationAngle, rotationAxis[0], rotationAxis[1], rotationAxis[2]);
 	tmpTransform->Update();
+
+	auto testMatrix = tmpTransform->GetMatrix();
 
 	auto targetPoseUnderBase = mitk::AffineTransform3D::New();
 	mitk::TransferVtkMatrixToItkTransform(tmpTransform->GetMatrix(), targetPoseUnderBase.GetPointer());
+
+	m_Controls.textBrowser->append("Move to this x axix:" + QString::number(testMatrix->GetElement(0,0)) + "/" + QString::number(testMatrix->GetElement(1, 0)) + "/" + QString::number(testMatrix->GetElement(2, 0)));
+
 
 	// Assemble m_T_robot
 	m_T_robot = mitk::AffineTransform3D::New();
@@ -826,6 +841,8 @@ bool SurgicalSimulate::InterpretImageLine()
 	m_T_robot->SetOffset(targetPointUnderBase_0);
 
 	m_Controls.textBrowser->append("result Line target point:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
+
+	// m_Controls.textBrowser->append("Move to this x axix:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
 
 	return true;
 }
