@@ -93,7 +93,18 @@ protected:
   bool RotateY_minus();
   bool RotateZ_minus();
 
-  // Convert the transform matrix from movement space to robot base space
+  // Record initial position
+  vtkMatrix4x4* m_initial_robotBaseToFlange;
+  bool RecordInitial();
+  bool GoToInitial();
+
+  vtkMatrix4x4* m_2_robotBaseToFlange;
+  bool Record2();
+  bool GoTo2();
+
+  // rawMovementMatrix is the 4X4 movement matrix of the movement frame in its own coordinate system
+  // movementMatrixInRobotBase is the 4X4 target pose matrix in the robot base space, so calling it "movementMatrix" might be
+  // a little confusing 
   bool InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementMatrix, vtkMatrix4x4* movementMatrixInRobotBase);
 
   
