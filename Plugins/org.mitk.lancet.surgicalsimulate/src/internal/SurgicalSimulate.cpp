@@ -742,7 +742,7 @@ bool SurgicalSimulate::InterpretImagePoint()
 
 bool SurgicalSimulate::InterpretImageLine()
 {
-	auto targetLinePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPoint->GetSelectedNode()->GetData());
+	auto targetLinePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetLine->GetSelectedNode()->GetData());
 	auto targetPoint_0 = targetLinePoints->GetPoint(0); // TCP frame origin should move to this point
 	auto targetPoint_1 = targetLinePoints->GetPoint(1);
 
@@ -776,7 +776,9 @@ bool SurgicalSimulate::InterpretImageLine()
 
 	
 	// fine tune the direction
-	// m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
+	// dynamic TCP will take effect when the GetOutput function of KukaSource is called;
+	// By comparison, GetOutput function of VegaSource will not automatically take the registration matrix of the corresponding
+	// tool into consideration
 	auto currentPostureUnderBase = m_KukaSource->GetOutput(0)->GetAffineTransform3D();
 	vtkNew<vtkMatrix4x4> vtkCurrentPoseUnderBase;
 	mitk::TransferItkTransformToVtkMatrix(currentPostureUnderBase.GetPointer(), vtkCurrentPoseUnderBase);

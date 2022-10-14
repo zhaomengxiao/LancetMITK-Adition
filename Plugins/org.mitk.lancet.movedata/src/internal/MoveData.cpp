@@ -1122,7 +1122,7 @@ void MoveData::IcpRegistration()
 	m_IcpSourceSurface = m_Controls.mitkNodeSelectWidget_IcpSrcSurface->GetSelectedNode();
 	m_IcpTargetPointset = m_Controls.mitkNodeSelectWidget_IcpTargetPointset->GetSelectedNode();
 
-	MITK_INFO << "Proceedinng ICP registration";
+	MITK_INFO << "Proceeding ICP registration";
 
 	if (m_IcpSourceSurface != nullptr && m_IcpTargetPointset != nullptr)
 	{
