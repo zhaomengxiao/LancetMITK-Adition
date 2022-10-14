@@ -201,6 +201,10 @@ protected:
 
   // Get the coordinate of the image line in the robot (internal) base frame
   bool InterpretImageLine();
+
+  // Collect and evaluate image checkPoint after image registration
+  bool ProbeImageCheckPoint();
+
 };
 
 #endif // SurgicalSimulate_h

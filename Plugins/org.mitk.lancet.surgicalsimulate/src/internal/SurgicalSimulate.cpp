@@ -72,6 +72,8 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetLine);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_ImageCheckPoint);
+
 
   m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
 
@@ -104,6 +106,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 
   connect(m_Controls.pushButton_setTCP, &QPushButton::clicked, this, &SurgicalSimulate::OnSetTCP);
   connect(m_Controls.pushButton_confirmImageTargetLine, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImageLine);
+  connect(m_Controls.pushButton_probeCheckPoint, &QPushButton::clicked, this, &SurgicalSimulate::ProbeImageCheckPoint);
 
 }
 
@@ -622,7 +625,7 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
 
   //For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
   // https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
-  double tcp[6];
+  
   tcp[0] = 0;
   tcp[1] = 100;
   tcp[2] = 138;
