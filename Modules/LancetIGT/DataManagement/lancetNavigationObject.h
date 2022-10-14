@@ -53,6 +53,11 @@ namespace lancet
 		itkGetMacro(T_Object2ReferenceFrame, vtkSmartPointer<vtkMatrix4x4>);
 		itkGetMacro(Image, mitk::Image::Pointer);
 
+		itkGetMacro(landmarkRegis_avgError, double);
+		itkGetMacro(landmarkRegis_maxError, double);
+		itkGetMacro(IcpRegis_avgError, double);
+		itkGetMacro(IcpRegis_maxError, double);
+
 		//itkSetMacro(Name, std::string);
 		itkSetMacro(ReferencFrameName, std::string);
     itkSetMacro(DataNode, mitk::DataNode::Pointer);
@@ -144,8 +149,11 @@ namespace lancet
 
 		/** @brief Holds Transform Matrix for object registration.T_Object2ReferenceFrame */
 		vtkSmartPointer<vtkMatrix4x4> m_T_Object2ReferenceFrame;
+		double m_landmarkRegis_avgError{ 0 };
+		double m_landmarkRegis_maxError{ 0 };
+		double m_IcpRegis_avgError{ 1000 };
+		double m_IcpRegis_maxError{ 1000 };
 
-		
 	};
 }
 

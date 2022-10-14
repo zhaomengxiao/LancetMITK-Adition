@@ -154,66 +154,47 @@
         </layout>
        </item>
        <item row="2" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QPushButton" name="pushButton_recordInitial">
+           <property name="text">
+            <string>Collect position 1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_goToInitial">
+           <property name="text">
+            <string>Go to position 1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_record2">
+           <property name="text">
+            <string>Collect position 2</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_goto2">
+           <property name="text">
+            <string>Go to position 2</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="3" column="0">
         <layout class="QGridLayout" name="gridLayout_7">
-         <item row="3" column="3">
-          <widget class="QPushButton" name="pushButton_zp">
-           <property name="text">
-            <string>Z+</string>
-           </property>
-          </widget>
-         </item>
          <item row="3" column="5">
-          <widget class="QPushButton" name="pushButton_rzp">
+          <widget class="QPushButton" name="pushButton_ym">
            <property name="text">
-            <string>RZ+</string>
+            <string>Y-</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="lineEdit_intuitiveValue">
-           <property name="text">
-            <string>2</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="label_6">
-           <property name="layoutDirection">
-            <enum>Qt::LeftToRight</enum>
-           </property>
-           <property name="text">
-            <string>Step size =</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="3">
-          <widget class="QPushButton" name="pushButton_xp">
-           <property name="text">
-            <string>X+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="7">
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLabel" name="label_5">
-           <property name="text">
-            <string>(mm or degrees)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
+         <item row="3" column="0">
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -226,70 +207,49 @@
            </property>
           </spacer>
          </item>
-         <item row="3" column="6">
-          <widget class="QPushButton" name="pushButton_rzm">
+         <item row="1" column="4">
+          <widget class="QPushButton" name="pushButton_xp">
            <property name="text">
-            <string>RZ-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
-          <widget class="QPushButton" name="pushButton_xm">
-           <property name="text">
-            <string>X-</string>
+            <string>X+</string>
            </property>
           </widget>
          </item>
          <item row="3" column="4">
-          <widget class="QPushButton" name="pushButton_zm">
-           <property name="text">
-            <string>Z-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="5">
-          <widget class="QPushButton" name="pushButton_rxp">
-           <property name="text">
-            <string>RX+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="3">
           <widget class="QPushButton" name="pushButton_yp">
            <property name="text">
             <string>Y+</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="5">
-          <widget class="QPushButton" name="pushButton_ryp">
+         <item row="1" column="6">
+          <widget class="QPushButton" name="pushButton_rxp">
            <property name="text">
-            <string>RY+</string>
+            <string>RX+</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="4">
-          <widget class="QPushButton" name="pushButton_ym">
+         <item row="1" column="5">
+          <widget class="QPushButton" name="pushButton_xm">
            <property name="text">
-            <string>Y-</string>
+            <string>X-</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="6">
+         <item row="3" column="7">
           <widget class="QPushButton" name="pushButton_rym">
            <property name="text">
             <string>RY-</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="6">
-          <widget class="QPushButton" name="pushButton_rxm">
+         <item row="4" column="4">
+          <widget class="QPushButton" name="pushButton_zp">
            <property name="text">
-            <string>RX-</string>
+            <string>Z+</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="4">
+         <item row="8" column="5">
           <spacer name="verticalSpacer">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -301,6 +261,78 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item row="3" column="6">
+          <widget class="QPushButton" name="pushButton_ryp">
+           <property name="text">
+            <string>RY+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="8">
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="4" column="5">
+          <widget class="QPushButton" name="pushButton_zm">
+           <property name="text">
+            <string>Z-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>(mm or degrees)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="7">
+          <widget class="QPushButton" name="pushButton_rzm">
+           <property name="text">
+            <string>RZ-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QLineEdit" name="lineEdit_intuitiveValue">
+           <property name="text">
+            <string>2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_6">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>Step size =</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="6">
+          <widget class="QPushButton" name="pushButton_rzp">
+           <property name="text">
+            <string>RZ+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="7">
+          <widget class="QPushButton" name="pushButton_rxm">
+           <property name="text">
+            <string>RX-</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

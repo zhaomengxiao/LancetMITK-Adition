@@ -69,6 +69,13 @@ void KukaRobotControl::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_ryp, &QPushButton::clicked, this, &KukaRobotControl::RotateY_plus);
   connect(m_Controls.pushButton_rzm, &QPushButton::clicked, this, &KukaRobotControl::RotateZ_minus);
   connect(m_Controls.pushButton_rzp, &QPushButton::clicked, this, &KukaRobotControl::RotateZ_plus);
+
+  connect(m_Controls.pushButton_recordInitial, &QPushButton::clicked, this, &KukaRobotControl::RecordInitial);
+  connect(m_Controls.pushButton_goToInitial, &QPushButton::clicked, this, &KukaRobotControl::GoToInitial);
+
+  connect(m_Controls.pushButton_record2, &QPushButton::clicked, this, &KukaRobotControl::Record2);
+  connect(m_Controls.pushButton_goto2, &QPushButton::clicked, this, &KukaRobotControl::GoTo2);
+
 }
 
 KukaRobotControl::~KukaRobotControl()
@@ -150,6 +157,26 @@ bool KukaRobotControl::ConnectKuka()
 		// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
 		// QThread::msleep(1000);
 		// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+
+		//For Test Use, set the default TCP as robot flange
+		double tcp[6];
+		tcp[0] = 0;
+		tcp[1] = 0;
+		tcp[2] = 0;
+		tcp[3] = 0;
+		tcp[4] = 0;
+		tcp[5] = 0;
+
+		MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+		//set tcp to robot
+		  //set tcp
+		QThread::msleep(1000);
+		m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+		QThread::msleep(1000);
+		m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+		QThread::msleep(1000);
+		m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 
 	}
 
@@ -293,6 +320,45 @@ bool KukaRobotControl::InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementM
 	return false;
 	
 }
+
+bool KukaRobotControl::RecordInitial()
+{
+	m_initial_robotBaseToFlange = vtkMatrix4x4::New();
+
+	mitk::NavigationData::Pointer nd_robotBaseToFlange = m_KukaTrackingDeviceSource->GetOutput(0)->Clone();
+
+	mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), m_initial_robotBaseToFlange);
+
+	return true;
+}
+
+bool KukaRobotControl::GoToInitial()
+{
+
+	m_KukaTrackingDevice->RobotMove(m_initial_robotBaseToFlange);
+
+	return true;
+}
+
+bool KukaRobotControl::Record2()
+{
+	m_2_robotBaseToFlange = vtkMatrix4x4::New();
+
+	mitk::NavigationData::Pointer nd_robotBaseToFlange = m_KukaTrackingDeviceSource->GetOutput(0)->Clone();
+
+	mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), m_2_robotBaseToFlange);
+
+	return true;
+}
+
+bool KukaRobotControl::GoTo2()
+{
+
+	m_KukaTrackingDevice->RobotMove(m_2_robotBaseToFlange);
+
+	return true;
+}
+
 
 bool KukaRobotControl::TranslateX_plus()
 {

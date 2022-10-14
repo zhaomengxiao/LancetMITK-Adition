@@ -8,8 +8,9 @@ set(H_FILES
   Algorithms/lancetNavigationDataInReferenceCoordFilter.h
   Algorithms/lancetApplyDeviceRegistratioinFilter.h
   Algorithms/lancetApplySurfaceRegistratioinFilter.h
+  Algorithms/lancetApplySurfaceRegistratioinStaticImageFilter.h
   Algorithms/lancetTreeCoords.h
-
+  
   Rendering/lancetNavigationObjectVisualizationFilter.h
 
   TrackingDevices/lancetRobotTrackingTool.h
@@ -29,7 +30,9 @@ set(CPP_FILES
   Algorithms/lancetNavigationDataInReferenceCoordFilter.cpp
   Algorithms/lancetApplyDeviceRegistratioinFilter.cpp
   Algorithms/lancetApplySurfaceRegistratioinFilter.cpp
+  Algorithms/lancetApplySurfaceRegistratioinStaticImageFilter.cpp
   Algorithms/lancetTreeCoords.cpp
+
   Rendering/lancetNavigationObjectVisualizationFilter.cpp
 
   TrackingDevices/lancetRobotTrackingTool.cpp

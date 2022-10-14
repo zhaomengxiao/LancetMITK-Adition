@@ -25,6 +25,7 @@ found in the LICENSE file.
 #include "lancetNavigationObjectVisualizationFilter.h"
 #include "lancetApplyDeviceRegistratioinFilter.h"
 #include "lancetApplySurfaceRegistratioinFilter.h"
+#include "lancetApplySurfaceRegistratioinStaticImageFilter.h"
 #include "lancetPathPoint.h"
 #include "mitkTrackingDeviceSource.h"
 #include "robotRegistration.h"
@@ -177,18 +178,29 @@ protected:
   bool RetoreDataNodeFromNavigationObject(mitk::DataNode* parentNode, lancet::NavigationObject* assembledObject);
 
   lancet::ApplySurfaceRegistratioinFilter::Pointer m_surfaceRegistrationFilter;
+  lancet::ApplySurfaceRegistratioinStaticImageFilter::Pointer m_surfaceRegistrationStaticImageFilter;
 
   void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
   void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
 
   lancet::NavigationObject::Pointer navigatedImage;
+  mitk::AffineTransform3D::Pointer m_imageRegistrationMatrix; // image(surface) to Rf matrix
+
 
   bool SetupNavigatedImage();
-  bool CollectLanmarkProbe();
+  bool CollectLandmarkProbe();
   bool CollectIcpProbe();
   bool ApplySurfaceRegistration();
+  bool ApplyPreexistingImageSurfaceRegistration();
 
-  bool GoToImagePoint();
+  bool ApplySurfaceRegistration_staticImage();
+  bool ApplyPreexistingImageSurfaceRegistration_staticImage();
+
+  // Get the coordinate of the image point in the robot (internal) base frame
+  bool InterpretImagePoint();
+
+  // Get the coordinate of the image line in the robot (internal) base frame
+  bool InterpretImageLine();
 };
 
 #endif // SurgicalSimulate_h

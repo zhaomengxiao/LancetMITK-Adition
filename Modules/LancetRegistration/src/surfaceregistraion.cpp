@@ -62,6 +62,7 @@ void mitk::SurfaceRegistration::ClearIcpPoints()
 bool mitk::SurfaceRegistration::ComputeLandMarkResult()
 {
 	Clear();
+	MITK_INFO << "Proceeding landmark registration";
 	if (m_LandmarksTarget == nullptr || m_LandmarksSrc == nullptr)
 	{
 		MITK_ERROR << "SurfaceRegistration Error: landmark null";
@@ -141,6 +142,7 @@ bool mitk::SurfaceRegistration::ComputeLandMarkResult()
 
 bool mitk::SurfaceRegistration::ComputeIcpResult()
 {
+	MITK_INFO << "Proceeding ICP registration";
 	if (m_SurfaceSrc == nullptr || m_IcpPoints == nullptr)
 	{
 		MITK_ERROR << "SurfaceRegistration Error: icp or surface null";
@@ -228,7 +230,7 @@ bool mitk::SurfaceRegistration::ComputeIcpResult()
 
 		double currentError = implicitPolyDataDistance->EvaluateFunction(tmpPoint);
 
-
+		MITK_INFO << "ICP point error: " << currentError;
 		sumIcpError = sumIcpError + fabs(currentError);
 		if (fabs(currentError )> fabs(maxIcpError))
 		{

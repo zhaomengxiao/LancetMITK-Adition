@@ -230,7 +230,7 @@ bool SurgicalSimulate::SetupNavigatedImage()
 	return true;
 }
 
-bool SurgicalSimulate::CollectLanmarkProbe()
+bool SurgicalSimulate::CollectLandmarkProbe()
 {
 	if(navigatedImage == nullptr)
 	{
@@ -280,9 +280,221 @@ bool SurgicalSimulate::ApplySurfaceRegistration()
 	m_surfaceRegistrationFilter = lancet::ApplySurfaceRegistratioinFilter::New();
 	m_surfaceRegistrationFilter->ConnectTo(m_VegaSource);
 	m_surfaceRegistrationFilter->SetnavigationImage(navigatedImage);
+	m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
+	navigatedImage->UpdateObjectToRfMatrix();
+	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
+
+	m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
+
+	m_surfaceRegistrationFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix());
+
 	auto indexOfObjectRF = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
 	m_surfaceRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfObjectRF));
+	
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationFilter);
+	m_VegaVisualizeTimer->start();
 
+	return true;
+}
+
+bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
+{
+	m_surfaceRegistrationStaticImageFilter = lancet::ApplySurfaceRegistratioinStaticImageFilter::New();
+	m_surfaceRegistrationStaticImageFilter->ConnectTo(m_VegaSource);
+	m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
+	navigatedImage->UpdateObjectToRfMatrix();
+	m_Controls.textBrowser->append("Avg landmark error:" + QString::number(navigatedImage->GetlandmarkRegis_avgError()));
+	m_Controls.textBrowser->append("Max landmark error:" + QString::number(navigatedImage->GetlandmarkRegis_maxError()));
+
+	m_Controls.textBrowser->append("Avg ICP error:" + QString::number(navigatedImage->GetIcpRegis_avgError()));
+	m_Controls.textBrowser->append("Max ICP error:" + QString::number(navigatedImage->GetIcpRegis_maxError()));
+
+
+	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
+
+	m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
+
+	m_surfaceRegistrationStaticImageFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix());
+
+	m_surfaceRegistrationStaticImageFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("ObjectRf"));
+
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationStaticImageFilter);
+	m_VegaVisualizeTimer->start();
+
+
+	// Reconnect the robot pipeline so that its tcp can be visualized in the image frame as well
+	// Only takes place when the robot is registered or the previous robot registration is applied
+	if (m_RobotRegistrationMatrix.IsNull())
+	{
+		return true;
+	}
+
+	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
+	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
+	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
+	
+	auto robotBaseRFIndex = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_surfaceRegistrationStaticImageFilter->GetOutput(robotBaseRFIndex));//must make sure NavigationDataOfRF update somewhere else.
+
+	m_KukaVisualizeTimer->stop();
+	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+	m_KukaVisualizeTimer->start();
+
+	// set TCP for precision test
+	// For Test Use, regard ball 2 as the TCP, the pose can be seen on
+    // https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
+	//--------------------------------------------------
+	Eigen::Vector3d x_tcp;
+	x_tcp[0] = 51.91;
+	x_tcp[1] = -55.01;
+	x_tcp[2] = 0.16;
+	x_tcp.normalize();
+
+	Eigen::Vector3d z_flange;
+	z_flange[0] = 0.0;
+	z_flange[1] = 0.0;
+	z_flange[2] = 1;
+
+	Eigen::Vector3d y_tcp;
+	y_tcp = z_flange.cross(x_tcp);
+	y_tcp.normalize();
+
+	Eigen::Vector3d z_tcp;
+	z_tcp = x_tcp.cross(y_tcp);
+
+	Eigen::Matrix3d Re;
+
+	Re << x_tcp[0], y_tcp[0], z_tcp[0],
+		x_tcp[1], y_tcp[1], z_tcp[1],
+		x_tcp[2], y_tcp[2], z_tcp[2];
+
+
+	Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
+
+	//------------------------------------------------
+	double tcp[6];
+	tcp[0] = 0.75; // tx
+	tcp[1] = 100.21; // ty
+	tcp[2] = 137.73; // tz
+	tcp[3] = eulerAngle(0);//-0.81;// -0.813428203; // rz
+	tcp[4] = eulerAngle(1); // ry
+	tcp[5] = eulerAngle(2); // rx
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+	return true;
+}
+
+bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
+{
+	// Apply preexisting surface registration result to all the NDI tools
+	m_surfaceRegistrationStaticImageFilter = lancet::ApplySurfaceRegistratioinStaticImageFilter::New();
+	m_surfaceRegistrationStaticImageFilter->ConnectTo(m_VegaSource);
+	
+	m_surfaceRegistrationStaticImageFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix());
+	m_surfaceRegistrationStaticImageFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("ObjectRf"));
+
+
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationStaticImageFilter);
+	m_VegaVisualizeTimer->start();
+
+	// Reconnect the robot pipeline so that its tcp can be visualized in the image frame as well
+	// Only takes place when the robot is registered or the previous robot registration is applied
+	if (m_RobotRegistrationMatrix.IsNull())
+	{
+		return true;
+	}
+
+	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
+	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
+	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
+	auto robotBaseRFIndex = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_surfaceRegistrationStaticImageFilter->GetOutput(robotBaseRFIndex));//must make sure NavigationDataOfRF update somewhere else.
+
+	m_KukaVisualizeTimer->stop();
+	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+	m_KukaVisualizeTimer->start();
+
+	// set TCP for precision test
+	// For Test Use, regard ball 2 as the TCP, the pose can be seen on
+	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
+	//--------------------------------------------------
+	Eigen::Vector3d x_tcp;
+	x_tcp[0] = 51.91;
+	x_tcp[1] = -55.01;
+	x_tcp[2] = 0.16;
+	x_tcp.normalize();
+
+	Eigen::Vector3d z_flange;
+	z_flange[0] = 0.0;
+	z_flange[1] = 0.0;
+	z_flange[2] = 1;
+
+	Eigen::Vector3d y_tcp;
+	y_tcp = z_flange.cross(x_tcp);
+	y_tcp.normalize();
+
+	Eigen::Vector3d z_tcp;
+	z_tcp = x_tcp.cross(y_tcp);
+
+	Eigen::Matrix3d Re;
+
+	Re << x_tcp[0], y_tcp[0], z_tcp[0],
+		x_tcp[1], y_tcp[1], z_tcp[1],
+		x_tcp[2], y_tcp[2], z_tcp[2];
+
+	Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
+	
+	//------------------------------------------------
+	double tcp[6];
+	tcp[0] = 0.75; // tx
+	tcp[1] = 100.21; // ty
+	tcp[2] = 137.73; // tz
+	tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
+	tcp[4] = eulerAngle(1); // ry
+	tcp[5] = eulerAngle(2); // rx
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+
+	return true;
+}
+
+
+bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration()
+{
+	// Apply preexisting surface registration result
+	m_surfaceRegistrationFilter = lancet::ApplySurfaceRegistratioinFilter::New();
+	m_surfaceRegistrationFilter->ConnectTo(m_VegaSource);
+	/*vtkNew<vtkMatrix4x4> surfaceToRfMatrix;
+	mitk::TransferItkTransformToVtkMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix().GetPointer(), surfaceToRfMatrix);
+	navigatedImage->SetT_Object2ReferenceFrame(surfaceToRfMatrix);*/
+
+	m_surfaceRegistrationFilter->SetnavigationImage(navigatedImage);
+	m_surfaceRegistrationFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix());
+	m_surfaceRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("ObjectRf"));
+
+	// save image(surface) registration matrix into its corresponding RF tool
+	// m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
+	// mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
+	// m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
 
 	m_VegaVisualizeTimer->stop();
 	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationFilter);

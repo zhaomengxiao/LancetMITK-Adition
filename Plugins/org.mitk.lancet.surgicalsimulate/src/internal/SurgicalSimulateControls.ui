@@ -173,10 +173,22 @@
      </layout>
     </widget>
    </item>
+   <item row="2" column="0">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Output</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0">
+       <widget class="QTextBrowser" name="textBrowser"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -207,7 +219,7 @@
        <item row="0" column="5">
         <widget class="QPushButton" name="pushButton_usePreRobotRegit">
          <property name="text">
-          <string>Use Previous</string>
+          <string>Use Previous (movable image)</string>
          </property>
         </widget>
        </item>
@@ -259,19 +271,12 @@
           <string>Assemble simple navigation object</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_9">
-          <item row="0" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Surface: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surface_regis" native="true"/>
-            </item>
-           </layout>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="pushButton_applyPreImageRegistration">
+            <property name="text">
+             <string>Apply preexisting registration (movable image)</string>
+            </property>
+           </widget>
           </item>
           <item row="1" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -294,6 +299,27 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="label_8">
+              <property name="text">
+               <string>Surface: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surface_regis" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="0">
+           <widget class="QPushButton" name="pushButton_applyPreImageRegistrationNew">
+            <property name="text">
+             <string>Apply preexisting registration (static image)</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -303,13 +329,6 @@
           <string>Simple image registration</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_8">
-          <item row="0" column="0">
-           <widget class="QPushButton" name="pushButton_collectLandmark">
-            <property name="text">
-             <string>Collect landmarks</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
            <widget class="QPushButton" name="pushButton_collectIcp">
             <property name="enabled">
@@ -320,10 +339,31 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="pushButton_collectLandmark">
+            <property name="text">
+             <string>Collect landmarks</string>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="0">
            <widget class="QPushButton" name="pushButton_applyRegistration">
             <property name="text">
-             <string>Apply registration</string>
+             <string>Apply calculated registration (movable image)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="pushButton_applyRegistrationNew">
+            <property name="text">
+             <string>Apply calculated registration (static image)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QPushButton" name="pushButton_saveNdiTools">
+            <property name="text">
+             <string>Save</string>
             </property>
            </widget>
           </item>
@@ -336,15 +376,77 @@
       <attribute name="title">
        <string>Surgical planning</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_7">
-       <item>
-        <widget class="QPushButton" name="pushButton_captureSurgicalPlane">
-         <property name="text">
-          <string>Capture Probe</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QPushButton" name="pushButton_captureSurgicalPlane">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>20</y>
+         <width>86</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Capture Probe</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="layoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>80</y>
+         <width>317</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <item>
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Image target point: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imageTargetPoint" native="true"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_confirmImageTarget">
+          <property name="text">
+           <string>Confirm image target point</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>120</y>
+         <width>317</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_9">
+        <item>
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>Image target line: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imageTargetLine" native="true"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_confirmImageTargetLine">
+          <property name="text">
+           <string>Confirm image target line</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
      <widget class="QWidget" name="tab_4">
       <attribute name="title">
@@ -363,48 +465,7 @@
         <string>Start (go to probe point)</string>
        </property>
       </widget>
-      <widget class="QWidget" name="">
-       <property name="geometry">
-        <rect>
-         <x>140</x>
-         <y>80</y>
-         <width>311</width>
-         <height>25</height>
-        </rect>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_8">
-        <item>
-         <widget class="QLabel" name="label_10">
-          <property name="text">
-           <string>Landmark source: </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imageTargetPoint" native="true"/>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton">
-          <property name="text">
-           <string>Go to image point</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
      </widget>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Output</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0">
-       <widget class="QTextBrowser" name="textBrowser"/>
-      </item>
-     </layout>
     </widget>
    </item>
   </layout>

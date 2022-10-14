@@ -1080,6 +1080,37 @@ void MoveData::AppendRegistrationMatrix()
 			m_Controls.textBrowser_moveData->append("Moving object is empty ~~");
 		}
 
+		// if the m_baseDataToMove is pointSet, rewrite the pointSet members and keep geometry matrix as identity
+		if(dynamic_cast<mitk::PointSet*>(m_baseDataToMove) != nullptr)
+		{
+			auto tmpPointSet = dynamic_cast<mitk::PointSet*>(m_baseDataToMove);
+			int size = tmpPointSet->GetSize();
+
+			for(int i{0}; i < size; i++)
+			{
+				auto tmpPoint = tmpPointSet->GetPoint(i);
+				vtkNew<vtkTransform> tmpTrans;
+				tmpTrans->Identity();
+				tmpTrans->PostMultiply();
+				tmpTrans->Translate(tmpPoint[0], tmpPoint[1], tmpPoint[2]);
+				tmpTrans->Concatenate(tmpPointSet->GetGeometry()->GetVtkMatrix());
+				tmpTrans->Update();
+				auto tmpMatrix = tmpTrans->GetMatrix();
+
+				mitk::Point3D newPoint;
+				newPoint[0] = tmpMatrix->GetElement(0, 3);
+				newPoint[1] = tmpMatrix->GetElement(1, 3);
+				newPoint[2] = tmpMatrix->GetElement(2, 3);
+
+				tmpPointSet->SetPoint(i, newPoint);
+
+			}
+			vtkNew<vtkMatrix4x4> identityMatrix;
+			identityMatrix->Identity();
+			tmpPointSet->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+		}
+
+
 	}
 	
 }
@@ -1091,7 +1122,7 @@ void MoveData::IcpRegistration()
 	m_IcpSourceSurface = m_Controls.mitkNodeSelectWidget_IcpSrcSurface->GetSelectedNode();
 	m_IcpTargetPointset = m_Controls.mitkNodeSelectWidget_IcpTargetPointset->GetSelectedNode();
 
-	MITK_INFO << "Proceedinng ICP registration";
+	MITK_INFO << "Proceeding ICP registration";
 
 	if (m_IcpSourceSurface != nullptr && m_IcpTargetPointset != nullptr)
 	{
