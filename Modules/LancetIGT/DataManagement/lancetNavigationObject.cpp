@@ -199,12 +199,12 @@ bool lancet::NavigationObject::UpdateObjectToRfMatrix()
 	landmarkRegistrator->SetLandmarksSrc(m_Landmarks_probe);
 	landmarkRegistrator->SetLandmarksTarget(m_Landmarks);
 	landmarkRegistrator->ComputeLandMarkResult();
-	
+	m_landmarkRegis_maxError = landmarkRegistrator->GetmaxLandmarkError();
+	m_landmarkRegis_avgError = landmarkRegistrator->GetavgLandmarkError();
+
 	m_T_Object2ReferenceFrame->DeepCopy(landmarkRegistrator->GetResult());
 
-	// TODO: add append ICP results to the matrix
-
-	if(m_IcpPoints->GetSize() == 0)
+	if(m_IcpPoints_probe->GetSize() == 0)
 	{
 		return true;
 	}
@@ -212,9 +212,15 @@ bool lancet::NavigationObject::UpdateObjectToRfMatrix()
 	auto combinedRegistrator = mitk::SurfaceRegistration::New();
 	combinedRegistrator->SetLandmarksTarget(m_Landmarks_probe);
 	combinedRegistrator->SetLandmarksSrc(m_Landmarks);
-	combinedRegistrator->SetIcpPoints(m_IcpPoints);
+	combinedRegistrator->SetIcpPoints(m_IcpPoints_probe);
+	combinedRegistrator->SetSurfaceSrc(dynamic_cast<mitk::Surface*>(m_DataNode->GetData()));
 	combinedRegistrator->ComputeLandMarkResult();
 	combinedRegistrator->ComputeIcpResult();
+	m_landmarkRegis_maxError = combinedRegistrator->GetmaxLandmarkError();
+	m_landmarkRegis_avgError = combinedRegistrator->GetavgLandmarkError();
+
+	m_IcpRegis_avgError = combinedRegistrator->GetavgIcpError();
+	m_IcpRegis_maxError = combinedRegistrator->GetmaxIcpError();
 
 	auto tmpMatrix = combinedRegistrator->GetResult();
 	tmpMatrix->Invert();

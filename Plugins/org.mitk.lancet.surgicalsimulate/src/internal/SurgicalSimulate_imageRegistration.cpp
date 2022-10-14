@@ -304,6 +304,13 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
 	m_surfaceRegistrationStaticImageFilter->ConnectTo(m_VegaSource);
 	m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
 	navigatedImage->UpdateObjectToRfMatrix();
+	m_Controls.textBrowser->append("Avg landmark error:" + QString::number(navigatedImage->GetlandmarkRegis_avgError()));
+	m_Controls.textBrowser->append("Max landmark error:" + QString::number(navigatedImage->GetlandmarkRegis_maxError()));
+
+	m_Controls.textBrowser->append("Avg ICP error:" + QString::number(navigatedImage->GetIcpRegis_avgError()));
+	m_Controls.textBrowser->append("Max ICP error:" + QString::number(navigatedImage->GetIcpRegis_maxError()));
+
+
 	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
 
 	m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
@@ -335,16 +342,45 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
 	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
 	m_KukaVisualizeTimer->start();
 
-	// set TCP
-	  //For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
-  // https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
+	// set TCP for precision test
+	// For Test Use, regard ball 2 as the TCP, the pose can be seen on
+    // https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
+	//--------------------------------------------------
+	Eigen::Vector3d x_tcp;
+	x_tcp[0] = 51.91;
+	x_tcp[1] = -55.01;
+	x_tcp[2] = 0.16;
+	x_tcp.normalize();
+
+	Eigen::Vector3d z_flange;
+	z_flange[0] = 0.0;
+	z_flange[1] = 0.0;
+	z_flange[2] = 1;
+
+	Eigen::Vector3d y_tcp;
+	y_tcp = z_flange.cross(x_tcp);
+	y_tcp.normalize();
+
+	Eigen::Vector3d z_tcp;
+	z_tcp = x_tcp.cross(y_tcp);
+
+	Eigen::Matrix3d Re;
+
+	Re << x_tcp[0], y_tcp[0], z_tcp[0],
+		x_tcp[1], y_tcp[1], z_tcp[1],
+		x_tcp[2], y_tcp[2], z_tcp[2];
+
+
+	Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
+
+	//------------------------------------------------
 	double tcp[6];
-	tcp[0] = 0;
-	tcp[1] = 100;
-	tcp[2] = 138;
-	tcp[3] = -0.813428203;
-	tcp[4] = 0;
-	tcp[5] = 0;
+	tcp[0] = 0.75; // tx
+	tcp[1] = 100.21; // ty
+	tcp[2] = 137.73; // tz
+	tcp[3] = eulerAngle(0);//-0.81;// -0.813428203; // rz
+	tcp[4] = eulerAngle(1); // ry
+	tcp[5] = eulerAngle(2); // rx
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
 	//set tcp to robot
 	  //set tcp
@@ -389,16 +425,44 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
 	m_KukaVisualizeTimer->start();
 
-	// set TCP
-	  //For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
-  // https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
+	// set TCP for precision test
+	// For Test Use, regard ball 2 as the TCP, the pose can be seen on
+	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
+	//--------------------------------------------------
+	Eigen::Vector3d x_tcp;
+	x_tcp[0] = 51.91;
+	x_tcp[1] = -55.01;
+	x_tcp[2] = 0.16;
+	x_tcp.normalize();
+
+	Eigen::Vector3d z_flange;
+	z_flange[0] = 0.0;
+	z_flange[1] = 0.0;
+	z_flange[2] = 1;
+
+	Eigen::Vector3d y_tcp;
+	y_tcp = z_flange.cross(x_tcp);
+	y_tcp.normalize();
+
+	Eigen::Vector3d z_tcp;
+	z_tcp = x_tcp.cross(y_tcp);
+
+	Eigen::Matrix3d Re;
+
+	Re << x_tcp[0], y_tcp[0], z_tcp[0],
+		x_tcp[1], y_tcp[1], z_tcp[1],
+		x_tcp[2], y_tcp[2], z_tcp[2];
+
+	Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
+	
+	//------------------------------------------------
 	double tcp[6];
-	tcp[0] = 0;
-	tcp[1] = 100;
-	tcp[2] = 138;
-	tcp[3] = -0.813428203;
-	tcp[4] = 0;
-	tcp[5] = 0;
+	tcp[0] = 0.75; // tx
+	tcp[1] = 100.21; // ty
+	tcp[2] = 137.73; // tz
+	tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
+	tcp[4] = eulerAngle(1); // ry
+	tcp[5] = eulerAngle(2); // rx
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
 	//set tcp to robot
 	  //set tcp
