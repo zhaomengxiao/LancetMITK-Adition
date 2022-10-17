@@ -1022,6 +1022,10 @@ void SurgicalSimulate::ShowToolStatus_Vega()
   m_Controls.m_StatusWidgetVegaToolToShow->SetTextAlignment(Qt::AlignLeft);
   m_Controls.m_StatusWidgetVegaToolToShow->SetNavigationDatas(&m_VegaNavigationData);
   m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();
+
+  //tool distance
+  m_Controls.widget->CreateToolDistanceMatrix(m_VegaSource->GetOutputs());
+  m_Controls.widget->ShowDistanceValues(m_VegaSource->GetOutputs());
 }
 
 void SurgicalSimulate::ShowToolStatus_Kuka()
