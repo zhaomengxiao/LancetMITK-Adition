@@ -1,13 +1,16 @@
 set(CPP_FILES  
   Qmitk/QmitkLancetKukaWidget.cpp
+  Qmitk/QlancetToolDistanceWidget.cpp
 )
 
 set(UI_FILES 
   Qmitk/QmitkLancetKukaWidget.ui
+  Qmitk/QlancetToolDistanceWidgetControls.ui
 )
 
 set(MOC_H_FILES
   Qmitk/QmitkLancetKukaWidget.h
+  Qmitk/QlancetToolDistanceWidget.h
 )
 
 # if(MITK_USE_POLHEMUS_TRACKER)

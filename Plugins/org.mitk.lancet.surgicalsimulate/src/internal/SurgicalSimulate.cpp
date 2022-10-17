@@ -617,12 +617,6 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
   m_KukaVisualizeTimer->start();
 
-
-  
-
-
-
-
   //For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
   // https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
   
@@ -641,6 +635,11 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
   QThread::msleep(1000);
   m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+  std::vector<mitk::NavigationData::Pointer> ndsForDistanceWidget;
+  ndsForDistanceWidget.push_back(m_KukaApplyRegistrationFilter->GetOutput(0));
+  ndsForDistanceWidget.push_back(m_VegaSource->GetOutput("RobotEndRF"));
+  m_Controls.widget->CreateToolDistanceMatrix(&ndsForDistanceWidget);
 }
 
 void SurgicalSimulate::OnSetTCP()
@@ -1007,6 +1006,11 @@ void SurgicalSimulate::UpdateToolStatusWidget()
 {
   m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
   m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
+
+  std::vector<mitk::NavigationData::Pointer> ndsForDistanceWidget;
+  ndsForDistanceWidget.push_back(m_KukaApplyRegistrationFilter->GetOutput(0));
+  ndsForDistanceWidget.push_back(m_VegaSource->GetOutput("RobotEndRF"));
+  m_Controls.widget->ShowDistanceValues(&ndsForDistanceWidget);
 }
 
 void SurgicalSimulate::ShowToolStatus_Vega()
@@ -1022,10 +1026,6 @@ void SurgicalSimulate::ShowToolStatus_Vega()
   m_Controls.m_StatusWidgetVegaToolToShow->SetTextAlignment(Qt::AlignLeft);
   m_Controls.m_StatusWidgetVegaToolToShow->SetNavigationDatas(&m_VegaNavigationData);
   m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();
-
-  //tool distance
-  m_Controls.widget->CreateToolDistanceMatrix(m_VegaSource->GetOutputs());
-  m_Controls.widget->ShowDistanceValues(m_VegaSource->GetOutputs());
 }
 
 void SurgicalSimulate::ShowToolStatus_Kuka()

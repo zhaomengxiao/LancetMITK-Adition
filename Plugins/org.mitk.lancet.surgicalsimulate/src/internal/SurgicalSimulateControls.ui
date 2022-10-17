@@ -478,7 +478,7 @@
         <string>Start (go to probe point)</string>
        </property>
       </widget>
-      <widget class="QmitkToolDistanceWidget" name="widget" native="true">
+      <widget class="QlancetToolDistanceWidget" name="widget" native="true">
        <property name="geometry">
         <rect>
          <x>130</x>
@@ -520,9 +520,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>QmitkToolDistanceWidget</class>
+   <class>QlancetToolDistanceWidget</class>
    <extends>QWidget</extends>
-   <header location="global">QmitkToolDistanceWidget.h</header>
+   <header>QlancetToolDistanceWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
