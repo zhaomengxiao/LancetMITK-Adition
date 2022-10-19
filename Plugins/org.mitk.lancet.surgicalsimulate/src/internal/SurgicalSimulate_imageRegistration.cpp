@@ -544,6 +544,7 @@ bool SurgicalSimulate::CollectIcpProbe()
 
 
 
+
 bool SurgicalSimulate::TouchProbeCalibrationPoint1()
 {
 	NavigationTree::Pointer tree = NavigationTree::New();
@@ -705,6 +706,58 @@ bool SurgicalSimulate::TouchProbeCalibrationPoint3()
 	m_Controls.textBrowser->append("offset: " + QString::number(newOffset[0]) + "/"
 		+ QString::number(newOffset[1]) + "/"
 		+ QString::number(newOffset[2]));
+
+	return true;
+}
+
+bool SurgicalSimulate::ProbeImageCheckPoint()
+{
+	auto imageRfRegistrationMatrix = m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix();
+	vtkNew<vtkMatrix4x4> vtkImageRfRegistrationMatrix; // image to RF matrix
+	mitk::TransferItkTransformToVtkMatrix(imageRfRegistrationMatrix.GetPointer(),vtkImageRfRegistrationMatrix);
+
+	if (vtkImageRfRegistrationMatrix->IsIdentity())
+	{
+		m_Controls.textBrowser->append("No image registration available");
+		return false;
+	}
+
+	auto tmpPointSet = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_ImageCheckPoint->GetSelectedNode()->GetData());
+	auto imageCheckPoint = tmpPointSet->GetPoint(0);
+
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput("Probe");
+	mitk::NavigationData::Pointer nd_ndiToObjectRf = m_VegaSource->GetOutput("ObjectRf");
+
+	mitk::NavigationData::Pointer nd_rfToProbe = GetNavigationDataInRef(nd_ndiToProbe, nd_ndiToObjectRf);
+
+	mitk::Point3D probeTipPointUnderRf = nd_rfToProbe->GetPosition();
+
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+	tmpMatrix->Identity();
+	tmpMatrix->SetElement(0, 3, probeTipPointUnderRf[0]);
+	tmpMatrix->SetElement(1, 3, probeTipPointUnderRf[1]);
+	tmpMatrix->SetElement(2, 3, probeTipPointUnderRf[2]);
+
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(tmpMatrix);
+	tmpTransform->PostMultiply();
+	tmpTransform->Concatenate(vtkImageRfRegistrationMatrix);
+	tmpTransform->Update();
+
+	auto transMatrix = tmpTransform->GetMatrix();
+
+	double probeTipInImage[3]
+	{
+		transMatrix->GetElement(0,3),
+		transMatrix->GetElement(1,3),
+		transMatrix->GetElement(2,3),
+	};
+
+	double distance = sqrt(pow(probeTipInImage[0] - imageCheckPoint[0], 2)+ 
+		pow(probeTipInImage[1] - imageCheckPoint[1], 2) + 
+		pow(probeTipInImage[2] - imageCheckPoint[2], 2));
+
+	m_Controls.textBrowser->append("Distance to the checkpoint:" + QString::number(distance));
 
 	return true;
 }

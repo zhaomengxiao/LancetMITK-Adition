@@ -72,6 +72,8 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetLine);
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_ImageCheckPoint);
+
 
   m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
 
@@ -104,6 +106,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 
   connect(m_Controls.pushButton_setTCP, &QPushButton::clicked, this, &SurgicalSimulate::OnSetTCP);
   connect(m_Controls.pushButton_confirmImageTargetLine, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImageLine);
+  connect(m_Controls.pushButton_probeCheckPoint, &QPushButton::clicked, this, &SurgicalSimulate::ProbeImageCheckPoint);
 
   connect(m_Controls.pushButton_touchP1, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint1);
   connect(m_Controls.pushButton_touchP2, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint2);
@@ -390,7 +393,14 @@ void SurgicalSimulate::OnRobotCapture()
 	tcp[3] =0.2433;
 	tcp[4] = -3.089;
 	tcp[5] = -0.019;*/
-
+	
+	//For Test Use ,7L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
+	/*tcp[0] = 23.80;
+	tcp[1] = 47.49;
+	tcp[2] = 95;
+	tcp[3] =1.575;
+	tcp[4] = -3.141;
+	tcp[5] = 0;*/
 
 	//For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
 	// https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
@@ -430,7 +440,7 @@ void SurgicalSimulate::OnAutoMove()
   double trans1[3]{0, 0, 50};
   double trans2[3]{0, 50, 0};
   double trans3[3]{50, 0, 0};
-  double trans4[3]{0, 0, -50};
+  double trans4[3]{0, 0, -25};
   double trans5[3]{-25, 0, 0};
   double trans6[3]{0, -25, 0};
   double trans7[3]{0, -25, 0};
@@ -581,6 +591,33 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   m_VegaSource->Update();
   m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
 
+  //TODO: store tcp into toolstorage
+  //For Test Use ,7L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
+  std::array<double, 6> tcp;
+	//design
+  /*tcp[0] = 23.80;
+	tcp[1] = 47.49;
+	tcp[2] = 95;
+	tcp[3] =1.575;
+	tcp[4] = -3.141;
+	tcp[5] = 0;*/
+	//algo
+	tcp[0] = 22.5281;
+	tcp[1] = 45.9194;
+	tcp[2] = 93.4865;
+	tcp[3] = 1.575;
+	tcp[4] = -3.141;
+	tcp[5] = 0;
+
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
   m_KukaVisualizeTimer->stop();
   m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
   m_KukaVisualizeTimer->start();
@@ -593,7 +630,7 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
 
   //For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
   // https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
-  double tcp[6];
+  
   tcp[0] = 0;
   tcp[1] = 100;
   tcp[2] = 138;

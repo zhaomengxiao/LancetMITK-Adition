@@ -202,11 +202,15 @@ protected:
   // Get the coordinate of the image line in the robot (internal) base frame
   bool InterpretImageLine();
 
-	// Use butterfly to calibrate the probe
+
+  // Use butterfly to calibrate the probe
   bool TouchProbeCalibrationPoint1();
   bool TouchProbeCalibrationPoint2();
   bool TouchProbeCalibrationPoint3();
   double m_probeOffset[3]{ 0,0,0 };
+
+  // Collect and evaluate image checkPoint after image registration
+  bool ProbeImageCheckPoint();
 
 
 };
