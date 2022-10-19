@@ -105,6 +105,11 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_setTCP, &QPushButton::clicked, this, &SurgicalSimulate::OnSetTCP);
   connect(m_Controls.pushButton_confirmImageTargetLine, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImageLine);
 
+  connect(m_Controls.pushButton_touchP1, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint1);
+  connect(m_Controls.pushButton_touchP2, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint2);
+  connect(m_Controls.pushButton_touchP3, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint3);
+
+
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,

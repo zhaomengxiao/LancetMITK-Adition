@@ -43,6 +43,8 @@ found in the LICENSE file.
 #include "QmitkDataStorageTreeModel.h"
 #include <QmitkSingleNodeSelectionWidget.h>
 
+#include "lancetTreeCoords.h"
+
 void SurgicalSimulate::InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget)
 {
 	widget->SetDataStorage(GetDataStorage());
@@ -540,3 +542,169 @@ bool SurgicalSimulate::CollectIcpProbe()
 	return true;
 }
 
+
+
+bool SurgicalSimulate::TouchProbeCalibrationPoint1()
+{
+	NavigationTree::Pointer tree = NavigationTree::New();
+
+  NavigationNode::Pointer ndi = NavigationNode::New();
+  ndi->SetNavigationData(mitk::NavigationData::New());
+  ndi->SetNodeName("ndi");
+
+  tree->Init(ndi);
+
+  NavigationNode::Pointer probe = NavigationNode::New();
+  probe->SetNodeName("Probe");
+  probe->SetNavigationData(m_VegaSource->GetOutput("Probe"));
+
+  tree->AddChild(probe, ndi);
+
+  NavigationNode::Pointer probeCalibrator = NavigationNode::New();
+  probeCalibrator->SetNodeName("ProbeCalibrator");
+  probeCalibrator->SetNavigationData(m_VegaSource->GetOutput("ProbeCalibrator"));
+
+  tree->AddChild(probeCalibrator, ndi);
+
+  //use tree
+  mitk::NavigationData::Pointer input = mitk::NavigationData::New();
+  double p[3]{ 52.73,51.56,23 };
+  input->SetPosition(p);
+  mitk::NavigationData::Pointer treeRes =  tree->GetNavigationData(input, "ProbeCalibrator", "Probe");
+  //mitk::AffineTransform3D::Pointer treeResMatrix = treeRes->GetAffineTransform3D();
+  MITK_INFO << "tree res:";
+  MITK_INFO << treeRes->GetPosition();
+
+
+
+
+	//===================================================
+	m_probeOffset[0] = 0;
+	m_probeOffset[1] = 0;
+	m_probeOffset[2] = 0;
+
+
+	//get navigation data of RobotEndRF in ndi coords,
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto probeCalibratorIndex = m_VegaToolStorage->GetToolIndexByName("ProbeCalibrator");
+	if (probeIndex == -1 || probeCalibratorIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ProbeCalibrator' in the toolStorage!");
+	}
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToProbeCalibrator = m_VegaSource->GetOutput(probeCalibratorIndex);
+
+	mitk::NavigationData::Pointer nd_ProbeToProbeCalibrator = GetNavigationDataInRef(nd_ndiToProbeCalibrator,nd_ndiToProbe);
+
+	auto probeToProbeCalibratorMatrix = nd_ProbeToProbeCalibrator->GetAffineTransform3D();
+
+	auto checkPointInCalibrator = mitk::AffineTransform3D::New();
+	double tmpPoint[3];
+	tmpPoint[0] = 52.73;
+	tmpPoint[1] = 51.56;
+	tmpPoint[2] = 23;
+	
+	checkPointInCalibrator->SetOffset(tmpPoint);
+
+	checkPointInCalibrator->Compose(probeToProbeCalibratorMatrix);
+
+	auto newOffset = checkPointInCalibrator->GetOffset();
+
+	m_probeOffset[0] = m_probeOffset[0] + newOffset[0];
+	m_probeOffset[1] = m_probeOffset[1] + newOffset[1];
+	m_probeOffset[2] = m_probeOffset[2] + newOffset[2];
+
+	m_Controls.textBrowser->append("Probe offset: " + QString::number(m_probeOffset[0]) + "/"
+		+ QString::number(m_probeOffset[1]) + "/"
+		+ QString::number(m_probeOffset[2]));
+
+	m_Controls.textBrowser->append("offset: " + QString::number(newOffset[0]) + "/"
+		+ QString::number(newOffset[1]) + "/"
+		+ QString::number(newOffset[2]));
+
+	return true;
+}
+
+bool SurgicalSimulate::TouchProbeCalibrationPoint2()
+{
+	//get navigation data of RobotEndRF in ndi coords,
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto probeCalibratorIndex = m_VegaToolStorage->GetToolIndexByName("ProbeCalibrator");
+	if (probeIndex == -1 || probeCalibratorIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ProbeCalibrator' in the toolStorage!");
+	}
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToProbeCalibrator = m_VegaSource->GetOutput(probeCalibratorIndex);
+
+	mitk::NavigationData::Pointer nd_ProbeToProbeCalibrator = GetNavigationDataInRef(nd_ndiToProbeCalibrator, nd_ndiToProbe);
+
+	auto probeToProbeCalibratorMatrix = nd_ProbeToProbeCalibrator->GetAffineTransform3D();
+
+	auto checkPointInCalibrator = mitk::AffineTransform3D::New();
+	double tmpPoint[3];
+	tmpPoint[0] = 62.69;
+	tmpPoint[1] = 52.44;
+	tmpPoint[2] = 5.5;
+	checkPointInCalibrator->SetOffset(tmpPoint);
+
+	checkPointInCalibrator->Compose(probeToProbeCalibratorMatrix);
+
+	auto newOffset = checkPointInCalibrator->GetOffset();
+
+	m_probeOffset[0] = (m_probeOffset[0] + newOffset[0])/2;
+	m_probeOffset[1] = (m_probeOffset[1] + newOffset[1]) / 2;
+	m_probeOffset[2] = (m_probeOffset[2] + newOffset[2]) / 2;
+
+	m_Controls.textBrowser->append("Probe offset: " + QString::number(m_probeOffset[0]) + "/"
+		+ QString::number(m_probeOffset[1]) + "/"
+		+ QString::number(m_probeOffset[2]));
+
+	m_Controls.textBrowser->append("offset: " + QString::number(newOffset[0]) + "/"
+		+ QString::number(newOffset[1]) + "/"
+		+ QString::number(newOffset[2]));
+
+	return true;
+}
+
+bool SurgicalSimulate::TouchProbeCalibrationPoint3()
+{
+	//get navigation data of RobotEndRF in ndi coords,
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto probeCalibratorIndex = m_VegaToolStorage->GetToolIndexByName("ProbeCalibrator");
+	if (probeIndex == -1 || probeCalibratorIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ProbeCalibrator' in the toolStorage!");
+	}
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToProbeCalibrator = m_VegaSource->GetOutput(probeCalibratorIndex);
+
+	mitk::NavigationData::Pointer nd_ProbeToProbeCalibrator = GetNavigationDataInRef(nd_ndiToProbeCalibrator, nd_ndiToProbe);
+
+	auto probeToProbeCalibratorMatrix = nd_ProbeToProbeCalibrator->GetAffineTransform3D();
+
+	auto checkPointInCalibrator = mitk::AffineTransform3D::New();
+	double tmpPoint[3];
+	tmpPoint[0] = 72.65;
+	tmpPoint[1] = 53.33;
+	tmpPoint[2] = 15;
+	checkPointInCalibrator->SetOffset(tmpPoint);
+
+	checkPointInCalibrator->Compose(probeToProbeCalibratorMatrix);
+
+	auto newOffset = checkPointInCalibrator->GetOffset();
+
+	m_probeOffset[0] = (2 * m_probeOffset[0] + newOffset[0]) / 3;
+	m_probeOffset[1] =(2 * m_probeOffset[1] + newOffset[1]) / 3;
+	m_probeOffset[2] = (2 * m_probeOffset[2] + newOffset[2]) / 3;
+
+	m_Controls.textBrowser->append("Probe offset: " + QString::number(m_probeOffset[0]) + "/"
+		+ QString::number(m_probeOffset[1]) + "/"
+		+ QString::number(m_probeOffset[2]));
+
+	m_Controls.textBrowser->append("offset: " + QString::number(newOffset[0]) + "/"
+		+ QString::number(newOffset[1]) + "/"
+		+ QString::number(newOffset[2]));
+
+	return true;
+}
