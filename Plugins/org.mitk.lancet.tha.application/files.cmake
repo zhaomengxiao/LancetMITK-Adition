@@ -36,8 +36,6 @@ set(CPP_FILES )
 #! Copy runtime dependent resource files.
 set(resources_dir ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(resources_target_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
-message("THA_Application: resources_dir >> ${resources_dir}")
-message("THA_Application: resources_target_dir >> ${resources_target_dir}")
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${resources_dir} ${resources_target_dir})
 
 foreach(file ${SRC_CPP_FILES})

@@ -21,7 +21,7 @@ namespace lancet
 	org_mitk_lancet_statemachine_services_Activator::org_mitk_lancet_statemachine_services_Activator()
     : imp(std::make_shared<PrivateImp>())
 	{
-    
+    qDebug() << __func__ << "log";
 	}
 
 	org_mitk_lancet_statemachine_services_Activator::~org_mitk_lancet_statemachine_services_Activator()
@@ -30,6 +30,7 @@ namespace lancet
 
 	void org_mitk_lancet_statemachine_services_Activator::start(ctkPluginContext* context)
 	{
+		qDebug() << __func__ << "log";
     this->imp->pluginContext = context;
 
     // warning

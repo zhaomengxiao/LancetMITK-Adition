@@ -30,10 +30,17 @@ found in the LICENSE file.
 class QmitkStdMultiWidget;
 class QMedicalRecordManagementEditorPrivate;
 
+namespace lancet
+{
+  class IMedicalRecordsProperty;
+  class IMedicalRecordsAdministrationService;
+}
+
 /**
  * @brief
  */
-class ORG_MITK_LANCET_MEDICALRECORDMANAGEMENT_EDITOR QMedicalRecordManagementEditor final
+class ORG_MITK_LANCET_MEDICALRECORDMANAGEMENT_EDITOR 
+  QMedicalRecordManagementEditor final
 	: public berry::EditorPart, public berry::IPartListener
 {
   Q_OBJECT
@@ -85,6 +92,21 @@ public:
   * @brief Overridden from berry::IPartListener
   */
   virtual berry::IPartListener::Events::Types GetPartEventTypes() const override;
+protected:
+	lancet::IMedicalRecordsAdministrationService*
+		GetService() const;
+
+	void ConnectToService();
+	void DisConnectToService();
+
+  QStringList GetTableWidgetHeaders() const;
+
+  void CreateTableItem(int, lancet::IMedicalRecordsProperty*);
+  void ModifyTableItem(int, lancet::IMedicalRecordsProperty*);
+protected Q_SLOTS:
+	void Slot_MedicalRecordsPropertyTrace(int, lancet::IMedicalRecordsProperty*, bool);
+	void Slot_MedicalRecordsPropertyModify(int, lancet::IMedicalRecordsProperty*, bool);
+	void Slot_MedicalRecordsPropertyDelete(int, lancet::IMedicalRecordsProperty*, bool);
 private:
 	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
 	Ui::QMedicalRecordManagementEditor m_Controls;
@@ -95,6 +117,9 @@ protected:
 	QSharedPointer<QWidget> widgetInstace;
 	ctkServiceTracker<berryIPreferencesService*> m_PrefServiceTracker;
 	berry::IBerryPreferences::Pointer m_Prefs;
+private:
+  struct QMedicalRecordManagementEditorPrivateImp;
+  std::shared_ptr<QMedicalRecordManagementEditorPrivateImp> imp;
 };
 
 #endif // QMedicalRecordManagementEditor_H

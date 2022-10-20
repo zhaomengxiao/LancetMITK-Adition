@@ -21,14 +21,21 @@ namespace mitk
   class org_mitk_lancet_medicalrecordmanagement_Activator : public QObject, public ctkPluginActivator
   {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org_mitk_lancet_MedicalRecordManagement")
+    Q_PLUGIN_METADATA(IID "org_mitk_lancet_medicalrecordmanagement")
     Q_INTERFACES(ctkPluginActivator)
 
   public:
+    org_mitk_lancet_medicalrecordmanagement_Activator();
     void start(ctkPluginContext *context);
     void stop(ctkPluginContext *context);
 
+    static ctkPluginContext* GetPluginContext();
+  private:
+    struct PluginActivatorPrivateImp;
+    std::shared_ptr<PluginActivatorPrivateImp> imp;
   }; // org_mitk_lancet_medicalrecordmanagement_Activator
+
+  typedef org_mitk_lancet_medicalrecordmanagement_Activator PluginActivator;
 }
 
 #endif // org_mitk_lancet_medicalrecordmanagement_Activator_h

@@ -42,14 +42,14 @@ namespace lancet
 		stateMachineState = loader.GetOutput();
 
 		///< Start debug
-		if (loader.GetErrorState())
-		{
-			qDebug() << loader.GetErrorStringList();
-		}
-		if (loader.GetWarningState())
-		{
-			qDebug() << loader.GetWarningStringList();
-		}
+		//if (loader.GetErrorState())
+		//{
+		//	qDebug() << loader.GetErrorStringList();
+		//}
+		//if (loader.GetWarningState())
+		//{
+		//	qDebug() << loader.GetWarningStringList();
+		//}
 		/// End debug
 
 		if (inputStateType == IScxmlStateMachineState::StateType::Admin)

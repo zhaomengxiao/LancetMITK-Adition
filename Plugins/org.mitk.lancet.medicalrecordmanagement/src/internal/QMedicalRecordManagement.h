@@ -20,6 +20,12 @@ found in the LICENSE file.
 
 #include "ui_QMedicalRecordManagementControls.h"
 
+
+namespace lancet 
+{
+  class IMedicalRecordsProperty;
+  class IMedicalRecordsAdministrationService;
+}
 /**
   \brief QMedicalRecordManagement
 
@@ -49,6 +55,15 @@ protected:
 
   /// \brief Called when the user clicks the GUI button
   void DoImageProcessing();
+
+  lancet::IMedicalRecordsAdministrationService*
+		GetService() const;
+
+	void ConnectToService();
+	void DisConnectToService();
+protected Q_SLOTS:
+  void Slot_MedicalRecordsPropertySelect(lancet::IMedicalRecordsProperty*);
+private:
 
   Ui::QMedicalRecordManagementControls m_Controls;
 };

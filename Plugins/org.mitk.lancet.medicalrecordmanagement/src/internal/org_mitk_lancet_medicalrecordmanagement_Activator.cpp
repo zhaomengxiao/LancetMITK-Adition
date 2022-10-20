@@ -16,10 +16,32 @@ found in the LICENSE file.
 
 namespace mitk
 {
+  struct PluginActivator::PluginActivatorPrivateImp
+  {
+    static ctkPluginContext* context;
+  };
+  ctkPluginContext* PluginActivator::PluginActivatorPrivateImp::context = nullptr;
+
+  org_mitk_lancet_medicalrecordmanagement_Activator::org_mitk_lancet_medicalrecordmanagement_Activator()
+    : imp(std::make_shared<PluginActivatorPrivateImp>())
+  {
+    qDebug() << "";
+  }
+
   void org_mitk_lancet_medicalrecordmanagement_Activator::start(ctkPluginContext *context)
   {
+    this->imp->context = context;
     BERRY_REGISTER_EXTENSION_CLASS(QMedicalRecordManagement, context)
   }
 
-  void org_mitk_lancet_medicalrecordmanagement_Activator::stop(ctkPluginContext *context) { Q_UNUSED(context) }
+  void org_mitk_lancet_medicalrecordmanagement_Activator::stop(ctkPluginContext *context) 
+  { 
+    Q_UNUSED(context);
+    this->imp->context = nullptr;
+  }
+
+  ctkPluginContext* org_mitk_lancet_medicalrecordmanagement_Activator::GetPluginContext()
+  {
+    return PluginActivatorPrivateImp::context;
+  }
 }

@@ -31,7 +31,6 @@ found in the LICENSE file.
 #include <QmitkRenderWindowWidget.h>
 #include <QmitkStdMultiWidget.h>
 
-
 #include <ctkServiceTracker.h>
 
 // mitk gui qt common plugin
@@ -41,14 +40,23 @@ found in the LICENSE file.
 #include <QMessageBox>
 #include <QDir>
 
+// lancet
+#include <lancetIMedicalRecordsScanner.h>
+#include <lancetIMedicalRecordsProperty.h>
+#include <lancetIMedicalRecordsAdministrationService.h>
+
 const QString QMedicalRecordManagementEditor::EDITOR_ID = "org_mitk_lancet_medicalrecordmanagement_editor";
 
-
+struct QMedicalRecordManagementEditor::QMedicalRecordManagementEditorPrivateImp
+{
+	QMap<QString, int> tableDataSheet;
+};
 //////////////////////////////////////////////////////////////////////////
 // QMedicalRecordManagementEditor
 //////////////////////////////////////////////////////////////////////////
 QMedicalRecordManagementEditor::QMedicalRecordManagementEditor()
   : berry::EditorPart()
+	, imp(std::make_shared<QMedicalRecordManagementEditorPrivateImp>())
 	, widgetInstace(nullptr)
 	, m_Prefs(nullptr)
 	, m_PrefServiceTracker(org_mitk_lancet_medicalrecordmanagement_editor_Activator::GetContext())
@@ -61,6 +69,11 @@ QMedicalRecordManagementEditor::QMedicalRecordManagementEditor()
 QMedicalRecordManagementEditor::~QMedicalRecordManagementEditor()
 {
 	GetSite()->GetPage()->RemovePartListener(this);
+	if (this->GetService())
+	{
+		this->GetService()->Stop();
+		this->DisConnectToService();
+	}
 	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
@@ -79,6 +92,12 @@ void QMedicalRecordManagementEditor::CreatePartControl(QWidget* parent)
 	qInfo() << "log.file.pos " << qss.pos();
 	m_Controls.tableWidget->setStyleSheet(QLatin1String(qss.readAll()));
 	qss.close();
+
+	if (this->GetService())
+	{
+		this->ConnectToService();
+		this->GetService()->Start();
+	}
 }
 
 void QMedicalRecordManagementEditor::SetFocus()
@@ -144,12 +163,193 @@ void QMedicalRecordManagementEditor::Init(berry::IEditorSite::Pointer site, berr
 		m_Prefs->OnChanged.AddListener(berry::MessageDelegate1<QMedicalRecordManagementEditor, const berry::IBerryPreferences*>
 			(this, &QMedicalRecordManagementEditor::OnPreferencesChanged));
 	}
+
+	// open service
+	if (this->GetService())
+	{
+		auto scanner = this->GetService()->GetScanner();
+		if (scanner.IsNotNull())
+		{
+			QDir workDir(QDir::currentPath());
+			workDir.cd("..");
+			workDir.cd("..");
+			workDir.cd("bin");
+			workDir.cd("planning");
+
+			qDebug() << "scanner dir " << workDir.absolutePath();
+
+			scanner->SetInterval(200);
+			scanner->SetDirectory(workDir);
+			scanner->SetRunTimeMode(lancet::IMedicalRecordsScanner::Thread);
+		}
+	}
 }
 
 berry::IPartListener::Events::Types QMedicalRecordManagementEditor::GetPartEventTypes() const
 {
 	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	return Events::CLOSED | Events::OPENED | Events::HIDDEN | Events::VISIBLE;
+}
+
+lancet::IMedicalRecordsAdministrationService* QMedicalRecordManagementEditor::GetService() const
+{
+	auto context = PluginActivator::GetContext();
+	auto serviceRef = context->getServiceReference<lancet::IMedicalRecordsAdministrationService>();
+	return context->getService<lancet::IMedicalRecordsAdministrationService>(serviceRef);
+}
+
+void QMedicalRecordManagementEditor::ConnectToService()
+{
+	auto sender = this->GetService();
+	if (sender)
+	{
+		lancet::IMedicalRecordsAdministrationService* o = sender;
+		QObject::connect(o, &lancet::IMedicalRecordsAdministrationService::MedicalRecordsPropertyTrace,
+			this, &QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyTrace);
+		QObject::connect(o, &lancet::IMedicalRecordsAdministrationService::MedicalRecordsPropertyModify,
+			this, &QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyModify);
+		QObject::connect(o, &lancet::IMedicalRecordsAdministrationService::MedicalRecordsPropertyDelete,
+			this, &QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyDelete);
+	}
+}
+
+void QMedicalRecordManagementEditor::DisConnectToService()
+{
+	auto sender = this->GetService();
+	if (sender)
+	{
+		lancet::IMedicalRecordsAdministrationService* o = sender;
+		QObject::disconnect(o, &lancet::IMedicalRecordsAdministrationService::MedicalRecordsPropertyTrace,
+			this, &QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyTrace);
+		QObject::disconnect(o, &lancet::IMedicalRecordsAdministrationService::MedicalRecordsPropertyModify,
+			this, &QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyModify);
+		QObject::disconnect(o, &lancet::IMedicalRecordsAdministrationService::MedicalRecordsPropertyDelete,
+			this, &QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyDelete);
+	}
+}
+
+QStringList QMedicalRecordManagementEditor::GetTableWidgetHeaders() const
+{
+	return {
+		QPropertyKeys::Name,
+		QPropertyKeys::Id,
+		QPropertyKeys::Sex,
+		QPropertyKeys::Age,
+		QPropertyKeys::OperatingSurgeonName,
+		QPropertyKeys::SurgicalArea,
+		QPropertyKeys::CreateTime
+	};
+}
+
+void QMedicalRecordManagementEditor::CreateTableItem(int row,
+	lancet::IMedicalRecordsProperty* data)
+{
+	if (!data && row < 0)
+	{
+		return;
+	}
+	if ((row + 1) >= this->m_Controls.tableWidget->rowCount())
+	{
+		this->m_Controls.tableWidget->setRowCount((row + 1));
+	}
+	// number
+	QTableWidgetItem* cell_row_0 = this->m_Controls.tableWidget->item(row, 0);
+	if (!cell_row_0)
+	{
+		cell_row_0 = new QTableWidgetItem();
+		cell_row_0->setTextAlignment(Qt::AlignCenter);
+		cell_row_0->setBackgroundColor(QColor(16, 16, 16));
+		this->m_Controls.tableWidget->setItem(row, 0, cell_row_0);
+	}
+	cell_row_0->setText(QString::number(row));
+	// data items
+	QStringList listKey = this->GetTableWidgetHeaders();
+	for (auto index = 0; index < listKey.size(); ++index)
+	{
+		QTableWidgetItem* cell_row_index = this->m_Controls.tableWidget->item(row, index + 1);
+		if (!cell_row_index)
+		{
+			cell_row_index = new QTableWidgetItem();
+			cell_row_index->setTextAlignment(Qt::AlignCenter);
+			cell_row_index->setBackgroundColor(QColor(16, 16, 16));
+			this->m_Controls.tableWidget->setItem(row, index + 1, cell_row_index);
+		}
+		cell_row_index->setText(data->GetKeyValue(listKey[index]).toString());
+	}
+}
+
+void QMedicalRecordManagementEditor::ModifyTableItem(int row, 
+	lancet::IMedicalRecordsProperty* data)
+{
+	if (!data || (row + 1) >= this->m_Controls.tableWidget->rowCount() &&
+		row < 0)
+	{
+		return;
+	}
+	if (!data->GetKeyValue(QPropertyKeys::Valid).toBool())
+	{
+		// visible: false
+		this->m_Controls.tableWidget->removeRow(row);
+	}
+	else
+	{
+		// items modify
+		QStringList listKey = this->GetTableWidgetHeaders();
+		for (auto index = 0; index < listKey.size(); ++index)
+		{
+			QTableWidgetItem* cell_row_index = this->m_Controls.tableWidget->item(row, index + 1);
+			if (cell_row_index)
+			{
+				cell_row_index->setText(data->GetKeyValue(listKey[index]).toString());
+			}
+		}
+	}
+}
+
+void QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyTrace(
+	int index, lancet::IMedicalRecordsProperty* data, bool valid)
+{
+	qDebug() << __FUNCTION__ << "\n"
+		<< "index: " << index << "\n"
+		<< "valid: " << valid << "\n"
+		<< "data: " << data->ToString();
+	if (data && valid)
+	{
+		if (data->GetKeyValue(QPropertyKeys::Valid).toBool())
+		{
+			// Visible: true
+			this->CreateTableItem(index, data);
+		}
+		data->ResetPropertyOfModify();
+	}
+}
+
+void QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyModify(
+	int index, lancet::IMedicalRecordsProperty* data, bool valid)
+{
+	qDebug() << __FUNCTION__ << "\n"
+		<< "index: " << index << "\n"
+		<< "valid: " << valid << "\n"
+		<< "data: " << data->ToString();
+	if (data && valid)
+	{
+		this->ModifyTableItem(index, data);
+		data->ResetPropertyOfModify();
+	}
+}
+
+void QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyDelete(
+	int index, lancet::IMedicalRecordsProperty* data, bool valid)
+{
+	qDebug() << __FUNCTION__ << "\n"
+		<< "index: " << index << "\n"
+		<< "valid: " << valid << "\n"
+		<< "data: " << data->ToString();
+	if (data && valid)
+	{
+		this->ModifyTableItem(index, data);
+		data->ResetPropertyOfModify();
+	}
 }
 
 void QMedicalRecordManagementEditor::OnPreferencesChanged(const berry::IBerryPreferences*)

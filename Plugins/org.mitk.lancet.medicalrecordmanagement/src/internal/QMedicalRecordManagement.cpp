@@ -25,6 +25,12 @@ found in the LICENSE file.
 // mitk image
 #include <mitkImage.h>
 
+#include <lancetIMedicalRecordsScanner.h>
+#include <lancetIMedicalRecordsProperty.h>
+#include <lancetIMedicalRecordsAdministrationService.h>
+
+#include "org_mitk_lancet_medicalrecordmanagement_Activator.h"
+
 const std::string QMedicalRecordManagement::VIEW_ID = "org.mitk.views.qmedicalrecordmanagement";
 
 void QMedicalRecordManagement::SetFocus()
@@ -51,6 +57,7 @@ void QMedicalRecordManagement::CreateQtPartControl(QWidget *parent)
   qInfo() << "log.file.pos " << qss.pos();
   m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
   qss.close();
+	this->ConnectToService();
 }
 
 void QMedicalRecordManagement::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -62,4 +69,43 @@ void QMedicalRecordManagement::OnSelectionChanged(berry::IWorkbenchPart::Pointer
 void QMedicalRecordManagement::DoImageProcessing()
 {
   QList<mitk::DataNode::Pointer> nodes = this->GetDataManagerSelection();
+}
+
+lancet::IMedicalRecordsAdministrationService* QMedicalRecordManagement::GetService() const
+{
+  auto context = mitk::PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::IMedicalRecordsAdministrationService>();
+  return context->getService<lancet::IMedicalRecordsAdministrationService>(serviceRef);
+}
+
+void QMedicalRecordManagement::ConnectToService()
+{
+	auto sender = this->GetService();
+	if (sender)
+	{
+		lancet::IMedicalRecordsAdministrationService* o = sender;
+		QObject::connect(o, &lancet::IMedicalRecordsAdministrationService::MedicalRecordsPropertySelect,
+			this, &QMedicalRecordManagement::Slot_MedicalRecordsPropertySelect);
+	}
+}
+
+void QMedicalRecordManagement::DisConnectToService()
+{
+	auto sender = this->GetService();
+	if (sender)
+	{
+		lancet::IMedicalRecordsAdministrationService* o = sender;
+		QObject::disconnect(o, &lancet::IMedicalRecordsAdministrationService::MedicalRecordsPropertySelect,
+			this, &QMedicalRecordManagement::Slot_MedicalRecordsPropertySelect);
+	}
+}
+
+void QMedicalRecordManagement::Slot_MedicalRecordsPropertySelect(lancet::IMedicalRecordsProperty* data)
+{
+  qDebug() << __FUNCTION__ << "\n"
+           << "data " << data->ToString();
+	if (data)
+	{
+		data->ResetPropertyOfModify();
+	}
 }

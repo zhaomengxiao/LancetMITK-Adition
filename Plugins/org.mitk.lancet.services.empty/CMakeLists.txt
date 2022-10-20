@@ -1,0 +1,7 @@
+project(org_mitk_lancet_services_empty)
+
+mitk_create_plugin(
+  EXPORT_DIRECTIVE ORG_MITK_LANCET_SERVICES_EMPTY_PLUGIN
+  EXPORTED_INCLUDE_SUFFIXES src
+  MODULE_DEPENDS PUBLIC MitkCore
+)
