@@ -212,6 +212,8 @@ protected:
   // Collect and evaluate image checkPoint after image registration
   bool ProbeImageCheckPoint();
 
+  // Check the distance between the probe and image after image registration
+  bool ProbeSurface();
 
 };
 

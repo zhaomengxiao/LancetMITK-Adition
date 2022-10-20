@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>701</width>
-    <height>701</height>
+    <height>738</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -176,9 +176,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-
-      <number>4</number>
-
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -286,27 +284,6 @@
           <string>Assemble simple navigation object</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_9">
-          <item row="3" column="0">
-           <widget class="QPushButton" name="pushButton_applyPreImageRegistration">
-            <property name="text">
-             <string>Apply preexisting registration (movable image)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
-            <item>
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>Landmark source: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_landmark_src" native="true"/>
-            </item>
-           </layout>
-          </item>
           <item row="2" column="0">
            <widget class="QPushButton" name="pushButton_assembleNavigationObject">
             <property name="text">
@@ -328,10 +305,38 @@
             </item>
            </layout>
           </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="pushButton_applyPreImageRegistration">
+            <property name="text">
+             <string>Apply preexisting registration (movable image)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>Landmark source: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_landmark_src" native="true"/>
+            </item>
+           </layout>
+          </item>
           <item row="4" column="0">
            <widget class="QPushButton" name="pushButton_applyPreImageRegistrationNew">
             <property name="text">
              <string>Apply preexisting registration (static image)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QPushButton" name="pushButton_probeSurfaceDistance">
+            <property name="text">
+             <string>Probe and evaluate distance</string>
             </property>
            </widget>
           </item>
@@ -525,18 +530,6 @@
        </property>
       </widget>
      </widget>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Output</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0">
-       <widget class="QTextBrowser" name="textBrowser"/>
-      </item>
-     </layout>
     </widget>
    </item>
    <item row="2" column="0">
