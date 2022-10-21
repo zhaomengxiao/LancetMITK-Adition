@@ -1,0 +1,18 @@
+{
+	"properties":
+	{
+		"id": "org_mitk_lancet_tha_femurmarkerpoint",
+		"objectName": "ActionFemurMarkerPoint",
+		"uiName": "股骨检查点",
+		"editorWidgetIdentify": "org_mitk_lancet_femurmarkerpoint_editor",
+		"fucntionWidgetIdentify": "org_mitk_views_qfemurmarkerpoint",
+		"theme": 
+		{
+			"defaultStyle":
+			{
+				"editorWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/action_medicalrecordmanagement_default_qss",
+				"fucntionWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/editor_medicalrecordmanagement_default_qss"
+			}
+		}
+	}
+}

@@ -1,0 +1,24 @@
+
+QWidget#widgetContainer {
+  background-color: rgb(255,0,0);
+}
+/*
+QMenu::item:pressed{padding-bottom:6px;}
+QToolButton::menu-indicator{image: None;}
+QMenu::item{border-image:url(:/default.png);padding:12px 35px;margin:0px 8px;font-size:14px;}
+*/
+
+QMenuBar{
+background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+stop:0 lightgray, stop:1 darkgray);
+}
+
+QMenuBar::item {
+margin-top: 10px;
+margin-left: 30px;
+font-size:12px;
+padding:6px 45px 6px 45px;
+background: transparent;
+border-radius:4px;
+border-image:url(:/default.png);
+}

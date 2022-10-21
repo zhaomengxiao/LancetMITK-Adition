@@ -1,0 +1,20 @@
+{
+  "properties": 
+  {
+    "Key" : "TKey_002_invalid",
+    "Name" : "TName",
+    "Id" : "TId",
+    "Sex" : "TSex",
+    "Age" : "TAge",
+    "Valid" : "false",
+	"Type" : "TType",
+    "OperatingSurgeonName" : "TOperatingSurgeonName",
+    "SurgicalArea" : "TSurgicalArea",
+    "CreateTime" : "TCreateTime",
+    "LastModifyTime" : "TLastModifyTime",
+    "DataAddress" : "TDataAddress",
+    "DrPreviewAddress" : "TDrPreviewAddress",
+    "DrPositiveDicomAddress" : "TDrPositiveDicomAddress",
+    "DrLateralDicomAddress" : "TDrLateralDicomAddress"
+  }
+}

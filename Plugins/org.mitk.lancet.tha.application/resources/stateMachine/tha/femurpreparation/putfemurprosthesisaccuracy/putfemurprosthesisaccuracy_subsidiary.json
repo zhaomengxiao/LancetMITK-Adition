@@ -1,0 +1,18 @@
+{
+	"properties":
+	{
+		"id": "org_mitk_lancet_tha_putfemurprosthesisaccuracy",
+		"objectName": "ActionPutFemurProsthesisAccuracy",
+		"uiName": "腿长结果验证",
+		"editorWidgetIdentify": "org_mitk_lancet_putfemurprosthesisaccuracy_editor",
+		"fucntionWidgetIdentify": "org_mitk_views_qputfemurprosthesisaccuracy",
+		"theme": 
+		{
+			"defaultStyle":
+			{
+				"editorWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/action_medicalrecordmanagement_default_qss",
+				"fucntionWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/editor_medicalrecordmanagement_default_qss"
+			}
+		}
+	}
+}

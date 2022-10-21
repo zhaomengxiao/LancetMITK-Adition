@@ -1,0 +1,4 @@
+QWidget
+{
+    border-image: url(:/org.mitk.lancet.femurmarkerpointeditor/registration/femoral_checkpoint_0.png);
+}

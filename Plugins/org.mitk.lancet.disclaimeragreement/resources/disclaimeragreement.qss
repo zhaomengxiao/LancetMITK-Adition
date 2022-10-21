@@ -1,0 +1,34 @@
+QWidget
+{
+    background-color:#d4deea;
+	border:none;
+	color:black;
+}
+
+QFrame#line1
+{
+    border-image: url(:/org.mitk.lancet.disclaimeragreement/image/fenge.png);
+}
+QFrame#line2
+{
+    border-image: url(:/org.mitk.lancet.disclaimeragreement/image/fenge.png);
+}
+
+QPushButton{
+	border-image: url(:/org.mitk.lancet.disclaimeragreement/image/default.png);
+	color:white;
+}
+QPushButton::hover
+{
+	border-image: url(:/org.mitk.lancet.disclaimeragreement/image/on.png);
+	color:balck;
+}
+QPushButton::disabled
+{
+	border-image: url(:/org.mitk.lancet.disclaimeragreement/image/disabled.png);	
+	color: rgb(153, 153, 153);
+}
+QPushButton:pressed{
+	padding-left:6px;
+	padding-top:6px;
+}

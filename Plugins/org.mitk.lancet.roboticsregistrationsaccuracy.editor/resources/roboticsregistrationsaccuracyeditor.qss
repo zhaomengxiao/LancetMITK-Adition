@@ -1,0 +1,4 @@
+QWidget
+{
+    border-image: url(:/org.mitk.lancet.roboticsregistrationsaccuracyeditor/registration/probe_checkpoint_10.png);
+}

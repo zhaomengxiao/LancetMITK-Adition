@@ -1,0 +1,23 @@
+QWidget
+{
+	background-color: rgb(0, 0, 0);
+	border:none;
+}
+QLabel#labelWarning
+{
+    border-image: url(:/org.mitk.lancet.linkinghardwareeditor/img.png);
+}
+
+QPushButton
+{
+	width: 170px;
+	height: 33px;
+	font-family: MicrosoftYaHei-Bold;
+	font-size: 33px;
+	font-weight: normal;
+	font-stretch: normal;
+	line-height: 25px;
+	letter-spacing: 1px;
+	color: #ffffff;
+    border:none;
+}    
