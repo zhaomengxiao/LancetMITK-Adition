@@ -8,10 +8,7 @@ namespace lancet
 {
   struct IMedicalRecordsProperty::IMedicalRecordsPropertyPrivateImp
   {
-		// QString: key
-		// QPair<QVariant, bool>: 
-		//		QVariant: data
-		//		bool: modify ?
+		// | key | [property, isModify] |
 		QMap<QString, QPair<QVariant, bool>> mapProperties;
   };
 	using LancetPropertyKeys = IMedicalRecordsProperty::PropertyKeys;
@@ -89,6 +86,24 @@ namespace lancet
 				this->SetKeyValue(key, o->GetKeyValue(key));
 			}
 		}
+	}
+	bool IMedicalRecordsProperty::ResetPropertyOfModify(const QString& key)
+	{
+		if (this->HasKey(key))
+		{
+			this->imp->mapProperties[key].second = false;
+			return true;
+		}
+		return false;
+	}
+	bool IMedicalRecordsProperty::ResetPropertyOfModify(const QStringList& list)
+	{
+		bool retval = true;
+		for (auto& key : list)
+		{
+			retval &= this->ResetPropertyOfModify(key);
+		}
+		return retval;
 	}
 	void IMedicalRecordsProperty::ModifyOf(const IMedicalRecordsProperty::Pointer& o)
 	{ 

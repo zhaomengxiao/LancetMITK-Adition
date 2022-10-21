@@ -1,16 +1,17 @@
 /**
  * \par Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.
  *
- * \brief $Document description$
+ * \brief A scanner abstract object that declares patient data.
  * \ingroup org_mitk_lancet_services_medicalrecordsadministration
  * \version V1.0.0
  * \data 2022-10-11 10:43:35
  * 
  * \par Modify History
- *
+ *   -# Create Initialize Version
+ * 
  * \author Sun
  * \data 2022-10-11 10:43:35
- * \remark $Modify Description$
+ * \remark Nothing.
  */
 #ifndef LancetIMedicalRecordsScanner_H
 #define LancetIMedicalRecordsScanner_H
@@ -35,29 +36,16 @@
 class QDir;
 namespace lancet
 {
+class IMedicalRecordsProperty;
 /**
- * \class IMedicalRecordsScanner
  * \ingroup org_mitk_lancet_services_medicalrecordsadministration
- * \namespace lancet
- * \brief 
+ * \brief This is the scanner abstract object of patient data.
  *
  * TODO: long description
  *
- * \pre $Pre description information$
- * \example $Description of use examples$
- * \code
- *	todo...
- * \endcoed
- *
  * \author Sun
- * \version V1.0.0
- * \date 2022-10-11 10:43:16
- * \remark todo: insert comments
- *
- * Contact: sh4a01@163.com
- *
+ * \test tst_medicalRecordsScanner: unit testing
  */
-class IMedicalRecordsProperty;
 class ORG_MITK_LANCET_SERVICES_MEDICALRECORDSADMINISTRATION_PLUGIN
 	IMedicalRecordsScanner : public QObject, public berry::Object
 {
@@ -66,8 +54,26 @@ public:
 	berryObjectMacro(lancet::IMedicalRecordsScanner);
 	IMedicalRecordsScanner();
 
-	enum State { Downtime, Initialize, Patroling };
-	enum RunTimeMode { Timer, Thread};
+	/**
+	 * \enum State
+	 * \brief Workflow status enumeration type inside patient data scanner.
+	 */
+	enum State 
+	{ 
+		Downtime,			///< Offline status
+		Initialize,		///< Initialization status
+		Patroling			///< Busy scanning patient data
+	};
+
+	/**
+	 * \enum RunTimeMode
+	 * \brief How the Scanner Works Enumeration Types.
+	 */
+	enum RunTimeMode
+	{ 
+		Timer,			///< The working environment of scanner patrol is in the main thread.
+		Thread			///< The working environment of scanner patrol is multi-threaded.
+	};
 
 	Q_ENUM(State)
 	Q_ENUM(RunTimeMode)
