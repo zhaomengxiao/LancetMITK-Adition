@@ -19,6 +19,7 @@ ctkPluginContext* org_mitk_lancet_medicalrecordmanagement_editor_Activator::m_Co
 void
 org_mitk_lancet_medicalrecordmanagement_editor_Activator::start(ctkPluginContext* context)
 {
+	qDebug() << __FUNCTION__ << "log";
   m_Context = context; 
 
   BERRY_REGISTER_EXTENSION_CLASS(QMedicalRecordManagementEditor, context)

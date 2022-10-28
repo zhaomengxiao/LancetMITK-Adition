@@ -25,11 +25,12 @@ namespace mitk
   org_mitk_lancet_medicalrecordmanagement_Activator::org_mitk_lancet_medicalrecordmanagement_Activator()
     : imp(std::make_shared<PluginActivatorPrivateImp>())
   {
-    qDebug() << "";
+      qDebug() << __FUNCTION__ << "log";
   }
 
   void org_mitk_lancet_medicalrecordmanagement_Activator::start(ctkPluginContext *context)
   {
+      qDebug() << __FUNCTION__ << "log";
     this->imp->context = context;
     BERRY_REGISTER_EXTENSION_CLASS(QMedicalRecordManagement, context)
   }

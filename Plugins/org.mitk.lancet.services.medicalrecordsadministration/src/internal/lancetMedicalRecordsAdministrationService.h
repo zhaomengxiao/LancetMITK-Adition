@@ -15,7 +15,7 @@ class ORG_MITK_LANCET_SERVICES_MEDICALRECORDSADMINISTRATION_PLUGIN
 	Q_OBJECT
 	Q_INTERFACES(lancet::IMedicalRecordsAdministrationService)
 public:
-	berryObjectMacro(lancet::IMedicalRecordsProperty);
+	berryObjectMacro(lancet::MedicalRecordsAdministrationService);
 	MedicalRecordsAdministrationService();
 public:
 	virtual void Start() override;

@@ -1,5 +1,6 @@
 #include "lancetMedicalRecordsLoader.h"
 
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QTextCodec>
@@ -89,6 +90,8 @@ namespace lancet
 			}
 
 			retval = this->AnalysisTargetFile(fp.readAll());
+			
+			retval->SetDirectory(QFileInfo(this->GetFileName()).absoluteDir().path());
 			this->imp->errorFlag = MedicalRecordsLoaderPrivateImp::ExtendedError::NoError;
 			fp.close();
 		}

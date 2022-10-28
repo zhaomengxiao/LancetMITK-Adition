@@ -32,6 +32,9 @@
    <string notr="true"/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetDefaultConstraint</enum>
+   </property>
    <item>
     <widget class="QTableWidget" name="tableWidget">
      <property name="font">
@@ -61,8 +64,17 @@
      <attribute name="horizontalHeaderVisible">
       <bool>true</bool>
      </attribute>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>185</number>
+     </attribute>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>195</number>
+     </attribute>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>40</number>
      </attribute>
      <column>
       <property name="text">
@@ -71,7 +83,7 @@
      </column>
      <column>
       <property name="text">
-       <string>新建列</string>
+       <string>患者名称</string>
       </property>
      </column>
      <column>

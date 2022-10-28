@@ -32,5 +32,6 @@
     <file>image/value.png</file>
     <file>icon.xpm</file>
     <file>medicalrecordmanagement.qss</file>
+    <file>medicalrecordinfodialog.qss</file>
   </qresource>
 </RCC>
