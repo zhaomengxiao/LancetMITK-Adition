@@ -61,8 +61,7 @@ bool QLancetThaWorkbenchMenuBar::OpenStateWidget(
 		// Warning
 		return false;
 	}	
-	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
-		<< QString("State id : %1 \n").arg(state->GetStateId()) << "\033[0m";
+
 	berry::IWorkbenchWindow::Pointer window = berry::PlatformUI::GetWorkbench()->GetActiveWorkbenchWindow();
 	berry::WorkbenchPage::Pointer activePage = window->GetActivePage().Cast<berry::WorkbenchPage>();
 
@@ -102,13 +101,10 @@ bool QLancetThaWorkbenchMenuBar::OpenStateWidget(
 			}
 			else
 			{
-				qWarning() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__)
-					<< "Not find target plugin " << editorId;
+				MITK_WARN << "Not find target plugin " << editorId.toStdString();
 			}
 		}
 	}
-	qInfo() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__)
-		<< QString("open %1").arg(editorId) << "\033[0m";
 
 	return true;
 }
@@ -123,8 +119,6 @@ bool QLancetThaWorkbenchMenuBar::CloseStateWidget(
 		// Warning
 		return false;
 	}
-	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
-		<< QString("State id : %1 \n").arg(state->GetStateId()) << "\033[0m";
 
 	// Correctness filtering
 	// The bug does not exist logically and may be removed later.
@@ -150,10 +144,10 @@ bool QLancetThaWorkbenchMenuBar::CloseStateWidget(
 
 	for (auto item_editor : window->GetActivePage()->GetEditors())
 	{
-		qDebug() << "try compture item_editor: " << item_editor->GetSite()->GetId();
+		MITK_INFO << "try compture item_editor: " << item_editor->GetSite()->GetId().toStdString();
 		if (item_editor->GetSite()->GetId().toLower() == editorId.toLower())
 		{
-			qInfo() << "close item_editor : " << item_editor->GetSite()->GetId();
+			MITK_INFO << "close item_editor : " << item_editor->GetSite()->GetId().toStdString();
 			window->GetActivePage()->CloseEditor(item_editor, false);
 			break;
 		}
@@ -220,8 +214,7 @@ void QLancetThaWorkbenchMenuBar::resizeEvent(QResizeEvent* event)
 
 void QLancetThaWorkbenchMenuBar::onStateMachineModuleEnter(IScxmlStateMachineState* state)
 {
-	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
-		<< QString("State id : %1 \n").arg(state->GetStateId()) << "\033[0m";
+	MITK_INFO << "log";
 	if (state && state->GetStateMachineHandler().IsNotNull())
 	{
 		state->GetStateMachineHandler()->StartStateMachine();
@@ -230,8 +223,7 @@ void QLancetThaWorkbenchMenuBar::onStateMachineModuleEnter(IScxmlStateMachineSta
 
 void QLancetThaWorkbenchMenuBar::onStateMachineModuleExit(IScxmlStateMachineState* state)
 {
-	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
-		<< QString("State id : %1 \n").arg(state->GetStateId()) << "\033[0m";
+	MITK_INFO << "log";
 	if (state && state->GetStateMachineHandler().IsNotNull())
 	{
 		state->GetStateMachineHandler()->StopStateMachine();
@@ -240,10 +232,7 @@ void QLancetThaWorkbenchMenuBar::onStateMachineModuleExit(IScxmlStateMachineStat
 
 void QLancetThaWorkbenchMenuBar::onStateMachineElementEnter(IScxmlStateMachineState* state)
 {
-	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
-		<< QString("State id : %1 \n").arg(state->GetStateId())
-		<< QString("Address %1 \n").arg(QString::number(int(state), 16)) << "\033[0m";
-
+	MITK_INFO << "log";
 	if (state && state->GetStateId() != "exit")
 	{
 		this->OpenStateWidget(IScxmlStateMachineState::Pointer(state));
@@ -252,9 +241,7 @@ void QLancetThaWorkbenchMenuBar::onStateMachineElementEnter(IScxmlStateMachineSt
 
 void QLancetThaWorkbenchMenuBar::onStateMachineElementExit(IScxmlStateMachineState* state)
 {
-	qDebug() << "\033[1;33m" << QString("line(%2) func(%3) \n").arg(__LINE__).arg(__FUNCTION__)
-		<< QString("State id : %1 \n").arg(state->GetStateId())
-		<< QString("Address %1 \n").arg(QString::number(int(state), 16)) << "\033[0m";
+	MITK_INFO << "log";
 	if (state && state->GetStateId() != "exit")
 	{
 		this->CloseStateWidget(IScxmlStateMachineState::Pointer(state));
@@ -270,9 +257,10 @@ void QLancetThaWorkbenchMenuBar::onActionClicked(bool)
 		if (variant.isNull() || false == variant.isValid()
 			|| nullptr == variant.value<lancet::IScxmlStateMachineState*>())
 		{
-			qDebug() << "Warning ptr is null.";
+			MITK_WARN << "get pointer is nullptr.";
 			return;
 		}
+		MITK_INFO << "switch state start";
 		lancet::IScxmlStateMachineState::Pointer state(
 			variant.value<lancet::IScxmlStateMachineState*>());
 
@@ -411,15 +399,6 @@ void QLancetThaWorkbenchMenuBar::ConnectToElementStateMachine(
 	if (state.IsNotNull() && state->GetStateMachineHandler().IsNotNull()
 		&& !state->GetSubStateMachines().empty())
 	{
-		if (state->GetActionProperty().IsNotNull())
-		{
-			qDebug() << state->GetStateId() << "-" << state->GetActionProperty()->GetStateObjectName() << " connect element signals";
-		}
-		else
-		{
-			qDebug() << state->GetStateId() << "-" << "unknown" << " connect element signals";
-		}
-		
 		auto qtStateHandle = state->GetStateMachineHandler().GetPointer();
 		connect(qtStateHandle, SIGNAL(StateEnter(IScxmlStateMachineState*)),
 			this, SLOT(onStateMachineElementEnter(IScxmlStateMachineState*)));

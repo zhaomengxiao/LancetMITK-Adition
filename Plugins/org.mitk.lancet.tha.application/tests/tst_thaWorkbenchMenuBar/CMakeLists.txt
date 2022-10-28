@@ -17,10 +17,8 @@ if(NOT TESTTING_TARGET_PLUGIN_LIBRARIES)
 endif()
 
 
-#target_include_directories(${TESTTING_TARGET_PLUGIN_LIBRARIES} PUBLIC ${TESTTING_TARGET_PLUGIN_INCLUDE})
 # ------------------ files -----------------------
 set(files ${PROJECT_NAME}.cpp tst_thaWorkbenchWindow.cpp)
-message("xxxx CMAKE_CURRENT_SOURCE_DIR= ${CMAKE_CURRENT_SOURCE_DIR}")
 set(test_datas ${CMAKE_CURRENT_SOURCE_DIR}/tst_datas/test_datas.qrc)
 
 lancetFunctionCreateQtTest(

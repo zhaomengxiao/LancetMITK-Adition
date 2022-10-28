@@ -27,6 +27,8 @@
 #!        plug-in, Generate all files under the external test data directory to 
 #!        testing_data.qrc file.
 cmake_minimum_required(VERSION 3.18)
+include(${MITK_EXTENSION_DIRS}/CMake/lancetFunctionFindVLD.cmake)
+
 function(lancetFunctionCreateQtTest)
 
   # options
@@ -94,6 +96,22 @@ function(lancetFunctionCreateQtTest)
   
   find_package(Qt5Test REQUIRED)
   
+  lancetFunctionFindVLD(VLD_INSTALL_DIR)
+  if(VLD_INSTALL_DIR)
+   	include_directories(${VLD_INSTALL_DIR}/include)
+	
+    if(CMAKE_CL_64)
+	  add_definitions(-DVLD_INSTALL_X64)
+	  link_directories(${VLD_INSTALL_DIR}/lib/Win64/)
+	  list(APPEND _TESTTING_PLUGIN_TESTTING_LINK_LIBRARIE ${VLD_INSTALL_DIR}/lib/Win64/vld.lib)
+    elseif()
+	  add_definitions(-DVLD_INSTALL_X32)
+	  link_directories(${VLD_INSTALL_DIR}/lib/Win32/)
+	  list(APPEND _TESTTING_PLUGIN_TESTTING_LINK_LIBRARIE ${VLD_INSTALL_DIR}/lib/Win32/vld.lib)
+    endif()
+   else()
+    message("lancetFunctionCreateQtTest.cmake >> vld is not install. Ignore memory test. see https://kinddragon.github.io/vld/")
+  endif()
   # ------------------------ Project ---------------------------
   add_executable(${PROJECT_NAME} ${_TESTTING_PLUGIN_TESTTING_SOURCES} ${_TESTTING_PLUGIN_TESTTING_DATA_DIRS})
   add_test(${PROJECT_NAME} ${PROJECT_NAME})

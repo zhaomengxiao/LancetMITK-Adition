@@ -92,14 +92,14 @@ bool UdpSocketRobotHeartbeat::simulateSpecialAction(int count, bool isTrue)
     QString dataStream;
     long requestTime = this->timeStamp();
     dataStream.sprintf("%ld;%d;App_Start;%s", requestTime, count, (isTrue ? "true" : "false"));
-    MITK_DEBUG << "try sent data: " << dataStream;
+    MITK_DEBUG << "try sent data: " << dataStream.toLatin1().constData();
     //this->m_imp->sendDataStream.push_back(dataStream.toLatin1().data());
 
     if(-1 == this->writeDatagram(dataStream.toLatin1().data(), QHostAddress(this->remoteHostAddress()), this->remoteHostPort()))
     {
         return false;
     }
-    MITK_DEBUG << "try sent data: " << dataStream << " OK";
+    MITK_DEBUG << "try sent data: " << dataStream.toLatin1().constData() << " OK";
     return true;
 }
 
@@ -109,14 +109,14 @@ bool UdpSocketRobotHeartbeat::simulateSpecialActionOfAppGetState(int count, bool
     QString dataStream;
     long requestTime = this->timeStamp();
     dataStream.sprintf("%d;%d;Get_State;%s", requestTime, count, (isTrue ? "true" : "false"));
-    MITK_DEBUG << "try sent data: " << dataStream;
+    MITK_DEBUG << "try sent data: " << dataStream.toLatin1().constData();
     //this->m_imp->sendDataStream.push_back(dataStream.toLatin1().data());
 
     if(-1 == this->writeDatagram(dataStream.toLatin1().data(), QHostAddress(this->remoteHostAddress()), this->remoteHostPort()))
     {
         return false;
     }
-    MITK_DEBUG << "try sent data: " << dataStream << " OK";
+    MITK_DEBUG << "try sent data: " << dataStream.toLatin1().constData() << " OK";
     return true;
 }
 void UdpSocketRobotHeartbeat::stopRepetitiveHeartbeat()

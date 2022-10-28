@@ -23,10 +23,8 @@ set(tst_datas_target_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/tst_datas)
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${tst_datas_dir} ${tst_datas_target_dir})
 add_definitions(-DTEST_DATAS_DIR="${tst_datas_target_dir}")
 
-#target_include_directories(${TESTTING_TARGET_PLUGIN_LIBRARIES} PUBLIC ${TESTTING_TARGET_PLUGIN_INCLUDE})
 # ------------------ files -----------------------
 set(files ${PROJECT_NAME}.cpp)
-message("xxxx CMAKE_CURRENT_SOURCE_DIR= ${CMAKE_CURRENT_SOURCE_DIR}")
 set(test_datas )
 
 lancetFunctionCreateQtTest(

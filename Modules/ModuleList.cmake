@@ -1,5 +1,6 @@
 set(MITK_MODULES
   ExampleModule
+  LancetCore
   LancetAlgo
   LancetGeoUtil
   LancetRegistration

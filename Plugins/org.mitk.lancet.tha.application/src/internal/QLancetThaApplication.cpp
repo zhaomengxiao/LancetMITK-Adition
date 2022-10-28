@@ -6,6 +6,8 @@
 // internal
 #include "QLancetThaApplicationWorkbenchAdvisor.h"
 
+#include <mitkLog.h>
+#include <lancetLogginBackend.h>
 
 QLancetThaApplication::QLancetThaApplication(QObject* parent)
 	: QObject(parent)
@@ -18,6 +20,9 @@ QLancetThaApplication::~QLancetThaApplication()
 
 QVariant QLancetThaApplication::Start(berry::IApplicationContext* context)
 {
+	lancet::LogginBackend::Register();
+	mitk::LoggingBackend::Unregister();
+
 	QScopedPointer<berry::Display> display(berry::PlatformUI::CreateDisplay());
 
 	QScopedPointer<QLancetThaApplicationWorkbenchAdvisor> wbAdvisor(new QLancetThaApplicationWorkbenchAdvisor());
