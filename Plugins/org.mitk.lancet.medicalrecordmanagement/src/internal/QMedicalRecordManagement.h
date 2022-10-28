@@ -20,7 +20,7 @@ found in the LICENSE file.
 
 #include "ui_QMedicalRecordManagementControls.h"
 
-
+class QMedicalRecordInfoDialog;
 namespace lancet 
 {
   class IMedicalRecordsProperty;
@@ -44,6 +44,15 @@ public:
   static const std::string VIEW_ID;  
   ~QMedicalRecordManagement() override;
 
+  static lancet::IMedicalRecordsAdministrationService*
+	  GetService();
+
+private slots:
+	void NewMedicalRecordInfoDialog();
+	void ModifMedicalRecordInfoDialog();
+	void OpenMedicalRecord();
+	void CloseMedicalRecord();
+
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -56,15 +65,19 @@ protected:
   /// \brief Called when the user clicks the GUI button
   void DoImageProcessing();
 
-  lancet::IMedicalRecordsAdministrationService*
-		GetService() const;
-
 	void ConnectToService();
 	void DisConnectToService();
+
+	void setCaseOpened(bool b);
+private:
+	bool isClose;
 protected Q_SLOTS:
+
   void Slot_MedicalRecordsPropertySelect(lancet::IMedicalRecordsProperty*);
+
 private:
 
+  QMedicalRecordInfoDialog* m_MedicalRecordInfoDialog;
   Ui::QMedicalRecordManagementControls m_Controls;
 };
 

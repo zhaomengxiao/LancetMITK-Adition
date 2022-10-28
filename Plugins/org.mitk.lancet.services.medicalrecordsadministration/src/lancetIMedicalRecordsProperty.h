@@ -90,6 +90,9 @@ public:
 		static QList<QString> ToQtList();
 	};
 public:
+	virtual QString GetDirectory() const;
+	virtual void SetDirectory(const QString&);
+
 	/**
 	 * \brief Returns whether the target attribute exists.
 	 * 

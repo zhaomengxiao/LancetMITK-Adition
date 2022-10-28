@@ -37,7 +37,7 @@ set(CPP_FILES )
 set(resources_dir ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(resources_target_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${resources_dir} ${resources_target_dir})
-
+include(create_provisioning.cmake)
 foreach(file ${SRC_CPP_FILES})
   set(CPP_FILES ${CPP_FILES} src/${file})
 endforeach(file ${SRC_CPP_FILES})

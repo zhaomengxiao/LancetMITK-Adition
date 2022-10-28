@@ -10,6 +10,9 @@ namespace lancet
   {
 		// | key | [property, isModify] |
 		QMap<QString, QPair<QVariant, bool>> mapProperties;
+
+		// Directory
+		QString currentDirectory;
   };
 	using LancetPropertyKeys = IMedicalRecordsProperty::PropertyKeys;
 	LancetPropertyKeys::PropertyKey LancetPropertyKeys::Key = "Key";
@@ -31,6 +34,14 @@ namespace lancet
 	IMedicalRecordsProperty::IMedicalRecordsProperty()
 		: imp(std::make_shared<IMedicalRecordsPropertyPrivateImp>())
 	{
+	}
+	QString IMedicalRecordsProperty::GetDirectory() const
+	{
+		return this->imp->currentDirectory;
+	}
+	void IMedicalRecordsProperty::SetDirectory(const QString& dir)
+	{
+		this->imp->currentDirectory = dir;
 	}
 	bool IMedicalRecordsProperty::HasKey(const QString& key) const
 	{

@@ -53,8 +53,6 @@ public:
 public:
   QMedicalRecordManagementEditor();
   virtual ~QMedicalRecordManagementEditor() override;
-
-
   void CreatePartControl(QWidget* parent) override;
 
   /**
@@ -99,14 +97,13 @@ protected:
 	void ConnectToService();
 	void DisConnectToService();
 
-  QStringList GetTableWidgetHeaders() const;
-
-  void CreateTableItem(int, lancet::IMedicalRecordsProperty*);
+  QStringList GetTableWidgetHeaders() const;  void CreateTableItem(int, lancet::IMedicalRecordsProperty*);
   void ModifyTableItem(int, lancet::IMedicalRecordsProperty*);
 protected Q_SLOTS:
 	void Slot_MedicalRecordsPropertyTrace(int, lancet::IMedicalRecordsProperty*, bool);
 	void Slot_MedicalRecordsPropertyModify(int, lancet::IMedicalRecordsProperty*, bool);
 	void Slot_MedicalRecordsPropertyDelete(int, lancet::IMedicalRecordsProperty*, bool);
+	void ItemClick(QTableWidgetItem* );
 private:
 	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
 	Ui::QMedicalRecordManagementEditor m_Controls;

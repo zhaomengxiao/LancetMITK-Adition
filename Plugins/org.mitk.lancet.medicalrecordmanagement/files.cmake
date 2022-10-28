@@ -5,15 +5,18 @@ set(SRC_CPP_FILES
 set(INTERNAL_CPP_FILES
   org_mitk_lancet_medicalrecordmanagement_Activator.cpp
   QMedicalRecordManagement.cpp
+  QMedicalRecordInfoDialog.cpp
 )
 
 set(UI_FILES
   src/internal/QMedicalRecordManagementControls.ui
+  src/internal/QMedicalRecordInfoDialog.ui
 )
 
 set(MOC_H_FILES
   src/internal/org_mitk_lancet_medicalrecordmanagement_Activator.h
   src/internal/QMedicalRecordManagement.h
+  src/internal/QMedicalRecordInfoDialog.h
 )
 
 # list of resource files which can be used by the plug-in
