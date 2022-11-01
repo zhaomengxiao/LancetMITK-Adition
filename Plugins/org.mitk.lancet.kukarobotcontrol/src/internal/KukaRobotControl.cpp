@@ -75,6 +75,7 @@ void KukaRobotControl::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_record2, &QPushButton::clicked, this, &KukaRobotControl::Record2);
   connect(m_Controls.pushButton_goto2, &QPushButton::clicked, this, &KukaRobotControl::GoTo2);
+  connect(m_Controls.pushButton_printTcpUnderBase, &QPushButton::clicked, this, &KukaRobotControl::PrintFlangeUnderBase);
 
 }
 
@@ -190,13 +191,15 @@ bool KukaRobotControl::ConnectKuka()
 		Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
 
 		//------------------------------------------------
-		double tcp[6];
-		tcp[0] = 0.75; // tx
-		tcp[1] = 100.21; // ty
-		tcp[2] = 137.73; // tz
-		tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
-		tcp[4] = eulerAngle(1); // ry
-		tcp[5] = eulerAngle(2); // rx
+		// double tcp[6];
+		// tcp[0] = 0.75; // tx
+		// tcp[1] = 100.21; // ty
+		// tcp[2] = 137.73; // tz
+		// tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
+		// tcp[4] = eulerAngle(1); // ry
+		// tcp[5] = eulerAngle(2); // rx
+
+		double tcp[6]{0};
 		MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
 		//set tcp to robot
 		  //set tcp
@@ -292,52 +295,54 @@ bool KukaRobotControl::ConfigureflangeToMovementSpace()
 
 bool KukaRobotControl::InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementMatrix, vtkMatrix4x4* movementMatrixInRobotBase)
 {
-	// For Test Use, regard ball 2 as the TCP, the pose can be seen on
-	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
-	//--------------------------------------------------
-	Eigen::Vector3d x_tcp;
-	x_tcp[0] = 51.91;
-	x_tcp[1] = -55.01;
-	x_tcp[2] = 0.16;
-	x_tcp.normalize();
+	// // For Test Use, regard ball 2 as the TCP, the pose can be seen on
+	// // https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
+	// //--------------------------------------------------
+	// Eigen::Vector3d x_tcp;
+	// x_tcp[0] = 51.91;
+	// x_tcp[1] = -55.01;
+	// x_tcp[2] = 0.16;
+	// x_tcp.normalize();
+	//
+	// Eigen::Vector3d z_flange;
+	// z_flange[0] = 0.0;
+	// z_flange[1] = 0.0;
+	// z_flange[2] = 1;
+	//
+	// Eigen::Vector3d y_tcp;
+	// y_tcp = z_flange.cross(x_tcp);
+	// y_tcp.normalize();
+	//
+	// Eigen::Vector3d z_tcp;
+	// z_tcp = x_tcp.cross(y_tcp);
+	//
+	// Eigen::Matrix3d Re;
+	//
+	// Re << x_tcp[0], y_tcp[0], z_tcp[0],
+	// 	x_tcp[1], y_tcp[1], z_tcp[1],
+	// 	x_tcp[2], y_tcp[2], z_tcp[2];
+	//
+	// Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
+	//
+	// //------------------------------------------------
+	// double tcp[6];
+	// tcp[0] = 0.75; // tx
+	// tcp[1] = 100.21; // ty
+	// tcp[2] = 137.73; // tz
+	// tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
+	// tcp[4] = eulerAngle(1); // ry
+	// tcp[5] = eulerAngle(2); // rx
 
-	Eigen::Vector3d z_flange;
-	z_flange[0] = 0.0;
-	z_flange[1] = 0.0;
-	z_flange[2] = 1;
-
-	Eigen::Vector3d y_tcp;
-	y_tcp = z_flange.cross(x_tcp);
-	y_tcp.normalize();
-
-	Eigen::Vector3d z_tcp;
-	z_tcp = x_tcp.cross(y_tcp);
-
-	Eigen::Matrix3d Re;
-
-	Re << x_tcp[0], y_tcp[0], z_tcp[0],
-		x_tcp[1], y_tcp[1], z_tcp[1],
-		x_tcp[2], y_tcp[2], z_tcp[2];
-
-	Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
-
-	//------------------------------------------------
-	double tcp[6];
-	tcp[0] = 0.75; // tx
-	tcp[1] = 100.21; // ty
-	tcp[2] = 137.73; // tz
-	tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
-	tcp[4] = eulerAngle(1); // ry
-	tcp[5] = eulerAngle(2); // rx
-	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
-	//set tcp to robot
-	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+	
+	// MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	// //set tcp to robot
+	//   //set tcp
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 
 	int index = m_Controls.comboBox_moveMode->currentIndex();
 	if(index < 1)
@@ -688,3 +693,32 @@ bool KukaRobotControl::RotateZ_minus()
 }
 
 
+bool KukaRobotControl::PrintFlangeUnderBase()
+{
+	if(m_KukaTrackingDeviceSource==nullptr)
+	{
+		m_Controls.textBrowser->append("No Kuka device available");
+		return false;
+	}
+
+	mitk::NavigationData::Pointer nd_robotBaseToFlange = m_KukaTrackingDeviceSource->GetOutput(0)->Clone();
+
+	vtkNew<vtkMatrix4x4> matrix_robotBaseToFlange;
+	mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), matrix_robotBaseToFlange);
+
+	auto handlePointSet = mitk::PointSet::New();
+	mitk::Point3D tmpPoint;
+	tmpPoint[0] = 0;
+	tmpPoint[1] = 0;
+	tmpPoint[2] = 0;
+	handlePointSet->InsertPoint(tmpPoint);
+
+	handlePointSet->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(matrix_robotBaseToFlange);
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetName("RoboBaseToFlange matrix");
+	tmpNode->SetData(handlePointSet);
+	GetDataStorage()->Add(tmpNode);
+
+	return true;
+}

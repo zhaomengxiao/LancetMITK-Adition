@@ -149,26 +149,104 @@ bool DentalWidget::RetrieveRegistrationMatrix()
 
 bool DentalWidget::AppendMatrix_regisCbct()
 {
-	auto tmpNode = m_Controls.mitkNodeSelectWidget_appendMatrix->GetSelectedNode();
-	if(tmpNode == nullptr)
-	{
-		m_Controls.textBrowser->append("Please select a node first!");
-		return false;
-	}
+	// auto tmpNode = m_Controls.mitkNodeSelectWidget_appendMatrix->GetSelectedNode();
+	// if(tmpNode == nullptr)
+	// {
+	// 	m_Controls.textBrowser->append("Please select a node first!");
+	// 	return false;
+	// }
+	//
+	// auto tmpBaseData = tmpNode->GetData();
+	// vtkNew<vtkMatrix4x4> tmpMatrix;
+	// tmpMatrix->DeepCopy(m_preOpCtToIntraOpCtMatrix);
+	//
+	// vtkNew<vtkTransform> tmpTransform;
+	// tmpTransform->Identity();
+	// tmpTransform->PostMultiply();
+	// tmpTransform->SetMatrix(tmpBaseData->GetGeometry()->GetVtkMatrix());
+	// tmpTransform->Concatenate(tmpMatrix);
+	// tmpTransform->Update();
+	//
+	// tmpBaseData->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTransform->GetMatrix());
+	//
+	// mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
-	auto tmpBaseData = tmpNode->GetData();
+	//--------------------------------------------
 	vtkNew<vtkMatrix4x4> tmpMatrix;
 	tmpMatrix->DeepCopy(m_preOpCtToIntraOpCtMatrix);
+	m_currentSelectedNode = m_Controls.mitkNodeSelectWidget_appendMatrix->GetSelectedNode();
 
-	vtkNew<vtkTransform> tmpTransform;
-	tmpTransform->Identity();
-	tmpTransform->PostMultiply();
-	tmpTransform->SetMatrix(tmpBaseData->GetGeometry()->GetVtkMatrix());
-	tmpTransform->Concatenate(tmpMatrix);
-	tmpTransform->Update();
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
 
-	tmpBaseData->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTransform->GetMatrix());
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
 
-	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+
+		if (m_baseDataToMove != nullptr)
+		{
+			auto tmpVtkTransform = vtkTransform::New();
+			tmpVtkTransform->PostMultiply();
+			tmpVtkTransform->Identity();
+			tmpVtkTransform->SetMatrix(m_baseDataToMove->GetGeometry()->GetVtkMatrix());
+			tmpVtkTransform->Concatenate(tmpMatrix);
+
+			m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkTransform->GetMatrix());
+			mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+
+		}
+		else
+		{
+			m_Controls.textBrowser->append("Moving object is empty ~~");
+		}
+
+		// if the m_baseDataToMove is pointSet, rewrite the pointSet members and keep geometry matrix as identity
+		if (dynamic_cast<mitk::PointSet*>(m_baseDataToMove) != nullptr)
+		{
+			auto tmpPointSet = dynamic_cast<mitk::PointSet*>(m_baseDataToMove);
+			int size = tmpPointSet->GetSize();
+
+			for (int i{ 0 }; i < size; i++)
+			{
+				auto tmpPoint = tmpPointSet->GetPoint(i);
+				vtkNew<vtkTransform> tmpTrans;
+				tmpTrans->Identity();
+				tmpTrans->PostMultiply();
+				tmpTrans->Translate(tmpPoint[0], tmpPoint[1], tmpPoint[2]);
+				tmpTrans->Concatenate(tmpPointSet->GetGeometry()->GetVtkMatrix());
+				tmpTrans->Update();
+				auto tmpMatrix = tmpTrans->GetMatrix();
+
+				mitk::Point3D newPoint;
+				newPoint[0] = tmpMatrix->GetElement(0, 3);
+				newPoint[1] = tmpMatrix->GetElement(1, 3);
+				newPoint[2] = tmpMatrix->GetElement(2, 3);
+
+				tmpPointSet->SetPoint(i, newPoint);
+
+			}
+			vtkNew<vtkMatrix4x4> identityMatrix;
+			identityMatrix->Identity();
+			tmpPointSet->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+		}
+
+
+	}
+
+
+
+
 	return true;
 }

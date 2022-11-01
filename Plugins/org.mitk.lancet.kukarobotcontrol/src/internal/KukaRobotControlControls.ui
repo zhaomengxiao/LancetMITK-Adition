@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>QmitkTemplate</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
+  <layout class="QGridLayout" name="gridLayout_3">
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
@@ -27,71 +27,66 @@
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Connection</string>
+       <string>Basics</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout">
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="5" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_33">
          <item>
-          <spacer name="horizontalSpacer_5">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QLabel" name="label">
+          <widget class="QLabel" name="label_17">
            <property name="text">
-            <string>Tool storage: </string>
+            <string>Axis 2 (xyz):</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_toolStoragePath">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_loadToolStorage">
+          <widget class="QLineEdit" name="lineEdit_axis2_x_roboRegis">
            <property name="text">
-            <string>Load tool storage</string>
+            <string>1</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_connectKuka">
+          <widget class="QLineEdit" name="lineEdit_axis2_y_roboRegis">
            <property name="text">
-            <string>Connect</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_startTracking">
+          <widget class="QLineEdit" name="lineEdit_axis2_z_roboRegis">
            <property name="text">
-            <string>Start tracking</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_6">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+          <widget class="QPushButton" name="pushButton_collectAxis2Points_roboRegis">
+           <property name="text">
+            <string>Collect</string>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_19">
+           <property name="text">
+            <string>Point num: </string>
            </property>
-          </spacer>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_axis2PointNum_roboRegis">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_removeAxis2Previous_roboRegis">
+           <property name="text">
+            <string>Remove previous</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -153,33 +148,61 @@
          </item>
         </layout>
        </item>
-       <item row="2" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item row="4" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_32">
          <item>
-          <widget class="QPushButton" name="pushButton_recordInitial">
+          <widget class="QLabel" name="label_16">
            <property name="text">
-            <string>Collect position 1</string>
+            <string>Axis 1 (xyz):</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_goToInitial">
+          <widget class="QLineEdit" name="lineEdit_axis1_x_roboRegis">
            <property name="text">
-            <string>Go to position 1</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_record2">
+          <widget class="QLineEdit" name="lineEdit_axis1_y_roboRegis">
            <property name="text">
-            <string>Collect position 2</string>
+            <string>0</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_goto2">
+          <widget class="QLineEdit" name="lineEdit_axis1_z_roboRegis">
            <property name="text">
-            <string>Go to position 2</string>
+            <string>1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_collectAxis1Points_roboRegis">
+           <property name="text">
+            <string>Collect</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>Point num: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_axis1PointNum_roboRegis">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_removeAxis1Previous_roboRegis">
+           <property name="text">
+            <string>Remove previous</string>
            </property>
           </widget>
          </item>
@@ -335,6 +358,110 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item row="2" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QPushButton" name="pushButton_recordInitial">
+           <property name="text">
+            <string>Collect position 1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_goToInitial">
+           <property name="text">
+            <string>Go to position 1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_record2">
+           <property name="text">
+            <string>Collect position 2</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_goto2">
+           <property name="text">
+            <string>Go to position 2</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <spacer name="horizontalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Tool storage: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_toolStoragePath">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_loadToolStorage">
+           <property name="text">
+            <string>Load tool storage</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_connectKuka">
+           <property name="text">
+            <string>Connect</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_startTracking">
+           <property name="text">
+            <string>Start tracking</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_6">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="6" column="0">
+        <widget class="QPushButton" name="pushButton_printTcpUnderBase">
+         <property name="text">
+          <string>Print flange under internal base</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

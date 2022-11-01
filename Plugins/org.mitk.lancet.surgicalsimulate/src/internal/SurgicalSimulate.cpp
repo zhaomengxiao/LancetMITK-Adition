@@ -114,6 +114,9 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 
   connect(m_Controls.pushButton_probeSurfaceDistance, &QPushButton::clicked, this, &SurgicalSimulate::ProbeSurface);
 
+  connect(m_Controls.pushButton_roboRegisManual, &QPushButton::clicked, this, &SurgicalSimulate::ManuallySetRobotRegistration);
+
+
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,

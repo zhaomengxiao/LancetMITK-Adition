@@ -107,7 +107,16 @@ protected:
   // a little confusing 
   bool InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementMatrix, vtkMatrix4x4* movementMatrixInRobotBase);
 
-  
+  // Robot registration
+  bool CollectPointAroundAxis1_roboRegis();
+  bool CollectPointAroundAxis2_roboRegis();
+  bool RemovePointAxis1_roboRegis();
+  bool RemovePointAxis2_roboRegis();
+  bool GetMatrixDrfToFlange_roboRegis();
+  double m_matrix_ndiToInitialPosture[16];
+
+  bool PrintFlangeUnderBase();
+
 
 };
 

@@ -215,6 +215,10 @@ protected:
   // Check the distance between the probe and image after image registration
   bool ProbeSurface();
 
+
+  // Manually set the RoboBaseRF to RoboBase registration matrix
+  bool ManuallySetRobotRegistration();
+
 };
 
 #endif // SurgicalSimulate_h
