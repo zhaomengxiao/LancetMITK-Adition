@@ -41,6 +41,12 @@ found in the LICENSE file.
 #include "mitkNavigationToolStorageSerializer.h"
 #include "QmitkIGTCommonHelper.h"
 #include "lancetTreeCoords.h"
+
+//udp
+#include <Poco/Net/DatagramSocket.h>
+#include <Poco/Net/SocketAddress.h>
+#include <Poco/Timestamp.h>
+#include <Poco/DateTimeFormatter.h>
 const std::string SurgicalSimulate::VIEW_ID = "org.mitk.views.surgicalsimulate";
 
 void SurgicalSimulate::SetFocus()
@@ -651,10 +657,19 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
 
 void SurgicalSimulate::OnSetTCP()
 {
-	QString tcpNum = m_Controls.lineEdit_tcp->text();
+	// QString tcpNum = m_Controls.lineEdit_tcp->text();
+	//
+	// m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", tcpNum });
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
+  const char* ipaddr = "127.0.0.1";
+  Poco::Net::SocketAddress sa(ipaddr, 5004);
+  Poco::Net::DatagramSocket dgs(Poco::Net::IPAddress::IPv4);
+  dgs.connect(sa);
 
-	m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", tcpNum });
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
+  std::string msg("hello");
+  //Poco::Timestamp now;
+  //msg = Poco::DateTimeFormatter::format(now,)
+  dgs.sendBytes(msg.data(), msg.size());
 }
 
 void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()

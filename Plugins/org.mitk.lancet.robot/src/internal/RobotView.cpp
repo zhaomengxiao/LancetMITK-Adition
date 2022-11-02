@@ -37,6 +37,7 @@ found in the LICENSE file.
 US_INITIALIZE_MODULE
 
 
+
 const std::string RobotView::VIEW_ID = "org.mitk.views.robotview";
 
 void RobotView::SetFocus()
@@ -73,7 +74,9 @@ void RobotView::CreateQtPartControl(QWidget *parent)
 	 //  this, SLOT(PrintToolPosition));
   connect(m_Controls.pushbtnSendCommand, SIGNAL(clicked()),
     this, SLOT(SendCommand()));
-  
+
+  connect(m_Controls.pushButton_startUDP, SIGNAL(clicked()),
+    this, SLOT(StartUDP()));
 }
 
 void RobotView::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -187,4 +190,25 @@ void RobotView::SendCommand()
     return;
   }
   MITK_INFO << "success";
+}
+
+void RobotView::StartUDP()
+{
+  Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), 5004);
+  m_udpSocket.bind(sa);
+  
+  m_Thread = std::thread(&RobotView::threadUDP, this);
+}
+
+void RobotView::threadUDP()
+{
+  while (true)
+  {
+    char buffer[100];
+    Poco::Net::SocketAddress sender;
+    int n = m_udpSocket.receiveFrom(buffer, sizeof(buffer) - 1, sender);
+    buffer[n] = '\0';
+    //std::cout << sender.toString() << ":" << buffer << std::endl;
+    m_Controls.j0->setText(buffer);
+  }
 }

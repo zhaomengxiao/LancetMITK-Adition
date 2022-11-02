@@ -21,6 +21,9 @@ found in the LICENSE file.
 
 #include "ui_StaubilWidget.h"
 //udp
+#include <Poco/Net/DatagramSocket.h>
+#include <Poco/Net/SocketAddress.h>
+
 #include "udpsocketrobotheartbeat.h"
 /**
   \brief RobotView
@@ -64,10 +67,16 @@ public slots:
   void SelfCheck();
 
   void SendCommand();
+
+  void StartUDP();
 	
 private:
+  void threadUDP();
+
   lancet::KukaRobotDevice::Pointer m_device;
   UdpSocketRobotHeartbeat m_udp;
+  Poco::Net::DatagramSocket m_udpSocket;
+  std::thread m_Thread;
 	QTimer m_timer;
 	
 	Ui::StaubilWidget m_Controls;
