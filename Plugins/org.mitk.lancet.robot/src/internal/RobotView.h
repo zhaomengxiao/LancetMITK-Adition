@@ -23,6 +23,13 @@ found in the LICENSE file.
 //udp
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Net/SocketAddress.h>
+#include "Poco/JSON/Parser.h"
+#include "Poco/JSON/ParseHandler.h"
+#include "Poco/JSON/JSONException.h"
+#include "Poco/StreamCopier.h"
+#include "Poco/Dynamic/Var.h"
+#include "Poco/JSON/Query.h"
+#include "Poco/JSON/PrintHandler.h"
 
 #include "udpsocketrobotheartbeat.h"
 /**
@@ -71,11 +78,13 @@ public slots:
   void StartUDP();
 	
 private:
-  void threadUDP();
+  void threadUDP_RobotInfo();
+  void threadUDP_HeartBeat();
 
   lancet::KukaRobotDevice::Pointer m_device;
   UdpSocketRobotHeartbeat m_udp;
-  Poco::Net::DatagramSocket m_udpSocket;
+  Poco::Net::DatagramSocket m_udpSocket_RobotInfo;
+  Poco::Net::DatagramSocket m_udpSocket_RobotCommand;
   std::thread m_Thread;
 	QTimer m_timer;
 	
