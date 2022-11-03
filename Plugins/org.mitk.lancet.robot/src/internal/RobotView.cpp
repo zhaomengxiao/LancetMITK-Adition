@@ -296,8 +296,9 @@ void RobotView::SendCommand()
   std::stringstream  jsnString;
   bean.ToJsonObj().stringify(jsnString, 3);
   std::cout << jsnString.str() << std::endl;
-
-  m_tcpSocket_RobotCommand.sendBytes(jsnString.str().c_str(), sizeof(jsnString.str().c_str()));
+  Poco::Net::StreamSocket ss = m_tcpSocket_RobotCommand.acceptConnection();
+  Poco::Net::SocketStream str(ss);
+  str << jsnString.str() << std::endl << std::flush;
 }
 
 void RobotView::StartUDP()
@@ -308,12 +309,11 @@ void RobotView::StartUDP()
 
   m_Thread = std::thread(&RobotView::threadUDP_RobotInfo, this);
 
-  //TCP client;
+  //TCP server;
   Poco::Net::SocketAddress sa2("172.31.1.147", 30009);
-  
-  m_tcpSocket_RobotCommand.connect(sa2);
+  m_tcpSocket_RobotCommand = Poco::Net::ServerSocket(30009);
 
-  m_Thread = std::thread(&RobotView::threadUDP_HeartBeat, this);
+  m_Thread2 = std::thread(&RobotView::threadUDP_HeartBeat, this);
 }
 
 void RobotView::threadUDP_RobotInfo()
@@ -363,9 +363,9 @@ void RobotView::threadUDP_HeartBeat()
   while (true)
   {
     std::string cmd = "heartBeat";
-
-    Poco::Net::SocketStream str(m_tcpSocket_RobotCommand);
-    m_tcpSocket_RobotCommand.sendBytes(cmd.c_str(), sizeof(cmd.c_str()));
+    Poco::Net::StreamSocket ss = m_tcpSocket_RobotCommand.acceptConnection();
+    Poco::Net::SocketStream str(ss);
+    str << cmd << std::endl << std::flush;
     
     Sleep(1000);
     MITK_INFO << "-";
