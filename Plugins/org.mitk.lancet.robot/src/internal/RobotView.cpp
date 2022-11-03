@@ -194,7 +194,8 @@ void RobotView::SendCommand()
 
 void RobotView::StartUDP()
 {
-  Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), 5004);
+  //Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), 30003);
+  Poco::Net::SocketAddress sa("172.31.1.148", 30003);
   m_udpSocket.bind(sa);
   
   m_Thread = std::thread(&RobotView::threadUDP, this);
@@ -202,13 +203,14 @@ void RobotView::StartUDP()
 
 void RobotView::threadUDP()
 {
+//172.31.1.147:18000:{"operateType":"test","param":{"target":null,"x":3.0,"y":4.0,"z":5.0,"a":0.0,"b":1.0,"c":2.0},"param2":{"target":null,"x":3.0,"y":4.0,"z":5.0,"a":0.0,"b":1.0,"c":2.0},"timestamp":0,"jointPos":[0.0,0.0,0.0,0.0,0.0,0.0,0.0]}
   while (true)
   {
-    char buffer[100];
+    char buffer[1024];
     Poco::Net::SocketAddress sender;
     int n = m_udpSocket.receiveFrom(buffer, sizeof(buffer) - 1, sender);
     buffer[n] = '\0';
-    //std::cout << sender.toString() << ":" << buffer << std::endl;
-    m_Controls.j0->setText(buffer);
+    std::cout << sender.toString() << ":" << buffer << std::endl;
+    //m_Controls.j0->setText(buffer);
   }
 }
