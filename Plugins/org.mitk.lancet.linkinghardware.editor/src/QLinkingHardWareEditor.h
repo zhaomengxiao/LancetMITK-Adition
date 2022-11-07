@@ -27,9 +27,14 @@ found in the LICENSE file.
 #include <memory>
 
 #include "ui_QLinkingHardWareEditor.h"
+
 class QmitkStdMultiWidget;
 class QLinkingHardWareEditorPrivate;
-
+namespace lancet
+{
+	class IDevicesProperty;
+	class IDevicesAdministrationService;
+}
 /**
  * @brief
  */
@@ -43,7 +48,7 @@ public:
   berryObjectMacro(QLinkingHardWareEditor, berry::EditorPart, berry::IPartListener);
 
   static const QString EDITOR_ID;
-public:
+
   QLinkingHardWareEditor();
   virtual ~QLinkingHardWareEditor() override;
 
@@ -85,16 +90,24 @@ public:
   * @brief Overridden from berry::IPartListener
   */
   virtual berry::IPartListener::Events::Types GetPartEventTypes() const override;
-private:
-	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
-	Ui::QLinkingHardWareEditor m_Controls;
+
 protected:
+	lancet::IDevicesAdministrationService* GetService() const;
+	void ConnectToService();
+	void on_HardWareWidget(int, int);
+
 	typedef berry::IPreferencesService berryIPreferencesService;
 	//berry::IEditorInput::Pointer editorInput;
 	//berry::IEditorSite::Pointer editorSite;
 	QSharedPointer<QWidget> widgetInstace;
 	ctkServiceTracker<berryIPreferencesService*> m_PrefServiceTracker;
 	berry::IBerryPreferences::Pointer m_Prefs;
+
+protected Q_SLOTS:
+	void Slot_IDevicesGetStatus();
+private:
+	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
+	Ui::QLinkingHardWareEditor m_Controls;
 };
 
 #endif // QLinkingHardWareEditor_H

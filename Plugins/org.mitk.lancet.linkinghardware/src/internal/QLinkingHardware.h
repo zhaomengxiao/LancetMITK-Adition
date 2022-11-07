@@ -19,6 +19,23 @@ found in the LICENSE file.
 #include <QmitkAbstractView.h>
 
 #include "ui_QLinkingHardwareControls.h"
+#include "kukaRobotDevice.h"
+#include "mitkVirtualTrackingDevice.h"
+#include "mitkVirtualTrackingTool.h"
+#include "lancetNavigationObjectVisualizationFilter.h"
+#include "lancetApplyDeviceRegistratioinFilter.h"
+#include "lancetApplySurfaceRegistratioinFilter.h"
+#include "lancetTrackingDeviceSourceConfigurator.h"
+#include "lancetPathPoint.h"
+#include "mitkTrackingDeviceSource.h"
+#include "lancetVegaTrackingDevice.h"
+#include <mitkNavigationDataToPointSetFilter.h>
+#include "mitkNavigationToolStorageDeserializer.h"
+#include <QtWidgets\qfiledialog.h>
+#include "mitkIGTIOException.h"
+#include "mitkNavigationToolStorageSerializer.h"
+#include "QmitkIGTCommonHelper.h"
+
 
 /**
   \brief QLinkingHardware
@@ -28,6 +45,10 @@ found in the LICENSE file.
   \sa QmitkAbstractView
   \ingroup ${plugin_target}_internal
 */
+namespace lancet
+{
+	class IDevicesAdministrationService;
+}
 class QLinkingHardware : public QmitkAbstractView
 {
   // this is needed for all Qt objects that should have a Qt meta-object
@@ -40,27 +61,23 @@ public:
 
 	virtual void CreateQtPartControl(QWidget* parent) override;
 	virtual void SetFocus() override;
+
+protected:
+	void ConnectToService();
+	bool isauto;
+
+	lancet::IDevicesAdministrationService* GetService() const;
 	void setStartHardware(int staubli, int ndi);
 
-Q_SIGNALS:
-	void signalHardWareFinished();
-	void signalStatus(int, int);
+	mitk::NavigationToolStorage::Pointer m_RobotToolStorage;
+	mitk::NavigationToolStorage::Pointer m_NDIToolStorage; 
 
-private slots:
-	void on_pushButton_auto_clicked();
-	void on_pushButton_success_clicked();
+protected Q_SLOTS:
+	void on_pb_auto_clicked();
+	void on_pb_success_clicked();
+	void Slot_IDevicesGetStatus();
 
-public Q_SLOTS:
-	void RobotStatus(int i);
-	void NDIStatus(int i);
 private:
-	QMetaObject::Connection RobotStatusConnect;
-	QMetaObject::Connection NDIStatusConnect;
-	QTimer* MyConnect;
-	bool isauto;
-	int staubliStatus;
-	int ndiStatus;
-protected:
 	Ui::QLinkingHardwareControls m_Controls;
 };
 

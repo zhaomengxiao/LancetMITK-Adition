@@ -24,17 +24,18 @@ QCheckBox
     font: 18px "ºÚÌå";
     color:black;
 }
+QCheckBox::indicator 
+{
+	width: 25px; 
+	height: 25px;
+}
 QCheckBox::indicator:unchecked 
 { 
     image: url(:/org.mitk.lancet.linkinghardware/image/radio_error.png);
-    width:25px;
-    height:25px;
 }
 QCheckBox::indicator:checked 
 {
     image: url(:/org.mitk.lancet.linkinghardware/image/radio_success.png);}
-    width:25px;
-    height:25px;
 }
 QGroupBox
 {

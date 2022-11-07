@@ -39,7 +39,8 @@ found in the LICENSE file.
 // Qt
 #include <QMessageBox>
 #include <QDir>
-
+#include <lancetIDevicesAdministrationService.h>
+#include <lancetIDevicesScanner.h>
 const QString QLinkingHardWareEditor::EDITOR_ID = "org.mitk.lancet.linkinghardware.editor";
 
 
@@ -78,6 +79,10 @@ void QLinkingHardWareEditor::CreatePartControl(QWidget* parent)
 	qInfo() << "log.file.pos " << qss.pos();
 	m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
 	qss.close();
+	if (this->GetService())
+	{
+		this->ConnectToService();
+	}
 }
 
 void QLinkingHardWareEditor::SetFocus()
@@ -143,6 +148,12 @@ void QLinkingHardWareEditor::Init(berry::IEditorSite::Pointer site, berry::IEdit
 		m_Prefs->OnChanged.AddListener(berry::MessageDelegate1<QLinkingHardWareEditor, const berry::IBerryPreferences*>
 			(this, &QLinkingHardWareEditor::OnPreferencesChanged));
 	}
+
+	// open service
+	if (this->GetService())
+	{
+		auto scanner = this->GetService()->GetScanner();
+	}
 }
 
 berry::IPartListener::Events::Types QLinkingHardWareEditor::GetPartEventTypes() const
@@ -153,4 +164,39 @@ berry::IPartListener::Events::Types QLinkingHardWareEditor::GetPartEventTypes() 
 
 void QLinkingHardWareEditor::OnPreferencesChanged(const berry::IBerryPreferences*)
 {
+}
+lancet::IDevicesAdministrationService* QLinkingHardWareEditor::GetService() const
+{
+	auto context = PluginActivator::GetContext();
+	auto serviceRef = context->getServiceReference<lancet::IDevicesAdministrationService>();
+	return context->getService<lancet::IDevicesAdministrationService>(serviceRef);
+}
+void QLinkingHardWareEditor::ConnectToService()
+{
+	auto sender = this->GetService();
+	if (sender)
+	{
+		lancet::IDevicesAdministrationService* o = sender;
+		QObject::connect(o, &lancet::IDevicesAdministrationService::IDevicesGetStatus,
+			this, &QLinkingHardWareEditor::Slot_IDevicesGetStatus);
+	}
+}
+void QLinkingHardWareEditor::on_HardWareWidget(int staubli, int ndi)
+{
+	QString str = "--staubli:" + QString::number(staubli) + "--ndi:" + QString::number(ndi);
+	MITK_INFO << "QLinkingHardware:" << __func__ + str << ": log";
+	if (staubli == 0 && ndi == 0)
+		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_0_NID_0.png);");
+	else if (staubli == 0 && ndi == 1)
+		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_0_NID_1.png);");
+	else if (staubli == 1 && ndi == 0)
+		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_1_NID_0.png);");
+	else if (staubli == 1 && ndi == 1)	
+		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_1_NID_1.png);");
+}
+
+void QLinkingHardWareEditor::Slot_IDevicesGetStatus()
+{
+	auto scanner = this->GetService()->GetScanner();
+	this->on_HardWareWidget(scanner->GetRobotStatus(), scanner->GetNDIStatus());
 }

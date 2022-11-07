@@ -1,13 +1,7 @@
 QWidget
 {
-	background-color: rgb(0, 0, 0);
-	border:none;
+	border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_1_NID_1.png);
 }
-QLabel#labelWarning
-{
-    border-image: url(:/org.mitk.lancet.linkinghardwareeditor/img.png);
-}
-
 QPushButton
 {
 	width: 170px;

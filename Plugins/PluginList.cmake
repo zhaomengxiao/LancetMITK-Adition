@@ -1,5 +1,8 @@
 set(MITK_PLUGINS
   org.mitk.lancet.statemachine.services:ON
+  #org.mitk.lancet.services.medicalrecordsadministration:ON
+  org.mitk.lancet.services.devicesadministration:ON
+  #org.mitk.lancet.services.empty:ON
   org.mitk.exampleplugin.eageractivation:ON
   org.mitk.gui.qt.exampleplugin:ON
   org.mitk.virtualcorrection:ON
