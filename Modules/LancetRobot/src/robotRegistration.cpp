@@ -50,6 +50,46 @@ void RobotRegistration::AddPose(mitk::NavigationData::Pointer nd_robot2flange, m
 	m_numberOfPose++;
 }
 
+void RobotRegistration::AddPoseWithVtkMatrix(vtkMatrix4x4* vtkRoboBaseToFlange, vtkMatrix4x4* vtkRobotBaseRF2RobotEndRF, bool translationOnly)
+{
+	Matrix3d r;
+	r << vtkRoboBaseToFlange->GetElement(0, 0), vtkRoboBaseToFlange->GetElement(0, 1), vtkRoboBaseToFlange->GetElement(0, 2),
+		vtkRoboBaseToFlange->GetElement(1, 0), vtkRoboBaseToFlange->GetElement(1, 1), vtkRoboBaseToFlange->GetElement(1, 2),
+		vtkRoboBaseToFlange->GetElement(2, 0), vtkRoboBaseToFlange->GetElement(2, 1), vtkRoboBaseToFlange->GetElement(2, 2);
+	
+	Vector3d v;
+	v << vtkRoboBaseToFlange->GetElement(0, 3), vtkRoboBaseToFlange->GetElement(1, 3), vtkRoboBaseToFlange->GetElement(2, 3);
+
+	Matrix3d rn;
+	rn << vtkRobotBaseRF2RobotEndRF->GetElement(0, 0), vtkRobotBaseRF2RobotEndRF->GetElement(0, 1), vtkRobotBaseRF2RobotEndRF->GetElement(0, 2),
+		vtkRobotBaseRF2RobotEndRF->GetElement(1, 0), vtkRobotBaseRF2RobotEndRF->GetElement(1, 1), vtkRobotBaseRF2RobotEndRF->GetElement(1, 2),
+		vtkRobotBaseRF2RobotEndRF->GetElement(2, 0), vtkRobotBaseRF2RobotEndRF->GetElement(2, 1), vtkRobotBaseRF2RobotEndRF->GetElement(2, 2);
+
+
+	Vector3d vn;
+	vn << vtkRobotBaseRF2RobotEndRF->GetElement(0, 3), vtkRobotBaseRF2RobotEndRF->GetElement(1, 3), vtkRobotBaseRF2RobotEndRF->GetElement(2, 3);
+
+	this->m_translationOnly = translationOnly;
+	if (translationOnly)
+	{
+		R.emplace(R.begin(), r);
+		V.emplace(V.begin(), v);
+		Rn.emplace(Rn.begin(), rn);
+		Vn.emplace(Vn.begin(), vn);
+		m_numberOfFixR++;
+	}
+	else
+	{
+		R.push_back(r);
+		V.push_back(v);
+		Rn.push_back(rn);
+		Vn.push_back(vn);
+	}
+	m_numberOfPose++;
+}
+
+
+
 bool RobotRegistration::PopLastPose()
 {
 	return this->PopLastPose(this->m_translationOnly);
@@ -148,6 +188,29 @@ void RobotRegistration::GetTCP(std::array<double, 6>& output)
 	output[4] = eulerAngle(1);
 	output[5] = eulerAngle(2);
 }
+
+void RobotRegistration::GetTCPmatrix(vtkMatrix4x4* flangeToRoboEndToMatrix)
+{
+	//In case anyone forgets to do calculation
+	Regist();
+
+	flangeToRoboEndToMatrix->Identity();
+	flangeToRoboEndToMatrix->SetElement(0, 0, Re(0, 0));
+	flangeToRoboEndToMatrix->SetElement(0, 1, Re(0, 1));
+	flangeToRoboEndToMatrix->SetElement(0, 2, Re(0, 2));
+	flangeToRoboEndToMatrix->SetElement(1, 0, Re(1, 0));
+	flangeToRoboEndToMatrix->SetElement(1, 1, Re(1, 1));
+	flangeToRoboEndToMatrix->SetElement(1, 2, Re(1, 2));
+	flangeToRoboEndToMatrix->SetElement(2, 0, Re(2, 0));
+	flangeToRoboEndToMatrix->SetElement(2, 1, Re(2, 1));
+	flangeToRoboEndToMatrix->SetElement(2, 2, Re(2, 2));
+
+	flangeToRoboEndToMatrix->SetElement(0, 3, Ve(0));
+	flangeToRoboEndToMatrix->SetElement(1, 3, Ve(1));
+	flangeToRoboEndToMatrix->SetElement(2, 3, Ve(2));
+
+}
+
 
 
 bool RobotRegistration::Regist()

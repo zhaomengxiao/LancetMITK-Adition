@@ -26,6 +26,7 @@ public:
 	 * \param translationOnly Indicates that the current capture of robot arm movement is translational only.
 	 */
 	void AddPose(mitk::NavigationData::Pointer nd_robot2flange, mitk::NavigationData::Pointer nd_Ndi2RegistFrame, bool translationOnly);
+	void AddPoseWithVtkMatrix(vtkMatrix4x4* vtkRoboBaseToFlange, vtkMatrix4x4* vtkRobotBaseRF2RobotEndRF, bool translationOnly);
 	bool PopLastPose();
 	bool PopLastPose(bool translationOnly);
 	void RemoveAllPose();
@@ -39,6 +40,8 @@ public:
 	bool GetRegistraionMatrix(vtkMatrix4x4* output);
 
 	void GetTCP(std::array<double, 6>& output);
+
+	void GetTCPmatrix(vtkMatrix4x4* flangeToRoboEndToMatrix);
 
 	bool Regist();
 
@@ -86,11 +89,11 @@ public:
 	std::vector<Eigen::Vector3d> V{};
 
 	/**
-	 * \brief TCP rotation,from end tool to flange.
+	 * \brief TCP rotation,from flange to endTool.
 	 */
 	Eigen::Matrix3d Re{};
 	/**
-	 * \brief TCP displacement,from end tool to flange.
+	 * \brief TCP displacement,from flange to endTool.
 	 */
 	Eigen::Vector3d Ve{};
 
