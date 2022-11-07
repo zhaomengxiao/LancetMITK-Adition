@@ -173,6 +173,18 @@
      </layout>
     </widget>
    </item>
+   <item row="2" column="0">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Output</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0">
+       <widget class="QTextBrowser" name="textBrowser"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
@@ -182,13 +194,33 @@
       <attribute name="title">
        <string>Robot registration</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_12">
-       <item row="0" column="0" colspan="2">
-        <layout class="QHBoxLayout" name="horizontalLayout_7">
+      <layout class="QGridLayout" name="gridLayout_13">
+       <item row="0" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_14">
          <item>
           <widget class="QPushButton" name="pushButton_captureRobot">
            <property name="text">
             <string>Capture</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_collectedRoboPose">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>/10</string>
            </property>
           </widget>
          </item>
@@ -222,12 +254,65 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="0" colspan="2">
-        <widget class="QPushButton" name="pushButton_roboRegisManual">
-         <property name="text">
-          <string>Use fixed registration value (manipulated values in the code)</string>
-         </property>
-        </widget>
+       <item row="1" column="0">
+        <layout class="QGridLayout" name="gridLayout_12">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pushButton_InitializeTcp">
+           <property name="text">
+            <string>Initialize TCP</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_13">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Real time robot registration error:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QLineEdit" name="lineEdit_roboRegistrationError"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>mm</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item row="1" column="0" colspan="2">
+          <layout class="QHBoxLayout" name="horizontalLayout_12">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_11">
+             <item>
+              <widget class="QLineEdit" name="lineEdit_xAngleError"/>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_yAngleError"/>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_zAngleError"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>xyz axis degree</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </item>
        <item row="2" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_10">
@@ -241,9 +326,16 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_roboRegisManual">
+           <property name="text">
+            <string>Use fixed registration value (manipulated values in the code)</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
-       <item row="2" column="1">
+       <item row="3" column="0">
         <layout class="QGridLayout" name="gridLayout_11">
          <item row="0" column="0">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_0">
@@ -543,8 +635,8 @@
        <property name="geometry">
         <rect>
          <x>230</x>
-         <y>20</y>
-         <width>86</width>
+         <y>50</y>
+         <width>131</width>
          <height>23</height>
         </rect>
        </property>
@@ -555,9 +647,9 @@
       <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
-         <x>160</x>
+         <x>80</x>
          <y>80</y>
-         <width>317</width>
+         <width>491</width>
          <height>25</height>
         </rect>
        </property>
@@ -584,9 +676,9 @@
       <widget class="QWidget" name="layoutWidget_2">
        <property name="geometry">
         <rect>
-         <x>160</x>
+         <x>80</x>
          <y>120</y>
-         <width>317</width>
+         <width>491</width>
          <height>25</height>
         </rect>
        </property>
@@ -610,6 +702,19 @@
         </item>
        </layout>
       </widget>
+      <widget class="QPushButton" name="pushButton_setTcpPrecisionTest">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>20</y>
+         <width>201</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Set precision test TCP</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QWidget" name="tab_4">
       <attribute name="title">
@@ -618,8 +723,8 @@
       <widget class="QPushButton" name="pushButton_startAutoPosition">
        <property name="geometry">
         <rect>
-         <x>220</x>
-         <y>20</y>
+         <x>250</x>
+         <y>30</y>
          <width>181</width>
          <height>23</height>
         </rect>
@@ -673,18 +778,6 @@
        </property>
       </widget>
      </widget>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Output</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0">
-       <widget class="QTextBrowser" name="textBrowser"/>
-      </item>
-     </layout>
     </widget>
    </item>
   </layout>
