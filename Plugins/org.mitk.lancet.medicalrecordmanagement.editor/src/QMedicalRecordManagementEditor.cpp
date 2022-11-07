@@ -93,13 +93,13 @@ void QMedicalRecordManagementEditor::CreatePartControl(QWidget* parent)
 	m_Controls.tableWidget->setStyleSheet(QLatin1String(qss.readAll()));
 	qss.close();
 
+	connect(m_Controls.tableWidget, SIGNAL(itemClicked(QTableWidgetItem*)), this, SLOT(ItemClick(QTableWidgetItem*)));
 	if (this->GetService())
 	{
 		this->ConnectToService();
 		this->GetService()->Start();
 	}
 }
-
 void QMedicalRecordManagementEditor::SetFocus()
 {
 	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
@@ -241,6 +241,20 @@ QStringList QMedicalRecordManagementEditor::GetTableWidgetHeaders() const
 	};
 }
 
+void QMedicalRecordManagementEditor::ItemClick(QTableWidgetItem* item)
+{
+	QList<QTableWidgetItem*> list_item = m_Controls.tableWidget->selectedItems();
+	if (!list_item.empty())
+	{
+		int rowindex = m_Controls.tableWidget->item(list_item.at(0)->row(), 0)->text().toInt();
+		
+		auto validPropertyArray = this->GetService()->GetScanner()->GetValidPropertyArray();
+		if (validPropertyArray.size() > rowindex)
+		{
+			this->GetService()->SetSelect(validPropertyArray[rowindex]);
+		}
+	}
+}
 void QMedicalRecordManagementEditor::CreateTableItem(int row,
 	lancet::IMedicalRecordsProperty* data)
 {

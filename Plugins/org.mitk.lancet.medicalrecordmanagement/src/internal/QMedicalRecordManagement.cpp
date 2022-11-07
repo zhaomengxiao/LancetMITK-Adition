@@ -31,6 +31,9 @@ found in the LICENSE file.
 
 #include "org_mitk_lancet_medicalrecordmanagement_Activator.h"
 
+// THA
+#include "QMedicalRecordInfoDialog.h"
+#include "QMedicalRecordManagement.h"
 const std::string QMedicalRecordManagement::VIEW_ID = "org.mitk.views.qmedicalrecordmanagement";
 
 void QMedicalRecordManagement::SetFocus()
@@ -39,6 +42,12 @@ void QMedicalRecordManagement::SetFocus()
 QMedicalRecordManagement::~QMedicalRecordManagement()
 {
 
+}
+lancet::IMedicalRecordsService* QMedicalRecordManagement::GetService()
+{
+	auto context = mitk::PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::IMedicalRecordsService>();
+	return context->getService<lancet::IMedicalRecordsService>(serviceRef);
 }
 void QMedicalRecordManagement::CreateQtPartControl(QWidget *parent)
 {
@@ -57,7 +66,13 @@ void QMedicalRecordManagement::CreateQtPartControl(QWidget *parent)
   qInfo() << "log.file.pos " << qss.pos();
   m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
   qss.close();
-	this->ConnectToService();
+  this->ConnectToService(); 
+  connect(m_Controls.toolButton_new, &QToolButton::clicked, this, &QMedicalRecordManagement::NewMedicalRecordInfoDialog);
+  connect(m_Controls.toolButton_edit, &QToolButton::clicked, this, &QMedicalRecordManagement::ModifMedicalRecordInfoDialog);
+  connect(m_Controls.toolButton_open, &QToolButton::clicked, this, &QMedicalRecordManagement::OpenMedicalRecord);
+  connect(m_Controls.toolButton_close, &QToolButton::clicked, this, &QMedicalRecordManagement::CloseMedicalRecord);
+  m_MedicalRecordInfoDialog = new QMedicalRecordInfoDialog();
+  m_MedicalRecordInfoDialog->setWindowModality(Qt::ApplicationModal);
 }
 
 void QMedicalRecordManagement::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -69,13 +84,6 @@ void QMedicalRecordManagement::OnSelectionChanged(berry::IWorkbenchPart::Pointer
 void QMedicalRecordManagement::DoImageProcessing()
 {
   QList<mitk::DataNode::Pointer> nodes = this->GetDataManagerSelection();
-}
-
-lancet::IMedicalRecordsService* QMedicalRecordManagement::GetService() const
-{
-  auto context = mitk::PluginActivator::GetPluginContext();
-	auto serviceRef = context->getServiceReference<lancet::IMedicalRecordsService>();
-  return context->getService<lancet::IMedicalRecordsService>(serviceRef);
 }
 
 void QMedicalRecordManagement::ConnectToService()
@@ -107,5 +115,59 @@ void QMedicalRecordManagement::Slot_MedicalRecordsPropertySelect(lancet::IMedica
 	if (data)
 	{
 		data->ResetPropertyOfModify();
+		m_MedicalRecordInfoDialog->SetInfo(data);
 	}
+}
+void QMedicalRecordManagement::NewMedicalRecordInfoDialog()
+{
+	MITK_INFO << "QMedicalRecordManagement:" << __func__ << ": log";
+	m_MedicalRecordInfoDialog->show();
+	m_MedicalRecordInfoDialog->setWindowTitle("Create A New MedicalRecord");
+	m_MedicalRecordInfoDialog->clearData();
+	m_MedicalRecordInfoDialog->createNew = true;
+	if (QDialog::Rejected == m_MedicalRecordInfoDialog->exec())
+	{
+		return;
+	}
+}
+void QMedicalRecordManagement::ModifMedicalRecordInfoDialog()
+{
+	MITK_INFO << "QMedicalRecordManagement:" << __func__ << ": log";
+	auto select = QMedicalRecordManagement::GetService()->GetSelect();
+	if (select.isNull())
+	{
+		QMessageBox::information(nullptr, "warning", "Please select a MedicalRecord first!", "close");
+		return;
+	}
+	m_MedicalRecordInfoDialog->show();
+	m_MedicalRecordInfoDialog->setWindowTitle("Modif A MedicalRecord");
+	m_MedicalRecordInfoDialog->createNew = false;
+	int ret = m_MedicalRecordInfoDialog->exec();
+	if (ret == QDialog::Rejected)
+	{
+		return;
+	}
+	
+}
+void QMedicalRecordManagement::OpenMedicalRecord()
+{
+	MITK_INFO << "QMedicalRecordManagement:" << __func__ << ": log";
+	this->setCaseOpened(false);
+}
+void QMedicalRecordManagement::CloseMedicalRecord()
+{
+	MITK_INFO << "QMedicalRecordManagement:" << __func__ << ": log";
+}
+void QMedicalRecordManagement::setCaseOpened(bool b)
+{
+	//Update Table
+	//this->ui->tableWidget->setEnabled(!b);
+	//this->ui->tableWidget->clearSelection();
+
+	//Enable + Disable Button
+	m_Controls.toolButton_new->setEnabled(!b);
+	m_Controls.toolButton_open->setEnabled(!b);
+	m_Controls.toolButton_edit->setEnabled(!b);
+	m_Controls.toolButton_close->setEnabled(b);
+	isClose = b;
 }

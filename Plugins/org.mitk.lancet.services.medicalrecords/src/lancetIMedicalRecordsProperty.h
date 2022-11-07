@@ -172,6 +172,12 @@ public:
 	virtual void ResetPropertyOfModify();
 	virtual bool ResetPropertyOfModify(const QString&);
 	virtual bool ResetPropertyOfModify(const QStringList&);
+	
+	/**
+	 * \brief Set or get the directory path of the case plan file.
+	 */
+	virtual QString GetDirectory() const;
+	virtual void SetDirectory(const QString&);
 public:
 	virtual void operator=(const IMedicalRecordsProperty&);
 	virtual void operator=(IMedicalRecordsProperty*);

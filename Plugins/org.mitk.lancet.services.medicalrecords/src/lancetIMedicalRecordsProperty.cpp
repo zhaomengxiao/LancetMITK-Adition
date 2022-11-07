@@ -10,6 +10,8 @@ namespace lancet
   {
 		// | key | [property, isModify] |
 		QMap<QString, QPair<QVariant, bool>> mapProperties;
+
+		QString directory;
   };
 	using LancetPropertyKeys = IMedicalRecordsProperty::PropertyKeys;
 	LancetPropertyKeys::PropertyKey LancetPropertyKeys::Key = "Key";
@@ -146,6 +148,7 @@ namespace lancet
 			item.second = false;
 		}
 	}
+
 	void IMedicalRecordsProperty::operator=(const IMedicalRecordsProperty& o)
 	{
 		this->imp = o.imp;
@@ -194,5 +197,13 @@ namespace lancet
 			<< LancetPropertyKeys::DrPreviewAddress
 			<< LancetPropertyKeys::DrPositiveDicomAddress
 			<< LancetPropertyKeys::DrLateralDicomAddress;
+	}
+	QString IMedicalRecordsProperty::GetDirectory() const
+	{
+		return this->imp->directory;
+	}
+	void IMedicalRecordsProperty::SetDirectory(const QString& dir)
+	{
+		this->imp->directory = dir;
 	}
 }
