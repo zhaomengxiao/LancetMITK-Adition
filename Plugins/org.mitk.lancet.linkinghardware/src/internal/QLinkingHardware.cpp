@@ -37,7 +37,7 @@ QLinkingHardware::~QLinkingHardware()
 {
 }
 void QLinkingHardware::CreateQtPartControl(QWidget *parent)
-{
+{ 
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent); 
   m_Controls.pushButton_success->setEnabled(true);
