@@ -669,6 +669,36 @@ void MoveData::AppendOffsetMatrix()
 			m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 		}
 
+		// if the m_baseDataToMove is pointSet, rewrite the pointSet members and keep geometry matrix as identity
+		if (dynamic_cast<mitk::PointSet*>(m_baseDataToMove) != nullptr)
+		{
+			auto tmpPointSet = dynamic_cast<mitk::PointSet*>(m_baseDataToMove);
+			int size = tmpPointSet->GetSize();
+
+			for (int i{ 0 }; i < size; i++)
+			{
+				auto tmpPoint = tmpPointSet->GetPoint(i);
+				vtkNew<vtkTransform> tmpTrans;
+				tmpTrans->Identity();
+				tmpTrans->PostMultiply();
+				tmpTrans->Translate(tmpPoint[0], tmpPoint[1], tmpPoint[2]);
+				tmpTrans->Concatenate(tmpPointSet->GetGeometry()->GetVtkMatrix());
+				tmpTrans->Update();
+				auto tmpMatrix = tmpTrans->GetMatrix();
+
+				mitk::Point3D newPoint;
+				newPoint[0] = tmpMatrix->GetElement(0, 3);
+				newPoint[1] = tmpMatrix->GetElement(1, 3);
+				newPoint[2] = tmpMatrix->GetElement(2, 3);
+
+				tmpPointSet->SetPoint(i, newPoint);
+
+			}
+			vtkNew<vtkMatrix4x4> identityMatrix;
+			identityMatrix->Identity();
+			tmpPointSet->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+		}
+
 	}
 }
 
