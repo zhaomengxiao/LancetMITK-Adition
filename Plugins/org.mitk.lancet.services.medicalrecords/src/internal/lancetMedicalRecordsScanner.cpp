@@ -106,7 +106,8 @@ namespace lancet
 			return false;
 		}
 		//property->ResetPropertyOfModify();
-
+		
+		property->SetDirectory(QFileInfo(this->GetFileName()).absoluteDir().path());
 		// Push element into cache.
 		if (this->GetRunTimeMode() == IMedicalRecordsScanner::Thread)
 		{
