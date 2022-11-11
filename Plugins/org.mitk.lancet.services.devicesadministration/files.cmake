@@ -1,21 +1,19 @@
 set(MOC_H_FILES
   src/lancetIDevicesAdministrationService.h
-  src/lancetIDevicesScanner.h
   src/internal/lancetPluginActivator.h
   src/internal/lancetDevicesAdministrationService.h
-  src/internal/lancetDevicesScanner.h
-  
+  src/internal/lancetTrackingDeviceManage.h
+  	
 )
 
 set(SRC_CPP_FILES
   lancetIDevicesAdministrationService.cpp
-  lancetIDevicesScanner.cpp
 )
 
 set(INTERNAL_CPP_FILES
   lancetPluginActivator.cpp
   lancetDevicesAdministrationService.cpp
-  lancetDevicesScanner.cpp
+  lancetTrackingDeviceManage.cpp
 )
 
 set(CPP_FILES )

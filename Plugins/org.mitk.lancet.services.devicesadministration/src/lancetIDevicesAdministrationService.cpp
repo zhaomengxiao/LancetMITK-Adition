@@ -1,5 +1,5 @@
 #include "lancetIDevicesAdministrationService.h"
-#include <lancetIDevicesScanner.h>
+#include <internal/lancetTrackingDeviceManage.h>
 namespace lancet
 {
   struct IDevicesAdministrationService::IDevicesAdministrationServicePrivateImp
@@ -7,7 +7,7 @@ namespace lancet
 		
 		static berry::SmartPointer<IDevicesAdministrationService> staticInstance;
 
-		berry::SmartPointer<IDevicesScanner> devicesScanner;
+		berry::SmartPointer<TrackingDeviceManage> TrackingDeviceManage;
 
   };
 	berry::SmartPointer<IDevicesAdministrationService>
@@ -24,40 +24,40 @@ namespace lancet
 	{
 		return IDevicesAdministrationServicePrivateImp::staticInstance;
 	}
-	void IDevicesAdministrationService::SetScanner(
-		berry::SmartPointer<IDevicesScanner> obj)
+	void IDevicesAdministrationService::SetConnector(
+		berry::SmartPointer<TrackingDeviceManage> obj)
 	{
-		this->DisConnectToScanner(this->GetScanner());
-		this->imp->devicesScanner = obj;
-		this->ConnectToScanner(this->GetScanner());
+		this->DisConnectToConnector(this->GetConnector());
+		this->imp->TrackingDeviceManage = obj;
+		this->ConnectToConnector(this->GetConnector());
 	}
-	berry::SmartPointer<IDevicesScanner>
-		IDevicesAdministrationService::GetScanner() const
+	berry::SmartPointer<TrackingDeviceManage>
+		IDevicesAdministrationService::GetConnector() const
 	{
-		return this->imp->devicesScanner;
+		return this->imp->TrackingDeviceManage;
 	}
 	void IDevicesAdministrationService::Slot_IDevicesGetStatus()
 	{
 		emit this->IDevicesGetStatus();
 	}
-	void IDevicesAdministrationService::ConnectToScanner(
-		const berry::SmartPointer<IDevicesScanner>& sender) const
+	void IDevicesAdministrationService::ConnectToConnector(
+		const berry::SmartPointer<TrackingDeviceManage>& sender) const
 	{
-		if (sender.IsNotNull())
-		{
-			IDevicesScanner* o = sender.GetPointer();
-			QObject::connect(o, &IDevicesScanner::IDevicesGetStatus,
-				this, &IDevicesAdministrationService::Slot_IDevicesGetStatus);
-		}
+		//if (sender.IsNotNull())
+		//{
+		//	TrackingDeviceManage* o = sender.GetPointer();
+		//	QObject::connect(o, &TrackingDeviceManage::IDevicesGetStatus,
+		//		this, &IDevicesAdministrationService::Slot_IDevicesGetStatus);
+		//}
 	}
-	void IDevicesAdministrationService::DisConnectToScanner(
-		const berry::SmartPointer<IDevicesScanner>& sender) const
+	void IDevicesAdministrationService::DisConnectToConnector(
+		const berry::SmartPointer<TrackingDeviceManage>& sender) const
 	{
-		if (sender.IsNotNull())
-		{
-			IDevicesScanner* o = sender.GetPointer();
-			QObject::disconnect(o, &IDevicesScanner::IDevicesGetStatus,
-				this, &IDevicesAdministrationService::Slot_IDevicesGetStatus);
-		}
+		//if (sender.IsNotNull())
+		//{
+		//	TrackingDeviceManage* o = sender.GetPointer();
+		//	QObject::disconnect(o, &TrackingDeviceManage::IDevicesGetStatus,
+		//		this, &IDevicesAdministrationService::Slot_IDevicesGetStatus);
+		//}
 	}
 }

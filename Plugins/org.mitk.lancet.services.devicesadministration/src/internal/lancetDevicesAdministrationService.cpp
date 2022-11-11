@@ -1,15 +1,15 @@
 #include "lancetDevicesAdministrationService.h"
 
-#include <internal/lancetDevicesScanner.h>
+#include <internal/lancetTrackingDeviceManage.h>
 
 namespace lancet
 {
 	DevicesAdministrationService::DevicesAdministrationService()
 	{
-		DevicesScanner::Pointer scannar
-			= DevicesScanner::Pointer(new DevicesScanner);
+		/*TrackingDeviceManage::Pointer connector
+			= TrackingDeviceManage::Pointer(new TrackingDeviceManage);
 
-		this->SetScanner(scannar);
+		this->SetConnector(TrackingDeviceManage);*/
 
 	}
 	void DevicesAdministrationService::Start()

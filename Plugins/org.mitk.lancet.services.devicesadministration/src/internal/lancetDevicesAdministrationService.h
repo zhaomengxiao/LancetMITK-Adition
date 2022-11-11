@@ -3,7 +3,7 @@
 
 #include <lancetIDevicesAdministrationService.h>
 
-// ORG_MITK_LANCET_SERVICES_MEDICALRECORDSADMINISTRATION_PLUGIN
+// ORG_MITK_LANCET_SERVICES_DEVICESADMINISTRATION_PLUGIN
 #include "org_mitk_lancet_services_devicesadministration_Export.h"
 
 namespace lancet
@@ -17,7 +17,7 @@ class ORG_MITK_LANCET_SERVICES_DEVICESADMINISTRATION_PLUGIN
 public:
 	berryObjectMacro(lancet::DevicesAdministrationService);
 	DevicesAdministrationService();
-
+public:
 	virtual void Start() override;
 	virtual void Stop() override;
 };

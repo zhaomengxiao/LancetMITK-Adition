@@ -65,13 +65,14 @@ public:
 protected:
 	void ConnectToService();
 	bool isauto;
+	void ReadFileName();
 
 	lancet::IDevicesAdministrationService* GetService() const;
 	void setStartHardware(int staubli, int ndi);
-
-	mitk::NavigationToolStorage::Pointer m_RobotToolStorage;
-	mitk::NavigationToolStorage::Pointer m_NDIToolStorage; 
-
+	//mitk::NavigationToolStorage::Pointer m_RobotToolStorage;
+	//mitk::NavigationToolStorage::Pointer m_NDIToolStorage;
+	mitk::NavigationToolStorage::Pointer m_ToolStorage;
+	QString filename;
 protected Q_SLOTS:
 	void on_pb_auto_clicked();
 	void on_pb_success_clicked();

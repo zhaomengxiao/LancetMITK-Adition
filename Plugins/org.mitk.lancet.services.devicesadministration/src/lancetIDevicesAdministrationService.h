@@ -24,7 +24,7 @@
 // Qt
 #include <QObject>
 
-// ORG_MITK_LANCET_SERVICES_MEDICALRECORDSADMINISTRATION_PLUGIN
+// ORG_MITK_LANCET_SERVICES_DEVICESADMINISTRATION_PLUGIN
 #include "org_mitk_lancet_services_devicesadministration_Export.h"
 
 namespace lancet
@@ -51,12 +51,13 @@ namespace lancet
 	* Contact: sh4a01@163.com
 	*
 	*/
-class IDevicesScanner;
+class TrackingDeviceManage;
 class ORG_MITK_LANCET_SERVICES_DEVICESADMINISTRATION_PLUGIN
 	IDevicesAdministrationService: public QObject, public berry::Object
 {
 	Q_OBJECT
 public:
+	berryObjectMacro(lancet::IDevicesAdministrationService);
 	IDevicesAdministrationService();
 
 	static berry::SmartPointer<IDevicesAdministrationService> GetService();
@@ -64,8 +65,8 @@ public:
 	virtual void Start() = 0;
 	virtual void Stop() = 0;
 
-	virtual void SetScanner(berry::SmartPointer<IDevicesScanner>);
-	virtual berry::SmartPointer<IDevicesScanner> GetScanner() const;
+	virtual void SetConnector(berry::SmartPointer<TrackingDeviceManage>);
+	virtual berry::SmartPointer<TrackingDeviceManage> GetConnector() const;
 
 Q_SIGNALS:
 	void IDevicesGetStatus();
@@ -74,8 +75,8 @@ protected Q_SLOTS:
 	void Slot_IDevicesGetStatus();
 
 private:
-	virtual void ConnectToScanner(const berry::SmartPointer<IDevicesScanner>&) const;
-	virtual void DisConnectToScanner(const berry::SmartPointer<IDevicesScanner>&) const;
+	virtual void ConnectToConnector(const berry::SmartPointer<TrackingDeviceManage>&) const;
+	virtual void DisConnectToConnector(const berry::SmartPointer<TrackingDeviceManage>&) const;
 
 	struct IDevicesAdministrationServicePrivateImp;
 	std::shared_ptr<IDevicesAdministrationServicePrivateImp> imp;

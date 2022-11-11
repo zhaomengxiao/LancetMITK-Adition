@@ -1,0 +1,9 @@
+{
+	 "Device":
+	 {
+	      "IGTToolStorage":[
+		       {  "ndifilename" : "D:/LancetMITK-Adition/Plugins/org.mitk.lancet.linkinghardware/resources/ndiDeviceTool.IGTToolStorage" },
+			   {  "robfilename" : "D:/LancetMITK-Adition/Plugins/org.mitk.lancet.linkinghardware/resources/robotDeviceTool.IGTToolStorage"}
+		  ]
+	 }
+}

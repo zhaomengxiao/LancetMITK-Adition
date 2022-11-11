@@ -40,7 +40,7 @@ found in the LICENSE file.
 #include <QMessageBox>
 #include <QDir>
 #include <lancetIDevicesAdministrationService.h>
-#include <lancetIDevicesScanner.h>
+#include <internal/lancetTrackingDeviceManage.h>
 const QString QLinkingHardWareEditor::EDITOR_ID = "org.mitk.lancet.linkinghardware.editor";
 
 
@@ -152,7 +152,7 @@ void QLinkingHardWareEditor::Init(berry::IEditorSite::Pointer site, berry::IEdit
 	// open service
 	if (this->GetService())
 	{
-		auto scanner = this->GetService()->GetScanner();
+		auto scanner = this->GetService()->GetConnector();
 	}
 }
 
@@ -185,18 +185,18 @@ void QLinkingHardWareEditor::on_HardWareWidget(int staubli, int ndi)
 {
 	QString str = "--staubli:" + QString::number(staubli) + "--ndi:" + QString::number(ndi);
 	MITK_INFO << "QLinkingHardware:" << __func__ + str << ": log";
-	if (staubli == 0 && ndi == 0)
+	if (staubli == 1 && ndi == 1)
 		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_0_NID_0.png);");
-	else if (staubli == 0 && ndi == 1)
-		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_0_NID_1.png);");
 	else if (staubli == 1 && ndi == 0)
+		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_0_NID_1.png);");
+	else if (staubli == 0 && ndi == 1)
 		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_1_NID_0.png);");
-	else if (staubli == 1 && ndi == 1)	
+	else if (staubli == 0 && ndi == 0)	
 		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_1_NID_1.png);");
 }
 
 void QLinkingHardWareEditor::Slot_IDevicesGetStatus()
 {
-	auto scanner = this->GetService()->GetScanner();
-	this->on_HardWareWidget(scanner->GetRobotStatus(), scanner->GetNDIStatus());
+	//auto connector = this->GetService()->GetConnector();
+	//this->on_HardWareWidget(connector->GetRobotStatus(), connector->GetNDIStatus());
 }
