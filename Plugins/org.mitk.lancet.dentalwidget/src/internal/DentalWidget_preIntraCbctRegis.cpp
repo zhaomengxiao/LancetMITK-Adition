@@ -250,3 +250,35 @@ bool DentalWidget::AppendMatrix_regisCbct()
 
 	return true;
 }
+
+
+bool DentalWidget::AssembleRegistrationPoints()
+{
+	if (GetDataStorage()->GetNamedNode("Steelball centers") == nullptr && GetDataStorage()->GetNamedNode("Guide plate points") == nullptr)
+	{
+		m_Controls.textBrowser->append("Warning: 'Steelball centers' or 'Guide plate points' is missing");
+		return false;
+	}
+	
+	auto steelballs = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
+	auto guidePlatePoints = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Guide plate points")->GetData());
+
+	auto registrationPointset = mitk::PointSet::New();
+	for (int i{0}; i< steelballs->GetSize(); i++)
+	{
+		registrationPointset->InsertPoint(steelballs->GetPoint(i));
+	}
+
+	for (int i{0}; i < guidePlatePoints->GetSize(); i++)
+	{
+		registrationPointset->InsertPoint(guidePlatePoints->GetPoint(i));
+	}
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(registrationPointset);
+	tmpNode->SetName("RegistrationPointSet");
+
+	GetDataStorage()->Add(tmpNode);
+
+	return true;
+}

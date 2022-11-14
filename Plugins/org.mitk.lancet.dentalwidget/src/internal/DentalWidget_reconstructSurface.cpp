@@ -744,11 +744,14 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 		standartSteelballCenters->InsertPoint(p);
 	}
 
-	auto stdSteelballNode = mitk::DataNode::New();
-	stdSteelballNode->SetName("std centers (full)");
-	stdSteelballNode->SetData(standartSteelballCenters);
-	GetDataStorage()->Add(stdSteelballNode);
-
+	if(m_Controls.checkBox_generateStandardBallCenters->isChecked())
+	{
+		auto stdSteelballNode = mitk::DataNode::New();
+		stdSteelballNode->SetName("std centers (full)");
+		stdSteelballNode->SetData(standartSteelballCenters);
+		GetDataStorage()->Add(stdSteelballNode);
+	}
+	
 	UpdateAllBallFingerPrint(standartSteelballCenters);
 
 	// Get maximal and minimal voxel
@@ -843,10 +846,14 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 		}
 	}
 
-	auto tmpNode = mitk::DataNode::New();
-	tmpNode->SetName("std centers (partial)");
-	tmpNode->SetData(partialStdPointset);
-	GetDataStorage()->Add(tmpNode);
+	if(m_Controls.checkBox_generateStandardBallCenters->isChecked())
+	{
+		auto tmpNode = mitk::DataNode::New();
+		tmpNode->SetName("std centers (partial)");
+		tmpNode->SetData(partialStdPointset);
+		GetDataStorage()->Add(tmpNode);
+	}
+	
 
 
 	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
@@ -881,7 +888,14 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 	//
 	// GetDataStorage()->GetNamedNode("std_modelWithPlan")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
 
-
+	auto parentNode = m_Controls.mitkNodeSelectWidget_intraopCt->GetSelectedNode();
+	auto tmpPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
+	auto childNode = mitk::DataNode::New();
+	childNode->SetName("Steelball centers2");
+	childNode->SetData(tmpPointSet);
+	GetDataStorage()->Add(childNode, parentNode);
+	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Steelball centers"));
+	childNode->SetName("Steelball centers");
 }
 
 void DentalWidget::UpdateAllBallFingerPrint(mitk::PointSet::Pointer stdSteelballCenters)

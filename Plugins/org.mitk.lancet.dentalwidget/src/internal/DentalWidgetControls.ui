@@ -26,7 +26,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <property name="tabsClosable">
       <bool>false</bool>
@@ -62,10 +62,10 @@
        <item row="2" column="1" colspan="2">
         <widget class="QGroupBox" name="groupBox_6">
          <property name="title">
-          <string>钢珠球心提取</string>
+          <string>配准钢珠球心提取</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
-          <item row="3" column="1">
+          <item row="3" column="1" colspan="3">
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
              <widget class="QLabel" name="label_8">
@@ -77,13 +77,13 @@
             <item>
              <widget class="QLineEdit" name="lineEdit_ballMinCell">
               <property name="text">
-               <string>500</string>
+               <string>150</string>
               </property>
              </widget>
             </item>
            </layout>
           </item>
-          <item row="1" column="1">
+          <item row="1" column="1" colspan="3">
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
              <widget class="QLabel" name="label_9">
@@ -104,13 +104,6 @@
             </item>
            </layout>
           </item>
-          <item row="4" column="1">
-           <widget class="QPushButton" name="pushButton_extractBallCenters">
-            <property name="text">
-             <string>提取钢珠球心</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0">
            <spacer name="horizontalSpacer_5">
             <property name="orientation">
@@ -124,44 +117,38 @@
             </property>
            </spacer>
           </item>
-          <item row="0" column="1">
+          <item row="0" column="1" colspan="3">
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
              <widget class="QRadioButton" name="radioButton_model">
               <property name="text">
-               <string>铸模钢珠提取</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioButton_ios">
-              <property name="text">
-               <string>口扫钢珠提取</string>
+               <string>全颌导板钢珠提取</string>
               </property>
               <property name="checked">
                <bool>false</bool>
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QRadioButton" name="radioButton_ios">
+              <property name="text">
+               <string>口内配准块钢珠提取</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
-          <item row="3" column="2">
-           <spacer name="horizontalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+          <item row="4" column="1">
+           <widget class="QCheckBox" name="checkBox_generateStandardBallCenters">
+            <property name="text">
+             <string>输出点集设计值</string>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
+           </widget>
           </item>
-          <item row="2" column="1">
+          <item row="2" column="1" colspan="3">
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QLabel" name="label_7">
@@ -178,6 +165,26 @@
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="3" column="4">
+           <spacer name="horizontalSpacer_6">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="4" column="2" colspan="2">
+           <widget class="QPushButton" name="pushButton_extractBallCenters">
+            <property name="text">
+             <string>提取钢珠球心</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -347,43 +354,6 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QGroupBox" name="groupBox">
-            <property name="title">
-             <string>请确认以下数据已就位</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_8">
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_12">
-               <property name="text">
-                <string>3. ios: 口扫模型表面数据(intraoral scan)，请重命名为“ios”</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_6">
-               <property name="text">
-                <string>2. landmark_target: CBCT重建模型表面 对应之 特征标记点群</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>1. landmark_src: 口扫模型表面之 特征标记点群</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_15">
-               <property name="text">
-                <string>4. Reconstructed CBCT surface：CBCT 表面重建模型 请确保其名为 “Reconstructed CBCT surface”</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
           <item row="0" column="0">
            <spacer name="horizontalSpacer_7">
             <property name="orientation">
@@ -397,11 +367,58 @@
             </property>
            </spacer>
           </item>
+          <item row="0" column="1">
+           <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+             <string>请确认以下数据已就位</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_8">
+             <item row="4" column="0" colspan="2">
+              <widget class="QLabel" name="label_15">
+               <property name="text">
+                <string>4. Reconstructed CBCT surface：CBCT 表面重建模型 请确保其名为 “Reconstructed CBCT surface”</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="2">
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>2. landmark_target: CBCT重建模型表面 对应之 特征标记点群</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0" colspan="2">
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>1. landmark_src: 口扫模型表面之 特征标记点群</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="label_23">
+               <property name="text">
+                <string>5. Guide plate points：厂商提供的导板配准点 请确保其名为 “Guide plate points”</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_12">
+               <property name="text">
+                <string>3. ios: 口扫模型表面数据(intraoral scan)，请重命名为“ios”</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
        <item row="1" column="0" colspan="2">
         <widget class="QGroupBox" name="groupBox_10">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="title">
           <string>配准结果微修</string>
          </property>
@@ -481,75 +498,18 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_3">
-      <attribute name="title">
-       <string>铸模--&gt;CBCT</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_20">
-       <item row="0" column="0">
-        <widget class="QGroupBox" name="groupBox_7">
-         <property name="title">
-          <string>一键配准</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_15">
-          <item row="0" column="0">
-           <widget class="QGroupBox" name="groupBox_8">
-            <property name="title">
-             <string>请确认以下数据已就位</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_14">
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_20">
-               <property name="text">
-                <string>2. Steelball centers: CBCT中提取出之钢珠（需要大于4）</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_18">
-               <property name="text">
-                <string>3. std centers (partial): 对应上者之标准钢珠</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_11">
-               <property name="text">
-                <string>1. model: 硬件部门设计的模型，并附有医生的规划圆柱体</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="pushButton_modeltoCBCT">
-            <property name="text">
-             <string>配准模型</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="pushButton_regResetModel">
-            <property name="text">
-             <string>重置 铸模</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
-       <string>CBCT: preop--&gt;intraop</string>
+       <string>CBCT: intraop--&gt;preop</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_19">
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_12">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="title">
-          <string>计算配准矩阵</string>
+          <string>计算配准矩阵 (开发中)</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_18">
           <item row="0" column="0" colspan="2">
@@ -620,7 +580,7 @@
               <item>
                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_preopCT_reg" native="true">
                 <property name="enabled">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                </widget>
               </item>
@@ -638,7 +598,7 @@
               <item>
                <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_intraopCT_reg" native="true">
                 <property name="enabled">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                </widget>
               </item>
@@ -669,7 +629,7 @@
        <item row="1" column="0">
         <widget class="QGroupBox" name="groupBox_9">
          <property name="title">
-          <string>试用配准矩阵</string>
+          <string>应用多模态配准矩阵</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_16">
           <item row="2" column="0">
@@ -677,7 +637,7 @@
             <item>
              <widget class="QLabel" name="label_21">
               <property name="text">
-               <string>操作对象：</string>
+               <string>操作对象(术中CBCT)：</string>
               </property>
              </widget>
             </item>
@@ -695,6 +655,13 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_assembleRegistrationPoints">
+              <property name="text">
+               <string>组合配准点集</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item row="1" column="0">
@@ -702,7 +669,7 @@
             <item row="0" column="2" colspan="2">
              <widget class="QPushButton" name="pushButton_retrieveMatrix">
               <property name="text">
-               <string>获取配准矩阵</string>
+               <string>获取多模态配准矩阵</string>
               </property>
              </widget>
             </item>
@@ -857,6 +824,66 @@
              </spacer>
             </item>
            </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>全颌导板--&gt;CBCT</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_20">
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="title">
+          <string>一键配准</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_15">
+          <item row="0" column="0">
+           <widget class="QGroupBox" name="groupBox_8">
+            <property name="title">
+             <string>请确认以下数据已就位</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_14">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_20">
+               <property name="text">
+                <string>2. Steelball centers: CBCT中提取出之钢珠（需要大于4）</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_18">
+               <property name="text">
+                <string>3. std centers (partial): 对应上者之标准钢珠</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_11">
+               <property name="text">
+                <string>1. model: 硬件部门设计的模型，并附有医生的规划圆柱体</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_modeltoCBCT">
+            <property name="text">
+             <string>配准模型</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="pushButton_regResetModel">
+            <property name="text">
+             <string>重置 铸模</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

@@ -152,6 +152,7 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_preprocessCt, &QPushButton::clicked, this, &DentalWidget::PrepareCbctImages);
   connect(m_Controls.pushButton_retrieveMatrix, &QPushButton::clicked, this, &DentalWidget::RetrieveRegistrationMatrix);
   connect(m_Controls.pushButton_appendOffsetMatrix, &QPushButton::clicked, this, &DentalWidget::AppendMatrix_regisCbct);
+  connect(m_Controls.pushButton_assembleRegistrationPoints, &QPushButton::clicked, this, &DentalWidget::AssembleRegistrationPoints);
 
 
 

@@ -119,11 +119,48 @@ void DentalWidget::RegisterIos_()
 	
 	node_ios->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(combinedTransform->GetMatrix());
 
+	// If there is registration points of guide plate
+	if(GetDataStorage()->GetNamedNode("Guide plate points") !=nullptr)
+	{
+		if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Guide plate points")->GetData()) != nullptr)
+		{
+			auto tmpPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Guide plate points")->GetData());
+			int size = tmpPointSet->GetSize();
+
+			for (int i{ 0 }; i < size; i++)
+			{
+				auto tmpPoint = tmpPointSet->GetPoint(i);
+				vtkNew<vtkTransform> tmpTrans;
+				tmpTrans->Identity();
+				tmpTrans->PostMultiply();
+				tmpTrans->Translate(tmpPoint[0], tmpPoint[1], tmpPoint[2]);
+				tmpTrans->Concatenate(combinedTransform->GetMatrix());
+				tmpTrans->Update();
+				auto tmpMatrix = tmpTrans->GetMatrix();
+
+				mitk::Point3D newPoint;
+				newPoint[0] = tmpMatrix->GetElement(0, 3);
+				newPoint[1] = tmpMatrix->GetElement(1, 3);
+				newPoint[2] = tmpMatrix->GetElement(2, 3);
+
+				tmpPointSet->SetPoint(i, newPoint);
+
+			}
+			vtkNew<vtkMatrix4x4> identityMatrix;
+			identityMatrix->Identity();
+			tmpPointSet->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+		}
+
+	}else
+	{
+		m_Controls.textBrowser->append("Warning: Guide plate points are missing!");
+	}
+
 	m_MatrixRegistrationResult = combinedTransform->GetMatrix();
 
 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Clipped data"));
 
-	// TestExtractPlan();
+	
 
 	ExtractAllPlans();
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();

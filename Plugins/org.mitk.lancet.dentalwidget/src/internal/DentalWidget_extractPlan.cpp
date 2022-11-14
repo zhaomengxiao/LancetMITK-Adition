@@ -375,7 +375,7 @@ void DentalWidget::ExtractAllPlans()
 			auto tmpNode = mitk::DataNode::New();
 			tmpNode->SetName("Implant_" + QString::number(counter).toLatin1());
 			tmpNode->SetData(implantPointSet);
-			GetDataStorage()->Add(tmpNode);
+			GetDataStorage()->Add(tmpNode, GetDataStorage()->GetNamedNode("ios"));
 			counter += 1;
 		}
 	}

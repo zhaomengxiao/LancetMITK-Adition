@@ -122,20 +122,20 @@ protected:
 
   double iosStdCenters[21]
   {
-	  // 0, 0, 0,
-	  // 10, -1.5, -5,
-	  // 15.5, 13.5, -3,
-	  // 11.8, 11, -1.5,
-	  // -7, 14, 0,
-	  // -13.5, 14, -4.5,
-	  // -10, -2, -4
-	25.36, -152.54, -21.55,
-	21.88,  -155.34, -12.45,
-	21.98, -151.21, -6.14,
-	26.85,   -140.02, -4.47,
-	20.11, -133.68, -25.36,
-	17.35, -145.66, -32.41,
-	18.93, -150.78, -29.20
+	  0, 0, 0,
+	  10, -1.5, -5,
+	  15.5, 13.5, -3,
+	  11.8, 11, -1.5,
+	  -7, 14, 0,
+	  -13.5, 14, -4.5,
+	  -10, -2, -4
+	// 25.36, -152.54, -21.55,
+	// 21.88,  -155.34, -12.45,
+	// 21.98, -151.21, -6.14,
+	// 26.85,   -140.02, -4.47,
+	// 20.11, -133.68, -25.36,
+	// 17.35, -145.66, -32.41,
+	// 18.93, -150.78, -29.20
   };
 
  
@@ -156,7 +156,9 @@ protected:
   double m_preOpCtToIntraOpCtMatrix[16]{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
   bool AppendMatrix_regisCbct();
   mitk::Geometry3D::Pointer InitializeWithImageGeometry(const mitk::BaseGeometry* geometry);
-  
+  bool AssembleRegistrationPoints();
+
+
   // Intuitive move operation
   void Translate(double direction[3], double length, mitk::BaseData* data);
   void Rotate(double center[3], double direction[3], double counterclockwiseDegree, mitk::BaseData* data);
