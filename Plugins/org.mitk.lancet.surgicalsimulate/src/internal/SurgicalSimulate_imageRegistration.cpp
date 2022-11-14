@@ -350,9 +350,9 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
     // https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
 	//--------------------------------------------------
 	Eigen::Vector3d x_tcp;
-	x_tcp[0] = 51.91;
-	x_tcp[1] = -55.01;
-	x_tcp[2] = 0.16;
+	x_tcp[0] = 51.82;
+	x_tcp[1] = -55.49;
+	x_tcp[2] = 0.21;
 	x_tcp.normalize();
 
 	Eigen::Vector3d z_flange;
@@ -378,9 +378,9 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
 
 	//------------------------------------------------
 	double tcp[6];
-	tcp[0] = 0.75; // tx
-	tcp[1] = 100.21; // ty
-	tcp[2] = 137.73; // tz
+	tcp[0] = 0.05; // tx
+	tcp[1] = 100.37; // ty
+	tcp[2] = 137.85; // tz
 	tcp[3] = eulerAngle(0);//-0.81;// -0.813428203; // rz
 	tcp[4] = eulerAngle(1); // ry
 	tcp[5] = eulerAngle(2); // rx
@@ -433,9 +433,9 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
 	//--------------------------------------------------
 	Eigen::Vector3d x_tcp;
-	x_tcp[0] = 51.91;
-	x_tcp[1] = -55.01;
-	x_tcp[2] = 0.16;
+	x_tcp[0] = 51.82;
+	x_tcp[1] = -55.49;
+	x_tcp[2] = 0.21;
 	x_tcp.normalize();
 
 	Eigen::Vector3d z_flange;
@@ -460,9 +460,9 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 	
 	//------------------------------------------------
 	double tcp[6];
-	tcp[0] = 0.75; // tx
-	tcp[1] = 100.21; // ty
-	tcp[2] = 137.73; // tz
+	tcp[0] = 0.05; // tx
+	tcp[1] = 100.37; // ty
+	tcp[2] = 137.85; // tz
 	tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
 	tcp[4] = eulerAngle(1); // ry
 	tcp[5] = eulerAngle(2); // rx

@@ -116,7 +116,10 @@ protected:
   double m_matrix_ndiToInitialPosture[16];
 
   bool PrintFlangeUnderBase();
+  bool AverageNavigationData(mitk::NavigationData::Pointer ndPtr,
+	  int timeInterval /*milisecond*/, int intervalNum, double matrixArray[16]);
 
+  vtkMatrix4x4* getVtkMatrix4x4(mitk::NavigationData::Pointer nd);
 
 };
 

@@ -35,6 +35,7 @@ found in the LICENSE file.
 #include <usServiceProperties.h>
 #include <usModuleContext.h>
 #include <usModuleInitialization.h>
+#include <vtkQuaternion.h>
 
 #include "mitkMatrixConvert.h"
 US_INITIALIZE_MODULE
@@ -722,3 +723,101 @@ bool KukaRobotControl::PrintFlangeUnderBase()
 
 	return true;
 }
+
+bool KukaRobotControl::AverageNavigationData(mitk::NavigationData::Pointer ndPtr, int timeInterval, int intervalNum, double matrixArray[16])
+{
+	// The frame rate of Vega ST is 60 Hz, so the timeInterval should be larger than 16.7 ms
+
+	double tmp_x[3]{ 0,0,0 };
+	double tmp_y[3]{ 0,0,0 };
+	double tmp_translation[3]{ 0,0,0 };
+
+	for (int i{ 0 }; i < intervalNum; i++)
+	{
+		ndPtr->Update();
+
+		auto tmpMatrix = getVtkMatrix4x4(ndPtr);
+
+		tmp_x[0] += tmpMatrix->GetElement(0, 0);
+		tmp_x[1] += tmpMatrix->GetElement(1, 0);
+		tmp_x[2] += tmpMatrix->GetElement(2, 0);
+
+		tmp_y[0] += tmpMatrix->GetElement(0, 1);
+		tmp_y[1] += tmpMatrix->GetElement(1, 1);
+		tmp_y[2] += tmpMatrix->GetElement(2, 1);
+
+		tmp_translation[0] += tmpMatrix->GetElement(0, 3);
+		tmp_translation[1] += tmpMatrix->GetElement(1, 3);
+		tmp_translation[2] += tmpMatrix->GetElement(2, 3);
+
+		QThread::msleep(timeInterval);
+	}
+
+	// Assemble baseRF to EndRF matrix
+	Eigen::Vector3d x;
+	x[0] = tmp_x[0];
+	x[1] = tmp_x[1];
+	x[2] = tmp_x[2];
+	x.normalize();
+
+	Eigen::Vector3d h;
+	h[0] = tmp_y[0];
+	h[1] = tmp_y[1];
+	h[2] = tmp_y[2];
+	h.normalize();
+
+	Eigen::Vector3d z;
+	z = x.cross(h);
+	z.normalize();
+
+	Eigen::Vector3d y;
+	y = z.cross(x);
+	y.normalize();
+
+	tmp_translation[0] = tmp_translation[0] / intervalNum;
+	tmp_translation[1] = tmp_translation[1] / intervalNum;
+	tmp_translation[2] = tmp_translation[2] / intervalNum;
+
+	double tmpArray[16]
+	{
+	  x[0], y[0], z[0], tmp_translation[0],
+	  x[1], y[1], z[1], tmp_translation[1],
+	  x[2], y[2], z[2], tmp_translation[2],
+	  0,0,0,1
+	};
+
+	for (int i{ 0 }; i < 16; i++)
+	{
+		matrixArray[i] = tmpArray[i];
+	}
+
+	return true;
+}
+
+vtkMatrix4x4* KukaRobotControl::getVtkMatrix4x4(mitk::NavigationData::Pointer nd)
+{
+	auto o = nd->GetOrientation();
+	double R[3][3];
+	double* V = { nd->GetPosition().GetDataPointer() };
+	vtkQuaterniond quaterniond{ o.r(), o.x(), o.y(), o.z() };
+	quaterniond.ToMatrix3x3(R);
+
+	vtkMatrix4x4* matrix = vtkMatrix4x4::New();
+	matrix->SetElement(0, 0, R[0][0]);
+	matrix->SetElement(0, 1, R[0][1]);
+	matrix->SetElement(0, 2, R[0][2]);
+	matrix->SetElement(1, 0, R[1][0]);
+	matrix->SetElement(1, 1, R[1][1]);
+	matrix->SetElement(1, 2, R[1][2]);
+	matrix->SetElement(2, 0, R[2][0]);
+	matrix->SetElement(2, 1, R[2][1]);
+	matrix->SetElement(2, 2, R[2][2]);
+
+	matrix->SetElement(0, 3, V[0]);
+	matrix->SetElement(1, 3, V[1]);
+	matrix->SetElement(2, 3, V[2]);
+
+	matrix->Print(std::cout);
+	return matrix;
+}
+

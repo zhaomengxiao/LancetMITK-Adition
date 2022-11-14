@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>701</width>
-    <height>749</height>
+    <height>760</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -188,7 +188,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -462,6 +462,214 @@
           </widget>
          </item>
         </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_6">
+      <attribute name="title">
+       <string>Robot control</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_15">
+       <item row="0" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout_17">
+         <item>
+          <widget class="QPushButton" name="pushButton_setFlangeTcp">
+           <property name="text">
+            <string>Set tcp to flange</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_recordInitial">
+           <property name="text">
+            <string>Collect position 1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_goToInitial">
+           <property name="text">
+            <string>Go to position 1</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout_15">
+         <item>
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>Move relative to:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBox_robotMoveType">
+           <item>
+            <property name="text">
+             <string>TCP</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Robot base</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="2" column="1">
+        <layout class="QGridLayout" name="gridLayout_14">
+         <item row="3" column="6">
+          <widget class="QPushButton" name="pushButton_rym">
+           <property name="text">
+            <string>RY-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="4">
+          <widget class="QPushButton" name="pushButton_zm">
+           <property name="text">
+            <string>Z-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="4">
+          <widget class="QPushButton" name="pushButton_ym">
+           <property name="text">
+            <string>Y-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>(mm or degrees)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QPushButton" name="pushButton_xp">
+           <property name="text">
+            <string>X+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="5">
+          <widget class="QPushButton" name="pushButton_rzp">
+           <property name="text">
+            <string>RZ+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="5">
+          <widget class="QPushButton" name="pushButton_ryp">
+           <property name="text">
+            <string>RY+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="lineEdit_intuitiveValue">
+           <property name="text">
+            <string>2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="6">
+          <widget class="QPushButton" name="pushButton_rxm">
+           <property name="text">
+            <string>RX-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QPushButton" name="pushButton_yp">
+           <property name="text">
+            <string>Y+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="3">
+          <widget class="QPushButton" name="pushButton_zp">
+           <property name="text">
+            <string>Z+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5">
+          <widget class="QPushButton" name="pushButton_rxp">
+           <property name="text">
+            <string>RX+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4">
+          <widget class="QPushButton" name="pushButton_xm">
+           <property name="text">
+            <string>X-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="6">
+          <widget class="QPushButton" name="pushButton_rzm">
+           <property name="text">
+            <string>RZ-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_16">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>Step size =</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="0">
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="2">
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="3" column="1">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

@@ -226,6 +226,29 @@ protected:
   bool ResetRobotTcp();
   bool SetPrecisionTestTcp();
 
+
+	// Move Kuka robot
+  vtkMatrix4x4* m_initial_robotBaseToFlange;
+  bool RecordInitial();
+  bool GoToInitial();
+  bool InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementMatrix, vtkMatrix4x4* movementMatrixInRobotBase);
+  /// Kuka translation
+  bool TranslateX_plus();
+  bool TranslateY_plus();
+  bool TranslateZ_plus();
+  bool TranslateX_minus();
+  bool TranslateY_minus();
+  bool TranslateZ_minus();
+
+  /// Kuka rotation
+  bool RotateX_plus();
+  bool RotateY_plus();
+  bool RotateZ_plus();
+  bool RotateX_minus();
+  bool RotateY_minus();
+  bool RotateZ_minus();
+
+
 };
 
 #endif // SurgicalSimulate_h
