@@ -1,6 +1,6 @@
 #include "kukaRobotAPI/tcpRobotCommandServer.h"
 
-bool lancet::KukaRobotTcpConnection::connect(int port)
+bool lancet::TcpRobotCommandServer::connect(int port)
 {
   Poco::Net::SocketAddress sa;
   m_ServerSocket = Poco::Net::ServerSocket(port);
@@ -11,24 +11,24 @@ bool lancet::KukaRobotTcpConnection::connect(int port)
   return true;
 }
 
-void lancet::KukaRobotTcpConnection::disconnect()
+void lancet::TcpRobotCommandServer::disconnect()
 {
   m_ServerSocket.close();
   m_IsConnected = false;
 }
 
-bool lancet::KukaRobotTcpConnection::isConnected() const
+bool lancet::TcpRobotCommandServer::isConnected() const
 {
   return m_IsConnected;
 }
 
-int lancet::KukaRobotTcpConnection::read(byte_t* buffer, int length) const
+int lancet::TcpRobotCommandServer::read(byte_t* buffer, int length) const
 {
   //todo
   return 0;
 }
 
-int lancet::KukaRobotTcpConnection::write(std::string string) const
+int lancet::TcpRobotCommandServer::write(std::string string) const
 {
   Poco::Net::SocketStream str(m_StreamSocket);
   str << string << std::endl << std::flush;
@@ -36,7 +36,7 @@ int lancet::KukaRobotTcpConnection::write(std::string string) const
   return 0;
 }
 
-std::string lancet::KukaRobotTcpConnection::connectionName() const
+std::string lancet::TcpRobotCommandServer::connectionName() const
 {
   return m_ClientAddr;
 }

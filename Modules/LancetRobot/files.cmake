@@ -8,6 +8,7 @@ set(H_FILES
   include/kukaRobotAPI/udpRobotInfoClient.h
   include/kukaRobotAPI/tcpRobotCommandServer.h
   include/kukaRobotAPI/defaultProtocol.h
+  include/kukaRobotAPI/robotInfoProtocol.h
 )
 
 set(MOC_H_FILES
@@ -23,6 +24,7 @@ set(CPP_FILES
   kukaRobotAPI/udpRobotInfoClient.cpp
   kukaRobotAPI/tcpRobotCommandServer.cpp
   kukaRobotAPI/defaultProtocol.cpp
+  kukaRobotAPI/robotInfoProtocol.cpp
 )
 
 #[[set(RESOURCE_FILES

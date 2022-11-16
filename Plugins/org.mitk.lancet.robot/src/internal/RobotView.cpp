@@ -34,6 +34,8 @@ found in the LICENSE file.
 #include <usServiceProperties.h>
 #include <usModuleContext.h>
 #include <usModuleInitialization.h>
+
+#include "kukaRobotAPI/robotInfoProtocol.h"
 US_INITIALIZE_MODULE
 
 //172.31.1.147:18000:
@@ -48,42 +50,7 @@ US_INITIALIZE_MODULE
 
 
 
-class kukaInfomation
-{
-public:
-  double joint1;
-  double joint2;
-  double joint3;
-  double joint4;
-  double joint5;
-  double joint6;
-  double joint7;
 
-  double Flange1;
-  double Flange2;
-  double Flange3;
-  double Flange4;
-  double Flange5;
-  double Flange6;
-
-  void FromJsonObj(Poco::JSON::Object obj)
-  {
-    joint1 = obj.get("joint1");
-    joint2 = obj.get("joint2");
-    joint3 = obj.get("joint3");
-    joint4 = obj.get("joint4");
-    joint5 = obj.get("joint5");
-    joint6 = obj.get("joint6");
-    joint7 = obj.get("joint7");
-
-    Flange1 = obj.get("Flange1");
-    Flange2 = obj.get("Flange2");
-    Flange3 = obj.get("Flange3");
-    Flange4 = obj.get("Flange4");
-    Flange5 = obj.get("Flange5");
-    Flange6 = obj.get("Flange6");
-  }
-};
 
 
 const std::string RobotView::VIEW_ID = "org.mitk.views.robotview";
@@ -256,60 +223,30 @@ void RobotView::StartUDP()
   // ss = m_tcpSocket_RobotCommand.acceptConnection();
   // m_Thread2 = std::thread(&RobotView::threadUDP_HeartBeat, this);
   m_KukaRobotApi.Connect();
+  m_Thread = std::thread(&RobotView::threadUDP_RobotInfo, this);
 }
 
 void RobotView::threadUDP_RobotInfo()
 {
-  // while (true)
-  // {
-  //   char buffer[1024];
-  //   Poco::Net::SocketAddress sender;
-  //   int n = m_udpSocket_RobotInfo.receiveFrom(buffer, sizeof(buffer) - 1, sender);
-  //   buffer[n] = '\0';
-  //
-  //   //std::cout << sender.toString() << ":" << buffer << std::endl;
-  //   //m_Controls.j0->setText(buffer);
-  //
-  //   //std::cout << sender.toString() << ":" << buffer << std::endl;
-  //
-  //
-  //   Poco::JSON::Parser parser;
-  //   Poco::Dynamic::Var result;
-  //   parser.reset();
-  //
-  //   result = parser.parse(buffer);
-  //   Poco::JSON::Object::Ptr pObj = result.extract<Poco::JSON::Object::Ptr>();
-  //
-  //   kukaInfomation info;
-  //   info.FromJsonObj(*pObj);
-  //
-  //   m_Controls.j0->setText(QString::number(info.joint1));
-  //   m_Controls.j1->setText(QString::number(info.joint2));
-  //   m_Controls.j2->setText(QString::number(info.joint3));
-  //   m_Controls.j3->setText(QString::number(info.joint4));
-  //   m_Controls.j4->setText(QString::number(info.joint5));
-  //   m_Controls.j5->setText(QString::number(info.joint6));
-  //   m_Controls.j6->setText(QString::number(info.joint7));
-  //
-  //   m_Controls.x->setText(QString::number(info.Flange1));
-  //   m_Controls.y->setText(QString::number(info.Flange2));
-  //   m_Controls.z->setText(QString::number(info.Flange3));
-  //   m_Controls.a->setText(QString::number(info.Flange4));
-  //   m_Controls.b->setText(QString::number(info.Flange5));
-  //   m_Controls.c->setText(QString::number(info.Flange6));
-  // }
-}
+  while (true)
+  {
+    const auto info = m_KukaRobotApi.GetRobotInfo();
+  
+    m_Controls.j0->setText(QString::number(info.joint1));
+    m_Controls.j1->setText(QString::number(info.joint2));
+    m_Controls.j2->setText(QString::number(info.joint3));
+    m_Controls.j3->setText(QString::number(info.joint4));
+    m_Controls.j4->setText(QString::number(info.joint5));
+    m_Controls.j5->setText(QString::number(info.joint6));
+    m_Controls.j6->setText(QString::number(info.joint7));
+  
+    m_Controls.x->setText(QString::number(info.Flange1));
+    m_Controls.y->setText(QString::number(info.Flange2));
+    m_Controls.z->setText(QString::number(info.Flange3));
+    m_Controls.a->setText(QString::number(info.Flange4));
+    m_Controls.b->setText(QString::number(info.Flange5));
+    m_Controls.c->setText(QString::number(info.Flange6));
 
-void RobotView::threadUDP_HeartBeat()
-{
-  // while (true)
-  // {
-  //   std::string cmd = "heartBeat";
-  //
-  //   Poco::Net::SocketStream str(ss);
-  //   str << cmd << std::endl << std::flush;
-  //   
-  //   Sleep(1000);
-  //   //MITK_INFO << "-";
-  // }
+    Sleep(17);//60hz
+  }
 }

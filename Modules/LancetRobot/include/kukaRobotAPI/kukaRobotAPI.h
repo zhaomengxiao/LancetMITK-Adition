@@ -8,6 +8,7 @@
 #include <sys/timeb.h>
 
 #include "tcpRobotCommandServer.h"
+#include "udpRobotInfoClient.h"
 /**
  * @brief This class encapsulates communication with kuka iiwa med devices.
  * @details This class encapsulates binary and string parsing required to send/receive commands.
@@ -16,7 +17,7 @@
  */
 class RobotToolProtocol;
 class DefaultProtocol;
-
+class RobotInfoProtocol;
 namespace lancet
 {
   class MITKLANCETROBOT_EXPORT KukaRobotAPI :public itk::Object
@@ -39,6 +40,8 @@ namespace lancet
 
     void SendCommandNoPara(std::string cmd) const;
 
+    RobotInfoProtocol GetRobotInfo();
+
     // void AddTool(RobotToolProtocol toolProtocol);
     // void SelectTool(unsigned int i);
 
@@ -60,7 +63,8 @@ namespace lancet
     static long timeStamp();
 
 
-    KukaRobotTcpConnection m_TcpConnection;
+    TcpRobotCommandServer m_TcpConnection;
+    UdpRobotInfoClient m_UdpConnection;
     std::thread m_TcpHeartBeatThread;
   };
 }

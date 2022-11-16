@@ -27,23 +27,23 @@ namespace lancet
   /**
    * @brief A cross platform socket implementation.
    */
-  class KukaRobotTcpConnection
+  class TcpRobotCommandServer
   {
   public:
     ///** Constructs a socket object that is cross-platform. */
-    //KukaRobotTcpConnection();
+    //TcpRobotCommandServer();
 
     ///**
     // * @brief Constructs a socket object and connects immediately.
     // * @param hostname The hostname or IP address of the measurement system.
     // * @param port The port to connect on. Port 8765 is default for Vega systems.
     // */
-    //KukaRobotTcpConnection(const char* hostname, const char* port = "8765");
+    //TcpRobotCommandServer(const char* hostname, const char* port = "8765");
 
     ///**
     // * @brief Closes the socket connection and frees memory.
     // */
-    //virtual ~KukaRobotTcpConnection();
+    //virtual ~TcpRobotCommandServer();
 
     /**
      * @brief Closes any existing connection, and connects to the new device.

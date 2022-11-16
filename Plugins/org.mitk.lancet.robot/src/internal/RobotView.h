@@ -69,14 +69,13 @@ public slots:
 	
 private:
   void threadUDP_RobotInfo();
-  void threadUDP_HeartBeat();
 
   lancet::KukaRobotDevice::Pointer m_device;
   // UdpSocketRobotHeartbeat m_udp;
   // Poco::Net::DatagramSocket m_udpSocket_RobotInfo;
   // Poco::Net::ServerSocket m_tcpSocket_RobotCommand;
   // Poco::Net::StreamSocket ss;
-  // std::thread m_Thread;
+   std::thread m_Thread;
   // std::thread m_Thread2;
   lancet::KukaRobotAPI m_KukaRobotApi;
 	QTimer m_timer;
