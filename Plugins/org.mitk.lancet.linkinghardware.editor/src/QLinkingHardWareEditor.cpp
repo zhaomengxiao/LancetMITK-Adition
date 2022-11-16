@@ -40,7 +40,6 @@ found in the LICENSE file.
 #include <QMessageBox>
 #include <QDir>
 #include <lancetIDevicesAdministrationService.h>
-#include <internal/lancetTrackingDeviceManage.h>
 const QString QLinkingHardWareEditor::EDITOR_ID = "org.mitk.lancet.linkinghardware.editor";
 
 
@@ -162,6 +161,18 @@ berry::IPartListener::Events::Types QLinkingHardWareEditor::GetPartEventTypes() 
 	return Events::CLOSED | Events::OPENED | Events::HIDDEN | Events::VISIBLE;
 }
 
+void QLinkingHardWareEditor::UpdateHardWareWidget()
+{
+	if (this->m_stateTrackingDeviceOfRobot == true && this->m_stateTrackingDeviceOfNDI == true)
+		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_0_NID_0.png);");
+	else if (this->m_stateTrackingDeviceOfRobot == false && this->m_stateTrackingDeviceOfNDI == false)
+		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_1_NID_1.png);");
+	else if (this->m_stateTrackingDeviceOfRobot == true && this->m_stateTrackingDeviceOfNDI == false)
+		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_0_NID_1.png);");
+	else if (this->m_stateTrackingDeviceOfRobot == false && this->m_stateTrackingDeviceOfNDI == true)
+		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_1_NID_0.png);");
+}
+
 void QLinkingHardWareEditor::OnPreferencesChanged(const berry::IBerryPreferences*)
 {
 }
@@ -177,26 +188,27 @@ void QLinkingHardWareEditor::ConnectToService()
 	if (sender)
 	{
 		lancet::IDevicesAdministrationService* o = sender;
-		QObject::connect(o, &lancet::IDevicesAdministrationService::IDevicesGetStatus,
+		QObject::connect(o, &lancet::IDevicesAdministrationService::TrackingDeviceStateChange,
 			this, &QLinkingHardWareEditor::Slot_IDevicesGetStatus);
 	}
 }
-void QLinkingHardWareEditor::on_HardWareWidget(int staubli, int ndi)
+void QLinkingHardWareEditor::on_HardWareWidget(std::string name, bool isConnected)
 {
-	QString str = "--staubli:" + QString::number(staubli) + "--ndi:" + QString::number(ndi);
-	MITK_INFO << "QLinkingHardware:" << __func__ + str << ": log";
-	if (staubli == 1 && ndi == 1)
-		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_0_NID_0.png);");
-	else if (staubli == 1 && ndi == 0)
-		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_0_NID_1.png);");
-	else if (staubli == 0 && ndi == 1)
-		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_1_NID_0.png);");
-	else if (staubli == 0 && ndi == 0)	
-		m_Controls.widget->setStyleSheet("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_1_NID_1.png);");
+	MITK_INFO << "QLinkingHardware:" << __func__ << ": log"; 
+	if (name == "Vega")
+	{
+		this->m_stateTrackingDeviceOfNDI = isConnected;
+	}
+	if (name == "Robot")
+	{
+		this->m_stateTrackingDeviceOfRobot = isConnected;
+	}
+	this->UpdateHardWareWidget();
 }
 
-void QLinkingHardWareEditor::Slot_IDevicesGetStatus()
+void QLinkingHardWareEditor::Slot_IDevicesGetStatus(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState State)
 {
-	//auto connector = this->GetService()->GetConnector();
-	//this->on_HardWareWidget(connector->GetRobotStatus(), connector->GetNDIStatus());
+	auto connector = this->GetService()->GetConnector();
+	bool isConnected = State & lancet::TrackingDeviceManage::TrackingDeviceState::Connected;
+	this->on_HardWareWidget(name, isConnected);
 }

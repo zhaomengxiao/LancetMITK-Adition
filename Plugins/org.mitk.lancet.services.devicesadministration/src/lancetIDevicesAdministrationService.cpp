@@ -36,28 +36,28 @@ namespace lancet
 	{
 		return this->imp->TrackingDeviceManage;
 	}
-	void IDevicesAdministrationService::Slot_IDevicesGetStatus()
+	void IDevicesAdministrationService::Slot_IDevicesGetStatus(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState State)
 	{
-		emit this->IDevicesGetStatus();
+		emit this->TrackingDeviceStateChange(name, State);
 	}
 	void IDevicesAdministrationService::ConnectToConnector(
 		const berry::SmartPointer<TrackingDeviceManage>& sender) const
 	{
-		//if (sender.IsNotNull())
-		//{
-		//	TrackingDeviceManage* o = sender.GetPointer();
-		//	QObject::connect(o, &TrackingDeviceManage::IDevicesGetStatus,
-		//		this, &IDevicesAdministrationService::Slot_IDevicesGetStatus);
-		//}
+		if (sender.IsNotNull())
+		{
+			TrackingDeviceManage* o = sender.GetPointer();
+			QObject::connect(o, &TrackingDeviceManage::TrackingDeviceStateChange,
+				this, &IDevicesAdministrationService::Slot_IDevicesGetStatus);
+		}
 	}
 	void IDevicesAdministrationService::DisConnectToConnector(
 		const berry::SmartPointer<TrackingDeviceManage>& sender) const
 	{
-		//if (sender.IsNotNull())
-		//{
-		//	TrackingDeviceManage* o = sender.GetPointer();
-		//	QObject::disconnect(o, &TrackingDeviceManage::IDevicesGetStatus,
-		//		this, &IDevicesAdministrationService::Slot_IDevicesGetStatus);
-		//}
+		if (sender.IsNotNull())
+		{
+			TrackingDeviceManage* o = sender.GetPointer();
+			QObject::disconnect(o, &TrackingDeviceManage::TrackingDeviceStateChange,
+				this, &IDevicesAdministrationService::Slot_IDevicesGetStatus);
+		}
 	}
 }

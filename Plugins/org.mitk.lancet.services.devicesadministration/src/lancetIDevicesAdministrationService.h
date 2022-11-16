@@ -24,6 +24,8 @@
 // Qt
 #include <QObject>
 
+#include "internal/lancetTrackingDeviceManage.h"
+
 // ORG_MITK_LANCET_SERVICES_DEVICESADMINISTRATION_PLUGIN
 #include "org_mitk_lancet_services_devicesadministration_Export.h"
 
@@ -68,11 +70,11 @@ public:
 	virtual void SetConnector(berry::SmartPointer<TrackingDeviceManage>);
 	virtual berry::SmartPointer<TrackingDeviceManage> GetConnector() const;
 
-Q_SIGNALS:
-	void IDevicesGetStatus();
 
+Q_SIGNALS:
+	void TrackingDeviceStateChange(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
 protected Q_SLOTS:
-	void Slot_IDevicesGetStatus();
+	void Slot_IDevicesGetStatus(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
 
 private:
 	virtual void ConnectToConnector(const berry::SmartPointer<TrackingDeviceManage>&) const;

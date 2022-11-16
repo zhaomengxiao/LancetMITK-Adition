@@ -36,6 +36,7 @@ found in the LICENSE file.
 #include "mitkNavigationToolStorageSerializer.h"
 #include "QmitkIGTCommonHelper.h"
 
+#include <internal/lancetTrackingDeviceManage.h>
 
 /**
   \brief QLinkingHardware
@@ -66,19 +67,19 @@ protected:
 	void ConnectToService();
 	bool isauto;
 	void ReadFileName();
-
 	lancet::IDevicesAdministrationService* GetService() const;
-	void setStartHardware(int staubli, int ndi);
-	//mitk::NavigationToolStorage::Pointer m_RobotToolStorage;
-	//mitk::NavigationToolStorage::Pointer m_NDIToolStorage;
+	void setStartHardware(std::string, bool);
 	mitk::NavigationToolStorage::Pointer m_ToolStorage;
-	QString filename;
+	QString filename; 
+	QTimer m_updateTimer;
 protected Q_SLOTS:
 	void on_pb_auto_clicked();
 	void on_pb_success_clicked();
-	void Slot_IDevicesGetStatus();
+	void startCheckRobotMove();
+	void Slot_IDevicesGetStatus(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
 
 private:
+	mitk::Point3D m_RobotStartPosition;
 	Ui::QLinkingHardwareControls m_Controls;
 };
 

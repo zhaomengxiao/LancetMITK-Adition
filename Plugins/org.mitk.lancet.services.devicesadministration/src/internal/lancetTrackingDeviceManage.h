@@ -30,11 +30,12 @@ namespace mitk
   class TrackingDevice;
   class TrackingDeviceSource;
   class NavigationToolStorage;
-  class NavigationDataToNavigationDataFilter;
 }
 
+class QTimer;
 namespace lancet
 {
+  class NavigationObjectVisualizationFilter;
   /**
    * \ingroup org_mitk_lancet_
    * \brief This is the device management service function class.
@@ -62,6 +63,42 @@ namespace lancet
     TrackingDeviceManage();
     virtual ~TrackingDeviceManage();
 
+  public:
+      enum TrackingDeviceState
+      {
+          UnInstall = 0x00000000,        ///< 卸载状态
+          Install = 0x00000001,          ///< 安装就绪状态
+          Connected = 0x00000010,        ///< 连接状态
+          Tracking = 0x00000100          ///< 跟踪状态
+      };
+      Q_ENUM(lancet::TrackingDeviceManage::TrackingDeviceState)
+ Q_SIGNALS:
+     /**
+      * \brief 设备状态改变信号
+      *
+      * 在设备状态有更改的时候会触发这个信号通知关注者，这个信号发出时，设备内部状态已经更新.
+      *
+      * \params name
+      *
+      * \params state
+      *
+      *
+      * \code
+      * TrackingDeviceManage* sender = new TrackingDeviceManage();
+      * connect(sender, SIGNAL(TrackingDeviceStateChange(std::string, TrackingDeviceState)),
+      *   this, [=](std::string name, TrackingDeviceState state) {
+      *     // UnInstall ?
+      *     bool isUnInstall = state & TrackingDeviceState::UnInstall;
+      *     // Install ?
+      *     bool isInstall = state & TrackingDeviceState::Install;
+      *     // Connected ?
+      *     bool isConnected = state & TrackingDeviceState::Connected;
+      *     // Tracking ?
+      *     bool isTracking = state & TrackingDeviceState::Tracking;
+      *  });
+      * \endcode
+      */
+      void TrackingDeviceStateChange(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
   public:
     /**
      * \brief Install target device.
@@ -154,8 +191,8 @@ namespace lancet
      * 
      * \see mitk::TrackingDevice
      */
-		berry::SmartPointer<mitk::TrackingDevice> 
-      GetTrackingDevice(const std::string& name) const;
+		itk::SmartPointer<mitk::TrackingDevice> 
+      GetTrackingDevice(const std::string& name);
 
     /**
      * \brief Get Target Device Object Source.
@@ -168,7 +205,7 @@ namespace lancet
      *
      * \see mitk::TrackingDeviceSource
      */
-		berry::SmartPointer<mitk::TrackingDeviceSource> 
+		itk::SmartPointer<mitk::TrackingDeviceSource> 
       GetTrackingDeviceSource(const std::string& name) const;
 
     /**
@@ -182,7 +219,7 @@ namespace lancet
      *
      * \see mitk::NavigationToolStorage
      */
-		berry::SmartPointer<mitk::NavigationToolStorage> 
+        itk::SmartPointer<mitk::NavigationToolStorage>
       GetNavigationToolStorage(const std::string& name) const;
 
     /**
@@ -196,7 +233,7 @@ namespace lancet
      *
      * \see mitk::NavigationDataToNavigationDataFilter
      */
-		berry::SmartPointer<mitk::NavigationDataToNavigationDataFilter> 
+      itk::SmartPointer<lancet::NavigationObjectVisualizationFilter>
       GetNavigationDataToNavigationDataFilter(const std::string& name) const;
 
     /**
@@ -262,11 +299,12 @@ namespace lancet
      * \see IsTrackingDeviceConnected(), IsInstallTrackingDevice()
      */
     bool IsStartTrackingDevice(const std::string&) const;
+  protected:
+      itk::SmartPointer<mitk::TrackingDevice> CreateTrackingDevice(const std::string&);
   private:
     struct TrackingDeviceManagePrivateImp;
     std::shared_ptr<TrackingDeviceManagePrivateImp> imp;
   };
 } // namespace lancet
-
 
 #endif // !LancetTrackingDeviceManage_H

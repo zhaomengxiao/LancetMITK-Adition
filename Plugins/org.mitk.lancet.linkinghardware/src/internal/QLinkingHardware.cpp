@@ -29,7 +29,6 @@ found in the LICENSE file.
 #include <berryIQtStyleManager.h>
 #include "org_mitk_lancet_linkinghardware_Activator.h"
 #include <lancetIDevicesAdministrationService.h>
-#include <internal/lancetTrackingDeviceManage.h>
 
 #include <QDir>
 #include <QFile>
@@ -88,53 +87,54 @@ void QLinkingHardware::ConnectToService()
 	if (sender)
 	{
 		lancet::IDevicesAdministrationService* o = sender;
-		QObject::connect(o, &lancet::IDevicesAdministrationService::IDevicesGetStatus,
+		QObject::connect(o, &lancet::IDevicesAdministrationService::TrackingDeviceStateChange,
 			this, &QLinkingHardware::Slot_IDevicesGetStatus);
 	}
 }
-void QLinkingHardware::Slot_IDevicesGetStatus()
+void QLinkingHardware::Slot_IDevicesGetStatus(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState State)
 {
-	auto scanner = this->GetService()->GetConnector();
-	//this->setStartHardware(scanner->GetRobotStatus(), scanner->GetNDIStatus());
+    MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
+    auto scanner = this->GetService()->GetConnector();
+    bool isConnected = State & lancet::TrackingDeviceManage::TrackingDeviceState::Connected;
+    this->setStartHardware(name, isConnected);
 }
-void QLinkingHardware::setStartHardware(int robot, int ndi)
+void QLinkingHardware::setStartHardware(std::string name, bool isConnected)
 {
-	QString str = "--robot::" + QString::number(robot) + "--ndi::" + QString::number(ndi);
-	//Log::write("QLinkingHardware::setStartHardware" + str);
-	MITK_INFO << "QLinkingHardware:" << __func__ + str << ": log";
-	if (robot == 1 && ndi == 1)
-	{
-		m_Controls.checkBox_startNDI->setChecked(true);
-		m_Controls.checkBox_startRobot->setChecked(true);
-		m_Controls.pushButton_success->setEnabled(true);
-		m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("检测成功"));
-	}
-	if (robot == 1 && ndi == 0)
-	{
-		m_Controls.checkBox_startNDI->setChecked(false);
-		m_Controls.checkBox_startRobot->setChecked(true);
-		m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("重新检测"));
-		m_Controls.pushButton_auto->setEnabled(true);
-	}
-	if (robot == 0 && ndi == 1)
-	{
-		m_Controls.checkBox_startNDI->setChecked(true);
-		m_Controls.checkBox_startRobot->setChecked(false);
-		m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("重新检测"));
-		m_Controls.pushButton_auto->setEnabled(true);
-	}
-	if (robot == 0 && ndi == 0)
-	{
-		m_Controls.checkBox_startNDI->setChecked(false);
-		m_Controls.checkBox_startRobot->setChecked(false);
-		m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("重新检测"));
-		m_Controls.pushButton_auto->setEnabled(true);
-	}	
+	MITK_INFO << "QLinkingHardware:" << __func__  << ": log";
+    if (name == "Vega")
+    {
+        m_Controls.checkBox_startNDI->setChecked(isConnected);
+    }
+    if (name == "Robot")
+    {
+        m_Controls.checkBox_startRobot->setChecked(isConnected);
+        if (true == isConnected)
+        {
+            auto connector = this->GetService()->GetConnector();
+            auto robot = connector->GetTrackingDevice("Robot");
+            mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Robot")->GetOutput(0);
+            m_RobotStartPosition = rob_move->GetPosition();
+            m_updateTimer.start();
+            connect(&this->m_updateTimer, &QTimer::timeout, this, &QLinkingHardware::startCheckRobotMove);
+        }
+    }
+
+    // 如果设备都连接成功，那么开放跳转通道
+    bool isPass = m_Controls.checkBox_startNDI->isChecked() && m_Controls.checkBox_startRobot->isChecked();
+    m_Controls.pushButton_success->setEnabled(isPass);
+    if (m_Controls.pushButton_success->isEnabled())
+    {
+        m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("检测成功"));
+    }
+    else
+    {
+        m_Controls.pushButton_auto->setEnabled(true);
+        m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("重新检测"));
+    }
 }
 
 void QLinkingHardware::ReadFileName()
 {
-    
     auto test_dir = QDir(":/org.mitk.lancet.linkinghardware/");
     QFile file(test_dir.absoluteFilePath("config.json"));
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -160,17 +160,20 @@ void QLinkingHardware::ReadFileName()
                 if (childObj.contains("ndifilename") && childObj.value("ndifilename").isString())
                 {
                     filename = childObj.value("ndifilename").toString();
+                    QDir dir(filename);
+                    MITK_INFO << dir.absolutePath().toStdString();
                     MITK_INFO  << filename;
-                    mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(GetDataStorage());
-                    if (false == connector->IsInstallTrackingDevice("NDI"))
+                    if (false == connector->IsInstallTrackingDevice("Vega"))
                     {
-                        if (false == connector->InstallTrackingDevice("NDI", filename.toStdString(), this->GetDataStorage()))
+                        if (false == connector->InstallTrackingDevice("Vega", filename.toStdString(), this->GetDataStorage()))
                         {
                             std::cout << "install robot tracking device faild! error: " << connector->GetErrorString();
                         }
                         else
                         {
-                            connector->GetTrackingDevice("NDI")->OpenConnection();
+                            MITK_INFO << "Connecting to the Vega";
+                            connector->GetTrackingDevice("Vega")->OpenConnection();
+                            connector->GetTrackingDevice("Vega")->StartTracking();
                         }
                     }
                 }
@@ -187,7 +190,9 @@ void QLinkingHardware::ReadFileName()
                         }
                         else
                         {
+                            MITK_INFO << "Connecting to the Robot";
                             connector->GetTrackingDevice("Robot")->OpenConnection();
+                            connector->GetTrackingDevice("Robot")->StartTracking();
                         }
                     }
                 }
@@ -195,13 +200,7 @@ void QLinkingHardware::ReadFileName()
                 mitk::RenderingManager::GetInstance()->InitializeViews(geo);
             }
         }
-        //read in filename
-        //QString ndifilename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
-        //    tr("Tool Storage Files (*.IGTToolStorage)")); 
-        //QString robfilename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
-        //        tr("Tool Storage Files (*.IGTToolStorage)"));
         if (filename.isNull()) return;
-        //read tool storage from disk
     }
 }
 
@@ -210,8 +209,6 @@ void QLinkingHardware::on_pb_auto_clicked()
     MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
     m_Controls.pushButton_auto->setEnabled(false);
     m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("正在检测"));
-   
-   
 	if (isauto)
     {
         ReadFileName();
@@ -226,4 +223,34 @@ void QLinkingHardware::on_pb_success_clicked()
 {
 	//Log::write("QLinkingHardware::on_pushButton_success_clicked");
 	MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
+}
+void QLinkingHardware::startCheckRobotMove()
+{
+    MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
+    auto connector = this->GetService()->GetConnector();
+    auto robot = connector->GetTrackingDevice("Robot");
+    bool isRobotValid = false;
+    if (robot)
+    {
+        if (connector->IsInstallTrackingDevice("Robot"))
+        {
+            isRobotValid = true;
+            mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Robot")->GetOutput(0);
+            if (false == rob_move->IsDataValid()) 
+            {
+                return;
+            }
+            double Before_move[3]{ this->m_RobotStartPosition[0],this->m_RobotStartPosition[1],this->m_RobotStartPosition[2]};
+            double After_move[3]{ rob_move->GetPosition()[0],rob_move->GetPosition()[1],rob_move->GetPosition()[2] };
+            double MovingDistance;
+            MovingDistance = sqrt((Before_move[0] - After_move[0]) * (Before_move[0] - After_move[0]) +
+                (Before_move[1] - After_move[1]) * (Before_move[1] - After_move[1]) +
+                (Before_move[2] - After_move[2]) * (Before_move[2] - After_move[2]));
+            if (MovingDistance > 5.0)
+            {
+                m_Controls.checkBox_free->setChecked(true);
+                this->m_updateTimer.stop();
+            }
+        }
+    }  
 }

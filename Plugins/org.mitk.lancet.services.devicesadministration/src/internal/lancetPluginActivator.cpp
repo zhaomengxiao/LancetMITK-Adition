@@ -6,6 +6,7 @@
 #include <usModuleContext.h>
 
 #include <internal/lancetDevicesAdministrationService.h>
+#include <internal/lancetTrackingDeviceManage.h>
 
 namespace lancet
 {
@@ -37,7 +38,8 @@ namespace lancet
     // Fortunately, it does not affect the function logically.
     IDevicesAdministrationService* streakingServicePointer 
       = new DevicesAdministrationService();
-    
+    streakingServicePointer->SetConnector(berry::SmartPointer<lancet::TrackingDeviceManage>(new lancet::TrackingDeviceManage));
+
     // register service to mitk
     this->imp->DevicesAdministrationService = 
       berry::SmartPointer(streakingServicePointer);

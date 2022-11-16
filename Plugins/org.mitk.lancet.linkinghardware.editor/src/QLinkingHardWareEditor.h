@@ -28,11 +28,11 @@ found in the LICENSE file.
 
 #include "ui_QLinkingHardWareEditor.h"
 
+#include <internal/lancetTrackingDeviceManage.h>
 class QmitkStdMultiWidget;
 class QLinkingHardWareEditorPrivate;
 namespace lancet
 {
-	class IDevicesProperty;
 	class IDevicesAdministrationService;
 }
 /**
@@ -94,7 +94,7 @@ public:
 protected:
 	lancet::IDevicesAdministrationService* GetService() const;
 	void ConnectToService();
-	void on_HardWareWidget(int, int);
+	void on_HardWareWidget(std::string, bool);
 
 	typedef berry::IPreferencesService berryIPreferencesService;
 	//berry::IEditorInput::Pointer editorInput;
@@ -103,11 +103,14 @@ protected:
 	ctkServiceTracker<berryIPreferencesService*> m_PrefServiceTracker;
 	berry::IBerryPreferences::Pointer m_Prefs;
 
+	void UpdateHardWareWidget();
 protected Q_SLOTS:
-	void Slot_IDevicesGetStatus();
+	void Slot_IDevicesGetStatus(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
 private:
 	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
 	Ui::QLinkingHardWareEditor m_Controls;
+
+	bool m_stateTrackingDeviceOfNDI, m_stateTrackingDeviceOfRobot;
 };
 
 #endif // QLinkingHardWareEditor_H
