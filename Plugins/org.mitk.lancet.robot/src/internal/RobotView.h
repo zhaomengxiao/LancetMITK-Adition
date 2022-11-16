@@ -20,21 +20,8 @@ found in the LICENSE file.
 #include <kukaRobotDevice.h>
 
 #include "ui_StaubilWidget.h"
-//udp
-#include <Poco/Net/DatagramSocket.h>
-#include <Poco/Net/StreamSocket.h>
-#include <Poco/Net/ServerSocket.h>
-#include <Poco/Net/SocketStream.h>
-#include <Poco/Net/SocketAddress.h>
-#include "Poco/JSON/Parser.h"
-#include "Poco/JSON/ParseHandler.h"
-#include "Poco/JSON/JSONException.h"
-#include "Poco/StreamCopier.h"
-#include "Poco/Dynamic/Var.h"
-#include "Poco/JSON/Query.h"
-#include "Poco/JSON/PrintHandler.h"
-
 #include "udpsocketrobotheartbeat.h"
+#include "kukaRobotAPI/kukaRobotAPI.h"
 /**
   \brief RobotView
 
@@ -85,12 +72,13 @@ private:
   void threadUDP_HeartBeat();
 
   lancet::KukaRobotDevice::Pointer m_device;
-  UdpSocketRobotHeartbeat m_udp;
-  Poco::Net::DatagramSocket m_udpSocket_RobotInfo;
-  Poco::Net::ServerSocket m_tcpSocket_RobotCommand;
-  Poco::Net::StreamSocket ss;
-  std::thread m_Thread;
-  std::thread m_Thread2;
+  // UdpSocketRobotHeartbeat m_udp;
+  // Poco::Net::DatagramSocket m_udpSocket_RobotInfo;
+  // Poco::Net::ServerSocket m_tcpSocket_RobotCommand;
+  // Poco::Net::StreamSocket ss;
+  // std::thread m_Thread;
+  // std::thread m_Thread2;
+  lancet::KukaRobotAPI m_KukaRobotApi;
 	QTimer m_timer;
 	
 	Ui::StaubilWidget m_Controls;

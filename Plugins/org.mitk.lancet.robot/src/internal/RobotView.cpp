@@ -44,62 +44,9 @@ US_INITIALIZE_MODULE
 //"timestamp":0,
 //"jointPos":[0.0,0.0,0.0,0.0,0.0,0.0,0.0]
 //}
-class Param
-{
-public:
-  std::string target{"null"};
-  double x{};
-  double y{};
-  double z{};
-  double a{};
-  double b{};
-  double c{};
 
-  Poco::JSON::Object ToJsonObj() const
-  {
-    Poco::JSON::Object res;
-    res.set("target", this->target);
-    res.set("x", this->x);
-    res.set("y", this->y);
-    res.set("z", this->z);
-    res.set("a", this->a);
-    res.set("b", this->b);
-    res.set("c", this->c);
 
-    return res;
-  }
-};
 
-class ProtocolBean
-{
-public:
-  std::string operateType{"null"};
-  Param param;
-  Param param2;
-  int timestamp{};
-  std::array<double, 7> jointPos{};
-
-  Poco::JSON::Object ToJsonObj()
-  {
-    Poco::JSON::Object res;
-    res.set("operateType", this->operateType);
-    res.set("Param", this->param.ToJsonObj());
-    res.set("param2", this->param2.ToJsonObj());
-    res.set("timestamp", this->timestamp);
-    Poco::JSON::Array array;
-    array.add(jointPos[0]);
-    array.add(jointPos[1]);
-    array.add(jointPos[2]);
-    array.add(jointPos[3]);
-    array.add(jointPos[4]);
-    array.add(jointPos[5]);
-    array.add(jointPos[6]);
-
-    res.set("jointPos", array);
-
-    return res;
-  }
-};
 
 class kukaInfomation
 {
@@ -291,84 +238,78 @@ void RobotView::SendCommand()
   //   return;
   // }
   // MITK_INFO << "success";
-  ProtocolBean bean;
-  bean.operateType = this->m_Controls.lineEditRoboticsAPI->text().toStdString();
-  std::stringstream  jsnString;
-  //bean.ToJsonObj().stringify(jsnString, 3);
-  bean.ToJsonObj().stringify(jsnString);
-  std::cout << jsnString.str() << std::endl;
+  m_KukaRobotApi.SendCommandNoPara(this->m_Controls.lineEditRoboticsAPI->text().toStdString());
   
-  Poco::Net::SocketStream str(ss);
-  str << jsnString.str() << std::endl << std::flush;
 }
 
 void RobotView::StartUDP()
 {
-  //UDP server;
-  Poco::Net::SocketAddress sa("172.31.1.148", 30003);
-  m_udpSocket_RobotInfo.bind(sa);
-
-  //m_Thread = std::thread(&RobotView::threadUDP_RobotInfo, this);
-
-  //TCP server;
-  Poco::Net::SocketAddress sa2("172.31.1.147", 30009);
-  m_tcpSocket_RobotCommand = Poco::Net::ServerSocket(30009);
-  ss = m_tcpSocket_RobotCommand.acceptConnection();
-  m_Thread2 = std::thread(&RobotView::threadUDP_HeartBeat, this);
+  // //UDP server;
+  // Poco::Net::SocketAddress sa("172.31.1.148", 30003);
+  // m_udpSocket_RobotInfo.bind(sa);
+  //
+  // //m_Thread = std::thread(&RobotView::threadUDP_RobotInfo, this);
+  //
+  // //TCP server;
+  // Poco::Net::SocketAddress sa2("172.31.1.147", 30009);
+  // m_tcpSocket_RobotCommand = Poco::Net::ServerSocket(30009);
+  // ss = m_tcpSocket_RobotCommand.acceptConnection();
+  // m_Thread2 = std::thread(&RobotView::threadUDP_HeartBeat, this);
+  m_KukaRobotApi.Connect();
 }
 
 void RobotView::threadUDP_RobotInfo()
 {
-  while (true)
-  {
-    char buffer[1024];
-    Poco::Net::SocketAddress sender;
-    int n = m_udpSocket_RobotInfo.receiveFrom(buffer, sizeof(buffer) - 1, sender);
-    buffer[n] = '\0';
-
-    //std::cout << sender.toString() << ":" << buffer << std::endl;
-    //m_Controls.j0->setText(buffer);
-
-    //std::cout << sender.toString() << ":" << buffer << std::endl;
-  
-
-    Poco::JSON::Parser parser;
-    Poco::Dynamic::Var result;
-    parser.reset();
-
-    result = parser.parse(buffer);
-    Poco::JSON::Object::Ptr pObj = result.extract<Poco::JSON::Object::Ptr>();
-
-    kukaInfomation info;
-    info.FromJsonObj(*pObj);
-
-    m_Controls.j0->setText(QString::number(info.joint1));
-    m_Controls.j1->setText(QString::number(info.joint2));
-    m_Controls.j2->setText(QString::number(info.joint3));
-    m_Controls.j3->setText(QString::number(info.joint4));
-    m_Controls.j4->setText(QString::number(info.joint5));
-    m_Controls.j5->setText(QString::number(info.joint6));
-    m_Controls.j6->setText(QString::number(info.joint7));
-
-    m_Controls.x->setText(QString::number(info.Flange1));
-    m_Controls.y->setText(QString::number(info.Flange2));
-    m_Controls.z->setText(QString::number(info.Flange3));
-    m_Controls.a->setText(QString::number(info.Flange4));
-    m_Controls.b->setText(QString::number(info.Flange5));
-    m_Controls.c->setText(QString::number(info.Flange6));
-  }
+  // while (true)
+  // {
+  //   char buffer[1024];
+  //   Poco::Net::SocketAddress sender;
+  //   int n = m_udpSocket_RobotInfo.receiveFrom(buffer, sizeof(buffer) - 1, sender);
+  //   buffer[n] = '\0';
+  //
+  //   //std::cout << sender.toString() << ":" << buffer << std::endl;
+  //   //m_Controls.j0->setText(buffer);
+  //
+  //   //std::cout << sender.toString() << ":" << buffer << std::endl;
+  //
+  //
+  //   Poco::JSON::Parser parser;
+  //   Poco::Dynamic::Var result;
+  //   parser.reset();
+  //
+  //   result = parser.parse(buffer);
+  //   Poco::JSON::Object::Ptr pObj = result.extract<Poco::JSON::Object::Ptr>();
+  //
+  //   kukaInfomation info;
+  //   info.FromJsonObj(*pObj);
+  //
+  //   m_Controls.j0->setText(QString::number(info.joint1));
+  //   m_Controls.j1->setText(QString::number(info.joint2));
+  //   m_Controls.j2->setText(QString::number(info.joint3));
+  //   m_Controls.j3->setText(QString::number(info.joint4));
+  //   m_Controls.j4->setText(QString::number(info.joint5));
+  //   m_Controls.j5->setText(QString::number(info.joint6));
+  //   m_Controls.j6->setText(QString::number(info.joint7));
+  //
+  //   m_Controls.x->setText(QString::number(info.Flange1));
+  //   m_Controls.y->setText(QString::number(info.Flange2));
+  //   m_Controls.z->setText(QString::number(info.Flange3));
+  //   m_Controls.a->setText(QString::number(info.Flange4));
+  //   m_Controls.b->setText(QString::number(info.Flange5));
+  //   m_Controls.c->setText(QString::number(info.Flange6));
+  // }
 }
 
 void RobotView::threadUDP_HeartBeat()
 {
-  while (true)
-  {
-    std::string cmd = "heartBeat";
-	
-    Poco::Net::SocketStream str(ss);
-    str << cmd << std::endl << std::flush;
-    
-    Sleep(1000);
-    //MITK_INFO << "-";
-  }
+  // while (true)
+  // {
+  //   std::string cmd = "heartBeat";
+  //
+  //   Poco::Net::SocketStream str(ss);
+  //   str << cmd << std::endl << std::flush;
+  //   
+  //   Sleep(1000);
+  //   //MITK_INFO << "-";
+  // }
 }

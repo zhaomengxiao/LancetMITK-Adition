@@ -4,6 +4,10 @@ set(H_FILES
   include/robotRegistration.h
   include/udpmessage.h
   include/udpsocketrobotheartbeat.h
+  include/kukaRobotAPI/kukaRobotAPI.h
+  include/kukaRobotAPI/udpRobotInfoClient.h
+  include/kukaRobotAPI/tcpRobotCommandServer.h
+  include/kukaRobotAPI/defaultProtocol.h
 )
 
 set(MOC_H_FILES
@@ -15,8 +19,10 @@ set(CPP_FILES
   robotRegistration.cpp
   udpmessage.cpp
   udpsocketrobotheartbeat.cpp
-#  robotcontroler.cpp
-#  robotsocket.cpp
+  kukaRobotAPI/kukaRobotAPI.cpp
+  kukaRobotAPI/udpRobotInfoClient.cpp
+  kukaRobotAPI/tcpRobotCommandServer.cpp
+  kukaRobotAPI/defaultProtocol.cpp
 )
 
 #[[set(RESOURCE_FILES
