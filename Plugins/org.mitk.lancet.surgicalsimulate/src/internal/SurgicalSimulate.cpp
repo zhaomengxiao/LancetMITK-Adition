@@ -74,7 +74,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetLine);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_ImageCheckPoint);
-
+  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPlane);
 
   m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
 
@@ -135,6 +135,9 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_rzm, &QPushButton::clicked, this, &SurgicalSimulate::RotateZ_minus);
   connect(m_Controls.pushButton_rzp, &QPushButton::clicked, this, &SurgicalSimulate::RotateZ_plus);
   connect(m_Controls.pushButton_setFlangeTcp, &QPushButton::clicked, this, &SurgicalSimulate::ResetRobotTcp);
+
+  connect(m_Controls.pushButton_confirmImageTargetPlane, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImagePlane);
+
 
 }
 
@@ -509,7 +512,7 @@ void SurgicalSimulate::OnAutoMove()
   double trans8[3]{25, 0, 0};
   double trans9[3]{-25, 0, 0};
 
-	double plusY[3]{ 0, 75, 0 };
+  double plusY[3]{ 0, 75, 0 };
   double plusZ[3]{ 0,0,75 };
   double plusX[3]{75,0,0};
   double minusX[3]{ -150,0,0 };
@@ -1307,6 +1310,101 @@ bool SurgicalSimulate::InterpretImageLine()
 	m_Controls.textBrowser->append("result Line target point:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
 
 	// m_Controls.textBrowser->append("Move to this x axix:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
+
+	return true;
+}
+
+bool SurgicalSimulate::InterpretImagePlane()
+{
+	auto targetPlanePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetLine->GetSelectedNode()->GetData());
+	auto targetPoint_0 = targetPlanePoints->GetPoint(0); // TCP frame origin should move to this point
+	auto targetPoint_1 = targetPlanePoints->GetPoint(1);
+	auto targetPoint_2 = targetPlanePoints->GetPoint(2);
+
+	// // Interpret targetPoint_0 & targetPoint_1 & targetPoint_2 from image frame to robot (internal) base frame
+	// double targetPointUnderBase_0[3]{ 0 };
+	// double targetPointUnderBase_1[3]{ 0 };
+	// double targetPointUnderBase_2[3]{ 0 };
+
+	// get objectRF to surface matrix 
+	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
+	auto registrationMatrix_surfaceToRF = m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix();
+	vtkNew<vtkMatrix4x4> vtkObjectRFtoSurface;
+	mitk::TransferItkTransformToVtkMatrix(registrationMatrix_surfaceToRF.GetPointer(), vtkObjectRFtoSurface);
+	vtkObjectRFtoSurface->Invert();
+	// mitk::TransferVtkMatrixToItkTransform(vtkObjectRFtoSurface, rfToSurfaceMatrix.GetPointer());
+
+	// get baseRF to objectRF matrix
+	auto nd_ndiToObjectRF = m_VegaSource->GetOutput("ObjectRf");
+	auto nd_ndiToBaseRF = m_VegaSource->GetOutput("RobotBaseRF");
+	double array_ndiToObjectRF[16];
+	double array_ndiToBaseRF[16];
+
+	AverageNavigationData(nd_ndiToObjectRF, 30, 20, array_ndiToObjectRF);
+	AverageNavigationData(nd_ndiToBaseRF, 30, 20, array_ndiToBaseRF);
+
+	vtkNew<vtkMatrix4x4> vtkNdiToObjectRF;
+	vtkNdiToObjectRF->DeepCopy(array_ndiToObjectRF);
+	vtkNew<vtkMatrix4x4> vtkBaseRFtoNdi;
+	vtkBaseRFtoNdi->DeepCopy(array_ndiToBaseRF);
+	vtkBaseRFtoNdi->Invert();
+
+	vtkNew<vtkTransform> baseRFtoObjectRFtransform;
+	baseRFtoObjectRFtransform->PostMultiply();
+	baseRFtoObjectRFtransform->SetMatrix(vtkNdiToObjectRF);
+	baseRFtoObjectRFtransform->Concatenate(vtkBaseRFtoNdi);
+	baseRFtoObjectRFtransform->Update();
+	auto vtkBaseRFtoObjectRF = baseRFtoObjectRFtransform->GetMatrix();
+
+	// get base to baseRF matrix
+	auto baseRFtoBase = m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix();
+	vtkNew<vtkMatrix4x4> vtkBaseToBaseRF;
+	mitk::TransferItkTransformToVtkMatrix(baseRFtoBase.GetPointer(), vtkBaseToBaseRF);
+	vtkBaseToBaseRF->Invert();
+
+	// get surface to target plane matrix
+	Eigen::Vector3d x_surfaceToPlane;
+	x_surfaceToPlane << targetPoint_2[0] - targetPoint_1[0],
+	targetPoint_2[1] - targetPoint_1[1],
+	targetPoint_2[2] - targetPoint_1[2];
+	x_surfaceToPlane.normalize();
+
+	Eigen::Vector3d tmp_y;
+	tmp_y << targetPoint_1[0] - targetPoint_0[0],
+		targetPoint_1[1] - targetPoint_0[1],
+		targetPoint_1[2] - targetPoint_0[2];
+	tmp_y.normalize();
+
+	Eigen::Vector3d z_surfaceToPlane = x_surfaceToPlane.cross(tmp_y);
+	z_surfaceToPlane.normalize();
+
+	Eigen::Vector3d y_surfaceToPlane = z_surfaceToPlane.cross(x_surfaceToPlane);
+	y_surfaceToPlane.normalize();
+
+	double array_surfaceToPlane[16]
+	{
+		x_surfaceToPlane[0], y_surfaceToPlane[0], z_surfaceToPlane[0], targetPoint_1[0],
+		x_surfaceToPlane[1], y_surfaceToPlane[1], z_surfaceToPlane[1], targetPoint_1[1],
+		x_surfaceToPlane[2], y_surfaceToPlane[2], z_surfaceToPlane[2], targetPoint_1[2],
+		0,0,0,1
+	};
+	vtkNew<vtkMatrix4x4> vtkSurfaceToPlane;
+	vtkSurfaceToPlane->DeepCopy(array_surfaceToPlane);
+
+	// get base to target plane matrix
+	vtkNew<vtkTransform> vtkBaseToTargetPlaneTransform;
+	vtkBaseToTargetPlaneTransform->Identity();
+	vtkBaseToTargetPlaneTransform->PostMultiply();
+	vtkBaseToTargetPlaneTransform->SetMatrix(vtkSurfaceToPlane);
+	vtkBaseToTargetPlaneTransform->Concatenate(vtkObjectRFtoSurface);
+	vtkBaseToTargetPlaneTransform->Concatenate(vtkBaseRFtoObjectRF);
+	vtkBaseToTargetPlaneTransform->Concatenate(vtkBaseToBaseRF);
+	vtkBaseToTargetPlaneTransform->Update();
+
+	m_T_robot = mitk::AffineTransform3D::New();
+	mitk::TransferVtkMatrixToItkTransform(vtkBaseToTargetPlaneTransform->GetMatrix(), m_T_robot.GetPointer());
+
+	m_Controls.textBrowser->append("result plane target point:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
 
 	return true;
 }

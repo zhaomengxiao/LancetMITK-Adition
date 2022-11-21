@@ -202,6 +202,8 @@ protected:
   // Get the coordinate of the image line in the robot (internal) base frame
   bool InterpretImageLine();
 
+  // Get the coordinate of the image plane in the robot (internal) base frame
+  bool InterpretImagePlane();
 
   // Use butterfly to calibrate the probe
   bool TouchProbeCalibrationPoint1();

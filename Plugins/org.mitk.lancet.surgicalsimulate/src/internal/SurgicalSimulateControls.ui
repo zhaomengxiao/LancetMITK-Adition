@@ -188,7 +188,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -922,6 +922,35 @@
        <property name="text">
         <string>Set precision test TCP</string>
        </property>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_4">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>160</y>
+         <width>491</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_16">
+        <item>
+         <widget class="QLabel" name="label_14">
+          <property name="text">
+           <string>Image target plane: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imageTargetPlane" native="true"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_confirmImageTargetPlane">
+          <property name="text">
+           <string>Confirm image target line</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_4">
