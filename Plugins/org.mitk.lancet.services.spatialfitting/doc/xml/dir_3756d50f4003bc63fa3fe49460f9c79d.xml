@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_3756d50f4003bc63fa3fe49460f9c79d" kind="dir">
+    <compoundname>src/internal</compoundname>
+    <innerfile refid="lancet_plugin_activator_8cpp">lancetPluginActivator.cpp</innerfile>
+    <innerfile refid="lancet_plugin_activator_8h">lancetPluginActivator.h</innerfile>
+    <innerfile refid="lancet_spatial_fitting_robotics_register_model_8cpp">lancetSpatialFittingRoboticsRegisterModel.cpp</innerfile>
+    <innerfile refid="lancet_spatial_fitting_robotics_register_model_8h">lancetSpatialFittingRoboticsRegisterModel.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/internal/"/>
+  </compounddef>
+</doxygen>

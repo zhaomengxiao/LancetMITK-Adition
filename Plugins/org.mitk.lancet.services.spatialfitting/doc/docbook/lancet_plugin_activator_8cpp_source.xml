@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_plugin_activator_8cpp_source" xml:lang="en-US">
+<title>lancetPluginActivator.cpp</title>
+<indexterm><primary>src/internal/lancetPluginActivator.cpp</primary></indexterm>
+Go to the documentation of this file.<programlisting linenumbering="unnumbered"><anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00001"/>00001 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_plugin_activator_8h">lancetPluginActivator.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00002"/>00002 
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00003"/>00003 <emphasis role="comment">//&#32;us</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00004"/>00004 <emphasis role="preprocessor">#include&#32;&lt;usModuleRegistry.h&gt;</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00005"/>00005 <emphasis role="preprocessor">#include&#32;&lt;usModule.h&gt;</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00006"/>00006 <emphasis role="preprocessor">#include&#32;&lt;usModuleContext.h&gt;</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00007"/>00007 
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00008"/><link linkend="_namespacelancet">00008</link> <emphasis role="keyword">namespace&#32;</emphasis><link linkend="_namespacelancet">lancet</link>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00009"/>00009 {
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00010"/>00010 &#32;&#32;<emphasis role="keyword">const</emphasis>&#32;std::string&#32;<link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a54f9357600bddc5ec9bb40fbc6931986">org_mitk_lancet_services_SpatialFitting::PLUGIN_ID</link>&#32;=&#32;<emphasis role="stringliteral">&quot;org.mitk.lancet.services.spatialfitting&quot;</emphasis>;
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00011"/>00011 
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00012"/><link linkend="_structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp">00012</link> &#32;&#32;<emphasis role="keyword">struct&#32;</emphasis><link linkend="_structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp">org_mitk_lancet_services_SpatialFitting::PrivateImp</link>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00013"/>00013 &#32;&#32;{
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00014"/><link linkend="_structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_1a5fb9408ca6ff66ff36f8b02927dfe317">00014</link> &#32;&#32;&#32;&#32;<emphasis role="keyword">static</emphasis>&#32;ctkPluginContext*&#32;<link linkend="_structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_1a5fb9408ca6ff66ff36f8b02927dfe317">pluginContext</link>;
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00015"/>00015 &#32;&#32;&#32;&#32;<emphasis role="comment">//berry::SmartPointer&lt;IMedicalRecordsService&gt;&#32;medicalRecordsAdministrationService;</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00016"/>00016 &#32;&#32;};
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00017"/>00017 &#32;&#32;ctkPluginContext*&#32;<link linkend="_structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_1a5fb9408ca6ff66ff36f8b02927dfe317">PluginActivator::PrivateImp::pluginContext</link>&#32;=&#32;<emphasis role="keyword">nullptr</emphasis>;
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00018"/>00018 
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00019"/><link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a9e83376b57500fa590ef58796e2757af">00019</link> &#32;&#32;&#32;&#32;<link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a9e83376b57500fa590ef58796e2757af">org_mitk_lancet_services_SpatialFitting::org_mitk_lancet_services_SpatialFitting</link>()
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00020"/>00020 &#32;&#32;&#32;&#32;:&#32;imp(std::make_shared&lt;<link linkend="_structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp">PrivateImp</link>&gt;())
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00021"/>00021 &#32;&#32;&#32;&#32;{
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00022"/>00022 &#32;&#32;&#32;&#32;
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00023"/>00023 &#32;&#32;&#32;&#32;}
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00024"/>00024 
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00025"/><link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a7c17fcfa14376adb12e8e3549dff4a96">00025</link> &#32;&#32;&#32;&#32;<link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a7c17fcfa14376adb12e8e3549dff4a96">org_mitk_lancet_services_SpatialFitting::~org_mitk_lancet_services_SpatialFitting</link>()
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00026"/>00026 &#32;&#32;&#32;&#32;{
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00027"/>00027 &#32;&#32;&#32;&#32;}
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00028"/>00028 
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00029"/><link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a581ff1e5976de82dc12d1a702031ba52">00029</link> &#32;&#32;&#32;&#32;<emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a581ff1e5976de82dc12d1a702031ba52">org_mitk_lancet_services_SpatialFitting::start</link>(ctkPluginContext*&#32;context)
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00030"/>00030 &#32;&#32;&#32;&#32;{
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00031"/>00031 &#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;this-&gt;imp-&gt;pluginContext&#32;=&#32;context;</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00032"/>00032 
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00033"/>00033 &#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;//&#32;warning</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00034"/>00034 &#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;//&#32;The&#32;service&#32;object&#32;does&#32;not&#32;intentionally&#32;run&#32;naked.</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00035"/>00035 &#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;//&#32;Fortunately,&#32;it&#32;does&#32;not&#32;affect&#32;the&#32;function&#32;logically.</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00036"/>00036 &#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;IMedicalRecordsService*&#32;streakingServicePointer&#32;</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00037"/>00037 &#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;=&#32;new&#32;MedicalRecordsService();</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00038"/>00038 &#32;&#32;&#32;&#32;
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00039"/>00039 &#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;//&#32;register&#32;service&#32;to&#32;mitk</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00040"/>00040 &#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;this-&gt;imp-&gt;medicalRecordsAdministrationService&#32;=&#32;</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00041"/>00041 &#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;berry::SmartPointer(streakingServicePointer);</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00042"/>00042 &#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;this-&gt;imp-&gt;pluginContext-&gt;registerService&lt;</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00043"/>00043 &#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;lancet::IMedicalRecordsService&gt;(streakingServicePointer);</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00044"/>00044 &#32;&#32;&#32;&#32;}
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00045"/>00045 
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00046"/><link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1ac22adb3c759023e2dd49c19f9ef1ed11">00046</link> &#32;&#32;&#32;&#32;<emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1ac22adb3c759023e2dd49c19f9ef1ed11">org_mitk_lancet_services_SpatialFitting::stop</link>(ctkPluginContext*&#32;context)
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00047"/>00047 &#32;&#32;&#32;&#32;{
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00048"/>00048 &#32;&#32;&#32;&#32;<emphasis role="comment">//this-&gt;imp-&gt;pluginContext-&gt;ungetService(this-&gt;imp-&gt;pluginContext-&gt;getServiceReference&lt;lancet::IMedicalRecordsService&gt;());</emphasis>
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00049"/>00049 &#32;&#32;&#32;&#32;this-&gt;imp-&gt;pluginContext&#32;=&#32;<emphasis role="keyword">nullptr</emphasis>;
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00050"/>00050 &#32;&#32;&#32;&#32;}
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00051"/>00051 
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00052"/><link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a5c832aeff92d6f89628b515c6be3d706">00052</link> &#32;&#32;ctkPluginContext*&#32;<link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a5c832aeff92d6f89628b515c6be3d706">org_mitk_lancet_services_SpatialFitting::GetPluginContext</link>()
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00053"/>00053 &#32;&#32;{
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00054"/>00054 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;<link linkend="_structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_1a5fb9408ca6ff66ff36f8b02927dfe317">PrivateImp::pluginContext</link>;
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00055"/>00055 &#32;&#32;}
+<anchor xml:id="_lancet_plugin_activator_8cpp_source_1l00056"/>00056 }
+</programlisting></section>

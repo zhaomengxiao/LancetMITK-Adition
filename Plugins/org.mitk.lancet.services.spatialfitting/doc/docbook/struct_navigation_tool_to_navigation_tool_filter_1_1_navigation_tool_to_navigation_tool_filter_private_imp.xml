@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp" xml:lang="en-US">
+<title>NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilterPrivateImp Struct Reference</title>
+<indexterm><primary>NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilterPrivateImp</primary></indexterm>
+<section>
+<title>Detailed Description</title>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source_1l00005">5</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source">lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</link>.</para>
+<para>
+The documentation for this struct was generated from the following file:</para>
+src/core/<link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp">lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</link></section>
+</section>

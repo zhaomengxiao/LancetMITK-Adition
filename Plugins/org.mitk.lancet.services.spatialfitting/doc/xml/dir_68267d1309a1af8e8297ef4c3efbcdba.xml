@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir">
+    <compoundname>src</compoundname>
+    <innerdir refid="dir_aebb8dcc11953d78e620bbef0b9e2183">src/core</innerdir>
+    <innerdir refid="dir_3756d50f4003bc63fa3fe49460f9c79d">src/internal</innerdir>
+    <innerfile refid="lancet_spatial_fitting_abstract_director_8cpp">lancetSpatialFittingAbstractDirector.cpp</innerfile>
+    <innerfile refid="lancet_spatial_fitting_abstract_director_8h">lancetSpatialFittingAbstractDirector.h</innerfile>
+    <innerfile refid="lancet_spatial_fitting_abstract_pipeline_builder_8cpp">lancetSpatialFittingAbstractPipelineBuilder.cpp</innerfile>
+    <innerfile refid="lancet_spatial_fitting_abstract_pipeline_builder_8h">lancetSpatialFittingAbstractPipelineBuilder.h</innerfile>
+    <innerfile refid="lancet_spatial_fitting_global_8h">lancetSpatialFittingGlobal.h</innerfile>
+    <innerfile refid="mainpage_01-_01_xE5_x89_xAF_xE6_x9C_xAC_8h">mainpage - 副本.h</innerfile>
+    <innerfile refid="mainpage_8h">mainpage.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/"/>
+  </compounddef>
+</doxygen>

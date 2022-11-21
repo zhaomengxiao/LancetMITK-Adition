@@ -1,0 +1,36 @@
+\hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source}{}\doxysection{lancet\+Spatial\+Fitting\+Abstract\+Pipeline\+Builder.\+h}
+\label{lancet_spatial_fitting_abstract_pipeline_builder_8h_source}\index{src/lancetSpatialFittingAbstractPipelineBuilder.h@{src/lancetSpatialFittingAbstractPipelineBuilder.h}}
+\mbox{\hyperlink{lancet_spatial_fitting_abstract_pipeline_builder_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00001}00001 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00015}00015 \textcolor{preprocessor}{\#ifndef LancetSpatialFittingAbstractPipelineBuilder\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00016}00016 \textcolor{preprocessor}{\#define LancetSpatialFittingAbstractPipelineBuilder\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00017}00017 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00018}00018 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_spatial_fitting_global_8h}{lancetSpatialFittingGlobal.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00019}00019 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00020}00020 \textcolor{comment}{// itk}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00021}00021 \textcolor{preprocessor}{\#include <itkObject.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00022}00022 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00023}00023 \textcolor{comment}{// mitk}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00024}00024 \textcolor{preprocessor}{\#include <mitkCommon.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00025}00025 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00026}00026 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_ac7cbc2e822ef6d60c8707aff07500e8e}{BEGIN\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00027}00027 \textcolor{keyword}{class }\mbox{\hyperlink{class_pipeline_manager}{PipelineManager}};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00028}00028 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00029}00029 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00049}00049 \textcolor{keyword}{class }ORG\_MITK\_LANCET\_SERVICES\_SPATIALFITTING\_PLUGIN }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00050}00050     \mbox{\hyperlink{class_abstract_pipeline_builder}{AbstractPipelineBuilder}} : \textcolor{keyword}{public} itk::Object}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00051}00051 \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00052}00052 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00053}\mbox{\hyperlink{class_abstract_pipeline_builder_a3a1eb3fb9b8d447d7db7e106887101ed}{00053}}     \mbox{\hyperlink{class_abstract_pipeline_builder_a3a1eb3fb9b8d447d7db7e106887101ed}{mitkClassMacroItkParent}}(\mbox{\hyperlink{class_abstract_pipeline_builder}{AbstractPipelineBuilder}}, itk::Object);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00054}00054 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00063}\mbox{\hyperlink{class_abstract_pipeline_builder_ac4381292ae208fe2eb83061cfe286882}{00063}}     \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} \mbox{\hyperlink{class_abstract_pipeline_builder_ac4381292ae208fe2eb83061cfe286882}{Reset}}() = 0;}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00064}00064 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00073}\mbox{\hyperlink{class_abstract_pipeline_builder_abe2c7e315e68a70558628b092fb2a716}{00073}}     \textcolor{keyword}{virtual} itk::SmartPointer<PipelineManager> \mbox{\hyperlink{class_abstract_pipeline_builder_abe2c7e315e68a70558628b092fb2a716}{GetOutput}}() = 0;}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00074}00074 \};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00075}00075 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00076}00076 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_a9046787dc4d688d2099a8a3048a11bf2}{END\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00077}00077 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_pipeline_builder_8h_source_l00078}00078 \textcolor{preprocessor}{\#endif }\textcolor{comment}{// !LancetSpatialFittingAbstractPipelineBuilder\_H}}
+
+\end{DoxyCode}

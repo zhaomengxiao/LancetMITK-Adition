@@ -1,0 +1,58 @@
+\hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source}{}\doxysection{lancet\+Spatial\+Fitting\+Pipeline\+Manager.\+h}
+\label{lancet_spatial_fitting_pipeline_manager_8h_source}\index{src/core/lancetSpatialFittingPipelineManager.h@{src/core/lancetSpatialFittingPipelineManager.h}}
+\mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00001}00001 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00016}00016 \textcolor{preprocessor}{\#ifndef LancetSpatialFittingPipelineManager\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00017}00017 \textcolor{preprocessor}{\#define LancetSpatialFittingPipelineManager\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00018}00018 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00019}00019 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_spatial_fitting_global_8h}{lancetSpatialFittingGlobal.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00020}00020 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00021}00021 \textcolor{preprocessor}{\#include <mitkNavigationDataToNavigationDataFilter.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00022}00022 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00023}00023 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00024}00024 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_ac7cbc2e822ef6d60c8707aff07500e8e}{BEGIN\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00025}00025 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00045}\mbox{\hyperlink{class_pipeline_manager}{00045}} \textcolor{keyword}{class }ORG\_MITK\_LANCET\_SERVICES\_SPATIALFITTING\_PLUGIN}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00046}00046     \mbox{\hyperlink{class_pipeline_manager}{PipelineManager}} }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00047}00047     : \textcolor{keyword}{public} mitk::NavigationDataToNavigationDataFilter}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00048}00048 \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00049}00049 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00050}\mbox{\hyperlink{class_pipeline_manager_aac1015c7ee3f69391d15c7032f96493f}{00050}}     \mbox{\hyperlink{class_pipeline_manager_aac1015c7ee3f69391d15c7032f96493f}{mitkClassMacro}}(\mbox{\hyperlink{class_pipeline_manager}{PipelineManager}}, mitk::NavigationDataToNavigationDataFilter);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00051}00051 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00052}00052     itkNewMacro(\mbox{\hyperlink{class_pipeline_manager}{PipelineManager}})}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00053}00053 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00054}00054     \mbox{\hyperlink{class_pipeline_manager}{PipelineManager}}();}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00055}00055     \textcolor{keyword}{virtual} \mbox{\hyperlink{class_pipeline_manager}{\string~PipelineManager}}();}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00056}00056 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00057}00057     \textcolor{keywordtype}{bool} AddFilter(\textcolor{keywordtype}{int} index, mitk::NavigationDataToNavigationDataFilter::Pointer);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00058}00058 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00059}00059     \textcolor{keywordtype}{bool} RemoveFilter(\textcolor{keywordtype}{int} index);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00060}00060     \textcolor{keywordtype}{bool} RemoveFilter(\textcolor{keyword}{const} std::string\&);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00061}00061 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00062}00062     \textcolor{keywordtype}{bool} ModifyFilter(\textcolor{keywordtype}{int} index, }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00063}00063         mitk::NavigationDataToNavigationDataFilter::Pointer);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00064}00064     \textcolor{keywordtype}{bool} ModifyFilter(\textcolor{keyword}{const} std::string\& name, }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00065}00065         mitk::NavigationDataToNavigationDataFilter::Pointer);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00066}00066 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00067}00067     mitk::NavigationDataToNavigationDataFilter::Pointer FindFilter(\textcolor{keywordtype}{int} index);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00068}00068     mitk::NavigationDataToNavigationDataFilter::Pointer }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00069}00069         FindFilter(\textcolor{keyword}{const} std::string\& name);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00070}00070 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00071}00071     \textcolor{keywordtype}{int} GetIndexByName(\textcolor{keyword}{const} std::string\& name);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00072}00072 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00073}00073     \textcolor{keywordtype}{bool} IsEmpty() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00074}00074 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00075}00075     \textcolor{keywordtype}{int} GetSize() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00076}00076 \textcolor{keyword}{protected}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00077}00077     \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} GenerateData() \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00078}00078 \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00079}00079     \textcolor{keyword}{struct }\mbox{\hyperlink{struct_pipeline_manager_1_1_pipeline_manager_private_imp}{PipelineManagerPrivateImp}};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00080}00080     std::shared\_ptr<PipelineManagerPrivateImp> imp;}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00081}00081 \};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00082}00082 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00083}00083 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_a9046787dc4d688d2099a8a3048a11bf2}{END\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00084}00084 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_pipeline_manager_8h_source_l00085}00085 \textcolor{preprocessor}{\#endif }\textcolor{comment}{// !LancetSpatialFittingPipelineManager\_H}}
+
+\end{DoxyCode}

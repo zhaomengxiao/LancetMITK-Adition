@@ -1,0 +1,129 @@
+.TH "lancet::org_mitk_lancet_services_SpatialFitting" 3 "Mon Nov 21 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+lancet::org_mitk_lancet_services_SpatialFitting
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <lancetPluginActivator\&.h>\fP
+.PP
+Inherits QObject, and ctkPluginActivator\&.
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBPrivateImp\fP"
+.br
+.in -1c
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBorg_mitk_lancet_services_SpatialFitting\fP ()"
+.br
+.ti -1c
+.RI "virtual \fB~org_mitk_lancet_services_SpatialFitting\fP () override"
+.br
+.ti -1c
+.RI "void \fBstart\fP (ctkPluginContext *context) override"
+.br
+.ti -1c
+.RI "void \fBstop\fP (ctkPluginContext *context) override"
+.br
+.in -1c
+.SS "Static Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "static ctkPluginContext * \fBGetPluginContext\fP ()"
+.br
+.in -1c
+.SS "Static Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "static const std::string \fBPLUGIN_ID\fP = 'org\&.mitk\&.lancet\&.services\&.spatialfitting'"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Definition at line \fB19\fP of file \fBlancetPluginActivator\&.h\fP\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "lancet::org_mitk_lancet_services_SpatialFitting::org_mitk_lancet_services_SpatialFitting ()"
+
+.PP
+Definition at line \fB19\fP of file \fBlancetPluginActivator\&.cpp\fP\&.
+.PP
+.nf
+20     : imp(std::make_shared<PrivateImp>())
+21     {
+22     
+23     }
+.fi
+.SS "lancet::org_mitk_lancet_services_SpatialFitting::~org_mitk_lancet_services_SpatialFitting ()\fC [override]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB25\fP of file \fBlancetPluginActivator\&.cpp\fP\&.
+.PP
+.nf
+26     {
+27     }
+.fi
+.SH "Member Function Documentation"
+.PP 
+.SS "ctkPluginContext * lancet::org_mitk_lancet_services_SpatialFitting::GetPluginContext ()\fC [static]\fP"
+
+.PP
+Definition at line \fB52\fP of file \fBlancetPluginActivator\&.cpp\fP\&.
+.PP
+.nf
+53   {
+54     return PrivateImp::pluginContext;
+55   }
+.fi
+.SS "void lancet::org_mitk_lancet_services_SpatialFitting::start (ctkPluginContext * context)\fC [override]\fP"
+
+.PP
+Definition at line \fB29\fP of file \fBlancetPluginActivator\&.cpp\fP\&.
+.PP
+.nf
+30     {
+31     // this->imp->pluginContext = context;
+32 
+33     // // warning
+34     // // The service object does not intentionally run naked\&.
+35     // // Fortunately, it does not affect the function logically\&.
+36     // IMedicalRecordsService* streakingServicePointer 
+37       // = new MedicalRecordsService();
+38     
+39     // // register service to mitk
+40     // this->imp->medicalRecordsAdministrationService = 
+41       // berry::SmartPointer(streakingServicePointer);
+42     // this->imp->pluginContext->registerService<
+43       // lancet::IMedicalRecordsService>(streakingServicePointer);
+44     }
+.fi
+.SS "void lancet::org_mitk_lancet_services_SpatialFitting::stop (ctkPluginContext * context)\fC [override]\fP"
+
+.PP
+Definition at line \fB46\fP of file \fBlancetPluginActivator\&.cpp\fP\&.
+.PP
+.nf
+47     {
+48     //this->imp->pluginContext->ungetService(this->imp->pluginContext->getServiceReference<lancet::IMedicalRecordsService>());
+49     this->imp->pluginContext = nullptr;
+50     }
+.fi
+.SH "Member Data Documentation"
+.PP 
+.SS "const std::string lancet::org_mitk_lancet_services_SpatialFitting::PLUGIN_ID = 'org\&.mitk\&.lancet\&.services\&.spatialfitting'\fC [static]\fP"
+
+.PP
+Definition at line \fB28\fP of file \fBlancetPluginActivator\&.h\fP\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for LancetSpatialFitting from the source code\&.

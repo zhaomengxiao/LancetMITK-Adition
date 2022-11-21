@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_struct_pipeline_builder_1_1_pipeline_builder_private_imp" xml:lang="en-US">
+<title>PipelineBuilder::PipelineBuilderPrivateImp Struct Reference</title>
+<indexterm><primary>PipelineBuilder::PipelineBuilderPrivateImp</primary></indexterm>
+<simplesect>
+    <title>Public Attributes    </title>
+        <itemizedlist>
+            <listitem><para>itk::SmartPointer&lt; <link linkend="_class_pipeline_manager">PipelineManager</link> &gt; <link linkend="_struct_pipeline_builder_1_1_pipeline_builder_private_imp_1ad7bc2eef020dd9dabf36729d4abedc5f">pipelineManager</link> = PipelineManager::New()</para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<section>
+<title>Detailed Description</title>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_pipeline_builder_8cpp_source_1l00007">7</link> of file <link linkend="_lancet_spatial_fitting_pipeline_builder_8cpp_source">lancetSpatialFittingPipelineBuilder.cpp</link>.</para>
+</section>
+<section>
+<title>Member Data Documentation</title>
+<anchor xml:id="_struct_pipeline_builder_1_1_pipeline_builder_private_imp_1ad7bc2eef020dd9dabf36729d4abedc5f"/><section>
+    <title>pipelineManager</title>
+<indexterm><primary>pipelineManager</primary><secondary>PipelineBuilder::PipelineBuilderPrivateImp</secondary></indexterm>
+<indexterm><primary>PipelineBuilder::PipelineBuilderPrivateImp</primary><secondary>pipelineManager</secondary></indexterm>
+<para><computeroutput>itk::SmartPointer&lt;<link linkend="_class_pipeline_manager">PipelineManager</link>&gt; PipelineBuilder::PipelineBuilderPrivateImp::pipelineManager = PipelineManager::New()</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_pipeline_builder_8cpp_source_1l00009">9</link> of file <link linkend="_lancet_spatial_fitting_pipeline_builder_8cpp_source">lancetSpatialFittingPipelineBuilder.cpp</link>.</para>
+</section>
+<para>
+The documentation for this struct was generated from the following file:</para>
+src/core/<link linkend="_lancet_spatial_fitting_pipeline_builder_8cpp">lancetSpatialFittingPipelineBuilder.cpp</link></section>
+</section>

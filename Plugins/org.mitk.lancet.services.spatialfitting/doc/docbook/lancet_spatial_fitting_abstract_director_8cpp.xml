@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_abstract_director_8cpp" xml:lang="en-US">
+<title>src/lancetSpatialFittingAbstractDirector.cpp File Reference</title>
+<indexterm><primary>src/lancetSpatialFittingAbstractDirector.cpp</primary></indexterm>
+<programlisting linenumbering="unnumbered">#include &quot;lancetSpatialFittingAbstractDirector.h&quot;
+#include &quot;lancetSpatialFittingAbstractPipelineBuilder.h&quot;
+</programlisting>Include dependency graph for lancetSpatialFittingAbstractDirector.cpp:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="lancet_spatial_fitting_abstract_director_8cpp__incl.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+<simplesect>
+    <title>Classes    </title>
+        <itemizedlist>
+            <listitem><para>struct <link linkend="_struct_abstract_director_1_1_abstract_director_private_imp">AbstractDirector::AbstractDirectorPrivateImp</link></para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+</section>

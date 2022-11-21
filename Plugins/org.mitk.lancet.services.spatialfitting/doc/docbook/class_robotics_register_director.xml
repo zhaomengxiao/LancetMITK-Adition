@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_class_robotics_register_director" xml:lang="en-US">
+<title>RoboticsRegisterDirector Class Reference</title>
+<indexterm><primary>RoboticsRegisterDirector</primary></indexterm>
+<para>
+
+<para>This is the header file of the decision-maker for the registration and construction of the robot arm. </para>
+ 
+</para>
+<para>
+<computeroutput>#include &lt;lancetSpatialFittingRoboticsRegisterDirector.h&gt;</computeroutput>
+</para>
+Inheritance diagram for RoboticsRegisterDirector:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="class_robotics_register_director__inherit__graph.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+Collaboration diagram for RoboticsRegisterDirector:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="class_robotics_register_director__coll__graph.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+<simplesect>
+    <title>Public Member Functions    </title>
+        <itemizedlist>
+            <listitem><para><link linkend="_class_robotics_register_director_1a87d17e71e4b31d77879dfba0c01f87af">mitkClassMacroItkParent</link> (<link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link>, <link linkend="_class_abstract_director">AbstractDirector</link>)</para>
+</listitem>
+            <listitem><para><link linkend="_class_robotics_register_director_1a22f33bcca3873532a47f7c266d8d7858">itkNewMacro</link> (<link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link>) <link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link>()</para>
+</listitem>
+            <listitem><para>virtual <link linkend="_class_robotics_register_director_1a766f0e3e7f0fe9e629386ab3591a8724">~RoboticsRegisterDirector</link> ()</para>
+</listitem>
+            <listitem><para>virtual bool <link linkend="_class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6">Builder</link> () override</para>
+
+<para>Implement the construction order or method of pipeline data. </para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<section>
+<title>Detailed Description</title>
+
+<para>This is the header file of the decision-maker for the registration and construction of the robot arm. </para>
+
+
+
+<para><formalpara>
+<title>Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.</title>
+<para></para>
+</formalpara>
+<formalpara><title>Version</title>
+
+<para>V1.0.0 </para>
+</formalpara>
+<formalpara><title>Date</title>
+
+<para>2022-11-18 10:20:17</para>
+</formalpara>
+<formalpara>
+<title>Modify History</title>
+<para><orderedlist>
+<listitem>
+<para>Sun initialization the version for 2022-11-18 10:20:17.</para>
+</listitem></orderedlist>
+</para>
+</formalpara>
+<formalpara><title>Author</title>
+
+<para>Sun </para>
+</formalpara>
+<formalpara><title>Date</title>
+
+<para>2022-11-18 10:20:17 </para>
+</formalpara>
+<formalpara><title>Remarks</title>
+
+<para>Non</para>
+</formalpara>
+This is the decision-maker class of robot arm registration construction.</para>
+
+<para>This will determine the processing manager object for the robot arm to register navigation data.</para>
+
+<para><emphasis role="bold">Data stream:</emphasis>
+<literallayout>&#160;&#xa;</literallayout>
+ </para>
+
+<para><literallayout><computeroutput>RoboticsRegisterDirector::Pointer&#32;roboticsRegisterDirector&#32;=&#32;
+&#32;&#32;RoboticsRegisterDirector::New();
+
+<emphasis role="keywordflow">if</emphasis>(roboticsRegisterDirector-&gt;Builder())
+{
+&#32;&#32;<emphasis role="keyword">auto</emphasis>&#32;roboticsRegisterManage&#32;=&#32;roboticsRegisterDirector-&gt;GetBuilder()-&gt;GetOutput();
+}
+</computeroutput></literallayout></para>
+
+<para><formalpara><title>Author</title>
+
+<para>Sun </para>
+</formalpara>
+<formalpara><title>Version</title>
+
+<para>V1.0.0 </para>
+</formalpara>
+<formalpara><title>Date</title>
+
+<para>2022-11-21 16:06:37 </para>
+</formalpara>
+<formalpara><title>Remarks</title>
+
+<para>Non</para>
+</formalpara>
+Contact: <link xlink:href="mailto:sh4a01@163.com">sh4a01@163.com</link> </para>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00054">54</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_director_8h_source">lancetSpatialFittingRoboticsRegisterDirector.h</link>.</para>
+</section>
+<section>
+<title>Constructor &amp; Destructor Documentation</title>
+<anchor xml:id="_class_robotics_register_director_1a766f0e3e7f0fe9e629386ab3591a8724"/><section>
+    <title>~RoboticsRegisterDirector()</title>
+<indexterm><primary>~RoboticsRegisterDirector</primary><secondary>RoboticsRegisterDirector</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterDirector</primary><secondary>~RoboticsRegisterDirector</secondary></indexterm>
+<para><computeroutput>RoboticsRegisterDirector::~RoboticsRegisterDirector ( )<computeroutput>[virtual]</computeroutput></computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_director_8cpp_source_1l00013">13</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_director_8cpp_source">lancetSpatialFittingRoboticsRegisterDirector.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00014 {
+00015 }
+</programlisting></section>
+</section>
+<section>
+<title>Member Function Documentation</title>
+<anchor xml:id="_class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6"/><section>
+    <title>Builder()</title>
+<indexterm><primary>Builder</primary><secondary>RoboticsRegisterDirector</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterDirector</primary><secondary>Builder</secondary></indexterm>
+<para><computeroutput>bool RoboticsRegisterDirector::Builder ( )<computeroutput>[override]</computeroutput>, <computeroutput>[virtual]</computeroutput></computeroutput></para><para>
+
+<para>Implement the construction order or method of pipeline data. </para>
+</para>
+
+<para>In the spatial fitting module, the functional components of various pipe- line data objects may be the same component, but the production order has some deviations. The derived class needs to correctly control the produce order of pipeline data for this interface.</para>
+
+<para><formalpara><title>Returns</title>
+
+<para>True Production succeeded, otherwise it failed. </para>
+</formalpara>
+</para>
+<para>
+Implements <link linkend="_class_abstract_director_1a89be2adee44d1ea75c54fe40286b6f59">AbstractDirector</link>.</para>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_director_8cpp_source_1l00017">17</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_director_8cpp_source">lancetSpatialFittingRoboticsRegisterDirector.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00018 {
+00019 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;<emphasis role="keyword">false</emphasis>;
+00020 }
+</programlisting></section>
+<anchor xml:id="_class_robotics_register_director_1a22f33bcca3873532a47f7c266d8d7858"/><section>
+    <title>itkNewMacro()</title>
+<indexterm><primary>itkNewMacro</primary><secondary>RoboticsRegisterDirector</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterDirector</primary><secondary>itkNewMacro</secondary></indexterm>
+<para><computeroutput>RoboticsRegisterDirector::itkNewMacro (<link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link> )</computeroutput></para></section>
+<anchor xml:id="_class_robotics_register_director_1a87d17e71e4b31d77879dfba0c01f87af"/><section>
+    <title>mitkClassMacroItkParent()</title>
+<indexterm><primary>mitkClassMacroItkParent</primary><secondary>RoboticsRegisterDirector</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterDirector</primary><secondary>mitkClassMacroItkParent</secondary></indexterm>
+<para><computeroutput>RoboticsRegisterDirector::mitkClassMacroItkParent (<link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link> , <link linkend="_class_abstract_director">AbstractDirector</link> )</computeroutput></para></section>
+<para>
+The documentation for this class was generated from the following files:</para>
+src/core/<link linkend="_lancet_spatial_fitting_robotics_register_director_8h">lancetSpatialFittingRoboticsRegisterDirector.h</link>src/core/<link linkend="_lancet_spatial_fitting_robotics_register_director_8cpp">lancetSpatialFittingRoboticsRegisterDirector.cpp</link></section>
+</section>

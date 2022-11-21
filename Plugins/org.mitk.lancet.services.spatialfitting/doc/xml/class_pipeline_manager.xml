@@ -1,0 +1,330 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="class_pipeline_manager" kind="class" language="C++" prot="public">
+    <compoundname>PipelineManager</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">mitk::NavigationDataToNavigationDataFilter</basecompoundref>
+    <includes refid="lancet_spatial_fitting_pipeline_manager_8h" local="no">lancetSpatialFittingPipelineManager.h</includes>
+    <innerclass refid="struct_pipeline_manager_1_1_pipeline_manager_private_imp" prot="public">PipelineManager::PipelineManagerPrivateImp</innerclass>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="class_pipeline_manager_1ad027ecdbaf8f102efb871bc0a3ef39f1" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="struct_pipeline_manager_1_1_pipeline_manager_private_imp" kindref="compound">PipelineManagerPrivateImp</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;PipelineManagerPrivateImp&gt; PipelineManager::imp</definition>
+        <argsstring></argsstring>
+        <name>imp</name>
+        <qualifiedname>PipelineManager::imp</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="80" column="17" bodyfile="src/core/lancetSpatialFittingPipelineManager.h" bodystart="80" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="class_pipeline_manager_1aac1015c7ee3f69391d15c7032f96493f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>PipelineManager::mitkClassMacro</definition>
+        <argsstring>(PipelineManager, mitk::NavigationDataToNavigationDataFilter)</argsstring>
+        <name>mitkClassMacro</name>
+        <qualifiedname>PipelineManager::mitkClassMacro</qualifiedname>
+        <param>
+          <type><ref refid="class_pipeline_manager" kindref="compound">PipelineManager</ref></type>
+        </param>
+        <param>
+          <type>mitk::NavigationDataToNavigationDataFilter</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="50" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1a5c1ca77b12c44a3f2fbf61c328f299f2" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>itkNewMacro(<ref refid="class_pipeline_manager" kindref="compound">PipelineManager</ref>) public</type>
+        <definition>PipelineManager::~PipelineManager</definition>
+        <argsstring>()</argsstring>
+        <name>~PipelineManager</name>
+        <qualifiedname>PipelineManager::~PipelineManager</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="55" column="9" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="15" bodyend="17"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1a9d1d6b25355ce9985de2c3a5ab6c5519" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool PipelineManager::AddFilter</definition>
+        <argsstring>(int index, mitk::NavigationDataToNavigationDataFilter::Pointer)</argsstring>
+        <name>AddFilter</name>
+        <qualifiedname>PipelineManager::AddFilter</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <param>
+          <type>mitk::NavigationDataToNavigationDataFilter::Pointer</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="57" column="6" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="19" bodyend="22"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1a766d9dc3533cf803f717d41d7f50e643" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool PipelineManager::RemoveFilter</definition>
+        <argsstring>(int index)</argsstring>
+        <name>RemoveFilter</name>
+        <qualifiedname>PipelineManager::RemoveFilter</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="59" column="6" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="24" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1a7977f65f0ddc929cc6ab3265ed864448" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool PipelineManager::RemoveFilter</definition>
+        <argsstring>(const std::string &amp;)</argsstring>
+        <name>RemoveFilter</name>
+        <qualifiedname>PipelineManager::RemoveFilter</qualifiedname>
+        <param>
+          <type>const std::string &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="60" column="6" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="29" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1acaf0331f56cb6a6d51a6a9632fa5f2ba" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool PipelineManager::ModifyFilter</definition>
+        <argsstring>(int index, mitk::NavigationDataToNavigationDataFilter::Pointer)</argsstring>
+        <name>ModifyFilter</name>
+        <qualifiedname>PipelineManager::ModifyFilter</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <param>
+          <type>mitk::NavigationDataToNavigationDataFilter::Pointer</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="62" column="6" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="34" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1a6e8f4630e2556b0af1f50bf1f6cf19ed" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool PipelineManager::ModifyFilter</definition>
+        <argsstring>(const std::string &amp;name, mitk::NavigationDataToNavigationDataFilter::Pointer)</argsstring>
+        <name>ModifyFilter</name>
+        <qualifiedname>PipelineManager::ModifyFilter</qualifiedname>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>mitk::NavigationDataToNavigationDataFilter::Pointer</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="64" column="6" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="39" bodyend="42"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1afb4bec97962d788e6a2670b1db2e69cd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>mitk::NavigationDataToNavigationDataFilter::Pointer</type>
+        <definition>mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter</definition>
+        <argsstring>(int index)</argsstring>
+        <name>FindFilter</name>
+        <qualifiedname>PipelineManager::FindFilter</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="67" column="53" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="44" bodyend="47"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1a322ef438d04b6c4df2f1fde937dc20d9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>mitk::NavigationDataToNavigationDataFilter::Pointer</type>
+        <definition>mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter</definition>
+        <argsstring>(const std::string &amp;name)</argsstring>
+        <name>FindFilter</name>
+        <qualifiedname>PipelineManager::FindFilter</qualifiedname>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="69" column="1" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="49" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1aac730b1bc82620f1f1099a773d0c849b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int PipelineManager::GetIndexByName</definition>
+        <argsstring>(const std::string &amp;name)</argsstring>
+        <name>GetIndexByName</name>
+        <qualifiedname>PipelineManager::GetIndexByName</qualifiedname>
+        <param>
+          <type>const std::string &amp;</type>
+          <declname>name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="71" column="5" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="54" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1aa5240224c8eb4fb1bfd31bcd6376033c" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool PipelineManager::IsEmpty</definition>
+        <argsstring>() const</argsstring>
+        <name>IsEmpty</name>
+        <qualifiedname>PipelineManager::IsEmpty</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="73" column="6" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="59" bodyend="62"/>
+      </memberdef>
+      <memberdef kind="function" id="class_pipeline_manager_1a77f11c07a2b0c12bd0025f856889a32f" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int PipelineManager::GetSize</definition>
+        <argsstring>() const</argsstring>
+        <name>GetSize</name>
+        <qualifiedname>PipelineManager::GetSize</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="75" column="5" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="64" bodyend="67"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="protected-func">
+      <memberdef kind="function" id="class_pipeline_manager_1aabb85814eecc30321b73888c2284b8dd" prot="protected" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void PipelineManager::GenerateData</definition>
+        <argsstring>() override</argsstring>
+        <name>GenerateData</name>
+        <qualifiedname>PipelineManager::GenerateData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineManager.h" line="77" column="14" bodyfile="src/core/lancetSpatialFittingPipelineManager.cpp" bodystart="69" bodyend="71"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>$Document description$ </para>
+    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title>Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.</title><para></para>
+</simplesect>
+<simplesect kind="version"><para>V1.0.0 </para>
+</simplesect>
+<simplesect kind="date"><para>2022-11-18 10:18:17</para>
+</simplesect>
+<simplesect kind="par"><title>Modify History</title><para><orderedlist>
+<listitem><para>Sun initialization the version for 2022-11-18 10:18:17.</para>
+</listitem></orderedlist>
+</para>
+</simplesect>
+<simplesect kind="author"><para>Sun </para>
+</simplesect>
+<simplesect kind="date"><para>2022-11-18 10:18:17 </para>
+</simplesect>
+<simplesect kind="remark"><para>Non</para>
+</simplesect>
+This is the manager class of the navigation data collection filter.</para>
+<para>This class itself is a filter. It internally manages a complete channel data filter and automatically configures it according to the data flow processing order.</para>
+<para>This class can be produced using the builder mode, because the initialization of this class is relatively complex.</para>
+<para><simplesect kind="author"><para>Sun </para>
+</simplesect>
+<simplesect kind="version"><para>V1.0.0 </para>
+</simplesect>
+<simplesect kind="date"><para>2022-11-21 15:44:21 </para>
+</simplesect>
+<simplesect kind="remark"><para>Non</para>
+</simplesect>
+Contact: <ulink url="mailto:sh4a01@163.com">sh4a01@163.com</ulink> </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>PipelineManager</label>
+        <link refid="class_pipeline_manager"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mitk::NavigationDataToNavigationDataFilter</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>PipelineManager</label>
+        <link refid="class_pipeline_manager"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mitk::NavigationDataToNavigationDataFilter</label>
+      </node>
+    </collaborationgraph>
+    <location file="src/core/lancetSpatialFittingPipelineManager.h" line="45" column="1" bodyfile="src/core/lancetSpatialFittingPipelineManager.h" bodystart="48" bodyend="81"/>
+    <listofallmembers>
+      <member refid="class_pipeline_manager_1a9d1d6b25355ce9985de2c3a5ab6c5519" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>AddFilter</name></member>
+      <member refid="class_pipeline_manager_1afb4bec97962d788e6a2670b1db2e69cd" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>FindFilter</name></member>
+      <member refid="class_pipeline_manager_1a322ef438d04b6c4df2f1fde937dc20d9" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>FindFilter</name></member>
+      <member refid="class_pipeline_manager_1aabb85814eecc30321b73888c2284b8dd" prot="protected" virt="virtual"><scope>PipelineManager</scope><name>GenerateData</name></member>
+      <member refid="class_pipeline_manager_1aac730b1bc82620f1f1099a773d0c849b" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>GetIndexByName</name></member>
+      <member refid="class_pipeline_manager_1a77f11c07a2b0c12bd0025f856889a32f" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>GetSize</name></member>
+      <member refid="class_pipeline_manager_1ad027ecdbaf8f102efb871bc0a3ef39f1" prot="private" virt="non-virtual"><scope>PipelineManager</scope><name>imp</name></member>
+      <member refid="class_pipeline_manager_1aa5240224c8eb4fb1bfd31bcd6376033c" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>IsEmpty</name></member>
+      <member refid="class_pipeline_manager_1aac1015c7ee3f69391d15c7032f96493f" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>mitkClassMacro</name></member>
+      <member refid="class_pipeline_manager_1acaf0331f56cb6a6d51a6a9632fa5f2ba" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>ModifyFilter</name></member>
+      <member refid="class_pipeline_manager_1a6e8f4630e2556b0af1f50bf1f6cf19ed" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>ModifyFilter</name></member>
+      <member refid="class_pipeline_manager_1a766d9dc3533cf803f717d41d7f50e643" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>RemoveFilter</name></member>
+      <member refid="class_pipeline_manager_1a7977f65f0ddc929cc6ab3265ed864448" prot="public" virt="non-virtual"><scope>PipelineManager</scope><name>RemoveFilter</name></member>
+      <member refid="class_pipeline_manager_1a5c1ca77b12c44a3f2fbf61c328f299f2" prot="public" virt="virtual"><scope>PipelineManager</scope><name>~PipelineManager</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

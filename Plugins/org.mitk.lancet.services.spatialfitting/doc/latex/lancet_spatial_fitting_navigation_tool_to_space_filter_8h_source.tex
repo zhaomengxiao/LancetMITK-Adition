@@ -1,0 +1,44 @@
+\hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source}{}\doxysection{lancet\+Spatial\+Fitting\+Navigation\+Tool\+To\+Space\+Filter.\+h}
+\label{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source}\index{src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h@{src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h}}
+\mbox{\hyperlink{lancet_spatial_fitting_navigation_tool_to_space_filter_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00001}00001 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00018}00018 \textcolor{preprocessor}{\#ifndef LancetSpatialFittingNavigationToolToSpaceFilter\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00019}00019 \textcolor{preprocessor}{\#define LancetSpatialFittingNavigationToolToSpaceFilter\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00020}00020 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00021}00021 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_spatial_fitting_global_8h}{lancetSpatialFittingGlobal.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00022}00022 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00023}00023 \textcolor{comment}{// vtk}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00024}00024 \textcolor{preprocessor}{\#include <vtkMatrix4x4.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00025}00025 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00026}00026 \textcolor{comment}{// mitk}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00027}00027 \textcolor{preprocessor}{\#include <mitkNavigationDataToNavigationDataFilter.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00028}00028 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00029}00029 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_ac7cbc2e822ef6d60c8707aff07500e8e}{BEGIN\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00030}00030 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00060}\mbox{\hyperlink{class_navigation_tool_to_space_filter}{00060}} \textcolor{keyword}{class }ORG\_MITK\_LANCET\_SERVICES\_SPATIALFITTING\_PLUGIN}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00061}00061     \mbox{\hyperlink{class_navigation_tool_to_space_filter}{NavigationToolToSpaceFilter}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00062}00062     : \textcolor{keyword}{public} mitk::NavigationDataToNavigationDataFilter}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00063}00063 \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00064}00064 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00065}\mbox{\hyperlink{class_navigation_tool_to_space_filter_a6cbf3f4c74d1c269eb995dbd02405df6}{00065}}     \mbox{\hyperlink{class_navigation_tool_to_space_filter_a6cbf3f4c74d1c269eb995dbd02405df6}{mitkClassMacro}}(\mbox{\hyperlink{class_navigation_tool_to_space_filter}{NavigationToolToSpaceFilter}},}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00066}00066         mitk::NavigationDataToNavigationDataFilter);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00067}00067 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00068}00068     \mbox{\hyperlink{class_navigation_tool_to_space_filter}{NavigationToolToSpaceFilter}}();}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00069}00069     \textcolor{keyword}{virtual} \mbox{\hyperlink{class_navigation_tool_to_space_filter}{\string~NavigationToolToSpaceFilter}}();}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00070}00070 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00071}00071     \textcolor{keyword}{virtual} vtkMatrix4x4* GetConvertMatrix4x4() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00072}00072 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00076}00076     \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetConvertMatrix4x4(\textcolor{keyword}{const} vtkMatrix4x4* matrix);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00077}00077 \textcolor{keyword}{protected}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00078}00078     \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} GenerateData() \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00079}00079 \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00080}00080     \textcolor{keyword}{struct }\mbox{\hyperlink{struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp}{NavigationToolToSpaceFilterPrivateImp}};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00081}00081     std::shared\_ptr<NavigationToolToSpaceFilterPrivateImp> imp;}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00082}00082 \};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00083}00083 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00084}00084 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_a9046787dc4d688d2099a8a3048a11bf2}{END\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00085}00085 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_l00086}00086 \textcolor{preprocessor}{\#endif }\textcolor{comment}{// !LancetSpatialFittingNavigationToolToSpaceFilter\_H}}
+
+\end{DoxyCode}

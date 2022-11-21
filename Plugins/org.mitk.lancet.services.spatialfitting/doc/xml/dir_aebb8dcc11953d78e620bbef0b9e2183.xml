@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_aebb8dcc11953d78e620bbef0b9e2183" kind="dir">
+    <compoundname>src/core</compoundname>
+    <innerfile refid="lancet_spatial_fitting_navigation_tool_collector_8cpp">lancetSpatialFittingNavigationToolCollector.cpp</innerfile>
+    <innerfile refid="lancet_spatial_fitting_navigation_tool_collector_8h">lancetSpatialFittingNavigationToolCollector.h</innerfile>
+    <innerfile refid="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp">lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</innerfile>
+    <innerfile refid="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8h">lancetSpatialFittingNavigationToolToNavigationToolFilter.h</innerfile>
+    <innerfile refid="lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp">lancetSpatialFittingNavigationToolToSpaceFilter.cpp</innerfile>
+    <innerfile refid="lancet_spatial_fitting_navigation_tool_to_space_filter_8h">lancetSpatialFittingNavigationToolToSpaceFilter.h</innerfile>
+    <innerfile refid="lancet_spatial_fitting_pipeline_builder_8cpp">lancetSpatialFittingPipelineBuilder.cpp</innerfile>
+    <innerfile refid="lancet_spatial_fitting_pipeline_builder_8h">lancetSpatialFittingPipelineBuilder.h</innerfile>
+    <innerfile refid="lancet_spatial_fitting_pipeline_manager_8cpp">lancetSpatialFittingPipelineManager.cpp</innerfile>
+    <innerfile refid="lancet_spatial_fitting_pipeline_manager_8h">lancetSpatialFittingPipelineManager.h</innerfile>
+    <innerfile refid="lancet_spatial_fitting_point_accuracy_date_8cpp">lancetSpatialFittingPointAccuracyDate.cpp</innerfile>
+    <innerfile refid="lancet_spatial_fitting_point_accuracy_date_8h">lancetSpatialFittingPointAccuracyDate.h</innerfile>
+    <innerfile refid="lancet_spatial_fitting_robotics_register_director_8cpp">lancetSpatialFittingRoboticsRegisterDirector.cpp</innerfile>
+    <innerfile refid="lancet_spatial_fitting_robotics_register_director_8h">lancetSpatialFittingRoboticsRegisterDirector.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/core/"/>
+  </compounddef>
+</doxygen>

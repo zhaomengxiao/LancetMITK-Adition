@@ -1,0 +1,51 @@
+\hypertarget{lancet_plugin_activator_8h_source}{}\doxysection{lancet\+Plugin\+Activator.\+h}
+\label{lancet_plugin_activator_8h_source}\index{src/internal/lancetPluginActivator.h@{src/internal/lancetPluginActivator.h}}
+\mbox{\hyperlink{lancet_plugin_activator_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00001}00001 \textcolor{preprocessor}{\#ifndef LancetPluginActivator\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00002}00002 \textcolor{preprocessor}{\#define LancetPluginActivator\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00003}00003 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00004}00004 \textcolor{preprocessor}{\#include <ctkPluginActivator.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00005}00005 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00006}00006 \textcolor{preprocessor}{\#include <berrySmartPointer.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00007}00007 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00008}00008 \textcolor{preprocessor}{\#include <usServiceEvent.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00009}00009 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00010}00010 \textcolor{preprocessor}{\#include "{}org\_mitk\_lancet\_services\_spatialfitting\_Export.h"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00011}00011 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00012}\mbox{\hyperlink{namespaceus}{00012}} \textcolor{keyword}{namespace }\mbox{\hyperlink{namespaceus}{us}}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00013}00013 \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00014}00014     \textcolor{keyword}{class }ModuleContext;}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00015}00015 \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00016}00016 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00017}00017 \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelancet}{lancet}}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00018}00018 \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00019}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting}{00019}} \textcolor{keyword}{class }ORG\_MITK\_LANCET\_SERVICES\_SPATIALFITTING\_PLUGIN }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00020}00020     \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting}{org\_mitk\_lancet\_services\_SpatialFitting}} : \textcolor{keyword}{public} QObject, \textcolor{keyword}{public} ctkPluginActivator}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00021}00021 \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00022}00022     Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00023}00023     Q\_PLUGIN\_METADATA(IID \textcolor{stringliteral}{"{}org\_mitk\_lancet\_services\_spatialfitting"{}})}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00024}00024     Q\_INTERFACES(ctkPluginActivator)}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00025}00025 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00026}00026     \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting}{org\_mitk\_lancet\_services\_SpatialFitting}}();}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00027}00027 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00028}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a54f9357600bddc5ec9bb40fbc6931986}{00028}}     \textcolor{keyword}{static} \textcolor{keyword}{const} std::string \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a54f9357600bddc5ec9bb40fbc6931986}{PLUGIN\_ID}};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00029}00029 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00030}00030     \textcolor{keyword}{virtual} \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting}{\string~org\_mitk\_lancet\_services\_SpatialFitting}}() \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00031}00031 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00032}00032     \textcolor{keywordtype}{void} start(ctkPluginContext* context) \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00033}00033 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00034}00034     \textcolor{keywordtype}{void} stop(ctkPluginContext* context) \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00035}00035 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00036}00036     \textcolor{keyword}{static} ctkPluginContext* GetPluginContext();}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00037}00037 \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00038}00038     \textcolor{keyword}{struct }\mbox{\hyperlink{structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp}{PrivateImp}};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00039}00039     std::shared\_ptr<PrivateImp> imp;}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00040}00040 \};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00041}00041 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00042}\mbox{\hyperlink{namespacelancet_af748ff0fdfe694fb57d29c704ed1287f}{00042}}     \textcolor{keyword}{typedef} \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting}{org\_mitk\_lancet\_services\_SpatialFitting}} \mbox{\hyperlink{namespacelancet_af748ff0fdfe694fb57d29c704ed1287f}{PluginActivator}};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00043}00043 \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00044}00044 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8h_source_l00045}00045 \textcolor{preprocessor}{\#endif }\textcolor{comment}{// !LancetPluginActivator\_H}}
+
+\end{DoxyCode}

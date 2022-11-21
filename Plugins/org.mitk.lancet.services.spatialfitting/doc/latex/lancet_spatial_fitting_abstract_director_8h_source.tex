@@ -1,0 +1,41 @@
+\hypertarget{lancet_spatial_fitting_abstract_director_8h_source}{}\doxysection{lancet\+Spatial\+Fitting\+Abstract\+Director.\+h}
+\label{lancet_spatial_fitting_abstract_director_8h_source}\index{src/lancetSpatialFittingAbstractDirector.h@{src/lancetSpatialFittingAbstractDirector.h}}
+\mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00001}00001 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00017}00017 \textcolor{preprocessor}{\#ifndef LancetSpatialFittingAbstractDirector\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00018}00018 \textcolor{preprocessor}{\#define LancetSpatialFittingAbstractDirector\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00019}00019 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00020}00020 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_spatial_fitting_global_8h}{lancetSpatialFittingGlobal.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00021}00021 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00022}00022 \textcolor{comment}{// itk}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00023}00023 \textcolor{preprocessor}{\#include <itkObject.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00024}00024 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00025}00025 \textcolor{comment}{// mitk}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00026}00026 \textcolor{preprocessor}{\#include <mitkCommon.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00027}00027 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00028}00028 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_ac7cbc2e822ef6d60c8707aff07500e8e}{BEGIN\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00029}00029 \textcolor{keyword}{class }\mbox{\hyperlink{class_abstract_pipeline_builder}{AbstractPipelineBuilder}};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00030}00030 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00068}\mbox{\hyperlink{class_abstract_director}{00068}} \textcolor{keyword}{class }ORG\_MITK\_LANCET\_SERVICES\_SPATIALFITTING\_PLUGIN }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00069}00069     \mbox{\hyperlink{class_abstract_director}{AbstractDirector}} : \textcolor{keyword}{public} itk::Object}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00070}00070 \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00071}00071 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00072}\mbox{\hyperlink{class_abstract_director_ae2cf08a58c1b53215e4018a6ed6c0143}{00072}}     \mbox{\hyperlink{class_abstract_director_ae2cf08a58c1b53215e4018a6ed6c0143}{mitkClassMacroItkParent}}(\mbox{\hyperlink{class_abstract_director}{AbstractDirector}}, itk::Object);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00073}00073 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00074}00074     \mbox{\hyperlink{class_abstract_director}{AbstractDirector}}();}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00075}00075 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00086}\mbox{\hyperlink{class_abstract_director_a89be2adee44d1ea75c54fe40286b6f59}{00086}}     \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} \mbox{\hyperlink{class_abstract_director_a89be2adee44d1ea75c54fe40286b6f59}{Builder}}() = 0;}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00087}00087 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00088}00088     \textcolor{keyword}{virtual} itk::SmartPointer<AbstractPipelineBuilder> GetBuilder() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00089}00089     \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetBuilder(itk::SmartPointer<AbstractPipelineBuilder> builder);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00090}00090 \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00091}00091     \textcolor{keyword}{struct }\mbox{\hyperlink{struct_abstract_director_1_1_abstract_director_private_imp}{AbstractDirectorPrivateImp}};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00092}00092     std::shared\_ptr<AbstractDirectorPrivateImp> imp;}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00093}00093 \};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00094}00094 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00095}00095 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_a9046787dc4d688d2099a8a3048a11bf2}{END\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00096}00096 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_abstract_director_8h_source_l00097}00097 \textcolor{preprocessor}{\#endif }\textcolor{comment}{// !LancetSpatialFittingAbstractDirector\_H}}
+
+\end{DoxyCode}

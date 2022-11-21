@@ -1,0 +1,39 @@
+\hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source}{}\doxysection{lancet\+Spatial\+Fitting\+Navigation\+Tool\+To\+Space\+Filter.\+cpp}
+\label{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source}\index{src/core/lancetSpatialFittingNavigationToolToSpaceFilter.cpp@{src/core/lancetSpatialFittingNavigationToolToSpaceFilter.cpp}}
+\mbox{\hyperlink{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00001}00001 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_spatial_fitting_navigation_tool_to_space_filter_8h}{lancetSpatialFittingNavigationToolToSpaceFilter.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00002}00002 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_ac7cbc2e822ef6d60c8707aff07500e8e}{BEGIN\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00003}00003 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00004}\mbox{\hyperlink{struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp}{00004}} \textcolor{keyword}{struct }\mbox{\hyperlink{struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp}{NavigationToolToSpaceFilter::NavigationToolToSpaceFilterPrivateImp}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00005}00005 \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00006}\mbox{\hyperlink{struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp_aa7d2fabcc0157507a2441a441655a289}{00006}}     vtkMatrix4x4* \mbox{\hyperlink{struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp_aa7d2fabcc0157507a2441a441655a289}{convertMatrix4x4}} = vtkMatrix4x4::New();}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00007}00007 \};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00008}00008 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00009}\mbox{\hyperlink{class_navigation_tool_to_space_filter_a7be7a791764fbc9ea694540f7aa174b3}{00009}} \mbox{\hyperlink{class_navigation_tool_to_space_filter_a7be7a791764fbc9ea694540f7aa174b3}{NavigationToolToSpaceFilter::NavigationToolToSpaceFilter}}()}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00010}00010     : imp(std::make\_shared<\mbox{\hyperlink{struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp}{NavigationToolToSpaceFilterPrivateImp}}>())}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00011}00011 \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00012}00012     }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00013}00013 \}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00014}00014 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00015}\mbox{\hyperlink{class_navigation_tool_to_space_filter_a26bbd9f762519673ca2f2cc289de6af6}{00015}} \mbox{\hyperlink{class_navigation_tool_to_space_filter_a26bbd9f762519673ca2f2cc289de6af6}{NavigationToolToSpaceFilter::\string~NavigationToolToSpaceFilter}}()}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00016}00016 \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00017}00017 \}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00018}00018 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00019}\mbox{\hyperlink{class_navigation_tool_to_space_filter_a2b0951c3f8b67d208f54a57bbd0bb2b0}{00019}} vtkMatrix4x4* \mbox{\hyperlink{class_navigation_tool_to_space_filter_a2b0951c3f8b67d208f54a57bbd0bb2b0}{NavigationToolToSpaceFilter::GetConvertMatrix4x4}}()\textcolor{keyword}{ const}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00020}00020 \textcolor{keyword}{}\{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00021}00021     \textcolor{keywordflow}{return} this-\/>imp-\/>convertMatrix4x4;}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00022}00022 \}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00023}00023 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00024}\mbox{\hyperlink{class_navigation_tool_to_space_filter_a41421e903792320f00924c8351cbc33b}{00024}} \textcolor{keywordtype}{void} \mbox{\hyperlink{class_navigation_tool_to_space_filter_a41421e903792320f00924c8351cbc33b}{NavigationToolToSpaceFilter::SetConvertMatrix4x4}}(\textcolor{keyword}{const} vtkMatrix4x4* matrix)}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00025}00025 \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00026}00026     this-\/>imp-\/>convertMatrix4x4-\/>DeepCopy(matrix);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00027}00027 \}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00028}00028 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00029}\mbox{\hyperlink{class_navigation_tool_to_space_filter_a26b3666fb9f24436b1ab5a0efd2f1ce5}{00029}} \textcolor{keywordtype}{void} \mbox{\hyperlink{class_navigation_tool_to_space_filter_a26b3666fb9f24436b1ab5a0efd2f1ce5}{NavigationToolToSpaceFilter::GenerateData}}()}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00030}00030 \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00031}00031 \}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00032}00032 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_a9046787dc4d688d2099a8a3048a11bf2}{END\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source_l00033}00033 }
+
+\end{DoxyCode}

@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_struct_point_accuracy_date_1_1_point_accuracy_date_private_imp" xml:lang="en-US">
+<title>PointAccuracyDate::PointAccuracyDatePrivateImp Struct Reference</title>
+<indexterm><primary>PointAccuracyDate::PointAccuracyDatePrivateImp</primary></indexterm>
+<simplesect>
+    <title>Public Attributes    </title>
+        <itemizedlist>
+            <listitem><para>mitk::Point3D <link linkend="_struct_point_accuracy_date_1_1_point_accuracy_date_private_imp_1aea6071755ac91d6fcd68fe5f6b14b7bc">srcPoint</link></para>
+</listitem>
+            <listitem><para>mitk::Point3D <link linkend="_struct_point_accuracy_date_1_1_point_accuracy_date_private_imp_1af49370bfde75c303cb10dbe45dfcfc1d">targetPoint</link></para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<section>
+<title>Detailed Description</title>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_point_accuracy_date_8cpp_source_1l00006">6</link> of file <link linkend="_lancet_spatial_fitting_point_accuracy_date_8cpp_source">lancetSpatialFittingPointAccuracyDate.cpp</link>.</para>
+</section>
+<section>
+<title>Member Data Documentation</title>
+<anchor xml:id="_struct_point_accuracy_date_1_1_point_accuracy_date_private_imp_1aea6071755ac91d6fcd68fe5f6b14b7bc"/><section>
+    <title>srcPoint</title>
+<indexterm><primary>srcPoint</primary><secondary>PointAccuracyDate::PointAccuracyDatePrivateImp</secondary></indexterm>
+<indexterm><primary>PointAccuracyDate::PointAccuracyDatePrivateImp</primary><secondary>srcPoint</secondary></indexterm>
+<para><computeroutput>mitk::Point3D PointAccuracyDate::PointAccuracyDatePrivateImp::srcPoint</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_point_accuracy_date_8cpp_source_1l00008">8</link> of file <link linkend="_lancet_spatial_fitting_point_accuracy_date_8cpp_source">lancetSpatialFittingPointAccuracyDate.cpp</link>.</para>
+</section>
+<anchor xml:id="_struct_point_accuracy_date_1_1_point_accuracy_date_private_imp_1af49370bfde75c303cb10dbe45dfcfc1d"/><section>
+    <title>targetPoint</title>
+<indexterm><primary>targetPoint</primary><secondary>PointAccuracyDate::PointAccuracyDatePrivateImp</secondary></indexterm>
+<indexterm><primary>PointAccuracyDate::PointAccuracyDatePrivateImp</primary><secondary>targetPoint</secondary></indexterm>
+<para><computeroutput>mitk::Point3D PointAccuracyDate::PointAccuracyDatePrivateImp::targetPoint</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_point_accuracy_date_8cpp_source_1l00009">9</link> of file <link linkend="_lancet_spatial_fitting_point_accuracy_date_8cpp_source">lancetSpatialFittingPointAccuracyDate.cpp</link>.</para>
+</section>
+<para>
+The documentation for this struct was generated from the following file:</para>
+src/core/<link linkend="_lancet_spatial_fitting_point_accuracy_date_8cpp">lancetSpatialFittingPointAccuracyDate.cpp</link></section>
+</section>

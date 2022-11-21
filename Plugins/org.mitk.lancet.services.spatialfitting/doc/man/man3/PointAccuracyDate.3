@@ -1,0 +1,226 @@
+.TH "PointAccuracyDate" 3 "Mon Nov 21 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+PointAccuracyDate \- This is the declaration header file of space point calculation\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <lancetSpatialFittingPointAccuracyDate\&.h>\fP
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBPointAccuracyDatePrivateImp\fP"
+.br
+.in -1c
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBPointAccuracyDate\fP ()"
+.br
+.ti -1c
+.RI "\fBPointAccuracyDate\fP (const mitk::Point3D &src, const mitk::Point3D &target)"
+.br
+.RI "Parametric construction method of point processing\&. "
+.ti -1c
+.RI "virtual mitk::Point3D \fBGetSourcePoint\fP () const"
+.br
+.ti -1c
+.RI "virtual void \fBSetSourcePoint\fP (const mitk::Point3D &)"
+.br
+.ti -1c
+.RI "virtual mitk::Point3D \fBGetTargetPoint\fP () const"
+.br
+.ti -1c
+.RI "virtual void \fBSetTargetPoint\fP (const mitk::Point3D &)"
+.br
+.ti -1c
+.RI "virtual double \fBCompute\fP () const"
+.br
+.RI "Calculate the distance from the source point to the target point\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+This is the declaration header file of space point calculation\&. 
+
+
+.PP
+\fBCopyright (C)2022-2023 Hangzhou Lancet Robot Co\&., Ltd\&. All rights reserved\&.\fP
+.RS 4
+
+.RE
+.PP
+\fBVersion\fP
+.RS 4
+V1\&.0\&.0 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-18 10:18:52
+.RE
+.PP
+\fBModify History\fP
+.RS 4
+
+.IP "1." 4
+Sun initialization the version for 2022-11-18 10:18:52\&.
+.PP
+.RE
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+Non
+.RE
+.PP
+Represent or calculate the relationship and data between points\&. 
+.br
+.PP
+The 3D point data has been clearly defined in mitk\&. The point calculation here is based on the extension calculation or processing of the mitk::Point3D type\&.
+.PP
+\fBTips:\fP
+.br
+ In terms of actual use, this function class should not exist\&. Its significa- nce lies in constraining the calculation or operation methods of external point-to-point\&.
+.PP
+\fBExample:\fP
+.br
+ 
+.PP
+.nf
+std::array<double, 3> srcPoint = { 0\&.0,1\&.0,2\&.0 };
+std::array<double, 3> targetPoint = { 0\&.0,1\&.0,2\&.0 };
+PointAccuracyDate pointAccuracyDate;
+// PointAccuracyDate pointAccuracyDate(srcPoint\&.data(), targetPoint\&.data());
+pointAccuracyDate\&.SetSourcePoint(srcPoint\&.data());
+pointAccuracyDate\&.SetTargetPoint(targetPoint\&.data());
+pointAccuracyDate\&.Compute(); // return 0\&.0
+
+.fi
+.PP
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-18 11:06:46 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+Non
+.RE
+.PP
+Contact: sh4a01@163.com 
+.PP
+Definition at line \fB58\fP of file \fBlancetSpatialFittingPointAccuracyDate\&.h\fP\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "PointAccuracyDate::PointAccuracyDate ()"
+
+.PP
+Definition at line \fB12\fP of file \fBlancetSpatialFittingPointAccuracyDate\&.cpp\fP\&.
+.PP
+.nf
+13     : imp(std::make_shared<PointAccuracyDatePrivateImp>())
+14 {
+15 }
+.fi
+.SS "PointAccuracyDate::PointAccuracyDate (const mitk::Point3D & src, const mitk::Point3D & target)"
+
+.PP
+Parametric construction method of point processing\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIsrc\fP 3D origin data object\&. 
+.br
+\fItarget\fP 3D target point data object\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB17\fP of file \fBlancetSpatialFittingPointAccuracyDate\&.cpp\fP\&.
+.PP
+.nf
+19     : imp(std::make_shared<PointAccuracyDatePrivateImp>())
+20 {
+21     this->SetSourcePoint(src);
+22     this->SetTargetPoint(target);
+23 }
+.fi
+.SH "Member Function Documentation"
+.PP 
+.SS "double PointAccuracyDate::Compute () const\fC [virtual]\fP"
+
+.PP
+Calculate the distance from the source point to the target point\&. Because no similar method is provided in mitk::Point3D, it has the meaning of existence\&.
+.PP
+\fBReturns\fP
+.RS 4
+Returns the linear distance between 3D space point and 3D space\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB43\fP of file \fBlancetSpatialFittingPointAccuracyDate\&.cpp\fP\&.
+.PP
+.nf
+44 {
+45     return 0\&.0;
+46 }
+.fi
+.SS "mitk::Point3D PointAccuracyDate::GetSourcePoint () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB25\fP of file \fBlancetSpatialFittingPointAccuracyDate\&.cpp\fP\&.
+.PP
+.nf
+26 {
+27     return mitk::Point3D();
+28 }
+.fi
+.SS "mitk::Point3D PointAccuracyDate::GetTargetPoint () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB34\fP of file \fBlancetSpatialFittingPointAccuracyDate\&.cpp\fP\&.
+.PP
+.nf
+35 {
+36     return mitk::Point3D();
+37 }
+.fi
+.SS "void PointAccuracyDate::SetSourcePoint (const mitk::Point3D &)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB30\fP of file \fBlancetSpatialFittingPointAccuracyDate\&.cpp\fP\&.
+.PP
+.nf
+31 {
+32 }
+.fi
+.SS "void PointAccuracyDate::SetTargetPoint (const mitk::Point3D &)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB39\fP of file \fBlancetSpatialFittingPointAccuracyDate\&.cpp\fP\&.
+.PP
+.nf
+40 {
+41 }
+.fi
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for LancetSpatialFitting from the source code\&.

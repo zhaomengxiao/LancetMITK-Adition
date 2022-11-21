@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source" xml:lang="en-US">
+<title>lancetSpatialFittingPipelineBuilder.h</title>
+<indexterm><primary>src/core/lancetSpatialFittingPipelineBuilder.h</primary></indexterm>
+Go to the documentation of this file.<programlisting linenumbering="unnumbered"><anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00001"/>00001 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00016"/>00016 <emphasis role="preprocessor">#ifndef&#32;LancetSpatialFittingPipelineBuilder_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00017"/>00017 <emphasis role="preprocessor">#define&#32;LancetSpatialFittingPipelineBuilder_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00018"/>00018 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00019"/>00019 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_global_8h">lancetSpatialFittingGlobal.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00020"/>00020 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00021"/>00021 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_abstract_pipeline_builder_8h">lancetSpatialFittingAbstractPipelineBuilder.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00022"/>00022 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00023"/>00023 <emphasis role="comment">//&#32;mitk</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00024"/>00024 <emphasis role="preprocessor">#include&#32;&lt;mitkNavigationData.h&gt;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00025"/>00025 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00026"/>00026 <emphasis role="keyword">class&#32;</emphasis>vtkMatrix4x4;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00027"/>00027 <link linkend="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e">BEGIN_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00028"/>00028 <emphasis role="keyword">class&#32;</emphasis><link linkend="_class_pipeline_manager">PipelineManager</link>;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00029"/>00029 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00046"/><link linkend="_class_pipeline_builder">00046</link> <emphasis role="keyword">class&#32;</emphasis>ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00047"/>00047 &#32;&#32;&#32;&#32;<link linkend="_class_pipeline_builder">PipelineBuilder</link>&#32;:&#32;<emphasis role="keyword">public</emphasis>&#32;<link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00048"/>00048 {
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00049"/>00049 <emphasis role="keyword">public</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00050"/><link linkend="_class_pipeline_builder_1ade8d2989959de787254f306ed0578277">00050</link> &#32;&#32;&#32;&#32;<link linkend="_class_pipeline_builder_1ade8d2989959de787254f306ed0578277">mitkClassMacroItkParent</link>(<link linkend="_class_pipeline_builder">PipelineBuilder</link>,&#32;<link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link>);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00051"/>00051 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00052"/><link linkend="_class_pipeline_builder_1af841b3d43b24312bc0bf8f3cf2989e92">00052</link> &#32;&#32;&#32;&#32;<link linkend="_class_pipeline_builder_1af841b3d43b24312bc0bf8f3cf2989e92">itkNewMacro</link>(<link linkend="_class_pipeline_builder">PipelineBuilder</link>)
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00053"/>00053 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00054"/>00054 &#32;&#32;&#32;&#32;<link linkend="_class_pipeline_builder">PipelineBuilder</link>();
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00055"/>00055 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<link linkend="_class_pipeline_builder">~PipelineBuilder</link>();
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00056"/>00056 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_class_abstract_pipeline_builder_1ac4381292ae208fe2eb83061cfe286882">Reset</link>()&#32;<emphasis role="keyword">override</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00057"/>00057 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;itk::SmartPointer&lt;PipelineManager&gt;&#32;<link linkend="_class_abstract_pipeline_builder_1abe2c7e315e68a70558628b092fb2a716">GetOutput</link>()&#32;<emphasis role="keyword">override</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00058"/>00058 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00059"/>00059 <emphasis role="keyword">public</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00080"/>00080 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;BuilderNavigationToolToNavigationToolFilter(<emphasis role="keywordtype">int</emphasis>&#32;index,
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00081"/>00081 &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;mitk::NavigationData*&#32;ucsTool);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00082"/>00082 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00103"/>00103 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;BuilderNavigationToolToSpaceFilter(<emphasis role="keywordtype">int</emphasis>&#32;index,
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00104"/>00104 &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;vtkMatrix4x4*&#32;convert);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00105"/>00105 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00126"/>00126 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;BuilderNavigationToolCollector(<emphasis role="keywordtype">int</emphasis>&#32;index,&#32;<emphasis role="keywordtype">unsigned</emphasis>&#32;<emphasis role="keywordtype">int</emphasis>&#32;number,
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00127"/>00127 &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="keywordtype">long</emphasis>&#32;interval&#32;=&#32;20,&#32;<emphasis role="keywordtype">double</emphasis>&#32;accuracyRange&#32;=&#32;0.5);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00128"/>00128 <emphasis role="keyword">protected</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00129"/>00129 &#32;&#32;&#32;&#32;<emphasis role="keyword">struct&#32;</emphasis><link linkend="_struct_pipeline_builder_1_1_pipeline_builder_private_imp">PipelineBuilderPrivateImp</link>;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00130"/><link linkend="_class_pipeline_builder_1aaeb2b22d54225828266deb62bb712e75">00130</link> &#32;&#32;&#32;&#32;std::shared_ptr&lt;PipelineBuilderPrivateImp&gt;&#32;<link linkend="_class_pipeline_builder_1aaeb2b22d54225828266deb62bb712e75">imp</link>;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00131"/>00131 };
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00132"/>00132 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00133"/>00133 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00134"/>00134 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_builder_8h_source_1l00135"/>00135 <emphasis role="preprocessor">#endif&#32;</emphasis><emphasis role="comment">//&#32;!LancetSpatialFittingPipelineBuilder_H</emphasis>
+</programlisting></section>

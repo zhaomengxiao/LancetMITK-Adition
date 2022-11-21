@@ -1,0 +1,196 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="class_navigation_tool_to_space_filter" kind="class" language="C++" prot="public">
+    <compoundname>NavigationToolToSpaceFilter</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">mitk::NavigationDataToNavigationDataFilter</basecompoundref>
+    <includes refid="lancet_spatial_fitting_navigation_tool_to_space_filter_8h" local="no">lancetSpatialFittingNavigationToolToSpaceFilter.h</includes>
+    <innerclass refid="struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp" prot="public">NavigationToolToSpaceFilter::NavigationToolToSpaceFilterPrivateImp</innerclass>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="class_navigation_tool_to_space_filter_1a0e0a082c48cff2146b4eaa6d1c8107c6" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp" kindref="compound">NavigationToolToSpaceFilterPrivateImp</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;NavigationToolToSpaceFilterPrivateImp&gt; NavigationToolToSpaceFilter::imp</definition>
+        <argsstring></argsstring>
+        <name>imp</name>
+        <qualifiedname>NavigationToolToSpaceFilter::imp</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" line="81" column="17" bodyfile="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" bodystart="81" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="class_navigation_tool_to_space_filter_1a6cbf3f4c74d1c269eb995dbd02405df6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>NavigationToolToSpaceFilter::mitkClassMacro</definition>
+        <argsstring>(NavigationToolToSpaceFilter, mitk::NavigationDataToNavigationDataFilter)</argsstring>
+        <name>mitkClassMacro</name>
+        <qualifiedname>NavigationToolToSpaceFilter::mitkClassMacro</qualifiedname>
+        <param>
+          <type><ref refid="class_navigation_tool_to_space_filter" kindref="compound">NavigationToolToSpaceFilter</ref></type>
+        </param>
+        <param>
+          <type>mitk::NavigationDataToNavigationDataFilter</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" line="65" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="class_navigation_tool_to_space_filter_1a7be7a791764fbc9ea694540f7aa174b3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>NavigationToolToSpaceFilter::NavigationToolToSpaceFilter</definition>
+        <argsstring>()</argsstring>
+        <name>NavigationToolToSpaceFilter</name>
+        <qualifiedname>NavigationToolToSpaceFilter::NavigationToolToSpaceFilter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" line="68" column="1" bodyfile="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.cpp" bodystart="9" bodyend="13"/>
+      </memberdef>
+      <memberdef kind="function" id="class_navigation_tool_to_space_filter_1a26bbd9f762519673ca2f2cc289de6af6" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type></type>
+        <definition>NavigationToolToSpaceFilter::~NavigationToolToSpaceFilter</definition>
+        <argsstring>()</argsstring>
+        <name>~NavigationToolToSpaceFilter</name>
+        <qualifiedname>NavigationToolToSpaceFilter::~NavigationToolToSpaceFilter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" line="69" column="9" bodyfile="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.cpp" bodystart="15" bodyend="17"/>
+      </memberdef>
+      <memberdef kind="function" id="class_navigation_tool_to_space_filter_1a2b0951c3f8b67d208f54a57bbd0bb2b0" prot="public" static="no" const="yes" explicit="no" inline="no" virt="virtual">
+        <type>vtkMatrix4x4 *</type>
+        <definition>vtkMatrix4x4 * NavigationToolToSpaceFilter::GetConvertMatrix4x4</definition>
+        <argsstring>() const</argsstring>
+        <name>GetConvertMatrix4x4</name>
+        <qualifiedname>NavigationToolToSpaceFilter::GetConvertMatrix4x4</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" line="71" column="22" bodyfile="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.cpp" bodystart="19" bodyend="22"/>
+      </memberdef>
+      <memberdef kind="function" id="class_navigation_tool_to_space_filter_1a41421e903792320f00924c8351cbc33b" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void NavigationToolToSpaceFilter::SetConvertMatrix4x4</definition>
+        <argsstring>(const vtkMatrix4x4 *matrix)</argsstring>
+        <name>SetConvertMatrix4x4</name>
+        <qualifiedname>NavigationToolToSpaceFilter::SetConvertMatrix4x4</qualifiedname>
+        <param>
+          <type>const vtkMatrix4x4 *</type>
+          <declname>matrix</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>\Warning This interface is a deep copy of the input parameters. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" line="76" column="14" bodyfile="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.cpp" bodystart="24" bodyend="27"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="protected-func">
+      <memberdef kind="function" id="class_navigation_tool_to_space_filter_1a26b3666fb9f24436b1ab5a0efd2f1ce5" prot="protected" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type>void</type>
+        <definition>void NavigationToolToSpaceFilter::GenerateData</definition>
+        <argsstring>() override</argsstring>
+        <name>GenerateData</name>
+        <qualifiedname>NavigationToolToSpaceFilter::GenerateData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" line="78" column="14" bodyfile="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.cpp" bodystart="29" bodyend="31"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>This is the header file that declares the data processing filter from the tool of space fitting to the tool coordinate system. </para>
+    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="par"><title>Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.</title><para></para>
+</simplesect>
+<simplesect kind="version"><para>V1.0.0 </para>
+</simplesect>
+<simplesect kind="date"><para>2022-11-18 10:17:14</para>
+</simplesect>
+<simplesect kind="par"><title>Modify History</title><para><orderedlist>
+<listitem><para>Sun initialization the version for 2022-11-18 10:17:14.</para>
+</listitem></orderedlist>
+</para>
+</simplesect>
+<simplesect kind="author"><para>Sun </para>
+</simplesect>
+<simplesect kind="date"><para>2022-11-18 10:17:14 </para>
+</simplesect>
+<simplesect kind="remark"><para>Non</para>
+</simplesect>
+This is the conversion filter between spatial fitting data space and space.</para>
+<para>The filter transfers the upstream navigation tool data to the target spatial coordinate system according to the input spatial transformation matrix, and outputs the data to the downstream filter.<linebreak/>
+</para>
+<para>Please refer to <ulink url="https://docs.mitk.org/nightly/classmitk_1_1NavigationDataToNavigationDataFilter.html">mitk::NavigationDataToNavigationDataFilter</ulink> for details.</para>
+<para><bold>Class diagram:</bold><linebreak/>
+ <image type="html" name="SpatialFittingNavigationToolToSpaceFilter.svg"></image>
+</para>
+<para><bold>Attention</bold><linebreak/>
+ The pipeline work data flow processing is calculated from right to left. Here, it means to process the output first and then input.</para>
+<para><simplesect kind="author"><para>Sun </para>
+</simplesect>
+<simplesect kind="version"><para>V1.0.0 </para>
+</simplesect>
+<simplesect kind="date"><para>2022-11-18 17:53:00 </para>
+</simplesect>
+<simplesect kind="remark"><para>Non</para>
+</simplesect>
+Contact: <ulink url="mailto:sh4a01@163.com">sh4a01@163.com</ulink> </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>NavigationToolToSpaceFilter</label>
+        <link refid="class_navigation_tool_to_space_filter"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mitk::NavigationDataToNavigationDataFilter</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>NavigationToolToSpaceFilter</label>
+        <link refid="class_navigation_tool_to_space_filter"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>mitk::NavigationDataToNavigationDataFilter</label>
+      </node>
+    </collaborationgraph>
+    <location file="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" line="60" column="1" bodyfile="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" bodystart="63" bodyend="82"/>
+    <listofallmembers>
+      <member refid="class_navigation_tool_to_space_filter_1a26b3666fb9f24436b1ab5a0efd2f1ce5" prot="protected" virt="virtual"><scope>NavigationToolToSpaceFilter</scope><name>GenerateData</name></member>
+      <member refid="class_navigation_tool_to_space_filter_1a2b0951c3f8b67d208f54a57bbd0bb2b0" prot="public" virt="virtual"><scope>NavigationToolToSpaceFilter</scope><name>GetConvertMatrix4x4</name></member>
+      <member refid="class_navigation_tool_to_space_filter_1a0e0a082c48cff2146b4eaa6d1c8107c6" prot="private" virt="non-virtual"><scope>NavigationToolToSpaceFilter</scope><name>imp</name></member>
+      <member refid="class_navigation_tool_to_space_filter_1a6cbf3f4c74d1c269eb995dbd02405df6" prot="public" virt="non-virtual"><scope>NavigationToolToSpaceFilter</scope><name>mitkClassMacro</name></member>
+      <member refid="class_navigation_tool_to_space_filter_1a7be7a791764fbc9ea694540f7aa174b3" prot="public" virt="non-virtual"><scope>NavigationToolToSpaceFilter</scope><name>NavigationToolToSpaceFilter</name></member>
+      <member refid="class_navigation_tool_to_space_filter_1a41421e903792320f00924c8351cbc33b" prot="public" virt="virtual"><scope>NavigationToolToSpaceFilter</scope><name>SetConvertMatrix4x4</name></member>
+      <member refid="class_navigation_tool_to_space_filter_1a26bbd9f762519673ca2f2cc289de6af6" prot="public" virt="virtual"><scope>NavigationToolToSpaceFilter</scope><name>~NavigationToolToSpaceFilter</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

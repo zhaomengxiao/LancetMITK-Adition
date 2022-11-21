@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source" xml:lang="en-US">
+<title>lancetSpatialFittingNavigationToolCollector.h</title>
+<indexterm><primary>src/core/lancetSpatialFittingNavigationToolCollector.h</primary></indexterm>
+Go to the documentation of this file.<programlisting linenumbering="unnumbered"><anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00001"/>00001 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00018"/>00018 <emphasis role="preprocessor">#ifndef&#32;LancetSpatialFittingNavigationToolCollector_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00019"/>00019 <emphasis role="preprocessor">#define&#32;LancetSpatialFittingNavigationToolCollector_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00020"/>00020 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00021"/>00021 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_global_8h">lancetSpatialFittingGlobal.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00022"/>00022 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00023"/>00023 <emphasis role="comment">//&#32;mitk</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00024"/>00024 <emphasis role="preprocessor">#include&#32;&lt;mitkNavigationDataToNavigationDataFilter.h&gt;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00025"/>00025 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00026"/>00026 <emphasis role="comment">//&#32;Qt</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00027"/>00027 <emphasis role="preprocessor">#include&#32;&lt;QObject&gt;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00028"/>00028 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00029"/>00029 <link linkend="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e">BEGIN_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00030"/>00030 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00079"/><link linkend="_class_navigation_tool_collector">00079</link> <emphasis role="keyword">class&#32;</emphasis>ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00080"/>00080 &#32;&#32;&#32;&#32;<link linkend="_class_navigation_tool_collector">NavigationToolCollector</link>&#32;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00081"/>00081 &#32;&#32;&#32;&#32;:&#32;<emphasis role="keyword">public</emphasis>&#32;QObject
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00082"/>00082 &#32;&#32;&#32;&#32;,&#32;<emphasis role="keyword">public</emphasis>&#32;mitk::NavigationDataToNavigationDataFilter
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00083"/>00083 {
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00084"/>00084 &#32;&#32;&#32;&#32;Q_OBJECT
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00085"/>00085 <emphasis role="keyword">public</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00086"/><link linkend="_class_navigation_tool_collector_1a6f8b5df60a290593bf1bb1a9fc625f16">00086</link> &#32;&#32;&#32;&#32;<link linkend="_class_navigation_tool_collector_1a6f8b5df60a290593bf1bb1a9fc625f16">mitkClassMacro</link>(<link linkend="_class_navigation_tool_collector">NavigationToolCollector</link>,
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00087"/>00087 &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;mitk::NavigationDataToNavigationDataFilter);
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00088"/>00088 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00089"/><link linkend="_class_navigation_tool_collector_1a810ecc5db9f5849f47572a6062e2f9b4">00089</link> &#32;&#32;&#32;&#32;<link linkend="_class_navigation_tool_collector_1a810ecc5db9f5849f47572a6062e2f9b4">itkNewMacro</link>(<link linkend="_class_navigation_tool_collector">NavigationToolCollector</link>)
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00090"/>00090 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00091"/>00091 &#32;&#32;&#32;&#32;<link linkend="_class_navigation_tool_collector">NavigationToolCollector</link>();
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00092"/>00092 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis><link linkend="_class_navigation_tool_collector">~NavigationToolCollector</link>();
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00093"/>00093 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00099"/><link linkend="_class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2">00099</link> &#32;&#32;&#32;&#32;<emphasis role="keyword">enum</emphasis>&#32;<link linkend="_class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2">WorkStatus</link>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00100"/>00100 &#32;&#32;&#32;&#32;{
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00101"/><link linkend="_class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2a60af479e2077ff33204eede4b577f915">00101</link> &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Unknown&#32;=&#32;0x00000001,&#32;&#32;&#32;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00102"/><link linkend="_class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2a439341d4e0d56e31bfb9188301049c22">00102</link> &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Idle&#32;=&#32;0x00000010,&#32;&#32;&#32;&#32;&#32;&#32;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00103"/>00103 &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Working&#32;=&#32;0x00000100&#32;&#32;&#32;&#32;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00104"/><link linkend="_class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2af12f6f23fb029c362b5b2df2056d1103">00104</link> &#32;&#32;&#32;&#32;};
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00105"/>00105 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00111"/><link linkend="_class_navigation_tool_collector_1a329965a0bd15de5a40b060958ee06c6e">00111</link> &#32;&#32;&#32;&#32;<emphasis role="keyword">enum</emphasis>&#32;<link linkend="_class_navigation_tool_collector_1a329965a0bd15de5a40b060958ee06c6e">ErrorCodes</link>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00112"/>00112 &#32;&#32;&#32;&#32;{
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00113"/><link linkend="_class_navigation_tool_collector_1a329965a0bd15de5a40b060958ee06c6ea1a1831e2930a2d975cb389a0c2d3beda">00113</link> &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<link linkend="_class_navigation_tool_collector_1a329965a0bd15de5a40b060958ee06c6ea1a1831e2930a2d975cb389a0c2d3beda">Accuracy</link>,&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00114"/>00114 &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Invisible&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00115"/><link linkend="_class_navigation_tool_collector_1a329965a0bd15de5a40b060958ee06c6ea6114fc023a17b679b416914a74f5428b">00115</link> &#32;&#32;&#32;&#32;};
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00116"/>00116 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00117"/>00117 &#32;&#32;&#32;&#32;Q_ENUM(WorkStatus)
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00118"/>00118 &#32;&#32;&#32;&#32;Q_ENUM(ErrorCodes)
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00119"/>00119 <emphasis role="keyword">public</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00131"/>00131 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">long</emphasis>&#32;GetInterval()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00132"/>00132 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;SetInterval(<emphasis role="keywordtype">long</emphasis>&#32;interval);
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00133"/>00133 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00144"/>00144 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">unsigned</emphasis>&#32;<emphasis role="keywordtype">int</emphasis>&#32;GetNumberForMean()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00145"/>00145 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;SetNumberForMean(<emphasis role="keywordtype">unsigned</emphasis>&#32;<emphasis role="keywordtype">int</emphasis>&#32;number);
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00146"/>00146 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00155"/>00155 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">double</emphasis>&#32;GetAccuracyRange()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00156"/>00156 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;SetAccuracyRange(<emphasis role="keywordtype">double</emphasis>&#32;accuracy);
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00157"/>00157 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00174"/>00174 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;WorkStatus&#32;GetWorkState()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00175"/>00175 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">bool</emphasis>&#32;IsRunning()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00176"/>00176 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00192"/>00192 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">bool</emphasis>&#32;Start(<emphasis role="keywordtype">long</emphasis>&#32;interval&#32;=&#32;0);
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00193"/>00193 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00197"/>00197 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">bool</emphasis>&#32;Stop();
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00198"/>00198 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00199"/>00199 Q_SIGNALS:
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00218"/><link linkend="_class_navigation_tool_collector_1ad5802851ffe9fb9cb407708baf7af03f">00218</link> &#32;&#32;&#32;&#32;<emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_class_navigation_tool_collector_1ad5802851ffe9fb9cb407708baf7af03f">Fail</link>(<emphasis role="keywordtype">int</emphasis>);
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00219"/>00219 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00229"/><link linkend="_class_navigation_tool_collector_1adcccfa2b8be5acf775cc50fcbb0bc5fc">00229</link> &#32;&#32;&#32;&#32;<emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_class_navigation_tool_collector_1adcccfa2b8be5acf775cc50fcbb0bc5fc">Step</link>(<emphasis role="keywordtype">int</emphasis>,&#32;mitk::NavigationData*);
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00230"/>00230 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00240"/><link linkend="_class_navigation_tool_collector_1a75361f2bc6118de20559d9f89bf48198">00240</link> &#32;&#32;&#32;&#32;<emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_class_navigation_tool_collector_1a75361f2bc6118de20559d9f89bf48198">Complete</link>(mitk::NavigationData*);
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00241"/>00241 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00242"/>00242 <emphasis role="keyword">protected</emphasis>&#32;Q_SLOTS:
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00243"/>00243 &#32;&#32;&#32;&#32;<emphasis role="keywordtype">void</emphasis>&#32;on_QtTimerTrigger_timeout();
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00244"/>00244 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00245"/>00245 <emphasis role="keyword">protected</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00246"/>00246 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;GenerateData()&#32;<emphasis role="keyword">override</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00247"/>00247 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00248"/>00248 <emphasis role="keyword">private</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00249"/>00249 &#32;&#32;&#32;&#32;<emphasis role="keyword">struct&#32;</emphasis><link linkend="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp">NavigationToolCollectorPrivateImp</link>;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00250"/>00250 &#32;&#32;&#32;&#32;std::shared_ptr&lt;NavigationToolCollectorPrivateImp&gt;&#32;imp;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00251"/>00251 };
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00252"/>00252 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00253"/>00253 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00254"/>00254 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8h_source_1l00255"/>00255 <emphasis role="preprocessor">#endif&#32;</emphasis><emphasis role="comment">//&#32;!LancetSpatialFittingNavigationToolCollector_H</emphasis>
+</programlisting></section>

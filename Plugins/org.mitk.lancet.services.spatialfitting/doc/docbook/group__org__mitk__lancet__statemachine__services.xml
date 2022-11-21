@@ -1,0 +1,418 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_group__org__mitk__lancet__statemachine__services" xml:lang="en-US">
+<title>Org_mitk_lancet_statemachine_services</title>
+<indexterm><primary>Org_mitk_lancet_statemachine_services</primary></indexterm>
+<para>
+
+<para>State Machine Service Module Data Model. </para>
+ 
+</para>
+
+<para>State Machine Service Module Data Model. </para>
+
+<para>The state machine service model has very high compatibility and extensibility. Relatively speaking, there will be certain sacrifices in code understanding and readability.</para>
+
+<para>At the design stage, according to the positioning and requirements of the module, the module has a high degree of scalability and configurability, that is, the user configures different state machine <emphasis>.scxml</emphasis> files according to different business needs, instead of rewriting the code of the state machine module.</para>
+<section xml:id="_group__org__mitk__lancet__statemachine__services_1Description">
+<title>Description</title>
+
+<para><emphasis role="bold">Structural design</emphasis></para>
+
+<para>The state machine service module is composed of service, state, loader and handler elements, and follows the guidelines of boundary and singleness.If you need to extend it, please follow the style below. In theory, the state machine service can manage the state of a button.</para>
+
+<para>State level diagram: </para>
+
+<para>Class Diagram: </para>
+
+<para><computeroutput>Service:</computeroutput> </para>
+
+<para>It is the only access to the communication between the inner boundary and the outside world. Because of the positioning of this module, the attributes of the inner boundary are basically transparent to the outside world. At the same time, the inner boundary completely ignores how the outside world operates, how to operate and other behaviors, and it is free to play by the outside world.</para>
+
+<para><computeroutput>State:</computeroutput> </para>
+
+<para>It is the main role of the internal bound state machine management. It not only describes its own attributes in detail, but also has a close relationship with the above and the following. To sum up, the data structure of the state is a two-way linked list to contact the context, and uses its own attributes to strengthen the context association.</para>
+
+<para><computeroutput>Loader:</computeroutput> </para>
+
+<para>The loader is responsible for parsing external parameters and converting them into universally recognizable data objects (<emphasis>#IScxmlStateMachineState</emphasis>) with internal bounds. The loader is driven by the service.The format of external files is explained in <emphasis role="bold">Document structure design</emphasis>.</para>
+
+<para><computeroutput>Handler:</computeroutput> </para>
+
+<para>The state machine event processing role is responsible for processing the state machine events or monitoring the state of the state machine. When there are changes, it will feed back in the form of <emphasis>Qt signals</emphasis>.</para>
+
+<para><emphasis role="bold">Document structure design</emphasis></para>
+
+<para>External files consist of <emphasis>state machine(.scxml)</emphasis>, <emphasis>state attribute(_subsidiary.json)</emphasis>, and <emphasis>state style file(*.qss)</emphasis>.</para>
+
+<para><emphasis role="bold">.scxml</emphasis>:</para>
+
+<para>An XML form that describes the transition process of the whole state. One project in <emphasis>Qt labs</emphasis> is <emphasis>QScxml</emphasis>, which is based on the upper layer of <emphasis>QStateMachine</emphasis>. It can directly read files in SCXML format to generate internal state objects and members, and can directly perform state transition in Qt, which is very convenient. You may refer to <emphasis>Qt&apos;s SCXML</emphasis> module.</para>
+
+<para><warning><title>Warning</title>
+
+<para>There are no explicit naming rules for background processing states, such as initialization and termination. However, if you need to map the state to the interface directly or briefly, please follow the naming style of the <emphasis>mitk plug-in</emphasis>. eg.<emphasis role="bold">org_mitk_lancet_%*%</emphasis></para>
+</warning>
+<emphasis role="bold">_subsidiary.json</emphasis>:</para>
+
+<para>The external file describing the status attribute is appended after the naming is restricted to the target status <emphasis role="bold">_subsidiary</emphasis>, which is mandatory. Otherwise, the state machine service module will not be able to effectively recognize or parse its contents. The final interpretation right of the elements in the file is left to the <emphasis>Loader</emphasis>.</para>
+
+<para><note><title>Note</title>
+
+<para>If there is a new service access, you need to extend the configuration of the status attribute. Maybe you need a new <emphasis>loader</emphasis> to meet your needs.</para>
+</note>
+<emphasis role="bold">.qss</emphasis>: Qt layout style explanation file, which is to meet the frequent changes in the interface style. If you are interested in this, you may need to know the Qt QSS style.</para>
+
+<para><emphasis role="bold">Why this design</emphasis></para>
+
+<para>This design style may be too cumbersome, but the core idea of the main framework is high scalability, flexibility and other features. It may be a little far fetched to force the <emphasis>UI</emphasis> attributes here, but when the minimum UI attributes are placed here, the state mapping at all levels of the interface will be based on the state machine service. Imagine the following, with other business requirements involved, Maybe we can complete the interface mapping of the interface state without writing the code of the state machine and Ui. This should be the idea we follow. Extreme laziness is the best.</para>
+
+<para><emphasis role="bold">How to use</emphasis></para>
+
+<para>Scxml sample file:</para>
+
+<para>The Qt SCXML module provides functionality to create state machines from SCXML files. This includes both dynamically creating state machines (loading the SCXML file and instantiating states and transitions) and generating a C++ file that has a class implementing the state machine. It also contains functionality to support data models and executable content.</para>
+
+<para><literallayout><computeroutput>&lt;?xml&#32;version=<emphasis role="stringliteral">&quot;1.0&quot;</emphasis>&#32;encoding=<emphasis role="stringliteral">&quot;UTF-8&quot;</emphasis>?&gt;
+&lt;!--
+&#32;&#32;&#32;&#32;Hip&#32;software&#32;flow&#32;status&#32;machine&#32;definition
+&#32;&#32;&#32;&#32;-Initialization
+&#32;&#32;&#32;&#32;-MedicalrecordManagement
+&#32;&#32;&#32;&#32;-StDevelopmentSurgicalProtocol
+&#32;&#32;&#32;&#32;-HardwarePreparation
+&#32;&#32;&#32;&#32;-SurgicalRegistration
+&#32;&#32;&#32;&#32;-AcetabularPreparation
+&#32;&#32;&#32;&#32;-FemurPreparation
+&#32;&#32;&#32;&#32;-SurgicalOutcomes
+
+&#32;&#32;&#32;&#32;Rules&#32;<emphasis role="keywordflow">for</emphasis>&#32;state&#32;name&#32;definition&#32;&lt;Process&#32;editor&#32;plugin&#32;name&gt;&#32;(all&#32;lower&#32;<emphasis role="keywordflow">case</emphasis>&#32;letters)
+&#32;&#32;&#32;&#32;.eg&#32;&lt;org_mitk_lancet_tha_medicalrecordmanagement&gt;.
+
+&#32;&#32;&#32;&#32;Jump&#32;<emphasis role="keyword">event</emphasis>&#32;name&#32;definition&#32;rules:&#32;to_&lt;Process&#32;editor&#32;plugin&#32;name&gt;&#32;(all&#32;lower&#32;<emphasis role="keywordflow">case</emphasis>&#32;letters)
+&#32;&#32;&#32;&#32;.eg&#32;to_org_mitk_lancet_tha_medicalrecordmanagement.
+--&gt;
+&lt;scxml
+&#32;&#32;&#32;&#32;xmlns=<emphasis role="stringliteral">&quot;http://www.w3.org/2005/07/scxml&quot;</emphasis>
+&#32;&#32;&#32;&#32;version=<emphasis role="stringliteral">&quot;1.0&quot;</emphasis>
+&#32;&#32;&#32;&#32;binding=<emphasis role="stringliteral">&quot;early&quot;</emphasis>
+&#32;&#32;&#32;&#32;xmlns:qt=<emphasis role="stringliteral">&quot;http://www.qt.io/2015/02/scxml-ext&quot;</emphasis>
+&#32;&#32;&#32;&#32;datamodel=<emphasis role="stringliteral">&quot;ecmascript&quot;</emphasis>
+&#32;&#32;&#32;&#32;name=<emphasis role="stringliteral">&quot;LancetThaScxmlStateMachineDebug&quot;</emphasis>
+&#32;&#32;&#32;&#32;qt:editorversion=<emphasis role="stringliteral">&quot;4.13.1&quot;</emphasis>
+&#32;&#32;&#32;&#32;initial=<emphasis role="stringliteral">&quot;initialization&quot;</emphasis>
+&gt;
+&#32;&#32;&#32;&#32;&lt;!--
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;name:&#32;initialization
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Sub&#32;processes&#32;Scxml&#32;files:&#32;initialization.scxml
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;events:
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="keyword">event</emphasis>&#32;name&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;target&#32;state
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_applicationquit&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;applicationquit
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_medicalrecordmanagement&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_medicalrecordmanagement
+&#32;&#32;&#32;&#32;--&gt;
+&#32;&#32;&#32;&#32;&lt;state&#32;<emphasis role="keywordtype">id</emphasis>=<emphasis role="stringliteral">&quot;initialization&quot;</emphasis>&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_applicationquit&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;applicationquit&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&lt;/state&gt;
+
+&#32;&#32;&#32;&#32;&lt;!--
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;name:&#32;org_mitk_lancet_tha_medicalrecordmanagement
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Sub&#32;processes&#32;Scxml&#32;files:&#32;medicalrecordmanagement.scxml
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;events:
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="keyword">event</emphasis>&#32;name&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;target&#32;state
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_applicationquit&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;applicationquit
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_linkinghardware&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_linkinghardware
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicalregistration&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicalregistration
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_acetabularpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_acetabularpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_femurpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_femurpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicaloutcomes&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicaloutcomes
+&#32;&#32;&#32;&#32;--&gt;
+&#32;&#32;&#32;&#32;&lt;state&#32;<emphasis role="keywordtype">id</emphasis>=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_applicationquit&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;applicationquit&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_linkinghardware&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_linkinghardware&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_femurpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_femurpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&lt;/state&gt;
+
+
+&#32;&#32;&#32;&#32;&lt;!--
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;name:&#32;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Sub&#32;processes&#32;Scxml&#32;files:&#32;medicalrecordmanagement.scxml
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;events:
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="keyword">event</emphasis>&#32;name&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;target&#32;state
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_applicationquit&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;applicationquit
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_medicalrecordmanagement&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_medicalrecordmanagement
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_linkinghardware&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_linkinghardware
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicalregistration&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicalregistration
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_acetabularpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_acetabularpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_femurpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_femurpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicaloutcomes&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicaloutcomes
+&#32;&#32;&#32;&#32;--&gt;
+&#32;&#32;&#32;&#32;&lt;state&#32;<emphasis role="keywordtype">id</emphasis>=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_applicationquit&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;applicationquit&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_linkinghardware&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_linkinghardware&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_femurpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_femurpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&lt;/state&gt;
+
+
+&#32;&#32;&#32;&#32;&lt;!--
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;name:&#32;org_mitk_lancet_tha_linkinghardware
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Sub&#32;processes&#32;Scxml&#32;files:&#32;linkinghardware.scxml
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;events:
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="keyword">event</emphasis>&#32;name&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;target&#32;state
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_applicationquit&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;applicationquit
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_medicalrecordmanagement&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_medicalrecordmanagement
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicalregistration&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicalregistration
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_acetabularpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_acetabularpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_femurpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_femurpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicaloutcomes&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicaloutcomes
+&#32;&#32;&#32;&#32;--&gt;
+&#32;&#32;&#32;&#32;&lt;state&#32;<emphasis role="keywordtype">id</emphasis>=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_linkinghardware&quot;</emphasis>&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_applicationquit&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;applicationquit&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_femurpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_femurpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&lt;/state&gt;
+
+&#32;&#32;&#32;&#32;&lt;!--
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;name:&#32;org_mitk_lancet_tha_surgicalregistration
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Sub&#32;processes&#32;Scxml&#32;files:&#32;surgicalregistration.scxml
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;events:
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="keyword">event</emphasis>&#32;name&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;target&#32;state
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_applicationquit&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;applicationquit
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_medicalrecordmanagement&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_medicalrecordmanagement
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_linkinghardware&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_linkinghardware
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_acetabularpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_acetabularpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_femurpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_femurpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicaloutcomes&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicaloutcomes
+&#32;&#32;&#32;&#32;--&gt;
+&#32;&#32;&#32;&#32;&lt;state&#32;<emphasis role="keywordtype">id</emphasis>=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_applicationquit&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;applicationquit&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_linkinghardware&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_linkinghardware&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_femurpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_femurpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&lt;/state&gt;
+
+
+&#32;&#32;&#32;&#32;&lt;!--
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;name:&#32;org_mitk_lancet_tha_acetabularpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Sub&#32;processes&#32;Scxml&#32;files:&#32;acetabularpreparation.scxml
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;events:
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="keyword">event</emphasis>&#32;name&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;target&#32;state
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_applicationquit&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;applicationquit
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_medicalrecordmanagement&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_medicalrecordmanagement
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_linkinghardware&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_linkinghardware
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicalregistration&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicalregistration
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_femurpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_femurpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicaloutcomes&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicaloutcomes
+&#32;&#32;&#32;&#32;--&gt;
+&#32;&#32;&#32;&#32;&lt;state&#32;<emphasis role="keywordtype">id</emphasis>=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_applicationquit&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;applicationquit&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_linkinghardware&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_linkinghardware&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_femurpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_femurpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&lt;/state&gt;
+
+
+&#32;&#32;&#32;&#32;&lt;!--
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;name:&#32;org_mitk_lancet_tha_femurpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Sub&#32;processes&#32;Scxml&#32;files:&#32;femurpreparation.scxml
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;events:
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="keyword">event</emphasis>&#32;name&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;target&#32;state
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_applicationquit&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;applicationquit
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_medicalrecordmanagement&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_medicalrecordmanagement
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_linkinghardware&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_linkinghardware
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicalregistration&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicalregistration
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_acetabularpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_acetabularpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicaloutcomes&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicaloutcomes
+&#32;&#32;&#32;&#32;--&gt;
+&#32;&#32;&#32;&#32;&lt;state&#32;<emphasis role="keywordtype">id</emphasis>=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_femurpreparation&quot;</emphasis>&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_applicationquit&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;applicationquit&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_linkinghardware&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_linkinghardware&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&lt;/state&gt;
+
+&#32;&#32;&#32;&#32;&lt;!--
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;name:&#32;org_mitk_lancet_tha_surgicaloutcomes
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;Sub&#32;processes&#32;Scxml&#32;files:&#32;surgicaloutcomes.scxml
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;events:
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="keyword">event</emphasis>&#32;name&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;target&#32;state
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_applicationquit&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;applicationquit
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_medicalrecordmanagement&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_medicalrecordmanagement
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_linkinghardware&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_linkinghardware
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_surgicalregistration&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_surgicalregistration
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_acetabularpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_acetabularpreparation
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;to_org_mitk_lancet_tha_femurpreparation&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;org_mitk_lancet_tha_femurpreparation
+&#32;&#32;&#32;&#32;--&gt;
+&#32;&#32;&#32;&#32;&lt;state&#32;<emphasis role="keywordtype">id</emphasis>=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_applicationquit&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;applicationquit&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_medicalrecordmanagement&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_stdevelopmentsurgicalprotocol&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_linkinghardware&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_linkinghardware&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicalregistration&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_acetabularpreparation&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&lt;transition&#32;type=<emphasis role="stringliteral">&quot;internal&quot;</emphasis>&#32;<emphasis role="keyword">event</emphasis>=<emphasis role="stringliteral">&quot;to_org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>&#32;target=<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_surgicaloutcomes&quot;</emphasis>/&gt;
+&#32;&#32;&#32;&#32;&lt;/state&gt;
+
+&#32;&#32;&#32;&#32;&lt;<emphasis role="keyword">final</emphasis>&#32;<emphasis role="keywordtype">id</emphasis>=<emphasis role="stringliteral">&quot;applicationquit&quot;</emphasis>&gt;
+
+&#32;&#32;&#32;&#32;&lt;/<emphasis role="keyword">final</emphasis>&gt;
+&lt;/scxml&gt;
+</computeroutput></literallayout></para>
+
+<para>Status Properties Sample File:</para>
+
+<para>The attributes that describe the state (unit) in detail, including data structure, interface style, etc.</para>
+
+<para><literallayout><computeroutput>{
+&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;properties&quot;</emphasis>:
+&#32;&#32;&#32;&#32;{
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;id&quot;</emphasis>:&#32;<emphasis role="stringliteral">&quot;org_mitk_lancet_tka_medicalrecordmanagement&quot;</emphasis>,
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;objectName&quot;</emphasis>:&#32;<emphasis role="stringliteral">&quot;ActionMedicalRecordManagement&quot;</emphasis>,
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;uiName&quot;</emphasis>:&#32;<emphasis role="stringliteral">&quot;MedicalRecordManagement&quot;</emphasis>,
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;theme&quot;</emphasis>:
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;{
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;defaultStyle&quot;</emphasis>:
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;{
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;actionQssFilePath&quot;</emphasis>:&#32;<emphasis role="stringliteral">&quot;:/resources/qss/tha/medicalrecordmanagement/action_medicalrecordmanagement_default.qss&quot;</emphasis>,
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;editorQssFilePath&quot;</emphasis>:&#32;<emphasis role="stringliteral">&quot;:/resources/qss/tha/medicalrecordmanagement/editor_medicalrecordmanagement_default.qss&quot;</emphasis>,
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;viewQssFilePath&quot;</emphasis>:&#32;<emphasis role="stringliteral">&quot;:/resources/qss/tha/medicalrecordmanagement/view_medicalrecordmanagement_default.qss&quot;</emphasis>
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;}
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;}
+&#32;&#32;&#32;&#32;}
+}
+</computeroutput></literallayout></para>
+
+<para>Qt Qss Sample File:</para>
+
+<para>Formulate the display style of Qt components. Refer to Qt API document for detailed usage.</para>
+
+<para><literallayout><computeroutput>*
+{
+&#32;&#32;&#32;&#32;color:&#32;beige;
+}
+
+QLabel,&#32;QAbstractButton
+{
+&#32;&#32;&#32;&#32;font:&#32;bold;
+&#32;&#32;&#32;&#32;color:&#32;yellow;
+}
+
+QFrame
+{
+&#32;&#32;&#32;&#32;background-color:&#32;rgba(96,96,255,60%);
+&#32;&#32;&#32;&#32;border-color:&#32;rgb(32,32,196);
+&#32;&#32;&#32;&#32;border-width:&#32;3px;
+&#32;&#32;&#32;&#32;border-style:&#32;solid;
+&#32;&#32;&#32;&#32;border-radius:&#32;5;
+&#32;&#32;&#32;&#32;padding:&#32;3px;
+}
+
+QAbstractButton
+{
+&#32;&#32;&#32;&#32;background:&#32;qlineargradient(x1:0,&#32;y1:0,&#32;x2:0,&#32;y2:1,
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;stop:0&#32;lightblue,&#32;stop:0.5&#32;darkblue);
+&#32;&#32;&#32;&#32;border-width:&#32;3px;
+&#32;&#32;&#32;&#32;border-color:&#32;darkblue;
+&#32;&#32;&#32;&#32;border-style:&#32;solid;
+&#32;&#32;&#32;&#32;border-radius:&#32;5;
+&#32;&#32;&#32;&#32;padding:&#32;3px;
+}
+
+QAbstractButton:pressed
+{
+&#32;&#32;&#32;&#32;background:&#32;qlineargradient(x1:0,&#32;y1:0,&#32;x2:0,&#32;y2:1,
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;stop:0.5&#32;darkblue,&#32;stop:1&#32;lightblue);
+&#32;&#32;&#32;&#32;border-color:&#32;beige;
+}
+</computeroutput></literallayout></para>
+
+<para>Import External Files:</para>
+
+<para>You should have <emphasis>.scxml</emphasis>, <emphasis>_subsidiary.json</emphasis>, <emphasis>.qss</emphasis> files before importing external files.Then you need to use the service import interface to parse the external file into a valid state machine service element.</para>
+
+<para><literallayout><computeroutput><emphasis role="keyword">auto</emphasis>&#32;context&#32;=&#32;org_mitk_lancet_tha_application_Activator::GetPluginContext();
+<emphasis role="keyword">auto</emphasis>&#32;stateMachineServiceRef&#32;=&#32;context-&gt;getServiceReference&lt;lancet::IScxmlStateMachineService&gt;();
+<emphasis role="keyword">auto</emphasis>&#32;stateMachineService&#32;=&#32;context-&gt;getService&lt;lancet::IScxmlStateMachineService&gt;(stateMachineServiceRef);
+<emphasis role="comment">//&#32;F:/Examples/ExampleQtScxmlStateMachine/LancetThaScxmlStateMachine_debug.scxml</emphasis>
+<emphasis role="keywordflow">if</emphasis>&#32;(<emphasis role="keyword">nullptr</emphasis>&#32;!=&#32;stateMachineService)
+{
+&#32;&#32;&#32;&#32;<emphasis role="comment">//qRegisterMetaType&lt;lancet::IScxmlStateMachineState&gt;(&quot;lancet::IScxmlStateMachineState&quot;);</emphasis>
+&#32;&#32;&#32;&#32;stateMachineService-&gt;Initialize();
+&#32;&#32;&#32;&#32;stateMachineService-&gt;CreateScxmlStateMachine(
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;Y:/LancetMitk_SBD/MITK-build/bin/resources/org_mitk_lancet_tha_application.scxml&quot;</emphasis>,
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="stringliteral">&quot;empty&quot;</emphasis>,
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;lancet::IScxmlStateMachineState::StateType::Admin,
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;lancet::IScxmlStateMachineState::Pointer(<emphasis role="keyword">nullptr</emphasis>),&#32;<emphasis role="stringliteral">&quot;org_mitk_lancet_tha_application&quot;</emphasis>);
+
+&#32;&#32;&#32;&#32;std::cout&#32;&lt;&lt;&#32;stateMachineService-&gt;GetAdminState()-&gt;ToString().toStdString();
+}
+</computeroutput></literallayout></para>
+
+<para>How to map to interface:</para>
+
+<para>Before operating this behavior, you should and must import an external file or create a state machine element. After that, you can traverse the state machine service element to generate a formatted interface. The style of the interface can be configured through the properties of the state element.</para>
+
+<para><literallayout><computeroutput><emphasis role="keyword">auto</emphasis>&#32;context&#32;=&#32;org_mitk_lancet_tha_application_Activator::GetPluginContext();
+<emphasis role="keyword">auto</emphasis>&#32;stateMachineServiceRef&#32;=&#32;context-&gt;getServiceReference&lt;lancet::IScxmlStateMachineService&gt;();
+<emphasis role="keyword">auto</emphasis>&#32;stateMachineService&#32;=&#32;context-&gt;getService&lt;lancet::IScxmlStateMachineService&gt;(stateMachineServiceRef);
+<emphasis role="keywordflow">if</emphasis>&#32;(stateMachineService&#32;!=&#32;<emphasis role="keyword">nullptr</emphasis>&#32;&amp;&amp;&#32;stateMachineService-&gt;GetAdminState().IsNotNull())
+{
+&#32;&#32;&#32;&#32;<emphasis role="keywordflow">for</emphasis>&#32;(<emphasis role="keyword">auto</emphasis>&#32;item&#32;:&#32;stateMachineService-&gt;GetAdminState()-&gt;GetSubStateMachines())
+&#32;&#32;&#32;&#32;{
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;proprety</emphasis>
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="comment">//QString&#32;itemActionId&#32;=&#32;item-&gt;GetStateId();</emphasis>
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;QString&#32;itemActionUiName&#32;=&#32;item-&gt;GetActionProperty()-&gt;GetStateUiName();
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;QString&#32;itemActionObjectName&#32;=&#32;item-&gt;GetActionProperty()-&gt;GetStateObjectName();
+
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;qss</emphasis>
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;QString&#32;itemActionQSS&#32;=&#32;item-&gt;GetActionProperty()-&gt;GetActionQss();
+
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="keyword">auto</emphasis>&#32;action&#32;=&#32;menuBar-&gt;addAction(itemActionUiName);
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;action-&gt;setObjectName(itemActionObjectName);
+
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;You&#32;may&#32;customize&#32;the&#32;interface&#32;status&#32;trigger&#32;unit&#32;components.</emphasis>
+&#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;<emphasis role="comment">//&#32;Widget-&gt;setStyleSheet(itemActionQSS);</emphasis>
+&#32;&#32;&#32;&#32;connect(action,&#32;&amp;QAction::triggered,&#32;<emphasis role="keyword">this</emphasis>,&#32;&amp;MyWidget::onStateMachine_ActionClicked);
+&#32;&#32;&#32;&#32;}
+}
+</computeroutput></literallayout></para>
+
+<para>How to focus on events:</para>
+
+<para>tate machine events provide the most basic state jump events. Of course, this module can realize more than these businesses. Other additional functions require selfless contributions from contributors.</para>
+
+<para><literallayout><computeroutput><emphasis role="comment">//&#32;connect&#32;to&#32;state&#32;machine&#32;for&#32;Qt.</emphasis>
+<emphasis role="keyword">auto</emphasis>&#32;adminStateHandle&#32;=&#32;stateMachineService-&gt;GetAdminState()-&gt;GetStateMachineHandler();
+connect(adminStateHandle.GetPointer(),&#32;SIGNAL(StateEnter(IScxmlStateMachineState*)),
+&#32;&#32;&#32;&#32;<emphasis role="keyword">this</emphasis>,&#32;SLOT(onModuleStateMachineStateEnter(IScxmlStateMachineState*)));
+connect(adminStateHandle.GetPointer(),&#32;SIGNAL(StateExit(IScxmlStateMachineState*)),
+&#32;&#32;&#32;&#32;<emphasis role="keyword">this</emphasis>,&#32;SLOT(onModuleStateMachineStateExit(IScxmlStateMachineState*)));
+stateMachineService-&gt;StartStateMachine();
+</computeroutput></literallayout> </para>
+</section>
+</section>

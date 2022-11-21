@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_index" xml:lang="en-US">
+    <info>
+    <title>LancetSpatialFitting</title>
+    </info>
+<chapter>
+    <title>Module Documentation</title>
+    <xi:include href="group__org__mitk__lancet__services__spatialfitting.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+</chapter>
+<chapter>
+    <title>Namespace Documentation</title>
+<xi:include href="namespacelancet.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+<xi:include href="namespaceus.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+</chapter>
+<chapter>
+    <title>Class Documentation</title>
+    <xi:include href="class_abstract_director.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="struct_abstract_director_1_1_abstract_director_private_imp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="class_abstract_pipeline_builder.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="class_navigation_tool_collector.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="class_navigation_tool_to_navigation_tool_filter.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="class_navigation_tool_to_space_filter.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="classlancet_1_1org__mitk__lancet__services___spatial_fitting.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="class_pipeline_builder.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="struct_pipeline_builder_1_1_pipeline_builder_private_imp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="class_pipeline_manager.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="struct_pipeline_manager_1_1_pipeline_manager_private_imp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="class_point_accuracy_date.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="struct_point_accuracy_date_1_1_point_accuracy_date_private_imp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="class_robotics_register_director.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+</chapter>
+<chapter>
+    <title>File Documentation</title>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_collector_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_collector_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_collector_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_collector_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_to_space_filter_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_pipeline_builder_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_pipeline_builder_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_pipeline_builder_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_pipeline_builder_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_pipeline_manager_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_pipeline_manager_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_pipeline_manager_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_pipeline_manager_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_point_accuracy_date_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_point_accuracy_date_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_point_accuracy_date_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_point_accuracy_date_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_robotics_register_director_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_robotics_register_director_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_robotics_register_director_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_robotics_register_director_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_plugin_activator_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_plugin_activator_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_plugin_activator_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_plugin_activator_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_robotics_register_model_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_robotics_register_model_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_robotics_register_model_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_robotics_register_model_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_abstract_director_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_abstract_director_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_abstract_director_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_abstract_director_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_abstract_pipeline_builder_8cpp.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_abstract_pipeline_builder_8cpp_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_abstract_pipeline_builder_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_abstract_pipeline_builder_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_global_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="lancet_spatial_fitting_global_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="mainpage_01-_01_xE5_x89_xAF_xE6_x9C_xAC_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="mainpage_01-_01_xE5_x89_xAF_xE6_x9C_xAC_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="mainpage_8h.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+    <xi:include href="mainpage_8h_source.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+</chapter>
+<index/>
+</book>

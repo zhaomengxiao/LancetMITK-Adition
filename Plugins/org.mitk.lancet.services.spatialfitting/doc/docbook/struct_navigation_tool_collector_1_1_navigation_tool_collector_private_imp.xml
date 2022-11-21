@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp" xml:lang="en-US">
+<title>NavigationToolCollector::NavigationToolCollectorPrivateImp Struct Reference</title>
+<indexterm><primary>NavigationToolCollector::NavigationToolCollectorPrivateImp</primary></indexterm>
+<simplesect>
+    <title>Public Attributes    </title>
+        <itemizedlist>
+            <listitem><para>QTimer <link linkend="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a8b37bb1a6008fd61446ca1cd18b7d549">qtClockTrigger</link></para>
+</listitem>
+            <listitem><para>unsigned int <link linkend="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a37b02a029d8d837af3602759440baf1e">numberForMean</link> = 10</para>
+</listitem>
+            <listitem><para>double <link linkend="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a8598680b1f9e06ced924c60ec2396b7f">accuracyRange</link> = 0.5</para>
+</listitem>
+            <listitem><para><link linkend="_class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2">WorkStatus</link> <link linkend="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a262016f763a0c9e8f3b886b835cf41d6">state</link> = WorkStatus::Idle</para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<section>
+<title>Detailed Description</title>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00009">9</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source">lancetSpatialFittingNavigationToolCollector.cpp</link>.</para>
+</section>
+<section>
+<title>Member Data Documentation</title>
+<anchor xml:id="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a8598680b1f9e06ced924c60ec2396b7f"/><section>
+    <title>accuracyRange</title>
+<indexterm><primary>accuracyRange</primary><secondary>NavigationToolCollector::NavigationToolCollectorPrivateImp</secondary></indexterm>
+<indexterm><primary>NavigationToolCollector::NavigationToolCollectorPrivateImp</primary><secondary>accuracyRange</secondary></indexterm>
+<para><computeroutput>double NavigationToolCollector::NavigationToolCollectorPrivateImp::accuracyRange = 0.5</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00013">13</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source">lancetSpatialFittingNavigationToolCollector.cpp</link>.</para>
+</section>
+<anchor xml:id="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a37b02a029d8d837af3602759440baf1e"/><section>
+    <title>numberForMean</title>
+<indexterm><primary>numberForMean</primary><secondary>NavigationToolCollector::NavigationToolCollectorPrivateImp</secondary></indexterm>
+<indexterm><primary>NavigationToolCollector::NavigationToolCollectorPrivateImp</primary><secondary>numberForMean</secondary></indexterm>
+<para><computeroutput>unsigned int NavigationToolCollector::NavigationToolCollectorPrivateImp::numberForMean = 10</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00012">12</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source">lancetSpatialFittingNavigationToolCollector.cpp</link>.</para>
+</section>
+<anchor xml:id="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a8b37bb1a6008fd61446ca1cd18b7d549"/><section>
+    <title>qtClockTrigger</title>
+<indexterm><primary>qtClockTrigger</primary><secondary>NavigationToolCollector::NavigationToolCollectorPrivateImp</secondary></indexterm>
+<indexterm><primary>NavigationToolCollector::NavigationToolCollectorPrivateImp</primary><secondary>qtClockTrigger</secondary></indexterm>
+<para><computeroutput>QTimer NavigationToolCollector::NavigationToolCollectorPrivateImp::qtClockTrigger</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00011">11</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source">lancetSpatialFittingNavigationToolCollector.cpp</link>.</para>
+</section>
+<anchor xml:id="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a262016f763a0c9e8f3b886b835cf41d6"/><section>
+    <title>state</title>
+<indexterm><primary>state</primary><secondary>NavigationToolCollector::NavigationToolCollectorPrivateImp</secondary></indexterm>
+<indexterm><primary>NavigationToolCollector::NavigationToolCollectorPrivateImp</primary><secondary>state</secondary></indexterm>
+<para><computeroutput><link linkend="_class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2">WorkStatus</link> NavigationToolCollector::NavigationToolCollectorPrivateImp::state = WorkStatus::Idle</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00014">14</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source">lancetSpatialFittingNavigationToolCollector.cpp</link>.</para>
+</section>
+<para>
+The documentation for this struct was generated from the following file:</para>
+src/core/<link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp">lancetSpatialFittingNavigationToolCollector.cpp</link></section>
+</section>

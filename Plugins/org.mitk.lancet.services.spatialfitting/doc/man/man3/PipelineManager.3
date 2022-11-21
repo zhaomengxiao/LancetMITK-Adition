@@ -1,0 +1,269 @@
+.TH "PipelineManager" 3 "Mon Nov 21 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+PipelineManager \- $Document description$  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <lancetSpatialFittingPipelineManager\&.h>\fP
+.PP
+Inherits mitk::NavigationDataToNavigationDataFilter\&.
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBPipelineManagerPrivateImp\fP"
+.br
+.in -1c
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBmitkClassMacro\fP (\fBPipelineManager\fP, mitk::NavigationDataToNavigationDataFilter)"
+.br
+.ti -1c
+.RI "virtual itkNewMacro(\fBPipelineManager\fP) public \fB~PipelineManager\fP ()"
+.br
+.ti -1c
+.RI "bool \fBAddFilter\fP (int index, mitk::NavigationDataToNavigationDataFilter::Pointer)"
+.br
+.ti -1c
+.RI "bool \fBRemoveFilter\fP (int index)"
+.br
+.ti -1c
+.RI "bool \fBRemoveFilter\fP (const std::string &)"
+.br
+.ti -1c
+.RI "bool \fBModifyFilter\fP (int index, mitk::NavigationDataToNavigationDataFilter::Pointer)"
+.br
+.ti -1c
+.RI "bool \fBModifyFilter\fP (const std::string &name, mitk::NavigationDataToNavigationDataFilter::Pointer)"
+.br
+.ti -1c
+.RI "mitk::NavigationDataToNavigationDataFilter::Pointer \fBFindFilter\fP (int index)"
+.br
+.ti -1c
+.RI "mitk::NavigationDataToNavigationDataFilter::Pointer \fBFindFilter\fP (const std::string &name)"
+.br
+.ti -1c
+.RI "int \fBGetIndexByName\fP (const std::string &name)"
+.br
+.ti -1c
+.RI "bool \fBIsEmpty\fP () const"
+.br
+.ti -1c
+.RI "int \fBGetSize\fP () const"
+.br
+.in -1c
+.SS "Protected Member Functions"
+
+.in +1c
+.ti -1c
+.RI "virtual void \fBGenerateData\fP () override"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+$Document description$ 
+
+
+.PP
+\fBCopyright (C)2022-2023 Hangzhou Lancet Robot Co\&., Ltd\&. All rights reserved\&.\fP
+.RS 4
+
+.RE
+.PP
+\fBVersion\fP
+.RS 4
+V1\&.0\&.0 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-18 10:18:17
+.RE
+.PP
+\fBModify History\fP
+.RS 4
+
+.IP "1." 4
+Sun initialization the version for 2022-11-18 10:18:17\&.
+.PP
+.RE
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-18 10:18:17 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+Non
+.RE
+.PP
+This is the manager class of the navigation data collection filter\&.
+.PP
+This class itself is a filter\&. It internally manages a complete channel data filter and automatically configures it according to the data flow processing order\&.
+.PP
+This class can be produced using the builder mode, because the initialization of this class is relatively complex\&.
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBVersion\fP
+.RS 4
+V1\&.0\&.0 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-21 15:44:21 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+Non
+.RE
+.PP
+Contact: sh4a01@163.com 
+.PP
+Definition at line \fB45\fP of file \fBlancetSpatialFittingPipelineManager\&.h\fP\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "PipelineManager::~PipelineManager ()\fC [virtual]\fP"
+
+.PP
+Definition at line \fB15\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+16 {
+17 }
+.fi
+.SH "Member Function Documentation"
+.PP 
+.SS "bool PipelineManager::AddFilter (int index, mitk::NavigationDataToNavigationDataFilter::Pointer)"
+
+.PP
+Definition at line \fB19\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+20 {
+21     return false;
+22 }
+.fi
+.SS "mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter (const std::string & name)"
+
+.PP
+Definition at line \fB49\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+50 {
+51     return mitk::NavigationDataToNavigationDataFilter::Pointer();
+52 }
+.fi
+.SS "mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter (int index)"
+
+.PP
+Definition at line \fB44\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+45 {
+46     return mitk::NavigationDataToNavigationDataFilter::Pointer();
+47 }
+.fi
+.SS "void PipelineManager::GenerateData ()\fC [override]\fP, \fC [protected]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB69\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+70 {
+71 }
+.fi
+.SS "int PipelineManager::GetIndexByName (const std::string & name)"
+
+.PP
+Definition at line \fB54\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+55 {
+56     return 0;
+57 }
+.fi
+.SS "int PipelineManager::GetSize () const"
+
+.PP
+Definition at line \fB64\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+65 {
+66     return this->imp->vecFilterManage\&.size();
+67 }
+.fi
+.SS "bool PipelineManager::IsEmpty () const"
+
+.PP
+Definition at line \fB59\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+60 {
+61     return this->imp->vecFilterManage\&.empty();
+62 }
+.fi
+.SS "PipelineManager::mitkClassMacro (\fBPipelineManager\fP, mitk::NavigationDataToNavigationDataFilter)"
+
+.SS "bool PipelineManager::ModifyFilter (const std::string & name, mitk::NavigationDataToNavigationDataFilter::Pointer)"
+
+.PP
+Definition at line \fB39\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+40 {
+41     return false;
+42 }
+.fi
+.SS "bool PipelineManager::ModifyFilter (int index, mitk::NavigationDataToNavigationDataFilter::Pointer)"
+
+.PP
+Definition at line \fB34\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+35 {
+36     return false;
+37 }
+.fi
+.SS "bool PipelineManager::RemoveFilter (const std::string &)"
+
+.PP
+Definition at line \fB29\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+30 {
+31     return false;
+32 }
+.fi
+.SS "bool PipelineManager::RemoveFilter (int index)"
+
+.PP
+Definition at line \fB24\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
+.PP
+.nf
+25 {
+26     return false;
+27 }
+.fi
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for LancetSpatialFitting from the source code\&.

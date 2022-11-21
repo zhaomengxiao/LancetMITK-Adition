@@ -1,0 +1,511 @@
+.TH "NavigationToolCollector" 3 "Mon Nov 21 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+NavigationToolCollector \- This is the header file that declares the navigation data collection filter\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <lancetSpatialFittingNavigationToolCollector\&.h>\fP
+.PP
+Inherits QObject, and mitk::NavigationDataToNavigationDataFilter\&.
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "struct \fBNavigationToolCollectorPrivateImp\fP"
+.br
+.in -1c
+.SS "Public Types"
+
+.in +1c
+.ti -1c
+.RI "enum \fBWorkStatus\fP { \fBUnknown\fP = 0x00000001, \fBIdle\fP = 0x00000010, \fBWorking\fP = 0x00000100 }"
+.br
+.RI "Enumeration type of internal working state of the collector\&. "
+.ti -1c
+.RI "enum \fBErrorCodes\fP { \fBAccuracy\fP, \fBInvisible\fP }"
+.br
+.RI "Enumeration type for the error state of the collector\&.\&. "
+.in -1c
+.SS "Signals"
+
+.in +1c
+.ti -1c
+.RI "void \fBFail\fP (int)"
+.br
+.RI "The collector encountered an unacceptable error during operation\&. "
+.ti -1c
+.RI "void \fBStep\fP (int, mitk::NavigationData *)"
+.br
+.RI "Operation frame log of collector during operation\&. "
+.ti -1c
+.RI "void \fBComplete\fP (mitk::NavigationData *)"
+.br
+.RI "The collector successfully completes the planned task\&. "
+.in -1c
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBmitkClassMacro\fP (\fBNavigationToolCollector\fP, mitk::NavigationDataToNavigationDataFilter)"
+.br
+.ti -1c
+.RI "\fBitkNewMacro\fP (\fBNavigationToolCollector\fP) \fBNavigationToolCollector\fP()"
+.br
+.ti -1c
+.RI "virtual \fB~NavigationToolCollector\fP ()"
+.br
+.ti -1c
+.RI "virtual long \fBGetInterval\fP () const"
+.br
+.RI "This property holds the timeout interval in milliseconds\&. "
+.ti -1c
+.RI "virtual void \fBSetInterval\fP (long interval)"
+.br
+.ti -1c
+.RI "virtual unsigned int \fBGetNumberForMean\fP () const"
+.br
+.RI "Data Average Frames attribute\&. "
+.ti -1c
+.RI "virtual void \fBSetNumberForMean\fP (unsigned int number)"
+.br
+.ti -1c
+.RI "virtual double \fBGetAccuracyRange\fP () const"
+.br
+.RI "Range property with acceptable precision\&. "
+.ti -1c
+.RI "virtual void \fBSetAccuracyRange\fP (double accuracy)"
+.br
+.ti -1c
+.RI "virtual \fBWorkStatus\fP \fBGetWorkState\fP () const"
+.br
+.RI "Current working state of the collector\&. "
+.ti -1c
+.RI "virtual bool \fBIsRunning\fP () const"
+.br
+.ti -1c
+.RI "virtual bool \fBStart\fP (long interval=0)"
+.br
+.RI "Start the work of the collector\&. "
+.ti -1c
+.RI "virtual bool \fBStop\fP ()"
+.br
+.in -1c
+.SS "Protected Slots"
+
+.in +1c
+.ti -1c
+.RI "void \fBon_QtTimerTrigger_timeout\fP ()"
+.br
+.in -1c
+.SS "Protected Member Functions"
+
+.in +1c
+.ti -1c
+.RI "virtual void \fBGenerateData\fP () override"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+This is the header file that declares the navigation data collection filter\&. 
+
+
+.PP
+\fBCopyright (C)2022-2023 Hangzhou Lancet Robot Co\&., Ltd\&. All rights reserved\&.\fP
+.RS 4
+
+.RE
+.PP
+\fBVersion\fP
+.RS 4
+V1\&.0\&.0 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-18 10:15:42
+.RE
+.PP
+\fBModify History\fP
+.RS 4
+
+.IP "1." 4
+Sun initialization the version for 2022-11-18 10:15:42\&.
+.PP
+.RE
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-18 10:15:42 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+Non
+.RE
+.PP
+This is the navigation pipeline data collection filter\&.
+.PP
+If you are worried that the accuracy fluctuation of navigation data will affect your calculation results, this function class can solve your problems\&.
+.PP
+This function is to judge the accuracy by comparing the valid data of the nearest \fC\fBNavigationToolCollector::SetNumberForMean\fP\fP frame when you send the acquisition request\&. The acceptable accuracy range is configured by the \fC\fBNavigationToolCollector::SetAccuracyRange\fP\fP interface\&. If the collector encou- nters tool failure or the accuracy fluctuation range is larger than the acc- eptable range during the acquisition process, the collector will judge this processing failure and notify the followers by \fBNavigationToolCollector::Fail\fP signal\&.
+.PP
+\fBThis filter does not affect any navigation data\&.\fP
+.PP
+.PP
+.nf
+ NavigationToolCollector collector = NavigationToolCollector::New();
+collector->ConnectTo(NDI_Probe);
+collector->SetInterval(20);
+collector->SetNumberForMean(10);
+
+// Link Qt communication interface\&.
+connect(collector, SIGNAL(Complete(mitk::NavigationData*)), this,
+[=](mitk::NavigationData* tool) {
+  NavigationToolCollector* sender_collector = dynamic_cast<NavigationToolCollector*>(sender());
+  if(sender_collector && tool) {
+    std::cout << "data\&.collector\&.Name " << sender_collector->GetName() << std::endl;
+    std::cout << "data\&.collector\&.FPS " << 1000 / sender_collector->GetInterval() << std::endl;
+    std::cout << "data\&.collector\&.Number " << 1000 / sender_collector->GetNumberForMean() << std::endl;
+
+    std::cout << "data\&.collector\&.tool\&.Name " << tool->GetName() << std::endl;
+  }
+});
+collector->Update(); // Navigation data has not changed\&.
+.fi
+.PP
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBVersion\fP
+.RS 4
+V1\&.0\&.0 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-21 09:53:22 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+todo: insert comments
+.RE
+.PP
+Contact: sh4a01@163.com 
+.PP
+Definition at line \fB79\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.h\fP\&.
+.SH "Member Enumeration Documentation"
+.PP 
+.SS "enum \fBNavigationToolCollector::ErrorCodes\fP"
+
+.PP
+Enumeration type for the error state of the collector\&.\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIAccuracy \fP\fP
+The accuracy exceeds the acceptable range of the collector\&. 
+.TP
+\fB\fIInvisible \fP\fP
+During the acquisition process, the device or tool signal is unstable\&. 
+.PP
+Definition at line \fB111\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.h\fP\&.
+.PP
+.nf
+112     {
+113         Accuracy,                           
+114         Invisible                           
+115     };
+.fi
+.SS "enum \fBNavigationToolCollector::WorkStatus\fP"
+
+.PP
+Enumeration type of internal working state of the collector\&. 
+.PP
+\fBEnumerator\fP
+.in +1c
+.TP
+\fB\fIUnknown \fP\fP
+Unknown status\&. 
+.TP
+\fB\fIIdle \fP\fP
+Initial state\&. When the collector stops working, this is the normal state\&. 
+.TP
+\fB\fIWorking \fP\fP
+The state when the collector is working\&. 
+.PP
+Definition at line \fB99\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.h\fP\&.
+.PP
+.nf
+100     {
+101         Unknown = 0x00000001,   
+102         Idle = 0x00000010,      
+103         Working = 0x00000100    
+104     };
+.fi
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "NavigationToolCollector::~NavigationToolCollector ()"
+
+.PP
+Definition at line \fB26\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+27 {
+28     disconnect(&this->imp->qtClockTrigger, &QTimer::timeout,
+29         this, &NavigationToolCollector::on_QtTimerTrigger_timeout);
+30 }
+.fi
+.SH "Member Function Documentation"
+.PP 
+.SS "void NavigationToolCollector::Complete (mitk::NavigationData *)\fC [signal]\fP"
+
+.PP
+The collector successfully completes the planned task\&. After triggering this signal, the working state of the collector will return to Idea\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIdata\fP Results of operation frame acquisition\&. 
+.RE
+.PP
+
+.SS "void NavigationToolCollector::Fail (int)\fC [signal]\fP"
+
+.PP
+The collector encountered an unacceptable error during operation\&. Generally speaking, only two conditions trigger this signal\&.
+.IP "1." 4
+When the input navigation data is determined to be invalid during the acquisition process, the collector will determine that the current nav- igation equipment or environment is unstable, and the operation will be characterized by the conclusion of failure by default\&.
+.IP "2." 4
+In the acquisition process, if the fluctuation range of the accuracy of the input navigation data is greater than the acceptable range, the co- llector will characterize this operation as a failure\&.
+.PP
+.PP
+\fBParameters\fP
+.RS 4
+\fIerrorCode\fP Enumeration type for the error state of the collector\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+\fBErrorCodes\fP 
+.RE
+.PP
+
+.SS "void NavigationToolCollector::GenerateData ()\fC [override]\fP, \fC [protected]\fP, \fC [virtual]\fP"
+
+.PP
+Definition at line \fB97\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+98 {
+99 }
+.fi
+.SS "double NavigationToolCollector::GetAccuracyRange () const\fC [virtual]\fP"
+
+.PP
+Range property with acceptable precision\&. When the absolute value of the fluctuation of the intermediate data to be collected is greater than the acceptable range, the collector will trigger Qt signal \fC\fBNavigationToolCollector::Fail()\fP\fP to inform the followers of the latest working status\&. 
+.PP
+Definition at line \fB50\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+51 {
+52     return 0\&.0;
+53 }
+.fi
+.SS "long NavigationToolCollector::GetInterval () const\fC [virtual]\fP"
+
+.PP
+This property holds the timeout interval in milliseconds\&. The default value for this property is 0\&. A QTimer with a timeout interval of 0 will time out as soon as all the events in the window system's event queue have been processed\&.
+.PP
+Default initialization is 20 milliseconds\&.
+.PP
+\fBSee also\fP
+.RS 4
+QTimer::setInterval, QTimer::interval 
+.RE
+.PP
+
+.PP
+Definition at line \fB32\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+33 {
+34     return this->imp->qtClockTrigger\&.interval();
+35 }
+.fi
+.SS "unsigned int NavigationToolCollector::GetNumberForMean () const\fC [virtual]\fP"
+
+.PP
+Data Average Frames attribute\&. This attribute determines the accuracy of the collector's output results\&. Theoretically, the larger the average frame number is, the more accurate the collector's output data will be without considering the performance\&.
+.PP
+\fBWarning\fP
+.RS 4
+The working time of each collector is timer interval * average frames\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB41\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+42 {
+43     return 0;
+44 }
+.fi
+.SS "\fBNavigationToolCollector::WorkStatus\fP NavigationToolCollector::GetWorkState () const\fC [virtual]\fP"
+
+.PP
+Current working state of the collector\&. The collector is unique\&. If the collection task is not completed, the req- uest will fail again\&. Users are advised to take this factor into account when using\&.
+.PP
+.PP
+.nf
+NavigationToolCollector::Pointer collector = NavigationToolCollector::New();
+if(collector->GetWorkState() == NavigationToolCollector::Working)
+{
+  collector->Stop();
+}
+collector->Start();
+.fi
+.PP
+ 
+.PP
+Definition at line \fB59\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+60 {
+61     return this->imp->state;
+62 }
+.fi
+.SS "bool NavigationToolCollector::IsRunning () const\fC [virtual]\fP"
+
+.PP
+Definition at line \fB64\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+65 {
+66     return this->GetWorkState() == WorkStatus::Working;
+67 }
+.fi
+.SS "NavigationToolCollector::itkNewMacro (\fBNavigationToolCollector\fP)"
+
+.SS "NavigationToolCollector::mitkClassMacro (\fBNavigationToolCollector\fP, mitk::NavigationDataToNavigationDataFilter)"
+
+.SS "void NavigationToolCollector::on_QtTimerTrigger_timeout ()\fC [protected]\fP, \fC [slot]\fP"
+
+.PP
+Definition at line \fB92\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+93 {
+94 
+95 }
+.fi
+.SS "void NavigationToolCollector::SetAccuracyRange (double accuracy)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB55\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+56 {
+57 }
+.fi
+.SS "void NavigationToolCollector::SetInterval (long interval)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB37\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+38 {
+39 }
+.fi
+.SS "void NavigationToolCollector::SetNumberForMean (unsigned int number)\fC [virtual]\fP"
+
+.PP
+Definition at line \fB46\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+47 {
+48 }
+.fi
+.SS "bool NavigationToolCollector::Start (long interval = \fC0\fP)\fC [virtual]\fP"
+
+.PP
+Start the work of the collector\&. Start the work of the collector\&. It will not stop automatically until the data collection succeeds or fails\&. At the same time, you can use Stop to stop it\&. Otherwise, the work of the collector will not stop\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIinterval\fP Filtering frequency of single data frame, in milliseconds\&.
+.RE
+.PP
+\fBWarning\fP
+.RS 4
+When the parameter is not 0, the Interval property value will be overwritten\&.
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Successful startup returns true, otherwise false\&. 
+.RE
+.PP
+
+.PP
+Definition at line \fB69\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+70 {
+71     if (this->GetWorkState() != WorkStatus::Idle)
+72     {
+73         // The collector is currently working\&.
+74         return false;
+75     }
+76 
+77     if (interval != 0)
+78     {
+79         this->SetInterval(interval);
+80     }
+81     this->imp->qtClockTrigger\&.start();
+82     this->imp->state = WorkStatus::Working;
+83     return true;
+84 }
+.fi
+.SS "void NavigationToolCollector::Step (int, mitk::NavigationData *)\fC [signal]\fP"
+
+.PP
+Operation frame log of collector during operation\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIstep\fP Current operation frames\&.
+.br
+\fIdata\fP Results of operation frame acquisition\&. 
+.RE
+.PP
+
+.SS "bool NavigationToolCollector::Stop ()\fC [virtual]\fP"
+Forcibly stop the work of the collector\&. 
+.PP
+Definition at line \fB86\fP of file \fBlancetSpatialFittingNavigationToolCollector\&.cpp\fP\&.
+.PP
+.nf
+87 {
+88     this->imp->state = WorkStatus::Idle;
+89     return false;
+90 }
+.fi
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for LancetSpatialFitting from the source code\&.

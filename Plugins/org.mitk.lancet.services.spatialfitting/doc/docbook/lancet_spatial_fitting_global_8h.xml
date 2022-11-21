@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_global_8h" xml:lang="en-US">
+<title>src/lancetSpatialFittingGlobal.h File Reference</title>
+<indexterm><primary>src/lancetSpatialFittingGlobal.h</primary></indexterm>
+<programlisting linenumbering="unnumbered">#include &lt;org_mitk_lancet_services_spatialfitting_Export.h&gt;
+#include &lt;memory&gt;
+#include &lt;itkObject.h&gt;
+#include &lt;itkSmartPointer.h&gt;
+</programlisting>Include dependency graph for lancetSpatialFittingGlobal.h:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="lancet_spatial_fitting_global_8h__incl.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+This graph shows which files directly or indirectly include this file:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="lancet_spatial_fitting_global_8h__dep__incl.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+<simplesect>
+    <title>Macros    </title>
+        <itemizedlist>
+            <listitem><para>#define <link linkend="_group__org__mitk__lancet__services__spatialfitting_1ga58923762afd58c3a163a36025e4cc47b">LancetSpatialFittingNameSpace</link></para>
+
+<para>Global macro definition header file. </para>
+</listitem>
+            <listitem><para>#define <link linkend="_lancet_spatial_fitting_global_8h_1a46dfb2b6a3c254fe1e813738c9e2d843">CXX_NAMESPACE</link>   namespace</para>
+</listitem>
+            <listitem><para>#define <link linkend="_lancet_spatial_fitting_global_8h_1ab4445c090407f9f29572f91def706829">NAMESPACE_START_SCOPE</link>   {</para>
+</listitem>
+            <listitem><para>#define <link linkend="_lancet_spatial_fitting_global_8h_1a5f15f032a27a26d593082ca10e5ae8fc">NAMESPACE_CLOSE_SCOPE</link>   }</para>
+</listitem>
+            <listitem><para>#define <link linkend="_lancet_spatial_fitting_global_8h_1a8b7604fc10134a297f75ed756406cc3e">NAMSPEACE_DEFINE</link></para>
+</listitem>
+            <listitem><para>#define <link linkend="_lancet_spatial_fitting_global_8h_1ad96a7225ff04a3560c2addbe60ca0018">BEGIN_NAMSPEACE_DEFINE</link>(name)   <link linkend="_lancet_spatial_fitting_global_8h_1a46dfb2b6a3c254fe1e813738c9e2d843">CXX_NAMESPACE</link> name <link linkend="_lancet_spatial_fitting_global_8h_1ab4445c090407f9f29572f91def706829">NAMESPACE_START_SCOPE</link></para>
+</listitem>
+            <listitem><para>#define <link linkend="_lancet_spatial_fitting_global_8h_1aed5814a4467f133e62de345e372afe79">END_NAMSPEACE_DEFINE</link>(name)   <link linkend="_lancet_spatial_fitting_global_8h_1a5f15f032a27a26d593082ca10e5ae8fc">NAMESPACE_CLOSE_SCOPE</link></para>
+</listitem>
+            <listitem><para>#define <link linkend="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e">BEGIN_SPATIAL_FITTING_NAMESPACE</link>   <link linkend="_lancet_spatial_fitting_global_8h_1ad96a7225ff04a3560c2addbe60ca0018">BEGIN_NAMSPEACE_DEFINE</link>(lancet::spatial_fitting)</para>
+</listitem>
+            <listitem><para>#define <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>   <link linkend="_lancet_spatial_fitting_global_8h_1aed5814a4467f133e62de345e372afe79">END_NAMSPEACE_DEFINE</link>(lancet::spatial_fitting)</para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<section>
+<title>Macro Definition Documentation</title>
+<anchor xml:id="_lancet_spatial_fitting_global_8h_1ad96a7225ff04a3560c2addbe60ca0018"/><section>
+    <title>BEGIN_NAMSPEACE_DEFINE</title>
+<indexterm><primary>BEGIN_NAMSPEACE_DEFINE</primary><secondary>lancetSpatialFittingGlobal.h</secondary></indexterm>
+<indexterm><primary>lancetSpatialFittingGlobal.h</primary><secondary>BEGIN_NAMSPEACE_DEFINE</secondary></indexterm>
+<para><computeroutput>#define BEGIN_NAMSPEACE_DEFINE( name)   <link linkend="_lancet_spatial_fitting_global_8h_1a46dfb2b6a3c254fe1e813738c9e2d843">CXX_NAMESPACE</link> name <link linkend="_lancet_spatial_fitting_global_8h_1ab4445c090407f9f29572f91def706829">NAMESPACE_START_SCOPE</link></computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_global_8h_source_1l00034">34</link> of file <link linkend="_lancet_spatial_fitting_global_8h_source">lancetSpatialFittingGlobal.h</link>.</para>
+</section>
+<anchor xml:id="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e"/><section>
+    <title>BEGIN_SPATIAL_FITTING_NAMESPACE</title>
+<indexterm><primary>BEGIN_SPATIAL_FITTING_NAMESPACE</primary><secondary>lancetSpatialFittingGlobal.h</secondary></indexterm>
+<indexterm><primary>lancetSpatialFittingGlobal.h</primary><secondary>BEGIN_SPATIAL_FITTING_NAMESPACE</secondary></indexterm>
+<para><computeroutput>#define BEGIN_SPATIAL_FITTING_NAMESPACE   <link linkend="_lancet_spatial_fitting_global_8h_1ad96a7225ff04a3560c2addbe60ca0018">BEGIN_NAMSPEACE_DEFINE</link>(lancet::spatial_fitting)</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_global_8h_source_1l00039">39</link> of file <link linkend="_lancet_spatial_fitting_global_8h_source">lancetSpatialFittingGlobal.h</link>.</para>
+</section>
+<anchor xml:id="_lancet_spatial_fitting_global_8h_1a46dfb2b6a3c254fe1e813738c9e2d843"/><section>
+    <title>CXX_NAMESPACE</title>
+<indexterm><primary>CXX_NAMESPACE</primary><secondary>lancetSpatialFittingGlobal.h</secondary></indexterm>
+<indexterm><primary>lancetSpatialFittingGlobal.h</primary><secondary>CXX_NAMESPACE</secondary></indexterm>
+<para><computeroutput>#define CXX_NAMESPACE   namespace</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_global_8h_source_1l00023">23</link> of file <link linkend="_lancet_spatial_fitting_global_8h_source">lancetSpatialFittingGlobal.h</link>.</para>
+</section>
+<anchor xml:id="_lancet_spatial_fitting_global_8h_1aed5814a4467f133e62de345e372afe79"/><section>
+    <title>END_NAMSPEACE_DEFINE</title>
+<indexterm><primary>END_NAMSPEACE_DEFINE</primary><secondary>lancetSpatialFittingGlobal.h</secondary></indexterm>
+<indexterm><primary>lancetSpatialFittingGlobal.h</primary><secondary>END_NAMSPEACE_DEFINE</secondary></indexterm>
+<para><computeroutput>#define END_NAMSPEACE_DEFINE( name)   <link linkend="_lancet_spatial_fitting_global_8h_1a5f15f032a27a26d593082ca10e5ae8fc">NAMESPACE_CLOSE_SCOPE</link></computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_global_8h_source_1l00035">35</link> of file <link linkend="_lancet_spatial_fitting_global_8h_source">lancetSpatialFittingGlobal.h</link>.</para>
+</section>
+<anchor xml:id="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2"/><section>
+    <title>END_SPATIAL_FITTING_NAMESPACE</title>
+<indexterm><primary>END_SPATIAL_FITTING_NAMESPACE</primary><secondary>lancetSpatialFittingGlobal.h</secondary></indexterm>
+<indexterm><primary>lancetSpatialFittingGlobal.h</primary><secondary>END_SPATIAL_FITTING_NAMESPACE</secondary></indexterm>
+<para><computeroutput>#define END_SPATIAL_FITTING_NAMESPACE   <link linkend="_lancet_spatial_fitting_global_8h_1aed5814a4467f133e62de345e372afe79">END_NAMSPEACE_DEFINE</link>(lancet::spatial_fitting)</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_global_8h_source_1l00040">40</link> of file <link linkend="_lancet_spatial_fitting_global_8h_source">lancetSpatialFittingGlobal.h</link>.</para>
+</section>
+<anchor xml:id="_lancet_spatial_fitting_global_8h_1a5f15f032a27a26d593082ca10e5ae8fc"/><section>
+    <title>NAMESPACE_CLOSE_SCOPE</title>
+<indexterm><primary>NAMESPACE_CLOSE_SCOPE</primary><secondary>lancetSpatialFittingGlobal.h</secondary></indexterm>
+<indexterm><primary>lancetSpatialFittingGlobal.h</primary><secondary>NAMESPACE_CLOSE_SCOPE</secondary></indexterm>
+<para><computeroutput>#define NAMESPACE_CLOSE_SCOPE   }</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_global_8h_source_1l00029">29</link> of file <link linkend="_lancet_spatial_fitting_global_8h_source">lancetSpatialFittingGlobal.h</link>.</para>
+</section>
+<anchor xml:id="_lancet_spatial_fitting_global_8h_1ab4445c090407f9f29572f91def706829"/><section>
+    <title>NAMESPACE_START_SCOPE</title>
+<indexterm><primary>NAMESPACE_START_SCOPE</primary><secondary>lancetSpatialFittingGlobal.h</secondary></indexterm>
+<indexterm><primary>lancetSpatialFittingGlobal.h</primary><secondary>NAMESPACE_START_SCOPE</secondary></indexterm>
+<para><computeroutput>#define NAMESPACE_START_SCOPE   {</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_global_8h_source_1l00027">27</link> of file <link linkend="_lancet_spatial_fitting_global_8h_source">lancetSpatialFittingGlobal.h</link>.</para>
+</section>
+<anchor xml:id="_lancet_spatial_fitting_global_8h_1a8b7604fc10134a297f75ed756406cc3e"/><section>
+    <title>NAMSPEACE_DEFINE</title>
+<indexterm><primary>NAMSPEACE_DEFINE</primary><secondary>lancetSpatialFittingGlobal.h</secondary></indexterm>
+<indexterm><primary>lancetSpatialFittingGlobal.h</primary><secondary>NAMSPEACE_DEFINE</secondary></indexterm>
+<para><computeroutput>#define NAMSPEACE_DEFINE</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_global_8h_source_1l00033">33</link> of file <link linkend="_lancet_spatial_fitting_global_8h_source">lancetSpatialFittingGlobal.h</link>.</para>
+</section>
+</section>
+</section>

@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_tst_point_accuracy_date-example" xml:lang="en-US">
+<title>tst_pointAccuracyDate</title>
+
+<para>This is the declaration header file of space point calculation.</para>
+
+<para>This is the declaration header file of space point calculation.<formalpara>
+<title>Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.</title>
+<para></para>
+</formalpara>
+<formalpara><title>Version</title>
+
+<para>V1.0.0 </para>
+</formalpara>
+<formalpara><title>Date</title>
+
+<para>2022-11-18 10:18:52</para>
+</formalpara>
+<formalpara>
+<title>Modify History</title>
+<para><orderedlist>
+<listitem>
+<para>Sun initialization the version for 2022-11-18 10:18:52.</para>
+</listitem></orderedlist>
+</para>
+</formalpara>
+<formalpara><title>Author</title>
+
+<para>Sun </para>
+</formalpara>
+<formalpara><title>Remarks</title>
+
+<para>Non</para>
+</formalpara>
+Represent or calculate the relationship and data between points. 
+<literallayout>&#160;&#xa;</literallayout>
+</para>
+
+<para>The 3D point data has been clearly defined in mitk. The point calculation here is based on the extension calculation or processing of the mitk::Point3D type.</para>
+
+<para>Tips: In terms of actual use, this function class should not exist. Its significa- nce lies in constraining the calculation or operation methods of external point-to-point.</para>
+
+<para><formalpara><title>Author</title>
+
+<para>Sun </para>
+</formalpara>
+<formalpara><title>Date</title>
+
+<para>2022-11-18 11:06:46 </para>
+</formalpara>
+<formalpara><title>Remarks</title>
+
+<para>Non</para>
+</formalpara>
+Contact: <link xlink:href="mailto:sh4a01@163.com">sh4a01@163.com</link></para>
+
+<para><literallayout><computeroutput></computeroutput></literallayout> </para>
+</section>

@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source" xml:lang="en-US">
+<title>lancetSpatialFittingRoboticsRegisterDirector.h</title>
+<indexterm><primary>src/core/lancetSpatialFittingRoboticsRegisterDirector.h</primary></indexterm>
+Go to the documentation of this file.<programlisting linenumbering="unnumbered"><anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00001"/>00001 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00017"/>00017 <emphasis role="preprocessor">#ifndef&#32;LancetSpatialFittingRoboticsRegisterDirector_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00018"/>00018 <emphasis role="preprocessor">#define&#32;LancetSpatialFittingRoboticsRegisterDirector_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00019"/>00019 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00020"/>00020 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_global_8h">lancetSpatialFittingGlobal.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00021"/>00021 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00022"/>00022 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_abstract_director_8h">lancetSpatialFittingAbstractDirector.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00023"/>00023 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00024"/>00024 <link linkend="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e">BEGIN_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00025"/>00025 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00054"/><link linkend="_class_robotics_register_director">00054</link> <emphasis role="keyword">class&#32;</emphasis>ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00055"/>00055 &#32;&#32;&#32;&#32;<link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link>&#32;:&#32;<emphasis role="keyword">public</emphasis>&#32;<link linkend="_class_abstract_director">AbstractDirector</link>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00056"/>00056 {
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00057"/>00057 <emphasis role="keyword">public</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00058"/><link linkend="_class_robotics_register_director_1a87d17e71e4b31d77879dfba0c01f87af">00058</link> &#32;&#32;&#32;&#32;<link linkend="_class_robotics_register_director_1a87d17e71e4b31d77879dfba0c01f87af">mitkClassMacroItkParent</link>(<link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link>,&#32;<link linkend="_class_abstract_director">AbstractDirector</link>);
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00059"/>00059 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00060"/><link linkend="_class_robotics_register_director_1a22f33bcca3873532a47f7c266d8d7858">00060</link> &#32;&#32;&#32;&#32;<link linkend="_class_robotics_register_director_1a22f33bcca3873532a47f7c266d8d7858">itkNewMacro</link>(<link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link>)
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00061"/>00061 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00062"/>00062 &#32;&#32;&#32;&#32;<link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link>();
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00063"/>00063 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<link linkend="_class_robotics_register_director">~RoboticsRegisterDirector</link>();
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00064"/>00064 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00065"/>00065 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">bool</emphasis>&#32;<link linkend="_class_abstract_director_1a89be2adee44d1ea75c54fe40286b6f59">Builder</link>()&#32;<emphasis role="keyword">override</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00066"/>00066 };
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00067"/>00067 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00068"/>00068 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00069"/>00069 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_director_8h_source_1l00070"/>00070 <emphasis role="preprocessor">#endif&#32;</emphasis><emphasis role="comment">//&#32;!LancetSpatialFittingRoboticsRegisterDirector_H</emphasis>
+</programlisting></section>

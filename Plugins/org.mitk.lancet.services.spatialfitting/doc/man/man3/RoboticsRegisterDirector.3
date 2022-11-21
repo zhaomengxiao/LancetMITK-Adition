@@ -1,0 +1,159 @@
+.TH "RoboticsRegisterDirector" 3 "Mon Nov 21 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+RoboticsRegisterDirector \- This is the header file of the decision-maker for the registration and construction of the robot arm\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <lancetSpatialFittingRoboticsRegisterDirector\&.h>\fP
+.PP
+Inherits \fBAbstractDirector\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBmitkClassMacroItkParent\fP (\fBRoboticsRegisterDirector\fP, \fBAbstractDirector\fP)"
+.br
+.ti -1c
+.RI "\fBitkNewMacro\fP (\fBRoboticsRegisterDirector\fP) \fBRoboticsRegisterDirector\fP()"
+.br
+.ti -1c
+.RI "virtual \fB~RoboticsRegisterDirector\fP ()"
+.br
+.ti -1c
+.RI "virtual bool \fBBuilder\fP () override"
+.br
+.RI "Implement the construction order or method of pipeline data\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+This is the header file of the decision-maker for the registration and construction of the robot arm\&. 
+
+
+.PP
+\fBCopyright (C)2022-2023 Hangzhou Lancet Robot Co\&., Ltd\&. All rights reserved\&.\fP
+.RS 4
+
+.RE
+.PP
+\fBVersion\fP
+.RS 4
+V1\&.0\&.0 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-18 10:20:17
+.RE
+.PP
+\fBModify History\fP
+.RS 4
+
+.IP "1." 4
+Sun initialization the version for 2022-11-18 10:20:17\&.
+.PP
+.RE
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-18 10:20:17 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+Non
+.RE
+.PP
+This is the decision-maker class of robot arm registration construction\&.
+.PP
+This will determine the processing manager object for the robot arm to register navigation data\&.
+.PP
+\fBData stream:\fP
+.br
+ 
+.PP
+.PP
+.nf
+RoboticsRegisterDirector::Pointer roboticsRegisterDirector = 
+  RoboticsRegisterDirector::New();
+
+if(roboticsRegisterDirector->Builder())
+{
+  auto roboticsRegisterManage = roboticsRegisterDirector->GetBuilder()->GetOutput();
+}
+.fi
+.PP
+.PP
+\fBAuthor\fP
+.RS 4
+Sun 
+.RE
+.PP
+\fBVersion\fP
+.RS 4
+V1\&.0\&.0 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+2022-11-21 16:06:37 
+.RE
+.PP
+\fBRemarks\fP
+.RS 4
+Non
+.RE
+.PP
+Contact: sh4a01@163.com 
+.PP
+Definition at line \fB54\fP of file \fBlancetSpatialFittingRoboticsRegisterDirector\&.h\fP\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "RoboticsRegisterDirector::~RoboticsRegisterDirector ()\fC [virtual]\fP"
+
+.PP
+Definition at line \fB13\fP of file \fBlancetSpatialFittingRoboticsRegisterDirector\&.cpp\fP\&.
+.PP
+.nf
+14 {
+15 }
+.fi
+.SH "Member Function Documentation"
+.PP 
+.SS "bool RoboticsRegisterDirector::Builder ()\fC [override]\fP, \fC [virtual]\fP"
+
+.PP
+Implement the construction order or method of pipeline data\&. In the spatial fitting module, the functional components of various pipe- line data objects may be the same component, but the production order has some deviations\&. The derived class needs to correctly control the produce order of pipeline data for this interface\&.
+.PP
+\fBReturns\fP
+.RS 4
+True Production succeeded, otherwise it failed\&. 
+.RE
+.PP
+
+.PP
+Implements \fBAbstractDirector\fP\&.
+.PP
+Definition at line \fB17\fP of file \fBlancetSpatialFittingRoboticsRegisterDirector\&.cpp\fP\&.
+.PP
+.nf
+18 {
+19     return false;
+20 }
+.fi
+.SS "RoboticsRegisterDirector::itkNewMacro (\fBRoboticsRegisterDirector\fP)"
+
+.SS "RoboticsRegisterDirector::mitkClassMacroItkParent (\fBRoboticsRegisterDirector\fP, \fBAbstractDirector\fP)"
+
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for LancetSpatialFitting from the source code\&.

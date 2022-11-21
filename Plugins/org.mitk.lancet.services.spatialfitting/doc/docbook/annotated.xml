@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_annotated" xml:lang="en-US">
+<title>Class List</title>
+Here are the classes, structs, unions and interfaces with brief descriptions:<link linkend="_class_abstract_director">AbstractDirector</link>
+<para>This is the decision-maker class of the abstract generator pattern </para>
+<link linkend="_struct_abstract_director_1_1_abstract_director_private_imp">AbstractDirector::AbstractDirectorPrivateImp</link><link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link>
+<para>$Document description$ </para>
+<link linkend="_class_navigation_tool_collector">NavigationToolCollector</link>
+<para>This is the header file that declares the navigation data collection filter </para>
+<link linkend="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp">NavigationToolCollector::NavigationToolCollectorPrivateImp</link><link linkend="_class_navigation_tool_to_navigation_tool_filter">NavigationToolToNavigationToolFilter</link>
+<para>This is the header file that declares the data processing filter from space to space coordinate system of space fitting </para>
+<link linkend="_struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp">NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilterPrivateImp</link><link linkend="_class_navigation_tool_to_space_filter">NavigationToolToSpaceFilter</link>
+<para>This is the header file that declares the data processing filter from the tool of space fitting to the tool coordinate system </para>
+<link linkend="_struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp">NavigationToolToSpaceFilter::NavigationToolToSpaceFilterPrivateImp</link><link linkend="_classlancet_1_1org__mitk__lancet__services___spatial_fitting">lancet::org_mitk_lancet_services_SpatialFitting</link><link linkend="_class_pipeline_builder">PipelineBuilder</link>
+<para>This is an abstract pipeline data producer class </para>
+<link linkend="_struct_pipeline_builder_1_1_pipeline_builder_private_imp">PipelineBuilder::PipelineBuilderPrivateImp</link><link linkend="_class_pipeline_manager">PipelineManager</link>
+<para>$Document description$ </para>
+<link linkend="_struct_pipeline_manager_1_1_pipeline_manager_private_imp">PipelineManager::PipelineManagerPrivateImp</link><link linkend="_class_point_accuracy_date">PointAccuracyDate</link>
+<para>This is the declaration header file of space point calculation </para>
+<link linkend="_struct_point_accuracy_date_1_1_point_accuracy_date_private_imp">PointAccuracyDate::PointAccuracyDatePrivateImp</link><link linkend="_structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp">lancet::org_mitk_lancet_services_SpatialFitting::PrivateImp</link><link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link>
+<para>This is the header file of the decision-maker for the registration and construction of the robot arm </para>
+</section>

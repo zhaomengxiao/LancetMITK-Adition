@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source" xml:lang="en-US">
+<title>lancetSpatialFittingPipelineManager.h</title>
+<indexterm><primary>src/core/lancetSpatialFittingPipelineManager.h</primary></indexterm>
+Go to the documentation of this file.<programlisting linenumbering="unnumbered"><anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00001"/>00001 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00016"/>00016 <emphasis role="preprocessor">#ifndef&#32;LancetSpatialFittingPipelineManager_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00017"/>00017 <emphasis role="preprocessor">#define&#32;LancetSpatialFittingPipelineManager_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00018"/>00018 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00019"/>00019 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_global_8h">lancetSpatialFittingGlobal.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00020"/>00020 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00021"/>00021 <emphasis role="preprocessor">#include&#32;&lt;mitkNavigationDataToNavigationDataFilter.h&gt;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00022"/>00022 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00023"/>00023 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00024"/>00024 <link linkend="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e">BEGIN_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00025"/>00025 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00045"/><link linkend="_class_pipeline_manager">00045</link> <emphasis role="keyword">class&#32;</emphasis>ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00046"/>00046 &#32;&#32;&#32;&#32;<link linkend="_class_pipeline_manager">PipelineManager</link>&#32;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00047"/>00047 &#32;&#32;&#32;&#32;:&#32;<emphasis role="keyword">public</emphasis>&#32;mitk::NavigationDataToNavigationDataFilter
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00048"/>00048 {
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00049"/>00049 <emphasis role="keyword">public</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00050"/><link linkend="_class_pipeline_manager_1aac1015c7ee3f69391d15c7032f96493f">00050</link> &#32;&#32;&#32;&#32;<link linkend="_class_pipeline_manager_1aac1015c7ee3f69391d15c7032f96493f">mitkClassMacro</link>(<link linkend="_class_pipeline_manager">PipelineManager</link>,&#32;mitk::NavigationDataToNavigationDataFilter);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00051"/>00051 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00052"/>00052 &#32;&#32;&#32;&#32;itkNewMacro(<link linkend="_class_pipeline_manager">PipelineManager</link>)
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00053"/>00053 <emphasis role="keyword">public</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00054"/>00054 &#32;&#32;&#32;&#32;<link linkend="_class_pipeline_manager">PipelineManager</link>();
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00055"/>00055 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<link linkend="_class_pipeline_manager">~PipelineManager</link>();
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00056"/>00056 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00057"/>00057 &#32;&#32;&#32;&#32;<emphasis role="keywordtype">bool</emphasis>&#32;AddFilter(<emphasis role="keywordtype">int</emphasis>&#32;index,&#32;mitk::NavigationDataToNavigationDataFilter::Pointer);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00058"/>00058 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00059"/>00059 &#32;&#32;&#32;&#32;<emphasis role="keywordtype">bool</emphasis>&#32;RemoveFilter(<emphasis role="keywordtype">int</emphasis>&#32;index);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00060"/>00060 &#32;&#32;&#32;&#32;<emphasis role="keywordtype">bool</emphasis>&#32;RemoveFilter(<emphasis role="keyword">const</emphasis>&#32;std::string&amp;);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00061"/>00061 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00062"/>00062 &#32;&#32;&#32;&#32;<emphasis role="keywordtype">bool</emphasis>&#32;ModifyFilter(<emphasis role="keywordtype">int</emphasis>&#32;index,&#32;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00063"/>00063 &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;mitk::NavigationDataToNavigationDataFilter::Pointer);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00064"/>00064 &#32;&#32;&#32;&#32;<emphasis role="keywordtype">bool</emphasis>&#32;ModifyFilter(<emphasis role="keyword">const</emphasis>&#32;std::string&amp;&#32;name,&#32;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00065"/>00065 &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;mitk::NavigationDataToNavigationDataFilter::Pointer);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00066"/>00066 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00067"/>00067 &#32;&#32;&#32;&#32;mitk::NavigationDataToNavigationDataFilter::Pointer&#32;FindFilter(<emphasis role="keywordtype">int</emphasis>&#32;index);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00068"/>00068 &#32;&#32;&#32;&#32;mitk::NavigationDataToNavigationDataFilter::Pointer&#32;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00069"/>00069 &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;FindFilter(<emphasis role="keyword">const</emphasis>&#32;std::string&amp;&#32;name);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00070"/>00070 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00071"/>00071 &#32;&#32;&#32;&#32;<emphasis role="keywordtype">int</emphasis>&#32;GetIndexByName(<emphasis role="keyword">const</emphasis>&#32;std::string&amp;&#32;name);
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00072"/>00072 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00073"/>00073 &#32;&#32;&#32;&#32;<emphasis role="keywordtype">bool</emphasis>&#32;IsEmpty()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00074"/>00074 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00075"/>00075 &#32;&#32;&#32;&#32;<emphasis role="keywordtype">int</emphasis>&#32;GetSize()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00076"/>00076 <emphasis role="keyword">protected</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00077"/>00077 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;GenerateData()&#32;<emphasis role="keyword">override</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00078"/>00078 <emphasis role="keyword">private</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00079"/>00079 &#32;&#32;&#32;&#32;<emphasis role="keyword">struct&#32;</emphasis><link linkend="_struct_pipeline_manager_1_1_pipeline_manager_private_imp">PipelineManagerPrivateImp</link>;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00080"/>00080 &#32;&#32;&#32;&#32;std::shared_ptr&lt;PipelineManagerPrivateImp&gt;&#32;imp;
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00081"/>00081 };
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00082"/>00082 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00083"/>00083 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00084"/>00084 
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8h_source_1l00085"/>00085 <emphasis role="preprocessor">#endif&#32;</emphasis><emphasis role="comment">//&#32;!LancetSpatialFittingPipelineManager_H</emphasis>
+</programlisting></section>

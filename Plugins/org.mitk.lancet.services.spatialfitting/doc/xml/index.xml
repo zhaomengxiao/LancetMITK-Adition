@@ -1,0 +1,219 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.9.4" xml:lang="en-US">
+  <compound refid="class_abstract_director" kind="class"><name>AbstractDirector</name>
+    <member refid="class_abstract_director_1a262e902f75d61984a5d327fc059a0b7b" kind="variable"><name>imp</name></member>
+    <member refid="class_abstract_director_1ae2cf08a58c1b53215e4018a6ed6c0143" kind="function"><name>mitkClassMacroItkParent</name></member>
+    <member refid="class_abstract_director_1ac9f0cc7f7ae8d3d31a5dcd017f2f8191" kind="function"><name>AbstractDirector</name></member>
+    <member refid="class_abstract_director_1a89be2adee44d1ea75c54fe40286b6f59" kind="function"><name>Builder</name></member>
+    <member refid="class_abstract_director_1a78aa56c869e219c1988be4512423ce80" kind="function"><name>GetBuilder</name></member>
+    <member refid="class_abstract_director_1a8ff3d2fedaec0f382fb19cab93766f92" kind="function"><name>SetBuilder</name></member>
+  </compound>
+  <compound refid="struct_abstract_director_1_1_abstract_director_private_imp" kind="struct"><name>AbstractDirector::AbstractDirectorPrivateImp</name>
+    <member refid="struct_abstract_director_1_1_abstract_director_private_imp_1a29ae425f74aa8161e183d272d2797400" kind="variable"><name>builder</name></member>
+  </compound>
+  <compound refid="class_abstract_pipeline_builder" kind="class"><name>AbstractPipelineBuilder</name>
+    <member refid="class_abstract_pipeline_builder_1a3a1eb3fb9b8d447d7db7e106887101ed" kind="function"><name>mitkClassMacroItkParent</name></member>
+    <member refid="class_abstract_pipeline_builder_1ac4381292ae208fe2eb83061cfe286882" kind="function"><name>Reset</name></member>
+    <member refid="class_abstract_pipeline_builder_1abe2c7e315e68a70558628b092fb2a716" kind="function"><name>GetOutput</name></member>
+  </compound>
+  <compound refid="class_navigation_tool_collector" kind="class"><name>NavigationToolCollector</name>
+    <member refid="class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2" kind="enum"><name>WorkStatus</name></member>
+    <member refid="class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2a60af479e2077ff33204eede4b577f915" kind="enumvalue"><name>Unknown</name></member>
+    <member refid="class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2a439341d4e0d56e31bfb9188301049c22" kind="enumvalue"><name>Idle</name></member>
+    <member refid="class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2af12f6f23fb029c362b5b2df2056d1103" kind="enumvalue"><name>Working</name></member>
+    <member refid="class_navigation_tool_collector_1a329965a0bd15de5a40b060958ee06c6e" kind="enum"><name>ErrorCodes</name></member>
+    <member refid="class_navigation_tool_collector_1a329965a0bd15de5a40b060958ee06c6ea1a1831e2930a2d975cb389a0c2d3beda" kind="enumvalue"><name>Accuracy</name></member>
+    <member refid="class_navigation_tool_collector_1a329965a0bd15de5a40b060958ee06c6ea6114fc023a17b679b416914a74f5428b" kind="enumvalue"><name>Invisible</name></member>
+    <member refid="class_navigation_tool_collector_1a9aa4f22369b552a87941858a52d70a20" kind="variable"><name>imp</name></member>
+    <member refid="class_navigation_tool_collector_1a6f8b5df60a290593bf1bb1a9fc625f16" kind="function"><name>mitkClassMacro</name></member>
+    <member refid="class_navigation_tool_collector_1a810ecc5db9f5849f47572a6062e2f9b4" kind="function"><name>itkNewMacro</name></member>
+    <member refid="class_navigation_tool_collector_1a61d39f16186c42175c01ffa0764a1685" kind="function"><name>~NavigationToolCollector</name></member>
+    <member refid="class_navigation_tool_collector_1a098797c944c74fdcfdad97652f3a8e6f" kind="function"><name>GetInterval</name></member>
+    <member refid="class_navigation_tool_collector_1ad6516e8fa227f7eff2694f1809b75d27" kind="function"><name>SetInterval</name></member>
+    <member refid="class_navigation_tool_collector_1a1dc7ea9c7e87f78f154d31f49027f318" kind="function"><name>GetNumberForMean</name></member>
+    <member refid="class_navigation_tool_collector_1a6f5ab48352a3d48d2106c0b6879a3d7d" kind="function"><name>SetNumberForMean</name></member>
+    <member refid="class_navigation_tool_collector_1a3058935c076205707e41015c70b9e1f6" kind="function"><name>GetAccuracyRange</name></member>
+    <member refid="class_navigation_tool_collector_1ab7b66e185e421621d34db2c2f4d997ea" kind="function"><name>SetAccuracyRange</name></member>
+    <member refid="class_navigation_tool_collector_1a676df454af85cf1021b0a3136a083a9a" kind="function"><name>GetWorkState</name></member>
+    <member refid="class_navigation_tool_collector_1a77da471393561babf4fd7a069ddf557f" kind="function"><name>IsRunning</name></member>
+    <member refid="class_navigation_tool_collector_1adf614753a5ae6e93641446369e24d78e" kind="function"><name>Start</name></member>
+    <member refid="class_navigation_tool_collector_1a51e616964b26029ccd74aa69eb642d05" kind="function"><name>Stop</name></member>
+    <member refid="class_navigation_tool_collector_1ad5802851ffe9fb9cb407708baf7af03f" kind="signal"><name>Fail</name></member>
+    <member refid="class_navigation_tool_collector_1adcccfa2b8be5acf775cc50fcbb0bc5fc" kind="signal"><name>Step</name></member>
+    <member refid="class_navigation_tool_collector_1a75361f2bc6118de20559d9f89bf48198" kind="signal"><name>Complete</name></member>
+    <member refid="class_navigation_tool_collector_1ae388d26e83d31e602b68657553026cd1" kind="slot"><name>on_QtTimerTrigger_timeout</name></member>
+    <member refid="class_navigation_tool_collector_1a39a112040f267b4d96f9965afdd0a52b" kind="function"><name>GenerateData</name></member>
+  </compound>
+  <compound refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp" kind="struct"><name>NavigationToolCollector::NavigationToolCollectorPrivateImp</name>
+    <member refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a8b37bb1a6008fd61446ca1cd18b7d549" kind="variable"><name>qtClockTrigger</name></member>
+    <member refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a37b02a029d8d837af3602759440baf1e" kind="variable"><name>numberForMean</name></member>
+    <member refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a8598680b1f9e06ced924c60ec2396b7f" kind="variable"><name>accuracyRange</name></member>
+    <member refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a262016f763a0c9e8f3b886b835cf41d6" kind="variable"><name>state</name></member>
+  </compound>
+  <compound refid="class_navigation_tool_to_navigation_tool_filter" kind="class"><name>NavigationToolToNavigationToolFilter</name>
+    <member refid="class_navigation_tool_to_navigation_tool_filter_1aa1836e11bef875f82ffbd2fa5e3dbda2" kind="variable"><name>imp</name></member>
+    <member refid="class_navigation_tool_to_navigation_tool_filter_1a29821821458d98ea093dd1be239fd63e" kind="function"><name>mitkClassMacro</name></member>
+    <member refid="class_navigation_tool_to_navigation_tool_filter_1a2ea6c7315526610f9426e2246a35f7a7" kind="function"><name>NavigationToolToNavigationToolFilter</name></member>
+    <member refid="class_navigation_tool_to_navigation_tool_filter_1a86594180b499fef3b682afa968f251a4" kind="function"><name>~NavigationToolToNavigationToolFilter</name></member>
+    <member refid="class_navigation_tool_to_navigation_tool_filter_1abfd9b683e051902446a83c8de9ebfd3a" kind="function"><name>GetUCSTool</name></member>
+    <member refid="class_navigation_tool_to_navigation_tool_filter_1a0c75c8ab858b01e2544f74228eccdf4d" kind="function"><name>SetUCSTool</name></member>
+    <member refid="class_navigation_tool_to_navigation_tool_filter_1ae46d9e67048e81abf3eec9d3d780ff1f" kind="function"><name>GenerateData</name></member>
+  </compound>
+  <compound refid="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp" kind="struct"><name>NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilterPrivateImp</name>
+  </compound>
+  <compound refid="class_navigation_tool_to_space_filter" kind="class"><name>NavigationToolToSpaceFilter</name>
+    <member refid="class_navigation_tool_to_space_filter_1a0e0a082c48cff2146b4eaa6d1c8107c6" kind="variable"><name>imp</name></member>
+    <member refid="class_navigation_tool_to_space_filter_1a6cbf3f4c74d1c269eb995dbd02405df6" kind="function"><name>mitkClassMacro</name></member>
+    <member refid="class_navigation_tool_to_space_filter_1a7be7a791764fbc9ea694540f7aa174b3" kind="function"><name>NavigationToolToSpaceFilter</name></member>
+    <member refid="class_navigation_tool_to_space_filter_1a26bbd9f762519673ca2f2cc289de6af6" kind="function"><name>~NavigationToolToSpaceFilter</name></member>
+    <member refid="class_navigation_tool_to_space_filter_1a2b0951c3f8b67d208f54a57bbd0bb2b0" kind="function"><name>GetConvertMatrix4x4</name></member>
+    <member refid="class_navigation_tool_to_space_filter_1a41421e903792320f00924c8351cbc33b" kind="function"><name>SetConvertMatrix4x4</name></member>
+    <member refid="class_navigation_tool_to_space_filter_1a26b3666fb9f24436b1ab5a0efd2f1ce5" kind="function"><name>GenerateData</name></member>
+  </compound>
+  <compound refid="struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp" kind="struct"><name>NavigationToolToSpaceFilter::NavigationToolToSpaceFilterPrivateImp</name>
+    <member refid="struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp_1aa7d2fabcc0157507a2441a441655a289" kind="variable"><name>convertMatrix4x4</name></member>
+  </compound>
+  <compound refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting" kind="class"><name>lancet::org_mitk_lancet_services_SpatialFitting</name>
+    <member refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a54f9357600bddc5ec9bb40fbc6931986" kind="variable"><name>PLUGIN_ID</name></member>
+    <member refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a52abba3d758060ee12653737b1614184" kind="variable"><name>imp</name></member>
+    <member refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a9e83376b57500fa590ef58796e2757af" kind="function"><name>org_mitk_lancet_services_SpatialFitting</name></member>
+    <member refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a7c17fcfa14376adb12e8e3549dff4a96" kind="function"><name>~org_mitk_lancet_services_SpatialFitting</name></member>
+    <member refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a581ff1e5976de82dc12d1a702031ba52" kind="function"><name>start</name></member>
+    <member refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting_1ac22adb3c759023e2dd49c19f9ef1ed11" kind="function"><name>stop</name></member>
+    <member refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a5c832aeff92d6f89628b515c6be3d706" kind="function"><name>GetPluginContext</name></member>
+  </compound>
+  <compound refid="class_pipeline_builder" kind="class"><name>PipelineBuilder</name>
+    <member refid="class_pipeline_builder_1aaeb2b22d54225828266deb62bb712e75" kind="variable"><name>imp</name></member>
+    <member refid="class_pipeline_builder_1ade8d2989959de787254f306ed0578277" kind="function"><name>mitkClassMacroItkParent</name></member>
+    <member refid="class_pipeline_builder_1af841b3d43b24312bc0bf8f3cf2989e92" kind="function"><name>itkNewMacro</name></member>
+    <member refid="class_pipeline_builder_1a0165d0a00020a8345b332f43fb422a02" kind="function"><name>~PipelineBuilder</name></member>
+    <member refid="class_pipeline_builder_1a942917cbe927d306d7fb8a38477759e1" kind="function"><name>Reset</name></member>
+    <member refid="class_pipeline_builder_1a7b2ed83806bb969ec2ffea6c2b739ce2" kind="function"><name>GetOutput</name></member>
+    <member refid="class_pipeline_builder_1aacc5bd74d1926eb607d3dcbc8f03209f" kind="function"><name>BuilderNavigationToolToNavigationToolFilter</name></member>
+    <member refid="class_pipeline_builder_1a57cb2e1ae299848f251da0729147d267" kind="function"><name>BuilderNavigationToolToSpaceFilter</name></member>
+    <member refid="class_pipeline_builder_1a97c3374c915233edc42e5dc4f2f9a51f" kind="function"><name>BuilderNavigationToolCollector</name></member>
+  </compound>
+  <compound refid="struct_pipeline_builder_1_1_pipeline_builder_private_imp" kind="struct"><name>PipelineBuilder::PipelineBuilderPrivateImp</name>
+    <member refid="struct_pipeline_builder_1_1_pipeline_builder_private_imp_1ad7bc2eef020dd9dabf36729d4abedc5f" kind="variable"><name>pipelineManager</name></member>
+  </compound>
+  <compound refid="class_pipeline_manager" kind="class"><name>PipelineManager</name>
+    <member refid="class_pipeline_manager_1ad027ecdbaf8f102efb871bc0a3ef39f1" kind="variable"><name>imp</name></member>
+    <member refid="class_pipeline_manager_1aac1015c7ee3f69391d15c7032f96493f" kind="function"><name>mitkClassMacro</name></member>
+    <member refid="class_pipeline_manager_1a5c1ca77b12c44a3f2fbf61c328f299f2" kind="function"><name>~PipelineManager</name></member>
+    <member refid="class_pipeline_manager_1a9d1d6b25355ce9985de2c3a5ab6c5519" kind="function"><name>AddFilter</name></member>
+    <member refid="class_pipeline_manager_1a766d9dc3533cf803f717d41d7f50e643" kind="function"><name>RemoveFilter</name></member>
+    <member refid="class_pipeline_manager_1a7977f65f0ddc929cc6ab3265ed864448" kind="function"><name>RemoveFilter</name></member>
+    <member refid="class_pipeline_manager_1acaf0331f56cb6a6d51a6a9632fa5f2ba" kind="function"><name>ModifyFilter</name></member>
+    <member refid="class_pipeline_manager_1a6e8f4630e2556b0af1f50bf1f6cf19ed" kind="function"><name>ModifyFilter</name></member>
+    <member refid="class_pipeline_manager_1afb4bec97962d788e6a2670b1db2e69cd" kind="function"><name>FindFilter</name></member>
+    <member refid="class_pipeline_manager_1a322ef438d04b6c4df2f1fde937dc20d9" kind="function"><name>FindFilter</name></member>
+    <member refid="class_pipeline_manager_1aac730b1bc82620f1f1099a773d0c849b" kind="function"><name>GetIndexByName</name></member>
+    <member refid="class_pipeline_manager_1aa5240224c8eb4fb1bfd31bcd6376033c" kind="function"><name>IsEmpty</name></member>
+    <member refid="class_pipeline_manager_1a77f11c07a2b0c12bd0025f856889a32f" kind="function"><name>GetSize</name></member>
+    <member refid="class_pipeline_manager_1aabb85814eecc30321b73888c2284b8dd" kind="function"><name>GenerateData</name></member>
+  </compound>
+  <compound refid="struct_pipeline_manager_1_1_pipeline_manager_private_imp" kind="struct"><name>PipelineManager::PipelineManagerPrivateImp</name>
+    <member refid="struct_pipeline_manager_1_1_pipeline_manager_private_imp_1ab44d835227be64829ff3be51b59154a4" kind="variable"><name>vecFilterManage</name></member>
+  </compound>
+  <compound refid="class_point_accuracy_date" kind="class"><name>PointAccuracyDate</name>
+    <member refid="class_point_accuracy_date_1a11a10dde033addb662456d94a29ed48f" kind="variable"><name>imp</name></member>
+    <member refid="class_point_accuracy_date_1a116bd04345c2fd8ecd95d9726f7933f0" kind="function"><name>PointAccuracyDate</name></member>
+    <member refid="class_point_accuracy_date_1a58b6575452cf3a2e493cde0093b0c314" kind="function"><name>PointAccuracyDate</name></member>
+    <member refid="class_point_accuracy_date_1afa8f2d841f8efa35e13dbb5d6d384014" kind="function"><name>GetSourcePoint</name></member>
+    <member refid="class_point_accuracy_date_1aa1a91850065de0a768e022495d9aeb88" kind="function"><name>SetSourcePoint</name></member>
+    <member refid="class_point_accuracy_date_1a9834c05e47b4ba7ac1c25bd26ca4a574" kind="function"><name>GetTargetPoint</name></member>
+    <member refid="class_point_accuracy_date_1a695596ec7613f34549b288b28f93ca58" kind="function"><name>SetTargetPoint</name></member>
+    <member refid="class_point_accuracy_date_1a6b434ac6ae7b0de2edb9387d52e0d708" kind="function"><name>Compute</name></member>
+  </compound>
+  <compound refid="struct_point_accuracy_date_1_1_point_accuracy_date_private_imp" kind="struct"><name>PointAccuracyDate::PointAccuracyDatePrivateImp</name>
+    <member refid="struct_point_accuracy_date_1_1_point_accuracy_date_private_imp_1aea6071755ac91d6fcd68fe5f6b14b7bc" kind="variable"><name>srcPoint</name></member>
+    <member refid="struct_point_accuracy_date_1_1_point_accuracy_date_private_imp_1af49370bfde75c303cb10dbe45dfcfc1d" kind="variable"><name>targetPoint</name></member>
+  </compound>
+  <compound refid="structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp" kind="struct"><name>lancet::org_mitk_lancet_services_SpatialFitting::PrivateImp</name>
+    <member refid="structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_1a5fb9408ca6ff66ff36f8b02927dfe317" kind="variable"><name>pluginContext</name></member>
+  </compound>
+  <compound refid="class_robotics_register_director" kind="class"><name>RoboticsRegisterDirector</name>
+    <member refid="class_robotics_register_director_1a87d17e71e4b31d77879dfba0c01f87af" kind="function"><name>mitkClassMacroItkParent</name></member>
+    <member refid="class_robotics_register_director_1a22f33bcca3873532a47f7c266d8d7858" kind="function"><name>itkNewMacro</name></member>
+    <member refid="class_robotics_register_director_1a766f0e3e7f0fe9e629386ab3591a8724" kind="function"><name>~RoboticsRegisterDirector</name></member>
+    <member refid="class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6" kind="function"><name>Builder</name></member>
+  </compound>
+  <compound refid="namespaceitk" kind="namespace"><name>itk</name>
+  </compound>
+  <compound refid="namespacelancet" kind="namespace"><name>lancet</name>
+    <member refid="namespacelancet_1af748ff0fdfe694fb57d29c704ed1287f" kind="typedef"><name>PluginActivator</name></member>
+  </compound>
+  <compound refid="namespacemitk" kind="namespace"><name>mitk</name>
+  </compound>
+  <compound refid="namespaceus" kind="namespace"><name>us</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_navigation_tool_collector_8cpp" kind="file"><name>lancetSpatialFittingNavigationToolCollector.cpp</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_navigation_tool_collector_8h" kind="file"><name>lancetSpatialFittingNavigationToolCollector.h</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp" kind="file"><name>lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8h" kind="file"><name>lancetSpatialFittingNavigationToolToNavigationToolFilter.h</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_navigation_tool_to_space_filter_8cpp" kind="file"><name>lancetSpatialFittingNavigationToolToSpaceFilter.cpp</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_navigation_tool_to_space_filter_8h" kind="file"><name>lancetSpatialFittingNavigationToolToSpaceFilter.h</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_pipeline_builder_8cpp" kind="file"><name>lancetSpatialFittingPipelineBuilder.cpp</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_pipeline_builder_8h" kind="file"><name>lancetSpatialFittingPipelineBuilder.h</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_pipeline_manager_8cpp" kind="file"><name>lancetSpatialFittingPipelineManager.cpp</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_pipeline_manager_8h" kind="file"><name>lancetSpatialFittingPipelineManager.h</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_point_accuracy_date_8cpp" kind="file"><name>lancetSpatialFittingPointAccuracyDate.cpp</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_point_accuracy_date_8h" kind="file"><name>lancetSpatialFittingPointAccuracyDate.h</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_robotics_register_director_8cpp" kind="file"><name>lancetSpatialFittingRoboticsRegisterDirector.cpp</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_robotics_register_director_8h" kind="file"><name>lancetSpatialFittingRoboticsRegisterDirector.h</name>
+  </compound>
+  <compound refid="lancet_plugin_activator_8cpp" kind="file"><name>lancetPluginActivator.cpp</name>
+  </compound>
+  <compound refid="lancet_plugin_activator_8h" kind="file"><name>lancetPluginActivator.h</name>
+    <member refid="namespacelancet_1af748ff0fdfe694fb57d29c704ed1287f" kind="typedef"><name>PluginActivator</name></member>
+  </compound>
+  <compound refid="lancet_spatial_fitting_robotics_register_model_8cpp" kind="file"><name>lancetSpatialFittingRoboticsRegisterModel.cpp</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_robotics_register_model_8h" kind="file"><name>lancetSpatialFittingRoboticsRegisterModel.h</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_abstract_director_8cpp" kind="file"><name>lancetSpatialFittingAbstractDirector.cpp</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_abstract_director_8h" kind="file"><name>lancetSpatialFittingAbstractDirector.h</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_abstract_pipeline_builder_8cpp" kind="file"><name>lancetSpatialFittingAbstractPipelineBuilder.cpp</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_abstract_pipeline_builder_8h" kind="file"><name>lancetSpatialFittingAbstractPipelineBuilder.h</name>
+  </compound>
+  <compound refid="lancet_spatial_fitting_global_8h" kind="file"><name>lancetSpatialFittingGlobal.h</name>
+    <member refid="group__org__mitk__lancet__services__spatialfitting_1ga58923762afd58c3a163a36025e4cc47b" kind="define"><name>LancetSpatialFittingNameSpace</name></member>
+    <member refid="lancet_spatial_fitting_global_8h_1a46dfb2b6a3c254fe1e813738c9e2d843" kind="define"><name>CXX_NAMESPACE</name></member>
+    <member refid="lancet_spatial_fitting_global_8h_1ab4445c090407f9f29572f91def706829" kind="define"><name>NAMESPACE_START_SCOPE</name></member>
+    <member refid="lancet_spatial_fitting_global_8h_1a5f15f032a27a26d593082ca10e5ae8fc" kind="define"><name>NAMESPACE_CLOSE_SCOPE</name></member>
+    <member refid="lancet_spatial_fitting_global_8h_1a8b7604fc10134a297f75ed756406cc3e" kind="define"><name>NAMSPEACE_DEFINE</name></member>
+    <member refid="lancet_spatial_fitting_global_8h_1ad96a7225ff04a3560c2addbe60ca0018" kind="define"><name>BEGIN_NAMSPEACE_DEFINE</name></member>
+    <member refid="lancet_spatial_fitting_global_8h_1aed5814a4467f133e62de345e372afe79" kind="define"><name>END_NAMSPEACE_DEFINE</name></member>
+    <member refid="lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e" kind="define"><name>BEGIN_SPATIAL_FITTING_NAMESPACE</name></member>
+    <member refid="lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2" kind="define"><name>END_SPATIAL_FITTING_NAMESPACE</name></member>
+  </compound>
+  <compound refid="mainpage_01-_01_xE5_x89_xAF_xE6_x9C_xAC_8h" kind="file"><name>mainpage - 副本.h</name>
+  </compound>
+  <compound refid="mainpage_8h" kind="file"><name>mainpage.h</name>
+  </compound>
+  <compound refid="group__org__mitk__lancet__services__spatialfitting" kind="group"><name>org_mitk_lancet_services_spatialfitting</name>
+    <member refid="group__org__mitk__lancet__services__spatialfitting_1ga58923762afd58c3a163a36025e4cc47b" kind="define"><name>LancetSpatialFittingNameSpace</name></member>
+  </compound>
+  <compound refid="dir_aebb8dcc11953d78e620bbef0b9e2183" kind="dir"><name>src/core</name>
+  </compound>
+  <compound refid="dir_3756d50f4003bc63fa3fe49460f9c79d" kind="dir"><name>src/internal</name>
+  </compound>
+  <compound refid="dir_68267d1309a1af8e8297ef4c3efbcdba" kind="dir"><name>src</name>
+  </compound>
+</doxygenindex>

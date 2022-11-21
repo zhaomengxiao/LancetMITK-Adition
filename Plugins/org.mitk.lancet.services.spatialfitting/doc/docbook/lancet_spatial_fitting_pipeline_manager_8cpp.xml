@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_pipeline_manager_8cpp" xml:lang="en-US">
+<title>src/core/lancetSpatialFittingPipelineManager.cpp File Reference</title>
+<indexterm><primary>src/core/lancetSpatialFittingPipelineManager.cpp</primary></indexterm>
+<programlisting linenumbering="unnumbered">#include &quot;lancetSpatialFittingPipelineManager.h&quot;
+</programlisting>Include dependency graph for lancetSpatialFittingPipelineManager.cpp:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="lancet_spatial_fitting_pipeline_manager_8cpp__incl.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+<simplesect>
+    <title>Classes    </title>
+        <itemizedlist>
+            <listitem><para>struct <link linkend="_struct_pipeline_manager_1_1_pipeline_manager_private_imp">PipelineManager::PipelineManagerPrivateImp</link></para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+</section>

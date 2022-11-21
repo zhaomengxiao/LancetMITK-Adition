@@ -1,0 +1,205 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_class_navigation_tool_to_navigation_tool_filter" xml:lang="en-US">
+<title>NavigationToolToNavigationToolFilter Class Reference</title>
+<indexterm><primary>NavigationToolToNavigationToolFilter</primary></indexterm>
+<para>
+
+<para>This is the header file that declares the data processing filter from space to space coordinate system of space fitting. </para>
+ 
+</para>
+<para>
+<computeroutput>#include &lt;lancetSpatialFittingNavigationToolToNavigationToolFilter.h&gt;</computeroutput>
+</para>
+Inheritance diagram for NavigationToolToNavigationToolFilter:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="class_navigation_tool_to_navigation_tool_filter__inherit__graph.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+Collaboration diagram for NavigationToolToNavigationToolFilter:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="class_navigation_tool_to_navigation_tool_filter__coll__graph.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+<simplesect>
+    <title>Classes    </title>
+        <itemizedlist>
+            <listitem><para>struct <link linkend="_struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp">NavigationToolToNavigationToolFilterPrivateImp</link></para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<simplesect>
+    <title>Public Member Functions    </title>
+        <itemizedlist>
+            <listitem><para><link linkend="_class_navigation_tool_to_navigation_tool_filter_1a29821821458d98ea093dd1be239fd63e">mitkClassMacro</link> (<link linkend="_class_navigation_tool_to_navigation_tool_filter">NavigationToolToNavigationToolFilter</link>, mitk::NavigationDataToNavigationDataFilter)</para>
+</listitem>
+            <listitem><para><link linkend="_class_navigation_tool_to_navigation_tool_filter_1a2ea6c7315526610f9426e2246a35f7a7">NavigationToolToNavigationToolFilter</link> ()</para>
+</listitem>
+            <listitem><para>virtual <link linkend="_class_navigation_tool_to_navigation_tool_filter_1a86594180b499fef3b682afa968f251a4">~NavigationToolToNavigationToolFilter</link> ()</para>
+</listitem>
+            <listitem><para>virtual mitk::NavigationData::Pointer <link linkend="_class_navigation_tool_to_navigation_tool_filter_1abfd9b683e051902446a83c8de9ebfd3a">GetUCSTool</link> () const</para>
+
+<para>Get the tool data object from the input data to the target coordinate system. </para>
+</listitem>
+            <listitem><para>virtual void <link linkend="_class_navigation_tool_to_navigation_tool_filter_1a0c75c8ab858b01e2544f74228eccdf4d">SetUCSTool</link> (mitk::NavigationData::Pointer tool)</para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<simplesect>
+    <title>Protected Member Functions    </title>
+        <itemizedlist>
+            <listitem><para>virtual void <link linkend="_class_navigation_tool_to_navigation_tool_filter_1ae46d9e67048e81abf3eec9d3d780ff1f">GenerateData</link> () override</para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<section>
+<title>Detailed Description</title>
+
+<para>This is the header file that declares the data processing filter from space to space coordinate system of space fitting. </para>
+
+
+
+<para><formalpara>
+<title>Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.</title>
+<para></para>
+</formalpara>
+<formalpara><title>Version</title>
+
+<para>V1.0.0 </para>
+</formalpara>
+<formalpara><title>Date</title>
+
+<para>2022-11-18 10:16:37</para>
+</formalpara>
+<formalpara>
+<title>Modify History</title>
+<para><orderedlist>
+<listitem>
+<para>Sun initialization the version for 2022-11-18 10:16:37.</para>
+</listitem></orderedlist>
+</para>
+</formalpara>
+<formalpara><title>Author</title>
+
+<para>Sun </para>
+</formalpara>
+<formalpara><title>Date</title>
+
+<para>2022-11-18 10:16:37 </para>
+</formalpara>
+<formalpara><title>Remarks</title>
+
+<para>Non</para>
+</formalpara>
+This is a tool to tool spatial data conversion filter.</para>
+
+<para>This filter will transfer the navigation tool input data to the UCS tool coordinate system.</para>
+
+<para><warning><title>Warning</title>
+
+<para>The filter itself will not monitor the validity of any data. If correct output data is required, please ensure the validity of the input data.
+<literallayout>&#160;&#xa;</literallayout>
+</para>
+</warning>
+Please refer to <link xlink:href="https://docs.mitk.org/nightly/classmitk_1_1NavigationDataToNavigationDataFilter.html">mitk::NavigationDataToNavigationDataFilter</link> for details.</para>
+
+<para><emphasis role="bold">Class diagram:</emphasis>
+<literallayout>&#160;&#xa;</literallayout>
+ </para>
+
+<para><formalpara><title>Author</title>
+
+<para>Sun </para>
+</formalpara>
+<formalpara><title>Version</title>
+
+<para>V1.0.0 </para>
+</formalpara>
+<formalpara><title>Date</title>
+
+<para>2022-11-18 17:21:18 </para>
+</formalpara>
+<formalpara><title>Remarks</title>
+
+<para>Non</para>
+</formalpara>
+Contact: <link xlink:href="mailto:sh4a01@163.com">sh4a01@163.com</link> </para>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8h_source_1l00054">54</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8h_source">lancetSpatialFittingNavigationToolToNavigationToolFilter.h</link>.</para>
+</section>
+<section>
+<title>Constructor &amp; Destructor Documentation</title>
+<anchor xml:id="_class_navigation_tool_to_navigation_tool_filter_1a2ea6c7315526610f9426e2246a35f7a7"/><section>
+    <title>NavigationToolToNavigationToolFilter()</title>
+<indexterm><primary>NavigationToolToNavigationToolFilter</primary><secondary>NavigationToolToNavigationToolFilter</secondary></indexterm>
+<indexterm><primary>NavigationToolToNavigationToolFilter</primary><secondary>NavigationToolToNavigationToolFilter</secondary></indexterm>
+<para><computeroutput>NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilter ( )</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source_1l00010">10</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source">lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00011 &#32;&#32;&#32;&#32;:&#32;imp(std::make_shared&lt;NavigationToolToNavigationToolFilterPrivateImp&gt;())
+00012 {
+00013 &#32;&#32;&#32;&#32;mitk::NavigationData::Pointer&#32;ucsTool;
+00014 }
+</programlisting></section>
+<anchor xml:id="_class_navigation_tool_to_navigation_tool_filter_1a86594180b499fef3b682afa968f251a4"/><section>
+    <title>~NavigationToolToNavigationToolFilter()</title>
+<indexterm><primary>~NavigationToolToNavigationToolFilter</primary><secondary>NavigationToolToNavigationToolFilter</secondary></indexterm>
+<indexterm><primary>NavigationToolToNavigationToolFilter</primary><secondary>~NavigationToolToNavigationToolFilter</secondary></indexterm>
+<para><computeroutput>NavigationToolToNavigationToolFilter::~NavigationToolToNavigationToolFilter ( )<computeroutput>[virtual]</computeroutput></computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source_1l00016">16</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source">lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00017 {
+00018 }
+</programlisting></section>
+</section>
+<section>
+<title>Member Function Documentation</title>
+<anchor xml:id="_class_navigation_tool_to_navigation_tool_filter_1ae46d9e67048e81abf3eec9d3d780ff1f"/><section>
+    <title>GenerateData()</title>
+<indexterm><primary>GenerateData</primary><secondary>NavigationToolToNavigationToolFilter</secondary></indexterm>
+<indexterm><primary>NavigationToolToNavigationToolFilter</primary><secondary>GenerateData</secondary></indexterm>
+<para><computeroutput>void NavigationToolToNavigationToolFilter::GenerateData ( )<computeroutput>[override]</computeroutput>, <computeroutput>[protected]</computeroutput>, <computeroutput>[virtual]</computeroutput></computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source_1l00031">31</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source">lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00032 {
+00033 
+00034 }
+</programlisting></section>
+<anchor xml:id="_class_navigation_tool_to_navigation_tool_filter_1abfd9b683e051902446a83c8de9ebfd3a"/><section>
+    <title>GetUCSTool()</title>
+<indexterm><primary>GetUCSTool</primary><secondary>NavigationToolToNavigationToolFilter</secondary></indexterm>
+<indexterm><primary>NavigationToolToNavigationToolFilter</primary><secondary>GetUCSTool</secondary></indexterm>
+<para><computeroutput>mitk::NavigationData::Pointer NavigationToolToNavigationToolFilter::GetUCSTool ( ) const<computeroutput>[virtual]</computeroutput></computeroutput></para><para>
+
+<para>Get the tool data object from the input data to the target coordinate system. </para>
+</para>
+
+<para>UCS: User Coordinate system. </para>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source_1l00021">21</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source">lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00022 {
+00023 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;mitk::NavigationData::Pointer();
+00024 }
+</programlisting></section>
+<anchor xml:id="_class_navigation_tool_to_navigation_tool_filter_1a29821821458d98ea093dd1be239fd63e"/><section>
+    <title>mitkClassMacro()</title>
+<indexterm><primary>mitkClassMacro</primary><secondary>NavigationToolToNavigationToolFilter</secondary></indexterm>
+<indexterm><primary>NavigationToolToNavigationToolFilter</primary><secondary>mitkClassMacro</secondary></indexterm>
+<para><computeroutput>NavigationToolToNavigationToolFilter::mitkClassMacro (<link linkend="_class_navigation_tool_to_navigation_tool_filter">NavigationToolToNavigationToolFilter</link> , mitk::NavigationDataToNavigationDataFilter )</computeroutput></para></section>
+<anchor xml:id="_class_navigation_tool_to_navigation_tool_filter_1a0c75c8ab858b01e2544f74228eccdf4d"/><section>
+    <title>SetUCSTool()</title>
+<indexterm><primary>SetUCSTool</primary><secondary>NavigationToolToNavigationToolFilter</secondary></indexterm>
+<indexterm><primary>NavigationToolToNavigationToolFilter</primary><secondary>SetUCSTool</secondary></indexterm>
+<para><computeroutput>void NavigationToolToNavigationToolFilter::SetUCSTool (mitk::NavigationData::Pointer tool)<computeroutput>[virtual]</computeroutput></computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source_1l00026">26</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source">lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00028 {
+00029 }
+</programlisting></section>
+<para>
+The documentation for this class was generated from the following files:</para>
+src/core/<link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8h">lancetSpatialFittingNavigationToolToNavigationToolFilter.h</link>src/core/<link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp">lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</link></section>
+</section>

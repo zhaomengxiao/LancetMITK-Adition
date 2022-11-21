@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source" xml:lang="en-US">
+<title>lancetSpatialFittingRoboticsRegisterModel.h</title>
+<indexterm><primary>src/internal/lancetSpatialFittingRoboticsRegisterModel.h</primary></indexterm>
+Go to the documentation of this file.<programlisting linenumbering="unnumbered"><anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00001"/>00001 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00016"/>00016 <emphasis role="preprocessor">#ifndef&#32;LancetSpatialFittingRoboticsRegisterModel_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00017"/>00017 <emphasis role="preprocessor">#define&#32;LancetSpatialFittingRoboticsRegisterModel_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00018"/>00018 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00019"/>00019 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_global_8h">lancetSpatialFittingGlobal.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00020"/>00020 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00021"/>00021 <link linkend="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e">BEGIN_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00022"/>00022 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00023"/><link linkend="_class_abstract_pipeline_builder">00023</link> <emphasis role="keyword">class&#32;</emphasis>ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00024"/>00024 &#32;&#32;&#32;&#32;<link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00025"/>00025 {
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00026"/>00026 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00027"/>00027 };
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00028"/>00028 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00029"/>00029 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00030"/>00030 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00031"/>00031 <emphasis role="preprocessor">#endif&#32;</emphasis><emphasis role="comment">//&#32;!LancetSpatialFittingRoboticsRegisterModel_H</emphasis>
+</programlisting></section>

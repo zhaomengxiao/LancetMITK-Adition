@@ -1,0 +1,5 @@
+<map id="RoboticsRegisterDirector" name="RoboticsRegisterDirector">
+<area shape="rect" id="node1" title="This is the header file of the decision&#45;maker for the registration and construction of the robot arm." alt="" coords="5,155,172,181"/>
+<area shape="rect" id="node2" href="$class_abstract_director.html" title="This is the decision&#45;maker class of the abstract generator pattern." alt="" coords="31,80,147,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="47,5,130,32"/>
+</map>

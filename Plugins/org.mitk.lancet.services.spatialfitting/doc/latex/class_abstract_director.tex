@@ -1,0 +1,178 @@
+\hypertarget{class_abstract_director}{}\doxysection{Abstract\+Director Class Reference}
+\label{class_abstract_director}\index{AbstractDirector@{AbstractDirector}}
+
+
+This is the decision-\/maker class of the abstract generator pattern.  
+
+
+
+
+{\ttfamily \#include $<$lancet\+Spatial\+Fitting\+Abstract\+Director.\+h$>$}
+
+
+
+Inheritance diagram for Abstract\+Director\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=205pt]{class_abstract_director__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for Abstract\+Director\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=167pt]{class_abstract_director__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{struct_abstract_director_1_1_abstract_director_private_imp}{Abstract\+Director\+Private\+Imp}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_abstract_director_ae2cf08a58c1b53215e4018a6ed6c0143}{mitk\+Class\+Macro\+Itk\+Parent}} (\mbox{\hyperlink{class_abstract_director}{Abstract\+Director}}, itk\+::\+Object)
+\item 
+\mbox{\hyperlink{class_abstract_director_ac9f0cc7f7ae8d3d31a5dcd017f2f8191}{Abstract\+Director}} ()
+\item 
+virtual bool \mbox{\hyperlink{class_abstract_director_a89be2adee44d1ea75c54fe40286b6f59}{Builder}} ()=0
+\begin{DoxyCompactList}\small\item\em Implement the construction order or method of pipeline data. \end{DoxyCompactList}\item 
+virtual itk\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{class_abstract_pipeline_builder}{Abstract\+Pipeline\+Builder}} $>$ \mbox{\hyperlink{class_abstract_director_a78aa56c869e219c1988be4512423ce80}{Get\+Builder}} () const
+\item 
+virtual void \mbox{\hyperlink{class_abstract_director_a8ff3d2fedaec0f382fb19cab93766f92}{Set\+Builder}} (itk\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{class_abstract_pipeline_builder}{Abstract\+Pipeline\+Builder}} $>$ builder)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+This is the decision-\/maker class of the abstract generator pattern. 
+
+Strictly speaking, the supervisor class is not necessarily required in the program. The client code can directly call the creation steps in a specific order. However, it is very suitable to put various routine construction processes into the supervisor class for repeated use in the program.
+
+In addition, for client code, the supervisor class completely hides the det-\/ ails of product construction. The client only needs to associate a generator with the supervisor class, and then use the supervisor class to construct the product, so that the construction result can be obtained from the generator.
+
+{\bfseries{Class diagram\+:}}~\newline
+ 
+
+{\bfseries{Example\+:}}~\newline
+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{// Building Entity Decision Maker and Generator Objects.}}
+\DoxyCodeLine{AbstractDirector::Pointer director = MyDirector::New();}
+\DoxyCodeLine{director-\/>SetBuilder(MyPipelineBuilder::New());}
+\DoxyCodeLine{\textcolor{comment}{// Using Polymorphic Features to Call the Construction Method of Entity }}
+\DoxyCodeLine{\textcolor{comment}{// Decision Maker.}}
+\DoxyCodeLine{director-\/>Builder();}
+\DoxyCodeLine{\textcolor{comment}{//Get the pipeline data object produced by the builder.}}
+\DoxyCodeLine{PipelineManager::Pointer pipeline = director-\/>GetBuilder()-\/>GetOutput();}
+
+\end{DoxyCode}
+
+
+\begin{DoxyAuthor}{Author}
+Sun 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+V1.\+0.\+0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+2022-\/11-\/18 16\+:45\+:08 
+\end{DoxyDate}
+\begin{DoxyRemark}{Remarks}
+Non
+\end{DoxyRemark}
+Contact\+: \href{mailto:sh4a01@163.com}{\texttt{ sh4a01@163.\+com}} 
+
+Definition at line \mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8h_source_l00068}{68}} of file \mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8h_source}{lancet\+Spatial\+Fitting\+Abstract\+Director.\+h}}.
+
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_abstract_director_ac9f0cc7f7ae8d3d31a5dcd017f2f8191}\label{class_abstract_director_ac9f0cc7f7ae8d3d31a5dcd017f2f8191}} 
+\index{AbstractDirector@{AbstractDirector}!AbstractDirector@{AbstractDirector}}
+\index{AbstractDirector@{AbstractDirector}!AbstractDirector@{AbstractDirector}}
+\doxysubsubsection{\texorpdfstring{AbstractDirector()}{AbstractDirector()}}
+{\footnotesize\ttfamily Abstract\+Director\+::\+Abstract\+Director (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8cpp_source_l00011}{11}} of file \mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8cpp_source}{lancet\+Spatial\+Fitting\+Abstract\+Director.\+cpp}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00012     : imp(std::make\_shared<AbstractDirectorPrivateImp>())}
+\DoxyCodeLine{00013 \{}
+\DoxyCodeLine{00014 \}}
+
+\end{DoxyCode}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_abstract_director_a89be2adee44d1ea75c54fe40286b6f59}\label{class_abstract_director_a89be2adee44d1ea75c54fe40286b6f59}} 
+\index{AbstractDirector@{AbstractDirector}!Builder@{Builder}}
+\index{Builder@{Builder}!AbstractDirector@{AbstractDirector}}
+\doxysubsubsection{\texorpdfstring{Builder()}{Builder()}}
+{\footnotesize\ttfamily virtual bool Abstract\+Director\+::\+Builder (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Implement the construction order or method of pipeline data. 
+
+In the spatial fitting module, the functional components of various pipe-\/ line data objects may be the same component, but the production order has some deviations. The derived class needs to correctly control the produce order of pipeline data for this interface.
+
+\begin{DoxyReturn}{Returns}
+True Production succeeded, otherwise it failed. 
+\end{DoxyReturn}
+
+
+Implemented in \mbox{\hyperlink{class_robotics_register_director_a4ff2015bf1ff9eb73501bee5abecd5e6}{Robotics\+Register\+Director}}.
+
+\mbox{\Hypertarget{class_abstract_director_a78aa56c869e219c1988be4512423ce80}\label{class_abstract_director_a78aa56c869e219c1988be4512423ce80}} 
+\index{AbstractDirector@{AbstractDirector}!GetBuilder@{GetBuilder}}
+\index{GetBuilder@{GetBuilder}!AbstractDirector@{AbstractDirector}}
+\doxysubsubsection{\texorpdfstring{GetBuilder()}{GetBuilder()}}
+{\footnotesize\ttfamily itk\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{class_abstract_pipeline_builder}{Abstract\+Pipeline\+Builder}} $>$ Abstract\+Director\+::\+Get\+Builder (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8cpp_source_l00016}{16}} of file \mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8cpp_source}{lancet\+Spatial\+Fitting\+Abstract\+Director.\+cpp}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00017 \{}
+\DoxyCodeLine{00018     \textcolor{keywordflow}{return} itk::SmartPointer<AbstractPipelineBuilder>();}
+\DoxyCodeLine{00019 \}}
+
+\end{DoxyCode}
+\mbox{\Hypertarget{class_abstract_director_ae2cf08a58c1b53215e4018a6ed6c0143}\label{class_abstract_director_ae2cf08a58c1b53215e4018a6ed6c0143}} 
+\index{AbstractDirector@{AbstractDirector}!mitkClassMacroItkParent@{mitkClassMacroItkParent}}
+\index{mitkClassMacroItkParent@{mitkClassMacroItkParent}!AbstractDirector@{AbstractDirector}}
+\doxysubsubsection{\texorpdfstring{mitkClassMacroItkParent()}{mitkClassMacroItkParent()}}
+{\footnotesize\ttfamily Abstract\+Director\+::mitk\+Class\+Macro\+Itk\+Parent (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_abstract_director}{Abstract\+Director}}}]{,  }\item[{itk\+::\+Object}]{ }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{class_abstract_director_a8ff3d2fedaec0f382fb19cab93766f92}\label{class_abstract_director_a8ff3d2fedaec0f382fb19cab93766f92}} 
+\index{AbstractDirector@{AbstractDirector}!SetBuilder@{SetBuilder}}
+\index{SetBuilder@{SetBuilder}!AbstractDirector@{AbstractDirector}}
+\doxysubsubsection{\texorpdfstring{SetBuilder()}{SetBuilder()}}
+{\footnotesize\ttfamily void Abstract\+Director\+::\+Set\+Builder (\begin{DoxyParamCaption}\item[{itk\+::\+Smart\+Pointer$<$ \mbox{\hyperlink{class_abstract_pipeline_builder}{Abstract\+Pipeline\+Builder}} $>$}]{builder }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Definition at line \mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8cpp_source_l00021}{21}} of file \mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8cpp_source}{lancet\+Spatial\+Fitting\+Abstract\+Director.\+cpp}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00022 \{}
+\DoxyCodeLine{00023 \}}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/\mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8h}{lancet\+Spatial\+Fitting\+Abstract\+Director.\+h}}\item 
+src/\mbox{\hyperlink{lancet_spatial_fitting_abstract_director_8cpp}{lancet\+Spatial\+Fitting\+Abstract\+Director.\+cpp}}\end{DoxyCompactItemize}

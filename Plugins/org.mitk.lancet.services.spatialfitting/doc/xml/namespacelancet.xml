@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="namespacelancet" kind="namespace" language="C++">
+    <compoundname>lancet</compoundname>
+    <innerclass refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting" prot="public">lancet::org_mitk_lancet_services_SpatialFitting</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="namespacelancet_1af748ff0fdfe694fb57d29c704ed1287f" prot="public" static="no">
+        <type><ref refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting" kindref="compound">org_mitk_lancet_services_SpatialFitting</ref></type>
+        <definition>typedef org_mitk_lancet_services_SpatialFitting lancet::PluginActivator</definition>
+        <argsstring></argsstring>
+        <name>PluginActivator</name>
+        <qualifiedname>lancet::PluginActivator</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetPluginActivator.h" line="42" column="49" bodyfile="src/internal/lancetPluginActivator.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/internal/lancetPluginActivator.cpp" line="8" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp" kind="struct" language="C++" prot="public">
+    <compoundname>lancet::org_mitk_lancet_services_SpatialFitting::PrivateImp</compoundname>
+      <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_1a5fb9408ca6ff66ff36f8b02927dfe317" prot="public" static="yes" mutable="no">
+        <type>ctkPluginContext *</type>
+        <definition>ctkPluginContext * lancet::PluginActivator::PrivateImp::pluginContext</definition>
+        <argsstring></argsstring>
+        <name>pluginContext</name>
+        <qualifiedname>lancet::org_mitk_lancet_services_SpatialFitting::PrivateImp::pluginContext</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetPluginActivator.cpp" line="14" column="29" bodyfile="src/internal/lancetPluginActivator.cpp" bodystart="14" bodyend="-1"/>
+        <referencedby refid="classlancet_1_1org__mitk__lancet__services___spatial_fitting_1a5c832aeff92d6f89628b515c6be3d706" compoundref="lancet_plugin_activator_8cpp" startline="52" endline="55">lancet::org_mitk_lancet_services_SpatialFitting::GetPluginContext</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/internal/lancetPluginActivator.cpp" line="12" column="3" bodyfile="src/internal/lancetPluginActivator.cpp" bodystart="13" bodyend="16"/>
+    <listofallmembers>
+      <member refid="structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_1a5fb9408ca6ff66ff36f8b02927dfe317" prot="public" virt="non-virtual"><scope>lancet::org_mitk_lancet_services_SpatialFitting::PrivateImp</scope><name>pluginContext</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

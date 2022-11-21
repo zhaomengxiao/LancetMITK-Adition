@@ -1,0 +1,88 @@
+\hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source}{}\doxysection{lancet\+Spatial\+Fitting\+Navigation\+Tool\+Collector.\+h}
+\label{lancet_spatial_fitting_navigation_tool_collector_8h_source}\index{src/core/lancetSpatialFittingNavigationToolCollector.h@{src/core/lancetSpatialFittingNavigationToolCollector.h}}
+\mbox{\hyperlink{lancet_spatial_fitting_navigation_tool_collector_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00001}00001 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00018}00018 \textcolor{preprocessor}{\#ifndef LancetSpatialFittingNavigationToolCollector\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00019}00019 \textcolor{preprocessor}{\#define LancetSpatialFittingNavigationToolCollector\_H}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00020}00020 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00021}00021 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_spatial_fitting_global_8h}{lancetSpatialFittingGlobal.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00022}00022 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00023}00023 \textcolor{comment}{// mitk}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00024}00024 \textcolor{preprocessor}{\#include <mitkNavigationDataToNavigationDataFilter.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00025}00025 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00026}00026 \textcolor{comment}{// Qt}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00027}00027 \textcolor{preprocessor}{\#include <QObject>}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00028}00028 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00029}00029 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_ac7cbc2e822ef6d60c8707aff07500e8e}{BEGIN\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00030}00030 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00079}\mbox{\hyperlink{class_navigation_tool_collector}{00079}} \textcolor{keyword}{class }ORG\_MITK\_LANCET\_SERVICES\_SPATIALFITTING\_PLUGIN}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00080}00080     \mbox{\hyperlink{class_navigation_tool_collector}{NavigationToolCollector}} }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00081}00081     : \textcolor{keyword}{public} QObject}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00082}00082     , \textcolor{keyword}{public} mitk::NavigationDataToNavigationDataFilter}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00083}00083 \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00084}00084     Q\_OBJECT}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00085}00085 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00086}\mbox{\hyperlink{class_navigation_tool_collector_a6f8b5df60a290593bf1bb1a9fc625f16}{00086}}     \mbox{\hyperlink{class_navigation_tool_collector_a6f8b5df60a290593bf1bb1a9fc625f16}{mitkClassMacro}}(\mbox{\hyperlink{class_navigation_tool_collector}{NavigationToolCollector}},}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00087}00087         mitk::NavigationDataToNavigationDataFilter);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00088}00088 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00089}\mbox{\hyperlink{class_navigation_tool_collector_a810ecc5db9f5849f47572a6062e2f9b4}{00089}}     \mbox{\hyperlink{class_navigation_tool_collector_a810ecc5db9f5849f47572a6062e2f9b4}{itkNewMacro}}(\mbox{\hyperlink{class_navigation_tool_collector}{NavigationToolCollector}})}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00090}00090 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00091}00091     \mbox{\hyperlink{class_navigation_tool_collector}{NavigationToolCollector}}();}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00092}00092     \textcolor{keyword}{virtual}\mbox{\hyperlink{class_navigation_tool_collector}{\string~NavigationToolCollector}}();}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00093}00093 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00099}\mbox{\hyperlink{class_navigation_tool_collector_a793a47d9b2d106fe5c7de0b6f2765bf2}{00099}}     \textcolor{keyword}{enum} \mbox{\hyperlink{class_navigation_tool_collector_a793a47d9b2d106fe5c7de0b6f2765bf2}{WorkStatus}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00100}00100     \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00101}\mbox{\hyperlink{class_navigation_tool_collector_a793a47d9b2d106fe5c7de0b6f2765bf2a60af479e2077ff33204eede4b577f915}{00101}}         Unknown = 0x00000001,   }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00102}\mbox{\hyperlink{class_navigation_tool_collector_a793a47d9b2d106fe5c7de0b6f2765bf2a439341d4e0d56e31bfb9188301049c22}{00102}}         Idle = 0x00000010,      }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00103}00103         Working = 0x00000100    }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00104}\mbox{\hyperlink{class_navigation_tool_collector_a793a47d9b2d106fe5c7de0b6f2765bf2af12f6f23fb029c362b5b2df2056d1103}{00104}}     \};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00105}00105 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00111}\mbox{\hyperlink{class_navigation_tool_collector_a329965a0bd15de5a40b060958ee06c6e}{00111}}     \textcolor{keyword}{enum} \mbox{\hyperlink{class_navigation_tool_collector_a329965a0bd15de5a40b060958ee06c6e}{ErrorCodes}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00112}00112     \{}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00113}\mbox{\hyperlink{class_navigation_tool_collector_a329965a0bd15de5a40b060958ee06c6ea1a1831e2930a2d975cb389a0c2d3beda}{00113}}         \mbox{\hyperlink{class_navigation_tool_collector_a329965a0bd15de5a40b060958ee06c6ea1a1831e2930a2d975cb389a0c2d3beda}{Accuracy}},                           }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00114}00114         Invisible                           }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00115}\mbox{\hyperlink{class_navigation_tool_collector_a329965a0bd15de5a40b060958ee06c6ea6114fc023a17b679b416914a74f5428b}{00115}}     \};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00116}00116 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00117}00117     Q\_ENUM(WorkStatus)}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00118}00118     Q\_ENUM(ErrorCodes)}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00119}00119 \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00131}00131     \textcolor{keyword}{virtual} \textcolor{keywordtype}{long} GetInterval() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00132}00132     \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetInterval(\textcolor{keywordtype}{long} interval);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00133}00133 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00144}00144     \textcolor{keyword}{virtual} \textcolor{keywordtype}{unsigned} \textcolor{keywordtype}{int} GetNumberForMean() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00145}00145     \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetNumberForMean(\textcolor{keywordtype}{unsigned} \textcolor{keywordtype}{int} number);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00146}00146 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00155}00155     \textcolor{keyword}{virtual} \textcolor{keywordtype}{double} GetAccuracyRange() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00156}00156     \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} SetAccuracyRange(\textcolor{keywordtype}{double} accuracy);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00157}00157 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00174}00174     \textcolor{keyword}{virtual} WorkStatus GetWorkState() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00175}00175     \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} IsRunning() \textcolor{keyword}{const};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00176}00176 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00192}00192     \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} Start(\textcolor{keywordtype}{long} interval = 0);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00193}00193 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00197}00197     \textcolor{keyword}{virtual} \textcolor{keywordtype}{bool} Stop();}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00198}00198 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00199}00199 Q\_SIGNALS:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00218}\mbox{\hyperlink{class_navigation_tool_collector_ad5802851ffe9fb9cb407708baf7af03f}{00218}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{class_navigation_tool_collector_ad5802851ffe9fb9cb407708baf7af03f}{Fail}}(\textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00219}00219 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00229}\mbox{\hyperlink{class_navigation_tool_collector_adcccfa2b8be5acf775cc50fcbb0bc5fc}{00229}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{class_navigation_tool_collector_adcccfa2b8be5acf775cc50fcbb0bc5fc}{Step}}(\textcolor{keywordtype}{int}, mitk::NavigationData*);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00230}00230 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00240}\mbox{\hyperlink{class_navigation_tool_collector_a75361f2bc6118de20559d9f89bf48198}{00240}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{class_navigation_tool_collector_a75361f2bc6118de20559d9f89bf48198}{Complete}}(mitk::NavigationData*);}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00241}00241 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00242}00242 \textcolor{keyword}{protected} Q\_SLOTS:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00243}00243     \textcolor{keywordtype}{void} on\_QtTimerTrigger\_timeout();}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00244}00244 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00245}00245 \textcolor{keyword}{protected}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00246}00246     \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} GenerateData() \textcolor{keyword}{override};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00247}00247 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00248}00248 \textcolor{keyword}{private}:}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00249}00249     \textcolor{keyword}{struct }\mbox{\hyperlink{struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp}{NavigationToolCollectorPrivateImp}};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00250}00250     std::shared\_ptr<NavigationToolCollectorPrivateImp> imp;}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00251}00251 \};}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00252}00252 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00253}00253 \mbox{\hyperlink{lancet_spatial_fitting_global_8h_a9046787dc4d688d2099a8a3048a11bf2}{END\_SPATIAL\_FITTING\_NAMESPACE}}}
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00254}00254 }
+\DoxyCodeLine{\Hypertarget{lancet_spatial_fitting_navigation_tool_collector_8h_source_l00255}00255 \textcolor{preprocessor}{\#endif }\textcolor{comment}{// !LancetSpatialFittingNavigationToolCollector\_H}}
+
+\end{DoxyCode}

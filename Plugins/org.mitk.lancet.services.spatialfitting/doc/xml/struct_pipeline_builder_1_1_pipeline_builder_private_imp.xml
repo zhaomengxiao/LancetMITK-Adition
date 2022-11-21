@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="struct_pipeline_builder_1_1_pipeline_builder_private_imp" kind="struct" language="C++" prot="public">
+    <compoundname>PipelineBuilder::PipelineBuilderPrivateImp</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_pipeline_builder_1_1_pipeline_builder_private_imp_1ad7bc2eef020dd9dabf36729d4abedc5f" prot="public" static="no" mutable="no">
+        <type>itk::SmartPointer&lt; <ref refid="class_pipeline_manager" kindref="compound">PipelineManager</ref> &gt;</type>
+        <definition>itk::SmartPointer&lt;PipelineManager&gt; PipelineBuilder::PipelineBuilderPrivateImp::pipelineManager</definition>
+        <argsstring></argsstring>
+        <name>pipelineManager</name>
+        <qualifiedname>PipelineBuilder::PipelineBuilderPrivateImp::pipelineManager</qualifiedname>
+        <initializer>= PipelineManager::New()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/core/lancetSpatialFittingPipelineBuilder.cpp" line="9" column="19" bodyfile="src/core/lancetSpatialFittingPipelineBuilder.cpp" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/core/lancetSpatialFittingPipelineBuilder.cpp" line="7" column="1" bodyfile="src/core/lancetSpatialFittingPipelineBuilder.cpp" bodystart="8" bodyend="10"/>
+    <listofallmembers>
+      <member refid="struct_pipeline_builder_1_1_pipeline_builder_private_imp_1ad7bc2eef020dd9dabf36729d4abedc5f" prot="public" virt="non-virtual"><scope>PipelineBuilder::PipelineBuilderPrivateImp</scope><name>pipelineManager</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

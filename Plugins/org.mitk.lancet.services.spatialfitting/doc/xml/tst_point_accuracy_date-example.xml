@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="tst_point_accuracy_date-example" kind="example">
+    <compoundname>tst_pointAccuracyDate</compoundname>
+    <briefdescription>
+<para>This is the declaration header file of space point calculation. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This is the declaration header file of space point calculation.<simplesect kind="par"><title>Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.</title><para></para>
+</simplesect>
+<simplesect kind="version"><para>V1.0.0 </para>
+</simplesect>
+<simplesect kind="date"><para>2022-11-18 10:18:52</para>
+</simplesect>
+<simplesect kind="par"><title>Modify History</title><para><orderedlist>
+<listitem><para>Sun initialization the version for 2022-11-18 10:18:52.</para>
+</listitem></orderedlist>
+</para>
+</simplesect>
+<simplesect kind="author"><para>Sun </para>
+</simplesect>
+<simplesect kind="remark"><para>Non</para>
+</simplesect>
+Represent or calculate the relationship and data between points. <linebreak/>
+</para>
+<para>The 3D point data has been clearly defined in mitk. The point calculation here is based on the extension calculation or processing of the mitk::Point3D type.</para>
+<para>Tips: In terms of actual use, this function class should not exist. Its significa- nce lies in constraining the calculation or operation methods of external point-to-point.</para>
+<para><simplesect kind="author"><para>Sun </para>
+</simplesect>
+<simplesect kind="date"><para>2022-11-18 11:06:46 </para>
+</simplesect>
+<simplesect kind="remark"><para>Non</para>
+</simplesect>
+Contact: <ulink url="mailto:sh4a01@163.com">sh4a01@163.com</ulink> <programlisting filename="tst_pointAccuracyDate"></programlisting> </para>
+    </detaileddescription>
+    <location file="src/core/lancetSpatialFittingPointAccuracyDate.h"/>
+  </compounddef>
+</doxygen>

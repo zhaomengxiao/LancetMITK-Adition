@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="lancet_spatial_fitting_navigation_tool_collector_8cpp" kind="file" language="C++">
+    <compoundname>lancetSpatialFittingNavigationToolCollector.cpp</compoundname>
+    <includes refid="lancet_spatial_fitting_navigation_tool_collector_8h" local="yes">lancetSpatialFittingNavigationToolCollector.h</includes>
+    <includes local="no">QTimer</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>src/core/lancetSpatialFittingNavigationToolCollector.cpp</label>
+        <link refid="lancet_spatial_fitting_navigation_tool_collector_8cpp"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>lancetSpatialFittingNavigationToolCollector.h</label>
+        <link refid="lancet_spatial_fitting_navigation_tool_collector_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>lancetSpatialFittingGlobal.h</label>
+        <link refid="lancet_spatial_fitting_global_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>QObject</label>
+      </node>
+      <node id="10">
+        <label>QTimer</label>
+      </node>
+      <node id="6">
+        <label>itkObject.h</label>
+      </node>
+      <node id="7">
+        <label>itkSmartPointer.h</label>
+      </node>
+      <node id="5">
+        <label>memory</label>
+      </node>
+      <node id="8">
+        <label>mitkNavigationDataToNavigationDataFilter.h</label>
+      </node>
+      <node id="4">
+        <label>org_mitk_lancet_services_spatialfitting_Export.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp" prot="public">NavigationToolCollector::NavigationToolCollectorPrivateImp</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;<ref refid="lancet_spatial_fitting_navigation_tool_collector_8h" kindref="compound">lancetSpatialFittingNavigationToolCollector.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Qt</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;QTimer&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"><ref refid="lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e" kindref="member">BEGIN_SPATIAL_FITTING_NAMESPACE</ref></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9" refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp" kindref="compound">NavigationToolCollector::NavigationToolCollectorPrivateImp</ref></highlight></codeline>
+<codeline lineno="10"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="11" refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a8b37bb1a6008fd61446ca1cd18b7d549" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>QTimer<sp/><ref refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a8b37bb1a6008fd61446ca1cd18b7d549" kindref="member">qtClockTrigger</ref>;</highlight></codeline>
+<codeline lineno="12" refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a37b02a029d8d837af3602759440baf1e" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a37b02a029d8d837af3602759440baf1e" kindref="member">numberForMean</ref><sp/>=<sp/>10;</highlight></codeline>
+<codeline lineno="13" refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a8598680b1f9e06ced924c60ec2396b7f" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a8598680b1f9e06ced924c60ec2396b7f" kindref="member">accuracyRange</ref><sp/>=<sp/>0.5;</highlight></codeline>
+<codeline lineno="14" refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a262016f763a0c9e8f3b886b835cf41d6" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2" kindref="member">WorkStatus</ref><sp/><ref refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp_1a262016f763a0c9e8f3b886b835cf41d6" kindref="member">state</ref><sp/>=<sp/>WorkStatus::Idle;</highlight></codeline>
+<codeline lineno="15"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal">NavigationToolCollector::NavigationToolCollector()</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"><sp/><sp/><sp/><sp/>:<sp/>imp(std::make_shared&lt;<ref refid="struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp" kindref="compound">NavigationToolCollectorPrivateImp</ref>&gt;())</highlight></codeline>
+<codeline lineno="19"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/>this-&gt;<ref refid="class_navigation_tool_collector_1ad6516e8fa227f7eff2694f1809b75d27" kindref="member">SetInterval</ref>(20);</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/>connect(&amp;this-&gt;imp-&gt;qtClockTrigger,<sp/>&amp;QTimer::timeout,<sp/></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">this</highlight><highlight class="normal">,<sp/>&amp;<ref refid="class_navigation_tool_collector_1ae388d26e83d31e602b68657553026cd1" kindref="member">NavigationToolCollector::on_QtTimerTrigger_timeout</ref>);</highlight></codeline>
+<codeline lineno="24"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26" refid="class_navigation_tool_collector_1a61d39f16186c42175c01ffa0764a1685" refkind="member"><highlight class="normal"><ref refid="class_navigation_tool_collector_1a61d39f16186c42175c01ffa0764a1685" kindref="member">NavigationToolCollector::~NavigationToolCollector</ref>()</highlight></codeline>
+<codeline lineno="27"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/>disconnect(&amp;this-&gt;imp-&gt;qtClockTrigger,<sp/>&amp;QTimer::timeout,</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">this</highlight><highlight class="normal">,<sp/>&amp;<ref refid="class_navigation_tool_collector_1ae388d26e83d31e602b68657553026cd1" kindref="member">NavigationToolCollector::on_QtTimerTrigger_timeout</ref>);</highlight></codeline>
+<codeline lineno="30"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32" refid="class_navigation_tool_collector_1a098797c944c74fdcfdad97652f3a8e6f" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1a098797c944c74fdcfdad97652f3a8e6f" kindref="member">NavigationToolCollector::GetInterval</ref>()</highlight><highlight class="keyword"><sp/>const</highlight></codeline>
+<codeline lineno="33"><highlight class="keyword"></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>this-&gt;imp-&gt;qtClockTrigger.interval();</highlight></codeline>
+<codeline lineno="35"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37" refid="class_navigation_tool_collector_1ad6516e8fa227f7eff2694f1809b75d27" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1ad6516e8fa227f7eff2694f1809b75d27" kindref="member">NavigationToolCollector::SetInterval</ref>(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>interval)</highlight></codeline>
+<codeline lineno="38"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="39"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41" refid="class_navigation_tool_collector_1a1dc7ea9c7e87f78f154d31f49027f318" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1a1dc7ea9c7e87f78f154d31f49027f318" kindref="member">NavigationToolCollector::GetNumberForMean</ref>()</highlight><highlight class="keyword"><sp/>const</highlight></codeline>
+<codeline lineno="42"><highlight class="keyword"></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46" refid="class_navigation_tool_collector_1a6f5ab48352a3d48d2106c0b6879a3d7d" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1a6f5ab48352a3d48d2106c0b6879a3d7d" kindref="member">NavigationToolCollector::SetNumberForMean</ref>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>number)</highlight></codeline>
+<codeline lineno="47"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="48"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50" refid="class_navigation_tool_collector_1a3058935c076205707e41015c70b9e1f6" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1a3058935c076205707e41015c70b9e1f6" kindref="member">NavigationToolCollector::GetAccuracyRange</ref>()</highlight><highlight class="keyword"><sp/>const</highlight></codeline>
+<codeline lineno="51"><highlight class="keyword"></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0.0;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55" refid="class_navigation_tool_collector_1ab7b66e185e421621d34db2c2f4d997ea" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1ab7b66e185e421621d34db2c2f4d997ea" kindref="member">NavigationToolCollector::SetAccuracyRange</ref>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>accuracy)</highlight></codeline>
+<codeline lineno="56"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="57"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="class_navigation_tool_collector_1a676df454af85cf1021b0a3136a083a9a" refkind="member"><highlight class="normal"><ref refid="class_navigation_tool_collector_1a793a47d9b2d106fe5c7de0b6f2765bf2" kindref="member">NavigationToolCollector::WorkStatus</ref><sp/><ref refid="class_navigation_tool_collector_1a676df454af85cf1021b0a3136a083a9a" kindref="member">NavigationToolCollector::GetWorkState</ref>()</highlight><highlight class="keyword"><sp/>const</highlight></codeline>
+<codeline lineno="60"><highlight class="keyword"></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>this-&gt;imp-&gt;state;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64" refid="class_navigation_tool_collector_1a77da471393561babf4fd7a069ddf557f" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1a77da471393561babf4fd7a069ddf557f" kindref="member">NavigationToolCollector::IsRunning</ref>()</highlight><highlight class="keyword"><sp/>const</highlight></codeline>
+<codeline lineno="65"><highlight class="keyword"></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>this-&gt;<ref refid="class_navigation_tool_collector_1a676df454af85cf1021b0a3136a083a9a" kindref="member">GetWorkState</ref>()<sp/>==<sp/>WorkStatus::Working;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="69" refid="class_navigation_tool_collector_1adf614753a5ae6e93641446369e24d78e" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1adf614753a5ae6e93641446369e24d78e" kindref="member">NavigationToolCollector::Start</ref>(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>interval)</highlight></codeline>
+<codeline lineno="70"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(this-&gt;<ref refid="class_navigation_tool_collector_1a676df454af85cf1021b0a3136a083a9a" kindref="member">GetWorkState</ref>()<sp/>!=<sp/>WorkStatus::Idle)</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>The<sp/>collector<sp/>is<sp/>currently<sp/>working.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(interval<sp/>!=<sp/>0)</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>this-&gt;<ref refid="class_navigation_tool_collector_1ad6516e8fa227f7eff2694f1809b75d27" kindref="member">SetInterval</ref>(interval);</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/>this-&gt;imp-&gt;qtClockTrigger.start();</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/>this-&gt;imp-&gt;state<sp/>=<sp/>WorkStatus::Working;</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="84"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight></codeline>
+<codeline lineno="86" refid="class_navigation_tool_collector_1a51e616964b26029ccd74aa69eb642d05" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1a51e616964b26029ccd74aa69eb642d05" kindref="member">NavigationToolCollector::Stop</ref>()</highlight></codeline>
+<codeline lineno="87"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/>this-&gt;imp-&gt;state<sp/>=<sp/>WorkStatus::Idle;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="90"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92" refid="class_navigation_tool_collector_1ae388d26e83d31e602b68657553026cd1" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1ae388d26e83d31e602b68657553026cd1" kindref="member">NavigationToolCollector::on_QtTimerTrigger_timeout</ref>()</highlight></codeline>
+<codeline lineno="93"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97" refid="class_navigation_tool_collector_1a39a112040f267b4d96f9965afdd0a52b" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1a39a112040f267b4d96f9965afdd0a52b" kindref="member">NavigationToolCollector::GenerateData</ref>()</highlight></codeline>
+<codeline lineno="98"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="99"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><ref refid="lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2" kindref="member">END_SPATIAL_FITTING_NAMESPACE</ref></highlight></codeline>
+    </programlisting>
+    <location file="src/core/lancetSpatialFittingNavigationToolCollector.cpp"/>
+  </compounddef>
+</doxygen>

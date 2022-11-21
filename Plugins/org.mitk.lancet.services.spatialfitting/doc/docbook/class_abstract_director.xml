@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_class_abstract_director" xml:lang="en-US">
+<title>AbstractDirector Class Reference</title>
+<indexterm><primary>AbstractDirector</primary></indexterm>
+<para>
+
+<para>This is the decision-maker class of the abstract generator pattern. </para>
+ 
+</para>
+<para>
+<computeroutput>#include &lt;lancetSpatialFittingAbstractDirector.h&gt;</computeroutput>
+</para>
+Inheritance diagram for AbstractDirector:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="class_abstract_director__inherit__graph.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+Collaboration diagram for AbstractDirector:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="class_abstract_director__coll__graph.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+<simplesect>
+    <title>Classes    </title>
+        <itemizedlist>
+            <listitem><para>struct <link linkend="_struct_abstract_director_1_1_abstract_director_private_imp">AbstractDirectorPrivateImp</link></para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<simplesect>
+    <title>Public Member Functions    </title>
+        <itemizedlist>
+            <listitem><para><link linkend="_class_abstract_director_1ae2cf08a58c1b53215e4018a6ed6c0143">mitkClassMacroItkParent</link> (<link linkend="_class_abstract_director">AbstractDirector</link>, itk::Object)</para>
+</listitem>
+            <listitem><para><link linkend="_class_abstract_director_1ac9f0cc7f7ae8d3d31a5dcd017f2f8191">AbstractDirector</link> ()</para>
+</listitem>
+            <listitem><para>virtual bool <link linkend="_class_abstract_director_1a89be2adee44d1ea75c54fe40286b6f59">Builder</link> ()=0</para>
+
+<para>Implement the construction order or method of pipeline data. </para>
+</listitem>
+            <listitem><para>virtual itk::SmartPointer&lt; <link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link> &gt; <link linkend="_class_abstract_director_1a78aa56c869e219c1988be4512423ce80">GetBuilder</link> () const</para>
+</listitem>
+            <listitem><para>virtual void <link linkend="_class_abstract_director_1a8ff3d2fedaec0f382fb19cab93766f92">SetBuilder</link> (itk::SmartPointer&lt; <link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link> &gt; builder)</para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<section>
+<title>Detailed Description</title>
+
+<para>This is the decision-maker class of the abstract generator pattern. </para>
+
+
+
+<para>Strictly speaking, the supervisor class is not necessarily required in the program. The client code can directly call the creation steps in a specific order. However, it is very suitable to put various routine construction processes into the supervisor class for repeated use in the program.</para>
+
+<para>In addition, for client code, the supervisor class completely hides the det- ails of product construction. The client only needs to associate a generator with the supervisor class, and then use the supervisor class to construct the product, so that the construction result can be obtained from the generator.</para>
+
+<para><emphasis role="bold">Class diagram:</emphasis>
+<literallayout>&#160;&#xa;</literallayout>
+ </para>
+
+<para><emphasis role="bold">Example:</emphasis>
+<literallayout>&#160;&#xa;</literallayout>
+ <literallayout><computeroutput><emphasis role="comment">//&#32;Building&#32;Entity&#32;Decision&#32;Maker&#32;and&#32;Generator&#32;Objects.</emphasis>
+AbstractDirector::Pointer&#32;director&#32;=&#32;MyDirector::New();
+director-&gt;SetBuilder(MyPipelineBuilder::New());
+<emphasis role="comment">//&#32;Using&#32;Polymorphic&#32;Features&#32;to&#32;Call&#32;the&#32;Construction&#32;Method&#32;of&#32;Entity&#32;</emphasis>
+<emphasis role="comment">//&#32;Decision&#32;Maker.</emphasis>
+director-&gt;Builder();
+<emphasis role="comment">//Get&#32;the&#32;pipeline&#32;data&#32;object&#32;produced&#32;by&#32;the&#32;builder.</emphasis>
+PipelineManager::Pointer&#32;pipeline&#32;=&#32;director-&gt;GetBuilder()-&gt;GetOutput();
+</computeroutput></literallayout></para>
+
+<para><formalpara><title>Author</title>
+
+<para>Sun </para>
+</formalpara>
+<formalpara><title>Version</title>
+
+<para>V1.0.0 </para>
+</formalpara>
+<formalpara><title>Date</title>
+
+<para>2022-11-18 16:45:08 </para>
+</formalpara>
+<formalpara><title>Remarks</title>
+
+<para>Non</para>
+</formalpara>
+Contact: <link xlink:href="mailto:sh4a01@163.com">sh4a01@163.com</link> </para>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_abstract_director_8h_source_1l00068">68</link> of file <link linkend="_lancet_spatial_fitting_abstract_director_8h_source">lancetSpatialFittingAbstractDirector.h</link>.</para>
+</section>
+<section>
+<title>Constructor &amp; Destructor Documentation</title>
+<anchor xml:id="_class_abstract_director_1ac9f0cc7f7ae8d3d31a5dcd017f2f8191"/><section>
+    <title>AbstractDirector()</title>
+<indexterm><primary>AbstractDirector</primary><secondary>AbstractDirector</secondary></indexterm>
+<indexterm><primary>AbstractDirector</primary><secondary>AbstractDirector</secondary></indexterm>
+<para><computeroutput>AbstractDirector::AbstractDirector ( )</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_abstract_director_8cpp_source_1l00011">11</link> of file <link linkend="_lancet_spatial_fitting_abstract_director_8cpp_source">lancetSpatialFittingAbstractDirector.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00012 &#32;&#32;&#32;&#32;:&#32;imp(std::make_shared&lt;AbstractDirectorPrivateImp&gt;())
+00013 {
+00014 }
+</programlisting></section>
+</section>
+<section>
+<title>Member Function Documentation</title>
+<anchor xml:id="_class_abstract_director_1a89be2adee44d1ea75c54fe40286b6f59"/><section>
+    <title>Builder()</title>
+<indexterm><primary>Builder</primary><secondary>AbstractDirector</secondary></indexterm>
+<indexterm><primary>AbstractDirector</primary><secondary>Builder</secondary></indexterm>
+<para><computeroutput>virtual bool AbstractDirector::Builder ( )<computeroutput>[pure virtual]</computeroutput></computeroutput></para><para>
+
+<para>Implement the construction order or method of pipeline data. </para>
+</para>
+
+<para>In the spatial fitting module, the functional components of various pipe- line data objects may be the same component, but the production order has some deviations. The derived class needs to correctly control the produce order of pipeline data for this interface.</para>
+
+<para><formalpara><title>Returns</title>
+
+<para>True Production succeeded, otherwise it failed. </para>
+</formalpara>
+</para>
+<para>
+Implemented in <link linkend="_class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6">RoboticsRegisterDirector</link>.</para>
+</section>
+<anchor xml:id="_class_abstract_director_1a78aa56c869e219c1988be4512423ce80"/><section>
+    <title>GetBuilder()</title>
+<indexterm><primary>GetBuilder</primary><secondary>AbstractDirector</secondary></indexterm>
+<indexterm><primary>AbstractDirector</primary><secondary>GetBuilder</secondary></indexterm>
+<para><computeroutput>itk::SmartPointer&lt; <link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link> &gt; AbstractDirector::GetBuilder ( ) const<computeroutput>[virtual]</computeroutput></computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_abstract_director_8cpp_source_1l00016">16</link> of file <link linkend="_lancet_spatial_fitting_abstract_director_8cpp_source">lancetSpatialFittingAbstractDirector.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00017 {
+00018 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;itk::SmartPointer&lt;AbstractPipelineBuilder&gt;();
+00019 }
+</programlisting></section>
+<anchor xml:id="_class_abstract_director_1ae2cf08a58c1b53215e4018a6ed6c0143"/><section>
+    <title>mitkClassMacroItkParent()</title>
+<indexterm><primary>mitkClassMacroItkParent</primary><secondary>AbstractDirector</secondary></indexterm>
+<indexterm><primary>AbstractDirector</primary><secondary>mitkClassMacroItkParent</secondary></indexterm>
+<para><computeroutput>AbstractDirector::mitkClassMacroItkParent (<link linkend="_class_abstract_director">AbstractDirector</link> , itk::Object )</computeroutput></para></section>
+<anchor xml:id="_class_abstract_director_1a8ff3d2fedaec0f382fb19cab93766f92"/><section>
+    <title>SetBuilder()</title>
+<indexterm><primary>SetBuilder</primary><secondary>AbstractDirector</secondary></indexterm>
+<indexterm><primary>AbstractDirector</primary><secondary>SetBuilder</secondary></indexterm>
+<para><computeroutput>void AbstractDirector::SetBuilder (itk::SmartPointer&lt; <link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link> &gt; builder)<computeroutput>[virtual]</computeroutput></computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_abstract_director_8cpp_source_1l00021">21</link> of file <link linkend="_lancet_spatial_fitting_abstract_director_8cpp_source">lancetSpatialFittingAbstractDirector.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00022 {
+00023 }
+</programlisting></section>
+<para>
+The documentation for this class was generated from the following files:</para>
+src/<link linkend="_lancet_spatial_fitting_abstract_director_8h">lancetSpatialFittingAbstractDirector.h</link>src/<link linkend="_lancet_spatial_fitting_abstract_director_8cpp">lancetSpatialFittingAbstractDirector.cpp</link></section>
+</section>

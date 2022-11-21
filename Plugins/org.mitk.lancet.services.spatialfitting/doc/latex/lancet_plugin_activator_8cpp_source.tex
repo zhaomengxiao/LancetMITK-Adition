@@ -1,0 +1,62 @@
+\hypertarget{lancet_plugin_activator_8cpp_source}{}\doxysection{lancet\+Plugin\+Activator.\+cpp}
+\label{lancet_plugin_activator_8cpp_source}\index{src/internal/lancetPluginActivator.cpp@{src/internal/lancetPluginActivator.cpp}}
+\mbox{\hyperlink{lancet_plugin_activator_8cpp}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00001}00001 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{lancet_plugin_activator_8h}{lancetPluginActivator.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00002}00002 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00003}00003 \textcolor{comment}{// us}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00004}00004 \textcolor{preprocessor}{\#include <usModuleRegistry.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00005}00005 \textcolor{preprocessor}{\#include <usModule.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00006}00006 \textcolor{preprocessor}{\#include <usModuleContext.h>}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00007}00007 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00008}\mbox{\hyperlink{namespacelancet}{00008}} \textcolor{keyword}{namespace }\mbox{\hyperlink{namespacelancet}{lancet}}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00009}00009 \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00010}00010   \textcolor{keyword}{const} std::string \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a54f9357600bddc5ec9bb40fbc6931986}{org\_mitk\_lancet\_services\_SpatialFitting::PLUGIN\_ID}} = \textcolor{stringliteral}{"{}org.mitk.lancet.services.spatialfitting"{}};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00011}00011 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00012}\mbox{\hyperlink{structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp}{00012}}   \textcolor{keyword}{struct }\mbox{\hyperlink{structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp}{org\_mitk\_lancet\_services\_SpatialFitting::PrivateImp}}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00013}00013   \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00014}\mbox{\hyperlink{structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_a5fb9408ca6ff66ff36f8b02927dfe317}{00014}}     \textcolor{keyword}{static} ctkPluginContext* \mbox{\hyperlink{structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_a5fb9408ca6ff66ff36f8b02927dfe317}{pluginContext}};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00015}00015     \textcolor{comment}{//berry::SmartPointer<IMedicalRecordsService> medicalRecordsAdministrationService;}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00016}00016   \};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00017}00017   ctkPluginContext* \mbox{\hyperlink{structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_a5fb9408ca6ff66ff36f8b02927dfe317}{PluginActivator::PrivateImp::pluginContext}} = \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00018}00018 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00019}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a9e83376b57500fa590ef58796e2757af}{00019}}     \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a9e83376b57500fa590ef58796e2757af}{org\_mitk\_lancet\_services\_SpatialFitting::org\_mitk\_lancet\_services\_SpatialFitting}}()}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00020}00020     : imp(std::make\_shared<\mbox{\hyperlink{structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp}{PrivateImp}}>())}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00021}00021     \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00022}00022     }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00023}00023     \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00024}00024 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00025}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a7c17fcfa14376adb12e8e3549dff4a96}{00025}}     \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a7c17fcfa14376adb12e8e3549dff4a96}{org\_mitk\_lancet\_services\_SpatialFitting::\string~org\_mitk\_lancet\_services\_SpatialFitting}}()}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00026}00026     \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00027}00027     \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00028}00028 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00029}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a581ff1e5976de82dc12d1a702031ba52}{00029}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a581ff1e5976de82dc12d1a702031ba52}{org\_mitk\_lancet\_services\_SpatialFitting::start}}(ctkPluginContext* context)}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00030}00030     \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00031}00031     \textcolor{comment}{// this-\/>imp-\/>pluginContext = context;}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00032}00032 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00033}00033     \textcolor{comment}{// // warning}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00034}00034     \textcolor{comment}{// // The service object does not intentionally run naked.}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00035}00035     \textcolor{comment}{// // Fortunately, it does not affect the function logically.}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00036}00036     \textcolor{comment}{// IMedicalRecordsService* streakingServicePointer }}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00037}00037       \textcolor{comment}{// = new MedicalRecordsService();}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00038}00038     }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00039}00039     \textcolor{comment}{// // register service to mitk}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00040}00040     \textcolor{comment}{// this-\/>imp-\/>medicalRecordsAdministrationService = }}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00041}00041       \textcolor{comment}{// berry::SmartPointer(streakingServicePointer);}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00042}00042     \textcolor{comment}{// this-\/>imp-\/>pluginContext-\/>registerService<}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00043}00043       \textcolor{comment}{// lancet::IMedicalRecordsService>(streakingServicePointer);}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00044}00044     \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00045}00045 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00046}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_ac22adb3c759023e2dd49c19f9ef1ed11}{00046}}     \textcolor{keywordtype}{void} \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_ac22adb3c759023e2dd49c19f9ef1ed11}{org\_mitk\_lancet\_services\_SpatialFitting::stop}}(ctkPluginContext* context)}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00047}00047     \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00048}00048     \textcolor{comment}{//this-\/>imp-\/>pluginContext-\/>ungetService(this-\/>imp-\/>pluginContext-\/>getServiceReference<lancet::IMedicalRecordsService>());}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00049}00049     this-\/>imp-\/>pluginContext = \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00050}00050     \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00051}00051 }
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00052}\mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a5c832aeff92d6f89628b515c6be3d706}{00052}}   ctkPluginContext* \mbox{\hyperlink{classlancet_1_1org__mitk__lancet__services___spatial_fitting_a5c832aeff92d6f89628b515c6be3d706}{org\_mitk\_lancet\_services\_SpatialFitting::GetPluginContext}}()}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00053}00053   \{}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00054}00054     \textcolor{keywordflow}{return} \mbox{\hyperlink{structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp_a5fb9408ca6ff66ff36f8b02927dfe317}{PrivateImp::pluginContext}};}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00055}00055   \}}
+\DoxyCodeLine{\Hypertarget{lancet_plugin_activator_8cpp_source_l00056}00056 \}}
+
+\end{DoxyCode}

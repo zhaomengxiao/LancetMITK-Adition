@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source" xml:lang="en-US">
+<title>lancetSpatialFittingPointAccuracyDate.h</title>
+<indexterm><primary>src/core/lancetSpatialFittingPointAccuracyDate.h</primary></indexterm>
+Go to the documentation of this file.<programlisting linenumbering="unnumbered"><anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00001"/>00001 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00016"/>00016 <emphasis role="preprocessor">#ifndef&#32;LancetSpatialFittingPointAccuracyDate_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00017"/>00017 <emphasis role="preprocessor">#define&#32;LancetSpatialFittingPointAccuracyDate_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00018"/>00018 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00019"/>00019 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_global_8h">lancetSpatialFittingGlobal.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00020"/>00020 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00021"/>00021 <emphasis role="comment">//&#32;mitk</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00022"/>00022 <emphasis role="preprocessor">#include&#32;&lt;mitkPoint.h&gt;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00023"/>00023 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00024"/>00024 <link linkend="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e">BEGIN_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00025"/>00025 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00058"/><link linkend="_class_point_accuracy_date">00058</link> <emphasis role="keyword">class&#32;</emphasis>ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00059"/>00059 &#32;&#32;&#32;&#32;<link linkend="_class_point_accuracy_date">PointAccuracyDate</link>
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00060"/>00060 {
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00061"/>00061 <emphasis role="keyword">public</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00062"/>00062 &#32;&#32;&#32;&#32;<link linkend="_class_point_accuracy_date">PointAccuracyDate</link>();
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00063"/>00063 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00072"/>00072 &#32;&#32;&#32;&#32;<link linkend="_class_point_accuracy_date">PointAccuracyDate</link>(<emphasis role="keyword">const</emphasis>&#32;mitk::Point3D&amp;&#32;src,&#32;<emphasis role="keyword">const</emphasis>&#32;mitk::Point3D&amp;&#32;target);
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00073"/>00073 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00074"/>00074 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;mitk::Point3D&#32;GetSourcePoint()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00075"/>00075 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;SetSourcePoint(<emphasis role="keyword">const</emphasis>&#32;mitk::Point3D&amp;);
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00076"/>00076 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00077"/>00077 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;mitk::Point3D&#32;GetTargetPoint()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00078"/>00078 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;SetTargetPoint(<emphasis role="keyword">const</emphasis>&#32;mitk::Point3D&amp;);
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00079"/>00079 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00088"/>00088 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">double</emphasis>&#32;Compute()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00089"/>00089 <emphasis role="keyword">private</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00090"/>00090 &#32;&#32;&#32;&#32;<emphasis role="keyword">struct&#32;</emphasis><link linkend="_struct_point_accuracy_date_1_1_point_accuracy_date_private_imp">PointAccuracyDatePrivateImp</link>;
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00091"/>00091 &#32;&#32;&#32;&#32;std::shared_ptr&lt;PointAccuracyDatePrivateImp&gt;&#32;imp;
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00092"/>00092 };
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00093"/>00093 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00094"/>00094 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00095"/>00095 
+<anchor xml:id="_lancet_spatial_fitting_point_accuracy_date_8h_source_1l00096"/>00096 <emphasis role="preprocessor">#endif&#32;</emphasis><emphasis role="comment">//&#32;!LancetSpatialFittingPointAccuracyDate_H</emphasis>
+</programlisting></section>

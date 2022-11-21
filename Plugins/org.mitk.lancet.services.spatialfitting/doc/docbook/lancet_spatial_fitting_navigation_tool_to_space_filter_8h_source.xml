@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source" xml:lang="en-US">
+<title>lancetSpatialFittingNavigationToolToSpaceFilter.h</title>
+<indexterm><primary>src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h</primary></indexterm>
+Go to the documentation of this file.<programlisting linenumbering="unnumbered"><anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00001"/>00001 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00018"/>00018 <emphasis role="preprocessor">#ifndef&#32;LancetSpatialFittingNavigationToolToSpaceFilter_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00019"/>00019 <emphasis role="preprocessor">#define&#32;LancetSpatialFittingNavigationToolToSpaceFilter_H</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00020"/>00020 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00021"/>00021 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_global_8h">lancetSpatialFittingGlobal.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00022"/>00022 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00023"/>00023 <emphasis role="comment">//&#32;vtk</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00024"/>00024 <emphasis role="preprocessor">#include&#32;&lt;vtkMatrix4x4.h&gt;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00025"/>00025 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00026"/>00026 <emphasis role="comment">//&#32;mitk</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00027"/>00027 <emphasis role="preprocessor">#include&#32;&lt;mitkNavigationDataToNavigationDataFilter.h&gt;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00028"/>00028 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00029"/>00029 <link linkend="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e">BEGIN_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00030"/>00030 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00060"/><link linkend="_class_navigation_tool_to_space_filter">00060</link> <emphasis role="keyword">class&#32;</emphasis>ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00061"/>00061 &#32;&#32;&#32;&#32;<link linkend="_class_navigation_tool_to_space_filter">NavigationToolToSpaceFilter</link>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00062"/>00062 &#32;&#32;&#32;&#32;:&#32;<emphasis role="keyword">public</emphasis>&#32;mitk::NavigationDataToNavigationDataFilter
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00063"/>00063 {
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00064"/>00064 <emphasis role="keyword">public</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00065"/><link linkend="_class_navigation_tool_to_space_filter_1a6cbf3f4c74d1c269eb995dbd02405df6">00065</link> &#32;&#32;&#32;&#32;<link linkend="_class_navigation_tool_to_space_filter_1a6cbf3f4c74d1c269eb995dbd02405df6">mitkClassMacro</link>(<link linkend="_class_navigation_tool_to_space_filter">NavigationToolToSpaceFilter</link>,
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00066"/>00066 &#32;&#32;&#32;&#32;&#32;&#32;&#32;&#32;mitk::NavigationDataToNavigationDataFilter);
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00067"/>00067 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00068"/>00068 &#32;&#32;&#32;&#32;<link linkend="_class_navigation_tool_to_space_filter">NavigationToolToSpaceFilter</link>();
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00069"/>00069 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<link linkend="_class_navigation_tool_to_space_filter">~NavigationToolToSpaceFilter</link>();
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00070"/>00070 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00071"/>00071 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;vtkMatrix4x4*&#32;GetConvertMatrix4x4()&#32;<emphasis role="keyword">const</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00072"/>00072 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00076"/>00076 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;SetConvertMatrix4x4(<emphasis role="keyword">const</emphasis>&#32;vtkMatrix4x4*&#32;matrix);
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00077"/>00077 <emphasis role="keyword">protected</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00078"/>00078 &#32;&#32;&#32;&#32;<emphasis role="keyword">virtual</emphasis>&#32;<emphasis role="keywordtype">void</emphasis>&#32;GenerateData()&#32;<emphasis role="keyword">override</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00079"/>00079 <emphasis role="keyword">private</emphasis>:
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00080"/>00080 &#32;&#32;&#32;&#32;<emphasis role="keyword">struct&#32;</emphasis><link linkend="_struct_navigation_tool_to_space_filter_1_1_navigation_tool_to_space_filter_private_imp">NavigationToolToSpaceFilterPrivateImp</link>;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00081"/>00081 &#32;&#32;&#32;&#32;std::shared_ptr&lt;NavigationToolToSpaceFilterPrivateImp&gt;&#32;imp;
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00082"/>00082 };
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00083"/>00083 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00084"/>00084 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00085"/>00085 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_to_space_filter_8h_source_1l00086"/>00086 <emphasis role="preprocessor">#endif&#32;</emphasis><emphasis role="comment">//&#32;!LancetSpatialFittingNavigationToolToSpaceFilter_H</emphasis>
+</programlisting></section>

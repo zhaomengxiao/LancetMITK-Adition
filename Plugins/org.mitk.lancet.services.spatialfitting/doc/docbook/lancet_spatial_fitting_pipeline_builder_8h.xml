@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_lancet_spatial_fitting_pipeline_builder_8h" xml:lang="en-US">
+<title>src/core/lancetSpatialFittingPipelineBuilder.h File Reference</title>
+<indexterm><primary>src/core/lancetSpatialFittingPipelineBuilder.h</primary></indexterm>
+<programlisting linenumbering="unnumbered">#include &quot;lancetSpatialFittingGlobal.h&quot;
+#include &quot;lancetSpatialFittingAbstractPipelineBuilder.h&quot;
+#include &lt;mitkNavigationData.h&gt;
+</programlisting>Include dependency graph for lancetSpatialFittingPipelineBuilder.h:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="lancet_spatial_fitting_pipeline_builder_8h__incl.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+This graph shows which files directly or indirectly include this file:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="lancet_spatial_fitting_pipeline_builder_8h__dep__incl.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+<simplesect>
+    <title>Classes    </title>
+        <itemizedlist>
+            <listitem><para>class <link linkend="_class_pipeline_builder">PipelineBuilder</link></para>
+
+<para>This is an abstract pipeline data producer class. </para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+</section>

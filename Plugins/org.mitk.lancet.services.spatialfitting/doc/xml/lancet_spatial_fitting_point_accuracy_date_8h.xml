@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="lancet_spatial_fitting_point_accuracy_date_8h" kind="file" language="C++">
+    <compoundname>lancetSpatialFittingPointAccuracyDate.h</compoundname>
+    <includes refid="lancet_spatial_fitting_global_8h" local="yes">lancetSpatialFittingGlobal.h</includes>
+    <includes local="no">mitkPoint.h</includes>
+    <includedby refid="lancet_spatial_fitting_point_accuracy_date_8cpp" local="yes">src/core/lancetSpatialFittingPointAccuracyDate.cpp</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>src/core/lancetSpatialFittingPointAccuracyDate.h</label>
+        <link refid="lancet_spatial_fitting_point_accuracy_date_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>lancetSpatialFittingGlobal.h</label>
+        <link refid="lancet_spatial_fitting_global_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>itkObject.h</label>
+      </node>
+      <node id="6">
+        <label>itkSmartPointer.h</label>
+      </node>
+      <node id="4">
+        <label>memory</label>
+      </node>
+      <node id="7">
+        <label>mitkPoint.h</label>
+      </node>
+      <node id="3">
+        <label>org_mitk_lancet_services_spatialfitting_Export.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>src/core/lancetSpatialFittingPointAccuracyDate.cpp</label>
+        <link refid="lancet_spatial_fitting_point_accuracy_date_8cpp"/>
+      </node>
+      <node id="1">
+        <label>src/core/lancetSpatialFittingPointAccuracyDate.h</label>
+        <link refid="lancet_spatial_fitting_point_accuracy_date_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="class_point_accuracy_date" prot="public">PointAccuracyDate</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>LancetSpatialFittingPointAccuracyDate_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>LancetSpatialFittingPointAccuracyDate_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="lancet_spatial_fitting_global_8h" kindref="compound">lancetSpatialFittingGlobal.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="comment">//<sp/>mitk</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;mitkPoint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><ref refid="lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e" kindref="member">BEGIN_SPATIAL_FITTING_NAMESPACE</ref></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="58" refid="class_point_accuracy_date" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="class_point_accuracy_date" kindref="compound">PointAccuracyDate</ref></highlight></codeline>
+<codeline lineno="60"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="class_point_accuracy_date" kindref="compound">PointAccuracyDate</ref>();</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="class_point_accuracy_date" kindref="compound">PointAccuracyDate</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>mitk::Point3D&amp;<sp/>src,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>mitk::Point3D&amp;<sp/>target);</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/>mitk::Point3D<sp/>GetSourcePoint()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>SetSourcePoint(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>mitk::Point3D&amp;);</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/>mitk::Point3D<sp/>GetTargetPoint()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>SetTargetPoint(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>mitk::Point3D&amp;);</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>Compute()<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight><highlight class="keyword">private</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="struct_point_accuracy_date_1_1_point_accuracy_date_private_imp" kindref="compound">PointAccuracyDatePrivateImp</ref>;</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/>std::shared_ptr&lt;PointAccuracyDatePrivateImp&gt;<sp/>imp;</highlight></codeline>
+<codeline lineno="92"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><ref refid="lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2" kindref="member">END_SPATIAL_FITTING_NAMESPACE</ref></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">//<sp/>!LancetSpatialFittingPointAccuracyDate_H</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="src/core/lancetSpatialFittingPointAccuracyDate.h"/>
+  </compounddef>
+</doxygen>

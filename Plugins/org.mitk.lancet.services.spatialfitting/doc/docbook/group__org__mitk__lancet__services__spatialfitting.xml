@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_group__org__mitk__lancet__services__spatialfitting" xml:lang="en-US">
+<title>Org_mitk_lancet_services_spatialfitting</title>
+<indexterm><primary>Org_mitk_lancet_services_spatialfitting</primary></indexterm>
+<para>
+
+<para>Spatial fitting data processing module. </para>
+ 
+</para>
+<simplesect>
+    <title>Classes    </title>
+        <itemizedlist>
+            <listitem><para>class <link linkend="_class_navigation_tool_collector">NavigationToolCollector</link></para>
+
+<para>This is the header file that declares the navigation data collection filter. </para>
+</listitem>
+            <listitem><para>class <link linkend="_class_navigation_tool_to_navigation_tool_filter">NavigationToolToNavigationToolFilter</link></para>
+
+<para>This is the header file that declares the data processing filter from space to space coordinate system of space fitting. </para>
+</listitem>
+            <listitem><para>class <link linkend="_class_navigation_tool_to_space_filter">NavigationToolToSpaceFilter</link></para>
+
+<para>This is the header file that declares the data processing filter from the tool of space fitting to the tool coordinate system. </para>
+</listitem>
+            <listitem><para>class <link linkend="_class_pipeline_builder">PipelineBuilder</link></para>
+
+<para>This is an abstract pipeline data producer class. </para>
+</listitem>
+            <listitem><para>class <link linkend="_class_pipeline_manager">PipelineManager</link></para>
+
+<para>$Document description$ </para>
+</listitem>
+            <listitem><para>class <link linkend="_class_point_accuracy_date">PointAccuracyDate</link></para>
+
+<para>This is the declaration header file of space point calculation. </para>
+</listitem>
+            <listitem><para>class <link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link></para>
+
+<para>This is the header file of the decision-maker for the registration and construction of the robot arm. </para>
+</listitem>
+            <listitem><para>class <link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link></para>
+
+<para>$Document description$ </para>
+</listitem>
+            <listitem><para>class <link linkend="_class_abstract_director">AbstractDirector</link></para>
+
+<para>This is the decision-maker class of the abstract generator pattern. </para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<simplesect>
+    <title>Macros    </title>
+        <itemizedlist>
+            <listitem><para>#define <link linkend="_group__org__mitk__lancet__services__spatialfitting_1ga58923762afd58c3a163a36025e4cc47b">LancetSpatialFittingNameSpace</link></para>
+
+<para>Global macro definition header file. </para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<section>
+<title>Detailed Description</title>
+
+<para>Spatial fitting data processing module. </para>
+</section>
+<section>
+<title>Macro Definition Documentation</title>
+<anchor xml:id="_group__org__mitk__lancet__services__spatialfitting_1ga58923762afd58c3a163a36025e4cc47b"/><section>
+    <title>LancetSpatialFittingNameSpace</title>
+<indexterm><primary>LancetSpatialFittingNameSpace</primary><secondary>Org_mitk_lancet_services_spatialfitting</secondary></indexterm>
+<indexterm><primary>Org_mitk_lancet_services_spatialfitting</primary><secondary>LancetSpatialFittingNameSpace</secondary></indexterm>
+<para><computeroutput>#define LancetSpatialFittingNameSpace</computeroutput></para><para>
+
+<para>Global macro definition header file. </para>
+</para>
+
+<para><formalpara>
+<title>Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.</title>
+<para></para>
+</formalpara>
+<formalpara><title>Version</title>
+
+<para>V1.0.0 </para>
+</formalpara>
+<formalpara><title>Date</title>
+
+<para>2022-11-18 10:32:42</para>
+</formalpara>
+<formalpara>
+<title>Modify History</title>
+<para><orderedlist>
+<listitem>
+<para>Sun initialization the version for 2022-11-18 10:32:42.</para>
+</listitem></orderedlist>
+</para>
+</formalpara>
+<formalpara><title>Remarks</title>
+
+<para>Non </para>
+</formalpara>
+</para>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_global_8h_source_1l00019">19</link> of file <link linkend="_lancet_spatial_fitting_global_8h_source">lancetSpatialFittingGlobal.h</link>.</para>
+</section>
+</section>
+</section>
