@@ -20,7 +20,7 @@ found in the LICENSE file.
 
 // Qt
 #include <QMessageBox>
-
+#include <QObject>
 // mitk image
 #include <mitkImage.h>
 #include <mitkAffineTransform3D.h>
@@ -43,6 +43,7 @@ found in the LICENSE file.
 #include "lancetTreeCoords.h"
 
 //udp
+#include <QTimer>
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Timestamp.h>
@@ -262,7 +263,7 @@ void SurgicalSimulate::UseKuka()
   //KukaRobotDevice and make some settings which are necessary for a proper connection to the device.
   MITK_INFO << "Kuka tracking";
   //QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
-  m_KukaTrackingDevice = lancet::KukaRobotDevice::New(); //instantiate
+  m_KukaTrackingDevice = lancet::KukaRobotDevice_New::New(); //instantiate
 
   //Create Navigation Data Source with the factory class, and the visualize filter.
   lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
@@ -316,7 +317,7 @@ void SurgicalSimulate::OnSelfCheck()
 {
   // if (m_KukaTrackingDevice.IsNotNull() && m_KukaTrackingDevice->GetState()!=0)
   // {
-  m_KukaTrackingDevice->RequestExecOperate(/*"Robot",*/ "setio", {"20", "20"});
+  //m_KukaTrackingDevice->RequestExecOperate(/*"Robot",*/ "setio", {"20", "20"});
   // }
   // else
   // {
@@ -421,12 +422,12 @@ void SurgicalSimulate::OnRobotCapture()
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
 	//set tcp to robot
 	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{QString::number( tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{QString::number( tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
   }
 
 }
@@ -618,12 +619,12 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
 
 	//set tcp to robot
 	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 
   m_KukaVisualizeTimer->stop();
   m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
@@ -647,12 +648,12 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
   //set tcp to robot
 	//set tcp
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+  // QThread::msleep(1000);
+  // m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+  // QThread::msleep(1000);
+  // m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+  // QThread::msleep(1000);
+  // m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 }
 
 void SurgicalSimulate::OnSetTCP()

@@ -19,7 +19,8 @@ found in the LICENSE file.
 #include <QmitkAbstractView.h>
 
 
-#include "kukaRobotDevice.h"
+//#include "kukaRobotDevice.h"
+#include "lancetKukaRobotDevice.h"
 #include "mitkVirtualTrackingDevice.h"
 #include "mitkVirtualTrackingTool.h"
 #include "lancetNavigationObjectVisualizationFilter.h"
@@ -114,7 +115,7 @@ protected:
   Ui::SurgicalSimulateControls m_Controls;
 
 
-  lancet::KukaRobotDevice::Pointer m_KukaTrackingDevice;
+  lancet::KukaRobotDevice_New::Pointer m_KukaTrackingDevice;
   //vega trackingDeviceSource
   mitk::TrackingDeviceSource::Pointer m_VegaSource;
   //kuka trackingDeviceSource

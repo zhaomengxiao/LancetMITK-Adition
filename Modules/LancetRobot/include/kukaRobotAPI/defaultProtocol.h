@@ -27,6 +27,16 @@ public:
 
     return res;
   }
+
+  void FromArray(std::array<double,6> array)
+  {
+    x = array[0];
+    y = array[1];
+    z = array[2];
+    a = array[3];
+    b = array[4];
+    c = array[5];
+  }
 };
 class DefaultProtocol
 {

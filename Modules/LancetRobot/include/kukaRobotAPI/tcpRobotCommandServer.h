@@ -63,7 +63,7 @@ namespace lancet
    * @param buffer The buffer to read into.
    * @param length The number of bytes to read.
    */
-    int read(byte_t* buffer, int length) const;
+    int read() const;
 
     /**
      * @brief Writes 'length' chars from 'buffer' to the socket

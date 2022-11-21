@@ -111,60 +111,63 @@ void RobotView::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
 
 void RobotView::ConnectDevice()
 {
-  //try get Device from Micro service
-  us::ModuleContext* context = us::GetModuleContext();
-  std::vector<us::ServiceReference<mitk::NavigationDataSource>> refs = context->GetServiceReferences<
-    mitk::NavigationDataSource>();
-  if (!refs.empty())
-  {
-    mitk::NavigationDataSource* navigationDataSource = context->GetService<
-      mitk::NavigationDataSource>(refs.front());
-
-    auto deviceSource = dynamic_cast<mitk::TrackingDeviceSource*>(navigationDataSource);
-    if (deviceSource != nullptr && deviceSource->GetTrackingDevice().IsNotNull())
-    {
-      auto device = deviceSource->GetTrackingDevice();
-      if (device->GetTrackingDeviceName() == "Kuka")
-      {
-        m_device = dynamic_cast<lancet::KukaRobotDevice*>(deviceSource->GetTrackingDevice().GetPointer());
-      }
-    }
-  }
-  else
-  {
-    MITK_ERROR << "No NavigationDataSource service found! new device create";
-  }
-
-  if (m_device.IsNull())
-  {
-    m_device = lancet::KukaRobotDevice::New();
-  }
-  if (m_device->GetState() == 0)
-  {
-    m_device->OpenConnection();
-  }
-  if (m_device->GetState() == 1)
-  {
-    m_Controls.robotconnectstate->setText("Ready");
-  }
-  else
-  {
-    m_Controls.robotconnectstate->setText("Tracking");
-    m_timer.start();
-  }
+  // //try get Device from Micro service
+  // us::ModuleContext* context = us::GetModuleContext();
+  // std::vector<us::ServiceReference<mitk::NavigationDataSource>> refs = context->GetServiceReferences<
+  //   mitk::NavigationDataSource>();
+  // if (!refs.empty())
+  // {
+  //   mitk::NavigationDataSource* navigationDataSource = context->GetService<
+  //     mitk::NavigationDataSource>(refs.front());
+  //
+  //   auto deviceSource = dynamic_cast<mitk::TrackingDeviceSource*>(navigationDataSource);
+  //   if (deviceSource != nullptr && deviceSource->GetTrackingDevice().IsNotNull())
+  //   {
+  //     auto device = deviceSource->GetTrackingDevice();
+  //     if (device->GetTrackingDeviceName() == "Kuka")
+  //     {
+  //       m_device = dynamic_cast<lancet::KukaRobotDevice*>(deviceSource->GetTrackingDevice().GetPointer());
+  //     }
+  //   }
+  // }
+  // else
+  // {
+  //   MITK_ERROR << "No NavigationDataSource service found! new device create";
+  // }
+  //
+  // if (m_device.IsNull())
+  // {
+  //   m_device = lancet::KukaRobotDevice::New();
+  // }
+  // if (m_device->GetState() == 0)
+  // {
+  //   m_device->OpenConnection();
+  // }
+  // if (m_device->GetState() == 1)
+  // {
+  //   m_Controls.robotconnectstate->setText("Ready");
+  // }
+  // else
+  // {
+  //   m_Controls.robotconnectstate->setText("Tracking");
+  //   m_timer.start();
+  // }
+  m_KukaRobotApi.Connect();
+  m_Thread = std::thread(&RobotView::threadUDP_RobotInfo, this);
 }
 
 void RobotView::DisConnectDevice()
 {
-  m_device->CloseConnection();
-  if (m_device->GetState() == 0)
-  {
-    m_Controls.robotconnectstate->setText("Disconnected");
-  }
-  else
-  {
-    m_Controls.robotconnectstate->setText("Connected");
-  }
+  // m_device->CloseConnection();
+  // if (m_device->GetState() == 0)
+  // {
+  //   m_Controls.robotconnectstate->setText("Disconnected");
+  // }
+  // else
+  // {
+  //   m_Controls.robotconnectstate->setText("Connected");
+  // }
+  m_KukaRobotApi.DisConnect();
 }
 
 void RobotView::UpdateToolPosition()
@@ -206,7 +209,6 @@ void RobotView::SendCommand()
   // }
   // MITK_INFO << "success";
   m_KukaRobotApi.SendCommandNoPara(this->m_Controls.lineEditRoboticsAPI->text().toStdString());
-  
 }
 
 void RobotView::StartUDP()
@@ -222,8 +224,7 @@ void RobotView::StartUDP()
   // m_tcpSocket_RobotCommand = Poco::Net::ServerSocket(30009);
   // ss = m_tcpSocket_RobotCommand.acceptConnection();
   // m_Thread2 = std::thread(&RobotView::threadUDP_HeartBeat, this);
-  m_KukaRobotApi.Connect();
-  m_Thread = std::thread(&RobotView::threadUDP_RobotInfo, this);
+  m_KukaRobotApi.ReadCommandResult();
 }
 
 void RobotView::threadUDP_RobotInfo()

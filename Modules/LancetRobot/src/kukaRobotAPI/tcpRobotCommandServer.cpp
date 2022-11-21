@@ -22,9 +22,11 @@ bool lancet::TcpRobotCommandServer::isConnected() const
   return m_IsConnected;
 }
 
-int lancet::TcpRobotCommandServer::read(byte_t* buffer, int length) const
+int lancet::TcpRobotCommandServer::read() const
 {
-  //todo
+  Poco::Net::SocketStream str(m_StreamSocket);
+  // Writes all bytes readable from str into std::cout, using an internal buffer.
+  Poco::StreamCopier::copyStream(str, std::cout);
   return 0;
 }
 
