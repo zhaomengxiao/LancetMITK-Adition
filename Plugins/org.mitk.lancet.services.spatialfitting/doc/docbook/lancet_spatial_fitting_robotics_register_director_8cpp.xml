@@ -4,6 +4,7 @@
 <indexterm><primary>src/core/lancetSpatialFittingRoboticsRegisterDirector.cpp</primary></indexterm>
 <programlisting linenumbering="unnumbered">#include &quot;lancetSpatialFittingRoboticsRegisterDirector.h&quot;
 #include &quot;lancetSpatialFittingPipelineBuilder.h&quot;
+#include &quot;lancetSpatialFittingPipelineManager.h&quot;
 </programlisting>Include dependency graph for lancetSpatialFittingRoboticsRegisterDirector.cpp:<para>
     <informalfigure>
         <mediaobject>

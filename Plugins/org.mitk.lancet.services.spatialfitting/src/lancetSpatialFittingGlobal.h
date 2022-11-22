@@ -48,7 +48,6 @@
 // Import CXX standard memory processing module.
 #ifndef _MEMORY_
 #  include <memory>
-
 #endif
 
 #ifndef itkObject_h

@@ -4,13 +4,13 @@ BEGIN_SPATIAL_FITTING_NAMESPACE
 
 struct NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilterPrivateImp
 {
-
+	mitk::NavigationData::Pointer ucsTool;
 };
 
 NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilter()
 	: imp(std::make_shared<NavigationToolToNavigationToolFilterPrivateImp>())
 {
-	mitk::NavigationData::Pointer ucsTool;
+	
 }
 
 NavigationToolToNavigationToolFilter::~NavigationToolToNavigationToolFilter()

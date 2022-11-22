@@ -158,6 +158,7 @@
         <inbodydescription>
         </inbodydescription>
         <location file="src/core/lancetSpatialFittingPipelineBuilder.h" line="80" column="14" bodyfile="src/core/lancetSpatialFittingPipelineBuilder.cpp" bodystart="30" bodyend="33"/>
+        <referencedby refid="class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6" compoundref="lancet_spatial_fitting_robotics_register_director_8cpp" startline="19" endline="30">RoboticsRegisterDirector::Builder</referencedby>
       </memberdef>
       <memberdef kind="function" id="class_pipeline_builder_1a57cb2e1ae299848f251da0729147d267" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
         <type>void</type>

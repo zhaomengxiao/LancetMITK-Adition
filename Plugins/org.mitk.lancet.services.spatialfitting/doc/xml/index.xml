@@ -60,6 +60,7 @@
     <member refid="class_navigation_tool_to_navigation_tool_filter_1ae46d9e67048e81abf3eec9d3d780ff1f" kind="function"><name>GenerateData</name></member>
   </compound>
   <compound refid="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp" kind="struct"><name>NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilterPrivateImp</name>
+    <member refid="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp_1a392582857960dd14180f0f7bbdd870a9" kind="variable"><name>ucsTool</name></member>
   </compound>
   <compound refid="class_navigation_tool_to_space_filter" kind="class"><name>NavigationToolToSpaceFilter</name>
     <member refid="class_navigation_tool_to_space_filter_1a0e0a082c48cff2146b4eaa6d1c8107c6" kind="variable"><name>imp</name></member>
@@ -100,7 +101,7 @@
     <member refid="class_pipeline_manager_1ad027ecdbaf8f102efb871bc0a3ef39f1" kind="variable"><name>imp</name></member>
     <member refid="class_pipeline_manager_1aac1015c7ee3f69391d15c7032f96493f" kind="function"><name>mitkClassMacro</name></member>
     <member refid="class_pipeline_manager_1a5c1ca77b12c44a3f2fbf61c328f299f2" kind="function"><name>~PipelineManager</name></member>
-    <member refid="class_pipeline_manager_1a9d1d6b25355ce9985de2c3a5ab6c5519" kind="function"><name>AddFilter</name></member>
+    <member refid="class_pipeline_manager_1a0ce52157d7cc34c41bb626a95ac8e54e" kind="function"><name>AddFilter</name></member>
     <member refid="class_pipeline_manager_1a766d9dc3533cf803f717d41d7f50e643" kind="function"><name>RemoveFilter</name></member>
     <member refid="class_pipeline_manager_1a7977f65f0ddc929cc6ab3265ed864448" kind="function"><name>RemoveFilter</name></member>
     <member refid="class_pipeline_manager_1acaf0331f56cb6a6d51a6a9632fa5f2ba" kind="function"><name>ModifyFilter</name></member>
@@ -137,6 +138,27 @@
     <member refid="class_robotics_register_director_1a22f33bcca3873532a47f7c266d8d7858" kind="function"><name>itkNewMacro</name></member>
     <member refid="class_robotics_register_director_1a766f0e3e7f0fe9e629386ab3591a8724" kind="function"><name>~RoboticsRegisterDirector</name></member>
     <member refid="class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6" kind="function"><name>Builder</name></member>
+  </compound>
+  <compound refid="class_robotics_register_model" kind="class"><name>RoboticsRegisterModel</name>
+    <member refid="class_robotics_register_model_1a0c955e8a7f46f98e19b4ce895dcf91ad" kind="variable"><name>imp</name></member>
+    <member refid="class_robotics_register_model_1a1ce1466662a272fb90d0ee7ebfa7c0ac" kind="function"><name>mitkClassMacroItkParent</name></member>
+    <member refid="class_robotics_register_model_1a764ced216ee2fc01edca06f001effe28" kind="function"><name>~RoboticsRegisterModel</name></member>
+    <member refid="class_robotics_register_model_1a5ad27de9a8b8496f4e2210c38a4db3f9" kind="function"><name>GetRegisterModel</name></member>
+    <member refid="class_robotics_register_model_1a7aa078efb705097dcb2f09dec1a8c15f" kind="function"><name>GetRegisterNavigationPipeline</name></member>
+    <member refid="class_robotics_register_model_1ad1a2593b9bdd9b3e5ea8ca69a82d17fa" kind="function"><name>SetRegisterNavigationPipeline</name></member>
+    <member refid="class_robotics_register_model_1a1541fcf3f8e72ca9024e5fa0f75eb565" kind="function"><name>SetAccutacyVerifyPipeline</name></member>
+    <member refid="class_robotics_register_model_1a0ea95fc5cc06ac290beccb5629a934ca" kind="function"><name>GetAccutacyVerifyPipeline</name></member>
+    <member refid="class_robotics_register_model_1a6fdd3e2f55f1605f72d19fc09f30255b" kind="function"><name>GetNdiNavigationDataSource</name></member>
+    <member refid="class_robotics_register_model_1a76e49c2261805fe19560c394350e9b3e" kind="function"><name>SetNdiNavigationDataSource</name></member>
+    <member refid="class_robotics_register_model_1a50e4eaaffc89377f56063e775b60ff47" kind="function"><name>GetRoboticsNavigationDataSource</name></member>
+    <member refid="class_robotics_register_model_1a2aac3ad33b3ef04a63b17bfa2b4007bc" kind="function"><name>SetRoboticsNavigationDataSource</name></member>
+  </compound>
+  <compound refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp" kind="struct"><name>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</name>
+    <member refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ad052e8c6189932797e2432c65b26473a" kind="variable"><name>roboticsRegisterModel</name></member>
+    <member refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a27795a05c251d5a8cc27f4de2a48c0bf" kind="variable"><name>pipelineRoboticsRegisterManager</name></member>
+    <member refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ac6fb6b9259cdf6b38a32b58a268242ae" kind="variable"><name>pipelineRoboticsAccuracyManager</name></member>
+    <member refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a72adb06ccf4a678d7237e6a26c072555" kind="variable"><name>ndiNavigationDataSource</name></member>
+    <member refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a3d5985f12de53a0e6144725c805bc3c8" kind="variable"><name>roboticsNavigationDataSource</name></member>
   </compound>
   <compound refid="namespaceitk" kind="namespace"><name>itk</name>
   </compound>
@@ -202,8 +224,6 @@
     <member refid="lancet_spatial_fitting_global_8h_1aed5814a4467f133e62de345e372afe79" kind="define"><name>END_NAMSPEACE_DEFINE</name></member>
     <member refid="lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e" kind="define"><name>BEGIN_SPATIAL_FITTING_NAMESPACE</name></member>
     <member refid="lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2" kind="define"><name>END_SPATIAL_FITTING_NAMESPACE</name></member>
-  </compound>
-  <compound refid="mainpage_01-_01_xE5_x89_xAF_xE6_x9C_xAC_8h" kind="file"><name>mainpage - 副本.h</name>
   </compound>
   <compound refid="mainpage_8h" kind="file"><name>mainpage.h</name>
   </compound>

@@ -1,0 +1,244 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="class_robotics_register_model" kind="class" language="C++" prot="public">
+    <compoundname>RoboticsRegisterModel</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">itk::Object</basecompoundref>
+    <includes refid="lancet_spatial_fitting_robotics_register_model_8h" local="no">lancetSpatialFittingRoboticsRegisterModel.h</includes>
+    <innerclass refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp" prot="public">RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</innerclass>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="class_robotics_register_model_1a0c955e8a7f46f98e19b4ce895dcf91ad" prot="private" static="no" mutable="no">
+        <type>std::shared_ptr&lt; <ref refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp" kindref="compound">RoboticsRegisterModelPrivateImp</ref> &gt;</type>
+        <definition>std::shared_ptr&lt;RoboticsRegisterModelPrivateImp&gt; RoboticsRegisterModel::imp</definition>
+        <argsstring></argsstring>
+        <name>imp</name>
+        <qualifiedname>RoboticsRegisterModel::imp</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="53" column="17" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="class_robotics_register_model_1a1ce1466662a272fb90d0ee7ebfa7c0ac" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>RoboticsRegisterModel::mitkClassMacroItkParent</definition>
+        <argsstring>(RoboticsRegisterModel, itk::Object) itkNewMacro(RoboticsRegisterModel) RoboticsRegisterModel()</argsstring>
+        <name>mitkClassMacroItkParent</name>
+        <qualifiedname>RoboticsRegisterModel::mitkClassMacroItkParent</qualifiedname>
+        <param>
+          <type><ref refid="class_robotics_register_model" kindref="compound">RoboticsRegisterModel</ref></type>
+        </param>
+        <param>
+          <type>itk::Object</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="31" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="class_robotics_register_model_1a764ced216ee2fc01edca06f001effe28" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type></type>
+        <definition>RoboticsRegisterModel::~RoboticsRegisterModel</definition>
+        <argsstring>()</argsstring>
+        <name>~RoboticsRegisterModel</name>
+        <qualifiedname>RoboticsRegisterModel::~RoboticsRegisterModel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="36" column="9" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="23" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="function" id="class_robotics_register_model_1a5ad27de9a8b8496f4e2210c38a4db3f9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>RobotRegistration &amp;</type>
+        <definition>RobotRegistration &amp; RoboticsRegisterModel::GetRegisterModel</definition>
+        <argsstring>()</argsstring>
+        <name>GetRegisterModel</name>
+        <qualifiedname>RoboticsRegisterModel::GetRegisterModel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="38" column="19" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="27" bodyend="30"/>
+      </memberdef>
+      <memberdef kind="function" id="class_robotics_register_model_1a7aa078efb705097dcb2f09dec1a8c15f" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>itk::SmartPointer&lt; <ref refid="class_pipeline_manager" kindref="compound">PipelineManager</ref> &gt;</type>
+        <definition>itk::SmartPointer&lt; PipelineManager &gt; RoboticsRegisterModel::GetRegisterNavigationPipeline</definition>
+        <argsstring>() const</argsstring>
+        <name>GetRegisterNavigationPipeline</name>
+        <qualifiedname>RoboticsRegisterModel::GetRegisterNavigationPipeline</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="40" column="19" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="32" bodyend="35"/>
+      </memberdef>
+      <memberdef kind="function" id="class_robotics_register_model_1ad1a2593b9bdd9b3e5ea8ca69a82d17fa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void RoboticsRegisterModel::SetRegisterNavigationPipeline</definition>
+        <argsstring>(itk::SmartPointer&lt; PipelineManager &gt; manager)</argsstring>
+        <name>SetRegisterNavigationPipeline</name>
+        <qualifiedname>RoboticsRegisterModel::SetRegisterNavigationPipeline</qualifiedname>
+        <param>
+          <type>itk::SmartPointer&lt; <ref refid="class_pipeline_manager" kindref="compound">PipelineManager</ref> &gt;</type>
+          <declname>manager</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="41" column="6" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="37" bodyend="39"/>
+      </memberdef>
+      <memberdef kind="function" id="class_robotics_register_model_1a1541fcf3f8e72ca9024e5fa0f75eb565" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void RoboticsRegisterModel::SetAccutacyVerifyPipeline</definition>
+        <argsstring>(itk::SmartPointer&lt; PipelineManager &gt; manager)</argsstring>
+        <name>SetAccutacyVerifyPipeline</name>
+        <qualifiedname>RoboticsRegisterModel::SetAccutacyVerifyPipeline</qualifiedname>
+        <param>
+          <type>itk::SmartPointer&lt; <ref refid="class_pipeline_manager" kindref="compound">PipelineManager</ref> &gt;</type>
+          <declname>manager</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="43" column="6" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="41" bodyend="43"/>
+      </memberdef>
+      <memberdef kind="function" id="class_robotics_register_model_1a0ea95fc5cc06ac290beccb5629a934ca" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>itk::SmartPointer&lt; <ref refid="class_pipeline_manager" kindref="compound">PipelineManager</ref> &gt;</type>
+        <definition>itk::SmartPointer&lt; PipelineManager &gt; RoboticsRegisterModel::GetAccutacyVerifyPipeline</definition>
+        <argsstring>() const</argsstring>
+        <name>GetAccutacyVerifyPipeline</name>
+        <qualifiedname>RoboticsRegisterModel::GetAccutacyVerifyPipeline</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="44" column="19" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="45" bodyend="48"/>
+      </memberdef>
+      <memberdef kind="function" id="class_robotics_register_model_1a6fdd3e2f55f1605f72d19fc09f30255b" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>mitk::NavigationDataSource *</type>
+        <definition>mitk::NavigationDataSource * RoboticsRegisterModel::GetNdiNavigationDataSource</definition>
+        <argsstring>() const</argsstring>
+        <name>GetNdiNavigationDataSource</name>
+        <qualifiedname>RoboticsRegisterModel::GetNdiNavigationDataSource</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="46" column="28" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="50" bodyend="53"/>
+      </memberdef>
+      <memberdef kind="function" id="class_robotics_register_model_1a76e49c2261805fe19560c394350e9b3e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void RoboticsRegisterModel::SetNdiNavigationDataSource</definition>
+        <argsstring>(mitk::NavigationDataSource *source)</argsstring>
+        <name>SetNdiNavigationDataSource</name>
+        <qualifiedname>RoboticsRegisterModel::SetNdiNavigationDataSource</qualifiedname>
+        <param>
+          <type>mitk::NavigationDataSource *</type>
+          <declname>source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="47" column="6" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="55" bodyend="57"/>
+      </memberdef>
+      <memberdef kind="function" id="class_robotics_register_model_1a50e4eaaffc89377f56063e775b60ff47" prot="public" static="no" const="yes" explicit="no" inline="no" virt="non-virtual">
+        <type>mitk::NavigationDataSource *</type>
+        <definition>mitk::NavigationDataSource * RoboticsRegisterModel::GetRoboticsNavigationDataSource</definition>
+        <argsstring>() const</argsstring>
+        <name>GetRoboticsNavigationDataSource</name>
+        <qualifiedname>RoboticsRegisterModel::GetRoboticsNavigationDataSource</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="49" column="28" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="59" bodyend="62"/>
+      </memberdef>
+      <memberdef kind="function" id="class_robotics_register_model_1a2aac3ad33b3ef04a63b17bfa2b4007bc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void RoboticsRegisterModel::SetRoboticsNavigationDataSource</definition>
+        <argsstring>(mitk::NavigationDataSource *source)</argsstring>
+        <name>SetRoboticsNavigationDataSource</name>
+        <qualifiedname>RoboticsRegisterModel::SetRoboticsNavigationDataSource</qualifiedname>
+        <param>
+          <type>mitk::NavigationDataSource *</type>
+          <declname>source</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="50" column="6" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="64" bodyend="66"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>RoboticsRegisterModel</label>
+        <link refid="class_robotics_register_model"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>itk::Object</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>RoboticsRegisterModel</label>
+        <link refid="class_robotics_register_model"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>itk::Object</label>
+      </node>
+    </collaborationgraph>
+    <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="27" column="1" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" bodystart="29" bodyend="54"/>
+    <listofallmembers>
+      <member refid="class_robotics_register_model_1a0ea95fc5cc06ac290beccb5629a934ca" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>GetAccutacyVerifyPipeline</name></member>
+      <member refid="class_robotics_register_model_1a6fdd3e2f55f1605f72d19fc09f30255b" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>GetNdiNavigationDataSource</name></member>
+      <member refid="class_robotics_register_model_1a5ad27de9a8b8496f4e2210c38a4db3f9" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>GetRegisterModel</name></member>
+      <member refid="class_robotics_register_model_1a7aa078efb705097dcb2f09dec1a8c15f" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>GetRegisterNavigationPipeline</name></member>
+      <member refid="class_robotics_register_model_1a50e4eaaffc89377f56063e775b60ff47" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>GetRoboticsNavigationDataSource</name></member>
+      <member refid="class_robotics_register_model_1a0c955e8a7f46f98e19b4ce895dcf91ad" prot="private" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>imp</name></member>
+      <member refid="class_robotics_register_model_1a1ce1466662a272fb90d0ee7ebfa7c0ac" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>mitkClassMacroItkParent</name></member>
+      <member refid="class_robotics_register_model_1a1541fcf3f8e72ca9024e5fa0f75eb565" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>SetAccutacyVerifyPipeline</name></member>
+      <member refid="class_robotics_register_model_1a76e49c2261805fe19560c394350e9b3e" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>SetNdiNavigationDataSource</name></member>
+      <member refid="class_robotics_register_model_1ad1a2593b9bdd9b3e5ea8ca69a82d17fa" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>SetRegisterNavigationPipeline</name></member>
+      <member refid="class_robotics_register_model_1a2aac3ad33b3ef04a63b17bfa2b4007bc" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel</scope><name>SetRoboticsNavigationDataSource</name></member>
+      <member refid="class_robotics_register_model_1a764ced216ee2fc01edca06f001effe28" prot="public" virt="virtual"><scope>RoboticsRegisterModel</scope><name>~RoboticsRegisterModel</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -4,7 +4,7 @@
 Here are the classes, structs, unions and interfaces with brief descriptions:<link linkend="_class_abstract_director">AbstractDirector</link>
 <para>This is the decision-maker class of the abstract generator pattern </para>
 <link linkend="_struct_abstract_director_1_1_abstract_director_private_imp">AbstractDirector::AbstractDirectorPrivateImp</link><link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link>
-<para>$Document description$ </para>
+<para>Abstract interface class definition of Builder </para>
 <link linkend="_class_navigation_tool_collector">NavigationToolCollector</link>
 <para>This is the header file that declares the navigation data collection filter </para>
 <link linkend="_struct_navigation_tool_collector_1_1_navigation_tool_collector_private_imp">NavigationToolCollector::NavigationToolCollectorPrivateImp</link><link linkend="_class_navigation_tool_to_navigation_tool_filter">NavigationToolToNavigationToolFilter</link>
@@ -19,4 +19,4 @@ Here are the classes, structs, unions and interfaces with brief descriptions:<li
 <para>This is the declaration header file of space point calculation </para>
 <link linkend="_struct_point_accuracy_date_1_1_point_accuracy_date_private_imp">PointAccuracyDate::PointAccuracyDatePrivateImp</link><link linkend="_structlancet_1_1org__mitk__lancet__services___spatial_fitting_1_1_private_imp">lancet::org_mitk_lancet_services_SpatialFitting::PrivateImp</link><link linkend="_class_robotics_register_director">RoboticsRegisterDirector</link>
 <para>This is the header file of the decision-maker for the registration and construction of the robot arm </para>
-</section>
+<link linkend="_class_robotics_register_model">RoboticsRegisterModel</link><link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp">RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</link></section>

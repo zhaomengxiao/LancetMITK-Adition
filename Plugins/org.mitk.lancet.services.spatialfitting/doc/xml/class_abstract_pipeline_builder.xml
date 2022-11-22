@@ -4,7 +4,7 @@
     <compoundname>AbstractPipelineBuilder</compoundname>
     <basecompoundref prot="public" virt="non-virtual">itk::Object</basecompoundref>
     <derivedcompoundref refid="class_pipeline_builder" prot="public" virt="non-virtual">PipelineBuilder</derivedcompoundref>
-    <includes refid="lancet_spatial_fitting_robotics_register_model_8h" local="no">lancetSpatialFittingRoboticsRegisterModel.h</includes>
+    <includes refid="lancet_spatial_fitting_abstract_pipeline_builder_8h" local="no">lancetSpatialFittingAbstractPipelineBuilder.h</includes>
       <sectiondef kind="public-func">
       <memberdef kind="function" id="class_abstract_pipeline_builder_1a3a1eb3fb9b8d447d7db7e106887101ed" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -65,28 +65,10 @@
       </memberdef>
       </sectiondef>
     <briefdescription>
-<para>$Document description$ </para>
+<para>Abstract interface class definition of Builder. </para>
     </briefdescription>
     <detaileddescription>
-<para>Abstract interface class definition of Builder.</para>
-<para><simplesect kind="par"><title>Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.</title><para></para>
-</simplesect>
-<simplesect kind="version"><para>V1.0.0 </para>
-</simplesect>
-<simplesect kind="date"><para>2022-11-18 10:19:56</para>
-</simplesect>
-<simplesect kind="par"><title>Modify History</title><para><orderedlist>
-<listitem><para>Sun initialization the version for 2022-11-18 10:18:17.</para>
-</listitem></orderedlist>
-</para>
-</simplesect>
-<simplesect kind="author"><para>Sun </para>
-</simplesect>
-<simplesect kind="date"><para>2022-11-18 10:19:56 </para>
-</simplesect>
-<simplesect kind="remark"><para>$Modify Description$</para>
-</simplesect>
-This is the abstract class of pipeline data generator. Pipeline data is complex and changeable. The generator can effectively avoid the impact of changes in pipeline data on the basic code.</para>
+<para>This is the abstract class of pipeline data generator. Pipeline data is complex and changeable. The generator can effectively avoid the impact of changes in pipeline data on the basic code.</para>
 <para><bold>Class diagram:</bold><linebreak/>
  <image type="html" name="SpatialFittingAbstractPipelineBuilder.svg"></image>
 </para>
@@ -126,7 +108,7 @@ Contact: <ulink url="mailto:sh4a01@163.com">sh4a01@163.com</ulink> </para>
         <label>itk::Object</label>
       </node>
     </collaborationgraph>
-    <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" line="23" column="1" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" bodystart="25" bodyend="27"/>
+    <location file="src/lancetSpatialFittingAbstractPipelineBuilder.h" line="49" column="1" bodyfile="src/lancetSpatialFittingAbstractPipelineBuilder.h" bodystart="51" bodyend="74"/>
     <listofallmembers>
       <member refid="class_abstract_pipeline_builder_1abe2c7e315e68a70558628b092fb2a716" prot="public" virt="pure-virtual"><scope>AbstractPipelineBuilder</scope><name>GetOutput</name></member>
       <member refid="class_abstract_pipeline_builder_1a3a1eb3fb9b8d447d7db7e106887101ed" prot="public" virt="non-virtual"><scope>AbstractPipelineBuilder</scope><name>mitkClassMacroItkParent</name></member>

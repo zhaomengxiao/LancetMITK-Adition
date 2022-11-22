@@ -18,7 +18,7 @@ Go to the documentation of this file.<programlisting linenumbering="unnumbered">
 <anchor xml:id="_lancet_spatial_fitting_abstract_pipeline_builder_8h_source_1l00027"/>00027 <emphasis role="keyword">class&#32;</emphasis><link linkend="_class_pipeline_manager">PipelineManager</link>;
 <anchor xml:id="_lancet_spatial_fitting_abstract_pipeline_builder_8h_source_1l00028"/>00028 
 <anchor xml:id="_lancet_spatial_fitting_abstract_pipeline_builder_8h_source_1l00029"/>00029 
-<anchor xml:id="_lancet_spatial_fitting_abstract_pipeline_builder_8h_source_1l00049"/>00049 <emphasis role="keyword">class&#32;</emphasis>ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN&#32;
+<anchor xml:id="_lancet_spatial_fitting_abstract_pipeline_builder_8h_source_1l00049"/><link linkend="_class_abstract_pipeline_builder">00049</link> <emphasis role="keyword">class&#32;</emphasis>ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN&#32;
 <anchor xml:id="_lancet_spatial_fitting_abstract_pipeline_builder_8h_source_1l00050"/>00050 &#32;&#32;&#32;&#32;<link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link>&#32;:&#32;<emphasis role="keyword">public</emphasis>&#32;itk::Object
 <anchor xml:id="_lancet_spatial_fitting_abstract_pipeline_builder_8h_source_1l00051"/>00051 {
 <anchor xml:id="_lancet_spatial_fitting_abstract_pipeline_builder_8h_source_1l00052"/>00052 <emphasis role="keyword">public</emphasis>:

@@ -1,4 +1,4 @@
-.TH "PipelineManager" 3 "Mon Nov 21 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
+.TH "PipelineManager" 3 "Tue Nov 22 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -28,8 +28,9 @@ Inherits mitk::NavigationDataToNavigationDataFilter\&.
 .RI "virtual itkNewMacro(\fBPipelineManager\fP) public \fB~PipelineManager\fP ()"
 .br
 .ti -1c
-.RI "bool \fBAddFilter\fP (int index, mitk::NavigationDataToNavigationDataFilter::Pointer)"
+.RI "bool \fBAddFilter\fP (int index, mitk::NavigationDataToNavigationDataFilter::Pointer data)"
 .br
+.RI "Add a filter element\&. "
 .ti -1c
 .RI "bool \fBRemoveFilter\fP (int index)"
 .br
@@ -39,18 +40,21 @@ Inherits mitk::NavigationDataToNavigationDataFilter\&.
 .ti -1c
 .RI "bool \fBModifyFilter\fP (int index, mitk::NavigationDataToNavigationDataFilter::Pointer)"
 .br
+.RI "Modify the element of target subscript\&. "
 .ti -1c
 .RI "bool \fBModifyFilter\fP (const std::string &name, mitk::NavigationDataToNavigationDataFilter::Pointer)"
 .br
 .ti -1c
 .RI "mitk::NavigationDataToNavigationDataFilter::Pointer \fBFindFilter\fP (int index)"
 .br
+.RI "Query the data element corresponding to the subscript value\&. "
 .ti -1c
 .RI "mitk::NavigationDataToNavigationDataFilter::Pointer \fBFindFilter\fP (const std::string &name)"
 .br
 .ti -1c
 .RI "int \fBGetIndexByName\fP (const std::string &name)"
 .br
+.RI "Returns the subscript value corresponding to the element name attribute\&. "
 .ti -1c
 .RI "bool \fBIsEmpty\fP () const"
 .br
@@ -151,7 +155,33 @@ Definition at line \fB15\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp
 .fi
 .SH "Member Function Documentation"
 .PP 
-.SS "bool PipelineManager::AddFilter (int index, mitk::NavigationDataToNavigationDataFilter::Pointer)"
+.SS "bool PipelineManager::AddFilter (int index, mitk::NavigationDataToNavigationDataFilter::Pointer data)"
+
+.PP
+Add a filter element\&. The subscript value will determine the time when the filter is called\&. The calling sequence starts from subscript 0 and increases in order\&.
+.PP
+\fBWarning\fP
+.RS 4
+When the subscript value is greater than the total number of elements in the container, the filter is added to the end of the container by default\&.
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIindex\fP Element subscript value 
+.br
+\fIdata\fP Data Field Object\&.
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Returns true if the addition is successful, otherwise false\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+mitk::NavigationDataToNavigationDataFilter::Pointer 
+.RE
+.PP
 
 .PP
 Definition at line \fB19\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
@@ -162,7 +192,7 @@ Definition at line \fB19\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp
 22 }
 .fi
 .SS "mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter (const std::string & name)"
-
+It is recommended to use subscripts\&. 
 .PP
 Definition at line \fB49\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
 .PP
@@ -172,6 +202,25 @@ Definition at line \fB49\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp
 52 }
 .fi
 .SS "mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter (int index)"
+
+.PP
+Query the data element corresponding to the subscript value\&. 
+.PP
+\fBWarning\fP
+.RS 4
+The return value may be nullptr, please pay attention to security processing\&.
+.RE
+.PP
+\fBParameters\fP
+.RS 4
+\fIindex\fP Element subscript value
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+mitk::NavigationDataToNavigationDataFilter::Pointer 
+.RE
+.PP
 
 .PP
 Definition at line \fB44\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
@@ -191,6 +240,15 @@ Definition at line \fB69\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp
 71 }
 .fi
 .SS "int PipelineManager::GetIndexByName (const std::string & name)"
+
+.PP
+Returns the subscript value corresponding to the element name attribute\&. It is not recommended to use this interface frequently, because when there are two elements with the same name attribute in the element, the return value will point to the subscript of the first element that matches the name attribute\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIname\fP mitk::NavigationDataToNavigationDataFilter::GetName() 
+.RE
+.PP
 
 .PP
 Definition at line \fB54\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
@@ -223,7 +281,7 @@ Definition at line \fB59\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp
 .SS "PipelineManager::mitkClassMacro (\fBPipelineManager\fP, mitk::NavigationDataToNavigationDataFilter)"
 
 .SS "bool PipelineManager::ModifyFilter (const std::string & name, mitk::NavigationDataToNavigationDataFilter::Pointer)"
-
+It is recommended to use subscripts\&. 
 .PP
 Definition at line \fB39\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.
 .PP
@@ -233,6 +291,27 @@ Definition at line \fB39\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp
 42 }
 .fi
 .SS "bool PipelineManager::ModifyFilter (int index, mitk::NavigationDataToNavigationDataFilter::Pointer)"
+
+.PP
+Modify the element of target subscript\&. This will override the way target subscript elements are modified\&.
+.PP
+\fBParameters\fP
+.RS 4
+\fIindex\fP Element subscript value 
+.br
+\fIdata\fP Data Field Object\&.
+.RE
+.PP
+\fBReturns\fP
+.RS 4
+Returns true if the addition is successful, otherwise false\&.
+.RE
+.PP
+\fBSee also\fP
+.RS 4
+mitk::NavigationDataToNavigationDataFilter::Pointer 
+.RE
+.PP
 
 .PP
 Definition at line \fB34\fP of file \fBlancetSpatialFittingPipelineManager\&.cpp\fP\&.

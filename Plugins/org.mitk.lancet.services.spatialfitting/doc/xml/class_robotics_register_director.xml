@@ -23,7 +23,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" line="58" column="1"/>
+        <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" line="59" column="1"/>
       </memberdef>
       <memberdef kind="function" id="class_robotics_register_director_1a22f33bcca3873532a47f7c266d8d7858" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type></type>
@@ -40,7 +40,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" line="60" column="1"/>
+        <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" line="61" column="1"/>
       </memberdef>
       <memberdef kind="function" id="class_robotics_register_director_1a766f0e3e7f0fe9e629386ab3591a8724" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
         <type></type>
@@ -54,7 +54,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" line="63" column="9" bodyfile="src/core/lancetSpatialFittingRoboticsRegisterDirector.cpp" bodystart="13" bodyend="15"/>
+        <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" line="64" column="9" bodyfile="src/core/lancetSpatialFittingRoboticsRegisterDirector.cpp" bodystart="14" bodyend="17"/>
       </memberdef>
       <memberdef kind="function" id="class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
         <type>bool</type>
@@ -74,7 +74,9 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" line="65" column="14" bodyfile="src/core/lancetSpatialFittingRoboticsRegisterDirector.cpp" bodystart="17" bodyend="20"/>
+        <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" line="66" column="14" bodyfile="src/core/lancetSpatialFittingRoboticsRegisterDirector.cpp" bodystart="19" bodyend="30"/>
+        <references refid="class_pipeline_builder_1aacc5bd74d1926eb607d3dcbc8f03209f" compoundref="lancet_spatial_fitting_pipeline_builder_8cpp" startline="30" endline="33">PipelineBuilder::BuilderNavigationToolToNavigationToolFilter</references>
+        <references refid="class_abstract_director_1a78aa56c869e219c1988be4512423ce80" compoundref="lancet_spatial_fitting_abstract_director_8cpp" startline="16" endline="19">AbstractDirector::GetBuilder</references>
       </memberdef>
       </sectiondef>
     <briefdescription>
@@ -103,7 +105,8 @@ This is the decision-maker class of robot arm registration construction.</para>
 <para><bold>Data stream:</bold><linebreak/>
  <image type="html" name="RoboticsRegisterDataStream.svg"></image>
 </para>
-<para><programlisting><codeline><highlight class="normal">RoboticsRegisterDirector::Pointer<sp/>roboticsRegisterDirector<sp/>=<sp/></highlight></codeline>
+<para><bold>Example of use:</bold><linebreak/>
+ <programlisting><codeline><highlight class="normal">RoboticsRegisterDirector::Pointer<sp/>roboticsRegisterDirector<sp/>=<sp/></highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>RoboticsRegisterDirector::New();</highlight></codeline>
 <codeline><highlight class="normal"></highlight></codeline>
 <codeline><highlight class="normal"></highlight><highlight class="keywordflow">if</highlight><highlight class="normal">(roboticsRegisterDirector-&gt;Builder())</highlight></codeline>
@@ -155,7 +158,7 @@ Contact: <ulink url="mailto:sh4a01@163.com">sh4a01@163.com</ulink> </para>
         <label>itk::Object</label>
       </node>
     </collaborationgraph>
-    <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" line="54" column="1" bodyfile="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" bodystart="56" bodyend="66"/>
+    <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" line="55" column="1" bodyfile="src/core/lancetSpatialFittingRoboticsRegisterDirector.h" bodystart="57" bodyend="67"/>
     <listofallmembers>
       <member refid="class_abstract_director_1ac9f0cc7f7ae8d3d31a5dcd017f2f8191" prot="public" virt="non-virtual"><scope>RoboticsRegisterDirector</scope><name>AbstractDirector</name></member>
       <member refid="class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6" prot="public" virt="virtual"><scope>RoboticsRegisterDirector</scope><name>Builder</name></member>

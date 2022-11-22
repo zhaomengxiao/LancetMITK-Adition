@@ -142,7 +142,16 @@ Definition at line <link linkend="_lancet_spatial_fitting_abstract_director_8cpp
 <programlisting linenumbering="unnumbered">00017 {
 00018 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;itk::SmartPointer&lt;AbstractPipelineBuilder&gt;();
 00019 }
-</programlisting></section>
+</programlisting>Here is the caller graph for this function:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="class_abstract_director_a78aa56c869e219c1988be4512423ce80_icgraph.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+</section>
 <anchor xml:id="_class_abstract_director_1ae2cf08a58c1b53215e4018a6ed6c0143"/><section>
     <title>mitkClassMacroItkParent()</title>
 <indexterm><primary>mitkClassMacroItkParent</primary><secondary>AbstractDirector</secondary></indexterm>

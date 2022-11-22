@@ -96,6 +96,7 @@ void NavigationToolCollector::on_QtTimerTrigger_timeout()
 
 void NavigationToolCollector::GenerateData()
 {
+
 }
 
 

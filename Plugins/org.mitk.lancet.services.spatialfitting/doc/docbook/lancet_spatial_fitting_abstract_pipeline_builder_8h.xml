@@ -28,7 +28,7 @@ This graph shows which files directly or indirectly include this file:<para>
         <itemizedlist>
             <listitem><para>class <link linkend="_class_abstract_pipeline_builder">AbstractPipelineBuilder</link></para>
 
-<para>$Document description$ </para>
+<para>Abstract interface class definition of Builder. </para>
 </listitem>
         </itemizedlist>
 </simplesect>

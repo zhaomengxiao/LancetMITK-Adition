@@ -10,7 +10,7 @@
         <link refid="lancet_spatial_fitting_navigation_tool_collector_8cpp"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="10" relation="include">
+        <childnode refid="12" relation="include">
         </childnode>
       </node>
       <node id="2">
@@ -18,9 +18,9 @@
         <link refid="lancet_spatial_fitting_navigation_tool_collector_8h"/>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="8" relation="include">
+        <childnode refid="10" relation="include">
         </childnode>
-        <childnode refid="9" relation="include">
+        <childnode refid="11" relation="include">
         </childnode>
       </node>
       <node id="3">
@@ -34,15 +34,22 @@
         </childnode>
         <childnode refid="7" relation="include">
         </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
       </node>
-      <node id="9">
+      <node id="11">
         <label>QObject</label>
       </node>
-      <node id="10">
+      <node id="12">
         <label>QTimer</label>
       </node>
       <node id="6">
         <label>itkObject.h</label>
+      </node>
+      <node id="8">
+        <label>itkObjectFactory.h</label>
       </node>
       <node id="7">
         <label>itkSmartPointer.h</label>
@@ -50,7 +57,10 @@
       <node id="5">
         <label>memory</label>
       </node>
-      <node id="8">
+      <node id="9">
+        <label>mitkCommon.h</label>
+      </node>
+      <node id="10">
         <label>mitkNavigationDataToNavigationDataFilter.h</label>
       </node>
       <node id="4">
@@ -161,10 +171,11 @@
 <codeline lineno="96"><highlight class="normal"></highlight></codeline>
 <codeline lineno="97" refid="class_navigation_tool_collector_1a39a112040f267b4d96f9965afdd0a52b" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="class_navigation_tool_collector_1a39a112040f267b4d96f9965afdd0a52b" kindref="member">NavigationToolCollector::GenerateData</ref>()</highlight></codeline>
 <codeline lineno="98"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="99"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="101"><highlight class="normal"></highlight></codeline>
-<codeline lineno="102"><highlight class="normal"><ref refid="lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2" kindref="member">END_SPATIAL_FITTING_NAMESPACE</ref></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><ref refid="lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2" kindref="member">END_SPATIAL_FITTING_NAMESPACE</ref></highlight></codeline>
     </programlisting>
     <location file="src/core/lancetSpatialFittingNavigationToolCollector.cpp"/>
   </compounddef>

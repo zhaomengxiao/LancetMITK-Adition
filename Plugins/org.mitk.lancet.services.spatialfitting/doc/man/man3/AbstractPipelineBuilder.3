@@ -1,14 +1,14 @@
-.TH "AbstractPipelineBuilder" 3 "Mon Nov 21 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
+.TH "AbstractPipelineBuilder" 3 "Tue Nov 22 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-AbstractPipelineBuilder \- $Document description$  
+AbstractPipelineBuilder \- Abstract interface class definition of Builder\&.  
 
 .SH SYNOPSIS
 .br
 .PP
 .PP
-\fC#include <lancetSpatialFittingRoboticsRegisterModel\&.h>\fP
+\fC#include <lancetSpatialFittingAbstractPipelineBuilder\&.h>\fP
 .PP
 Inherits itk::Object\&.
 .PP
@@ -30,48 +30,8 @@ Inherited by \fBPipelineBuilder\fP\&.
 .in -1c
 .SH "Detailed Description"
 .PP 
-$Document description$ 
+Abstract interface class definition of Builder\&. 
 
-Abstract interface class definition of Builder\&.
-.PP
-\fBCopyright (C)2022-2023 Hangzhou Lancet Robot Co\&., Ltd\&. All rights reserved\&.\fP
-.RS 4
-
-.RE
-.PP
-\fBVersion\fP
-.RS 4
-V1\&.0\&.0 
-.RE
-.PP
-\fBDate\fP
-.RS 4
-2022-11-18 10:19:56
-.RE
-.PP
-\fBModify History\fP
-.RS 4
-
-.IP "1." 4
-Sun initialization the version for 2022-11-18 10:18:17\&.
-.PP
-.RE
-.PP
-\fBAuthor\fP
-.RS 4
-Sun 
-.RE
-.PP
-\fBDate\fP
-.RS 4
-2022-11-18 10:19:56 
-.RE
-.PP
-\fBRemarks\fP
-.RS 4
-$Modify Description$
-.RE
-.PP
 This is the abstract class of pipeline data generator\&. Pipeline data is complex and changeable\&. The generator can effectively avoid the impact of changes in pipeline data on the basic code\&.
 .PP
 \fBClass diagram:\fP
@@ -95,7 +55,7 @@ Non
 .PP
 Contact: sh4a01@163.com 
 .PP
-Definition at line \fB23\fP of file \fBlancetSpatialFittingRoboticsRegisterModel\&.h\fP\&.
+Definition at line \fB49\fP of file \fBlancetSpatialFittingAbstractPipelineBuilder\&.h\fP\&.
 .SH "Member Function Documentation"
 .PP 
 .SS "virtual itk::SmartPointer< \fBPipelineManager\fP > AbstractPipelineBuilder::GetOutput ()\fC [pure virtual]\fP"

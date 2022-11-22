@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="struct_robotics_register_model_1_1_robotics_register_model_private_imp" kind="struct" language="C++" prot="public">
+    <compoundname>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</compoundname>
+      <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ad052e8c6189932797e2432c65b26473a" prot="public" static="no" mutable="no">
+        <type>RobotRegistration</type>
+        <definition>RobotRegistration RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::roboticsRegisterModel</definition>
+        <argsstring></argsstring>
+        <name>roboticsRegisterModel</name>
+        <qualifiedname>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::roboticsRegisterModel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" line="9" column="19" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a27795a05c251d5a8cc27f4de2a48c0bf" prot="public" static="no" mutable="no">
+        <type>PipelineManager::Pointer</type>
+        <definition>PipelineManager::Pointer RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::pipelineRoboticsRegisterManager</definition>
+        <argsstring></argsstring>
+        <name>pipelineRoboticsRegisterManager</name>
+        <qualifiedname>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::pipelineRoboticsRegisterManager</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" line="11" column="26" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="11" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ac6fb6b9259cdf6b38a32b58a268242ae" prot="public" static="no" mutable="no">
+        <type>PipelineManager::Pointer</type>
+        <definition>PipelineManager::Pointer RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::pipelineRoboticsAccuracyManager</definition>
+        <argsstring></argsstring>
+        <name>pipelineRoboticsAccuracyManager</name>
+        <qualifiedname>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::pipelineRoboticsAccuracyManager</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" line="12" column="26" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a72adb06ccf4a678d7237e6a26c072555" prot="public" static="no" mutable="no">
+        <type>mitk::NavigationDataSource *</type>
+        <definition>mitk::NavigationDataSource* RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::ndiNavigationDataSource</definition>
+        <argsstring></argsstring>
+        <name>ndiNavigationDataSource</name>
+        <qualifiedname>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::ndiNavigationDataSource</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" line="14" column="28" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="14" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a3d5985f12de53a0e6144725c805bc3c8" prot="public" static="no" mutable="no">
+        <type>mitk::NavigationDataSource *</type>
+        <definition>mitk::NavigationDataSource* RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::roboticsNavigationDataSource</definition>
+        <argsstring></argsstring>
+        <name>roboticsNavigationDataSource</name>
+        <qualifiedname>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::roboticsNavigationDataSource</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" line="15" column="28" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="15" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" line="7" column="1" bodyfile="src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp" bodystart="8" bodyend="16"/>
+    <listofallmembers>
+      <member refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a72adb06ccf4a678d7237e6a26c072555" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</scope><name>ndiNavigationDataSource</name></member>
+      <member refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ac6fb6b9259cdf6b38a32b58a268242ae" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</scope><name>pipelineRoboticsAccuracyManager</name></member>
+      <member refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a27795a05c251d5a8cc27f4de2a48c0bf" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</scope><name>pipelineRoboticsRegisterManager</name></member>
+      <member refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a3d5985f12de53a0e6144725c805bc3c8" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</scope><name>roboticsNavigationDataSource</name></member>
+      <member refid="struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ad052e8c6189932797e2432c65b26473a" prot="public" virt="non-virtual"><scope>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</scope><name>roboticsRegisterModel</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

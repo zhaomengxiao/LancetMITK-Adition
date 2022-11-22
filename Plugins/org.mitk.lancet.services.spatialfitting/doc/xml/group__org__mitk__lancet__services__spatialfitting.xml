@@ -10,8 +10,8 @@
     <innerclass refid="class_pipeline_manager" prot="public">PipelineManager</innerclass>
     <innerclass refid="class_point_accuracy_date" prot="public">PointAccuracyDate</innerclass>
     <innerclass refid="class_robotics_register_director" prot="public">RoboticsRegisterDirector</innerclass>
-    <innerclass refid="class_abstract_pipeline_builder" prot="public">AbstractPipelineBuilder</innerclass>
     <innerclass refid="class_abstract_director" prot="public">AbstractDirector</innerclass>
+    <innerclass refid="class_abstract_pipeline_builder" prot="public">AbstractPipelineBuilder</innerclass>
       <sectiondef kind="define">
       <memberdef kind="define" id="group__org__mitk__lancet__services__spatialfitting_1ga58923762afd58c3a163a36025e4cc47b" prot="public" static="no">
         <name>LancetSpatialFittingNameSpace</name>
@@ -43,6 +43,81 @@
 <para>Spatial fitting data processing module. </para>
     </briefdescription>
     <detaileddescription>
+<para><bold>Namespaces</bold><linebreak/>
+ <computeroutput>lancet::spatial_fitting</computeroutput> Contains all functions and declarations related to spatial fit.</para>
+<para><bold>Detailed Description</bold><linebreak/>
+</para>
+<para>The spatial computing module mainly aims at data calculation or processing between the mechanical arm, NDI and images. These spatial calculations are complex, and the spatial fitting module just shields these complex operations from the UI or users.</para>
+<para>To use this module function in mitk, you need to add the following commands in manifest_headers.cmake:</para>
+<para><programlisting><codeline><highlight class="comment">//<sp/>...</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">set(Require-Plugin<sp/>org_mitk_lancet_services_spatialfitting)</highlight></codeline>
+</programlisting></para>
+<para><bold>Class stream:</bold><linebreak/>
+ <image type="html" name="ClassDiagram.svg"></image>
+</para>
+<para><bold>Spatial Fitting Overview</bold><linebreak/>
+ Spatial fitting is a functional module for spatial calculation based on Mitk framework. Spatial fitting provides common functions in spatial processing, aiming to simplify the compilation of spatial processing in Mitk.<linebreak/>
+</para>
+<para>Spatial data processing is mainly driven by the pipeline mode. In the module, you can implement the functions or data you want by extending user-defined filters or builders.</para>
+<para><bold>Create a custom filter</bold><linebreak/>
+ To create a custom filter, subclass mitk::NavigationDataToNavigationDataFilter and override its GenerateData interface. This interface is the processing unit of the pipeline filter. In the processing unit, you can process the input data and store the processed data in the output cache object.</para>
+<para>After subclassing the mitk::NavigationDataToNavigationDataFilter, you should integrate the customized filter into the module. The specification in the module is Mitk, that is, you need to use the code macro to extend the following specification code.</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>mitkClassMacro(className, SuperClassName)</computeroutput> Extending the basic specification interface of Mitk class.</para>
+</listitem><listitem><para><computeroutput>itkNewMacro(x)</computeroutput> Extend the basic specification interface created by the Itk class.</para>
+</listitem></itemizedlist>
+</para>
+<para><programlisting><codeline><highlight class="keyword">class<sp/></highlight><highlight class="normal">MyCustomFilter<sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>mitk::NavigationDataToNavigationDataFilter</highlight></codeline>
+<codeline><highlight class="normal">{</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>mitkClassMacro(MyCustomFilter,<sp/>mitk::NavigationDataToNavigationDataFilter)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>itkNewMacro(MyCustomFilter)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>MyCustomFilter()<sp/>{}</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">protected</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>GenerateData()</highlight><highlight class="keyword"><sp/>override<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="comment">//<sp/>Do<sp/>something.<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">};</highlight></codeline>
+</programlisting></para>
+<para><bold>Create a custom filter builder</bold><linebreak/>
+</para>
+<para>The filter builder is based on the creator model, and the role of the filter builder is the constructor. When we extend a custom filter, we need to extend a custom filter builder to create ideal pipeline data without changing the original code.</para>
+<para>Create a custom filter builder, You need to subclass <ref refid="class_abstract_pipeline_builder" kindref="compound">AbstractPipelineBuilder</ref> and override the <ref refid="class_abstract_pipeline_builder_1ac4381292ae208fe2eb83061cfe286882" kindref="member">AbstractPipelineBuilder::Reset()</ref> and <ref refid="class_abstract_pipeline_builder_1abe2c7e315e68a70558628b092fb2a716" kindref="member">AbstractPipelineBuilder::GetOutput()</ref> interfaces, which will function as the internal operation of the spatial fitting model.</para>
+<para>After subclassing the mitk::NavigationDataToNavigationDataFilter, you should integrate the customized filter into the module. The specification in the module is Mitk, that is, you need to use the code macro to extend the following specification code.</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>mitkClassMacroItkParent(className, SuperClassName)</computeroutput> Extending the standard basic interface of subclassed itk classes.</para>
+</listitem><listitem><para><computeroutput>itkNewMacro(x)</computeroutput> Extend the basic specification interface created by the Itk class.</para>
+</listitem></itemizedlist>
+</para>
+<para><programlisting><codeline><highlight class="keyword">class<sp/></highlight><highlight class="normal">MyCustomFilterBuilder<sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/><ref refid="class_abstract_pipeline_builder" kindref="compound">AbstractPipelineBuilder</ref></highlight></codeline>
+<codeline><highlight class="normal">{</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><ref refid="class_abstract_pipeline_builder_1a3a1eb3fb9b8d447d7db7e106887101ed" kindref="member">mitkClassMacroItkParent</ref>(MyCustomFilterBuilder,<sp/><ref refid="class_abstract_pipeline_builder" kindref="compound">AbstractPipelineBuilder</ref>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>itkNewMacro(MyCustomFilterBuilder)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>MyCustomFilterBuilder()<sp/>{}</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="class_abstract_pipeline_builder_1ac4381292ae208fe2eb83061cfe286882" kindref="member">Reset</ref>()</highlight><highlight class="keyword"><sp/>override<sp/></highlight><highlight class="normal">{}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/>itk::SmartPointer&lt;PipelineManager&gt;<sp/><ref refid="class_abstract_pipeline_builder_1abe2c7e315e68a70558628b092fb2a716" kindref="member">GetOutput</ref>()</highlight><highlight class="keyword"><sp/>override<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="comment">//<sp/>Do<sp/>something.<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">};</highlight></codeline>
+</programlisting></para>
+<para><bold>Create a custom build director</bold><linebreak/>
+</para>
+<para>The construction supervisor is the director of spatial fitting planning and construction of data pipeline. The construction supervisor decides the processing procedure and flow direction of a data pipeline.</para>
+<para>To create a custom construction supervisor, you need to subclass <ref refid="class_abstract_director" kindref="compound">AbstractDirector</ref>, rewrite the <ref refid="class_abstract_director_1a89be2adee44d1ea75c54fe40286b6f59" kindref="member">AbstractDirector::Builder()</ref> interface, and implement planning tasks within the interface.</para>
+<para>After subclassing the mitk::NavigationDataToNavigationDataFilter, you should integrate the customized filter into the module. The specification in the module is Mitk, that is, you need to use the code macro to extend the following specification code.</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>mitkClassMacroItkParent(className, SuperClassName)</computeroutput> Extending the standard basic interface of subclassed itk classes.</para>
+</listitem><listitem><para><computeroutput>itkNewMacro(x)</computeroutput> Extend the basic specification interface created by the Itk class.</para>
+</listitem></itemizedlist>
+</para>
+<para><programlisting><codeline><highlight class="keyword">class<sp/></highlight><highlight class="normal">MyCustomDirector<sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/><ref refid="class_abstract_director" kindref="compound">AbstractDirector</ref></highlight></codeline>
+<codeline><highlight class="normal">{</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><ref refid="class_abstract_director_1ae2cf08a58c1b53215e4018a6ed6c0143" kindref="member">mitkClassMacroItkParent</ref>(MyCustomDirector,<sp/><ref refid="class_abstract_director" kindref="compound">AbstractDirector</ref>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>itkNewMacro(MyCustomDirector)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>MyCustomDirector()<sp/>{}</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keyword">public</highlight><highlight class="normal">:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">virtual</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="class_abstract_director_1a89be2adee44d1ea75c54fe40286b6f59" kindref="member">Builder</ref>()</highlight><highlight class="keyword"><sp/>override<sp/></highlight><highlight class="normal">{<sp/></highlight><highlight class="comment">//<sp/>Do<sp/>something.<sp/>}</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">};</highlight></codeline>
+</programlisting> </para>
     </detaileddescription>
   </compounddef>
 </doxygen>

@@ -74,35 +74,37 @@
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <a class="code hl_class" href="class_pipeline_manager.html">PipelineManager</a>();</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keyword">virtual</span> <a class="code hl_class" href="class_pipeline_manager.html">~PipelineManager</a>();</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keywordtype">bool</span> AddFilter(<span class="keywordtype">int</span> index, mitk::NavigationDataToNavigationDataFilter::Pointer);</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordtype">bool</span> RemoveFilter(<span class="keywordtype">int</span> index);</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keywordtype">bool</span> RemoveFilter(<span class="keyword">const</span> std::string&amp;);</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keywordtype">bool</span> ModifyFilter(<span class="keywordtype">int</span> index, </div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        mitk::NavigationDataToNavigationDataFilter::Pointer);</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <span class="keywordtype">bool</span> ModifyFilter(<span class="keyword">const</span> std::string&amp; name, </div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        mitk::NavigationDataToNavigationDataFilter::Pointer);</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    mitk::NavigationDataToNavigationDataFilter::Pointer FindFilter(<span class="keywordtype">int</span> index);</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    mitk::NavigationDataToNavigationDataFilter::Pointer </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        FindFilter(<span class="keyword">const</span> std::string&amp; name);</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keywordtype">int</span> GetIndexByName(<span class="keyword">const</span> std::string&amp; name);</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <span class="keywordtype">bool</span> IsEmpty() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keywordtype">int</span> GetSize() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="keyword">protected</span>:</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> GenerateData() <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keyword">struct </span><a class="code hl_struct" href="struct_pipeline_manager_1_1_pipeline_manager_private_imp.html">PipelineManagerPrivateImp</a>;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    std::shared_ptr&lt;PipelineManagerPrivateImp&gt; imp;</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>};</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span><a class="code hl_define" href="lancet_spatial_fitting_global_8h.html#a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</a></div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="preprocessor">#endif </span><span class="comment">// !LancetSpatialFittingPipelineManager_H</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keywordtype">bool</span> AddFilter(<span class="keywordtype">int</span> index, mitk::NavigationDataToNavigationDataFilter::Pointer data);</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keywordtype">bool</span> RemoveFilter(<span class="keywordtype">int</span> index);</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keywordtype">bool</span> RemoveFilter(<span class="keyword">const</span> std::string&amp;);</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordtype">bool</span> ModifyFilter(<span class="keywordtype">int</span> index, </div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>        mitk::NavigationDataToNavigationDataFilter::Pointer);</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    <span class="keywordtype">bool</span> ModifyFilter(<span class="keyword">const</span> std::string&amp; name, </div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>        mitk::NavigationDataToNavigationDataFilter::Pointer);</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    mitk::NavigationDataToNavigationDataFilter::Pointer FindFilter(<span class="keywordtype">int</span> index);</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    mitk::NavigationDataToNavigationDataFilter::Pointer </div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        FindFilter(<span class="keyword">const</span> std::string&amp; name);</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span> </div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    <span class="keywordtype">int</span> GetIndexByName(<span class="keyword">const</span> std::string&amp; name);</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    <span class="keywordtype">bool</span> IsEmpty() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    <span class="keywordtype">int</span> GetSize() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span><span class="keyword">protected</span>:</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> GenerateData() <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    <span class="keyword">struct </span><a class="code hl_struct" href="struct_pipeline_manager_1_1_pipeline_manager_private_imp.html">PipelineManagerPrivateImp</a>;</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>    std::shared_ptr&lt;PipelineManagerPrivateImp&gt; imp;</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>};</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span> </div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span><a class="code hl_define" href="lancet_spatial_fitting_global_8h.html#a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</a></div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span> </div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span><span class="preprocessor">#endif </span><span class="comment">// !LancetSpatialFittingPipelineManager_H</span></div>
 <div class="ttc" id="aclass_pipeline_manager_html"><div class="ttname"><a href="class_pipeline_manager.html">PipelineManager</a></div><div class="ttdoc">$Document description$</div><div class="ttdef"><b>Definition:</b> <a href="lancet_spatial_fitting_pipeline_manager_8h_source.html#l00045">lancetSpatialFittingPipelineManager.h:48</a></div></div>
 <div class="ttc" id="aclass_pipeline_manager_html_aac1015c7ee3f69391d15c7032f96493f"><div class="ttname"><a href="class_pipeline_manager.html#aac1015c7ee3f69391d15c7032f96493f">PipelineManager::mitkClassMacro</a></div><div class="ttdeci">mitkClassMacro(PipelineManager, mitk::NavigationDataToNavigationDataFilter)</div></div>
 <div class="ttc" id="alancet_spatial_fitting_global_8h_html"><div class="ttname"><a href="lancet_spatial_fitting_global_8h.html">lancetSpatialFittingGlobal.h</a></div></div>

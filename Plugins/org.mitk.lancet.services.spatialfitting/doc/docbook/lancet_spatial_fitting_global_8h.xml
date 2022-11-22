@@ -6,6 +6,8 @@
 #include &lt;memory&gt;
 #include &lt;itkObject.h&gt;
 #include &lt;itkSmartPointer.h&gt;
+#include &lt;itkObjectFactory.h&gt;
+#include &lt;mitkCommon.h&gt;
 </programlisting>Include dependency graph for lancetSpatialFittingGlobal.h:<para>
     <informalfigure>
         <mediaobject>

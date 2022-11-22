@@ -4,15 +4,24 @@
     <compoundname>lancetSpatialFittingRoboticsRegisterDirector.cpp</compoundname>
     <includes refid="lancet_spatial_fitting_robotics_register_director_8h" local="yes">lancetSpatialFittingRoboticsRegisterDirector.h</includes>
     <includes refid="lancet_spatial_fitting_pipeline_builder_8h" local="yes">lancetSpatialFittingPipelineBuilder.h</includes>
+    <includes refid="lancet_spatial_fitting_pipeline_manager_8h" local="yes">lancetSpatialFittingPipelineManager.h</includes>
     <incdepgraph>
-      <node id="10">
+      <node id="11">
         <label>lancetSpatialFittingPipelineBuilder.h</label>
         <link refid="lancet_spatial_fitting_pipeline_builder_8h"/>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="11" relation="include">
-        </childnode>
         <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="14">
+        <label>lancetSpatialFittingPipelineManager.h</label>
+        <link refid="lancet_spatial_fitting_pipeline_manager_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="15" relation="include">
         </childnode>
       </node>
       <node id="1">
@@ -20,7 +29,9 @@
         <link refid="lancet_spatial_fitting_robotics_register_director_8cpp"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="10" relation="include">
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
         </childnode>
       </node>
       <node id="2">
@@ -28,10 +39,10 @@
         <link refid="lancet_spatial_fitting_robotics_register_director_8h"/>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="8" relation="include">
+        <childnode refid="10" relation="include">
         </childnode>
       </node>
-      <node id="8">
+      <node id="10">
         <label>lancetSpatialFittingAbstractDirector.h</label>
         <link refid="lancet_spatial_fitting_abstract_director_8h"/>
         <childnode refid="3" relation="include">
@@ -41,7 +52,7 @@
         <childnode refid="9" relation="include">
         </childnode>
       </node>
-      <node id="11">
+      <node id="12">
         <label>lancetSpatialFittingAbstractPipelineBuilder.h</label>
         <link refid="lancet_spatial_fitting_abstract_pipeline_builder_8h"/>
         <childnode refid="3" relation="include">
@@ -62,9 +73,16 @@
         </childnode>
         <childnode refid="7" relation="include">
         </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
       </node>
       <node id="6">
         <label>itkObject.h</label>
+      </node>
+      <node id="8">
+        <label>itkObjectFactory.h</label>
       </node>
       <node id="7">
         <label>itkSmartPointer.h</label>
@@ -75,8 +93,11 @@
       <node id="9">
         <label>mitkCommon.h</label>
       </node>
-      <node id="12">
+      <node id="13">
         <label>mitkNavigationData.h</label>
+      </node>
+      <node id="15">
+        <label>mitkNavigationDataToNavigationDataFilter.h</label>
       </node>
       <node id="4">
         <label>org_mitk_lancet_services_spatialfitting_Export.h</label>
@@ -89,26 +110,36 @@
     <programlisting>
 <codeline lineno="1"><highlight class="preprocessor">#include<sp/>&quot;<ref refid="lancet_spatial_fitting_robotics_register_director_8h" kindref="compound">lancetSpatialFittingRoboticsRegisterDirector.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="lancet_spatial_fitting_pipeline_builder_8h" kindref="compound">lancetSpatialFittingPipelineBuilder.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="3"><highlight class="normal"></highlight></codeline>
-<codeline lineno="4"><highlight class="normal"><ref refid="lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e" kindref="member">BEGIN_SPATIAL_FITTING_NAMESPACE</ref></highlight></codeline>
-<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="lancet_spatial_fitting_pipeline_manager_8h" kindref="compound">lancetSpatialFittingPipelineManager.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"><ref refid="lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e" kindref="member">BEGIN_SPATIAL_FITTING_NAMESPACE</ref></highlight></codeline>
 <codeline lineno="6"><highlight class="normal"></highlight></codeline>
-<codeline lineno="7"><highlight class="normal">RoboticsRegisterDirector::RoboticsRegisterDirector()</highlight></codeline>
-<codeline lineno="8"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/>PipelineBuilder::Pointer<sp/>pipelineBuilder<sp/>=<sp/>PipelineBuilder::New();</highlight></codeline>
-<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/>this-&gt;<ref refid="class_abstract_director_1a8ff3d2fedaec0f382fb19cab93766f92" kindref="member">SetBuilder</ref>(pipelineBuilder);</highlight></codeline>
-<codeline lineno="11"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="12"><highlight class="normal"></highlight></codeline>
-<codeline lineno="13" refid="class_robotics_register_director_1a766f0e3e7f0fe9e629386ab3591a8724" refkind="member"><highlight class="normal"><ref refid="class_robotics_register_director_1a766f0e3e7f0fe9e629386ab3591a8724" kindref="member">RoboticsRegisterDirector::~RoboticsRegisterDirector</ref>()</highlight></codeline>
-<codeline lineno="14"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="15"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="16"><highlight class="normal"></highlight></codeline>
-<codeline lineno="17" refid="class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6" kindref="member">RoboticsRegisterDirector::Builder</ref>()</highlight></codeline>
-<codeline lineno="18"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="20"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="21"><highlight class="normal"></highlight></codeline>
-<codeline lineno="22"><highlight class="normal"><ref refid="lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2" kindref="member">END_SPATIAL_FITTING_NAMESPACE</ref></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal">RoboticsRegisterDirector::RoboticsRegisterDirector()</highlight></codeline>
+<codeline lineno="9"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/>PipelineBuilder::Pointer<sp/>pipelineBuilder<sp/>=<sp/>PipelineBuilder::New();</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/>this-&gt;<ref refid="class_abstract_director_1a8ff3d2fedaec0f382fb19cab93766f92" kindref="member">SetBuilder</ref>(pipelineBuilder);</highlight></codeline>
+<codeline lineno="12"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14" refid="class_robotics_register_director_1a766f0e3e7f0fe9e629386ab3591a8724" refkind="member"><highlight class="normal"><ref refid="class_robotics_register_director_1a766f0e3e7f0fe9e629386ab3591a8724" kindref="member">RoboticsRegisterDirector::~RoboticsRegisterDirector</ref>()</highlight></codeline>
+<codeline lineno="15"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="17"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19" refid="class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6" kindref="member">RoboticsRegisterDirector::Builder</ref>()</highlight></codeline>
+<codeline lineno="20"><highlight class="normal">{</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/>PipelineBuilder::Pointer<sp/>pipelineBuilder<sp/>=<sp/></highlight><highlight class="keyword">dynamic_cast&lt;</highlight><highlight class="normal"><ref refid="class_pipeline_builder" kindref="compound">PipelineBuilder</ref>*</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal">(this-&gt;<ref refid="class_abstract_director_1a78aa56c869e219c1988be4512423ce80" kindref="member">GetBuilder</ref>().GetPointer());</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(pipelineBuilder.IsNull())</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/>pipelineBuilder-&gt;<ref refid="class_pipeline_builder_1aacc5bd74d1926eb607d3dcbc8f03209f" kindref="member">BuilderNavigationToolToNavigationToolFilter</ref>(0,<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><sp/><sp/>pipelineBuilder-&gt;GetOutput()-&gt;FindFilter(0)-&gt;ConnectTo(pipelineBuilder-&gt;GetOutput());</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="30"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><ref refid="lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2" kindref="member">END_SPATIAL_FITTING_NAMESPACE</ref></highlight></codeline>
     </programlisting>
     <location file="src/core/lancetSpatialFittingRoboticsRegisterDirector.cpp"/>
   </compounddef>

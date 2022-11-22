@@ -42,21 +42,29 @@ Collaboration diagram for PipelineManager:<para>
 </listitem>
             <listitem><para>virtual itkNewMacro(<link linkend="_class_pipeline_manager">PipelineManager</link>) public <link linkend="_class_pipeline_manager_1a5c1ca77b12c44a3f2fbf61c328f299f2">~PipelineManager</link> ()</para>
 </listitem>
-            <listitem><para>bool <link linkend="_class_pipeline_manager_1a9d1d6b25355ce9985de2c3a5ab6c5519">AddFilter</link> (int index, mitk::NavigationDataToNavigationDataFilter::Pointer)</para>
+            <listitem><para>bool <link linkend="_class_pipeline_manager_1a0ce52157d7cc34c41bb626a95ac8e54e">AddFilter</link> (int index, mitk::NavigationDataToNavigationDataFilter::Pointer data)</para>
+
+<para>Add a filter element. </para>
 </listitem>
             <listitem><para>bool <link linkend="_class_pipeline_manager_1a766d9dc3533cf803f717d41d7f50e643">RemoveFilter</link> (int index)</para>
 </listitem>
             <listitem><para>bool <link linkend="_class_pipeline_manager_1a7977f65f0ddc929cc6ab3265ed864448">RemoveFilter</link> (const std::string &amp;)</para>
 </listitem>
             <listitem><para>bool <link linkend="_class_pipeline_manager_1acaf0331f56cb6a6d51a6a9632fa5f2ba">ModifyFilter</link> (int index, mitk::NavigationDataToNavigationDataFilter::Pointer)</para>
+
+<para>Modify the element of target subscript. </para>
 </listitem>
             <listitem><para>bool <link linkend="_class_pipeline_manager_1a6e8f4630e2556b0af1f50bf1f6cf19ed">ModifyFilter</link> (const std::string &amp;name, mitk::NavigationDataToNavigationDataFilter::Pointer)</para>
 </listitem>
             <listitem><para>mitk::NavigationDataToNavigationDataFilter::Pointer <link linkend="_class_pipeline_manager_1afb4bec97962d788e6a2670b1db2e69cd">FindFilter</link> (int index)</para>
+
+<para>Query the data element corresponding to the subscript value. </para>
 </listitem>
             <listitem><para>mitk::NavigationDataToNavigationDataFilter::Pointer <link linkend="_class_pipeline_manager_1a322ef438d04b6c4df2f1fde937dc20d9">FindFilter</link> (const std::string &amp;name)</para>
 </listitem>
             <listitem><para>int <link linkend="_class_pipeline_manager_1aac730b1bc82620f1f1099a773d0c849b">GetIndexByName</link> (const std::string &amp;name)</para>
+
+<para>Returns the subscript value corresponding to the element name attribute. </para>
 </listitem>
             <listitem><para>bool <link linkend="_class_pipeline_manager_1aa5240224c8eb4fb1bfd31bcd6376033c">IsEmpty</link> () const</para>
 </listitem>
@@ -150,11 +158,56 @@ Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_
 </section>
 <section>
 <title>Member Function Documentation</title>
-<anchor xml:id="_class_pipeline_manager_1a9d1d6b25355ce9985de2c3a5ab6c5519"/><section>
+<anchor xml:id="_class_pipeline_manager_1a0ce52157d7cc34c41bb626a95ac8e54e"/><section>
     <title>AddFilter()</title>
 <indexterm><primary>AddFilter</primary><secondary>PipelineManager</secondary></indexterm>
 <indexterm><primary>PipelineManager</primary><secondary>AddFilter</secondary></indexterm>
-<para><computeroutput>bool PipelineManager::AddFilter (int index, mitk::NavigationDataToNavigationDataFilter::Pointer )</computeroutput></para><para>
+<para><computeroutput>bool PipelineManager::AddFilter (int index, mitk::NavigationDataToNavigationDataFilter::Pointer data)</computeroutput></para><para>
+
+<para>Add a filter element. </para>
+</para>
+
+<para>The subscript value will determine the time when the filter is called. The calling sequence starts from subscript 0 and increases in order.</para>
+
+<para><warning><title>Warning</title>
+
+<para>When the subscript value is greater than the total number of elements in the container, the filter is added to the end of the container by default.</para>
+</warning>
+
+                <formalpara>
+                    <title>
+Parameters</title>
+                    <para>
+                    <table frame="all">
+                        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+                        <colspec colwidth="1*"/>
+                        <colspec colwidth="4*"/>
+                        <tbody>
+                            <row>
+<entry>index</entry><entry>
+<para>Element subscript value </para>
+</entry>
+                            </row>
+                            <row>
+<entry>data</entry><entry>
+<para>Data Field Object.</para>
+</entry>
+                            </row>
+                        </tbody>
+                        </tgroup>
+                    </table>
+                    </para>
+                </formalpara>
+                <formalpara><title>Returns</title>
+
+<para>Returns true if the addition is successful, otherwise false.</para>
+</formalpara>
+<formalpara><title>See also</title>
+
+<para>mitk::NavigationDataToNavigationDataFilter::Pointer </para>
+</formalpara>
+</para>
+<para>
 Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00019">19</link> of file <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source">lancetSpatialFittingPipelineManager.cpp</link>.</para>
 <programlisting linenumbering="unnumbered">00020 {
 00021 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;<emphasis role="keyword">false</emphasis>;
@@ -164,7 +217,9 @@ Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_
     <title>FindFilter()<computeroutput>[1/2]</computeroutput></title>
 <indexterm><primary>FindFilter</primary><secondary>PipelineManager</secondary></indexterm>
 <indexterm><primary>PipelineManager</primary><secondary>FindFilter</secondary></indexterm>
-<para><computeroutput>mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter (const std::string &amp; name)</computeroutput></para><para>
+<para><computeroutput>mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter (const std::string &amp; name)</computeroutput></para>
+<para>It is recommended to use subscripts. </para>
+<para>
 Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00049">49</link> of file <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source">lancetSpatialFittingPipelineManager.cpp</link>.</para>
 <programlisting linenumbering="unnumbered">00050 {
 00051 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;mitk::NavigationDataToNavigationDataFilter::Pointer();
@@ -175,6 +230,40 @@ Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_
 <indexterm><primary>FindFilter</primary><secondary>PipelineManager</secondary></indexterm>
 <indexterm><primary>PipelineManager</primary><secondary>FindFilter</secondary></indexterm>
 <para><computeroutput>mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter (int index)</computeroutput></para><para>
+
+<para>Query the data element corresponding to the subscript value. </para>
+</para>
+
+<para><warning><title>Warning</title>
+
+<para>The return value may be nullptr, please pay attention to security processing.</para>
+</warning>
+
+                <formalpara>
+                    <title>
+Parameters</title>
+                    <para>
+                    <table frame="all">
+                        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+                        <colspec colwidth="1*"/>
+                        <colspec colwidth="4*"/>
+                        <tbody>
+                            <row>
+<entry>index</entry><entry>
+<para>Element subscript value</para>
+</entry>
+                            </row>
+                        </tbody>
+                        </tgroup>
+                    </table>
+                    </para>
+                </formalpara>
+                <formalpara><title>See also</title>
+
+<para>mitk::NavigationDataToNavigationDataFilter::Pointer </para>
+</formalpara>
+</para>
+<para>
 Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00044">44</link> of file <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source">lancetSpatialFittingPipelineManager.cpp</link>.</para>
 <programlisting linenumbering="unnumbered">00045 {
 00046 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;mitk::NavigationDataToNavigationDataFilter::Pointer();
@@ -194,6 +283,34 @@ Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_
 <indexterm><primary>GetIndexByName</primary><secondary>PipelineManager</secondary></indexterm>
 <indexterm><primary>PipelineManager</primary><secondary>GetIndexByName</secondary></indexterm>
 <para><computeroutput>int PipelineManager::GetIndexByName (const std::string &amp; name)</computeroutput></para><para>
+
+<para>Returns the subscript value corresponding to the element name attribute. </para>
+</para>
+
+<para>It is not recommended to use this interface frequently, because when there are two elements with the same name attribute in the element, the return value will point to the subscript of the first element that matches the name attribute.</para>
+
+<para>
+                <formalpara>
+                    <title>
+Parameters</title>
+                    <para>
+                    <table frame="all">
+                        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+                        <colspec colwidth="1*"/>
+                        <colspec colwidth="4*"/>
+                        <tbody>
+                            <row>
+<entry>name</entry><entry>
+<para>mitk::NavigationDataToNavigationDataFilter::GetName() </para>
+</entry>
+                            </row>
+                        </tbody>
+                        </tgroup>
+                    </table>
+                    </para>
+                </formalpara>
+                </para>
+<para>
 Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00054">54</link> of file <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source">lancetSpatialFittingPipelineManager.cpp</link>.</para>
 <programlisting linenumbering="unnumbered">00055 {
 00056 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;0;
@@ -228,7 +345,9 @@ Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_
     <title>ModifyFilter()<computeroutput>[1/2]</computeroutput></title>
 <indexterm><primary>ModifyFilter</primary><secondary>PipelineManager</secondary></indexterm>
 <indexterm><primary>PipelineManager</primary><secondary>ModifyFilter</secondary></indexterm>
-<para><computeroutput>bool PipelineManager::ModifyFilter (const std::string &amp; name, mitk::NavigationDataToNavigationDataFilter::Pointer )</computeroutput></para><para>
+<para><computeroutput>bool PipelineManager::ModifyFilter (const std::string &amp; name, mitk::NavigationDataToNavigationDataFilter::Pointer )</computeroutput></para>
+<para>It is recommended to use subscripts. </para>
+<para>
 Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00039">39</link> of file <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source">lancetSpatialFittingPipelineManager.cpp</link>.</para>
 <programlisting linenumbering="unnumbered">00040 {
 00041 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;<emphasis role="keyword">false</emphasis>;
@@ -239,6 +358,47 @@ Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_
 <indexterm><primary>ModifyFilter</primary><secondary>PipelineManager</secondary></indexterm>
 <indexterm><primary>PipelineManager</primary><secondary>ModifyFilter</secondary></indexterm>
 <para><computeroutput>bool PipelineManager::ModifyFilter (int index, mitk::NavigationDataToNavigationDataFilter::Pointer )</computeroutput></para><para>
+
+<para>Modify the element of target subscript. </para>
+</para>
+
+<para>This will override the way target subscript elements are modified.</para>
+
+<para>
+                <formalpara>
+                    <title>
+Parameters</title>
+                    <para>
+                    <table frame="all">
+                        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+                        <colspec colwidth="1*"/>
+                        <colspec colwidth="4*"/>
+                        <tbody>
+                            <row>
+<entry>index</entry><entry>
+<para>Element subscript value </para>
+</entry>
+                            </row>
+                            <row>
+<entry>data</entry><entry>
+<para>Data Field Object.</para>
+</entry>
+                            </row>
+                        </tbody>
+                        </tgroup>
+                    </table>
+                    </para>
+                </formalpara>
+                <formalpara><title>Returns</title>
+
+<para>Returns true if the addition is successful, otherwise false.</para>
+</formalpara>
+<formalpara><title>See also</title>
+
+<para>mitk::NavigationDataToNavigationDataFilter::Pointer </para>
+</formalpara>
+</para>
+<para>
 Definition at line <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00034">34</link> of file <link linkend="_lancet_spatial_fitting_pipeline_manager_8cpp_source">lancetSpatialFittingPipelineManager.cpp</link>.</para>
 <programlisting linenumbering="unnumbered">00035 {
 00036 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;<emphasis role="keyword">false</emphasis>;

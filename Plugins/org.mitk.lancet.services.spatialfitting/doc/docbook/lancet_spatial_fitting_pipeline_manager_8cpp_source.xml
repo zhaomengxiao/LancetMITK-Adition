@@ -20,7 +20,7 @@ Go to the documentation of this file.<programlisting linenumbering="unnumbered">
 <anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00016"/>00016 {
 <anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00017"/>00017 }
 <anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00018"/>00018 
-<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00019"/><link linkend="_class_pipeline_manager_1a9d1d6b25355ce9985de2c3a5ab6c5519">00019</link> <emphasis role="keywordtype">bool</emphasis>&#32;<link linkend="_class_pipeline_manager_1a9d1d6b25355ce9985de2c3a5ab6c5519">PipelineManager::AddFilter</link>(<emphasis role="keywordtype">int</emphasis>&#32;index,&#32;mitk::NavigationDataToNavigationDataFilter::Pointer)
+<anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00019"/><link linkend="_class_pipeline_manager_1a0ce52157d7cc34c41bb626a95ac8e54e">00019</link> <emphasis role="keywordtype">bool</emphasis>&#32;<link linkend="_class_pipeline_manager_1a0ce52157d7cc34c41bb626a95ac8e54e">PipelineManager::AddFilter</link>(<emphasis role="keywordtype">int</emphasis>&#32;index,&#32;mitk::NavigationDataToNavigationDataFilter::Pointer)
 <anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00020"/>00020 {
 <anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00021"/>00021 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;<emphasis role="keyword">false</emphasis>;
 <anchor xml:id="_lancet_spatial_fitting_pipeline_manager_8cpp_source_1l00022"/>00022 }

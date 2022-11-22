@@ -1,4 +1,4 @@
-.TH "RoboticsRegisterDirector" 3 "Mon Nov 21 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
+.TH "RoboticsRegisterDirector" 3 "Tue Nov 22 2022" "Version 1.0.0" "LancetSpatialFitting" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -80,6 +80,9 @@ This will determine the processing manager object for the robot arm to register 
 .br
  
 .PP
+\fBExample of use:\fP
+.br
+ 
 .PP
 .nf
 RoboticsRegisterDirector::Pointer roboticsRegisterDirector = 
@@ -89,6 +92,7 @@ if(roboticsRegisterDirector->Builder())
 {
   auto roboticsRegisterManage = roboticsRegisterDirector->GetBuilder()->GetOutput();
 }
+
 .fi
 .PP
 .PP
@@ -114,17 +118,18 @@ Non
 .PP
 Contact: sh4a01@163.com 
 .PP
-Definition at line \fB54\fP of file \fBlancetSpatialFittingRoboticsRegisterDirector\&.h\fP\&.
+Definition at line \fB55\fP of file \fBlancetSpatialFittingRoboticsRegisterDirector\&.h\fP\&.
 .SH "Constructor & Destructor Documentation"
 .PP 
 .SS "RoboticsRegisterDirector::~RoboticsRegisterDirector ()\fC [virtual]\fP"
 
 .PP
-Definition at line \fB13\fP of file \fBlancetSpatialFittingRoboticsRegisterDirector\&.cpp\fP\&.
+Definition at line \fB14\fP of file \fBlancetSpatialFittingRoboticsRegisterDirector\&.cpp\fP\&.
 .PP
 .nf
-14 {
-15 }
+15 {
+16     
+17 }
 .fi
 .SH "Member Function Documentation"
 .PP 
@@ -142,12 +147,20 @@ True Production succeeded, otherwise it failed\&.
 .PP
 Implements \fBAbstractDirector\fP\&.
 .PP
-Definition at line \fB17\fP of file \fBlancetSpatialFittingRoboticsRegisterDirector\&.cpp\fP\&.
+Definition at line \fB19\fP of file \fBlancetSpatialFittingRoboticsRegisterDirector\&.cpp\fP\&.
 .PP
 .nf
-18 {
-19     return false;
-20 }
+20 {
+21     PipelineBuilder::Pointer pipelineBuilder = dynamic_cast<PipelineBuilder*>(this->GetBuilder()\&.GetPointer());
+22 
+23     if (pipelineBuilder\&.IsNull())
+24     {
+25         return false;
+26     }
+27     pipelineBuilder->BuilderNavigationToolToNavigationToolFilter(0, nullptr);
+28     pipelineBuilder->GetOutput()->FindFilter(0)->ConnectTo(pipelineBuilder->GetOutput());
+29     return true;
+30 }
 .fi
 .SS "RoboticsRegisterDirector::itkNewMacro (\fBRoboticsRegisterDirector\fP)"
 

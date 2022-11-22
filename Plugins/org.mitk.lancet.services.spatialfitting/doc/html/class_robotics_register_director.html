@@ -120,7 +120,8 @@ Public Member Functions</h2></td></tr>
  </p><div class="image">
 <object type="image/svg+xml" data="RoboticsRegisterDataStream.svg" style="pointer-events: none;"></object>
 </div>
-<div class="fragment"><div class="line">RoboticsRegisterDirector::Pointer roboticsRegisterDirector = </div>
+<p ><b>Example of use:</b><br  />
+ </p><div class="fragment"><div class="line">RoboticsRegisterDirector::Pointer roboticsRegisterDirector = </div>
 <div class="line">  RoboticsRegisterDirector::New();</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordflow">if</span>(roboticsRegisterDirector-&gt;Builder())</div>
@@ -133,7 +134,7 @@ Public Member Functions</h2></td></tr>
 <dl class="section remark"><dt>Remarks</dt><dd>Non</dd></dl>
 <p>Contact: <a href="#" onclick="location.href='mai'+'lto:'+'sh4'+'a0'+'1@1'+'63'+'.co'+'m'; return false;">sh4a0<span class="obfuscator">.nosp@m.</span>1@16<span class="obfuscator">.nosp@m.</span>3.com</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="lancet_spatial_fitting_robotics_register_director_8h_source.html#l00054">54</a> of file <a class="el" href="lancet_spatial_fitting_robotics_register_director_8h_source.html">lancetSpatialFittingRoboticsRegisterDirector.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="lancet_spatial_fitting_robotics_register_director_8h_source.html#l00055">55</a> of file <a class="el" href="lancet_spatial_fitting_robotics_register_director_8h_source.html">lancetSpatialFittingRoboticsRegisterDirector.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a766f0e3e7f0fe9e629386ab3591a8724" name="a766f0e3e7f0fe9e629386ab3591a8724"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a766f0e3e7f0fe9e629386ab3591a8724">&#9670;&nbsp;</a></span>~RoboticsRegisterDirector()</h2>
@@ -158,9 +159,10 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="lancet_spatial_fitting_robotics_register_director_8cpp_source.html#l00013">13</a> of file <a class="el" href="lancet_spatial_fitting_robotics_register_director_8cpp_source.html">lancetSpatialFittingRoboticsRegisterDirector.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   14</span>{</div>
-<div class="line"><span class="lineno">   15</span>}</div>
+<p class="definition">Definition at line <a class="el" href="lancet_spatial_fitting_robotics_register_director_8cpp_source.html#l00014">14</a> of file <a class="el" href="lancet_spatial_fitting_robotics_register_director_8cpp_source.html">lancetSpatialFittingRoboticsRegisterDirector.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   15</span>{</div>
+<div class="line"><span class="lineno">   16</span>    </div>
+<div class="line"><span class="lineno">   17</span>}</div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -194,11 +196,32 @@ Public Member Functions</h2></td></tr>
 
 <p>Implements <a class="el" href="class_abstract_director.html#a89be2adee44d1ea75c54fe40286b6f59">AbstractDirector</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="lancet_spatial_fitting_robotics_register_director_8cpp_source.html#l00017">17</a> of file <a class="el" href="lancet_spatial_fitting_robotics_register_director_8cpp_source.html">lancetSpatialFittingRoboticsRegisterDirector.cpp</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   18</span>{</div>
-<div class="line"><span class="lineno">   19</span>    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><span class="lineno">   20</span>}</div>
-</div><!-- fragment -->
+<p class="definition">Definition at line <a class="el" href="lancet_spatial_fitting_robotics_register_director_8cpp_source.html#l00019">19</a> of file <a class="el" href="lancet_spatial_fitting_robotics_register_director_8cpp_source.html">lancetSpatialFittingRoboticsRegisterDirector.cpp</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   20</span>{</div>
+<div class="line"><span class="lineno">   21</span>    PipelineBuilder::Pointer pipelineBuilder = <span class="keyword">dynamic_cast&lt;</span><a class="code hl_class" href="class_pipeline_builder.html">PipelineBuilder</a>*<span class="keyword">&gt;</span>(this-&gt;<a class="code hl_function" href="class_abstract_director.html#a78aa56c869e219c1988be4512423ce80">GetBuilder</a>().GetPointer());</div>
+<div class="line"><span class="lineno">   22</span> </div>
+<div class="line"><span class="lineno">   23</span>    <span class="keywordflow">if</span> (pipelineBuilder.IsNull())</div>
+<div class="line"><span class="lineno">   24</span>    {</div>
+<div class="line"><span class="lineno">   25</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">   26</span>    }</div>
+<div class="line"><span class="lineno">   27</span>    pipelineBuilder-&gt;<a class="code hl_function" href="class_pipeline_builder.html#aacc5bd74d1926eb607d3dcbc8f03209f">BuilderNavigationToolToNavigationToolFilter</a>(0, <span class="keyword">nullptr</span>);</div>
+<div class="line"><span class="lineno">   28</span>    pipelineBuilder-&gt;GetOutput()-&gt;FindFilter(0)-&gt;ConnectTo(pipelineBuilder-&gt;GetOutput());</div>
+<div class="line"><span class="lineno">   29</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><span class="lineno">   30</span>}</div>
+<div class="ttc" id="aclass_abstract_director_html_a78aa56c869e219c1988be4512423ce80"><div class="ttname"><a href="class_abstract_director.html#a78aa56c869e219c1988be4512423ce80">AbstractDirector::GetBuilder</a></div><div class="ttdeci">virtual itk::SmartPointer&lt; AbstractPipelineBuilder &gt; GetBuilder() const</div><div class="ttdef"><b>Definition:</b> <a href="lancet_spatial_fitting_abstract_director_8cpp_source.html#l00016">lancetSpatialFittingAbstractDirector.cpp:16</a></div></div>
+<div class="ttc" id="aclass_pipeline_builder_html"><div class="ttname"><a href="class_pipeline_builder.html">PipelineBuilder</a></div><div class="ttdoc">This is an abstract pipeline data producer class.</div><div class="ttdef"><b>Definition:</b> <a href="lancet_spatial_fitting_pipeline_builder_8h_source.html#l00046">lancetSpatialFittingPipelineBuilder.h:48</a></div></div>
+<div class="ttc" id="aclass_pipeline_builder_html_aacc5bd74d1926eb607d3dcbc8f03209f"><div class="ttname"><a href="class_pipeline_builder.html#aacc5bd74d1926eb607d3dcbc8f03209f">PipelineBuilder::BuilderNavigationToolToNavigationToolFilter</a></div><div class="ttdeci">virtual void BuilderNavigationToolToNavigationToolFilter(int index, mitk::NavigationData *ucsTool)</div><div class="ttdoc">Produce a tool to tool pipeline data conversion filter.</div><div class="ttdef"><b>Definition:</b> <a href="lancet_spatial_fitting_pipeline_builder_8cpp_source.html#l00030">lancetSpatialFittingPipelineBuilder.cpp:30</a></div></div>
+</div><!-- fragment --><div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="class_robotics_register_director_a4ff2015bf1ff9eb73501bee5abecd5e6_cgraph.png" border="0" usemap="#aclass_robotics_register_director_a4ff2015bf1ff9eb73501bee5abecd5e6_cgraph" alt=""/></div>
+<map name="aclass_robotics_register_director_a4ff2015bf1ff9eb73501bee5abecd5e6_cgraph" id="aclass_robotics_register_director_a4ff2015bf1ff9eb73501bee5abecd5e6_cgraph">
+<area shape="rect" title="Implement the construction order or method of pipeline data." alt="" coords="5,46,172,87"/>
+<area shape="rect" href="class_pipeline_builder.html#aacc5bd74d1926eb607d3dcbc8f03209f" title="Produce a tool to tool pipeline data conversion filter." alt="" coords="220,5,423,61"/>
+<area shape="rect" href="class_abstract_director.html#a78aa56c869e219c1988be4512423ce80" title=" " alt="" coords="229,85,414,112"/>
+</map>
+</div>
+
 </div>
 </div>
 <a id="a22f33bcca3873532a47f7c266d8d7858" name="a22f33bcca3873532a47f7c266d8d7858"></a>

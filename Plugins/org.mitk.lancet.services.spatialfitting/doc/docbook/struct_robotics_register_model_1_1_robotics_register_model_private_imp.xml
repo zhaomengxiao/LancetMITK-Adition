@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_struct_robotics_register_model_1_1_robotics_register_model_private_imp" xml:lang="en-US">
+<title>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp Struct Reference</title>
+<indexterm><primary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</primary></indexterm>
+<simplesect>
+    <title>Public Attributes    </title>
+        <itemizedlist>
+            <listitem><para>RobotRegistration <link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ad052e8c6189932797e2432c65b26473a">roboticsRegisterModel</link></para>
+</listitem>
+            <listitem><para>PipelineManager::Pointer <link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a27795a05c251d5a8cc27f4de2a48c0bf">pipelineRoboticsRegisterManager</link></para>
+</listitem>
+            <listitem><para>PipelineManager::Pointer <link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ac6fb6b9259cdf6b38a32b58a268242ae">pipelineRoboticsAccuracyManager</link></para>
+</listitem>
+            <listitem><para>mitk::NavigationDataSource * <link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a72adb06ccf4a678d7237e6a26c072555">ndiNavigationDataSource</link> = nullptr</para>
+</listitem>
+            <listitem><para>mitk::NavigationDataSource * <link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a3d5985f12de53a0e6144725c805bc3c8">roboticsNavigationDataSource</link> = nullptr</para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<section>
+<title>Detailed Description</title>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00007">7</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+</section>
+<section>
+<title>Member Data Documentation</title>
+<anchor xml:id="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a72adb06ccf4a678d7237e6a26c072555"/><section>
+    <title>ndiNavigationDataSource</title>
+<indexterm><primary>ndiNavigationDataSource</primary><secondary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</primary><secondary>ndiNavigationDataSource</secondary></indexterm>
+<para><computeroutput>mitk::NavigationDataSource* RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::ndiNavigationDataSource = nullptr</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00014">14</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+</section>
+<anchor xml:id="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ac6fb6b9259cdf6b38a32b58a268242ae"/><section>
+    <title>pipelineRoboticsAccuracyManager</title>
+<indexterm><primary>pipelineRoboticsAccuracyManager</primary><secondary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</primary><secondary>pipelineRoboticsAccuracyManager</secondary></indexterm>
+<para><computeroutput>PipelineManager::Pointer RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::pipelineRoboticsAccuracyManager</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00012">12</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+</section>
+<anchor xml:id="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a27795a05c251d5a8cc27f4de2a48c0bf"/><section>
+    <title>pipelineRoboticsRegisterManager</title>
+<indexterm><primary>pipelineRoboticsRegisterManager</primary><secondary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</primary><secondary>pipelineRoboticsRegisterManager</secondary></indexterm>
+<para><computeroutput>PipelineManager::Pointer RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::pipelineRoboticsRegisterManager</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00011">11</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+</section>
+<anchor xml:id="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a3d5985f12de53a0e6144725c805bc3c8"/><section>
+    <title>roboticsNavigationDataSource</title>
+<indexterm><primary>roboticsNavigationDataSource</primary><secondary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</primary><secondary>roboticsNavigationDataSource</secondary></indexterm>
+<para><computeroutput>mitk::NavigationDataSource* RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::roboticsNavigationDataSource = nullptr</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00015">15</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+</section>
+<anchor xml:id="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ad052e8c6189932797e2432c65b26473a"/><section>
+    <title>roboticsRegisterModel</title>
+<indexterm><primary>roboticsRegisterModel</primary><secondary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</primary><secondary>roboticsRegisterModel</secondary></indexterm>
+<para><computeroutput>RobotRegistration RoboticsRegisterModel::RoboticsRegisterModelPrivateImp::roboticsRegisterModel</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00009">9</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+</section>
+<para>
+The documentation for this struct was generated from the following file:</para>
+src/internal/<link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp">lancetSpatialFittingRoboticsRegisterModel.cpp</link></section>
+</section>

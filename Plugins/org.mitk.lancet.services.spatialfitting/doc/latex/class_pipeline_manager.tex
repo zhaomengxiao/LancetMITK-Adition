@@ -11,8 +11,7 @@
 
 
 
-Inheritance diagram for Pipeline\+Manager\+:
-\nopagebreak
+Inheritance diagram for Pipeline\+Manager\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -21,8 +20,7 @@ Inheritance diagram for Pipeline\+Manager\+:
 \end{figure}
 
 
-Collaboration diagram for Pipeline\+Manager\+:
-\nopagebreak
+Collaboration diagram for Pipeline\+Manager\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -41,22 +39,22 @@ struct \mbox{\hyperlink{struct_pipeline_manager_1_1_pipeline_manager_private_imp
 \item 
 virtual itk\+New\+Macro(\mbox{\hyperlink{class_pipeline_manager}{Pipeline\+Manager}}) public \mbox{\hyperlink{class_pipeline_manager_a5c1ca77b12c44a3f2fbf61c328f299f2}{$\sim$\+Pipeline\+Manager}} ()
 \item 
-bool \mbox{\hyperlink{class_pipeline_manager_a9d1d6b25355ce9985de2c3a5ab6c5519}{Add\+Filter}} (int index, mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer)
-\item 
+bool \mbox{\hyperlink{class_pipeline_manager_a0ce52157d7cc34c41bb626a95ac8e54e}{Add\+Filter}} (int index, mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer data)
+\begin{DoxyCompactList}\small\item\em Add a filter element. \end{DoxyCompactList}\item 
 bool \mbox{\hyperlink{class_pipeline_manager_a766d9dc3533cf803f717d41d7f50e643}{Remove\+Filter}} (int index)
 \item 
 bool \mbox{\hyperlink{class_pipeline_manager_a7977f65f0ddc929cc6ab3265ed864448}{Remove\+Filter}} (const std\+::string \&)
 \item 
 bool \mbox{\hyperlink{class_pipeline_manager_acaf0331f56cb6a6d51a6a9632fa5f2ba}{Modify\+Filter}} (int index, mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer)
-\item 
+\begin{DoxyCompactList}\small\item\em Modify the element of target subscript. \end{DoxyCompactList}\item 
 bool \mbox{\hyperlink{class_pipeline_manager_a6e8f4630e2556b0af1f50bf1f6cf19ed}{Modify\+Filter}} (const std\+::string \&name, mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer)
 \item 
 mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer \mbox{\hyperlink{class_pipeline_manager_afb4bec97962d788e6a2670b1db2e69cd}{Find\+Filter}} (int index)
-\item 
+\begin{DoxyCompactList}\small\item\em Query the data element corresponding to the subscript value. \end{DoxyCompactList}\item 
 mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer \mbox{\hyperlink{class_pipeline_manager_a322ef438d04b6c4df2f1fde937dc20d9}{Find\+Filter}} (const std\+::string \&name)
 \item 
 int \mbox{\hyperlink{class_pipeline_manager_aac730b1bc82620f1f1099a773d0c849b}{Get\+Index\+By\+Name}} (const std\+::string \&name)
-\item 
+\begin{DoxyCompactList}\small\item\em Returns the subscript value corresponding to the element name attribute. \end{DoxyCompactList}\item 
 bool \mbox{\hyperlink{class_pipeline_manager_aa5240224c8eb4fb1bfd31bcd6376033c}{Is\+Empty}} () const
 \item 
 int \mbox{\hyperlink{class_pipeline_manager_a77f11c07a2b0c12bd0025f856889a32f}{Get\+Size}} () const
@@ -139,12 +137,34 @@ Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp
 
 
 \doxysubsection{Member Function Documentation}
-\mbox{\Hypertarget{class_pipeline_manager_a9d1d6b25355ce9985de2c3a5ab6c5519}\label{class_pipeline_manager_a9d1d6b25355ce9985de2c3a5ab6c5519}} 
+\mbox{\Hypertarget{class_pipeline_manager_a0ce52157d7cc34c41bb626a95ac8e54e}\label{class_pipeline_manager_a0ce52157d7cc34c41bb626a95ac8e54e}} 
 \index{PipelineManager@{PipelineManager}!AddFilter@{AddFilter}}
 \index{AddFilter@{AddFilter}!PipelineManager@{PipelineManager}}
 \doxysubsubsection{\texorpdfstring{AddFilter()}{AddFilter()}}
-{\footnotesize\ttfamily bool Pipeline\+Manager\+::\+Add\+Filter (\begin{DoxyParamCaption}\item[{int}]{index,  }\item[{mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer}]{ }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily bool Pipeline\+Manager\+::\+Add\+Filter (\begin{DoxyParamCaption}\item[{int}]{index,  }\item[{mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer}]{data }\end{DoxyParamCaption})}
 
+
+
+Add a filter element. 
+
+The subscript value will determine the time when the filter is called. The calling sequence starts from subscript 0 and increases in order.
+
+\begin{DoxyWarning}{Warning}
+When the subscript value is greater than the total number of elements in the container, the filter is added to the end of the container by default.
+\end{DoxyWarning}
+
+\begin{DoxyParams}{Parameters}
+{\em index} & Element subscript value \\
+\hline
+{\em data} & Data Field Object.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns true if the addition is successful, otherwise false.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer 
+\end{DoxySeeAlso}
 
 
 Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source_l00019}{19}} of file \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source}{lancet\+Spatial\+Fitting\+Pipeline\+Manager.\+cpp}}.
@@ -162,7 +182,7 @@ Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp
 \doxysubsubsection{\texorpdfstring{FindFilter()}{FindFilter()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
 {\footnotesize\ttfamily mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer Pipeline\+Manager\+::\+Find\+Filter (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{name }\end{DoxyParamCaption})}
 
-
+It is recommended to use subscripts. 
 
 Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source_l00049}{49}} of file \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source}{lancet\+Spatial\+Fitting\+Pipeline\+Manager.\+cpp}}.
 
@@ -179,6 +199,21 @@ Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp
 \doxysubsubsection{\texorpdfstring{FindFilter()}{FindFilter()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
 {\footnotesize\ttfamily mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer Pipeline\+Manager\+::\+Find\+Filter (\begin{DoxyParamCaption}\item[{int}]{index }\end{DoxyParamCaption})}
 
+
+
+Query the data element corresponding to the subscript value. 
+
+\begin{DoxyWarning}{Warning}
+The return value may be nullptr, please pay attention to security processing.
+\end{DoxyWarning}
+
+\begin{DoxyParams}{Parameters}
+{\em index} & Element subscript value\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer 
+\end{DoxySeeAlso}
 
 
 Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source_l00044}{44}} of file \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source}{lancet\+Spatial\+Fitting\+Pipeline\+Manager.\+cpp}}.
@@ -212,6 +247,17 @@ Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp
 \doxysubsubsection{\texorpdfstring{GetIndexByName()}{GetIndexByName()}}
 {\footnotesize\ttfamily int Pipeline\+Manager\+::\+Get\+Index\+By\+Name (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{name }\end{DoxyParamCaption})}
 
+
+
+Returns the subscript value corresponding to the element name attribute. 
+
+It is not recommended to use this interface frequently, because when there are two elements with the same name attribute in the element, the return value will point to the subscript of the first element that matches the name attribute.
+
+
+\begin{DoxyParams}{Parameters}
+{\em name} & mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Get\+Name() \\
+\hline
+\end{DoxyParams}
 
 
 Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source_l00054}{54}} of file \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source}{lancet\+Spatial\+Fitting\+Pipeline\+Manager.\+cpp}}.
@@ -269,7 +315,7 @@ Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp
 \doxysubsubsection{\texorpdfstring{ModifyFilter()}{ModifyFilter()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
 {\footnotesize\ttfamily bool Pipeline\+Manager\+::\+Modify\+Filter (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{name,  }\item[{mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer}]{ }\end{DoxyParamCaption})}
 
-
+It is recommended to use subscripts. 
 
 Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source_l00039}{39}} of file \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source}{lancet\+Spatial\+Fitting\+Pipeline\+Manager.\+cpp}}.
 
@@ -286,6 +332,25 @@ Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp
 \doxysubsubsection{\texorpdfstring{ModifyFilter()}{ModifyFilter()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
 {\footnotesize\ttfamily bool Pipeline\+Manager\+::\+Modify\+Filter (\begin{DoxyParamCaption}\item[{int}]{index,  }\item[{mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer}]{ }\end{DoxyParamCaption})}
 
+
+
+Modify the element of target subscript. 
+
+This will override the way target subscript elements are modified.
+
+
+\begin{DoxyParams}{Parameters}
+{\em index} & Element subscript value \\
+\hline
+{\em data} & Data Field Object.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns true if the addition is successful, otherwise false.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+mitk\+::\+Navigation\+Data\+To\+Navigation\+Data\+Filter\+::\+Pointer 
+\end{DoxySeeAlso}
 
 
 Definition at line \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source_l00034}{34}} of file \mbox{\hyperlink{lancet_spatial_fitting_pipeline_manager_8cpp_source}{lancet\+Spatial\+Fitting\+Pipeline\+Manager.\+cpp}}.

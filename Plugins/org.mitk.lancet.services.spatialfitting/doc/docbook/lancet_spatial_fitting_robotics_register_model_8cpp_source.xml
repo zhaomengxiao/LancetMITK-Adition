@@ -3,10 +3,73 @@
 <title>lancetSpatialFittingRoboticsRegisterModel.cpp</title>
 <indexterm><primary>src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp</primary></indexterm>
 Go to the documentation of this file.<programlisting linenumbering="unnumbered"><anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00001"/>00001 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_robotics_register_model_8h">lancetSpatialFittingRoboticsRegisterModel.h</link>&quot;</emphasis>
-<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00002"/>00002 
-<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00003"/>00003 <link linkend="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e">BEGIN_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00002"/>00002 <emphasis role="preprocessor">#include&#32;&quot;<link linkend="_lancet_spatial_fitting_pipeline_manager_8h">core/lancetSpatialFittingPipelineManager.h</link>&quot;</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00003"/>00003 <emphasis role="preprocessor">#include&#32;&lt;robotRegistration.h&gt;</emphasis>
 <anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00004"/>00004 
-<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00005"/>00005 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00005"/>00005 <link linkend="_lancet_spatial_fitting_global_8h_1ac7cbc2e822ef6d60c8707aff07500e8e">BEGIN_SPATIAL_FITTING_NAMESPACE</link>
 <anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00006"/>00006 
-<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00007"/>00007 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00007"/><link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp">00007</link> <emphasis role="keyword">struct&#32;</emphasis><link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp">RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</link>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00008"/>00008 {
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00009"/><link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ad052e8c6189932797e2432c65b26473a">00009</link> &#32;&#32;&#32;&#32;RobotRegistration&#32;<link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ad052e8c6189932797e2432c65b26473a">roboticsRegisterModel</link>;
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00010"/>00010 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00011"/><link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a27795a05c251d5a8cc27f4de2a48c0bf">00011</link> &#32;&#32;&#32;&#32;PipelineManager::Pointer&#32;<link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a27795a05c251d5a8cc27f4de2a48c0bf">pipelineRoboticsRegisterManager</link>;
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00012"/><link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ac6fb6b9259cdf6b38a32b58a268242ae">00012</link> &#32;&#32;&#32;&#32;PipelineManager::Pointer&#32;<link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1ac6fb6b9259cdf6b38a32b58a268242ae">pipelineRoboticsAccuracyManager</link>;
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00013"/>00013 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00014"/><link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a72adb06ccf4a678d7237e6a26c072555">00014</link> &#32;&#32;&#32;&#32;mitk::NavigationDataSource*&#32;<link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a72adb06ccf4a678d7237e6a26c072555">ndiNavigationDataSource</link>&#32;=&#32;<emphasis role="keyword">nullptr</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00015"/><link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a3d5985f12de53a0e6144725c805bc3c8">00015</link> &#32;&#32;&#32;&#32;mitk::NavigationDataSource*&#32;<link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp_1a3d5985f12de53a0e6144725c805bc3c8">roboticsNavigationDataSource</link>&#32;=&#32;<emphasis role="keyword">nullptr</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00016"/>00016 };
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00017"/>00017 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00018"/>00018 RoboticsRegisterModel::RoboticsRegisterModel()
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00019"/>00019 &#32;&#32;&#32;&#32;:&#32;imp(std::make_shared&lt;<link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp">RoboticsRegisterModelPrivateImp</link>&gt;())
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00020"/>00020 {
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00021"/>00021 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00022"/>00022 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00023"/><link linkend="_class_robotics_register_model_1a764ced216ee2fc01edca06f001effe28">00023</link> <link linkend="_class_robotics_register_model_1a764ced216ee2fc01edca06f001effe28">RoboticsRegisterModel::~RoboticsRegisterModel</link>()
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00024"/>00024 {
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00025"/>00025 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00026"/>00026 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00027"/><link linkend="_class_robotics_register_model_1a5ad27de9a8b8496f4e2210c38a4db3f9">00027</link> RobotRegistration&amp;&#32;<link linkend="_class_robotics_register_model_1a5ad27de9a8b8496f4e2210c38a4db3f9">RoboticsRegisterModel::GetRegisterModel</link>()
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00028"/>00028 {
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00029"/>00029 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;this-&gt;imp-&gt;roboticsRegisterModel;
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00030"/>00030 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00031"/>00031 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00032"/><link linkend="_class_robotics_register_model_1a7aa078efb705097dcb2f09dec1a8c15f">00032</link> itk::SmartPointer&lt;PipelineManager&gt;&#32;<link linkend="_class_robotics_register_model_1a7aa078efb705097dcb2f09dec1a8c15f">RoboticsRegisterModel::GetRegisterNavigationPipeline</link>()<emphasis role="keyword">&#32;const</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00033"/>00033 <emphasis role="keyword"></emphasis>{
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00034"/>00034 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;itk::SmartPointer&lt;PipelineManager&gt;();
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00035"/>00035 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00036"/>00036 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00037"/><link linkend="_class_robotics_register_model_1ad1a2593b9bdd9b3e5ea8ca69a82d17fa">00037</link> <emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_class_robotics_register_model_1ad1a2593b9bdd9b3e5ea8ca69a82d17fa">RoboticsRegisterModel::SetRegisterNavigationPipeline</link>(itk::SmartPointer&lt;PipelineManager&gt;&#32;manager)
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00038"/>00038 {
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00039"/>00039 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00040"/>00040 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00041"/><link linkend="_class_robotics_register_model_1a1541fcf3f8e72ca9024e5fa0f75eb565">00041</link> <emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_class_robotics_register_model_1a1541fcf3f8e72ca9024e5fa0f75eb565">RoboticsRegisterModel::SetAccutacyVerifyPipeline</link>(itk::SmartPointer&lt;PipelineManager&gt;&#32;manager)
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00042"/>00042 {
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00043"/>00043 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00044"/>00044 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00045"/><link linkend="_class_robotics_register_model_1a0ea95fc5cc06ac290beccb5629a934ca">00045</link> itk::SmartPointer&lt;PipelineManager&gt;&#32;<link linkend="_class_robotics_register_model_1a0ea95fc5cc06ac290beccb5629a934ca">RoboticsRegisterModel::GetAccutacyVerifyPipeline</link>()<emphasis role="keyword">&#32;const</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00046"/>00046 <emphasis role="keyword"></emphasis>{
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00047"/>00047 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;itk::SmartPointer&lt;PipelineManager&gt;();
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00048"/>00048 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00049"/>00049 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00050"/><link linkend="_class_robotics_register_model_1a6fdd3e2f55f1605f72d19fc09f30255b">00050</link> mitk::NavigationDataSource*&#32;<link linkend="_class_robotics_register_model_1a6fdd3e2f55f1605f72d19fc09f30255b">RoboticsRegisterModel::GetNdiNavigationDataSource</link>()<emphasis role="keyword">&#32;const</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00051"/>00051 <emphasis role="keyword"></emphasis>{
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00052"/>00052 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;<emphasis role="keyword">nullptr</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00053"/>00053 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00054"/>00054 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00055"/><link linkend="_class_robotics_register_model_1a76e49c2261805fe19560c394350e9b3e">00055</link> <emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_class_robotics_register_model_1a76e49c2261805fe19560c394350e9b3e">RoboticsRegisterModel::SetNdiNavigationDataSource</link>(mitk::NavigationDataSource*&#32;source)
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00056"/>00056 {
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00057"/>00057 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00058"/>00058 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00059"/><link linkend="_class_robotics_register_model_1a50e4eaaffc89377f56063e775b60ff47">00059</link> mitk::NavigationDataSource*&#32;<link linkend="_class_robotics_register_model_1a50e4eaaffc89377f56063e775b60ff47">RoboticsRegisterModel::GetRoboticsNavigationDataSource</link>()<emphasis role="keyword">&#32;const</emphasis>
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00060"/>00060 <emphasis role="keyword"></emphasis>{
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00061"/>00061 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;<emphasis role="keyword">nullptr</emphasis>;
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00062"/>00062 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00063"/>00063 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00064"/><link linkend="_class_robotics_register_model_1a2aac3ad33b3ef04a63b17bfa2b4007bc">00064</link> <emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_class_robotics_register_model_1a2aac3ad33b3ef04a63b17bfa2b4007bc">RoboticsRegisterModel::SetRoboticsNavigationDataSource</link>(mitk::NavigationDataSource*&#32;source)
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00065"/>00065 {
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00066"/>00066 }
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00067"/>00067 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00068"/>00068 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00069"/>00069 
+<anchor xml:id="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00070"/>00070 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
 </programlisting></section>

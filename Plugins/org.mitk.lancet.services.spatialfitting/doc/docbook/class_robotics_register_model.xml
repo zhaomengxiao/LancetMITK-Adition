@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="_class_robotics_register_model" xml:lang="en-US">
+<title>RoboticsRegisterModel Class Reference</title>
+<indexterm><primary>RoboticsRegisterModel</primary></indexterm>
+<para>
+<computeroutput>#include &lt;lancetSpatialFittingRoboticsRegisterModel.h&gt;</computeroutput>
+</para>
+Inheritance diagram for RoboticsRegisterModel:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="class_robotics_register_model__inherit__graph.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+Collaboration diagram for RoboticsRegisterModel:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="class_robotics_register_model__coll__graph.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+<simplesect>
+    <title>Classes    </title>
+        <itemizedlist>
+            <listitem><para>struct <link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp">RoboticsRegisterModelPrivateImp</link></para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<simplesect>
+    <title>Public Member Functions    </title>
+        <itemizedlist>
+            <listitem><para><link linkend="_class_robotics_register_model_1a1ce1466662a272fb90d0ee7ebfa7c0ac">mitkClassMacroItkParent</link> (<link linkend="_class_robotics_register_model">RoboticsRegisterModel</link>, itk::Object) itkNewMacro(<link linkend="_class_robotics_register_model">RoboticsRegisterModel</link>) <link linkend="_class_robotics_register_model">RoboticsRegisterModel</link>()</para>
+</listitem>
+            <listitem><para>virtual <link linkend="_class_robotics_register_model_1a764ced216ee2fc01edca06f001effe28">~RoboticsRegisterModel</link> ()</para>
+</listitem>
+            <listitem><para>RobotRegistration &amp; <link linkend="_class_robotics_register_model_1a5ad27de9a8b8496f4e2210c38a4db3f9">GetRegisterModel</link> ()</para>
+</listitem>
+            <listitem><para>itk::SmartPointer&lt; <link linkend="_class_pipeline_manager">PipelineManager</link> &gt; <link linkend="_class_robotics_register_model_1a7aa078efb705097dcb2f09dec1a8c15f">GetRegisterNavigationPipeline</link> () const</para>
+</listitem>
+            <listitem><para>void <link linkend="_class_robotics_register_model_1ad1a2593b9bdd9b3e5ea8ca69a82d17fa">SetRegisterNavigationPipeline</link> (itk::SmartPointer&lt; <link linkend="_class_pipeline_manager">PipelineManager</link> &gt; manager)</para>
+</listitem>
+            <listitem><para>void <link linkend="_class_robotics_register_model_1a1541fcf3f8e72ca9024e5fa0f75eb565">SetAccutacyVerifyPipeline</link> (itk::SmartPointer&lt; <link linkend="_class_pipeline_manager">PipelineManager</link> &gt; manager)</para>
+</listitem>
+            <listitem><para>itk::SmartPointer&lt; <link linkend="_class_pipeline_manager">PipelineManager</link> &gt; <link linkend="_class_robotics_register_model_1a0ea95fc5cc06ac290beccb5629a934ca">GetAccutacyVerifyPipeline</link> () const</para>
+</listitem>
+            <listitem><para>mitk::NavigationDataSource * <link linkend="_class_robotics_register_model_1a6fdd3e2f55f1605f72d19fc09f30255b">GetNdiNavigationDataSource</link> () const</para>
+</listitem>
+            <listitem><para>void <link linkend="_class_robotics_register_model_1a76e49c2261805fe19560c394350e9b3e">SetNdiNavigationDataSource</link> (mitk::NavigationDataSource *source)</para>
+</listitem>
+            <listitem><para>mitk::NavigationDataSource * <link linkend="_class_robotics_register_model_1a50e4eaaffc89377f56063e775b60ff47">GetRoboticsNavigationDataSource</link> () const</para>
+</listitem>
+            <listitem><para>void <link linkend="_class_robotics_register_model_1a2aac3ad33b3ef04a63b17bfa2b4007bc">SetRoboticsNavigationDataSource</link> (mitk::NavigationDataSource *source)</para>
+</listitem>
+        </itemizedlist>
+</simplesect>
+<section>
+<title>Detailed Description</title>
+<para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8h_source_1l00027">27</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8h_source">lancetSpatialFittingRoboticsRegisterModel.h</link>.</para>
+</section>
+<section>
+<title>Constructor &amp; Destructor Documentation</title>
+<anchor xml:id="_class_robotics_register_model_1a764ced216ee2fc01edca06f001effe28"/><section>
+    <title>~RoboticsRegisterModel()</title>
+<indexterm><primary>~RoboticsRegisterModel</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>~RoboticsRegisterModel</secondary></indexterm>
+<para><computeroutput>RoboticsRegisterModel::~RoboticsRegisterModel ( )<computeroutput>[virtual]</computeroutput></computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00023">23</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00024 {
+00025 }
+</programlisting></section>
+</section>
+<section>
+<title>Member Function Documentation</title>
+<anchor xml:id="_class_robotics_register_model_1a0ea95fc5cc06ac290beccb5629a934ca"/><section>
+    <title>GetAccutacyVerifyPipeline()</title>
+<indexterm><primary>GetAccutacyVerifyPipeline</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>GetAccutacyVerifyPipeline</secondary></indexterm>
+<para><computeroutput>itk::SmartPointer&lt; <link linkend="_class_pipeline_manager">PipelineManager</link> &gt; RoboticsRegisterModel::GetAccutacyVerifyPipeline ( ) const</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00045">45</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00046 {
+00047 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;itk::SmartPointer&lt;PipelineManager&gt;();
+00048 }
+</programlisting></section>
+<anchor xml:id="_class_robotics_register_model_1a6fdd3e2f55f1605f72d19fc09f30255b"/><section>
+    <title>GetNdiNavigationDataSource()</title>
+<indexterm><primary>GetNdiNavigationDataSource</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>GetNdiNavigationDataSource</secondary></indexterm>
+<para><computeroutput>mitk::NavigationDataSource * RoboticsRegisterModel::GetNdiNavigationDataSource ( ) const</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00050">50</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00051 {
+00052 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;<emphasis role="keyword">nullptr</emphasis>;
+00053 }
+</programlisting></section>
+<anchor xml:id="_class_robotics_register_model_1a5ad27de9a8b8496f4e2210c38a4db3f9"/><section>
+    <title>GetRegisterModel()</title>
+<indexterm><primary>GetRegisterModel</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>GetRegisterModel</secondary></indexterm>
+<para><computeroutput>RobotRegistration &amp; RoboticsRegisterModel::GetRegisterModel ( )</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00027">27</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00028 {
+00029 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;this-&gt;imp-&gt;roboticsRegisterModel;
+00030 }
+</programlisting></section>
+<anchor xml:id="_class_robotics_register_model_1a7aa078efb705097dcb2f09dec1a8c15f"/><section>
+    <title>GetRegisterNavigationPipeline()</title>
+<indexterm><primary>GetRegisterNavigationPipeline</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>GetRegisterNavigationPipeline</secondary></indexterm>
+<para><computeroutput>itk::SmartPointer&lt; <link linkend="_class_pipeline_manager">PipelineManager</link> &gt; RoboticsRegisterModel::GetRegisterNavigationPipeline ( ) const</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00032">32</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00033 {
+00034 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;itk::SmartPointer&lt;PipelineManager&gt;();
+00035 }
+</programlisting></section>
+<anchor xml:id="_class_robotics_register_model_1a50e4eaaffc89377f56063e775b60ff47"/><section>
+    <title>GetRoboticsNavigationDataSource()</title>
+<indexterm><primary>GetRoboticsNavigationDataSource</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>GetRoboticsNavigationDataSource</secondary></indexterm>
+<para><computeroutput>mitk::NavigationDataSource * RoboticsRegisterModel::GetRoboticsNavigationDataSource ( ) const</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00059">59</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00060 {
+00061 &#32;&#32;&#32;&#32;<emphasis role="keywordflow">return</emphasis>&#32;<emphasis role="keyword">nullptr</emphasis>;
+00062 }
+</programlisting></section>
+<anchor xml:id="_class_robotics_register_model_1a1ce1466662a272fb90d0ee7ebfa7c0ac"/><section>
+    <title>mitkClassMacroItkParent()</title>
+<indexterm><primary>mitkClassMacroItkParent</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>mitkClassMacroItkParent</secondary></indexterm>
+<para><computeroutput>RoboticsRegisterModel::mitkClassMacroItkParent (<link linkend="_class_robotics_register_model">RoboticsRegisterModel</link> , itk::Object )</computeroutput></para></section>
+<anchor xml:id="_class_robotics_register_model_1a1541fcf3f8e72ca9024e5fa0f75eb565"/><section>
+    <title>SetAccutacyVerifyPipeline()</title>
+<indexterm><primary>SetAccutacyVerifyPipeline</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>SetAccutacyVerifyPipeline</secondary></indexterm>
+<para><computeroutput>void RoboticsRegisterModel::SetAccutacyVerifyPipeline (itk::SmartPointer&lt; <link linkend="_class_pipeline_manager">PipelineManager</link> &gt; manager)</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00041">41</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00042 {
+00043 }
+</programlisting></section>
+<anchor xml:id="_class_robotics_register_model_1a76e49c2261805fe19560c394350e9b3e"/><section>
+    <title>SetNdiNavigationDataSource()</title>
+<indexterm><primary>SetNdiNavigationDataSource</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>SetNdiNavigationDataSource</secondary></indexterm>
+<para><computeroutput>void RoboticsRegisterModel::SetNdiNavigationDataSource (mitk::NavigationDataSource * source)</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00055">55</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00056 {
+00057 }
+</programlisting></section>
+<anchor xml:id="_class_robotics_register_model_1ad1a2593b9bdd9b3e5ea8ca69a82d17fa"/><section>
+    <title>SetRegisterNavigationPipeline()</title>
+<indexterm><primary>SetRegisterNavigationPipeline</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>SetRegisterNavigationPipeline</secondary></indexterm>
+<para><computeroutput>void RoboticsRegisterModel::SetRegisterNavigationPipeline (itk::SmartPointer&lt; <link linkend="_class_pipeline_manager">PipelineManager</link> &gt; manager)</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00037">37</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00038 {
+00039 }
+</programlisting></section>
+<anchor xml:id="_class_robotics_register_model_1a2aac3ad33b3ef04a63b17bfa2b4007bc"/><section>
+    <title>SetRoboticsNavigationDataSource()</title>
+<indexterm><primary>SetRoboticsNavigationDataSource</primary><secondary>RoboticsRegisterModel</secondary></indexterm>
+<indexterm><primary>RoboticsRegisterModel</primary><secondary>SetRoboticsNavigationDataSource</secondary></indexterm>
+<para><computeroutput>void RoboticsRegisterModel::SetRoboticsNavigationDataSource (mitk::NavigationDataSource * source)</computeroutput></para><para>
+Definition at line <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source_1l00064">64</link> of file <link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp_source">lancetSpatialFittingRoboticsRegisterModel.cpp</link>.</para>
+<programlisting linenumbering="unnumbered">00065 {
+00066 }
+</programlisting></section>
+<para>
+The documentation for this class was generated from the following files:</para>
+src/internal/<link linkend="_lancet_spatial_fitting_robotics_register_model_8h">lancetSpatialFittingRoboticsRegisterModel.h</link>src/internal/<link linkend="_lancet_spatial_fitting_robotics_register_model_8cpp">lancetSpatialFittingRoboticsRegisterModel.cpp</link></section>
+</section>

@@ -15,7 +15,7 @@
         <link refid="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8h"/>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="8" relation="include">
+        <childnode refid="10" relation="include">
         </childnode>
       </node>
       <node id="3">
@@ -29,9 +29,16 @@
         </childnode>
         <childnode refid="7" relation="include">
         </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
       </node>
       <node id="6">
         <label>itkObject.h</label>
+      </node>
+      <node id="8">
+        <label>itkObjectFactory.h</label>
       </node>
       <node id="7">
         <label>itkSmartPointer.h</label>
@@ -39,7 +46,10 @@
       <node id="5">
         <label>memory</label>
       </node>
-      <node id="8">
+      <node id="9">
+        <label>mitkCommon.h</label>
+      </node>
+      <node id="10">
         <label>mitkNavigationDataToNavigationDataFilter.h</label>
       </node>
       <node id="4">
@@ -58,13 +68,13 @@
 <codeline lineno="4"><highlight class="normal"></highlight></codeline>
 <codeline lineno="5" refid="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp" kindref="compound">NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilterPrivateImp</ref></highlight></codeline>
 <codeline lineno="6"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7" refid="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp_1a392582857960dd14180f0f7bbdd870a9" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>mitk::NavigationData::Pointer<sp/><ref refid="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp_1a392582857960dd14180f0f7bbdd870a9" kindref="member">ucsTool</ref>;</highlight></codeline>
 <codeline lineno="8"><highlight class="normal">};</highlight></codeline>
 <codeline lineno="9"><highlight class="normal"></highlight></codeline>
 <codeline lineno="10" refid="class_navigation_tool_to_navigation_tool_filter_1a2ea6c7315526610f9426e2246a35f7a7" refkind="member"><highlight class="normal"><ref refid="class_navigation_tool_to_navigation_tool_filter_1a2ea6c7315526610f9426e2246a35f7a7" kindref="member">NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilter</ref>()</highlight></codeline>
 <codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/>:<sp/>imp(std::make_shared&lt;<ref refid="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp" kindref="compound">NavigationToolToNavigationToolFilterPrivateImp</ref>&gt;())</highlight></codeline>
 <codeline lineno="12"><highlight class="normal">{</highlight></codeline>
-<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/>mitk::NavigationData::Pointer<sp/>ucsTool;</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight></codeline>
 <codeline lineno="14"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="15"><highlight class="normal"></highlight></codeline>
 <codeline lineno="16" refid="class_navigation_tool_to_navigation_tool_filter_1a86594180b499fef3b682afa968f251a4" refkind="member"><highlight class="normal"><ref refid="class_navigation_tool_to_navigation_tool_filter_1a86594180b499fef3b682afa968f251a4" kindref="member">NavigationToolToNavigationToolFilter::~NavigationToolToNavigationToolFilter</ref>()</highlight></codeline>

@@ -15,7 +15,7 @@
         <link refid="lancet_spatial_fitting_pipeline_manager_8h"/>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="8" relation="include">
+        <childnode refid="10" relation="include">
         </childnode>
       </node>
       <node id="3">
@@ -29,9 +29,16 @@
         </childnode>
         <childnode refid="7" relation="include">
         </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
       </node>
       <node id="6">
         <label>itkObject.h</label>
+      </node>
+      <node id="8">
+        <label>itkObjectFactory.h</label>
       </node>
       <node id="7">
         <label>itkSmartPointer.h</label>
@@ -39,7 +46,10 @@
       <node id="5">
         <label>memory</label>
       </node>
-      <node id="8">
+      <node id="9">
+        <label>mitkCommon.h</label>
+      </node>
+      <node id="10">
         <label>mitkNavigationDataToNavigationDataFilter.h</label>
       </node>
       <node id="4">
@@ -70,7 +80,7 @@
 <codeline lineno="16"><highlight class="normal">{</highlight></codeline>
 <codeline lineno="17"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="18"><highlight class="normal"></highlight></codeline>
-<codeline lineno="19" refid="class_pipeline_manager_1a9d1d6b25355ce9985de2c3a5ab6c5519" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="class_pipeline_manager_1a9d1d6b25355ce9985de2c3a5ab6c5519" kindref="member">PipelineManager::AddFilter</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>index,<sp/>mitk::NavigationDataToNavigationDataFilter::Pointer)</highlight></codeline>
+<codeline lineno="19" refid="class_pipeline_manager_1a0ce52157d7cc34c41bb626a95ac8e54e" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="class_pipeline_manager_1a0ce52157d7cc34c41bb626a95ac8e54e" kindref="member">PipelineManager::AddFilter</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>index,<sp/>mitk::NavigationDataToNavigationDataFilter::Pointer)</highlight></codeline>
 <codeline lineno="20"><highlight class="normal">{</highlight></codeline>
 <codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
 <codeline lineno="22"><highlight class="normal">}</highlight></codeline>

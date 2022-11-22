@@ -229,7 +229,16 @@ Parameters</title>
 Definition at line <link linkend="_lancet_spatial_fitting_pipeline_builder_8cpp_source_1l00030">30</link> of file <link linkend="_lancet_spatial_fitting_pipeline_builder_8cpp_source">lancetSpatialFittingPipelineBuilder.cpp</link>.</para>
 <programlisting linenumbering="unnumbered">00032 {
 00033 }
-</programlisting></section>
+</programlisting>Here is the caller graph for this function:<para>
+    <informalfigure>
+        <mediaobject>
+            <imageobject>
+                <imagedata width="50%" align="center" valign="middle" scalefit="0" fileref="class_pipeline_builder_aacc5bd74d1926eb607d3dcbc8f03209f_icgraph.png"></imagedata>
+            </imageobject>
+        </mediaobject>
+    </informalfigure>
+</para>
+</section>
 <anchor xml:id="_class_pipeline_builder_1a57cb2e1ae299848f251da0729147d267"/><section>
     <title>BuilderNavigationToolToSpaceFilter()</title>
 <indexterm><primary>BuilderNavigationToolToSpaceFilter</primary><secondary>PipelineBuilder</secondary></indexterm>

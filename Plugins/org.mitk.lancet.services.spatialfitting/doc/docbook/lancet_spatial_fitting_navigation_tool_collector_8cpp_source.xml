@@ -100,8 +100,9 @@ Go to the documentation of this file.<programlisting linenumbering="unnumbered">
 <anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00096"/>00096 
 <anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00097"/><link linkend="_class_navigation_tool_collector_1a39a112040f267b4d96f9965afdd0a52b">00097</link> <emphasis role="keywordtype">void</emphasis>&#32;<link linkend="_class_navigation_tool_collector_1a39a112040f267b4d96f9965afdd0a52b">NavigationToolCollector::GenerateData</link>()
 <anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00098"/>00098 {
-<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00099"/>00099 }
-<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00100"/>00100 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00099"/>00099 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00100"/>00100 }
 <anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00101"/>00101 
-<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00102"/>00102 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00102"/>00102 
+<anchor xml:id="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00103"/>00103 <link linkend="_lancet_spatial_fitting_global_8h_1a9046787dc4d688d2099a8a3048a11bf2">END_SPATIAL_FITTING_NAMESPACE</link>
 </programlisting></section>

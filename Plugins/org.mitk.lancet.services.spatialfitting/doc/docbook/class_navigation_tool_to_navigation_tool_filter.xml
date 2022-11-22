@@ -144,7 +144,7 @@ Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_to_nav
 Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source_1l00010">10</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp_source">lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</link>.</para>
 <programlisting linenumbering="unnumbered">00011 &#32;&#32;&#32;&#32;:&#32;imp(std::make_shared&lt;NavigationToolToNavigationToolFilterPrivateImp&gt;())
 00012 {
-00013 &#32;&#32;&#32;&#32;mitk::NavigationData::Pointer&#32;ucsTool;
+00013 &#32;&#32;&#32;&#32;
 00014 }
 </programlisting></section>
 <anchor xml:id="_class_navigation_tool_to_navigation_tool_filter_1a86594180b499fef3b682afa968f251a4"/><section>

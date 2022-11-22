@@ -1,8 +1,11 @@
 <map id="src/internal/lancetSpatialFittingRoboticsRegisterModel.h" name="src/internal/lancetSpatialFittingRoboticsRegisterModel.h">
-<area shape="rect" id="node1" title=" " alt="" coords="181,5,384,47"/>
-<area shape="rect" id="node2" href="$lancet_spatial_fitting_global_8h.html" title=" " alt="" coords="192,95,373,121"/>
+<area shape="rect" id="node1" title=" " alt="" coords="400,5,603,47"/>
+<area shape="rect" id="node2" href="$lancet_spatial_fitting_global_8h.html" title=" " alt="" coords="307,95,488,121"/>
+<area shape="rect" id="node9" title=" " alt="" coords="513,95,698,121"/>
 <area shape="rect" id="node3" title=" " alt="" coords="5,169,173,211"/>
 <area shape="rect" id="node4" title=" " alt="" coords="197,177,267,203"/>
 <area shape="rect" id="node5" title=" " alt="" coords="291,177,376,203"/>
 <area shape="rect" id="node6" title=" " alt="" coords="400,177,523,203"/>
+<area shape="rect" id="node7" title=" " alt="" coords="547,177,677,203"/>
+<area shape="rect" id="node8" title=" " alt="" coords="701,177,811,203"/>
 </map>

@@ -484,7 +484,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="src/core/lancetSpatialFittingNavigationToolCollector.h" line="246" column="14" bodyfile="src/core/lancetSpatialFittingNavigationToolCollector.cpp" bodystart="97" bodyend="99"/>
+        <location file="src/core/lancetSpatialFittingNavigationToolCollector.h" line="246" column="14" bodyfile="src/core/lancetSpatialFittingNavigationToolCollector.cpp" bodystart="97" bodyend="100"/>
       </memberdef>
       </sectiondef>
     <briefdescription>

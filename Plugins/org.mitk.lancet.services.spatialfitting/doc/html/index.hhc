@@ -49,7 +49,10 @@
       </UL>
     <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolToNavigationToolFilter"><param name="Local" value="class_navigation_tool_to_navigation_tool_filter.html"><param name="ImageNumber" value="1"></OBJECT>
       <UL>
-      <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolToNavigationToolFilterPrivateImp"><param name="Local" value="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp.html"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolToNavigationToolFilterPrivateImp"><param name="Local" value="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp.html"><param name="ImageNumber" value="1"></OBJECT>
+        <UL>
+        <LI><OBJECT type="text/sitemap"><param name="Name" value="ucsTool"><param name="Local" value="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp.html#a392582857960dd14180f0f7bbdd870a9"><param name="ImageNumber" value="11"></OBJECT>
+        </UL>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolToNavigationToolFilter"><param name="Local" value="class_navigation_tool_to_navigation_tool_filter.html#a2ea6c7315526610f9426e2246a35f7a7"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="~NavigationToolToNavigationToolFilter"><param name="Local" value="class_navigation_tool_to_navigation_tool_filter.html#a86594180b499fef3b682afa968f251a4"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="GenerateData"><param name="Local" value="class_navigation_tool_to_navigation_tool_filter.html#ae46d9e67048e81abf3eec9d3d780ff1f"><param name="ImageNumber" value="11"></OBJECT>
@@ -93,7 +96,7 @@
         <LI><OBJECT type="text/sitemap"><param name="Name" value="vecFilterManage"><param name="Local" value="struct_pipeline_manager_1_1_pipeline_manager_private_imp.html#ab44d835227be64829ff3be51b59154a4"><param name="ImageNumber" value="11"></OBJECT>
         </UL>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="~PipelineManager"><param name="Local" value="class_pipeline_manager.html#a5c1ca77b12c44a3f2fbf61c328f299f2"><param name="ImageNumber" value="11"></OBJECT>
-      <LI><OBJECT type="text/sitemap"><param name="Name" value="AddFilter"><param name="Local" value="class_pipeline_manager.html#a9d1d6b25355ce9985de2c3a5ab6c5519"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="AddFilter"><param name="Local" value="class_pipeline_manager.html#a0ce52157d7cc34c41bb626a95ac8e54e"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="FindFilter"><param name="Local" value="class_pipeline_manager.html#a322ef438d04b6c4df2f1fde937dc20d9"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="FindFilter"><param name="Local" value="class_pipeline_manager.html#afb4bec97962d788e6a2670b1db2e69cd"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="GenerateData"><param name="Local" value="class_pipeline_manager.html#aabb85814eecc30321b73888c2284b8dd"><param name="ImageNumber" value="11"></OBJECT>
@@ -128,12 +131,6 @@
       <LI><OBJECT type="text/sitemap"><param name="Name" value="itkNewMacro"><param name="Local" value="class_robotics_register_director.html#a22f33bcca3873532a47f7c266d8d7858"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="mitkClassMacroItkParent"><param name="Local" value="class_robotics_register_director.html#a87d17e71e4b31d77879dfba0c01f87af"><param name="ImageNumber" value="11"></OBJECT>
       </UL>
-    <LI><OBJECT type="text/sitemap"><param name="Name" value="AbstractPipelineBuilder"><param name="Local" value="class_abstract_pipeline_builder.html"><param name="ImageNumber" value="1"></OBJECT>
-      <UL>
-      <LI><OBJECT type="text/sitemap"><param name="Name" value="GetOutput"><param name="Local" value="class_abstract_pipeline_builder.html#abe2c7e315e68a70558628b092fb2a716"><param name="ImageNumber" value="11"></OBJECT>
-      <LI><OBJECT type="text/sitemap"><param name="Name" value="mitkClassMacroItkParent"><param name="Local" value="class_abstract_pipeline_builder.html#a3a1eb3fb9b8d447d7db7e106887101ed"><param name="ImageNumber" value="11"></OBJECT>
-      <LI><OBJECT type="text/sitemap"><param name="Name" value="Reset"><param name="Local" value="class_abstract_pipeline_builder.html#ac4381292ae208fe2eb83061cfe286882"><param name="ImageNumber" value="11"></OBJECT>
-      </UL>
     <LI><OBJECT type="text/sitemap"><param name="Name" value="AbstractDirector"><param name="Local" value="class_abstract_director.html"><param name="ImageNumber" value="1"></OBJECT>
       <UL>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="AbstractDirectorPrivateImp"><param name="Local" value="struct_abstract_director_1_1_abstract_director_private_imp.html"><param name="ImageNumber" value="1"></OBJECT>
@@ -145,6 +142,12 @@
       <LI><OBJECT type="text/sitemap"><param name="Name" value="GetBuilder"><param name="Local" value="class_abstract_director.html#a78aa56c869e219c1988be4512423ce80"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="mitkClassMacroItkParent"><param name="Local" value="class_abstract_director.html#ae2cf08a58c1b53215e4018a6ed6c0143"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="SetBuilder"><param name="Local" value="class_abstract_director.html#a8ff3d2fedaec0f382fb19cab93766f92"><param name="ImageNumber" value="11"></OBJECT>
+      </UL>
+    <LI><OBJECT type="text/sitemap"><param name="Name" value="AbstractPipelineBuilder"><param name="Local" value="class_abstract_pipeline_builder.html"><param name="ImageNumber" value="1"></OBJECT>
+      <UL>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="GetOutput"><param name="Local" value="class_abstract_pipeline_builder.html#abe2c7e315e68a70558628b092fb2a716"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="mitkClassMacroItkParent"><param name="Local" value="class_abstract_pipeline_builder.html#a3a1eb3fb9b8d447d7db7e106887101ed"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="Reset"><param name="Local" value="class_abstract_pipeline_builder.html#ac4381292ae208fe2eb83061cfe286882"><param name="ImageNumber" value="11"></OBJECT>
       </UL>
     <LI><OBJECT type="text/sitemap"><param name="Name" value="LancetSpatialFittingNameSpace"><param name="Local" value="group__org__mitk__lancet__services__spatialfitting.html#ga58923762afd58c3a163a36025e4cc47b"><param name="ImageNumber" value="11"></OBJECT>
     </UL>
@@ -251,7 +254,10 @@
       </UL>
     <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolToNavigationToolFilter"><param name="Local" value="class_navigation_tool_to_navigation_tool_filter.html"><param name="ImageNumber" value="1"></OBJECT>
       <UL>
-      <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolToNavigationToolFilterPrivateImp"><param name="Local" value="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp.html"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolToNavigationToolFilterPrivateImp"><param name="Local" value="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp.html"><param name="ImageNumber" value="1"></OBJECT>
+        <UL>
+        <LI><OBJECT type="text/sitemap"><param name="Name" value="ucsTool"><param name="Local" value="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp.html#a392582857960dd14180f0f7bbdd870a9"><param name="ImageNumber" value="11"></OBJECT>
+        </UL>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolToNavigationToolFilter"><param name="Local" value="class_navigation_tool_to_navigation_tool_filter.html#a2ea6c7315526610f9426e2246a35f7a7"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="~NavigationToolToNavigationToolFilter"><param name="Local" value="class_navigation_tool_to_navigation_tool_filter.html#a86594180b499fef3b682afa968f251a4"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="GenerateData"><param name="Local" value="class_navigation_tool_to_navigation_tool_filter.html#ae46d9e67048e81abf3eec9d3d780ff1f"><param name="ImageNumber" value="11"></OBJECT>
@@ -295,7 +301,7 @@
         <LI><OBJECT type="text/sitemap"><param name="Name" value="vecFilterManage"><param name="Local" value="struct_pipeline_manager_1_1_pipeline_manager_private_imp.html#ab44d835227be64829ff3be51b59154a4"><param name="ImageNumber" value="11"></OBJECT>
         </UL>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="~PipelineManager"><param name="Local" value="class_pipeline_manager.html#a5c1ca77b12c44a3f2fbf61c328f299f2"><param name="ImageNumber" value="11"></OBJECT>
-      <LI><OBJECT type="text/sitemap"><param name="Name" value="AddFilter"><param name="Local" value="class_pipeline_manager.html#a9d1d6b25355ce9985de2c3a5ab6c5519"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="AddFilter"><param name="Local" value="class_pipeline_manager.html#a0ce52157d7cc34c41bb626a95ac8e54e"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="FindFilter"><param name="Local" value="class_pipeline_manager.html#a322ef438d04b6c4df2f1fde937dc20d9"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="FindFilter"><param name="Local" value="class_pipeline_manager.html#afb4bec97962d788e6a2670b1db2e69cd"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="GenerateData"><param name="Local" value="class_pipeline_manager.html#aabb85814eecc30321b73888c2284b8dd"><param name="ImageNumber" value="11"></OBJECT>
@@ -330,6 +336,28 @@
       <LI><OBJECT type="text/sitemap"><param name="Name" value="itkNewMacro"><param name="Local" value="class_robotics_register_director.html#a22f33bcca3873532a47f7c266d8d7858"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="mitkClassMacroItkParent"><param name="Local" value="class_robotics_register_director.html#a87d17e71e4b31d77879dfba0c01f87af"><param name="ImageNumber" value="11"></OBJECT>
       </UL>
+    <LI><OBJECT type="text/sitemap"><param name="Name" value="RoboticsRegisterModel"><param name="Local" value="class_robotics_register_model.html"><param name="ImageNumber" value="1"></OBJECT>
+      <UL>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="RoboticsRegisterModelPrivateImp"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html"><param name="ImageNumber" value="1"></OBJECT>
+        <UL>
+        <LI><OBJECT type="text/sitemap"><param name="Name" value="ndiNavigationDataSource"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#a72adb06ccf4a678d7237e6a26c072555"><param name="ImageNumber" value="11"></OBJECT>
+        <LI><OBJECT type="text/sitemap"><param name="Name" value="pipelineRoboticsAccuracyManager"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#ac6fb6b9259cdf6b38a32b58a268242ae"><param name="ImageNumber" value="11"></OBJECT>
+        <LI><OBJECT type="text/sitemap"><param name="Name" value="pipelineRoboticsRegisterManager"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#a27795a05c251d5a8cc27f4de2a48c0bf"><param name="ImageNumber" value="11"></OBJECT>
+        <LI><OBJECT type="text/sitemap"><param name="Name" value="roboticsNavigationDataSource"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#a3d5985f12de53a0e6144725c805bc3c8"><param name="ImageNumber" value="11"></OBJECT>
+        <LI><OBJECT type="text/sitemap"><param name="Name" value="roboticsRegisterModel"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#ad052e8c6189932797e2432c65b26473a"><param name="ImageNumber" value="11"></OBJECT>
+        </UL>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="~RoboticsRegisterModel"><param name="Local" value="class_robotics_register_model.html#a764ced216ee2fc01edca06f001effe28"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="GetAccutacyVerifyPipeline"><param name="Local" value="class_robotics_register_model.html#a0ea95fc5cc06ac290beccb5629a934ca"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="GetNdiNavigationDataSource"><param name="Local" value="class_robotics_register_model.html#a6fdd3e2f55f1605f72d19fc09f30255b"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="GetRegisterModel"><param name="Local" value="class_robotics_register_model.html#a5ad27de9a8b8496f4e2210c38a4db3f9"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="GetRegisterNavigationPipeline"><param name="Local" value="class_robotics_register_model.html#a7aa078efb705097dcb2f09dec1a8c15f"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="GetRoboticsNavigationDataSource"><param name="Local" value="class_robotics_register_model.html#a50e4eaaffc89377f56063e775b60ff47"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="mitkClassMacroItkParent"><param name="Local" value="class_robotics_register_model.html#a1ce1466662a272fb90d0ee7ebfa7c0ac"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="SetAccutacyVerifyPipeline"><param name="Local" value="class_robotics_register_model.html#a1541fcf3f8e72ca9024e5fa0f75eb565"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="SetNdiNavigationDataSource"><param name="Local" value="class_robotics_register_model.html#a76e49c2261805fe19560c394350e9b3e"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="SetRegisterNavigationPipeline"><param name="Local" value="class_robotics_register_model.html#ad1a2593b9bdd9b3e5ea8ca69a82d17fa"><param name="ImageNumber" value="11"></OBJECT>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="SetRoboticsNavigationDataSource"><param name="Local" value="class_robotics_register_model.html#a2aac3ad33b3ef04a63b17bfa2b4007bc"><param name="ImageNumber" value="11"></OBJECT>
+      </UL>
     </UL>
   <LI><OBJECT type="text/sitemap"><param name="Name" value="Class Index"><param name="Local" value="classes.html"><param name="ImageNumber" value="11"></OBJECT>
   <LI><OBJECT type="text/sitemap"><param name="Name" value="Class Hierarchy"><param name="Local" value="hierarchy.html"><param name="ImageNumber" value="1"></OBJECT>
@@ -359,6 +387,7 @@
         <UL>
         <LI><OBJECT type="text/sitemap"><param name="Name" value="PipelineBuilder"><param name="Local" value="class_pipeline_builder.html"><param name="ImageNumber" value="11"></OBJECT>
         </UL>
+      <LI><OBJECT type="text/sitemap"><param name="Name" value="RoboticsRegisterModel"><param name="Local" value="class_robotics_register_model.html"><param name="ImageNumber" value="11"></OBJECT>
       </UL>
     <LI><OBJECT type="text/sitemap"><param name="Name" value="PipelineBuilder::PipelineBuilderPrivateImp"><param name="Local" value="struct_pipeline_builder_1_1_pipeline_builder_private_imp.html"><param name="ImageNumber" value="11"></OBJECT>
     <LI><OBJECT type="text/sitemap"><param name="Name" value="PipelineManager::PipelineManagerPrivateImp"><param name="Local" value="struct_pipeline_manager_1_1_pipeline_manager_private_imp.html"><param name="ImageNumber" value="11"></OBJECT>
@@ -370,6 +399,7 @@
       <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolCollector"><param name="Local" value="class_navigation_tool_collector.html"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="lancet::org_mitk_lancet_services_SpatialFitting"><param name="Local" value="classlancet_1_1org__mitk__lancet__services___spatial_fitting.html"><param name="ImageNumber" value="11"></OBJECT>
       </UL>
+    <LI><OBJECT type="text/sitemap"><param name="Name" value="RoboticsRegisterModel::RoboticsRegisterModelPrivateImp"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html"><param name="ImageNumber" value="11"></OBJECT>
     </UL>
   <LI><OBJECT type="text/sitemap"><param name="Name" value="Class Members"><param name="Local" value="functions.html"><param name="ImageNumber" value="1"></OBJECT>
     <UL>
@@ -403,7 +433,10 @@
           </UL>
         <LI><OBJECT type="text/sitemap"><param name="Name" value="lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp"><param name="Local" value="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8cpp.html"><param name="ImageNumber" value="1"></OBJECT>
           <UL>
-          <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilterPrivateImp"><param name="Local" value="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp.html"><param name="ImageNumber" value="11"></OBJECT>
+          <LI><OBJECT type="text/sitemap"><param name="Name" value="NavigationToolToNavigationToolFilter::NavigationToolToNavigationToolFilterPrivateImp"><param name="Local" value="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp.html"><param name="ImageNumber" value="1"></OBJECT>
+            <UL>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="ucsTool"><param name="Local" value="struct_navigation_tool_to_navigation_tool_filter_1_1_navigation_tool_to_navigation_tool_filter_private_imp.html#a392582857960dd14180f0f7bbdd870a9"><param name="ImageNumber" value="11"></OBJECT>
+            </UL>
           </UL>
         <LI><OBJECT type="text/sitemap"><param name="Name" value="lancetSpatialFittingNavigationToolToNavigationToolFilter.h"><param name="Local" value="lancet_spatial_fitting_navigation_tool_to_navigation_tool_filter_8h.html"><param name="ImageNumber" value="1"></OBJECT>
           <UL>
@@ -476,9 +509,41 @@
             </UL>
           <LI><OBJECT type="text/sitemap"><param name="Name" value="PluginActivator"><param name="Local" value="lancet_plugin_activator_8h.html#af748ff0fdfe694fb57d29c704ed1287f"><param name="ImageNumber" value="11"></OBJECT>
           </UL>
-        <LI><OBJECT type="text/sitemap"><param name="Name" value="lancetSpatialFittingRoboticsRegisterModel.cpp"><param name="Local" value="lancet_spatial_fitting_robotics_register_model_8cpp.html"><param name="ImageNumber" value="11"></OBJECT>
+        <LI><OBJECT type="text/sitemap"><param name="Name" value="lancetSpatialFittingRoboticsRegisterModel.cpp"><param name="Local" value="lancet_spatial_fitting_robotics_register_model_8cpp.html"><param name="ImageNumber" value="1"></OBJECT>
+          <UL>
+          <LI><OBJECT type="text/sitemap"><param name="Name" value="RoboticsRegisterModel::RoboticsRegisterModelPrivateImp"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html"><param name="ImageNumber" value="1"></OBJECT>
+            <UL>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="ndiNavigationDataSource"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#a72adb06ccf4a678d7237e6a26c072555"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="pipelineRoboticsAccuracyManager"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#ac6fb6b9259cdf6b38a32b58a268242ae"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="pipelineRoboticsRegisterManager"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#a27795a05c251d5a8cc27f4de2a48c0bf"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="roboticsNavigationDataSource"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#a3d5985f12de53a0e6144725c805bc3c8"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="roboticsRegisterModel"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#ad052e8c6189932797e2432c65b26473a"><param name="ImageNumber" value="11"></OBJECT>
+            </UL>
+          </UL>
         <LI><OBJECT type="text/sitemap"><param name="Name" value="lancetSpatialFittingRoboticsRegisterModel.h"><param name="Local" value="lancet_spatial_fitting_robotics_register_model_8h.html"><param name="ImageNumber" value="1"></OBJECT>
           <UL>
+          <LI><OBJECT type="text/sitemap"><param name="Name" value="RoboticsRegisterModel"><param name="Local" value="class_robotics_register_model.html"><param name="ImageNumber" value="1"></OBJECT>
+            <UL>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="RoboticsRegisterModelPrivateImp"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html"><param name="ImageNumber" value="1"></OBJECT>
+              <UL>
+              <LI><OBJECT type="text/sitemap"><param name="Name" value="ndiNavigationDataSource"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#a72adb06ccf4a678d7237e6a26c072555"><param name="ImageNumber" value="11"></OBJECT>
+              <LI><OBJECT type="text/sitemap"><param name="Name" value="pipelineRoboticsAccuracyManager"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#ac6fb6b9259cdf6b38a32b58a268242ae"><param name="ImageNumber" value="11"></OBJECT>
+              <LI><OBJECT type="text/sitemap"><param name="Name" value="pipelineRoboticsRegisterManager"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#a27795a05c251d5a8cc27f4de2a48c0bf"><param name="ImageNumber" value="11"></OBJECT>
+              <LI><OBJECT type="text/sitemap"><param name="Name" value="roboticsNavigationDataSource"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#a3d5985f12de53a0e6144725c805bc3c8"><param name="ImageNumber" value="11"></OBJECT>
+              <LI><OBJECT type="text/sitemap"><param name="Name" value="roboticsRegisterModel"><param name="Local" value="struct_robotics_register_model_1_1_robotics_register_model_private_imp.html#ad052e8c6189932797e2432c65b26473a"><param name="ImageNumber" value="11"></OBJECT>
+              </UL>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="~RoboticsRegisterModel"><param name="Local" value="class_robotics_register_model.html#a764ced216ee2fc01edca06f001effe28"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="GetAccutacyVerifyPipeline"><param name="Local" value="class_robotics_register_model.html#a0ea95fc5cc06ac290beccb5629a934ca"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="GetNdiNavigationDataSource"><param name="Local" value="class_robotics_register_model.html#a6fdd3e2f55f1605f72d19fc09f30255b"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="GetRegisterModel"><param name="Local" value="class_robotics_register_model.html#a5ad27de9a8b8496f4e2210c38a4db3f9"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="GetRegisterNavigationPipeline"><param name="Local" value="class_robotics_register_model.html#a7aa078efb705097dcb2f09dec1a8c15f"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="GetRoboticsNavigationDataSource"><param name="Local" value="class_robotics_register_model.html#a50e4eaaffc89377f56063e775b60ff47"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="mitkClassMacroItkParent"><param name="Local" value="class_robotics_register_model.html#a1ce1466662a272fb90d0ee7ebfa7c0ac"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="SetAccutacyVerifyPipeline"><param name="Local" value="class_robotics_register_model.html#a1541fcf3f8e72ca9024e5fa0f75eb565"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="SetNdiNavigationDataSource"><param name="Local" value="class_robotics_register_model.html#a76e49c2261805fe19560c394350e9b3e"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="SetRegisterNavigationPipeline"><param name="Local" value="class_robotics_register_model.html#ad1a2593b9bdd9b3e5ea8ca69a82d17fa"><param name="ImageNumber" value="11"></OBJECT>
+            <LI><OBJECT type="text/sitemap"><param name="Name" value="SetRoboticsNavigationDataSource"><param name="Local" value="class_robotics_register_model.html#a2aac3ad33b3ef04a63b17bfa2b4007bc"><param name="ImageNumber" value="11"></OBJECT>
+            </UL>
           </UL>
         </UL>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="lancetSpatialFittingAbstractDirector.cpp"><param name="Local" value="lancet_spatial_fitting_abstract_director_8cpp.html"><param name="ImageNumber" value="1"></OBJECT>
@@ -507,7 +572,6 @@
         <LI><OBJECT type="text/sitemap"><param name="Name" value="NAMESPACE_START_SCOPE"><param name="Local" value="lancet_spatial_fitting_global_8h.html#ab4445c090407f9f29572f91def706829"><param name="ImageNumber" value="11"></OBJECT>
         <LI><OBJECT type="text/sitemap"><param name="Name" value="NAMSPEACE_DEFINE"><param name="Local" value="lancet_spatial_fitting_global_8h.html#a8b7604fc10134a297f75ed756406cc3e"><param name="ImageNumber" value="11"></OBJECT>
         </UL>
-      <LI><OBJECT type="text/sitemap"><param name="Name" value="mainpage - 副本.h"><param name="Local" value="mainpage_01-_01_xE5_x89_xAF_xE6_x9C_xAC_8h.html"><param name="ImageNumber" value="11"></OBJECT>
       <LI><OBJECT type="text/sitemap"><param name="Name" value="mainpage.h"><param name="Local" value="mainpage_8h.html"><param name="ImageNumber" value="11"></OBJECT>
       </UL>
     </UL>

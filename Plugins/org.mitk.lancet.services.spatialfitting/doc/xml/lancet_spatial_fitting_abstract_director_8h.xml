@@ -15,7 +15,7 @@
         </childnode>
         <childnode refid="5" relation="include">
         </childnode>
-        <childnode refid="7" relation="include">
+        <childnode refid="8" relation="include">
         </childnode>
       </node>
       <node id="2">
@@ -29,9 +29,16 @@
         </childnode>
         <childnode refid="6" relation="include">
         </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
       </node>
       <node id="5">
         <label>itkObject.h</label>
+      </node>
+      <node id="7">
+        <label>itkObjectFactory.h</label>
       </node>
       <node id="6">
         <label>itkSmartPointer.h</label>
@@ -39,7 +46,7 @@
       <node id="4">
         <label>memory</label>
       </node>
-      <node id="7">
+      <node id="8">
         <label>mitkCommon.h</label>
       </node>
       <node id="3">

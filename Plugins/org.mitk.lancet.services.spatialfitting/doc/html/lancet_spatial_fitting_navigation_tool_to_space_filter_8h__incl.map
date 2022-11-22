@@ -1,10 +1,12 @@
 <map id="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h" name="src/core/lancetSpatialFittingNavigationToolToSpaceFilter.h">
-<area shape="rect" id="node1" title=" " alt="" coords="353,5,549,47"/>
-<area shape="rect" id="node2" href="$lancet_spatial_fitting_global_8h.html" title=" " alt="" coords="192,102,373,129"/>
-<area shape="rect" id="node7" title=" " alt="" coords="397,102,504,129"/>
-<area shape="rect" id="node8" title=" " alt="" coords="529,95,735,136"/>
+<area shape="rect" id="node1" title=" " alt="" coords="467,5,663,47"/>
+<area shape="rect" id="node2" href="$lancet_spatial_fitting_global_8h.html" title=" " alt="" coords="307,102,488,129"/>
+<area shape="rect" id="node9" title=" " alt="" coords="512,102,619,129"/>
+<area shape="rect" id="node10" title=" " alt="" coords="643,95,850,136"/>
 <area shape="rect" id="node3" title=" " alt="" coords="5,184,173,225"/>
 <area shape="rect" id="node4" title=" " alt="" coords="197,191,267,218"/>
 <area shape="rect" id="node5" title=" " alt="" coords="291,191,376,218"/>
 <area shape="rect" id="node6" title=" " alt="" coords="400,191,523,218"/>
+<area shape="rect" id="node7" title=" " alt="" coords="547,191,677,218"/>
+<area shape="rect" id="node8" title=" " alt="" coords="701,191,811,218"/>
 </map>

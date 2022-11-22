@@ -392,7 +392,8 @@ Parameters</title>
 <para><computeroutput>void NavigationToolCollector::GenerateData ( )<computeroutput>[override]</computeroutput>, <computeroutput>[protected]</computeroutput>, <computeroutput>[virtual]</computeroutput></computeroutput></para><para>
 Definition at line <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source_1l00097">97</link> of file <link linkend="_lancet_spatial_fitting_navigation_tool_collector_8cpp_source">lancetSpatialFittingNavigationToolCollector.cpp</link>.</para>
 <programlisting linenumbering="unnumbered">00098 {
-00099 }
+00099 
+00100 }
 </programlisting></section>
 <anchor xml:id="_class_navigation_tool_collector_1a3058935c076205707e41015c70b9e1f6"/><section>
     <title>GetAccuracyRange()</title>

@@ -3,6 +3,8 @@
 <title>src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp File Reference</title>
 <indexterm><primary>src/internal/lancetSpatialFittingRoboticsRegisterModel.cpp</primary></indexterm>
 <programlisting linenumbering="unnumbered">#include &quot;lancetSpatialFittingRoboticsRegisterModel.h&quot;
+#include &quot;core/lancetSpatialFittingPipelineManager.h&quot;
+#include &lt;robotRegistration.h&gt;
 </programlisting>Include dependency graph for lancetSpatialFittingRoboticsRegisterModel.cpp:<para>
     <informalfigure>
         <mediaobject>
@@ -12,4 +14,11 @@
         </mediaobject>
     </informalfigure>
 </para>
+<simplesect>
+    <title>Classes    </title>
+        <itemizedlist>
+            <listitem><para>struct <link linkend="_struct_robotics_register_model_1_1_robotics_register_model_private_imp">RoboticsRegisterModel::RoboticsRegisterModelPrivateImp</link></para>
+</listitem>
+        </itemizedlist>
+</simplesect>
 </section>

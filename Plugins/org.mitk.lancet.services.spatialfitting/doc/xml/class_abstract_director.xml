@@ -90,6 +90,7 @@
         <inbodydescription>
         </inbodydescription>
         <location file="src/lancetSpatialFittingAbstractDirector.h" line="88" column="27" bodyfile="src/lancetSpatialFittingAbstractDirector.cpp" bodystart="16" bodyend="19"/>
+        <referencedby refid="class_robotics_register_director_1a4ff2015bf1ff9eb73501bee5abecd5e6" compoundref="lancet_spatial_fitting_robotics_register_director_8cpp" startline="19" endline="30">RoboticsRegisterDirector::Builder</referencedby>
       </memberdef>
       <memberdef kind="function" id="class_abstract_director_1a8ff3d2fedaec0f382fb19cab93766f92" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
         <type>void</type>
