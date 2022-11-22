@@ -270,9 +270,11 @@ void SurgicalSimulate::UseKuka()
     lancet::TrackingDeviceSourceConfiguratorLancet::New(m_KukaToolStorage, m_KukaTrackingDevice);
 
   m_KukaSource = kukaSourceFactory->CreateTrackingDeviceSource(m_KukaVisualizer);
-  // m_KukaSource->RegisterAsMicroservice(); 
-
-  m_KukaSource->Connect();
+  // m_KukaSource->RegisterAsMicroservice();
+  if (m_KukaSource.IsNotNull())
+  {
+    m_KukaSource->Connect();
+  }
 }
 
 void SurgicalSimulate::StartTracking()

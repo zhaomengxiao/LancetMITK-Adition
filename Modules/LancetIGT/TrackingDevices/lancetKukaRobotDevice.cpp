@@ -143,7 +143,7 @@ namespace lancet
   KukaRobotDevice_New::KukaRobotDevice_New()
     :TrackingDevice()
   {
-    // m_Data = lancet::KukaRobotTypeInformation::GetDeviceDataLancetKukaTrackingDevice();
+    m_Data = lancet::KukaRobotTypeInformation::GetDeviceDataLancetKukaTrackingDevice();
     // m_RobotTools.clear();
     // ////udp service
     // m_udp.setRepetitiveHeartbeatInterval(500);
