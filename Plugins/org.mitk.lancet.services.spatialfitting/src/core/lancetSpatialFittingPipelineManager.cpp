@@ -1,5 +1,6 @@
 #include "lancetSpatialFittingPipelineManager.h"
-
+#include <vector>
+#include <algorithm>
 BEGIN_SPATIAL_FITTING_NAMESPACE
 
 struct PipelineManager::PipelineManagerPrivateImp
@@ -16,44 +17,80 @@ PipelineManager::~PipelineManager()
 {
 }
 
-bool PipelineManager::AddFilter(int index, mitk::NavigationDataToNavigationDataFilter::Pointer)
+bool PipelineManager::AddFilter(int index, mitk::NavigationDataToNavigationDataFilter::Pointer filter)
 {
-	return false;
+	if (filter.IsNull() || index < 0)
+	{
+		return false;
+	}
+
+	if (index >= this->imp->vecFilterManage.size())
+	{
+		this->imp->vecFilterManage.push_back(filter);
+		this->UpdateConntedToFilter();
+		return true;
+	}
+	this->imp->vecFilterManage.insert(this->imp->vecFilterManage.begin() + index, filter);
+	this->UpdateConntedToFilter();
+	return true;
 }
 
 bool PipelineManager::RemoveFilter(int index)
 {
-	return false;
+	if (index >= this->GetSize() || index < 0)
+	{
+		return false;
+	}
+	this->imp->vecFilterManage.erase(std::begin(this->imp->vecFilterManage) + index);
+	this->UpdateConntedToFilter();
+	return true;
 }
 
-bool PipelineManager::RemoveFilter(const std::string&)
+bool PipelineManager::RemoveFilter(const std::string& name)
 {
-	return false;
+	return this->RemoveFilter(this->GetIndexByName(name));
 }
 
-bool PipelineManager::ModifyFilter(int index, mitk::NavigationDataToNavigationDataFilter::Pointer)
+bool PipelineManager::ModifyFilter(int index, mitk::NavigationDataToNavigationDataFilter::Pointer filter)
 {
-	return false;
+	if (index >= this->GetSize() || index < 0)
+	{
+		return false;
+	}
+	this->imp->vecFilterManage[index]= filter;
+	this->UpdateConntedToFilter();
+	return true;
 }
 
-bool PipelineManager::ModifyFilter(const std::string& name, mitk::NavigationDataToNavigationDataFilter::Pointer)
+bool PipelineManager::ModifyFilter(const std::string& name, mitk::NavigationDataToNavigationDataFilter::Pointer filter)
 {
-	return false;
+	return this->ModifyFilter(this->GetIndexByName(name), filter);
 }
 
 mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter(int index)
 {
+	if (index < this->GetSize() || index < 0)
+	{
+		return this->imp->vecFilterManage[index];
+	}
 	return mitk::NavigationDataToNavigationDataFilter::Pointer();
 }
 
 mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter(const std::string& name)
 {
-	return mitk::NavigationDataToNavigationDataFilter::Pointer();
+	return this->FindFilter(this->GetIndexByName(name));
 }
 
 int PipelineManager::GetIndexByName(const std::string& name)
 {
-	return 0;
+	for (int index = 0; index < this->GetSize(); ++index)
+	{
+		if (name == this->imp->vecFilterManage.at(index).GetPointer()->GetName())
+		{
+			return index;
+		}
+	}
+	return -1;
 }
 
 bool PipelineManager::IsEmpty() const
@@ -66,8 +103,45 @@ int PipelineManager::GetSize() const
 	return this->imp->vecFilterManage.size();
 }
 
+void PipelineManager::UpdateFilter()
+{
+	if (false == this->IsEmpty())
+	{
+		this->FindFilter(this->GetSize() - 1)->Update();
+	}	
+}
+
+void PipelineManager::UpdateConntedToFilter()
+{
+	this->UpdateDisConntedToFilter();
+	for (size_t index = 1; index < this->GetSize(); ++index)
+	{
+		this->FindFilter(index)->ConnectTo(this->FindFilter(index - 1));
+	}
+	if (false == this->IsEmpty())
+	{
+		this->FindFilter(0)->ConnectTo(this);
+	}
+}
+
+void PipelineManager::UpdateDisConntedToFilter()
+{
+	for (size_t index = 0; index < this->GetSize(); ++index)
+	{
+		DataObjectPointerArray outputs = this->FindFilter(index)->GetInputs();
+		for (DataObjectPointerArray::size_type i = 0; i < outputs.size(); ++i)
+		{
+			if (static_cast<mitk::NavigationData*>(outputs.at(i).GetPointer()))
+			{ 
+				(static_cast<mitk::NavigationData*>(outputs.at(i).GetPointer()))->DisconnectPipeline();
+			}
+		}
+	}
+}
+
 void PipelineManager::GenerateData()
 {
+	std::cout << __FUNCTION__ << "log" << std::endl;
 }
 
 

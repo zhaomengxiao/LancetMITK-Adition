@@ -96,7 +96,8 @@ void NavigationToolCollector::on_QtTimerTrigger_timeout()
 
 void NavigationToolCollector::GenerateData()
 {
-
+	std::cout << __FUNCTION__ << "log" << std::endl;
+	this->CreateOutputsForAllInputs();
 }
 
 

@@ -136,7 +136,13 @@ public:
 	bool IsEmpty() const;
 
 	int GetSize() const;
+
+	void UpdateFilter();
+
 protected:
+	virtual void UpdateConntedToFilter();
+	virtual void UpdateDisConntedToFilter();
+
 	virtual void GenerateData() override;
 private:
 	struct PipelineManagerPrivateImp;

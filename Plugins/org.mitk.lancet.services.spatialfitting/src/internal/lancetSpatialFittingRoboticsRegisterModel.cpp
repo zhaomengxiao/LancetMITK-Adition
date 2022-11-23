@@ -35,7 +35,8 @@ itk::SmartPointer<PipelineManager> RoboticsRegisterModel::GetRegisterNavigationP
 }
 
 void RoboticsRegisterModel::SetRegisterNavigationPipeline(itk::SmartPointer<PipelineManager> manager)
-{
+{ 
+
 }
 
 void RoboticsRegisterModel::SetAccutacyVerifyPipeline(itk::SmartPointer<PipelineManager> manager)

@@ -7,6 +7,7 @@ struct PointAccuracyDate::PointAccuracyDatePrivateImp
 {
 	mitk::Point3D srcPoint;
 	mitk::Point3D targetPoint;
+	double mDistance = 0.0;
 };
 
 PointAccuracyDate::PointAccuracyDate() 
@@ -24,25 +25,33 @@ PointAccuracyDate::PointAccuracyDate(const mitk::Point3D& src,
 
 mitk::Point3D PointAccuracyDate::GetSourcePoint() const
 {
-	return mitk::Point3D();
+	return this->imp->srcPoint;
 }
 
-void PointAccuracyDate::SetSourcePoint(const mitk::Point3D&)
+void PointAccuracyDate::SetSourcePoint(const mitk::Point3D& pt)
 {
+	this->imp->srcPoint = pt;
 }
 
 mitk::Point3D PointAccuracyDate::GetTargetPoint() const
 {
-	return mitk::Point3D();
+	return this->imp->targetPoint;
 }
 
-void PointAccuracyDate::SetTargetPoint(const mitk::Point3D&)
+void PointAccuracyDate::SetTargetPoint(const mitk::Point3D& pt)
 {
+	this->imp->targetPoint = pt;
 }
 
 double PointAccuracyDate::Compute() const
 {
-	return 0.0;
+	this->imp->mDistance = sqrt
+	(
+		(this->GetSourcePoint()[0] - this->GetTargetPoint()[0]) * (this->GetSourcePoint()[0] - this->GetTargetPoint()[0]) +
+		(this->GetSourcePoint()[1] - this->GetTargetPoint()[1]) * (this->GetSourcePoint()[1] - this->GetTargetPoint()[1]) +
+		(this->GetSourcePoint()[2] - this->GetTargetPoint()[2]) * (this->GetSourcePoint()[2] - this->GetTargetPoint()[2])
+	);
+	return this->imp->mDistance;
 }
 
 

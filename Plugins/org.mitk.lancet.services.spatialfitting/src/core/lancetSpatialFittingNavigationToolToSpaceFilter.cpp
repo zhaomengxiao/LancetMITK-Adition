@@ -23,11 +23,16 @@ vtkMatrix4x4* NavigationToolToSpaceFilter::GetConvertMatrix4x4() const
 
 void NavigationToolToSpaceFilter::SetConvertMatrix4x4(const vtkMatrix4x4* matrix)
 {
-	this->imp->convertMatrix4x4->DeepCopy(matrix);
+	if (nullptr != matrix)
+	{
+		this->imp->convertMatrix4x4->DeepCopy(matrix);
+	}
 }
 
 void NavigationToolToSpaceFilter::GenerateData()
 {
+	std::cout << __FUNCTION__ << "log.name " << this->GetName() << std::endl;
+	this->CreateOutputsForAllInputs();
 }
 END_SPATIAL_FITTING_NAMESPACE
 
