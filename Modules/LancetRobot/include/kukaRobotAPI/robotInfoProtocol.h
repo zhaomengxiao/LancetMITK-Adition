@@ -40,4 +40,69 @@ public:
     Flange6 = obj.get("Flange6");
   }
 };
+
+class TrackingFramesProtocol
+{
+public:
+  bool isMotionFrame{false};
+  std::array<double, 6> position{};
+
+  bool FromJsonObj(Poco::JSON::Object obj)
+  {
+    auto b = obj.get("isMotionFrame");
+    auto positionArray = obj.getArray("position");
+
+    if (b.isEmpty()||positionArray.isNull())
+    {
+      return false;
+    }
+
+    isMotionFrame = b;
+    for (int i = 0; i < 6; i++)
+    {
+      position[i] = positionArray->getElement<double>(i);
+    }
+  }
+};
+
+class RobotInformationProtocol
+{
+public:
+  std::array<double, 7> joints{};
+  std::array<double, 6> forcetorque{};
+  std::vector<TrackingFramesProtocol> frames{};
+
+  bool FromJsonObj(Poco::JSON::Object obj)
+  {
+    auto jointsArray = obj.getArray("joints");
+    auto forcetorqueArray = obj.getArray("forcetorque");
+    auto framesArray = obj.getArray("frames");
+    if (jointsArray.isNull()|| forcetorqueArray.isNull()|| framesArray.isNull())
+    {
+      return false;
+    }
+    for (int i = 0; i < 7; i++)
+    {
+      joints[i] = jointsArray->getElement<double>(i);
+    }
+
+    for (int i = 0; i < 6; i++)
+    {
+      forcetorque[i] = forcetorqueArray->getElement<double>(i);
+    }
+    //forcetorqueArray->getObject()
+    for (int i =0; i < framesArray->size(); i++)
+    {
+      TrackingFramesProtocol trackingFrames;
+      if (!trackingFrames.FromJsonObj(*framesArray->getObject(i)))
+      {
+        return false;
+      }
+      frames.push_back(trackingFrames);
+    }
+    return true;
+  }
+
+};
+
 #endif // ROBOTINFOPROTOCOL_H
