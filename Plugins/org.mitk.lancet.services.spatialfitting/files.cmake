@@ -13,6 +13,7 @@ set(SRC_CPP_FILES
   core/lancetSpatialFittingPipelineManager.cpp
   core/lancetSpatialFittingPointAccuracyDate.cpp
   core/lancetSpatialFittingRoboticsRegisterDirector.cpp
+  core/lancetSpatialFittingRoboticsVerifyDirector.cpp
 )
 
 set(INTERNAL_CPP_FILES

@@ -17,8 +17,16 @@ found in the LICENSE file.
 #include <berryISelectionListener.h>
 
 #include <QmitkAbstractView.h>
+#include <mitkNavigationData.h>
 
 #include "ui_QRoboticsRegistrationsControls.h"
+
+namespace lancet::spatial_fitting
+{
+  class RoboticsRegisterModel;
+
+  using RoboticsRegisterModelPtr = itk::SmartPointer<RoboticsRegisterModel>;
+} // namespace lancet::spatial_fitting
 
 /**
   \brief QRoboticsRegistrations
@@ -48,7 +56,21 @@ protected:
 
   /// \brief Called when the user clicks the GUI button
   void DoImageProcessing();
+private:
+  void UpdateWidgetOfService();
 
+  lancet::spatial_fitting::RoboticsRegisterModelPtr GetServiceRoboticsModel() const;
+private slots:
+  void on_pushButtonRobotVerify_clicked();
+
+  void on_pushButtonCalResult_clicked();
+
+  void on_pushButtonAddPoint_clicked();
+
+  void on_toolCollector_fail(int, mitk::NavigationData*);
+
+	void on_toolCollector_complete(mitk::NavigationData*);
+private:
   Ui::QRoboticsRegistrationsControls m_Controls;
 };
 

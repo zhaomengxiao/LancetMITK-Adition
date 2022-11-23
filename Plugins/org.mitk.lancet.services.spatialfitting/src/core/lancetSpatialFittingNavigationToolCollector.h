@@ -196,6 +196,14 @@ public:
 	 */
 	virtual bool Stop();
 
+	/**
+	 * Permission Identification Area.
+	 * 
+	 * In the actual use of the collector, there are multiple request sources, 
+	 * which can identify ownership through this attribute.
+	 */
+	virtual std::string GetPermissionIdentificationArea() const;
+	virtual void SetPermissionIdentificationArea(const std::string&);
 Q_SIGNALS:
 	/**
 	 * \brief The collector encountered an unacceptable error during operation.

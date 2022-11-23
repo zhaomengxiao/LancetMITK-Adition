@@ -15,11 +15,12 @@ AbstractDirector::AbstractDirector()
 
 itk::SmartPointer<AbstractPipelineBuilder> AbstractDirector::GetBuilder() const
 {
-	return itk::SmartPointer<AbstractPipelineBuilder>();
+	return this->imp->builder;
 }
 
 void AbstractDirector::SetBuilder(itk::SmartPointer<AbstractPipelineBuilder> builder)
 {
+	this->imp->builder = builder;
 }
 
 

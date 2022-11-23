@@ -30,7 +30,8 @@ void NavigationToolToNavigationToolFilter::SetUCSTool(
 
 void NavigationToolToNavigationToolFilter::GenerateData()
 {
-
+	std::cout << __FUNCTION__ << "log.name " << this->GetName() << std::endl;
+	this->CreateOutputsForAllInputs();
 }
 
 END_SPATIAL_FITTING_NAMESPACE

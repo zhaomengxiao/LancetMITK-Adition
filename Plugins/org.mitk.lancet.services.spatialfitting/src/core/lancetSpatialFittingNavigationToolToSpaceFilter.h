@@ -65,6 +65,8 @@ public:
 	mitkClassMacro(NavigationToolToSpaceFilter,
 		mitk::NavigationDataToNavigationDataFilter);
 
+	itkNewMacro(NavigationToolToSpaceFilter)
+
 	NavigationToolToSpaceFilter();
 	virtual ~NavigationToolToSpaceFilter();
 

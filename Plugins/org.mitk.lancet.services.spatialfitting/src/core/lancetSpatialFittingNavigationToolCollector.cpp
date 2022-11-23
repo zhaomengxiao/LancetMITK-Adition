@@ -12,6 +12,7 @@ struct NavigationToolCollector::NavigationToolCollectorPrivateImp
 	unsigned int numberForMean = 10;
 	double accuracyRange = 0.5;
 	WorkStatus state = WorkStatus::Idle;
+	std::string permissionIdentificationArea;
 };
 
 NavigationToolCollector::NavigationToolCollector()
@@ -89,6 +90,16 @@ bool NavigationToolCollector::Stop()
 	return false;
 }
 
+std::string NavigationToolCollector::GetPermissionIdentificationArea() const
+{
+	return this->imp->permissionIdentificationArea;
+}
+
+void NavigationToolCollector::SetPermissionIdentificationArea(const std::string& area)
+{
+	this->imp->permissionIdentificationArea = area;
+}
+
 void NavigationToolCollector::on_QtTimerTrigger_timeout()
 {
 
@@ -96,7 +107,8 @@ void NavigationToolCollector::on_QtTimerTrigger_timeout()
 
 void NavigationToolCollector::GenerateData()
 {
-
+	std::cout << __FUNCTION__ << "log" << std::endl;
+	this->CreateOutputsForAllInputs();
 }
 
 
