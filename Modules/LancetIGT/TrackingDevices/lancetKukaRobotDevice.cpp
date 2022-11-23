@@ -86,11 +86,13 @@ namespace lancet
     return nullptr;
   }
 
-  RobotTool* KukaRobotDevice_New::GetInternalTool(unsigned toolNumber)
+  RobotTool* KukaRobotDevice_New::GetInternalTool(std::string name)
   {
     std::lock_guard<std::mutex> lock(m_ToolsMutex); // lock and unlock the mutex
-    if (toolNumber < m_RobotTools.size())
-      return m_RobotTools.at(toolNumber);
+    auto end = m_RobotTools.end();
+    for (auto iterator = m_RobotTools.begin(); iterator != end; ++iterator)
+      if (name == (*iterator)->GetToolName())
+        return *iterator;
     return nullptr;
   }
 
@@ -113,16 +115,80 @@ namespace lancet
     return static_cast<unsigned int>(this->m_RobotTools.size());
   }
 
+  mitk::Quaternion KukaRobotDevice_New::kukaABC2Quaternion(double a,double b,double c)
+  {
+    Eigen::AngleAxisd rx(a, Eigen::Vector3d::UnitZ());
+    Eigen::AngleAxisd ry(b, Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd rz(c, Eigen::Vector3d::UnitX());
+    Eigen::Quaterniond q = rx * ry * rz;
+
+    return { q.x(),q.y(),q.z(),q.w() };
+  }
+
   void KukaRobotDevice_New::TrackTools()
   {
-    auto info = m_RobotApi.GetRobotInfo();
-    m_TrackingData[0] = info.Flange1;
-    m_TrackingData[1] = info.Flange2;
-    m_TrackingData[2] = info.Flange3;
+    MITK_INFO << "tracktools called";
+    /* lock the TrackingFinishedMutex to signal that the execution rights are now transfered to the tracking thread */
+    // keep lock until end of scope
+    std::lock_guard<std::mutex> lock(m_TrackingFinishedMutex);
+    if (this->GetState() != Tracking)
+    {
+      MITK_WARN << "TrackTools Return: state not tracking";
+      return;
+    }
 
-    m_TrackingData[3] = info.Flange4;
-    m_TrackingData[4] = info.Flange5;
-    m_TrackingData[5] = info.Flange6;
+    bool localStopTracking;
+    // Because m_StopTracking is used by two threads, access has to be guarded by a mutex. To minimize thread locking, a local copy is used here
+    this->m_StopTrackingMutex.lock(); // update the local copy of m_StopTracking
+    localStopTracking = this->m_StopTracking;
+    this->m_StopTrackingMutex.unlock();
+
+    while ((this->GetState() == Tracking) && (localStopTracking == false))
+    {
+      //robotAPI GetRobotInfo return flange xyzabc in Robot Base Coords
+      auto frames = m_RobotApi.GetRobotInfo().frames;
+      if(frames.empty())
+      {
+        MITK_WARN << "Tracking Loop Start, but tracking frames empty,check if the tool added successfully?";
+        break;
+      }
+
+      for (auto frame : frames)
+      {
+        lancet::RobotTool::Pointer tool = GetInternalTool(frame.name);
+        // mitk::Quaternion quaternion{ toolData.transform.qx, toolData.transform.qy, toolData.transform.qz,
+        //                             toolData.transform.q0 };
+        auto q = kukaABC2Quaternion(frame.position[3], frame.position[4], frame.position[5]);
+        tool->SetOrientation(q);
+        mitk::Point3D position;
+        position[0] = frame.position[0];
+        position[1] = frame.position[1];
+        position[2] = frame.position[2];
+
+        tool->SetPosition(position);
+        //todo more tool imformation to be provide
+        //tool->SetTrackingError(toolData.transform.error);
+        //tool->SetErrorMessage("");
+        //tool->SetFrameNumber(toolData.frameNumber);
+        tool->SetDataValid(true);
+      }
+      
+      /* Update the local copy of m_StopTracking */
+      this->m_StopTrackingMutex.lock();
+      localStopTracking = m_StopTracking;
+      this->m_StopTrackingMutex.unlock();
+    }
+    /* StopTracking was called, thus the mode should be changed back to Ready now that the tracking loop has ended. */
+    //todo robotAPI stop tracking support
+    // returnvalue = m_capi.stopTracking();
+    // if (warningOrError(returnvalue, "m_capi.stopTracking()"))
+    // {
+    //   MITK_INFO << "m_capi.stopTracking() err";
+    //   return;
+    // }
+    // MITK_INFO << "m_capi stopTracking()";
+    return;
+    // returning from this function (and ThreadStartTracking()) this will end the thread and transfer control back to main thread by releasing trackingFinishedLockHolder
   }
 
   std::array<double, 6> KukaRobotDevice_New::GetTrackingData()
@@ -213,75 +279,7 @@ namespace lancet
 
   void KukaRobotDevice_New::ThreadStartTracking()
   {
-    MITK_INFO << "tracktools called";
-    /* lock the TrackingFinishedMutex to signal that the execution rights are now transfered to the tracking thread */
-    // keep lock until end of scope
-    std::lock_guard<std::mutex> lock(m_TrackingFinishedMutex);
-    if (this->GetState() != Tracking)
-    {
-      MITK_INFO << "TrackTools Return: state not tracking";
-      return;
-    }
-
-    bool localStopTracking;
-    // Because m_StopTracking is used by two threads, access has to be guarded by a mutex. To minimize thread locking, a local copy is used here
-    this->m_StopTrackingMutex.lock(); // update the local copy of m_StopTracking
-    localStopTracking = this->m_StopTracking;
-    this->m_StopTrackingMutex.unlock();
-
-    while ((this->GetState() == Tracking) && (localStopTracking == false))
-    {
-      //robotAPI GetRobotInfo return flange xyzabc in Robot Base Coords
-      auto info = m_RobotApi.GetRobotInfo();
-      m_TrackingData[0] = info.Flange1;
-      m_TrackingData[1] = info.Flange2;
-      m_TrackingData[2] = info.Flange3;
-
-      m_TrackingData[3] = info.Flange4;
-      m_TrackingData[4] = info.Flange5;
-      m_TrackingData[5] = info.Flange6;
-
-      Eigen::Quaterniond q;
-      //kuka
-      Eigen::AngleAxisd rx(m_TrackingData[3] , Eigen::Vector3d::UnitZ());
-      Eigen::AngleAxisd ry(m_TrackingData[4] , Eigen::Vector3d::UnitY());
-      Eigen::AngleAxisd rz(m_TrackingData[5] , Eigen::Vector3d::UnitX());
-      //return rz.matrix()*ry.matrix()*rx.matrix(); // kuka
-
-      q = rx * ry * rz;
-      Eigen::Matrix3d rotate;
-      q = rotate;
-      for (auto tool : m_RobotTools)
-      {
-        mitk::Quaternion quaternion{ q.x(),q.y(),q.z(),q.w() };
-        tool->SetOrientation(quaternion);
-        mitk::Point3D position;
-        position[0] = m_TrackingData[0];
-        position[1] = m_TrackingData[1];
-        position[2] = m_TrackingData[2];
-
-        tool->SetPosition(position);
-        tool->SetTrackingError(0);
-        tool->SetErrorMessage("");
-        //tool->SetFrameNumber(/*toolData.frameNumber*/); //todo add frameNumber in robot data for debug and frame-rate count ;
-        tool->SetDataValid(true);
-      }
-      /* Update the local copy of m_StopTracking */
-      this->m_StopTrackingMutex.lock();
-      localStopTracking = m_StopTracking;
-      this->m_StopTrackingMutex.unlock();
-    }
-    /* StopTracking was called, thus the mode should be changed back to Ready now that the tracking loop has ended. */
-
-    // returnvalue = m_capi.stopTracking();
-    // if (warningOrError(returnvalue, "m_capi.stopTracking()"))
-    // {
-    //   MITK_INFO << "m_capi.stopTracking() err";
-    //   return;
-    // }
-    // MITK_INFO << "m_capi stopTracking()";
-    return;
-    // returning from this function (and ThreadStartTracking()) this will end the thread and transfer control back to main thread by releasing trackingFinishedLockHolder
+    TrackTools();
   }
 }
 

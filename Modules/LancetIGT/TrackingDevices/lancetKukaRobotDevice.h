@@ -58,11 +58,20 @@ namespace lancet
     mitk::TrackingTool* GetTool(unsigned toolNumber) const override;
     mitk::TrackingTool* GetToolByName(std::string name) const override;
 
-    RobotTool* GetInternalTool(unsigned toolNumber);
+    RobotTool* GetInternalTool(std::string name);
 
     mitk::TrackingTool* AddTool(const char* toolName, xyzabc tcp);
     unsigned GetToolCount() const override;
+    mitk::Quaternion kukaABC2Quaternion(double a, double b, double c);
 
+    /**
+    * \brief TrackTools() continuously polls robotApi interface for new 6d tool positions until StopTracking is called.
+    *
+    * Continuously tracks the 6D position of all tools until StopTracking() is called.
+    * This function is executed by the tracking thread (through StartTracking() and ThreadStartTracking()).
+    * It should not be called directly.
+    * @throw mitk::IGTHardwareException Throws an exception if there are errors while tracking the tools.
+    */
     void TrackTools();
 
     std::array<double, 6> GetTrackingData();

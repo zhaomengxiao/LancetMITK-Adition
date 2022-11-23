@@ -50,7 +50,7 @@ void lancet::KukaRobotAPI::ReadCommandResult()
   auto res = m_TcpConnection.read();
 }
 
-RobotInfoProtocol lancet::KukaRobotAPI::GetRobotInfo()
+RobotInformationProtocol lancet::KukaRobotAPI::GetRobotInfo()
 {
   Poco::JSON::Parser parser;
   Poco::Dynamic::Var result;
@@ -59,7 +59,7 @@ RobotInfoProtocol lancet::KukaRobotAPI::GetRobotInfo()
   result = parser.parse(m_UdpConnection.read());
   Poco::JSON::Object::Ptr pObj = result.extract<Poco::JSON::Object::Ptr>();
 
-  RobotInfoProtocol info{};
+  RobotInformationProtocol info{};
   info.FromJsonObj(*pObj);
   return info;
 }

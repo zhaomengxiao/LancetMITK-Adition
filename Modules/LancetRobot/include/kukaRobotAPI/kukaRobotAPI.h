@@ -21,7 +21,7 @@
  */
 class RobotToolProtocol;
 class DefaultProtocol;
-class RobotInfoProtocol;
+class RobotInformationProtocol;
 namespace lancet
 {
   class MITKLANCETROBOT_EXPORT KukaRobotAPI :public itk::Object
@@ -48,7 +48,11 @@ namespace lancet
 
     void ReadCommandResult();
 
-    RobotInfoProtocol GetRobotInfo();
+    RobotInformationProtocol GetRobotInfo();
+
+    // bool GetTrackingData();
+    //
+    // bool GetJointPosition(std::array<double, 6>& joints);
 
     //void SetLoad(RobotToolProtocol toolProtocol);
     bool AddFrame(std::string name, std::array<double, 6> xyzabc) const;

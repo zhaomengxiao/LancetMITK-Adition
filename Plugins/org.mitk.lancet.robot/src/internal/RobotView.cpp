@@ -233,20 +233,20 @@ void RobotView::threadUDP_RobotInfo()
   {
     const auto info = m_KukaRobotApi.GetRobotInfo();
   
-    m_Controls.j0->setText(QString::number(info.joint1));
-    m_Controls.j1->setText(QString::number(info.joint2));
-    m_Controls.j2->setText(QString::number(info.joint3));
-    m_Controls.j3->setText(QString::number(info.joint4));
-    m_Controls.j4->setText(QString::number(info.joint5));
-    m_Controls.j5->setText(QString::number(info.joint6));
-    m_Controls.j6->setText(QString::number(info.joint7));
+    m_Controls.j0->setText(QString::number(info.joints[0]));
+    m_Controls.j1->setText(QString::number(info.joints[1]));
+    m_Controls.j2->setText(QString::number(info.joints[2]));
+    m_Controls.j3->setText(QString::number(info.joints[3]));
+    m_Controls.j4->setText(QString::number(info.joints[4]));
+    m_Controls.j5->setText(QString::number(info.joints[5]));
+    m_Controls.j6->setText(QString::number(info.joints[6]));
   
-    m_Controls.x->setText(QString::number(info.Flange1));
-    m_Controls.y->setText(QString::number(info.Flange2));
-    m_Controls.z->setText(QString::number(info.Flange3));
-    m_Controls.a->setText(QString::number(info.Flange4));
-    m_Controls.b->setText(QString::number(info.Flange5));
-    m_Controls.c->setText(QString::number(info.Flange6));
+    m_Controls.x->setText(QString::number(info.frames[0].position[0]));
+    m_Controls.y->setText(QString::number(info.frames[0].position[1]));
+    m_Controls.z->setText(QString::number(info.frames[0].position[2]));
+    m_Controls.a->setText(QString::number(info.frames[0].position[3]));
+    m_Controls.b->setText(QString::number(info.frames[0].position[4]));
+    m_Controls.c->setText(QString::number(info.frames[0].position[5]));
 
     Sleep(17);//60hz
   }
