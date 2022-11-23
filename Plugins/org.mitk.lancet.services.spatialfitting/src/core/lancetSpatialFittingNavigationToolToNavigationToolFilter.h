@@ -59,6 +59,8 @@ public:
 	mitkClassMacro(NavigationToolToNavigationToolFilter,
 		mitk::NavigationDataToNavigationDataFilter);
 
+	itkNewMacro(NavigationToolToNavigationToolFilter)
+
 	NavigationToolToNavigationToolFilter();
 	virtual ~NavigationToolToNavigationToolFilter();
 
