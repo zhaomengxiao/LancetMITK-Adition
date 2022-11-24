@@ -158,19 +158,23 @@ namespace lancet
         lancet::RobotTool::Pointer tool = GetInternalTool(frame.name);
         // mitk::Quaternion quaternion{ toolData.transform.qx, toolData.transform.qy, toolData.transform.qz,
         //                             toolData.transform.q0 };
-        auto q = kukaABC2Quaternion(frame.position[3], frame.position[4], frame.position[5]);
-        tool->SetOrientation(q);
-        mitk::Point3D position;
-        position[0] = frame.position[0];
-        position[1] = frame.position[1];
-        position[2] = frame.position[2];
+		if (tool.IsNotNull())
+		{
+			mitk::Quaternion q = kukaABC2Quaternion(frame.position[3], frame.position[4], frame.position[5]);
+			tool->SetOrientation(q);
+			mitk::Point3D position;
+			position[0] = frame.position[0];
+			position[1] = frame.position[1];
+			position[2] = frame.position[2];
 
-        tool->SetPosition(position);
-        //todo more tool imformation to be provide
-        //tool->SetTrackingError(toolData.transform.error);
-        //tool->SetErrorMessage("");
-        //tool->SetFrameNumber(toolData.frameNumber);
-        tool->SetDataValid(true);
+			tool->SetPosition(position);
+			//todo more tool imformation to be provide
+			//tool->SetTrackingError(toolData.transform.error);
+			//tool->SetErrorMessage("");
+			//tool->SetFrameNumber(toolData.frameNumber);
+			tool->SetDataValid(true);
+		}
+       
       }
       
       /* Update the local copy of m_StopTracking */
@@ -233,7 +237,7 @@ namespace lancet
 
   bool KukaRobotDevice_New::InternalAddTool(RobotTool* tool)
   {
-    MITK_INFO << "InternalAddTool Called!!!!";
+    MITK_INFO << "[RobotTool Added]";
     if (tool == nullptr)
       return false;
     RobotTool::Pointer p = tool;

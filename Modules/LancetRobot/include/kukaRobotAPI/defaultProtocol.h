@@ -51,7 +51,7 @@ public:
   {
     Poco::JSON::Object res;
     res.set("operateType", this->operateType);
-    res.set("Param", this->param.ToJsonObj());
+    res.set("param", this->param.ToJsonObj());
     res.set("param2", this->param2.ToJsonObj());
     res.set("timestamp", this->timestamp);
     Poco::JSON::Array array;

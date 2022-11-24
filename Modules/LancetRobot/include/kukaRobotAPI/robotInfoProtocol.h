@@ -1,6 +1,6 @@
-
 #ifndef ROBOTINFOPROTOCOL_H
 #define ROBOTINFOPROTOCOL_H
+
 #include <array>
 #include <Poco/JSON/Object.h>
 
@@ -52,12 +52,12 @@ public:
   {
     auto b = obj.get("isMotionFrame");
     auto positionArray = obj.getArray("position");
-
-    if (b.isEmpty()||positionArray.isNull())
+	auto n = obj.get("name");
+    if (b.isEmpty()||positionArray.isNull()|| n.isEmpty())
     {
       return false;
     }
-
+	name = n.toString();
     isMotionFrame = b;
     for (int i = 0; i < 6; i++)
     {
@@ -104,7 +104,6 @@ public:
     }
     return true;
   }
-
 };
 
-#endif // ROBOTINFOPROTOCOL_H
+#endif
