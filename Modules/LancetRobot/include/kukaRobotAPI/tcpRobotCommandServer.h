@@ -63,14 +63,14 @@ namespace lancet
    * @param buffer The buffer to read into.
    * @param length The number of bytes to read.
    */
-    int read() const;
+    bool read(std::string& msg) ;
 
     /**
      * @brief Writes 'length' chars from 'buffer' to the socket
      * @param buffer The buffer to write from.
      * @param length The number of chars to write.
      */
-    int write(std::string string) const;
+    bool write(std::string msg) const;
 
     /**
      * @brief gets the Client IP address as string

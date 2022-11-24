@@ -5,6 +5,7 @@
 #include "lancetKukaTrackingDeviceTypeInformation.h"
 #include "mitkIGTException.h"
 #include "mitkIGTHardwareException.h"
+#include "mitkNDIProtocol.h"
 #include "kukaRobotAPI/robotInfoProtocol.h"
 
 #define d2r 57.2957795130
@@ -46,9 +47,19 @@ namespace lancet
 
   bool KukaRobotDevice_New::CloseConnection()
   {
-    m_RobotApi.DisConnect();
-    SetState(TrackingDeviceState::Setup);
-    return true;
+    if (this->GetState() != Setup)
+    {
+      //todo init before closing to force robot to clean some stuff and work properly when reconnect
+      //m_RobotApi.INIT();
+      
+      m_RobotApi.DisConnect();/*close the connection*/
+      this->InvalidateAllTools();/* invalidate all tools */
+      this->SetState(TrackingDeviceState::Setup);/* return to setup mode */
+      MITK_INFO << "Robot Device Connection Closed";
+      return true;
+    }
+    MITK_INFO << "Robot Device not in Setup State,CloseConnection() not work.";
+    return false;
   }
 
   bool KukaRobotDevice_New::StartTracking()
@@ -96,6 +107,14 @@ namespace lancet
     return nullptr;
   }
 
+  void KukaRobotDevice_New::InvalidateAllTools()
+  {
+    std::lock_guard<std::mutex> lock(m_ToolsMutex);
+    auto end = m_RobotTools.end();
+    for (auto iterator = m_RobotTools.begin(); iterator != end; ++iterator)
+      (*iterator)->SetDataValid(false);
+  }
+
   mitk::TrackingTool* KukaRobotDevice_New::AddTool(const char* toolName, xyzabc tcp)
   {
     RobotTool::Pointer t = RobotTool::New();
@@ -109,6 +128,55 @@ namespace lancet
 
     return t.GetPointer();
   }
+
+  // bool KukaRobotDevice_New::RemoveTool(mitk::TrackingTool* tool)
+  // {
+  //   return true;
+  //   auto robotTool = dynamic_cast<RobotTool*>(tool);
+  //   if (robotTool == nullptr)
+  //     return false;
+  //   
+  //   std::string toolName = robotTool->GetToolName();
+  //   /* a valid portHandle has length 2. If a valid handle exists, the tool is already added to the tracking device, so we have to remove it there
+  //   if the connection to the tracking device has already been established.
+  //   */
+  //   if ((portHandle.length() == 2) && (this->GetState() == Ready))  // do not remove a tool in tracking mode
+  //   {
+  //     mitk::NDIErrorCode returnvalue;
+  //     returnvalue = m_DeviceProtocol->PHF(&portHandle);
+  //     if (returnvalue != mitk::NDIOKAY)
+  //       return false;
+  //     /* Now that the tool is removed from the tracking device, remove it from our tool list too */
+  //     std::lock_guard<std::mutex> lock(m_ToolsMutex);
+  //     auto end = m_6DTools.end();
+  //     for (auto iterator = m_6DTools.begin(); iterator != end; ++iterator)
+  //     {
+  //       if (iterator->GetPointer() == ndiTool)
+  //       {
+  //         m_6DTools.erase(iterator);
+  //         this->Modified();
+  //         return true;
+  //       }
+  //     }
+  //     return false;
+  //   }
+  //   else if (this->GetState() == Setup)  // in Setup Mode, we are not connected to the tracking device, so we can just remove the tool from the tool list
+  //   {
+  //     std::lock_guard<std::mutex> lock(m_ToolsMutex);
+  //     auto end = m_6DTools.end();
+  //     for (auto iterator = m_6DTools.begin(); iterator != end; ++iterator)
+  //     {
+  //       if ((*iterator).GetPointer() == ndiTool)
+  //       {
+  //         m_6DTools.erase(iterator);
+  //         this->Modified();
+  //         return true;
+  //       }
+  //     }
+  //     return false;
+  //   }
+  //   return false;
+  // }
 
   unsigned KukaRobotDevice_New::GetToolCount() const
   {

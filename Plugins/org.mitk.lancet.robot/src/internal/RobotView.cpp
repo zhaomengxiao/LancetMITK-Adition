@@ -35,6 +35,7 @@ found in the LICENSE file.
 #include <usModuleContext.h>
 #include <usModuleInitialization.h>
 
+#include "kukaRobotAPI/defaultProtocol.h"
 #include "kukaRobotAPI/robotInfoProtocol.h"
 US_INITIALIZE_MODULE
 
@@ -72,7 +73,7 @@ void RobotView::CreateQtPartControl(QWidget* parent)
   // timer
   m_timer.setInterval(10);
 
-  m_device = lancet::KukaRobotDevice::New();
+  //m_device = lancet::KukaRobotDevice::New();
 
   connect(&m_timer, SIGNAL(timeout()), this, SLOT(UpdateToolPosition()));
 
@@ -224,8 +225,13 @@ void RobotView::StartUDP()
   // m_tcpSocket_RobotCommand = Poco::Net::ServerSocket(30009);
   // ss = m_tcpSocket_RobotCommand.acceptConnection();
   // m_Thread2 = std::thread(&RobotView::threadUDP_HeartBeat, this);
-  m_KukaRobotApi.ReadCommandResult();
+  m_KukaRobotApi.GetCommandResult();
 }
+
+// void RobotView::InitVirtualTCPClient()
+// {
+//
+// }
 
 void RobotView::threadUDP_RobotInfo()
 {

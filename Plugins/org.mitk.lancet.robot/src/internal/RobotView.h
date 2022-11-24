@@ -66,6 +66,11 @@ public slots:
   void SendCommand();
 
   void StartUDP();
+
+  //Test TCP
+  // void InitVirtualTCPClient();
+  // void SendHello();
+  // void Read();
 	
 private:
   void threadUDP_RobotInfo();
@@ -76,6 +81,7 @@ private:
   // Poco::Net::ServerSocket m_tcpSocket_RobotCommand;
   // Poco::Net::StreamSocket ss;
    std::thread m_Thread;
+   std::thread m_ThreadRead;
   // std::thread m_Thread2;
   lancet::KukaRobotAPI m_KukaRobotApi;
 	QTimer m_timer;

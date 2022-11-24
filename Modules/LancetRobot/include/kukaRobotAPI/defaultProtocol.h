@@ -6,7 +6,7 @@
 class Param
 {
 public:
-  std::string target{ "null" };
+  std::string target{"null"};
   double x{};
   double y{};
   double z{};
@@ -28,7 +28,7 @@ public:
     return res;
   }
 
-  void FromArray(std::array<double,6> array)
+  void FromArray(std::array<double, 6> array)
   {
     x = array[0];
     y = array[1];
@@ -37,13 +37,25 @@ public:
     b = array[4];
     c = array[5];
   }
+
+  void FromJsonObj(Poco::JSON::Object obj)
+  {
+    target = obj.get("target").toString();
+    x = obj.get("x");
+    y = obj.get("y");
+    z = obj.get("z");
+    a = obj.get("a");
+    b = obj.get("b");
+    c = obj.get("c");
+  }
 };
+
 class DefaultProtocol
 {
 public:
-  std::string operateType{ "null" };
-  Param param;
-  Param param2;
+  std::string operateType{"null"};
+  Param param{};
+  Param param2{};
   int timestamp{};
   std::array<double, 7> jointPos{};
 
@@ -66,6 +78,33 @@ public:
     res.set("jointPos", array);
 
     return res;
+  }
+};
+
+class ResultProtocol
+{
+public:
+  int resultCode;
+  std::string resultMsg;
+  std::string operateType;
+  Param param;
+
+  bool FromJsonObj(Poco::JSON::Object obj)
+  {
+    auto var_resultCode = obj.get("resultCode");
+    auto var_resultMsg = obj.get("resultMsg");
+    auto var_operateType = obj.get("operateType");
+    auto obj_param = obj.getObject("param");
+    if (var_resultCode.isEmpty() || var_resultMsg.isEmpty() || var_operateType.isEmpty()|| obj_param.isNull())
+    {
+      return false;
+    }
+    resultCode = var_resultCode;
+    resultMsg = var_resultMsg.toString();
+    operateType = var_operateType.toString();
+    param.FromJsonObj(*obj_param);
+    
+    return true;
   }
 };
 #endif // DEFAULTPROTOCOL_H
