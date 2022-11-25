@@ -1,20 +1,23 @@
 #include "kukaRobotAPI/tcpRobotCommandServer.h"
-#include "Poco/Net/NetException.h"
-#include "mitkLogMacros.h"
+
+#include <mitkLogMacros.h>
+#include <Poco/Net/NetException.h>
+#include <Poco/Net/SocketStream.h>
+
 bool lancet::TcpRobotCommandServer::connect(int port)
 {
   Poco::Net::SocketAddress sa;
   m_ServerSocket = Poco::Net::ServerSocket(port);
   try
   {
-    m_StreamSocket = m_ServerSocket.acceptConnection(sa);//The client socket's address is returned in sa.
+    m_StreamSocket = m_ServerSocket.acceptConnection(sa); //The client socket's address is returned in sa.
   }
   catch (Poco::Net::NetException& e)
   {
     MITK_ERROR << "TcpRobotCommandServer Connect ERROR" << e.message();
     return false;
   }
-  
+
   m_ClientAddr = sa.toString();
   m_IsConnected = true;
   return true;
@@ -35,7 +38,7 @@ bool lancet::TcpRobotCommandServer::read(std::string& msg)
 {
   try
   {
-    if (m_StreamSocket.available())//no block
+    if (m_StreamSocket.available()) //no block
     {
       Poco::FIFOBuffer buffer(1024);
       const int n = m_StreamSocket.receiveBytes(buffer); //block
@@ -47,7 +50,7 @@ bool lancet::TcpRobotCommandServer::read(std::string& msg)
   }
   catch (Poco::Net::NetException& e)
   {
-    MITK_ERROR<<"TcpRobotCommandServer Read ERROR: " << e.message();
+    MITK_ERROR << "TcpRobotCommandServer Read ERROR: " << e.message();
     return false;
   }
   catch (Poco::IOException& e)
@@ -55,7 +58,6 @@ bool lancet::TcpRobotCommandServer::read(std::string& msg)
     MITK_ERROR << "TcpRobotCommandServer Read ERROR: " << e.message();
     return false;
   }
-  
 }
 
 bool lancet::TcpRobotCommandServer::write(std::string msg) const
@@ -66,12 +68,12 @@ bool lancet::TcpRobotCommandServer::write(std::string msg) const
     str << msg << std::endl << std::flush;
     return true;
   }
-  catch (Poco::Net::NetException & e)
+  catch (Poco::Net::NetException& e)
   {
     MITK_ERROR << e.message();
     return false;
   }
-  catch (Poco::IOException & e)
+  catch (Poco::IOException& e)
   {
     MITK_ERROR << "TcpRobotCommandServer Read ERROR: " << e.message();
     return false;

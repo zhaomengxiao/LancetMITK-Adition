@@ -153,7 +153,7 @@ void RobotView::ConnectDevice()
   //   m_Controls.robotconnectstate->setText("Tracking");
   //   m_timer.start();
   // }
-  m_KukaRobotApi.Connect();
+  m_KukaRobotApi.Connect(30009, "172.31.1.148", 30003);
   m_Thread = std::thread(&RobotView::threadUDP_RobotInfo, this);
 }
 

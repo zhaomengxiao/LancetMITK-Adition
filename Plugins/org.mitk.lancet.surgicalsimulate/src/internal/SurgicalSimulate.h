@@ -14,21 +14,18 @@ found in the LICENSE file.
 #ifndef SurgicalSimulate_h
 #define SurgicalSimulate_h
 
-#include <berryISelectionListener.h>
-
 #include <QmitkAbstractView.h>
 
 
 //#include "kukaRobotDevice.h"
-#include "lancetKukaRobotDevice.h"
-#include "mitkVirtualTrackingDevice.h"
-#include "mitkVirtualTrackingTool.h"
-#include "lancetNavigationObjectVisualizationFilter.h"
 #include "lancetApplyDeviceRegistratioinFilter.h"
 #include "lancetApplySurfaceRegistratioinFilter.h"
 #include "lancetApplySurfaceRegistratioinStaticImageFilter.h"
+#include "lancetKukaRobotDevice.h"
+#include "lancetNavigationObjectVisualizationFilter.h"
 #include "lancetPathPoint.h"
 #include "mitkTrackingDeviceSource.h"
+#include "mitkVirtualTrackingDevice.h"
 #include "robotRegistration.h"
 #include "ui_SurgicalSimulateControls.h"
 

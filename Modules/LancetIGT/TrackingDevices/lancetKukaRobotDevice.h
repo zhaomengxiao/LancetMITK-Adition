@@ -1,18 +1,13 @@
 #ifndef KUKAROBOTDEVICE_H
 #define KUKAROBOTDEVICE_H
-//mitk
+
 #include <mitkCommon.h>
 #include <mitkTrackingDevice.h>
-
+#include <mitkTrackingTool.h>
+#include "lancetRobotTrackingTool.h"
 #include "MitkLancetIGTExports.h"
-#include "mitkTrackingTool.h"
-
-//KUKA ROBOT API
 #include "kukaRobotAPI/kukaRobotAPI.h"
 
-//#include "robotapi.h"
-#include "lancetRobotTrackingTool.h"
-//#include "udpsocketrobotheartbeat.h" //udp
 
 typedef mitk::Point<mitk::ScalarType, 6> xyzabc;
 

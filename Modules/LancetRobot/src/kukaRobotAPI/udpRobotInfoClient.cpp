@@ -36,3 +36,8 @@ std::string lancet::UdpRobotInfoClient::read()
     return {};
   }
 }
+
+void lancet::UdpRobotInfoClient::disconnect()
+{
+  m_DatagramSocket.close();
+}

@@ -2,20 +2,8 @@
 #ifndef TCPROBOTCOMMANDSERVER_H
 #define TCPROBOTCOMMANDSERVER_H
 
-#include <Poco/Net/DatagramSocket.h>
-#include <Poco/Net/StreamSocket.h>
 #include <Poco/Net/ServerSocket.h>
-#include <Poco/Net/SocketStream.h>
-#include <Poco/Net/SocketAddress.h>
-#include "Poco/JSON/Parser.h"
-#include "Poco/JSON/ParseHandler.h"
-#include "Poco/JSON/JSONException.h"
-#include "Poco/StreamCopier.h"
-#include "Poco/Dynamic/Var.h"
-#include "Poco/JSON/Query.h"
-#include "Poco/JSON/PrintHandler.h"
-
-#include <cstdint>
+#include <Poco/Net/StreamSocket.h>
 
 namespace lancet
 {
@@ -23,28 +11,13 @@ namespace lancet
  * C++ doesn't actually define a byte as 8-bits, but rather a number of bits that can
  * fit the entire character set. Here we define a byte as an 8 bit integer.
  */
-  typedef uint8_t byte_t;
+  using byte_t = uint8_t;
   /**
-   * @brief A cross platform socket implementation.
+   * @brief A cross platform stream socket implementation.
    */
   class TcpRobotCommandServer
   {
   public:
-    ///** Constructs a socket object that is cross-platform. */
-    //TcpRobotCommandServer();
-
-    ///**
-    // * @brief Constructs a socket object and connects immediately.
-    // * @param hostname The hostname or IP address of the measurement system.
-    // * @param port The port to connect on. Port 8765 is default for Vega systems.
-    // */
-    //TcpRobotCommandServer(const char* hostname, const char* port = "8765");
-
-    ///**
-    // * @brief Closes the socket connection and frees memory.
-    // */
-    //virtual ~TcpRobotCommandServer();
-
     /**
      * @brief Closes any existing connection, and connects to the new device.
      * @param hostname The hostname or IP address of the device.
@@ -58,17 +31,19 @@ namespace lancet
     /** @brief Returns true if the socket connection succeeded */
     bool isConnected() const;
 
-    /**
-   * @brief Reads 'length' bytes from the socket into 'buffer'
-   * @param buffer The buffer to read into.
-   * @param length The number of bytes to read.
-   */
-    bool read(std::string& msg) ;
 
     /**
-     * @brief Writes 'length' chars from 'buffer' to the socket
-     * @param buffer The buffer to write from.
-     * @param length The number of chars to write.
+     * \brief 
+     * \param msg 
+     * \return  true if read success
+     */
+    bool read(std::string& msg);
+
+
+    /**
+     * \brief send massage to robot use stream socket
+     * \param msg string send to robot
+     * \return true if write success
      */
     bool write(std::string msg) const;
 

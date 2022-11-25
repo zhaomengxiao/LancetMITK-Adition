@@ -1,11 +1,9 @@
 #include "lancetKukaRobotDevice.h"
 
-#include "mitkIGTTimeStamp.h"
-
 #include "lancetKukaTrackingDeviceTypeInformation.h"
 #include "mitkIGTException.h"
 #include "mitkIGTHardwareException.h"
-#include "mitkNDIProtocol.h"
+#include "mitkIGTTimeStamp.h"
 #include "kukaRobotAPI/robotInfoProtocol.h"
 
 #define d2r 57.2957795130
@@ -18,7 +16,7 @@ namespace lancet
     {
       mitkThrowException(mitk::IGTException) << "Can only try to open the connection if in setup mode";
     }
-    if (!m_RobotApi.Connect())
+    if (!m_RobotApi.Connect(30009, "172.31.1.148", 30003))
     {
       mitkThrowException(mitk::IGTHardwareException) << "Can not connect to Kuka Robot";
     }
@@ -51,7 +49,7 @@ namespace lancet
     {
       //todo init before closing to force robot to clean some stuff and work properly when reconnect
       //m_RobotApi.INIT();
-      
+      StopTracking();
       m_RobotApi.DisConnect();/*close the connection*/
       this->InvalidateAllTools();/* invalidate all tools */
       this->SetState(TrackingDeviceState::Setup);/* return to setup mode */

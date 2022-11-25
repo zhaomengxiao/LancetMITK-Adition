@@ -17,10 +17,16 @@ namespace lancet
   {
   public:
     bool connect(std::string ip, int port);
-    //bool disconnect();
+
+    void disconnect();
+    /**
+     * \brief receive udp massage.
+     * \return massage string.if read failed return empty string. 
+     */
     std::string read();
     //void write();
 
+    
   private:
     std::string m_ServerAddr;
     Poco::Net::DatagramSocket m_DatagramSocket;

@@ -19,35 +19,32 @@ found in the LICENSE file.
 #include "SurgicalSimulate.h"
 
 // Qt
-#include <QMessageBox>
 #include <QObject>
 // mitk image
-#include <mitkImage.h>
 #include <mitkAffineTransform3D.h>
+#include <mitkImage.h>
 #include <mitkMatrixConvert.h>
 
 //igt
-#include <lancetVegaTrackingDevice.h>
 #include <kukaRobotDevice.h>
 #include <lancetApplyDeviceRegistratioinFilter.h>
-#include <mitkNavigationDataToPointSetFilter.h>
 #include <lancetPathPoint.h>
+#include <lancetVegaTrackingDevice.h>
+#include <mitkNavigationDataToPointSetFilter.h>
 
+#include <QtWidgets\qfiledialog.h>
 #include "lancetTrackingDeviceSourceConfigurator.h"
 #include "mitkNavigationToolStorageDeserializer.h"
-#include <QtWidgets\qfiledialog.h>
 
+#include "lancetTreeCoords.h"
 #include "mitkIGTIOException.h"
 #include "mitkNavigationToolStorageSerializer.h"
 #include "QmitkIGTCommonHelper.h"
-#include "lancetTreeCoords.h"
 
 //udp
 #include <QTimer>
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Net/SocketAddress.h>
-#include <Poco/Timestamp.h>
-#include <Poco/DateTimeFormatter.h>
 const std::string SurgicalSimulate::VIEW_ID = "org.mitk.views.surgicalsimulate";
 
 void SurgicalSimulate::SetFocus()
