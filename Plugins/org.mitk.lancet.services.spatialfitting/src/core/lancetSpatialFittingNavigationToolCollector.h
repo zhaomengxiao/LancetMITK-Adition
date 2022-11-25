@@ -260,4 +260,6 @@ private:
 
 END_SPATIAL_FITTING_NAMESPACE
 
+Q_DECLARE_TYPEINFO(mitk::NavigationData, Q_COMPLEX_TYPE);
+
 #endif // !LancetSpatialFittingNavigationToolCollector_H

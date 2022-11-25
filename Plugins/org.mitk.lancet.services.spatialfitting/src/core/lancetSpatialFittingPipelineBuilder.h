@@ -101,7 +101,7 @@ public:
 	 * \see NavigationToolToSpaceFilter
 	 */
 	virtual void BuilderNavigationToolToSpaceFilter(int index,
-		vtkMatrix4x4* convert);
+		mitk::AffineTransform3D* convert);
 
 	/**
 	 * \brief Produce a navigation data acquisition filter.

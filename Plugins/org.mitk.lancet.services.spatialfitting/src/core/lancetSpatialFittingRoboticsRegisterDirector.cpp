@@ -26,8 +26,11 @@ bool RoboticsRegisterDirector::Builder()
 	}
 	pipelineBuilder->BuilderNavigationToolToNavigationToolFilter(0, nullptr);
 	pipelineBuilder->BuilderNavigationToolToSpaceFilter(1, nullptr);
+	pipelineBuilder->BuilderNavigationToolCollector(2, 10);
+
 	pipelineBuilder->GetOutput()->FindFilter(0)->SetName("name-01");
 	pipelineBuilder->GetOutput()->FindFilter(1)->SetName("name-02");
+	pipelineBuilder->GetOutput()->FindFilter(2)->SetName("NRT2NRRCollector");
 	return true;
 }
 

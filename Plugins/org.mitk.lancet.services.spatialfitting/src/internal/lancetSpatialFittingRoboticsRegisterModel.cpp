@@ -31,21 +31,22 @@ RobotRegistration& RoboticsRegisterModel::GetRegisterModel()
 
 itk::SmartPointer<PipelineManager> RoboticsRegisterModel::GetRegisterNavigationPipeline() const
 {
-	return itk::SmartPointer<PipelineManager>();
+	return this->imp->pipelineRoboticsRegisterManager;
 }
 
 void RoboticsRegisterModel::SetRegisterNavigationPipeline(itk::SmartPointer<PipelineManager> manager)
 { 
-
+	this->imp->pipelineRoboticsRegisterManager = manager;
 }
 
 void RoboticsRegisterModel::SetAccutacyVerifyPipeline(itk::SmartPointer<PipelineManager> manager)
 {
+	this->imp->pipelineRoboticsAccuracyManager = manager;
 }
 
 itk::SmartPointer<PipelineManager> RoboticsRegisterModel::GetAccutacyVerifyPipeline() const
 {
-	return itk::SmartPointer<PipelineManager>();
+	return this->imp->pipelineRoboticsAccuracyManager;
 }
 
 mitk::NavigationDataSource* RoboticsRegisterModel::GetNdiNavigationDataSource() const

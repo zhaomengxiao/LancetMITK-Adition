@@ -147,6 +147,9 @@ background-color: rgb(0, 0, 0);
         <property name="styleSheet">
          <string notr="true"/>
         </property>
+        <property name="maximum">
+         <number>20</number>
+        </property>
         <property name="value">
          <number>0</number>
         </property>

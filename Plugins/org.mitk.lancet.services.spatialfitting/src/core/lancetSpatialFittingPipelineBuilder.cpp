@@ -34,15 +34,15 @@ void PipelineBuilder::BuilderNavigationToolToNavigationToolFilter(int index,
 	mitk::NavigationData* ucsTool)
 {
 	NavigationToolToNavigationToolFilter::Pointer filter = NavigationToolToNavigationToolFilter::New();
-	filter->SetUCSTool(ucsTool);
+	filter->SetUCSNavigationData(ucsTool);
 	this->GetOutput()->AddFilter(index, filter);
 }
 
 void PipelineBuilder::BuilderNavigationToolToSpaceFilter(int index, 
-	vtkMatrix4x4* convert)
+	mitk::AffineTransform3D* convert)
 {
 	NavigationToolToSpaceFilter::Pointer filter = NavigationToolToSpaceFilter::New();
-	filter->SetConvertMatrix4x4(convert);
+	filter->SetRegistrationMatrix(convert);
 	this->GetOutput()->AddFilter(index, filter);
 }
 

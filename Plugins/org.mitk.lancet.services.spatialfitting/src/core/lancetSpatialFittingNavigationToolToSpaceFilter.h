@@ -22,7 +22,7 @@
 
 // vtk
 #include <vtkMatrix4x4.h>
-
+#include "mitkMatrixConvert.h"
 // mitk
 #include <mitkNavigationDataToNavigationDataFilter.h>
 
@@ -70,17 +70,26 @@ public:
 	NavigationToolToSpaceFilter();
 	virtual ~NavigationToolToSpaceFilter();
 
-	virtual vtkMatrix4x4* GetConvertMatrix4x4() const;
+	// virtual vtkMatrix4x4* GetConvertMatrix4x4() const; // not implemented
 
 	/**
 	 * \Warning This interface is a deep copy of the input parameters.
 	 */
-	virtual void SetConvertMatrix4x4(const vtkMatrix4x4* matrix);
+	// virtual void SetConvertMatrix4x4(const vtkMatrix4x4* matrix); // not implemented
+
+	itkSetObjectMacro(RegistrationMatrix, mitk::AffineTransform3D);
+	itkGetObjectMacro(RegistrationMatrix, mitk::AffineTransform3D);
+
+
 protected:
+
 	virtual void GenerateData() override;
-private:
-	struct NavigationToolToSpaceFilterPrivateImp;
-	std::shared_ptr<NavigationToolToSpaceFilterPrivateImp> imp;
+
+	mitk::AffineTransform3D::Pointer m_RegistrationMatrix;
+
+	private:
+	//struct NavigationToolToSpaceFilterPrivateImp;
+	//std::shared_ptr<NavigationToolToSpaceFilterPrivateImp> imp;
 };
 
 END_SPATIAL_FITTING_NAMESPACE

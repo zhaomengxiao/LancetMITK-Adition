@@ -13,6 +13,8 @@ struct NavigationToolCollector::NavigationToolCollectorPrivateImp
 	double accuracyRange = 0.5;
 	WorkStatus state = WorkStatus::Idle;
 	std::string permissionIdentificationArea;
+
+	std::vector<mitk::NavigationData::Pointer> vecCollectorNavigationData;
 };
 
 NavigationToolCollector::NavigationToolCollector()
@@ -79,6 +81,7 @@ bool NavigationToolCollector::Start(long interval)
 	{
 		this->SetInterval(interval);
 	}
+	this->imp->vecCollectorNavigationData.clear();
 	this->imp->qtClockTrigger.start();
 	this->imp->state = WorkStatus::Working;
 	return true;
@@ -87,7 +90,8 @@ bool NavigationToolCollector::Start(long interval)
 bool NavigationToolCollector::Stop()
 {
 	this->imp->state = WorkStatus::Idle;
-	return false;
+	this->imp->qtClockTrigger.stop();
+	return true;
 }
 
 std::string NavigationToolCollector::GetPermissionIdentificationArea() const
@@ -102,7 +106,18 @@ void NavigationToolCollector::SetPermissionIdentificationArea(const std::string&
 
 void NavigationToolCollector::on_QtTimerTrigger_timeout()
 {
+	if (this->GetOutput())
+	{
+		this->imp->vecCollectorNavigationData.push_back(this->GetOutput()->Clone());
+		emit this->Step(this->imp->vecCollectorNavigationData.size(),
+			this->imp->vecCollectorNavigationData.back().GetPointer());
+	}
 
+	if (this->imp->vecCollectorNavigationData.size() >= this->GetNumberForMean())
+	{
+		this->Stop();
+		emit this->Complete(nullptr);
+	}
 }
 
 void NavigationToolCollector::GenerateData()

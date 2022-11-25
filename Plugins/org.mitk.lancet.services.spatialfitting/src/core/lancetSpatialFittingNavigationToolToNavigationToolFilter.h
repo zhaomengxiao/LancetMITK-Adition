@@ -64,19 +64,24 @@ public:
 	NavigationToolToNavigationToolFilter();
 	virtual ~NavigationToolToNavigationToolFilter();
 
+	itkSetObjectMacro(UCSNavigationData, mitk::NavigationData);
+	itkGetObjectMacro(UCSNavigationData, mitk::NavigationData);
+
 	/**
 	 * \brief Get the tool data object from the input data to the target coordinate 
 	 *        system.
 	 * 
-	 * UCS: User Coordinate system.
+	 * UCS: User specified Coordinate system.
 	 */
-	virtual mitk::NavigationData::Pointer GetUCSTool() const;
-	virtual void SetUCSTool(mitk::NavigationData::Pointer tool);
+	// virtual mitk::NavigationData::Pointer GetUCSTool() const;
+	// virtual void SetUCSTool(mitk::NavigationData::Pointer tool);
 protected:
 	virtual void GenerateData() override;
+	mitk::NavigationData::Pointer m_UCSNavigationData;
+
 private:
-	struct NavigationToolToNavigationToolFilterPrivateImp;
-	std::shared_ptr<NavigationToolToNavigationToolFilterPrivateImp> imp;
+	// struct NavigationToolToNavigationToolFilterPrivateImp;
+	// std::shared_ptr<NavigationToolToNavigationToolFilterPrivateImp> imp;
 };
 
 END_SPATIAL_FITTING_NAMESPACE

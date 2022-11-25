@@ -69,7 +69,7 @@ bool PipelineManager::ModifyFilter(const std::string& name, mitk::NavigationData
 
 mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter(int index)
 {
-	if (index < this->GetSize() || index < 0)
+	if (index < this->GetSize() && index >= 0)
 	{
 		return this->imp->vecFilterManage[index];
 	}

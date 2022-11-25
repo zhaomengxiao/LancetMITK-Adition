@@ -45,6 +45,9 @@ class QRoboticsRegistrations : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
+  virtual ~QRoboticsRegistrations();
+
+  void TestInitService();
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -56,6 +59,9 @@ protected:
 
   /// \brief Called when the user clicks the GUI button
   void DoImageProcessing();
+
+	void ConnectToQtWidget();
+	void DisConnectToQtWidget();
 private:
   void UpdateWidgetOfService();
 
@@ -67,7 +73,7 @@ private slots:
 
   void on_pushButtonAddPoint_clicked();
 
-  void on_toolCollector_fail(int, mitk::NavigationData*);
+  void on_toolCollector_fail(int);
 
 	void on_toolCollector_complete(mitk::NavigationData*);
 private:
