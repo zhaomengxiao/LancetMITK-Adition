@@ -100,6 +100,7 @@ namespace lancet
     TcpRobotCommandServer m_TcpConnection;
     UdpRobotInfoClient m_UdpConnection;
     std::thread m_TcpHeartBeatThread;
+	std::thread m_ReadRobotResultThread;
     bool m_IsConnected{false};
   };
 }

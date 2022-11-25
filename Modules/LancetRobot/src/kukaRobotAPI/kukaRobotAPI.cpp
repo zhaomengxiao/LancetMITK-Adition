@@ -16,9 +16,10 @@ bool lancet::KukaRobotAPI::Connect()
   //connect tcp to send robot command and receive result
   if (m_TcpConnection.connect(30009))
   {
+	m_IsConnected = true;
     //Send heartbeat packets through TCP to maintain connection with kuka robot application;
     m_TcpHeartBeatThread = std::thread(&lancet::KukaRobotAPI::sendTcpHeartBeat, this);
-    m_IsConnected = true;
+	m_ReadRobotResultThread = std::thread(&lancet::KukaRobotAPI::threadReadRobotResult, this);   
   }
 
   //connect udp to receive robot info
@@ -31,6 +32,7 @@ void lancet::KukaRobotAPI::DisConnect()
 {
   m_IsConnected = false;
   m_TcpHeartBeatThread.join();
+  m_ReadRobotResultThread.join();
   m_TcpConnection.disconnect();
 }
 
@@ -41,7 +43,7 @@ void lancet::KukaRobotAPI::SendCommandNoPara(std::string cmd) const
   protocol.timestamp = timeStamp();
   //record to log
   std::stringstream  jsnString;
-  protocol.ToJsonObj().stringify(jsnString,2);
+  protocol.ToJsonObj().stringify(jsnString); //dont use indent here,jsnString send to robot and keep it one line;
   MITK_INFO<< jsnString.str();
   //send to robot
   auto res = m_TcpConnection.write(jsnString.str());
@@ -49,8 +51,14 @@ void lancet::KukaRobotAPI::SendCommandNoPara(std::string cmd) const
 
 ResultProtocol lancet::KukaRobotAPI::GetCommandResult()
 {
+  ResultProtocol result{};
+  if (m_MsgQueue.empty())
+  {
+	return result;
+  }
   m_MsgQueueMutex.lock();
   std::string msg = m_MsgQueue.front();
+  m_MsgQueue.pop();
   m_MsgQueueMutex.unlock();
 
   Poco::JSON::Parser parser;
@@ -63,7 +71,7 @@ ResultProtocol lancet::KukaRobotAPI::GetCommandResult()
   pObj->stringify(jsnString,2);
   MITK_INFO << jsnString.str();
 
-  ResultProtocol result{};
+  
   result.FromJsonObj(*pObj);
   return result;
 }
@@ -143,7 +151,6 @@ void lancet::KukaRobotAPI::HandGuiding() const
 lancet::KukaRobotAPI::~KukaRobotAPI()
 {
   this->DisConnect();
-  m_TcpHeartBeatThread.join();
 }
 
 void lancet::KukaRobotAPI::sendTcpHeartBeat() const
