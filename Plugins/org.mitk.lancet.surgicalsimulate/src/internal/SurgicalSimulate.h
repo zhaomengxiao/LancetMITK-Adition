@@ -251,6 +251,9 @@ protected:
   bool RotateZ_minus();
 
 
+  // FDA algorithm test report
+  bool roboRegistrationTest1();
+
 };
 
 #endif // SurgicalSimulate_h

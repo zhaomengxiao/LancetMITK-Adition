@@ -1851,5 +1851,12 @@ bool SurgicalSimulate::SetPrecisionTestTcp()
 	return true;
 }
 
+bool SurgicalSimulate::roboRegistrationTest1()
+{
+
+	RobotRegistration tmpRoboRegistration;
+
+	return true;
+}
 
 
