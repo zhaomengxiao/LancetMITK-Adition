@@ -41,7 +41,7 @@ bool PipelineManager::RemoveFilter(int index)
 	{
 		return false;
 	}
-	this->imp->vecFilterManage.erase(std::begin(this->imp->vecFilterManage) + index);
+	this->imp->vecFilterManage.erase(this->imp->vecFilterManage.begin() + index);
 	this->UpdateConntedToFilter();
 	return true;
 }
@@ -69,7 +69,7 @@ bool PipelineManager::ModifyFilter(const std::string& name, mitk::NavigationData
 
 mitk::NavigationDataToNavigationDataFilter::Pointer PipelineManager::FindFilter(int index)
 {
-	if (index < this->GetSize() || index < 0)
+	if (index < this->GetSize() && index >= 0)
 	{
 		return this->imp->vecFilterManage[index];
 	}
