@@ -84,7 +84,7 @@ RobotInformationProtocol lancet::KukaRobotAPI::GetRobotInfo()
 
   Poco::JSON::Parser parser;
   parser.reset();
-  Poco::Dynamic::Var result = parser.parse(m_UdpConnection.read());
+  Poco::Dynamic::Var result = parser.parse(m_UdpConnection.read());//todo crush when disconnect ,add err handle
   auto pObj = result.extract<Poco::JSON::Object::Ptr>();
   if (pObj.isNull())
   {
@@ -139,6 +139,11 @@ bool lancet::KukaRobotAPI::RunBrakeTest() const
   return SendCommandNoPara("RunBrakeTest");
 }
 
+bool lancet::KukaRobotAPI::MoveStop()
+{
+  return SendCommandNoPara("MoveStop");
+}
+
 bool lancet::KukaRobotAPI::MovePTP(vtkMatrix4x4* target)
 {
   DefaultProtocol protocol;
@@ -153,6 +158,20 @@ bool lancet::KukaRobotAPI::MovePTP(vtkMatrix4x4* target)
   std::cout << jsnString.str() << std::endl;
   //send to robot
   return m_TcpConnection.write(jsnString.str());
+}
+
+bool lancet::KukaRobotAPI::MovePTP(std::array<double, 6> xyzabc)
+{
+	DefaultProtocol protocol;
+	protocol.operateType = "MovePTP";
+	protocol.timestamp = timeStamp();
+	protocol.param.FromArray(xyzabc);
+	//convet obj to json format string
+	std::stringstream jsnString;
+	protocol.ToJsonObj().stringify(jsnString);
+	std::cout << jsnString.str() << std::endl;
+	//send to robot
+	return m_TcpConnection.write(jsnString.str());
 }
 
 bool lancet::KukaRobotAPI::HandGuiding() const

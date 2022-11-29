@@ -186,14 +186,15 @@ void RobotView::UpdateToolPosition()
 
 void RobotView::SelfCheck()
 {
-  if (m_device.IsNotNull() && m_device->GetState() != 0)
-  {
-    m_device->RequestExecOperate(/*"Robot",*/ "setio", {"20", "20"});
-  }
-  else
-  {
-    MITK_ERROR << "robot not connect";
-  }
+  //if (m_device.IsNotNull() && m_device->GetState() != 0)
+  //{
+  //  m_device->RequestExecOperate(/*"Robot",*/ "setio", {"20", "20"});
+  //}
+  //else
+  //{
+  //  MITK_ERROR << "robot not connect";
+  //}
+	m_KukaRobotApi.MoveStop();
 }
 
 void RobotView::SendCommand()
@@ -225,7 +226,12 @@ void RobotView::StartUDP()
   // m_tcpSocket_RobotCommand = Poco::Net::ServerSocket(30009);
   // ss = m_tcpSocket_RobotCommand.acceptConnection();
   // m_Thread2 = std::thread(&RobotView::threadUDP_HeartBeat, this);
-  m_KukaRobotApi.GetCommandResult();
+	const auto frame = m_KukaRobotApi.GetRobotInfo().frames[0];
+	MITK_INFO << frame.name;
+	auto p = frame.position;
+	p[0] -= 30; //x+5mm
+	m_KukaRobotApi.MovePTP(p);
+  //m_KukaRobotApi.GetCommandResult();
 }
 
 // void RobotView::InitVirtualTCPClient()

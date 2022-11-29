@@ -129,12 +129,24 @@ namespace lancet
      */
     bool RunBrakeTest() const;
 
+	/**
+	 * \brief Stop Move
+	 * \return true, if send success.Execution success is not guaranteed, which should check the result massage.
+	 */
+	bool MoveStop();
     /**
      * \brief Move default Motion Frame to target position in PTP mode.
      * \param target transform from robot base to target
      * \return true, if send success.Execution success is not guaranteed, which should check the result massage.
      */
     bool MovePTP(vtkMatrix4x4* target);
+
+	/**
+	 * \brief Move default Motion Frame to target position in PTP mode.
+	 * \param target transform from robot base to target
+	 * \return true, if send success.Execution success is not guaranteed, which should check the result massage.
+	 */
+	bool MovePTP(std::array<double, 6> xyzabc);
     /**
      * \brief Active hand guiding mode.[block]
      * \details Activate the hand guiding switch to start hand guiding and close the switch to exit the mode.When exit a result massage will receive.
