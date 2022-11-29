@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usServiceEvent.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+#ifndef USSERVICEEVENT_H
+#define USSERVICEEVENT_H
+
+#ifdef REGISTERED
+#ifdef _WIN32
+#error The REGISTERED preprocessor define clashes with the ServiceEvent::REGISTERED\
+ enum type. Try to reorder your includes, compile with WIN32_LEAN_AND_MEAN, or undef\
+ the REGISTERED macro befor including this header.
+#else
+#error The REGISTERED preprocessor define clashes with the ServiceEvent::REGISTERED\
+ enum type. Try to reorder your includes or undef the REGISTERED macro befor including\
+ this header.
+#endif
+#endif
+
+#include "usSharedData.h"
+
+#include "usServiceReference.h"
+
+US_BEGIN_NAMESPACE
+
+class ServiceEventData;
+
+/**
+ * \ingroup MicroServices
+ *
+ * An event from the Micro Services framework describing a service lifecycle change.
+ * &lt;p&gt;
+ * &lt;code&gt;ServiceEvent&lt;/code&gt; objects are delivered to
+ * listeners connected via ModuleContext::AddServiceListener() when a
+ * change occurs in this service's lifecycle. A type code is used to identify
+ * the event type for future extendability.
+ */
+class US_Core_EXPORT ServiceEvent
+{
+
+  SharedDataPointer&lt;ServiceEventData&gt; d;
+
+public:
+
+  enum Type {
+
+    /**
+     * This service has been registered.
+     * &lt;p&gt;
+     * This event is delivered &lt;strong&gt;after&lt;/strong&gt; the service
+     * has been registered with the framework.
+     *
+     * @see ModuleContext#RegisterService()
+     */
+    REGISTERED = 0x00000001,
+
+    /**
+     * The properties of a registered service have been modified.
+     * &lt;p&gt;
+     * This event is delivered &lt;strong&gt;after&lt;/strong&gt; the service
+     * properties have been modified.
+     *
+     * @see ServiceRegistration#SetProperties
+     */
+    MODIFIED = 0x00000002,
+
+    /**
+     * This service is in the process of being unregistered.
+     * &lt;p&gt;
+     * This event is delivered &lt;strong&gt;before&lt;/strong&gt; the service
+     * has completed unregistering.
+     *
+     * &lt;p&gt;
+     * If a module is using a service that is &lt;code&gt;UNREGISTERING&lt;/code&gt;, the
+     * module should release its use of the service when it receives this event.
+     * If the module does not release its use of the service when it receives
+     * this event, the framework will automatically release the module's use of
+     * the service while completing the service unregistration operation.
+     *
+     * @see ServiceRegistration#Unregister
+     * @see ModuleContext#UngetService
+     */
+    UNREGISTERING = 0x00000004,
+
+    /**
+     * The properties of a registered service have been modified and the new
+     * properties no longer match the listener's filter.
+     * &lt;p&gt;
+     * This event is delivered &lt;strong&gt;after&lt;/strong&gt; the service
+     * properties have been modified. This event is only delivered to listeners
+     * which were added with a non-empty filter where the filter
+     * matched the service properties prior to the modification but the filter
+     * does not match the modified service properties.
+     *
+     * @see ServiceRegistration#SetProperties
+     */
+    MODIFIED_ENDMATCH = 0x00000008
+
+  };
+
+  /**
+   * Creates an invalid instance.
+   */
+  ServiceEvent();
+
+  ~ServiceEvent();
+
+  /**
+   * Can be used to check if this ServiceEvent instance is valid,
+   * or if it has been constructed using the default constructor.
+   *
+   * @return &lt;code&gt;true&lt;/code&gt; if this event object is valid,
+   *         &lt;code&gt;false&lt;/code&gt; otherwise.
+   */
+  bool IsNull() const;
+
+  /**
+   * Creates a new service event object.
+   *
+   * @param type The event type.
+   * @param reference A &lt;code&gt;ServiceReference&lt;/code&gt; object to the service
+   *        that had a lifecycle change.
+   */
+  ServiceEvent(Type type, const ServiceReferenceBase&amp; reference);
+
+  ServiceEvent(const ServiceEvent&amp; other);
+
+  ServiceEvent&amp; operator=(const ServiceEvent&amp; other);
+
+  /**
+   * Returns a reference to the service that had a change occur in its
+   * lifecycle.
+   * &lt;p&gt;
+   * This reference is the source of the event.
+   *
+   * @return Reference to the service that had a lifecycle change.
+   */
+  ServiceReferenceU GetServiceReference() const;
+
+  template&lt;class S&gt;
+  ServiceReference&lt;S&gt; GetServiceReference(InterfaceType&lt;S&gt;) const
+<span style = "background-color:#dfd">  {
+    return GetServiceReference();
+  }</span>
+
+  /**
+   * Returns the type of event. The event type values are:
+   * &lt;ul&gt;
+   * &lt;li&gt;{@link #REGISTERED} &lt;/li&gt;
+   * &lt;li&gt;{@link #MODIFIED} &lt;/li&gt;
+   * &lt;li&gt;{@link #MODIFIED_ENDMATCH} &lt;/li&gt;
+   * &lt;li&gt;{@link #UNREGISTERING} &lt;/li&gt;
+   * &lt;/ul&gt;
+   *
+   * @return Type of service lifecycle change.
+   */
+  Type GetType() const;
+
+};
+
+/**
+ * \ingroup MicroServices
+ * @{
+ */
+US_Core_EXPORT std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const ServiceEvent::Type&amp; type);
+US_Core_EXPORT std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const ServiceEvent&amp; event);
+/** @}*/
+
+US_END_NAMESPACE
+
+#endif // USSERVICEEVENT_H</pre>
+	</body>
+</html>

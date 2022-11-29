@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkProperties.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkProperties.h"
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(BoolProperty, bool, false);</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(IntProperty, int, 0);</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(UIntProperty, unsigned int, 0);</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(UShortProperty, unsigned short, 0);</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(FloatProperty, float, 0.0f);</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(DoubleProperty, double, 0.0);</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(Vector3DProperty, Vector3D, Vector3D(0.0f));</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(Point2dProperty, Point2D, Point2D::BaseArray::Filled(0.0f).GetDataPointer());</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(Point3dProperty, Point3D, Point3D::BaseArray::Filled(0.0f).GetDataPointer());</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(Point4dProperty, Point4D, Point4D::BaseArray::Filled(0.0f).GetDataPointer());</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(Point3iProperty, Point3I, Point3I::BaseArray::Filled(0).GetDataPointer());</span>
+
+<span style = "background-color:#fdd">mitkDefineGenericProperty(FloatLookupTableProperty, FloatLookupTable, FloatLookupTable());
+mitkDefineGenericProperty(BoolLookupTableProperty, BoolLookupTable, BoolLookupTable());
+mitkDefineGenericProperty(IntLookupTableProperty, IntLookupTable, IntLookupTable());
+mitkDefineGenericProperty(StringLookupTableProperty, StringLookupTable, StringLookupTable());</span></pre>
+	</body>
+</html>

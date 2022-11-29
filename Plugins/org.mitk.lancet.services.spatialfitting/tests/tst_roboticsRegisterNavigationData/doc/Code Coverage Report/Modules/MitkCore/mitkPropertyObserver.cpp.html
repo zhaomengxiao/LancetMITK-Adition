@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPropertyObserver.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;itkCommand.h&gt;
+#include &lt;mitkBaseProperty.h&gt;
+#include &lt;mitkPropertyObserver.h&gt;
+#include &lt;stdexcept&gt;
+
+namespace mitk
+{
+  //---- PropertyObserver -----------------------------------------------------------
+<span style = "background-color:#fdd">  PropertyObserver::PropertyObserver() : m_SelfCall(false) {}
+  PropertyObserver::~PropertyObserver() {}
+  void PropertyObserver::BeginModifyProperty() { m_SelfCall = true; }
+  void PropertyObserver::EndModifyProperty() { m_SelfCall = false; }</span>
+  //---- PropertyView ---------------------------------------------------------------
+
+<span style = "background-color:#fdd">  PropertyView::PropertyView(const mitk::BaseProperty *property) : m_Property(property)
+  {
+    if (!property)
+      throw std::invalid_argument("nullptr pointer makes no sense in PropertyView()"); // no nullptr property allowed</span>
+
+    {
+<span style = "background-color:#fdd">      itk::ReceptorMemberCommand&lt;PropertyView&gt;::Pointer command = itk::ReceptorMemberCommand&lt;PropertyView&gt;::New();
+      command-&gt;SetCallbackFunction(this, &amp;PropertyView::OnModified);
+      m_ModifiedTag = property-&gt;AddObserver(itk::ModifiedEvent(), command);
+    }</span>
+    {
+<span style = "background-color:#fdd">      itk::ReceptorMemberCommand&lt;PropertyView&gt;::Pointer command = itk::ReceptorMemberCommand&lt;PropertyView&gt;::New();
+      command-&gt;SetCallbackFunction(this, &amp;PropertyView::OnDelete);
+      m_DeleteTag = property-&gt;AddObserver(itk::DeleteEvent(), command);
+    }
+  }</span>
+
+  PropertyView::~PropertyView()
+<span style = "background-color:#fdd">  {
+    if (m_Property)</span>
+    {
+<span style = "background-color:#fdd">      auto *prop = const_cast&lt;mitk::BaseProperty *&gt;(m_Property);
+      prop-&gt;RemoveObserver(m_ModifiedTag);
+      prop-&gt;RemoveObserver(m_DeleteTag);
+      m_Property = nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void PropertyView::OnModified(const itk::EventObject &amp; /*e*/)
+<span style = "background-color:#fdd">  {
+    if (m_SelfCall)
+      return;</span>
+
+<span style = "background-color:#fdd">    PropertyChanged();
+  }</span>
+
+  void PropertyView::OnDelete(const itk::EventObject &amp; /*e*/)
+<span style = "background-color:#fdd">  {
+    if (m_SelfCall)
+      return;</span>
+
+<span style = "background-color:#fdd">    PropertyRemoved();
+    if (m_Property)</span>
+    {
+<span style = "background-color:#fdd">      auto *prop = const_cast&lt;mitk::BaseProperty *&gt;(m_Property);
+      prop-&gt;RemoveObserver(m_ModifiedTag);
+      prop-&gt;RemoveObserver(m_DeleteTag);
+      m_Property = nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  //---- PropertyEditor -------------------------------------------------------------
+
+<span style = "background-color:#fdd">  PropertyEditor::PropertyEditor(mitk::BaseProperty *property) : m_Property(property)
+  {
+    if (!property)
+      throw std::invalid_argument("nullptr pointer makes no sense in PropertyEditor()"); // no nullptr property allowed</span>
+
+    {
+<span style = "background-color:#fdd">      itk::ReceptorMemberCommand&lt;PropertyEditor&gt;::Pointer command = itk::ReceptorMemberCommand&lt;PropertyEditor&gt;::New();
+      command-&gt;SetCallbackFunction(this, &amp;PropertyEditor::OnModified);
+      m_ModifiedTag = property-&gt;AddObserver(itk::ModifiedEvent(), command);
+    }</span>
+    {
+<span style = "background-color:#fdd">      itk::ReceptorMemberCommand&lt;PropertyEditor&gt;::Pointer command = itk::ReceptorMemberCommand&lt;PropertyEditor&gt;::New();
+      command-&gt;SetCallbackFunction(this, &amp;PropertyEditor::OnDelete);
+      m_DeleteTag = property-&gt;AddObserver(itk::DeleteEvent(), command);
+    }
+  }</span>
+
+  PropertyEditor::~PropertyEditor()
+<span style = "background-color:#fdd">  {
+    if (m_Property)</span>
+    {
+<span style = "background-color:#fdd">      m_Property-&gt;RemoveObserver(m_ModifiedTag);
+      m_Property-&gt;RemoveObserver(m_DeleteTag);
+      m_Property = nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void PropertyEditor::OnModified(const itk::EventObject &amp; /*e*/)
+<span style = "background-color:#fdd">  {
+    if (m_SelfCall)
+      return;</span>
+
+<span style = "background-color:#fdd">    PropertyChanged();
+  }</span>
+
+  void PropertyEditor::OnDelete(const itk::EventObject &amp; /*e*/)
+<span style = "background-color:#fdd">  {
+    if (m_SelfCall)
+      return; // does this make any sense?</span>
+
+<span style = "background-color:#fdd">    PropertyRemoved();
+    if (m_Property)</span>
+    {
+<span style = "background-color:#fdd">      m_Property-&gt;RemoveObserver(m_ModifiedTag);
+      m_Property-&gt;RemoveObserver(m_DeleteTag);
+      m_Property = nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+} // namespace</pre>
+	</body>
+</html>

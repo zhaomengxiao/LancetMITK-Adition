@@ -1,0 +1,193 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTwoCompartmentExchangeModel.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTwoCompartmentExchangeModel.h"
+#include "mitkConvolutionHelper.h"
+#include &lt;fstream&gt;
+
+<span style = "background-color:#dfd">const std::string mitk::TwoCompartmentExchangeModel::MODEL_DISPLAY_NAME =
+ "Two Compartment Exchange Model";</span>
+
+<span style = "background-color:#dfd">const std::string mitk::TwoCompartmentExchangeModel::NAME_PARAMETER_F = "F";
+const std::string mitk::TwoCompartmentExchangeModel::NAME_PARAMETER_PS = "PS";
+const std::string mitk::TwoCompartmentExchangeModel::NAME_PARAMETER_ve = "ve";
+const std::string mitk::TwoCompartmentExchangeModel::NAME_PARAMETER_vp = "vp";</span>
+
+<span style = "background-color:#dfd">const std::string mitk::TwoCompartmentExchangeModel::UNIT_PARAMETER_F = "ml/min/100ml";
+const std::string mitk::TwoCompartmentExchangeModel::UNIT_PARAMETER_PS = "ml/min/100ml";
+const std::string mitk::TwoCompartmentExchangeModel::UNIT_PARAMETER_ve = "ml/ml";
+const std::string mitk::TwoCompartmentExchangeModel::UNIT_PARAMETER_vp = "ml/ml";</span>
+
+const unsigned int mitk::TwoCompartmentExchangeModel::POSITION_PARAMETER_F = 0;
+const unsigned int mitk::TwoCompartmentExchangeModel::POSITION_PARAMETER_PS = 1;
+const unsigned int mitk::TwoCompartmentExchangeModel::POSITION_PARAMETER_ve = 2;
+const unsigned int mitk::TwoCompartmentExchangeModel::POSITION_PARAMETER_vp = 3;
+
+const unsigned int mitk::TwoCompartmentExchangeModel::NUMBER_OF_PARAMETERS = 4;
+
+
+inline double square(double a)
+{
+  return a * a;
+}
+
+std::string mitk::TwoCompartmentExchangeModel::GetModelDisplayName() const
+<span style = "background-color:#fdd">{
+  return MODEL_DISPLAY_NAME;
+};</span>
+
+std::string mitk::TwoCompartmentExchangeModel::GetModelType() const
+<span style = "background-color:#dfd">{
+  return "Perfusion.MR";
+};</span>
+
+mitk::TwoCompartmentExchangeModel::TwoCompartmentExchangeModel()
+<span style = "background-color:#dfd">{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+mitk::TwoCompartmentExchangeModel::~TwoCompartmentExchangeModel()
+<span style = "background-color:#dfd">{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+mitk::TwoCompartmentExchangeModel::ParameterNamesType
+mitk::TwoCompartmentExchangeModel::GetParameterNames() const
+<span style = "background-color:#fdd">{
+  ParameterNamesType result;</span>
+
+<span style = "background-color:#fdd">  result.push_back(NAME_PARAMETER_F);
+  result.push_back(NAME_PARAMETER_PS);
+  result.push_back(NAME_PARAMETER_ve);
+  result.push_back(NAME_PARAMETER_vp);</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::TwoCompartmentExchangeModel::ParametersSizeType
+mitk::TwoCompartmentExchangeModel::GetNumberOfParameters() const
+<span style = "background-color:#fdd">{
+  return NUMBER_OF_PARAMETERS;
+}</span>
+
+mitk::TwoCompartmentExchangeModel::ParamterUnitMapType
+mitk::TwoCompartmentExchangeModel::GetParameterUnits() const
+<span style = "background-color:#fdd">{
+  ParamterUnitMapType result;</span>
+
+<span style = "background-color:#fdd">  result.insert(std::make_pair(NAME_PARAMETER_F, UNIT_PARAMETER_F));
+  result.insert(std::make_pair(NAME_PARAMETER_PS, UNIT_PARAMETER_PS));
+  result.insert(std::make_pair(NAME_PARAMETER_vp, UNIT_PARAMETER_vp));
+  result.insert(std::make_pair(NAME_PARAMETER_ve, UNIT_PARAMETER_ve));</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+
+mitk::TwoCompartmentExchangeModel::ModelResultType
+mitk::TwoCompartmentExchangeModel::ComputeModelfunction(const ParametersType&amp; parameters) const
+<span style = "background-color:#fdd">{</span>
+    typedef mitk::ModelBase::ModelResultType ConvolutionResultType;
+
+<span style = "background-color:#fdd">    if (this-&gt;m_TimeGrid.GetSize() == 0)</span>
+    {
+<span style = "background-color:#fdd">    itkExceptionMacro("No Time Grid Set! Cannot Calculate Signal");</span>
+    }
+
+<span style = "background-color:#fdd">    AterialInputFunctionType aterialInputFunction;
+    aterialInputFunction = GetAterialInputFunction(this-&gt;m_TimeGrid);</span>
+
+<span style = "background-color:#fdd">    unsigned int timeSteps = this-&gt;m_TimeGrid.GetSize();
+    mitk::ModelBase::ModelResultType signal(timeSteps);
+    signal.fill(0.0);</span>
+
+    //Model Parameters
+<span style = "background-color:#fdd">    double F = parameters[POSITION_PARAMETER_F] / 6000.0;
+    double PS  = parameters[POSITION_PARAMETER_PS] / 6000.0;
+    double ve = parameters[POSITION_PARAMETER_ve];
+    double vp = parameters[POSITION_PARAMETER_vp];</span>
+
+<span style = "background-color:#fdd">    if(PS != 0)</span>
+    {
+<span style = "background-color:#fdd">        double Tp = vp/(PS + F);
+        double Te = ve/PS;
+        double Tb = vp/F;</span>
+
+<span style = "background-color:#fdd">        double Kp = 0.5 *( 1/Tp + 1/Te + sqrt(( 1/Tp + 1/Te )*( 1/Tp + 1/Te ) - 4 * 1/Te*1/Tb) );
+        double Km = 0.5 *( 1/Tp + 1/Te - sqrt(( 1/Tp + 1/Te )*( 1/Tp + 1/Te ) - 4 * 1/Te*1/Tb) );</span>
+
+<span style = "background-color:#fdd">        double E = ( Kp - 1/Tb )/( Kp - Km );</span>
+
+
+
+<span style = "background-color:#fdd">        ConvolutionResultType expp = mitk::convoluteAIFWithExponential(this-&gt;m_TimeGrid, aterialInputFunction,Kp);
+        ConvolutionResultType expm = mitk::convoluteAIFWithExponential(this-&gt;m_TimeGrid, aterialInputFunction,Km);</span>
+
+        //Signal that will be returned by ComputeModelFunction
+
+<span style = "background-color:#fdd">        mitk::ModelBase::ModelResultType::const_iterator exppPos = expp.begin();
+        mitk::ModelBase::ModelResultType::const_iterator expmPos = expm.begin();</span>
+
+<span style = "background-color:#fdd">        for( mitk::ModelBase::ModelResultType::iterator signalPos = signal.begin(); signalPos!=signal.end(); ++exppPos,++expmPos, ++signalPos)</span>
+        {
+<span style = "background-color:#fdd">            *signalPos = F * ( *exppPos + E*(*expmPos - *exppPos) );
+        }
+    }</span>
+
+
+    else
+    {
+<span style = "background-color:#fdd">        double Kp = F/vp;
+        ConvolutionResultType exp = mitk::convoluteAIFWithExponential(this-&gt;m_TimeGrid, aterialInputFunction,Kp);
+        mitk::ModelBase::ModelResultType::const_iterator expPos = exp.begin();</span>
+
+<span style = "background-color:#fdd">        for( mitk::ModelBase::ModelResultType::iterator signalPos = signal.begin(); signalPos!=signal.end(); ++expPos, ++signalPos)</span>
+        {
+<span style = "background-color:#fdd">            *signalPos = F * ( *expPos );
+        }</span>
+
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    return signal;
+}</span>
+
+
+itk::LightObject::Pointer mitk::TwoCompartmentExchangeModel::InternalClone() const
+<span style = "background-color:#fdd">{
+  TwoCompartmentExchangeModel::Pointer newClone = TwoCompartmentExchangeModel::New();</span>
+
+<span style = "background-color:#fdd">  newClone-&gt;SetTimeGrid(this-&gt;m_TimeGrid);</span>
+
+<span style = "background-color:#fdd">  return newClone.GetPointer();
+}</span>
+
+void mitk::TwoCompartmentExchangeModel::PrintSelf(std::ostream&amp; os, ::itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);</span>
+
+
+<span style = "background-color:#fdd">}</span>
+
+</pre>
+	</body>
+</html>

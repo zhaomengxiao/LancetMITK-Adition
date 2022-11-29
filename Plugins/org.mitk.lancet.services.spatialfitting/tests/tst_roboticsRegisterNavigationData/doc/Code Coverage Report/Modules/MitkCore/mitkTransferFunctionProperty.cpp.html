@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTransferFunctionProperty.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTransferFunctionProperty.h"
+
+namespace mitk
+{
+  bool TransferFunctionProperty::IsEqual(const BaseProperty &amp;property) const
+<span style = "background-color:#fdd">  {
+    return *(this-&gt;m_Value) == *(static_cast&lt;const Self &amp;&gt;(property).m_Value);
+  }</span>
+
+  bool TransferFunctionProperty::Assign(const BaseProperty &amp;property)
+<span style = "background-color:#fdd">  {
+    this-&gt;m_Value = static_cast&lt;const Self &amp;&gt;(property).m_Value;
+    return true;
+  }</span>
+
+  std::string TransferFunctionProperty::GetValueAsString() const
+<span style = "background-color:#fdd">  {
+    std::stringstream myStr;
+    myStr &lt;&lt; GetValue();
+    return myStr.str();
+  }</span>
+
+<span style = "background-color:#fdd">  TransferFunctionProperty::TransferFunctionProperty() : BaseProperty(), m_Value(mitk::TransferFunction::New()) {}</span>
+  TransferFunctionProperty::TransferFunctionProperty(const TransferFunctionProperty &amp;other)
+<span style = "background-color:#fdd">    : BaseProperty(other), m_Value(other.m_Value-&gt;Clone())
+  {
+  }</span>
+
+  TransferFunctionProperty::TransferFunctionProperty(mitk::TransferFunction::Pointer value)
+<span style = "background-color:#fdd">    : BaseProperty(), m_Value(value)
+  {
+  }</span>
+
+  itk::LightObject::Pointer TransferFunctionProperty::InternalClone() const
+<span style = "background-color:#fdd">  {
+    itk::LightObject::Pointer result(new Self(*this));
+    result-&gt;UnRegister();
+    return result;
+  }</span>
+
+} // namespace mitk</pre>
+	</body>
+</html>

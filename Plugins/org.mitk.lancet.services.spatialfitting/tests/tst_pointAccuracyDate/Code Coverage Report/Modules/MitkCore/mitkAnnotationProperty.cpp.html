@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkAnnotationProperty.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkAnnotationProperty.h"
+
+<span style = "background-color:#fdd">mitk::AnnotationProperty::AnnotationProperty() : m_Position(0.0)
+{
+}</span>
+
+mitk::AnnotationProperty::AnnotationProperty(const char *label, const Point3D &amp;position)
+<span style = "background-color:#fdd">  : m_Label(""), m_Position(position)
+{
+  if (label != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_Label = label;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::AnnotationProperty::AnnotationProperty(const std::string &amp;label, const Point3D &amp;position)
+<span style = "background-color:#fdd">  : m_Label(label), m_Position(position)
+{
+}</span>
+
+<span style = "background-color:#fdd">mitk::AnnotationProperty::AnnotationProperty(const char *label, ScalarType x, ScalarType y, ScalarType z) : m_Label("")
+{
+  if (label != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_Label = label;</span>
+  }
+
+<span style = "background-color:#fdd">  m_Position[0] = x;
+  m_Position[1] = y;
+  m_Position[2] = z;
+}</span>
+
+mitk::AnnotationProperty::AnnotationProperty(const std::string &amp;label, ScalarType x, ScalarType y, ScalarType z)
+<span style = "background-color:#fdd">  : m_Label(label)
+{
+  m_Position[0] = x;
+  m_Position[1] = y;
+  m_Position[2] = z;
+}</span>
+
+mitk::AnnotationProperty::AnnotationProperty(const mitk::AnnotationProperty &amp;other)
+<span style = "background-color:#fdd">  : BaseProperty(other), m_Label(other.m_Label), m_Position(other.m_Position)
+{
+}</span>
+
+const mitk::Point3D &amp;mitk::AnnotationProperty::GetPosition() const
+<span style = "background-color:#fdd">{
+  return m_Position;
+}</span>
+
+void mitk::AnnotationProperty::SetPosition(const mitk::Point3D &amp;position)
+<span style = "background-color:#fdd">{
+  if (m_Position != position)</span>
+  {
+<span style = "background-color:#fdd">    m_Position = position;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::AnnotationProperty::IsEqual(const BaseProperty &amp;property) const
+<span style = "background-color:#fdd">{
+  return ((this-&gt;m_Label == static_cast&lt;const Self &amp;&gt;(property).m_Label) &amp;&amp;</span>
+          (this-&gt;m_Position == static_cast&lt;const Self &amp;&gt;(property).m_Position));
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::AnnotationProperty::Assign(const BaseProperty &amp;property)
+<span style = "background-color:#fdd">{
+  this-&gt;m_Label = static_cast&lt;const Self &amp;&gt;(property).m_Label;
+  this-&gt;m_Position = static_cast&lt;const Self &amp;&gt;(property).m_Position;
+  return true;
+}</span>
+
+std::string mitk::AnnotationProperty::GetValueAsString() const
+<span style = "background-color:#fdd">{
+  std::stringstream myStr;</span>
+
+<span style = "background-color:#fdd">  myStr &lt;&lt; this-&gt;GetLabel() &lt;&lt; this-&gt;GetPosition();
+  return myStr.str();
+}</span>
+
+itk::LightObject::Pointer mitk::AnnotationProperty::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result(new Self(*this));
+  result-&gt;UnRegister();
+  return result;
+}</span></pre>
+	</body>
+</html>

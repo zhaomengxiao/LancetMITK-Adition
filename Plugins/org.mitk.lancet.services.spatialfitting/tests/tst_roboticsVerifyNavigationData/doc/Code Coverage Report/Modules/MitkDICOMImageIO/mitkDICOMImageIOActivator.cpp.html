@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMImageIOActivator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMImageIOActivator.h"
+
+#include "mitkAutoSelectingDICOMReaderService.h"
+#include "mitkManualSelectingDICOMReaderService.h"
+#include "mitkDICOMTagsOfInterestService.h"
+#include "mitkSimpleVolumeDICOMSeriesReaderService.h"
+#include "mitkCoreServices.h"
+#include "mitkPropertyPersistenceInfo.h"
+#include "mitkDICOMIOMetaInformationPropertyConstants.h"
+#include "mitkIPropertyPersistence.h"
+#include "mitkTemporoSpatialStringProperty.h"
+
+#include &lt;usModuleContext.h&gt;
+#include &lt;usModuleRegistry.h&gt;
+
+void AddPropertyPersistence(const mitk::PropertyKeyPath&amp; propPath, bool temporoSpatial = false)
+<span style = "background-color:#dfd">{
+  mitk::CoreServicePointer&lt;mitk::IPropertyPersistence&gt; persistenceService(mitk::CoreServices::GetPropertyPersistence());</span>
+
+<span style = "background-color:#dfd">  mitk::PropertyPersistenceInfo::Pointer info = mitk::PropertyPersistenceInfo::New();
+  if (propPath.IsExplicit())</span>
+  {
+<span style = "background-color:#dfd">    std::string name = mitk::PropertyKeyPathToPropertyName(propPath);
+    std::string key = name;
+    std::replace(key.begin(), key.end(), '.', '_');
+    info-&gt;SetNameAndKey(name, key);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    std::string key = mitk::PropertyKeyPathToPersistenceKeyRegEx(propPath);
+    std::string keyTemplate = mitk::PropertyKeyPathToPersistenceKeyTemplate(propPath);
+    std::string propRegEx = mitk::PropertyKeyPathToPropertyRegEx(propPath);
+    std::string propTemplate = mitk::PropertyKeyPathToPersistenceNameTemplate(propPath);
+    info-&gt;UseRegEx(propRegEx, propTemplate, key, keyTemplate);
+  }</span>
+
+<span style = "background-color:#dfd">  if (temporoSpatial)</span>
+  {
+<span style = "background-color:#dfd">    info-&gt;SetDeserializationFunction(mitk::PropertyPersistenceDeserialization::deserializeJSONToTemporoSpatialStringProperty);
+    info-&gt;SetSerializationFunction(mitk::PropertyPersistenceSerialization::serializeTemporoSpatialStringPropertyToJSON);</span>
+  }
+
+<span style = "background-color:#dfd">  persistenceService-&gt;AddInfo(info);
+}</span>
+
+namespace mitk {
+
+  void DICOMImageIOActivator::Load(us::ModuleContext* context)
+<span style = "background-color:#dfd">  {
+    m_Context = context;</span>
+
+<span style = "background-color:#dfd">    m_AutoSelectingDICOMReader = std::make_unique&lt;AutoSelectingDICOMReaderService&gt;();
+    m_SimpleVolumeDICOMSeriesReader = std::make_unique&lt;SimpleVolumeDICOMSeriesReaderService&gt;();</span>
+
+<span style = "background-color:#dfd">    m_DICOMTagsOfInterestService = std::make_unique&lt;DICOMTagsOfInterestService&gt;();
+    context-&gt;RegisterService&lt;mitk::IDICOMTagsOfInterest&gt;(m_DICOMTagsOfInterestService.get());</span>
+
+<span style = "background-color:#dfd">    DICOMTagPathMapType tagmap = GetDefaultDICOMTagsOfInterest();
+    for (const auto &amp;tag : tagmap)</span>
+    {
+<span style = "background-color:#dfd">      m_DICOMTagsOfInterestService-&gt;AddTagOfInterest(tag.first);
+    }</span>
+
+    //add properties that should be persistent (if possible/supported by the writer)
+<span style = "background-color:#dfd">    AddPropertyPersistence(mitk::DICOMIOMetaInformationPropertyConstants::READER_3D_plus_t());
+    AddPropertyPersistence(mitk::DICOMIOMetaInformationPropertyConstants::READER_CONFIGURATION());
+    AddPropertyPersistence(mitk::DICOMIOMetaInformationPropertyConstants::READER_DCMTK());
+    AddPropertyPersistence(mitk::DICOMIOMetaInformationPropertyConstants::READER_FILES(), true);
+    AddPropertyPersistence(mitk::DICOMIOMetaInformationPropertyConstants::READER_GANTRY_TILT_CORRECTED());
+    AddPropertyPersistence(mitk::DICOMIOMetaInformationPropertyConstants::READER_GDCM());
+    AddPropertyPersistence(mitk::DICOMIOMetaInformationPropertyConstants::READER_IMPLEMENTATION_LEVEL());
+    AddPropertyPersistence(mitk::DICOMIOMetaInformationPropertyConstants::READER_IMPLEMENTATION_LEVEL_STRING());
+    AddPropertyPersistence(mitk::DICOMIOMetaInformationPropertyConstants::READER_PIXEL_SPACING_INTERPRETATION());
+    AddPropertyPersistence(mitk::DICOMIOMetaInformationPropertyConstants::READER_PIXEL_SPACING_INTERPRETATION_STRING());</span>
+
+    //We have to handle ManualSelectingDICOMSeriesReader different then the other
+    //readers. Reason: The reader uses DICOMFileReaderSelector in its constructor.
+    //this class needs to access resources of MitkDICOM module, which might
+    //not be initialized yet (that would lead to a crash, see i.a. T27553). Thus check if the module
+    //is alreade loaded. If not, register a listener and create the reader as soon
+    //as the module is available.
+<span style = "background-color:#dfd">    auto dicomModule = us::ModuleRegistry::GetModule("MitkDICOM");
+    if (nullptr == dicomModule)</span>
+    {
+<span style = "background-color:#fdd">      std::lock_guard&lt;std::mutex&gt; lock(m_Mutex);</span>
+      // Listen for events of module life cycle.
+<span style = "background-color:#fdd">      m_Context-&gt;AddModuleListener(this, &amp;DICOMImageIOActivator::EnsureManualSelectingDICOMSeriesReader);
+    }</span>
+    else
+    {
+<span style = "background-color:#dfd">      m_ManualSelectingDICOMSeriesReader = std::make_unique&lt;ManualSelectingDICOMReaderService&gt;();</span>
+    }
+<span style = "background-color:#dfd">  }</span>
+
+  void DICOMImageIOActivator::Unload(us::ModuleContext*)
+<span style = "background-color:#dfd">  {
+  }</span>
+
+  void DICOMImageIOActivator::EnsureManualSelectingDICOMSeriesReader(const us::ModuleEvent event)
+<span style = "background-color:#fdd">  {</span>
+    //We have to handle ManualSelectingDICOMSeriesReader different then the other
+    //readers. For more details see the explanations in the constructor.
+<span style = "background-color:#fdd">    std::lock_guard&lt;std::mutex&gt; lock(m_Mutex);
+    if (nullptr == m_ManualSelectingDICOMSeriesReader &amp;&amp; event.GetModule()-&gt;GetName()=="MitkDICOM" &amp;&amp; event.GetType() == us::ModuleEvent::LOADED)</span>
+    {
+<span style = "background-color:#fdd">      m_ManualSelectingDICOMSeriesReader = std::make_unique&lt;ManualSelectingDICOMReaderService&gt;();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+}
+
+<span style = "background-color:#dfd">US_EXPORT_MODULE_ACTIVATOR(mitk::DICOMImageIOActivator)</span></pre>
+	</body>
+</html>

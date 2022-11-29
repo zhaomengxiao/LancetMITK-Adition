@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVtkAnnotation.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef VTKAnnotation_H
+#define VTKAnnotation_H
+
+#include "mitkAnnotation.h"
+#include &lt;MitkAnnotationExports.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+
+class vtkProp;
+
+namespace mitk
+{
+  /**
+   * @brief The VtkAnnotation class is the base for all Annotation which are using the VTK framework to render
+   *the elements.
+   */
+  class MITKANNOTATION_EXPORT VtkAnnotation : public Annotation
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(VtkAnnotation, Annotation);</span>
+    void Update(BaseRenderer *renderer) override;
+    void AddToBaseRenderer(BaseRenderer *renderer) override;
+    void AddToRenderer(BaseRenderer *renderer, vtkRenderer *vtkrenderer) override;
+    void RemoveFromRenderer(BaseRenderer *renderer, vtkRenderer *vtkrenderer) override;
+    void RemoveFromBaseRenderer(BaseRenderer *renderer) override;
+
+    /**
+    * \brief Paints the Annotation.
+    *
+    * This method forces a paint of the Annotation as it is configured at the moment.
+    * \warning Should only be used as alternative to the AnnotationManager mechanism
+    * in GL-Mappers.
+    */
+    void Paint(BaseRenderer *renderer);
+
+  protected:
+    /**
+     * @brief This method is implemented by the specific VTKAnnotation in order to create the element as a vtkProp
+     * @param renderer
+     * @return The element that was created by the subclasses as a vtkProp.
+     */
+    virtual vtkProp *GetVtkProp(BaseRenderer *renderer) const = 0;
+    virtual void UpdateVtkAnnotation(BaseRenderer *renderer) = 0;
+
+    /** \brief explicit constructor which disallows implicit conversions */
+    explicit VtkAnnotation();
+
+    /** \brief virtual destructor in order to derive from this class */
+    ~VtkAnnotation() override;
+
+  private:
+    /** \brief copy constructor */
+    VtkAnnotation(const VtkAnnotation &amp;);
+
+    /** \brief assignment operator */
+    VtkAnnotation &amp;operator=(const VtkAnnotation &amp;);
+  };
+
+} // namespace mitk
+#endif // Annotation_H</pre>
+	</body>
+</html>

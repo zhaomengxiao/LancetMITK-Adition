@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mbilog.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;list&gt;
+#include &lt;set&gt;
+
+#include "mbilog.h"
+
+<span style = "background-color:#dfd">static std::list&lt;mbilog::BackendBase *&gt; backends;
+static std::set&lt;mbilog::OutputType&gt; disabledBackendTypes;</span>
+
+namespace mbilog
+{
+<span style = "background-color:#dfd">  static const std::string NA_STRING = "n/a";</span>
+}
+
+void mbilog::RegisterBackend(mbilog::BackendBase *backend)
+<span style = "background-color:#dfd">{
+  backends.push_back(backend);
+}</span>
+
+void mbilog::UnregisterBackend(mbilog::BackendBase *backend)
+<span style = "background-color:#fdd">{
+  backends.remove(backend);
+}</span>
+
+void mbilog::DistributeToBackends(mbilog::LogMessage &amp;l)
+<span style = "background-color:#dfd">{</span>
+  // Crop Message
+  {
+<span style = "background-color:#dfd">    std::string::size_type i = l.message.find_last_not_of(" \t\f\v\n\r");
+    l.message = (i != std::string::npos) ? l.message.substr(0, i + 1) : "";</span>
+  }
+
+  // create dummy backend if there is no backend registered (so we have an output anyway)
+  static mbilog::BackendCout *dummyBackend = nullptr;
+
+<span style = "background-color:#dfd">  if (backends.empty() &amp;&amp; (dummyBackend == nullptr))</span>
+  {
+<span style = "background-color:#dfd">    dummyBackend = new mbilog::BackendCout();
+    dummyBackend-&gt;SetFull(false);
+    RegisterBackend(dummyBackend);
+  }
+  else if ((backends.size() &gt; 1) &amp;&amp; (dummyBackend != nullptr))</span>
+  {
+    // if there was added another backend remove the dummy backend and delete it
+<span style = "background-color:#fdd">    UnregisterBackend(dummyBackend);
+    delete dummyBackend;
+    dummyBackend = nullptr;</span>
+  }
+
+  // iterate through all registered images and call the ProcessMessage() methods of the backends
+<span style = "background-color:#dfd">  std::list&lt;mbilog::BackendBase *&gt;::iterator i;
+  for (i = backends.begin(); i != backends.end(); i++)</span>
+  {
+<span style = "background-color:#dfd">    if (IsBackendEnabled((*i)-&gt;GetOutputType()))
+      (*i)-&gt;ProcessMessage(l);
+  }
+}</span>
+
+void mbilog::EnableBackends(OutputType type)
+<span style = "background-color:#fdd">{
+  disabledBackendTypes.erase(type);
+}</span>
+
+void mbilog::DisableBackends(OutputType type)
+<span style = "background-color:#fdd">{
+  disabledBackendTypes.insert(type);
+}</span>
+
+bool mbilog::IsBackendEnabled(OutputType type)
+<span style = "background-color:#dfd">{
+  return disabledBackendTypes.find(type) == disabledBackendTypes.end();
+}</span></pre>
+	</body>
+</html>

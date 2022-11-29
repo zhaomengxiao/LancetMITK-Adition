@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>udpsocketrobotheartbeat.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+ï»¿#ifndef LUDPSOCKETROBOTHEARTBEAT_H
+#define LUDPSOCKETROBOTHEARTBEAT_H
+
+#include &lt;QUdpSocket&gt;
+#include "MitkLancetRobotExports.h"
+
+class RobotUDPMessage;
+class MITKLANCETROBOT_EXPORT UdpSocketRobotHeartbeat
+    : public QUdpSocket
+{
+<span style = "background-color:#fdd">    Q_OBJECT</span>
+    struct UdpSocketRobotHeartbeatPrivateImp;
+public:
+    explicit UdpSocketRobotHeartbeat(QObject* = nullptr);
+    virtual ~UdpSocketRobotHeartbeat();
+
+    enum RunningModel
+    {
+        Thread,
+        Timer
+    };
+
+public:
+    virtual long timeStamp() const;
+
+    virtual bool routineHeartbeat();
+    virtual bool initializeRemoteRobot();
+    virtual bool simulateSpecialAction(int, bool);
+    virtual bool simulateSpecialActionOfAppGetState(int, bool);
+
+    virtual void stopRepetitiveHeartbeat();
+    virtual bool isRepetitiveHeartbeatRunning() const;
+    virtual void startRepetitiveHeartbeat(int runningModel = RunningModel::Thread);
+
+    virtual QString remoteHostAddress() const;
+    virtual void setRemoteHostAddress(const QString&amp;);
+
+    virtual uint remoteHostPort() const;
+    virtual void setRemoteHostPort(const uint&amp;);
+
+    virtual long int frameRate() const;
+
+    virtual int repetitiveHeartbeatInterval() const;
+    virtual void setRepetitiveHeartbeatInterval(int msec);
+
+    virtual int deathTimeout() const;
+    virtual void setDeathTimeout(int);
+
+    virtual RobotUDPMessage lastRobotUDPMessage() const;
+    virtual void setLastRobotUDPMessage(const RobotUDPMessage&amp;);
+protected slots:
+    virtual void updateRobotHeartbeat() final;
+    virtual void onReadyRead() final;
+    virtual void onSendDataStream() final;
+protected:
+    bool tryRepairErrorCodeOf(int);
+    static void onThreadHandle(UdpSocketRobotHeartbeat*);
+protected:
+    std::shared_ptr&lt;UdpSocketRobotHeartbeatPrivateImp&gt; m_imp;
+};
+
+#endif // LUDPSOCKETROBOTHEARTBEAT_H</pre>
+	</body>
+</html>

@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkWeakPointerProperty.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkWeakPointerProperty.h"
+
+bool mitk::WeakPointerProperty::IsEqual(const BaseProperty &amp;property) const
+<span style = "background-color:#fdd">{
+  return this-&gt;m_WeakPointer == static_cast&lt;const Self &amp;&gt;(property).m_WeakPointer;
+}</span>
+
+bool mitk::WeakPointerProperty::Assign(const BaseProperty &amp;property)
+<span style = "background-color:#fdd">{
+  this-&gt;m_WeakPointer = static_cast&lt;const Self &amp;&gt;(property).m_WeakPointer;
+  return true;
+}</span>
+
+<span style = "background-color:#fdd">mitk::WeakPointerProperty::WeakPointerProperty(itk::Object *pointer) : m_WeakPointer(pointer)
+{
+}</span>
+
+mitk::WeakPointerProperty::WeakPointerProperty(const WeakPointerProperty &amp;other)
+<span style = "background-color:#fdd">  : mitk::BaseProperty(other), m_WeakPointer(other.m_WeakPointer)
+{
+}</span>
+
+mitk::WeakPointerProperty::~WeakPointerProperty()
+<span style = "background-color:#fdd">{
+}</span>
+
+std::string mitk::WeakPointerProperty::GetValueAsString() const
+<span style = "background-color:#fdd">{
+  std::stringstream ss;
+  ss &lt;&lt; m_WeakPointer.GetPointer();
+  return ss.str();
+}</span>
+
+mitk::WeakPointerProperty::ValueType mitk::WeakPointerProperty::GetWeakPointer() const
+<span style = "background-color:#fdd">{
+  return m_WeakPointer.GetPointer();
+}</span>
+
+mitk::WeakPointerProperty::ValueType mitk::WeakPointerProperty::GetValue() const
+<span style = "background-color:#fdd">{
+  return GetWeakPointer();
+}</span>
+
+void mitk::WeakPointerProperty::SetWeakPointer(itk::Object *pointer)
+<span style = "background-color:#fdd">{
+  if (m_WeakPointer.GetPointer() != pointer)</span>
+  {
+<span style = "background-color:#fdd">    m_WeakPointer = pointer;
+    Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::WeakPointerProperty::SetValue(const ValueType &amp;value)
+<span style = "background-color:#fdd">{
+  SetWeakPointer(value.GetPointer());
+}</span>
+
+itk::LightObject::Pointer mitk::WeakPointerProperty::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result(new Self(*this));
+  result-&gt;UnRegister();
+  return result;
+}</span></pre>
+	</body>
+</html>

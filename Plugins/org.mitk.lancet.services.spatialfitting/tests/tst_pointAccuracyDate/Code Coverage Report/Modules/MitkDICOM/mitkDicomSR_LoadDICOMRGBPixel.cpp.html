@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDicomSR_LoadDICOMRGBPixel.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDicomSeriesReader.txx"
+
+namespace mitk
+{
+  Image::Pointer DicomSeriesReader::MultiplexLoadDICOMByITKRGBPixel(const StringContainer &amp;filenames,
+                                                                    bool correctTilt,
+                                                                    const GantryTiltInformation &amp;tiltInfo,
+                                                                    DcmIoType::Pointer &amp;io,
+                                                                    CallbackCommand *command,
+                                                                    Image::Pointer preLoadedImageBlock)
+<span style = "background-color:#fdd">  {
+    switch (io-&gt;GetComponentType())</span>
+    {
+      case itk::IOComponentEnum::UCHAR:
+<span style = "background-color:#fdd">        return LoadDICOMByITK&lt;itk::RGBPixel&lt;unsigned char&gt;&gt;(</span>
+          filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+      case itk::IOComponentEnum::CHAR:
+<span style = "background-color:#fdd">        return LoadDICOMByITK&lt;itk::RGBPixel&lt;char&gt;&gt;(filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);</span>
+      case itk::IOComponentEnum::USHORT:
+<span style = "background-color:#fdd">        return LoadDICOMByITK&lt;itk::RGBPixel&lt;unsigned short&gt;&gt;(</span>
+          filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+      case itk::IOComponentEnum::SHORT:
+<span style = "background-color:#fdd">        return LoadDICOMByITK&lt;itk::RGBPixel&lt;short&gt;&gt;(filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);</span>
+      case itk::IOComponentEnum::UINT:
+<span style = "background-color:#fdd">        return LoadDICOMByITK&lt;itk::RGBPixel&lt;unsigned int&gt;&gt;(</span>
+          filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+      case itk::IOComponentEnum::INT:
+<span style = "background-color:#fdd">        return LoadDICOMByITK&lt;itk::RGBPixel&lt;int&gt;&gt;(filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);</span>
+      case itk::IOComponentEnum::ULONG:
+<span style = "background-color:#fdd">        return LoadDICOMByITK&lt;itk::RGBPixel&lt;long unsigned int&gt;&gt;(</span>
+          filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+      case itk::IOComponentEnum::LONG:
+<span style = "background-color:#fdd">        return LoadDICOMByITK&lt;itk::RGBPixel&lt;long int&gt;&gt;(</span>
+          filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+      case itk::IOComponentEnum::FLOAT:
+<span style = "background-color:#fdd">        return LoadDICOMByITK&lt;itk::RGBPixel&lt;float&gt;&gt;(filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);</span>
+      case itk::IOComponentEnum::DOUBLE:
+<span style = "background-color:#fdd">        return LoadDICOMByITK&lt;itk::RGBPixel&lt;double&gt;&gt;(</span>
+          filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+      default:
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "Found unsupported DICOM scalar pixel type: (enum value) " &lt;&lt; io-&gt;GetComponentType();
+        return nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+} // end namespace mitk</pre>
+	</body>
+</html>

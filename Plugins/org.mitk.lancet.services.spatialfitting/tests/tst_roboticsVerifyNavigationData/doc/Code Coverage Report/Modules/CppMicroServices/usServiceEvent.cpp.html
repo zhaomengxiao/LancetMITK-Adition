@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usServiceEvent.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+#include "usServiceEvent.h"
+
+#include "usServiceProperties.h"
+
+US_BEGIN_NAMESPACE
+
+class ServiceEventData : public SharedData
+{
+public:
+
+  ServiceEventData(const ServiceEvent::Type&amp; type, const ServiceReferenceBase&amp; reference)
+<span style = "background-color:#dfd">    : type(type), reference(reference)
+  {</span>
+
+<span style = "background-color:#dfd">  }</span>
+
+  ServiceEventData(const ServiceEventData&amp; other)
+    : SharedData(other), type(other.type), reference(other.reference)
+  {
+
+  }
+
+  const ServiceEvent::Type type;
+  const ServiceReferenceBase reference;
+
+private:
+
+  // purposely not implemented
+  ServiceEventData&amp; operator=(const ServiceEventData&amp;);
+};
+
+ServiceEvent::ServiceEvent()
+<span style = "background-color:#dfd">  : d(nullptr)
+{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+ServiceEvent::~ServiceEvent()
+<span style = "background-color:#dfd">{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+bool ServiceEvent::IsNull() const
+<span style = "background-color:#fdd">{
+  return !d;
+}</span>
+
+ServiceEvent::ServiceEvent(Type type, const ServiceReferenceBase&amp; reference)
+<span style = "background-color:#dfd">  : d(new ServiceEventData(type, reference))
+{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+ServiceEvent::ServiceEvent(const ServiceEvent&amp; other)
+<span style = "background-color:#dfd">  : d(other.d)
+{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+ServiceEvent&amp; ServiceEvent::operator=(const ServiceEvent&amp; other)
+<span style = "background-color:#fdd">{
+  d = other.d;
+  return *this;
+}</span>
+
+ServiceReferenceU ServiceEvent::GetServiceReference() const
+<span style = "background-color:#dfd">{
+  return d-&gt;reference;
+}</span>
+
+ServiceEvent::Type ServiceEvent::GetType() const
+<span style = "background-color:#dfd">{
+  return d-&gt;type;
+}</span>
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const ServiceEvent::Type&amp; type)
+<span style = "background-color:#fdd">{
+  switch(type)</span>
+  {
+<span style = "background-color:#fdd">  case ServiceEvent::MODIFIED:          return os &lt;&lt; "MODIFIED";
+  case ServiceEvent::MODIFIED_ENDMATCH: return os &lt;&lt; "MODIFIED_ENDMATCH";
+  case ServiceEvent::REGISTERED:        return os &lt;&lt; "REGISTERED";
+  case ServiceEvent::UNREGISTERING:     return os &lt;&lt; "UNREGISTERING";</span>
+
+<span style = "background-color:#fdd">  default: return os &lt;&lt; "unknown service event type (" &lt;&lt; static_cast&lt;int&gt;(type) &lt;&lt; ")";</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const ServiceEvent&amp; event)
+<span style = "background-color:#fdd">{
+  if (event.IsNull()) return os &lt;&lt; "NONE";</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; event.GetType();</span>
+
+<span style = "background-color:#fdd">  ServiceReferenceU sr = event.GetServiceReference();
+  if (sr)</span>
+  {
+    // Some events will not have a service reference
+<span style = "background-color:#fdd">    long int sid = any_cast&lt;long int&gt;(sr.GetProperty(ServiceConstants::SERVICE_ID()));
+    os &lt;&lt; " " &lt;&lt; sid;</span>
+
+<span style = "background-color:#fdd">    Any classes = sr.GetProperty(ServiceConstants::OBJECTCLASS());
+    os &lt;&lt; " objectClass=" &lt;&lt; classes.ToString() &lt;&lt; ")";
+  }</span>
+
+<span style = "background-color:#fdd">  return os;
+}</span>
+
+US_END_NAMESPACE</pre>
+	</body>
+</html>

@@ -1,0 +1,385 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelMapper2D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include &lt;mitkContourModelMapper2D.h&gt;
+
+#include &lt;mitkContourModelSubDivisionFilter.h&gt;
+
+#include &lt;vtkAppendPolyData.h&gt;
+#include &lt;vtkCellArray.h&gt;
+#include &lt;vtkCutter.h&gt;
+#include &lt;vtkPlane.h&gt;
+#include &lt;vtkPoints.h&gt;
+#include &lt;vtkProperty.h&gt;
+#include &lt;vtkSphereSource.h&gt;
+#include &lt;vtkStripper.h&gt;
+#include &lt;vtkTubeFilter.h&gt;
+
+#include &lt;mitkPlaneGeometry.h&gt;
+
+mitk::ContourModelMapper2D::ContourModelMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::ContourModelMapper2D::~ContourModelMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+const mitk::ContourModel *mitk::ContourModelMapper2D::GetInput(void)
+<span style = "background-color:#fdd">{</span>
+  // convient way to get the data from the dataNode
+<span style = "background-color:#fdd">  return static_cast&lt;const mitk::ContourModel *&gt;(GetDataNode()-&gt;GetData());
+}</span>
+
+vtkProp *mitk::ContourModelMapper2D::GetVtkProp(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{</span>
+  // return the actor corresponding to the renderer
+<span style = "background-color:#fdd">  return m_LSH.GetLocalStorage(renderer)-&gt;m_Actor;
+}</span>
+
+void mitk::ContourModelMapper2D::GenerateDataForRenderer(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{</span>
+  /*++ convert the contour to vtkPolyData and set it as input for our mapper ++*/
+
+<span style = "background-color:#fdd">  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  auto *inputContour = static_cast&lt;mitk::ContourModel *&gt;(GetDataNode()-&gt;GetData());</span>
+
+<span style = "background-color:#fdd">  const auto timestep = this-&gt;GetTimestep();</span>
+
+  // if there's something to be rendered
+<span style = "background-color:#fdd">  if (inputContour-&gt;GetNumberOfVertices(timestep) &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_OutlinePolyData = this-&gt;CreateVtkPolyDataFromContour(inputContour, renderer);</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;ApplyContourProperties(renderer);</span>
+
+<span style = "background-color:#fdd">  localStorage-&gt;m_Mapper-&gt;SetInputData(localStorage-&gt;m_OutlinePolyData);
+}</span>
+
+void mitk::ContourModelMapper2D::Update(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  bool visible = true;
+  GetDataNode()-&gt;GetVisibility(visible, renderer, "visible");</span>
+
+<span style = "background-color:#fdd">  if (!visible)
+    return;</span>
+
+  // check if there is something to be rendered
+<span style = "background-color:#fdd">  auto *data = static_cast&lt;mitk::ContourModel *&gt;(GetDataNode()-&gt;GetData());
+  if (data == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // Calculate time step of the input data for the specified renderer (integer value)
+<span style = "background-color:#fdd">  this-&gt;CalculateTimeStep(renderer);</span>
+
+<span style = "background-color:#fdd">  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+
+  // Check if time step is valid
+<span style = "background-color:#fdd">  const TimeGeometry *dataTimeGeometry = data-&gt;GetTimeGeometry();
+  if ((dataTimeGeometry == nullptr) || (dataTimeGeometry-&gt;CountTimeSteps() == 0) ||</span>
+      (!dataTimeGeometry-&gt;IsValidTimeStep(renderer-&gt;GetTimeStep())))
+  {
+    // clear the rendered polydata
+<span style = "background-color:#fdd">    localStorage-&gt;m_Mapper-&gt;RemoveAllInputs(); // SetInput(vtkSmartPointer&lt;vtkPolyData&gt;::New());
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  const DataNode *node = this-&gt;GetDataNode();
+  data-&gt;UpdateOutputInformation();</span>
+
+  // check if something important has changed and we need to rerender
+  if ((localStorage-&gt;m_LastUpdateTime &lt; node-&gt;GetMTime()) // was the node modified?
+      ||
+      (localStorage-&gt;m_LastUpdateTime &lt; data-&gt;GetPipelineMTime()) // Was the data modified?
+      ||
+      (localStorage-&gt;m_LastUpdateTime &lt;
+       renderer-&gt;GetCurrentWorldPlaneGeometryUpdateTime()) // was the geometry modified?
+      ||
+      (localStorage-&gt;m_LastUpdateTime &lt; renderer-&gt;GetCurrentWorldPlaneGeometry()-&gt;GetMTime()) ||
+      (localStorage-&gt;m_LastUpdateTime &lt; node-&gt;GetPropertyList()-&gt;GetMTime()) // was a property modified?
+<span style = "background-color:#fdd">      ||</span>
+      (localStorage-&gt;m_LastUpdateTime &lt; node-&gt;GetPropertyList(renderer)-&gt;GetMTime()))
+  {
+<span style = "background-color:#fdd">    this-&gt;GenerateDataForRenderer(renderer);</span>
+  }
+
+  // since we have checked that nothing important has changed, we can set
+  // m_LastUpdateTime to the current time
+<span style = "background-color:#fdd">  localStorage-&gt;m_LastUpdateTime.Modified();
+}</span>
+
+vtkSmartPointer&lt;vtkPolyData&gt; mitk::ContourModelMapper2D::CreateVtkPolyDataFromContour(mitk::ContourModel *inputContour,
+                                                                                      mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  const auto timestep = this-&gt;GetTimestep();</span>
+  // Create a polydata to store everything in
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkPolyData&gt; resultingPolyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();</span>
+
+  // check for the worldgeometry from the current render window
+<span style = "background-color:#fdd">  const mitk::PlaneGeometry *currentWorldGeometry = renderer-&gt;GetCurrentWorldPlaneGeometry();</span>
+
+<span style = "background-color:#fdd">  if (currentWorldGeometry)</span>
+  {
+    // origin and normal of vtkPlane
+<span style = "background-color:#fdd">    mitk::Point3D origin = currentWorldGeometry-&gt;GetOrigin();
+    mitk::Vector3D normal = currentWorldGeometry-&gt;GetNormal();</span>
+    // the implicit function to slice through the polyData
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPlane&gt; plane = vtkSmartPointer&lt;vtkPlane&gt;::New();
+    plane-&gt;SetOrigin(origin[0], origin[1], origin[2]);
+    plane-&gt;SetNormal(normal[0], normal[1], normal[2]);</span>
+
+    /* First of all convert the control points of the contourModel to vtk points
+    * and add lines in between them
+    */
+    // the points to draw
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPoints&gt; points = vtkSmartPointer&lt;vtkPoints&gt;::New();</span>
+    // the lines to connect the points
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkCellArray&gt; lines = vtkSmartPointer&lt;vtkCellArray&gt;::New();</span>
+    // Create a polydata to store everything in
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPolyData&gt; polyDataIn3D = vtkSmartPointer&lt;vtkPolyData&gt;::New();</span>
+
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkAppendPolyData&gt; appendPoly = vtkSmartPointer&lt;vtkAppendPolyData&gt;::New();</span>
+
+<span style = "background-color:#fdd">    mitk::ContourModel::Pointer renderingContour = mitk::ContourModel::New();
+    renderingContour = inputContour;</span>
+
+<span style = "background-color:#fdd">    bool subdivision = false;
+    this-&gt;GetDataNode()-&gt;GetBoolProperty("subdivision curve", subdivision, renderer);
+    if (subdivision)</span>
+    {
+<span style = "background-color:#fdd">      mitk::ContourModel::Pointer subdivContour = mitk::ContourModel::New();</span>
+
+<span style = "background-color:#fdd">      mitk::ContourModelSubDivisionFilter::Pointer subdivFilter = mitk::ContourModelSubDivisionFilter::New();</span>
+
+<span style = "background-color:#fdd">      subdivFilter-&gt;SetInput(inputContour);
+      subdivFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">      subdivContour = subdivFilter-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">      if (subdivContour-&gt;GetNumberOfVertices() == 0)</span>
+      {
+<span style = "background-color:#fdd">        subdivContour = inputContour;</span>
+      }
+
+<span style = "background-color:#fdd">      renderingContour = subdivContour;
+    }</span>
+
+    // iterate over all control points
+<span style = "background-color:#fdd">    auto current = renderingContour-&gt;IteratorBegin(timestep);
+    auto next = renderingContour-&gt;IteratorBegin(timestep);
+    if (next != renderingContour-&gt;IteratorEnd(timestep))</span>
+    {
+<span style = "background-color:#fdd">      next++;</span>
+
+<span style = "background-color:#fdd">      auto end = renderingContour-&gt;IteratorEnd(timestep);</span>
+
+<span style = "background-color:#fdd">      while (next != end)</span>
+      {
+<span style = "background-color:#fdd">        mitk::ContourModel::VertexType *currentControlPoint = *current;
+        mitk::ContourModel::VertexType *nextControlPoint = *next;</span>
+
+<span style = "background-color:#fdd">        vtkIdType p1 = points-&gt;InsertNextPoint(currentControlPoint-&gt;Coordinates[0],</span>
+                                               currentControlPoint-&gt;Coordinates[1],
+                                               currentControlPoint-&gt;Coordinates[2]);
+<span style = "background-color:#fdd">        vtkIdType p2 = points-&gt;InsertNextPoint(</span>
+          nextControlPoint-&gt;Coordinates[0], nextControlPoint-&gt;Coordinates[1], nextControlPoint-&gt;Coordinates[2]);
+        // add the line between both contorlPoints
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(p1);
+        lines-&gt;InsertCellPoint(p2);</span>
+
+<span style = "background-color:#fdd">        if (currentControlPoint-&gt;IsControlPoint)</span>
+        {
+          double coordinates[3];
+<span style = "background-color:#fdd">          coordinates[0] = currentControlPoint-&gt;Coordinates[0];
+          coordinates[1] = currentControlPoint-&gt;Coordinates[1];
+          coordinates[2] = currentControlPoint-&gt;Coordinates[2];</span>
+
+<span style = "background-color:#fdd">          double distance = plane-&gt;DistanceToPlane(coordinates);
+          if (distance &lt; 0.1)</span>
+          {
+<span style = "background-color:#fdd">            vtkSmartPointer&lt;vtkSphereSource&gt; sphere = vtkSmartPointer&lt;vtkSphereSource&gt;::New();</span>
+
+<span style = "background-color:#fdd">            sphere-&gt;SetRadius(1.2);
+            sphere-&gt;SetCenter(coordinates[0], coordinates[1], coordinates[2]);
+            sphere-&gt;Update();
+            appendPoly-&gt;AddInputConnection(sphere-&gt;GetOutputPort());
+          }</span>
+        }
+
+<span style = "background-color:#fdd">        current++;
+        next++;
+      } // end while (it!=end)</span>
+
+      // check if last control point is enabled to draw it
+<span style = "background-color:#fdd">      if ((*current)-&gt;IsControlPoint)</span>
+      {
+        double coordinates[3];
+<span style = "background-color:#fdd">        coordinates[0] = (*current)-&gt;Coordinates[0];
+        coordinates[1] = (*current)-&gt;Coordinates[1];
+        coordinates[2] = (*current)-&gt;Coordinates[2];</span>
+
+<span style = "background-color:#fdd">        double distance = plane-&gt;DistanceToPlane(coordinates);
+        if (distance &lt; 0.1)</span>
+        {
+<span style = "background-color:#fdd">          vtkSmartPointer&lt;vtkSphereSource&gt; sphere = vtkSmartPointer&lt;vtkSphereSource&gt;::New();</span>
+
+<span style = "background-color:#fdd">          sphere-&gt;SetRadius(1.2);
+          sphere-&gt;SetCenter(coordinates[0], coordinates[1], coordinates[2]);
+          sphere-&gt;Update();
+          appendPoly-&gt;AddInputConnection(sphere-&gt;GetOutputPort());
+        }</span>
+      }
+
+      /* If the contour is closed an additional line has to be created between the very first point
+      * and the last point
+      */
+<span style = "background-color:#fdd">      if (renderingContour-&gt;IsClosed(timestep))</span>
+      {
+        // add a line from the last to the first control point
+<span style = "background-color:#fdd">        mitk::ContourModel::VertexType *firstControlPoint = *(renderingContour-&gt;IteratorBegin(timestep));
+        mitk::ContourModel::VertexType *lastControlPoint = *(--(renderingContour-&gt;IteratorEnd(timestep)));
+        vtkIdType p2 = points-&gt;InsertNextPoint(</span>
+          lastControlPoint-&gt;Coordinates[0], lastControlPoint-&gt;Coordinates[1], lastControlPoint-&gt;Coordinates[2]);
+<span style = "background-color:#fdd">        vtkIdType p1 = points-&gt;InsertNextPoint(</span>
+          firstControlPoint-&gt;Coordinates[0], firstControlPoint-&gt;Coordinates[1], firstControlPoint-&gt;Coordinates[2]);
+
+        // add the line between both contorlPoints
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(p1);
+        lines-&gt;InsertCellPoint(p2);</span>
+      } // end if(isClosed)
+
+      // Add the points to the dataset
+<span style = "background-color:#fdd">      polyDataIn3D-&gt;SetPoints(points);</span>
+      // Add the lines to the dataset
+<span style = "background-color:#fdd">      polyDataIn3D-&gt;SetLines(lines);</span>
+
+      // cut through polyData
+<span style = "background-color:#fdd">      bool useCuttingPlane = false;
+      this-&gt;GetDataNode()-&gt;GetBoolProperty("use cutting plane", useCuttingPlane, renderer);
+      if (useCuttingPlane)</span>
+      {
+        // slice through the data to get a 2D representation of the (possible) 3D contour
+
+        // needed because currently there is no outher solution if the contour is within the plane
+<span style = "background-color:#fdd">        vtkSmartPointer&lt;vtkTubeFilter&gt; tubeFilter = vtkSmartPointer&lt;vtkTubeFilter&gt;::New();
+        tubeFilter-&gt;SetInputData(polyDataIn3D);
+        tubeFilter-&gt;SetRadius(0.05);</span>
+
+        // cuts through vtkPolyData with a given implicit function. In our case a plane
+<span style = "background-color:#fdd">        vtkSmartPointer&lt;vtkCutter&gt; cutter = vtkSmartPointer&lt;vtkCutter&gt;::New();</span>
+
+<span style = "background-color:#fdd">        cutter-&gt;SetCutFunction(plane);</span>
+
+<span style = "background-color:#fdd">        cutter-&gt;SetInputConnection(tubeFilter-&gt;GetOutputPort());</span>
+
+        // we want the scalars of the input - so turn off generating the scalars within vtkCutter
+<span style = "background-color:#fdd">        cutter-&gt;GenerateCutScalarsOff();
+        cutter-&gt;Update();</span>
+
+        // set to 2D representation of the contour
+<span style = "background-color:#fdd">        resultingPolyData = cutter-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">      } // end if(project contour)</span>
+      else
+      {
+        // set to 3D polyData
+<span style = "background-color:#fdd">        resultingPolyData = polyDataIn3D;</span>
+      }
+
+<span style = "background-color:#fdd">    } // end if (it != end)</span>
+
+<span style = "background-color:#fdd">    appendPoly-&gt;AddInputData(resultingPolyData);
+    appendPoly-&gt;Update();</span>
+
+    // return contour with control points
+<span style = "background-color:#fdd">    return appendPoly-&gt;GetOutput();
+  }</span>
+  else
+  {
+    // return empty polyData
+<span style = "background-color:#fdd">    return resultingPolyData;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ContourModelMapper2D::ApplyContourProperties(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  float lineWidth(1.0);
+  if (this-&gt;GetDataNode()-&gt;GetFloatProperty("width", lineWidth, renderer))</span>
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_Actor-&gt;GetProperty()-&gt;SetLineWidth(lineWidth);</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::ColorProperty::Pointer colorprop =</span>
+    dynamic_cast&lt;mitk::ColorProperty *&gt;(GetDataNode()-&gt;GetProperty("color", renderer));
+<span style = "background-color:#fdd">  if (colorprop)</span>
+  {
+    // set the color of the contour
+<span style = "background-color:#fdd">    double red = colorprop-&gt;GetColor().GetRed();
+    double green = colorprop-&gt;GetColor().GetGreen();
+    double blue = colorprop-&gt;GetColor().GetBlue();
+    localStorage-&gt;m_Actor-&gt;GetProperty()-&gt;SetColor(red, green, blue);</span>
+  }
+
+  // make sure that directional lighting isn't used for our contour
+<span style = "background-color:#fdd">  localStorage-&gt;m_Actor-&gt;GetProperty()-&gt;SetAmbient(1.0);
+  localStorage-&gt;m_Actor-&gt;GetProperty()-&gt;SetDiffuse(0.0);
+  localStorage-&gt;m_Actor-&gt;GetProperty()-&gt;SetSpecular(0.0);
+}</span>
+
+/*+++++++++++++++++++ LocalStorage part +++++++++++++++++++++++++*/
+
+mitk::ContourModelMapper2D::LocalStorage *mitk::ContourModelMapper2D::GetLocalStorage(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  return m_LSH.GetLocalStorage(renderer);
+}</span>
+
+mitk::ContourModelMapper2D::LocalStorage::LocalStorage()
+<span style = "background-color:#fdd">{
+  m_Mapper = vtkSmartPointer&lt;vtkPolyDataMapper&gt;::New();
+  m_Actor = vtkSmartPointer&lt;vtkActor&gt;::New();
+  m_OutlinePolyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();</span>
+
+  // set the mapper for the actor
+<span style = "background-color:#fdd">  m_Actor-&gt;SetMapper(m_Mapper);
+}</span>
+
+void mitk::ContourModelMapper2D::SetDefaultProperties(mitk::DataNode *node,
+                                                      mitk::BaseRenderer *renderer,
+                                                      bool overwrite)
+<span style = "background-color:#fdd">{
+  node-&gt;AddProperty("color", ColorProperty::New(0.9, 1.0, 0.1), renderer, overwrite);
+  node-&gt;AddProperty("width", mitk::FloatProperty::New(1.0), renderer, overwrite);
+  node-&gt;AddProperty("use cutting plane", mitk::BoolProperty::New(true), renderer, overwrite);
+  node-&gt;AddProperty("subdivision curve", mitk::BoolProperty::New(false), renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  Superclass::SetDefaultProperties(node, renderer, overwrite);
+}</span></pre>
+	</body>
+</html>

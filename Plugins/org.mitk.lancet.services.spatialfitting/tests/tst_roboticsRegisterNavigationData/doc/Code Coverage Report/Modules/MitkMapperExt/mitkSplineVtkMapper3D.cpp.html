@@ -1,0 +1,233 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSplineVtkMapper3D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkSplineVtkMapper3D.h"
+#include &lt;mitkPointSet.h&gt;
+#include &lt;mitkProperties.h&gt;
+#include &lt;vtkActor.h&gt;
+#include &lt;vtkCardinalSpline.h&gt;
+#include &lt;vtkCellArray.h&gt;
+#include &lt;vtkPoints.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkPolyDataMapper.h&gt;
+#include &lt;vtkProp.h&gt;
+#include &lt;vtkPropAssembly.h&gt;
+#include &lt;vtkPropCollection.h&gt;
+#include &lt;vtkProperty.h&gt;
+#include &lt;vtkTubeFilter.h&gt;
+
+<span style = "background-color:#fdd">mitk::SplineVtkMapper3D::SplineVtkMapper3D() : m_SplinesAvailable(false), m_SplinesAddedToAssembly(false)
+{
+  m_SplinesActor = vtkActor::New();
+  m_SplineAssembly = vtkPropAssembly::New();
+  m_SplineResolution = 500;
+}</span>
+
+mitk::SplineVtkMapper3D::~SplineVtkMapper3D()
+<span style = "background-color:#fdd">{
+  m_SplinesActor-&gt;Delete();
+  m_SplineAssembly-&gt;Delete();
+}</span>
+
+vtkProp *mitk::SplineVtkMapper3D::GetVtkProp(mitk::BaseRenderer * /*renderer*/)
+<span style = "background-color:#fdd">{
+  return m_SplineAssembly;
+}</span>
+
+void mitk::SplineVtkMapper3D::UpdateVtkTransform(mitk::BaseRenderer * /*renderer*/)
+<span style = "background-color:#fdd">{
+  vtkLinearTransform *vtktransform = this-&gt;GetDataNode()-&gt;GetVtkTransform(this-&gt;GetTimestep());</span>
+
+<span style = "background-color:#fdd">  m_SplinesActor-&gt;SetUserTransform(vtktransform);
+}</span>
+
+void mitk::SplineVtkMapper3D::GenerateDataForRenderer(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{</span>
+  //TODO not working because multi 3D support,fix later
+  // BaseLocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+  //
+  // // only update spline if UpdateSpline has not been called from
+  // // external, e.g. by the SplineMapper2D. But call it the first time when m_SplineUpdateTime = 0 and m_LastUpdateTime =
+  // // 0.
+  // if (m_SplineUpdateTime &lt; ls-&gt;GetLastGenerateDataTime() || m_SplineUpdateTime == 0)
+  // {
+  //   this-&gt;UpdateSpline();
+  //   this-&gt;ApplyAllProperties(renderer, m_SplinesActor);
+  // }
+  //
+  // if (m_SplinesAvailable)
+  // {
+  //   if (!m_SplinesAddedToAssembly)
+  //   {
+  //     m_SplineAssembly-&gt;AddPart(m_SplinesActor);
+  //     m_SplinesAddedToAssembly = true;
+  //   }
+  // }
+  // else
+  // {
+  //   if (m_SplinesAddedToAssembly)
+  //   {
+  //     m_SplineAssembly-&gt;RemovePart(m_SplinesActor);
+  //     m_SplinesAddedToAssembly = false;
+  //   }
+  // }
+  //
+  // bool visible = true;
+  // GetDataNode()-&gt;GetVisibility(visible, renderer, "visible");
+  //
+  // if (!visible)
+  // {
+  //   m_SplinesActor-&gt;VisibilityOff();
+  //   m_SplineAssembly-&gt;VisibilityOff();
+  // }
+  // else
+  // {
+  //   m_SplinesActor-&gt;VisibilityOn();
+  //   m_SplineAssembly-&gt;VisibilityOn();
+  //
+  //   // remove the PointsAssembly if it was added in superclass. No need to display points and spline!
+  //   if (m_SplineAssembly-&gt;GetParts()-&gt;IsItemPresent(m_PointsAssembly))
+  //     m_SplineAssembly-&gt;RemovePart(m_PointsAssembly);
+  // }
+  // // if the properties have been changed, then refresh the properties
+  // if ((m_SplineUpdateTime &lt; this-&gt;m_DataNode-&gt;GetPropertyList()-&gt;GetMTime()) ||
+  //     (m_SplineUpdateTime &lt; this-&gt;m_DataNode-&gt;GetPropertyList(renderer)-&gt;GetMTime()))
+  //   this-&gt;ApplyAllProperties(renderer, m_SplinesActor);
+<span style = "background-color:#fdd">}</span>
+
+void mitk::SplineVtkMapper3D::ApplyAllProperties(BaseRenderer *renderer, vtkActor *actor)
+<span style = "background-color:#fdd">{
+  Superclass::ApplyColorAndOpacityProperties(renderer, actor);</span>
+
+  // vtk changed the type of rgba during releases. Due to that, the following convert is done
+<span style = "background-color:#fdd">  double rgba[4] = {1.0f, 1.0f, 1.0f, 1.0f}; // white</span>
+
+  // getting the color from DataNode
+  float temprgba[4];
+<span style = "background-color:#fdd">  this-&gt;GetDataNode()-&gt;GetColor(&amp;temprgba[0], nullptr);</span>
+  // convert to rgba, what ever type it has!
+<span style = "background-color:#fdd">  rgba[0] = temprgba[0];
+  rgba[1] = temprgba[1];
+  rgba[2] = temprgba[2];
+  rgba[3] = temprgba[3];</span>
+  // finaly set the color inside the actor
+<span style = "background-color:#fdd">  m_SplinesActor-&gt;GetProperty()-&gt;SetColor(rgba);</span>
+
+  float lineWidth;
+<span style = "background-color:#fdd">  if (dynamic_cast&lt;mitk::IntProperty *&gt;(this-&gt;GetDataNode()-&gt;GetProperty("line width")) == nullptr)
+    lineWidth = 1.0;</span>
+  else
+<span style = "background-color:#fdd">    lineWidth = dynamic_cast&lt;mitk::IntProperty *&gt;(this-&gt;GetDataNode()-&gt;GetProperty("line width"))-&gt;GetValue();
+  m_SplinesActor-&gt;GetProperty()-&gt;SetLineWidth(lineWidth);</span>
+
+<span style = "background-color:#fdd">  m_SplineUpdateTime.Modified();
+}</span>
+
+bool mitk::SplineVtkMapper3D::SplinesAreAvailable()
+<span style = "background-color:#fdd">{
+  return m_SplinesAvailable;
+}</span>
+
+vtkPolyData *mitk::SplineVtkMapper3D::GetSplinesPolyData()
+<span style = "background-color:#fdd">{
+  if (m_SplinesAvailable)
+    return (dynamic_cast&lt;vtkPolyDataMapper *&gt;(m_SplinesActor-&gt;GetMapper()))-&gt;GetInput();</span>
+  else
+<span style = "background-color:#fdd">    return nullptr;
+}</span>
+
+vtkActor *mitk::SplineVtkMapper3D::GetSplinesActor()
+<span style = "background-color:#fdd">{
+  if (m_SplinesAvailable)
+    return m_SplinesActor;</span>
+  else
+<span style = "background-color:#fdd">    return vtkActor::New();
+}</span>
+
+void mitk::SplineVtkMapper3D::UpdateSpline()
+<span style = "background-color:#fdd">{
+  auto input = this-&gt;GetInput();</span>
+  //  input-&gt;Update();//already done in superclass
+
+  // Number of points on the spline
+<span style = "background-color:#fdd">  unsigned int numberOfOutputPoints = m_SplineResolution;
+  unsigned int numberOfInputPoints = input-&gt;GetSize();</span>
+
+<span style = "background-color:#fdd">  if (numberOfInputPoints &gt;= 2)</span>
+  {
+<span style = "background-color:#fdd">    m_SplinesAvailable = true;
+    vtkCardinalSpline *splineX = vtkCardinalSpline::New();
+    vtkCardinalSpline *splineY = vtkCardinalSpline::New();
+    vtkCardinalSpline *splineZ = vtkCardinalSpline::New();
+    unsigned int index = 0;
+    mitk::PointSet::DataType::PointsContainer::Pointer pointsContainer = input-&gt;GetPointSet()-&gt;GetPoints();
+    for (mitk::PointSet::DataType::PointsContainer::Iterator it = pointsContainer-&gt;Begin();
+         it != pointsContainer-&gt;End();
+         ++it, ++index)</span>
+    // for ( unsigned int i = 0 ; i &lt; numberOfInputPoints; ++i )
+    {
+<span style = "background-color:#fdd">      mitk::PointSet::PointType point = it-&gt;Value();
+      splineX-&gt;AddPoint(index, point[0]);
+      splineY-&gt;AddPoint(index, point[1]);
+      splineZ-&gt;AddPoint(index, point[2]);
+    }
+    vtkPoints *points = vtkPoints::New();
+    vtkPolyData *profileData = vtkPolyData::New();</span>
+
+    // Interpolate x, y and z by using the three spline filters and
+    // create new points
+<span style = "background-color:#fdd">    double t = 0.0f;
+    for (unsigned int i = 0; i &lt; numberOfOutputPoints; ++i)</span>
+    {
+<span style = "background-color:#fdd">      t = ((((double)numberOfInputPoints) - 1.0f) / (((double)numberOfOutputPoints) - 1.0f)) * ((double)i);
+      points-&gt;InsertPoint(i, splineX-&gt;Evaluate(t), splineY-&gt;Evaluate(t), splineZ-&gt;Evaluate(t));
+    }</span>
+
+    // Create the polyline.
+<span style = "background-color:#fdd">    vtkCellArray *lines = vtkCellArray::New();
+    lines-&gt;InsertNextCell(numberOfOutputPoints);
+    for (unsigned int i = 0; i &lt; numberOfOutputPoints; ++i)
+      lines-&gt;InsertCellPoint(i);</span>
+
+<span style = "background-color:#fdd">    profileData-&gt;SetPoints(points);
+    profileData-&gt;SetLines(lines);</span>
+
+    // Add thickness to the resulting line.
+    // vtkTubeFilter* profileTubes = vtkTubeFilter::New();
+    // profileTubes-&gt;SetNumberOfSides(8);
+    // profileTubes-&gt;SetInput(profileData);
+    // profileTubes-&gt;SetRadius(.005);
+
+<span style = "background-color:#fdd">    vtkPolyDataMapper *profileMapper = vtkPolyDataMapper::New();
+    profileMapper-&gt;SetInputData(profileData);</span>
+
+<span style = "background-color:#fdd">    m_SplinesActor-&gt;SetMapper(profileMapper);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_SplinesAvailable = false;</span>
+  }
+<span style = "background-color:#fdd">  m_SplineUpdateTime.Modified();
+}</span></pre>
+	</body>
+</html>

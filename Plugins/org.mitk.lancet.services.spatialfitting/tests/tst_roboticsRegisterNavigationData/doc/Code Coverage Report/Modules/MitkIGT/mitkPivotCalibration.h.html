@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPivotCalibration.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef PIVOTCALIBRATION_H_HEADER_INCLUDED_
+#define PIVOTCALIBRATION_H_HEADER_INCLUDED_
+
+#include "MitkIGTExports.h"
+#include &lt;itkObject.h&gt;
+#include &lt;itkObjectFactory.h&gt;
+#include &lt;mitkCommon.h&gt;
+#include &lt;mitkVector.h&gt;
+#include &lt;mitkNavigationData.h&gt;
+#include &lt;vector&gt;
+
+
+namespace mitk {
+    /**Documentation
+    * \brief Class for performing a pivot calibration out of a set of navigation datas
+    * \ingroup IGT
+    */
+  class MITKIGT_EXPORT PivotCalibration : public itk::Object
+    {
+    public:
+<span style = "background-color:#fdd">      mitkClassMacroItkParent(PivotCalibration, itk::Object);
+      itkNewMacro(Self);</span>
+      void AddNavigationData(mitk::NavigationData::Pointer data);
+      /** @brief Computes the pivot point and rotation/axis on the given
+        *        navigation datas. You can get the results afterwards.
+        * @return Returns true if the computation was successfull, false if not.
+        */
+      bool ComputePivotResult();
+
+<span style = "background-color:#fdd">      itkGetMacro(ResultPivotPoint,mitk::Point3D);
+      itkGetMacro(ResultRMSError,double);</span>
+
+
+    protected:
+      PivotCalibration();
+      ~PivotCalibration() override;
+
+      std::vector&lt;mitk::NavigationData::Pointer&gt; m_NavigationDatas;
+
+      bool ComputePivotPoint();
+      bool ComputePivotAxis();
+
+      mitk::Point3D m_ResultPivotPoint;
+      double m_ResultRMSError;
+
+    };
+} // Ende Namespace
+#endif</pre>
+	</body>
+</html>

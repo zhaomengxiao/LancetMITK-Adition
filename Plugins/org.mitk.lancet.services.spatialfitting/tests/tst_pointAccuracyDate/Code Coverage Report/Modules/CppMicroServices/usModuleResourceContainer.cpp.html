@@ -1,0 +1,242 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usModuleResourceContainer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+#include "usModuleResourceContainer_p.h"
+
+#include "usModuleInfo.h"
+#include "usModuleUtils_p.h"
+#include "usModuleResource.h"
+#include "usLog_p.h"
+
+#include "miniz.h"
+
+#include &lt;set&gt;
+#include &lt;cstring&gt;
+#include &lt;climits&gt;
+#include &lt;cassert&gt;
+
+US_BEGIN_NAMESPACE
+
+struct ModuleResourceContainerPrivate
+{
+  ModuleResourceContainerPrivate(const ModuleInfo* moduleInfo)
+<span style = "background-color:#dfd">    : m_ModuleInfo(moduleInfo)
+    , m_IsValid(false)
+    , m_ZipArchive()
+  {}</span>
+
+  typedef std::pair&lt;std::string, int&gt; NameIndexPair;
+
+  struct PairComp
+  {
+    bool operator()(const NameIndexPair&amp; p1, const NameIndexPair&amp; p2) const
+<span style = "background-color:#dfd">    {
+      return p1.first &lt; p2.first;
+    }</span>
+  };
+
+  typedef std::set&lt;NameIndexPair, PairComp&gt; SetType;
+
+  void InitSortedEntries()
+<span style = "background-color:#dfd">  {
+    if (m_SortedEntries.empty())</span>
+    {
+<span style = "background-color:#dfd">      mz_uint numFiles = mz_zip_reader_get_num_files(&amp;m_ZipArchive);
+      for (mz_uint fileIndex = 0; fileIndex &lt; numFiles; ++fileIndex)</span>
+      {
+        char fileName[MZ_ZIP_MAX_ARCHIVE_FILENAME_SIZE];
+<span style = "background-color:#dfd">        mz_zip_reader_get_filename(&amp;m_ZipArchive, fileIndex, fileName, MZ_ZIP_MAX_ARCHIVE_FILENAME_SIZE);
+        m_SortedEntries.insert(std::make_pair(std::string(fileName), fileIndex));
+      }</span>
+    }
+<span style = "background-color:#dfd">  }</span>
+
+  const ModuleInfo* m_ModuleInfo;
+  bool m_IsValid;
+
+  mz_zip_archive m_ZipArchive;
+
+  std::set&lt;NameIndexPair, PairComp&gt; m_SortedEntries;
+};
+
+ModuleResourceContainer::ModuleResourceContainer(const ModuleInfo* moduleInfo)
+<span style = "background-color:#dfd">  : d(new ModuleResourceContainerPrivate(moduleInfo))
+{
+  if (mz_zip_reader_init_file(&amp;d-&gt;m_ZipArchive, moduleInfo-&gt;location.c_str(), 0))</span>
+  {
+<span style = "background-color:#dfd">    d-&gt;m_IsValid = true;
+  }</span>
+  else
+  {
+<span style = "background-color:#dfd">    US_DEBUG &lt;&lt; "Could not init zip archive for module " &lt;&lt; moduleInfo-&gt;name;</span>
+  }
+<span style = "background-color:#dfd">}</span>
+
+ModuleResourceContainer::~ModuleResourceContainer()
+<span style = "background-color:#dfd">{
+  if (IsValid())</span>
+  {
+<span style = "background-color:#dfd">    mz_zip_reader_end(&amp;d-&gt;m_ZipArchive);</span>
+  }
+<span style = "background-color:#dfd">  delete d;
+}</span>
+
+bool ModuleResourceContainer::IsValid() const
+<span style = "background-color:#dfd">{
+  return d-&gt;m_IsValid;
+}</span>
+
+bool ModuleResourceContainer::GetStat(ModuleResourceContainer::Stat&amp; stat) const
+<span style = "background-color:#dfd">{
+  if (IsValid())</span>
+  {
+<span style = "background-color:#dfd">    int fileIndex = mz_zip_reader_locate_file(&amp;d-&gt;m_ZipArchive, stat.filePath.c_str(), nullptr, 0);
+    if (fileIndex &gt;= 0)</span>
+    {
+<span style = "background-color:#dfd">      return GetStat(fileIndex, stat);</span>
+    }
+  }
+<span style = "background-color:#dfd">  return false;
+}</span>
+
+bool ModuleResourceContainer::GetStat(int index, ModuleResourceContainer::Stat&amp; stat) const
+<span style = "background-color:#dfd">{
+  if (IsValid())</span>
+  {
+<span style = "background-color:#dfd">    if (index &gt;= 0)</span>
+    {
+      mz_zip_archive_file_stat zipStat;
+<span style = "background-color:#dfd">      if (!mz_zip_reader_file_stat(&amp;d-&gt;m_ZipArchive, index, &amp;zipStat))</span>
+      {
+<span style = "background-color:#fdd">        return false;</span>
+      }
+<span style = "background-color:#dfd">      stat.index = index;
+      stat.filePath = zipStat.m_filename;
+      stat.isDir = mz_zip_reader_is_file_a_directory(&amp;d-&gt;m_ZipArchive, index) ? true : false;
+      stat.modifiedTime = zipStat.m_time;</span>
+      // This will limit the size info from uint64 to uint32 on 32-bit
+      // architectures. We don't care because we assume resources &gt; 2GB
+      // don't make sense to be embedded in a module anyway.
+<span style = "background-color:#dfd">      assert(zipStat.m_comp_size &lt; INT_MAX);
+      assert(zipStat.m_uncomp_size &lt; INT_MAX);
+      stat.uncompressedSize = static_cast&lt;int&gt;(zipStat.m_uncomp_size);
+      return true;</span>
+    }
+  }
+<span style = "background-color:#fdd">  return false;</span>
+<span style = "background-color:#dfd">}</span>
+
+void* ModuleResourceContainer::GetData(int index) const
+<span style = "background-color:#dfd">{
+  return mz_zip_reader_extract_to_heap(&amp;d-&gt;m_ZipArchive, index, nullptr, 0);
+}</span>
+
+const ModuleInfo*ModuleResourceContainer::GetModuleInfo() const
+<span style = "background-color:#dfd">{
+  return d-&gt;m_ModuleInfo;
+}</span>
+
+void ModuleResourceContainer::GetChildren(const std::string&amp; resourcePath, bool relativePaths,
+                                          std::vector&lt;std::string&gt;&amp; names, std::vector&lt;uint32_t&gt;&amp; indices) const
+<span style = "background-color:#dfd">{
+  d-&gt;InitSortedEntries();</span>
+
+<span style = "background-color:#dfd">  ModuleResourceContainerPrivate::SetType::const_iterator iter =</span>
+      d-&gt;m_SortedEntries.find(std::make_pair(resourcePath, 0));
+<span style = "background-color:#dfd">  if (iter == d-&gt;m_SortedEntries.end())</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#dfd">  for (++iter; iter != d-&gt;m_SortedEntries.end(); ++iter)</span>
+  {
+<span style = "background-color:#dfd">    if (resourcePath.size() &gt; iter-&gt;first.size()) break;
+    if (iter-&gt;first.compare(0, resourcePath.size(), resourcePath) == 0)</span>
+    {
+<span style = "background-color:#dfd">      std::size_t pos = iter-&gt;first.find_first_of('/', resourcePath.size());
+      if (pos == std::string::npos || pos == iter-&gt;first.size()-1)</span>
+      {
+<span style = "background-color:#dfd">        if (relativePaths)</span>
+        {
+<span style = "background-color:#dfd">          names.push_back(iter-&gt;first.substr(resourcePath.size()));
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          names.push_back(iter-&gt;first);</span>
+        }
+<span style = "background-color:#dfd">        indices.push_back(iter-&gt;second);</span>
+      }
+    }
+<span style = "background-color:#dfd">  }
+}</span>
+
+void ModuleResourceContainer::FindNodes(const std::string&amp; path, const std::string&amp; filePattern,
+                                        bool recurse, std::vector&lt;ModuleResource&gt;&amp; resources) const
+<span style = "background-color:#dfd">{
+  std::vector&lt;std::string&gt; names;
+  std::vector&lt;uint32_t&gt; indices;</span>
+
+<span style = "background-color:#dfd">  this-&gt;GetChildren(path, true, names, indices);</span>
+
+<span style = "background-color:#dfd">  for(std::size_t i = 0, s = names.size(); i &lt; s; ++i)</span>
+  {
+<span style = "background-color:#dfd">    if (*names[i].rbegin() == '/' &amp;&amp; recurse)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;FindNodes(path + names[i], filePattern, recurse, resources);</span>
+    }
+<span style = "background-color:#dfd">    if (this-&gt;Matches(names[i], filePattern))</span>
+    {
+<span style = "background-color:#dfd">      resources.push_back(ModuleResource(indices[i], *this));</span>
+    }
+<span style = "background-color:#dfd">  }
+}</span>
+
+bool ModuleResourceContainer::Matches(const std::string&amp; name, const std::string&amp; filePattern) const
+<span style = "background-color:#dfd">{</span>
+  // short-cut
+<span style = "background-color:#dfd">  if (filePattern == "*") return true;</span>
+
+<span style = "background-color:#dfd">  std::stringstream ss(filePattern);
+  std::string tok;
+  std::size_t pos = 0;
+  while(std::getline(ss, tok, '*'))</span>
+  {
+<span style = "background-color:#dfd">    std::size_t index = name.find(tok, pos);
+    if (index == std::string::npos) return false;
+    pos = index + tok.size();
+  }
+  return true;
+}</span>
+
+US_END_NAMESPACE</pre>
+	</body>
+</html>

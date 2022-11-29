@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkBinaryImageToLabelSetImageFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkBinaryImageToLabelSetImageFilter.h"
+
+#include &lt;mitkImage.h&gt;
+#include &lt;mitkLabelSetImage.h&gt;
+#include &lt;mitkImageAccessByItk.h&gt;
+#include &lt;mitkITKImageImport.h&gt;
+
+//itk
+#include &lt;itkBinaryImageToLabelMapFilter.h&gt;
+#include &lt;itkLabelMapToLabelImageFilter.h&gt;
+
+
+  template &lt;typename TPixel, unsigned int VImageDimension&gt;
+  void mitk::BinaryImageToLabelSetImageFilter::ApplyBinaryImageToLabelMapFilter(const itk::Image&lt;TPixel, VImageDimension&gt;* inputImage)
+<span style = "background-color:#fdd">  {</span>
+    using ImageType = itk::Image&lt;TPixel, VImageDimension&gt;;
+    using  BinaryImageToLabelMapFilterType = itk::BinaryImageToLabelMapFilter&lt;ImageType&gt;;
+<span style = "background-color:#fdd">    typename BinaryImageToLabelMapFilterType::Pointer binaryImageToLabelMapFilter = BinaryImageToLabelMapFilterType::New();
+    binaryImageToLabelMapFilter-&gt;SetInput(inputImage);
+    binaryImageToLabelMapFilter-&gt;SetInputForegroundValue(m_ForegroundValue);
+    binaryImageToLabelMapFilter-&gt;SetFullyConnected(m_FullyConnected);</span>
+
+    using LabelMap2ImageType = itk::LabelMapToLabelImageFilter&lt; typename BinaryImageToLabelMapFilterType::OutputImageType, ImageType&gt;;
+
+<span style = "background-color:#fdd">    typename LabelMap2ImageType::Pointer label2image = LabelMap2ImageType::New();
+    label2image-&gt;SetInput(binaryImageToLabelMapFilter-&gt;GetOutput());
+    label2image-&gt;Update();
+    auto labeledImage = mitk::ImportItkImage(label2image-&gt;GetOutput());</span>
+
+<span style = "background-color:#fdd">    if (m_OutputIsLabelSetImage) {
+      auto labeledBinaryImage = mitk::LabelSetImage::New();
+      labeledBinaryImage-&gt;InitializeByLabeledImage(labeledImage);
+      this-&gt;SetOutput(MakeNameFromOutputIndex(0), labeledBinaryImage.GetPointer());
+    }</span>
+    else {
+<span style = "background-color:#fdd">      this-&gt;SetOutput(MakeNameFromOutputIndex(0), labeledImage.GetPointer());</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void mitk::BinaryImageToLabelSetImageFilter::VerifyInputImage(const mitk::Image* inputImage) const
+<span style = "background-color:#fdd">  {
+    if (!inputImage-&gt;IsInitialized())
+      mitkThrow() &lt;&lt; "Input image is not initialized.";</span>
+
+<span style = "background-color:#fdd">    if (!inputImage-&gt;IsVolumeSet())
+      mitkThrow() &lt;&lt; "Input image volume is not set.";</span>
+
+<span style = "background-color:#fdd">    auto geometry = inputImage-&gt;GetGeometry();</span>
+
+<span style = "background-color:#fdd">    if (nullptr == geometry || !geometry-&gt;IsValid())
+      mitkThrow() &lt;&lt; "Input image has invalid geometry.";</span>
+
+<span style = "background-color:#fdd">    if (!geometry-&gt;GetImageGeometry())
+      mitkThrow() &lt;&lt; "Geometry of input image is not an image geometry.";
+  }</span>
+
+void mitk::BinaryImageToLabelSetImageFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  const auto* inputImage = this-&gt;GetInput();
+  AccessByItk(inputImage, ApplyBinaryImageToLabelMapFilter);
+}</span>
+
+void mitk::BinaryImageToLabelSetImageFilter::SetInput(const InputImageType* image)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetInput() == image)
+    return;</span>
+
+<span style = "background-color:#fdd">  Superclass::SetInput(image);
+}</span>
+
+void mitk::BinaryImageToLabelSetImageFilter::SetInput(unsigned int index, const InputImageType* image)
+<span style = "background-color:#fdd">{
+  if (0 != index)
+    mitkThrow() &lt;&lt; "Input index " &lt;&lt; index &lt;&lt; " is invalid.";</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetInput(image);
+}</span>
+
+void mitk::BinaryImageToLabelSetImageFilter::VerifyInputInformation() const
+<span style = "background-color:#fdd">{
+  Superclass::VerifyInputInformation();</span>
+
+<span style = "background-color:#fdd">  VerifyInputImage(this-&gt;GetInput());
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkT2DecayModel.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkT2DecayModel.h"
+#include "mitkNumericConstants.h"
+
+std::string mitk::T2DecayModel::GetModelDisplayName() const
+<span style = "background-color:#fdd">{
+  return "T2 Decay Model";
+};</span>
+
+std::string mitk::T2DecayModel::GetModelType() const
+<span style = "background-color:#dfd">{
+  return "MRSignal";
+};</span>
+
+mitk::T2DecayModel::FunctionStringType mitk::T2DecayModel::GetFunctionString() const
+<span style = "background-color:#fdd">{
+  return "M0 * exp(-t/T2)";
+};</span>
+
+std::string mitk::T2DecayModel::GetXName() const
+<span style = "background-color:#fdd">{
+  return "t";
+};</span>
+
+mitk::T2DecayModel::ParameterNamesType
+mitk::T2DecayModel::GetParameterNames() const
+<span style = "background-color:#fdd">{
+  ParameterNamesType result;
+  result.push_back("M0");
+  result.push_back("T2");
+  return result;
+};</span>
+
+mitk::T2DecayModel::ParametersSizeType
+mitk::T2DecayModel::GetNumberOfParameters() const
+<span style = "background-color:#fdd">{
+  return 2;
+};</span>
+
+mitk::T2DecayModel::ModelResultType
+mitk::T2DecayModel::ComputeModelfunction(const ParametersType&amp; parameters) const
+<span style = "background-color:#fdd">{
+  ModelResultType signal(m_TimeGrid.GetSize());</span>
+
+<span style = "background-color:#fdd">  ModelResultType::iterator signalPos = signal.begin();</span>
+
+<span style = "background-color:#fdd">  for (const auto&amp; gridPos : m_TimeGrid)</span>
+  {
+<span style = "background-color:#fdd">    *signalPos = parameters[0] * exp(-1.0 * gridPos/ parameters[1]);
+    ++signalPos;
+  }</span>
+
+<span style = "background-color:#fdd">  return signal;
+};</span>
+
+mitk::T2DecayModel::ParameterNamesType mitk::T2DecayModel::GetStaticParameterNames() const
+<span style = "background-color:#fdd">{
+  ParameterNamesType result;</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::T2DecayModel::ParametersSizeType  mitk::T2DecayModel::GetNumberOfStaticParameters() const
+<span style = "background-color:#fdd">{
+  return 0;
+}</span>
+
+void mitk::T2DecayModel::SetStaticParameter(const ParameterNameType&amp; /*name*/,
+    const StaticParameterValuesType&amp; /*values*/)
+<span style = "background-color:#fdd">{</span>
+  //do nothing
+<span style = "background-color:#fdd">};</span>
+
+mitk::T2DecayModel::StaticParameterValuesType mitk::T2DecayModel::GetStaticParameterValue(
+  const ParameterNameType&amp; /*name*/) const
+<span style = "background-color:#fdd">{
+  StaticParameterValuesType result;</span>
+
+  //do nothing
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::T2DecayModel::DerivedParametersSizeType mitk::T2DecayModel::GetNumberOfDerivedParameters() const
+<span style = "background-color:#fdd">{
+  return 1;
+}</span>
+
+mitk::T2DecayModel::DerivedParameterNamesType mitk::T2DecayModel::GetDerivedParameterNames() const
+<span style = "background-color:#fdd">{
+  ParameterNamesType result;
+  result.push_back("R2");
+  return result;
+};</span>
+
+mitk::ModelBase::DerivedParameterMapType mitk::T2DecayModel::ComputeDerivedParameters(
+  const mitk::ModelBase::ParametersType &amp;parameters) const
+<span style = "background-color:#fdd">{
+  DerivedParameterMapType result;
+  double inverse = 1.0 / (parameters[1] + mitk::eps);
+  result.insert(std::make_pair("R2", inverse));
+  return result;
+};</span>
+
+itk::LightObject::Pointer mitk::T2DecayModel::InternalClone() const
+<span style = "background-color:#fdd">{
+  T2DecayModel::Pointer newClone = T2DecayModel::New();</span>
+
+<span style = "background-color:#fdd">  newClone-&gt;SetTimeGrid(this-&gt;m_TimeGrid);</span>
+
+<span style = "background-color:#fdd">  return newClone.GetPointer();
+};</span></pre>
+	</body>
+</html>

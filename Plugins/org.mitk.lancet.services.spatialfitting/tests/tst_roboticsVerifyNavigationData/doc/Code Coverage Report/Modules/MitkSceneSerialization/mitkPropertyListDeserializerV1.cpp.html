@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPropertyListDeserializerV1.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPropertyListDeserializerV1.h"
+#include "mitkBasePropertySerializer.h"
+#include "mitkSerializerMacros.h"
+#include &lt;tinyxml2.h&gt;
+
+<span style = "background-color:#dfd">MITK_REGISTER_SERIALIZER(PropertyListDeserializerV1)</span>
+
+mitk::PropertyListDeserializerV1::PropertyListDeserializerV1()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::PropertyListDeserializerV1::~PropertyListDeserializerV1()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::PropertyListDeserializerV1::Deserialize()
+<span style = "background-color:#fdd">{
+  bool error(false);</span>
+
+<span style = "background-color:#fdd">  m_PropertyList = PropertyList::New();</span>
+
+<span style = "background-color:#fdd">  tinyxml2::XMLDocument document;
+  if (tinyxml2::XML_SUCCESS != document.LoadFile(m_Filename.c_str()))</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Could not open/read/parse " &lt;&lt; m_Filename &lt;&lt; "\nTinyXML reports: " &lt;&lt; document.ErrorStr()</span>
+               &lt;&lt; std::endl;
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  for (auto *propertyElement = document.FirstChildElement("property"); propertyElement != nullptr;
+       propertyElement = propertyElement-&gt;NextSiblingElement("property"))</span>
+  {
+<span style = "background-color:#fdd">    const char *keya = propertyElement-&gt;Attribute("key");
+    std::string key(keya ? keya : "");</span>
+
+<span style = "background-color:#fdd">    const char *typea = propertyElement-&gt;Attribute("type");
+    std::string type(typea ? typea : "");</span>
+
+    // hand propertyElement to specific reader
+<span style = "background-color:#fdd">    std::stringstream propertyDeserializerClassName;
+    propertyDeserializerClassName &lt;&lt; type &lt;&lt; "Serializer";</span>
+
+<span style = "background-color:#fdd">    std::list&lt;itk::LightObject::Pointer&gt; readers =</span>
+      itk::ObjectFactoryBase::CreateAllInstance(propertyDeserializerClassName.str().c_str());
+<span style = "background-color:#fdd">    if (readers.size() &lt; 1)</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "No property reader found for " &lt;&lt; type;
+      error = true;</span>
+    }
+<span style = "background-color:#fdd">    if (readers.size() &gt; 1)</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Multiple property readers found for " &lt;&lt; type &lt;&lt; ". Using arbitrary first one.";</span>
+    }
+
+<span style = "background-color:#fdd">    for (auto iter = readers.begin(); iter != readers.end(); ++iter)</span>
+    {
+<span style = "background-color:#fdd">      if (auto *reader = dynamic_cast&lt;BasePropertySerializer *&gt;(iter-&gt;GetPointer()))</span>
+      {
+<span style = "background-color:#fdd">        BaseProperty::Pointer property = reader-&gt;Deserialize(propertyElement-&gt;FirstChildElement());
+        if (property.IsNotNull())</span>
+        {
+<span style = "background-color:#fdd">          m_PropertyList-&gt;ReplaceProperty(key, property);
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          MITK_ERROR &lt;&lt; "There were errors while loading property '" &lt;&lt; key &lt;&lt; "' of type " &lt;&lt; type</span>
+                     &lt;&lt; ". Your data may be corrupted";
+<span style = "background-color:#fdd">          error = true;</span>
+        }
+<span style = "background-color:#fdd">        break;
+      }
+    }
+  }
+  return !error;
+}</span></pre>
+	</body>
+</html>

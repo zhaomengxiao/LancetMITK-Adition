@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageStatisticsPredicateHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkImageStatisticsPredicateHelper.h"
+
+#include &lt;mitkNodePredicateAnd.h&gt;
+#include &lt;mitkNodePredicateOr.h&gt;
+#include &lt;mitkNodePredicateDataType.h&gt;
+#include &lt;mitkNodePredicateProperty.h&gt;
+#include &lt;mitkNodePredicateNot.h&gt;
+
+namespace mitk
+{
+
+  mitk::NodePredicateBase::Pointer GetNoHelperObjectPredicate()
+<span style = "background-color:#fdd">  {
+    auto hasHelperObjectProperty = mitk::NodePredicateProperty::New("helper object", nullptr);
+    auto isNoHelperObject = mitk::NodePredicateNot::New(hasHelperObjectProperty);
+    return isNoHelperObject.GetPointer();
+  }</span>
+
+  mitk::NodePredicateBase::Pointer GetImageStatisticsImagePredicate()
+<span style = "background-color:#fdd">  {
+    auto isImage = mitk::NodePredicateDataType::New("Image");
+    auto hasBinaryProperty = mitk::NodePredicateProperty::New("binary", mitk::BoolProperty::New(true));
+    auto isNotBinary = mitk::NodePredicateNot::New(hasBinaryProperty);
+    auto isNotBinaryImage = mitk::NodePredicateAnd::New(isImage, isNotBinary);
+    auto isNoHelperObjectPredicate = GetNoHelperObjectPredicate();</span>
+
+<span style = "background-color:#fdd">    auto isImageForImageStatistics = mitk::NodePredicateAnd::New(isNotBinaryImage, isNoHelperObjectPredicate);
+    return isImageForImageStatistics.GetPointer();
+  }</span>
+
+  mitk::NodePredicateBase::Pointer GetImageStatisticsMaskPredicate()
+<span style = "background-color:#fdd">  {
+    auto isImage = mitk::NodePredicateDataType::New("Image");
+    auto isLabelSetImage = mitk::NodePredicateDataType::New("LabelSetImage");
+    auto hasBinaryProperty = mitk::NodePredicateProperty::New("binary", mitk::BoolProperty::New(true));
+    auto isBinaryImage = mitk::NodePredicateAnd::New(isImage, hasBinaryProperty);
+    auto isNoHelperObjectPredicate = GetNoHelperObjectPredicate();</span>
+
+<span style = "background-color:#fdd">    auto isLabelSetOrBinaryImage = mitk::NodePredicateOr::New(isLabelSetImage, isBinaryImage);
+    auto isMaskForImageStatistics = mitk::NodePredicateAnd::New(isLabelSetOrBinaryImage, isNoHelperObjectPredicate);
+    return isMaskForImageStatistics.GetPointer();
+  }</span>
+
+  mitk::NodePredicateBase::Pointer GetImageStatisticsPlanarFigurePredicate()
+<span style = "background-color:#fdd">  {
+    auto isPlanarCircle = mitk::NodePredicateDataType::New("PlanarCircle");
+    auto isPlanarRectangle = mitk::NodePredicateDataType::New("PlanarRectangle");
+    auto isPlanarEllipse = mitk::NodePredicateDataType::New("PlanarEllipse");
+    auto isPlanarDoubleEllipse = mitk::NodePredicateDataType::New("PlanarDoubleEllipse");
+    auto isPlanarPolygon = mitk::NodePredicateDataType::New("PlanarPolygon");
+    auto isPlanarSubdivisionPolygon = mitk::NodePredicateDataType::New("PlanarSubdivisionPolygon");
+    auto isPlanarBezierCurve = mitk::NodePredicateDataType::New("PlanarBezierCurve");
+    auto isPlanarLine = mitk::NodePredicateDataType::New("PlanarLine");
+    auto isNoHelperObjectPredicate = GetNoHelperObjectPredicate();</span>
+
+<span style = "background-color:#fdd">    auto isPlanarFigureForImageStatistics = mitk::NodePredicateOr::New(isPlanarCircle, isPlanarEllipse);
+    isPlanarFigureForImageStatistics = mitk::NodePredicateOr::New(isPlanarFigureForImageStatistics, isPlanarRectangle);
+    isPlanarFigureForImageStatistics = mitk::NodePredicateOr::New(isPlanarFigureForImageStatistics, isPlanarDoubleEllipse);
+    isPlanarFigureForImageStatistics = mitk::NodePredicateOr::New(isPlanarFigureForImageStatistics, isPlanarPolygon);
+    isPlanarFigureForImageStatistics = mitk::NodePredicateOr::New(isPlanarFigureForImageStatistics, isPlanarSubdivisionPolygon);
+    isPlanarFigureForImageStatistics = mitk::NodePredicateOr::New(isPlanarFigureForImageStatistics, isPlanarBezierCurve);
+    isPlanarFigureForImageStatistics = mitk::NodePredicateOr::New(isPlanarFigureForImageStatistics, isPlanarLine);
+    auto isPlanarFigureAndNoHelperForImageStatistics = mitk::NodePredicateAnd::New(isPlanarFigureForImageStatistics, isNoHelperObjectPredicate);</span>
+
+<span style = "background-color:#fdd">    return isPlanarFigureAndNoHelperForImageStatistics.GetPointer();
+  }</span>
+}</pre>
+	</body>
+</html>

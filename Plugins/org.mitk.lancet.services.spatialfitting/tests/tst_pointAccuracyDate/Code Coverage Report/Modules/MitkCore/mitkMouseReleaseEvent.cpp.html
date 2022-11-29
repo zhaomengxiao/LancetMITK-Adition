@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMouseReleaseEvent.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkMouseReleaseEvent.h"
+#include "mitkException.h"
+
+mitk::MouseReleaseEvent::MouseReleaseEvent(mitk::BaseRenderer *baseRenderer,
+                                           const mitk::Point2D &amp;mousePosition,
+                                           MouseButtons buttonStates,
+                                           ModifierKeys modifiers,
+                                           MouseButtons eventButton)
+<span style = "background-color:#fdd">  : InteractionPositionEvent(baseRenderer, mousePosition),
+    m_EventButton(eventButton),
+    m_ButtonStates(buttonStates),
+    m_Modifiers(modifiers)
+{
+}</span>
+
+mitk::InteractionEvent::MouseButtons mitk::MouseReleaseEvent::GetEventButton() const
+<span style = "background-color:#fdd">{
+  return m_EventButton;
+}</span>
+
+void mitk::MouseReleaseEvent::SetEventButton(MouseButtons buttons)
+<span style = "background-color:#fdd">{
+  m_EventButton = buttons;
+}</span>
+
+mitk::InteractionEvent::ModifierKeys mitk::MouseReleaseEvent::GetModifiers() const
+<span style = "background-color:#fdd">{
+  return m_Modifiers;
+}</span>
+
+mitk::InteractionEvent::MouseButtons mitk::MouseReleaseEvent::GetButtonStates() const
+<span style = "background-color:#fdd">{
+  return m_ButtonStates;
+}</span>
+
+void mitk::MouseReleaseEvent::SetModifiers(ModifierKeys modifiers)
+<span style = "background-color:#fdd">{
+  m_Modifiers = modifiers;
+}</span>
+
+void mitk::MouseReleaseEvent::SetButtonStates(MouseButtons buttons)
+<span style = "background-color:#fdd">{
+  m_ButtonStates = buttons;
+}</span>
+
+mitk::MouseReleaseEvent::~MouseReleaseEvent()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::MouseReleaseEvent::IsEqual(const mitk::InteractionEvent &amp;interactionEvent) const
+<span style = "background-color:#fdd">{
+  const auto &amp;mre = static_cast&lt;const mitk::MouseReleaseEvent &amp;&gt;(interactionEvent);
+  return (this-&gt;GetEventButton() == mre.GetEventButton() &amp;&amp; this-&gt;GetModifiers() == mre.GetModifiers() &amp;&amp;</span>
+          this-&gt;GetButtonStates() == mre.GetButtonStates() &amp;&amp; Superclass::IsEqual(interactionEvent));
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::MouseReleaseEvent::IsSuperClassOf(const InteractionEvent::Pointer &amp;baseClass) const
+<span style = "background-color:#fdd">{
+  return (dynamic_cast&lt;MouseReleaseEvent *&gt;(baseClass.GetPointer()) != nullptr);
+}</span></pre>
+	</body>
+</html>

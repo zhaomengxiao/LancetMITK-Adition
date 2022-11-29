@@ -1,0 +1,593 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>vtkMitkLevelWindowFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "vtkMitkLevelWindowFilter.h"
+#include "vtkObjectFactory.h"
+#include &lt;vtkColorTransferFunction.h&gt;
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkImageIterator.h&gt;
+#include &lt;vtkInformation.h&gt;
+#include &lt;vtkInformationVector.h&gt;
+#include &lt;vtkLookupTable.h&gt;
+#include &lt;vtkPiecewiseFunction.h&gt;
+
+#include &lt;vtkStreamingDemandDrivenPipeline.h&gt;
+
+// used for acos etc.
+#include &lt;cmath&gt;
+
+// used for PI
+#include &lt;itkMath.h&gt;
+
+#include &lt;mitkLogMacros.h&gt;
+
+static const double PI = itk::Math::pi;
+
+<span style = "background-color:#fdd">vtkStandardNewMacro(vtkMitkLevelWindowFilter);</span>
+
+vtkMitkLevelWindowFilter::vtkMitkLevelWindowFilter()
+<span style = "background-color:#fdd">  : m_LookupTable(nullptr), m_OpacityFunction(nullptr), m_MinOpacity(0.0), m_MaxOpacity(255.0)
+{</span>
+  // MITK_INFO &lt;&lt; "mitk level/window filter uses " &lt;&lt; GetNumberOfThreads() &lt;&lt; " thread(s)";
+<span style = "background-color:#fdd">}</span>
+
+vtkMitkLevelWindowFilter::~vtkMitkLevelWindowFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+vtkMTimeType vtkMitkLevelWindowFilter::GetMTime()
+<span style = "background-color:#fdd">{
+  vtkMTimeType mTime = this-&gt;vtkObject::GetMTime();</span>
+  vtkMTimeType time;
+
+<span style = "background-color:#fdd">  if (this-&gt;m_LookupTable != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    time = this-&gt;m_LookupTable-&gt;GetMTime();
+    mTime = (time &gt; mTime ? time : mTime);</span>
+  }
+
+<span style = "background-color:#fdd">  return mTime;
+}</span>
+
+void vtkMitkLevelWindowFilter::SetLookupTable(vtkScalarsToColors *lookupTable)
+<span style = "background-color:#fdd">{
+  if (m_LookupTable != lookupTable)</span>
+  {
+<span style = "background-color:#fdd">    m_LookupTable = lookupTable;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+vtkScalarsToColors *vtkMitkLevelWindowFilter::GetLookupTable()
+<span style = "background-color:#fdd">{
+  return m_LookupTable;
+}</span>
+
+void vtkMitkLevelWindowFilter::SetOpacityPiecewiseFunction(vtkPiecewiseFunction *opacityFunction)
+<span style = "background-color:#fdd">{
+  if (m_OpacityFunction != opacityFunction)</span>
+  {
+<span style = "background-color:#fdd">    m_OpacityFunction = opacityFunction;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+// This code was copied from the iil. The template works only for float and double.
+// Internal method which should never be used anywhere else and should not be in th header.
+// Convert color pixels from (R,G,B) to (H,S,I).
+// Reference: "Digital Image Processing, 2nd. edition", R. Gonzalez and R. Woods. Prentice Hall, 2002.
+template &lt;class T&gt;
+void RGBtoHSI(T *RGB, T *HSI)
+<span style = "background-color:#fdd">{
+  T R = RGB[0], G = RGB[1], B = RGB[2], nR = (R &lt; 0 ? 0 : (R &gt; 255 ? 255 : R)) / 255,
+    nG = (G &lt; 0 ? 0 : (G &gt; 255 ? 255 : G)) / 255, nB = (B &lt; 0 ? 0 : (B &gt; 255 ? 255 : B)) / 255,
+    m = nR &lt; nG ? (nR &lt; nB ? nR : nB) : (nG &lt; nB ? nG : nB),
+    theta = (T)(std::acos(0.5f * ((nR - nG) + (nR - nB)) / std::sqrt(std::pow(nR - nG, 2) + (nR - nB) * (nG - nB))) *</span>
+                180 / PI),
+<span style = "background-color:#fdd">    sum = nR + nG + nB;
+  T H = 0, S = 0, I = 0;
+  if (theta &gt; 0)
+    H = (nB &lt;= nG) ? theta : 360 - theta;
+  if (sum &gt; 0)
+    S = 1 - 3 / sum * m;
+  I = sum / 3;
+  HSI[0] = (T)H;
+  HSI[1] = (T)S;
+  HSI[2] = (T)I;
+}</span>
+
+// This code was copied from the iil. The template works only for float and double.
+// Internal method which should never be used anywhere else and should not be in th header.
+// Convert color pixels from (H,S,I) to (R,G,B).
+template &lt;class T&gt;
+void HSItoRGB(T *HSI, T *RGB)
+<span style = "background-color:#fdd">{
+  T H = (T)HSI[0], S = (T)HSI[1], I = (T)HSI[2], a = I * (1 - S), R = 0, G = 0, B = 0;
+  if (H &lt; 120)</span>
+  {
+<span style = "background-color:#fdd">    B = a;
+    R = (T)(I * (1 + S * std::cos(H * PI / 180) / std::cos((60 - H) * PI / 180)));
+    G = 3 * I - (R + B);
+  }
+  else if (H &lt; 240)</span>
+  {
+<span style = "background-color:#fdd">    H -= 120;
+    R = a;
+    G = (T)(I * (1 + S * std::cos(H * PI / 180) / std::cos((60 - H) * PI / 180)));
+    B = 3 * I - (R + G);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    H -= 240;
+    G = a;
+    B = (T)(I * (1 + S * std::cos(H * PI / 180) / std::cos((60 - H) * PI / 180)));
+    R = 3 * I - (G + B);</span>
+  }
+<span style = "background-color:#fdd">  R *= 255;
+  G *= 255;
+  B *= 255;
+  RGB[0] = (T)(R &lt; 0 ? 0 : (R &gt; 255 ? 255 : R));
+  RGB[1] = (T)(G &lt; 0 ? 0 : (G &gt; 255 ? 255 : G));
+  RGB[2] = (T)(B &lt; 0 ? 0 : (B &gt; 255 ? 255 : B));
+}</span>
+
+// Internal method which should never be used anywhere else and should not be in th header.
+//----------------------------------------------------------------------------
+// This templated function executes the filter for any type of data.
+template &lt;class T&gt;
+void vtkApplyLookupTableOnRGBA(vtkMitkLevelWindowFilter *self,
+                               vtkImageData *inData,
+                               vtkImageData *outData,
+                               int outExt[6],
+                               double *clippingBounds,
+                               T *)
+<span style = "background-color:#fdd">{
+  vtkImageIterator&lt;T&gt; inputIt(inData, outExt);
+  vtkImageIterator&lt;T&gt; outputIt(outData, outExt);</span>
+  vtkLookupTable *lookupTable;
+<span style = "background-color:#fdd">  const int maxC = inData-&gt;GetNumberOfScalarComponents();</span>
+
+  double tableRange[2];
+
+<span style = "background-color:#fdd">  lookupTable = dynamic_cast&lt;vtkLookupTable *&gt;(self-&gt;GetLookupTable());</span>
+
+<span style = "background-color:#fdd">  lookupTable-&gt;GetTableRange(tableRange);</span>
+
+  // parameters for RGB level window
+<span style = "background-color:#fdd">  const double scale = (tableRange[1] - tableRange[0] &gt; 0 ? 255.0 / (tableRange[1] - tableRange[0]) : 0.0);
+  const double bias = tableRange[0] * scale;</span>
+
+  // parameters for opaque level window
+<span style = "background-color:#fdd">  const double scaleOpac =</span>
+    (self-&gt;GetMaxOpacity() - self-&gt;GetMinOpacity() &gt; 0 ? 255.0 / (self-&gt;GetMaxOpacity() - self-&gt;GetMinOpacity()) : 0.0);
+<span style = "background-color:#fdd">  const double biasOpac = self-&gt;GetMinOpacity() * scaleOpac;</span>
+
+<span style = "background-color:#fdd">  int y = outExt[2];</span>
+
+  // Loop through ouput pixels
+<span style = "background-color:#fdd">  while (!outputIt.IsAtEnd())</span>
+  {
+<span style = "background-color:#fdd">    T *inputSI = inputIt.BeginSpan();
+    T *outputSI = outputIt.BeginSpan();
+    T *outputSIEnd = outputIt.EndSpan();</span>
+
+<span style = "background-color:#fdd">    if (y &gt;= clippingBounds[2] &amp;&amp; y &lt; clippingBounds[3])</span>
+    {
+<span style = "background-color:#fdd">      int x = outExt[0];</span>
+
+<span style = "background-color:#fdd">      while (outputSI != outputSIEnd)</span>
+      {
+<span style = "background-color:#fdd">        if (x &gt;= clippingBounds[0] &amp;&amp; x &lt; clippingBounds[1])</span>
+        {
+          double rgb[3], alpha, hsi[3];
+
+          // level/window mechanism for intensity in HSI space
+<span style = "background-color:#fdd">          rgb[0] = static_cast&lt;double&gt;(*inputSI);
+          inputSI++;
+          rgb[1] = static_cast&lt;double&gt;(*inputSI);
+          inputSI++;
+          rgb[2] = static_cast&lt;double&gt;(*inputSI);
+          inputSI++;</span>
+
+<span style = "background-color:#fdd">          RGBtoHSI&lt;double&gt;(rgb, hsi);
+          hsi[2] = hsi[2] * 255.0 * scale - bias;
+          hsi[2] = (hsi[2] &gt; 255.0 ? 255 : (hsi[2] &lt; 0.0 ? 0 : hsi[2]));
+          hsi[2] /= 255.0;
+          HSItoRGB&lt;double&gt;(hsi, rgb);</span>
+
+<span style = "background-color:#fdd">          *outputSI = static_cast&lt;T&gt;(rgb[0]);
+          outputSI++;
+          *outputSI = static_cast&lt;T&gt;(rgb[1]);
+          outputSI++;
+          *outputSI = static_cast&lt;T&gt;(rgb[2]);
+          outputSI++;</span>
+
+<span style = "background-color:#fdd">          unsigned char finalAlpha = 255;</span>
+
+          // RGBA case
+<span style = "background-color:#fdd">          if (maxC &gt;= 4)</span>
+          {
+            // level/window mechanism for opacity
+<span style = "background-color:#fdd">            alpha = static_cast&lt;double&gt;(*inputSI);
+            inputSI++;
+            alpha = alpha * scaleOpac - biasOpac;
+            if (alpha &gt; 255.0)</span>
+            {
+<span style = "background-color:#fdd">              alpha = 255.0;
+            }
+            else if (alpha &lt; 0.0)</span>
+            {
+<span style = "background-color:#fdd">              alpha = 0.0;</span>
+            }
+<span style = "background-color:#fdd">            finalAlpha = static_cast&lt;unsigned char&gt;(alpha);</span>
+
+<span style = "background-color:#fdd">            for (int c = 4; c &lt; maxC; c++)
+              inputSI++;</span>
+          }
+
+<span style = "background-color:#fdd">          *outputSI = static_cast&lt;T&gt;(finalAlpha);
+          outputSI++;
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          inputSI += maxC;
+          *outputSI = 0;
+          outputSI++;
+          *outputSI = 0;
+          outputSI++;
+          *outputSI = 0;
+          outputSI++;
+          *outputSI = 0;
+          outputSI++;</span>
+        }
+
+<span style = "background-color:#fdd">        x++;
+      }
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      while (outputSI != outputSIEnd)</span>
+      {
+<span style = "background-color:#fdd">        *outputSI = 0;
+        outputSI++;
+        *outputSI = 0;
+        outputSI++;
+        *outputSI = 0;
+        outputSI++;
+        *outputSI = 0;
+        outputSI++;
+      }</span>
+    }
+<span style = "background-color:#fdd">    inputIt.NextSpan();
+    outputIt.NextSpan();
+    y++;
+  }
+}</span>
+
+// Internal method which should never be used anywhere else and should not be in th header.
+//----------------------------------------------------------------------------
+// This templated function executes the filter for any type of data.
+template &lt;class T&gt;
+void vtkApplyLookupTableOnScalarsFast(
+  vtkMitkLevelWindowFilter *self, vtkImageData *inData, vtkImageData *outData, int outExt[6], T *)
+<span style = "background-color:#fdd">{
+  vtkImageIterator&lt;T&gt; inputIt(inData, outExt);
+  vtkImageIterator&lt;unsigned char&gt; outputIt(outData, outExt);</span>
+
+  double tableRange[2];
+
+  // access vtkLookupTable
+<span style = "background-color:#fdd">  auto *lookupTable = dynamic_cast&lt;vtkLookupTable *&gt;(self-&gt;GetLookupTable());
+  lookupTable-&gt;GetTableRange(tableRange);</span>
+
+  // access elements of the vtkLookupTable
+<span style = "background-color:#fdd">  auto *realLookupTable = lookupTable-&gt;GetPointer(0);
+  size_t maxIndex = lookupTable-&gt;GetNumberOfColors() - 1;</span>
+
+<span style = "background-color:#fdd">  const float scale = (tableRange[1] - tableRange[0] &gt; 0 ? (maxIndex + 1) / (tableRange[1] - tableRange[0]) : 0.0);</span>
+  // ensuring that starting point is zero
+<span style = "background-color:#fdd">  float bias = -tableRange[0] * scale;</span>
+  // due to later conversion to int for rounding
+<span style = "background-color:#fdd">  bias += 0.5f;</span>
+
+  // Loop through ouput pixels
+<span style = "background-color:#fdd">  while (!outputIt.IsAtEnd())</span>
+  {
+<span style = "background-color:#fdd">    unsigned char *outputSI = outputIt.BeginSpan();
+    unsigned char *outputSIEnd = outputIt.EndSpan();</span>
+
+<span style = "background-color:#fdd">    T *inputSI = inputIt.BeginSpan();</span>
+
+<span style = "background-color:#fdd">    while (outputSI != outputSIEnd)</span>
+    {
+      // map to an index
+<span style = "background-color:#fdd">      auto idx = std::min(static_cast&lt;size_t&gt;(std::max(0, static_cast&lt;int&gt;(*inputSI * scale + bias))), maxIndex) * 4;</span>
+
+<span style = "background-color:#fdd">      memcpy(outputSI, &amp;realLookupTable[idx], 4);</span>
+
+<span style = "background-color:#fdd">      inputSI++;
+      outputSI += 4;
+    }</span>
+
+<span style = "background-color:#fdd">    inputIt.NextSpan();
+    outputIt.NextSpan();
+  }
+}</span>
+
+// Internal method which should never be used anywhere else and should not be in th header.
+//----------------------------------------------------------------------------
+// This templated function executes the filter for any type of data.
+template &lt;class T&gt;
+void vtkApplyLookupTableOnScalars(vtkMitkLevelWindowFilter *self,
+                                  vtkImageData *inData,
+                                  vtkImageData *outData,
+                                  int outExt[6],
+                                  double *clippingBounds,
+                                  T *)
+<span style = "background-color:#fdd">{
+  vtkImageIterator&lt;T&gt; inputIt(inData, outExt);
+  vtkImageIterator&lt;unsigned char&gt; outputIt(outData, outExt);
+  vtkScalarsToColors *lookupTable = self-&gt;GetLookupTable();</span>
+
+<span style = "background-color:#fdd">  int y = outExt[2];</span>
+
+  // Loop through ouput pixels
+<span style = "background-color:#fdd">  while (!outputIt.IsAtEnd())</span>
+  {
+<span style = "background-color:#fdd">    unsigned char *outputSI = outputIt.BeginSpan();
+    const unsigned char * const outputSIEnd = outputIt.EndSpan();</span>
+
+    // do we iterate over the inner vertical clipping bounds
+<span style = "background-color:#fdd">    if (y &gt;= clippingBounds[2] &amp;&amp; y &lt; clippingBounds[3])</span>
+    {
+<span style = "background-color:#fdd">      T *inputSI = inputIt.BeginSpan();</span>
+
+<span style = "background-color:#fdd">      int x = outExt[0];</span>
+
+<span style = "background-color:#fdd">      while (outputSI != outputSIEnd)</span>
+      {
+        // is this pixel within horizontal clipping bounds
+<span style = "background-color:#fdd">        if (x &gt;= clippingBounds[0] &amp;&amp; x &lt; clippingBounds[1])</span>
+        {
+          // fetching original value
+<span style = "background-color:#fdd">          auto grayValue = static_cast&lt;double&gt;(*inputSI);</span>
+          // applying lookuptable
+<span style = "background-color:#fdd">          memcpy(outputSI, lookupTable-&gt;MapValue(grayValue), 4);
+        }</span>
+        else
+        {
+          // outer horizontal clipping bounds - write a transparent RGBA pixel as a single int
+<span style = "background-color:#fdd">          memset(outputSI, 0, 4);</span>
+        }
+
+<span style = "background-color:#fdd">        inputSI++;
+        outputSI += 4;
+        x++;
+      }
+    }</span>
+    else
+    {
+      // outer vertical clipping bounds - write a transparent RGBA line as ints
+<span style = "background-color:#fdd">      while (outputSI != outputSIEnd)</span>
+      {
+<span style = "background-color:#fdd">        *reinterpret_cast&lt;int *&gt;(outputSI) = 0;
+        outputSI += 4;
+      }</span>
+    }
+
+<span style = "background-color:#fdd">    inputIt.NextSpan();
+    outputIt.NextSpan();
+    y++;
+  }
+}</span>
+
+// Internal method which should never be used anywhere else and should not be in th header.
+//----------------------------------------------------------------------------
+// This templated function executes the filter for any type of data.
+template &lt;class T&gt;
+void vtkApplyLookupTableOnScalarsCTF(vtkMitkLevelWindowFilter *self,
+                                     vtkImageData *inData,
+                                     vtkImageData *outData,
+                                     int outExt[6],
+                                     double *clippingBounds,
+                                     T *)
+<span style = "background-color:#fdd">{
+  vtkImageIterator&lt;T&gt; inputIt(inData, outExt);
+  vtkImageIterator&lt;unsigned char&gt; outputIt(outData, outExt);
+  auto *lookupTable = dynamic_cast&lt;vtkColorTransferFunction *&gt;(self-&gt;GetLookupTable());
+  vtkPiecewiseFunction *opacityFunction = self-&gt;GetOpacityPiecewiseFunction();</span>
+
+<span style = "background-color:#fdd">  int y = outExt[2];</span>
+
+  // Loop through ouput pixels
+<span style = "background-color:#fdd">  while (!outputIt.IsAtEnd())</span>
+  {
+<span style = "background-color:#fdd">    unsigned char *outputSI = outputIt.BeginSpan();
+    unsigned char *outputSIEnd = outputIt.EndSpan();</span>
+
+    // do we iterate over the inner vertical clipping bounds
+<span style = "background-color:#fdd">    if (y &gt;= clippingBounds[2] &amp;&amp; y &lt; clippingBounds[3])</span>
+    {
+<span style = "background-color:#fdd">      T *inputSI = inputIt.BeginSpan();</span>
+
+<span style = "background-color:#fdd">      int x = outExt[0];</span>
+
+<span style = "background-color:#fdd">      while (outputSI != outputSIEnd)</span>
+      {
+        // is this pixel within horizontal clipping bounds
+<span style = "background-color:#fdd">        if (x &gt;= clippingBounds[0] &amp;&amp; x &lt; clippingBounds[1])</span>
+        {
+          // fetching original value
+<span style = "background-color:#fdd">          auto grayValue = static_cast&lt;double&gt;(*inputSI);</span>
+
+          // applying directly colortransferfunction
+          // because vtkColorTransferFunction::MapValue is not threadsafe
+          double rgba[4];
+<span style = "background-color:#fdd">          lookupTable-&gt;GetColor(grayValue, rgba); // RGB mapping
+          rgba[3] = 1.0;
+          if (opacityFunction)
+            rgba[3] = opacityFunction-&gt;GetValue(grayValue); // Alpha mapping</span>
+
+<span style = "background-color:#fdd">          for (int i = 0; i &lt; 4; ++i)</span>
+          {
+<span style = "background-color:#fdd">            outputSI[i] = static_cast&lt;unsigned char&gt;(255.0 * rgba[i] + 0.5);
+          }
+        }</span>
+        else
+        {
+          // outer horizontal clipping bounds - write a transparent RGBA pixel as a single int
+<span style = "background-color:#fdd">          *reinterpret_cast&lt;int *&gt;(outputSI) = 0;</span>
+        }
+
+<span style = "background-color:#fdd">        inputSI++;
+        outputSI += 4;
+        x++;
+      }
+    }</span>
+    else
+    {
+      // outer vertical clipping bounds - write a transparent RGBA line as ints
+<span style = "background-color:#fdd">      while (outputSI != outputSIEnd)</span>
+      {
+<span style = "background-color:#fdd">        *reinterpret_cast&lt;int *&gt;(outputSI) = 0;
+        outputSI += 4;
+      }</span>
+    }
+
+<span style = "background-color:#fdd">    inputIt.NextSpan();
+    outputIt.NextSpan();
+    y++;
+  }
+}</span>
+
+int vtkMitkLevelWindowFilter::RequestInformation(vtkInformation *request,
+                                                 vtkInformationVector **inputVector,
+                                                 vtkInformationVector *outputVector)
+<span style = "background-color:#fdd">{
+  vtkInformation *outInfo = outputVector-&gt;GetInformationObject(0);</span>
+
+  // do nothing except copy scalar type info
+<span style = "background-color:#fdd">  this-&gt;CopyInputArrayAttributesToOutput(request, inputVector, outputVector);</span>
+
+<span style = "background-color:#fdd">  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_UNSIGNED_CHAR, 4);</span>
+
+<span style = "background-color:#fdd">  return 1;
+}</span>
+
+// Method to run the filter in different threads.
+void vtkMitkLevelWindowFilter::ThreadedExecute(vtkImageData *inData, vtkImageData *outData, int extent[6], int /*id*/)
+<span style = "background-color:#fdd">{
+  if (inData-&gt;GetNumberOfScalarComponents() &gt; 2)</span>
+  {
+<span style = "background-color:#fdd">    switch (inData-&gt;GetScalarType())</span>
+    {
+<span style = "background-color:#fdd">      vtkTemplateMacro(</span>
+        vtkApplyLookupTableOnRGBA(this, inData, outData, extent, m_ClippingBounds, static_cast&lt;VTK_TT *&gt;(nullptr)));
+      default:
+<span style = "background-color:#fdd">        vtkErrorMacro(&lt;&lt; "Execute: Unknown ScalarType");
+        return;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    bool dontClip = extent[2] &gt;= m_ClippingBounds[2] &amp;&amp; extent[3] &lt;= m_ClippingBounds[3] &amp;&amp;</span>
+                    extent[0] &gt;= m_ClippingBounds[0] &amp;&amp; extent[1] &lt;= m_ClippingBounds[1];
+
+<span style = "background-color:#fdd">    if (this-&gt;GetLookupTable())
+      this-&gt;GetLookupTable()-&gt;Build();</span>
+
+<span style = "background-color:#fdd">    auto *vlt = dynamic_cast&lt;vtkLookupTable *&gt;(this-&gt;GetLookupTable());
+    auto *ctf = dynamic_cast&lt;vtkColorTransferFunction *&gt;(this-&gt;GetLookupTable());</span>
+
+<span style = "background-color:#fdd">    bool linearLookupTable = vlt &amp;&amp; vlt-&gt;GetScale() == VTK_SCALE_LINEAR;</span>
+
+<span style = "background-color:#fdd">    bool useFast = dontClip &amp;&amp; linearLookupTable;</span>
+
+<span style = "background-color:#fdd">    if (ctf)</span>
+    {
+<span style = "background-color:#fdd">      switch (inData-&gt;GetScalarType())</span>
+      {
+<span style = "background-color:#fdd">        vtkTemplateMacro(vtkApplyLookupTableOnScalarsCTF(</span>
+          this, inData, outData, extent, m_ClippingBounds, static_cast&lt;VTK_TT *&gt;(nullptr)));
+        default:
+<span style = "background-color:#fdd">          vtkErrorMacro(&lt;&lt; "Execute: Unknown ScalarType");
+          return;</span>
+      }
+<span style = "background-color:#fdd">    }
+    else if (useFast)</span>
+    {
+<span style = "background-color:#fdd">      switch (inData-&gt;GetScalarType())</span>
+      {
+<span style = "background-color:#fdd">        vtkTemplateMacro(</span>
+          vtkApplyLookupTableOnScalarsFast(this, inData, outData, extent, static_cast&lt;VTK_TT *&gt;(nullptr)));
+        default:
+<span style = "background-color:#fdd">          vtkErrorMacro(&lt;&lt; "Execute: Unknown ScalarType");
+          return;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      switch (inData-&gt;GetScalarType())</span>
+      {
+<span style = "background-color:#fdd">        vtkTemplateMacro(vtkApplyLookupTableOnScalars(</span>
+          this, inData, outData, extent, m_ClippingBounds, static_cast&lt;VTK_TT *&gt;(nullptr)));
+        default:
+<span style = "background-color:#fdd">          vtkErrorMacro(&lt;&lt; "Execute: Unknown ScalarType");</span>
+          return;
+      }
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+// void vtkMitkLevelWindowFilter::ExecuteInformation(
+//    vtkImageData *vtkNotUsed(inData), vtkImageData *vtkNotUsed(outData))
+//{
+//}
+
+void vtkMitkLevelWindowFilter::SetMinOpacity(double minOpacity)
+<span style = "background-color:#fdd">{
+  m_MinOpacity = minOpacity;
+}</span>
+
+inline double vtkMitkLevelWindowFilter::GetMinOpacity() const
+<span style = "background-color:#fdd">{
+  return m_MinOpacity;
+}</span>
+
+void vtkMitkLevelWindowFilter::SetMaxOpacity(double maxOpacity)
+<span style = "background-color:#fdd">{
+  m_MaxOpacity = maxOpacity;
+}</span>
+
+inline double vtkMitkLevelWindowFilter::GetMaxOpacity() const
+<span style = "background-color:#fdd">{
+  return m_MaxOpacity;
+}</span>
+
+void vtkMitkLevelWindowFilter::SetClippingBounds(double *bounds) // TODO does double[4] work??
+<span style = "background-color:#fdd">{
+  for (unsigned int i = 0; i &lt; 4; ++i)
+    m_ClippingBounds[i] = bounds[i];
+}</span></pre>
+	</body>
+</html>

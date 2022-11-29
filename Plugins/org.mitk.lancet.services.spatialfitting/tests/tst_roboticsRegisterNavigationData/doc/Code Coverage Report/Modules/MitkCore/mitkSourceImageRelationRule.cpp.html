@@ -1,0 +1,432 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSourceImageRelationRule.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;regex&gt;
+#include &lt;mutex&gt;
+
+#include "mitkSourceImageRelationRule.h"
+#include "mitkPropertyNameHelper.h"
+#include "mitkStringProperty.h"
+#include "mitkTemporoSpatialStringProperty.h"
+#include "mitkDataNode.h"
+#include "mitkIdentifiable.h"
+
+std::string mitk::SourceImageRelationRule::GenerateRuleID(const std::string&amp; purpose) const
+<span style = "background-color:#fdd">{
+  std::string result = "SourceImageRelation";
+  if (!purpose.empty())</span>
+  {
+<span style = "background-color:#fdd">    result += " " + purpose;</span>
+  }
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+bool mitk::SourceImageRelationRule::IsAbstract() const
+<span style = "background-color:#fdd">{
+  return m_PurposeTag.empty();
+};</span>
+
+bool mitk::SourceImageRelationRule::IsSupportedRuleID(const RuleIDType&amp; ruleID) const
+<span style = "background-color:#fdd">{
+  return ruleID == this-&gt;GetRuleID() || (IsAbstract() &amp;&amp; ruleID.find("SourceImageRelation ") == 0);
+};</span>
+
+mitk::SourceImageRelationRule::RuleIDType mitk::SourceImageRelationRule::GetRuleID() const
+<span style = "background-color:#fdd">{
+  return this-&gt;GenerateRuleID(m_PurposeTag);
+};</span>
+
+std::string mitk::SourceImageRelationRule::GetDisplayName() const
+<span style = "background-color:#fdd">{
+  return m_DisplayName;
+};</span>
+
+std::string mitk::SourceImageRelationRule::GetSourceRoleName() const
+<span style = "background-color:#fdd">{
+  return m_SourceRole;
+};</span>
+
+std::string mitk::SourceImageRelationRule::GetDestinationRoleName() const
+<span style = "background-color:#fdd">{
+  return m_DestinationRole;
+};</span>
+
+bool mitk::SourceImageRelationRule::IsDestinationCandidate(const IPropertyProvider *owner) const
+<span style = "background-color:#fdd">{
+  auto node = dynamic_cast&lt;const DataNode*&gt;(owner);</span>
+
+<span style = "background-color:#fdd">  auto image = nullptr != node</span>
+    ? dynamic_cast&lt;const Image*&gt;(node-&gt;GetData())
+    : dynamic_cast&lt;const Image*&gt;(owner);
+
+<span style = "background-color:#fdd">  return image != nullptr;
+}</span>
+
+mitk::SourceImageRelationRule::RelationUIDType mitk::SourceImageRelationRule::Connect(Image *source, const Image *destination) const
+<span style = "background-color:#fdd">{
+  return Superclass::Connect(source, destination);
+};</span>
+
+mitk::SourceImageRelationRule::SourceImageRelationRule()
+<span style = "background-color:#fdd">  : m_PurposeTag(""), m_DisplayName("Abstract image to image relation"), m_SourceRole("derived data"), m_DestinationRole("source image")
+{};</span>
+
+mitk::SourceImageRelationRule::SourceImageRelationRule(const RuleIDType &amp;purposeTag)
+<span style = "background-color:#fdd">  : SourceImageRelationRule(purposeTag, purposeTag + " relation"){};</span>
+
+mitk::SourceImageRelationRule::SourceImageRelationRule(const RuleIDType &amp;purposeTag, const std::string &amp;displayName)
+<span style = "background-color:#fdd">  : SourceImageRelationRule(
+      purposeTag, displayName, "derived data", "source image"){};</span>
+
+mitk::SourceImageRelationRule::SourceImageRelationRule(const RuleIDType &amp;purposeTag,
+                                                   const std::string &amp;displayName,
+                                                   const std::string &amp;sourceRole,
+                                                   const std::string &amp;destinationRole)
+<span style = "background-color:#fdd">  : m_PurposeTag(purposeTag), m_DisplayName(displayName), m_SourceRole(sourceRole), m_DestinationRole(destinationRole){};</span>
+
+mitk::SourceImageRelationRule::DataRelationUIDVectorType
+mitk::SourceImageRelationRule::GetRelationUIDs_DataLayer(const IPropertyProvider* source,
+  const IPropertyProvider* destination, const InstanceIDVectorType&amp; instances_IDLayer) const
+<span style = "background-color:#fdd">{
+  DataRelationUIDVectorType result;</span>
+
+<span style = "background-color:#fdd">  auto relevantIndicesAndRuleIDs = GetReferenceSequenceIndices(source, destination, instances_IDLayer);</span>
+
+<span style = "background-color:#fdd">  auto itemRIIRegExStr = this-&gt;GetRIIPropertyRegEx("SourceImageSequenceItem");
+  auto regEx = std::regex(itemRIIRegExStr);</span>
+
+  //workaround until T24729 is done. Please remove if T24728 is done
+<span style = "background-color:#fdd">  auto keys = PropertyRelationRuleBase::GetPropertyKeys(source);</span>
+  //end workaround for T24729
+
+<span style = "background-color:#fdd">  for (const auto &amp;indexNRule : relevantIndicesAndRuleIDs)</span>
+  {
+<span style = "background-color:#fdd">    bool relationCoveredByRII = false;
+    for (const auto&amp; key : keys)</span>
+    {
+<span style = "background-color:#fdd">      if (std::regex_match(key, regEx))</span>
+      {
+<span style = "background-color:#fdd">        auto sequItemProp = source-&gt;GetConstProperty(key);
+        if (sequItemProp.IsNotNull() &amp;&amp; sequItemProp-&gt;GetValueAsString() == std::to_string(indexNRule.first))</span>
+        {
+<span style = "background-color:#fdd">          relationCoveredByRII = true;
+          auto instanceID = GetInstanceIDByPropertyName(key);
+          auto ruleID = GetRuleIDByInstanceID(source, instanceID);
+          if (this-&gt;IsSupportedRuleID(ruleID))</span>
+          {
+<span style = "background-color:#fdd">            result.emplace_back(this-&gt;GetRelationUIDByInstanceID(source, instanceID), ruleID);</span>
+          }
+<span style = "background-color:#fdd">        }
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    if (!relationCoveredByRII)</span>
+    {
+      //the relation is not covered on the RII level, so we generate the property path to the DICOM source reference (this is done via
+      //the SOP Instance UIDs which uniquely identify an DICOM IOD). We use this property path as relation UID because it is identifying
+      //on the data level (even so not long term stable if relations with a lower index are removed).
+<span style = "background-color:#fdd">      PropertyKeyPath referencedInstanceUIDs;
+      referencedInstanceUIDs.AddElement("DICOM").AddElement("0008").AddSelection("2112", indexNRule.first).AddElement("0008").AddElement("1155");</span>
+
+<span style = "background-color:#fdd">      std::string ruleID = "";
+      if (!indexNRule.second.empty())</span>
+      {
+<span style = "background-color:#fdd">        ruleID = this-&gt;GenerateRuleID(indexNRule.second);</span>
+      }
+
+<span style = "background-color:#fdd">      result.emplace_back(PropertyKeyPathToPropertyName(referencedInstanceUIDs), ruleID);
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+std::vector&lt;std::pair&lt;size_t,std::string&gt; &gt; mitk::SourceImageRelationRule::GetReferenceSequenceIndices(const IPropertyProvider * source,
+  const IPropertyProvider * destination, InstanceIDVectorType ignoreInstances) const
+<span style = "background-color:#fdd">{
+  std::vector&lt;std::pair&lt;size_t, std::string&gt; &gt; result;</span>
+
+<span style = "background-color:#fdd">  BaseProperty::ConstPointer destInstanceUIDProp;
+  std::string destinationUID = "";</span>
+
+<span style = "background-color:#fdd">  if (destination)</span>
+  {
+<span style = "background-color:#fdd">    destInstanceUIDProp = destination-&gt;GetConstProperty(GeneratePropertyNameForDICOMTag(0x0008, 0x0018));</span>
+
+<span style = "background-color:#fdd">    if (destInstanceUIDProp.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      return result;</span>
+    }
+
+<span style = "background-color:#fdd">    auto identifiable = this-&gt;CastProviderAsIdentifiable(destination);</span>
+
+<span style = "background-color:#fdd">    if (identifiable)</span>
+    {
+<span style = "background-color:#fdd">      destinationUID= identifiable-&gt;GetUID();</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  std::vector&lt;std::string&gt; ignoreItemIndices;
+  for (const auto&amp; iID : ignoreInstances)</span>
+  {
+<span style = "background-color:#fdd">    auto sourceImageRefPath = GetRootKeyPath().AddElement(iID).AddElement("SourceImageSequenceItem");
+    auto imageRefProp = source-&gt;GetConstProperty(PropertyKeyPathToPropertyName(sourceImageRefPath));</span>
+
+<span style = "background-color:#fdd">    if (imageRefProp.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      ignoreItemIndices.emplace_back(imageRefProp-&gt;GetValueAsString());</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  PropertyKeyPath referencedInstanceUIDs;
+  referencedInstanceUIDs.AddElement("DICOM").AddElement("0008").AddAnySelection("2112").AddElement("0008").AddElement("1155");</span>
+
+<span style = "background-color:#fdd">  auto sourceRegExStr = PropertyKeyPathToPropertyRegEx(referencedInstanceUIDs);
+  auto regEx = std::regex(sourceRegExStr);</span>
+
+<span style = "background-color:#fdd">  std::vector&lt;std::string&gt; keys;</span>
+  //workaround until T24729 is done. Please remove if T24728 is done
+<span style = "background-color:#fdd">  keys = PropertyRelationRuleBase::GetPropertyKeys(source);</span>
+  //end workaround for T24729
+
+<span style = "background-color:#fdd">  for (const auto &amp;key : keys)</span>
+  {
+<span style = "background-color:#fdd">    if (std::regex_match(key, regEx))</span>
+    {
+<span style = "background-color:#fdd">      auto refUIDProp = source-&gt;GetConstProperty(key);
+      if (destination==nullptr || *refUIDProp == *destInstanceUIDProp)</span>
+      {
+<span style = "background-color:#fdd">        auto currentKeyPath = PropertyNameToPropertyKeyPath(key);
+        auto currentKeyPathSelection = currentKeyPath.GetNode(2).selection;</span>
+
+<span style = "background-color:#fdd">        auto finding = std::find(ignoreItemIndices.begin(), ignoreItemIndices.end(), std::to_string(currentKeyPathSelection));
+        if (finding == ignoreItemIndices.end())</span>
+        {
+<span style = "background-color:#fdd">          PropertyKeyPath purposePath;
+          purposePath.AddElement("DICOM").AddElement("0008").AddSelection("2112", currentKeyPathSelection).AddElement("0040").AddSelection("a170", 0).AddElement("0008").AddElement("0104");
+          auto purposeProp = source-&gt;GetConstProperty(PropertyKeyPathToPropertyName(purposePath));
+          std::string currentPurpose = "";
+          if (purposeProp.IsNotNull())</span>
+          {
+<span style = "background-color:#fdd">            currentPurpose = purposeProp-&gt;GetValueAsString();</span>
+          }
+<span style = "background-color:#fdd">          if (this-&gt;IsAbstract() || (purposeProp.IsNotNull() &amp;&amp; currentPurpose == this-&gt;m_PurposeTag))</span>
+          {
+<span style = "background-color:#fdd">            result.emplace_back(currentKeyPathSelection, currentPurpose);</span>
+          }
+<span style = "background-color:#fdd">        }
+      }
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+/**This mutex is used to guard mitk::SourceImageRelationRule::CreateNewSourceImageSequenceItem by a class wide mutex to avoid
+racing conditions in a scenario where rules are used concurrently. It is not in the class interface itself, because it
+is an implementation detail.
+*/
+namespace
+{
+<span style = "background-color:#dfd">  std::mutex sequenceItemCreationLock;</span>
+}
+
+mitk::PropertyKeyPath::ItemSelectionIndex mitk::SourceImageRelationRule::CreateNewSourceImageSequenceItem(
+  IPropertyOwner *source) const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; guard(sequenceItemCreationLock);</span>
+
+  //////////////////////////////////////
+  // Get all existing sequence items
+
+<span style = "background-color:#fdd">  std::vector&lt;PropertyKeyPath::ItemSelectionIndex&gt; instanceIDs;
+  PropertyKeyPath::ItemSelectionIndex newID = 0;</span>
+
+<span style = "background-color:#fdd">  PropertyKeyPath referencedInstanceUIDs;
+  referencedInstanceUIDs.AddElement("DICOM").AddElement("0008").AddAnySelection("2112").AddElement("0008").AddElement("1155");
+  auto regExStr = PropertyKeyPathToPropertyRegEx(referencedInstanceUIDs);
+  auto regEx = std::regex(regExStr);
+  std::smatch instance_matches;</span>
+
+  //workaround until T24729 is done. You can use directly source-&gt;GetPropertyKeys again, when fixed.
+<span style = "background-color:#fdd">  const auto keys = GetPropertyKeys(source);</span>
+  //end workaround for T24729
+
+<span style = "background-color:#fdd">  for (const auto &amp;key : keys)</span>
+  {
+<span style = "background-color:#fdd">    if (std::regex_search(key, instance_matches, regEx))</span>
+    {
+<span style = "background-color:#fdd">      if (instance_matches.size()&gt;1)</span>
+      {
+<span style = "background-color:#fdd">        instanceIDs.push_back(std::stoi(instance_matches[1]));</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  //////////////////////////////////////
+  // Get new ID
+
+<span style = "background-color:#fdd">  std::sort(instanceIDs.begin(), instanceIDs.end());
+  if (!instanceIDs.empty())</span>
+  {
+<span style = "background-color:#fdd">    newID = instanceIDs.back()+1;</span>
+  }
+
+  //////////////////////////////////////
+  // reserve new ID
+
+<span style = "background-color:#fdd">  PropertyKeyPath newSourceImageSequencePath;
+  newSourceImageSequencePath.AddElement("DICOM").AddElement("0008").AddSelection("2112",newID).AddElement("0008").AddElement("1155");</span>
+
+<span style = "background-color:#fdd">  auto newKey =</span>
+    PropertyKeyPathToPropertyName(newSourceImageSequencePath);
+<span style = "background-color:#fdd">  source-&gt;SetProperty(newKey, mitk::TemporoSpatialStringProperty::New("reserved slot for source image sequence"));</span>
+
+<span style = "background-color:#fdd">  return newID;
+};</span>
+
+
+void mitk::SourceImageRelationRule::Connect_datalayer(IPropertyOwner * source,
+                                                    const IPropertyProvider * destination,
+                                                    const InstanceIDType &amp; instanceID) const
+<span style = "background-color:#fdd">{
+  auto destInstanceUIDProp = destination-&gt;GetConstProperty(GeneratePropertyNameForDICOMTag(0x0008,0x0018));
+  auto destClassUIDProp = destination-&gt;GetConstProperty(GeneratePropertyNameForDICOMTag(0x0008, 0x0016));</span>
+
+<span style = "background-color:#fdd">  if (destInstanceUIDProp.IsNotNull() &amp;&amp; destClassUIDProp.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    auto existingRefs = this-&gt;GetReferenceSequenceIndices(source, destination);
+    std::string  newSelectionIndexStr;
+    if (!existingRefs.empty())</span>
+    {
+<span style = "background-color:#fdd">      newSelectionIndexStr = std::to_string(existingRefs[0].first);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      PropertyKeyPath::ItemSelectionIndex newSelectionIndex = CreateNewSourceImageSequenceItem(source);</span>
+
+<span style = "background-color:#fdd">      PropertyKeyPath refInstanceUIDPath;
+      refInstanceUIDPath.AddElement("DICOM").AddElement("0008").AddSelection("2112", newSelectionIndex).AddElement("0008").AddElement("1155");
+      source-&gt;SetProperty(PropertyKeyPathToPropertyName(refInstanceUIDPath), destInstanceUIDProp-&gt;Clone());</span>
+
+<span style = "background-color:#fdd">      PropertyKeyPath refClassUIDPath;
+      refClassUIDPath.AddElement("DICOM").AddElement("0008").AddSelection("2112", newSelectionIndex).AddElement("0008").AddElement("1150");
+      source-&gt;SetProperty(PropertyKeyPathToPropertyName(refClassUIDPath), destClassUIDProp-&gt;Clone());</span>
+
+<span style = "background-color:#fdd">      PropertyKeyPath purposePath;
+      purposePath.AddElement("DICOM").AddElement("0008").AddSelection("2112", newSelectionIndex).AddElement("0040").AddSelection("a170", 0).AddElement("0008").AddElement("0104");
+      source-&gt;SetProperty(PropertyKeyPathToPropertyName(purposePath), StringProperty::New(m_PurposeTag));</span>
+
+<span style = "background-color:#fdd">      newSelectionIndexStr = std::to_string(newSelectionIndex);
+    }</span>
+
+<span style = "background-color:#fdd">    auto sourceImageRefPath = GetRootKeyPath().AddElement(instanceID).AddElement("SourceImageSequenceItem");
+    source-&gt;SetProperty(PropertyKeyPathToPropertyName(sourceImageRefPath), StringProperty::New(newSelectionIndexStr).GetPointer());
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Cannot connect SourceImageRelationRule on data layer. Passed destination does not have properties for DICOM SOP Instance UIDs(0x0008, 0x0018) and DICOM SOP Class UID(0x0008, 0x0016)";</span>
+  }
+<span style = "background-color:#fdd">};</span>
+
+void mitk::SourceImageRelationRule::Disconnect_datalayer(IPropertyOwner * source, const RelationUIDType &amp; relationUID) const
+<span style = "background-color:#fdd">{
+  std::string deletedImageRefSequenceIndexStr = "";</span>
+
+<span style = "background-color:#fdd">  if (relationUID.find("DICOM") == 0)</span>
+  { //relation that is purly data based.
+<span style = "background-color:#fdd">    auto currentKeyPath = PropertyNameToPropertyKeyPath(relationUID);
+    deletedImageRefSequenceIndexStr = std::to_string(currentKeyPath.GetNode(2).selection);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    auto sourceImageRefPath = GetRootKeyPath().AddElement(this-&gt;GetInstanceIDByRelationUID(source,relationUID)).AddElement("SourceImageSequenceItem");
+    auto imageRefProp = source-&gt;GetConstProperty(PropertyKeyPathToPropertyName(sourceImageRefPath));
+    if (imageRefProp.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      deletedImageRefSequenceIndexStr = imageRefProp-&gt;GetValueAsString();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  if(!deletedImageRefSequenceIndexStr.empty())</span>
+  {
+<span style = "background-color:#fdd">    auto deletedImageRefSequenceIndex = std::stoull(deletedImageRefSequenceIndexStr);
+    auto refs = GetReferenceSequenceIndices(source);
+    std::sort(refs.begin(), refs.end());</span>
+
+<span style = "background-color:#fdd">    for (const auto &amp;refIndex : refs)</span>
+    {
+<span style = "background-color:#fdd">      if (refIndex.first &gt;= deletedImageRefSequenceIndex)</span>
+      {
+<span style = "background-color:#fdd">        PropertyKeyPath refDICOMDataPath;
+        refDICOMDataPath.AddElement("DICOM").AddElement("0008").AddSelection("2112", refIndex.first);
+        auto prefix = PropertyKeyPathToPropertyName(refDICOMDataPath);</span>
+
+<span style = "background-color:#fdd">        PropertyKeyPath refRelDataPath = GetRootKeyPath().AddAnyElement().AddElement("SourceImageSequenceItem");;
+        auto riiRegEx = std::regex(PropertyKeyPathToPropertyRegEx(refRelDataPath));</span>
+
+        //workaround until T24729 is done. You can use directly source-&gt;GetPropertyKeys again, when fixed.
+<span style = "background-color:#fdd">        const auto keys = GetPropertyKeys(source);</span>
+        //end workaround for T24729
+
+<span style = "background-color:#fdd">        for (const auto &amp;key : keys)</span>
+        {
+<span style = "background-color:#fdd">          if (key.find(prefix) == 0)</span>
+          { //its a relevant DICOM property delete or update
+<span style = "background-color:#fdd">            if (refIndex.first != deletedImageRefSequenceIndex)</span>
+            {
+              //reindex to close the gap in the dicom sequence.
+<span style = "background-color:#fdd">              auto newPath = PropertyNameToPropertyKeyPath(key);
+              newPath.GetNode(2).selection = refIndex.first - 1;
+              source-&gt;SetProperty(PropertyKeyPathToPropertyName(newPath), source-&gt;GetNonConstProperty(key));
+            }</span>
+            //remove old/outdated data layer information
+<span style = "background-color:#fdd">            source-&gt;RemoveProperty(key);</span>
+          }
+<span style = "background-color:#fdd">          if (std::regex_match(key, riiRegEx))</span>
+          { //it is a relevant RII property, remove it or update it.
+<span style = "background-color:#fdd">            auto imageSequenceItemProp = source-&gt;GetConstProperty(key);
+            if (imageSequenceItemProp-&gt;GetValueAsString() == deletedImageRefSequenceIndexStr)</span>
+            {
+<span style = "background-color:#fdd">              source-&gt;RemoveProperty(key);
+            }
+            else if (imageSequenceItemProp-&gt;GetValueAsString() == std::to_string(refIndex.first))</span>
+            {
+              //its a relevant data property of the relation rule reindex it.
+<span style = "background-color:#fdd">              source-&gt;SetProperty(key, StringProperty::New(std::to_string(refIndex.first - 1)));</span>
+            }
+<span style = "background-color:#fdd">          }
+        }
+      }
+    }
+  }
+};</span>
+
+itk::LightObject::Pointer mitk::SourceImageRelationRule::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result = Self::New(this-&gt;m_PurposeTag, this-&gt;m_DisplayName, this-&gt;m_SourceRole, this-&gt;m_DestinationRole).GetPointer();</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span></pre>
+	</body>
+</html>

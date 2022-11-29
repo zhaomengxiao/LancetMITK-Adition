@@ -1,0 +1,1004 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIOUtil.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkIOUtil.h"
+
+#include &lt;mitkCoreObjectFactory.h&gt;
+#include &lt;mitkCoreServices.h&gt;
+#include &lt;mitkExceptionMacro.h&gt;
+#include &lt;mitkFileReaderRegistry.h&gt;
+#include &lt;mitkFileWriterRegistry.h&gt;
+#include &lt;mitkIMimeTypeProvider.h&gt;
+#include &lt;mitkProgressBar.h&gt;
+#include &lt;mitkStandaloneDataStorage.h&gt;
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usLDAPProp.h&gt;
+#include &lt;usModuleContext.h&gt;
+#include &lt;usModuleResource.h&gt;
+#include &lt;usModuleResourceStream.h&gt;
+#include &lt;mitkAbstractFileReader.h&gt;
+#include &lt;mitkUtf8Util.h&gt;
+
+// ITK
+#include &lt;itksys/SystemTools.hxx&gt;
+
+// VTK
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+#include &lt;vtkTriangleFilter.h&gt;
+
+#include &lt;cerrno&gt;
+#include &lt;cstdlib&gt;
+
+static std::string GetLastErrorStr()
+<span style = "background-color:#fdd">{</span>
+#ifdef US_PLATFORM_POSIX
+  return std::string(strerror(errno));
+#else
+  // Retrieve the system error message for the last-error code
+  LPVOID lpMsgBuf;
+<span style = "background-color:#fdd">  DWORD dw = GetLastError();</span>
+
+<span style = "background-color:#fdd">  FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,</span>
+                nullptr,
+                dw,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                (LPTSTR)&amp;lpMsgBuf,
+                0,
+                nullptr);
+
+<span style = "background-color:#fdd">  std::string errMsg((LPCTSTR)lpMsgBuf);</span>
+
+<span style = "background-color:#fdd">  LocalFree(lpMsgBuf);</span>
+
+<span style = "background-color:#fdd">  return errMsg;</span>
+#endif
+<span style = "background-color:#fdd">}</span>
+
+#ifdef US_PLATFORM_WINDOWS
+
+#include &lt;direct.h&gt;
+#include &lt;io.h&gt;
+
+// make the posix flags point to the obsolte bsd types on windows
+#define S_IRUSR S_IREAD
+#define S_IWUSR S_IWRITE
+
+#else
+
+#include &lt;sys/time.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;unistd.h&gt;
+
+#endif
+
+#include &lt;fcntl.h&gt;
+#include &lt;sys/stat.h&gt;
+
+static const char validLetters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+// A cross-platform version of the mkstemps function
+static int mkstemps_compat(char *tmpl, int suffixlen)
+<span style = "background-color:#fdd">{</span>
+  static unsigned long long value = 0;
+<span style = "background-color:#fdd">  int savedErrno = errno;</span>
+
+// Lower bound on the number of temporary files to attempt to generate.
+#define ATTEMPTS_MIN (62 * 62 * 62)
+
+/* The number of times to attempt to generate a temporary file.  To
+   conform to POSIX, this must be no smaller than TMP_MAX.  */
+#if ATTEMPTS_MIN &lt; TMP_MAX
+<span style = "background-color:#fdd">  const unsigned int attempts = TMP_MAX;</span>
+#else
+  const unsigned int attempts = ATTEMPTS_MIN;
+#endif
+
+<span style = "background-color:#fdd">  const int len = strlen(tmpl);
+  if ((len - suffixlen) &lt; 6 || strncmp(&amp;tmpl[len - 6 - suffixlen], "XXXXXX", 6))</span>
+  {
+<span style = "background-color:#fdd">    errno = EINVAL;
+    return -1;</span>
+  }
+
+  /* This is where the Xs start.  */
+<span style = "background-color:#fdd">  char *XXXXXX = &amp;tmpl[len - 6 - suffixlen];</span>
+
+/* Get some more or less random data.  */
+#ifdef US_PLATFORM_WINDOWS
+  {
+    SYSTEMTIME stNow;
+    FILETIME ftNow;
+
+    // get system time
+<span style = "background-color:#fdd">    GetSystemTime(&amp;stNow);
+    stNow.wMilliseconds = 500;
+    if (!SystemTimeToFileTime(&amp;stNow, &amp;ftNow))</span>
+    {
+<span style = "background-color:#fdd">      errno = -1;
+      return -1;</span>
+    }
+<span style = "background-color:#fdd">    unsigned long long randomTimeBits = ((static_cast&lt;unsigned long long&gt;(ftNow.dwHighDateTime) &lt;&lt; 32) |</span>
+                                         static_cast&lt;unsigned long long&gt;(ftNow.dwLowDateTime));
+<span style = "background-color:#fdd">    value = randomTimeBits ^ static_cast&lt;unsigned long long&gt;(GetCurrentThreadId());</span>
+  }
+#else
+  {
+    struct timeval tv;
+    gettimeofday(&amp;tv, nullptr);
+    unsigned long long randomTimeBits =
+      ((static_cast&lt;unsigned long long&gt;(tv.tv_usec) &lt;&lt; 32) | static_cast&lt;unsigned long long&gt;(tv.tv_sec));
+    value = randomTimeBits ^ static_cast&lt;unsigned long long&gt;(getpid());
+  }
+#endif
+
+<span style = "background-color:#fdd">  for (unsigned int count = 0; count &lt; attempts; value += 7777, ++count)</span>
+  {
+<span style = "background-color:#fdd">    unsigned long long v = value;</span>
+
+    /* Fill in the random bits.  */
+<span style = "background-color:#fdd">    XXXXXX[0] = validLetters[v % 62];
+    v /= 62;
+    XXXXXX[1] = validLetters[v % 62];
+    v /= 62;
+    XXXXXX[2] = validLetters[v % 62];
+    v /= 62;
+    XXXXXX[3] = validLetters[v % 62];
+    v /= 62;
+    XXXXXX[4] = validLetters[v % 62];
+    v /= 62;
+    XXXXXX[5] = validLetters[v % 62];</span>
+
+<span style = "background-color:#fdd">    int fd = open(tmpl, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    if (fd &gt;= 0)</span>
+    {
+<span style = "background-color:#fdd">      errno = savedErrno;
+      return fd;
+    }
+    else if (errno != EEXIST)</span>
+    {
+<span style = "background-color:#fdd">      return -1;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  /* We got out of the loop because we ran out of combinations to try.  */
+<span style = "background-color:#fdd">  errno = EEXIST;
+  return -1;
+}</span>
+
+// A cross-platform version of the POSIX mkdtemp function
+static char *mkdtemps_compat(char *tmpl, int suffixlen)
+<span style = "background-color:#fdd">{</span>
+  static unsigned long long value = 0;
+<span style = "background-color:#fdd">  int savedErrno = errno;</span>
+
+// Lower bound on the number of temporary dirs to attempt to generate.
+#define ATTEMPTS_MIN (62 * 62 * 62)
+
+/* The number of times to attempt to generate a temporary dir.  To
+   conform to POSIX, this must be no smaller than TMP_MAX.  */
+#if ATTEMPTS_MIN &lt; TMP_MAX
+<span style = "background-color:#fdd">  const unsigned int attempts = TMP_MAX;</span>
+#else
+  const unsigned int attempts = ATTEMPTS_MIN;
+#endif
+
+<span style = "background-color:#fdd">  const int len = strlen(tmpl);
+  if ((len - suffixlen) &lt; 6 || strncmp(&amp;tmpl[len - 6 - suffixlen], "XXXXXX", 6))</span>
+  {
+<span style = "background-color:#fdd">    errno = EINVAL;
+    return nullptr;</span>
+  }
+
+  /* This is where the Xs start.  */
+<span style = "background-color:#fdd">  char *XXXXXX = &amp;tmpl[len - 6 - suffixlen];</span>
+
+/* Get some more or less random data.  */
+#ifdef US_PLATFORM_WINDOWS
+  {
+    SYSTEMTIME stNow;
+    FILETIME ftNow;
+
+    // get system time
+<span style = "background-color:#fdd">    GetSystemTime(&amp;stNow);
+    stNow.wMilliseconds = 500;
+    if (!SystemTimeToFileTime(&amp;stNow, &amp;ftNow))</span>
+    {
+<span style = "background-color:#fdd">      errno = -1;
+      return nullptr;</span>
+    }
+<span style = "background-color:#fdd">    unsigned long long randomTimeBits = ((static_cast&lt;unsigned long long&gt;(ftNow.dwHighDateTime) &lt;&lt; 32) |</span>
+                                         static_cast&lt;unsigned long long&gt;(ftNow.dwLowDateTime));
+<span style = "background-color:#fdd">    value = randomTimeBits ^ static_cast&lt;unsigned long long&gt;(GetCurrentThreadId());</span>
+  }
+#else
+  {
+    struct timeval tv;
+    gettimeofday(&amp;tv, nullptr);
+    unsigned long long randomTimeBits =
+      ((static_cast&lt;unsigned long long&gt;(tv.tv_usec) &lt;&lt; 32) | static_cast&lt;unsigned long long&gt;(tv.tv_sec));
+    value = randomTimeBits ^ static_cast&lt;unsigned long long&gt;(getpid());
+  }
+#endif
+
+<span style = "background-color:#fdd">  unsigned int count = 0;
+  for (; count &lt; attempts; value += 7777, ++count)</span>
+  {
+<span style = "background-color:#fdd">    unsigned long long v = value;</span>
+
+    /* Fill in the random bits.  */
+<span style = "background-color:#fdd">    XXXXXX[0] = validLetters[v % 62];
+    v /= 62;
+    XXXXXX[1] = validLetters[v % 62];
+    v /= 62;
+    XXXXXX[2] = validLetters[v % 62];
+    v /= 62;
+    XXXXXX[3] = validLetters[v % 62];
+    v /= 62;
+    XXXXXX[4] = validLetters[v % 62];
+    v /= 62;
+    XXXXXX[5] = validLetters[v % 62];</span>
+
+#ifdef US_PLATFORM_WINDOWS
+<span style = "background-color:#fdd">    int fd = _mkdir(tmpl); //, _S_IREAD | _S_IWRITE | _S_IEXEC);</span>
+#else
+    int fd = mkdir(tmpl, S_IRUSR | S_IWUSR | S_IXUSR);
+#endif
+<span style = "background-color:#fdd">    if (fd &gt;= 0)</span>
+    {
+<span style = "background-color:#fdd">      errno = savedErrno;
+      return tmpl;
+    }
+    else if (errno != EEXIST)</span>
+    {
+<span style = "background-color:#fdd">      return nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  /* We got out of the loop because we ran out of combinations to try.  */
+<span style = "background-color:#fdd">  errno = EEXIST;
+  return nullptr;
+}</span>
+
+//#endif
+
+//**************************************************************
+// mitk::IOUtil method definitions
+
+namespace mitk
+{
+  struct IOUtil::Impl
+  {
+    struct FixedReaderOptionsFunctor : public ReaderOptionsFunctorBase
+    {
+<span style = "background-color:#fdd">      FixedReaderOptionsFunctor(const IFileReader::Options &amp;options) : m_Options(options) {}</span>
+      bool operator()(LoadInfo &amp;loadInfo) const override
+<span style = "background-color:#fdd">      {
+        IFileReader *reader = loadInfo.m_ReaderSelector.GetSelected().GetReader();
+        if (reader)</span>
+        {
+<span style = "background-color:#fdd">          reader-&gt;SetOptions(m_Options);</span>
+        }
+<span style = "background-color:#fdd">        return false;
+      }</span>
+
+    private:
+      const IFileReader::Options &amp;m_Options;
+    };
+
+    struct FixedWriterOptionsFunctor : public WriterOptionsFunctorBase
+    {
+<span style = "background-color:#fdd">      FixedWriterOptionsFunctor(const IFileReader::Options &amp;options) : m_Options(options) {}</span>
+      bool operator()(SaveInfo &amp;saveInfo) const override
+<span style = "background-color:#fdd">      {
+        IFileWriter *writer = saveInfo.m_WriterSelector.GetSelected().GetWriter();
+        if (writer)</span>
+        {
+<span style = "background-color:#fdd">          writer-&gt;SetOptions(m_Options);</span>
+        }
+<span style = "background-color:#fdd">        return false;
+      }</span>
+
+    private:
+      const IFileWriter::Options &amp;m_Options;
+    };
+
+    static BaseData::Pointer LoadBaseDataFromFile(const std::string &amp;path, const ReaderOptionsFunctorBase* optionsCallback = nullptr);
+  };
+
+  BaseData::Pointer IOUtil::Impl::LoadBaseDataFromFile(const std::string &amp;path,
+                                                       const ReaderOptionsFunctorBase *optionsCallback)
+<span style = "background-color:#fdd">  {
+    std::vector&lt;BaseData::Pointer&gt; baseDataList = Load(path, optionsCallback);</span>
+
+    // The Load(path) call above should throw an exception if nothing could be loaded
+<span style = "background-color:#fdd">    assert(!baseDataList.empty());
+    return baseDataList.front();
+  }</span>
+
+#ifdef US_PLATFORM_WINDOWS
+  std::string IOUtil::GetProgramPath()
+<span style = "background-color:#dfd">  {</span>
+    char path[512];
+<span style = "background-color:#dfd">    std::size_t index = std::string(path, GetModuleFileName(nullptr, path, 512)).find_last_of('\\');
+    return std::string(path, index);
+  }</span>
+#elif defined(US_PLATFORM_APPLE)
+#include &lt;mach-o/dyld.h&gt;
+  std::string IOUtil::GetProgramPath()
+  {
+    char path[512];
+    uint32_t size = sizeof(path);
+    if (_NSGetExecutablePath(path, &amp;size) == 0)
+    {
+      std::size_t index = std::string(path).find_last_of('/');
+      std::string strPath = std::string(path, index);
+      // const char* execPath = strPath.c_str();
+      // mitk::StandardFileLocations::GetInstance()-&gt;AddDirectoryForSearch(execPath,false);
+      return strPath;
+    }
+    return std::string();
+  }
+#else
+#include &lt;sstream&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;unistd.h&gt;
+  std::string IOUtil::GetProgramPath()
+  {
+    std::stringstream ss;
+    ss &lt;&lt; "/proc/" &lt;&lt; getpid() &lt;&lt; "/exe";
+    char proc[512] = {0};
+    ssize_t ch = readlink(ss.str().c_str(), proc, 512);
+    if (ch == -1)
+      return std::string();
+    std::size_t index = std::string(proc).find_last_of('/');
+    return std::string(proc, index);
+  }
+#endif
+
+  char IOUtil::GetDirectorySeparator()
+<span style = "background-color:#fdd">  {</span>
+#ifdef US_PLATFORM_WINDOWS
+<span style = "background-color:#fdd">    return '\\';</span>
+#else
+    return '/';
+#endif
+<span style = "background-color:#fdd">  }</span>
+
+  std::string IOUtil::GetTempPath()
+<span style = "background-color:#fdd">  {
+    static std::string result;
+    if (result.empty())</span>
+    {
+#ifdef US_PLATFORM_WINDOWS
+      char tempPathTestBuffer[1];
+<span style = "background-color:#fdd">      DWORD bufferLength = ::GetTempPath(1, tempPathTestBuffer);
+      if (bufferLength == 0)</span>
+      {
+<span style = "background-color:#fdd">        mitkThrow() &lt;&lt; GetLastErrorStr();</span>
+      }
+<span style = "background-color:#fdd">      std::vector&lt;char&gt; tempPath(bufferLength);
+      bufferLength = ::GetTempPath(bufferLength, &amp;tempPath[0]);
+      if (bufferLength == 0)</span>
+      {
+<span style = "background-color:#fdd">        mitkThrow() &lt;&lt; GetLastErrorStr();</span>
+      }
+<span style = "background-color:#fdd">      result.assign(tempPath.begin(), tempPath.begin() + static_cast&lt;std::size_t&gt;(bufferLength));</span>
+#else
+      result = "/tmp/";
+#endif
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    return result;
+  }</span>
+
+  std::string IOUtil::CreateTemporaryFile(const std::string &amp;templateName, std::string path)
+<span style = "background-color:#fdd">  {
+    std::ofstream tmpOutputStream;
+    std::string returnValue = CreateTemporaryFile(tmpOutputStream, templateName, path);
+    tmpOutputStream.close();
+    return returnValue;
+  }</span>
+
+  std::string IOUtil::CreateTemporaryFile(std::ofstream &amp;f, const std::string &amp;templateName, std::string path)
+<span style = "background-color:#fdd">  {
+    return CreateTemporaryFile(f, std::ios_base::out | std::ios_base::trunc, templateName, path);
+  }</span>
+
+  std::string IOUtil::CreateTemporaryFile(std::ofstream &amp;f,
+                                          std::ios_base::openmode mode,
+                                          const std::string &amp;templateName,
+                                          std::string path)
+<span style = "background-color:#fdd">  {
+    if (path.empty())</span>
+    {
+<span style = "background-color:#fdd">      path = GetTempPath();</span>
+    }
+
+<span style = "background-color:#fdd">    path += templateName;</span>
+
+<span style = "background-color:#fdd">    std::vector&lt;char&gt; dst_path(path.begin(), path.end());
+    dst_path.push_back('\0');</span>
+
+<span style = "background-color:#fdd">    std::size_t lastX = path.find_last_of('X');
+    std::size_t firstX = path.find_last_not_of('X', lastX);
+    int firstNonX = firstX == std::string::npos ? -1 : firstX - 1;
+    while (lastX != std::string::npos &amp;&amp; (lastX - firstNonX) &lt; 6)</span>
+    {
+<span style = "background-color:#fdd">      lastX = path.find_last_of('X', firstX);
+      firstX = path.find_last_not_of('X', lastX);
+      firstNonX = firstX == std::string::npos ? -1 : firstX - 1;
+    }
+    std::size_t suffixlen = lastX == std::string::npos ? path.size() : path.size() - lastX - 1;</span>
+
+<span style = "background-color:#fdd">    int fd = mkstemps_compat(&amp;dst_path[0], suffixlen);
+    if (fd != -1)</span>
+    {
+<span style = "background-color:#fdd">      path.assign(dst_path.begin(), dst_path.end() - 1);
+      f.open(path.c_str(), mode | std::ios_base::out | std::ios_base::trunc);
+      close(fd);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Creating temporary file " &lt;&lt; &amp;dst_path[0] &lt;&lt; " failed: " &lt;&lt; GetLastErrorStr();</span>
+    }
+<span style = "background-color:#fdd">    return path;
+  }</span>
+
+  std::string IOUtil::CreateTemporaryDirectory(const std::string &amp;templateName, std::string path)
+<span style = "background-color:#fdd">  {
+    if (path.empty())</span>
+    {
+<span style = "background-color:#fdd">      path = GetTempPath();</span>
+    }
+
+<span style = "background-color:#fdd">    path += GetDirectorySeparator() + templateName;
+    std::vector&lt;char&gt; dst_path(path.begin(), path.end());
+    dst_path.push_back('\0');</span>
+
+<span style = "background-color:#fdd">    std::size_t lastX = path.find_last_of('X');
+    std::size_t firstX = path.find_last_not_of('X', lastX);
+    int firstNonX = firstX == std::string::npos ? -1 : firstX - 1;
+    while (lastX != std::string::npos &amp;&amp; (lastX - firstNonX) &lt; 6)</span>
+    {
+<span style = "background-color:#fdd">      lastX = path.find_last_of('X', firstX);
+      firstX = path.find_last_not_of('X', lastX);
+      firstNonX = firstX == std::string::npos ? -1 : firstX - 1;
+    }
+    std::size_t suffixlen = lastX == std::string::npos ? path.size() : path.size() - lastX - 1;</span>
+
+<span style = "background-color:#fdd">    if (mkdtemps_compat(&amp;dst_path[0], suffixlen) == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Creating temporary directory " &lt;&lt; &amp;dst_path[0] &lt;&lt; " failed: " &lt;&lt; GetLastErrorStr();</span>
+    }
+
+<span style = "background-color:#fdd">    path.assign(dst_path.begin(), dst_path.end() - 1);
+    return path;
+  }</span>
+
+  DataStorage::SetOfObjects::Pointer IOUtil::Load(const std::string &amp;path, DataStorage &amp;storage, const ReaderOptionsFunctorBase *optionsCallback)
+<span style = "background-color:#fdd">  {
+    std::vector&lt;std::string&gt; paths;
+    paths.push_back(path);
+    return Load(paths, storage, optionsCallback);
+  }</span>
+
+  DataStorage::SetOfObjects::Pointer IOUtil::Load(const std::string &amp;path,
+                                                  const IFileReader::Options &amp;options,
+                                                  DataStorage &amp;storage)
+<span style = "background-color:#fdd">  {
+    std::vector&lt;LoadInfo&gt; loadInfos;
+    loadInfos.push_back(LoadInfo(path));
+    DataStorage::SetOfObjects::Pointer nodeResult = DataStorage::SetOfObjects::New();
+    Impl::FixedReaderOptionsFunctor optionsCallback(options);
+    std::string errMsg = Load(loadInfos, nodeResult, &amp;storage, &amp;optionsCallback);
+    if (!errMsg.empty())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; errMsg;</span>
+    }
+<span style = "background-color:#fdd">    return nodeResult;
+  }</span>
+
+  std::vector&lt;BaseData::Pointer&gt; IOUtil::Load(const std::string &amp;path, const ReaderOptionsFunctorBase *optionsCallback)
+<span style = "background-color:#fdd">  {
+    std::vector&lt;std::string&gt; paths;
+    paths.push_back(path);
+    return Load(paths, optionsCallback);
+  }</span>
+
+  std::vector&lt;BaseData::Pointer&gt; IOUtil::Load(const std::string &amp;path, const IFileReader::Options &amp;options)
+<span style = "background-color:#fdd">  {
+    std::vector&lt;LoadInfo&gt; loadInfos;
+    loadInfos.push_back(LoadInfo(path));
+    Impl::FixedReaderOptionsFunctor optionsCallback(options);
+    std::string errMsg = Load(loadInfos, nullptr, nullptr, &amp;optionsCallback);
+    if (!errMsg.empty())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; errMsg;</span>
+    }
+<span style = "background-color:#fdd">    return loadInfos.front().m_Output;
+  }</span>
+
+  DataStorage::SetOfObjects::Pointer IOUtil::Load(const std::vector&lt;std::string&gt; &amp;paths, DataStorage &amp;storage, const ReaderOptionsFunctorBase *optionsCallback)
+<span style = "background-color:#fdd">  {
+    DataStorage::SetOfObjects::Pointer nodeResult = DataStorage::SetOfObjects::New();
+    std::vector&lt;LoadInfo&gt; loadInfos;
+    for (const auto &amp;loadInfo : paths)</span>
+    {
+<span style = "background-color:#fdd">      loadInfos.emplace_back(loadInfo);
+    }
+    std::string errMsg = Load(loadInfos, nodeResult, &amp;storage, optionsCallback);
+    if (!errMsg.empty())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; errMsg;</span>
+    }
+<span style = "background-color:#fdd">    return nodeResult;
+  }</span>
+
+  std::vector&lt;BaseData::Pointer&gt; IOUtil::Load(const std::vector&lt;std::string&gt; &amp;paths, const ReaderOptionsFunctorBase *optionsCallback)
+<span style = "background-color:#fdd">  {
+    std::vector&lt;BaseData::Pointer&gt; result;
+    std::vector&lt;LoadInfo&gt; loadInfos;
+    for (const auto &amp;loadInfo : paths)</span>
+    {
+<span style = "background-color:#fdd">      loadInfos.emplace_back(loadInfo);
+    }
+    std::string errMsg = Load(loadInfos, nullptr, nullptr, optionsCallback);
+    if (!errMsg.empty())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; errMsg;</span>
+    }
+
+<span style = "background-color:#fdd">    for (std::vector&lt;LoadInfo&gt;::const_iterator iter = loadInfos.begin(), iterEnd = loadInfos.end(); iter != iterEnd;
+         ++iter)</span>
+    {
+<span style = "background-color:#fdd">      result.insert(result.end(), iter-&gt;m_Output.begin(), iter-&gt;m_Output.end());
+    }
+    return result;
+  }</span>
+
+  std::string IOUtil::Load(std::vector&lt;LoadInfo&gt; &amp;loadInfos,
+                           DataStorage::SetOfObjects *nodeResult,
+                           DataStorage *ds,
+                           const ReaderOptionsFunctorBase *optionsCallback)
+<span style = "background-color:#fdd">  {
+    if (loadInfos.empty())</span>
+    {
+<span style = "background-color:#fdd">      return "No input files given";</span>
+    }
+
+<span style = "background-color:#fdd">    int filesToRead = loadInfos.size();
+    mitk::ProgressBar::GetInstance()-&gt;AddStepsToDo(2 * filesToRead);</span>
+
+<span style = "background-color:#fdd">    std::string errMsg;</span>
+
+<span style = "background-color:#fdd">    std::map&lt;std::string, FileReaderSelector::Item&gt; usedReaderItems;</span>
+
+<span style = "background-color:#fdd">    std::vector&lt; std::string &gt; read_files;
+    for (auto &amp;loadInfo : loadInfos)</span>
+    {
+<span style = "background-color:#fdd">      if(std::find(read_files.begin(), read_files.end(), loadInfo.m_Path) != read_files.end())
+        continue;</span>
+
+<span style = "background-color:#fdd">      std::vector&lt;FileReaderSelector::Item&gt; readers = loadInfo.m_ReaderSelector.Get();</span>
+
+<span style = "background-color:#fdd">      if (readers.empty())</span>
+      {
+<span style = "background-color:#fdd">        if (!itksys::SystemTools::FileExists(Utf8Util::Local8BitToUtf8(loadInfo.m_Path).c_str()))</span>
+        {
+<span style = "background-color:#fdd">          errMsg += "File '" + loadInfo.m_Path + "' does not exist\n";
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          errMsg += "No reader available for '" + loadInfo.m_Path + "'\n";</span>
+        }
+<span style = "background-color:#fdd">        continue;</span>
+      }
+
+<span style = "background-color:#fdd">      bool callOptionsCallback = readers.size() &gt; 1 || !readers.front().GetReader()-&gt;GetOptions().empty();</span>
+
+      // check if we already used a reader which should be re-used
+<span style = "background-color:#fdd">      std::vector&lt;MimeType&gt; currMimeTypes = loadInfo.m_ReaderSelector.GetMimeTypes();
+      std::string selectedMimeType;
+      for (std::vector&lt;MimeType&gt;::const_iterator mimeTypeIter = currMimeTypes.begin(),
+                                                 mimeTypeIterEnd = currMimeTypes.end();
+           mimeTypeIter != mimeTypeIterEnd;
+           ++mimeTypeIter)</span>
+      {
+<span style = "background-color:#fdd">        std::map&lt;std::string, FileReaderSelector::Item&gt;::const_iterator oldSelectedItemIter =</span>
+          usedReaderItems.find(mimeTypeIter-&gt;GetName());
+<span style = "background-color:#fdd">        if (oldSelectedItemIter != usedReaderItems.end())</span>
+        {
+          // we found an already used item for a mime-type which is contained
+          // in the current reader set, check all current readers if there service
+          // id equals the old reader
+<span style = "background-color:#fdd">          for (std::vector&lt;FileReaderSelector::Item&gt;::const_iterator currReaderItem = readers.begin(),
+                                                                     currReaderItemEnd = readers.end();
+               currReaderItem != currReaderItemEnd;
+               ++currReaderItem)</span>
+          {
+            if (currReaderItem-&gt;GetMimeType().GetName() == mimeTypeIter-&gt;GetName() &amp;&amp;
+<span style = "background-color:#fdd">                currReaderItem-&gt;GetServiceId() == oldSelectedItemIter-&gt;second.GetServiceId() &amp;&amp;</span>
+                currReaderItem-&gt;GetConfidenceLevel() &gt;= oldSelectedItemIter-&gt;second.GetConfidenceLevel())
+            {
+              // okay, we used the same reader already, re-use its options
+<span style = "background-color:#fdd">              selectedMimeType = mimeTypeIter-&gt;GetName();
+              callOptionsCallback = false;
+              loadInfo.m_ReaderSelector.Select(oldSelectedItemIter-&gt;second.GetServiceId());
+              loadInfo.m_ReaderSelector.GetSelected().GetReader()-&gt;SetOptions(</span>
+                oldSelectedItemIter-&gt;second.GetReader()-&gt;GetOptions());
+<span style = "background-color:#fdd">              break;
+            }
+          }
+          if (!selectedMimeType.empty())
+            break;</span>
+        }
+<span style = "background-color:#fdd">      }</span>
+
+<span style = "background-color:#fdd">      if (callOptionsCallback &amp;&amp; optionsCallback)</span>
+      {
+<span style = "background-color:#fdd">        callOptionsCallback = (*optionsCallback)(loadInfo);
+        if (!callOptionsCallback &amp;&amp; !loadInfo.m_Cancel)</span>
+        {
+<span style = "background-color:#fdd">          usedReaderItems.erase(selectedMimeType);
+          FileReaderSelector::Item selectedItem = loadInfo.m_ReaderSelector.GetSelected();
+          usedReaderItems.insert(std::make_pair(selectedItem.GetMimeType().GetName(), selectedItem));
+        }</span>
+      }
+
+<span style = "background-color:#fdd">      if (loadInfo.m_Cancel)</span>
+      {
+<span style = "background-color:#fdd">        errMsg += "Reading operation(s) cancelled.";
+        break;</span>
+      }
+
+<span style = "background-color:#fdd">      IFileReader *reader = loadInfo.m_ReaderSelector.GetSelected().GetReader();
+      if (reader == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        errMsg += "Unexpected nullptr reader.";
+        break;</span>
+      }
+
+      // Do the actual reading
+      try
+      {
+<span style = "background-color:#fdd">        DataStorage::SetOfObjects::Pointer nodes;
+        if (ds != nullptr)</span>
+        {
+<span style = "background-color:#fdd">          nodes = reader-&gt;Read(*ds);</span>
+
+<span style = "background-color:#fdd">          std::vector&lt; std::string &gt; new_files =  reader-&gt;GetReadFiles();
+          read_files.insert( read_files.end(), new_files.begin(), new_files.end() );
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          nodes = DataStorage::SetOfObjects::New();
+          std::vector&lt;mitk::BaseData::Pointer&gt; baseData = reader-&gt;Read();
+          for (auto iter = baseData.begin(); iter != baseData.end(); ++iter)</span>
+          {
+<span style = "background-color:#fdd">            if (iter-&gt;IsNotNull())</span>
+            {
+<span style = "background-color:#fdd">              mitk::DataNode::Pointer node = mitk::DataNode::New();
+              node-&gt;SetData(*iter);
+              nodes-&gt;InsertElement(nodes-&gt;Size(), node);
+            }
+          }</span>
+
+<span style = "background-color:#fdd">          std::vector&lt; std::string &gt; new_files =  reader-&gt;GetReadFiles();
+          read_files.insert( read_files.end(), new_files.begin(), new_files.end() );
+        }</span>
+
+<span style = "background-color:#fdd">        for (DataStorage::SetOfObjects::ConstIterator nodeIter = nodes-&gt;Begin(), nodeIterEnd = nodes-&gt;End();
+             nodeIter != nodeIterEnd;
+             ++nodeIter)</span>
+        {
+<span style = "background-color:#fdd">          const mitk::DataNode::Pointer &amp;node = nodeIter-&gt;Value();
+          mitk::BaseData::Pointer data = node-&gt;GetData();
+          if (data.IsNull())</span>
+          {
+<span style = "background-color:#fdd">            continue;</span>
+          }
+
+<span style = "background-color:#fdd">          data-&gt;SetProperty("path", mitk::StringProperty::New(Utf8Util::Local8BitToUtf8(loadInfo.m_Path)));</span>
+
+<span style = "background-color:#fdd">          loadInfo.m_Output.push_back(data);
+          if (nodeResult)</span>
+          {
+<span style = "background-color:#fdd">            nodeResult-&gt;push_back(nodeIter-&gt;Value());</span>
+          }
+<span style = "background-color:#fdd">        }</span>
+
+<span style = "background-color:#fdd">        if (loadInfo.m_Output.empty() || (nodeResult &amp;&amp; nodeResult-&gt;Size() == 0))</span>
+        {
+<span style = "background-color:#fdd">          errMsg += "Unknown read error occurred reading " + loadInfo.m_Path;</span>
+        }
+<span style = "background-color:#fdd">      }</span>
+      catch (const std::exception &amp;e)
+<span style = "background-color:#fdd">      {
+        errMsg += "Exception occured when reading file " + loadInfo.m_Path + ":\n" + e.what() + "\n\n";
+      }
+      mitk::ProgressBar::GetInstance()-&gt;Progress(2);
+      --filesToRead;
+    }</span>
+
+<span style = "background-color:#fdd">    if (!errMsg.empty())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; errMsg;</span>
+    }
+
+<span style = "background-color:#fdd">    mitk::ProgressBar::GetInstance()-&gt;Progress(2 * filesToRead);</span>
+
+<span style = "background-color:#fdd">    return errMsg;
+  }</span>
+
+  std::vector&lt;BaseData::Pointer&gt; IOUtil::Load(const us::ModuleResource &amp;usResource, std::ios_base::openmode mode)
+<span style = "background-color:#fdd">  {
+    us::ModuleResourceStream resStream(usResource, mode);</span>
+
+<span style = "background-color:#fdd">    mitk::CoreServicePointer&lt;mitk::IMimeTypeProvider&gt; mimeTypeProvider(mitk::CoreServices::GetMimeTypeProvider());
+    std::vector&lt;MimeType&gt; mimetypes = mimeTypeProvider-&gt;GetMimeTypesForFile(usResource.GetResourcePath());</span>
+
+<span style = "background-color:#fdd">    std::vector&lt;mitk::BaseData::Pointer&gt; data;
+    if (mimetypes.empty())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "No mimetype for resource stream: " &lt;&lt; usResource.GetResourcePath();
+      return data;</span>
+    }
+
+<span style = "background-color:#fdd">    mitk::FileReaderRegistry fileReaderRegistry;
+    std::vector&lt;us::ServiceReference&lt;IFileReader&gt;&gt; refs = fileReaderRegistry.GetReferences(mimetypes[0]);
+    if (refs.empty())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "No reader available for resource stream: " &lt;&lt; usResource.GetResourcePath();
+      return data;</span>
+    }
+
+<span style = "background-color:#fdd">    mitk::IFileReader *reader = fileReaderRegistry.GetReader(refs[0]);
+    reader-&gt;SetInput(usResource.GetResourcePath(), &amp;resStream);
+    data = reader-&gt;Read();</span>
+
+<span style = "background-color:#fdd">    return data;
+  }</span>
+
+<span style = "background-color:#fdd">  void IOUtil::Save(const BaseData *data, const std::string &amp;path, bool setPathProperty) { Save(data, path, IFileWriter::Options(), setPathProperty); }</span>
+  void IOUtil::Save(const BaseData *data, const std::string &amp;path, const IFileWriter::Options &amp;options, bool setPathProperty)
+<span style = "background-color:#fdd">  {
+    Save(data, std::string(), path, options, setPathProperty);
+  }</span>
+
+  void IOUtil::Save(const BaseData *data, const std::string &amp;mimeType, const std::string &amp;path, bool addExtension, bool setPathProperty)
+<span style = "background-color:#fdd">  {
+    Save(data, mimeType, path, IFileWriter::Options(), addExtension, setPathProperty);
+  }</span>
+
+  void IOUtil::Save(const BaseData *data,
+                    const std::string &amp;mimeType,
+                    const std::string &amp;path,
+                    const IFileWriter::Options &amp;options,
+                    bool addExtension,
+                    bool setPathProperty)
+<span style = "background-color:#fdd">  {
+    if ((data == nullptr) || (data-&gt;IsEmpty()))
+      mitkThrow() &lt;&lt; "BaseData cannotbe null or empty for save methods in IOUtil.h.";</span>
+
+<span style = "background-color:#fdd">    std::string errMsg;
+    if (options.empty())</span>
+    {
+<span style = "background-color:#fdd">      errMsg = Save(data, mimeType, path, nullptr, addExtension, setPathProperty);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      Impl::FixedWriterOptionsFunctor optionsCallback(options);
+      errMsg = Save(data, mimeType, path, &amp;optionsCallback, addExtension, setPathProperty);</span>
+    }
+
+<span style = "background-color:#fdd">    if (!errMsg.empty())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; errMsg;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void IOUtil::Save(std::vector&lt;IOUtil::SaveInfo&gt; &amp;saveInfos, bool setPathProperty)
+<span style = "background-color:#fdd">  {
+    std::string errMsg = Save(saveInfos, nullptr, setPathProperty);
+    if (!errMsg.empty())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; errMsg;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  std::string IOUtil::Save(const BaseData *data,
+                           const std::string &amp;mimeTypeName,
+                           const std::string &amp;path,
+                           WriterOptionsFunctorBase *optionsCallback,
+                           bool addExtension,
+                           bool setPathProperty)
+<span style = "background-color:#fdd">  {
+    if (path.empty())</span>
+    {
+<span style = "background-color:#fdd">      return "No output filename given";</span>
+    }
+
+<span style = "background-color:#fdd">    mitk::CoreServicePointer&lt;mitk::IMimeTypeProvider&gt; mimeTypeProvider(mitk::CoreServices::GetMimeTypeProvider());</span>
+
+<span style = "background-color:#fdd">    MimeType mimeType = mimeTypeProvider-&gt;GetMimeTypeForName(mimeTypeName);</span>
+
+<span style = "background-color:#fdd">    SaveInfo saveInfo(data, mimeType, path);</span>
+
+<span style = "background-color:#fdd">    std::string ext = Utf8Util::Utf8ToLocal8Bit(itksys::SystemTools::GetFilenameExtension(Utf8Util::Local8BitToUtf8(path)));</span>
+
+<span style = "background-color:#fdd">    if (saveInfo.m_WriterSelector.IsEmpty())</span>
+    {
+<span style = "background-color:#fdd">      return std::string("No suitable writer found for the current data of type ") + data-&gt;GetNameOfClass() +</span>
+             (mimeType.IsValid() ? (std::string(" and mime-type ") + mimeType.GetName()) : std::string()) +
+             (ext.empty() ? std::string() : (std::string(" with extension ") + ext));
+    }
+
+    // Add an extension if not already specified
+<span style = "background-color:#fdd">    if (ext.empty() &amp;&amp; addExtension)</span>
+    {
+<span style = "background-color:#fdd">      ext = saveInfo.m_MimeType.GetExtensions().empty() ? std::string() : "." + saveInfo.m_MimeType.GetExtensions().front();
+      saveInfo.m_Path += ext;</span>
+    }
+
+<span style = "background-color:#fdd">    std::vector&lt;SaveInfo&gt; infos;
+    infos.push_back(saveInfo);
+    return Save(infos, optionsCallback, setPathProperty);
+  }</span>
+
+  std::string IOUtil::Save(std::vector&lt;SaveInfo&gt; &amp;saveInfos, WriterOptionsFunctorBase *optionsCallback, bool setPathProperty)
+<span style = "background-color:#fdd">  {
+    if (saveInfos.empty())</span>
+    {
+<span style = "background-color:#fdd">      return "No data for saving available";</span>
+    }
+
+<span style = "background-color:#fdd">    int filesToWrite = saveInfos.size();
+    mitk::ProgressBar::GetInstance()-&gt;AddStepsToDo(2 * filesToWrite);</span>
+
+<span style = "background-color:#fdd">    std::string errMsg;</span>
+
+<span style = "background-color:#fdd">    std::set&lt;SaveInfo&gt; usedSaveInfos;</span>
+
+<span style = "background-color:#fdd">    for (auto &amp;saveInfo : saveInfos)</span>
+    {
+<span style = "background-color:#fdd">      const std::string baseDataType = saveInfo.m_BaseData-&gt;GetNameOfClass();</span>
+
+<span style = "background-color:#fdd">      std::vector&lt;FileWriterSelector::Item&gt; writers = saveInfo.m_WriterSelector.Get();</span>
+
+      // Error out if no compatible Writer was found
+<span style = "background-color:#fdd">      if (writers.empty())</span>
+      {
+<span style = "background-color:#fdd">        errMsg += std::string("No writer available for ") + baseDataType + " data.\n";
+        continue;</span>
+      }
+
+<span style = "background-color:#fdd">      bool callOptionsCallback = writers.size() &gt; 1 || !writers[0].GetWriter()-&gt;GetOptions().empty();</span>
+
+      // check if we already used a writer for this base data type
+      // which should be re-used
+<span style = "background-color:#fdd">      auto oldSaveInfoIter = usedSaveInfos.find(saveInfo);
+      if (oldSaveInfoIter != usedSaveInfos.end())</span>
+      {
+        // we previously saved a base data object of the same data with the same mime-type,
+        // check if the same writer is contained in the current writer set and if the
+        // confidence level matches
+<span style = "background-color:#fdd">        FileWriterSelector::Item oldSelectedItem =</span>
+          oldSaveInfoIter-&gt;m_WriterSelector.Get(oldSaveInfoIter-&gt;m_WriterSelector.GetSelectedId());
+<span style = "background-color:#fdd">        for (std::vector&lt;FileWriterSelector::Item&gt;::const_iterator currWriterItem = writers.begin(),
+                                                                   currWriterItemEnd = writers.end();
+             currWriterItem != currWriterItemEnd;
+             ++currWriterItem)</span>
+        {
+<span style = "background-color:#fdd">          if (currWriterItem-&gt;GetServiceId() == oldSelectedItem.GetServiceId() &amp;&amp;</span>
+              currWriterItem-&gt;GetConfidenceLevel() &gt;= oldSelectedItem.GetConfidenceLevel())
+          {
+            // okay, we used the same writer already, re-use its options
+<span style = "background-color:#fdd">            callOptionsCallback = false;
+            saveInfo.m_WriterSelector.Select(oldSaveInfoIter-&gt;m_WriterSelector.GetSelectedId());
+            saveInfo.m_WriterSelector.GetSelected().GetWriter()-&gt;SetOptions(oldSelectedItem.GetWriter()-&gt;GetOptions());
+            break;
+          }
+        }
+      }</span>
+
+<span style = "background-color:#fdd">      if (callOptionsCallback &amp;&amp; optionsCallback)</span>
+      {
+<span style = "background-color:#fdd">        callOptionsCallback = (*optionsCallback)(saveInfo);
+        if (!callOptionsCallback &amp;&amp; !saveInfo.m_Cancel)</span>
+        {
+<span style = "background-color:#fdd">          usedSaveInfos.erase(saveInfo);
+          usedSaveInfos.insert(saveInfo);</span>
+        }
+      }
+
+<span style = "background-color:#fdd">      if (saveInfo.m_Cancel)</span>
+      {
+<span style = "background-color:#fdd">        errMsg += "Writing operation(s) cancelled.";
+        break;</span>
+      }
+
+<span style = "background-color:#fdd">      IFileWriter *writer = saveInfo.m_WriterSelector.GetSelected().GetWriter();
+      if (writer == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        errMsg += "Unexpected nullptr writer.";
+        break;</span>
+      }
+
+      // Do the actual writing
+      try
+      {
+<span style = "background-color:#fdd">        writer-&gt;SetOutputLocation(saveInfo.m_Path);
+        writer-&gt;Write();</span>
+      }
+      catch (const std::exception &amp;e)
+<span style = "background-color:#fdd">      {
+        errMsg += std::string("Exception occurred when writing to ") + saveInfo.m_Path + ":\n" + e.what() + "\n";
+      }</span>
+
+<span style = "background-color:#fdd">      if (setPathProperty)
+        saveInfo.m_BaseData-&gt;GetPropertyList()-&gt;SetStringProperty("path", Utf8Util::Local8BitToUtf8(saveInfo.m_Path).c_str());</span>
+
+<span style = "background-color:#fdd">      mitk::ProgressBar::GetInstance()-&gt;Progress(2);
+      --filesToWrite;
+    }</span>
+
+<span style = "background-color:#fdd">    if (!errMsg.empty())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; errMsg;</span>
+    }
+
+<span style = "background-color:#fdd">    mitk::ProgressBar::GetInstance()-&gt;Progress(2 * filesToWrite);</span>
+
+<span style = "background-color:#fdd">    return errMsg;
+  }</span>
+
+  IOUtil::SaveInfo::SaveInfo(const BaseData *baseData, const MimeType &amp;mimeType, const std::string &amp;path)
+<span style = "background-color:#fdd">    : m_BaseData(baseData),
+      m_WriterSelector(baseData, mimeType.GetName(), path),
+      m_MimeType(mimeType.IsValid() ? mimeType // use the original mime-type</span>
+                                      :
+                                      (m_WriterSelector.IsEmpty() ?
+                                         mimeType // no writer found, use the original invalid mime-type
+                                         :
+                                         m_WriterSelector.GetDefault().GetMimeType() // use the found default mime-type
+                                       )),
+<span style = "background-color:#fdd">      m_Path(path),
+      m_Cancel(false)
+  {
+  }</span>
+
+  bool IOUtil::SaveInfo::operator&lt;(const IOUtil::SaveInfo &amp;other) const
+<span style = "background-color:#fdd">  {
+    int r = strcmp(m_BaseData-&gt;GetNameOfClass(), other.m_BaseData-&gt;GetNameOfClass());
+    if (r == 0)</span>
+    {
+<span style = "background-color:#fdd">      return m_WriterSelector.GetSelected().GetMimeType() &lt; other.m_WriterSelector.GetSelected().GetMimeType();</span>
+    }
+<span style = "background-color:#fdd">    return r &lt; 0;
+  }</span>
+
+<span style = "background-color:#fdd">  IOUtil::LoadInfo::LoadInfo(const std::string &amp;path) : m_Path(path), m_ReaderSelector(path), m_Cancel(false) {}</span>
+}</pre>
+	</body>
+</html>

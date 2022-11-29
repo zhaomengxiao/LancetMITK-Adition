@@ -1,0 +1,738 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMTagPath.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;algorithm&gt;
+#include &lt;utility&gt;
+
+#include &lt;mitkDICOMTagPath.h&gt;
+#include &lt;mitkExceptionMacro.h&gt;
+
+#include &lt;regex&gt;
+
+namespace
+{
+  std::string GenerateRegExForNumber(unsigned int tagNumber)
+<span style = "background-color:#dfd">  {
+    std::ostringstream resultRegEx;</span>
+
+<span style = "background-color:#dfd">    std::ostringstream hexNumber;
+    hexNumber &lt;&lt; std::hex &lt;&lt; tagNumber; // default std::hex output is lowercase
+    std::regex reg_character("([a-f]+)"); // so only check for lowercase characters here
+    if (std::regex_search(hexNumber.str(), reg_character))</span>
+    {
+      // hexNumber contains a characters from a-f
+      // needs to be generated with lowercase and uppercase characters
+<span style = "background-color:#dfd">      resultRegEx &lt;&lt; "("</span>
+        &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; tagNumber
+        &lt;&lt; "|"
+        &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; std::uppercase &lt;&lt; tagNumber &lt;&lt; std::nouppercase
+        &lt;&lt; ")";
+<span style = "background-color:#dfd">    }</span>
+    else
+    {
+      // only decimal values (0-9) contained in hexNumber - no need to modify the result
+<span style = "background-color:#dfd">      resultRegEx &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; tagNumber;</span>
+    }
+
+<span style = "background-color:#dfd">    return resultRegEx.str();
+  }</span>
+}
+
+namespace mitk
+{
+
+  DICOMTagPath::NodeInfo::
+<span style = "background-color:#fdd">    NodeInfo() : type(NodeType::Invalid), tag(0, 0), selection(0)
+  {</span>
+    ;
+<span style = "background-color:#fdd">  };</span>
+
+  DICOMTagPath::NodeInfo::
+<span style = "background-color:#dfd">    NodeInfo(const DICOMTag&amp; aTag, NodeType aType, ItemSelectionIndex index) : type(aType), tag(aTag), selection(index)
+  {};</span>
+
+  bool DICOMTagPath::NodeInfo::operator == (const NodeInfo&amp; right) const
+<span style = "background-color:#fdd">  {
+    if (!(this-&gt;tag == right.tag)) return false;
+    if (this-&gt;type != right.type) return false;
+    if (this-&gt;selection != right.selection) return false;</span>
+
+<span style = "background-color:#fdd">    return true;
+  };</span>
+
+  bool DICOMTagPath::NodeInfo::
+    Matches(const NodeInfo&amp; right) const
+<span style = "background-color:#fdd">  {
+    if (type == NodeType::AnyElement || right.type == NodeType::AnyElement)</span>
+    {
+<span style = "background-color:#fdd">      return true;
+    }
+    else if (tag == right.tag &amp;&amp; type != NodeType::Invalid &amp;&amp; right.type != NodeType::Invalid)</span>
+    {
+<span style = "background-color:#fdd">      if (type == NodeType::Element &amp;&amp; right.type == NodeType::Element)</span>
+      {
+<span style = "background-color:#fdd">        return true;
+      }
+      else if(selection == right.selection || type == NodeType::AnySelection || right.type == NodeType::AnySelection)</span>
+      {
+<span style = "background-color:#fdd">        return true;</span>
+      }
+    }
+<span style = "background-color:#fdd">    return false;
+  };</span>
+
+  bool DICOMTagPath::IsEmpty() const
+<span style = "background-color:#fdd">  {
+    return m_NodeInfos.empty();
+  };</span>
+
+  bool
+    DICOMTagPath::
+    IsExplicit() const
+<span style = "background-color:#dfd">  {
+    for (const auto &amp; pos : m_NodeInfos)</span>
+    {
+<span style = "background-color:#dfd">      if ((pos.type == NodeInfo::NodeType::AnySelection) || (pos.type == NodeInfo::NodeType::AnyElement)) return false;
+    }</span>
+
+<span style = "background-color:#dfd">    return true;
+  };</span>
+
+  bool
+    DICOMTagPath::
+    HasItemSelectionWildcardsOnly() const
+<span style = "background-color:#fdd">  {
+    bool result = false;
+    for (const auto &amp; pos : m_NodeInfos)</span>
+    {
+<span style = "background-color:#fdd">      if (pos.type == NodeInfo::NodeType::AnyElement) return false;
+      result = result || pos.type == NodeInfo::NodeType::AnySelection;
+    }</span>
+
+<span style = "background-color:#fdd">    return result;
+  };</span>
+
+  DICOMTagPath::PathIndexType DICOMTagPath::Size() const
+<span style = "background-color:#dfd">  {
+    return m_NodeInfos.size();
+  }</span>
+
+  DICOMTagPath::PathIndexType
+    DICOMTagPath::
+    AddNode(const NodeInfo&amp; newNode)
+<span style = "background-color:#fdd">  {
+    m_NodeInfos.push_back(newNode);
+    return m_NodeInfos.size() - 1;
+  };</span>
+
+  const DICOMTagPath::NodeInfo&amp;
+    DICOMTagPath::
+    GetNode(const PathIndexType&amp; index) const
+<span style = "background-color:#dfd">  {
+    if (index &gt;= Size())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Error. Cannot return info of path node. Node index is out of bound. Index: " &lt;&lt; index &lt;&lt; "; Path: " &lt;&lt; this-&gt;ToStr();</span>
+    }
+
+<span style = "background-color:#dfd">    return m_NodeInfos[index];
+  };</span>
+
+  DICOMTagPath::NodeInfo&amp;
+    DICOMTagPath::
+    GetNode(const PathIndexType&amp; index)
+<span style = "background-color:#fdd">  {
+    if (index &gt;= Size())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Error. Cannot return info of path node. Node index is out of bound. Index: " &lt;&lt; index &lt;&lt; "; Path: " &lt;&lt; this-&gt;ToStr();</span>
+    }
+
+<span style = "background-color:#fdd">    return m_NodeInfos[index];
+  };</span>
+
+  const DICOMTagPath::NodeInfo&amp;
+    DICOMTagPath::
+    GetFirstNode() const
+<span style = "background-color:#fdd">  {
+    return GetNode(0);
+  };</span>
+
+  const DICOMTagPath::NodeInfo&amp;
+    DICOMTagPath::
+    GetLastNode() const
+<span style = "background-color:#dfd">  {
+    return GetNode(Size() - 1);
+  };</span>
+
+  DICOMTagPath::NodeInfo&amp;
+    DICOMTagPath::
+    GetLastNode()
+<span style = "background-color:#fdd">  {
+    return GetNode(Size() - 1);
+  };</span>
+
+  const DICOMTagPath::NodeInfoVectorType&amp;
+    DICOMTagPath::
+    GetNodes() const
+<span style = "background-color:#dfd">  {
+    return m_NodeInfos;
+  };</span>
+
+  std::string
+    DICOMTagPath::
+    ToStr() const
+<span style = "background-color:#fdd">  {
+    std::ostringstream nameStream;</span>
+
+<span style = "background-color:#fdd">    if (this-&gt;Size() == 0) return nameStream.str();</span>
+
+<span style = "background-color:#fdd">    PathIndexType i = 0;
+    for (const auto&amp; node : m_NodeInfos)</span>
+    {
+<span style = "background-color:#fdd">      if (i)</span>
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; ".";</span>
+      }
+<span style = "background-color:#fdd">      ++i;</span>
+
+<span style = "background-color:#fdd">      if (node.type == NodeInfo::NodeType::AnyElement)</span>
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "*";
+      }
+      else if (node.type != NodeInfo::NodeType::Invalid)</span>
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "("</span>
+                   &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; std::uppercase &lt;&lt; node.tag.GetGroup() &lt;&lt; std::nouppercase
+                   &lt;&lt; ","
+                   &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; std::uppercase &lt;&lt; node.tag.GetElement() &lt;&lt; std::nouppercase
+                   &lt;&lt; ")";
+
+<span style = "background-color:#fdd">        if (node.type == NodeInfo::NodeType::SequenceSelection)</span>
+        {
+<span style = "background-color:#fdd">          nameStream &lt;&lt; "[" &lt;&lt; node.selection &lt;&lt; "]";
+        }
+        else if (node.type == NodeInfo::NodeType::AnySelection)</span>
+        {
+<span style = "background-color:#fdd">          nameStream &lt;&lt; "[*]";</span>
+        }
+<span style = "background-color:#fdd">      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "INVALID_NODE";</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    return nameStream.str();
+  };</span>
+
+  bool
+    DICOMTagPath::
+    operator == (const DICOMTagPath&amp; path) const
+<span style = "background-color:#fdd">  {
+    return this-&gt;m_NodeInfos == path.m_NodeInfos;
+  };</span>
+
+  bool
+    DICOMTagPath::
+    operator &lt; (const DICOMTagPath&amp; right) const
+<span style = "background-color:#dfd">  {
+    auto rightIter = right.m_NodeInfos.cbegin();
+    const auto rightEnd = right.m_NodeInfos.cend();
+    for (const auto&amp; leftPos : m_NodeInfos)</span>
+    {
+<span style = "background-color:#dfd">      if (rightIter == rightEnd) return false;</span>
+
+<span style = "background-color:#dfd">      if (leftPos.tag.GetElement() &lt; rightIter-&gt;tag.GetElement()) return true;
+      if (rightIter-&gt;tag.GetElement() &lt; leftPos.tag.GetElement()) return false;</span>
+
+<span style = "background-color:#dfd">      if (leftPos.tag.GetGroup() &lt; rightIter-&gt;tag.GetGroup()) return true;
+      if (rightIter-&gt;tag.GetGroup()&lt; leftPos.tag.GetGroup()) return false;</span>
+
+<span style = "background-color:#dfd">      if (leftPos.type &lt; rightIter-&gt;type) return true;
+      if (rightIter-&gt;type&lt; leftPos.type) return false;</span>
+
+<span style = "background-color:#dfd">      if (leftPos.selection &lt; rightIter-&gt;selection) return true;
+      if (rightIter-&gt;selection&lt; leftPos.selection) return false;
+      ++rightIter;
+    }
+    return rightIter != rightEnd;
+  }</span>
+
+  bool
+    DICOMTagPath::
+    Equals(const DICOMTagPath&amp; path) const
+<span style = "background-color:#fdd">  {
+    return DICOMTagPathesMatch(*this, path);
+  };</span>
+
+  DICOMTagPath&amp;
+    DICOMTagPath::
+    operator = (const DICOMTagPath&amp; path)
+<span style = "background-color:#dfd">  {
+    if (&amp;path == this) return *this;</span>
+
+<span style = "background-color:#dfd">    this-&gt;m_NodeInfos = path.m_NodeInfos;</span>
+
+<span style = "background-color:#dfd">    return *this;
+  };</span>
+
+  DICOMTagPath&amp;
+    DICOMTagPath::AddAnyElement()
+<span style = "background-color:#fdd">  {
+    m_NodeInfos.emplace_back(DICOMTag(0,0), NodeInfo::NodeType::AnyElement);
+    return *this;
+  };</span>
+
+  DICOMTagPath&amp;
+    DICOMTagPath::AddElement(unsigned int group, unsigned int element)
+<span style = "background-color:#dfd">  {
+    m_NodeInfos.emplace_back(DICOMTag(group, element), NodeInfo::NodeType::Element);
+    return *this;
+  };</span>
+
+  DICOMTagPath&amp;
+    DICOMTagPath::AddAnySelection(unsigned int group, unsigned int element)
+<span style = "background-color:#dfd">  {
+    m_NodeInfos.emplace_back(DICOMTag(group, element), NodeInfo::NodeType::AnySelection);
+    return *this;
+  };</span>
+
+  DICOMTagPath&amp;
+    DICOMTagPath::AddSelection(unsigned int group, unsigned int element, ItemSelectionIndex index)
+<span style = "background-color:#fdd">  {
+    m_NodeInfos.emplace_back(DICOMTag(group, element), NodeInfo::NodeType::SequenceSelection, index);
+    return *this;
+  };</span>
+
+  DICOMTagPath&amp;
+    DICOMTagPath::
+    FromStr(const std::string&amp; pathStr)
+<span style = "background-color:#fdd">  {
+    NodeInfoVectorType result;
+    std::istringstream f(pathStr);
+    std::string subStr;</span>
+
+<span style = "background-color:#fdd">    while (getline(f, subStr, '.'))</span>
+    {
+<span style = "background-color:#fdd">      NodeInfo info;</span>
+
+<span style = "background-color:#fdd">      if (subStr == "*")</span>
+      {
+<span style = "background-color:#fdd">        info.type = NodeInfo::NodeType::AnyElement;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        std::regex reg_element("\\(([A - Fa - f\\d]{4}),([A - Fa - f\\d]{4})\\)");
+        std::regex reg_anySelection("\\(([A - Fa - f\\d]{4}),([A - Fa - f\\d]{4})\\)\\[\\*\\]");
+        std::regex reg_Selection("\\(([A - Fa - f\\d]{4}),([A - Fa - f\\d]{4})\\)\\[(\\d+)\\]");
+        std::smatch sm;
+        if (std::regex_match(subStr, sm, reg_anySelection))</span>
+        {
+<span style = "background-color:#fdd">          info.type = NodeInfo::NodeType::AnySelection;
+          info.tag = DICOMTag(std::stoul(sm[1], nullptr, 16), std::stoul(sm[2], nullptr, 16));
+        }
+        else if (std::regex_match(subStr, sm, reg_Selection))</span>
+        {
+<span style = "background-color:#fdd">          info.type = NodeInfo::NodeType::SequenceSelection;
+          info.tag = DICOMTag(std::stoul(sm[1], nullptr, 16), std::stoul(sm[2], nullptr, 16));
+          info.selection = std::stoi(sm[3]);
+        }
+        else if (std::regex_match(subStr, sm, reg_element))</span>
+        {
+<span style = "background-color:#fdd">          info.type = NodeInfo::NodeType::Element;
+          info.tag = DICOMTag(std::stoul(sm[1], nullptr, 16), std::stoul(sm[2], nullptr, 16));</span>
+        }
+<span style = "background-color:#fdd">      }
+      result.push_back(info);
+    }</span>
+
+<span style = "background-color:#fdd">    this-&gt;m_NodeInfos.swap(result);
+    return *this;
+  };</span>
+
+  DICOMTagPath::DICOMTagPath()
+<span style = "background-color:#dfd">  {
+    Reset();
+  };</span>
+
+  DICOMTagPath::
+    DICOMTagPath(const DICOMTagPath&amp; path)
+<span style = "background-color:#dfd">  {
+    *this = path;
+  };</span>
+
+  DICOMTagPath::
+    DICOMTagPath(const DICOMTag&amp; tag)
+<span style = "background-color:#dfd">  {
+    m_NodeInfos.emplace_back(tag, NodeInfo::NodeType::Element);
+  };</span>
+
+  DICOMTagPath::DICOMTagPath(unsigned int group, unsigned int element)
+<span style = "background-color:#dfd">  {
+    m_NodeInfos.emplace_back(DICOMTag(group,element));
+  };</span>
+
+  DICOMTagPath::
+<span style = "background-color:#dfd">    ~DICOMTagPath() {};</span>
+
+  void
+    DICOMTagPath::
+    Reset()
+<span style = "background-color:#dfd">  {
+    this-&gt;m_NodeInfos.clear();
+  };</span>
+
+  bool
+    DICOMTagPath::
+    DICOMTagPathesMatch(const DICOMTagPath&amp; left, const DICOMTagPath&amp; right)
+<span style = "background-color:#fdd">  {
+    auto leftPos = left.GetNodes().cbegin();
+    auto rightPos = right.GetNodes().cbegin();
+    auto leftEnd = left.GetNodes().cend();
+    auto rightEnd = right.GetNodes().cend();</span>
+
+<span style = "background-color:#fdd">    while (leftPos != leftEnd &amp;&amp; rightPos != rightEnd)</span>
+    {
+<span style = "background-color:#fdd">      if (!leftPos-&gt;Matches(*rightPos)) break;
+      ++leftPos;
+      ++rightPos;
+    }</span>
+
+<span style = "background-color:#fdd">    if (leftPos == leftEnd &amp;&amp; rightPos == rightEnd) return true;
+    else return false;
+  };</span>
+
+  std::ostream &amp; operator&lt;&lt;(std::ostream &amp;os, const DICOMTagPath &amp;value)
+<span style = "background-color:#fdd">  {
+    os &lt;&lt; value.ToStr();
+    return os;
+  };</span>
+
+  std::string DICOMTagPathToPropertyRegEx(const DICOMTagPath&amp; tagPath)
+<span style = "background-color:#dfd">  {
+    std::ostringstream nameStream;</span>
+
+<span style = "background-color:#dfd">    nameStream &lt;&lt; "DICOM";</span>
+
+<span style = "background-color:#dfd">    for (const auto&amp; node : tagPath.GetNodes())</span>
+    {
+<span style = "background-color:#dfd">      nameStream &lt;&lt; "\\.";</span>
+
+<span style = "background-color:#dfd">      if (node.type == DICOMTagPath::NodeInfo::NodeType::AnyElement)</span>
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "([A-Fa-f\\d]{4})\\.([A-Fa-f\\d]{4})";
+      }</span>
+<span style = "background-color:#dfd">      else if (node.type != DICOMTagPath::NodeInfo::NodeType::Invalid)</span>
+      {
+<span style = "background-color:#dfd">        nameStream &lt;&lt; GenerateRegExForNumber(node.tag.GetGroup())</span>
+          &lt;&lt; "\\."
+          &lt;&lt; GenerateRegExForNumber(node.tag.GetElement());
+
+<span style = "background-color:#dfd">        if (node.type == DICOMTagPath::NodeInfo::NodeType::SequenceSelection)</span>
+        {
+<span style = "background-color:#fdd">          nameStream &lt;&lt; "\\.\\[" &lt;&lt; node.selection &lt;&lt; "\\]";
+        }</span>
+<span style = "background-color:#dfd">        else if (node.type == DICOMTagPath::NodeInfo::NodeType::AnySelection)</span>
+        {
+<span style = "background-color:#dfd">          nameStream &lt;&lt; "\\.\\[(\\d*)\\]";</span>
+        }
+<span style = "background-color:#dfd">      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "INVALIDNODE";</span>
+      }
+<span style = "background-color:#dfd">    }</span>
+
+<span style = "background-color:#dfd">    return nameStream.str();
+  };</span>
+
+  std::string DICOMTagPathToPersistenceKeyRegEx(const DICOMTagPath&amp; tagPath)
+<span style = "background-color:#dfd">  {
+    std::ostringstream nameStream;</span>
+
+<span style = "background-color:#dfd">    nameStream &lt;&lt; "DICOM";</span>
+
+<span style = "background-color:#dfd">    for (const auto&amp; node : tagPath.GetNodes())</span>
+    {
+<span style = "background-color:#dfd">      nameStream &lt;&lt; "_";</span>
+
+<span style = "background-color:#dfd">      if (node.type == DICOMTagPath::NodeInfo::NodeType::AnyElement)</span>
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "([A-Fa-f\\d]{4})_([A-Fa-f\\d]{4})";
+      }</span>
+<span style = "background-color:#dfd">      else if (node.type != DICOMTagPath::NodeInfo::NodeType::Invalid)</span>
+      {
+<span style = "background-color:#dfd">        nameStream &lt;&lt; GenerateRegExForNumber(node.tag.GetGroup())</span>
+          &lt;&lt; "_"
+          &lt;&lt; GenerateRegExForNumber(node.tag.GetElement());
+
+<span style = "background-color:#dfd">        if (node.type == DICOMTagPath::NodeInfo::NodeType::SequenceSelection)</span>
+        {
+<span style = "background-color:#fdd">          nameStream &lt;&lt; "_\\[" &lt;&lt; node.selection &lt;&lt; "\\]";
+        }</span>
+<span style = "background-color:#dfd">        else if (node.type == DICOMTagPath::NodeInfo::NodeType::AnySelection)</span>
+        {
+<span style = "background-color:#dfd">          nameStream &lt;&lt; "_\\[(\\d*)\\]";</span>
+        }
+<span style = "background-color:#dfd">      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "INVALIDNODE";</span>
+      }
+<span style = "background-color:#dfd">    }</span>
+
+<span style = "background-color:#dfd">    return nameStream.str();
+  };</span>
+
+  std::string DICOMTagPathToPersistenceKeyTemplate(const DICOMTagPath&amp; tagPath)
+<span style = "background-color:#dfd">  {
+    std::ostringstream nameStream;</span>
+
+<span style = "background-color:#dfd">    nameStream &lt;&lt; "DICOM";</span>
+
+<span style = "background-color:#dfd">    int captureGroup = 1;</span>
+
+<span style = "background-color:#dfd">    for (const auto&amp; node : tagPath.GetNodes())</span>
+    {
+<span style = "background-color:#dfd">      nameStream &lt;&lt; "_";</span>
+
+<span style = "background-color:#dfd">      if (node.type == DICOMTagPath::NodeInfo::NodeType::AnyElement)</span>
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "$" &lt;&lt; captureGroup++;
+        nameStream &lt;&lt; "_$" &lt;&lt; captureGroup++;
+      }</span>
+<span style = "background-color:#dfd">      else if (node.type != DICOMTagPath::NodeInfo::NodeType::Invalid)</span>
+      {
+<span style = "background-color:#dfd">        nameStream &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; std::uppercase &lt;&lt; node.tag.GetGroup() &lt;&lt; std::nouppercase &lt;&lt; "_"</span>
+          &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; std::uppercase &lt;&lt; node.tag.GetElement();
+
+<span style = "background-color:#dfd">        if (node.type == DICOMTagPath::NodeInfo::NodeType::SequenceSelection)</span>
+        {
+<span style = "background-color:#fdd">          nameStream &lt;&lt; "_[" &lt;&lt; node.selection &lt;&lt; "]";
+        }</span>
+<span style = "background-color:#dfd">        else if (node.type == DICOMTagPath::NodeInfo::NodeType::AnySelection)</span>
+        {
+<span style = "background-color:#dfd">          nameStream &lt;&lt; "_[$" &lt;&lt; captureGroup++ &lt;&lt; "]";</span>
+        }
+<span style = "background-color:#dfd">      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "INVALID_NODE";</span>
+      }
+<span style = "background-color:#dfd">    }</span>
+
+<span style = "background-color:#dfd">    return nameStream.str();
+  };</span>
+
+  std::string DICOMTagPathToPersistenceNameTemplate(const DICOMTagPath&amp; tagPath)
+<span style = "background-color:#dfd">  {
+    std::ostringstream nameStream;</span>
+
+<span style = "background-color:#dfd">    nameStream &lt;&lt; "DICOM";</span>
+
+<span style = "background-color:#dfd">    int captureGroup = 1;</span>
+
+<span style = "background-color:#dfd">    for (const auto&amp; node : tagPath.GetNodes())</span>
+    {
+<span style = "background-color:#dfd">      nameStream &lt;&lt; ".";</span>
+
+<span style = "background-color:#dfd">      if (node.type == DICOMTagPath::NodeInfo::NodeType::AnyElement)</span>
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "$" &lt;&lt; captureGroup++;
+        nameStream &lt;&lt; ".$" &lt;&lt; captureGroup++;
+      }</span>
+<span style = "background-color:#dfd">      else if (node.type != DICOMTagPath::NodeInfo::NodeType::Invalid)</span>
+      {
+<span style = "background-color:#dfd">        nameStream &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; std::uppercase &lt;&lt; node.tag.GetGroup() &lt;&lt; std::nouppercase &lt;&lt; "."</span>
+          &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; std::uppercase &lt;&lt; node.tag.GetElement();
+
+<span style = "background-color:#dfd">        if (node.type == DICOMTagPath::NodeInfo::NodeType::SequenceSelection)</span>
+        {
+<span style = "background-color:#fdd">          nameStream &lt;&lt; ".[" &lt;&lt; node.selection &lt;&lt; "]";
+        }</span>
+<span style = "background-color:#dfd">        else if (node.type == DICOMTagPath::NodeInfo::NodeType::AnySelection)</span>
+        {
+<span style = "background-color:#dfd">          nameStream &lt;&lt; ".[$"&lt;&lt;captureGroup++&lt;&lt;"]";</span>
+        }
+<span style = "background-color:#dfd">      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "INVALID_NODE";</span>
+      }
+<span style = "background-color:#dfd">    }</span>
+
+<span style = "background-color:#dfd">    return nameStream.str();
+  };</span>
+
+
+  std::string DICOMTagPathToDCMTKSearchPath(const DICOMTagPath&amp; tagPath)
+<span style = "background-color:#fdd">  {
+    if (!tagPath.IsExplicit() &amp;&amp; !tagPath.HasItemSelectionWildcardsOnly())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Cannot convert DICOMTagPath into DCMTK search path. Path has element wild cards. Path: " &lt;&lt; tagPath.ToStr();</span>
+    }
+
+<span style = "background-color:#fdd">    return tagPath.ToStr();
+  };</span>
+
+
+  DICOMTagPath
+    PropertyNameToDICOMTagPath(const std::string&amp; propertyName)
+<span style = "background-color:#fdd">  {
+    DICOMTagPath result;</span>
+
+<span style = "background-color:#fdd">    std::istringstream f(propertyName);
+    std::string subStr;</span>
+
+<span style = "background-color:#fdd">    if (getline(f, subStr, '.'))</span>
+    {
+<span style = "background-color:#fdd">      if (subStr != "DICOM")</span>
+      {
+<span style = "background-color:#fdd">        return DICOMTagPath();</span>
+      }
+
+<span style = "background-color:#fdd">      unsigned int nrCount = 0;
+      unsigned long group = 0;
+      unsigned long element = 0;</span>
+
+<span style = "background-color:#fdd">      while (getline(f, subStr, '.'))</span>
+      {
+<span style = "background-color:#fdd">        if (subStr == "*")</span>
+        {
+<span style = "background-color:#fdd">          if (nrCount == 2)</span>
+          { //add last element
+<span style = "background-color:#fdd">            result.AddElement(group, element);
+            nrCount = 0;
+          }
+          else if (nrCount != 0)</span>
+          { //invalid path
+<span style = "background-color:#fdd">            return DICOMTagPath();</span>
+          }
+
+<span style = "background-color:#fdd">          result.AddAnyElement();
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          std::regex reg_element("([A-Fa-f\\d]{4})");
+          std::regex reg_anySelection("\\[\\*\\]");
+          std::regex reg_Selection("\\[(\\d+)\\]");
+          std::smatch sm;
+          if (std::regex_match(subStr, sm, reg_anySelection))</span>
+          {
+<span style = "background-color:#fdd">            if (nrCount == 2)</span>
+            {
+<span style = "background-color:#fdd">              result.AddAnySelection(group, element);
+              nrCount = 0;
+            }</span>
+            else
+            { //invalid path
+<span style = "background-color:#fdd">              return DICOMTagPath();</span>
+            }
+<span style = "background-color:#fdd">          }
+          else if (std::regex_match(subStr, sm, reg_Selection))</span>
+          {
+<span style = "background-color:#fdd">            if (nrCount == 2)</span>
+            {
+<span style = "background-color:#fdd">              result.AddSelection(group, element, std::stoi(sm[1]));
+              nrCount = 0;
+            }</span>
+            else
+            { //invalid path
+<span style = "background-color:#fdd">              return DICOMTagPath();</span>
+            }
+<span style = "background-color:#fdd">          }
+          else if (std::regex_match(subStr, sm, reg_element))</span>
+          {
+<span style = "background-color:#fdd">            if (nrCount == 0)</span>
+            {
+<span style = "background-color:#fdd">              group = std::stoul(sm[1], nullptr, 16);
+              ++nrCount;
+            }
+            else if (nrCount == 1)</span>
+            {
+<span style = "background-color:#fdd">              element = std::stoul(sm[1], nullptr, 16);
+              ++nrCount;
+            }
+            else if (nrCount == 2)</span>
+            { //store the last element and start the next
+<span style = "background-color:#fdd">              result.AddElement(group, element);
+              group = std::stoul(sm[1], nullptr, 16);
+              nrCount = 1;
+            }</span>
+            else
+            { //invalid path
+<span style = "background-color:#fdd">              return DICOMTagPath();</span>
+            }
+          }
+<span style = "background-color:#fdd">        }
+      }</span>
+
+<span style = "background-color:#fdd">      if (nrCount == 2)</span>
+      { //add last element
+<span style = "background-color:#fdd">        result.AddElement(group, element);
+        nrCount = 0;</span>
+      }
+    }
+
+<span style = "background-color:#fdd">    return result;
+  };</span>
+
+  std::string
+    DICOMTagPathToPropertyName(const mitk::DICOMTagPath&amp; tagPath)
+<span style = "background-color:#dfd">  {
+    std::ostringstream nameStream;</span>
+
+<span style = "background-color:#dfd">    nameStream &lt;&lt; "DICOM";</span>
+
+<span style = "background-color:#dfd">    for (const auto&amp; node : tagPath.GetNodes())</span>
+    {
+<span style = "background-color:#dfd">      nameStream &lt;&lt; ".";</span>
+
+<span style = "background-color:#dfd">      if (node.type == DICOMTagPath::NodeInfo::NodeType::AnyElement)</span>
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "*";
+      }</span>
+<span style = "background-color:#dfd">      else if (node.type != DICOMTagPath::NodeInfo::NodeType::Invalid)</span>
+      {
+<span style = "background-color:#dfd">        nameStream &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; std::uppercase &lt;&lt; node.tag.GetGroup() &lt;&lt; std::nouppercase &lt;&lt; "."</span>
+          &lt;&lt; std::setw(4) &lt;&lt; std::setfill('0') &lt;&lt; std::hex &lt;&lt; std::uppercase &lt;&lt; node.tag.GetElement();
+
+<span style = "background-color:#dfd">        if (node.type == DICOMTagPath::NodeInfo::NodeType::SequenceSelection)</span>
+        {
+<span style = "background-color:#fdd">          nameStream &lt;&lt; ".[" &lt;&lt; node.selection &lt;&lt; "]";
+        }</span>
+<span style = "background-color:#dfd">        else if (node.type == DICOMTagPath::NodeInfo::NodeType::AnySelection)</span>
+        {
+<span style = "background-color:#fdd">          nameStream &lt;&lt; ".[*]";</span>
+        }
+<span style = "background-color:#dfd">      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        nameStream &lt;&lt; "INVALID_NODE";</span>
+      }
+<span style = "background-color:#dfd">    }</span>
+
+<span style = "background-color:#dfd">    return nameStream.str();
+  };</span>
+}</pre>
+	</body>
+</html>

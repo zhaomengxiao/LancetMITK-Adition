@@ -1,0 +1,468 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkITKDICOMSeriesReaderHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+//#define MBILOG_ENABLE_DEBUG
+
+#include &lt;dcmtk/dcmdata/dcvrdt.h&gt;
+#include &lt;dcmtk/ofstd/ofstd.h&gt;
+
+#define BOOST_DATE_TIME_NO_LIB
+//Prevent unnecessary/unwanted auto link in this compilation when activating boost libraries in the MITK superbuild
+//It is necessary because BOOST_ALL_DYN_LINK overwrites BOOST_DATE_TIME_NO_LIB
+#if defined(BOOST_ALL_DYN_LINK)
+  #undef BOOST_ALL_DYN_LINK
+#endif
+
+#include &lt;boost/date_time/posix_time/posix_time_types.hpp&gt;
+
+#include "mitkITKDICOMSeriesReaderHelper.h"
+#include "mitkITKDICOMSeriesReaderHelper.txx"
+
+#include "mitkDICOMGDCMTagScanner.h"
+#include "mitkArbitraryTimeGeometry.h"
+
+#include "dcmtk/dcmdata/dcvrda.h"
+
+
+<span style = "background-color:#dfd">const mitk::DICOMTag mitk::ITKDICOMSeriesReaderHelper::AcquisitionDateTag = mitk::DICOMTag( 0x0008, 0x0022 );
+const mitk::DICOMTag mitk::ITKDICOMSeriesReaderHelper::AcquisitionTimeTag = mitk::DICOMTag( 0x0008, 0x0032 );
+const mitk::DICOMTag mitk::ITKDICOMSeriesReaderHelper::TriggerTimeTag = mitk::DICOMTag( 0x0018, 0x1060 );</span>
+
+#define switch3DCase( IOType, T ) \
+  case IOType:                    \
+    return LoadDICOMByITK&lt;T&gt;( filenames, correctTilt, tiltInfo, io );
+
+bool mitk::ITKDICOMSeriesReaderHelper::CanHandleFile( const std::string&amp; filename )
+<span style = "background-color:#fdd">{
+  MITK_DEBUG &lt;&lt; "ITKDICOMSeriesReaderHelper::CanHandleFile " &lt;&lt; filename;
+  itk::GDCMImageIO::Pointer tester = itk::GDCMImageIO::New();
+  return tester-&gt;CanReadFile( filename.c_str() );
+}</span>
+
+mitk::Image::Pointer mitk::ITKDICOMSeriesReaderHelper::Load( const StringContainer&amp; filenames,
+                                                             bool correctTilt,
+                                                             const GantryTiltInformation&amp; tiltInfo )
+<span style = "background-color:#fdd">{
+  if ( filenames.empty() )</span>
+  {
+<span style = "background-color:#fdd">    MITK_DEBUG</span>
+      &lt;&lt; "Calling LoadDicomSeries with empty filename string container. Probably invalid application logic.";
+<span style = "background-color:#fdd">    return nullptr; // this is not actually an error but the result is very simple</span>
+  }
+
+  typedef itk::GDCMImageIO DcmIoType;
+<span style = "background-color:#fdd">  DcmIoType::Pointer io = DcmIoType::New();</span>
+
+  try
+  {
+<span style = "background-color:#fdd">    if ( io-&gt;CanReadFile( filenames.front().c_str() ) )</span>
+    {
+<span style = "background-color:#fdd">      io-&gt;SetFileName( filenames.front().c_str() );
+      io-&gt;ReadImageInformation();</span>
+
+<span style = "background-color:#fdd">      if ( io-&gt;GetPixelType() == itk::IOPixelEnum::SCALAR )</span>
+      {
+<span style = "background-color:#fdd">        switch ( io-&gt;GetComponentType() )</span>
+        {
+<span style = "background-color:#fdd">          switch3DCase(itk::IOComponentEnum::UCHAR, unsigned char) switch3DCase(itk::IOComponentEnum::CHAR, char) switch3DCase(
+            itk::IOComponentEnum::USHORT, unsigned short) switch3DCase(itk::IOComponentEnum::SHORT, short)
+              switch3DCase(itk::IOComponentEnum::UINT, unsigned int) switch3DCase(itk::IOComponentEnum::INT, int) switch3DCase(
+                itk::IOComponentEnum::ULONG, long unsigned int) switch3DCase(itk::IOComponentEnum::LONG, long int)
+                switch3DCase(itk::IOComponentEnum::FLOAT, float) switch3DCase(itk::IOComponentEnum::DOUBLE, double) default
+            : MITK_ERROR</span>
+              &lt;&lt; "Found unsupported DICOM scalar pixel type: (enum value) "
+              &lt;&lt; io-&gt;GetComponentType();
+        }
+<span style = "background-color:#fdd">      }
+      else if ( io-&gt;GetPixelType() == itk::IOPixelEnum::RGB )</span>
+      {
+<span style = "background-color:#fdd">        switch ( io-&gt;GetComponentType() )</span>
+        {
+<span style = "background-color:#fdd">          switch3DCase(itk::IOComponentEnum::UCHAR, itk::RGBPixel&lt;unsigned char&gt;) switch3DCase(
+            itk::IOComponentEnum::CHAR, itk::RGBPixel&lt;char&gt;) switch3DCase(itk::IOComponentEnum::USHORT,</span>
+                                                               itk::RGBPixel&lt;unsigned short&gt;)
+<span style = "background-color:#fdd">              switch3DCase(itk::IOComponentEnum::SHORT, itk::RGBPixel&lt;short&gt;) switch3DCase(
+                itk::IOComponentEnum::UINT, itk::RGBPixel&lt;unsigned int&gt;) switch3DCase(itk::IOComponentEnum::INT, itk::RGBPixel&lt;int&gt;)
+                switch3DCase(itk::IOComponentEnum::ULONG, itk::RGBPixel&lt;long unsigned int&gt;)
+                  switch3DCase(itk::IOComponentEnum::LONG, itk::RGBPixel&lt;long int&gt;) switch3DCase(
+                    itk::IOComponentEnum::FLOAT, itk::RGBPixel&lt;float&gt;) switch3DCase(itk::IOComponentEnum::DOUBLE,</span>
+                                                                         itk::RGBPixel&lt;double&gt;) default
+<span style = "background-color:#fdd">            : MITK_ERROR</span>
+              &lt;&lt; "Found unsupported DICOM scalar pixel type: (enum value) "
+              &lt;&lt; io-&gt;GetComponentType();
+        }
+      }
+
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Unsupported DICOM pixel type";
+      return nullptr;</span>
+    }
+  }
+  catch ( const itk::MemoryAllocationError&amp; e )
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "Out of memory. Cannot load DICOM series: " &lt;&lt; e.what();
+  }</span>
+  catch ( const std::exception&amp; e )
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "Error encountered when loading DICOM series:" &lt;&lt; e.what();
+  }</span>
+  catch ( ... )
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "Unspecified error encountered when loading DICOM series.";
+  }</span>
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+#define switch3DnTCase( IOType, T ) \
+  case IOType:                      \
+    return LoadDICOMByITK3DnT&lt;T&gt;( filenamesLists, correctTilt, tiltInfo, io );
+
+mitk::Image::Pointer mitk::ITKDICOMSeriesReaderHelper::Load3DnT( const StringContainerList&amp; filenamesLists,
+                                                                 bool correctTilt,
+                                                                 const GantryTiltInformation&amp; tiltInfo )
+<span style = "background-color:#fdd">{
+  if ( filenamesLists.empty() || filenamesLists.front().empty() )</span>
+  {
+<span style = "background-color:#fdd">    MITK_DEBUG</span>
+      &lt;&lt; "Calling LoadDicomSeries with empty filename string container. Probably invalid application logic.";
+<span style = "background-color:#fdd">    return nullptr; // this is not actually an error but the result is very simple</span>
+  }
+
+  typedef itk::GDCMImageIO DcmIoType;
+<span style = "background-color:#fdd">  DcmIoType::Pointer io = DcmIoType::New();</span>
+
+  try
+  {
+<span style = "background-color:#fdd">    if ( io-&gt;CanReadFile( filenamesLists.front().front().c_str() ) )</span>
+    {
+<span style = "background-color:#fdd">      io-&gt;SetFileName( filenamesLists.front().front().c_str() );
+      io-&gt;ReadImageInformation();</span>
+
+<span style = "background-color:#fdd">      if ( io-&gt;GetPixelType() == itk::IOPixelEnum::SCALAR )</span>
+      {
+<span style = "background-color:#fdd">        switch ( io-&gt;GetComponentType() )</span>
+        {
+<span style = "background-color:#fdd">          switch3DnTCase(itk::IOComponentEnum::UCHAR, unsigned char) switch3DnTCase(itk::IOComponentEnum::CHAR, char)
+              switch3DnTCase(itk::IOComponentEnum::USHORT, unsigned short) switch3DnTCase(
+                itk::IOComponentEnum::SHORT, short) switch3DnTCase(itk::IOComponentEnum::UINT,
+                                                        unsigned int) switch3DnTCase(itk::IOComponentEnum::INT, int)
+                switch3DnTCase(itk::IOComponentEnum::ULONG, long unsigned int) switch3DnTCase(itk::IOComponentEnum::LONG, long int)
+                  switch3DnTCase(itk::IOComponentEnum::FLOAT, float) switch3DnTCase(itk::IOComponentEnum::DOUBLE, double) default
+            : MITK_ERROR</span>
+              &lt;&lt; "Found unsupported DICOM scalar pixel type: (enum value) "
+              &lt;&lt; io-&gt;GetComponentType();
+        }
+<span style = "background-color:#fdd">      }
+      else if ( io-&gt;GetPixelType() == itk::IOPixelEnum::RGB )</span>
+      {
+<span style = "background-color:#fdd">        switch ( io-&gt;GetComponentType() )</span>
+        {
+<span style = "background-color:#fdd">          switch3DnTCase(itk::IOComponentEnum::UCHAR, itk::RGBPixel&lt;unsigned char&gt;)
+              switch3DnTCase(itk::IOComponentEnum::CHAR, itk::RGBPixel&lt;char&gt;) switch3DnTCase(
+                itk::IOComponentEnum::USHORT, itk::RGBPixel&lt;unsigned short&gt;) switch3DnTCase(itk::IOComponentEnum::SHORT,</span>
+                                                                                 itk::RGBPixel&lt;short&gt;)
+<span style = "background-color:#fdd">                switch3DnTCase(itk::IOComponentEnum::UINT, itk::RGBPixel&lt;unsigned int&gt;) switch3DnTCase(
+                  itk::IOComponentEnum::INT, itk::RGBPixel&lt;int&gt;) switch3DnTCase(itk::IOComponentEnum::ULONG,</span>
+                                                                     itk::RGBPixel&lt;long unsigned int&gt;)
+<span style = "background-color:#fdd">                  switch3DnTCase(itk::IOComponentEnum::LONG, itk::RGBPixel&lt;long int&gt;) switch3DnTCase(
+                    itk::IOComponentEnum::FLOAT, itk::RGBPixel&lt;float&gt;) switch3DnTCase(itk::IOComponentEnum::DOUBLE,</span>
+                                                                           itk::RGBPixel&lt;double&gt;) default
+<span style = "background-color:#fdd">            : MITK_ERROR</span>
+              &lt;&lt; "Found unsupported DICOM scalar pixel type: (enum value) "
+              &lt;&lt; io-&gt;GetComponentType();
+        }
+      }
+
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Unsupported DICOM pixel type";
+      return nullptr;</span>
+    }
+  }
+  catch ( const itk::MemoryAllocationError&amp; e )
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "Out of memory. Cannot load DICOM series: " &lt;&lt; e.what();
+  }</span>
+  catch ( const std::exception&amp; e )
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "Error encountered when loading DICOM series:" &lt;&lt; e.what();
+  }</span>
+  catch ( ... )
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "Unspecified error encountered when loading DICOM series.";
+  }</span>
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+bool ConvertDICOMDateTimeString( const std::string&amp; dateString,
+                                 const std::string&amp; timeString,
+                                 OFDateTime&amp; time )
+<span style = "background-color:#fdd">{
+  OFString content( timeString.c_str() );</span>
+
+<span style = "background-color:#fdd">  if ( !dateString.empty() )</span>
+  {
+<span style = "background-color:#fdd">    content = OFString( dateString.c_str() ).append( content );
+  }</span>
+  else
+  {
+    // This is a workaround for DICOM data that has an AquisitionTime but no AquisitionDate.
+    // In this case, we use the current date. That's not really nice, but is absolutely OK
+    // as we're only interested in the time anyways...
+<span style = "background-color:#fdd">    OFString currentDate;
+    DcmDate::getCurrentDate( currentDate );
+    content = currentDate.append( content );
+  }</span>
+
+<span style = "background-color:#fdd">  const OFCondition result = DcmDateTime::getOFDateTimeFromString( content, time );</span>
+
+<span style = "background-color:#fdd">  return result.good();
+}</span>
+
+boost::posix_time::ptime ConvertOFDateTimeToPTime( const OFDateTime&amp; time )
+<span style = "background-color:#fdd">{
+  const boost::gregorian::date boostDate(</span>
+    time.getDate().getYear(), time.getDate().getMonth(), time.getDate().getDay() );
+
+  const boost::posix_time::time_duration boostTime =
+    boost::posix_time::hours( time.getTime().getHour() )
+    + boost::posix_time::minutes( time.getTime().getMinute() )
+    + boost::posix_time::seconds( static_cast&lt;int&gt;(time.getTime().getSecond()) )
+<span style = "background-color:#fdd">    + boost::posix_time::milliseconds( time.getTime().getMilliSecond() );</span>
+
+<span style = "background-color:#fdd">  boost::posix_time::ptime result( boostDate, boostTime );</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+OFDateTime GetLowerDateTime( const OFDateTime&amp; time1, const OFDateTime&amp; time2 )
+<span style = "background-color:#fdd">{
+  OFDateTime result = time1;</span>
+
+  if ( ( time2.getDate() &lt; time1.getDate() )
+<span style = "background-color:#fdd">       || ( ( time2.getDate() == time1.getDate() ) &amp;&amp; ( time2.getTime() &lt; time1.getTime() ) ) )</span>
+  {
+<span style = "background-color:#fdd">    result = time2;</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+OFDateTime GetUpperDateTime( const OFDateTime&amp; time1, const OFDateTime&amp; time2 )
+<span style = "background-color:#fdd">{
+  OFDateTime result = time1;</span>
+
+  if ( ( time2.getDate() &gt; time1.getDate() )
+<span style = "background-color:#fdd">       || ( ( time2.getDate() == time1.getDate() ) &amp;&amp; ( time2.getTime() &gt; time1.getTime() ) ) )</span>
+  {
+<span style = "background-color:#fdd">    result = time2;</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+double ComputeMiliSecDuration( const OFDateTime&amp; start, const OFDateTime&amp; stop )
+<span style = "background-color:#fdd">{
+  const boost::posix_time::ptime startTime = ConvertOFDateTimeToPTime( start );
+  const boost::posix_time::ptime stopTime  = ConvertOFDateTimeToPTime( stop );</span>
+
+<span style = "background-color:#fdd">  ::boost::posix_time::time_duration duration = stopTime - startTime;</span>
+
+<span style = "background-color:#fdd">  return duration.total_milliseconds();
+}</span>
+
+bool mitk::ITKDICOMSeriesReaderHelper::ExtractDateTimeBoundsAndTriggerOfTimeStep(
+  const StringContainer&amp; filenamesOfTimeStep, DateTimeBounds&amp; bounds, TimeBounds&amp; triggerBounds)
+<span style = "background-color:#fdd">{
+  DICOMGDCMTagScanner::Pointer filescanner = DICOMGDCMTagScanner::New();
+  filescanner-&gt;SetInputFiles(filenamesOfTimeStep);
+  filescanner-&gt;AddTag(AcquisitionDateTag);
+  filescanner-&gt;AddTag(AcquisitionTimeTag);
+  filescanner-&gt;AddTag(TriggerTimeTag);
+  filescanner-&gt;Scan();</span>
+
+<span style = "background-color:#fdd">  const DICOMDatasetAccessingImageFrameList frameList = filescanner-&gt;GetFrameInfoList();</span>
+
+<span style = "background-color:#fdd">  bool result = false;
+  bool firstAq = true;
+  bool firstTr = true;</span>
+
+<span style = "background-color:#fdd">  triggerBounds = TimeBounds(0.0);</span>
+
+<span style = "background-color:#fdd">  for (auto pos = frameList.cbegin(); pos != frameList.cend(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    const std::string aqDateStr = (*pos)-&gt;GetTagValueAsString(AcquisitionDateTag).value;
+    const std::string aqTimeStr = (*pos)-&gt;GetTagValueAsString(AcquisitionTimeTag).value;
+    const std::string triggerTimeStr = (*pos)-&gt;GetTagValueAsString(TriggerTimeTag).value;</span>
+
+<span style = "background-color:#fdd">    OFDateTime aqDateTime;
+    const bool convertAqResult = ConvertDICOMDateTimeString(aqDateStr, aqTimeStr, aqDateTime);</span>
+
+    OFBool convertTriggerResult;
+<span style = "background-color:#fdd">    mitk::ScalarType triggerTime = OFStandard::atof(triggerTimeStr.c_str(), &amp;convertTriggerResult);</span>
+
+<span style = "background-color:#fdd">    if (convertAqResult)</span>
+    {
+<span style = "background-color:#fdd">      if (firstAq)</span>
+      {
+<span style = "background-color:#fdd">        bounds[0] = aqDateTime;
+        bounds[1] = aqDateTime;
+        firstAq = false;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        bounds[0] = GetLowerDateTime(bounds[0], aqDateTime);
+        bounds[1] = GetUpperDateTime(bounds[1], aqDateTime);</span>
+      }
+<span style = "background-color:#fdd">      result = true;</span>
+    }
+
+<span style = "background-color:#fdd">    if (convertTriggerResult)</span>
+    {
+<span style = "background-color:#fdd">      if (firstTr)</span>
+      {
+<span style = "background-color:#fdd">        triggerBounds[0] = triggerTime;
+        triggerBounds[1] = triggerTime;
+        firstTr = false;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        triggerBounds[0] = std::min(triggerBounds[0], triggerTime);
+        triggerBounds[1] = std::max(triggerBounds[1], triggerTime);</span>
+      }
+<span style = "background-color:#fdd">      result = true;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+bool mitk::ITKDICOMSeriesReaderHelper::ExtractTimeBoundsOfTimeStep(
+  const StringContainer&amp; filenamesOfTimeStep, TimeBounds&amp; bounds, const OFDateTime&amp; baselineDateTime )
+<span style = "background-color:#fdd">{
+  DateTimeBounds aqDTBounds;</span>
+  TimeBounds triggerBounds;
+
+<span style = "background-color:#fdd">  bool result = ExtractDateTimeBoundsAndTriggerOfTimeStep(filenamesOfTimeStep, aqDTBounds, triggerBounds);</span>
+
+<span style = "background-color:#fdd">  mitk::ScalarType lowerBound = ComputeMiliSecDuration( baselineDateTime, aqDTBounds[0] );
+  mitk::ScalarType upperBound = ComputeMiliSecDuration( baselineDateTime, aqDTBounds[1] );
+  if ( lowerBound &lt; mitk::eps || upperBound &lt; mitk::eps )</span>
+  {
+<span style = "background-color:#fdd">    lowerBound = triggerBounds[0];
+    upperBound = triggerBounds[1];</span>
+  }
+
+<span style = "background-color:#fdd">  bounds[0] = lowerBound;
+  bounds[1] = upperBound;</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::ITKDICOMSeriesReaderHelper::TimeBoundsList
+  mitk::ITKDICOMSeriesReaderHelper::ExtractTimeBoundsOfTimeSteps(
+    const StringContainerList&amp; filenamesOfTimeSteps )
+<span style = "background-color:#fdd">{
+  TimeBoundsList result;</span>
+
+<span style = "background-color:#fdd">  OFDateTime baseLine;</span>
+
+  // extract the timebounds
+<span style = "background-color:#fdd">  DateTimeBounds baselineDateTimeBounds;</span>
+  TimeBounds triggerBounds;
+<span style = "background-color:#fdd">  auto pos = filenamesOfTimeSteps.cbegin();
+  ExtractDateTimeBoundsAndTriggerOfTimeStep(*pos, baselineDateTimeBounds, triggerBounds);
+  baseLine = baselineDateTimeBounds[0];</span>
+
+  // timebounds for baseline is 0
+<span style = "background-color:#fdd">  TimeBounds bounds( 0.0 );
+  result.push_back( bounds );</span>
+
+
+  // iterate over the remaining timesteps
+<span style = "background-color:#fdd">  for ( ++pos;
+        pos != filenamesOfTimeSteps.cend();
+        ++pos )</span>
+  {
+<span style = "background-color:#fdd">    TimeBounds bounds( 0.0 );</span>
+    TimeBounds dateTimeBounds;
+
+    // extract the timebounds relative to the baseline
+<span style = "background-color:#fdd">    if ( ExtractTimeBoundsOfTimeStep( *pos, dateTimeBounds, baseLine ) )</span>
+    {
+
+<span style = "background-color:#fdd">      bounds[0] = dateTimeBounds[0];
+      bounds[1] = dateTimeBounds[1];</span>
+    }
+
+<span style = "background-color:#fdd">    result.push_back( bounds );
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::TimeGeometry::Pointer
+  mitk::ITKDICOMSeriesReaderHelper::GenerateTimeGeometry( const BaseGeometry* templateGeometry,
+                                                          const TimeBoundsList&amp; boundsList )
+<span style = "background-color:#fdd">{
+  TimeGeometry::Pointer timeGeometry;</span>
+
+<span style = "background-color:#fdd">  double check = 0.0;
+  const auto boundListSize = boundsList.size();
+  for ( std::size_t pos = 0; pos &lt; boundListSize; ++pos )</span>
+  {
+<span style = "background-color:#fdd">    check += boundsList[pos][0];
+    check += boundsList[pos][1];
+  }</span>
+
+<span style = "background-color:#fdd">  if ( check &lt; mitk::eps )</span>
+  { // if all bounds are zero we assume that the bounds could not be correctly determined
+    // and as a fallback generate a time geometry in the old mitk style
+<span style = "background-color:#fdd">    ProportionalTimeGeometry::Pointer newTimeGeometry = ProportionalTimeGeometry::New();
+    newTimeGeometry-&gt;Initialize( templateGeometry, boundListSize );
+    timeGeometry = newTimeGeometry.GetPointer();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    ArbitraryTimeGeometry::Pointer newTimeGeometry = ArbitraryTimeGeometry::New();
+    newTimeGeometry-&gt;ClearAllGeometries();
+    newTimeGeometry-&gt;ReserveSpaceForGeometries( boundListSize );</span>
+
+<span style = "background-color:#fdd">    for ( std::size_t pos = 0; pos &lt; boundListSize; ++pos )</span>
+    {
+<span style = "background-color:#fdd">      TimeBounds bounds = boundsList[pos];
+      if ( pos + 1 &lt; boundListSize )</span>
+      { //Currently we do not explicitly support "gaps" in the time coverage
+        //thus we set the max time bound of a time step to the min time bound
+        //of its successor.
+<span style = "background-color:#fdd">        bounds[1] = boundsList[pos + 1][0];</span>
+      }
+
+<span style = "background-color:#fdd">      newTimeGeometry-&gt;AppendNewTimeStepClone(templateGeometry, bounds[0], bounds[1]);
+    }
+    timeGeometry = newTimeGeometry.GetPointer();
+  }</span>
+
+<span style = "background-color:#fdd">  return timeGeometry;
+};</span></pre>
+	</body>
+</html>

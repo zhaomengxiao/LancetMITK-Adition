@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMSortByTag.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMSortByTag.h"
+
+#include "dcmtk/ofstd/ofstd.h"
+
+mitk::DICOMSortByTag
+::DICOMSortByTag(const DICOMTag&amp; tag, DICOMSortCriterion::Pointer secondaryCriterion)
+<span style = "background-color:#dfd">:DICOMSortCriterion(secondaryCriterion)
+,m_Tag(tag)
+{
+}</span>
+
+mitk::DICOMSortByTag
+::~DICOMSortByTag()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::DICOMSortByTag
+::DICOMSortByTag(const DICOMSortByTag&amp; other )
+<span style = "background-color:#fdd">:DICOMSortCriterion(other)
+,m_Tag(other.m_Tag)
+{
+}</span>
+
+mitk::DICOMSortByTag&amp;
+mitk::DICOMSortByTag
+::operator=(const DICOMSortByTag&amp; other)
+<span style = "background-color:#fdd">{
+  if (this != &amp;other)</span>
+  {
+<span style = "background-color:#fdd">    DICOMSortCriterion::operator=(other);
+    m_Tag = other.m_Tag;</span>
+  }
+<span style = "background-color:#fdd">  return *this;
+}</span>
+
+bool
+mitk::DICOMSortByTag
+::operator==(const DICOMSortCriterion&amp; other) const
+<span style = "background-color:#fdd">{
+  if (const auto* otherSelf = dynamic_cast&lt;const DICOMSortByTag*&gt;(&amp;other))</span>
+  {
+<span style = "background-color:#fdd">    if (!(this-&gt;m_Tag == otherSelf-&gt;m_Tag)) return false;</span>
+
+<span style = "background-color:#fdd">    if (this-&gt;m_SecondaryCriterion.IsNull() &amp;&amp; otherSelf-&gt;m_SecondaryCriterion.IsNull()) return true;</span>
+
+<span style = "background-color:#fdd">    if (this-&gt;m_SecondaryCriterion.IsNull() || otherSelf-&gt;m_SecondaryCriterion.IsNull()) return false;</span>
+
+<span style = "background-color:#fdd">    return *(this-&gt;m_SecondaryCriterion) == *(otherSelf-&gt;m_SecondaryCriterion);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void
+mitk::DICOMSortByTag
+::Print(std::ostream&amp; os) const
+<span style = "background-color:#fdd">{
+  m_Tag.Print(os);
+}</span>
+
+
+mitk::DICOMTagList
+mitk::DICOMSortByTag
+::GetTagsOfInterest() const
+<span style = "background-color:#fdd">{
+  DICOMTagList list;
+  list.push_back(m_Tag);
+  return list;
+}</span>
+
+bool
+mitk::DICOMSortByTag
+::IsLeftBeforeRight(const mitk::DICOMDatasetAccess* left, const mitk::DICOMDatasetAccess* right) const
+<span style = "background-color:#fdd">{
+  return this-&gt;NumericCompare(left, right, m_Tag);
+}</span>
+
+bool
+mitk::DICOMSortByTag
+::StringCompare(const mitk::DICOMDatasetAccess* left, const mitk::DICOMDatasetAccess* right, const DICOMTag&amp; tag) const
+<span style = "background-color:#fdd">{
+  assert(left);
+  assert(right);</span>
+
+<span style = "background-color:#fdd">  DICOMDatasetFinding leftFinding = left-&gt;GetTagValueAsString(tag);
+  DICOMDatasetFinding rightFinding = right-&gt;GetTagValueAsString(tag);</span>
+  //Doesn't care if findings are valid or not. If they are not valid,
+  //value is empty, thats enough.
+<span style = "background-color:#fdd">  if (leftFinding.value != rightFinding.value)</span>
+  {
+<span style = "background-color:#fdd">    return leftFinding.value.compare(rightFinding.value) &lt; 0;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return this-&gt;NextLevelIsLeftBeforeRight(left, right);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool
+mitk::DICOMSortByTag
+::NumericCompare(const mitk::DICOMDatasetAccess* left, const mitk::DICOMDatasetAccess* right, const DICOMTag&amp; tag) const
+<span style = "background-color:#fdd">{
+  assert(left);
+  assert(right);</span>
+
+<span style = "background-color:#fdd">  const DICOMDatasetFinding leftFinding = left-&gt;GetTagValueAsString(tag);
+  const DICOMDatasetFinding rightFinding = right-&gt;GetTagValueAsString(tag);</span>
+  //Doesn't care if findings are valid or not. If they are not valid,
+  //value is empty, thats enough.
+
+<span style = "background-color:#fdd">  double leftDouble( 0 );
+  double rightDouble( 0 );</span>
+
+  try
+  {
+<span style = "background-color:#fdd">    leftDouble = OFStandard::atof( leftFinding.value.c_str() );
+    rightDouble = OFStandard::atof(rightFinding.value.c_str());</span>
+  }
+  catch ( const std::exception&amp; /*e*/ )
+<span style = "background-color:#fdd">  {
+    return this-&gt;StringCompare(left,right, tag); // fallback to string compare
+  }</span>
+
+
+<span style = "background-color:#fdd">  if ( leftDouble != rightDouble ) // can we decide?</span>
+  {
+<span style = "background-color:#fdd">    return leftDouble &lt; rightDouble;
+  }</span>
+  else // ask secondary criterion
+  {
+<span style = "background-color:#fdd">    return this-&gt;NextLevelIsLeftBeforeRight( left, right );</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+double
+mitk::DICOMSortByTag
+::NumericDistance(const mitk::DICOMDatasetAccess* from, const mitk::DICOMDatasetAccess* to) const
+<span style = "background-color:#fdd">{
+  assert(from);
+  assert(to);</span>
+
+<span style = "background-color:#fdd">  const DICOMDatasetFinding fromFinding = from-&gt;GetTagValueAsString(m_Tag);
+  const DICOMDatasetFinding toFinding = to-&gt;GetTagValueAsString(m_Tag);</span>
+  //Doesn't care if findings are valid or not. If they are not valid,
+  //value is empty, thats enough.
+
+<span style = "background-color:#fdd">  double fromDouble(0);
+  double toDouble(0);</span>
+
+  try
+  {
+<span style = "background-color:#fdd">    fromDouble = OFStandard::atof(fromFinding.value.c_str());
+    toDouble = OFStandard::atof(toFinding.value.c_str());</span>
+  }
+  catch ( const std::exception&amp; /*e*/ )
+<span style = "background-color:#fdd">  {
+    MITK_WARN &lt;&lt; "NO NUMERIC DISTANCE between '" &lt;&lt; fromFinding.value &lt;&lt; "' and '" &lt;&lt; toFinding.value &lt;&lt; "'";
+    return 0;
+  }</span>
+
+<span style = "background-color:#fdd">  return toDouble - fromDouble;</span>
+  // TODO second-level compare?
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNDIPassiveTool.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef MITKNDIPASSIVETOOL_H_HEADER_INCLUDED_
+#define MITKNDIPASSIVETOOL_H_HEADER_INCLUDED_
+
+#include &lt;mitkTrackingTool.h&gt;
+#include "mitkTrackingTypes.h"
+
+namespace lancet
+{
+  class NDIVegaTrackingDevice;
+}
+namespace mitk
+{
+  class NDITrackingDevice;
+  
+  /**Documentation
+  * \brief Implementation of a passive NDI optical tool
+  *
+  * implements the TrackingTool interface and has the ability to
+  * load an srom file that contains the marker configuration for that tool
+  *
+  * \ingroup IGT
+  */
+  class MITKIGT_EXPORT NDIPassiveTool : public TrackingTool
+  {
+  public:
+    friend class NDITrackingDevice;
+    friend class lancet::NDIVegaTrackingDevice;
+    /**
+    * \brief tracking priority for NDI tracking devices
+    */
+    enum TrackingPriority
+    {
+      Static    = 'S',
+      Dynamic   = 'D',
+      ButtonBox = 'B'
+    };
+
+<span style = "background-color:#fdd">    mitkClassMacro(NDIPassiveTool, TrackingTool);</span>
+
+
+    virtual bool LoadSROMFile(const char* filename);      ///&lt; load a srom tool description file
+    virtual const unsigned char* GetSROMData() const;     ///&lt; get loaded srom file as unsigned char array
+    virtual unsigned int GetSROMDataLength() const;       ///&lt; get length of SROMData char array
+
+<span style = "background-color:#fdd">    itkSetStringMacro(PortHandle);    ///&lt; get port handle under which the tool is registered in the tracking device
+    itkGetStringMacro(PortHandle);    ///&lt; set port handle under which the tool is registered in the tracking device
+    itkSetMacro(TrackingPriority, TrackingPriority);      ///&lt; set tracking priority that the ndi tracking device should use
+    itkGetConstMacro(TrackingPriority, TrackingPriority); ///&lt; get tracking priority that the ndi tracking device should use
+    itkSetStringMacro(SerialNumber);  ///&lt; set serial number of the tool
+    itkGetStringMacro(SerialNumber);  ///&lt; get serial number of the tool
+    itkGetStringMacro(File);          ///&lt; get file from which this tool was loaded
+    itkSetMacro(FrameNumber,uint32_t);
+    itkGetMacro(FrameNumber, uint32_t);</span>
+  protected:
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);
+    itkCloneMacro(Self)</span>
+    NDIPassiveTool();
+    ~NDIPassiveTool() override;
+
+    uint32_t m_FrameNumber;
+
+    unsigned char* m_SROMData;            ///&lt; content of the srom tool description file
+    unsigned int m_SROMDataLength;        ///&lt; length of the  srom tool description file
+    TrackingPriority m_TrackingPriority;  ///&lt; priority for this tool
+    std::string m_PortHandle;             ///&lt; port handle for this tool
+    std::string m_SerialNumber;           ///&lt; serial number for this tool
+    std::string m_File;                   ///&lt; the original file from which this tool was loaded
+  };
+} // namespace mitk
+#endif /* MITKNDIPASSIVETOOL_H_HEADER_INCLUDED_ */</pre>
+	</body>
+</html>

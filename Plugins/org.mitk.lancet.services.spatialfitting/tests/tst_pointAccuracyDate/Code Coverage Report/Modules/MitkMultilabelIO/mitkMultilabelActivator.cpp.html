@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMultilabelActivator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModule.h&gt;
+#include &lt;usModuleActivator.h&gt;
+#include &lt;usModuleContext.h&gt;
+
+#include "mitkLabelSetImageIO.h"
+
+namespace mitk
+{
+  /**
+  \brief Registers services for multilabel module.
+  */
+  class MultilabelIOModuleActivator : public us::ModuleActivator
+  {
+    std::vector&lt;AbstractFileIO *&gt; m_FileIOs;
+
+  public:
+    void Load(us::ModuleContext * /*context*/) override
+<span style = "background-color:#dfd">    {
+      m_FileIOs.push_back(new LabelSetImageIO());
+    }</span>
+    void Unload(us::ModuleContext *) override
+<span style = "background-color:#dfd">    {
+      for (auto &amp;elem : m_FileIOs)</span>
+      {
+<span style = "background-color:#dfd">        delete elem;
+      }
+    }</span>
+  };
+}
+
+<span style = "background-color:#dfd">US_EXPORT_MODULE_ACTIVATOR(mitk::MultilabelIOModuleActivator)</span></pre>
+	</body>
+</html>

@@ -1,0 +1,849 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRegEvaluationMapper2D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+//MITK
+#include &lt;mitkAbstractTransformGeometry.h&gt;
+#include &lt;mitkDataNode.h&gt;
+#include &lt;mitkImageSliceSelector.h&gt;
+#include &lt;mitkLevelWindowProperty.h&gt;
+#include &lt;mitkLookupTableProperty.h&gt;
+#include &lt;mitkPlaneGeometry.h&gt;
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkResliceMethodProperty.h&gt;
+#include &lt;mitkVtkResliceInterpolationProperty.h&gt;
+#include &lt;mitkPixelType.h&gt;
+#include &lt;mitkTransferFunctionProperty.h&gt;
+#include "mitkImageStatisticsHolder.h"
+#include "mitkPlaneClipping.h"
+
+#include "mitkRegVisPropertyTags.h"
+#include "mitkRegVisHelper.h"
+#include "mitkRegEvalStyleProperty.h"
+#include "mitkRegEvalWipeStyleProperty.h"
+
+//MITK Rendering
+#include "mitkRegEvaluationMapper2D.h"
+#include "vtkMitkThickSlicesFilter.h"
+#include "vtkMitkLevelWindowFilter.h"
+#include "vtkNeverTranslucentTexture.h"
+
+//VTK
+#include &lt;vtkProperty.h&gt;
+#include &lt;vtkTransform.h&gt;
+#include &lt;vtkMatrix4x4.h&gt;
+#include &lt;vtkLookupTable.h&gt;
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkPoints.h&gt;
+#include &lt;vtkGeneralTransform.h&gt;
+#include &lt;vtkImageExtractComponents.h&gt;
+#include &lt;vtkImageReslice.h&gt;
+#include &lt;vtkImageChangeInformation.h&gt;
+#include &lt;vtkPlaneSource.h&gt;
+#include &lt;vtkPolyDataMapper.h&gt;
+#include &lt;vtkCellArray.h&gt;
+#include &lt;vtkCamera.h&gt;
+#include &lt;vtkColorTransferFunction.h&gt;
+#include &lt;vtkImageCheckerboard.h&gt;
+#include &lt;vtkImageWeightedSum.h&gt;
+#include &lt;vtkImageMathematics.h&gt;
+#include &lt;vtkImageRectilinearWipe.h&gt;
+#include &lt;vtkImageGradientMagnitude.h&gt;
+#include &lt;vtkImageAppendComponents.h&gt;
+#include &lt;vtkImageExtractComponents.h&gt;
+
+//ITK
+#include &lt;itkRGBAPixel.h&gt;
+#include &lt;mitkRenderingModeProperty.h&gt;
+
+//MatchPoint
+#include &lt;mitkRegEvaluationObject.h&gt;
+#include &lt;mitkImageMappingHelper.h&gt;
+
+mitk::RegEvaluationMapper2D::RegEvaluationMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::RegEvaluationMapper2D::~RegEvaluationMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+//set the two points defining the textured plane according to the dimension and spacing
+void mitk::RegEvaluationMapper2D::GeneratePlane(mitk::BaseRenderer* renderer, double planeBounds[6])
+<span style = "background-color:#fdd">{
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  float depth = this-&gt;CalculateLayerDepth(renderer);</span>
+  //Set the origin to (xMin; yMin; depth) of the plane. This is necessary for obtaining the correct
+  //plane size in crosshair rotation and swivel mode.
+<span style = "background-color:#fdd">  localStorage-&gt;m_Plane-&gt;SetOrigin(planeBounds[0], planeBounds[2], depth);</span>
+  //These two points define the axes of the plane in combination with the origin.
+  //Point 1 is the x-axis and point 2 the y-axis.
+  //Each plane is transformed according to the view (axial, coronal and saggital) afterwards.
+<span style = "background-color:#fdd">  localStorage-&gt;m_Plane-&gt;SetPoint1(planeBounds[1] , planeBounds[2], depth); //P1: (xMax, yMin, depth)
+  localStorage-&gt;m_Plane-&gt;SetPoint2(planeBounds[0], planeBounds[3], depth); //P2: (xMin, yMax, depth)
+}</span>
+
+float mitk::RegEvaluationMapper2D::CalculateLayerDepth(mitk::BaseRenderer* renderer)
+<span style = "background-color:#fdd">{</span>
+  //get the clipping range to check how deep into z direction we can render images
+<span style = "background-color:#fdd">  double maxRange = renderer-&gt;GetVtkRenderer()-&gt;GetActiveCamera()-&gt;GetClippingRange()[1];</span>
+
+  //Due to a VTK bug, we cannot use the whole clipping range. /100 is empirically determined
+<span style = "background-color:#fdd">  float depth = -maxRange*0.01; // divide by 100
+  int layer = 0;
+  GetDataNode()-&gt;GetIntProperty( "layer", layer, renderer);</span>
+  //add the layer property for each image to render images with a higher layer on top of the others
+<span style = "background-color:#fdd">  depth += layer*10; //*10: keep some room for each image (e.g. for ODFs in between)
+  if(depth &gt; 0.0f) {
+    depth = 0.0f;
+    MITK_WARN &lt;&lt; "Layer value exceeds clipping range. Set to minimum instead.";</span>
+  }
+<span style = "background-color:#fdd">  return depth;
+}</span>
+
+const mitk::Image* mitk::RegEvaluationMapper2D::GetTargetImage( void )
+<span style = "background-color:#fdd">{
+  const mitk::RegEvaluationObject* evalObj = dynamic_cast&lt; const mitk::RegEvaluationObject* &gt;( GetDataNode()-&gt;GetData() );
+  if (evalObj)</span>
+  {
+<span style = "background-color:#fdd">    return evalObj-&gt;GetTargetImage();</span>
+  }
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+const mitk::Image* mitk::RegEvaluationMapper2D::GetMovingImage( void )
+<span style = "background-color:#fdd">{
+  const mitk::RegEvaluationObject* evalObj = dynamic_cast&lt; const mitk::RegEvaluationObject* &gt;( GetDataNode()-&gt;GetData() );
+  if (evalObj)</span>
+  {
+<span style = "background-color:#fdd">    return evalObj-&gt;GetMovingImage();</span>
+  }
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+const mitk::DataNode* mitk::RegEvaluationMapper2D::GetTargetNode(void)
+<span style = "background-color:#fdd">{
+  const mitk::RegEvaluationObject* evalObj = dynamic_cast&lt; const mitk::RegEvaluationObject* &gt;(GetDataNode()-&gt;GetData());
+  if (evalObj)</span>
+  {
+<span style = "background-color:#fdd">    return evalObj-&gt;GetTargetNode();</span>
+  }
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+const mitk::DataNode* mitk::RegEvaluationMapper2D::GetMovingNode(void)
+<span style = "background-color:#fdd">{
+  const mitk::RegEvaluationObject* evalObj = dynamic_cast&lt; const mitk::RegEvaluationObject* &gt;(GetDataNode()-&gt;GetData());
+  if (evalObj)</span>
+  {
+<span style = "background-color:#fdd">    return evalObj-&gt;GetMovingNode();</span>
+  }
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+const mitk::MAPRegistrationWrapper* mitk::RegEvaluationMapper2D::GetRegistration( void )
+<span style = "background-color:#fdd">{
+  const mitk::RegEvaluationObject* evalObj = dynamic_cast&lt; const mitk::RegEvaluationObject* &gt;( GetDataNode()-&gt;GetData() );
+  if (evalObj)</span>
+  {
+<span style = "background-color:#fdd">    return evalObj-&gt;GetRegistration();</span>
+  }
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+vtkProp* mitk::RegEvaluationMapper2D::GetVtkProp(mitk::BaseRenderer* renderer)
+<span style = "background-color:#fdd">{</span>
+  //return the actor corresponding to the renderer
+<span style = "background-color:#fdd">  return m_LSH.GetLocalStorage(renderer)-&gt;m_Actors;
+}</span>
+
+void mitk::RegEvaluationMapper2D::GenerateDataForRenderer( mitk::BaseRenderer *renderer )
+<span style = "background-color:#fdd">{
+  bool updated = false;
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  mitk::Image::Pointer targetInput = const_cast&lt; mitk::Image * &gt;( this-&gt;GetTargetImage() );
+  mitk::DataNode* datanode = this-&gt;GetDataNode();</span>
+
+<span style = "background-color:#fdd">  if ( targetInput.IsNull() || targetInput-&gt;IsInitialized() == false )</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::Image::ConstPointer movingInput = this-&gt;GetMovingImage();</span>
+
+<span style = "background-color:#fdd">  if ( movingInput.IsNull() || movingInput-&gt;IsInitialized() == false )</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::MAPRegistrationWrapper::ConstPointer reg = this-&gt;GetRegistration();</span>
+
+  //check if there is a valid worldGeometry
+<span style = "background-color:#fdd">  const PlaneGeometry *worldGeometry = renderer-&gt;GetCurrentWorldPlaneGeometry();
+  if( ( worldGeometry == nullptr ) || ( !worldGeometry-&gt;IsValid() ) || ( !worldGeometry-&gt;HasReferenceGeometry() ))</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  if(targetInput-&gt;GetMTime()&gt;localStorage-&gt;m_LastUpdateTime
+    || (localStorage-&gt;m_LastUpdateTime &lt; renderer-&gt;GetCurrentWorldPlaneGeometryUpdateTime()) //was the geometry modified?
+<span style = "background-color:#fdd">    || (localStorage-&gt;m_LastUpdateTime &lt; renderer-&gt;GetCurrentWorldPlaneGeometry()-&gt;GetMTime()))</span>
+  { //target input has been modified -&gt; reslice target input
+<span style = "background-color:#fdd">    targetInput-&gt;Update();</span>
+
+    // early out if there is no intersection of the current rendering geometry
+    // and the geometry of the image that is to be rendered.
+<span style = "background-color:#fdd">    if ( !RenderingGeometryIntersectsImage( worldGeometry, targetInput-&gt;GetSlicedGeometry() ) )</span>
+    {
+      // set image to nullptr, to clear the texture in 3D, because
+      // the latest image is used there if the plane is out of the geometry
+      // see bug-13275
+<span style = "background-color:#fdd">      localStorage-&gt;m_EvaluationImage = nullptr;
+      localStorage-&gt;m_Mapper-&gt;SetInputData( localStorage-&gt;m_EmptyPolyData );
+      return;</span>
+    }
+
+    //set main input for ExtractSliceFilter
+<span style = "background-color:#fdd">    localStorage-&gt;m_Reslicer-&gt;SetInput(targetInput);
+    localStorage-&gt;m_Reslicer-&gt;SetWorldGeometry(worldGeometry);
+    localStorage-&gt;m_Reslicer-&gt;SetTimeStep( this-&gt;GetTimestep() );</span>
+
+
+    //set the transformation of the image to adapt reslice axis
+<span style = "background-color:#fdd">    localStorage-&gt;m_Reslicer-&gt;SetResliceTransformByGeometry( targetInput-&gt;GetTimeGeometry()-&gt;GetGeometryForTimeStep( this-&gt;GetTimestep() ) );</span>
+
+
+    //is the geometry of the slice based on the input image or the worldgeometry?
+<span style = "background-color:#fdd">    bool inPlaneResampleExtentByGeometry = false;
+    datanode-&gt;GetBoolProperty("in plane resample extent by geometry", inPlaneResampleExtentByGeometry, renderer);
+    localStorage-&gt;m_Reslicer-&gt;SetInPlaneResampleExtentByGeometry(inPlaneResampleExtentByGeometry);</span>
+
+
+    // Initialize the interpolation mode for resampling; switch to nearest
+    // neighbor if the input image is too small.
+<span style = "background-color:#fdd">    if ( (targetInput-&gt;GetDimension() &gt;= 3) &amp;&amp; (targetInput-&gt;GetDimension(2) &gt; 1) )</span>
+    {
+      VtkResliceInterpolationProperty *resliceInterpolationProperty;
+<span style = "background-color:#fdd">      datanode-&gt;GetProperty(</span>
+        resliceInterpolationProperty, "reslice interpolation" );
+
+<span style = "background-color:#fdd">      int interpolationMode = VTK_RESLICE_NEAREST;
+      if ( resliceInterpolationProperty != nullptr )</span>
+      {
+<span style = "background-color:#fdd">        interpolationMode = resliceInterpolationProperty-&gt;GetInterpolation();</span>
+      }
+
+<span style = "background-color:#fdd">      switch ( interpolationMode )</span>
+      {
+      case VTK_RESLICE_NEAREST:
+<span style = "background-color:#fdd">        localStorage-&gt;m_Reslicer-&gt;SetInterpolationMode(ExtractSliceFilter::RESLICE_NEAREST);
+        break;</span>
+      case VTK_RESLICE_LINEAR:
+<span style = "background-color:#fdd">        localStorage-&gt;m_Reslicer-&gt;SetInterpolationMode(ExtractSliceFilter::RESLICE_LINEAR);
+        break;</span>
+      case VTK_RESLICE_CUBIC:
+<span style = "background-color:#fdd">        localStorage-&gt;m_Reslicer-&gt;SetInterpolationMode(ExtractSliceFilter::RESLICE_CUBIC);</span>
+        break;
+      }
+<span style = "background-color:#fdd">    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      localStorage-&gt;m_Reslicer-&gt;SetInterpolationMode(ExtractSliceFilter::RESLICE_NEAREST);</span>
+    }
+
+    //this is needed when thick mode was enable bevore. These variable have to be reset to default values
+<span style = "background-color:#fdd">    localStorage-&gt;m_Reslicer-&gt;SetOutputDimensionality( 2 );
+    localStorage-&gt;m_Reslicer-&gt;SetOutputSpacingZDirection(1.0);
+    localStorage-&gt;m_Reslicer-&gt;SetOutputExtentZDirection( 0, 0 );</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_Reslicer-&gt;Modified();</span>
+    //start the pipeline with updating the largest possible, needed if the geometry of the input has changed
+<span style = "background-color:#fdd">    localStorage-&gt;m_Reslicer-&gt;UpdateLargestPossibleRegion();
+    localStorage-&gt;m_slicedTargetImage = localStorage-&gt;m_Reslicer-&gt;GetOutput();
+    updated = true;</span>
+  }
+
+  if(updated ||
+<span style = "background-color:#fdd">    movingInput-&gt;GetMTime() &gt; localStorage-&gt;m_LastUpdateTime ||</span>
+    reg-&gt;GetMTime() &gt; localStorage-&gt;m_LastUpdateTime)
+  {
+    //Map moving image
+<span style = "background-color:#fdd">    localStorage-&gt;m_slicedMappedImage = mitk::ImageMappingHelper::map(movingInput,reg,false,0,localStorage-&gt;m_slicedTargetImage-&gt;GetGeometry(),false,0);
+    updated = true;</span>
+  }
+
+  // Bounds information for reslicing (only required if reference geometry
+  // is present)
+  //this used for generating a vtkPLaneSource with the right size
+<span style = "background-color:#fdd">  double sliceBounds[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };</span>
+
+  if (updated
+    || (localStorage-&gt;m_LastUpdateTime &lt; datanode-&gt;GetPropertyList()-&gt;GetMTime()) //was a property modified?
+    || (localStorage-&gt;m_LastUpdateTime &lt; datanode-&gt;GetPropertyList(renderer)-&gt;GetMTime())
+    || (localStorage-&gt;m_LastUpdateTime &lt; this-&gt;GetTargetNode()-&gt;GetMTime())
+<span style = "background-color:#fdd">    || (localStorage-&gt;m_LastUpdateTime &lt; this-&gt;GetMovingNode()-&gt;GetMTime()))</span>
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_Reslicer-&gt;GetClippedPlaneBounds(sliceBounds);</span>
+
+    //get the spacing of the slice
+<span style = "background-color:#fdd">    localStorage-&gt;m_mmPerPixel = localStorage-&gt;m_Reslicer-&gt;GetOutputSpacing();</span>
+
+    // calculate minimum bounding rect of IMAGE in texture
+    {
+<span style = "background-color:#fdd">      double textureClippingBounds[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };</span>
+
+      // Calculate the actual bounds of the transformed plane clipped by the
+      // dataset bounding box; this is required for drawing the texture at the
+      // correct position during 3D mapping.
+
+<span style = "background-color:#fdd">      const PlaneGeometry *planeGeometry = dynamic_cast&lt;const PlaneGeometry *&gt;(worldGeometry);
+      mitk::PlaneClipping::CalculateClippedPlaneBounds(targetInput-&gt;GetGeometry(), planeGeometry, textureClippingBounds);</span>
+
+<span style = "background-color:#fdd">      textureClippingBounds[0] = static_cast&lt;int&gt;(textureClippingBounds[0] / localStorage-&gt;m_mmPerPixel[0] + 0.5);
+      textureClippingBounds[1] = static_cast&lt;int&gt;(textureClippingBounds[1] / localStorage-&gt;m_mmPerPixel[0] + 0.5);
+      textureClippingBounds[2] = static_cast&lt;int&gt;(textureClippingBounds[2] / localStorage-&gt;m_mmPerPixel[1] + 0.5);
+      textureClippingBounds[3] = static_cast&lt;int&gt;(textureClippingBounds[3] / localStorage-&gt;m_mmPerPixel[1] + 0.5);</span>
+
+      //clipping bounds for cutting the image
+<span style = "background-color:#fdd">      localStorage-&gt;m_TargetLevelWindowFilter-&gt;SetClippingBounds(textureClippingBounds);
+      localStorage-&gt;m_MappedLevelWindowFilter-&gt;SetClippingBounds(textureClippingBounds);</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;ApplyLookuptable(renderer, this-&gt;GetTargetNode(), localStorage-&gt;m_TargetLevelWindowFilter);
+    this-&gt;ApplyLookuptable(renderer, this-&gt;GetMovingNode(), localStorage-&gt;m_MappedLevelWindowFilter);
+    this-&gt;ApplyLevelWindow(renderer, this-&gt;GetTargetNode(), localStorage-&gt;m_TargetLevelWindowFilter);
+    this-&gt;ApplyLevelWindow(renderer, this-&gt;GetMovingNode(), localStorage-&gt;m_MappedLevelWindowFilter);</span>
+
+    //connect the input with the levelwindow filter
+<span style = "background-color:#fdd">    localStorage-&gt;m_TargetLevelWindowFilter-&gt;SetInputData(localStorage-&gt;m_slicedTargetImage-&gt;GetVtkImageData());
+    localStorage-&gt;m_MappedLevelWindowFilter-&gt;SetInputData(localStorage-&gt;m_slicedMappedImage-&gt;GetVtkImageData());</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_TargetExtractFilter-&gt;SetInputConnection(localStorage-&gt;m_TargetLevelWindowFilter-&gt;GetOutputPort());
+    localStorage-&gt;m_MappedExtractFilter-&gt;SetInputConnection(localStorage-&gt;m_MappedLevelWindowFilter-&gt;GetOutputPort());
+    localStorage-&gt;m_TargetExtractFilter-&gt;SetComponents(0);
+    localStorage-&gt;m_MappedExtractFilter-&gt;SetComponents(0);</span>
+
+<span style = "background-color:#fdd">    updated = true;</span>
+  }
+
+  //Generate evaluation image
+<span style = "background-color:#fdd">  bool isStyleOutdated = mitk::PropertyIsOutdated(datanode,mitk::nodeProp_RegEvalStyle,localStorage-&gt;m_LastUpdateTime);
+  bool isBlendOutdated = mitk::PropertyIsOutdated(datanode,mitk::nodeProp_RegEvalBlendFactor,localStorage-&gt;m_LastUpdateTime);
+  bool isCheckerOutdated = mitk::PropertyIsOutdated(datanode,mitk::nodeProp_RegEvalCheckerCount,localStorage-&gt;m_LastUpdateTime);
+  bool isWipeStyleOutdated = mitk::PropertyIsOutdated(datanode,mitk::nodeProp_RegEvalWipeStyle,localStorage-&gt;m_LastUpdateTime);
+  bool isContourOutdated = mitk::PropertyIsOutdated(datanode,mitk::nodeProp_RegEvalTargetContour,localStorage-&gt;m_LastUpdateTime);
+  bool isPositionOutdated = mitk::PropertyIsOutdated(datanode, mitk::nodeProp_RegEvalCurrentPosition, localStorage-&gt;m_LastUpdateTime);</span>
+
+  if (updated ||
+    isStyleOutdated ||
+    isBlendOutdated ||
+    isCheckerOutdated ||
+    isWipeStyleOutdated ||
+<span style = "background-color:#fdd">    isContourOutdated ||</span>
+    isPositionOutdated)
+  {
+<span style = "background-color:#fdd">    mitk::RegEvalStyleProperty::Pointer evalStyleProp = mitk::RegEvalStyleProperty::New();
+    datanode-&gt;GetProperty(evalStyleProp, mitk::nodeProp_RegEvalStyle);</span>
+
+<span style = "background-color:#fdd">    switch (evalStyleProp-&gt;GetValueAsId())</span>
+    {
+    case 0 :
+      {
+<span style = "background-color:#fdd">        PrepareBlend(datanode, localStorage);
+        break;</span>
+      }
+    case 1 :
+      {
+<span style = "background-color:#fdd">        PrepareColorBlend(localStorage);
+        break;</span>
+      }
+    case 2 :
+      {
+<span style = "background-color:#fdd">        PrepareCheckerBoard(datanode, localStorage);
+        break;</span>
+      }
+    case 3 :
+      {
+<span style = "background-color:#fdd">        const PlaneGeometry *worldGeometry = renderer-&gt;GetCurrentWorldPlaneGeometry();</span>
+
+<span style = "background-color:#fdd">        Point3D currentPos3D;
+        datanode-&gt;GetPropertyValue&lt;Point3D&gt;(mitk::nodeProp_RegEvalCurrentPosition, currentPos3D);</span>
+
+<span style = "background-color:#fdd">        Point2D currentPos2D;
+        worldGeometry-&gt;Map(currentPos3D, currentPos2D);
+        Point2D currentIndex2D;
+        worldGeometry-&gt;WorldToIndex(currentPos2D, currentIndex2D);</span>
+
+<span style = "background-color:#fdd">        PrepareWipe(datanode, localStorage, currentIndex2D);
+        break;</span>
+      }
+    case 4 :
+      {
+<span style = "background-color:#fdd">        PrepareDifference(localStorage);
+        break;</span>
+      }
+    case 5 :
+      {
+<span style = "background-color:#fdd">        PrepareContour(datanode, localStorage);</span>
+        break;
+      }
+    }
+<span style = "background-color:#fdd">    updated = true;
+  }</span>
+
+  if(updated
+    || (localStorage-&gt;m_LastUpdateTime &lt; datanode-&gt;GetPropertyList()-&gt;GetMTime()) //was a property modified?
+<span style = "background-color:#fdd">    || (localStorage-&gt;m_LastUpdateTime &lt; datanode-&gt;GetPropertyList(renderer)-&gt;GetMTime()) )</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ApplyOpacity( renderer );</span>
+
+    // do not use a VTK lookup table (we do that ourselves in m_LevelWindowFilter)
+<span style = "background-color:#fdd">    localStorage-&gt;m_Texture-&gt;SetColorModeToDirectScalars();</span>
+
+    // check for texture interpolation property
+<span style = "background-color:#fdd">    bool textureInterpolation = false;
+    GetDataNode()-&gt;GetBoolProperty( "texture interpolation", textureInterpolation, renderer );</span>
+
+    //set the interpolation modus according to the property
+<span style = "background-color:#fdd">    localStorage-&gt;m_Texture-&gt;SetInterpolate(textureInterpolation);</span>
+
+    // connect the texture with the output of the levelwindow filter
+<span style = "background-color:#fdd">    localStorage-&gt;m_Texture-&gt;SetInputData(localStorage-&gt;m_EvaluationImage);</span>
+
+<span style = "background-color:#fdd">    this-&gt;TransformActor( renderer );</span>
+
+<span style = "background-color:#fdd">    vtkActor* contourShadowActor = dynamic_cast&lt;vtkActor*&gt; (localStorage-&gt;m_Actors-&gt;GetParts()-&gt;GetItemAsObject(0));</span>
+
+    //Connect the mapper with the input texture. This is the standard case.
+    //setup the textured plane
+<span style = "background-color:#fdd">    this-&gt;GeneratePlane( renderer, sliceBounds );</span>
+    //set the plane as input for the mapper
+<span style = "background-color:#fdd">    localStorage-&gt;m_Mapper-&gt;SetInputConnection(localStorage-&gt;m_Plane-&gt;GetOutputPort());</span>
+    //set the texture for the actor
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_Actor-&gt;SetTexture(localStorage-&gt;m_Texture);
+    contourShadowActor-&gt;SetVisibility( false );</span>
+
+    // We have been modified =&gt; save this for next Update()
+<span style = "background-color:#fdd">    localStorage-&gt;m_LastUpdateTime.Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+
+void mitk::RegEvaluationMapper2D::PrepareContour( mitk::DataNode* datanode, LocalStorage * localStorage )
+<span style = "background-color:#fdd">{
+  bool targetContour = true;
+  datanode-&gt;GetBoolProperty(mitk::nodeProp_RegEvalTargetContour,targetContour);</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkImageGradientMagnitude&gt; magFilter =</span>
+    vtkSmartPointer&lt;vtkImageGradientMagnitude&gt;::New();
+
+<span style = "background-color:#fdd">  if(targetContour)</span>
+  {
+<span style = "background-color:#fdd">    magFilter-&gt;SetInputConnection(localStorage-&gt;m_TargetExtractFilter-&gt;GetOutputPort());
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    magFilter-&gt;SetInputConnection(localStorage-&gt;m_MappedExtractFilter-&gt;GetOutputPort());</span>
+  }
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkImageAppendComponents&gt; appendFilter =</span>
+    vtkSmartPointer&lt;vtkImageAppendComponents&gt;::New();
+
+<span style = "background-color:#fdd">  appendFilter-&gt;AddInputConnection(magFilter-&gt;GetOutputPort());
+  appendFilter-&gt;AddInputConnection(magFilter-&gt;GetOutputPort());
+  if(targetContour)</span>
+  {
+<span style = "background-color:#fdd">    appendFilter-&gt;AddInputConnection(localStorage-&gt;m_MappedExtractFilter-&gt;GetOutputPort());
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    appendFilter-&gt;AddInputConnection(localStorage-&gt;m_TargetExtractFilter-&gt;GetOutputPort());</span>
+  }
+<span style = "background-color:#fdd">  appendFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  localStorage-&gt;m_EvaluationImage = appendFilter-&gt;GetOutput();
+}</span>
+
+void mitk::RegEvaluationMapper2D::PrepareDifference( LocalStorage * localStorage )
+<span style = "background-color:#fdd">{
+  vtkSmartPointer&lt;vtkImageMathematics&gt; diffFilter =</span>
+    vtkSmartPointer&lt;vtkImageMathematics&gt;::New();
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkImageMathematics&gt; minFilter =</span>
+    vtkSmartPointer&lt;vtkImageMathematics&gt;::New();
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkImageMathematics&gt; maxFilter =</span>
+    vtkSmartPointer&lt;vtkImageMathematics&gt;::New();
+
+<span style = "background-color:#fdd">  minFilter-&gt;SetInputConnection(0, localStorage-&gt;m_TargetExtractFilter-&gt;GetOutputPort());
+  minFilter-&gt;SetInputConnection(1, localStorage-&gt;m_MappedExtractFilter-&gt;GetOutputPort());
+  minFilter-&gt;SetOperationToMin();
+  maxFilter-&gt;SetInputConnection(0, localStorage-&gt;m_TargetExtractFilter-&gt;GetOutputPort());
+  maxFilter-&gt;SetInputConnection(1, localStorage-&gt;m_MappedExtractFilter-&gt;GetOutputPort());
+  maxFilter-&gt;SetOperationToMax();</span>
+
+<span style = "background-color:#fdd">  diffFilter-&gt;SetInputConnection(0, maxFilter-&gt;GetOutputPort());
+  diffFilter-&gt;SetInputConnection(1, minFilter-&gt;GetOutputPort());
+  diffFilter-&gt;SetOperationToSubtract();
+  diffFilter-&gt;Update();
+  localStorage-&gt;m_EvaluationImage = diffFilter-&gt;GetOutput();
+}</span>
+
+void mitk::RegEvaluationMapper2D::PrepareWipe(mitk::DataNode* datanode, LocalStorage * localStorage, const Point2D&amp; currentIndex2D)
+<span style = "background-color:#fdd">{
+  mitk::RegEvalWipeStyleProperty::Pointer evalWipeStyleProp = mitk::RegEvalWipeStyleProperty::New();
+  datanode-&gt;GetProperty(evalWipeStyleProp, mitk::nodeProp_RegEvalWipeStyle);</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkImageRectilinearWipe&gt; wipedFilter =</span>
+    vtkSmartPointer&lt;vtkImageRectilinearWipe&gt;::New();
+<span style = "background-color:#fdd">  wipedFilter-&gt;SetInputConnection(0, localStorage-&gt;m_TargetLevelWindowFilter-&gt;GetOutputPort());
+  wipedFilter-&gt;SetInputConnection(1, localStorage-&gt;m_MappedLevelWindowFilter-&gt;GetOutputPort());
+  wipedFilter-&gt;SetPosition(currentIndex2D[0], currentIndex2D[1]);</span>
+
+<span style = "background-color:#fdd">  if (evalWipeStyleProp-&gt;GetValueAsId() == 0)</span>
+  {
+<span style = "background-color:#fdd">    wipedFilter-&gt;SetWipeToQuad();
+  }
+  else if (evalWipeStyleProp-&gt;GetValueAsId() == 1)</span>
+  {
+<span style = "background-color:#fdd">    wipedFilter-&gt;SetWipeToHorizontal();
+  }
+  else if (evalWipeStyleProp-&gt;GetValueAsId() == 2)</span>
+  {
+<span style = "background-color:#fdd">    wipedFilter-&gt;SetWipeToVertical();</span>
+  }
+
+<span style = "background-color:#fdd">  wipedFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  localStorage-&gt;m_EvaluationImage = wipedFilter-&gt;GetOutput();
+}</span>
+
+void mitk::RegEvaluationMapper2D::PrepareCheckerBoard( mitk::DataNode* datanode, LocalStorage * localStorage )
+<span style = "background-color:#fdd">{
+  int checkerCount = 5;
+  datanode-&gt;GetIntProperty(mitk::nodeProp_RegEvalCheckerCount,checkerCount);</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkImageCheckerboard&gt; checkerboardFilter =</span>
+    vtkSmartPointer&lt;vtkImageCheckerboard&gt;::New();
+<span style = "background-color:#fdd">  checkerboardFilter-&gt;SetInputConnection(0, localStorage-&gt;m_TargetLevelWindowFilter-&gt;GetOutputPort());
+  checkerboardFilter-&gt;SetInputConnection(1, localStorage-&gt;m_MappedLevelWindowFilter-&gt;GetOutputPort());
+  checkerboardFilter-&gt;SetNumberOfDivisions(checkerCount, checkerCount, 1);
+  checkerboardFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  localStorage-&gt;m_EvaluationImage = checkerboardFilter-&gt;GetOutput();
+}</span>
+
+void mitk::RegEvaluationMapper2D::PrepareColorBlend( LocalStorage * localStorage )
+<span style = "background-color:#fdd">{
+  vtkSmartPointer&lt;vtkImageAppendComponents&gt; appendFilter =</span>
+    vtkSmartPointer&lt;vtkImageAppendComponents&gt;::New();
+
+  //red channel
+<span style = "background-color:#fdd">  appendFilter-&gt;AddInputConnection(localStorage-&gt;m_MappedExtractFilter-&gt;GetOutputPort());</span>
+  //green channel
+<span style = "background-color:#fdd">  appendFilter-&gt;AddInputConnection(localStorage-&gt;m_MappedExtractFilter-&gt;GetOutputPort());</span>
+
+  //blue channel
+<span style = "background-color:#fdd">  appendFilter-&gt;AddInputConnection(localStorage-&gt;m_TargetExtractFilter-&gt;GetOutputPort());
+  appendFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  localStorage-&gt;m_EvaluationImage = appendFilter-&gt;GetOutput();
+}</span>
+
+void mitk::RegEvaluationMapper2D::PrepareBlend( mitk::DataNode* datanode, LocalStorage * localStorage )
+<span style = "background-color:#fdd">{
+  int blendfactor = 50;
+  datanode-&gt;GetIntProperty(mitk::nodeProp_RegEvalBlendFactor,blendfactor);</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkImageWeightedSum&gt; blendFilter =</span>
+    vtkSmartPointer&lt;vtkImageWeightedSum&gt;::New();
+
+<span style = "background-color:#fdd">  blendFilter-&gt;AddInputConnection(localStorage-&gt;m_TargetExtractFilter-&gt;GetOutputPort());
+  blendFilter-&gt;AddInputConnection(localStorage-&gt;m_MappedExtractFilter-&gt;GetOutputPort());
+  blendFilter-&gt;SetWeight(0, (100 - blendfactor) / 100.);
+  blendFilter-&gt;SetWeight(1,blendfactor/100.);
+  blendFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  localStorage-&gt;m_EvaluationImage = blendFilter-&gt;GetOutput();
+}</span>
+
+void mitk::RegEvaluationMapper2D::ApplyLevelWindow(mitk::BaseRenderer *renderer, const mitk::DataNode* dataNode, vtkMitkLevelWindowFilter* levelFilter)
+<span style = "background-color:#fdd">{
+  LevelWindow levelWindow;
+  dataNode-&gt;GetLevelWindow(levelWindow, renderer, "levelwindow");
+  levelFilter-&gt;GetLookupTable()-&gt;SetRange(levelWindow.GetLowerWindowBound(), levelWindow.GetUpperWindowBound());</span>
+
+<span style = "background-color:#fdd">  mitk::LevelWindow opacLevelWindow;
+  if (dataNode-&gt;GetLevelWindow(opacLevelWindow, renderer, "opaclevelwindow"))</span>
+  {
+    //pass the opaque level window to the filter
+<span style = "background-color:#fdd">    levelFilter-&gt;SetMinOpacity(opacLevelWindow.GetLowerWindowBound());
+    levelFilter-&gt;SetMaxOpacity(opacLevelWindow.GetUpperWindowBound());
+  }</span>
+  else
+  {
+    //no opaque level window
+<span style = "background-color:#fdd">    levelFilter-&gt;SetMinOpacity(0.0);
+    levelFilter-&gt;SetMaxOpacity(255.0);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::RegEvaluationMapper2D::ApplyLookuptable(mitk::BaseRenderer* renderer, const mitk::DataNode* dataNode, vtkMitkLevelWindowFilter* levelFilter)
+<span style = "background-color:#fdd">{
+  LocalStorage* localStorage = m_LSH.GetLocalStorage(renderer);
+  vtkLookupTable* usedLookupTable = localStorage-&gt;m_ColorLookupTable;</span>
+
+  // If lookup table or transferfunction use is requested...
+<span style = "background-color:#fdd">  mitk::LookupTableProperty::Pointer lookupTableProp = dynamic_cast&lt;mitk::LookupTableProperty*&gt;(dataNode-&gt;GetProperty("LookupTable"));</span>
+
+<span style = "background-color:#fdd">  if (lookupTableProp.IsNotNull()) // is a lookuptable set?</span>
+  {
+<span style = "background-color:#fdd">    usedLookupTable = lookupTableProp-&gt;GetLookupTable()-&gt;GetVtkLookupTable();</span>
+  }
+  else
+  {
+    //"Image Rendering.Mode was set to use a lookup table but there is no property 'LookupTable'.
+    //A default (rainbow) lookup table will be used.
+    //Here have to do nothing. Warning for the user has been removed, due to unwanted console output
+    //in every interation of the rendering.
+  }
+<span style = "background-color:#fdd">  levelFilter-&gt;SetLookupTable(usedLookupTable);
+}</span>
+
+void mitk::RegEvaluationMapper2D::ApplyOpacity( mitk::BaseRenderer* renderer )
+<span style = "background-color:#fdd">{
+  LocalStorage* localStorage = this-&gt;GetLocalStorage( renderer );
+  float opacity = 1.0f;</span>
+  // check for opacity prop and use it for rendering if it exists
+<span style = "background-color:#fdd">  GetDataNode()-&gt;GetOpacity( opacity, renderer, "opacity" );</span>
+  //set the opacity according to the properties
+<span style = "background-color:#fdd">  localStorage-&gt;m_Actor-&gt;GetProperty()-&gt;SetOpacity(opacity);
+  if ( localStorage-&gt;m_Actors-&gt;GetParts()-&gt;GetNumberOfItems() &gt; 1 )</span>
+  {
+<span style = "background-color:#fdd">    dynamic_cast&lt;vtkActor*&gt;( localStorage-&gt;m_Actors-&gt;GetParts()-&gt;GetItemAsObject(0) )-&gt;GetProperty()-&gt;SetOpacity(opacity);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::RegEvaluationMapper2D::Update(mitk::BaseRenderer* renderer)
+<span style = "background-color:#fdd">{</span>
+
+<span style = "background-color:#fdd">  bool visible = true;
+  GetDataNode()-&gt;GetVisibility(visible, renderer, "visible");</span>
+
+<span style = "background-color:#fdd">  if ( !visible )</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::Image* data  = const_cast&lt;mitk::Image *&gt;( this-&gt;GetTargetImage() );
+  if ( data == nullptr )</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // Calculate time step of the input data for the specified renderer (integer value)
+<span style = "background-color:#fdd">  this-&gt;CalculateTimeStep( renderer );</span>
+
+  // Check if time step is valid
+<span style = "background-color:#fdd">  const TimeGeometry *dataTimeGeometry = data-&gt;GetTimeGeometry();</span>
+  if ( ( dataTimeGeometry == nullptr )
+    || ( dataTimeGeometry-&gt;CountTimeSteps() == 0 )
+<span style = "background-color:#fdd">    || ( !dataTimeGeometry-&gt;IsValidTimeStep( this-&gt;GetTimestep() ) ) )</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  const DataNode *node = this-&gt;GetDataNode();
+  data-&gt;UpdateOutputInformation();
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+
+  //check if something important has changed and we need to rerender
+  if ( (localStorage-&gt;m_LastUpdateTime &lt; node-&gt;GetMTime()) //was the node modified?
+    || (localStorage-&gt;m_LastUpdateTime &lt; data-&gt;GetPipelineMTime()) //Was the data modified?
+    || (localStorage-&gt;m_LastUpdateTime &lt; renderer-&gt;GetCurrentWorldPlaneGeometryUpdateTime()) //was the geometry modified?
+    || (localStorage-&gt;m_LastUpdateTime &lt; renderer-&gt;GetCurrentWorldPlaneGeometry()-&gt;GetMTime())
+    || (localStorage-&gt;m_LastUpdateTime &lt; node-&gt;GetPropertyList()-&gt;GetMTime()) //was a property modified?
+    || (localStorage-&gt;m_LastUpdateTime &lt; node-&gt;GetPropertyList(renderer)-&gt;GetMTime())
+    || (localStorage-&gt;m_LastUpdateTime &lt; this-&gt;GetTargetNode()-&gt;GetMTime()) //was the target node modified?
+    || (localStorage-&gt;m_LastUpdateTime &lt; this-&gt;GetMovingNode()-&gt;GetMTime()) //was the moving node modified?
+    || (localStorage-&gt;m_LastUpdateTime &lt; this-&gt;GetTargetNode()-&gt;GetPropertyList()-&gt;GetMTime()) //was a target node property modified?
+    || (localStorage-&gt;m_LastUpdateTime &lt; this-&gt;GetTargetNode()-&gt;GetPropertyList(renderer)-&gt;GetMTime())
+    || (localStorage-&gt;m_LastUpdateTime &lt; this-&gt;GetMovingNode()-&gt;GetPropertyList()-&gt;GetMTime()) //was a moving node property modified?
+<span style = "background-color:#fdd">    || (localStorage-&gt;m_LastUpdateTime &lt; this-&gt;GetMovingNode()-&gt;GetPropertyList(renderer)-&gt;GetMTime()))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;GenerateDataForRenderer( renderer );</span>
+  }
+
+  // since we have checked that nothing important has changed, we can set
+  // m_LastUpdateTime to the current time
+<span style = "background-color:#fdd">  localStorage-&gt;m_LastUpdateTime.Modified();
+}</span>
+
+void mitk::RegEvaluationMapper2D::SetDefaultProperties(mitk::DataNode* node, mitk::BaseRenderer* renderer, bool overwrite)
+<span style = "background-color:#fdd">{
+  mitk::RegEvaluationObject* regEval = dynamic_cast&lt;mitk::RegEvaluationObject*&gt;(node-&gt;GetData());</span>
+
+<span style = "background-color:#fdd">  if(!regEval)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // Properties common for both images and segmentations
+<span style = "background-color:#fdd">  node-&gt;AddProperty( "depthOffset", mitk::FloatProperty::New( 0.0 ), renderer, overwrite );
+  if(regEval-&gt;GetTargetImage() &amp;&amp; regEval-&gt;GetTargetImage()-&gt;IsRotated()) node-&gt;AddProperty( "reslice interpolation", mitk::VtkResliceInterpolationProperty::New(VTK_RESLICE_CUBIC) );
+  else node-&gt;AddProperty( "reslice interpolation", mitk::VtkResliceInterpolationProperty::New() );
+  node-&gt;AddProperty( "texture interpolation", mitk::BoolProperty::New( false ) );  // set to user configurable default value (see global options)
+  node-&gt;AddProperty( "in plane resample extent by geometry", mitk::BoolProperty::New( false ) );
+  node-&gt;AddProperty( "bounding box", mitk::BoolProperty::New( false ) );</span>
+
+<span style = "background-color:#fdd">  mitk::RenderingModeProperty::Pointer renderingModeProperty = mitk::RenderingModeProperty::New();
+  node-&gt;AddProperty( "Image Rendering.Mode", renderingModeProperty);</span>
+
+  // Set default grayscale look-up table
+<span style = "background-color:#fdd">  mitk::LookupTable::Pointer mitkLut = mitk::LookupTable::New();
+  mitk::LookupTableProperty::Pointer mitkLutProp = mitk::LookupTableProperty::New();
+  mitkLutProp-&gt;SetLookupTable(mitkLut);
+  node-&gt;SetProperty("LookupTable", mitkLutProp);</span>
+
+<span style = "background-color:#fdd">  node-&gt;AddProperty( "opacity", mitk::FloatProperty::New(1.0f), renderer, overwrite );
+  node-&gt;AddProperty( "color", ColorProperty::New(1.0,1.0,1.0), renderer, overwrite );
+  node-&gt;AddProperty( "binary", mitk::BoolProperty::New( false ), renderer, overwrite );
+  node-&gt;AddProperty("layer", mitk::IntProperty::New(0), renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  node-&gt;AddProperty(mitk::nodeProp_RegEvalStyle, mitk::RegEvalStyleProperty::New(0), renderer, overwrite);
+  node-&gt;AddProperty(mitk::nodeProp_RegEvalBlendFactor, mitk::IntProperty::New(50), renderer, overwrite);
+  node-&gt;AddProperty(mitk::nodeProp_RegEvalCheckerCount, mitk::IntProperty::New(3), renderer, overwrite);
+  node-&gt;AddProperty(mitk::nodeProp_RegEvalTargetContour, mitk::BoolProperty::New(true), renderer, overwrite);
+  node-&gt;AddProperty(mitk::nodeProp_RegEvalWipeStyle, mitk::RegEvalWipeStyleProperty::New(0), renderer, overwrite);
+  node-&gt;AddProperty(mitk::nodeProp_RegEvalCurrentPosition, mitk::Point3dProperty::New(mitk::Point3D()), renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  Superclass::SetDefaultProperties(node, renderer, overwrite);
+}</span>
+
+mitk::RegEvaluationMapper2D::LocalStorage* mitk::RegEvaluationMapper2D::GetLocalStorage(mitk::BaseRenderer* renderer)
+<span style = "background-color:#fdd">{
+  return m_LSH.GetLocalStorage(renderer);
+}</span>
+
+void mitk::RegEvaluationMapper2D::TransformActor(mitk::BaseRenderer* renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+  //get the transformation matrix of the reslicer in order to render the slice as axial, coronal or saggital
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkTransform&gt; trans = vtkSmartPointer&lt;vtkTransform&gt;::New();
+  vtkSmartPointer&lt;vtkMatrix4x4&gt; matrix = localStorage-&gt;m_Reslicer-&gt;GetResliceAxes();
+  trans-&gt;SetMatrix(matrix);</span>
+  //transform the plane/contour (the actual actor) to the corresponding view (axial, coronal or saggital)
+<span style = "background-color:#fdd">  localStorage-&gt;m_Actor-&gt;SetUserTransform(trans);</span>
+  //transform the origin to center based coordinates, because MITK is center based.
+<span style = "background-color:#fdd">  localStorage-&gt;m_Actor-&gt;SetPosition( -0.5*localStorage-&gt;m_mmPerPixel[0], -0.5*localStorage-&gt;m_mmPerPixel[1], 0.0);</span>
+
+<span style = "background-color:#fdd">  if ( localStorage-&gt;m_Actors-&gt;GetNumberOfPaths() &gt; 1 )</span>
+  {
+<span style = "background-color:#fdd">    vtkActor* secondaryActor = dynamic_cast&lt;vtkActor*&gt;( localStorage-&gt;m_Actors-&gt;GetParts()-&gt;GetItemAsObject(0) );
+    secondaryActor-&gt;SetUserTransform(trans);
+    secondaryActor-&gt;SetPosition( -0.5*localStorage-&gt;m_mmPerPixel[0], -0.5*localStorage-&gt;m_mmPerPixel[1], 0.0);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::RegEvaluationMapper2D::RenderingGeometryIntersectsImage( const PlaneGeometry* renderingGeometry, SlicedGeometry3D* imageGeometry )
+<span style = "background-color:#fdd">{</span>
+  // if either one of the two geometries is nullptr we return true
+  // for safety reasons
+<span style = "background-color:#fdd">  if ( renderingGeometry == nullptr || imageGeometry == nullptr )
+    return true;</span>
+
+  // get the distance for the first cornerpoint
+<span style = "background-color:#fdd">  ScalarType initialDistance = renderingGeometry-&gt;SignedDistance( imageGeometry-&gt;GetCornerPoint( 0 ) );
+  for( int i=1; i&lt;8; i++ )</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D cornerPoint = imageGeometry-&gt;GetCornerPoint( i );</span>
+
+    // get the distance to the other cornerpoints
+<span style = "background-color:#fdd">    ScalarType distance = renderingGeometry-&gt;SignedDistance( cornerPoint );</span>
+
+    // if it has not the same signing as the distance of the first point
+<span style = "background-color:#fdd">    if ( initialDistance * distance &lt; 0 )</span>
+    {
+      // we have an intersection and return true
+<span style = "background-color:#fdd">      return true;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // all distances have the same sign, no intersection and we return false
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+mitk::RegEvaluationMapper2D::LocalStorage::~LocalStorage()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::RegEvaluationMapper2D::LocalStorage::LocalStorage()
+<span style = "background-color:#fdd">{
+  m_TargetLevelWindowFilter = vtkSmartPointer&lt;vtkMitkLevelWindowFilter&gt;::New();
+  m_MappedLevelWindowFilter = vtkSmartPointer&lt;vtkMitkLevelWindowFilter&gt;::New();</span>
+
+<span style = "background-color:#fdd">  m_TargetExtractFilter = vtkSmartPointer&lt;vtkImageExtractComponents&gt;::New();
+  m_MappedExtractFilter = vtkSmartPointer&lt;vtkImageExtractComponents&gt;::New();</span>
+
+<span style = "background-color:#fdd">  m_mmPerPixel = nullptr;</span>
+
+  //Do as much actions as possible in here to avoid double executions.
+<span style = "background-color:#fdd">  m_Plane = vtkSmartPointer&lt;vtkPlaneSource&gt;::New();</span>
+  //m_Texture = vtkSmartPointer&lt;vtkNeverTranslucentTexture&gt;::New().GetPointer();
+<span style = "background-color:#fdd">  m_Texture = vtkSmartPointer&lt;vtkOpenGLTexture&gt;::New().GetPointer();
+  m_DefaultLookupTable = vtkSmartPointer&lt;vtkLookupTable&gt;::New();
+  m_ColorLookupTable = vtkSmartPointer&lt;vtkLookupTable&gt;::New();
+  m_Mapper = vtkSmartPointer&lt;vtkPolyDataMapper&gt;::New();
+  m_Actor = vtkSmartPointer&lt;vtkActor&gt;::New();
+  m_Actors = vtkSmartPointer&lt;vtkPropAssembly&gt;::New();
+  m_Reslicer = mitk::ExtractSliceFilter::New();
+  m_EvaluationImage = vtkSmartPointer&lt;vtkImageData&gt;::New();
+  m_EmptyPolyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();</span>
+
+<span style = "background-color:#fdd">  mitk::LookupTable::Pointer mitkLUT = mitk::LookupTable::New();</span>
+  //built a default lookuptable
+<span style = "background-color:#fdd">  mitkLUT-&gt;SetType(mitk::LookupTable::GRAYSCALE);
+  m_DefaultLookupTable = mitkLUT-&gt;GetVtkLookupTable();</span>
+
+<span style = "background-color:#fdd">  mitkLUT-&gt;SetType(mitk::LookupTable::JET);
+  m_ColorLookupTable = mitkLUT-&gt;GetVtkLookupTable();</span>
+
+  //do not repeat the texture (the image)
+<span style = "background-color:#fdd">  m_Texture-&gt;RepeatOff();</span>
+
+  //set the mapper for the actor
+<span style = "background-color:#fdd">  m_Actor-&gt;SetMapper( m_Mapper );</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkActor&gt; outlineShadowActor = vtkSmartPointer&lt;vtkActor&gt;::New();
+  outlineShadowActor-&gt;SetMapper( m_Mapper );</span>
+
+<span style = "background-color:#fdd">  m_Actors-&gt;AddPart( outlineShadowActor );
+  m_Actors-&gt;AddPart( m_Actor );
+}</span></pre>
+	</body>
+</html>

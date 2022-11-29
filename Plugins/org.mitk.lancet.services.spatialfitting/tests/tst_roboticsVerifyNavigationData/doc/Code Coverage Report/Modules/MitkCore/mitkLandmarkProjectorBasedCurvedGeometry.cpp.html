@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLandmarkProjectorBasedCurvedGeometry.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLandmarkProjectorBasedCurvedGeometry.h"
+#include &lt;vtkAbstractTransform.h&gt;
+
+mitk::LandmarkProjectorBasedCurvedGeometry::LandmarkProjectorBasedCurvedGeometry()
+<span style = "background-color:#fdd">  : AbstractTransformGeometry(),
+    m_LandmarkProjector(nullptr),
+    m_InterpolatingAbstractTransform(nullptr),
+    m_TargetLandmarks(nullptr)
+{
+}</span>
+
+mitk::LandmarkProjectorBasedCurvedGeometry::LandmarkProjectorBasedCurvedGeometry(
+  const mitk::LandmarkProjectorBasedCurvedGeometry &amp;other)
+<span style = "background-color:#fdd">  : Superclass(other)
+{
+  SetTargetLandmarks(other.m_TargetLandmarks);
+  this-&gt;SetLandmarkProjector(other.m_LandmarkProjector);
+  this-&gt;ComputeGeometry();
+}</span>
+
+mitk::LandmarkProjectorBasedCurvedGeometry::~LandmarkProjectorBasedCurvedGeometry()
+<span style = "background-color:#fdd">{
+  if (m_InterpolatingAbstractTransform != nullptr)
+    m_InterpolatingAbstractTransform-&gt;Delete();
+}</span>
+
+void mitk::LandmarkProjectorBasedCurvedGeometry::SetLandmarkProjector(mitk::LandmarkProjector *aLandmarkProjector)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("setting LandmarkProjector to " &lt;&lt; aLandmarkProjector);
+  if (m_LandmarkProjector != aLandmarkProjector)</span>
+  {
+<span style = "background-color:#fdd">    m_LandmarkProjector = aLandmarkProjector;
+    if (m_LandmarkProjector.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      if (m_FrameGeometry.IsNotNull())
+        m_LandmarkProjector-&gt;SetFrameGeometry(m_FrameGeometry);</span>
+
+<span style = "background-color:#fdd">      if (m_InterpolatingAbstractTransform == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        itkWarningMacro(&lt;&lt; "m_InterpolatingAbstractTransform not set.");</span>
+      }
+<span style = "background-color:#fdd">      m_LandmarkProjector-&gt;SetInterpolatingAbstractTransform(GetInterpolatingAbstractTransform());</span>
+
+<span style = "background-color:#fdd">      SetVtkAbstractTransform(m_LandmarkProjector-&gt;GetCompleteAbstractTransform());</span>
+    }
+<span style = "background-color:#fdd">    Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::LandmarkProjectorBasedCurvedGeometry::SetFrameGeometry(const mitk::BaseGeometry *frameGeometry)
+<span style = "background-color:#fdd">{
+  Superclass::SetFrameGeometry(frameGeometry);
+  if (m_LandmarkProjector.IsNotNull())
+    m_LandmarkProjector-&gt;SetFrameGeometry(frameGeometry);
+}</span>
+
+void mitk::LandmarkProjectorBasedCurvedGeometry::ComputeGeometry()
+<span style = "background-color:#fdd">{
+  if (m_LandmarkProjector.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt; "m_LandmarkProjector is not set.");</span>
+  }
+<span style = "background-color:#fdd">  m_LandmarkProjector-&gt;ProjectLandmarks(m_TargetLandmarks);
+  SetPlane(m_LandmarkProjector-&gt;GetParameterPlane());
+}</span>
+itk::LightObject::Pointer mitk::LandmarkProjectorBasedCurvedGeometry::InternalClone() const
+<span style = "background-color:#fdd">{
+  mitk::BaseGeometry::Pointer newGeometry = new LandmarkProjectorBasedCurvedGeometry(*this);
+  newGeometry-&gt;UnRegister();
+  return newGeometry.GetPointer();
+}</span></pre>
+	</body>
+</html>

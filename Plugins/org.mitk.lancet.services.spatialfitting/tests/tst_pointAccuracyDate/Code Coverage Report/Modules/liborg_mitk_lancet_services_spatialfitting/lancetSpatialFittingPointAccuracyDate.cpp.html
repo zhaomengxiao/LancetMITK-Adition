@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>lancetSpatialFittingPointAccuracyDate.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+#include "lancetSpatialFittingPointAccuracyDate.h"
+
+
+BEGIN_SPATIAL_FITTING_NAMESPACE
+
+struct PointAccuracyDate::PointAccuracyDatePrivateImp
+{
+	mitk::Point3D srcPoint;
+	mitk::Point3D targetPoint;
+	double mDistance = 0.0;
+};
+
+PointAccuracyDate::PointAccuracyDate() 
+<span style = "background-color:#dfd">	: imp(std::make_shared&lt;PointAccuracyDatePrivateImp&gt;())
+{
+}</span>
+
+PointAccuracyDate::PointAccuracyDate(const mitk::Point3D&amp; src,
+	const mitk::Point3D&amp; target)
+<span style = "background-color:#dfd">	: imp(std::make_shared&lt;PointAccuracyDatePrivateImp&gt;())
+{
+	this-&gt;SetSourcePoint(src);
+	this-&gt;SetTargetPoint(target);
+}</span>
+
+mitk::Point3D PointAccuracyDate::GetSourcePoint() const
+<span style = "background-color:#dfd">{
+	return this-&gt;imp-&gt;srcPoint;
+}</span>
+
+void PointAccuracyDate::SetSourcePoint(const mitk::Point3D&amp; pt)
+<span style = "background-color:#dfd">{
+	this-&gt;imp-&gt;srcPoint = pt;
+}</span>
+
+mitk::Point3D PointAccuracyDate::GetTargetPoint() const
+<span style = "background-color:#dfd">{
+	return this-&gt;imp-&gt;targetPoint;
+}</span>
+
+void PointAccuracyDate::SetTargetPoint(const mitk::Point3D&amp; pt)
+<span style = "background-color:#dfd">{
+	this-&gt;imp-&gt;targetPoint = pt;
+}</span>
+
+double PointAccuracyDate::Compute() const
+<span style = "background-color:#dfd">{
+	this-&gt;imp-&gt;mDistance = sqrt</span>
+	(
+		(this-&gt;GetSourcePoint()[0] - this-&gt;GetTargetPoint()[0]) * (this-&gt;GetSourcePoint()[0] - this-&gt;GetTargetPoint()[0]) +
+		(this-&gt;GetSourcePoint()[1] - this-&gt;GetTargetPoint()[1]) * (this-&gt;GetSourcePoint()[1] - this-&gt;GetTargetPoint()[1]) +
+		(this-&gt;GetSourcePoint()[2] - this-&gt;GetTargetPoint()[2]) * (this-&gt;GetSourcePoint()[2] - this-&gt;GetTargetPoint()[2])
+	);
+<span style = "background-color:#dfd">	return this-&gt;imp-&gt;mDistance;
+}</span>
+
+
+
+END_SPATIAL_FITTING_NAMESPACE</pre>
+	</body>
+</html>

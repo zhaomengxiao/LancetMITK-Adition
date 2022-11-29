@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkGenericProperty.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKGENERICPROPERTY_H_HEADER_INCLUDED_C1061CEE
+#define MITKGENERICPROPERTY_H_HEADER_INCLUDED_C1061CEE
+
+#include &lt;sstream&gt;
+#include &lt;cstdlib&gt;
+#include &lt;string&gt;
+
+#include "mitkBaseProperty.h"
+#include "mitkNumericTypes.h"
+#include &lt;MitkCoreExports.h&gt;
+
+namespace mitk
+{
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4522)
+#endif
+
+  /*!
+    @ brief Template class for generating properties for int, float, bool, etc.
+
+    This class template can be instantiated for all classes/internal types that fulfills
+    these requirements:
+      - an operator&lt;&lt; so that the properties value can be put into a std::stringstream
+      - an operator== so that two properties can be checked for equality
+
+    Note: you must use the macro mitkSpecializeGenericProperty to provide specializations
+    for concrete types (e.g. BoolProperty). Please see mitkProperties.h for examples. If you
+    don't use the mitkSpecializeGenericProperty Macro, GetNameOfClass() returns a wrong name.
+
+  */
+  template &lt;typename T&gt;
+  class MITK_EXPORT GenericProperty : public BaseProperty
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(GenericProperty, BaseProperty);
+    mitkNewMacro1Param(GenericProperty&lt;T&gt;, T);</span>
+    itkCloneMacro(Self);
+
+      typedef T ValueType;
+
+<span style = "background-color:#fdd">    itkSetMacro(Value, T);
+    itkGetConstMacro(Value, T);</span>
+
+    std::string GetValueAsString() const override
+<span style = "background-color:#fdd">    {
+      std::stringstream myStr;
+      myStr &lt;&lt; GetValue();
+      return myStr.str();
+    }</span>
+
+    using BaseProperty::operator=;
+
+  protected:
+    GenericProperty() {}
+<span style = "background-color:#fdd">    GenericProperty(T x) : m_Value(x) {}
+    GenericProperty(const GenericProperty &amp;other) : BaseProperty(other), m_Value(other.m_Value) {}</span>
+    T m_Value;
+
+  private:
+    // purposely not implemented
+    GenericProperty &amp;operator=(const GenericProperty &amp;);
+
+    itk::LightObject::Pointer InternalClone() const override
+<span style = "background-color:#fdd">    {
+      itk::LightObject::Pointer result(new Self(*this));
+      result-&gt;UnRegister();
+      return result;
+    }</span>
+
+    bool IsEqual(const BaseProperty &amp;other) const override
+<span style = "background-color:#fdd">    {
+      return (this-&gt;m_Value == static_cast&lt;const Self &amp;&gt;(other).m_Value);
+    }</span>
+
+    bool Assign(const BaseProperty &amp;other) override
+<span style = "background-color:#fdd">    {
+      this-&gt;m_Value = static_cast&lt;const Self &amp;&gt;(other).m_Value;
+      return true;
+    }</span>
+  };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+} // namespace mitk
+
+/**
+ * Generates a specialized subclass of mitk::GenericProperty.
+ * This way, GetNameOfClass() returns the value provided by PropertyName.
+ * Please see mitkProperties.h for examples.
+ * @param PropertyName the name of the subclass of GenericProperty
+ * @param Type the value type of the GenericProperty
+ * @param Export the export macro for DLL usage
+ */
+#define mitkDeclareGenericProperty(PropertyName, Type, Export)                                                         \
+                                                                                                                       \
+  class Export PropertyName : public GenericProperty&lt;Type&gt;                                                             \
+                                                                                                                       \
+  {                                                                                                                    \
+  public:                                                                                                              \
+    mitkClassMacro(PropertyName, GenericProperty&lt;Type&gt;);                                                               \
+    itkFactorylessNewMacro(Self);                                                                                      \
+    itkCloneMacro(Self);                                                                                               \
+    mitkNewMacro1Param(PropertyName, Type);                                                                            \
+                                                                                                                       \
+    using BaseProperty::operator=;                                                                                     \
+                                                                                                                       \
+  protected:                                                                                                           \
+    PropertyName();                                                                                                    \
+    PropertyName(const PropertyName &amp;);                                                                                \
+    PropertyName(Type x);                                                                                              \
+                                                                                                                       \
+  private:                                                                                                             \
+    itk::LightObject::Pointer InternalClone() const override;                                                          \
+  };
+
+#define mitkDefineGenericProperty(PropertyName, Type, DefaultValue)                                                    \
+  mitk::PropertyName::PropertyName() : Superclass(DefaultValue) {}                                                     \
+  mitk::PropertyName::PropertyName(const PropertyName &amp;other) : GenericProperty&lt;Type&gt;(other) {}                        \
+  mitk::PropertyName::PropertyName(Type x) : Superclass(x) {}                                                          \
+  itk::LightObject::Pointer mitk::PropertyName::InternalClone() const                                                  \
+  {                                                                                                                    \
+    itk::LightObject::Pointer result(new Self(*this));                                                                 \
+    result-&gt;UnRegister();                                                                                              \
+    return result;                                                                                                     \
+  }
+
+#endif /* MITKGENERICPROPERTY_H_HEADER_INCLUDED_C1061CEE */</pre>
+	</body>
+</html>

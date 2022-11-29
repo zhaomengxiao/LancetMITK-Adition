@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkClaronInterfaceStub.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkClaronInterfaceStub.h&gt;
+#include &lt;itkMacro.h&gt;
+#include &lt;string&gt;
+
+mitk::ClaronInterface::ClaronInterface()
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+}</span>
+
+mitk::ClaronInterface::~ClaronInterface()
+<span style = "background-color:#fdd">{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ClaronInterface::Initialize(std::string itkNotUsed(calibrationDir), std::string itkNotUsed(toolFilesDir))
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+}</span>
+
+bool mitk::ClaronInterface::StartTracking()
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+  return false;
+}</span>
+
+bool mitk::ClaronInterface::StopTracking()
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+  return false;
+}</span>
+
+std::vector&lt;mitk::claronToolHandle&gt; mitk::ClaronInterface::GetAllActiveTools()
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+  std::vector&lt;mitk::claronToolHandle&gt; returnValue;
+  return returnValue;
+}</span>
+
+void mitk::ClaronInterface::GrabFrame()
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+}</span>
+
+std::vector&lt;double&gt; mitk::ClaronInterface::GetTipPosition(mitk::claronToolHandle itkNotUsed(c))
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+  std::vector&lt;double&gt; returnValue;
+  return returnValue;
+}</span>
+
+std::vector&lt;double&gt; mitk::ClaronInterface::GetPosition(claronToolHandle itkNotUsed(c))
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+  std::vector&lt;double&gt; returnValue;
+  return returnValue;
+}</span>
+
+
+std::vector&lt;double&gt; mitk::ClaronInterface::GetTipQuaternions(claronToolHandle itkNotUsed(c))
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+  std::vector&lt;double&gt; returnValue;
+  return returnValue;
+}</span>
+
+std::vector&lt;double&gt; mitk::ClaronInterface::GetQuaternions(claronToolHandle itkNotUsed(c))
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+  std::vector&lt;double&gt; returnValue;
+  return returnValue;
+}</span>
+
+const char* mitk::ClaronInterface::GetName(claronToolHandle itkNotUsed(c))
+<span style = "background-color:#fdd">{
+  MITK_WARN("IGT") &lt;&lt; "Error: MicronTracker is not included in this project";
+  return nullptr;
+}</span>
+
+bool mitk::ClaronInterface::IsMicronTrackerInstalled()
+<span style = "background-color:#fdd">{
+  return false;
+}</span></pre>
+	</body>
+</html>

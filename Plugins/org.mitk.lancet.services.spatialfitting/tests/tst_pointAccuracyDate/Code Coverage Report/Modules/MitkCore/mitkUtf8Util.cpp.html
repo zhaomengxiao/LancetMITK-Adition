@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkUtf8Util.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkUtf8Util.h&gt;
+#include &lt;mitkExceptionMacro.h&gt;
+
+#include &lt;usGlobalConfig.h&gt;
+
+#ifdef US_PLATFORM_WINDOWS
+
+#include &lt;Windows.h&gt;
+
+namespace
+{
+  std::wstring MultiByteToWideChar(const std::string&amp; mbString, UINT codePage)
+<span style = "background-color:#fdd">  {
+    auto numChars = ::MultiByteToWideChar(codePage, 0, mbString.data(), mbString.size(), nullptr, 0);</span>
+
+<span style = "background-color:#fdd">    if (0 &gt;= numChars)
+      mitkThrow() &lt;&lt; "Failure to convert multi-byte character string to wide character string";</span>
+
+<span style = "background-color:#fdd">    std::wstring wString;
+    wString.resize(numChars);</span>
+
+<span style = "background-color:#fdd">    ::MultiByteToWideChar(codePage, 0, mbString.data(), mbString.size(), &amp;wString[0], static_cast&lt;int&gt;(wString.size()));</span>
+
+<span style = "background-color:#fdd">    return wString;
+  }</span>
+
+  std::string WideCharToMultiByte(const std::wstring&amp; wString, UINT codePage)
+<span style = "background-color:#fdd">  {
+    auto numChars = ::WideCharToMultiByte(codePage, 0, wString.data(), wString.size(), nullptr, 0, nullptr, nullptr);</span>
+
+<span style = "background-color:#fdd">    if (0 &gt;= numChars)
+      mitkThrow() &lt;&lt; "Failure to convert wide character string to multi-byte character string";</span>
+
+<span style = "background-color:#fdd">    std::string mbString;
+    mbString.resize(numChars);</span>
+
+<span style = "background-color:#fdd">    ::WideCharToMultiByte(codePage, 0, wString.data(), wString.size(), &amp;mbString[0], static_cast&lt;int&gt;(mbString.size()), nullptr, nullptr);</span>
+
+<span style = "background-color:#fdd">    return mbString;
+  }</span>
+}
+
+#endif
+
+std::string mitk::Utf8Util::Local8BitToUtf8(const std::string&amp; local8BitStr)
+<span style = "background-color:#fdd">{</span>
+#ifdef US_PLATFORM_WINDOWS
+  try
+  {
+<span style = "background-color:#fdd">    return WideCharToMultiByte(MultiByteToWideChar(local8BitStr, CP_ACP), CP_UTF8);</span>
+  }
+  catch (const mitk::Exception&amp;)
+<span style = "background-color:#fdd">  {
+    MITK_WARN &lt;&lt; "String conversion from current code page to UTF-8 failed. Input string is returned unmodified.";
+  }</span>
+#endif
+
+<span style = "background-color:#fdd">  return local8BitStr;
+}</span>
+
+std::string mitk::Utf8Util::Utf8ToLocal8Bit(const std::string&amp; utf8Str)
+<span style = "background-color:#fdd">{</span>
+#ifdef US_PLATFORM_WINDOWS
+  try
+  {
+<span style = "background-color:#fdd">    return WideCharToMultiByte(MultiByteToWideChar(utf8Str, CP_UTF8), CP_ACP);</span>
+  }
+  catch (const mitk::Exception&amp;)
+<span style = "background-color:#fdd">  {
+    MITK_WARN &lt;&lt; "String conversion from UTF-8 to current code page failed. Input string is returned unmodified.";
+  }</span>
+#endif
+
+<span style = "background-color:#fdd">  return utf8Str;
+}</span></pre>
+	</body>
+</html>

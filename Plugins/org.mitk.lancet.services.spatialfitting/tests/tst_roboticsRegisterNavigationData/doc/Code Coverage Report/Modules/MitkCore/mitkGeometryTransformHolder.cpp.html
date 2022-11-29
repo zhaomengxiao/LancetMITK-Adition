@@ -1,0 +1,348 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkGeometryTransformHolder.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+/*
+* mitkGeometryTransformHolder.cpp
+*
+*  Created on: Sep 3, 2014
+*      Author: wirkert
+*/
+
+#include &lt;cassert&gt;
+#include &lt;itkMatrix.h&gt;
+#include &lt;itkScalableAffineTransform.h&gt;
+#include &lt;itkSmartPointer.h&gt;
+#include &lt;mitkBaseGeometry.h&gt;
+#include &lt;mitkGeometryTransformHolder.h&gt;
+#include &lt;mitkMatrix.h&gt;
+#include &lt;mitkMatrixConvert.h&gt;
+#include &lt;mitkPoint.h&gt;
+#include &lt;mitkVector.h&gt;
+#include &lt;vnl/vnl_matrix_fixed.h&gt;
+#include &lt;vnl/vnl_vector.h&gt;
+#include &lt;vnl/vnl_vector_fixed.h&gt;
+#include &lt;vtkMatrix4x4.h&gt;
+#include &lt;vtkMatrixToLinearTransform.h&gt;
+#include &lt;vtkTransform.h&gt;
+
+namespace mitk
+{
+  void GeometryTransformHolder::CopySpacingFromTransform(const mitk::AffineTransform3D *transform,
+                                                         mitk::Vector3D &amp;spacing)
+<span style = "background-color:#fdd">  {</span>
+    mitk::AffineTransform3D::MatrixType::InternalMatrixType vnlmatrix;
+<span style = "background-color:#fdd">    vnlmatrix = transform-&gt;GetMatrix().GetVnlMatrix();</span>
+
+<span style = "background-color:#fdd">    spacing[0] = vnlmatrix.get_column(0).magnitude();
+    spacing[1] = vnlmatrix.get_column(1).magnitude();
+    spacing[2] = vnlmatrix.get_column(2).magnitude();
+  }</span>
+
+  GeometryTransformHolder::GeometryTransformHolder()
+<span style = "background-color:#fdd">  {
+    m_VtkMatrix = vtkMatrix4x4::New();
+    m_VtkIndexToWorldTransform = vtkMatrixToLinearTransform::New();
+    m_VtkIndexToWorldTransform-&gt;SetInput(m_VtkMatrix);
+    this-&gt;Initialize();
+  }</span>
+
+  GeometryTransformHolder::GeometryTransformHolder(const GeometryTransformHolder &amp;other)
+<span style = "background-color:#fdd">  {
+    m_VtkMatrix = vtkMatrix4x4::New();
+    m_VtkIndexToWorldTransform = vtkMatrixToLinearTransform::New();
+    m_VtkIndexToWorldTransform-&gt;SetInput(m_VtkMatrix);
+    this-&gt;Initialize(&amp;other);
+  }</span>
+
+  GeometryTransformHolder::~GeometryTransformHolder()
+<span style = "background-color:#fdd">  {
+    m_VtkMatrix-&gt;Delete();
+    m_VtkIndexToWorldTransform-&gt;Delete();
+  }</span>
+
+  void GeometryTransformHolder::Initialize()
+<span style = "background-color:#fdd">  {
+    if (m_IndexToWorldTransform.IsNull())
+      m_IndexToWorldTransform = TransformType::New();</span>
+    else
+<span style = "background-color:#fdd">      m_IndexToWorldTransform-&gt;SetIdentity();</span>
+
+<span style = "background-color:#fdd">    m_VtkMatrix-&gt;Identity();
+  }</span>
+
+  void GeometryTransformHolder::Initialize(const GeometryTransformHolder *other)
+<span style = "background-color:#fdd">  {
+    Initialize();</span>
+
+<span style = "background-color:#fdd">    if (other-&gt;GetIndexToWorldTransform())</span>
+    {
+<span style = "background-color:#fdd">      TransformType::Pointer indexToWorldTransform = other-&gt;GetIndexToWorldTransform()-&gt;Clone();
+      this-&gt;SetIndexToWorldTransform(indexToWorldTransform);
+    }
+  }</span>
+
+  //##Documentation
+  //## @brief Copy the ITK transform
+  //## (m_IndexToWorldTransform) to the VTK transform
+  //## \sa SetIndexToWorldTransform
+  void GeometryTransformHolder::TransferItkToVtkTransform()
+<span style = "background-color:#fdd">  {
+    TransferItkTransformToVtkMatrix(m_IndexToWorldTransform.GetPointer(), m_VtkMatrix);
+  }</span>
+
+  //##Documentation
+  //## @brief Copy the VTK transform
+  //## to the ITK transform (m_IndexToWorldTransform)
+  //## \sa SetIndexToWorldTransform
+  void GeometryTransformHolder::TransferVtkToItkTransform()
+<span style = "background-color:#fdd">  {
+    TransferVtkMatrixToItkTransform(m_VtkMatrix, m_IndexToWorldTransform.GetPointer());
+  }</span>
+
+  //##Documentation
+  //## @brief Get the origin, e.g. the upper-left corner of the plane
+  const Point3D GeometryTransformHolder::GetOrigin() const
+<span style = "background-color:#fdd">  {
+    Point3D origin = Point3D(this-&gt;GetIndexToWorldTransform()-&gt;GetOffset());
+    return origin;
+  }</span>
+
+  //##Documentation
+  //## @brief Set the origin, i.e. the upper-left corner of the plane
+  //##
+  void GeometryTransformHolder::SetOrigin(const Point3D &amp;origin)
+<span style = "background-color:#fdd">  {
+    m_IndexToWorldTransform-&gt;SetOffset(origin.GetVectorFromOrigin());
+    TransferItkToVtkTransform();
+  }</span>
+
+  //##Documentation
+  //## @brief Get the spacing (size of a pixel).
+  //##
+  const mitk::Vector3D GeometryTransformHolder::GetSpacing() const
+<span style = "background-color:#fdd">  {
+    mitk::Vector3D spacing;
+    CopySpacingFromTransform(this-&gt;GetIndexToWorldTransform(), spacing);
+    return spacing;
+  }</span>
+
+  //##Documentation
+  //## @brief Set the spacing.
+  //##
+  //##The spacing is also changed in the IndexToWorldTransform.
+  void GeometryTransformHolder::SetSpacing(const mitk::Vector3D &amp;aSpacing, bool enforceSetSpacing)
+<span style = "background-color:#fdd">  {
+    if (mitk::Equal(this-&gt;GetSpacing(), aSpacing) == false || enforceSetSpacing)</span>
+    {
+<span style = "background-color:#fdd">      assert(aSpacing[0] &gt; 0 &amp;&amp; aSpacing[1] &gt; 0 &amp;&amp; aSpacing[2] &gt; 0);</span>
+
+      AffineTransform3D::MatrixType::InternalMatrixType vnlmatrix;
+
+<span style = "background-color:#fdd">      vnlmatrix = m_IndexToWorldTransform-&gt;GetMatrix().GetVnlMatrix();</span>
+
+<span style = "background-color:#fdd">      mitk::VnlVector col;
+      col = vnlmatrix.get_column(0).as_ref();
+      col.normalize();
+      col *= aSpacing[0];
+      vnlmatrix.set_column(0, col);
+      col = vnlmatrix.get_column(1).as_ref();
+      col.normalize();
+      col *= aSpacing[1];
+      vnlmatrix.set_column(1, col);
+      col = vnlmatrix.get_column(2).as_ref();
+      col.normalize();
+      col *= aSpacing[2];
+      vnlmatrix.set_column(2, col);</span>
+
+<span style = "background-color:#fdd">      Matrix3D matrix;
+      matrix = vnlmatrix;</span>
+
+<span style = "background-color:#fdd">      AffineTransform3D::Pointer transform = AffineTransform3D::New();
+      transform-&gt;SetMatrix(matrix);
+      transform-&gt;SetOffset(m_IndexToWorldTransform-&gt;GetOffset());</span>
+
+<span style = "background-color:#fdd">      SetIndexToWorldTransform(transform.GetPointer());
+    }
+  }</span>
+
+  //##Documentation
+  //## @brief Get the transformation used to convert from index
+  //## to world coordinates
+<span style = "background-color:#fdd">  mitk::AffineTransform3D *GeometryTransformHolder::GetIndexToWorldTransform() { return m_IndexToWorldTransform; }</span>
+  //##Documentation
+  //## @brief Get the transformation used to convert from index
+  //## to world coordinates
+  const mitk::AffineTransform3D *GeometryTransformHolder::GetIndexToWorldTransform() const
+<span style = "background-color:#fdd">  {
+    return m_IndexToWorldTransform;
+  }</span>
+
+  //## @brief Set the transformation used to convert from index
+  //## to world coordinates. The spacing of the new transform is
+  //## copied to m_spacing.
+  void GeometryTransformHolder::SetIndexToWorldTransform(mitk::AffineTransform3D *transform)
+<span style = "background-color:#fdd">  {
+    m_IndexToWorldTransform = transform;
+    TransferItkToVtkTransform();
+  }</span>
+
+  //##Documentation
+  //## @brief Convenience method for setting the ITK transform
+  //## (m_IndexToWorldTransform) via an vtkMatrix4x4.The spacing of
+  //## the new transform is copied to m_spacing.
+  //## \sa SetIndexToWorldTransform
+  void GeometryTransformHolder::SetIndexToWorldTransformByVtkMatrix(vtkMatrix4x4 *vtkmatrix)
+<span style = "background-color:#fdd">  {
+    m_VtkMatrix-&gt;DeepCopy(vtkmatrix);
+    TransferVtkToItkTransform();
+  }</span>
+
+  //## @brief Set the transformation used to convert from index
+  //## to world coordinates.This function keeps the original spacing.
+  void GeometryTransformHolder::SetIndexToWorldTransformWithoutChangingSpacing(mitk::AffineTransform3D *transform)
+<span style = "background-color:#fdd">  {
+    mitk::Vector3D originalSpacing = this-&gt;GetSpacing();
+    this-&gt;SetIndexToWorldTransform(transform);
+    this-&gt;SetSpacing(originalSpacing);
+  }</span>
+
+  //##Documentation
+  //## @brief Convenience method for setting the ITK transform
+  //## (m_IndexToWorldTransform) via an vtkMatrix4x4. This function keeps the original spacing.
+  //## \sa SetIndexToWorldTransform
+  void GeometryTransformHolder::SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(vtkMatrix4x4 *vtkmatrix)
+<span style = "background-color:#fdd">  {
+    mitk::Vector3D originalSpacing = this-&gt;GetSpacing();
+    this-&gt;SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
+    this-&gt;SetSpacing(originalSpacing);
+  }</span>
+
+  //## Get the Vtk Matrix which describes the transform.
+<span style = "background-color:#fdd">  vtkMatrix4x4 *GeometryTransformHolder::GetVtkMatrix() { return m_VtkMatrix; }</span>
+  //## Get the Vtk Matrix which describes the transform.
+<span style = "background-color:#fdd">  const vtkMatrix4x4 *GeometryTransformHolder::GetVtkMatrix() const { return m_VtkMatrix; }</span>
+  //##Documentation
+  //## @brief Get the m_IndexToWorldTransform as a vtkLinearTransform
+  vtkLinearTransform *GeometryTransformHolder::GetVtkTransform() const
+<span style = "background-color:#fdd">  {
+    return (vtkLinearTransform *)m_VtkIndexToWorldTransform;
+  }</span>
+
+  void GeometryTransformHolder::SetMatrix(Matrix3D &amp;matrix)
+<span style = "background-color:#fdd">  {
+    m_IndexToWorldTransform-&gt;SetMatrix(matrix);
+    TransferItkToVtkTransform();
+  }</span>
+
+  void GeometryTransformHolder::SetIdentity()
+<span style = "background-color:#fdd">  {
+    m_IndexToWorldTransform-&gt;SetIdentity();
+    TransferItkToVtkTransform();
+  }</span>
+
+  void GeometryTransformHolder::Compose(const TransformType *other, bool pre)
+<span style = "background-color:#fdd">  {
+    m_IndexToWorldTransform-&gt;Compose(other, pre);
+    TransferItkToVtkTransform();
+  }</span>
+
+  void GeometryTransformHolder::SetVtkMatrixDeepCopy(vtkTransform *vtktransform)
+<span style = "background-color:#fdd">  {
+    m_VtkMatrix-&gt;DeepCopy(vtktransform-&gt;GetMatrix());
+    TransferVtkToItkTransform();
+  }</span>
+
+<span style = "background-color:#fdd">  bool GeometryTransformHolder::IsIndexToWorldTransformNull() { return m_IndexToWorldTransform.IsNull(); }</span>
+  AffineTransform3D::MatrixType::InternalMatrixType GeometryTransformHolder::GetVnlMatrix()
+<span style = "background-color:#fdd">  {
+    return m_IndexToWorldTransform-&gt;GetMatrix().GetVnlMatrix();
+  }</span>
+}
+
+bool mitk::Equal(const mitk::GeometryTransformHolder *leftHandSide,
+                 const mitk::GeometryTransformHolder *rightHandSide,
+                 ScalarType eps,
+                 bool verbose)
+<span style = "background-color:#fdd">{
+  if ((leftHandSide == nullptr) || (rightHandSide == nullptr))</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::Equal(const mitk::Geometry3D *leftHandSide, const mitk::Geometry3D *rightHandSide, ScalarType "</span>
+                  "eps, bool verbose) does not with nullptr pointer input.";
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">  return Equal(*leftHandSide, *rightHandSide, eps, verbose);
+}</span>
+
+bool mitk::Equal(const mitk::GeometryTransformHolder &amp;leftHandSide,
+                 const mitk::GeometryTransformHolder &amp;rightHandSide,
+                 ScalarType eps,
+                 bool verbose)
+<span style = "background-color:#fdd">{
+  bool result = true;</span>
+
+  // Compare spacings
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetSpacing(), rightHandSide.GetSpacing(), eps))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Geometry3D )] Spacing differs.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.GetSpacing() &lt;&lt; " : leftHandSide is "</span>
+                &lt;&lt; leftHandSide.GetSpacing() &lt;&lt; " and tolerance is " &lt;&lt; eps;
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  // Compare Origins
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetOrigin(), rightHandSide.GetOrigin(), eps))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Geometry3D )] Origin differs.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.GetOrigin() &lt;&lt; " : leftHandSide is "</span>
+                &lt;&lt; leftHandSide.GetOrigin() &lt;&lt; " and tolerance is " &lt;&lt; eps;
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  // Compare IndexToWorldTransform Matrix
+<span style = "background-color:#fdd">  if (!mitk::Equal(*leftHandSide.GetIndexToWorldTransform(), *rightHandSide.GetIndexToWorldTransform(), eps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  // Compare vtk Matrix
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 4; i++)</span>
+  {
+<span style = "background-color:#fdd">    for (int j = 0; j &lt; 4; j++)</span>
+    {
+<span style = "background-color:#fdd">      if (leftHandSide.GetVtkMatrix()-&gt;GetElement(i, j) != rightHandSide.GetVtkMatrix()-&gt;GetElement(i, j))</span>
+      {
+<span style = "background-color:#fdd">        result = false;</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span></pre>
+	</body>
+</html>

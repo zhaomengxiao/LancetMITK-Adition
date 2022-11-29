@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLevelWindowPreset.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLevelWindowPreset.h"
+#include &lt;vtkObjectFactory.h&gt;
+
+#include "usGetModuleContext.h"
+#include "usModule.h"
+#include "usModuleContext.h"
+#include "usModuleResource.h"
+#include "usModuleResourceStream.h"
+
+namespace mitk
+{
+<span style = "background-color:#dfd">  const std::string LevelWindowPreset::PRESET = "preset";</span>
+
+<span style = "background-color:#fdd">  vtkStandardNewMacro(LevelWindowPreset);</span>
+
+<span style = "background-color:#fdd">  LevelWindowPreset::LevelWindowPreset() {}
+  LevelWindowPreset::~LevelWindowPreset() {}</span>
+  bool LevelWindowPreset::LoadPreset()
+<span style = "background-color:#fdd">  {
+    us::ModuleResource presetResource = us::GetModuleContext()-&gt;GetModule()-&gt;GetResource("mitkLevelWindowPresets.xml");
+    if (!presetResource)
+      return false;</span>
+
+<span style = "background-color:#fdd">    us::ModuleResourceStream presetStream(presetResource);
+    vtkXMLParser::SetStream(&amp;presetStream);
+    if (!vtkXMLParser::Parse())</span>
+    {
+#ifdef INTERDEBUG
+      MITK_INFO &lt;&lt; "LevelWindowPreset::LoadPreset xml file cannot parse!" &lt;&lt; std::endl;
+#endif
+<span style = "background-color:#fdd">      return false;</span>
+    }
+<span style = "background-color:#fdd">    return true;
+  }</span>
+
+  bool LevelWindowPreset::LoadPreset(std::string fileName)
+<span style = "background-color:#fdd">  {
+    if (fileName.empty())
+      return false;</span>
+
+<span style = "background-color:#fdd">    vtkXMLParser::SetFileName(fileName.c_str());</span>
+
+<span style = "background-color:#fdd">    if (!vtkXMLParser::Parse())</span>
+    {
+#ifdef INTERDEBUG
+      MITK_INFO &lt;&lt; "LevelWindowPreset::LoadPreset xml file cannot parse!" &lt;&lt; std::endl;
+#endif
+    }
+
+<span style = "background-color:#fdd">    return true;
+  }</span>
+
+  void LevelWindowPreset::StartElement(const char *elementName, const char **atts)
+<span style = "background-color:#fdd">  {
+    std::string elementNameString = elementName;
+    if (elementNameString == PRESET)</span>
+    {
+<span style = "background-color:#fdd">      std::string name = ReadXMLStringAttribut("NAME", atts);
+      std::string level = ReadXMLStringAttribut("LEVEL", atts);
+      double lev = atof(level.c_str());
+      std::string window = ReadXMLStringAttribut("WINDOW", atts);
+      double win = atof(window.c_str());
+      m_Level[name] = lev;
+      m_Window[name] = win;
+    }
+  }</span>
+
+  std::string LevelWindowPreset::ReadXMLStringAttribut(std::string name, const char **atts)
+<span style = "background-color:#fdd">  {
+    if (atts)</span>
+    {
+<span style = "background-color:#fdd">      const char **attsIter = atts;</span>
+
+<span style = "background-color:#fdd">      while (*attsIter)</span>
+      {
+<span style = "background-color:#fdd">        if (name == *attsIter)</span>
+        {
+<span style = "background-color:#fdd">          attsIter++;
+          return *attsIter;</span>
+        }
+<span style = "background-color:#fdd">        attsIter++;
+        attsIter++;
+      }</span>
+    }
+
+<span style = "background-color:#fdd">    return std::string();
+  }</span>
+
+<span style = "background-color:#fdd">  double LevelWindowPreset::getLevel(std::string name) { return m_Level[name]; }
+  double LevelWindowPreset::getWindow(std::string name) { return m_Window[name]; }
+  std::map&lt;std::string, double&gt; &amp;LevelWindowPreset::getLevelPresets() { return m_Level; }
+  std::map&lt;std::string, double&gt; &amp;LevelWindowPreset::getWindowPresets() { return m_Window; }</span>
+  void LevelWindowPreset::save()
+<span style = "background-color:#fdd">  {</span>
+    // XMLWriter writer(m_XmlFileName.c_str());
+    // saveXML(writer);
+<span style = "background-color:#fdd">  }</span>
+
+  void LevelWindowPreset::newPresets(std::map&lt;std::string, double&gt; newLevel, std::map&lt;std::string, double&gt; newWindow)
+<span style = "background-color:#fdd">  {
+    m_Level = newLevel;
+    m_Window = newWindow;
+    save();
+  }</span>
+}</pre>
+	</body>
+</html>

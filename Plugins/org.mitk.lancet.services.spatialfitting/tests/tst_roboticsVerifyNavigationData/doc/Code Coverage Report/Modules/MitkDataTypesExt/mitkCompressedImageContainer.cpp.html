@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCompressedImageContainer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkCompressedImageContainer.h&gt;
+
+#include &lt;mitkImageReadAccessor.h&gt;
+#include &lt;mitkImageWriteAccessor.h&gt;
+
+#include &lt;lz4.h&gt;
+
+#include &lt;algorithm&gt;
+
+mitk::CompressedImageContainer::CompressedImageContainer()
+<span style = "background-color:#fdd">  : m_Dimension(0)
+{
+}</span>
+
+mitk::CompressedImageContainer::~CompressedImageContainer()
+<span style = "background-color:#fdd">{
+  this-&gt;ClearCompressedImageData();
+}</span>
+
+void mitk::CompressedImageContainer::ClearCompressedImageData()
+<span style = "background-color:#fdd">{
+  for (const auto&amp; image : m_CompressedImageData)</span>
+  {
+<span style = "background-color:#fdd">    for (auto slice : image)
+      delete[] slice.second;
+  }</span>
+
+<span style = "background-color:#fdd">  m_CompressedImageData.clear();</span>
+
+<span style = "background-color:#fdd">  m_PixelType = nullptr;
+  m_TimeGeometry = nullptr;
+  m_SliceDimensions[0] = 0;
+  m_SliceDimensions[1] = 0;
+  m_Dimension = 0;
+}</span>
+
+void mitk::CompressedImageContainer::CompressImage(const Image* image)
+<span style = "background-color:#fdd">{
+  this-&gt;ClearCompressedImageData();</span>
+
+<span style = "background-color:#fdd">  if (nullptr == image)
+    return;</span>
+
+<span style = "background-color:#fdd">  m_PixelType = std::make_unique&lt;PixelType&gt;(image-&gt;GetPixelType());
+  m_TimeGeometry = image-&gt;GetTimeGeometry()-&gt;Clone();
+  m_SliceDimensions[0] = image-&gt;GetDimension(0);
+  m_SliceDimensions[1] = image-&gt;GetDimension(1);
+  m_Dimension = image-&gt;GetDimension();</span>
+
+<span style = "background-color:#fdd">  const auto numTimeSteps = m_TimeGeometry-&gt;CountTimeSteps();
+  const auto numSlices = image-&gt;GetDimension(2);
+  const auto numSliceBytes = image-&gt;GetPixelType().GetSize() * image-&gt;GetDimension(0) * image-&gt;GetDimension(1);</span>
+
+<span style = "background-color:#fdd">  m_CompressedImageData.reserve(numTimeSteps);</span>
+
+<span style = "background-color:#fdd">  for (std::remove_const_t&lt;decltype(numTimeSteps)&gt; t = 0; t &lt; numTimeSteps; ++t)</span>
+  {
+<span style = "background-color:#fdd">    CompressedTimeStepData slices;
+    slices.reserve(numSlices);</span>
+
+<span style = "background-color:#fdd">    ImageReadAccessor accessor(image, image-&gt;GetVolumeData(t));</span>
+
+<span style = "background-color:#fdd">    for (std::remove_const_t&lt;decltype(numSlices)&gt; s = 0; s &lt; numSlices; ++s)</span>
+    {
+<span style = "background-color:#fdd">      const auto* src = reinterpret_cast&lt;const char*&gt;(accessor.GetData()) + numSliceBytes * s;
+      char* dest = new char[numSliceBytes];
+      const auto destSize = LZ4_compress_default(src, dest, static_cast&lt;int&gt;(numSliceBytes), static_cast&lt;int&gt;(numSliceBytes));</span>
+
+<span style = "background-color:#fdd">      if (0 == destSize)</span>
+      {
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "LZ4 compression failed!";
+        delete[] dest;
+        slices.emplace_back(0, nullptr);
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        char* shrinkedDest = new char[destSize];
+        std::copy(dest, dest + destSize, shrinkedDest);
+        delete[] dest;
+        slices.emplace_back(destSize, shrinkedDest);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    m_CompressedImageData.push_back(slices);
+  }
+}</span>
+
+mitk::Image::Pointer mitk::CompressedImageContainer::DecompressImage() const
+<span style = "background-color:#fdd">{
+  if (m_CompressedImageData.empty())
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  const auto numSlices = static_cast&lt;unsigned int&gt;(m_CompressedImageData[0].size());
+  const auto numTimeSteps = static_cast&lt;unsigned int&gt;(m_CompressedImageData.size());
+  const auto numSliceBytes = m_PixelType-&gt;GetSize() * m_SliceDimensions[0] * m_SliceDimensions[1];</span>
+
+  std::array&lt;unsigned int, 4&gt; dimensions;
+<span style = "background-color:#fdd">  dimensions[0] = m_SliceDimensions[0];
+  dimensions[1] = m_SliceDimensions[1];
+  dimensions[2] = numSlices;
+  dimensions[3] = numTimeSteps;</span>
+
+<span style = "background-color:#fdd">  auto image = Image::New();
+  image-&gt;Initialize(*m_PixelType, m_Dimension, dimensions.data());</span>
+
+<span style = "background-color:#fdd">  for (std::remove_const_t&lt;decltype(numTimeSteps)&gt; t = 0; t &lt; numTimeSteps; ++t)</span>
+  {
+<span style = "background-color:#fdd">    ImageWriteAccessor accessor(image, image-&gt;GetVolumeData(static_cast&lt;int&gt;(t)));</span>
+
+<span style = "background-color:#fdd">    for (std::remove_const_t&lt;decltype(numSlices)&gt; s = 0; s &lt; numSlices; ++s)</span>
+    {
+<span style = "background-color:#fdd">      auto* dest = reinterpret_cast&lt;char*&gt;(accessor.GetData()) + numSliceBytes * s;
+      const auto&amp; slice = m_CompressedImageData[t][s];
+      const auto destSize = LZ4_decompress_safe(slice.second, dest, slice.first, static_cast&lt;int&gt;(numSliceBytes));</span>
+
+<span style = "background-color:#fdd">      if (0 &gt; destSize)
+        MITK_ERROR &lt;&lt; "LZ4 decompression failed!";
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  image-&gt;SetTimeGeometry(m_TimeGeometry-&gt;Clone());</span>
+
+<span style = "background-color:#fdd">  return image;
+}</span></pre>
+	</body>
+</html>

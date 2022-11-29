@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMemoryUtilities.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkMemoryUtilities.h"
+
+#include &lt;cstdio&gt;
+#if _MSC_VER
+#include &lt;windows.h&gt;
+#include &lt;psapi.h&gt;
+#elif defined(__APPLE__)
+#include &lt;mach/mach_host.h&gt;
+#include &lt;mach/mach_init.h&gt;
+#include &lt;mach/task.h&gt;
+#include &lt;sys/sysctl.h&gt;
+#else
+#include &lt;sys/sysinfo.h&gt;
+#include &lt;unistd.h&gt;
+#endif
+
+/**
+ * Returns the memory usage of the current process in bytes.
+ * On linux, this refers to the virtual memory allocated by
+ * the process (the VIRT column in top).
+ * On windows, this refery to the size in bytes of the working
+ * set pages (the "Speicherauslastung" column in the task manager).
+ */
+size_t mitk::MemoryUtilities::GetProcessMemoryUsage()
+<span style = "background-color:#fdd">{</span>
+#if _MSC_VER
+<span style = "background-color:#fdd">  size_t size = 0;
+  DWORD pid = GetCurrentProcessId();</span>
+  PROCESS_MEMORY_COUNTERS pmc;
+<span style = "background-color:#fdd">  HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+  if (hProcess == nullptr)
+    return 0;
+  if (GetProcessMemoryInfo(hProcess, &amp;pmc, sizeof(pmc)))</span>
+  {
+<span style = "background-color:#fdd">    size = pmc.WorkingSetSize;</span>
+  }
+<span style = "background-color:#fdd">  CloseHandle(hProcess);
+  return size;</span>
+#elif defined(__APPLE__)
+  struct task_basic_info t_info;
+  mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+  task_info(current_task(), TASK_BASIC_INFO, (task_info_t)&amp;t_info, &amp;t_info_count);
+  size_t size = t_info.virtual_size;
+  return size;
+#else
+  int size, res, shared, text, sharedLibs, stack, dirtyPages;
+  if (!ReadStatmFromProcFS(&amp;size, &amp;res, &amp;shared, &amp;text, &amp;sharedLibs, &amp;stack, &amp;dirtyPages))
+    return (size_t)size * getpagesize();
+  else
+    return 0;
+#endif
+<span style = "background-color:#fdd">  return 0;
+}</span>
+
+/**
+ * Returns the total size of phyiscal memory in bytes
+ */
+size_t mitk::MemoryUtilities::GetTotalSizeOfPhysicalRam()
+<span style = "background-color:#fdd">{</span>
+#if _MSC_VER
+  MEMORYSTATUSEX statex;
+<span style = "background-color:#fdd">  statex.dwLength = sizeof(statex);
+  GlobalMemoryStatusEx(&amp;statex);
+  return (size_t)statex.ullTotalPhys;</span>
+#elif defined(__APPLE__)
+  int mib[2];
+  int64_t physical_memory;
+  mib[0] = CTL_HW;
+  mib[1] = HW_MEMSIZE;
+  size_t length = sizeof(int64_t);
+  sysctl(mib, 2, &amp;physical_memory, &amp;length, nullptr, 0);
+  return physical_memory;
+#else
+  struct sysinfo info;
+  if (!sysinfo(&amp;info))
+    return info.totalram * info.mem_unit;
+  else
+    return 0;
+#endif
+<span style = "background-color:#fdd">}</span>
+
+#ifndef _MSC_VER
+#ifndef __APPLE__
+int mitk::MemoryUtilities::ReadStatmFromProcFS(
+  int *size, int *res, int *shared, int *text, int *sharedLibs, int *stack, int *dirtyPages)
+{
+  int ret = 0;
+  FILE *f;
+  f = fopen("/proc/self/statm", "r");
+  if (f)
+  {
+    size_t ignored = fscanf(f, "%d %d %d %d %d %d %d", size, res, shared, text, sharedLibs, stack, dirtyPages);
+    ++ignored;
+    fclose(f);
+  }
+  else
+  {
+    ret = -1;
+  }
+  return ret;
+}
+#endif
+#endif</pre>
+	</body>
+</html>

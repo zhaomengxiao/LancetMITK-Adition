@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModelFitProviderBase.tpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkModelFitProviderBase.h&gt;
+#include &lt;mitkExceptionMacro.h&gt;
+
+#include &lt;mitkExtractTimeGrid.h&gt;
+#include &lt;mitkModelFitInfo.h&gt;
+
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModuleContext.h&gt;
+#include &lt;usPrototypeServiceFactory.h&gt;
+
+namespace mitk
+{
+  template&lt;class TModelFactory&gt;
+  class ModelFitProviderBase&lt;TModelFactory&gt;::Impl
+  {
+  public:
+<span style = "background-color:#dfd">    Impl() : m_Ranking(0), m_ReferenceFactory(TModelFactory::New())
+    {
+    };</span>
+
+    Impl(const Impl &amp;other) = default;
+
+    void SetRanking(int ranking)
+    {
+      m_Ranking = ranking;
+    };
+
+    int GetRanking() const
+<span style = "background-color:#dfd">    {
+      return m_Ranking;
+    };</span>
+
+    us::ServiceRegistration&lt;IModelFitProvider&gt; m_Reg;
+    int m_Ranking;
+    using ModelFactoryType = TModelFactory;
+
+    typename ModelFactoryType::Pointer m_ReferenceFactory;
+  };
+
+  template&lt;class TModelFactory&gt;
+<span style = "background-color:#dfd">  ModelFitProviderBase&lt;TModelFactory&gt;::ModelFitProviderBase() : d()
+  {
+  }</span>
+
+  template&lt;class TModelFactory&gt;
+  ModelFitProviderBase&lt;TModelFactory&gt;::~ModelFitProviderBase()
+<span style = "background-color:#dfd">  {
+    UnregisterService();
+  }</span>
+
+  template&lt;class TModelFactory&gt;
+  ModelFitProviderBase&lt;TModelFactory&gt;::ModelFitProviderBase(const ModelFitProviderBase &amp;other) : IModelFitProvider(), d(new Impl(*other.d.get()))
+  {
+  }
+
+  template&lt;class TModelFactory&gt;
+  itk::SmartPointer&lt;ModelFactoryBase&gt;
+    ModelFitProviderBase&lt;TModelFactory&gt;::GenerateFactory() const
+<span style = "background-color:#fdd">  {
+    return TModelFactory::New().GetPointer();
+  };</span>
+
+  template&lt;class TModelFactory&gt;
+  ModelBase::TimeGridType
+    ModelFitProviderBase&lt;TModelFactory&gt;::GetVariableGrid(const modelFit::ModelFitInfo* fitInfo) const
+<span style = "background-color:#fdd">  {
+    if (!fitInfo)</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Error. Cannot get variable grid for model. Passed model fit info is null.";</span>
+    }
+
+<span style = "background-color:#fdd">    if (!fitInfo-&gt;inputImage.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Error. Cannot get variable grid for model. Passed model fit info has no input image.";</span>
+    }
+<span style = "background-color:#fdd">    return mitk::ExtractTimeGrid(fitInfo-&gt;inputImage);
+  };</span>
+
+
+  template&lt;class TModelFactory&gt;
+  us::ServiceRegistration&lt;IModelFitProvider&gt;
+    ModelFitProviderBase&lt;TModelFactory&gt;::RegisterService(us::ModuleContext *context)
+<span style = "background-color:#dfd">  {
+    if (d)</span>
+<span style = "background-color:#fdd">      return d-&gt;m_Reg;</span>
+
+<span style = "background-color:#dfd">    if (context == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      context = us::GetModuleContext();</span>
+    }
+
+<span style = "background-color:#dfd">    d.reset(new Impl());</span>
+
+<span style = "background-color:#dfd">    us::ServiceProperties props = this-&gt;GetServiceProperties();
+    d-&gt;m_Reg = context-&gt;RegisterService&lt;IModelFitProvider&gt;(this, props);
+    return d-&gt;m_Reg;
+  }</span>
+
+  template&lt;class TModelFactory&gt;
+  void
+    ModelFitProviderBase&lt;TModelFactory&gt;::UnregisterService()
+<span style = "background-color:#dfd">  {</span>
+    try
+    {
+<span style = "background-color:#dfd">      d-&gt;m_Reg.Unregister();</span>
+    }
+    catch (const std::exception &amp;)
+<span style = "background-color:#dfd">    {
+    }
+  }</span>
+
+  template&lt;class TModelFactory&gt;
+  us::ServiceProperties
+  ModelFitProviderBase&lt;TModelFactory&gt;::GetServiceProperties() const
+<span style = "background-color:#dfd">  {
+    us::ServiceProperties result;</span>
+
+<span style = "background-color:#dfd">    result[IModelFitProvider::PROP_MODEL_CLASS_ID()] = this-&gt;d-&gt;m_ReferenceFactory-&gt;GetClassID();
+    result[IModelFitProvider::PROP_MODEL_TYPE()] = this-&gt;d-&gt;m_ReferenceFactory-&gt;GetModelType();
+    result[us::ServiceConstants::SERVICE_RANKING()] = this-&gt;GetRanking();
+    return result;
+  }</span>
+
+  template&lt;class TModelFactory&gt;
+  void
+  ModelFitProviderBase&lt;TModelFactory&gt;::SetRanking(int ranking) { d-&gt;SetRanking(ranking); }
+
+  template&lt;class TModelFactory&gt;
+  int
+<span style = "background-color:#dfd">  ModelFitProviderBase&lt;TModelFactory&gt;::GetRanking() const { return d-&gt;GetRanking(); }</span>
+
+}</pre>
+	</body>
+</html>

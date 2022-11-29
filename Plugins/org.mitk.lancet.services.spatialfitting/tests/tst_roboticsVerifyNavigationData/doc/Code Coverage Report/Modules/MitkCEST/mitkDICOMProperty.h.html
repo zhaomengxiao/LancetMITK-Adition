@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMProperty.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkDICOMProperty_h
+#define mitkDICOMProperty_h
+
+#include "mitkDICOMImageBlockDescriptor.h"
+#include "mitkTemporoSpatialStringProperty.h"
+#include "mitkDICOMTagPath.h"
+
+#include "MitkDICOMExports.h"
+
+namespace mitk
+{
+
+  typedef TemporoSpatialStringProperty DICOMProperty;
+
+  /** Generation functor for DICOMFileReader classes to convert the collected tag values into DICOMProperty instances. */
+  MITKDICOM_EXPORT mitk::BaseProperty::Pointer GetDICOMPropertyForDICOMValuesFunctor(const DICOMCachedValueLookupTable&amp; cacheLookupTable);
+
+
+  class PropertyList;
+  class BaseData;
+
+  /** Helper function that searches for all properties in a given property list that matches the passed path.
+   * The result will be the matching properties in a map*/
+  MITKDICOM_EXPORT std::map&lt; std::string, BaseProperty::Pointer&gt; GetPropertyByDICOMTagPath(const PropertyList* list, const DICOMTagPath&amp; path);
+  /** Helper function that searches for all properties in a given base data that matches the passed path.
+  * The result will be the matching properties in a map*/
+  MITKDICOM_EXPORT std::map&lt; std::string, BaseProperty::Pointer&gt; GetPropertyByDICOMTagPath(const BaseData* data, const DICOMTagPath&amp; path);
+
+  /**Helper function that can be used to convert the content of a DICOM property
+     into the given return type. The function makes the following assumptions:
+     1. dcmValueString does only encode one number.
+     2. The value is encoded compliant to locale "C".
+     @pre dcmValueString must be convertibel into the return type.
+     If this is not the case an exception will be thrown.
+     */
+  template&lt;typename TNumericReturnType&gt;
+  TNumericReturnType ConvertDICOMStrToValue(const std::string&amp; dcmValueString)
+<span style = "background-color:#fdd">  {
+    std::istringstream iss(dcmValueString);
+    iss.imbue(std::locale("C"));</span>
+    TNumericReturnType d;
+<span style = "background-color:#fdd">    if (!(iss &gt;&gt; d) || !(iss.eof()))</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Cannot convert string to value type. Type: " &lt;&lt; typeid(TNumericReturnType).name() &lt;&lt; "; String: " &lt;&lt; dcmValueString;</span>
+    }
+
+<span style = "background-color:#fdd">    return d;
+  };</span>
+
+  /**Helper function that can be used to convert a numeric value into content of a DICOM property.
+     @pre value must be convertibel into a string.
+     If this is not the case an exception will be thrown.
+     */
+  template&lt;typename TNumericType&gt;
+  std::string ConvertValueToDICOMStr(const TNumericType value)
+<span style = "background-color:#fdd">  {
+    std::ostringstream oss;
+    oss.imbue(std::locale("C"));
+    if (!(oss &lt;&lt; value))</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Cannot convert value type to dicom string. Type: " &lt;&lt; typeid(TNumericType).name() &lt;&lt; "; value: " &lt;&lt; value;</span>
+    }
+
+<span style = "background-color:#fdd">    return oss.str();
+  };</span>
+
+
+}
+
+#endif</pre>
+	</body>
+</html>

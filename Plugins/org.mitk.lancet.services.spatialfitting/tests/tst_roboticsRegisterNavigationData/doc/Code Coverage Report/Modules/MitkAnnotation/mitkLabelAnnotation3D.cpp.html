@@ -1,0 +1,179 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabelAnnotation3D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLabelAnnotation3D.h"
+#include &lt;mitkPointSet.h&gt;
+#include &lt;vtkActor2D.h&gt;
+#include &lt;vtkIntArray.h&gt;
+#include &lt;vtkLabelPlacementMapper.h&gt;
+#include &lt;vtkPointData.h&gt;
+#include &lt;vtkPointSetToLabelHierarchy.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkPolyDataMapper.h&gt;
+#include &lt;vtkProperty2D.h&gt;
+#include &lt;vtkStringArray.h&gt;
+#include &lt;vtkTextProperty.h&gt;
+
+<span style = "background-color:#fdd">mitk::LabelAnnotation3D::LabelAnnotation3D() : m_PointSetModifiedObserverTag(0)
+{
+}</span>
+
+mitk::LabelAnnotation3D::~LabelAnnotation3D()
+<span style = "background-color:#fdd">{
+  if (m_LabelCoordinates.IsNotNull())
+    m_LabelCoordinates-&gt;RemoveObserver(m_PointSetModifiedObserverTag);
+  for (BaseRenderer *renderer : m_LSH.GetRegisteredBaseRenderer())</span>
+  {
+<span style = "background-color:#fdd">    if (renderer)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;RemoveFromBaseRenderer(renderer);
+    }
+  }
+}</span>
+
+mitk::LabelAnnotation3D::LocalStorage::~LocalStorage()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::LabelAnnotation3D::LocalStorage::LocalStorage()
+<span style = "background-color:#fdd">{
+  m_Points = vtkSmartPointer&lt;vtkPolyData&gt;::New();</span>
+
+  // Add label array.
+<span style = "background-color:#fdd">  m_Labels = vtkSmartPointer&lt;vtkStringArray&gt;::New();
+  m_Labels-&gt;SetNumberOfValues(0);
+  m_Labels-&gt;SetName("labels");</span>
+
+  // Add priority array.
+<span style = "background-color:#fdd">  m_Sizes = vtkSmartPointer&lt;vtkIntArray&gt;::New();
+  m_Sizes-&gt;SetNumberOfValues(0);
+  m_Sizes-&gt;SetName("sizes");</span>
+
+<span style = "background-color:#fdd">  m_Points-&gt;GetPointData()-&gt;AddArray(m_Sizes);
+  m_Points-&gt;GetPointData()-&gt;AddArray(m_Labels);</span>
+
+<span style = "background-color:#fdd">  m_PointSetToLabelHierarchyFilter = vtkSmartPointer&lt;vtkPointSetToLabelHierarchy&gt;::New();
+  m_PointSetToLabelHierarchyFilter-&gt;SetInputData(m_Points);
+  m_PointSetToLabelHierarchyFilter-&gt;SetLabelArrayName("labels");
+  m_PointSetToLabelHierarchyFilter-&gt;SetPriorityArrayName("sizes");
+  m_PointSetToLabelHierarchyFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  m_LabelMapper = vtkSmartPointer&lt;vtkLabelPlacementMapper&gt;::New();
+  m_LabelMapper-&gt;SetInputConnection(m_PointSetToLabelHierarchyFilter-&gt;GetOutputPort());</span>
+
+<span style = "background-color:#fdd">  m_LabelsActor = vtkSmartPointer&lt;vtkActor2D&gt;::New();
+  m_LabelsActor-&gt;SetMapper(m_LabelMapper);
+}</span>
+
+void mitk::LabelAnnotation3D::UpdateVtkAnnotation(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  if (m_LabelCoordinates.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "No pointset defined to print labels!";
+    return;</span>
+  }
+<span style = "background-color:#fdd">  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  if (ls-&gt;IsGenerateDataRequired(renderer, this))</span>
+  {
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPoints&gt; points = vtkSmartPointer&lt;vtkPoints&gt;::New();</span>
+
+<span style = "background-color:#fdd">    auto pointsetsize = (size_t)m_LabelCoordinates-&gt;GetSize();
+    ls-&gt;m_Labels-&gt;SetNumberOfValues(pointsetsize);
+    ls-&gt;m_Sizes-&gt;SetNumberOfValues(pointsetsize);</span>
+
+<span style = "background-color:#fdd">    for (size_t i = 0; i &lt; pointsetsize; i++)</span>
+    {
+<span style = "background-color:#fdd">      mitk::Point3D coordinate = m_LabelCoordinates-&gt;GetPoint(i);
+      points-&gt;InsertNextPoint(coordinate[0] + GetOffsetVector()[0],</span>
+                              coordinate[1] + GetOffsetVector()[1],
+                              coordinate[2] + GetOffsetVector()[2]);
+<span style = "background-color:#fdd">      if (m_LabelVector.size() &gt; i)
+        ls-&gt;m_Labels-&gt;SetValue(i, m_LabelVector[i]);</span>
+      else
+<span style = "background-color:#fdd">        ls-&gt;m_Labels-&gt;SetValue(i, "");</span>
+
+<span style = "background-color:#fdd">      if (m_PriorityVector.size() &gt; i)
+        ls-&gt;m_Sizes-&gt;SetValue(i, m_PriorityVector[i]);</span>
+      else
+<span style = "background-color:#fdd">        ls-&gt;m_Sizes-&gt;SetValue(i, 1);
+    }</span>
+
+<span style = "background-color:#fdd">    ls-&gt;m_Points-&gt;SetPoints(points);
+    ls-&gt;m_PointSetToLabelHierarchyFilter-&gt;Update();
+    ls-&gt;m_LabelMapper-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    float color[3] = {1, 1, 1};
+    float opacity = 1.0;
+    GetColor(color);
+    GetOpacity(opacity);
+    ls-&gt;m_LabelsActor-&gt;GetProperty()-&gt;SetColor(color[0], color[1], color[2]);
+    ls-&gt;m_LabelsActor-&gt;GetProperty()-&gt;SetOpacity(opacity);
+    ls-&gt;UpdateGenerateDataTime();
+  }
+}</span>
+
+vtkProp *mitk::LabelAnnotation3D::GetVtkProp(BaseRenderer *renderer) const
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);
+  return ls-&gt;m_LabelsActor;
+}</span>
+
+void mitk::LabelAnnotation3D::SetLabelVector(const std::vector&lt;std::string&gt; &amp;LabelVector)
+<span style = "background-color:#fdd">{
+  m_LabelVector = LabelVector;
+  this-&gt;Modified();
+}</span>
+
+void mitk::LabelAnnotation3D::SetPriorityVector(const std::vector&lt;int&gt; &amp;PriorityVector)
+<span style = "background-color:#fdd">{
+  m_PriorityVector = PriorityVector;
+  this-&gt;Modified();
+}</span>
+
+void mitk::LabelAnnotation3D::SetLabelCoordinates(mitk::PointSet::Pointer LabelCoordinates)
+<span style = "background-color:#fdd">{
+  if (m_LabelCoordinates.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    m_LabelCoordinates-&gt;RemoveObserver(m_PointSetModifiedObserverTag);
+    m_PointSetModifiedObserverTag = 0;
+    m_LabelCoordinates = nullptr;</span>
+  }
+<span style = "background-color:#fdd">  if (LabelCoordinates.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+<span style = "background-color:#fdd">  m_LabelCoordinates = LabelCoordinates;
+  itk::MemberCommand&lt;mitk::LabelAnnotation3D&gt;::Pointer _PropertyListModifiedCommand =</span>
+    itk::MemberCommand&lt;mitk::LabelAnnotation3D&gt;::New();
+<span style = "background-color:#fdd">  _PropertyListModifiedCommand-&gt;SetCallbackFunction(this, &amp;mitk::LabelAnnotation3D::PointSetModified);
+  m_PointSetModifiedObserverTag = m_LabelCoordinates-&gt;AddObserver(itk::ModifiedEvent(), _PropertyListModifiedCommand);
+  this-&gt;Modified();
+}</span>
+
+void mitk::LabelAnnotation3D::PointSetModified(const itk::Object * /*caller*/, const itk::EventObject &amp;)
+<span style = "background-color:#fdd">{
+  this-&gt;Modified();
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,1114 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkBaseGeometry.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;iomanip&gt;
+#include &lt;sstream&gt;
+#include &lt;bitset&gt;
+
+#include &lt;vtkMatrix4x4.h&gt;
+#include &lt;vtkMatrixToLinearTransform.h&gt;
+
+#include "mitkApplyTransformMatrixOperation.h"
+#include "mitkBaseGeometry.h"
+#include "mitkGeometryTransformHolder.h"
+#include "mitkInteractionConst.h"
+#include "mitkMatrixConvert.h"
+#include "mitkModifiedLock.h"
+#include "mitkPointOperation.h"
+#include "mitkRestorePlanePositionOperation.h"
+#include "mitkRotationOperation.h"
+#include "mitkScaleOperation.h"
+#include "mitkVector.h"
+#include "mitkMatrix.h"
+
+mitk::BaseGeometry::BaseGeometry()
+<span style = "background-color:#fdd">  : Superclass(),
+    mitk::OperationActor(),
+    m_FrameOfReferenceID(0),
+    m_IndexToWorldTransformLastModified(0),
+    m_ImageGeometry(false),
+    m_ModifiedLockFlag(false),
+    m_ModifiedCalledFlag(false)
+{
+  m_GeometryTransform = new GeometryTransformHolder();
+  Initialize();
+}</span>
+
+mitk::BaseGeometry::BaseGeometry(const BaseGeometry &amp;other)
+<span style = "background-color:#fdd">  : Superclass(),
+    mitk::OperationActor(),
+    m_FrameOfReferenceID(other.m_FrameOfReferenceID),
+    m_IndexToWorldTransformLastModified(other.m_IndexToWorldTransformLastModified),
+    m_ImageGeometry(other.m_ImageGeometry),
+    m_ModifiedLockFlag(false),
+    m_ModifiedCalledFlag(false)
+{
+  m_GeometryTransform = new GeometryTransformHolder(*other.GetGeometryTransformHolder());
+  other.InitializeGeometry(this);
+}</span>
+
+mitk::BaseGeometry::~BaseGeometry()
+<span style = "background-color:#fdd">{
+  delete m_GeometryTransform;
+}</span>
+
+void mitk::BaseGeometry::SetVtkMatrixDeepCopy(vtkTransform *vtktransform)
+<span style = "background-color:#fdd">{
+  m_GeometryTransform-&gt;SetVtkMatrixDeepCopy(vtktransform);
+}</span>
+
+const mitk::Point3D mitk::BaseGeometry::GetOrigin() const
+<span style = "background-color:#fdd">{
+  return m_GeometryTransform-&gt;GetOrigin();
+}</span>
+
+void mitk::BaseGeometry::SetOrigin(const Point3D &amp;origin)
+<span style = "background-color:#fdd">{
+  mitk::ModifiedLock lock(this);</span>
+
+<span style = "background-color:#fdd">  if (origin != GetOrigin())</span>
+  {
+<span style = "background-color:#fdd">    m_GeometryTransform-&gt;SetOrigin(origin);
+    Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const mitk::Vector3D mitk::BaseGeometry::GetSpacing() const
+<span style = "background-color:#fdd">{
+  return m_GeometryTransform-&gt;GetSpacing();
+}</span>
+
+void mitk::BaseGeometry::Initialize()
+<span style = "background-color:#fdd">{
+  float b[6] = {0, 1, 0, 1, 0, 1};
+  SetFloatBounds(b);</span>
+
+<span style = "background-color:#fdd">  m_GeometryTransform-&gt;Initialize();</span>
+
+<span style = "background-color:#fdd">  m_FrameOfReferenceID = 0;</span>
+
+<span style = "background-color:#fdd">  m_ImageGeometry = false;
+}</span>
+
+void mitk::BaseGeometry::SetFloatBounds(const float bounds[6])
+<span style = "background-color:#fdd">{</span>
+  mitk::BoundingBox::BoundsArrayType b;
+<span style = "background-color:#fdd">  const float *input = bounds;
+  int i = 0;
+  for (mitk::BoundingBox::BoundsArrayType::Iterator it = b.Begin(); i &lt; 6; ++i)
+    *it++ = (mitk::ScalarType)*input++;
+  SetBounds(b);
+}</span>
+
+void mitk::BaseGeometry::SetFloatBounds(const double bounds[6])
+<span style = "background-color:#fdd">{</span>
+  mitk::BoundingBox::BoundsArrayType b;
+<span style = "background-color:#fdd">  const double *input = bounds;
+  int i = 0;
+  for (mitk::BoundingBox::BoundsArrayType::Iterator it = b.Begin(); i &lt; 6; ++i)
+    *it++ = (mitk::ScalarType)*input++;
+  SetBounds(b);
+}</span>
+
+/** Initialize the geometry */
+void mitk::BaseGeometry::InitializeGeometry(BaseGeometry *newGeometry) const
+<span style = "background-color:#fdd">{
+  newGeometry-&gt;SetBounds(m_BoundingBox-&gt;GetBounds());</span>
+
+<span style = "background-color:#fdd">  newGeometry-&gt;SetFrameOfReferenceID(GetFrameOfReferenceID());</span>
+
+<span style = "background-color:#fdd">  newGeometry-&gt;InitializeGeometryTransformHolder(this);</span>
+
+<span style = "background-color:#fdd">  newGeometry-&gt;m_ImageGeometry = m_ImageGeometry;
+}</span>
+
+void mitk::BaseGeometry::InitializeGeometryTransformHolder(const BaseGeometry *otherGeometry)
+<span style = "background-color:#fdd">{
+  this-&gt;m_GeometryTransform-&gt;Initialize(otherGeometry-&gt;GetGeometryTransformHolder());
+}</span>
+
+/** Set the bounds */
+void mitk::BaseGeometry::SetBounds(const BoundsArrayType &amp;bounds)
+<span style = "background-color:#fdd">{
+  mitk::ModifiedLock lock(this);</span>
+
+<span style = "background-color:#fdd">  this-&gt;CheckBounds(bounds);</span>
+
+<span style = "background-color:#fdd">  m_BoundingBox = BoundingBoxType::New();</span>
+
+<span style = "background-color:#fdd">  BoundingBoxType::PointsContainer::Pointer pointscontainer = BoundingBoxType::PointsContainer::New();</span>
+  BoundingBoxType::PointType p;
+  BoundingBoxType::PointIdentifier pointid;
+
+<span style = "background-color:#fdd">  for (pointid = 0; pointid &lt; 2; ++pointid)</span>
+  {
+    unsigned int i;
+<span style = "background-color:#fdd">    for (i = 0; i &lt; m_NDimensions; ++i)</span>
+    {
+<span style = "background-color:#fdd">      p[i] = bounds[2 * i + pointid];
+    }
+    pointscontainer-&gt;InsertElement(pointid, p);
+  }</span>
+
+<span style = "background-color:#fdd">  m_BoundingBox-&gt;SetPoints(pointscontainer);
+  m_BoundingBox-&gt;ComputeBoundingBox();
+  this-&gt;Modified();
+}</span>
+
+void mitk::BaseGeometry::SetIndexToWorldTransform(mitk::AffineTransform3D *transform)
+<span style = "background-color:#fdd">{
+  mitk::ModifiedLock lock(this);</span>
+
+<span style = "background-color:#fdd">  CheckIndexToWorldTransform(transform);</span>
+
+<span style = "background-color:#fdd">  m_GeometryTransform-&gt;SetIndexToWorldTransform(transform);
+  Modified();
+}</span>
+
+void mitk::BaseGeometry::SetIndexToWorldTransformWithoutChangingSpacing(mitk::AffineTransform3D *transform)
+<span style = "background-color:#fdd">{</span>
+  // security check
+<span style = "background-color:#fdd">  mitk::Vector3D originalSpacing = this-&gt;GetSpacing();</span>
+
+<span style = "background-color:#fdd">  mitk::ModifiedLock lock(this);</span>
+
+<span style = "background-color:#fdd">  CheckIndexToWorldTransform(transform);</span>
+
+<span style = "background-color:#fdd">  m_GeometryTransform-&gt;SetIndexToWorldTransformWithoutChangingSpacing(transform);
+  Modified();</span>
+
+  // Security check. Spacig must not have changed
+<span style = "background-color:#fdd">  if (!mitk::Equal(originalSpacing, this-&gt;GetSpacing()))</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Spacing has changed in a method, where the spacing must not change.";
+    assert(false);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const mitk::BaseGeometry::BoundsArrayType mitk::BaseGeometry::GetBounds() const
+<span style = "background-color:#fdd">{
+  assert(m_BoundingBox.IsNotNull());
+  return m_BoundingBox-&gt;GetBounds();
+}</span>
+
+bool mitk::BaseGeometry::IsValid() const
+<span style = "background-color:#fdd">{
+  return true;
+}</span>
+
+void mitk::BaseGeometry::SetSpacing(const mitk::Vector3D &amp;aSpacing, bool enforceSetSpacing)
+<span style = "background-color:#fdd">{
+  PreSetSpacing(aSpacing);
+  _SetSpacing(aSpacing, enforceSetSpacing);
+}</span>
+
+void mitk::BaseGeometry::_SetSpacing(const mitk::Vector3D &amp;aSpacing, bool enforceSetSpacing)
+<span style = "background-color:#fdd">{
+  m_GeometryTransform-&gt;SetSpacing(aSpacing, enforceSetSpacing);
+}</span>
+
+mitk::Vector3D mitk::BaseGeometry::GetAxisVector(unsigned int direction) const
+<span style = "background-color:#fdd">{
+  Vector3D frontToBack;
+  frontToBack.SetVnlVector(this-&gt;GetIndexToWorldTransform()-&gt;GetMatrix().GetVnlMatrix().get_column(direction).as_ref());
+  frontToBack *= GetExtent(direction);
+  return frontToBack;
+}</span>
+
+mitk::ScalarType mitk::BaseGeometry::GetExtent(unsigned int direction) const
+<span style = "background-color:#fdd">{
+  assert(m_BoundingBox.IsNotNull());
+  if (direction &gt;= m_NDimensions)
+    mitkThrow() &lt;&lt; "Direction is too big. This geometry is for 3D Data";
+  BoundsArrayType bounds = m_BoundingBox-&gt;GetBounds();
+  return bounds[direction * 2 + 1] - bounds[direction * 2];
+}</span>
+
+bool mitk::BaseGeometry::Is2DConvertable()
+<span style = "background-color:#fdd">{
+  bool isConvertableWithoutLoss = true;</span>
+  do
+  {
+<span style = "background-color:#fdd">    if (this-&gt;GetSpacing()[2] != 1)</span>
+    {
+<span style = "background-color:#fdd">      isConvertableWithoutLoss = false;
+      break;</span>
+    }
+<span style = "background-color:#fdd">    if (this-&gt;GetOrigin()[2] != 0)</span>
+    {
+<span style = "background-color:#fdd">      isConvertableWithoutLoss = false;
+      break;</span>
+    }
+<span style = "background-color:#fdd">    mitk::Vector3D col0, col1, col2;
+    col0.SetVnlVector(this-&gt;GetIndexToWorldTransform()-&gt;GetMatrix().GetVnlMatrix().get_column(0).as_ref());
+    col1.SetVnlVector(this-&gt;GetIndexToWorldTransform()-&gt;GetMatrix().GetVnlMatrix().get_column(1).as_ref());
+    col2.SetVnlVector(this-&gt;GetIndexToWorldTransform()-&gt;GetMatrix().GetVnlMatrix().get_column(2).as_ref());</span>
+
+<span style = "background-color:#fdd">    if ((col0[2] != 0) || (col1[2] != 0) || (col2[0] != 0) || (col2[1] != 0) || (col2[2] != 1))</span>
+    {
+<span style = "background-color:#fdd">      isConvertableWithoutLoss = false;
+      break;</span>
+    }
+<span style = "background-color:#fdd">  } while (false);</span>
+
+<span style = "background-color:#fdd">  return isConvertableWithoutLoss;
+}</span>
+
+mitk::Point3D mitk::BaseGeometry::GetCenter() const
+<span style = "background-color:#fdd">{
+  assert(m_BoundingBox.IsNotNull());
+  Point3D c = m_BoundingBox-&gt;GetCenter();
+  if (m_ImageGeometry)</span>
+  {
+    // Get Center returns the middel of min and max pixel index. In corner based images, this is the right position.
+    // In center based images (imageGeometry == true), the index needs to be shifted back.
+<span style = "background-color:#fdd">    c[0] -= 0.5;
+    c[1] -= 0.5;
+    c[2] -= 0.5;</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;IndexToWorld(c, c);
+  return c;
+}</span>
+
+double mitk::BaseGeometry::GetDiagonalLength2() const
+<span style = "background-color:#fdd">{
+  Vector3D diagonalvector = GetCornerPoint() - GetCornerPoint(false, false, false);
+  return diagonalvector.GetSquaredNorm();
+}</span>
+
+double mitk::BaseGeometry::GetDiagonalLength() const
+<span style = "background-color:#fdd">{
+  return sqrt(GetDiagonalLength2());
+}</span>
+
+mitk::Point3D mitk::BaseGeometry::GetCornerPoint(int id) const
+<span style = "background-color:#fdd">{
+  assert(id &gt;= 0);
+  assert(this-&gt;IsBoundingBoxNull() == false);</span>
+
+<span style = "background-color:#fdd">  BoundingBox::BoundsArrayType bounds = this-&gt;GetBoundingBox()-&gt;GetBounds();</span>
+
+<span style = "background-color:#fdd">  Point3D cornerpoint;
+  switch (id)</span>
+  {
+    case 0:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[0], bounds[2], bounds[4]);
+      break;</span>
+    case 1:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[0], bounds[2], bounds[5]);
+      break;</span>
+    case 2:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[0], bounds[3], bounds[4]);
+      break;</span>
+    case 3:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[0], bounds[3], bounds[5]);
+      break;</span>
+    case 4:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[1], bounds[2], bounds[4]);
+      break;</span>
+    case 5:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[1], bounds[2], bounds[5]);
+      break;</span>
+    case 6:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[1], bounds[3], bounds[4]);
+      break;</span>
+    case 7:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[1], bounds[3], bounds[5]);
+      break;</span>
+    default:
+    {
+<span style = "background-color:#fdd">      itkExceptionMacro(&lt;&lt; "A cube only has 8 corners. These are labeled 0-7.");</span>
+    }
+  }
+<span style = "background-color:#fdd">  if (m_ImageGeometry)</span>
+  {
+    // Here i have to adjust the 0.5 offset manually, because the cornerpoint is the corner of the
+    // bounding box. The bounding box itself is no image, so it is corner-based
+<span style = "background-color:#fdd">    FillVector3D(cornerpoint, cornerpoint[0] - 0.5, cornerpoint[1] - 0.5, cornerpoint[2] - 0.5);</span>
+  }
+<span style = "background-color:#fdd">  return this-&gt;GetIndexToWorldTransform()-&gt;TransformPoint(cornerpoint);
+}</span>
+
+mitk::Point3D mitk::BaseGeometry::GetCornerPoint(bool xFront, bool yFront, bool zFront) const
+<span style = "background-color:#fdd">{
+  assert(this-&gt;IsBoundingBoxNull() == false);
+  BoundingBox::BoundsArrayType bounds = this-&gt;GetBoundingBox()-&gt;GetBounds();</span>
+
+<span style = "background-color:#fdd">  Point3D cornerpoint;
+  cornerpoint[0] = (xFront ? bounds[0] : bounds[1]);
+  cornerpoint[1] = (yFront ? bounds[2] : bounds[3]);
+  cornerpoint[2] = (zFront ? bounds[4] : bounds[5]);
+  if (m_ImageGeometry)</span>
+  {
+    // Here i have to adjust the 0.5 offset manually, because the cornerpoint is the corner of the
+    // bounding box. The bounding box itself is no image, so it is corner-based
+<span style = "background-color:#fdd">    FillVector3D(cornerpoint, cornerpoint[0] - 0.5, cornerpoint[1] - 0.5, cornerpoint[2] - 0.5);</span>
+  }
+
+<span style = "background-color:#fdd">  return this-&gt;GetIndexToWorldTransform()-&gt;TransformPoint(cornerpoint);
+}</span>
+
+mitk::ScalarType mitk::BaseGeometry::GetExtentInMM(int direction) const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetIndexToWorldTransform()-&gt;GetMatrix().GetVnlMatrix().get_column(direction).magnitude() *</span>
+         GetExtent(direction);
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseGeometry::SetExtentInMM(int direction, ScalarType extentInMM)
+<span style = "background-color:#fdd">{
+  mitk::ModifiedLock lock(this);</span>
+
+<span style = "background-color:#fdd">  ScalarType len = GetExtentInMM(direction);
+  if (fabs(len - extentInMM) &gt;= mitk::eps)</span>
+  {
+    AffineTransform3D::MatrixType::InternalMatrixType vnlmatrix;
+<span style = "background-color:#fdd">    vnlmatrix = m_GeometryTransform-&gt;GetVnlMatrix();
+    if (len &gt; extentInMM)
+      vnlmatrix.set_column(direction, vnlmatrix.get_column(direction) / len * extentInMM);</span>
+    else
+<span style = "background-color:#fdd">      vnlmatrix.set_column(direction, vnlmatrix.get_column(direction) * extentInMM / len);
+    Matrix3D matrix;
+    matrix = vnlmatrix;
+    m_GeometryTransform-&gt;SetMatrix(matrix);</span>
+
+<span style = "background-color:#fdd">    Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::BaseGeometry::IsInside(const mitk::Point3D &amp;p) const
+<span style = "background-color:#fdd">{
+  mitk::Point3D index;
+  WorldToIndex(p, index);
+  return IsIndexInside(index);
+}</span>
+
+bool mitk::BaseGeometry::IsIndexInside(const mitk::Point3D &amp;index) const
+<span style = "background-color:#fdd">{
+  bool inside = false;</span>
+  // if it is an image geometry, we need to convert the index to discrete values
+  // this is done by applying the rounding function also used in WorldToIndex (see line 323)
+<span style = "background-color:#fdd">  if (m_ImageGeometry)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D discretIndex;
+    discretIndex[0] = itk::Math::RoundHalfIntegerUp&lt;mitk::ScalarType&gt;(index[0]);
+    discretIndex[1] = itk::Math::RoundHalfIntegerUp&lt;mitk::ScalarType&gt;(index[1]);
+    discretIndex[2] = itk::Math::RoundHalfIntegerUp&lt;mitk::ScalarType&gt;(index[2]);</span>
+
+<span style = "background-color:#fdd">    inside = this-&gt;GetBoundingBox()-&gt;IsInside(discretIndex);</span>
+    // we have to check if the index is at the upper border of each dimension,
+    // because the boundingbox is not centerbased
+<span style = "background-color:#fdd">    if (inside)</span>
+    {
+<span style = "background-color:#fdd">      const BoundingBox::BoundsArrayType &amp;bounds = this-&gt;GetBoundingBox()-&gt;GetBounds();
+      if ((discretIndex[0] == bounds[1]) || (discretIndex[1] == bounds[3]) || (discretIndex[2] == bounds[5]))
+        inside = false;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+<span style = "background-color:#fdd">    inside = this-&gt;GetBoundingBox()-&gt;IsInside(index);</span>
+
+<span style = "background-color:#fdd">  return inside;
+}</span>
+
+void mitk::BaseGeometry::WorldToIndex(const mitk::Point3D &amp;pt_mm, mitk::Point3D &amp;pt_units) const
+<span style = "background-color:#fdd">{
+  mitk::Vector3D tempIn, tempOut;
+  const TransformType::OffsetType &amp;offset = this-&gt;GetIndexToWorldTransform()-&gt;GetOffset();
+  tempIn = pt_mm.GetVectorFromOrigin() - offset;</span>
+
+<span style = "background-color:#fdd">  WorldToIndex(tempIn, tempOut);</span>
+
+<span style = "background-color:#fdd">  pt_units = Point3D(tempOut);
+}</span>
+
+void mitk::BaseGeometry::WorldToIndex(const mitk::Vector3D &amp;vec_mm, mitk::Vector3D &amp;vec_units) const
+<span style = "background-color:#fdd">{</span>
+  // Get WorldToIndex transform
+<span style = "background-color:#fdd">  if (m_IndexToWorldTransformLastModified != this-&gt;GetIndexToWorldTransform()-&gt;GetMTime())</span>
+  {
+<span style = "background-color:#fdd">    if (!m_InvertedTransform)</span>
+    {
+<span style = "background-color:#fdd">      m_InvertedTransform = TransformType::New();</span>
+    }
+<span style = "background-color:#fdd">    if (!this-&gt;GetIndexToWorldTransform()-&gt;GetInverse(m_InvertedTransform.GetPointer()))</span>
+    {
+<span style = "background-color:#fdd">      itkExceptionMacro("Internal ITK matrix inversion error, cannot proceed.");</span>
+    }
+<span style = "background-color:#fdd">    m_IndexToWorldTransformLastModified = this-&gt;GetIndexToWorldTransform()-&gt;GetMTime();</span>
+  }
+
+  // Check for valid matrix inversion
+<span style = "background-color:#fdd">  const TransformType::MatrixType &amp;inverse = m_InvertedTransform-&gt;GetMatrix();
+  if (inverse.GetVnlMatrix().has_nans())</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("Internal ITK matrix inversion error, cannot proceed. Matrix was: "</span>
+                      &lt;&lt; std::endl
+                      &lt;&lt; this-&gt;GetIndexToWorldTransform()-&gt;GetMatrix()
+                      &lt;&lt; "Suggested inverted matrix is:"
+                      &lt;&lt; std::endl
+                      &lt;&lt; inverse);
+  }
+
+<span style = "background-color:#fdd">  vec_units = inverse * vec_mm;
+}</span>
+
+void mitk::BaseGeometry::WorldToIndex(const mitk::Point3D &amp; /*atPt3d_mm*/,
+                                      const mitk::Vector3D &amp;vec_mm,
+                                      mitk::Vector3D &amp;vec_units) const
+<span style = "background-color:#fdd">{
+  MITK_WARN &lt;&lt; "Warning! Call of the deprecated function BaseGeometry::WorldToIndex(point, vec, vec). Use "</span>
+               "BaseGeometry::WorldToIndex(vec, vec) instead!";
+<span style = "background-color:#fdd">  this-&gt;WorldToIndex(vec_mm, vec_units);
+}</span>
+
+mitk::VnlVector mitk::BaseGeometry::GetOriginVnl() const
+<span style = "background-color:#fdd">{
+  return GetOrigin().GetVnlVector();
+}</span>
+
+vtkLinearTransform *mitk::BaseGeometry::GetVtkTransform() const
+<span style = "background-color:#fdd">{
+  return m_GeometryTransform-&gt;GetVtkTransform();
+}</span>
+
+void mitk::BaseGeometry::SetIdentity()
+<span style = "background-color:#fdd">{
+  mitk::ModifiedLock lock(this);</span>
+
+<span style = "background-color:#fdd">  m_GeometryTransform-&gt;SetIdentity();
+  Modified();
+}</span>
+
+void mitk::BaseGeometry::Compose(const mitk::BaseGeometry::TransformType *other, bool pre)
+<span style = "background-color:#fdd">{
+  mitk::ModifiedLock lock(this);
+  m_GeometryTransform-&gt;Compose(other, pre);
+  Modified();
+}</span>
+
+void mitk::BaseGeometry::Compose(const vtkMatrix4x4 *vtkmatrix, bool pre)
+<span style = "background-color:#fdd">{
+  mitk::BaseGeometry::TransformType::Pointer itkTransform = mitk::BaseGeometry::TransformType::New();
+  TransferVtkMatrixToItkTransform(vtkmatrix, itkTransform.GetPointer());
+  Compose(itkTransform, pre);
+}</span>
+
+void mitk::BaseGeometry::Translate(const Vector3D &amp;vector)
+<span style = "background-color:#fdd">{
+  if ((vector[0] != 0) || (vector[1] != 0) || (vector[2] != 0))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetOrigin(this-&gt;GetOrigin() + vector);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseGeometry::IndexToWorld(const mitk::Point3D &amp;pt_units, mitk::Point3D &amp;pt_mm) const
+<span style = "background-color:#fdd">{
+  pt_mm = this-&gt;GetIndexToWorldTransform()-&gt;TransformPoint(pt_units);
+}</span>
+
+void mitk::BaseGeometry::IndexToWorld(const mitk::Vector3D &amp;vec_units, mitk::Vector3D &amp;vec_mm) const
+<span style = "background-color:#fdd">{
+  vec_mm = this-&gt;GetIndexToWorldTransform()-&gt;TransformVector(vec_units);
+}</span>
+
+void mitk::BaseGeometry::ExecuteOperation(Operation *operation)
+<span style = "background-color:#fdd">{
+  mitk::ModifiedLock lock(this);</span>
+
+<span style = "background-color:#fdd">  vtkTransform *vtktransform = vtkTransform::New();
+  vtktransform-&gt;SetMatrix(this-&gt;GetVtkMatrix());
+  switch (operation-&gt;GetOperationType())</span>
+  {
+    case OpNOTHING:
+<span style = "background-color:#fdd">      break;</span>
+    case OpMOVE:
+    {
+<span style = "background-color:#fdd">      auto *pointOp = dynamic_cast&lt;mitk::PointOperation *&gt;(operation);
+      if (pointOp == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "Point move operation is null!";
+        return;</span>
+      }
+<span style = "background-color:#fdd">      mitk::Point3D newPos = pointOp-&gt;GetPoint();</span>
+      ScalarType data[3];
+<span style = "background-color:#fdd">      vtktransform-&gt;GetPosition(data);
+      vtktransform-&gt;PostMultiply();
+      vtktransform-&gt;Translate(newPos[0], newPos[1], newPos[2]);
+      vtktransform-&gt;PreMultiply();
+      break;</span>
+    }
+    case OpSCALE:
+    {
+<span style = "background-color:#fdd">      auto *scaleOp = dynamic_cast&lt;mitk::ScaleOperation *&gt;(operation);
+      if (scaleOp == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "Scale operation is null!";
+        return;</span>
+      }
+<span style = "background-color:#fdd">      mitk::Point3D newScale = scaleOp-&gt;GetScaleFactor();</span>
+      ScalarType scalefactor[3];
+
+<span style = "background-color:#fdd">      scalefactor[0] = 1 + (newScale[0] / GetMatrixColumn(0).magnitude());
+      scalefactor[1] = 1 + (newScale[1] / GetMatrixColumn(1).magnitude());
+      scalefactor[2] = 1 + (newScale[2] / GetMatrixColumn(2).magnitude());</span>
+
+<span style = "background-color:#fdd">      mitk::Point3D anchor = scaleOp-&gt;GetScaleAnchorPoint();</span>
+
+<span style = "background-color:#fdd">      vtktransform-&gt;PostMultiply();
+      vtktransform-&gt;Translate(-anchor[0], -anchor[1], -anchor[2]);
+      vtktransform-&gt;Scale(scalefactor[0], scalefactor[1], scalefactor[2]);
+      vtktransform-&gt;Translate(anchor[0], anchor[1], anchor[2]);
+      break;</span>
+    }
+    case OpROTATE:
+    {
+<span style = "background-color:#fdd">      auto *rotateOp = dynamic_cast&lt;mitk::RotationOperation *&gt;(operation);
+      if (rotateOp == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "Rotation operation is null!";
+        return;</span>
+      }
+<span style = "background-color:#fdd">      Vector3D rotationVector = rotateOp-&gt;GetVectorOfRotation();
+      Point3D center = rotateOp-&gt;GetCenterOfRotation();
+      ScalarType angle = rotateOp-&gt;GetAngleOfRotation();
+      vtktransform-&gt;PostMultiply();
+      vtktransform-&gt;Translate(-center[0], -center[1], -center[2]);
+      vtktransform-&gt;RotateWXYZ(angle, rotationVector[0], rotationVector[1], rotationVector[2]);
+      vtktransform-&gt;Translate(center[0], center[1], center[2]);
+      vtktransform-&gt;PreMultiply();
+      break;</span>
+    }
+    case OpRESTOREPLANEPOSITION:
+    {
+      // Copy necessary to avoid vtk warning
+<span style = "background-color:#fdd">      vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
+      TransferItkTransformToVtkMatrix(</span>
+        dynamic_cast&lt;mitk::RestorePlanePositionOperation *&gt;(operation)-&gt;GetTransform().GetPointer(), matrix);
+<span style = "background-color:#fdd">      vtktransform-&gt;SetMatrix(matrix);
+      matrix-&gt;Delete();
+      break;</span>
+    }
+    case OpAPPLYTRANSFORMMATRIX:
+    {
+<span style = "background-color:#fdd">      auto *applyMatrixOp = dynamic_cast&lt;ApplyTransformMatrixOperation *&gt;(operation);
+      vtktransform-&gt;SetMatrix(applyMatrixOp-&gt;GetMatrix());
+      break;</span>
+    }
+    default:
+<span style = "background-color:#fdd">      vtktransform-&gt;Delete();
+      return;</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;SetVtkMatrixDeepCopy(vtktransform);
+  Modified();
+  vtktransform-&gt;Delete();
+}</span>
+
+mitk::VnlVector mitk::BaseGeometry::GetMatrixColumn(unsigned int direction) const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetIndexToWorldTransform()-&gt;GetMatrix().GetVnlMatrix().get_column(direction).as_ref();
+}</span>
+
+mitk::BoundingBox::Pointer mitk::BaseGeometry::CalculateBoundingBoxRelativeToTransform(
+  const mitk::AffineTransform3D *transform) const
+<span style = "background-color:#fdd">{
+  mitk::BoundingBox::PointsContainer::Pointer pointscontainer = mitk::BoundingBox::PointsContainer::New();</span>
+
+<span style = "background-color:#fdd">  mitk::BoundingBox::PointIdentifier pointid = 0;</span>
+
+  unsigned char i;
+<span style = "background-color:#fdd">  if (transform != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitk::AffineTransform3D::Pointer inverse = mitk::AffineTransform3D::New();
+    transform-&gt;GetInverse(inverse);
+    for (i = 0; i &lt; 8; ++i)
+      pointscontainer-&gt;InsertElement(pointid++, inverse-&gt;TransformPoint(GetCornerPoint(i)));
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    for (i = 0; i &lt; 8; ++i)
+      pointscontainer-&gt;InsertElement(pointid++, GetCornerPoint(i));</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::BoundingBox::Pointer result = mitk::BoundingBox::New();
+  result-&gt;SetPoints(pointscontainer);
+  result-&gt;ComputeBoundingBox();</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+const std::string mitk::BaseGeometry::GetTransformAsString(TransformType *transformType)
+<span style = "background-color:#fdd">{
+  std::ostringstream out;</span>
+
+<span style = "background-color:#fdd">  out &lt;&lt; '[';</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 3; ++i)</span>
+  {
+<span style = "background-color:#fdd">    out &lt;&lt; '[';
+    for (int j = 0; j &lt; 3; ++j)
+      out &lt;&lt; transformType-&gt;GetMatrix().GetVnlMatrix().get(i, j) &lt;&lt; ' ';
+    out &lt;&lt; ']';
+  }</span>
+
+<span style = "background-color:#fdd">  out &lt;&lt; "][";</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 3; ++i)
+    out &lt;&lt; transformType-&gt;GetOffset()[i] &lt;&lt; ' ';</span>
+
+<span style = "background-color:#fdd">  out &lt;&lt; "]\0";</span>
+
+<span style = "background-color:#fdd">  return out.str();
+}</span>
+
+void mitk::BaseGeometry::SetIndexToWorldTransformByVtkMatrix(vtkMatrix4x4 *vtkmatrix)
+<span style = "background-color:#fdd">{
+  m_GeometryTransform-&gt;SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
+}</span>
+
+void mitk::BaseGeometry::SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(vtkMatrix4x4 *vtkmatrix)
+<span style = "background-color:#fdd">{
+  m_GeometryTransform-&gt;SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(vtkmatrix);
+}</span>
+
+void mitk::BaseGeometry::IndexToWorld(const mitk::Point3D &amp; /*atPt3d_units*/,
+                                      const mitk::Vector3D &amp;vec_units,
+                                      mitk::Vector3D &amp;vec_mm) const
+<span style = "background-color:#fdd">{
+  MITK_WARN &lt;&lt; "Warning! Call of the deprecated function BaseGeometry::IndexToWorld(point, vec, vec). Use "</span>
+               "BaseGeometry::IndexToWorld(vec, vec) instead!";
+  // vec_mm = m_IndexToWorldTransform-&gt;TransformVector(vec_units);
+<span style = "background-color:#fdd">  this-&gt;IndexToWorld(vec_units, vec_mm);
+}</span>
+
+vtkMatrix4x4 *mitk::BaseGeometry::GetVtkMatrix()
+<span style = "background-color:#fdd">{
+  return m_GeometryTransform-&gt;GetVtkMatrix();
+}</span>
+
+bool mitk::BaseGeometry::IsBoundingBoxNull() const
+<span style = "background-color:#fdd">{
+  return m_BoundingBox.IsNull();
+}</span>
+
+bool mitk::BaseGeometry::IsIndexToWorldTransformNull() const
+<span style = "background-color:#fdd">{
+  return m_GeometryTransform-&gt;IsIndexToWorldTransformNull();
+}</span>
+
+void mitk::BaseGeometry::ChangeImageGeometryConsideringOriginOffset(const bool isAnImageGeometry)
+<span style = "background-color:#fdd">{</span>
+  // If Geometry is switched to ImageGeometry, you have to put an offset to the origin, because
+  // imageGeometries origins are pixel-center-based
+  // ... and remove the offset, if you switch an imageGeometry back to a normal geometry
+  // For more information please see the Geometry documentation page
+
+<span style = "background-color:#fdd">  if (m_ImageGeometry == isAnImageGeometry)
+    return;</span>
+
+<span style = "background-color:#fdd">  const BoundingBox::BoundsArrayType &amp;boundsarray = this-&gt;GetBoundingBox()-&gt;GetBounds();</span>
+
+<span style = "background-color:#fdd">  Point3D originIndex;
+  FillVector3D(originIndex, boundsarray[0], boundsarray[2], boundsarray[4]);</span>
+
+<span style = "background-color:#fdd">  if (isAnImageGeometry == true)
+    FillVector3D(originIndex, originIndex[0] + 0.5, originIndex[1] + 0.5, originIndex[2] + 0.5);</span>
+  else
+<span style = "background-color:#fdd">    FillVector3D(originIndex, originIndex[0] - 0.5, originIndex[1] - 0.5, originIndex[2] - 0.5);</span>
+
+<span style = "background-color:#fdd">  Point3D originWorld;</span>
+
+<span style = "background-color:#fdd">  originWorld = GetIndexToWorldTransform()-&gt;TransformPoint(originIndex);</span>
+  // instead could as well call  IndexToWorld(originIndex,originWorld);
+
+<span style = "background-color:#fdd">  SetOrigin(originWorld);</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetImageGeometry(isAnImageGeometry);
+}</span>
+
+void mitk::BaseGeometry::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  os &lt;&lt; indent &lt;&lt; " IndexToWorldTransform: ";
+  if (this-&gt;IsIndexToWorldTransformNull())
+    os &lt;&lt; "nullptr" &lt;&lt; std::endl;</span>
+  else
+  {
+    // from itk::MatrixOffsetTransformBase
+    unsigned int i, j;
+<span style = "background-color:#fdd">    os &lt;&lt; std::endl;
+    os &lt;&lt; indent &lt;&lt; "Matrix: " &lt;&lt; std::endl;
+    for (i = 0; i &lt; 3; i++)</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; indent.GetNextIndent();
+      for (j = 0; j &lt; 3; j++)</span>
+      {
+<span style = "background-color:#fdd">        os &lt;&lt; this-&gt;GetIndexToWorldTransform()-&gt;GetMatrix()[i][j] &lt;&lt; " ";
+      }
+      os &lt;&lt; std::endl;
+    }</span>
+
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Offset: " &lt;&lt; this-&gt;GetIndexToWorldTransform()-&gt;GetOffset() &lt;&lt; std::endl;
+    os &lt;&lt; indent &lt;&lt; "Center: " &lt;&lt; this-&gt;GetIndexToWorldTransform()-&gt;GetCenter() &lt;&lt; std::endl;
+    os &lt;&lt; indent &lt;&lt; "Translation: " &lt;&lt; this-&gt;GetIndexToWorldTransform()-&gt;GetTranslation() &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">    auto inverse = mitk::AffineTransform3D::New();
+    if (this-&gt;GetIndexToWorldTransform()-&gt;GetInverse(inverse))</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; indent &lt;&lt; "Inverse: " &lt;&lt; std::endl;
+      for (i = 0; i &lt; 3; i++)</span>
+      {
+<span style = "background-color:#fdd">        os &lt;&lt; indent.GetNextIndent();
+        for (j = 0; j &lt; 3; j++)</span>
+        {
+<span style = "background-color:#fdd">          os &lt;&lt; inverse-&gt;GetMatrix()[i][j] &lt;&lt; " ";
+        }
+        os &lt;&lt; std::endl;
+      }</span>
+    }
+
+    // from itk::ScalableAffineTransform
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Scale : ";
+    for (i = 0; i &lt; 3; i++)</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; this-&gt;GetIndexToWorldTransform()-&gt;GetScale()[i] &lt;&lt; " ";
+    }
+    os &lt;&lt; std::endl;
+  }</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; " BoundingBox: ";
+  if (this-&gt;IsBoundingBoxNull())
+    os &lt;&lt; "nullptr" &lt;&lt; std::endl;</span>
+  else
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "( ";
+    for (unsigned int i = 0; i &lt; 3; i++)</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; this-&gt;GetBoundingBox()-&gt;GetBounds()[2 * i] &lt;&lt; "," &lt;&lt; this-&gt;GetBoundingBox()-&gt;GetBounds()[2 * i + 1] &lt;&lt; " ";
+    }
+    os &lt;&lt; " )" &lt;&lt; std::endl;</span>
+  }
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; " Origin: " &lt;&lt; this-&gt;GetOrigin() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " ImageGeometry: " &lt;&lt; this-&gt;GetImageGeometry() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " Spacing: " &lt;&lt; this-&gt;GetSpacing() &lt;&lt; std::endl;
+}</span>
+
+void mitk::BaseGeometry::Modified() const
+<span style = "background-color:#fdd">{
+  if (!m_ModifiedLockFlag)
+    Superclass::Modified();</span>
+  else
+<span style = "background-color:#fdd">    m_ModifiedCalledFlag = true;
+}</span>
+
+mitk::AffineTransform3D *mitk::BaseGeometry::GetIndexToWorldTransform()
+<span style = "background-color:#fdd">{
+  return m_GeometryTransform-&gt;GetIndexToWorldTransform();
+}</span>
+
+const mitk::AffineTransform3D *mitk::BaseGeometry::GetIndexToWorldTransform() const
+<span style = "background-color:#fdd">{
+  return m_GeometryTransform-&gt;GetIndexToWorldTransform();
+}</span>
+
+const mitk::GeometryTransformHolder *mitk::BaseGeometry::GetGeometryTransformHolder() const
+<span style = "background-color:#fdd">{
+  return m_GeometryTransform;
+}</span>
+
+bool mitk::Equal(const mitk::BaseGeometry::BoundingBoxType &amp;leftHandSide,
+                 const mitk::BaseGeometry::BoundingBoxType &amp;rightHandSide,
+                 ScalarType eps,
+                 bool verbose)
+<span style = "background-color:#fdd">{
+  bool result = true;</span>
+
+<span style = "background-color:#fdd">  BaseGeometry::BoundsArrayType rightBounds = rightHandSide.GetBounds();
+  BaseGeometry::BoundsArrayType leftBounds = leftHandSide.GetBounds();
+  BaseGeometry::BoundsArrayType::Iterator itLeft = leftBounds.Begin();
+  for (BaseGeometry::BoundsArrayType::Iterator itRight = rightBounds.Begin(); itRight != rightBounds.End(); ++itRight)</span>
+  {
+<span style = "background-color:#fdd">    if ((!mitk::Equal(*itLeft, *itRight, eps)))</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[( Geometry3D::BoundingBoxType )] bounds are not equal.";
+        MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; *itRight &lt;&lt; " : leftHandSide is " &lt;&lt; *itLeft</span>
+                  &lt;&lt; " and tolerance is " &lt;&lt; eps;
+      }
+<span style = "background-color:#fdd">      result = false;</span>
+    }
+<span style = "background-color:#fdd">    itLeft++;
+  }
+  return result;
+}</span>
+
+bool mitk::Equal(const mitk::BaseGeometry &amp;leftHandSide,
+                 const mitk::BaseGeometry &amp;rightHandSide,
+                 ScalarType coordinateEps,
+                 ScalarType directionEps,
+                 bool verbose)
+<span style = "background-color:#fdd">{
+  bool result = true;</span>
+
+  // Compare spacings
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetSpacing(), rightHandSide.GetSpacing(), coordinateEps))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Geometry3D )] Spacing differs.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.GetSpacing() &lt;&lt; " : leftHandSide is "</span>
+                &lt;&lt; leftHandSide.GetSpacing() &lt;&lt; " and tolerance is " &lt;&lt; coordinateEps;
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  // Compare Origins
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetOrigin(), rightHandSide.GetOrigin(), coordinateEps))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Geometry3D )] Origin differs.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.GetOrigin() &lt;&lt; " : leftHandSide is "</span>
+                &lt;&lt; leftHandSide.GetOrigin() &lt;&lt; " and tolerance is " &lt;&lt; coordinateEps;
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  // Compare Axis and Extents
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; 3; ++i)</span>
+  {
+<span style = "background-color:#fdd">    if (!mitk::Equal(leftHandSide.GetAxisVector(i), rightHandSide.GetAxisVector(i), directionEps))</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[( Geometry3D )] AxisVector #" &lt;&lt; i &lt;&lt; " differ";
+        MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.GetAxisVector(i) &lt;&lt; " : leftHandSide is "</span>
+                  &lt;&lt; leftHandSide.GetAxisVector(i) &lt;&lt; " and tolerance is " &lt;&lt; directionEps;
+      }
+<span style = "background-color:#fdd">      result = false;</span>
+    }
+
+<span style = "background-color:#fdd">    if (!mitk::Equal(leftHandSide.GetExtent(i), rightHandSide.GetExtent(i), coordinateEps))</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[( Geometry3D )] Extent #" &lt;&lt; i &lt;&lt; " differ";
+        MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.GetExtent(i) &lt;&lt; " : leftHandSide is "</span>
+                  &lt;&lt; leftHandSide.GetExtent(i) &lt;&lt; " and tolerance is " &lt;&lt; coordinateEps;
+      }
+<span style = "background-color:#fdd">      result = false;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // Compare ImageGeometry Flag
+<span style = "background-color:#fdd">  if (rightHandSide.GetImageGeometry() != leftHandSide.GetImageGeometry())</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Geometry3D )] GetImageGeometry is different.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; rightHandSide.GetImageGeometry() &lt;&lt; " : leftHandSide is "</span>
+                &lt;&lt; leftHandSide.GetImageGeometry();
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  // Compare FrameOfReference ID
+<span style = "background-color:#fdd">  if (rightHandSide.GetFrameOfReferenceID() != leftHandSide.GetFrameOfReferenceID())</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Geometry3D )] GetFrameOfReferenceID is different.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; rightHandSide.GetFrameOfReferenceID() &lt;&lt; " : leftHandSide is "</span>
+                &lt;&lt; leftHandSide.GetFrameOfReferenceID();
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  // Compare BoundingBoxes
+<span style = "background-color:#fdd">  if (!mitk::Equal(*leftHandSide.GetBoundingBox(), *rightHandSide.GetBoundingBox(), coordinateEps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  // Compare IndexToWorldTransform Matrix
+<span style = "background-color:#fdd">  if (!mitk::Equal(*leftHandSide.GetIndexToWorldTransform(), *rightHandSide.GetIndexToWorldTransform(), directionEps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+bool mitk::Equal(const mitk::BaseGeometry&amp; leftHandSide,
+  const mitk::BaseGeometry&amp; rightHandSide,
+  ScalarType eps,
+  bool verbose)
+<span style = "background-color:#fdd">{
+  return Equal(leftHandSide, rightHandSide, eps, eps, verbose);
+}</span>
+
+bool mitk::Equal(const mitk::BaseGeometry::TransformType &amp;leftHandSide,
+                 const mitk::BaseGeometry::TransformType &amp;rightHandSide,
+                 ScalarType eps,
+                 bool verbose)
+<span style = "background-color:#fdd">{</span>
+  // Compare IndexToWorldTransform Matrix
+<span style = "background-color:#fdd">  if (!mitk::MatrixEqualElementWise(leftHandSide.GetMatrix(), rightHandSide.GetMatrix(), eps))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Geometry3D::TransformType )] Index to World Transformation matrix differs.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.GetMatrix() &lt;&lt; " : leftHandSide is "</span>
+                &lt;&lt; leftHandSide.GetMatrix() &lt;&lt; " and tolerance is " &lt;&lt; eps;
+    }
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+bool mitk::IsSubGeometry(const mitk::BaseGeometry&amp; testGeo,
+  const mitk::BaseGeometry&amp; referenceGeo,
+  ScalarType coordinateEps,
+  ScalarType directionEps,
+  bool verbose)
+<span style = "background-color:#fdd">{
+  bool result = true;</span>
+
+  // Compare spacings (must be equal)
+<span style = "background-color:#fdd">  const auto testedSpacing = testGeo.GetSpacing();
+  if (!mitk::Equal(testedSpacing, referenceGeo.GetSpacing(), coordinateEps))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Geometry3D )] Spacing differs.";
+      MITK_INFO &lt;&lt; "testedGeometry is " &lt;&lt; setprecision(12) &lt;&lt; testedSpacing &lt;&lt; " : referenceGeometry is "</span>
+        &lt;&lt; referenceGeo.GetSpacing() &lt;&lt; " and tolerance is " &lt;&lt; coordinateEps;
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  // Compare ImageGeometry Flag (must be equal)
+<span style = "background-color:#fdd">  if (referenceGeo.GetImageGeometry() != testGeo.GetImageGeometry())</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Geometry3D )] GetImageGeometry is different.";
+      MITK_INFO &lt;&lt; "referenceGeo is " &lt;&lt; referenceGeo.GetImageGeometry() &lt;&lt; " : testGeo is "</span>
+        &lt;&lt; testGeo.GetImageGeometry();
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  // Compare IndexToWorldTransform Matrix (must be equal -&gt; same axis directions)
+<span style = "background-color:#fdd">  if (!Equal(*(testGeo.GetIndexToWorldTransform()), *(referenceGeo.GetIndexToWorldTransform()), directionEps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+  //check if the geometry is within or equal to the bounds of reference geomentry.
+<span style = "background-color:#fdd">  for (int i = 0; i&lt;8; ++i)</span>
+  {
+<span style = "background-color:#fdd">    auto testCorner = testGeo.GetCornerPoint(i);
+    bool isInside = false;
+    mitk::Point3D testCornerIndex;
+    referenceGeo.WorldToIndex(testCorner, testCornerIndex);</span>
+
+<span style = "background-color:#fdd">    std::bitset&lt;sizeof(int)&gt; bs(i);</span>
+    //To regard the coordinateEps, we substract or add it to the index elements
+    //depending on wether it was constructed by a lower or an upper bound value
+    //(see implementation of BaseGeometry::GetCorner()).
+<span style = "background-color:#fdd">    if (bs.test(0))</span>
+    {
+<span style = "background-color:#fdd">      testCornerIndex[2] -= coordinateEps;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      testCornerIndex[2] += coordinateEps;</span>
+    }
+
+<span style = "background-color:#fdd">    if (bs.test(1))</span>
+    {
+<span style = "background-color:#fdd">      testCornerIndex[1] -= coordinateEps;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      testCornerIndex[1] += coordinateEps;</span>
+    }
+
+<span style = "background-color:#fdd">    if (bs.test(2))</span>
+    {
+<span style = "background-color:#fdd">      testCornerIndex[0] -= coordinateEps;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      testCornerIndex[0] += coordinateEps;</span>
+    }
+
+<span style = "background-color:#fdd">    isInside = referenceGeo.IsIndexInside(testCornerIndex);</span>
+
+<span style = "background-color:#fdd">    if (!isInside)</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[( Geometry3D )] corner point is not inside. ";
+        MITK_INFO &lt;&lt; "referenceGeo is " &lt;&lt; setprecision(12) &lt;&lt; referenceGeo &lt;&lt; " : tested corner is "</span>
+          &lt;&lt; testGeo.GetCornerPoint(i);
+      }
+<span style = "background-color:#fdd">      result = false;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // check grid of test geometry is on the grid of the reference geometry. This is important as the
+  // boundingbox is only checked for containing the tested geometry, but if a corner (one is enough
+  // as we know that axis and spacing are equal, due to equal transfor (see above)) of the tested geometry
+  // is on the grid it is really a sub geometry (as they have the same spacing and axis).
+<span style = "background-color:#fdd">  auto cornerOffset = testGeo.GetCornerPoint(0) - referenceGeo.GetCornerPoint(0);
+  mitk::Vector3D cornerIndexOffset;
+  referenceGeo.WorldToIndex(cornerOffset, cornerIndexOffset);
+  for (unsigned int i = 0; i &lt; 3; ++i)</span>
+  {
+<span style = "background-color:#fdd">    auto pixelCountContinous = cornerIndexOffset[i];
+    auto pixelCount = std::round(pixelCountContinous);
+    if (std::abs(pixelCount - pixelCountContinous) &gt; coordinateEps)</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[( Geometry3D )] Tested geometry is not on the grid of the reference geometry. ";
+        MITK_INFO &lt;&lt; "referenceGeo is " &lt;&lt; setprecision(15) &lt;&lt; referenceGeo &lt;&lt; " : tested corner offset in pixels is "</span>
+          &lt;&lt; pixelCountContinous &lt;&lt; " for axis "&lt;&lt;i;
+      }
+<span style = "background-color:#fdd">      result = false;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+bool mitk::IsSubGeometry(const mitk::BaseGeometry&amp; testGeo,
+  const mitk::BaseGeometry&amp; referenceGeo,
+  ScalarType eps,
+  bool verbose)
+<span style = "background-color:#fdd">{
+  return IsSubGeometry(testGeo, referenceGeo, eps, eps, verbose);
+}</span></pre>
+	</body>
+</html>

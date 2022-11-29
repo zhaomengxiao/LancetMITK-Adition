@@ -1,0 +1,277 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkROIBasedParameterFitImageGenerator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "itkChangeInformationImageFilter.h"
+
+#include "mitkROIBasedParameterFitImageGenerator.h"
+#include "mitkImageAccessByItk.h"
+#include "mitkImageCast.h"
+
+void
+mitk::ROIBasedParameterFitImageGenerator::
+onFitProgressEvent(::itk::Object* caller, const ::itk::EventObject&amp; /*eventObject*/)
+<span style = "background-color:#fdd">{
+  this-&gt;InvokeEvent(::itk::ProgressEvent());</span>
+
+<span style = "background-color:#fdd">  itk::ProcessObject* process = dynamic_cast&lt;itk::ProcessObject*&gt;(caller);</span>
+
+<span style = "background-color:#fdd">  if (process)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_Progress = process-&gt;GetProgress();</span>
+  }
+<span style = "background-color:#fdd">};</span>
+
+template &lt;typename TPixel, unsigned int VDim&gt;
+void
+mitk::ROIBasedParameterFitImageGenerator::DoImageGeneration(itk::Image&lt;TPixel, VDim&gt;* image,
+    double value)
+<span style = "background-color:#fdd">{</span>
+  typedef itk::Image&lt;TPixel, VDim&gt; MaskType;
+  typedef itk::Image&lt;ScalarType, VDim&gt; ParameterImageType;
+
+  typedef itk::ChangeInformationImageFilter&lt; ParameterImageType &gt; OutputImageInformationFilterType;
+<span style = "background-color:#fdd">  typename OutputImageInformationFilterType::Pointer copyGeoInfoFilter =</span>
+    OutputImageInformationFilterType::New();
+
+<span style = "background-color:#fdd">  typename ParameterImageType::Pointer paramImg = ParameterImageType::New();</span>
+
+<span style = "background-color:#fdd">  copyGeoInfoFilter-&gt;ChangeDirectionOn();
+  copyGeoInfoFilter-&gt;SetOutputDirection(image-&gt;GetDirection());
+  copyGeoInfoFilter-&gt;ChangeOriginOn();
+  copyGeoInfoFilter-&gt;SetOutputOrigin(image-&gt;GetOrigin());
+  copyGeoInfoFilter-&gt;ChangeSpacingOn();
+  copyGeoInfoFilter-&gt;SetOutputSpacing(image-&gt;GetSpacing());
+  copyGeoInfoFilter-&gt;SetInput(paramImg);
+  copyGeoInfoFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  paramImg = copyGeoInfoFilter-&gt;GetOutput();
+  paramImg-&gt;SetRegions(image-&gt;GetLargestPossibleRegion());
+  paramImg-&gt;Allocate();
+  paramImg-&gt;FillBuffer(0.0);</span>
+
+  typedef itk::ImageRegionConstIterator&lt;MaskType&gt; MaskIteratorType;
+  typedef itk::ImageRegionIterator&lt;ParameterImageType&gt; ImageIteratorType;
+
+<span style = "background-color:#fdd">  MaskIteratorType maskItr(image, image-&gt;GetLargestPossibleRegion());
+  ImageIteratorType imgItr(paramImg, image-&gt;GetLargestPossibleRegion());
+  maskItr.GoToBegin();
+  imgItr.GoToBegin();
+  while (!maskItr.IsAtEnd())</span>
+  {
+<span style = "background-color:#fdd">    if (maskItr.Get() &gt; 0.0)</span>
+    {
+<span style = "background-color:#fdd">      imgItr.Set(value);</span>
+    }
+
+<span style = "background-color:#fdd">    ++maskItr;
+    ++imgItr;
+  }</span>
+
+<span style = "background-color:#fdd">  m_TempResultImage = Image::New();
+  mitk::CastToMitkImage(paramImg, m_TempResultImage);
+}</span>
+
+bool
+mitk::ROIBasedParameterFitImageGenerator::HasOutdatedResult() const
+<span style = "background-color:#fdd">{
+  bool result = Superclass::HasOutdatedResult();</span>
+
+<span style = "background-color:#fdd">  if (m_ModelParameterizer.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if (m_ModelParameterizer-&gt;GetMTime() &gt; this-&gt;m_GenerationTimeStamp)</span>
+    {
+<span style = "background-color:#fdd">      result = true;</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  if (m_Mask.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if (m_Mask-&gt;GetMTime() &gt; this-&gt;m_GenerationTimeStamp)</span>
+    {
+<span style = "background-color:#fdd">      result = true;</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  if (m_FitFunctor.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if (m_FitFunctor-&gt;GetMTime() &gt; this-&gt;m_GenerationTimeStamp)</span>
+    {
+<span style = "background-color:#fdd">      result = true;</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+void
+mitk::ROIBasedParameterFitImageGenerator::CheckValidInputs() const
+<span style = "background-color:#fdd">{
+  Superclass::CheckValidInputs();</span>
+
+<span style = "background-color:#fdd">  if (m_Mask.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot generate fitted parameter images. Input mask is not set.";</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_Signal.Size() != m_TimeGrid.Size())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot generate fitted parameter images. Signal and TimeGrid do not match.";</span>
+  }
+
+<span style = "background-color:#fdd">};</span>
+
+void mitk::ROIBasedParameterFitImageGenerator::DoFitAndGetResults(ParameterImageMapType&amp;
+    parameterImages, ParameterImageMapType&amp; derivedParameterImages,
+    ParameterImageMapType&amp; criterionImages, ParameterImageMapType&amp; evaluationParameterImages)
+<span style = "background-color:#fdd">{
+  this-&gt;m_Progress = 0;</span>
+
+  //fit the signal
+  ModelParameterizerBase::IndexType index;
+<span style = "background-color:#fdd">  index.Fill(0);
+  this-&gt;m_ModelParameterizer-&gt;SetDefaultTimeGrid(m_TimeGrid);
+  ParameterizerType::ModelBasePointer parameterizedModel =</span>
+    m_ModelParameterizer-&gt;GenerateParameterizedModel(index);
+<span style = "background-color:#fdd">  ParameterizerType::ParametersType initialParameters =</span>
+    m_ModelParameterizer-&gt;GetInitialParameterization(index);
+
+<span style = "background-color:#fdd">  ModelFitFunctorBase::InputPixelArrayType inputValues;</span>
+
+<span style = "background-color:#fdd">  for (SignalType::const_iterator pos = m_Signal.begin(); pos != m_Signal.end(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    inputValues.push_back(*pos);
+  }</span>
+
+<span style = "background-color:#fdd">  ModelFitFunctorBase::OutputPixelArrayType fitResult = m_FitFunctor-&gt;Compute(inputValues,</span>
+      parameterizedModel, initialParameters);
+
+  //generate the results maps
+<span style = "background-color:#fdd">  ParameterImageMapType tempResultMap;
+  ParameterImageMapType tempDerivedResultMap;
+  ParameterImageMapType tempEvaluationResultMap;
+  ParameterImageMapType tempCriterionResultMap;</span>
+
+<span style = "background-color:#fdd">  ModelFitFunctorBase::ParameterNamesType paramNames = parameterizedModel-&gt;GetParameterNames();
+  ModelFitFunctorBase::ParameterNamesType derivedParamNames =</span>
+    parameterizedModel-&gt;GetDerivedParameterNames();
+<span style = "background-color:#fdd">  ModelFitFunctorBase::ParameterNamesType criterionNames = this-&gt;m_FitFunctor-&gt;GetCriterionNames();
+  ModelFitFunctorBase::ParameterNamesType evaluationParamNames =</span>
+    this-&gt;m_FitFunctor-&gt;GetEvaluationParameterNames();
+<span style = "background-color:#fdd">  ModelFitFunctorBase::ParameterNamesType debugParamNames = this-&gt;m_FitFunctor-&gt;GetDebugParameterNames();</span>
+
+<span style = "background-color:#fdd">  if (fitResult.size() != (paramNames.size() + derivedParamNames.size() + criterionNames.size() +</span>
+                           evaluationParamNames.size() + debugParamNames.size()))
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt;</span>
+                "Error while generating fitted parameter images. Fit functor output size does not match expected parameter number. Output size: "
+                &lt;&lt; fitResult.size();
+  }
+
+<span style = "background-color:#fdd">  for (ModelFitFunctorBase::ParameterNamesType::size_type j = 0; j &lt; paramNames.size(); ++j)</span>
+  {
+<span style = "background-color:#fdd">    ModelFitFunctorBase::OutputPixelArrayType::value_type value = fitResult[j];
+    AccessByItk_n(m_Mask, mitk::ROIBasedParameterFitImageGenerator::DoImageGeneration, (value));
+    tempResultMap.insert(std::make_pair(paramNames[j], m_TempResultImage));
+  }</span>
+
+<span style = "background-color:#fdd">  ModelFitFunctorBase::ParameterNamesType::size_type offset = paramNames.size();
+  for (ModelFitFunctorBase::ParameterNamesType::size_type j = 0; j &lt; derivedParamNames.size(); ++j)</span>
+  {
+<span style = "background-color:#fdd">    ModelFitFunctorBase::OutputPixelArrayType::value_type value = fitResult[j + offset];
+    AccessByItk_n(m_Mask, mitk::ROIBasedParameterFitImageGenerator::DoImageGeneration, (value));
+    tempDerivedResultMap.insert(std::make_pair(derivedParamNames[j], m_TempResultImage));
+  }</span>
+
+<span style = "background-color:#fdd">  offset += derivedParamNames.size();
+  for (ModelFitFunctorBase::ParameterNamesType::size_type j = 0; j &lt; criterionNames.size(); ++j)</span>
+  {
+<span style = "background-color:#fdd">    ModelFitFunctorBase::OutputPixelArrayType::value_type value = fitResult[j + offset];
+    AccessByItk_n(m_Mask, mitk::ROIBasedParameterFitImageGenerator::DoImageGeneration, (value));
+    tempCriterionResultMap.insert(std::make_pair(criterionNames[j], m_TempResultImage));
+  }</span>
+
+<span style = "background-color:#fdd">  offset += criterionNames.size();
+  for (ModelFitFunctorBase::ParameterNamesType::size_type j = 0; j &lt; evaluationParamNames.size(); ++j)</span>
+  {
+<span style = "background-color:#fdd">    ModelFitFunctorBase::OutputPixelArrayType::value_type value = fitResult[j + offset];
+    AccessByItk_n(m_Mask, mitk::ROIBasedParameterFitImageGenerator::DoImageGeneration, (value));
+    tempEvaluationResultMap.insert(std::make_pair(evaluationParamNames[j], m_TempResultImage));
+  }</span>
+
+<span style = "background-color:#fdd">  offset += evaluationParamNames.size();
+  for (ModelFitFunctorBase::ParameterNamesType::size_type j = 0; j &lt; debugParamNames.size(); ++j)</span>
+  { //add debug params (if they are generated to the evaluation result map
+<span style = "background-color:#fdd">    ModelFitFunctorBase::OutputPixelArrayType::value_type value = fitResult[j + offset];
+    AccessByItk_n(m_Mask, mitk::ROIBasedParameterFitImageGenerator::DoImageGeneration, (value));
+    tempEvaluationResultMap.insert(std::make_pair(debugParamNames[j], m_TempResultImage));
+  }</span>
+
+<span style = "background-color:#fdd">  parameterImages = tempResultMap;
+  derivedParameterImages = tempDerivedResultMap;
+  criterionImages = tempCriterionResultMap;
+  evaluationParameterImages = tempEvaluationResultMap;</span>
+
+<span style = "background-color:#fdd">};</span>
+
+double
+mitk::ROIBasedParameterFitImageGenerator::GetProgress() const
+<span style = "background-color:#fdd">{
+  return m_Progress;
+};</span>
+
+mitk::ROIBasedParameterFitImageGenerator::ParameterNamesType
+mitk::ROIBasedParameterFitImageGenerator::GetParameterNames() const
+<span style = "background-color:#fdd">{
+  ParameterizerType::ModelBasePointer parameterizedModel =</span>
+    m_ModelParameterizer-&gt;GenerateParameterizedModel();
+
+<span style = "background-color:#fdd">  return parameterizedModel-&gt;GetParameterNames();
+}</span>
+
+mitk::ROIBasedParameterFitImageGenerator::ParameterNamesType
+mitk::ROIBasedParameterFitImageGenerator::GetDerivedParameterNames() const
+<span style = "background-color:#fdd">{
+  ParameterizerType::ModelBasePointer parameterizedModel =</span>
+    m_ModelParameterizer-&gt;GenerateParameterizedModel();
+
+<span style = "background-color:#fdd">  return parameterizedModel-&gt;GetDerivedParameterNames();
+}</span>
+
+mitk::ROIBasedParameterFitImageGenerator::ParameterNamesType
+mitk::ROIBasedParameterFitImageGenerator::GetCriterionNames() const
+<span style = "background-color:#fdd">{
+  return this-&gt;m_FitFunctor-&gt;GetCriterionNames();
+}</span>
+
+mitk::ROIBasedParameterFitImageGenerator::ParameterNamesType
+mitk::ROIBasedParameterFitImageGenerator::GetEvaluationParameterNames() const
+<span style = "background-color:#fdd">{
+  auto evals = this-&gt;m_FitFunctor-&gt;GetEvaluationParameterNames();
+  auto debugs = this-&gt;m_FitFunctor-&gt;GetDebugParameterNames();</span>
+
+<span style = "background-color:#fdd">  evals.insert(evals.end(), debugs.begin(), debugs.end());</span>
+
+<span style = "background-color:#fdd">  return evals;
+}</span></pre>
+	</body>
+</html>

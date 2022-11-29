@@ -1,0 +1,375 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkAutoCropImageFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkAutoCropImageFilter.h"
+
+#include "mitkGeometry3D.h"
+#include "mitkImageAccessByItk.h"
+#include "mitkImageCast.h"
+#include "mitkImageReadAccessor.h"
+#include "mitkPlaneGeometry.h"
+#include "mitkStatusBar.h"
+
+#include &lt;itkImageRegionConstIterator.h&gt;
+#include &lt;itkRegionOfInterestImageFilter.h&gt;
+#include &lt;mitkProportionalTimeGeometry.h&gt;
+
+mitk::AutoCropImageFilter::AutoCropImageFilter()
+<span style = "background-color:#fdd">  : m_BackgroundValue(0), m_MarginFactor(1.0), m_TimeSelector(nullptr), m_OverrideCroppingRegion(false)
+{
+}</span>
+
+mitk::AutoCropImageFilter::~AutoCropImageFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+template &lt;typename TPixel, unsigned int VImageDimension&gt;
+void mitk::AutoCropImageFilter::ITKCrop3DImage(itk::Image&lt;TPixel, VImageDimension&gt; *inputItkImage,
+                                               unsigned int timestep)
+<span style = "background-color:#fdd">{
+  if (inputItkImage == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitk::StatusBar::GetInstance()-&gt;DisplayErrorText(</span>
+      "An internal error occurred. Can't convert Image. Please report to bugs@mitk.org");
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "image is nullptr...returning" &lt;&lt; std::endl;
+    return;</span>
+  }
+
+  typedef itk::Image&lt;TPixel, VImageDimension&gt; InternalImageType;
+  typedef typename InternalImageType::Pointer InternalImagePointer;
+
+  typedef itk::RegionOfInterestImageFilter&lt;InternalImageType, InternalImageType&gt; ROIFilterType;
+  typedef typename itk::RegionOfInterestImageFilter&lt;InternalImageType, InternalImageType&gt;::Pointer ROIFilterPointer;
+
+<span style = "background-color:#fdd">  InternalImagePointer outputItk = InternalImageType::New();</span>
+
+<span style = "background-color:#fdd">  ROIFilterPointer roiFilter = ROIFilterType::New();
+  roiFilter-&gt;SetInput(0, inputItkImage);
+  roiFilter-&gt;SetRegionOfInterest(this-&gt;GetCroppingRegion());
+  roiFilter-&gt;Update();
+  outputItk = roiFilter-&gt;GetOutput();
+  outputItk-&gt;DisconnectPipeline();</span>
+
+<span style = "background-color:#fdd">  mitk::Image::Pointer newMitkImage = mitk::Image::New();
+  mitk::CastToMitkImage(outputItk, newMitkImage);
+  MITK_INFO &lt;&lt; "Crop-Output dimension: " &lt;&lt; (newMitkImage-&gt;GetDimension() == 3)</span>
+            &lt;&lt; " Filter-Output dimension: " &lt;&lt; this-&gt;GetOutput()-&gt;GetDimension() &lt;&lt; " Timestep: " &lt;&lt; timestep;
+
+<span style = "background-color:#fdd">  mitk::ImageReadAccessor newMitkImgAcc(newMitkImage);
+  this-&gt;GetOutput()-&gt;SetVolume(newMitkImgAcc.GetData(), timestep);
+}</span>
+
+void mitk::AutoCropImageFilter::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+  mitk::Image::Pointer input = const_cast&lt;mitk::Image *&gt;(this-&gt;GetInput());
+  mitk::Image::Pointer output = this-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  if (input-&gt;GetDimension() &lt;= 2)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Only 3D any 4D images are supported." &lt;&lt; std::endl;
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  ComputeNewImageBounds();</span>
+
+<span style = "background-color:#fdd">  if ((output-&gt;IsInitialized()) &amp;&amp; (output-&gt;GetPipelineMTime() &lt;= m_TimeOfHeaderInitialization.GetMTime()))
+    return;</span>
+
+<span style = "background-color:#fdd">  itkDebugMacro(&lt;&lt; "GenerateOutputInformation()");</span>
+
+  // PART I: initialize input requested region. We do this already here (and not
+  // later when GenerateInputRequestedRegion() is called), because we
+  // also need the information to setup the output.
+
+  // pre-initialize input-requested-region to largest-possible-region
+  // and correct time-region; spatial part will be cropped by
+  // bounding-box of bounding-object below
+<span style = "background-color:#fdd">  m_InputRequestedRegion = input-&gt;GetLargestPossibleRegion();</span>
+
+  // build region out of index and size calculated in ComputeNewImageBounds()
+
+  mitk::SlicedData::IndexType index;
+<span style = "background-color:#fdd">  index[0] = m_RegionIndex[0];
+  index[1] = m_RegionIndex[1];
+  index[2] = m_RegionIndex[2];
+  index[3] = m_InputRequestedRegion.GetIndex()[3];
+  index[4] = m_InputRequestedRegion.GetIndex()[4];</span>
+
+  mitk::SlicedData::SizeType size;
+<span style = "background-color:#fdd">  size[0] = m_RegionSize[0];
+  size[1] = m_RegionSize[1];
+  size[2] = m_RegionSize[2];
+  size[3] = m_InputRequestedRegion.GetSize()[3];
+  size[4] = m_InputRequestedRegion.GetSize()[4];</span>
+
+<span style = "background-color:#fdd">  mitk::SlicedData::RegionType cropRegion(index, size);</span>
+
+  // crop input-requested-region with cropping region computed from the image data
+<span style = "background-color:#fdd">  if (m_InputRequestedRegion.Crop(cropRegion) == false)</span>
+  {
+    // crop not possible =&gt; do nothing: set time size to 0.
+<span style = "background-color:#fdd">    size.Fill(0);
+    m_InputRequestedRegion.SetSize(size);
+    return;</span>
+  }
+
+  // set input-requested-region, because we access it later in
+  // GenerateInputRequestedRegion (there we just set the time)
+<span style = "background-color:#fdd">  input-&gt;SetRequestedRegion(&amp;m_InputRequestedRegion);</span>
+
+  // PART II: initialize output image
+<span style = "background-color:#fdd">  unsigned int dimension = input-&gt;GetDimension();
+  auto dimensions = new unsigned int[dimension];
+  itk2vtk(m_InputRequestedRegion.GetSize(), dimensions);
+  if (dimension &gt; 3)
+    memcpy(dimensions + 3, input-&gt;GetDimensions() + 3, (dimension - 3) * sizeof(unsigned int));</span>
+
+  // create basic slicedGeometry that will be initialized below
+<span style = "background-color:#fdd">  output-&gt;Initialize(mitk::PixelType(GetOutputPixelType()), dimension, dimensions);
+  delete[] dimensions;</span>
+
+  // clone the IndexToWorldTransform from the input, otherwise we will overwrite it, when adjusting the origin of the
+  // output image!!
+<span style = "background-color:#fdd">  itk::ScalableAffineTransform&lt;mitk::ScalarType, 3&gt;::Pointer cloneTransform =</span>
+    itk::ScalableAffineTransform&lt;mitk::ScalarType, 3&gt;::New();
+<span style = "background-color:#fdd">  cloneTransform-&gt;Compose(input-&gt;GetGeometry()-&gt;GetIndexToWorldTransform());
+  output-&gt;GetGeometry()-&gt;SetIndexToWorldTransform(cloneTransform.GetPointer());</span>
+
+  // Position the output Image to match the corresponding region of the input image
+<span style = "background-color:#fdd">  mitk::SlicedGeometry3D *slicedGeometry = output-&gt;GetSlicedGeometry();
+  mitk::SlicedGeometry3D::Pointer inputGeometry = input-&gt;GetSlicedGeometry();
+  const mitk::SlicedData::IndexType &amp;start = m_InputRequestedRegion.GetIndex();
+  mitk::Point3D origin;
+  vtk2itk(start, origin);
+  input-&gt;GetSlicedGeometry()-&gt;IndexToWorld(origin, origin);
+  slicedGeometry-&gt;SetOrigin(origin);</span>
+
+  // get the PlaneGeometry for the first slice of the original image
+<span style = "background-color:#fdd">  mitk::PlaneGeometry::Pointer plane =</span>
+    dynamic_cast&lt;mitk::PlaneGeometry *&gt;(inputGeometry-&gt;GetPlaneGeometry(0)-&gt;Clone().GetPointer());
+<span style = "background-color:#fdd">  assert(plane);</span>
+
+  // re-initialize the plane according to the new requirements:
+  // dimensions of the cropped image
+  // right- and down-vector as well as spacing do not change, so use the ones from
+  // input image
+<span style = "background-color:#fdd">  ScalarType dimX = output-&gt;GetDimensions()[0];
+  ScalarType dimY = output-&gt;GetDimensions()[1];
+  mitk::Vector3D right = plane-&gt;GetAxisVector(0);
+  mitk::Vector3D down = plane-&gt;GetAxisVector(1);
+  mitk::Vector3D spacing = plane-&gt;GetSpacing();
+  plane-&gt;InitializeStandardPlane(dimX, dimY, right, down, &amp;spacing);</span>
+  // set the new origin on the PlaneGeometry as well
+<span style = "background-color:#fdd">  plane-&gt;SetOrigin(origin);</span>
+
+  // re-initialize the slicedGeometry with the correct planeGeometry
+  // in order to get a fully initialized SlicedGeometry3D
+<span style = "background-color:#fdd">  slicedGeometry-&gt;InitializeEvenlySpaced(</span>
+    plane, inputGeometry-&gt;GetSpacing()[2], output-&gt;GetSlicedGeometry()-&gt;GetSlices());
+
+<span style = "background-color:#fdd">  mitk::TimeGeometry *timeSlicedGeometry = output-&gt;GetTimeGeometry();
+  auto *propTimeGeometry = dynamic_cast&lt;ProportionalTimeGeometry *&gt;(timeSlicedGeometry);
+  propTimeGeometry-&gt;Initialize(slicedGeometry, output-&gt;GetDimension(3));</span>
+
+<span style = "background-color:#fdd">  m_TimeOfHeaderInitialization.Modified();</span>
+
+<span style = "background-color:#fdd">  output-&gt;SetPropertyList(input-&gt;GetPropertyList()-&gt;Clone());
+}</span>
+
+void mitk::AutoCropImageFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::Image::ConstPointer input = this-&gt;GetInput();
+  mitk::Image::Pointer output = this-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  if (input.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  if (input-&gt;GetDimension() &lt;= 2)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Only 3D and 4D images supported";
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if ((output-&gt;IsInitialized() == false))
+    return;</span>
+
+<span style = "background-color:#fdd">  if (m_TimeSelector.IsNull())
+    m_TimeSelector = mitk::ImageTimeSelector::New();</span>
+
+<span style = "background-color:#fdd">  m_TimeSelector-&gt;SetInput(input);</span>
+
+<span style = "background-color:#fdd">  mitk::SlicedData::RegionType outputRegion = input-&gt;GetRequestedRegion();</span>
+
+<span style = "background-color:#fdd">  int tstart = outputRegion.GetIndex(3);
+  int tmax = tstart + outputRegion.GetSize(3);</span>
+
+<span style = "background-color:#fdd">  for (int timestep = tstart; timestep &lt; tmax; ++timestep)</span>
+  {
+<span style = "background-color:#fdd">    m_TimeSelector-&gt;SetTimeNr(timestep);
+    m_TimeSelector-&gt;UpdateLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">    AccessFixedDimensionByItk_1(m_TimeSelector-&gt;GetOutput(), ITKCrop3DImage, 3, timestep);
+  }</span>
+
+  // this-&gt;GetOutput()-&gt;Update(); // Not sure if this is necessary...
+
+<span style = "background-color:#fdd">  m_TimeOfHeaderInitialization.Modified();
+}</span>
+
+void mitk::AutoCropImageFilter::ComputeNewImageBounds()
+<span style = "background-color:#fdd">{
+  mitk::Image::ConstPointer inputMitk = this-&gt;GetInput();</span>
+
+<span style = "background-color:#fdd">  if (m_OverrideCroppingRegion)</span>
+  {
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; 3; ++i)</span>
+    {
+<span style = "background-color:#fdd">      m_RegionIndex[i] = m_CroppingRegion.GetIndex()[i];
+      m_RegionSize[i] = m_CroppingRegion.GetSize()[i];</span>
+
+<span style = "background-color:#fdd">      if (m_RegionIndex[i] &gt;= static_cast&lt;RegionType::IndexValueType&gt;(inputMitk-&gt;GetDimension(i)))</span>
+      {
+<span style = "background-color:#fdd">        itkExceptionMacro("Cropping index is not inside the image. " &lt;&lt; std::endl</span>
+                                                                     &lt;&lt; "Index:"
+                                                                     &lt;&lt; std::endl
+                                                                     &lt;&lt; m_CroppingRegion.GetIndex()
+                                                                     &lt;&lt; std::endl
+                                                                     &lt;&lt; "Size:"
+                                                                     &lt;&lt; std::endl
+                                                                     &lt;&lt; m_CroppingRegion.GetSize());
+      }
+
+<span style = "background-color:#fdd">      if (m_RegionIndex[i] + m_RegionSize[i] &gt;= inputMitk-&gt;GetDimension(i))</span>
+      {
+<span style = "background-color:#fdd">        m_RegionSize[i] = inputMitk-&gt;GetDimension(i) - m_RegionIndex[i];</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; 3; ++i)</span>
+    {
+<span style = "background-color:#fdd">      m_RegionIndex[i] = m_CroppingRegion.GetIndex()[i];
+      m_RegionSize[i] = m_CroppingRegion.GetSize()[i];
+    }
+  }</span>
+  else
+  {
+    // Check if a 3D or 4D image is present
+<span style = "background-color:#fdd">    unsigned int timeSteps = 1;
+    if (inputMitk-&gt;GetDimension() == 4)
+      timeSteps = inputMitk-&gt;GetDimension(3);</span>
+
+    ImageType::IndexType minima, maxima;
+
+<span style = "background-color:#fdd">    if (inputMitk-&gt;GetDimension() == 4)</span>
+    {
+      // initialize with time step 0
+<span style = "background-color:#fdd">      m_TimeSelector = mitk::ImageTimeSelector::New();
+      m_TimeSelector-&gt;SetInput(inputMitk);
+      m_TimeSelector-&gt;SetTimeNr(0);
+      m_TimeSelector-&gt;UpdateLargestPossibleRegion();
+      inputMitk = m_TimeSelector-&gt;GetOutput();</span>
+    }
+
+<span style = "background-color:#fdd">    ImagePointer inputItk = ImageType::New();
+    mitk::CastToItkImage(inputMitk, inputItk);</span>
+
+    // it is assumed that all volumes in a time series have the same 3D dimensions
+<span style = "background-color:#fdd">    ImageType::RegionType origRegion = inputItk-&gt;GetLargestPossibleRegion();</span>
+
+    // Initialize min and max on the first (or only) time step
+<span style = "background-color:#fdd">    maxima = inputItk-&gt;GetLargestPossibleRegion().GetIndex();
+    minima[0] = inputItk-&gt;GetLargestPossibleRegion().GetSize()[0];
+    minima[1] = inputItk-&gt;GetLargestPossibleRegion().GetSize()[1];
+    minima[2] = inputItk-&gt;GetLargestPossibleRegion().GetSize()[2];</span>
+
+    typedef itk::ImageRegionConstIterator&lt;ImageType&gt; ConstIteratorType;
+
+<span style = "background-color:#fdd">    for (unsigned int idx = 0; idx &lt; timeSteps; ++idx)</span>
+    {
+      // if 4D image, update time step and itk image
+<span style = "background-color:#fdd">      if (idx &gt; 0)</span>
+      {
+<span style = "background-color:#fdd">        m_TimeSelector-&gt;SetTimeNr(idx);
+        m_TimeSelector-&gt;UpdateLargestPossibleRegion();
+        inputMitk = m_TimeSelector-&gt;GetOutput();
+        mitk::CastToItkImage(inputMitk, inputItk);</span>
+      }
+
+<span style = "background-color:#fdd">      ConstIteratorType inIt(inputItk, origRegion);</span>
+
+<span style = "background-color:#fdd">      for (inIt.GoToBegin(); !inIt.IsAtEnd(); ++inIt)</span>
+      {
+<span style = "background-color:#fdd">        float pix_val = inIt.Get();
+        if (fabs(pix_val - m_BackgroundValue) &gt; mitk::eps)</span>
+        {
+<span style = "background-color:#fdd">          for (int i = 0; i &lt; 3; i++)</span>
+          {
+<span style = "background-color:#fdd">            minima[i] = std::min((int)minima[i], (int)(inIt.GetIndex()[i]));
+            maxima[i] = std::max((int)maxima[i], (int)(inIt.GetIndex()[i]));
+          }</span>
+        }
+<span style = "background-color:#fdd">      }
+    }</span>
+
+    typedef ImageType::RegionType::SizeType::SizeValueType SizeValueType;
+
+<span style = "background-color:#fdd">    m_RegionSize[0] = (SizeValueType)(m_MarginFactor * (maxima[0] - minima[0] + 1));
+    m_RegionSize[1] = (SizeValueType)(m_MarginFactor * (maxima[1] - minima[1] + 1));
+    m_RegionSize[2] = (SizeValueType)(m_MarginFactor * (maxima[2] - minima[2] + 1));
+    m_RegionIndex = minima;</span>
+
+<span style = "background-color:#fdd">    m_RegionIndex[0] -= (m_RegionSize[0] - maxima[0] + minima[0] - 1) / 2;
+    m_RegionIndex[1] -= (m_RegionSize[1] - maxima[1] + minima[1] - 1) / 2;
+    m_RegionIndex[2] -= (m_RegionSize[2] - maxima[2] + minima[2] - 1) / 2;</span>
+
+<span style = "background-color:#fdd">    ImageType::RegionType cropRegion(m_RegionIndex, m_RegionSize);
+    origRegion.Crop(cropRegion);</span>
+
+<span style = "background-color:#fdd">    m_RegionSize[0] = origRegion.GetSize()[0];
+    m_RegionSize[1] = origRegion.GetSize()[1];
+    m_RegionSize[2] = origRegion.GetSize()[2];</span>
+
+<span style = "background-color:#fdd">    m_RegionIndex[0] = origRegion.GetIndex()[0];
+    m_RegionIndex[1] = origRegion.GetIndex()[1];
+    m_RegionIndex[2] = origRegion.GetIndex()[2];</span>
+
+<span style = "background-color:#fdd">    m_CroppingRegion = origRegion;
+  }
+}</span>
+
+void mitk::AutoCropImageFilter::GenerateInputRequestedRegion()
+<span style = "background-color:#fdd">{
+}</span>
+
+const mitk::PixelType mitk::AutoCropImageFilter::GetOutputPixelType()
+<span style = "background-color:#fdd">{
+  return this-&gt;GetInput()-&gt;GetPixelType();
+}</span>
+
+void mitk::AutoCropImageFilter::SetCroppingRegion(RegionType overrideRegion)
+<span style = "background-color:#fdd">{
+  m_CroppingRegion = overrideRegion;
+  m_OverrideCroppingRegion = true;
+}</span></pre>
+	</body>
+</html>

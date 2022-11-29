@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSplineVtkMapper3D.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef _MITK_SPLINE_VTK_MAPPER_3D__H
+#define _MITK_SPLINE_VTK_MAPPER_3D__H
+
+#include "MitkMapperExtExports.h"
+#include "mitkPointSetVtkMapper3D.h"
+
+class vtkActor;
+class vtkAssembly;
+
+namespace mitk
+{
+  /**
+  * @brief Vtk-based mapper for Splines.
+  *
+  * The mapper inherits from mitk::PointSetVTKMapper3D and renders a spline in 3D, using a mitk pointset as input.
+  *
+  *
+  * Properties that can be set for splines which affect the mitk::SplineVtkMapper3D are:
+  *
+  *   - \b "line width": (FloatProperty) width of the spline
+  *
+  * There might be still some other, deprecated properties. These will not be documented anymore.
+  * Please check the source if you really need them.
+  *
+  * @ingroup Mapper
+  */
+  class MITKMAPPEREXT_EXPORT SplineVtkMapper3D : public PointSetVtkMapper3D
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(SplineVtkMapper3D, PointSetVtkMapper3D);</span>
+
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+      vtkProp *GetVtkProp(mitk::BaseRenderer *renderer) override;
+    void UpdateVtkTransform(mitk::BaseRenderer *renderer) override;
+
+    bool SplinesAreAvailable();
+
+    vtkPolyData *GetSplinesPolyData();
+
+    vtkActor *GetSplinesActor();
+
+    virtual void UpdateSpline();
+
+<span style = "background-color:#fdd">    itkSetMacro(SplineResolution, unsigned int);</span>
+
+<span style = "background-color:#fdd">    itkGetMacro(SplineResolution, unsigned int);</span>
+
+  protected:
+    SplineVtkMapper3D();
+
+    ~SplineVtkMapper3D() override;
+
+    void GenerateDataForRenderer(mitk::BaseRenderer *renderer) override;
+
+    void ApplyAllProperties(BaseRenderer *renderer, vtkActor *actor) override;
+
+    vtkActor *m_SplinesActor;
+
+    vtkPropAssembly *m_SplineAssembly;
+
+    bool m_SplinesAvailable;
+
+    bool m_SplinesAddedToAssembly;
+
+    unsigned int m_SplineResolution;
+
+    itk::TimeStamp m_SplineUpdateTime;
+  };
+
+} // namespace mitk
+
+#endif</pre>
+	</body>
+</html>

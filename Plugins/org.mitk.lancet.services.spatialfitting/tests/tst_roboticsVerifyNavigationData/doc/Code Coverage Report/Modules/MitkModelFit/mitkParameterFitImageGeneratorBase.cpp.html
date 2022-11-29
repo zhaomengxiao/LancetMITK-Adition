@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkParameterFitImageGeneratorBase.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkParameterFitImageGeneratorBase.h"
+
+bool
+  mitk::ParameterFitImageGeneratorBase::HasOutdatedResult() const
+<span style = "background-color:#fdd">{
+  bool result = this-&gt;GetMTime() &gt; this-&gt;m_GenerationTimeStamp;</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+void
+  mitk::ParameterFitImageGeneratorBase::CheckValidInputs() const
+<span style = "background-color:#fdd">{
+};</span>
+
+
+void
+  mitk::ParameterFitImageGeneratorBase::Generate()
+<span style = "background-color:#fdd">{
+  CheckValidInputs();</span>
+
+<span style = "background-color:#fdd">  if (!this-&gt;HasOutdatedResult())</span>
+  { //still up to date -&gt; nothing to do
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  ParameterImageMapType paramImages;
+  ParameterImageMapType derivedImages;
+  ParameterImageMapType criterionImages;
+  ParameterImageMapType evaluationImages;</span>
+
+<span style = "background-color:#fdd">  DoFitAndGetResults(paramImages, derivedImages, criterionImages, evaluationImages);</span>
+
+<span style = "background-color:#fdd">  m_ParameterImageMap = paramImages;
+  m_DerivedParameterImageMap = derivedImages;
+  m_CriterionImageMap = criterionImages;
+  m_EvaluationParameterImageMap = evaluationImages;</span>
+
+<span style = "background-color:#fdd">  this-&gt;m_GenerationTimeStamp.Modified();
+};</span>
+
+mitk::ParameterFitImageGeneratorBase::ParameterImageMapType
+  mitk::ParameterFitImageGeneratorBase::GetParameterImages()
+<span style = "background-color:#fdd">{
+  if (this-&gt;HasOutdatedResult())</span>
+  {
+<span style = "background-color:#fdd">    Generate();</span>
+  }
+
+<span style = "background-color:#fdd">  return m_ParameterImageMap;
+};</span>
+
+mitk::ParameterFitImageGeneratorBase::ParameterImageMapType
+  mitk::ParameterFitImageGeneratorBase::GetDerivedParameterImages()
+<span style = "background-color:#fdd">{
+  if (this-&gt;HasOutdatedResult())</span>
+  {
+<span style = "background-color:#fdd">    Generate();</span>
+  }
+
+<span style = "background-color:#fdd">  return m_DerivedParameterImageMap;
+};</span>
+
+mitk::ParameterFitImageGeneratorBase::ParameterImageMapType
+  mitk::ParameterFitImageGeneratorBase::GetCriterionImages()
+<span style = "background-color:#fdd">{
+  if (this-&gt;HasOutdatedResult())</span>
+  {
+<span style = "background-color:#fdd">    Generate();</span>
+  }
+
+<span style = "background-color:#fdd">  return m_CriterionImageMap;
+};</span>
+
+mitk::ParameterFitImageGeneratorBase::ParameterImageMapType
+  mitk::ParameterFitImageGeneratorBase::GetEvaluationParameterImages()
+<span style = "background-color:#fdd">{
+  if (this-&gt;HasOutdatedResult())</span>
+  {
+<span style = "background-color:#fdd">    Generate();</span>
+  }
+
+<span style = "background-color:#fdd">  return m_EvaluationParameterImageMap;
+};</span></pre>
+	</body>
+</html>

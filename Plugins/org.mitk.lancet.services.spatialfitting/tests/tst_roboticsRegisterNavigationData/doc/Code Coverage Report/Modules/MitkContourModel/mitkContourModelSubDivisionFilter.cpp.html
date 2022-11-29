@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelSubDivisionFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkContourModelSubDivisionFilter.h"
+#include &lt;mitkInteractionConst.h&gt;
+#include &lt;mitkPointOperation.h&gt;
+
+mitk::ContourModelSubDivisionFilter::ContourModelSubDivisionFilter()
+<span style = "background-color:#fdd">{
+  OutputType::Pointer output = dynamic_cast&lt;OutputType *&gt;(this-&gt;MakeOutput(0).GetPointer());
+  this-&gt;SetNumberOfRequiredInputs(1);
+  this-&gt;SetNumberOfIndexedOutputs(1);
+  this-&gt;SetNthOutput(0, output.GetPointer());
+  this-&gt;m_InterpolationIterations = 4;
+}</span>
+mitk::ContourModelSubDivisionFilter::~ContourModelSubDivisionFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ContourModelSubDivisionFilter::SetInput(const mitk::ContourModelSubDivisionFilter::InputType *input)
+<span style = "background-color:#fdd">{
+  this-&gt;SetInput(0, input);
+}</span>
+
+void mitk::ContourModelSubDivisionFilter::SetInput(unsigned int idx,
+                                                   const mitk::ContourModelSubDivisionFilter::InputType *input)
+<span style = "background-color:#fdd">{
+  if (idx + 1 &gt; this-&gt;GetNumberOfInputs())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetNumberOfRequiredInputs(idx + 1);</span>
+  }
+<span style = "background-color:#fdd">  if (input != static_cast&lt;InputType *&gt;(this-&gt;ProcessObject::GetInput(idx)))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ProcessObject::SetNthInput(idx, const_cast&lt;InputType *&gt;(input));
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const mitk::ContourModelSubDivisionFilter::InputType *mitk::ContourModelSubDivisionFilter::GetInput(void)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;
+  return static_cast&lt;const mitk::ContourModelSubDivisionFilter::InputType *&gt;(this-&gt;ProcessObject::GetInput(0));
+}</span>
+
+const mitk::ContourModelSubDivisionFilter::InputType *mitk::ContourModelSubDivisionFilter::GetInput(unsigned int idx)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;
+  return static_cast&lt;const mitk::ContourModelSubDivisionFilter::InputType *&gt;(this-&gt;ProcessObject::GetInput(idx));
+}</span>
+
+void mitk::ContourModelSubDivisionFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::ContourModel::Pointer input = const_cast&lt;mitk::ContourModel *&gt;(this-&gt;GetInput(0));</span>
+
+  // mitk::ContourModelSubDivisionFilter::OutputType::Pointer outputContour = this-&gt;GetOutput();
+
+<span style = "background-color:#fdd">  mitk::ContourModel::Pointer contour(input);</span>
+
+<span style = "background-color:#fdd">  auto timestep = static_cast&lt;TimeStepType&gt;(input-&gt;GetTimeSteps());</span>
+
+<span style = "background-color:#fdd">  for (decltype(timestep) currentTimestep = 0; currentTimestep &lt; timestep; currentTimestep++)</span>
+  {
+<span style = "background-color:#fdd">    if (input-&gt;GetNumberOfVertices(currentTimestep) &gt;= 4)</span>
+    {
+<span style = "background-color:#fdd">      for (int iterations = 0; iterations &lt; this-&gt;m_InterpolationIterations; iterations++)</span>
+      {
+<span style = "background-color:#fdd">        auto it = contour-&gt;IteratorBegin();
+        auto end = contour-&gt;IteratorEnd();</span>
+
+<span style = "background-color:#fdd">        auto first = contour-&gt;IteratorBegin();
+        auto last = contour-&gt;IteratorEnd() - 1;</span>
+
+        // tempory contour to store result of a subdivision iteration
+<span style = "background-color:#fdd">        mitk::ContourModel::Pointer tempContour = mitk::ContourModel::New();</span>
+
+        // insert subpoints
+<span style = "background-color:#fdd">        while (it != end)</span>
+        {
+          // add the current point to the temp contour
+<span style = "background-color:#fdd">          tempContour-&gt;AddVertex((*it)-&gt;Coordinates, (*it)-&gt;IsControlPoint, currentTimestep);</span>
+
+          // control points for interpolation
+<span style = "background-color:#fdd">          auto Ci = it;
+          InputType::VertexIterator CiPlus1;
+          InputType::VertexIterator CiPlus2;
+          InputType::VertexIterator CiMinus1;</span>
+
+          // consider all possible cases
+<span style = "background-color:#fdd">          if (it == first)</span>
+          {
+<span style = "background-color:#fdd">            if (input-&gt;IsClosed(currentTimestep))</span>
+            {
+<span style = "background-color:#fdd">              CiPlus1 = it + 1;
+              CiPlus2 = it + 2;
+              CiMinus1 = last;
+            }</span>
+            else
+            {
+<span style = "background-color:#fdd">              CiPlus1 = it + 1;
+              CiPlus2 = it + 2;
+              CiMinus1 = it;</span>
+            }
+<span style = "background-color:#fdd">          }
+          else if (it == last)</span>
+          {
+<span style = "background-color:#fdd">            if (input-&gt;IsClosed(currentTimestep))</span>
+            {
+<span style = "background-color:#fdd">              CiPlus1 = first;
+              CiPlus2 = first + 1;
+              CiMinus1 = it - 1;
+            }</span>
+            else
+            {
+              // don't add point after last
+<span style = "background-color:#fdd">              break;</span>
+            }
+<span style = "background-color:#fdd">          }
+          else if (it == (last - 1))</span>
+          {
+<span style = "background-color:#fdd">            if (input-&gt;IsClosed(currentTimestep))</span>
+            {
+<span style = "background-color:#fdd">              CiPlus1 = it + 1;
+              CiPlus2 = first;
+              CiMinus1 = it - 1;
+            }</span>
+            else
+            {
+<span style = "background-color:#fdd">              CiPlus1 = it + 1;
+              CiPlus2 = it + 1;
+              CiMinus1 = it - 1;</span>
+            }
+<span style = "background-color:#fdd">          }</span>
+          else
+          {
+<span style = "background-color:#fdd">            CiPlus1 = it + 1;
+            CiPlus2 = it + 2;
+            CiMinus1 = it - 1;</span>
+          }
+
+          /* F2i = Ci
+          * F2i+1 = -1/16Ci-1 + 9/16Ci + 9/16Ci+1 - 1/16Ci+2
+          */
+<span style = "background-color:#fdd">          mitk::Point3D subpoint;</span>
+
+<span style = "background-color:#fdd">          mitk::Point3D a;
+          a[0] = (-1.0 / 16.0) * (*CiMinus1)-&gt;Coordinates[0];
+          a[1] = (-1.0 / 16.0) * (*CiMinus1)-&gt;Coordinates[1];
+          a[2] = (-1.0 / 16.0) * (*CiMinus1)-&gt;Coordinates[2];</span>
+
+<span style = "background-color:#fdd">          mitk::Point3D b;
+          b[0] = (9.0 / 16.0) * (*Ci)-&gt;Coordinates[0];
+          b[1] = (9.0 / 16.0) * (*Ci)-&gt;Coordinates[1];
+          b[2] = (9.0 / 16.0) * (*Ci)-&gt;Coordinates[2];</span>
+
+<span style = "background-color:#fdd">          mitk::Point3D c;
+          c[0] = (9.0 / 16.0) * (*CiPlus1)-&gt;Coordinates[0];
+          c[1] = (9.0 / 16.0) * (*CiPlus1)-&gt;Coordinates[1];
+          c[2] = (9.0 / 16.0) * (*CiPlus1)-&gt;Coordinates[2];</span>
+
+<span style = "background-color:#fdd">          mitk::Point3D d;
+          d[0] = (-1.0 / 16.0) * (*CiPlus2)-&gt;Coordinates[0];
+          d[1] = (-1.0 / 16.0) * (*CiPlus2)-&gt;Coordinates[1];
+          d[2] = (-1.0 / 16.0) * (*CiPlus2)-&gt;Coordinates[2];</span>
+
+<span style = "background-color:#fdd">          subpoint[0] = a[0] + b[0] + c[0] + d[0];
+          subpoint[1] = a[1] + b[1] + c[1] + d[1];
+          subpoint[2] = a[2] + b[2] + c[2] + d[2];
+          InputType::VertexType subdivisionPoint(subpoint, false);</span>
+
+          // add the new subdivision point to our tempContour
+<span style = "background-color:#fdd">          tempContour-&gt;AddVertex(subdivisionPoint.Coordinates, currentTimestep);</span>
+
+<span style = "background-color:#fdd">          it++;
+        }</span>
+
+        // set the interpolated contour as the contour for the next iteration
+<span style = "background-color:#fdd">        contour = tempContour;
+      }
+    }</span>
+    else
+    {
+      // filter not executeable - set input to output
+<span style = "background-color:#fdd">      contour = input;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // somehow the isClosed property is not set via copy constructor
+<span style = "background-color:#fdd">  contour-&gt;SetClosed(input-&gt;IsClosed());</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetNthOutput(0, contour);
+}</span></pre>
+	</body>
+</html>

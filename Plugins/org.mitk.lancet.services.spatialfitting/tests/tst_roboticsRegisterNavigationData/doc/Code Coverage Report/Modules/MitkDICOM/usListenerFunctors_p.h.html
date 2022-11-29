@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usListenerFunctors_p.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+#ifndef USLISTENERFUNCTORS_P_H
+#define USLISTENERFUNCTORS_P_H
+
+#include &lt;usServiceEvent.h&gt;
+#include &lt;usModuleEvent.h&gt;
+
+#include &lt;algorithm&gt;
+#include &lt;cstring&gt;
+
+#ifdef US_HAVE_STD_FUNCTION
+  #ifdef US_HAVE_FUNCTIONAL_H
+    #include &lt;functional&gt;
+  #elif defined(US_HAVE_TR1_FUNCTIONAL_H)
+    #include &lt;tr1/functional&gt;
+  #endif
+  #define US_FUNCTION_TYPE std::function
+#elif defined(US_HAVE_TR1_FUNCTION)
+  #ifdef US_HAVE_TR1_FUNCTIONAL_H
+    #include &lt;tr1/functional&gt;
+  #elif defined(US_HAVE_FUNCTIONAL_H)
+    #include &lt;functional&gt;
+  #endif
+  #define US_FUNCTION_TYPE std::tr1::function
+#endif
+
+#define US_MODULE_LISTENER_FUNCTOR US_FUNCTION_TYPE&lt;void(const US_PREPEND_NAMESPACE(ModuleEvent)&amp;)&gt;
+#define US_SERVICE_LISTENER_FUNCTOR US_FUNCTION_TYPE&lt;void(const US_PREPEND_NAMESPACE(ServiceEvent)&amp;)&gt;
+
+US_BEGIN_NAMESPACE
+  template&lt;class X&gt;
+  US_MODULE_LISTENER_FUNCTOR ModuleListenerMemberFunctor(X* x, void (X::*memFn)(const US_PREPEND_NAMESPACE(ModuleEvent)))
+<span style = "background-color:#fdd">  { return std::bind(std::mem_fn(memFn), x, std::placeholders::_1); }</span>
+
+  struct ModuleListenerCompare
+  {
+    bool operator()(const std::pair&lt;US_MODULE_LISTENER_FUNCTOR, void*&gt;&amp; p1,
+                    const std::pair&lt;US_MODULE_LISTENER_FUNCTOR, void*&gt;&amp; p2) const
+<span style = "background-color:#fdd">    {
+      return p1.second == p2.second &amp;&amp;</span>
+             p1.first.target&lt;void(const US_PREPEND_NAMESPACE(ModuleEvent)&amp;)&gt;() == p2.first.target&lt;void(const US_PREPEND_NAMESPACE(ModuleEvent)&amp;)&gt;();
+<span style = "background-color:#fdd">    }</span>
+  };
+
+  template&lt;class X&gt;
+  US_SERVICE_LISTENER_FUNCTOR ServiceListenerMemberFunctor(X* x, void (X::*memFn)(const US_PREPEND_NAMESPACE(ServiceEvent)))
+<span style = "background-color:#dfd">  { return std::bind(std::mem_fn(memFn), x, std::placeholders::_1); }</span>
+
+  struct ServiceListenerCompare
+  {
+    bool operator()(const US_SERVICE_LISTENER_FUNCTOR&amp; f1,
+                    const US_SERVICE_LISTENER_FUNCTOR&amp; f2) const
+<span style = "background-color:#dfd">    {
+      return f1.target&lt;void(const US_PREPEND_NAMESPACE(ServiceEvent)&amp;)&gt;() == f2.target&lt;void(const US_PREPEND_NAMESPACE(ServiceEvent)&amp;)&gt;();
+    }</span>
+  };
+US_END_NAMESPACE
+
+US_HASH_FUNCTION_NAMESPACE_BEGIN
+<span style = "background-color:#dfd">US_HASH_FUNCTION_BEGIN(US_SERVICE_LISTENER_FUNCTOR)
+  void(*targetFunc)(const US_PREPEND_NAMESPACE(ServiceEvent)&amp;) = arg.target&lt;void(const US_PREPEND_NAMESPACE(ServiceEvent)&amp;)&gt;();
+  void* targetPtr = nullptr;
+  std::memcpy(&amp;targetPtr, &amp;targetFunc, sizeof(void*));
+  return US_HASH_FUNCTION(void*, targetPtr);
+US_HASH_FUNCTION_END</span>
+US_HASH_FUNCTION_NAMESPACE_END
+
+#endif // USLISTENERFUNCTORS_P_H</pre>
+	</body>
+</html>

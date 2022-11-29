@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPropertyListSerializer.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkPropertyListSerializer_h_included
+#define mitkPropertyListSerializer_h_included
+
+#include &lt;MitkSceneSerializationBaseExports.h&gt;
+
+#include "mitkPropertyList.h"
+
+#include &lt;itkObjectFactoryBase.h&gt;
+
+namespace tinyxml2
+{
+  class XMLDocument;
+  class XMLElement;
+}
+
+namespace mitk
+{
+  /**
+    \brief Serializes a mitk::PropertyList
+  */
+  class MITKSCENESERIALIZATIONBASE_EXPORT PropertyListSerializer : public itk::Object
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(PropertyListSerializer, itk::Object);
+    itkFactorylessNewMacro(Self) // is this needed? should never be instantiated, only subclasses should
+      itkCloneMacro(Self);
+      itkSetStringMacro(FilenameHint);
+    itkGetStringMacro(FilenameHint);</span>
+
+<span style = "background-color:#fdd">    itkSetStringMacro(WorkingDirectory);
+    itkGetStringMacro(WorkingDirectory);</span>
+
+<span style = "background-color:#fdd">    itkSetObjectMacro(PropertyList, PropertyList);</span>
+
+    /**
+      \brief Serializes given PropertyList object.
+      \return the filename of the newly created file.
+      */
+    virtual std::string Serialize();
+
+    PropertyList *GetFailedProperties();
+
+  protected:
+    PropertyListSerializer();
+    ~PropertyListSerializer() override;
+
+    tinyxml2::XMLElement *SerializeOneProperty(tinyxml2::XMLDocument &amp;doc, const std::string &amp;key, const BaseProperty *property);
+
+    std::string m_FilenameHint;
+    std::string m_WorkingDirectory;
+    PropertyList::Pointer m_PropertyList;
+
+    PropertyList::Pointer m_FailedProperties;
+  };
+
+} // namespace
+
+#endif</pre>
+	</body>
+</html>

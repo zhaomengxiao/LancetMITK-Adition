@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMTagCache.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMTagCache.h"
+
+mitk::DICOMTagCache::DICOMTagCache()
+<span style = "background-color:#fdd">:itk::Object()
+{
+}</span>
+
+mitk::DICOMTagCache::DICOMTagCache( const DICOMTagCache&amp;)
+<span style = "background-color:#fdd">:itk::Object()
+{
+}</span>
+
+mitk::DICOMTagCache::~DICOMTagCache()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::DICOMTagCache::SetInputFiles(const StringList&amp; filenames)
+<span style = "background-color:#fdd">{
+  m_InputFilenames = filenames;
+  this-&gt;Modified();
+}</span></pre>
+	</body>
+</html>

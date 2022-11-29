@@ -1,0 +1,289 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPointSetReaderService.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+// MITK
+#include "mitkPointSetReaderService.h"
+#include "mitkGeometry3DToXML.h"
+#include "mitkIOMimeTypes.h"
+#include "mitkProportionalTimeGeometry.h"
+#include &lt;mitkLocaleSwitch.h&gt;
+
+// STL
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+
+#include &lt;tinyxml2.h&gt;
+
+mitk::PointSetReaderService::PointSetReaderService()
+<span style = "background-color:#dfd">  : AbstractFileReader(CustomMimeType(IOMimeTypes::POINTSET_MIMETYPE()), "MITK Point Set Reader")
+{
+  RegisterService();
+}</span>
+
+mitk::PointSetReaderService::~PointSetReaderService()
+<span style = "background-color:#dfd">{
+}</span>
+
+std::vector&lt;itk::SmartPointer&lt;mitk::BaseData&gt;&gt; mitk::PointSetReaderService::DoRead()
+<span style = "background-color:#fdd">{</span>
+  // Switch the current locale to "C"
+<span style = "background-color:#fdd">  LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">  std::vector&lt;itk::SmartPointer&lt;mitk::BaseData&gt;&gt; result;</span>
+
+<span style = "background-color:#fdd">  InputStream stream(this);</span>
+
+<span style = "background-color:#fdd">  std::string s(std::istreambuf_iterator&lt;char&gt;{stream.rdbuf()}, std::istreambuf_iterator&lt;char&gt;());
+  tinyxml2::XMLDocument doc;
+  doc.Parse(s.c_str(), s.size());
+  if (!doc.Error())</span>
+  {
+<span style = "background-color:#fdd">    tinyxml2::XMLHandle docHandle(&amp;doc);</span>
+    // unsigned int pointSetCounter(0);
+<span style = "background-color:#fdd">    for (auto *currentPointSetElement =</span>
+           docHandle.FirstChildElement("point_set_file").FirstChildElement("point_set").ToElement();
+<span style = "background-color:#fdd">         currentPointSetElement != nullptr;
+         currentPointSetElement = currentPointSetElement-&gt;NextSiblingElement())</span>
+    {
+<span style = "background-color:#fdd">      mitk::PointSet::Pointer newPointSet = mitk::PointSet::New();</span>
+
+      // time geometry assembled for addition after all points
+      // else the SetPoint method would already transform the points that we provide it
+<span style = "background-color:#fdd">      mitk::ProportionalTimeGeometry::Pointer timeGeometry = mitk::ProportionalTimeGeometry::New();</span>
+
+<span style = "background-color:#fdd">      if (currentPointSetElement-&gt;FirstChildElement("time_series") != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        for (auto *currentTimeSeries = currentPointSetElement-&gt;FirstChildElement("time_series")-&gt;ToElement();
+             currentTimeSeries != nullptr;
+             currentTimeSeries = currentTimeSeries-&gt;NextSiblingElement())</span>
+        {
+<span style = "background-color:#fdd">          unsigned int currentTimeStep(0);
+          auto *currentTimeSeriesID = currentTimeSeries-&gt;FirstChildElement("time_series_id");</span>
+
+<span style = "background-color:#fdd">          currentTimeStep = atoi(currentTimeSeriesID-&gt;GetText());</span>
+
+<span style = "background-color:#fdd">          timeGeometry-&gt;Expand(currentTimeStep + 1); // expand (default to identity) in any case
+          auto *geometryElem = currentTimeSeries-&gt;FirstChildElement("Geometry3D");
+          if (geometryElem)</span>
+          {
+<span style = "background-color:#fdd">            Geometry3D::Pointer geometry = Geometry3DToXML::FromXML(geometryElem);
+            if (geometry.IsNotNull())</span>
+            {
+<span style = "background-color:#fdd">              timeGeometry-&gt;SetTimeStepGeometry(geometry, currentTimeStep);
+            }</span>
+            else
+            {
+<span style = "background-color:#fdd">              MITK_ERROR &lt;&lt; "Could not deserialize Geometry3D element.";</span>
+            }
+<span style = "background-color:#fdd">          }</span>
+          else
+          {
+<span style = "background-color:#fdd">            MITK_WARN &lt;&lt; "Fallback to legacy behavior: defining PointSet geometry as identity";</span>
+          }
+
+<span style = "background-color:#fdd">          newPointSet = this-&gt;ReadPoints(newPointSet, currentTimeSeries, currentTimeStep);
+        }
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        newPointSet = this-&gt;ReadPoints(newPointSet, currentPointSetElement, 0);</span>
+      }
+
+<span style = "background-color:#fdd">      newPointSet-&gt;SetTimeGeometry(timeGeometry);</span>
+
+<span style = "background-color:#fdd">      result.push_back(newPointSet.GetPointer());
+    }
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; doc.ErrorStr();</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::BaseGeometry::Pointer mitk::PointSetReaderService::ReadGeometry(tinyxml2::XMLElement *parentElement)
+<span style = "background-color:#fdd">{
+  auto *geometryElem = parentElement-&gt;FirstChildElement("geometry3d");
+  if (!geometryElem)
+    return nullptr;</span>
+
+  // data to generate
+<span style = "background-color:#fdd">  AffineTransform3D::MatrixType matrix;</span>
+  AffineTransform3D::OffsetType offset;
+<span style = "background-color:#fdd">  bool isImageGeometry(false);
+  unsigned int frameOfReferenceID(0);</span>
+  BaseGeometry::BoundsArrayType bounds;
+
+<span style = "background-color:#fdd">  bool somethingMissing(false);</span>
+
+  // find data in xml structure
+<span style = "background-color:#fdd">  auto *imageGeometryElem = geometryElem-&gt;FirstChildElement("image_geometry");
+  if (imageGeometryElem)</span>
+  {
+<span style = "background-color:#fdd">    std::string igs = imageGeometryElem-&gt;GetText();
+    isImageGeometry = igs == "true" || igs == "TRUE" || igs == "1";
+  }</span>
+  else
+<span style = "background-color:#fdd">    somethingMissing = true;</span>
+
+<span style = "background-color:#fdd">  auto *frameOfReferenceElem = geometryElem-&gt;FirstChildElement("frame_of_reference_id");
+  if (frameOfReferenceElem)</span>
+  {
+<span style = "background-color:#fdd">    frameOfReferenceID = atoi(frameOfReferenceElem-&gt;GetText());
+  }</span>
+  else
+<span style = "background-color:#fdd">    somethingMissing = true;</span>
+
+<span style = "background-color:#fdd">  auto *indexToWorldElem = geometryElem-&gt;FirstChildElement("index_to_world");
+  if (indexToWorldElem)</span>
+  {
+<span style = "background-color:#fdd">    auto *matrixElem = indexToWorldElem-&gt;FirstChildElement("matrix3x3");
+    auto *offsetElem = indexToWorldElem-&gt;FirstChildElement("offset");
+    if (indexToWorldElem &amp;&amp; offsetElem)</span>
+    {
+<span style = "background-color:#fdd">      auto*col0 = matrixElem-&gt;FirstChildElement("column_0");
+      auto*col1 = matrixElem-&gt;FirstChildElement("column_1");
+      auto*col2 = matrixElem-&gt;FirstChildElement("column_2");</span>
+
+<span style = "background-color:#fdd">      if (col0 &amp;&amp; col1 &amp;&amp; col2)</span>
+      {
+<span style = "background-color:#fdd">        somethingMissing |= tinyxml2::XML_SUCCESS != col0-&gt;QueryDoubleAttribute("x", &amp;matrix[0][0]);
+        somethingMissing |= tinyxml2::XML_SUCCESS != col0-&gt;QueryDoubleAttribute("y", &amp;matrix[1][0]);
+        somethingMissing |= tinyxml2::XML_SUCCESS != col0-&gt;QueryDoubleAttribute("z", &amp;matrix[2][0]);</span>
+
+<span style = "background-color:#fdd">        somethingMissing |= tinyxml2::XML_SUCCESS != col1-&gt;QueryDoubleAttribute("x", &amp;matrix[0][1]);
+        somethingMissing |= tinyxml2::XML_SUCCESS != col1-&gt;QueryDoubleAttribute("y", &amp;matrix[1][1]);
+        somethingMissing |= tinyxml2::XML_SUCCESS != col1-&gt;QueryDoubleAttribute("z", &amp;matrix[2][1]);</span>
+
+<span style = "background-color:#fdd">        somethingMissing |= tinyxml2::XML_SUCCESS != col2-&gt;QueryDoubleAttribute("x", &amp;matrix[0][2]);
+        somethingMissing |= tinyxml2::XML_SUCCESS != col2-&gt;QueryDoubleAttribute("y", &amp;matrix[1][2]);
+        somethingMissing |= tinyxml2::XML_SUCCESS != col2-&gt;QueryDoubleAttribute("z", &amp;matrix[2][2]);
+      }</span>
+      else
+<span style = "background-color:#fdd">        somethingMissing = true;</span>
+
+<span style = "background-color:#fdd">      somethingMissing |= tinyxml2::XML_SUCCESS != offsetElem-&gt;QueryDoubleAttribute("x", &amp;offset[0]);
+      somethingMissing |= tinyxml2::XML_SUCCESS != offsetElem-&gt;QueryDoubleAttribute("y", &amp;offset[1]);
+      somethingMissing |= tinyxml2::XML_SUCCESS != offsetElem-&gt;QueryDoubleAttribute("z", &amp;offset[2]);
+    }</span>
+    else
+<span style = "background-color:#fdd">      somethingMissing = true;</span>
+
+<span style = "background-color:#fdd">    auto *boundsElem = geometryElem-&gt;FirstChildElement("bounds");
+    if (boundsElem)</span>
+    {
+<span style = "background-color:#fdd">      auto *minBoundsElem = boundsElem-&gt;FirstChildElement("min");
+      auto *maxBoundsElem = boundsElem-&gt;FirstChildElement("max");</span>
+
+<span style = "background-color:#fdd">      if (minBoundsElem &amp;&amp; maxBoundsElem)</span>
+      {
+<span style = "background-color:#fdd">        somethingMissing |= tinyxml2::XML_SUCCESS != minBoundsElem-&gt;QueryDoubleAttribute("x", &amp;bounds[0]);
+        somethingMissing |= tinyxml2::XML_SUCCESS != minBoundsElem-&gt;QueryDoubleAttribute("y", &amp;bounds[2]);
+        somethingMissing |= tinyxml2::XML_SUCCESS != minBoundsElem-&gt;QueryDoubleAttribute("z", &amp;bounds[4]);</span>
+
+<span style = "background-color:#fdd">        somethingMissing |= tinyxml2::XML_SUCCESS != maxBoundsElem-&gt;QueryDoubleAttribute("x", &amp;bounds[1]);
+        somethingMissing |= tinyxml2::XML_SUCCESS != maxBoundsElem-&gt;QueryDoubleAttribute("y", &amp;bounds[3]);
+        somethingMissing |= tinyxml2::XML_SUCCESS != maxBoundsElem-&gt;QueryDoubleAttribute("z", &amp;bounds[5]);
+      }</span>
+      else
+<span style = "background-color:#fdd">        somethingMissing = true;
+    }</span>
+    else
+<span style = "background-color:#fdd">      somethingMissing = true;
+  }</span>
+  else
+<span style = "background-color:#fdd">    somethingMissing = true;</span>
+
+<span style = "background-color:#fdd">  if (somethingMissing)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "XML structure of geometry inside a PointSet file broken. Refusing to build Geometry3D";
+    return nullptr;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    Geometry3D::Pointer g = Geometry3D::New();
+    g-&gt;SetImageGeometry(isImageGeometry);
+    g-&gt;SetFrameOfReferenceID(frameOfReferenceID);
+    g-&gt;SetBounds(bounds);</span>
+
+<span style = "background-color:#fdd">    AffineTransform3D::Pointer transform = AffineTransform3D::New();
+    transform-&gt;SetMatrix(matrix);
+    transform-&gt;SetOffset(offset);</span>
+
+<span style = "background-color:#fdd">    g-&gt;SetIndexToWorldTransform(transform);</span>
+
+<span style = "background-color:#fdd">    return g.GetPointer();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::PointSet::Pointer mitk::PointSetReaderService::ReadPoints(mitk::PointSet::Pointer newPointSet,
+                                                                tinyxml2::XMLElement *currentTimeSeries,
+                                                                unsigned int currentTimeStep)
+<span style = "background-color:#fdd">{
+  if (currentTimeSeries-&gt;FirstChildElement("point") != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    for (auto *currentPoint = currentTimeSeries-&gt;FirstChildElement("point"); currentPoint != nullptr;
+         currentPoint = currentPoint-&gt;NextSiblingElement())</span>
+    {
+<span style = "background-color:#fdd">      unsigned int id(0);
+      auto spec((mitk::PointSpecificationType)0);
+      double x(0.0);
+      double y(0.0);
+      double z(0.0);</span>
+
+<span style = "background-color:#fdd">      id = atoi(currentPoint-&gt;FirstChildElement("id")-&gt;GetText());
+      if (currentPoint-&gt;FirstChildElement("specification") != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        spec = (mitk::PointSpecificationType)atoi(currentPoint-&gt;FirstChildElement("specification")-&gt;GetText());</span>
+      }
+<span style = "background-color:#fdd">      x = atof(currentPoint-&gt;FirstChildElement("x")-&gt;GetText());
+      y = atof(currentPoint-&gt;FirstChildElement("y")-&gt;GetText());
+      z = atof(currentPoint-&gt;FirstChildElement("z")-&gt;GetText());</span>
+
+<span style = "background-color:#fdd">      mitk::Point3D point;
+      mitk::FillVector3D(point, x, y, z);
+      newPointSet-&gt;SetPoint(id, point, spec, currentTimeStep);
+    }
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    if (currentTimeStep != newPointSet-&gt;GetTimeSteps() + 1)</span>
+    {
+<span style = "background-color:#fdd">      newPointSet-&gt;Expand(currentTimeStep + 1); // expand time step series with empty time step</span>
+    }
+  }
+<span style = "background-color:#fdd">  return newPointSet;
+}</span>
+
+mitk::PointSetReaderService::PointSetReaderService(const mitk::PointSetReaderService &amp;other)
+<span style = "background-color:#fdd">  : mitk::AbstractFileReader(other)
+{
+}</span>
+
+mitk::PointSetReaderService *mitk::PointSetReaderService::Clone() const
+<span style = "background-color:#fdd">{
+  return new mitk::PointSetReaderService(*this);
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,373 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabeledImageToSurfaceFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkLabeledImageToSurfaceFilter.h&gt;
+
+#include &lt;vtkDecimatePro.h&gt;
+#include &lt;vtkImageChangeInformation.h&gt;
+#include &lt;vtkImageGaussianSmooth.h&gt;
+#include &lt;vtkImageMarchingCubes.h&gt;
+#include &lt;vtkImageThreshold.h&gt;
+#include &lt;vtkLinearTransform.h&gt;
+#include &lt;vtkMatrix4x4.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkSmoothPolyDataFilter.h&gt;
+
+#include &lt;itkImageRegionIterator.h&gt;
+#include &lt;itkNumericTraits.h&gt;
+#include &lt;mitkImageAccessByItk.h&gt;
+#include &lt;mitkInstantiateAccessFunctions.h&gt;
+
+mitk::LabeledImageToSurfaceFilter::LabeledImageToSurfaceFilter()
+<span style = "background-color:#fdd">  : m_GaussianStandardDeviation(1.5), m_GenerateAllLabels(true), m_Label(1), m_BackgroundLabel(0)
+{
+}</span>
+
+mitk::LabeledImageToSurfaceFilter::~LabeledImageToSurfaceFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::LabeledImageToSurfaceFilter::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+  Superclass::GenerateOutputInformation();</span>
+  //
+  // check which labels are available in the image
+  //
+<span style = "background-color:#fdd">  m_AvailableLabels = this-&gt;GetAvailableLabels();
+  m_IdxToLabels.clear();</span>
+
+  //
+  // if we don't want to generate surfaces for all labels
+  // we have to remove all labels except m_Label and m_BackgroundLabel
+  // from the list of available labels
+  //
+<span style = "background-color:#fdd">  if (!m_GenerateAllLabels)</span>
+  {
+<span style = "background-color:#fdd">    LabelMapType tmp;
+    LabelMapType::iterator it;
+    it = m_AvailableLabels.find(m_Label);
+    if (it != m_AvailableLabels.end())
+      tmp[m_Label] = it-&gt;second;</span>
+    else
+<span style = "background-color:#fdd">      tmp[m_Label] = 0;</span>
+
+<span style = "background-color:#fdd">    it = m_AvailableLabels.find(m_BackgroundLabel);
+    if (it != m_AvailableLabels.end())
+      tmp[m_BackgroundLabel] = it-&gt;second;</span>
+    else
+<span style = "background-color:#fdd">      tmp[m_BackgroundLabel] = 0;</span>
+
+<span style = "background-color:#fdd">    m_AvailableLabels = tmp;
+  }</span>
+
+  //
+  // check for the number of labels: if the whole image is filled, no
+  // background is available and thus the numberOfOutpus is equal to the
+  // number of available labels in the image (which is a special case).
+  // If we have background voxels, the number of outputs is one less than
+  // then number of available labels.
+  //
+<span style = "background-color:#fdd">  unsigned int numberOfOutputs = 0;
+  if (m_AvailableLabels.find(m_BackgroundLabel) == m_AvailableLabels.end())
+    numberOfOutputs = m_AvailableLabels.size();</span>
+  else
+<span style = "background-color:#fdd">    numberOfOutputs = m_AvailableLabels.size() - 1;
+  if (numberOfOutputs == 0)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro("Number of outputs == 0");</span>
+  }
+
+  //
+  // determine the number of time steps of the input image
+  //
+<span style = "background-color:#fdd">  mitk::Image *image = (mitk::Image *)GetInput();</span>
+
+<span style = "background-color:#fdd">  unsigned int numberOfTimeSteps = image-&gt;GetTimeGeometry()-&gt;CountTimeSteps();</span>
+
+  //
+  // set the number of outputs to the number of labels used.
+  // initialize the output surfaces accordingly (incl. time steps)
+  //
+<span style = "background-color:#fdd">  this-&gt;SetNumberOfIndexedOutputs(numberOfOutputs);
+  this-&gt;SetNumberOfRequiredOutputs(numberOfOutputs);
+  for (unsigned int i = 0; i &lt; numberOfOutputs; ++i)</span>
+  {
+<span style = "background-color:#fdd">    if (!this-&gt;GetOutput(i))</span>
+    {
+<span style = "background-color:#fdd">      mitk::Surface::Pointer output = static_cast&lt;mitk::Surface *&gt;(this-&gt;MakeOutput(0).GetPointer());
+      assert(output.IsNotNull());
+      output-&gt;Expand(numberOfTimeSteps);
+      this-&gt;SetNthOutput(i, output.GetPointer());
+    }
+  }
+}</span>
+
+void mitk::LabeledImageToSurfaceFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::Image *image = (mitk::Image *)GetInput();
+  if (image == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro("Image is nullptr");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::Image::RegionType outputRegion = image-&gt;GetRequestedRegion();</span>
+
+<span style = "background-color:#fdd">  m_IdxToLabels.clear();</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetNumberOfOutputs() == 0)
+    return;</span>
+
+  //
+  // traverse the known labels and create surfaces for them.
+  //
+<span style = "background-color:#fdd">  unsigned int currentOutputIndex = 0;
+  for (auto it = m_AvailableLabels.begin(); it != m_AvailableLabels.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    if (it-&gt;first == m_BackgroundLabel)
+      continue;
+    if ((it-&gt;second == 0) &amp;&amp; m_GenerateAllLabels)
+      continue;</span>
+
+<span style = "background-color:#fdd">    assert(currentOutputIndex &lt; this-&gt;GetNumberOfOutputs());
+    mitk::Surface::Pointer surface = this-&gt;GetOutput(currentOutputIndex);
+    assert(surface.IsNotNull());</span>
+
+<span style = "background-color:#fdd">    int tstart = outputRegion.GetIndex(3);
+    int tmax = tstart + outputRegion.GetSize(3); // GetSize()==1 - will aber 0 haben, wenn nicht zeitaufgeloet</span>
+    int t;
+<span style = "background-color:#fdd">    for (t = tstart; t &lt; tmax; ++t)</span>
+    {
+<span style = "background-color:#fdd">      vtkImageData *vtkimagedata = image-&gt;GetVtkImageData(t);
+      CreateSurface(t, vtkimagedata, surface.GetPointer(), it-&gt;first);
+    }
+    m_IdxToLabels[currentOutputIndex] = it-&gt;first;
+    currentOutputIndex++;
+  }
+}</span>
+
+void mitk::LabeledImageToSurfaceFilter::CreateSurface(int time,
+                                                      vtkImageData *vtkimage,
+                                                      mitk::Surface *surface,
+                                                      mitk::LabeledImageToSurfaceFilter::LabelType label)
+<span style = "background-color:#fdd">{
+  vtkImageChangeInformation *indexCoordinatesImageFilter = vtkImageChangeInformation::New();
+  indexCoordinatesImageFilter-&gt;SetInputData(vtkimage);
+  indexCoordinatesImageFilter-&gt;SetOutputOrigin(0.0, 0.0, 0.0);</span>
+
+<span style = "background-color:#fdd">  vtkImageThreshold *threshold = vtkImageThreshold::New();
+  threshold-&gt;SetInputConnection(indexCoordinatesImageFilter-&gt;GetOutputPort());</span>
+  // indexCoordinatesImageFilter-&gt;Delete();
+<span style = "background-color:#fdd">  threshold-&gt;SetInValue(100);
+  threshold-&gt;SetOutValue(0);
+  threshold-&gt;ThresholdBetween(label, label);
+  threshold-&gt;SetOutputScalarTypeToUnsignedChar();
+  threshold-&gt;ReleaseDataFlagOn();</span>
+
+<span style = "background-color:#fdd">  vtkImageGaussianSmooth *gaussian = vtkImageGaussianSmooth::New();
+  gaussian-&gt;SetInputConnection(threshold-&gt;GetOutputPort());</span>
+  // threshold-&gt;Delete();
+<span style = "background-color:#fdd">  gaussian-&gt;SetDimensionality(3);
+  gaussian-&gt;SetRadiusFactor(0.49);
+  gaussian-&gt;SetStandardDeviation(GetGaussianStandardDeviation());
+  gaussian-&gt;ReleaseDataFlagOn();
+  gaussian-&gt;UpdateInformation();
+  gaussian-&gt;Update();</span>
+
+  // MarchingCube --&gt;create Surface
+<span style = "background-color:#fdd">  vtkMarchingCubes *skinExtractor = vtkMarchingCubes::New();
+  skinExtractor-&gt;ReleaseDataFlagOn();
+  skinExtractor-&gt;SetInputConnection(gaussian-&gt;GetOutputPort()); // RC++
+  indexCoordinatesImageFilter-&gt;Delete();
+  skinExtractor-&gt;SetValue(0, 50);</span>
+
+  vtkPolyData *polydata;
+<span style = "background-color:#fdd">  skinExtractor-&gt;Update();
+  polydata = skinExtractor-&gt;GetOutput();
+  polydata-&gt;Register(nullptr); // RC++
+  skinExtractor-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (m_Smooth)</span>
+  {
+<span style = "background-color:#fdd">    vtkSmoothPolyDataFilter *smoother = vtkSmoothPolyDataFilter::New();</span>
+    // read poly1 (poly1 can be the original polygon, or the decimated polygon)
+<span style = "background-color:#fdd">    smoother-&gt;SetInputData(polydata); // RC++
+    smoother-&gt;SetNumberOfIterations(m_SmoothIteration);
+    smoother-&gt;SetRelaxationFactor(m_SmoothRelaxation);
+    smoother-&gt;SetFeatureAngle(60);
+    smoother-&gt;FeatureEdgeSmoothingOff();
+    smoother-&gt;BoundarySmoothingOff();
+    smoother-&gt;SetConvergence(0);</span>
+
+<span style = "background-color:#fdd">    polydata-&gt;Delete(); // RC--
+    smoother-&gt;Update();
+    polydata = smoother-&gt;GetOutput();
+    polydata-&gt;Register(nullptr); // RC++
+    smoother-&gt;Delete();</span>
+  }
+
+  // decimate = to reduce number of polygons
+<span style = "background-color:#fdd">  if (m_Decimate == DecimatePro)</span>
+  {
+<span style = "background-color:#fdd">    vtkDecimatePro *decimate = vtkDecimatePro::New();
+    decimate-&gt;SplittingOff();
+    decimate-&gt;SetErrorIsAbsolute(5);
+    decimate-&gt;SetFeatureAngle(30);
+    decimate-&gt;PreserveTopologyOn();
+    decimate-&gt;BoundaryVertexDeletionOff();
+    decimate-&gt;SetDegree(10); // std-value is 25!</span>
+
+<span style = "background-color:#fdd">    decimate-&gt;SetInputData(polydata); // RC++
+    decimate-&gt;SetTargetReduction(m_TargetReduction);
+    decimate-&gt;SetMaximumError(0.002);</span>
+
+<span style = "background-color:#fdd">    polydata-&gt;Delete(); // RC--
+    decimate-&gt;Update();
+    polydata = decimate-&gt;GetOutput();
+    polydata-&gt;Register(nullptr); // RC++
+    decimate-&gt;Delete();</span>
+  }
+
+<span style = "background-color:#fdd">  if (polydata-&gt;GetNumberOfPoints() &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Vector3D spacing = GetInput()-&gt;GetGeometry(time)-&gt;GetSpacing();</span>
+
+<span style = "background-color:#fdd">    vtkPoints *points = polydata-&gt;GetPoints();
+    vtkMatrix4x4 *vtkmatrix = vtkMatrix4x4::New();
+    GetInput()-&gt;GetGeometry(time)-&gt;GetVtkTransform()-&gt;GetMatrix(vtkmatrix);
+    double(*matrix)[4] = vtkmatrix-&gt;Element;</span>
+
+    unsigned int i, j;
+<span style = "background-color:#fdd">    for (i = 0; i &lt; 3; ++i)
+      for (j = 0; j &lt; 3; ++j)
+        matrix[i][j] /= spacing[j];</span>
+
+<span style = "background-color:#fdd">    unsigned int n = points-&gt;GetNumberOfPoints();</span>
+    double point[3];
+
+<span style = "background-color:#fdd">    for (i = 0; i &lt; n; i++)</span>
+    {
+<span style = "background-color:#fdd">      points-&gt;GetPoint(i, point);
+      mitkVtkLinearTransformPoint(matrix, point, point);
+      points-&gt;SetPoint(i, point);
+    }
+    vtkmatrix-&gt;Delete();</span>
+  }
+
+<span style = "background-color:#fdd">  surface-&gt;SetVtkPolyData(polydata, time);
+  polydata-&gt;UnRegister(nullptr);</span>
+
+<span style = "background-color:#fdd">  gaussian-&gt;Delete();
+  threshold-&gt;Delete();
+}</span>
+
+template &lt;typename TPixel, unsigned int VImageDimension&gt;
+void GetAvailableLabelsInternal(itk::Image&lt;TPixel, VImageDimension&gt; *image,
+                                mitk::LabeledImageToSurfaceFilter::LabelMapType &amp;availableLabels)
+<span style = "background-color:#fdd">{</span>
+  typedef itk::Image&lt;TPixel, VImageDimension&gt; ImageType;
+  typedef itk::ImageRegionIterator&lt;ImageType&gt; ImageRegionIteratorType;
+<span style = "background-color:#fdd">  availableLabels.clear();
+  ImageRegionIteratorType it(image, image-&gt;GetLargestPossibleRegion());
+  it.GoToBegin();
+  mitk::LabeledImageToSurfaceFilter::LabelMapType::iterator labelIt;
+  while (!it.IsAtEnd())</span>
+  {
+<span style = "background-color:#fdd">    labelIt = availableLabels.find((mitk::LabeledImageToSurfaceFilter::LabelType)(it.Get()));
+    if (labelIt == availableLabels.end())</span>
+    {
+<span style = "background-color:#fdd">      availableLabels[(mitk::LabeledImageToSurfaceFilter::LabelType)(it.Get())] = 1;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      labelIt-&gt;second += 1;</span>
+    }
+
+<span style = "background-color:#fdd">    ++it;
+  }
+}</span>
+
+#define InstantiateAccessFunction_GetAvailableLabelsInternal(pixelType, dim)                                           \
+  \
+template void                                                                                                          \
+    GetAvailableLabelsInternal(itk::Image&lt;pixelType, dim&gt; *, mitk::LabeledImageToSurfaceFilter::LabelMapType &amp;);
+
+InstantiateAccessFunctionForFixedDimension(GetAvailableLabelsInternal, 3);
+
+mitk::LabeledImageToSurfaceFilter::LabelMapType mitk::LabeledImageToSurfaceFilter::GetAvailableLabels()
+<span style = "background-color:#fdd">{
+  mitk::Image::Pointer image = (mitk::Image *)GetInput();
+  LabelMapType availableLabels;
+  AccessFixedDimensionByItk_1(image, GetAvailableLabelsInternal, 3, availableLabels);
+  return availableLabels;
+}</span>
+
+void mitk::LabeledImageToSurfaceFilter::CreateSurface(int, vtkImageData *, mitk::Surface *, const ScalarType)
+<span style = "background-color:#fdd">{
+  itkWarningMacro("This function should never be called!");
+  assert(false);
+}</span>
+
+mitk::LabeledImageToSurfaceFilter::LabelType mitk::LabeledImageToSurfaceFilter::GetLabelForNthOutput(
+  const unsigned int &amp;idx)
+<span style = "background-color:#fdd">{
+  auto it = m_IdxToLabels.find(idx);
+  if (it != m_IdxToLabels.end())</span>
+  {
+<span style = "background-color:#fdd">    return it-&gt;second;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    itkWarningMacro("Unknown index encountered: " &lt;&lt; idx &lt;&lt; ". There are " &lt;&lt; this-&gt;GetNumberOfOutputs()</span>
+                                                  &lt;&lt; " outputs available.");
+<span style = "background-color:#fdd">    return itk::NumericTraits&lt;LabelType&gt;::max();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::ScalarType mitk::LabeledImageToSurfaceFilter::GetVolumeForNthOutput(const unsigned int &amp;i)
+<span style = "background-color:#fdd">{
+  return GetVolumeForLabel(GetLabelForNthOutput(i));
+}</span>
+
+mitk::ScalarType mitk::LabeledImageToSurfaceFilter::GetVolumeForLabel(
+  const mitk::LabeledImageToSurfaceFilter::LabelType &amp;label)
+<span style = "background-color:#fdd">{</span>
+  // get the image spacing
+<span style = "background-color:#fdd">  mitk::Image *image = (mitk::Image *)GetInput();
+  const mitk::Vector3D spacing = image-&gt;GetSlicedGeometry()-&gt;GetSpacing();</span>
+
+  // get the number of voxels encountered for the given label,
+  // calculate the volume and return it.
+<span style = "background-color:#fdd">  auto it = m_AvailableLabels.find(label);
+  if (it != m_AvailableLabels.end())</span>
+  {
+<span style = "background-color:#fdd">    return static_cast&lt;float&gt;(it-&gt;second) * (spacing[0] * spacing[1] * spacing[2] / 1000.0f);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    itkWarningMacro("Unknown label encountered: " &lt;&lt; label);
+    return 0.0;</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkItkMatrixHack.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef ITKMATRIXHACK_H_HEADER_INCLUDED_C1EBD0AD
+#define ITKMATRIXHACK_H_HEADER_INCLUDED_C1EBD0AD
+
+namespace mitk
+{
+  //##Documentation
+  //## @brief Internal hack to set m_MatrixMTime of
+  //## itk::MatrixOffsetTransformBase correctly after changing
+  //## the matrix. For internal use only.
+  //##
+  //## Usage: static_cast object of type itk::MatrixOffsetTransformBase
+  //## (or derived from this) to this and call MatrixChanged().
+  //## itk::MatrixOffsetTransformBase::SetParameters does not set
+  //## m_MatrixMTime thus m_InverseMatrixMTime is the same
+  //## as m_MatrixMTime and the inverse is not recalculated.
+  //## @warning Use with care!
+  //## @ingroup Geometry
+  template &lt;class TTransformType&gt;
+  class ItkMatrixHack : public TTransformType
+  {
+  public:
+<span style = "background-color:#fdd">    void MatrixChanged() { this-&gt;SetVarMatrix(this-&gt;GetMatrix()); }</span>
+  };
+
+} // namespace mitk
+
+#endif /* ITKMATRIXHACK_H_HEADER_INCLUDED_C1EBD0AD */</pre>
+	</body>
+</html>

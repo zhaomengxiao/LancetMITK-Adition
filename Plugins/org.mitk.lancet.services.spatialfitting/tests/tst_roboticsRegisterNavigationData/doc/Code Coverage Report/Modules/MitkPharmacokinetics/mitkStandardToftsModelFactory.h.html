@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkStandardToftsModelFactory.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#ifndef MITKSTANDARDTOFTSMODELFACTORY_H
+#define MITKSTANDARDTOFTSMODELFACTORY_H
+
+#include "mitkConcreteAIFBasedModelFactory.h"
+#include "mitkStandardToftsModel.h"
+#include "mitkStandardToftsModelParameterizer.h"
+
+namespace mitk
+{
+
+
+  class MITKPHARMACOKINETICS_EXPORT StandardToftsModelFactory : public
+    mitk::ConcreteAIFBasedModelFactory&lt;StandardToftsModelParameterizer&gt;
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(StandardToftsModelFactory, ConcreteAIFBasedModelFactory&lt;StandardToftsModelParameterizer&gt;);</span>
+<span style = "background-color:#dfd">    itkFactorylessNewMacro(Self);</span>
+
+    using ModelType = Superclass::ModelType;
+    using ModelParameterizerType = Superclass::ModelParameterizerType;
+
+    ConstraintCheckerBase::Pointer CreateDefaultConstraints() const override;
+    ParametersType GetDefaultInitialParameterization() const override;
+
+  protected:
+
+    StandardToftsModelFactory();
+
+    ~StandardToftsModelFactory() override;
+
+  private:
+
+    //No copy constructor allowed
+    StandardToftsModelFactory(const Self&amp; source);
+    void operator=(const Self&amp;);  //purposely not implemented
+
+  };
+
+}
+#endif // MITKSTANDARDTOFTSMODELFACTORY_H</pre>
+	</body>
+</html>

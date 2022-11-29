@@ -1,0 +1,783 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRenderingManager.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkRenderingManager.h&gt;
+#include &lt;mitkRenderingManagerFactory.h&gt;
+#include &lt;mitkBaseRenderer.h&gt;
+#include &lt;mitkCameraController.h&gt;
+#include &lt;mitkNodePredicateNot.h&gt;
+#include &lt;mitkNodePredicateProperty.h&gt;
+#include &lt;mitkProportionalTimeGeometry.h&gt;
+
+#include &lt;vtkCamera.h&gt;
+#include &lt;vtkRenderWindow.h&gt;
+#include &lt;vtkRenderer.h&gt;
+#include &lt;vtkRendererCollection.h&gt;
+
+#include &lt;itkCommand.h&gt;
+#include &lt;mitkVtkPropRenderer.h&gt;
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  itkEventMacroDefinition(RenderingManagerEvent, itk::AnyEvent);
+  itkEventMacroDefinition(RenderingManagerViewsInitializedEvent, RenderingManagerEvent);
+  itkEventMacroDefinition(FocusChangedEvent, itk::AnyEvent);</span>
+
+<span style = "background-color:#dfd">  RenderingManager::Pointer RenderingManager::s_Instance = nullptr;</span>
+  RenderingManagerFactory *RenderingManager::s_RenderingManagerFactory = nullptr;
+
+  RenderingManager::RenderingManager()
+<span style = "background-color:#fdd">    : m_UpdatePending(false),
+      m_MaxLOD(1),
+      m_LODIncreaseBlocked(false),
+      m_LODAbortMechanismEnabled(false),
+      m_ClippingPlaneEnabled(false),
+      m_TimeNavigationController(SliceNavigationController::New()),
+      m_DataStorage(nullptr),
+      m_ConstrainedPanningZooming(true),
+      m_FocusedRenderWindow(nullptr),
+      m_AntiAliasing(AntiAliasing::FastApproximate)
+  {
+    m_ShadingEnabled.assign(3, false);
+    m_ShadingValues.assign(4, 0.0);</span>
+
+<span style = "background-color:#fdd">    InitializePropertyList();
+  }</span>
+
+  RenderingManager::~RenderingManager()
+<span style = "background-color:#fdd">  {</span>
+    // Decrease reference counts of all registered vtkRenderWindows for
+    // proper destruction
+<span style = "background-color:#fdd">    RenderWindowVector::iterator it;
+    for (it = m_AllRenderWindows.begin(); it != m_AllRenderWindows.end(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      (*it)-&gt;UnRegister(nullptr);</span>
+
+<span style = "background-color:#fdd">      auto callbacks_it = this-&gt;m_RenderWindowCallbacksList.find(*it);</span>
+
+<span style = "background-color:#fdd">      if (callbacks_it != this-&gt;m_RenderWindowCallbacksList.end())</span>
+      {
+<span style = "background-color:#fdd">        (*it)-&gt;RemoveObserver(callbacks_it-&gt;second.commands[0u]);
+        (*it)-&gt;RemoveObserver(callbacks_it-&gt;second.commands[1u]);
+        (*it)-&gt;RemoveObserver(callbacks_it-&gt;second.commands[2u]);</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+<span style = "background-color:#dfd">  void RenderingManager::SetFactory(RenderingManagerFactory *factory) { s_RenderingManagerFactory = factory; }</span>
+<span style = "background-color:#fdd">  const RenderingManagerFactory *RenderingManager::GetFactory() { return s_RenderingManagerFactory; }</span>
+  bool RenderingManager::HasFactory()
+<span style = "background-color:#dfd">  {
+    if (RenderingManager::s_RenderingManagerFactory)</span>
+    {
+<span style = "background-color:#fdd">      return true;
+    }</span>
+    else
+    {
+<span style = "background-color:#dfd">      return false;</span>
+    }
+<span style = "background-color:#dfd">  }</span>
+
+  RenderingManager::Pointer RenderingManager::New()
+<span style = "background-color:#fdd">  {
+    const RenderingManagerFactory *factory = GetFactory();
+    if (factory == nullptr)
+      return nullptr;
+    return factory-&gt;CreateRenderingManager();
+  }</span>
+
+  RenderingManager *RenderingManager::GetInstance()
+<span style = "background-color:#fdd">  {
+    if (!RenderingManager::s_Instance)</span>
+    {
+<span style = "background-color:#fdd">      if (s_RenderingManagerFactory)</span>
+      {
+<span style = "background-color:#fdd">        s_Instance = s_RenderingManagerFactory-&gt;CreateRenderingManager();</span>
+      }
+    }
+
+<span style = "background-color:#fdd">    return s_Instance;
+  }</span>
+
+  bool RenderingManager::IsInstantiated()
+<span style = "background-color:#fdd">  {
+    if (RenderingManager::s_Instance)
+      return true;</span>
+    else
+<span style = "background-color:#fdd">      return false;
+  }</span>
+
+  void RenderingManager::AddRenderWindow(vtkRenderWindow *renderWindow)
+<span style = "background-color:#fdd">  {
+    if (renderWindow &amp;&amp; (m_RenderWindowList.find(renderWindow) == m_RenderWindowList.end()))</span>
+    {
+<span style = "background-color:#fdd">      m_RenderWindowList[renderWindow] = RENDERING_INACTIVE;
+      m_AllRenderWindows.push_back(renderWindow);</span>
+
+<span style = "background-color:#fdd">      if (m_DataStorage.IsNotNull())
+        BaseRenderer::GetInstance(renderWindow)-&gt;SetDataStorage(m_DataStorage.GetPointer());</span>
+
+      // Register vtkRenderWindow instance
+<span style = "background-color:#fdd">      renderWindow-&gt;Register(nullptr);</span>
+
+      // Add callbacks for rendering abort mechanism
+      // BaseRenderer *renderer = BaseRenderer::GetInstance( renderWindow );
+<span style = "background-color:#fdd">      vtkCallbackCommand *startCallbackCommand = vtkCallbackCommand::New();
+      startCallbackCommand-&gt;SetCallback(RenderingManager::RenderingStartCallback);
+      renderWindow-&gt;AddObserver(vtkCommand::StartEvent, startCallbackCommand);</span>
+
+<span style = "background-color:#fdd">      vtkCallbackCommand *progressCallbackCommand = vtkCallbackCommand::New();
+      progressCallbackCommand-&gt;SetCallback(RenderingManager::RenderingProgressCallback);
+      renderWindow-&gt;AddObserver(vtkCommand::AbortCheckEvent, progressCallbackCommand);</span>
+
+<span style = "background-color:#fdd">      vtkCallbackCommand *endCallbackCommand = vtkCallbackCommand::New();
+      endCallbackCommand-&gt;SetCallback(RenderingManager::RenderingEndCallback);
+      renderWindow-&gt;AddObserver(vtkCommand::EndEvent, endCallbackCommand);</span>
+
+      RenderWindowCallbacks callbacks;
+
+<span style = "background-color:#fdd">      callbacks.commands[0u] = startCallbackCommand;
+      callbacks.commands[1u] = progressCallbackCommand;
+      callbacks.commands[2u] = endCallbackCommand;
+      this-&gt;m_RenderWindowCallbacksList[renderWindow] = callbacks;</span>
+
+      // Delete vtk variables correctly
+<span style = "background-color:#fdd">      startCallbackCommand-&gt;Delete();
+      progressCallbackCommand-&gt;Delete();
+      endCallbackCommand-&gt;Delete();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void RenderingManager::RemoveRenderWindow(vtkRenderWindow *renderWindow)
+<span style = "background-color:#fdd">  {
+    if (m_RenderWindowList.erase(renderWindow))</span>
+    {
+<span style = "background-color:#fdd">      auto callbacks_it = this-&gt;m_RenderWindowCallbacksList.find(renderWindow);
+      if (callbacks_it != this-&gt;m_RenderWindowCallbacksList.end())</span>
+      {
+<span style = "background-color:#fdd">        renderWindow-&gt;RemoveObserver(callbacks_it-&gt;second.commands[0u]);
+        renderWindow-&gt;RemoveObserver(callbacks_it-&gt;second.commands[1u]);
+        renderWindow-&gt;RemoveObserver(callbacks_it-&gt;second.commands[2u]);
+        this-&gt;m_RenderWindowCallbacksList.erase(callbacks_it);</span>
+      }
+
+<span style = "background-color:#fdd">      auto rw_it =</span>
+        std::find(m_AllRenderWindows.begin(), m_AllRenderWindows.end(), renderWindow);
+
+<span style = "background-color:#fdd">      if (rw_it != m_AllRenderWindows.cend())</span>
+      {
+        // Decrease reference count for proper destruction
+<span style = "background-color:#fdd">        (*rw_it)-&gt;UnRegister(nullptr);
+        m_AllRenderWindows.erase(rw_it);</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+  const RenderingManager::RenderWindowVector &amp;RenderingManager::GetAllRegisteredRenderWindows()
+<span style = "background-color:#fdd">  {
+    return m_AllRenderWindows;
+  }</span>
+
+  void RenderingManager::RequestUpdate(vtkRenderWindow *renderWindow)
+<span style = "background-color:#fdd">  {</span>
+    // If the renderWindow is not valid, we do not want to inadvertantly create
+    // an entry in the m_RenderWindowList map. It is possible if the user is
+    // regularly calling AddRenderer and RemoveRenderer for a rendering update
+    // to come into this method with a renderWindow pointer that is valid in the
+    // sense that the window does exist within the application, but that
+    // renderWindow has been temporarily removed from this RenderingManager for
+    // performance reasons.
+<span style = "background-color:#fdd">    if (m_RenderWindowList.find(renderWindow) == m_RenderWindowList.cend())</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    m_RenderWindowList[renderWindow] = RENDERING_REQUESTED;</span>
+
+<span style = "background-color:#fdd">    if (!m_UpdatePending)</span>
+    {
+<span style = "background-color:#fdd">      m_UpdatePending = true;
+      this-&gt;GenerateRenderingRequestEvent();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void RenderingManager::ForceImmediateUpdate(vtkRenderWindow *renderWindow)
+<span style = "background-color:#fdd">  {</span>
+    // If the renderWindow is not valid, we do not want to inadvertantly create
+    // an entry in the m_RenderWindowList map. It is possible if the user is
+    // regularly calling AddRenderer and RemoveRenderer for a rendering update
+    // to come into this method with a renderWindow pointer that is valid in the
+    // sense that the window does exist within the application, but that
+    // renderWindow has been temporarily removed from this RenderingManager for
+    // performance reasons.
+<span style = "background-color:#fdd">    if (m_RenderWindowList.find(renderWindow) == m_RenderWindowList.cend())</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+    // Erase potentially pending requests for this window
+<span style = "background-color:#fdd">    m_RenderWindowList[renderWindow] = RENDERING_INACTIVE;</span>
+
+<span style = "background-color:#fdd">    m_UpdatePending = false;</span>
+
+    // Immediately repaint this window (implementation platform specific)
+    // If the size is 0 it crashes
+<span style = "background-color:#fdd">    int *size = renderWindow-&gt;GetSize();
+    if (0 != size[0] &amp;&amp; 0 != size[1])</span>
+    {
+      // prepare the camera etc. before rendering
+      // Note: this is a very important step which should be called before the VTK render!
+      // If you modify the camera anywhere else or after the render call, the scene cannot be seen.
+<span style = "background-color:#fdd">      auto *vPR = dynamic_cast&lt;VtkPropRenderer *&gt;(BaseRenderer::GetInstance(renderWindow));
+      if (vPR)
+        vPR-&gt;PrepareRender();</span>
+      // Execute rendering
+<span style = "background-color:#fdd">      renderWindow-&gt;Render();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void RenderingManager::RequestUpdateAll(RequestType type)
+<span style = "background-color:#fdd">  {
+    RenderWindowList::const_iterator it;
+    for (it = m_RenderWindowList.cbegin(); it != m_RenderWindowList.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      int id = BaseRenderer::GetInstance(it-&gt;first)-&gt;GetMapperID();
+      if ((type == REQUEST_UPDATE_ALL) || ((type == REQUEST_UPDATE_2DWINDOWS) &amp;&amp; (id == 1)) ||</span>
+          ((type == REQUEST_UPDATE_3DWINDOWS) &amp;&amp; (id == 2)))
+      {
+<span style = "background-color:#fdd">        this-&gt;RequestUpdate(it-&gt;first);</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+  void RenderingManager::ForceImmediateUpdateAll(RequestType type)
+<span style = "background-color:#fdd">  {
+    RenderWindowList::const_iterator it;
+    for (it = m_RenderWindowList.cbegin(); it != m_RenderWindowList.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      int id = BaseRenderer::GetInstance(it-&gt;first)-&gt;GetMapperID();
+      if ((type == REQUEST_UPDATE_ALL) || ((type == REQUEST_UPDATE_2DWINDOWS) &amp;&amp; (id == 1)) ||</span>
+          ((type == REQUEST_UPDATE_3DWINDOWS) &amp;&amp; (id == 2)))
+      {
+        // Immediately repaint this window (implementation platform specific)
+        // If the size is 0, it crashes
+<span style = "background-color:#fdd">        this-&gt;ForceImmediateUpdate(it-&gt;first);</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+  void RenderingManager::InitializeViewsByBoundingObjects(const DataStorage* dataStorage)
+<span style = "background-color:#fdd">  {
+    if (nullptr == dataStorage)</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+    // get all nodes that have not set "includeInBoundingBox" to false
+<span style = "background-color:#fdd">    auto pred = NodePredicateNot::New(NodePredicateProperty::New("includeInBoundingBox", BoolProperty::New(false)));
+    DataStorage::SetOfObjects::ConstPointer filteredNodes = dataStorage-&gt;GetSubset(pred);</span>
+
+<span style = "background-color:#fdd">    TimeGeometry::ConstPointer boundingGeometry;
+    if (!filteredNodes-&gt;empty())</span>
+    {
+      // calculate bounding geometry of these nodes
+<span style = "background-color:#fdd">      boundingGeometry = dataStorage-&gt;ComputeBoundingGeometry3D(filteredNodes, "visible");</span>
+    }
+
+    // initialize the views to the bounding geometry
+<span style = "background-color:#fdd">    this-&gt;InitializeViews(boundingGeometry);
+  }</span>
+
+  bool RenderingManager::InitializeViews(const BaseGeometry* geometry, RequestType type, bool resetCamera)
+<span style = "background-color:#fdd">  {
+    ProportionalTimeGeometry::Pointer propTimeGeometry = ProportionalTimeGeometry::New();
+    propTimeGeometry-&gt;Initialize(dynamic_cast&lt;BaseGeometry *&gt;(geometry-&gt;Clone().GetPointer()), 1);
+    return this-&gt;InitializeViews(propTimeGeometry, type, resetCamera);
+  }</span>
+
+  bool RenderingManager::InitializeViews(const TimeGeometry* geometry, RequestType type, bool resetCamera)
+<span style = "background-color:#fdd">  {
+    bool boundingBoxInitialized = false;</span>
+
+<span style = "background-color:#fdd">    TimeGeometry::Pointer modifiedGeometry = nullptr;</span>
+    try
+    {
+<span style = "background-color:#fdd">      boundingBoxInitialized = this-&gt;ExtendGeometryForBoundingBox(geometry, modifiedGeometry);</span>
+    }
+    catch (Exception&amp; exception)
+<span style = "background-color:#fdd">    {
+      mitkReThrow(exception);
+    }</span>
+
+<span style = "background-color:#fdd">    RenderWindowVector allRenderWindows = this-&gt;GetAllRegisteredRenderWindows();
+    RenderWindowVector::const_iterator it;
+    for (it = allRenderWindows.cbegin(); it != allRenderWindows.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      BaseRenderer *baseRenderer = BaseRenderer::GetInstance(*it);
+      baseRenderer-&gt;SetConstrainZoomingAndPanning(this-&gt;GetConstrainedPanningZooming());</span>
+
+<span style = "background-color:#fdd">      int id = baseRenderer-&gt;GetMapperID();</span>
+      if ((type == REQUEST_UPDATE_ALL) ||
+<span style = "background-color:#fdd">        ((type == REQUEST_UPDATE_2DWINDOWS) &amp;&amp; (id == 1)) ||</span>
+        ((type == REQUEST_UPDATE_3DWINDOWS) &amp;&amp; (id == 2)))
+      {
+<span style = "background-color:#fdd">        this-&gt;InternalViewInitialization(baseRenderer, modifiedGeometry, boundingBoxInitialized, id, resetCamera);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    if (boundingBoxInitialized)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;GetTimeNavigationController()-&gt;SetInputWorldTimeGeometry(modifiedGeometry);</span>
+    }
+<span style = "background-color:#fdd">    this-&gt;GetTimeNavigationController()-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    this-&gt;RequestUpdateAll(type);</span>
+
+    // inform listeners that views have been initialized
+<span style = "background-color:#fdd">    this-&gt;InvokeEvent(RenderingManagerViewsInitializedEvent());</span>
+
+<span style = "background-color:#fdd">    return boundingBoxInitialized;
+  }</span>
+
+  bool RenderingManager::InitializeViews(RequestType type)
+<span style = "background-color:#fdd">  {
+    const RenderWindowVector allRenderWindows = this-&gt;GetAllRegisteredRenderWindows();
+    RenderWindowVector::const_iterator it;
+    for (it = allRenderWindows.cbegin(); it != allRenderWindows.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      BaseRenderer *baseRenderer = BaseRenderer::GetInstance(*it);
+      int id = baseRenderer-&gt;GetMapperID();</span>
+      if ((type == REQUEST_UPDATE_ALL) ||
+<span style = "background-color:#fdd">        ((type == REQUEST_UPDATE_2DWINDOWS) &amp;&amp; (id == 1)) ||</span>
+        ((type == REQUEST_UPDATE_3DWINDOWS) &amp;&amp; (id == 2)))
+      {
+<span style = "background-color:#fdd">        this-&gt;InternalViewInitialization(baseRenderer, nullptr, false, id, false);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    this-&gt;RequestUpdateAll(type);</span>
+
+    // inform listeners that views have been initialized
+<span style = "background-color:#fdd">    this-&gt;InvokeEvent(RenderingManagerViewsInitializedEvent());</span>
+
+<span style = "background-color:#fdd">    return true;
+  }</span>
+
+  bool RenderingManager::InitializeView(vtkRenderWindow* renderWindow, const BaseGeometry* geometry, bool resetCamera)
+<span style = "background-color:#fdd">  {
+    ProportionalTimeGeometry::Pointer propTimeGeometry = ProportionalTimeGeometry::New();
+    propTimeGeometry-&gt;Initialize(dynamic_cast&lt;BaseGeometry*&gt;(geometry-&gt;Clone().GetPointer()), 1);
+    return this-&gt;InitializeView(renderWindow, propTimeGeometry, resetCamera);
+  }</span>
+
+  bool RenderingManager::InitializeView(vtkRenderWindow* renderWindow, const TimeGeometry* geometry, bool resetCamera)
+<span style = "background-color:#fdd">  {
+    bool boundingBoxInitialized = false;</span>
+
+<span style = "background-color:#fdd">    TimeGeometry::Pointer modifiedGeometry = nullptr;</span>
+    try
+    {
+<span style = "background-color:#fdd">      boundingBoxInitialized = this-&gt;ExtendGeometryForBoundingBox(geometry, modifiedGeometry);</span>
+    }
+    catch (Exception &amp;exception)
+<span style = "background-color:#fdd">    {
+      mitkReThrow(exception);
+    }</span>
+
+<span style = "background-color:#fdd">    BaseRenderer* baseRenderer = BaseRenderer::GetInstance(renderWindow);
+    baseRenderer-&gt;SetConstrainZoomingAndPanning(this-&gt;GetConstrainedPanningZooming());</span>
+
+<span style = "background-color:#fdd">    int id = baseRenderer-&gt;GetMapperID();
+    this-&gt;InternalViewInitialization(baseRenderer, modifiedGeometry, boundingBoxInitialized, id, resetCamera);</span>
+
+<span style = "background-color:#fdd">    if (boundingBoxInitialized)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;GetTimeNavigationController()-&gt;SetInputWorldTimeGeometry(modifiedGeometry);</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;GetTimeNavigationController()-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    this-&gt;RequestUpdate(renderWindow);</span>
+
+    // inform listeners that views have been initialized
+<span style = "background-color:#fdd">    this-&gt;InvokeEvent(RenderingManagerViewsInitializedEvent());</span>
+
+<span style = "background-color:#fdd">    return boundingBoxInitialized;
+  }</span>
+
+  bool RenderingManager::InitializeView(vtkRenderWindow *renderWindow)
+<span style = "background-color:#fdd">  {
+    BaseRenderer *baseRenderer = BaseRenderer::GetInstance(renderWindow);
+    int id = baseRenderer-&gt;GetMapperID();
+    this-&gt;InternalViewInitialization(baseRenderer, nullptr, false, id, false);</span>
+
+<span style = "background-color:#fdd">    this-&gt;RequestUpdate(renderWindow);</span>
+
+    // inform listeners that views have been initialized
+<span style = "background-color:#fdd">    this-&gt;InvokeEvent(RenderingManagerViewsInitializedEvent());</span>
+
+<span style = "background-color:#fdd">    return true;
+  }</span>
+
+  void RenderingManager::InternalViewInitialization(BaseRenderer *baseRenderer, const TimeGeometry *geometry,
+                                                    bool boundingBoxInitialized, int mapperID, bool resetCamera)
+<span style = "background-color:#fdd">  {
+    SliceNavigationController *nc = baseRenderer-&gt;GetSliceNavigationController();</span>
+
+    // Re-initialize view direction
+<span style = "background-color:#fdd">    nc-&gt;SetViewDirectionToDefault();</span>
+
+<span style = "background-color:#fdd">    if (boundingBoxInitialized)</span>
+    {
+      // Set geometry for NC
+<span style = "background-color:#fdd">      nc-&gt;SetInputWorldTimeGeometry(geometry);
+      nc-&gt;Update();</span>
+
+<span style = "background-color:#fdd">      if (resetCamera)</span>
+      {
+<span style = "background-color:#fdd">        if (mapperID == BaseRenderer::Standard2D)</span>
+        {
+          // For 2D SNCs, steppers are set so that the cross is centered in the image
+<span style = "background-color:#fdd">          nc-&gt;GetSlice()-&gt;SetPos(nc-&gt;GetSlice()-&gt;GetSteps() / 2);
+          baseRenderer-&gt;GetCameraController()-&gt;Fit();
+        }
+        else if (mapperID == BaseRenderer::Standard3D)</span>
+        {
+<span style = "background-color:#fdd">          baseRenderer-&gt;GetCameraController()-&gt;SetViewToAnterior();</span>
+        }
+      }
+<span style = "background-color:#fdd">    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      nc-&gt;Update();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  bool RenderingManager::ExtendGeometryForBoundingBox(const TimeGeometry *geometry,
+                                                            TimeGeometry::Pointer&amp; modifiedGeometry)
+<span style = "background-color:#fdd">  {
+    bool boundingBoxInitialized = false;</span>
+
+<span style = "background-color:#fdd">    if (nullptr == geometry)</span>
+    {
+<span style = "background-color:#fdd">      return boundingBoxInitialized;</span>
+    }
+
+<span style = "background-color:#fdd">    modifiedGeometry = geometry-&gt;Clone();
+    if (modifiedGeometry.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      return boundingBoxInitialized;</span>
+    }
+
+<span style = "background-color:#fdd">    if (modifiedGeometry-&gt;GetBoundingBoxInWorld()-&gt;GetDiagonalLength2() &gt; eps)</span>
+    {
+<span style = "background-color:#fdd">      boundingBoxInitialized = true;</span>
+    }
+
+    // make sure bounding box has an extent bigger than zero in any direction
+<span style = "background-color:#fdd">    for (TimeStepType step = 0; step &lt; modifiedGeometry-&gt;CountTimeSteps(); ++step)</span>
+    {
+<span style = "background-color:#fdd">      BaseGeometry::BoundsArrayType newBounds = modifiedGeometry-&gt;GetGeometryForTimeStep(step)-&gt;GetBounds();
+      for (unsigned int dimension = 0; (2 * dimension) &lt; newBounds.Size(); dimension++)</span>
+      {
+        // check for equality but for an epsilon
+<span style = "background-color:#fdd">        if (Equal(newBounds[2 * dimension], newBounds[2 * dimension + 1]))</span>
+        {
+<span style = "background-color:#fdd">          newBounds[2 * dimension + 1] += 1;
+          if (Equal(</span>
+            newBounds[2 * dimension],
+            newBounds[2 * dimension + 1])) // newBounds will still be equal if values are beyond double precision
+          {
+<span style = "background-color:#fdd">            mitkThrow() &lt;&lt; "One dimension of object data has zero length, please make sure you're not using numbers "</span>
+              "beyond double precision as coordinates.";
+          }
+        }
+<span style = "background-color:#fdd">      }
+      modifiedGeometry-&gt;GetGeometryForTimeStep(step)-&gt;SetBounds(newBounds);
+    }</span>
+
+<span style = "background-color:#fdd">    return boundingBoxInitialized;
+  }</span>
+
+  const SliceNavigationController *RenderingManager::GetTimeNavigationController() const
+<span style = "background-color:#fdd">  {
+    return m_TimeNavigationController.GetPointer();
+  }</span>
+
+  SliceNavigationController *RenderingManager::GetTimeNavigationController()
+<span style = "background-color:#fdd">  {
+    return m_TimeNavigationController.GetPointer();
+  }</span>
+
+  void RenderingManager::ExecutePendingRequests()
+<span style = "background-color:#fdd">  {
+    m_UpdatePending = false;</span>
+
+    // Satisfy all pending update requests
+<span style = "background-color:#fdd">    RenderWindowList::const_iterator it;
+    int i = 0;
+    for (it = m_RenderWindowList.cbegin(); it != m_RenderWindowList.cend(); ++it, ++i)</span>
+    {
+<span style = "background-color:#fdd">      if (it-&gt;second == RENDERING_REQUESTED)</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;ForceImmediateUpdate(it-&gt;first);</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+  void RenderingManager::RenderingStartCallback(vtkObject *caller, unsigned long, void *, void *)
+<span style = "background-color:#fdd">  {
+    auto renderingManager = RenderingManager::GetInstance();
+    auto renderWindow = dynamic_cast&lt;vtkRenderWindow*&gt;(caller);</span>
+
+<span style = "background-color:#fdd">    if (nullptr != renderWindow)
+      renderingManager-&gt;m_RenderWindowList[renderWindow] = RENDERING_INPROGRESS;</span>
+
+<span style = "background-color:#fdd">    renderingManager-&gt;m_UpdatePending = false;
+  }</span>
+
+  void RenderingManager::RenderingProgressCallback(vtkObject *caller, unsigned long, void *, void *)
+<span style = "background-color:#fdd">  {
+    auto renderingManager = RenderingManager::GetInstance();</span>
+
+<span style = "background-color:#fdd">    if (renderingManager-&gt;m_LODAbortMechanismEnabled)</span>
+    {
+<span style = "background-color:#fdd">      auto renderWindow = dynamic_cast&lt;vtkRenderWindow *&gt;(caller);</span>
+
+<span style = "background-color:#fdd">      if (nullptr != renderWindow)</span>
+      {
+<span style = "background-color:#fdd">        auto renderer = BaseRenderer::GetInstance(renderWindow);</span>
+
+<span style = "background-color:#fdd">        if (nullptr != renderer &amp;&amp; 0 &lt; renderer-&gt;GetNumberOfVisibleLODEnabledMappers())
+          renderingManager-&gt;DoMonitorRendering();</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void RenderingManager::RenderingEndCallback(vtkObject *caller, unsigned long, void *, void *)
+<span style = "background-color:#fdd">  {
+    auto renderWindow = dynamic_cast&lt;vtkRenderWindow*&gt;(caller);
+    if (nullptr == renderWindow)</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    auto renderer = BaseRenderer::GetInstance(renderWindow);
+    if (nullptr == renderer)</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    auto renderingManager = RenderingManager::GetInstance();
+    renderingManager-&gt;m_RenderWindowList[renderer-&gt;GetRenderWindow()] = RENDERING_INACTIVE;</span>
+
+<span style = "background-color:#fdd">    if (0 &lt; renderer-&gt;GetNumberOfVisibleLODEnabledMappers())</span>
+    {
+<span style = "background-color:#fdd">      if (0 == renderingManager-&gt;m_NextLODMap[renderer])</span>
+      {
+<span style = "background-color:#fdd">        renderingManager-&gt;StartOrResetTimer();
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        renderingManager-&gt;m_NextLODMap[renderer] = 0;</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  bool RenderingManager::IsRendering() const
+<span style = "background-color:#fdd">  {
+    RenderWindowList::const_iterator it;
+    for (it = m_RenderWindowList.cbegin(); it != m_RenderWindowList.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      if (it-&gt;second == RENDERING_INPROGRESS)</span>
+      {
+<span style = "background-color:#fdd">        return true;</span>
+      }
+<span style = "background-color:#fdd">    }
+    return false;
+  }</span>
+
+  void RenderingManager::AbortRendering()
+<span style = "background-color:#fdd">  {
+    RenderWindowList::const_iterator it;
+    for (it = m_RenderWindowList.cbegin(); it != m_RenderWindowList.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      if (it-&gt;second == RENDERING_INPROGRESS)</span>
+      {
+<span style = "background-color:#fdd">        it-&gt;first-&gt;SetAbortRender(true);
+        m_RenderingAbortedMap[BaseRenderer::GetInstance(it-&gt;first)] = true;</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+  int RenderingManager::GetNextLOD(BaseRenderer *renderer)
+<span style = "background-color:#fdd">  {
+    if (renderer != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      return m_NextLODMap[renderer];
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return 0;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void RenderingManager::ExecutePendingHighResRenderingRequest()
+<span style = "background-color:#fdd">  {
+    RenderWindowList::const_iterator it;
+    for (it = m_RenderWindowList.cbegin(); it != m_RenderWindowList.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      BaseRenderer *renderer = BaseRenderer::GetInstance(it-&gt;first);</span>
+
+<span style = "background-color:#fdd">      if (renderer-&gt;GetNumberOfVisibleLODEnabledMappers() &gt; 0)</span>
+      {
+<span style = "background-color:#fdd">        if (m_NextLODMap[renderer] == 0)</span>
+        {
+<span style = "background-color:#fdd">          m_NextLODMap[renderer] = 1;
+          RequestUpdate(it-&gt;first);</span>
+        }
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+<span style = "background-color:#fdd">  void RenderingManager::SetMaximumLOD(unsigned int max) { m_MaxLOD = max; }</span>
+  // enable/disable shading
+  void RenderingManager::SetShading(bool state, unsigned int lod)
+<span style = "background-color:#fdd">  {
+    if (lod &gt; m_MaxLOD)</span>
+    {
+<span style = "background-color:#fdd">      itkWarningMacro(&lt;&lt; "LOD out of range requested: " &lt;&lt; lod &lt;&lt; " maxLOD: " &lt;&lt; m_MaxLOD);
+      return;</span>
+    }
+<span style = "background-color:#fdd">    m_ShadingEnabled[lod] = state;
+  }</span>
+
+  bool RenderingManager::GetShading(unsigned int lod)
+<span style = "background-color:#fdd">  {
+    if (lod &gt; m_MaxLOD)</span>
+    {
+<span style = "background-color:#fdd">      itkWarningMacro(&lt;&lt; "LOD out of range requested: " &lt;&lt; lod &lt;&lt; " maxLOD: " &lt;&lt; m_MaxLOD);
+      return false;</span>
+    }
+<span style = "background-color:#fdd">    return m_ShadingEnabled[lod];
+  }</span>
+
+  // enable/disable the clipping plane
+<span style = "background-color:#fdd">  void RenderingManager::SetClippingPlaneStatus(bool status) { m_ClippingPlaneEnabled = status; }
+  bool RenderingManager::GetClippingPlaneStatus() { return m_ClippingPlaneEnabled; }</span>
+  void RenderingManager::SetShadingValues(float ambient, float diffuse, float specular, float specpower)
+<span style = "background-color:#fdd">  {
+    m_ShadingValues[0] = ambient;
+    m_ShadingValues[1] = diffuse;
+    m_ShadingValues[2] = specular;
+    m_ShadingValues[3] = specpower;
+  }</span>
+
+<span style = "background-color:#fdd">  RenderingManager::FloatVector &amp;RenderingManager::GetShadingValues() { return m_ShadingValues; }</span>
+  void RenderingManager::InitializePropertyList()
+<span style = "background-color:#fdd">  {
+    if (m_PropertyList.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      m_PropertyList = PropertyList::New();</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;SetProperty("coupled-zoom", BoolProperty::New(false));
+    this-&gt;SetProperty("coupled-plane-rotation", BoolProperty::New(false));
+    this-&gt;SetProperty("MIP-slice-rendering", BoolProperty::New(false));
+  }</span>
+
+<span style = "background-color:#fdd">  PropertyList::Pointer RenderingManager::GetPropertyList() const { return m_PropertyList; }</span>
+  BaseProperty *RenderingManager::GetProperty(const char *propertyKey) const
+<span style = "background-color:#fdd">  {
+    return m_PropertyList-&gt;GetProperty(propertyKey);
+  }</span>
+
+  void RenderingManager::SetProperty(const char *propertyKey, BaseProperty *propertyValue)
+<span style = "background-color:#fdd">  {
+    m_PropertyList-&gt;SetProperty(propertyKey, propertyValue);
+  }</span>
+
+  void RenderingManager::SetDataStorage(DataStorage *storage)
+<span style = "background-color:#fdd">  {
+    if (storage != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      m_DataStorage = storage;</span>
+
+<span style = "background-color:#fdd">      RenderingManager::RenderWindowVector::const_iterator iter;
+      for (iter = m_AllRenderWindows.cbegin(); iter &lt; m_AllRenderWindows.cend(); ++iter)</span>
+      {
+<span style = "background-color:#fdd">        BaseRenderer::GetInstance((*iter))-&gt;SetDataStorage(m_DataStorage.GetPointer());
+      }
+    }
+  }</span>
+
+  void RenderingManager::SetRenderWindowFocus(vtkRenderWindow *focusWindow)
+<span style = "background-color:#fdd">  {
+    if (focusWindow != m_FocusedRenderWindow)</span>
+    {
+<span style = "background-color:#fdd">      if (!focusWindow || (m_RenderWindowList.find(focusWindow) != m_RenderWindowList.cend()))</span>
+      {
+<span style = "background-color:#fdd">        m_FocusedRenderWindow = focusWindow;
+        this-&gt;InvokeEvent(FocusChangedEvent());
+        return;</span>
+      }
+
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Tried to set a RenderWindow that does not exist.";</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void RenderingManager::SetAntiAliasing(AntiAliasing antiAliasing)
+<span style = "background-color:#fdd">  {
+    if (m_AntiAliasing != antiAliasing)</span>
+    {
+<span style = "background-color:#fdd">      auto renderingManager = RenderingManager::GetInstance();
+      auto renderWindows = renderingManager-&gt;GetAllRegisteredRenderWindows();</span>
+
+<span style = "background-color:#fdd">      for (auto renderWindow : renderWindows)</span>
+      {
+<span style = "background-color:#fdd">        auto renderers = renderWindow-&gt;GetRenderers();</span>
+
+<span style = "background-color:#fdd">        if (nullptr != renderers)</span>
+        {
+<span style = "background-color:#fdd">          renderers-&gt;InitTraversal();
+          auto renderer = renderers-&gt;GetNextItem();</span>
+
+<span style = "background-color:#fdd">          while (nullptr != renderer)</span>
+          {
+<span style = "background-color:#fdd">            renderer-&gt;SetUseFXAA(AntiAliasing::FastApproximate == antiAliasing);
+            renderer = renderers-&gt;GetNextItem();
+          }</span>
+
+<span style = "background-color:#fdd">          renderingManager-&gt;RequestUpdate(renderWindow);</span>
+        }
+<span style = "background-color:#fdd">      }</span>
+
+<span style = "background-color:#fdd">      m_AntiAliasing = antiAliasing;
+    }
+  }</span>
+
+  // Create and register generic RenderingManagerFactory.
+<span style = "background-color:#dfd">  TestingRenderingManagerFactory renderingManagerFactory;</span>
+} // namespace</pre>
+	</body>
+</html>

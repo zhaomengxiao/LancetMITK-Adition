@@ -1,0 +1,377 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataRecorderDeprecated.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationDataRecorderDeprecated.h"
+#include &lt;fstream&gt;
+#include &lt;mitkIGTTimeStamp.h&gt;
+#include &lt;tinyxml2.h&gt;
+#include &lt;itksys/SystemTools.hxx&gt;
+
+//headers for exceptions
+#include "mitkIGTException.h"
+#include "mitkIGTIOException.h"
+
+mitk::NavigationDataRecorderDeprecated::NavigationDataRecorderDeprecated()
+<span style = "background-color:#fdd">{</span>
+  //set default values
+<span style = "background-color:#fdd">  m_NumberOfInputs = 0;
+  m_RecordingMode = NormalFile;
+  m_Recording = false;
+  m_NumberOfRecordedFiles = 0;
+  m_Stream = nullptr;
+  m_FileName = "";
+  m_SystemTimeClock = RealTimeClock::New();
+  m_OutputFormat = mitk::NavigationDataRecorderDeprecated::xml;
+  m_RecordCounter = 0;
+  m_RecordCountLimit = -1;
+  m_DoNotOverwriteFiles = false;
+  m_StreamMustBeDeleted = false;</span>
+
+  //To get a start time
+<span style = "background-color:#fdd">  mitk::IGTTimeStamp::GetInstance()-&gt;Start(this);
+}</span>
+
+mitk::NavigationDataRecorderDeprecated::~NavigationDataRecorderDeprecated()
+<span style = "background-color:#fdd">{
+}</span>
+
+
+void mitk::NavigationDataRecorderDeprecated::GenerateData()
+<span style = "background-color:#fdd">{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+void mitk::NavigationDataRecorderDeprecated::AddNavigationData( const NavigationData* nd )
+<span style = "background-color:#fdd">{</span>
+  // Process object is not const-correct so the const_cast is required here
+<span style = "background-color:#fdd">  this-&gt;SetNthInput(m_NumberOfInputs,</span>
+    const_cast&lt; mitk::NavigationData * &gt;( nd ) );
+
+<span style = "background-color:#fdd">  m_NumberOfInputs++;</span>
+
+<span style = "background-color:#fdd">  this-&gt;Modified();
+}</span>
+
+void mitk::NavigationDataRecorderDeprecated::SetRecordingMode( RecordingMode mode )
+<span style = "background-color:#fdd">{
+  m_RecordingMode = mode;
+  this-&gt;Modified();
+}</span>
+
+void mitk::NavigationDataRecorderDeprecated::Update()
+<span style = "background-color:#fdd">{
+  if (m_Recording)</span>
+  {
+<span style = "background-color:#fdd">    DataObjectPointerArray inputs = this-&gt;GetInputs(); //get all inputs
+    mitk::NavigationData::TimeStampType timestamp=0.0; // timestamp for mitk time
+    timestamp = mitk::IGTTimeStamp::GetInstance()-&gt;GetElapsed();</span>
+
+
+<span style = "background-color:#fdd">    mitk::NavigationData::TimeStampType sysTimestamp = 0.0; // timestamp for system time
+    sysTimestamp = m_SystemTimeClock-&gt;GetCurrentStamp();</span>
+
+    // cast system time double value to stringstream to avoid low precision rounding
+<span style = "background-color:#fdd">    std::ostringstream strs;
+    strs.precision(15); // rounding precision for system time double value
+    strs &lt;&lt; sysTimestamp;
+    std::string sysTimeStr = strs.str();</span>
+
+    //if csv-mode: write csv header and timestamp at beginning
+<span style = "background-color:#fdd">    if (m_OutputFormat == mitk::NavigationDataRecorderDeprecated::csv)</span>
+      {
+      //write header only when it's the first line
+<span style = "background-color:#fdd">      if (m_firstLine)</span>
+        {
+<span style = "background-color:#fdd">        m_firstLine = false;
+        *m_Stream &lt;&lt; "TimeStamp";
+        for (unsigned int index = 0; index &lt; inputs.size(); index++){ *m_Stream &lt;&lt; ";Valid_Tool" &lt;&lt; index &lt;&lt;</span>
+                                                                                ";X_Tool" &lt;&lt; index &lt;&lt;
+                                                                                ";Y_Tool" &lt;&lt; index &lt;&lt;
+                                                                                ";Z_Tool" &lt;&lt; index &lt;&lt;
+                                                                                ";QX_Tool" &lt;&lt; index &lt;&lt;
+                                                                                ";QY_Tool" &lt;&lt; index &lt;&lt;
+                                                                                ";QZ_Tool" &lt;&lt; index &lt;&lt;
+<span style = "background-color:#fdd">                                                                                ";QR_Tool" &lt;&lt; index;}
+        *m_Stream &lt;&lt; "\n";</span>
+        }
+      //write timestamp (always)
+<span style = "background-color:#fdd">      *m_Stream &lt;&lt; timestamp;</span>
+      }
+
+    //write tool data for every tool
+<span style = "background-color:#fdd">    for (unsigned int index = 0; index &lt; inputs.size(); index++)</span>
+    {
+<span style = "background-color:#fdd">      mitk::NavigationData* nd = dynamic_cast&lt;mitk::NavigationData*&gt;(inputs[index].GetPointer());
+      nd-&gt;Update(); // call update to propagate update to previous filters</span>
+
+<span style = "background-color:#fdd">      mitk::NavigationData::PositionType position;
+      mitk::NavigationData::OrientationType orientation(0.0, 0.0, 0.0, 0.0);
+      mitk::NavigationData::CovarianceMatrixType matrix;</span>
+
+<span style = "background-color:#fdd">      bool hasPosition = true;
+      bool hasOrientation = true;
+      bool dataValid = false;</span>
+
+<span style = "background-color:#fdd">      position.Fill(0.0);
+      matrix.SetIdentity();</span>
+
+<span style = "background-color:#fdd">      position = nd-&gt;GetPosition();
+      orientation = nd-&gt;GetOrientation();
+      matrix = nd-&gt;GetCovErrorMatrix();</span>
+
+<span style = "background-color:#fdd">      hasPosition = nd-&gt;GetHasPosition();
+      hasOrientation = nd-&gt;GetHasOrientation();
+      dataValid = nd-&gt;IsDataValid();</span>
+
+      //use this one if you want the timestamps of the source
+      //timestamp = nd-&gt;GetIGTTimeStamp();
+
+      //a timestamp is never &lt; 0! this case happens only if you are using the timestamp of the nd object instead of getting a new one
+<span style = "background-color:#fdd">      if (timestamp &gt;= 0)</span>
+      {
+<span style = "background-color:#fdd">        if (this-&gt;m_OutputFormat == mitk::NavigationDataRecorderDeprecated::xml)</span>
+        {
+<span style = "background-color:#fdd">          tinyxml2::XMLDocument doc;
+          auto *elem = doc.NewElement("NavigationData");</span>
+
+<span style = "background-color:#fdd">          elem-&gt;SetAttribute("Time", timestamp);
+          elem-&gt;SetAttribute("SystemTime", sysTimeStr.c_str()); // tag for system time
+          elem-&gt;SetAttribute("Tool", index);
+          elem-&gt;SetAttribute("X", position[0]);
+          elem-&gt;SetAttribute("Y", position[1]);
+          elem-&gt;SetAttribute("Z", position[2]);</span>
+
+<span style = "background-color:#fdd">          elem-&gt;SetAttribute("QX", orientation[0]);
+          elem-&gt;SetAttribute("QY", orientation[1]);
+          elem-&gt;SetAttribute("QZ", orientation[2]);
+          elem-&gt;SetAttribute("QR", orientation[3]);</span>
+
+<span style = "background-color:#fdd">          elem-&gt;SetAttribute("C00", matrix[0][0]);
+          elem-&gt;SetAttribute("C01", matrix[0][1]);
+          elem-&gt;SetAttribute("C02", matrix[0][2]);
+          elem-&gt;SetAttribute("C03", matrix[0][3]);
+          elem-&gt;SetAttribute("C04", matrix[0][4]);
+          elem-&gt;SetAttribute("C05", matrix[0][5]);
+          elem-&gt;SetAttribute("C10", matrix[1][0]);
+          elem-&gt;SetAttribute("C11", matrix[1][1]);
+          elem-&gt;SetAttribute("C12", matrix[1][2]);
+          elem-&gt;SetAttribute("C13", matrix[1][3]);
+          elem-&gt;SetAttribute("C14", matrix[1][4]);
+          elem-&gt;SetAttribute("C15", matrix[1][5]);</span>
+
+<span style = "background-color:#fdd">          if (dataValid)
+            elem-&gt;SetAttribute("Valid",1);</span>
+          else
+<span style = "background-color:#fdd">            elem-&gt;SetAttribute("Valid",0);</span>
+
+<span style = "background-color:#fdd">          if (hasOrientation)
+            elem-&gt;SetAttribute("hO",1);</span>
+          else
+<span style = "background-color:#fdd">            elem-&gt;SetAttribute("hO",0);</span>
+
+<span style = "background-color:#fdd">          if (hasPosition)
+            elem-&gt;SetAttribute("hP",1);</span>
+          else
+<span style = "background-color:#fdd">            elem-&gt;SetAttribute("hP",0);</span>
+
+          // set additional attribute?
+          auto
+<span style = "background-color:#fdd">              it = m_AdditionalAttributes.find( nd );
+          if( it != m_AdditionalAttributes.end() )</span>
+          {
+<span style = "background-color:#fdd">            elem-&gt;SetAttribute(it-&gt;second.first.c_str(), it-&gt;second.second.c_str());</span>
+          }
+
+<span style = "background-color:#fdd">          tinyxml2::XMLPrinter printer;
+          doc.Print(&amp;printer);</span>
+
+<span style = "background-color:#fdd">          *m_Stream &lt;&lt; "        " &lt;&lt; printer.CStr() &lt;&lt; std::endl;
+          }
+        else if (this-&gt;m_OutputFormat == mitk::NavigationDataRecorderDeprecated::csv)</span>
+          {
+<span style = "background-color:#fdd">          *m_Stream &lt;&lt; ";" &lt;&lt; dataValid &lt;&lt; ";" &lt;&lt; position[0] &lt;&lt; ";" &lt;&lt; position[1] &lt;&lt; ";" &lt;&lt; position[2] &lt;&lt; ";" &lt;&lt; orientation[0] &lt;&lt; ";" &lt;&lt; orientation[1] &lt;&lt; ";" &lt;&lt; orientation[2] &lt;&lt; ";" &lt;&lt; orientation[3];</span>
+          }
+      }
+<span style = "background-color:#fdd">    }
+    if (this-&gt;m_OutputFormat == mitk::NavigationDataRecorderDeprecated::csv)</span>
+    {
+<span style = "background-color:#fdd">      *m_Stream &lt;&lt; "\n";</span>
+    }
+<span style = "background-color:#fdd">  }
+  m_RecordCounter++;
+  if ((m_RecordCountLimit&lt;=m_RecordCounter)&amp;&amp;(m_RecordCountLimit != -1)) {StopRecording();}
+}</span>
+
+void mitk::NavigationDataRecorderDeprecated::SetAdditionalAttribute(const NavigationData* nd,
+                                                          const std::string&amp; attributeName
+                             , const std::string&amp; attributeValue )
+<span style = "background-color:#fdd">{</span>
+   auto
+<span style = "background-color:#fdd">       it = m_AdditionalAttributes.find( nd );
+  if( it == m_AdditionalAttributes.end() )
+    m_AdditionalAttributes[nd] = std::pair&lt;std::string, std::string&gt;(attributeName, attributeValue);</span>
+  else
+  {
+<span style = "background-color:#fdd">    it-&gt;second.first = attributeName;
+    it-&gt;second.second = attributeValue;</span>
+  }
+
+<span style = "background-color:#fdd">}</span>
+
+void mitk::NavigationDataRecorderDeprecated::RemoveAdditionalAttribute( const NavigationData* nd )
+<span style = "background-color:#fdd">{</span>
+  auto
+<span style = "background-color:#fdd">      it = m_AdditionalAttributes.find( nd );
+ if( it != m_AdditionalAttributes.end() )
+   m_AdditionalAttributes.erase(it);
+}</span>
+
+void mitk::NavigationDataRecorderDeprecated::StartRecording()
+<span style = "background-color:#fdd">{</span>
+
+<span style = "background-color:#fdd">  if(!m_Recording)</span>
+  {
+<span style = "background-color:#fdd">    if (m_Stream == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      std::stringstream ss;</span>
+      std::ostream* stream;
+
+      //An existing extension will be cut and replaced with .xml
+<span style = "background-color:#fdd">      std::string tmpPath = itksys::SystemTools::GetFilenamePath(m_FileName);
+      m_FileName = itksys::SystemTools::GetFilenameWithoutExtension(m_FileName);
+      std::string extension = ".xml";
+      if (m_OutputFormat == mitk::NavigationDataRecorderDeprecated::csv)
+        extension = ".csv";</span>
+
+<span style = "background-color:#fdd">      ss &lt;&lt; tmpPath &lt;&lt; "/" &lt;&lt;  m_FileName &lt;&lt; "-" &lt;&lt; m_NumberOfRecordedFiles &lt;&lt; extension;</span>
+
+<span style = "background-color:#fdd">      if( m_DoNotOverwriteFiles )</span>
+      {
+<span style = "background-color:#fdd">        unsigned int index = m_NumberOfRecordedFiles+1;
+        while( itksys::SystemTools::FileExists( ss.str().c_str() ) )</span>
+        {
+<span style = "background-color:#fdd">          ss.str("");
+          ss &lt;&lt; tmpPath &lt;&lt; "/" &lt;&lt;  m_FileName &lt;&lt; "-" &lt;&lt; index  &lt;&lt; extension;
+          index++;
+        }</span>
+      }
+
+<span style = "background-color:#fdd">      switch(m_RecordingMode)</span>
+      {
+        case Console:
+<span style = "background-color:#fdd">          stream = &amp;std::cout;
+          break;</span>
+
+        case NormalFile:
+<span style = "background-color:#fdd">          if (m_FileName == "") //Check if there is a file name and path</span>
+          {
+<span style = "background-color:#fdd">            std::string message = "No file name or file path set.";
+            MITK_ERROR &lt;&lt; message;
+            mitkThrowException(mitk::IGTException) &lt;&lt; message;
+          }</span>
+          else
+          {
+<span style = "background-color:#fdd">            stream = new std::ofstream(ss.str().c_str());</span>
+          }
+<span style = "background-color:#fdd">          break;</span>
+
+        case ZipFile:
+<span style = "background-color:#fdd">          stream = &amp;std::cout;
+          MITK_WARN &lt;&lt; "Sorry no ZipFile support yet";
+          break;</span>
+
+        default:
+<span style = "background-color:#fdd">          stream = &amp;std::cout;</span>
+          break;
+      }
+<span style = "background-color:#fdd">      m_Stream = stream;
+      m_StreamMustBeDeleted = true;
+      m_firstLine = true;
+      m_RecordCounter = 0;
+      StartRecording(stream);
+    }
+  }
+else if (m_Recording)</span>
+  {
+<span style = "background-color:#fdd">  MITK_WARN &lt;&lt; "Already recording please stop before start new recording session";</span>
+  return;
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::NavigationDataRecorderDeprecated::StartRecording(std::ostream* stream)
+<span style = "background-color:#fdd">{
+  if (m_Recording)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Already recording please stop before start new recording session";
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  m_Stream = stream;
+  m_Stream-&gt;precision(10);</span>
+
+  //TODO store date and GMT time
+  //cheking if the stream is good
+<span style = "background-color:#fdd">  if (m_Stream-&gt;good())</span>
+  {
+<span style = "background-color:#fdd">    if (m_OutputFormat == mitk::NavigationDataRecorderDeprecated::xml)</span>
+      {
+<span style = "background-color:#fdd">      *m_Stream &lt;&lt; "&lt;?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?&gt;" &lt;&lt; std::endl;</span>
+      /**m_Stream &lt;&lt; "&lt;Version Ver=\"1\" /&gt;" &lt;&lt; std::endl;*/
+      // should be a generic version, meaning a member variable, which has the actual version
+<span style = "background-color:#fdd">      *m_Stream &lt;&lt; "    " &lt;&lt; "&lt;Data ToolCount=\"" &lt;&lt; (m_NumberOfInputs) &lt;&lt; "\" version=\"1.0\"&gt;" &lt;&lt; std::endl;</span>
+      }
+<span style = "background-color:#fdd">    m_Recording = true;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">   m_Recording = false;
+   mitkThrowException(mitk::IGTException)&lt;&lt;"The stream is not good";</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+
+void mitk::NavigationDataRecorderDeprecated::StopRecording()
+<span style = "background-color:#fdd">{
+  if (!m_Recording)</span>
+  {
+<span style = "background-color:#fdd">    std::cout &lt;&lt; "You have to start a recording first" &lt;&lt; std::endl;
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if ((m_Stream) &amp;&amp; (m_OutputFormat == mitk::NavigationDataRecorderDeprecated::xml))</span>
+  {
+<span style = "background-color:#fdd">    *m_Stream &lt;&lt; "&lt;/Data&gt;" &lt;&lt; std::endl;</span>
+  }
+
+<span style = "background-color:#fdd">  m_NumberOfRecordedFiles++;
+  m_Recording = false;
+  m_Stream-&gt;flush();
+  if (m_StreamMustBeDeleted) //stream must only be deleted if it was created inside this class</span>
+    {
+<span style = "background-color:#fdd">    m_StreamMustBeDeleted = false;
+    delete m_Stream;</span>
+    }
+<span style = "background-color:#fdd">  m_Stream = nullptr;
+}</span></pre>
+	</body>
+</html>

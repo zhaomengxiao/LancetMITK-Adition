@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkStepper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkStepper.h"
+
+mitk::Stepper::Stepper()
+<span style = "background-color:#fdd">  : m_Pos(0),
+    m_Steps(0),
+    m_AutoRepeat(false),
+    m_PingPong(false),
+    m_InverseDirection(false),
+    m_RangeMin(0.0),
+    m_RangeMax(-1.0),
+    m_RangeValid(false),
+    m_HasRange(false),
+    m_HasUnitName(false)
+{
+}</span>
+
+mitk::Stepper::~Stepper()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::Stepper::SetRange(ScalarType min, ScalarType max)
+<span style = "background-color:#fdd">{
+  m_RangeMin = min;
+  m_RangeMax = max;
+  m_HasRange = true;
+  m_RangeValid = true;
+  this-&gt;Modified();
+}</span>
+
+void mitk::Stepper::InvalidateRange()
+<span style = "background-color:#fdd">{
+  m_HasRange = true;
+  m_RangeValid = false;
+  this-&gt;Modified();
+}</span>
+
+mitk::ScalarType mitk::Stepper::GetRangeMin() const
+<span style = "background-color:#fdd">{
+  return m_RangeMin;
+}</span>
+
+mitk::ScalarType mitk::Stepper::GetRangeMax() const
+<span style = "background-color:#fdd">{
+  return m_RangeMax;
+}</span>
+
+void mitk::Stepper::RemoveRange()
+<span style = "background-color:#fdd">{
+  m_HasRange = false;
+  this-&gt;Modified();
+}</span>
+
+bool mitk::Stepper::HasValidRange() const
+<span style = "background-color:#fdd">{
+  return (m_HasRange &amp;&amp; m_RangeValid);
+}</span>
+
+bool mitk::Stepper::HasRange() const
+<span style = "background-color:#fdd">{
+  return m_HasRange;
+}</span>
+
+void mitk::Stepper::SetUnitName(const char *unitName)
+<span style = "background-color:#fdd">{
+  m_UnitName = std::string(unitName);
+  m_HasUnitName = true;
+  this-&gt;Modified();
+}</span>
+
+const char *mitk::Stepper::GetUnitName() const
+<span style = "background-color:#fdd">{
+  return m_UnitName.c_str();
+}</span>
+
+void mitk::Stepper::RemoveUnitName()
+<span style = "background-color:#fdd">{
+  m_HasUnitName = false;
+  this-&gt;Modified();
+}</span>
+
+bool mitk::Stepper::HasUnitName() const
+<span style = "background-color:#fdd">{
+  return m_HasUnitName;
+}</span>
+
+void mitk::Stepper::Increase()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetPos() &lt; this-&gt;GetSteps() - 1)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetPos(this-&gt;GetPos() + 1);
+  }
+  else if (m_AutoRepeat)</span>
+  {
+<span style = "background-color:#fdd">    if (!m_PingPong)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;SetPos(0);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      m_InverseDirection = true;
+      if (this-&gt;GetPos() &gt; 0)</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;SetPos(this-&gt;GetPos() - 1);</span>
+      }
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::Stepper::Decrease()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetPos() &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetPos(this-&gt;GetPos() - 1);
+  }
+  else if (m_AutoRepeat)</span>
+  {
+<span style = "background-color:#fdd">    if (!m_PingPong)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;SetPos(this-&gt;GetSteps() - 1);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      m_InverseDirection = false;
+      if (this-&gt;GetPos() &lt; this-&gt;GetSteps() - 1)</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;SetPos(this-&gt;GetPos() + 1);</span>
+      }
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::Stepper::Next()
+<span style = "background-color:#fdd">{
+  if (!m_InverseDirection)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;Increase();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;Decrease();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::Stepper::Previous()
+<span style = "background-color:#fdd">{
+  if (!m_InverseDirection)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;Decrease();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;Increase();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::Stepper::MoveSlice(int sliceDelta)
+<span style = "background-color:#fdd">{
+  int maxSlices = this-&gt;GetSteps();
+  if (0 == maxSlices)</span>
+  {
+    // cannot move slice if no slices available (no image loaded)
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  int newPosition = this-&gt;GetPos() + sliceDelta;</span>
+
+<span style = "background-color:#fdd">  if (m_AutoRepeat)</span>
+  {
+    // if auto repeat is on, increasing continues at the first slice if the last slice was reached and vice versa
+<span style = "background-color:#fdd">    while (newPosition &lt; 0)</span>
+    {
+<span style = "background-color:#fdd">      newPosition += maxSlices;
+    }
+    while (newPosition &gt;= maxSlices)</span>
+    {
+<span style = "background-color:#fdd">      newPosition -= maxSlices;
+    }
+  }</span>
+  else
+  {
+    // if the new slice is below 0 we still show slice 0
+    // due to the stepper using unsigned int we have to do this ourselves
+<span style = "background-color:#fdd">    if (newPosition &lt; 1)</span>
+    {
+<span style = "background-color:#fdd">      newPosition = 0;</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  this-&gt;SetPos(newPosition);
+}</span>
+
+void mitk::Stepper::First()
+<span style = "background-color:#fdd">{
+  this-&gt;SetPos(0);
+}</span>
+
+void mitk::Stepper::Last()
+<span style = "background-color:#fdd">{
+  this-&gt;SetPos(this-&gt;GetSteps() - 1);
+}</span></pre>
+	</body>
+</html>

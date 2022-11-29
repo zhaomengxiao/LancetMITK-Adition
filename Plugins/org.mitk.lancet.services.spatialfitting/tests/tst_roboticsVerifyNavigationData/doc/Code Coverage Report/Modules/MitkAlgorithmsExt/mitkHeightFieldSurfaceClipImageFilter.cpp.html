@@ -1,0 +1,427 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkHeightFieldSurfaceClipImageFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkHeightFieldSurfaceClipImageFilter.h"
+#include "mitkImageTimeSelector.h"
+#include "mitkProperties.h"
+#include "mitkTimeHelper.h"
+
+#include "mitkImageAccessByItk.h"
+#include "mitkImageToItk.h"
+
+#include &lt;itkImageRegionConstIterator.h&gt;
+#include &lt;itkImageRegionIteratorWithIndex.h&gt;
+#include &lt;itkImageSliceConstIteratorWithIndex.h&gt;
+
+#include &lt;vtkCellLocator.h&gt;
+#include &lt;vtkPolyData.h&gt;
+
+#include &lt;limits&gt;
+
+namespace mitk
+{
+  HeightFieldSurfaceClipImageFilter::HeightFieldSurfaceClipImageFilter()
+<span style = "background-color:#fdd">    : m_ClippingMode(CLIPPING_MODE_CONSTANT),
+      m_ClippingConstant(0.0),
+      m_MultiplicationFactor(2.0),
+      m_MultiPlaneValue(2),
+      m_HeightFieldResolutionX(256),
+      m_HeightFieldResolutionY(256),
+      m_MaxHeight(1024.0)
+  {
+    this-&gt;SetNumberOfIndexedInputs(8);
+    this-&gt;SetNumberOfRequiredInputs(2);</span>
+
+<span style = "background-color:#fdd">    m_InputTimeSelector = ImageTimeSelector::New();
+    m_OutputTimeSelector = ImageTimeSelector::New();
+  }</span>
+
+<span style = "background-color:#fdd">  HeightFieldSurfaceClipImageFilter::~HeightFieldSurfaceClipImageFilter() {}</span>
+  void HeightFieldSurfaceClipImageFilter::SetClippingSurface(Surface *clippingSurface)
+<span style = "background-color:#fdd">  {
+    this-&gt;SetNthInput(1, clippingSurface);
+  }</span>
+
+  void HeightFieldSurfaceClipImageFilter::SetClippingSurfaces(ClippingPlaneList planeList)
+<span style = "background-color:#fdd">  {
+    if (planeList.size() &gt; 7)</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Only 7 clipping planes are allowed!";</span>
+    }
+
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; planeList.size(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;SetNthInput(i + 1, planeList.at(i));
+    }
+  }</span>
+
+  const Surface *HeightFieldSurfaceClipImageFilter::GetClippingSurface() const
+<span style = "background-color:#fdd">  {
+    return dynamic_cast&lt;const Surface *&gt;(itk::ProcessObject::GetInput(1));
+  }</span>
+
+<span style = "background-color:#fdd">  void HeightFieldSurfaceClipImageFilter::SetClippingMode(int mode) { m_ClippingMode = mode; }
+  int HeightFieldSurfaceClipImageFilter::GetClippingMode() { return m_ClippingMode; }
+  void HeightFieldSurfaceClipImageFilter::SetClippingModeToConstant() { m_ClippingMode = CLIPPING_MODE_CONSTANT; }</span>
+  void HeightFieldSurfaceClipImageFilter::SetClippingModeToMultiplyByFactor()
+<span style = "background-color:#fdd">  {
+    m_ClippingMode = CLIPPING_MODE_MULTIPLYBYFACTOR;
+  }</span>
+
+  void HeightFieldSurfaceClipImageFilter::SetClippingModeToMultiPlaneValue()
+<span style = "background-color:#fdd">  {
+    m_ClippingMode = CLIPPING_MODE_MULTIPLANE;
+  }</span>
+
+  void HeightFieldSurfaceClipImageFilter::GenerateInputRequestedRegion()
+<span style = "background-color:#fdd">  {
+    Image *outputImage = this-&gt;GetOutput();
+    Image *inputImage = this-&gt;GetInput(0);
+    const Surface *inputSurface = dynamic_cast&lt;const Surface *&gt;(this-&gt;GetInput(1));</span>
+
+<span style = "background-color:#fdd">    if (!outputImage-&gt;IsInitialized() || inputSurface == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    inputImage-&gt;SetRequestedRegionToLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">    GenerateTimeInInputRegion(outputImage, inputImage);
+  }</span>
+
+  void HeightFieldSurfaceClipImageFilter::GenerateOutputInformation()
+<span style = "background-color:#fdd">  {
+    const Image *inputImage = this-&gt;GetInput(0);
+    Image *outputImage = this-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">    if (outputImage-&gt;IsInitialized() &amp;&amp; (this-&gt;GetMTime() &lt;= m_TimeOfHeaderInitialization.GetMTime()))</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    itkDebugMacro(&lt;&lt; "GenerateOutputInformation()");</span>
+
+    unsigned int i;
+<span style = "background-color:#fdd">    auto tmpDimensions = new unsigned int[inputImage-&gt;GetDimension()];</span>
+
+<span style = "background-color:#fdd">    for (i = 0; i &lt; inputImage-&gt;GetDimension(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      tmpDimensions[i] = inputImage-&gt;GetDimension(i);
+    }</span>
+
+<span style = "background-color:#fdd">    outputImage-&gt;Initialize(</span>
+      inputImage-&gt;GetPixelType(), inputImage-&gt;GetDimension(), tmpDimensions, inputImage-&gt;GetNumberOfChannels());
+
+<span style = "background-color:#fdd">    delete[] tmpDimensions;</span>
+
+<span style = "background-color:#fdd">    outputImage-&gt;SetGeometry(static_cast&lt;Geometry3D *&gt;(inputImage-&gt;GetGeometry()-&gt;Clone().GetPointer()));</span>
+
+<span style = "background-color:#fdd">    outputImage-&gt;SetPropertyList(inputImage-&gt;GetPropertyList()-&gt;Clone());</span>
+
+<span style = "background-color:#fdd">    m_TimeOfHeaderInitialization.Modified();
+  }</span>
+
+  template &lt;typename TPixel, unsigned int VImageDimension&gt;
+  void HeightFieldSurfaceClipImageFilter::_InternalComputeClippedImage(
+    itk::Image&lt;TPixel, VImageDimension&gt; *inputItkImage,
+    HeightFieldSurfaceClipImageFilter *clipImageFilter,
+    vtkPolyData *clippingPolyData,
+    AffineTransform3D *imageToPlaneTransform)
+<span style = "background-color:#fdd">  {</span>
+    typedef itk::Image&lt;TPixel, VImageDimension&gt; ItkInputImageType;
+    typedef itk::Image&lt;TPixel, VImageDimension&gt; ItkOutputImageType;
+
+    typedef itk::ImageSliceConstIteratorWithIndex&lt;ItkInputImageType&gt; ItkInputImageIteratorType;
+    typedef itk::ImageRegionIteratorWithIndex&lt;ItkOutputImageType&gt; ItkOutputImageIteratorType;
+
+<span style = "background-color:#fdd">    typename ImageToItk&lt;ItkOutputImageType&gt;::Pointer outputimagetoitk = ImageToItk&lt;ItkOutputImageType&gt;::New();
+    outputimagetoitk-&gt;SetInput(clipImageFilter-&gt;m_OutputTimeSelector-&gt;GetOutput());
+    outputimagetoitk-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    typename ItkOutputImageType::Pointer outputItkImage = outputimagetoitk-&gt;GetOutput();
+    std::vector&lt;double&gt; test;</span>
+
+    // create the iterators
+<span style = "background-color:#fdd">    typename ItkInputImageType::RegionType inputRegionOfInterest = inputItkImage-&gt;GetLargestPossibleRegion();
+    ItkInputImageIteratorType inputIt(inputItkImage, inputRegionOfInterest);
+    ItkOutputImageIteratorType outputIt(outputItkImage, inputRegionOfInterest);</span>
+
+    // Get bounds of clipping data
+<span style = "background-color:#fdd">    clippingPolyData-&gt;ComputeBounds();
+    double *bounds = clippingPolyData-&gt;GetBounds();</span>
+
+<span style = "background-color:#fdd">    double xWidth = bounds[1] - bounds[0];
+    double yWidth = bounds[3] - bounds[2];</span>
+
+    // Create vtkCellLocator for clipping poly data
+<span style = "background-color:#fdd">    vtkCellLocator *cellLocator = vtkCellLocator::New();
+    cellLocator-&gt;SetDataSet(clippingPolyData);
+    cellLocator-&gt;CacheCellBoundsOn();
+    cellLocator-&gt;AutomaticOn();
+    cellLocator-&gt;BuildLocator();</span>
+
+    // Allocate memory for 2D image to hold the height field generated by
+    // projecting the clipping data onto the plane
+<span style = "background-color:#fdd">    auto heightField = new double[m_HeightFieldResolutionX * m_HeightFieldResolutionY];</span>
+
+    // Walk through height field and for each entry calculate height of the
+    // clipping poly data at this point by means of vtkCellLocator. The
+    // clipping data x/y bounds are used for converting from poly data space to
+    // image (height-field) space.
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "Calculating Height Field..." &lt;&lt; std::endl;
+    for (unsigned int y = 0; y &lt; m_HeightFieldResolutionY; ++y)</span>
+    {
+<span style = "background-color:#fdd">      for (unsigned int x = 0; x &lt; m_HeightFieldResolutionX; ++x)</span>
+      {
+        double p0[3], p1[3], surfacePoint[3], pcoords[3];
+<span style = "background-color:#fdd">        p0[0] = bounds[0] + xWidth * x / (double)m_HeightFieldResolutionX;
+        p0[1] = bounds[2] + yWidth * y / (double)m_HeightFieldResolutionY;
+        p0[2] = -m_MaxHeight;</span>
+
+<span style = "background-color:#fdd">        p1[0] = p0[0];
+        p1[1] = p0[1];
+        p1[2] = m_MaxHeight;</span>
+
+        double t, distance;
+        int subId;
+<span style = "background-color:#fdd">        if (cellLocator-&gt;IntersectWithLine(p0, p1, 0.1, t, surfacePoint, pcoords, subId))</span>
+        {
+<span style = "background-color:#fdd">          distance = (2.0 * t - 1.0) * m_MaxHeight;
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          distance = -65536.0;</span>
+        }
+<span style = "background-color:#fdd">        heightField[y * m_HeightFieldResolutionX + x] = distance;</span>
+        itk::Image&lt;double, 2&gt;::IndexType index;
+<span style = "background-color:#fdd">        index[0] = x;
+        index[1] = y;
+      }
+    }</span>
+
+    // Walk through entire input image and for each point determine its distance
+    // from the x/y plane.
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "Performing clipping..." &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">    auto factor = static_cast&lt;TPixel&gt;(clipImageFilter-&gt;m_MultiplicationFactor);
+    TPixel clippingConstant = clipImageFilter-&gt;m_ClippingConstant;</span>
+
+<span style = "background-color:#fdd">    inputIt.SetFirstDirection(0);
+    inputIt.SetSecondDirection(1);</span>
+    // through all slices
+<span style = "background-color:#fdd">    for (inputIt.GoToBegin(), outputIt.GoToBegin(); !inputIt.IsAtEnd(); inputIt.NextSlice())</span>
+    {
+      // through all lines of a slice
+<span style = "background-color:#fdd">      for (; !inputIt.IsAtEndOfSlice(); inputIt.NextLine())</span>
+      {
+        // Transform the start(line) point from the image to the plane
+<span style = "background-color:#fdd">        Point3D imageP0, planeP0;
+        imageP0[0] = inputIt.GetIndex()[0];
+        imageP0[1] = inputIt.GetIndex()[1];
+        imageP0[2] = inputIt.GetIndex()[2];
+        planeP0 = imageToPlaneTransform-&gt;TransformPoint(imageP0);</span>
+
+        // Transform the end point (line) from the image to the plane
+<span style = "background-color:#fdd">        Point3D imageP1, planeP1;
+        imageP1[0] = imageP0[0] + inputRegionOfInterest.GetSize(0);
+        imageP1[1] = imageP0[1];
+        imageP1[2] = imageP0[2];
+        planeP1 = imageToPlaneTransform-&gt;TransformPoint(imageP1);</span>
+
+        // calculate the step size (if the plane is rotate, you go "crossway" through the image)
+<span style = "background-color:#fdd">        Vector3D step = (planeP1 - planeP0) / (double)inputRegionOfInterest.GetSize(0);</span>
+
+        // over all pixel
+<span style = "background-color:#fdd">        for (; !inputIt.IsAtEndOfLine(); ++inputIt, ++outputIt, planeP0 += step)</span>
+        {
+          // Only ConstantMode: if image pixel value == constant mode value--&gt;set output pixel value directly
+<span style = "background-color:#fdd">          if ((clipImageFilter-&gt;m_ClippingMode == CLIPPING_MODE_CONSTANT) &amp;&amp;</span>
+              ((TPixel)inputIt.Get() == clippingConstant))
+          {
+<span style = "background-color:#fdd">            outputIt.Set(clippingConstant);
+          }</span>
+
+          else
+          {
+<span style = "background-color:#fdd">            auto x0 = (int)((double)(m_HeightFieldResolutionX) * (planeP0[0] - bounds[0]) / xWidth);
+            auto y0 = (int)((double)(m_HeightFieldResolutionY) * (planeP0[1] - bounds[2]) / yWidth);</span>
+
+            bool clip;
+
+            // if the current point is outside of the plane region (RegionOfInterest)--&gt;clip the pixel allways
+<span style = "background-color:#fdd">            if ((x0 &lt; 0) || (x0 &gt;= (int)m_HeightFieldResolutionX) || (y0 &lt; 0) || (y0 &gt;= (int)m_HeightFieldResolutionY))</span>
+            {
+<span style = "background-color:#fdd">              clip = true;
+            }</span>
+
+            else
+            {
+              // Calculate bilinearly interpolated height field value at plane point
+<span style = "background-color:#fdd">              int x1 = x0 + 1;
+              int y1 = y0 + 1;
+              if (x1 &gt;= (int)m_HeightFieldResolutionX)</span>
+              {
+<span style = "background-color:#fdd">                x1 = x0;</span>
+              }
+<span style = "background-color:#fdd">              if (y1 &gt;= (int)m_HeightFieldResolutionY)</span>
+              {
+<span style = "background-color:#fdd">                y1 = y0;</span>
+              }
+
+              // Get the neighbour points for the interpolation
+              ScalarType q00, q01, q10, q11;
+<span style = "background-color:#fdd">              q00 = heightField[y0 * m_HeightFieldResolutionX + x0];
+              q01 = heightField[y0 * m_HeightFieldResolutionX + x1];
+              q10 = heightField[y1 * m_HeightFieldResolutionX + x0];
+              q11 = heightField[y1 * m_HeightFieldResolutionX + x1];</span>
+
+<span style = "background-color:#fdd">              double p00 = ((double)(m_HeightFieldResolutionX) * (planeP0[0] - bounds[0]) / xWidth);
+              double p01 = ((double)(m_HeightFieldResolutionY) * (planeP0[1] - bounds[2]) / yWidth);</span>
+
+<span style = "background-color:#fdd">              ScalarType q =</span>
+                q00 * ((double)x1 - p00) * ((double)y1 - p01) + q01 * (p00 - (double)x0) * ((double)y1 - p01) +
+                q10 * ((double)x1 - p00) * (p01 - (double)y0) + q11 * (p00 - (double)x0) * (p01 - (double)y0);
+
+<span style = "background-color:#fdd">              if (q - planeP0[2] &lt; 0)</span>
+              {
+<span style = "background-color:#fdd">                clip = true;
+              }</span>
+              else
+              {
+<span style = "background-color:#fdd">                clip = false;</span>
+              }
+            }
+
+            // different modes: differnt values for the clipped pixel
+<span style = "background-color:#fdd">            if (clip)</span>
+            {
+<span style = "background-color:#fdd">              if (clipImageFilter-&gt;m_ClippingMode == CLIPPING_MODE_CONSTANT)</span>
+              {
+<span style = "background-color:#fdd">                outputIt.Set(clipImageFilter-&gt;m_ClippingConstant);
+              }
+              else if (clipImageFilter-&gt;m_ClippingMode == CLIPPING_MODE_MULTIPLYBYFACTOR)</span>
+              {
+<span style = "background-color:#fdd">                outputIt.Set(inputIt.Get() * factor);
+              }
+              else if (clipImageFilter-&gt;m_ClippingMode == CLIPPING_MODE_MULTIPLANE)</span>
+              {
+<span style = "background-color:#fdd">                if (inputIt.Get() != 0)
+                  outputIt.Set(inputIt.Get() + m_MultiPlaneValue);</span>
+                else
+<span style = "background-color:#fdd">                  outputIt.Set(inputIt.Get());</span>
+              }
+<span style = "background-color:#fdd">            }</span>
+            // the non-clipped pixel keeps his value
+            else
+            {
+<span style = "background-color:#fdd">              outputIt.Set(inputIt.Get());</span>
+            }
+          }
+<span style = "background-color:#fdd">        }
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "DONE!" &lt;&lt; std::endl;</span>
+
+    // Clean-up
+<span style = "background-color:#fdd">    cellLocator-&gt;Delete();
+  }</span>
+
+  void HeightFieldSurfaceClipImageFilter::GenerateData()
+<span style = "background-color:#fdd">  {
+    const Image *inputImage = this-&gt;GetInput(0);</span>
+
+<span style = "background-color:#fdd">    const Image *outputImage = this-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">    m_InputTimeSelector-&gt;SetInput(inputImage);
+    m_OutputTimeSelector-&gt;SetInput(outputImage);</span>
+
+<span style = "background-color:#fdd">    Image::RegionType outputRegion = outputImage-&gt;GetRequestedRegion();
+    const TimeGeometry *outputTimeGeometry = outputImage-&gt;GetTimeGeometry();
+    const TimeGeometry *inputTimeGeometry = inputImage-&gt;GetTimeGeometry();</span>
+    ScalarType timeInMS;
+
+<span style = "background-color:#fdd">    int timestep = 0;
+    int tstart = outputRegion.GetIndex(3);
+    int tmax = tstart + outputRegion.GetSize(3);</span>
+
+<span style = "background-color:#fdd">    for (unsigned int i = 1; i &lt; this-&gt;GetNumberOfInputs(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      Surface *inputSurface = dynamic_cast&lt;Surface *&gt;(itk::ProcessObject::GetInput(i));</span>
+
+<span style = "background-color:#fdd">      if (!outputImage-&gt;IsInitialized() || inputSurface == nullptr)
+        return;</span>
+
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "Plane: " &lt;&lt; i;
+      MITK_INFO &lt;&lt; "Clipping: Start\n";</span>
+
+      // const PlaneGeometry *clippingGeometryOfCurrentTimeStep = nullptr;
+
+      int t;
+<span style = "background-color:#fdd">      for (t = tstart; t &lt; tmax; ++t)</span>
+      {
+<span style = "background-color:#fdd">        timeInMS = outputTimeGeometry-&gt;TimeStepToTimePoint(t);
+        timestep = inputTimeGeometry-&gt;TimePointToTimeStep(timeInMS);</span>
+
+<span style = "background-color:#fdd">        m_InputTimeSelector-&gt;SetTimeNr(timestep);
+        m_InputTimeSelector-&gt;UpdateLargestPossibleRegion();
+        m_OutputTimeSelector-&gt;SetTimeNr(t);
+        m_OutputTimeSelector-&gt;UpdateLargestPossibleRegion();</span>
+
+        // Compose IndexToWorld transform of image with WorldToIndexTransform of
+        // clipping data for conversion from image index space to plane index space
+<span style = "background-color:#fdd">        AffineTransform3D::Pointer planeWorldToIndexTransform = AffineTransform3D::New();
+        inputSurface-&gt;GetGeometry(t)-&gt;GetIndexToWorldTransform()-&gt;GetInverse(planeWorldToIndexTransform);</span>
+
+<span style = "background-color:#fdd">        AffineTransform3D::Pointer imageToPlaneTransform = AffineTransform3D::New();
+        imageToPlaneTransform-&gt;SetIdentity();</span>
+
+<span style = "background-color:#fdd">        imageToPlaneTransform-&gt;Compose(inputTimeGeometry-&gt;GetGeometryForTimeStep(t)-&gt;GetIndexToWorldTransform());
+        imageToPlaneTransform-&gt;Compose(planeWorldToIndexTransform);</span>
+
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "Accessing ITK function...\n";
+        if (i == 1)</span>
+        {
+<span style = "background-color:#fdd">          AccessByItk_3(m_InputTimeSelector-&gt;GetOutput(),</span>
+                        _InternalComputeClippedImage,
+                        this,
+                        inputSurface-&gt;GetVtkPolyData(t),
+                        imageToPlaneTransform);
+<span style = "background-color:#fdd">        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          mitk::Image::Pointer extensionImage = m_OutputTimeSelector-&gt;GetOutput()-&gt;Clone();
+          AccessByItk_3(</span>
+            extensionImage, _InternalComputeClippedImage, this, inputSurface-&gt;GetVtkPolyData(t), imageToPlaneTransform);
+<span style = "background-color:#fdd">        }
+        if (m_ClippingMode == CLIPPING_MODE_MULTIPLANE)
+          m_MultiPlaneValue = m_MultiPlaneValue * 2;
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    m_TimeOfHeaderInitialization.Modified();
+  }</span>
+
+} // namespace</pre>
+	</body>
+</html>

@@ -1,0 +1,290 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usSharedData.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+/*============================================================================
+
+Modified version of qshareddata.h from Qt 4.7.3 for CppMicroServices.
+Original copyright (c) Nokia Corporation. Usage covered by the
+GNU Lesser General Public License version 2.1
+(http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) and the Nokia Qt
+LGPL Exception version 1.1 (file LGPL_EXCEPTION.txt in Qt 4.7.3 package).
+
+============================================================================*/
+
+#ifndef USSHAREDDATA_H
+#define USSHAREDDATA_H
+
+#include "usAtomicInt_p.h"
+
+#include &lt;algorithm&gt;
+#include &lt;utility&gt;
+
+US_BEGIN_NAMESPACE
+
+/**
+ * \ingroup MicroServicesUtils
+ */
+class SharedData
+{
+public:
+  mutable AtomicInt ref;
+
+<span style = "background-color:#dfd">  inline SharedData() : ref(0) { }</span>
+<span style = "background-color:#fdd">  inline SharedData(const SharedData&amp;) : ref(0) { }</span>
+
+private:
+  // using the assignment operator would lead to corruption in the ref-counting
+  SharedData&amp; operator=(const SharedData&amp;);
+};
+
+/**
+ * \ingroup MicroServicesUtils
+ */
+template &lt;class T&gt;
+class SharedDataPointer
+{
+public:
+  typedef T Type;
+  typedef T* pointer;
+
+<span style = "background-color:#fdd">  inline void Detach() { if (d &amp;&amp; d-&gt;ref != 1) Detach_helper(); }</span>
+  inline T&amp; operator*() { Detach(); return *d; }
+  inline const T&amp; operator*() const { return *d; }
+<span style = "background-color:#fdd">  inline T* operator-&gt;() { Detach(); return d; }</span>
+<span style = "background-color:#dfd">  inline const T* operator-&gt;() const { return d; }</span>
+  inline operator T*() { Detach(); return d; }
+  inline operator const T*() const { return d; }
+  inline T* Data() { Detach(); return d; }
+<span style = "background-color:#dfd">  inline const T* Data() const { return d; }</span>
+<span style = "background-color:#fdd">  inline const T* ConstData() const { return d; }</span>
+
+  inline bool operator==(const SharedDataPointer&lt;T&gt;&amp; other) const { return d == other.d; }
+  inline bool operator!=(const SharedDataPointer&lt;T&gt;&amp; other) const { return d != other.d; }
+
+<span style = "background-color:#dfd">  inline SharedDataPointer() : d(nullptr) { }
+  inline ~SharedDataPointer() { if (d &amp;&amp; !d-&gt;ref.Deref()) delete d; }</span>
+
+  explicit SharedDataPointer(T* data);
+<span style = "background-color:#dfd">  inline SharedDataPointer(const SharedDataPointer&lt;T&gt;&amp; o) : d(o.d) { if (d) d-&gt;ref.Ref(); }</span>
+
+  inline SharedDataPointer&lt;T&gt; &amp; operator=(const SharedDataPointer&lt;T&gt;&amp; o)
+<span style = "background-color:#dfd">  {
+    if (o.d != d)</span>
+    {
+<span style = "background-color:#dfd">      if (o.d)
+        o.d-&gt;ref.Ref();
+      T *old = d;
+      d = o.d;
+      if (old &amp;&amp; !old-&gt;ref.Deref())
+        delete old;</span>
+    }
+<span style = "background-color:#dfd">    return *this;
+  }</span>
+
+  inline SharedDataPointer &amp;operator=(T *o)
+<span style = "background-color:#dfd">  {
+    if (o != d)</span>
+    {
+<span style = "background-color:#dfd">      if (o)
+        o-&gt;ref.Ref();
+      T *old = d;
+      d = o;
+      if (old &amp;&amp; !old-&gt;ref.Deref())</span>
+<span style = "background-color:#fdd">        delete old;</span>
+    }
+<span style = "background-color:#dfd">    return *this;
+  }</span>
+
+<span style = "background-color:#dfd">  inline bool operator!() const { return !d; }</span>
+
+  inline void Swap(SharedDataPointer&amp; other)
+<span style = "background-color:#fdd">  {</span>
+    using std::swap;
+<span style = "background-color:#fdd">    swap(d, other.d);
+  }</span>
+
+protected:
+  T* Clone();
+
+private:
+  void Detach_helper();
+
+  T *d;
+};
+
+/**
+ * \ingroup MicroServicesUtils
+ */
+template &lt;class T&gt; class ExplicitlySharedDataPointer
+{
+public:
+  typedef T Type;
+  typedef T* pointer;
+
+  inline T&amp; operator*() const { return *d; }
+<span style = "background-color:#fdd">  inline T* operator-&gt;() { return d; }</span>
+<span style = "background-color:#dfd">  inline T* operator-&gt;() const { return d; }
+  inline T* Data() const { return d; }</span>
+  inline const T* ConstData() const { return d; }
+
+<span style = "background-color:#fdd">  inline void Detach() { if (d &amp;&amp; d-&gt;ref != 1) Detach_helper(); }</span>
+
+  inline void Reset()
+  {
+    if(d &amp;&amp; !d-&gt;ref.Deref())
+      delete d;
+
+    d = 0;
+  }
+
+  inline operator bool () const { return d != nullptr; }
+
+<span style = "background-color:#fdd">  inline bool operator==(const ExplicitlySharedDataPointer&lt;T&gt;&amp; other) const { return d == other.d; }</span>
+  inline bool operator!=(const ExplicitlySharedDataPointer&lt;T&gt;&amp; other) const { return d != other.d; }
+  inline bool operator==(const T* ptr) const { return d == ptr; }
+  inline bool operator!=(const T* ptr) const { return d != ptr; }
+
+  inline ExplicitlySharedDataPointer() { d = 0; }
+<span style = "background-color:#dfd">  inline ~ExplicitlySharedDataPointer() { if (d &amp;&amp; !d-&gt;ref.Deref()) delete d; }</span>
+
+  explicit ExplicitlySharedDataPointer(T* data);
+<span style = "background-color:#dfd">  inline ExplicitlySharedDataPointer(const ExplicitlySharedDataPointer&lt;T&gt; &amp;o)
+    : d(o.d) { if (d) d-&gt;ref.Ref(); }</span>
+
+  template&lt;class X&gt;
+  inline ExplicitlySharedDataPointer(const ExplicitlySharedDataPointer&lt;X&gt;&amp; o)
+    : d(static_cast&lt;T*&gt;(o.Data()))
+  {
+    if(d)
+      d-&gt;ref.Ref();
+  }
+
+  inline ExplicitlySharedDataPointer&lt;T&gt;&amp; operator=(const ExplicitlySharedDataPointer&lt;T&gt;&amp; o)
+<span style = "background-color:#fdd">  {
+    if (o.d != d)</span>
+    {
+<span style = "background-color:#fdd">      if (o.d)
+        o.d-&gt;ref.Ref();
+      T *old = d;
+      d = o.d;
+      if (old &amp;&amp; !old-&gt;ref.Deref())
+        delete old;</span>
+    }
+<span style = "background-color:#fdd">    return *this;
+  }</span>
+
+  inline ExplicitlySharedDataPointer&amp; operator=(T* o)
+  {
+    if (o != d)
+    {
+      if (o)
+        o-&gt;ref.Ref();
+      T *old = d;
+      d = o;
+      if (old &amp;&amp; !old-&gt;ref.Deref())
+        delete old;
+    }
+    return *this;
+  }
+
+<span style = "background-color:#fdd">  inline bool operator!() const { return !d; }</span>
+
+  inline void Swap(ExplicitlySharedDataPointer&amp; other)
+<span style = "background-color:#fdd">  {</span>
+    using std::swap;
+<span style = "background-color:#fdd">    swap(d, other.d);
+  }</span>
+
+protected:
+  T* Clone();
+
+private:
+  void Detach_helper();
+
+  T *d;
+};
+
+
+template &lt;class T&gt;
+<span style = "background-color:#dfd">SharedDataPointer&lt;T&gt;::SharedDataPointer(T* adata) : d(adata)
+{ if (d) d-&gt;ref.Ref(); }</span>
+
+template &lt;class T&gt;
+T* SharedDataPointer&lt;T&gt;::Clone()
+<span style = "background-color:#fdd">{
+  return new T(*d);
+}</span>
+
+template &lt;class T&gt;
+void SharedDataPointer&lt;T&gt;::Detach_helper()
+<span style = "background-color:#fdd">{
+  T *x = Clone();
+  x-&gt;ref.Ref();
+  if (!d-&gt;ref.Deref())
+    delete d;
+  d = x;
+}</span>
+
+template &lt;class T&gt;
+T* ExplicitlySharedDataPointer&lt;T&gt;::Clone()
+<span style = "background-color:#fdd">{
+  return new T(*d);
+}</span>
+
+template &lt;class T&gt;
+void ExplicitlySharedDataPointer&lt;T&gt;::Detach_helper()
+<span style = "background-color:#fdd">{
+  T *x = Clone();
+    x-&gt;ref.Ref();
+  if (!d-&gt;ref.Deref())
+    delete d;
+  d = x;
+}</span>
+
+template &lt;class T&gt;
+ExplicitlySharedDataPointer&lt;T&gt;::ExplicitlySharedDataPointer(T* adata)
+<span style = "background-color:#dfd">  : d(adata)
+{ if (d) d-&gt;ref.Ref(); }</span>
+
+template &lt;class T&gt;
+void swap(US_PREPEND_NAMESPACE(SharedDataPointer&lt;T)&gt;&amp; p1, US_PREPEND_NAMESPACE(SharedDataPointer&lt;T)&gt;&amp; p2)
+{ p1.Swap(p2); }
+
+template &lt;class T&gt;
+void swap(US_PREPEND_NAMESPACE(ExplicitlySharedDataPointer&lt;T)&gt;&amp; p1, US_PREPEND_NAMESPACE(ExplicitlySharedDataPointer&lt;T)&gt;&amp; p2)
+{ p1.Swap(p2); }
+
+US_END_NAMESPACE
+
+#endif // USSHAREDDATA_H</pre>
+	</body>
+</html>

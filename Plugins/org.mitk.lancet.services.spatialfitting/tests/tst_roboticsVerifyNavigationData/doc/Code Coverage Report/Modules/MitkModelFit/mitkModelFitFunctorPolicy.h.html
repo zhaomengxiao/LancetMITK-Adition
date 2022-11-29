@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModelFitFunctorPolicy.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MODELFITFUNCTOR_POLICY_H
+#define MODELFITFUNCTOR_POLICY_H
+
+#include "itkIndex.h"
+#include "mitkModelFitFunctorBase.h"
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+
+  class MITKMODELFIT_EXPORT ModelFitFunctorPolicy
+  {
+  public:
+    typedef ModelFitFunctorBase::InputPixelArrayType InputPixelArrayType;
+    typedef ModelFitFunctorBase::InputPixelArrayType OutputPixelArrayType;
+
+    typedef mitk::ModelParameterizerBase ParameterizerType;
+    typedef ParameterizerType::ConstPointer   ParameterizerConstPointer;
+
+    typedef ModelFitFunctorBase               FunctorType;
+    typedef ModelFitFunctorBase::ConstPointer FunctorConstPointer;
+
+    typedef itk::Index&lt;3&gt; IndexType;
+
+<span style = "background-color:#fdd">    ModelFitFunctorPolicy()
+    {};</span>
+
+<span style = "background-color:#fdd">    ~ModelFitFunctorPolicy() {};</span>
+
+    unsigned int GetNumberOfOutputs() const
+<span style = "background-color:#fdd">    {
+      unsigned int result = 0;</span>
+
+<span style = "background-color:#fdd">      if (m_Functor.IsNotNull() &amp;&amp; m_ModelParameterizer.IsNotNull())</span>
+      {
+<span style = "background-color:#fdd">        ParameterizerType::ModelBasePointer tempModel = m_ModelParameterizer-&gt;GenerateParameterizedModel();
+        result =  m_Functor-&gt;GetNumberOfOutputs(tempModel);
+      }</span>
+
+<span style = "background-color:#fdd">      return result;
+    }</span>
+
+    void SetModelFitFunctor(const mitk::ModelFitFunctorBase* functor)
+<span style = "background-color:#fdd">    {
+      if (!functor)</span>
+      {
+<span style = "background-color:#fdd">        itkGenericExceptionMacro( &lt;&lt; "Error. Functor is Null.");</span>
+      }
+
+<span style = "background-color:#fdd">      m_Functor = functor;
+    }</span>
+
+    void SetModelParameterizer(const ParameterizerType* parameterizer)
+<span style = "background-color:#fdd">    {
+      if (!parameterizer)</span>
+      {
+<span style = "background-color:#fdd">        itkGenericExceptionMacro( &lt;&lt; "Error. Parameterizer is Null.");</span>
+      }
+
+<span style = "background-color:#fdd">      m_ModelParameterizer = parameterizer;
+    }</span>
+
+    bool operator!=(const ModelFitFunctorPolicy&amp; other) const
+<span style = "background-color:#fdd">    {
+      return !(*this == other);
+    }</span>
+
+    bool operator==(const ModelFitFunctorPolicy&amp; other) const
+<span style = "background-color:#fdd">    {
+      return (this-&gt;m_Functor == other.m_Functor) &amp;&amp;</span>
+             (this-&gt;m_ModelParameterizer == other.m_ModelParameterizer);
+<span style = "background-color:#fdd">    }</span>
+
+    inline OutputPixelArrayType operator()(const InputPixelArrayType&amp; value,
+                                           const IndexType&amp; currentIndex) const
+<span style = "background-color:#fdd">    {
+      if (!m_Functor)</span>
+      {
+<span style = "background-color:#fdd">        itkGenericExceptionMacro( &lt;&lt; "Error. Cannot process operator(). Functor is Null.");</span>
+      }
+
+<span style = "background-color:#fdd">      if (!m_ModelParameterizer)</span>
+      {
+<span style = "background-color:#fdd">        itkGenericExceptionMacro( &lt;&lt; "Error. Cannot process operator(). Parameterizer is Null.");</span>
+      }
+
+<span style = "background-color:#fdd">      ParameterizerType::ModelBasePointer parameterizedModel =</span>
+        m_ModelParameterizer-&gt;GenerateParameterizedModel(currentIndex);
+<span style = "background-color:#fdd">      ParameterizerType::ParametersType initialParams = m_ModelParameterizer-&gt;GetInitialParameterization(</span>
+            currentIndex);
+<span style = "background-color:#fdd">      OutputPixelArrayType result = m_Functor-&gt;Compute(value, parameterizedModel, initialParams);</span>
+
+<span style = "background-color:#fdd">      return result;
+    }</span>
+
+  private:
+
+    FunctorConstPointer m_Functor;
+    ParameterizerConstPointer m_ModelParameterizer;
+  };
+
+}
+
+
+#endif // LEVENBERGMARQUARDTMODELFITFUNCTOR_H</pre>
+	</body>
+</html>

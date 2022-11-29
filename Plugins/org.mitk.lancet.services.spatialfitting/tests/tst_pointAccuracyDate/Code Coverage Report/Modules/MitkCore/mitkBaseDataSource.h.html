@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkBaseDataSource.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITK_BASE_DATA_SOURCE_H
+#define MITK_BASE_DATA_SOURCE_H
+
+#include &lt;MitkCoreExports.h&gt;
+#include &lt;itkProcessObject.h&gt;
+#include &lt;mitkCommon.h&gt;
+
+#define mitkBaseDataSourceGetOutputDeclarations                                                                        \
+  OutputType *GetOutput();                                                                                             \
+  const OutputType *GetOutput() const;                                                                                 \
+  OutputType *GetOutput(DataObjectPointerArraySizeType idx);                                                           \
+  const OutputType *GetOutput(DataObjectPointerArraySizeType idx) const;
+
+#define mitkBaseDataSourceGetOutputDefinitions(className)                                                              \
+  className::OutputType *className::GetOutput(void)                                                                    \
+  {                                                                                                                    \
+    return itkDynamicCastInDebugMode&lt;OutputType *&gt;(this-&gt;GetPrimaryOutput());                                          \
+  }                                                                                                                    \
+  const className::OutputType *className::GetOutput(void) const                                                        \
+  {                                                                                                                    \
+    return itkDynamicCastInDebugMode&lt;const OutputType *&gt;(this-&gt;GetPrimaryOutput());                                    \
+  }                                                                                                                    \
+  className::OutputType *className::GetOutput(DataObjectPointerArraySizeType idx)                                      \
+  {                                                                                                                    \
+    OutputType *out = dynamic_cast&lt;OutputType *&gt;(this-&gt;ProcessObject::GetOutput(idx));                                 \
+    if (out == nullptr &amp;&amp; this-&gt;ProcessObject::GetOutput(idx) != nullptr)                                                    \
+    {                                                                                                                  \
+      itkWarningMacro(&lt;&lt; "Unable to convert output number " &lt;&lt; idx &lt;&lt; " to type " &lt;&lt; typeid(OutputType).name());       \
+    }                                                                                                                  \
+    return out;                                                                                                        \
+  }                                                                                                                    \
+  const className::OutputType *className::GetOutput(DataObjectPointerArraySizeType idx) const                          \
+  {                                                                                                                    \
+    const OutputType *out = dynamic_cast&lt;const OutputType *&gt;(this-&gt;ProcessObject::GetOutput(idx));                     \
+    if (out == nullptr &amp;&amp; this-&gt;ProcessObject::GetOutput(idx) != nullptr)                                                    \
+    {                                                                                                                  \
+      itkWarningMacro(&lt;&lt; "Unable to convert output number " &lt;&lt; idx &lt;&lt; " to type " &lt;&lt; typeid(OutputType).name());       \
+    }                                                                                                                  \
+    return out;                                                                                                        \
+  }
+
+namespace mitk
+{
+  class BaseData;
+
+  /**
+   * @brief Superclass of all classes generating some kind of mitk::BaseData.
+   *
+   * Superclass of all classes generating some kind of mitk::BaseData.
+   * In itk and vtk the generated result of a ProcessObject is only guaranteed
+   * to be up-to-date, when Update() of the ProcessObject or the generated
+   * DataObject is called immediately before access of the data stored in the
+   * DataObject. This is also true for subclasses of mitk::BaseProcess. But
+   * many of the subclasses of mitk::BaseProcess define additional access
+   * functions to the generated output that guarantee an up-to-date result, see
+   * for example mitk::ImageSource.
+   * @ingroup Process
+   */
+  class MITKCORE_EXPORT BaseDataSource : public itk::ProcessObject
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(BaseDataSource, itk::ProcessObject);</span>
+
+      typedef BaseData OutputType;
+    typedef itk::DataObject::DataObjectIdentifierType DataObjectIdentifierType;
+
+    mitkBaseDataSourceGetOutputDeclarations
+
+      /** @brief Graft the specified BaseData onto this BaseDataSource's output.
+       *
+       * This method is used when a
+       * process object is implemented using a mini-pipeline which is
+       * defined in its GenerateData() method.  The usage is:
+       *
+       * \code
+       *    // setup the mini-pipeline to process the input to this filter
+       *    firstFilterInMiniPipeline-&gt;SetInput( this-&gt;GetInput() );
+
+       *    // setup the mini-pipeline to calculate the correct regions
+       *    // and write to the appropriate bulk data block
+       *    lastFilterInMiniPipeline-&gt;GraftOutput( this-&gt;GetOutput(0) );
+       *
+       *    // execute the mini-pipeline
+       *    lastFilterInMiniPipeline-&gt;Update();
+       *
+       *    // graft the mini-pipeline output back onto this filter's output.
+       *    // this is needed to get the appropriate regions passed back.
+       *    this-&gt;GraftOutput( lastFilterInMiniPipeline-&gt;GetOutput(0) );
+       * \endcode
+       */
+      virtual void
+      GraftOutput(OutputType *output);
+
+    /**
+     * Graft the specified base data object onto this BaseDataSource's named
+     * output. This is similar to the GraftOutput method except it
+     * allows you to specify which output is affected.
+     * See the GraftOutput for general usage information.
+     */
+    virtual void GraftOutput(const DataObjectIdentifierType &amp;key, OutputType *output);
+
+    /** @brief Graft the specified base data object onto this BaseDataSource's idx'th
+     * output.
+     *
+     * This is the similar to GraftOutput method except is
+     * allows you specify which output is affected. The specified index
+     * must be a valid output number (less than
+     * ProcessObject::GetNumberOfOutputs()). See the GraftOutput for
+     * general usage information.
+     */
+    virtual void GraftNthOutput(unsigned int idx, OutputType *output);
+
+    /**
+     * @sa itk::ProcessObject::MakeOutput(DataObjectPointerArraySizeType)
+     */
+    DataObjectPointer MakeOutput(DataObjectPointerArraySizeType idx) override = 0;
+
+    /**
+     * @sa itk::ProcessObject::MakeOutput(const DataObjectIdentifierType&amp;)
+     */
+    DataObjectPointer MakeOutput(const DataObjectIdentifierType &amp;name) override = 0;
+
+    /**
+     * @brief Access itk::ProcessObject::m_Updating
+     *
+     * m_Updating indicates when the pipeline is executing.
+     * It prevents infinite recursion when pipelines have loops.
+     * \sa itk::ProcessObject::m_Updating
+     **/
+    bool Updating() const;
+
+  protected:
+    BaseDataSource();
+    ~BaseDataSource() override;
+
+    // purposely not implemented
+    static Pointer New();
+  };
+
+} // namespace mitk
+
+#endif /* MITK_BASE_DATA_SOURCE_H */</pre>
+	</body>
+</html>

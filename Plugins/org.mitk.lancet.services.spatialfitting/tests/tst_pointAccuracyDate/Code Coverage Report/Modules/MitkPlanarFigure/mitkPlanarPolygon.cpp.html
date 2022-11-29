@@ -1,0 +1,284 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlanarPolygon.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPlanarPolygon.h"
+#include "mitkPlaneGeometry.h"
+#include "mitkProperties.h"
+
+// stl related includes
+#include &lt;algorithm&gt;
+
+mitk::PlanarPolygon::PlanarPolygon()
+<span style = "background-color:#fdd">  : FEATURE_ID_CIRCUMFERENCE(this-&gt;AddFeature("Circumference", "mm")), FEATURE_ID_AREA(this-&gt;AddFeature("Area", "mm2"))
+{</span>
+  // Polygon has at least two control points
+<span style = "background-color:#fdd">  this-&gt;ResetNumberOfControlPoints(2);
+  this-&gt;SetNumberOfPolyLines(1);</span>
+
+  // Polygon is closed by default
+<span style = "background-color:#fdd">  this-&gt;SetProperty("closed", mitk::BoolProperty::New(true));
+  this-&gt;SetProperty("subdivision", mitk::BoolProperty::New(false));
+}</span>
+
+void mitk::PlanarPolygon::SetClosed(bool closed)
+<span style = "background-color:#fdd">{
+  this-&gt;SetProperty("closed", mitk::BoolProperty::New(closed));</span>
+
+<span style = "background-color:#fdd">  if (!closed)</span>
+  {
+    // For non-closed polygons: use "Length" as feature name; disable area
+<span style = "background-color:#fdd">    this-&gt;SetFeatureName(FEATURE_ID_CIRCUMFERENCE, "Length");
+    this-&gt;DeactivateFeature(FEATURE_ID_AREA);
+  }</span>
+  else
+  {
+    // For closed polygons: use "Circumference" as feature name; enable area
+<span style = "background-color:#fdd">    this-&gt;SetFeatureName(FEATURE_ID_CIRCUMFERENCE, "Circumference");
+    this-&gt;ActivateFeature(FEATURE_ID_AREA);</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;Modified();
+}</span>
+
+void mitk::PlanarPolygon::GeneratePolyLine()
+<span style = "background-color:#fdd">{
+  this-&gt;ClearPolyLines();</span>
+
+<span style = "background-color:#fdd">  for (ControlPointListType::size_type i = 0; i &lt; m_ControlPoints.size(); ++i)
+    this-&gt;AppendPointToPolyLine(0, this-&gt;GetControlPoint(i));
+}</span>
+
+void mitk::PlanarPolygon::GenerateHelperPolyLine(double /*mmPerDisplayUnit*/, unsigned int /*displayHeight*/)
+<span style = "background-color:#fdd">{</span>
+  // A polygon does not require helper objects
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarPolygon::EvaluateFeaturesInternal()
+<span style = "background-color:#fdd">{</span>
+  // Calculate circumference
+<span style = "background-color:#fdd">  double circumference = 0.0;</span>
+  unsigned int i, j;
+
+<span style = "background-color:#fdd">  const PolyLineType polyLine = m_PolyLines[0];</span>
+
+<span style = "background-color:#fdd">  if (polyLine.empty())
+    return;</span>
+
+<span style = "background-color:#fdd">  for (i = 0; i &lt; (polyLine.size() - 1); ++i)</span>
+  {
+<span style = "background-color:#fdd">    circumference += static_cast&lt;Point2D&gt;(polyLine[i]).EuclideanDistanceTo(static_cast&lt;Point2D&gt;(polyLine[i + 1]));
+  }</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;IsClosed())</span>
+  {
+<span style = "background-color:#fdd">    circumference += static_cast&lt;Point2D&gt;(polyLine[i]).EuclideanDistanceTo(static_cast&lt;Point2D&gt;(polyLine.front()));</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;SetQuantity(FEATURE_ID_CIRCUMFERENCE, circumference);</span>
+
+  // Calculate polygon area (if closed)
+<span style = "background-color:#fdd">  double area = 0.0;
+  bool intersection = false;</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;IsClosed() &amp;&amp; (this-&gt;GetPlaneGeometry() != nullptr))</span>
+  {
+    // does PlanarPolygon overlap/intersect itself?
+<span style = "background-color:#fdd">    const unsigned int numberOfPoints = polyLine.size();
+    if (numberOfPoints &gt;= 4)</span>
+    {
+<span style = "background-color:#fdd">      for (i = 0; i &lt; (numberOfPoints - 1); ++i)</span>
+      {
+        // line 1
+<span style = "background-color:#fdd">        const Point2D p0 = polyLine[i];
+        const Point2D p1 = polyLine[i + 1];</span>
+
+        // check for intersection with all other lines
+<span style = "background-color:#fdd">        for (j = i + 1; j &lt; (numberOfPoints - 1); ++j)</span>
+        {
+<span style = "background-color:#fdd">          const Point2D p2 = polyLine[j];
+          const Point2D p3 = polyLine[j + 1];
+          intersection = CheckForLineIntersection(p0, p1, p2, p3);
+          if (intersection)
+            break;
+        }
+        if (intersection)
+          break; // only because the inner loop might have changed "intersection"</span>
+
+        // last line from p_x to p_0
+<span style = "background-color:#fdd">        const Point2D p2 = polyLine.front();
+        const Point2D p3 = polyLine.back();</span>
+
+<span style = "background-color:#fdd">        intersection = CheckForLineIntersection(p0, p1, p2, p3);
+        if (intersection)
+          break;
+      }</span>
+    }
+
+    // calculate area
+<span style = "background-color:#fdd">    for (i = 0; i &lt; polyLine.size(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      const Point2D p0 = polyLine[i];
+      const Point2D p1 = polyLine[(i + 1) % polyLine.size()];</span>
+
+<span style = "background-color:#fdd">      area += p0[0] * p1[1] - p1[0] * p0[1];
+    }
+    area /= 2.0;</span>
+  }
+
+  // set area if appropiate (i.e. closed and not intersected)
+<span style = "background-color:#fdd">  if (this-&gt;IsClosed() &amp;&amp; !intersection)</span>
+  {
+<span style = "background-color:#fdd">    SetQuantity(FEATURE_ID_AREA, fabs(area));
+    this-&gt;ActivateFeature(FEATURE_ID_AREA);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    SetQuantity(FEATURE_ID_AREA, 0);
+    this-&gt;DeactivateFeature(FEATURE_ID_AREA);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarPolygon::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;IsClosed())
+    os &lt;&lt; indent &lt;&lt; "Polygon is closed\n";</span>
+  else
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Polygon is not closed\n";
+}</span>
+
+// based on
+// http://flassari.is/2008/11/line-line-intersection-in-cplusplus/
+bool mitk::PlanarPolygon::CheckForLineIntersection(const mitk::Point2D &amp;p1,
+                                                   const mitk::Point2D &amp;p2,
+                                                   const mitk::Point2D &amp;p3,
+                                                   const mitk::Point2D &amp;p4,
+                                                   Point2D &amp;intersection) const
+<span style = "background-color:#fdd">{</span>
+  // do not check for intersections with control points
+<span style = "background-color:#fdd">  if (p1 == p2 || p1 == p3 || p1 == p4 || p2 == p3 || p2 == p4 || p3 == p4)
+    return false;</span>
+
+  // Store the values for fast access and easy
+  // equations-to-code conversion
+<span style = "background-color:#fdd">  const double x1 = p1[0], x2 = p2[0], x3 = p3[0], x4 = p4[0];
+  const double y1 = p1[1], y2 = p2[1], y3 = p3[1], y4 = p4[1];</span>
+
+<span style = "background-color:#fdd">  const double d = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);</span>
+  // If d is zero, there is no intersection
+  // if (d &lt; mitk::eps) return false;
+<span style = "background-color:#fdd">  if (d == 0)
+    return false;</span>
+
+  // Get the x and y
+<span style = "background-color:#fdd">  const double pre = (x1 * y2 - y1 * x2);
+  const double post = (x3 * y4 - y3 * x4);
+  const double x = (pre * (x3 - x4) - (x1 - x2) * post) / d;
+  const double y = (pre * (y3 - y4) - (y1 - y2) * post) / d;</span>
+
+<span style = "background-color:#fdd">  double tolerance = 0.001;</span>
+  // Check if the x coordinates are within both lines, including tolerance
+<span style = "background-color:#fdd">  if (x &lt; (std::min(x1, x2) - tolerance) || x &gt; (std::max(x1, x2) + tolerance) || x &lt; (std::min(x3, x4) - tolerance) ||</span>
+      x &gt; (std::max(x3, x4) + tolerance))
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+  // Check if the y coordinates are within both lines, including tolerance
+<span style = "background-color:#fdd">  if (y &lt; (std::min(y1, y2) - tolerance) || y &gt; (std::max(y1, y2) + tolerance) || y &lt; (std::min(y3, y4) - tolerance) ||</span>
+      y &gt; (std::max(y3, y4) + tolerance))
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+  // point of intersection
+<span style = "background-color:#fdd">  Point2D ret;
+  ret[0] = x;
+  ret[1] = y;
+  intersection = ret;
+  return true;
+}</span>
+
+bool mitk::PlanarPolygon::CheckForLineIntersection(const mitk::Point2D &amp;p1,
+                                                   const mitk::Point2D &amp;p2,
+                                                   const mitk::Point2D &amp;p3,
+                                                   const mitk::Point2D &amp;p4) const
+<span style = "background-color:#fdd">{
+  mitk::Point2D intersection;
+  return mitk::PlanarPolygon::CheckForLineIntersection(p1, p2, p3, p4, intersection);
+}</span>
+
+std::vector&lt;mitk::Point2D&gt; mitk::PlanarPolygon::CheckForLineIntersection(const mitk::Point2D &amp;p1,
+                                                                         const mitk::Point2D &amp;p2) const
+<span style = "background-color:#fdd">{
+  std::vector&lt;mitk::Point2D&gt; intersectionList;</span>
+
+<span style = "background-color:#fdd">  ControlPointListType polyLinePoints;
+  const PolyLineType tempList = m_PolyLines[0];
+  for (auto iter = tempList.cbegin(); iter != tempList.cend(); ++iter)</span>
+  {
+<span style = "background-color:#fdd">    polyLinePoints.push_back(*iter);
+  }</span>
+
+<span style = "background-color:#fdd">  for (ControlPointListType::size_type i = 0; i &lt; polyLinePoints.size() - 1; i++)</span>
+  {
+<span style = "background-color:#fdd">    const mitk::Point2D pnt1 = polyLinePoints[i];
+    const mitk::Point2D pnt2 = polyLinePoints[i + 1];
+    mitk::Point2D intersection;</span>
+
+<span style = "background-color:#fdd">    if (mitk::PlanarPolygon::CheckForLineIntersection(p1, p2, pnt1, pnt2, intersection))</span>
+    {
+<span style = "background-color:#fdd">      intersectionList.push_back(intersection);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;IsClosed())</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point2D intersection;
+    const mitk::Point2D lastControlPoint = polyLinePoints.back();
+    const mitk::Point2D firstControlPoint = polyLinePoints.front();</span>
+
+<span style = "background-color:#fdd">    if (mitk::PlanarPolygon::CheckForLineIntersection(lastControlPoint, firstControlPoint, p1, p2, intersection))</span>
+    {
+<span style = "background-color:#fdd">      intersectionList.push_back(intersection);</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  return intersectionList;
+}</span>
+
+bool mitk::PlanarPolygon::Equals(const mitk::PlanarFigure &amp;other) const
+<span style = "background-color:#fdd">{
+  const auto *otherPolygon = dynamic_cast&lt;const mitk::PlanarPolygon *&gt;(&amp;other);
+  if (otherPolygon)</span>
+  {
+<span style = "background-color:#fdd">    return Superclass::Equals(other);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

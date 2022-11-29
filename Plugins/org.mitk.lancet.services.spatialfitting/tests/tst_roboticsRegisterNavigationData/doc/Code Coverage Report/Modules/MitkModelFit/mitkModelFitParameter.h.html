@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModelFitParameter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkModelFitParameter_h
+#define mitkModelFitParameter_h
+
+#include &lt;mitkImage.h&gt;
+
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+    namespace modelFit
+    {
+        /**
+         *  @brief Data class that stores all information about a modelfit parameter.
+     * Such a parameter is going to be fitted for the according model.
+         */
+        class MITKMODELFIT_EXPORT Parameter : public itk::LightObject
+        {
+        public:
+<span style = "background-color:#fdd">      mitkClassMacroItkParent(Parameter, itk::LightObject);
+            itkSimpleNewMacro(Parameter);</span>
+
+      enum Type
+        {
+          ParameterType,
+          DerivedType,
+          CriterionType,
+          EvaluationType
+        };
+
+            Parameter();
+
+            /** ModelFitConstants::PARAMETER_NAME_PROPERTY_NAME */
+            std::string name;
+            /** ModelFitConstants::PARAMETER_TYPE_PROPERTY_NAME */
+            Type type;
+            /** ModelFitConstants::PARAMETER_UNIT_PROPERTY_NAME */
+            std::string unit;
+            /** ModelFitConstants::PARAMETER_SCALE_PROPERTY_NAME */
+            float scale;
+            /** Corresponding image */
+            mitk::Image::ConstPointer image;
+        };
+
+        /** Extracts the parameter information stored in the data instance and returns it as parameter instance.
+     * If the data does not encode an parameter/fit result a Null pointer will be returned.
+         *  @param data The data instance that contains parameter information that should be extracted.
+         *  @return The newly created parameter instance on success or NULL otherwise.
+         */
+        MITKMODELFIT_EXPORT Parameter::Pointer ExtractParameterFromData(const mitk::BaseData* data);
+    }
+}
+
+#endif // mitkModelFitParameter_h</pre>
+	</body>
+</html>

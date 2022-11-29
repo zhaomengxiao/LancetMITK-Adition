@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRegistrationWrapperMapper2D.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef _MITK_MITK_REGISTRATION_WRAPPER_MAPPER_2D_H
+#define _MITK_MITK_REGISTRATION_WRAPPER_MAPPER_2D_H
+
+
+#include "mitkRegistrationWrapperMapperBase.h"
+
+#include "MitkMatchPointRegistrationExports.h"
+
+class vtkPropAssembly;
+
+
+namespace mitk {
+
+/** Class for the 2D visualization of a registration object.*/
+class MITKMATCHPOINTREGISTRATION_EXPORT MITKRegistrationWrapperMapper2D : public MITKRegistrationWrapperMapperBase
+{
+public:
+
+<span style = "background-color:#fdd">    mitkClassMacro(MITKRegistrationWrapperMapper2D, MITKRegistrationWrapperMapperBase);
+    itkNewMacro(Self);</span>
+
+    bool GetGeometryDescription(mitk::BaseRenderer *renderer, mitk::BaseGeometry::ConstPointer&amp; gridDesc, unsigned int&amp; gridFrequ) const override;
+    bool RendererGeometryIsOutdated(mitk::BaseRenderer *renderer, const itk::TimeStamp&amp; time) const override;
+
+protected:
+
+    MITKRegistrationWrapperMapper2D();
+    ~MITKRegistrationWrapperMapper2D() override;
+
+
+private:
+
+};
+
+} // end namespace mitk
+
+
+
+
+#endif /* MITKRegistrationWrapperMapper2D_H_HEADER_INCLUDED */
+</pre>
+	</body>
+</html>

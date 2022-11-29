@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNormalDirectionConsistencySorter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkNormalDirectionConsistencySorter_h
+#define mitkNormalDirectionConsistencySorter_h
+
+#include "mitkDICOMDatasetSorter.h"
+#include "mitkGantryTiltInformation.h"
+
+namespace mitk
+{
+
+/**
+ \ingroup DICOMModule
+ \brief Makes sure that the order of files is along the image plane normals.
+
+ When loading with ImageSeriesReader and initializing an mitk::Image with the result
+ we need to make sure that the order of inputs for the ImageSeriesReader is along the
+ normal of the images. I.e. The direction of the normal needs to be the same direction
+ as the vector from the first to the last image origin.
+
+ Since this class is used as a last sorting step before loading, it will also
+ calculate (and return) an updated GantryTiltInformation object.
+
+ \note This class might be a workaround for another bug in MITK, but until this issue
+       is completely understood, the workaround fixes the problem of images that
+       appear upside-down.
+*/
+class MITKDICOM_EXPORT NormalDirectionConsistencySorter : public DICOMDatasetSorter
+{
+  public:
+
+<span style = "background-color:#fdd">    mitkClassMacro( NormalDirectionConsistencySorter, DICOMDatasetSorter );</span>
+
+<span style = "background-color:#dfd">    itkNewMacro( NormalDirectionConsistencySorter );</span>
+
+    DICOMTagList GetTagsOfInterest() override;
+
+    /// See class description.
+    void Sort() override;
+
+    /// See class description and DICOMITKSeriesGDCMReader.
+    GantryTiltInformation GetTiltInformation() const;
+
+    void PrintConfiguration(std::ostream&amp; os, const std::string&amp; indent = "") const override;
+
+    bool operator==(const DICOMDatasetSorter&amp; other) const override;
+
+  protected:
+
+    NormalDirectionConsistencySorter();
+    ~NormalDirectionConsistencySorter() override;
+
+    NormalDirectionConsistencySorter(const NormalDirectionConsistencySorter&amp; other);
+    NormalDirectionConsistencySorter&amp; operator=(const NormalDirectionConsistencySorter&amp; other);
+
+    GantryTiltInformation m_TiltInfo;
+};
+
+}
+
+#endif</pre>
+	</body>
+</html>

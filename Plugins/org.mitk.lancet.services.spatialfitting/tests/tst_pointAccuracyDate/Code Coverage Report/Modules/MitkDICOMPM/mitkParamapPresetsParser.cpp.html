@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkParamapPresetsParser.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkParamapPresetsParser.h"
+#include &lt;vtkObjectFactory.h&gt;
+
+#include "usGetModuleContext.h"
+#include "usModuleContext.h"
+#include "usModule.h"
+#include "usModuleResource.h"
+#include "usModuleResourceStream.h"
+
+namespace mitk {
+
+<span style = "background-color:#dfd">  const std::string ParamapPresetsParser::PRESET = "preset";
+  const std::string ParamapPresetsParser::TYPE = "type";
+  const std::string ParamapPresetsParser::CODE_VALUE = "code_value";
+  const std::string ParamapPresetsParser::CODE_SCHEME = "coding_scheme";</span>
+
+<span style = "background-color:#fdd">  vtkStandardNewMacro(ParamapPresetsParser);</span>
+
+  bool ParamapPresetsParser::LoadPreset()
+<span style = "background-color:#fdd">  {
+    us::ModuleResource presetResource = us::GetModuleContext()-&gt;GetModule()-&gt;GetResource("mitkParamapPresets.xml");
+    if (!presetResource) return false;</span>
+
+<span style = "background-color:#fdd">    us::ModuleResourceStream presetStream(presetResource);
+    vtkXMLParser::SetStream(&amp;presetStream);
+    if (!vtkXMLParser::Parse())</span>
+    {
+#ifdef INTERDEBUG
+      MITK_INFO&lt;&lt;"ParamapPresetsParser::LoadPreset xml file cannot parse!"&lt;&lt;std::endl;
+#endif
+<span style = "background-color:#fdd">      return false;</span>
+    }
+<span style = "background-color:#fdd">    return true;
+  }</span>
+
+  bool ParamapPresetsParser::LoadPreset(const std::string&amp; fileName)
+<span style = "background-color:#fdd">  {
+    if (fileName.empty())
+      return false;</span>
+
+<span style = "background-color:#fdd">    vtkXMLParser::SetFileName(fileName.c_str());</span>
+
+<span style = "background-color:#fdd">    if (!vtkXMLParser::Parse())</span>
+    {
+#ifdef INTERDEBUG
+      MITK_INFO&lt;&lt;"ParamapPresetsParser::LoadPreset xml file cannot parse!"&lt;&lt;std::endl;
+#endif
+    }
+
+<span style = "background-color:#fdd">    return true;</span>
+
+<span style = "background-color:#fdd">  }</span>
+
+  void  ParamapPresetsParser::StartElement(const char *elementName, const char **atts)
+<span style = "background-color:#fdd">  {
+    std::string elementNameString = elementName;
+    if (elementNameString == PRESET)</span>
+    {
+<span style = "background-color:#fdd">      m_presetName = ReadXMLStringAttribute("name", atts);
+    }</span>
+
+<span style = "background-color:#fdd">    else if (elementNameString == TYPE)</span>
+    {
+<span style = "background-color:#fdd">      std::string value = ReadXMLStringAttribute(CODE_VALUE, atts);
+      std::string scheme = ReadXMLStringAttribute(CODE_SCHEME, atts);
+      m_Type[m_presetName] = Type(value, scheme);
+    }</span>
+
+<span style = "background-color:#fdd">  }</span>
+
+  std::string ParamapPresetsParser::ReadXMLStringAttribute(const std::string&amp; name, const char **atts)
+<span style = "background-color:#fdd">  {
+    if (atts)</span>
+    {
+<span style = "background-color:#fdd">      const char** attsIter = atts;</span>
+
+<span style = "background-color:#fdd">      while (*attsIter != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        if (name == *attsIter)</span>
+        {
+<span style = "background-color:#fdd">          return *(++attsIter);</span>
+        }
+<span style = "background-color:#fdd">        attsIter += 2;
+      }</span>
+    }
+
+<span style = "background-color:#fdd">    return std::string();
+  }</span>
+
+
+  ParamapPresetsParser::Type ParamapPresetsParser::GetType(const std::string&amp; name)
+<span style = "background-color:#fdd">  {
+    return m_Type[name];
+  }</span>
+
+
+
+  std::map&lt;std::string, ParamapPresetsParser::Type&gt; const ParamapPresetsParser::GetTypePresets()
+<span style = "background-color:#fdd">  {
+    return m_Type;
+  }</span>
+
+
+
+
+
+  void ParamapPresetsParser::NewPresets(std::map&lt;std::string, ParamapPresetsParser::Type&gt;&amp; newType)
+<span style = "background-color:#fdd">  {
+   m_Type = newType;
+  }</span>
+
+}</pre>
+	</body>
+</html>

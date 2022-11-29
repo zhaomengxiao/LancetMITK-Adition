@@ -1,0 +1,477 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usServiceTracker.tpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+
+#include "usServiceTrackerPrivate.h"
+#include "usTrackedService_p.h"
+#include "usServiceException.h"
+#include "usModuleContext.h"
+
+#include &lt;string&gt;
+#include &lt;stdexcept&gt;
+#include &lt;limits&gt;
+
+US_BEGIN_NAMESPACE
+
+template&lt;class S, class TTT&gt;
+ServiceTracker&lt;S,TTT&gt;::~ServiceTracker()
+<span style = "background-color:#dfd">{
+  Close();
+  delete d;
+}</span>
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4355)
+#endif
+
+template&lt;class S, class TTT&gt;
+ServiceTracker&lt;S,TTT&gt;::ServiceTracker(ModuleContext* context,
+                                      const ServiceReferenceType&amp; reference,
+                                      _ServiceTrackerCustomizer* customizer)
+<span style = "background-color:#fdd">  : d(new _ServiceTrackerPrivate(this, context, reference, customizer))
+{
+}</span>
+
+template&lt;class S, class TTT&gt;
+ServiceTracker&lt;S,TTT&gt;::ServiceTracker(ModuleContext* context, const std::string&amp; clazz,
+                                      _ServiceTrackerCustomizer* customizer)
+<span style = "background-color:#fdd">  : d(new _ServiceTrackerPrivate(this, context, clazz, customizer))
+{
+}</span>
+
+template&lt;class S, class TTT&gt;
+ServiceTracker&lt;S,TTT&gt;::ServiceTracker(ModuleContext* context, const LDAPFilter&amp; filter,
+                                      _ServiceTrackerCustomizer* customizer)
+<span style = "background-color:#fdd">  : d(new _ServiceTrackerPrivate(this, context, filter, customizer))
+{
+}</span>
+
+template&lt;class S, class TTT&gt;
+ServiceTracker&lt;S,TTT&gt;::ServiceTracker(ModuleContext *context, _ServiceTrackerCustomizer* customizer)
+<span style = "background-color:#dfd">  : d(new _ServiceTrackerPrivate(this, context, us_service_interface_iid&lt;S&gt;(), customizer))
+{
+  std::string clazz = us_service_interface_iid&lt;S&gt;();
+  if (clazz.empty()) throw ServiceException("The service interface class has no US_DECLARE_SERVICE_INTERFACE macro");
+}</span>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+template&lt;class S, class TTT&gt;
+void ServiceTracker&lt;S,TTT&gt;::Open()
+<span style = "background-color:#dfd">{</span>
+  _TrackedService* t;
+  {
+<span style = "background-color:#dfd">    US_UNUSED(typename _ServiceTrackerPrivate::Lock(d));
+    if (d-&gt;trackedService)</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#dfd">    US_DEBUG(d-&gt;DEBUG_OUTPUT) &lt;&lt; "ServiceTracker&lt;S,TTT&gt;::Open: " &lt;&lt; d-&gt;filter;</span>
+
+<span style = "background-color:#dfd">    t = new _TrackedService(this, d-&gt;customizer);</span>
+    {
+<span style = "background-color:#dfd">      US_UNUSED(typename _TrackedService::Lock(*t));</span>
+      try {
+<span style = "background-color:#dfd">        d-&gt;context-&gt;AddServiceListener(t, &amp;_TrackedService::ServiceChanged, d-&gt;listenerFilter);
+        std::vector&lt;ServiceReferenceType&gt; references;
+        if (!d-&gt;trackClass.empty())</span>
+        {
+<span style = "background-color:#dfd">          references = d-&gt;GetInitialReferences(d-&gt;trackClass, std::string());
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          if (d-&gt;trackReference.GetModule() != nullptr)</span>
+          {
+<span style = "background-color:#fdd">            references.push_back(d-&gt;trackReference);
+          }</span>
+          else
+          { /* user supplied filter */
+<span style = "background-color:#fdd">            references = d-&gt;GetInitialReferences(std::string(),</span>
+                                                 (d-&gt;listenerFilter.empty()) ? d-&gt;filter.ToString() : d-&gt;listenerFilter);
+          }
+        }
+        /* set tracked with the initial references */
+<span style = "background-color:#dfd">        t-&gt;SetInitial(references);
+      }</span>
+      catch (const std::invalid_argument&amp; e)
+<span style = "background-color:#fdd">      {
+        throw std::runtime_error(std::string("unexpected std::invalid_argument exception: ")</span>
+            + e.what());
+<span style = "background-color:#fdd">      }</span>
+    }
+<span style = "background-color:#dfd">    d-&gt;trackedService = t;</span>
+  }
+  /* Call tracked outside of synchronized region */
+<span style = "background-color:#dfd">  t-&gt;TrackInitial(); /* process the initial references */
+}</span>
+
+template&lt;class S, class TTT&gt;
+void ServiceTracker&lt;S,TTT&gt;::Close()
+<span style = "background-color:#dfd">{</span>
+  _TrackedService* outgoing;
+<span style = "background-color:#dfd">  std::vector&lt;ServiceReferenceType&gt; references;</span>
+  {
+<span style = "background-color:#dfd">    US_UNUSED(typename _ServiceTrackerPrivate::Lock(d));
+    outgoing = d-&gt;trackedService;
+    if (outgoing == nullptr)</span>
+    {
+<span style = "background-color:#dfd">      return;</span>
+    }
+<span style = "background-color:#dfd">    US_DEBUG(d-&gt;DEBUG_OUTPUT) &lt;&lt; "ServiceTracker&lt;S,TTT&gt;::close:" &lt;&lt; d-&gt;filter;
+    outgoing-&gt;Close();
+    references = GetServiceReferences();
+    d-&gt;trackedService = nullptr;</span>
+    try
+    {
+<span style = "background-color:#dfd">      d-&gt;context-&gt;RemoveServiceListener(outgoing, &amp;_TrackedService::ServiceChanged);</span>
+    }
+    catch (const std::logic_error&amp; /*e*/)
+<span style = "background-color:#fdd">    {</span>
+      /* In case the context was stopped. */
+<span style = "background-color:#fdd">    }</span>
+  }
+<span style = "background-color:#dfd">  d-&gt;Modified(); /* clear the cache */</span>
+  {
+<span style = "background-color:#dfd">    US_UNUSED(typename _TrackedService::Lock(outgoing));
+    outgoing-&gt;NotifyAll(); /* wake up any waiters */</span>
+  }
+<span style = "background-color:#dfd">  for(typename std::vector&lt;ServiceReferenceType&gt;::const_iterator ref = references.begin();
+      ref != references.end(); ++ref)</span>
+  {
+<span style = "background-color:#dfd">    outgoing-&gt;Untrack(*ref, ServiceEvent());
+  }</span>
+
+<span style = "background-color:#dfd">  if (d-&gt;DEBUG_OUTPUT)</span>
+  {
+<span style = "background-color:#dfd">    US_UNUSED(typename _ServiceTrackerPrivate::Lock(d));
+    if ((d-&gt;cachedReference.GetModule() == nullptr) &amp;&amp; !TTT::IsValid(d-&gt;cachedService))</span>
+    {
+<span style = "background-color:#dfd">      US_DEBUG(true) &lt;&lt; "ServiceTracker&lt;S,TTT&gt;::close[cached cleared]:"</span>
+                       &lt;&lt; d-&gt;filter;
+    }
+  }
+
+<span style = "background-color:#dfd">  delete outgoing;
+  d-&gt;trackedService = nullptr;
+}</span>
+
+template&lt;class S, class TTT&gt;
+typename ServiceTracker&lt;S,TTT&gt;::T
+ServiceTracker&lt;S,TTT&gt;::WaitForService(unsigned long timeoutMillis)
+<span style = "background-color:#fdd">{
+  T object = GetService();
+  while (!TTT::IsValid(object))</span>
+  {
+<span style = "background-color:#fdd">    _TrackedService* t = d-&gt;Tracked();
+    if (t == nullptr)</span>
+    { /* if ServiceTracker is not open */
+<span style = "background-color:#fdd">      return TTT::DefaultValue();</span>
+    }
+    {
+<span style = "background-color:#fdd">      US_UNUSED(typename _TrackedService::Lock(t));
+      if (t-&gt;Size() == 0)</span>
+      {
+<span style = "background-color:#fdd">        t-&gt;Wait(timeoutMillis);</span>
+      }
+    }
+<span style = "background-color:#fdd">    object = GetService();
+  }
+  return object;
+}</span>
+
+template&lt;class S, class TTT&gt;
+std::vector&lt;typename ServiceTracker&lt;S,TTT&gt;::ServiceReferenceType&gt;
+ServiceTracker&lt;S,TTT&gt;::GetServiceReferences() const
+<span style = "background-color:#dfd">{
+  std::vector&lt;ServiceReferenceType&gt; refs;
+  _TrackedService* t = d-&gt;Tracked();
+  if (t == nullptr)</span>
+  { /* if ServiceTracker is not open */
+<span style = "background-color:#fdd">    return refs;</span>
+  }
+  {
+<span style = "background-color:#dfd">    US_UNUSED(typename _TrackedService::Lock(t));
+    d-&gt;GetServiceReferences_unlocked(refs, t);</span>
+  }
+<span style = "background-color:#dfd">  return refs;
+}</span>
+
+template&lt;class S, class TTT&gt;
+typename ServiceTracker&lt;S,TTT&gt;::ServiceReferenceType
+ServiceTracker&lt;S,TTT&gt;::GetServiceReference() const
+<span style = "background-color:#fdd">{
+  ServiceReferenceType reference;</span>
+  {
+<span style = "background-color:#fdd">    US_UNUSED(typename _ServiceTrackerPrivate::Lock(d));
+    reference = d-&gt;cachedReference;</span>
+  }
+<span style = "background-color:#fdd">  if (reference.GetModule() != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    US_DEBUG(d-&gt;DEBUG_OUTPUT) &lt;&lt; "ServiceTracker&lt;S,TTT&gt;::getServiceReference[cached]:"</span>
+                         &lt;&lt; d-&gt;filter;
+<span style = "background-color:#fdd">    return reference;</span>
+  }
+<span style = "background-color:#fdd">  US_DEBUG(d-&gt;DEBUG_OUTPUT) &lt;&lt; "ServiceTracker&lt;S,TTT&gt;::getServiceReference:" &lt;&lt; d-&gt;filter;
+  std::vector&lt;ServiceReferenceType&gt; references = GetServiceReferences();
+  std::size_t length = references.size();
+  if (length == 0)</span>
+  { /* if no service is being tracked */
+<span style = "background-color:#fdd">    throw ServiceException("No service is being tracked");</span>
+  }
+<span style = "background-color:#fdd">  typename std::vector&lt;ServiceReferenceType&gt;::const_iterator selectedRef = references.begin();
+  if (length &gt; 1)</span>
+  { /* if more than one service, select highest ranking */
+<span style = "background-color:#fdd">    std::vector&lt;int&gt; rankings(length);
+    int count = 0;
+    int maxRanking = std::numeric_limits&lt;int&gt;::min();
+    typename std::vector&lt;ServiceReferenceType&gt;::const_iterator refIter = references.begin();
+    for (std::size_t i = 0; i &lt; length; i++)</span>
+    {
+<span style = "background-color:#fdd">      Any rankingAny = refIter-&gt;GetProperty(ServiceConstants::SERVICE_RANKING());
+      int ranking = 0;
+      if (rankingAny.Type() == typeid(int))</span>
+      {
+<span style = "background-color:#fdd">        ranking = any_cast&lt;int&gt;(rankingAny);</span>
+      }
+
+<span style = "background-color:#fdd">      rankings[i] = ranking;
+      if (ranking &gt; maxRanking)</span>
+      {
+<span style = "background-color:#fdd">        selectedRef = refIter;
+        maxRanking = ranking;
+        count = 1;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        if (ranking == maxRanking)</span>
+        {
+<span style = "background-color:#fdd">          count++;</span>
+        }
+      }
+<span style = "background-color:#fdd">      ++refIter;
+    }
+    if (count &gt; 1)</span>
+    { /* if still more than one service, select lowest id */
+<span style = "background-color:#fdd">      long int minId = std::numeric_limits&lt;long int&gt;::max();
+      refIter = references.begin();
+      for (std::size_t i = 0; i &lt; length; i++)</span>
+      {
+<span style = "background-color:#fdd">        if (rankings[i] == maxRanking)</span>
+        {
+<span style = "background-color:#fdd">          Any idAny = refIter-&gt;GetProperty(ServiceConstants::SERVICE_ID());
+          long int id = 0;
+          if (idAny.Type() == typeid(long int))</span>
+          {
+<span style = "background-color:#fdd">            id = any_cast&lt;long int&gt;(idAny);</span>
+          }
+<span style = "background-color:#fdd">          if (id &lt; minId)</span>
+          {
+<span style = "background-color:#fdd">            selectedRef = refIter;
+            minId = id;</span>
+          }
+<span style = "background-color:#fdd">        }
+        ++refIter;
+      }</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  {
+<span style = "background-color:#fdd">    US_UNUSED(typename _ServiceTrackerPrivate::Lock(d));
+    d-&gt;cachedReference = *selectedRef;
+    return d-&gt;cachedReference;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+template&lt;class S, class TTT&gt;
+typename ServiceTracker&lt;S,TTT&gt;::T
+ServiceTracker&lt;S,TTT&gt;::GetService(const ServiceReferenceType&amp; reference) const
+<span style = "background-color:#fdd">{
+  _TrackedService* t = d-&gt;Tracked();
+  if (t == nullptr)</span>
+  { /* if ServiceTracker is not open */
+<span style = "background-color:#fdd">    return TTT::DefaultValue();</span>
+  }
+  {
+<span style = "background-color:#fdd">    US_UNUSED(typename _TrackedService::Lock(t));
+    return t-&gt;GetCustomizedObject(reference);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+template&lt;class S, class TTT&gt;
+std::vector&lt;typename ServiceTracker&lt;S,TTT&gt;::T&gt; ServiceTracker&lt;S,TTT&gt;::GetServices() const
+<span style = "background-color:#fdd">{
+  std::vector&lt;T&gt; services;
+  _TrackedService* t = d-&gt;Tracked();
+  if (t == nullptr)</span>
+  { /* if ServiceTracker is not open */
+<span style = "background-color:#fdd">    return services;</span>
+  }
+  {
+<span style = "background-color:#fdd">    US_UNUSED(typename _TrackedService::Lock(t));
+    std::vector&lt;ServiceReferenceType&gt; references;
+    d-&gt;GetServiceReferences_unlocked(references, t);
+    for(typename std::vector&lt;ServiceReferenceType&gt;::const_iterator ref = references.begin();
+        ref != references.end(); ++ref)</span>
+    {
+<span style = "background-color:#fdd">      services.push_back(t-&gt;GetCustomizedObject(*ref));
+    }
+  }
+  return services;
+}</span>
+
+template&lt;class S, class TTT&gt;
+typename ServiceTracker&lt;S,TTT&gt;::T
+ServiceTracker&lt;S,TTT&gt;::GetService() const
+<span style = "background-color:#fdd">{</span>
+  {
+<span style = "background-color:#fdd">    US_UNUSED(typename _ServiceTrackerPrivate::Lock(d));
+    const T&amp; service = d-&gt;cachedService;
+    if (TTT::IsValid(service))</span>
+    {
+<span style = "background-color:#fdd">      US_DEBUG(d-&gt;DEBUG_OUTPUT) &lt;&lt; "ServiceTracker&lt;S,TTT&gt;::getService[cached]:"</span>
+                                &lt;&lt; d-&gt;filter;
+<span style = "background-color:#fdd">      return service;</span>
+    }
+  }
+<span style = "background-color:#fdd">  US_DEBUG(d-&gt;DEBUG_OUTPUT) &lt;&lt; "ServiceTracker&lt;S,TTT&gt;::getService:" &lt;&lt; d-&gt;filter;</span>
+
+  try
+  {
+<span style = "background-color:#fdd">    ServiceReferenceType reference = GetServiceReference();
+    if (reference.GetModule() == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      return TTT::DefaultValue();</span>
+    }
+    {
+<span style = "background-color:#fdd">      US_UNUSED(typename _ServiceTrackerPrivate::Lock(d));
+      return d-&gt;cachedService = GetService(reference);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  catch (const ServiceException&amp;)
+<span style = "background-color:#fdd">  {
+    return TTT::DefaultValue();
+  }
+}</span>
+
+template&lt;class S, class TTT&gt;
+void ServiceTracker&lt;S,TTT&gt;::Remove(const ServiceReferenceType&amp; reference)
+<span style = "background-color:#fdd">{
+  _TrackedService* t = d-&gt;Tracked();
+  if (t == nullptr)</span>
+  { /* if ServiceTracker is not open */
+<span style = "background-color:#fdd">    return;</span>
+  }
+<span style = "background-color:#fdd">  t-&gt;Untrack(reference, ServiceEvent());
+}</span>
+
+template&lt;class S, class TTT&gt;
+int ServiceTracker&lt;S,TTT&gt;::Size() const
+<span style = "background-color:#dfd">{
+  _TrackedService* t = d-&gt;Tracked();
+  if (t == nullptr)</span>
+  { /* if ServiceTracker is not open */
+<span style = "background-color:#dfd">    return 0;</span>
+  }
+  {
+<span style = "background-color:#dfd">    US_UNUSED(typename _TrackedService::Lock(t));
+    return static_cast&lt;int&gt;(t-&gt;Size());</span>
+  }
+<span style = "background-color:#dfd">}</span>
+
+template&lt;class S, class TTT&gt;
+int ServiceTracker&lt;S,TTT&gt;::GetTrackingCount() const
+<span style = "background-color:#fdd">{
+  _TrackedService* t = d-&gt;Tracked();
+  if (t == nullptr)</span>
+  { /* if ServiceTracker is not open */
+<span style = "background-color:#fdd">    return -1;</span>
+  }
+  {
+<span style = "background-color:#fdd">    US_UNUSED(typename _TrackedService::Lock(t));
+    return t-&gt;GetTrackingCount();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+template&lt;class S, class TTT&gt;
+void ServiceTracker&lt;S,TTT&gt;::GetTracked(TrackingMap&amp; map) const
+<span style = "background-color:#fdd">{
+  _TrackedService* t = d-&gt;Tracked();
+  if (t == nullptr)</span>
+  { /* if ServiceTracker is not open */
+<span style = "background-color:#fdd">    return;</span>
+  }
+  {
+<span style = "background-color:#fdd">    US_UNUSED(typename _TrackedService::Lock(t));
+    t-&gt;CopyEntries(map);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+template&lt;class S, class TTT&gt;
+bool ServiceTracker&lt;S,TTT&gt;::IsEmpty() const
+<span style = "background-color:#fdd">{
+  _TrackedService* t = d-&gt;Tracked();
+  if (t == nullptr)</span>
+  { /* if ServiceTracker is not open */
+<span style = "background-color:#fdd">    return true;</span>
+  }
+  {
+<span style = "background-color:#fdd">    US_UNUSED(typename _TrackedService::Lock(t));
+    return t-&gt;IsEmpty();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+template&lt;class S, class TTT&gt;
+typename ServiceTracker&lt;S,TTT&gt;::T
+ServiceTracker&lt;S,TTT&gt;::AddingService(const ServiceReferenceType&amp; reference)
+<span style = "background-color:#fdd">{
+  return TTT::ConvertToTrackedType(d-&gt;context-&gt;GetService(reference));
+}</span>
+
+template&lt;class S, class TTT&gt;
+void ServiceTracker&lt;S,TTT&gt;::ModifiedService(const ServiceReferenceType&amp; /*reference*/, T /*service*/)
+<span style = "background-color:#fdd">{</span>
+  /* do nothing */
+<span style = "background-color:#fdd">}</span>
+
+template&lt;class S, class TTT&gt;
+void ServiceTracker&lt;S,TTT&gt;::RemovedService(const ServiceReferenceType&amp; reference, T /*service*/)
+<span style = "background-color:#fdd">{
+  d-&gt;context-&gt;UngetService(reference);
+}</span>
+
+US_END_NAMESPACE</pre>
+	</body>
+</html>

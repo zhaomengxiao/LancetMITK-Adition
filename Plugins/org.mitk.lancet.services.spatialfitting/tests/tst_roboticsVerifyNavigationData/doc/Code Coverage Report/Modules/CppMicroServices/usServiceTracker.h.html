@@ -1,0 +1,610 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usServiceTracker.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+
+#ifndef USSERVICETRACKER_H
+#define USSERVICETRACKER_H
+
+#include &lt;map&gt;
+
+#include "usServiceReference.h"
+#include "usServiceTrackerCustomizer.h"
+#include "usLDAPFilter.h"
+
+US_BEGIN_NAMESPACE
+
+template&lt;class S, class T&gt; class TrackedService;
+template&lt;class S, class T&gt; class ServiceTrackerPrivate;
+class ModuleContext;
+
+/**
+ * \ingroup MicroServices
+ *
+ * A base class template for type traits for objects tracked by a
+ * ServiceTracker instance. It provides the \c TrackedType typedef
+ * and two dummy method definitions.
+ *
+ * Tracked type traits (TTT) classes must additionally provide the
+ * following methods:
+ *
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;em&gt;static bool IsValid(const TrackedType&amp; t)&lt;/em&gt; Returns \c true if \c t is a valid object, \c false otherwise.&lt;/li&gt;
+ *   &lt;li&gt;&lt;em&gt;static void Dispose(TrackedType&amp; t)&lt;/em&gt; Clears any resources held by the tracked object \c t.&lt;/li&gt;
+ *   &lt;li&gt;&lt;em&gt;static TrackedType DefaultValue()&lt;/em&gt; Returns the default value for newly created tracked objects.&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * @tparam T The type of the tracked object.
+ * @tparam TTT The tracked type traits class deriving from this class.
+ *
+ * @see ServiceTracker
+ */
+template&lt;class T, class TTT&gt;
+struct TrackedTypeTraitsBase
+{
+  typedef T TrackedType;
+
+  // Needed for S == void
+  static TrackedType ConvertToTrackedType(const InterfaceMap&amp;)
+  {
+    throw std::runtime_error("A custom ServiceTrackerCustomizer instance is required for custom tracked objects.");
+    //return TTT::DefaultValue();
+  }
+
+  // Needed for S != void
+  static TrackedType ConvertToTrackedType(void*)
+<span style = "background-color:#fdd">  {
+    throw std::runtime_error("A custom ServiceTrackerCustomizer instance is required for custom tracked objects.");</span>
+    //return TTT::DefaultValue();
+<span style = "background-color:#fdd">  }</span>
+};
+
+/// \cond
+template&lt;class S, class T&gt;
+struct TrackedTypeTraits;
+/// \endcond
+
+/**
+ * \ingroup MicroServices
+ *
+ * Default type traits for custom tracked objects of pointer type.
+ *
+ * Use this tracked type traits template for custom tracked objects of
+ * pointer type with the ServiceTracker class.
+ *
+ * @tparam S The type of the service being tracked.
+ * @tparam T The type of the tracked object.
+ */
+template&lt;class S, class T&gt;
+struct TrackedTypeTraits&lt;S,T*&gt; : public TrackedTypeTraitsBase&lt;T*,TrackedTypeTraits&lt;S,T*&gt; &gt;
+{
+  typedef T* TrackedType;
+
+  static bool IsValid(const TrackedType&amp; t)
+  {
+    return t != nullptr;
+  }
+
+  static TrackedType DefaultValue()
+  {
+    return nullptr;
+  }
+
+  static void Dispose(TrackedType&amp; t)
+  {
+    t = nullptr;
+  }
+};
+
+/// \cond
+template&lt;class S&gt;
+struct TrackedTypeTraits&lt;S,S*&gt;
+{
+  typedef S* TrackedType;
+
+  static bool IsValid(const TrackedType&amp; t)
+<span style = "background-color:#dfd">  {
+    return t != nullptr;
+  }</span>
+
+  static TrackedType DefaultValue()
+<span style = "background-color:#dfd">  {
+    return nullptr;
+  }</span>
+
+  static void Dispose(TrackedType&amp; t)
+<span style = "background-color:#dfd">  {
+    t = nullptr;
+  }</span>
+
+  static TrackedType ConvertToTrackedType(S* s)
+<span style = "background-color:#fdd">  {
+    return s;
+  }</span>
+};
+/// \endcond
+
+/// \cond
+/*
+ * This specialization is "special" because the tracked type is not
+ * void* (as specified in the second template parameter) but InterfaceMap.
+ * This is in line with the ModuleContext::GetService(...) overloads to
+ * return either S* or InterfaceMap dependening on the template parameter.
+ */
+template&lt;&gt;
+struct TrackedTypeTraits&lt;void,void*&gt;
+{
+  typedef InterfaceMap TrackedType;
+
+  static bool IsValid(const TrackedType&amp; t)
+  {
+    return !t.empty();
+  }
+
+  static TrackedType DefaultValue()
+  {
+    return TrackedType();
+  }
+
+  static void Dispose(TrackedType&amp; t)
+  {
+    t.clear();
+  }
+
+  static TrackedType ConvertToTrackedType(const InterfaceMap&amp; im)
+  {
+    return im;
+  }
+};
+/// \endcond
+
+/**
+ * \ingroup MicroServices
+ *
+ * The &lt;code&gt;ServiceTracker&lt;/code&gt; class simplifies using services from the
+ * framework's service registry.
+ * &lt;p&gt;
+ * A &lt;code&gt;ServiceTracker&lt;/code&gt; object is constructed with search criteria and
+ * a &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; object. A &lt;code&gt;ServiceTracker&lt;/code&gt;
+ * can use a &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; to customize the service
+ * objects to be tracked. The &lt;code&gt;ServiceTracker&lt;/code&gt; can then be opened to
+ * begin tracking all services in the framework's service registry that match
+ * the specified search criteria. The &lt;code&gt;ServiceTracker&lt;/code&gt; correctly
+ * handles all of the details of listening to &lt;code&gt;ServiceEvent&lt;/code&gt;s and
+ * getting and ungetting services.
+ * &lt;p&gt;
+ * The &lt;code&gt;GetServiceReferences&lt;/code&gt; method can be called to get references
+ * to the services being tracked. The &lt;code&gt;GetService&lt;/code&gt; and
+ * &lt;code&gt;GetServices&lt;/code&gt; methods can be called to get the service objects for
+ * the tracked service.
+ *
+ * \note The &lt;code&gt;ServiceTracker&lt;/code&gt; class is thread-safe. It does not call a
+ *       &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; while holding any locks.
+ *       &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; implementations must also be
+ *       thread-safe.
+ *
+ * Customization of the services to be tracked requires a custom tracked type traits
+ * class if the custom tracked type is not a pointer type. To customize a tracked
+ * service using a custom type with value-semantics like
+ * \snippet uServices-servicetracker/main.cpp tt
+ * the custom tracked type traits class should look like this:
+ * \snippet uServices-servicetracker/main.cpp ttt
+ *
+ * For a custom tracked type, a ServiceTrackerCustomizer is required, which knows
+ * how to associate the tracked service with the custom tracked type:
+ * \snippet uServices-servicetracker/main.cpp customizer
+ * The custom tracking type traits class and customizer can now be used to instantiate
+ * a ServiceTracker:
+ * \snippet uServices-servicetracker/main.cpp tracker
+ *
+ * If the custom tracked type is a pointer type, a suitable tracked type traits
+ * template is provided by the framework and only a ServiceTrackerCustomizer needs
+ * to be provided:
+ * \snippet uServices-servicetracker/main.cpp tracker2
+ *
+ *
+ * @tparam S The type of the service being tracked. The type S* must be an
+ *         assignable datatype.
+ * @tparam TTT Type traits of the tracked object. The type traits class provides
+ *         information about the customized service object, see TrackedTypeTraitsBase.
+ *
+ * @remarks This class is thread safe.
+ */
+template&lt;class S, class TTT = TrackedTypeTraits&lt;S,S*&gt; &gt;
+class ServiceTracker : protected ServiceTrackerCustomizer&lt;S,typename TTT::TrackedType&gt;
+{
+public:
+
+  /// The type of the service being tracked
+  typedef S ServiceType;
+  /// The type of the tracked object
+  typedef typename TTT::TrackedType T;
+
+  typedef ServiceReference&lt;S&gt; ServiceReferenceType;
+
+  typedef std::map&lt;ServiceReference&lt;S&gt;,T&gt; TrackingMap;
+
+  ~ServiceTracker() override;
+
+  /**
+   * Create a &lt;code&gt;ServiceTracker&lt;/code&gt; on the specified
+   * &lt;code&gt;ServiceReference&lt;/code&gt;.
+   *
+   * &lt;p&gt;
+   * The service referenced by the specified &lt;code&gt;ServiceReference&lt;/code&gt;
+   * will be tracked by this &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * @param context The &lt;code&gt;ModuleContext&lt;/code&gt; against which the tracking
+   *        is done.
+   * @param reference The &lt;code&gt;ServiceReference&lt;/code&gt; for the service to be
+   *        tracked.
+   * @param customizer The customizer object to call when services are added,
+   *        modified, or removed in this &lt;code&gt;ServiceTracker&lt;/code&gt;. If
+   *        customizer is &lt;code&gt;null&lt;/code&gt;, then this
+   *        &lt;code&gt;ServiceTracker&lt;/code&gt; will be used as the
+   *        &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; and this
+   *        &lt;code&gt;ServiceTracker&lt;/code&gt; will call the
+   *        &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; methods on itself.
+   */
+  ServiceTracker(ModuleContext* context,
+                 const ServiceReferenceType&amp; reference,
+                 ServiceTrackerCustomizer&lt;S,T&gt;* customizer = nullptr);
+
+  /**
+   * Create a &lt;code&gt;ServiceTracker&lt;/code&gt; on the specified class name.
+   *
+   * &lt;p&gt;
+   * Services registered under the specified class name will be tracked by
+   * this &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * @param context The &lt;code&gt;ModuleContext&lt;/code&gt; against which the tracking
+   *        is done.
+   * @param clazz The class name of the services to be tracked.
+   * @param customizer The customizer object to call when services are added,
+   *        modified, or removed in this &lt;code&gt;ServiceTracker&lt;/code&gt;. If
+   *        customizer is &lt;code&gt;null&lt;/code&gt;, then this
+   *        &lt;code&gt;ServiceTracker&lt;/code&gt; will be used as the
+   *        &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; and this
+   *        &lt;code&gt;ServiceTracker&lt;/code&gt; will call the
+   *        &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; methods on itself.
+   */
+  ServiceTracker(ModuleContext* context, const std::string&amp; clazz,
+                 ServiceTrackerCustomizer&lt;S,T&gt;* customizer = 0);
+
+  /**
+   * Create a &lt;code&gt;ServiceTracker&lt;/code&gt; on the specified
+   * &lt;code&gt;LDAPFilter&lt;/code&gt; object.
+   *
+   * &lt;p&gt;
+   * Services which match the specified &lt;code&gt;LDAPFilter&lt;/code&gt; object will be
+   * tracked by this &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * @param context The &lt;code&gt;ModuleContext&lt;/code&gt; against which the tracking
+   *        is done.
+   * @param filter The &lt;code&gt;LDAPFilter&lt;/code&gt; to select the services to be
+   *        tracked.
+   * @param customizer The customizer object to call when services are added,
+   *        modified, or removed in this &lt;code&gt;ServiceTracker&lt;/code&gt;. If
+   *        customizer is null, then this &lt;code&gt;ServiceTracker&lt;/code&gt; will be
+   *        used as the &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; and this
+   *        &lt;code&gt;ServiceTracker&lt;/code&gt; will call the
+   *        &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; methods on itself.
+   */
+  ServiceTracker(ModuleContext* context, const LDAPFilter&amp; filter,
+                 ServiceTrackerCustomizer&lt;S,T&gt;* customizer = nullptr);
+
+  /**
+   * Create a &lt;code&gt;ServiceTracker&lt;/code&gt; on the class template
+   * argument S.
+   *
+   * &lt;p&gt;
+   * Services registered under the interface name of the class template
+   * argument S will be tracked by this &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * @param context The &lt;code&gt;ModuleContext&lt;/code&gt; against which the tracking
+   *        is done.
+   * @param customizer The customizer object to call when services are added,
+   *        modified, or removed in this &lt;code&gt;ServiceTracker&lt;/code&gt;. If
+   *        customizer is null, then this &lt;code&gt;ServiceTracker&lt;/code&gt; will be
+   *        used as the &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; and this
+   *        &lt;code&gt;ServiceTracker&lt;/code&gt; will call the
+   *        &lt;code&gt;ServiceTrackerCustomizer&lt;/code&gt; methods on itself.
+   */
+  ServiceTracker(ModuleContext* context, ServiceTrackerCustomizer&lt;S,T&gt;* customizer = nullptr);
+
+  /**
+   * Open this &lt;code&gt;ServiceTracker&lt;/code&gt; and begin tracking services.
+   *
+   * &lt;p&gt;
+   * Services which match the search criteria specified when this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt; was created are now tracked by this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * @throws std::logic_error If the &lt;code&gt;ModuleContext&lt;/code&gt;
+   *         with which this &lt;code&gt;ServiceTracker&lt;/code&gt; was created is no
+   *         longer valid.
+   */
+  virtual void Open();
+
+  /**
+   * Close this &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * &lt;p&gt;
+   * This method should be called when this &lt;code&gt;ServiceTracker&lt;/code&gt; should
+   * end the tracking of services.
+   *
+   * &lt;p&gt;
+   * This implementation calls GetServiceReferences() to get the list
+   * of tracked services to remove.
+   */
+  virtual void Close();
+
+  /**
+   * Wait for at least one service to be tracked by this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt;. This method will also return when this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt; is closed.
+   *
+   * &lt;p&gt;
+   * It is strongly recommended that &lt;code&gt;WaitForService&lt;/code&gt; is not used
+   * during the calling of the &lt;code&gt;ModuleActivator&lt;/code&gt; methods.
+   * &lt;code&gt;ModuleActivator&lt;/code&gt; methods are expected to complete in a short
+   * period of time.
+   *
+   * &lt;p&gt;
+   * This implementation calls GetService() to determine if a service
+   * is being tracked.
+   *
+   * @return Returns the result of GetService().
+   */
+  virtual T WaitForService(unsigned long timeoutMillis = 0);
+
+  /**
+   * Return a list of &lt;code&gt;ServiceReference&lt;/code&gt;s for all services being
+   * tracked by this &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * @return List of &lt;code&gt;ServiceReference&lt;/code&gt;s.
+   */
+  virtual std::vector&lt;ServiceReferenceType&gt; GetServiceReferences() const;
+
+  /**
+   * Returns a &lt;code&gt;ServiceReference&lt;/code&gt; for one of the services being
+   * tracked by this &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * &lt;p&gt;
+   * If multiple services are being tracked, the service with the highest
+   * ranking (as specified in its &lt;code&gt;service.ranking&lt;/code&gt; property) is
+   * returned. If there is a tie in ranking, the service with the lowest
+   * service ID (as specified in its &lt;code&gt;service.id&lt;/code&gt; property); that
+   * is, the service that was registered first is returned. This is the same
+   * algorithm used by &lt;code&gt;ModuleContext::GetServiceReference()&lt;/code&gt;.
+   *
+   * &lt;p&gt;
+   * This implementation calls GetServiceReferences() to get the list
+   * of references for the tracked services.
+   *
+   * @return A &lt;code&gt;ServiceReference&lt;/code&gt; for a tracked service.
+   * @throws ServiceException if no services are being tracked.
+   */
+  virtual ServiceReferenceType GetServiceReference() const;
+
+  /**
+   * Returns the service object for the specified
+   * &lt;code&gt;ServiceReference&lt;/code&gt; if the specified referenced service is
+   * being tracked by this &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * @param reference The reference to the desired service.
+   * @return A service object or &lt;code&gt;null&lt;/code&gt; if the service referenced
+   *         by the specified &lt;code&gt;ServiceReference&lt;/code&gt; is not being
+   *         tracked.
+   */
+  virtual T GetService(const ServiceReferenceType&amp; reference) const;
+
+  /**
+   * Return a list of service objects for all services being tracked by this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * &lt;p&gt;
+   * This implementation calls GetServiceReferences() to get the list
+   * of references for the tracked services and then calls
+   * GetService(const ServiceReference&amp;) for each reference to get the
+   * tracked service object.
+   *
+   * @return A list of service objects or an empty list if no services
+   *         are being tracked.
+   */
+  virtual std::vector&lt;T&gt; GetServices() const;
+
+  /**
+   * Returns a service object for one of the services being tracked by this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * &lt;p&gt;
+   * If any services are being tracked, this implementation returns the result
+   * of calling &lt;code&gt;%GetService(%GetServiceReference())&lt;/code&gt;.
+   *
+   * @return A service object or &lt;code&gt;null&lt;/code&gt; if no services are being
+   *         tracked.
+   */
+  virtual T GetService() const;
+
+  /**
+   * Remove a service from this &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * The specified service will be removed from this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt;. If the specified service was being tracked
+   * then the &lt;code&gt;ServiceTrackerCustomizer::RemovedService&lt;/code&gt; method will
+   * be called for that service.
+   *
+   * @param reference The reference to the service to be removed.
+   */
+  virtual void Remove(const ServiceReferenceType&amp; reference);
+
+  /**
+   * Return the number of services being tracked by this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * @return The number of services being tracked.
+   */
+  virtual int Size() const;
+
+  /**
+   * Returns the tracking count for this &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   *
+   * The tracking count is initialized to 0 when this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt; is opened. Every time a service is added,
+   * modified or removed from this &lt;code&gt;ServiceTracker&lt;/code&gt;, the tracking
+   * count is incremented.
+   *
+   * &lt;p&gt;
+   * The tracking count can be used to determine if this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt; has added, modified or removed a service by
+   * comparing a tracking count value previously collected with the current
+   * tracking count value. If the value has not changed, then no service has
+   * been added, modified or removed from this &lt;code&gt;ServiceTracker&lt;/code&gt;
+   * since the previous tracking count was collected.
+   *
+   * @return The tracking count for this &lt;code&gt;ServiceTracker&lt;/code&gt; or -1 if
+   *         this &lt;code&gt;ServiceTracker&lt;/code&gt; is not open.
+   */
+  virtual int GetTrackingCount() const;
+
+  /**
+   * Return a sorted map of the &lt;code&gt;ServiceReference&lt;/code&gt;s and
+   * service objects for all services being tracked by this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt;. The map is sorted in natural order
+   * of &lt;code&gt;ServiceReference&lt;/code&gt;. That is, the last entry is the service
+   * with the highest ranking and the lowest service id.
+   *
+   * @param tracked A &lt;code&gt;TrackingMap&lt;/code&gt; with the &lt;code&gt;ServiceReference&lt;/code&gt;s
+   *         and service objects for all services being tracked by this
+   *         &lt;code&gt;ServiceTracker&lt;/code&gt;. If no services are being tracked,
+   *         then the returned map is empty.
+   */
+  virtual void GetTracked(TrackingMap&amp; tracked) const;
+
+  /**
+   * Return if this &lt;code&gt;ServiceTracker&lt;/code&gt; is empty.
+   *
+   * @return &lt;code&gt;true&lt;/code&gt; if this &lt;code&gt;ServiceTracker&lt;/code&gt; is not tracking any
+   *         services.
+   */
+  virtual bool IsEmpty() const;
+
+protected:
+
+  /**
+   * Default implementation of the
+   * &lt;code&gt;ServiceTrackerCustomizer::AddingService&lt;/code&gt; method.
+   *
+   * &lt;p&gt;
+   * This method is only called when this &lt;code&gt;ServiceTracker&lt;/code&gt; has been
+   * constructed with a &lt;code&gt;null&lt;/code&gt; ServiceTrackerCustomizer argument.
+   *
+   * &lt;p&gt;
+   * This implementation returns the result of calling &lt;code&gt;GetService&lt;/code&gt;
+   * on the &lt;code&gt;ModuleContext&lt;/code&gt; with which this
+   * &lt;code&gt;ServiceTracker&lt;/code&gt; was created passing the specified
+   * &lt;code&gt;ServiceReference&lt;/code&gt;.
+   * &lt;p&gt;
+   * This method can be overridden in a subclass to customize the service
+   * object to be tracked for the service being added. In that case, take care
+   * not to rely on the default implementation of
+   * \link RemovedService(const ServiceReferenceType&amp;, T service) removedService\endlink
+   * to unget the service.
+   *
+   * @param reference The reference to the service being added to this
+   *        &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   * @return The service object to be tracked for the service added to this
+   *         &lt;code&gt;ServiceTracker&lt;/code&gt;.
+   * @see ServiceTrackerCustomizer::AddingService(const ServiceReference&amp;)
+   */
+  T AddingService(const ServiceReferenceType&amp; reference) override;
+
+  /**
+   * Default implementation of the
+   * &lt;code&gt;ServiceTrackerCustomizer::ModifiedService&lt;/code&gt; method.
+   *
+   * &lt;p&gt;
+   * This method is only called when this &lt;code&gt;ServiceTracker&lt;/code&gt; has been
+   * constructed with a &lt;code&gt;null&lt;/code&gt; ServiceTrackerCustomizer argument.
+   *
+   * &lt;p&gt;
+   * This implementation does nothing.
+   *
+   * @param reference The reference to modified service.
+   * @param service The service object for the modified service.
+   * @see ServiceTrackerCustomizer::ModifiedService(const ServiceReference&amp;, T)
+   */
+  void ModifiedService(const ServiceReferenceType&amp; reference, T service) override;
+
+  /**
+   * Default implementation of the
+   * &lt;code&gt;ServiceTrackerCustomizer::RemovedService&lt;/code&gt; method.
+   *
+   * &lt;p&gt;
+   * This method is only called when this &lt;code&gt;ServiceTracker&lt;/code&gt; has been
+   * constructed with a &lt;code&gt;null&lt;/code&gt; ServiceTrackerCustomizer argument.
+   *
+   * &lt;p&gt;
+   * This implementation calls &lt;code&gt;UngetService&lt;/code&gt;, on the
+   * &lt;code&gt;ModuleContext&lt;/code&gt; with which this &lt;code&gt;ServiceTracker&lt;/code&gt;
+   * was created, passing the specified &lt;code&gt;ServiceReference&lt;/code&gt;.
+   * &lt;p&gt;
+   * This method can be overridden in a subclass. If the default
+   * implementation of \link AddingService(const ServiceReferenceType&amp;) AddingService\endlink
+   * method was used, this method must unget the service.
+   *
+   * @param reference The reference to removed service.
+   * @param service The service object for the removed service.
+   * @see ServiceTrackerCustomizer::RemovedService(const ServiceReferenceType&amp;, T)
+   */
+  void RemovedService(const ServiceReferenceType&amp; reference, T service) override;
+
+private:
+
+  typedef ServiceTracker&lt;S,TTT&gt; _ServiceTracker;
+  typedef TrackedService&lt;S,TTT&gt; _TrackedService;
+  typedef ServiceTrackerPrivate&lt;S,TTT&gt; _ServiceTrackerPrivate;
+  typedef ServiceTrackerCustomizer&lt;S,T&gt; _ServiceTrackerCustomizer;
+
+  friend class TrackedService&lt;S,TTT&gt;;
+  friend class ServiceTrackerPrivate&lt;S,TTT&gt;;
+
+  _ServiceTrackerPrivate* const d;
+};
+
+US_END_NAMESPACE
+
+#include "usServiceTracker.tpp"
+
+#endif // USSERVICETRACKER_H</pre>
+	</body>
+</html>

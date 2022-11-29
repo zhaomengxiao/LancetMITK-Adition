@@ -1,0 +1,884 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPropertyRelationRuleBase.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPropertyRelationRuleBase.h"
+
+#include &lt;mitkDataNode.h&gt;
+#include &lt;mitkExceptionMacro.h&gt;
+#include &lt;mitkNodePredicateBase.h&gt;
+#include &lt;mitkStringProperty.h&gt;
+#include &lt;mitkUIDGenerator.h&gt;
+
+#include &lt;mutex&gt;
+#include &lt;regex&gt;
+#include &lt;algorithm&gt;
+
+bool mitk::PropertyRelationRuleBase::IsAbstract() const
+<span style = "background-color:#fdd">{
+  return true;
+}</span>
+
+bool mitk::PropertyRelationRuleBase::IsSourceCandidate(const IPropertyProvider *owner) const
+<span style = "background-color:#fdd">{
+  return owner != nullptr;
+}</span>
+
+bool mitk::PropertyRelationRuleBase::IsDestinationCandidate(const IPropertyProvider *owner) const
+<span style = "background-color:#fdd">{
+  return owner != nullptr;
+}</span>
+
+mitk::PropertyKeyPath mitk::PropertyRelationRuleBase::GetRootKeyPath()
+<span style = "background-color:#dfd">{
+  return PropertyKeyPath().AddElement("MITK").AddElement("Relations");
+}</span>
+
+bool mitk::PropertyRelationRuleBase::IsSupportedRuleID(const RuleIDType&amp; ruleID) const
+<span style = "background-color:#fdd">{
+  return ruleID == this-&gt;GetRuleID();
+}</span>
+
+mitk::PropertyKeyPath mitk::PropertyRelationRuleBase::GetRIIPropertyKeyPath(const std::string propName, const InstanceIDType&amp; instanceID)
+<span style = "background-color:#dfd">{
+  auto path = GetRootKeyPath();
+  if (instanceID.empty())</span>
+  {
+<span style = "background-color:#dfd">    path.AddAnyElement();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    path.AddElement(instanceID);</span>
+  }
+
+<span style = "background-color:#dfd">  if (!propName.empty())</span>
+  {
+<span style = "background-color:#dfd">    path.AddElement(propName);</span>
+  }
+
+<span style = "background-color:#dfd">  return path;
+}</span>
+
+std::string mitk::PropertyRelationRuleBase::GetRIIPropertyRegEx(const std::string propName, const InstanceIDType &amp;instanceID) const
+<span style = "background-color:#fdd">{
+  return PropertyKeyPathToPropertyRegEx(GetRIIPropertyKeyPath(propName, instanceID));
+}</span>
+
+mitk::PropertyKeyPath mitk::PropertyRelationRuleBase::GetRIIRelationUIDPropertyKeyPath(const InstanceIDType&amp; instanceID)
+<span style = "background-color:#dfd">{
+  return GetRIIPropertyKeyPath("relationUID", instanceID);
+}</span>
+
+mitk::PropertyKeyPath mitk::PropertyRelationRuleBase::GetRIIRuleIDPropertyKeyPath(const InstanceIDType&amp; instanceID)
+<span style = "background-color:#dfd">{
+  return GetRIIPropertyKeyPath("ruleID", instanceID);
+}</span>
+
+mitk::PropertyKeyPath mitk::PropertyRelationRuleBase::GetRIIDestinationUIDPropertyKeyPath(const InstanceIDType&amp; instanceID)
+<span style = "background-color:#dfd">{
+  return GetRIIPropertyKeyPath("destinationUID", instanceID);
+}</span>
+
+//workaround until T24729 is done. Please remove if T24728 is done
+//then could directly use owner-&gt;GetPropertyKeys() again.
+std::vector&lt;std::string&gt; mitk::PropertyRelationRuleBase::GetPropertyKeys(const mitk::IPropertyProvider *owner)
+<span style = "background-color:#fdd">{
+  std::vector&lt;std::string&gt; keys;
+  auto sourceCasted = dynamic_cast&lt;const mitk::DataNode*&gt;(owner);
+  if (sourceCasted) {
+    auto sourceData = sourceCasted-&gt;GetData();
+    if (sourceData) {
+      keys = sourceData-&gt;GetPropertyKeys();
+    }</span>
+    else {
+<span style = "background-color:#fdd">      keys = sourceCasted-&gt;GetPropertyKeys();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else {
+<span style = "background-color:#fdd">    keys = owner-&gt;GetPropertyKeys();</span>
+  }
+<span style = "background-color:#fdd">  return keys;
+}</span>
+//end workaround for T24729
+
+bool mitk::PropertyRelationRuleBase::IsSource(const IPropertyProvider *owner) const
+<span style = "background-color:#fdd">{
+  return !this-&gt;GetExistingRelations(owner).empty();
+}</span>
+
+bool mitk::PropertyRelationRuleBase::HasRelation(
+  const IPropertyProvider* source, const IPropertyProvider* destination, RelationType requiredRelation) const
+<span style = "background-color:#fdd">{
+  auto relTypes = this-&gt;GetRelationTypes(source, destination);</span>
+
+
+<span style = "background-color:#fdd">  if (requiredRelation == RelationType::None)</span>
+  {
+<span style = "background-color:#fdd">    return !relTypes.empty();</span>
+  }
+
+<span style = "background-color:#fdd">  RelationVectorType allowedTypes = { RelationType::Complete };
+  if (requiredRelation == RelationType::Data)</span>
+  {
+<span style = "background-color:#fdd">    allowedTypes.emplace_back(RelationType::Data);
+  }
+  else if (requiredRelation == RelationType::ID)</span>
+  {
+<span style = "background-color:#fdd">    allowedTypes.emplace_back(RelationType::ID);</span>
+  }
+
+<span style = "background-color:#fdd">  return relTypes.end() != std::find_first_of(relTypes.begin(), relTypes.end(), allowedTypes.begin(), allowedTypes.end());
+}</span>
+
+mitk::PropertyRelationRuleBase::RelationVectorType mitk::PropertyRelationRuleBase::GetRelationTypes(
+  const IPropertyProvider* source, const IPropertyProvider* destination) const
+<span style = "background-color:#fdd">{
+  if (!source)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed source pointer is NULL";</span>
+  }
+<span style = "background-color:#fdd">  if (!destination)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed owner pointer is NULL";</span>
+  }
+
+<span style = "background-color:#fdd">  auto instanceIDs_IDLayer = this-&gt;GetInstanceID_IDLayer(source, destination);
+  auto relIDs_dataLayer = this-&gt;GetRelationUIDs_DataLayer(source, destination, {});
+  if (relIDs_dataLayer.size() &gt; 1)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Property relation on data level is ambiguous. First relation is used. Relation UID: "</span>
+              &lt;&lt; relIDs_dataLayer.front().first;
+  }
+
+<span style = "background-color:#fdd">  bool hasComplete = instanceIDs_IDLayer.end() != std::find_if(instanceIDs_IDLayer.begin(), instanceIDs_IDLayer.end(), [&amp;](const InstanceIDVectorType::value_type&amp; instanceID)
+  {
+    auto relID_IDlayer = this-&gt;GetRelationUIDByInstanceID(source, instanceID);
+    auto ruleID_IDlayer = this-&gt;GetRuleIDByInstanceID(source, instanceID);</span>
+
+<span style = "background-color:#fdd">    return relIDs_dataLayer.end() != std::find_if(relIDs_dataLayer.begin(), relIDs_dataLayer.end(), [&amp;](const DataRelationUIDVectorType::value_type&amp; relID)
+    {
+      return relID.first == relID_IDlayer &amp;&amp; relID.second == ruleID_IDlayer;
+    });
+  });</span>
+
+<span style = "background-color:#fdd">  bool hasID = instanceIDs_IDLayer.end() != std::find_if(instanceIDs_IDLayer.begin(), instanceIDs_IDLayer.end(), [&amp;](const InstanceIDVectorType::value_type&amp; instanceID)
+  {
+    auto relID_IDlayer = this-&gt;GetRelationUIDByInstanceID(source, instanceID);
+    auto ruleID_IDlayer = this-&gt;GetRuleIDByInstanceID(source, instanceID);</span>
+
+<span style = "background-color:#fdd">    return relIDs_dataLayer.end() == std::find_if(relIDs_dataLayer.begin(), relIDs_dataLayer.end(), [&amp;](const DataRelationUIDVectorType::value_type&amp; relID)
+    {
+      return relID.first == relID_IDlayer &amp;&amp; relID.second == ruleID_IDlayer;
+    });
+  });</span>
+
+<span style = "background-color:#fdd">  bool hasData = relIDs_dataLayer.end() != std::find_if(relIDs_dataLayer.begin(), relIDs_dataLayer.end(), [&amp;](const DataRelationUIDVectorType::value_type&amp; relID)
+  {
+    return instanceIDs_IDLayer.end() == std::find_if(instanceIDs_IDLayer.begin(), instanceIDs_IDLayer.end(), [&amp;](const InstanceIDVectorType::value_type&amp; instanceID)
+    {
+      auto relID_IDlayer = this-&gt;GetRelationUIDByInstanceID(source, instanceID);
+      auto ruleID_IDlayer = this-&gt;GetRuleIDByInstanceID(source, instanceID);
+      return relID.first == relID_IDlayer &amp;&amp; relID.second == ruleID_IDlayer;
+    });
+  });</span>
+
+<span style = "background-color:#fdd">  RelationVectorType result;</span>
+
+<span style = "background-color:#fdd">  if (hasData)</span>
+  {
+<span style = "background-color:#fdd">    result.emplace_back(RelationType::Data);</span>
+  }
+<span style = "background-color:#fdd">  if (hasID)</span>
+  {
+<span style = "background-color:#fdd">    result.emplace_back(RelationType::ID);</span>
+  }
+<span style = "background-color:#fdd">  if (hasComplete)</span>
+  {
+<span style = "background-color:#fdd">    result.emplace_back(RelationType::Complete);</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::PropertyRelationRuleBase::RelationUIDVectorType mitk::PropertyRelationRuleBase::GetExistingRelations(
+  const IPropertyProvider *source, RelationType layer) const
+<span style = "background-color:#fdd">{
+  if (!source)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed source pointer is NULL";</span>
+  }
+
+<span style = "background-color:#fdd">  RelationUIDVectorType relationUIDs;
+  InstanceIDVectorType instanceIDs;</span>
+
+<span style = "background-color:#fdd">  if (layer != RelationType::Data)</span>
+  {
+<span style = "background-color:#fdd">    auto ruleIDRegExStr = this-&gt;GetRIIPropertyRegEx("ruleID");
+    auto regEx = std::regex(ruleIDRegExStr);</span>
+
+    //workaround until T24729 is done. You can use directly source-&gt;GetPropertyKeys again, when fixed.
+<span style = "background-color:#fdd">    const auto keys = GetPropertyKeys(source);</span>
+    //end workaround for T24729
+
+<span style = "background-color:#fdd">    for (const auto&amp; key : keys)</span>
+    {
+<span style = "background-color:#fdd">      if (std::regex_match(key, regEx))</span>
+      {
+<span style = "background-color:#fdd">        auto idProp = source-&gt;GetConstProperty(key);
+        auto ruleID = idProp-&gt;GetValueAsString();
+        if (this-&gt;IsSupportedRuleID(ruleID))</span>
+        {
+<span style = "background-color:#fdd">          auto instanceID = this-&gt;GetInstanceIDByPropertyName(key);
+          instanceIDs.emplace_back(instanceID);
+          relationUIDs.push_back(this-&gt;GetRelationUIDByInstanceID(source, instanceID));
+        }
+      }
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  if (layer == RelationType::ID)</span>
+  {
+<span style = "background-color:#fdd">    return relationUIDs;</span>
+  }
+
+<span style = "background-color:#fdd">  DataRelationUIDVectorType relationUIDandRuleID_Data;
+  if (layer != RelationType::ID)</span>
+  {
+<span style = "background-color:#fdd">    relationUIDandRuleID_Data = this-&gt;GetRelationUIDs_DataLayer(source, nullptr, instanceIDs);</span>
+  }
+
+<span style = "background-color:#fdd">  RelationUIDVectorType relationUIDs_Data;
+  std::transform(relationUIDandRuleID_Data.begin(), relationUIDandRuleID_Data.end(), std::back_inserter(relationUIDs_Data),
+    [](const DataRelationUIDVectorType::value_type&amp; v) { return v.first; });</span>
+
+<span style = "background-color:#fdd">  if (layer == RelationType::Data)</span>
+  {
+<span style = "background-color:#fdd">    return relationUIDs_Data;</span>
+  }
+
+<span style = "background-color:#fdd">  std::sort(relationUIDs.begin(), relationUIDs.end());
+  std::sort(relationUIDs_Data.begin(), relationUIDs_Data.end());</span>
+
+<span style = "background-color:#fdd">  RelationUIDVectorType result;</span>
+
+<span style = "background-color:#fdd">  if (layer == RelationType::Complete)</span>
+  {
+<span style = "background-color:#fdd">    std::set_intersection(relationUIDs.begin(), relationUIDs.end(), relationUIDs_Data.begin(), relationUIDs_Data.end(), std::back_inserter(result));
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    std::set_union(relationUIDs.begin(), relationUIDs.end(), relationUIDs_Data.begin(), relationUIDs_Data.end(), std::back_inserter(result));</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::PropertyRelationRuleBase::RelationUIDVectorType mitk::PropertyRelationRuleBase::GetRelationUIDs(
+  const IPropertyProvider *source, const IPropertyProvider *destination) const
+<span style = "background-color:#fdd">{
+  if (!source)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed source pointer is NULL";</span>
+  }
+<span style = "background-color:#fdd">  if (!destination)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed destination pointer is NULL";</span>
+  }
+
+<span style = "background-color:#fdd">  RelationUIDVectorType relUIDs_id;</span>
+
+<span style = "background-color:#fdd">  auto instanceIDs = this-&gt;GetInstanceID_IDLayer(source, destination);
+  for (const auto&amp; instanceID : instanceIDs)</span>
+  {
+<span style = "background-color:#fdd">    relUIDs_id.push_back(this-&gt;GetRelationUIDByInstanceID(source, instanceID));
+  }</span>
+
+<span style = "background-color:#fdd">  DataRelationUIDVectorType relationUIDandRuleID_Data = this-&gt;GetRelationUIDs_DataLayer(source,destination,instanceIDs);
+  RelationUIDVectorType relUIDs_Data;
+  std::transform(relationUIDandRuleID_Data.begin(), relationUIDandRuleID_Data.end(), std::back_inserter(relUIDs_Data),
+    [](const DataRelationUIDVectorType::value_type&amp; v) { return v.first; });</span>
+
+<span style = "background-color:#fdd">  std::sort(relUIDs_id.begin(), relUIDs_id.end());
+  std::sort(relUIDs_Data.begin(), relUIDs_Data.end());</span>
+
+<span style = "background-color:#fdd">  RelationUIDVectorType result;
+  std::set_union(relUIDs_id.begin(), relUIDs_id.end(), relUIDs_Data.begin(), relUIDs_Data.end(), std::back_inserter(result));</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::PropertyRelationRuleBase::RelationUIDType
+mitk::PropertyRelationRuleBase::GetRelationUID(const IPropertyProvider *source, const IPropertyProvider *destination) const
+<span style = "background-color:#fdd">{
+  auto result = this-&gt;GetRelationUIDs(source, destination);</span>
+
+<span style = "background-color:#fdd">  if (result.empty())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrowException(NoPropertyRelationException);
+  }
+  else if(result.size()&gt;1)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot return one(!) relation UID. Multiple relations exists for given rule, source and destination.";</span>
+  }
+
+<span style = "background-color:#fdd">  return result[0];
+}</span>
+
+mitk::PropertyRelationRuleBase::InstanceIDType mitk::PropertyRelationRuleBase::NULL_INSTANCE_ID()
+<span style = "background-color:#fdd">{
+  return std::string();
+};</span>
+
+mitk::PropertyRelationRuleBase::RelationUIDType mitk::PropertyRelationRuleBase::GetRelationUIDByInstanceID(
+  const IPropertyProvider *source, const InstanceIDType &amp;instanceID) const
+<span style = "background-color:#fdd">{
+  RelationUIDType result;</span>
+
+<span style = "background-color:#fdd">  if (instanceID != NULL_INSTANCE_ID())</span>
+  {
+<span style = "background-color:#fdd">    auto idProp = source-&gt;GetConstProperty(</span>
+      PropertyKeyPathToPropertyName(GetRIIRelationUIDPropertyKeyPath(instanceID)));
+
+<span style = "background-color:#fdd">    if (idProp.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      result = idProp-&gt;GetValueAsString();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  if (result.empty())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrowException(NoPropertyRelationException);</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::PropertyRelationRuleBase::InstanceIDType mitk::PropertyRelationRuleBase::GetInstanceIDByRelationUID(
+  const IPropertyProvider *source, const RelationUIDType &amp;relationUID) const
+<span style = "background-color:#fdd">{
+  if (!source)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed source pointer is NULL";</span>
+  }
+
+<span style = "background-color:#fdd">  InstanceIDType result = NULL_INSTANCE_ID();</span>
+
+<span style = "background-color:#fdd">  auto destRegExStr =</span>
+    PropertyKeyPathToPropertyRegEx(GetRIIRelationUIDPropertyKeyPath());
+<span style = "background-color:#fdd">  auto regEx = std::regex(destRegExStr);
+  std::smatch instance_matches;</span>
+
+  //workaround until T24729 is done. You can use directly source-&gt;GetPropertyKeys again, when fixed.
+<span style = "background-color:#fdd">  const auto keys = GetPropertyKeys(source);</span>
+  //end workaround for T24729
+
+<span style = "background-color:#fdd">  for (const auto &amp;key : keys)</span>
+  {
+<span style = "background-color:#fdd">    if (std::regex_search(key, instance_matches, regEx))</span>
+    {
+<span style = "background-color:#fdd">      auto idProp = source-&gt;GetConstProperty(key);
+      if (idProp-&gt;GetValueAsString() == relationUID)</span>
+      {
+<span style = "background-color:#fdd">        if (instance_matches.size()&gt;1)</span>
+        {
+<span style = "background-color:#fdd">          result = instance_matches[1];
+          break;</span>
+        }
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::PropertyRelationRuleBase::InstanceIDVectorType mitk::PropertyRelationRuleBase::GetInstanceID_IDLayer(
+  const IPropertyProvider *source, const IPropertyProvider *destination) const
+<span style = "background-color:#fdd">{
+  if (!source)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed source pointer is NULL";</span>
+  }
+<span style = "background-color:#fdd">  if (!destination)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed destination pointer is NULL";</span>
+  }
+
+<span style = "background-color:#fdd">  auto identifiable = CastProviderAsIdentifiable(destination);</span>
+
+<span style = "background-color:#fdd">  InstanceIDVectorType result;</span>
+
+<span style = "background-color:#fdd">  if (identifiable)</span>
+  { // check for relations of type Connected_ID;
+
+<span style = "background-color:#fdd">    auto destRegExStr = this-&gt;GetRIIPropertyRegEx("destinationUID");
+    auto regEx = std::regex(destRegExStr);
+    std::smatch instance_matches;</span>
+
+<span style = "background-color:#fdd">    auto destUID = identifiable-&gt;GetUID();</span>
+
+    //workaround until T24729 is done. You can use directly source-&gt;GetPropertyKeys again, when fixed.
+<span style = "background-color:#fdd">    const auto keys = GetPropertyKeys(source);</span>
+    //end workaround for T24729
+
+<span style = "background-color:#fdd">    for (const auto &amp;key : keys)</span>
+    {
+<span style = "background-color:#fdd">      if (std::regex_search(key, instance_matches, regEx))</span>
+      {
+<span style = "background-color:#fdd">        auto idProp = source-&gt;GetConstProperty(key);
+        if (idProp-&gt;GetValueAsString() == destUID)</span>
+        {
+<span style = "background-color:#fdd">          if (instance_matches.size()&gt;1)</span>
+          {
+<span style = "background-color:#fdd">            auto instanceID = instance_matches[1];
+            if (this-&gt;IsSupportedRuleID(GetRuleIDByInstanceID(source, instanceID)))</span>
+            {
+<span style = "background-color:#fdd">              result.push_back(instanceID);</span>
+            }
+<span style = "background-color:#fdd">          }</span>
+        }
+<span style = "background-color:#fdd">      }
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+const mitk::Identifiable* mitk::PropertyRelationRuleBase::CastProviderAsIdentifiable(const mitk::IPropertyProvider* destination) const
+<span style = "background-color:#fdd">{
+  auto identifiable = dynamic_cast&lt;const Identifiable*&gt;(destination);</span>
+
+<span style = "background-color:#fdd">  if (!identifiable)</span>
+  { //This check and pass through to data is needed due to solve T25711. See Task for more information.
+    //This could be removed at the point we can get rid of DataNodes or they get realy transparent.
+<span style = "background-color:#fdd">    auto node = dynamic_cast&lt;const DataNode*&gt;(destination);
+    if (node &amp;&amp; node-&gt;GetData())</span>
+    {
+<span style = "background-color:#fdd">      identifiable = dynamic_cast&lt;const Identifiable*&gt;(node-&gt;GetData());</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  return identifiable;
+}</span>
+
+mitk::PropertyRelationRuleBase::RelationUIDType mitk::PropertyRelationRuleBase::Connect(IPropertyOwner *source, const IPropertyProvider *destination) const
+<span style = "background-color:#fdd">{
+  if (!source)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed source pointer is NULL";</span>
+  }
+<span style = "background-color:#fdd">  if (!destination)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed destination pointer is NULL";</span>
+  }
+<span style = "background-color:#fdd">  if (this-&gt;IsAbstract())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. This is an abstract property relation rule. Abstract rule must not make a connection. Please use a concrete rule.";</span>
+  }
+
+<span style = "background-color:#fdd">  auto instanceIDs = this-&gt;GetInstanceID_IDLayer(source, destination);
+  bool hasIDlayer = !instanceIDs.empty();</span>
+
+<span style = "background-color:#fdd">  auto relUIDs_data = this-&gt;GetRelationUIDs_DataLayer(source, destination, {});</span>
+
+<span style = "background-color:#fdd">  if (relUIDs_data.size() &gt; 1)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Property relation on data level is ambiguous. First relation is used. RelationUID ID: "</span>
+              &lt;&lt; relUIDs_data.front().first;
+  }
+
+<span style = "background-color:#fdd">  bool hasDatalayer = !relUIDs_data.empty();</span>
+
+<span style = "background-color:#fdd">  RelationUIDType relationUID = this-&gt;CreateRelationUID();</span>
+
+<span style = "background-color:#fdd">  InstanceIDType instanceID = NULL_INSTANCE_ID();</span>
+
+<span style = "background-color:#fdd">  if (hasIDlayer)</span>
+  {
+<span style = "background-color:#fdd">    instanceID = instanceIDs.front();
+  }
+  else if (hasDatalayer)</span>
+  {
+    try
+    {
+<span style = "background-color:#fdd">      instanceID = this-&gt;GetInstanceIDByRelationUID(source, relUIDs_data.front().first);</span>
+    }
+    catch(...)
+<span style = "background-color:#fdd">    { }</span>
+  }
+
+<span style = "background-color:#fdd">  if(instanceID == NULL_INSTANCE_ID())</span>
+  {
+<span style = "background-color:#fdd">    instanceID = this-&gt;CreateNewRelationInstance(source, relationUID);</span>
+  }
+
+<span style = "background-color:#fdd">  auto relUIDKey =</span>
+    PropertyKeyPathToPropertyName(GetRIIRelationUIDPropertyKeyPath(instanceID));
+<span style = "background-color:#fdd">  source-&gt;SetProperty(relUIDKey, mitk::StringProperty::New(relationUID));</span>
+
+<span style = "background-color:#fdd">  auto ruleIDKey =</span>
+    PropertyKeyPathToPropertyName(GetRIIRuleIDPropertyKeyPath(instanceID));
+<span style = "background-color:#fdd">  source-&gt;SetProperty(ruleIDKey, mitk::StringProperty::New(this-&gt;GetRuleID()));</span>
+
+<span style = "background-color:#fdd">  if (!hasIDlayer)</span>
+  {
+<span style = "background-color:#fdd">    auto identifiable = this-&gt;CastProviderAsIdentifiable(destination);</span>
+
+<span style = "background-color:#fdd">    if (identifiable)</span>
+    {
+<span style = "background-color:#fdd">      auto destUIDKey =</span>
+        PropertyKeyPathToPropertyName(GetRIIDestinationUIDPropertyKeyPath(instanceID));
+<span style = "background-color:#fdd">      source-&gt;SetProperty(destUIDKey, mitk::StringProperty::New(identifiable-&gt;GetUID()));
+    }</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;Connect_datalayer(source, destination, instanceID);</span>
+
+<span style = "background-color:#fdd">  return relationUID;
+}</span>
+
+void mitk::PropertyRelationRuleBase::Disconnect(IPropertyOwner *source, const IPropertyProvider *destination, RelationType layer) const
+<span style = "background-color:#fdd">{
+  if (source == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Source is invalid. Cannot disconnect.";</span>
+  }
+
+<span style = "background-color:#fdd">  if (destination == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Destination is invalid. Cannot disconnect.";</span>
+  }
+
+  try
+  {
+<span style = "background-color:#fdd">    const auto relationUIDs = this-&gt;GetRelationUIDs(source, destination);
+    for (const auto&amp; relUID: relationUIDs)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;Disconnect(source, relUID, layer);
+    }
+  }</span>
+  catch (const NoPropertyRelationException &amp;)
+<span style = "background-color:#fdd">  {</span>
+    // nothing to do and no real error in context of disconnect.
+<span style = "background-color:#fdd">  }
+}</span>
+
+void mitk::PropertyRelationRuleBase::Disconnect(IPropertyOwner *source, RelationUIDType relationUID, RelationType layer) const
+<span style = "background-color:#fdd">{
+  if (source == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Source is invalid. Cannot disconnect.";</span>
+  }
+
+<span style = "background-color:#fdd">  if (layer == RelationType::Data || layer == RelationType::Complete)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;Disconnect_datalayer(source, relationUID);</span>
+  }
+
+<span style = "background-color:#fdd">  auto instanceID = this-&gt;GetInstanceIDByRelationUID(source, relationUID);
+  if ((layer == RelationType::ID || layer == RelationType::Complete) &amp;&amp; instanceID != NULL_INSTANCE_ID())</span>
+  {
+<span style = "background-color:#fdd">    auto instancePrefix = PropertyKeyPathToPropertyName(GetRootKeyPath().AddElement(instanceID));</span>
+
+    //workaround until T24729 is done. You can use directly source-&gt;GetPropertyKeys again, when fixed.
+<span style = "background-color:#fdd">    const auto keys = GetPropertyKeys(source);</span>
+    //end workaround for T24729
+
+
+<span style = "background-color:#fdd">    for (const auto &amp;key : keys)</span>
+    {
+<span style = "background-color:#fdd">      if (key.find(instancePrefix) == 0)</span>
+      {
+<span style = "background-color:#fdd">        source-&gt;RemoveProperty(key);</span>
+      }
+<span style = "background-color:#fdd">    }
+  }
+}</span>
+
+mitk::PropertyRelationRuleBase::RelationUIDType mitk::PropertyRelationRuleBase::CreateRelationUID()
+<span style = "background-color:#fdd">{
+  UIDGenerator generator;
+  return generator.GetUID();
+}</span>
+
+/**This mutex is used to guard mitk::PropertyRelationRuleBase::CreateNewRelationInstance by a class wide mutex to avoid
+  racing conditions in a scenario where rules are used concurrently. It is not in the class interface itself, because it
+  is an implementation detail.
+*/
+<span style = "background-color:#dfd">std::mutex relationCreationLock;</span>
+
+mitk::PropertyRelationRuleBase::InstanceIDType mitk::PropertyRelationRuleBase::CreateNewRelationInstance(
+  IPropertyOwner *source, const RelationUIDType &amp;relationUID) const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; guard(relationCreationLock);</span>
+
+  //////////////////////////////////////
+  // Get all existing instanc IDs
+
+<span style = "background-color:#fdd">  std::vector&lt;int&gt; instanceIDs;
+  InstanceIDType newID = "1";</span>
+
+<span style = "background-color:#fdd">  auto destRegExStr =</span>
+    PropertyKeyPathToPropertyRegEx(GetRIIRelationUIDPropertyKeyPath());
+<span style = "background-color:#fdd">  auto regEx = std::regex(destRegExStr);
+  std::smatch instance_matches;</span>
+
+  //workaround until T24729 is done. You can use directly source-&gt;GetPropertyKeys again, when fixed.
+<span style = "background-color:#fdd">  const auto keys = GetPropertyKeys(source);</span>
+  //end workaround for T24729
+
+
+<span style = "background-color:#fdd">  for (const auto &amp;key : keys)</span>
+  {
+<span style = "background-color:#fdd">    if (std::regex_search(key, instance_matches, regEx))</span>
+    {
+<span style = "background-color:#fdd">      if (instance_matches.size()&gt;1)</span>
+      {
+<span style = "background-color:#fdd">        instanceIDs.push_back(std::stoi(instance_matches[1]));</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  //////////////////////////////////////
+  // Get new ID
+
+<span style = "background-color:#fdd">  std::sort(instanceIDs.begin(), instanceIDs.end());
+  if (!instanceIDs.empty())</span>
+  {
+<span style = "background-color:#fdd">    newID = std::to_string(instanceIDs.back() + 1);</span>
+  }
+
+  //////////////////////////////////////
+  // reserve new ID
+<span style = "background-color:#fdd">  auto relUIDKey =</span>
+    PropertyKeyPathToPropertyName(GetRIIRelationUIDPropertyKeyPath(newID));
+<span style = "background-color:#fdd">  source-&gt;SetProperty(relUIDKey, mitk::StringProperty::New(relationUID));</span>
+
+<span style = "background-color:#fdd">  return newID;
+}</span>
+
+itk::LightObject::Pointer mitk::PropertyRelationRuleBase::InternalClone() const
+<span style = "background-color:#fdd">{
+  return Superclass::InternalClone();
+}</span>
+
+
+mitk::PropertyRelationRuleBase::InstanceIDType mitk::PropertyRelationRuleBase::GetInstanceIDByPropertyName(const std::string propName)
+<span style = "background-color:#fdd">{
+  auto proppath = PropertyNameToPropertyKeyPath(propName);
+  auto ref = GetRootKeyPath();</span>
+
+<span style = "background-color:#fdd">  if (proppath.GetSize() &lt; 3 || !(proppath.GetFirstNode() == ref.GetFirstNode()) || !(proppath.GetNode(1) == ref.GetNode(1)))</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Property name is not for a RII property or containes no instance ID. Wrong name: " &lt;&lt; propName;</span>
+  }
+
+<span style = "background-color:#fdd">  return proppath.GetNode(2).name;
+}</span>
+
+mitk::PropertyRelationRuleBase::RuleIDType mitk::PropertyRelationRuleBase::GetRuleIDByInstanceID(const IPropertyProvider *source,
+  const InstanceIDType &amp;instanceID) const
+<span style = "background-color:#fdd">{
+  if (!source)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Source is invalid. Cannot deduce rule ID";</span>
+  }
+
+<span style = "background-color:#fdd">  auto path = GetRIIRuleIDPropertyKeyPath(instanceID);
+  auto name = PropertyKeyPathToPropertyName(path);</span>
+
+<span style = "background-color:#fdd">  const auto prop = source-&gt;GetConstProperty(name);</span>
+
+<span style = "background-color:#fdd">  std::string result;</span>
+
+<span style = "background-color:#fdd"> if (prop.IsNotNull())</span>
+ {
+<span style = "background-color:#fdd">   result = prop-&gt;GetValueAsString();</span>
+ }
+
+<span style = "background-color:#fdd">  if (result.empty())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrowException(NoPropertyRelationException) &lt;&lt; "Error. Source has no property relation with the passed instance ID. Instance ID: " &lt;&lt; instanceID;</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+std::string mitk::PropertyRelationRuleBase::GetDestinationUIDByInstanceID(const IPropertyProvider* source,
+  const InstanceIDType&amp; instanceID) const
+<span style = "background-color:#fdd">{
+  if (!source)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Source is invalid. Cannot deduce rule ID";</span>
+  }
+
+<span style = "background-color:#fdd">  auto path = GetRIIDestinationUIDPropertyKeyPath(instanceID);
+  auto name = PropertyKeyPathToPropertyName(path);</span>
+
+<span style = "background-color:#fdd">  const auto prop = source-&gt;GetConstProperty(name);</span>
+
+<span style = "background-color:#fdd">  std::string result;</span>
+
+<span style = "background-color:#fdd">  if (prop.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    result = prop-&gt;GetValueAsString();</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+
+namespace mitk
+{
+  /**
+  * \brief Predicate used to wrap rule checks.
+  *
+  * \ingroup DataStorage
+  */
+  class NodePredicateRuleFunction : public NodePredicateBase
+  {
+  public:
+    using FunctionType = std::function&lt;bool(const mitk::IPropertyProvider *, const mitk::PropertyRelationRuleBase *)&gt;;
+
+<span style = "background-color:#fdd">    mitkClassMacro(NodePredicateRuleFunction, NodePredicateBase)
+      mitkNewMacro2Param(NodePredicateRuleFunction, const FunctionType &amp;, PropertyRelationRuleBase::ConstPointer)</span>
+
+<span style = "background-color:#fdd">    ~NodePredicateRuleFunction() override = default;</span>
+
+    bool CheckNode(const mitk::DataNode *node) const override
+<span style = "background-color:#fdd">    {
+      if (!node)</span>
+      {
+<span style = "background-color:#fdd">        return false;</span>
+      }
+
+<span style = "background-color:#fdd">      return m_Function(node, m_Rule);
+    };</span>
+
+  protected:
+<span style = "background-color:#fdd">    explicit NodePredicateRuleFunction(const FunctionType &amp;function, PropertyRelationRuleBase::ConstPointer rule) : m_Function(function), m_Rule(rule)
+    {
+    };</span>
+
+    FunctionType m_Function;
+    PropertyRelationRuleBase::ConstPointer m_Rule;
+  };
+
+} // namespace mitk
+
+mitk::NodePredicateBase::ConstPointer mitk::PropertyRelationRuleBase::GetSourceCandidateIndicator() const
+<span style = "background-color:#fdd">{
+  auto check = [](const mitk::IPropertyProvider *node, const mitk::PropertyRelationRuleBase *rule) {
+    return rule-&gt;IsSourceCandidate(node);
+  };</span>
+
+<span style = "background-color:#fdd">  return NodePredicateRuleFunction::New(check, this).GetPointer();
+}</span>
+
+mitk::NodePredicateBase::ConstPointer mitk::PropertyRelationRuleBase::GetDestinationCandidateIndicator() const
+<span style = "background-color:#fdd">{
+  auto check = [](const mitk::IPropertyProvider *node, const mitk::PropertyRelationRuleBase *rule) {
+    return rule-&gt;IsDestinationCandidate(node);
+  };</span>
+
+<span style = "background-color:#fdd">  return NodePredicateRuleFunction::New(check, this).GetPointer();
+}</span>
+
+mitk::NodePredicateBase::ConstPointer mitk::PropertyRelationRuleBase::GetConnectedSourcesDetector() const
+<span style = "background-color:#fdd">{
+  auto check = [](const mitk::IPropertyProvider *node, const mitk::PropertyRelationRuleBase *rule)
+  {
+    return rule-&gt;IsSource(node);
+  };</span>
+
+<span style = "background-color:#fdd">  return NodePredicateRuleFunction::New(check, this).GetPointer();
+}</span>
+
+mitk::NodePredicateBase::ConstPointer mitk::PropertyRelationRuleBase::GetSourcesDetector(
+  const IPropertyProvider *destination, RelationType exclusiveRelation) const
+<span style = "background-color:#fdd">{
+  if (!destination)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed destination pointer is NULL";</span>
+  }
+
+  auto check = [destination, exclusiveRelation](const mitk::IPropertyProvider *node,
+<span style = "background-color:#fdd">                                              const mitk::PropertyRelationRuleBase *rule) {
+    return rule-&gt;HasRelation(node, destination, exclusiveRelation);
+  };</span>
+
+<span style = "background-color:#fdd">  return NodePredicateRuleFunction::New(check, this).GetPointer();
+}</span>
+
+mitk::NodePredicateBase::ConstPointer mitk::PropertyRelationRuleBase::GetDestinationsDetector(
+  const IPropertyProvider *source, RelationType exclusiveRelation) const
+<span style = "background-color:#fdd">{
+  if (!source)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed source pointer is NULL";</span>
+  }
+
+  auto check = [source, exclusiveRelation](const mitk::IPropertyProvider *node,
+<span style = "background-color:#fdd">                                         const mitk::PropertyRelationRuleBase *rule) {
+    return rule-&gt;HasRelation(source, node, exclusiveRelation);
+  };</span>
+
+<span style = "background-color:#fdd">  return NodePredicateRuleFunction::New(check, this).GetPointer();
+}</span>
+
+mitk::NodePredicateBase::ConstPointer mitk::PropertyRelationRuleBase::GetDestinationDetector(
+  const IPropertyProvider *source, RelationUIDType relationUID) const
+<span style = "background-color:#fdd">{
+  if (!source)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error. Passed source pointer is NULL";</span>
+  }
+
+<span style = "background-color:#fdd">  auto relUIDs = this-&gt;GetExistingRelations(source);
+  if (std::find(relUIDs.begin(), relUIDs.end(), relationUID) == relUIDs.end())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow()</span>
+      &lt;&lt; "Error. Passed relationUID does not identify a relation instance of the passed source for this rule instance.";
+  };
+
+<span style = "background-color:#fdd">  auto check = [source, relationUID](const mitk::IPropertyProvider *node, const mitk::PropertyRelationRuleBase *rule) {</span>
+    try
+    {
+<span style = "background-color:#fdd">      auto relevantUIDs = rule-&gt;GetRelationUIDs(source, node);
+      for (const auto&amp; aUID : relevantUIDs)</span>
+      {
+<span style = "background-color:#fdd">        if (aUID == relationUID)</span>
+        {
+<span style = "background-color:#fdd">          return true;</span>
+        }
+<span style = "background-color:#fdd">      }
+    }</span>
+    catch(const NoPropertyRelationException &amp;)
+<span style = "background-color:#fdd">    {
+      return false;
+    }
+    return false;
+  };</span>
+
+<span style = "background-color:#fdd">  return NodePredicateRuleFunction::New(check, this).GetPointer();
+}</span></pre>
+	</body>
+</html>

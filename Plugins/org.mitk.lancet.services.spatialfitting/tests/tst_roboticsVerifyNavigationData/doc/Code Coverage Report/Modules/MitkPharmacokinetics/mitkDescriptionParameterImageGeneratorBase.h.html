@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDescriptionParameterImageGeneratorBase.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __MITK_DESCRIPTION_PARAMETER_IMAGE_GENERATOR_BASE_H_
+#define __MITK_DESCRIPTION_PARAMETER_IMAGE_GENERATOR_BASE_H_
+
+#include &lt;map&gt;
+
+#include "mitkImage.h"
+
+#include "mitkCurveDescriptionParameterBase.h"
+
+#include "MitkPharmacokineticsExports.h"
+
+namespace mitk
+{
+  class MITKPHARMACOKINETICS_EXPORT DescriptionParameterImageGeneratorBase: public ::itk::Object
+  {
+  public:
+
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(DescriptionParameterImageGeneratorBase, ::itk::Object);</span>
+
+    typedef ScalarType ParameterImagePixelType;
+
+    typedef CurveDescriptionParameterBase::CurveDescriptionParameterNameType ParameterNameType;
+
+    typedef std::map&lt;ParameterNameType,Image::Pointer&gt; ParameterImageMapType;
+
+    virtual double GetProgress() const = 0;
+
+     void Generate();
+
+    ParameterImageMapType GetParameterImages();
+
+  protected:
+    DescriptionParameterImageGeneratorBase();
+    ~DescriptionParameterImageGeneratorBase() override;
+
+    virtual bool HasOutdatedResult() const;
+
+    virtual void CheckValidInputs() const;
+    virtual void DoParameterCalculationAndGetResults(ParameterImageMapType&amp; parameterImages) = 0;
+
+    itk::TimeStamp m_GenerationTimeStamp;
+
+  private:
+
+    ParameterImageMapType m_ParameterImageMap;
+
+  };
+
+}
+
+#endif //__MITK_DESCRIPTION_PARAMETER_IMAGE_GENERATOR_BASE_H_</pre>
+	</body>
+</html>

@@ -1,0 +1,209 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModelFitParameterValueExtraction.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkModelFitParameterValueExtraction.h"
+#include "mitkModelFitException.h"
+
+#include &lt;mitkImagePixelReadAccessor.h&gt;
+#include &lt;mitkPixelTypeMultiplex.h&gt;
+
+
+/**
+*	@brief	Reads the intensity with the given pixel type from the given image at the given position and time
+*			step (at the currently selected voxel) and stores it in the variable 'value'.
+*	@tparam TPixel The type of the voxel (e.g. float).
+*	@param image	The image whose voxel should be read.
+*	@param position	The position in the image that should be read out.
+*	@param timestep	The time step at which the voxel should be read.
+*	@param value	The variable where the result is stored.
+*/
+template&lt;typename TPixel&gt;
+void ReadVoxelInternal(const mitk::PixelType, const mitk::Image *image,
+  const ::itk::Index&lt;3&gt; index,
+  unsigned int timestep, mitk::ModelTraitsInterface::ParameterValueType &amp;value)
+<span style = "background-color:#fdd">{</span>
+  // Read voxel
+<span style = "background-color:#fdd">  if (image-&gt;GetDimension() == 2)</span>
+  {
+<span style = "background-color:#fdd">    mitk::ImagePixelReadAccessor&lt;TPixel, 2&gt; readAccess(image, image-&gt;GetSliceData(0));</span>
+    itk::Index&lt;2&gt; idx;
+<span style = "background-color:#fdd">    idx[0] = index[0];
+    idx[1] = index[1];
+    value = static_cast&lt;double&gt;(readAccess.GetPixelByIndex(idx));
+  }
+  else if (image-&gt;GetDimension() == 3)</span>
+  {
+<span style = "background-color:#fdd">    mitk::ImagePixelReadAccessor&lt;TPixel, 3&gt; readAccess(image, image-&gt;GetVolumeData(0));
+    value = static_cast&lt;double&gt;(readAccess.GetPixelByIndex(index));
+  }
+  else if (image-&gt;GetDimension() == 4)</span>
+  {
+<span style = "background-color:#fdd">    mitk::ImagePixelReadAccessor&lt;TPixel, 3&gt; readAccess(image, image-&gt;GetVolumeData(timestep));
+    value = static_cast&lt;double&gt;(readAccess.GetPixelByIndex(index));
+  }</span>
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "Voxel [" &lt;&lt; index[0] &lt;&lt; ", " &lt;&lt; index[1] &lt;&lt; ", " &lt;&lt; index[2] &lt;&lt; ", " &lt;&lt; timestep</span>
+    &lt;&lt; "]: " &lt;&lt; value;
+<span style = "background-color:#fdd">}</span>
+
+
+mitk::ModelTraitsInterface::ParameterValueType
+mitk::ReadVoxel(const mitk::Image* image,
+  const mitk::Point3D&amp; position, unsigned int timestep, bool noThrow)
+<span style = "background-color:#fdd">{</span>
+  // Calculate index
+  ::itk::Index&lt;3&gt; index;
+<span style = "background-color:#fdd">  mitk::BaseGeometry::Pointer geometry = image-&gt;GetTimeGeometry()-&gt;GetGeometryForTimeStep(timestep);</span>
+
+  // check for invalid time step
+<span style = "background-color:#fdd">  if (geometry.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    geometry = image-&gt;GetTimeGeometry()-&gt;GetGeometryForTimeStep(0);</span>
+  }
+
+<span style = "background-color:#fdd">  geometry-&gt;WorldToIndex(position, index);</span>
+
+<span style = "background-color:#fdd">  return ReadVoxel(image, index, timestep, noThrow);
+}</span>
+
+mitk::ModelTraitsInterface::ParameterValueType
+mitk::ReadVoxel(const mitk::Image* image,
+const ::itk::Index&lt;3&gt; &amp;index, unsigned int timestep, bool noThrow)
+<span style = "background-color:#fdd">{
+  double result = 0.0;</span>
+
+  // check for invalid time step
+<span style = "background-color:#fdd">  if (timestep &gt;= image-&gt;GetTimeSteps())</span>
+  {
+<span style = "background-color:#fdd">    timestep = 0;</span>
+  }
+
+  try
+  {
+<span style = "background-color:#fdd">    mitkPixelTypeMultiplex4(ReadVoxelInternal, image-&gt;GetPixelType(), image, index, timestep, result);</span>
+  }
+  catch (const std::exception&amp; e)
+<span style = "background-color:#fdd">  {
+    if (noThrow)</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Exception in ReadVoxel (index: " &lt;&lt; index &lt;&lt; "; timestep: " &lt;&lt; timestep &lt;&lt; "). Reason: " &lt;&lt; e.what();
+    }
+    else throw;
+  }</span>
+  catch (...)
+<span style = "background-color:#fdd">  {
+    if (noThrow)</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Unknown exception in ReadVoxel (index: " &lt;&lt; index &lt;&lt; "; timestep: " &lt;&lt; timestep &lt;&lt; ").";
+    }
+    else throw;
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::ParameterValueMapType
+mitk::ExtractParameterValueMapFromModelFit(const mitk::modelFit::ModelFitInfo* fitInfo,
+  const mitk::Point3D&amp; position)
+<span style = "background-color:#fdd">{
+  if (!fitInfo)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot extract parameter value map out of model fit instance. Passed model fit instance is a null ptr.";</span>
+  }
+
+<span style = "background-color:#fdd">  ParameterValueMapType parameterMap;</span>
+
+<span style = "background-color:#fdd">  for (mitk::modelFit::ModelFitInfo::ConstIterType paramIter = fitInfo-&gt;GetParameters().begin();
+    paramIter != fitInfo-&gt;GetParameters().end();
+    ++paramIter)</span>
+  {
+<span style = "background-color:#fdd">    const mitk::modelFit::Parameter* param = *paramIter;</span>
+
+<span style = "background-color:#fdd">    if (param-&gt;type == mitk::modelFit::Parameter::ParameterType)</span>
+    {
+<span style = "background-color:#fdd">      parameterMap[param-&gt;name] = mitk::ReadVoxel(param-&gt;image, position);
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return parameterMap;
+};</span>
+
+mitk::ParameterValueMapType
+mitk::ExtractParameterValueMapFromModelFit(const mitk::modelFit::ModelFitInfo* fitInfo,
+const ::itk::Index&lt;3&gt; &amp;index)
+<span style = "background-color:#fdd">{
+  if (!fitInfo)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot extract parameter value map out of model fit instance. Passed model fit instance is a null ptr.";</span>
+  }
+
+<span style = "background-color:#fdd">  ParameterValueMapType parameterMap;</span>
+
+<span style = "background-color:#fdd">  for (mitk::modelFit::ModelFitInfo::ConstIterType paramIter = fitInfo-&gt;GetParameters().begin();
+    paramIter != fitInfo-&gt;GetParameters().end();
+    ++paramIter)</span>
+  {
+<span style = "background-color:#fdd">    const mitk::modelFit::Parameter* param = *paramIter;</span>
+
+<span style = "background-color:#fdd">    if (param-&gt;type == mitk::modelFit::Parameter::ParameterType)</span>
+    {
+<span style = "background-color:#fdd">      parameterMap[param-&gt;name] = mitk::ReadVoxel(param-&gt;image, index);
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return parameterMap;
+};</span>
+
+mitk::ModelTraitsInterface::ParametersType
+mitk::ConvertParameterMapToParameterVector(const ParameterValueMapType &amp;valueMap, const ModelTraitsInterface * pTraitInterface)
+<span style = "background-color:#fdd">{
+  if (!pTraitInterface)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot convert parameter values. Passed traits interface is a null ptr.";</span>
+  }
+
+<span style = "background-color:#fdd">  const mitk::ModelTraitsInterface::ParameterNamesType paramNameVector =</span>
+    pTraitInterface-&gt;GetParameterNames();
+
+<span style = "background-color:#fdd">  mitk::ModelTraitsInterface::ParametersType paramArray(paramNameVector.size());
+  mitk::ModelTraitsInterface::ParametersSizeType paramIndex = 0;</span>
+
+<span style = "background-color:#fdd">  for (const auto&amp; name : paramNameVector)</span>
+  {
+<span style = "background-color:#fdd">    ParameterValueMapType::const_iterator iter = valueMap.find(name);</span>
+
+<span style = "background-color:#fdd">    if (iter != valueMap.end())</span>
+    {
+<span style = "background-color:#fdd">      paramArray[paramIndex] = iter-&gt;second;
+      ++paramIndex;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Cannot convert parameter values. Parameter name ('" &lt;&lt; name &lt;&lt; "') is missing in value map.";</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return paramArray;
+}</span></pre>
+	</body>
+</html>

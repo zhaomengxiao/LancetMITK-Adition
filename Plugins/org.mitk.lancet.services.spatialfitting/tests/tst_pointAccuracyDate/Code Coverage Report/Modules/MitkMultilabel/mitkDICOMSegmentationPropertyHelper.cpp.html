@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMSegmentationPropertyHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkAnatomicalStructureColorPresets.h&gt;
+#include &lt;mitkDICOMSegmentationConstants.h&gt;
+#include &lt;mitkIDICOMTagsOfInterest.h&gt;
+#include &lt;mitkPropertyNameHelper.h&gt;
+#include &lt;mitkTemporoSpatialStringProperty.h&gt;
+#include &lt;mitkPropertyList.h&gt;
+
+#include "mitkDICOMSegmentationPropertyHelper.h"
+
+#include &lt;vtkSmartPointer.h&gt;
+
+#include &lt;vtkSmartPointer.h&gt;
+
+namespace mitk
+{
+  void DICOMSegmentationPropertyHelper::DeriveDICOMSegmentationProperties(LabelSetImage* dicomSegImage)
+<span style = "background-color:#fdd">  {
+    PropertyList::Pointer propertyList = dicomSegImage-&gt;GetPropertyList();</span>
+
+    // Add DICOM Tag (0008, 0060) Modality "SEG"
+<span style = "background-color:#fdd">    propertyList-&gt;SetProperty(GeneratePropertyNameForDICOMTag(0x0008, 0x0060).c_str(),</span>
+      TemporoSpatialStringProperty::New("SEG"));
+    // Add DICOM Tag (0008,103E) Series Description
+<span style = "background-color:#fdd">    propertyList-&gt;SetProperty(GeneratePropertyNameForDICOMTag(0x0008, 0x103E).c_str(),</span>
+      TemporoSpatialStringProperty::New("MITK Segmentation"));
+    // Add DICOM Tag (0070,0084) Content Creator Name
+<span style = "background-color:#fdd">    propertyList-&gt;SetProperty(GeneratePropertyNameForDICOMTag(0x0070, 0x0084).c_str(),</span>
+      TemporoSpatialStringProperty::New("MITK"));
+    // Add DICOM Tag (0012, 0071) Clinical Trial Series ID
+<span style = "background-color:#fdd">    propertyList-&gt;SetProperty(GeneratePropertyNameForDICOMTag(0x0012, 0x0071).c_str(),</span>
+      TemporoSpatialStringProperty::New("Session 1"));
+    // Add DICOM Tag (0012,0050) Clinical Trial Time Point ID
+<span style = "background-color:#fdd">    propertyList-&gt;SetProperty(GeneratePropertyNameForDICOMTag(0x0012, 0x0050).c_str(),</span>
+      TemporoSpatialStringProperty::New("0"));
+    // Add DICOM Tag (0012, 0060) Clinical Trial Coordinating Center Name
+<span style = "background-color:#fdd">    propertyList-&gt;SetProperty(GeneratePropertyNameForDICOMTag(0x0012, 0x0060).c_str(),</span>
+      TemporoSpatialStringProperty::New("Unknown"));
+
+    // Set DICOM properties for each label
+    // Iterate over all layers
+<span style = "background-color:#fdd">    for (unsigned int layer = 0; layer &lt; dicomSegImage-&gt;GetNumberOfLayers(); ++layer)</span>
+    {
+      // Iterate over all labels
+<span style = "background-color:#fdd">      const LabelSet *labelSet = dicomSegImage-&gt;GetLabelSet(layer);
+      auto labelIter = labelSet-&gt;IteratorConstBegin();</span>
+      // Ignore background label
+<span style = "background-color:#fdd">      ++labelIter;</span>
+
+<span style = "background-color:#fdd">      for (; labelIter != labelSet-&gt;IteratorConstEnd(); ++labelIter)</span>
+      {
+<span style = "background-color:#fdd">        Label::Pointer label = labelIter-&gt;second;
+        SetDICOMSegmentProperties(label);
+      }
+    }
+  }</span>
+
+  void DICOMSegmentationPropertyHelper::SetDICOMSegmentProperties(Label *label)
+<span style = "background-color:#fdd">  {
+    PropertyList::Pointer propertyList = PropertyList::New();</span>
+
+<span style = "background-color:#fdd">    AnatomicalStructureColorPresets::Category category;
+    AnatomicalStructureColorPresets::Type type;
+    auto presets = vtkSmartPointer&lt;AnatomicalStructureColorPresets&gt;::New();
+    presets-&gt;LoadPreset();</span>
+
+<span style = "background-color:#fdd">    for (const auto &amp;preset : presets-&gt;GetCategoryPresets())</span>
+    {
+<span style = "background-color:#fdd">      auto presetOrganName = preset.first;
+      if (label-&gt;GetName().compare(presetOrganName) == 0)</span>
+      {
+<span style = "background-color:#fdd">        category = preset.second;
+        break;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    for (const auto &amp;preset : presets-&gt;GetTypePresets())</span>
+    {
+<span style = "background-color:#fdd">      auto presetOrganName = preset.first;
+      if (label-&gt;GetName().compare(presetOrganName) == 0)</span>
+      {
+<span style = "background-color:#fdd">        type = preset.second;
+        break;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+    //------------------------------------------------------------
+    // Add Segment Sequence tags (0062, 0002)
+    // Segment Number:Identification number of the segment.The value of Segment Number(0062, 0004) shall be unique
+    // within the Segmentation instance in which it is created
+<span style = "background-color:#fdd">    label-&gt;SetProperty(DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_NUMBER_PATH()).c_str(),</span>
+      TemporoSpatialStringProperty::New(std::to_string(label-&gt;GetValue())));
+
+    // Segment Label: User-defined label identifying this segment.
+<span style = "background-color:#fdd">    label-&gt;SetProperty(DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_LABEL_PATH()).c_str(),</span>
+      TemporoSpatialStringProperty::New(label-&gt;GetName()));
+
+    // Segment Algorithm Type: Type of algorithm used to generate the segment. AUTOMATIC SEMIAUTOMATIC MANUAL
+<span style = "background-color:#fdd">    label-&gt;SetProperty(DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_ALGORITHM_TYPE_PATH()).c_str(),</span>
+      TemporoSpatialStringProperty::New("SEMIAUTOMATIC"));
+    //------------------------------------------------------------
+    // Add Segmented Property Category Code Sequence tags (0062, 0003): Sequence defining the general category of this
+    // segment.
+    // (0008,0100) Code Value
+<span style = "background-color:#fdd">    if (!category.codeValue.empty())
+      label-&gt;SetProperty(</span>
+        DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_CATEGORY_CODE_VALUE_PATH()).c_str(),
+        TemporoSpatialStringProperty::New(category.codeValue));
+
+    // (0008,0102) Coding Scheme Designator
+<span style = "background-color:#fdd">    if (!category.codeScheme.empty())
+      label-&gt;SetProperty(</span>
+        DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_CATEGORY_CODE_SCHEME_PATH()).c_str(),
+        TemporoSpatialStringProperty::New(category.codeScheme));
+
+    // (0008,0104) Code Meaning
+<span style = "background-color:#fdd">    if (!category.codeName.empty())
+      label-&gt;SetProperty(</span>
+        DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_CATEGORY_CODE_MEANING_PATH()).c_str(),
+        TemporoSpatialStringProperty::New(category.codeName));
+    //------------------------------------------------------------
+    // Add Segmented Property Type Code Sequence (0062, 000F): Sequence defining the specific property type of this
+    // segment.
+    // (0008,0100) Code Value
+<span style = "background-color:#fdd">    if (!type.codeValue.empty())
+      label-&gt;SetProperty(</span>
+        DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_TYPE_CODE_VALUE_PATH()).c_str(),
+        TemporoSpatialStringProperty::New(type.codeValue));
+
+    // (0008,0102) Coding Scheme Designator
+<span style = "background-color:#fdd">    if (!type.codeScheme.empty())
+      label-&gt;SetProperty(</span>
+        DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_TYPE_CODE_SCHEME_PATH()).c_str(),
+        TemporoSpatialStringProperty::New(type.codeScheme));
+
+    // (0008,0104) Code Meaning
+<span style = "background-color:#fdd">    if (!type.codeName.empty())
+      label-&gt;SetProperty(</span>
+        DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_TYPE_CODE_MEANING_PATH()).c_str(),
+        TemporoSpatialStringProperty::New(type.codeName));
+    //------------------------------------------------------------
+    // Add Segmented Property Type Modifier Code Sequence (0062,0011): Sequence defining the modifier of the property
+    // type of this segment.
+    // (0008,0100) Code Value
+<span style = "background-color:#fdd">    if (!type.modifier.codeValue.empty())
+      label-&gt;SetProperty(</span>
+        DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_MODIFIER_CODE_VALUE_PATH()).c_str(),
+        TemporoSpatialStringProperty::New(type.modifier.codeValue));
+
+    // (0008,0102) Coding Scheme Designator
+<span style = "background-color:#fdd">    if (!type.modifier.codeScheme.empty())
+      label-&gt;SetProperty(</span>
+        DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_MODIFIER_CODE_SCHEME_PATH()).c_str(),
+        TemporoSpatialStringProperty::New(type.modifier.codeScheme));
+
+    // (0008,0104) Code Meaning
+<span style = "background-color:#fdd">    if (!type.modifier.codeName.empty())
+      label-&gt;SetProperty(</span>
+        DICOMTagPathToPropertyName(DICOMSegmentationConstants::SEGMENT_MODIFIER_CODE_MEANING_PATH()).c_str(),
+        TemporoSpatialStringProperty::New(type.modifier.codeName));
+<span style = "background-color:#fdd">  }</span>
+}</pre>
+	</body>
+</html>

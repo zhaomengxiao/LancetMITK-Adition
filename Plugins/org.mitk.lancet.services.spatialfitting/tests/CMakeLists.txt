@@ -14,5 +14,6 @@ set(TESTTING_TARGET_PLUGIN_LIBRARIES ${TESTTING_TARGET_PLUGIN})
 
 # Add test set subunit.
 add_subdirectory(tst_pointAccuracyDate)
+add_subdirectory(tst_pipelineManager)
 add_subdirectory(tst_roboticsRegisterNavigationData)
 add_subdirectory(tst_roboticsVerifyNavigationData)

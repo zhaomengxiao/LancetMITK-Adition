@@ -1,0 +1,357 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkArbitraryTimeGeometry.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include &lt;limits&gt;
+#include &lt;mitkArbitraryTimeGeometry.h&gt;
+
+#include &lt;algorithm&gt;
+
+#include &lt;mitkGeometry3D.h&gt;
+
+<span style = "background-color:#fdd">mitk::ArbitraryTimeGeometry::ArbitraryTimeGeometry() = default;</span>
+
+<span style = "background-color:#fdd">mitk::ArbitraryTimeGeometry::~ArbitraryTimeGeometry() = default;</span>
+
+void mitk::ArbitraryTimeGeometry::Initialize()
+<span style = "background-color:#fdd">{
+  this-&gt;ClearAllGeometries();
+  Geometry3D::Pointer geo = Geometry3D::New();
+  geo-&gt;Initialize();</span>
+
+<span style = "background-color:#fdd">  this-&gt;AppendNewTimeStep(geo, 0, 1);</span>
+
+<span style = "background-color:#fdd">  Update();
+}</span>
+
+mitk::TimeStepType mitk::ArbitraryTimeGeometry::CountTimeSteps() const
+<span style = "background-color:#fdd">{
+  return static_cast&lt;TimeStepType&gt;(m_GeometryVector.size());
+}</span>
+
+mitk::TimePointType mitk::ArbitraryTimeGeometry::GetMinimumTimePoint() const
+<span style = "background-color:#fdd">{
+  return m_MinimumTimePoints.empty() ? 0.0 : m_MinimumTimePoints.front();
+}</span>
+
+mitk::TimePointType mitk::ArbitraryTimeGeometry::GetMaximumTimePoint() const
+<span style = "background-color:#fdd">{
+  TimePointType result = 0;
+  if ( !m_MaximumTimePoints.empty() )</span>
+  {
+<span style = "background-color:#fdd">    result = m_MaximumTimePoints.back();</span>
+  }
+
+  ///////////////////////////////////////
+  // Workarround T27883. See https://phabricator.mitk.org/T27883#219473 for more details.
+  // This workarround should be removed as soon as T28262 is solved!
+<span style = "background-color:#fdd">  if (this-&gt;HasCollapsedFinalTimeStep())</span>
+  {
+<span style = "background-color:#fdd">    result = m_MinimumTimePoints.back() + 1;</span>
+  }
+  // End of workarround for T27883
+  //////////////////////////////////////
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::TimePointType mitk::ArbitraryTimeGeometry::GetMinimumTimePoint( TimeStepType step ) const
+<span style = "background-color:#fdd">{
+  return step &lt; m_MinimumTimePoints.size() ? m_MinimumTimePoints[step] : 0.0f;
+};</span>
+
+mitk::TimePointType mitk::ArbitraryTimeGeometry::GetMaximumTimePoint( TimeStepType step ) const
+<span style = "background-color:#fdd">{
+  TimePointType result = 0;
+  if (step &lt; m_MaximumTimePoints.size())</span>
+  {
+<span style = "background-color:#fdd">    result = m_MaximumTimePoints[step];</span>
+  }
+
+  ///////////////////////////////////////
+  // Workarround T27883. See https://phabricator.mitk.org/T27883#219473 for more details.
+  // This workarround should be removed as soon as T28262 is solved!
+<span style = "background-color:#fdd">  if (step + 1 == m_MaximumTimePoints.size() &amp;&amp; this-&gt;HasCollapsedFinalTimeStep())</span>
+  {
+<span style = "background-color:#fdd">    result = m_MinimumTimePoints[step] + 1;</span>
+  }
+  // End of workarround for T27883
+  //////////////////////////////////////
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::TimeBounds mitk::ArbitraryTimeGeometry::GetTimeBounds() const
+<span style = "background-color:#fdd">{</span>
+  TimeBounds bounds;
+<span style = "background-color:#fdd">  bounds[0] = this-&gt;GetMinimumTimePoint();
+  bounds[1] = this-&gt;GetMaximumTimePoint();
+  return bounds;
+}</span>
+
+mitk::TimeBounds mitk::ArbitraryTimeGeometry::GetTimeBounds(TimeStepType step) const
+<span style = "background-color:#fdd">{</span>
+  TimeBounds bounds;
+<span style = "background-color:#fdd">  bounds[0] = this-&gt;GetMinimumTimePoint( step );
+  bounds[1] = this-&gt;GetMaximumTimePoint( step );
+  return bounds;
+}</span>
+
+bool mitk::ArbitraryTimeGeometry::IsValidTimePoint(TimePointType timePoint) const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetMinimumTimePoint() &lt;= timePoint &amp;&amp;</span>
+    (timePoint &lt; this-&gt;GetMaximumTimePoint() || (this-&gt;HasCollapsedFinalTimeStep() &amp;&amp; timePoint &lt;= this-&gt;GetMaximumTimePoint()));
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::ArbitraryTimeGeometry::IsValidTimeStep(TimeStepType timeStep) const
+<span style = "background-color:#fdd">{
+  return timeStep &lt; this-&gt;CountTimeSteps();
+}</span>
+
+mitk::TimePointType mitk::ArbitraryTimeGeometry::TimeStepToTimePoint( TimeStepType timeStep ) const
+<span style = "background-color:#fdd">{
+  TimePointType result = 0.0;</span>
+
+<span style = "background-color:#fdd">  if (timeStep &lt; m_MinimumTimePoints.size() )</span>
+  {
+<span style = "background-color:#fdd">    result = m_MinimumTimePoints[timeStep];</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::TimeStepType mitk::ArbitraryTimeGeometry::TimePointToTimeStep(TimePointType timePoint) const
+<span style = "background-color:#fdd">{
+  mitk::TimeStepType result = 0;</span>
+
+<span style = "background-color:#fdd">  if (timePoint &gt;= GetMinimumTimePoint())</span>
+  {
+<span style = "background-color:#fdd">    for (auto pos = m_MaximumTimePoints.cbegin(); pos != m_MaximumTimePoints.cend(); ++pos)</span>
+    {
+      ///////////////////////////////////////
+      // Workarround T27883. See https://phabricator.mitk.org/T27883#219473 for more details.
+      // The part ("+1.") inline marked as workarround should be removed as soon as T28262 is solved!
+      if (timePoint &lt; *pos
+<span style = "background-color:#fdd">          || (pos == std::prev(m_MaximumTimePoints.cend())</span>
+              &amp;&amp; timePoint &lt;= *pos +1//&lt;- +1 is the workarround
+              &amp;&amp; this-&gt;HasCollapsedFinalTimeStep()))
+      {
+<span style = "background-color:#fdd">        break;</span>
+      }
+      // End of workarround for T27883
+      //////////////////////////////////////
+
+<span style = "background-color:#fdd">      ++result;
+    }</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::BaseGeometry::Pointer mitk::ArbitraryTimeGeometry::GetGeometryForTimeStep(TimeStepType timeStep) const
+<span style = "background-color:#fdd">{
+  if ( IsValidTimeStep( timeStep ) )</span>
+  {
+<span style = "background-color:#fdd">    return m_GeometryVector[timeStep];
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::BaseGeometry::Pointer
+  mitk::ArbitraryTimeGeometry::GetGeometryForTimePoint( TimePointType timePoint ) const
+<span style = "background-color:#fdd">{
+  if ( this-&gt;IsValidTimePoint( timePoint ) )</span>
+  {
+<span style = "background-color:#fdd">    const TimeStepType timeStep = this-&gt;TimePointToTimeStep( timePoint );
+    return this-&gt;GetGeometryForTimeStep( timeStep );
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::BaseGeometry::Pointer
+  mitk::ArbitraryTimeGeometry::GetGeometryCloneForTimeStep( TimeStepType timeStep ) const
+<span style = "background-color:#fdd">{
+  if ( timeStep &gt;= m_GeometryVector.size() )
+    return nullptr;
+  return m_GeometryVector[timeStep]-&gt;Clone();
+}</span>
+
+bool mitk::ArbitraryTimeGeometry::IsValid() const
+<span style = "background-color:#fdd">{
+  bool isValid = true;
+  isValid &amp;= m_GeometryVector.size() &gt; 0;
+  return isValid;
+}</span>
+
+void mitk::ArbitraryTimeGeometry::ClearAllGeometries()
+<span style = "background-color:#fdd">{
+  m_GeometryVector.clear();
+  m_MinimumTimePoints.clear();
+  m_MaximumTimePoints.clear();
+}</span>
+
+void mitk::ArbitraryTimeGeometry::ReserveSpaceForGeometries( TimeStepType numberOfGeometries )
+<span style = "background-color:#fdd">{
+  m_GeometryVector.reserve( numberOfGeometries );
+  m_MinimumTimePoints.reserve( numberOfGeometries );
+  m_MaximumTimePoints.reserve( numberOfGeometries );
+}</span>
+
+void mitk::ArbitraryTimeGeometry::Expand( mitk::TimeStepType size )
+<span style = "background-color:#fdd">{
+  m_GeometryVector.reserve( size );</span>
+
+<span style = "background-color:#fdd">  const mitk::TimeStepType lastIndex = this-&gt;CountTimeSteps() - 1;
+  const TimePointType minTP    = this-&gt;GetMinimumTimePoint( lastIndex );
+  TimePointType maxTP          = this-&gt;GetMaximumTimePoint( lastIndex );
+  const TimePointType duration = maxTP - minTP;</span>
+
+<span style = "background-color:#fdd">  while (m_GeometryVector.size() &lt; size)</span>
+  {
+<span style = "background-color:#fdd">    m_GeometryVector.push_back( Geometry3D::New().GetPointer() );
+    m_MinimumTimePoints.push_back( maxTP );
+    maxTP += duration;
+    m_MaximumTimePoints.push_back( maxTP );
+  }
+}</span>
+
+void mitk::ArbitraryTimeGeometry::ReplaceTimeStepGeometries(const BaseGeometry *geometry)
+<span style = "background-color:#fdd">{
+  for ( auto pos = m_GeometryVector.begin(); pos != m_GeometryVector.end(); ++pos )</span>
+  {
+<span style = "background-color:#fdd">    *pos = geometry-&gt;Clone();
+  }
+}</span>
+
+void mitk::ArbitraryTimeGeometry::SetTimeStepGeometry(BaseGeometry *geometry, TimeStepType timeStep)
+<span style = "background-color:#fdd">{
+  assert( timeStep &lt;= m_GeometryVector.size() );</span>
+
+<span style = "background-color:#fdd">  if ( timeStep == m_GeometryVector.size() )</span>
+  {
+<span style = "background-color:#fdd">    m_GeometryVector.push_back( geometry );</span>
+  }
+
+<span style = "background-color:#fdd">  m_GeometryVector[timeStep] = geometry;
+}</span>
+
+itk::LightObject::Pointer mitk::ArbitraryTimeGeometry::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer parent = Superclass::InternalClone();
+  ArbitraryTimeGeometry::Pointer newTimeGeometry = dynamic_cast&lt;ArbitraryTimeGeometry *&gt;(parent.GetPointer());
+  newTimeGeometry-&gt;m_MinimumTimePoints = this-&gt;m_MinimumTimePoints;
+  newTimeGeometry-&gt;m_MaximumTimePoints = this-&gt;m_MaximumTimePoints;
+  newTimeGeometry-&gt;m_GeometryVector.clear();
+  for (TimeStepType i = 0; i &lt; CountTimeSteps(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    newTimeGeometry-&gt;m_GeometryVector.push_back( this-&gt;m_GeometryVector[i]-&gt;Clone() );
+  }
+  return parent;
+}</span>
+
+void mitk::ArbitraryTimeGeometry::AppendNewTimeStep(BaseGeometry *geometry,
+  TimePointType minimumTimePoint,
+  TimePointType maximumTimePoint)
+<span style = "background-color:#fdd">{
+  if ( !geometry )</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot append geometry to time geometry. Invalid geometry passed (nullptr pointer).";</span>
+  }
+
+<span style = "background-color:#fdd">  if (maximumTimePoint &lt; minimumTimePoint)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot append geometry to time geometry. Time bound conflict. Maxmimum time point ("&lt;&lt;maximumTimePoint&lt;&lt;") is smaller than minimum time point ("&lt;&lt;minimumTimePoint&lt;&lt;").";</span>
+  }
+
+<span style = "background-color:#fdd">  if ( !m_GeometryVector.empty() )</span>
+  {
+<span style = "background-color:#fdd">    if ( m_MaximumTimePoints.back() &gt; minimumTimePoint )</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Cannot append geometry to time geometry. Time bound conflict new time point and currently last time point overlapp.";</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  m_GeometryVector.push_back( geometry );
+  m_MinimumTimePoints.push_back( minimumTimePoint );
+  m_MaximumTimePoints.push_back( maximumTimePoint );
+}</span>
+
+void mitk::ArbitraryTimeGeometry::AppendNewTimeStepClone(const BaseGeometry *geometry,
+                                                      TimePointType minimumTimePoint,
+                                                      TimePointType maximumTimePoint)
+<span style = "background-color:#fdd">{
+  BaseGeometry::Pointer clone = geometry-&gt;Clone();</span>
+
+<span style = "background-color:#fdd">  this-&gt;AppendNewTimeStep(clone, minimumTimePoint, maximumTimePoint);
+};</span>
+
+void mitk::ArbitraryTimeGeometry::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf( os, indent );</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; " MinimumTimePoint: " &lt;&lt; this-&gt;GetMinimumTimePoint() &lt;&lt; " ms" &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " MaximumTimePoint: " &lt;&lt; this-&gt;GetMaximumTimePoint() &lt;&lt; " ms" &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " min TimeBounds: " &lt;&lt; std::endl;
+  for (TimeStepType i = 0; i &lt; m_MinimumTimePoints.size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent.GetNextIndent() &lt;&lt; "Step " &lt;&lt; i &lt;&lt; ": " &lt;&lt; m_MinimumTimePoints[i] &lt;&lt; " ms" &lt;&lt; std::endl;
+  }
+  os &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " max TimeBounds: " &lt;&lt; std::endl;
+  for (TimeStepType i = 0; i &lt; m_MaximumTimePoints.size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent.GetNextIndent() &lt;&lt; "Step " &lt;&lt; i &lt;&lt; ": " &lt;&lt; m_MaximumTimePoints[i] &lt;&lt; " ms" &lt;&lt; std::endl;
+  }</span>
+  ///////////////////////////////////////
+  // Workarround T27883. See https://phabricator.mitk.org/T27883#219473 for more details.
+  // This workarround should be removed as soon as T28262 is solved!
+<span style = "background-color:#fdd">  if (this-&gt;HasCollapsedFinalTimeStep())</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Caution: This time geometry has a collapsed finale time step." &lt;&lt; std::endl;
+    os &lt;&lt; indent &lt;&lt; "         Most likely reason is that no duration could be deduced from the original data" &lt;&lt; std::endl;
+    os &lt;&lt; indent &lt;&lt; "         (e.g. DICOM dynamic series stored as single frame images)." &lt;&lt; std::endl;
+    os &lt;&lt; indent &lt;&lt; "         Currently we expand it by 1 ms (see T27883 for more details)." &lt;&lt; std::endl;</span>
+  }
+  // End of workarround for T27883
+  //////////////////////////////////////
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::ArbitraryTimeGeometry::HasCollapsedFinalTimeStep() const
+<span style = "background-color:#fdd">{
+  bool result = false;</span>
+
+<span style = "background-color:#fdd">  if (!m_MaximumTimePoints.empty() &amp;&amp; !m_MinimumTimePoints.empty())</span>
+  {
+<span style = "background-color:#fdd">    result = m_MinimumTimePoints.back() == m_MaximumTimePoints.back();</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span></pre>
+	</body>
+</html>

@@ -142,6 +142,16 @@ void PipelineManager::UpdateDisConntedToFilter()
 void PipelineManager::GenerateData()
 {
 	std::cout << __FUNCTION__ << "log" << std::endl;
+
+	this->CreateOutputsForAllInputs();
+
+	for (size_t index = 0; index < this->GetNumberOfInputs(); ++index)
+	{
+		if (this->GetInput(index) && this->GetOutput(index))
+		{
+			this->GetOutput(index)->Graft(this->GetInput(index));
+		}
+	}
 }
 
 

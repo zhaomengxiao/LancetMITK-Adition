@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNDIAuroraTypeInformation.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNDIAuroraTypeInformation.h"
+
+#include "mitkIGTHardwareException.h"
+#include "mitkNDITrackingDevice.h"
+
+namespace mitk
+{
+  std::string NDIAuroraTypeInformation::GetTrackingDeviceName()
+<span style = "background-color:#dfd">  {
+    return "NDI Aurora";
+  }</span>
+
+  TrackingDeviceData NDIAuroraTypeInformation::GetDeviceDataAuroraCompact()
+<span style = "background-color:#dfd">  {
+    TrackingDeviceData data = { NDIAuroraTypeInformation::GetTrackingDeviceName(), "Aurora Compact", "NDIAuroraCompactFG_Dome.stl", "A" };
+    return data;
+  }</span>
+
+  TrackingDeviceData NDIAuroraTypeInformation::GetDeviceDataAuroraPlanarCube()
+<span style = "background-color:#dfd">  {
+    TrackingDeviceData data = { NDIAuroraTypeInformation::GetTrackingDeviceName(), "Aurora Planar (Cube)", "NDIAurora.stl", "9" };
+    return data;
+  }</span>
+
+  TrackingDeviceData NDIAuroraTypeInformation::GetDeviceDataAuroraPlanarDome()
+<span style = "background-color:#dfd">  {
+    TrackingDeviceData data = { NDIAuroraTypeInformation::GetTrackingDeviceName(), "Aurora Planar (Dome)", "NDIAuroraPlanarFG_Dome.stl", "A" };
+    return data;
+  }</span>
+
+  TrackingDeviceData NDIAuroraTypeInformation::GetDeviceDataAuroraTabletop()
+<span style = "background-color:#dfd">  {
+    TrackingDeviceData data = { NDIAuroraTypeInformation::GetTrackingDeviceName(), "Aurora Tabletop", "NDIAuroraTabletopFG_Dome.stl", "A" };
+    return data;
+  }</span>
+
+  NDIAuroraTypeInformation::NDIAuroraTypeInformation()
+<span style = "background-color:#dfd">  {
+    m_DeviceName = NDIAuroraTypeInformation::GetTrackingDeviceName();
+    m_TrackingDeviceData.push_back(GetDeviceDataAuroraPlanarCube());
+    m_TrackingDeviceData.push_back(GetDeviceDataAuroraPlanarDome());
+    m_TrackingDeviceData.push_back(GetDeviceDataAuroraTabletop());
+    m_TrackingDeviceData.push_back(GetDeviceDataAuroraCompact());
+  }</span>
+
+  NDIAuroraTypeInformation::~NDIAuroraTypeInformation()
+<span style = "background-color:#dfd">  {
+  }</span>
+
+  mitk::TrackingDeviceSource::Pointer NDIAuroraTypeInformation::CreateTrackingDeviceSource(
+    mitk::TrackingDevice::Pointer trackingDevice,
+    mitk::NavigationToolStorage::Pointer navigationTools,
+    std::string* errorMessage,
+    std::vector&lt;int&gt;* toolCorrespondencesInToolStorage)
+<span style = "background-color:#fdd">  {
+    MITK_DEBUG &lt;&lt; "Creating Aurora tracking device.";
+    mitk::TrackingDeviceSource::Pointer returnValue = mitk::TrackingDeviceSource::New();
+    mitk::NDITrackingDevice::Pointer thisDevice = dynamic_cast&lt;mitk::NDITrackingDevice*&gt;(trackingDevice.GetPointer());</span>
+
+    try
+    {
+      //connect to aurora to dectect tools automatically
+<span style = "background-color:#fdd">      thisDevice-&gt;OpenConnection();</span>
+    }
+    catch (mitk::IGTHardwareException&amp; e)
+<span style = "background-color:#fdd">    {
+      errorMessage-&gt;append("Hardware error on opening the connection (");
+      errorMessage-&gt;append(e.GetDescription());
+      errorMessage-&gt;append(")");
+      return nullptr;
+    }</span>
+    catch (mitk::IGTException&amp; e)
+<span style = "background-color:#fdd">    {
+      errorMessage-&gt;append("Error on opening the connection (");
+      errorMessage-&gt;append(e.GetDescription());
+      errorMessage-&gt;append(")");
+      return nullptr;
+    }</span>
+
+    //now search for automatically detected tools in the tool storage and save them
+<span style = "background-color:#fdd">    mitk::NavigationToolStorage::Pointer newToolStorageInRightOrder = mitk::NavigationToolStorage::New();
+    std::vector&lt;unsigned int&gt; alreadyFoundTools = std::vector&lt;unsigned int&gt;();
+    *toolCorrespondencesInToolStorage = std::vector&lt;int&gt;();
+    for (unsigned int i = 0; i &lt; thisDevice-&gt;GetToolCount(); i++)</span>
+    {
+<span style = "background-color:#fdd">      bool toolFound = false;
+      for (unsigned int j = 0; j &lt; navigationTools-&gt;GetToolCount(); j++)</span>
+      {
+        //check if the serial number is the same to identify the tool
+<span style = "background-color:#fdd">        if ((dynamic_cast&lt;mitk::NDIPassiveTool*&gt;(thisDevice-&gt;GetTool(i)))-&gt;GetSerialNumber() == navigationTools-&gt;GetTool(j)-&gt;GetSerialNumber())</span>
+        {
+          //check if this tool was already added to make sure that every tool is only added once (in case of same serial numbers)
+<span style = "background-color:#fdd">          bool toolAlreadyAdded = false;
+          for (unsigned int k = 0; k &lt; alreadyFoundTools.size(); k++)</span>
+          {
+<span style = "background-color:#fdd">            if (alreadyFoundTools.at(k) == j)</span>
+            {
+<span style = "background-color:#fdd">              toolAlreadyAdded = true;</span>
+            }
+<span style = "background-color:#fdd">          }</span>
+
+<span style = "background-color:#fdd">          if (!toolAlreadyAdded)</span>
+          {
+            //add tool in right order
+<span style = "background-color:#fdd">            newToolStorageInRightOrder-&gt;AddTool(navigationTools-&gt;GetTool(j));
+            toolCorrespondencesInToolStorage-&gt;push_back(j);</span>
+            //adapt name of tool
+<span style = "background-color:#fdd">            dynamic_cast&lt;mitk::NDIPassiveTool*&gt;(thisDevice-&gt;GetTool(i))-&gt;SetToolName(navigationTools-&gt;GetTool(j)-&gt;GetToolName());</span>
+            //set tip of tool
+<span style = "background-color:#fdd">            dynamic_cast&lt;mitk::NDIPassiveTool*&gt;(thisDevice-&gt;GetTool(i))-&gt;SetToolTipPosition(navigationTools-&gt;GetTool(j)-&gt;GetToolTipPosition(), navigationTools-&gt;GetTool(j)-&gt;GetToolAxisOrientation());</span>
+            //rember that this tool was already found
+<span style = "background-color:#fdd">            alreadyFoundTools.push_back(j);</span>
+
+<span style = "background-color:#fdd">            toolFound = true;
+            break;</span>
+          }
+        }
+<span style = "background-color:#fdd">      }
+      if (!toolFound)</span>
+      {
+<span style = "background-color:#fdd">        errorMessage-&gt;append("Error: did not find every automatically detected tool in the loaded tool storage: aborting initialization.");
+        return nullptr;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+    //And resort them (this was done in TrackingToolBoxWorker before).
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; newToolStorageInRightOrder-&gt;GetToolCount(); i++)</span>
+    {
+<span style = "background-color:#fdd">      navigationTools-&gt;AssignToolNumber(newToolStorageInRightOrder-&gt;GetTool(i)-&gt;GetIdentifier(), i);
+    }</span>
+
+<span style = "background-color:#fdd">    returnValue-&gt;SetTrackingDevice(thisDevice);
+    MITK_DEBUG &lt;&lt; "Number of tools of created tracking device: " &lt;&lt; thisDevice-&gt;GetToolCount();
+    MITK_DEBUG &lt;&lt; "Number of outputs of created source: " &lt;&lt; returnValue-&gt;GetNumberOfOutputs();
+    return returnValue;
+  }</span>
+}</pre>
+	</body>
+</html>

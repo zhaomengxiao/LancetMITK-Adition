@@ -1,0 +1,368 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>udpsocketrobotheartbeat.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+ï»¿#include "udpsocketrobotheartbeat.h"
+
+#include &lt;sys/timeb.h&gt;
+
+#include &lt;QDebug&gt;
+#include &lt;QTimer&gt;
+#include &lt;QThread&gt;
+#include &lt;QPointer&gt;
+#include &lt;QNetworkDatagram&gt;
+
+#include "udpmessage.h"
+#include "mitkLog.h"
+#include "mitkLogMacros.h"
+struct UdpSocketRobotHeartbeat::UdpSocketRobotHeartbeatPrivateImp
+{
+    uint remoteHostPort;
+    int deathTimeout;
+    RunningModel runningModel;
+    QString remoteHostAddress;
+    QTimer repetitiveHeartbeatInterval;
+    static long int frameRate;
+    RobotUDPMessage lastRobotUDPMessage;
+    QVector&lt;QByteArray&gt; sendDataStream;
+
+    QPointer&lt;QThread&gt; thread;
+    QAtomicInteger&lt;bool&gt; isStartRepetitiveHeartbeat;
+};
+long int UdpSocketRobotHeartbeat::UdpSocketRobotHeartbeatPrivateImp::frameRate = 0;
+
+UdpSocketRobotHeartbeat::UdpSocketRobotHeartbeat(QObject* parent)
+<span style = "background-color:#fdd">    : QUdpSocket(parent)
+    , m_imp(std::make_shared&lt;UdpSocketRobotHeartbeatPrivateImp&gt;())
+{
+    connect(&amp;this-&gt;m_imp-&gt;repetitiveHeartbeatInterval, SIGNAL(timeout()), this, SLOT(updateRobotHeartbeat()));
+    connect(this, &amp;QUdpSocket::readyRead, this, &amp;UdpSocketRobotHeartbeat::onReadyRead);
+}</span>
+
+UdpSocketRobotHeartbeat::~UdpSocketRobotHeartbeat()
+<span style = "background-color:#fdd">{
+    this-&gt;stopRepetitiveHeartbeat();
+    disconnect(this, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+    disconnect(&amp;this-&gt;m_imp-&gt;repetitiveHeartbeatInterval, SIGNAL(timeout()), this, SLOT(updateRobotHeartbeat()));
+    this-&gt;abort();
+}</span>
+
+long UdpSocketRobotHeartbeat::timeStamp() const
+<span style = "background-color:#fdd">{</span>
+    timeb t;
+<span style = "background-color:#fdd">    ftime(&amp;t);
+    return t.time * 1000 + t.millitm;
+}</span>
+
+bool UdpSocketRobotHeartbeat::routineHeartbeat()
+<span style = "background-color:#fdd">{
+    int frame_count = this-&gt;lastRobotUDPMessage().validFrames();
+    if(false == this-&gt;simulateSpecialAction(frame_count + 1, false))</span>
+    {
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+    // wait udp buffer flsh
+<span style = "background-color:#fdd">    QThread::msleep(20);
+    if(false == this-&gt;simulateSpecialAction(frame_count + 2, true))</span>
+    {
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+<span style = "background-color:#fdd">    return true;
+}</span>
+
+bool UdpSocketRobotHeartbeat::initializeRemoteRobot()
+<span style = "background-color:#fdd">{</span>
+    //%ld;0;App_Start;false
+    //%ld;1;App_Start;true
+<span style = "background-color:#fdd">    if(false == this-&gt;simulateSpecialAction(0, false))</span>
+    {
+<span style = "background-color:#fdd">        return false;</span>
+    }
+<span style = "background-color:#fdd">    QThread::msleep(20);</span>
+
+//    // initialize
+<span style = "background-color:#fdd">    if(false == this-&gt;simulateSpecialAction(1, true))</span>
+    {
+<span style = "background-color:#fdd">        return false;</span>
+    }
+
+<span style = "background-color:#fdd">    return true;
+}</span>
+
+bool UdpSocketRobotHeartbeat::simulateSpecialAction(int count, bool isTrue)
+<span style = "background-color:#fdd">{
+    QString dataStream;
+    long requestTime = this-&gt;timeStamp();
+    dataStream.sprintf("%ld;%d;App_Start;%s", requestTime, count, (isTrue ? "true" : "false"));
+    MITK_DEBUG &lt;&lt; "try sent data: " &lt;&lt; dataStream.toLatin1().constData();</span>
+    //this-&gt;m_imp-&gt;sendDataStream.push_back(dataStream.toLatin1().data());
+
+<span style = "background-color:#fdd">    if(-1 == this-&gt;writeDatagram(dataStream.toLatin1().data(), QHostAddress(this-&gt;remoteHostAddress()), this-&gt;remoteHostPort()))</span>
+    {
+<span style = "background-color:#fdd">        return false;</span>
+    }
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "try sent data: " &lt;&lt; dataStream.toLatin1().constData() &lt;&lt; " OK";
+    return true;
+}</span>
+
+bool UdpSocketRobotHeartbeat::simulateSpecialActionOfAppGetState(int count, bool isTrue)
+<span style = "background-color:#fdd">{
+    MITK_DEBUG &lt;&lt; "log";
+    QString dataStream;
+    long requestTime = this-&gt;timeStamp();
+    dataStream.sprintf("%d;%d;Get_State;%s", requestTime, count, (isTrue ? "true" : "false"));
+    MITK_DEBUG &lt;&lt; "try sent data: " &lt;&lt; dataStream.toLatin1().constData();</span>
+    //this-&gt;m_imp-&gt;sendDataStream.push_back(dataStream.toLatin1().data());
+
+<span style = "background-color:#fdd">    if(-1 == this-&gt;writeDatagram(dataStream.toLatin1().data(), QHostAddress(this-&gt;remoteHostAddress()), this-&gt;remoteHostPort()))</span>
+    {
+<span style = "background-color:#fdd">        return false;</span>
+    }
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "try sent data: " &lt;&lt; dataStream.toLatin1().constData() &lt;&lt; " OK";
+    return true;
+}</span>
+void UdpSocketRobotHeartbeat::stopRepetitiveHeartbeat()
+<span style = "background-color:#fdd">{
+    MITK_DEBUG &lt;&lt; "log";
+    if(true == this-&gt;m_imp-&gt;isStartRepetitiveHeartbeat &amp;&amp; false == this-&gt;m_imp-&gt;repetitiveHeartbeatInterval.isActive())</span>
+    {
+        // thread
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "log.stop.thread";
+        this-&gt;m_imp-&gt;isStartRepetitiveHeartbeat = false;
+        while(true)</span>
+        {
+<span style = "background-color:#fdd">            if(this-&gt;m_imp-&gt;thread-&gt;isRunning())</span>
+            {
+<span style = "background-color:#fdd">                MITK_INFO &lt;&lt; "The thread did not stop, waiting for the thread to stop";
+                QThread::msleep(1);
+            }</span>
+            else
+            {
+<span style = "background-color:#fdd">                MITK_INFO &lt;&lt; "UDP worker exited";
+                break;</span>
+            }
+<span style = "background-color:#fdd">        }
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "log.stop.timer";
+        this-&gt;m_imp-&gt;repetitiveHeartbeatInterval.stop();</span>
+    }
+<span style = "background-color:#fdd">}</span>
+
+bool UdpSocketRobotHeartbeat::isRepetitiveHeartbeatRunning() const
+<span style = "background-color:#fdd">{
+    switch (this-&gt;m_imp-&gt;runningModel)</span>
+    {
+        case RunningModel::Thread:
+            {
+<span style = "background-color:#fdd">                return this-&gt;m_imp-&gt;thread-&gt;isRunning();</span>
+            }
+        case RunningModel::Timer:
+<span style = "background-color:#fdd">            return this-&gt;m_imp-&gt;repetitiveHeartbeatInterval.isActive();</span>
+    }
+<span style = "background-color:#fdd">    return false;
+}</span>
+
+void UdpSocketRobotHeartbeat::startRepetitiveHeartbeat(int runningModel)
+<span style = "background-color:#fdd">{
+    MITK_DEBUG &lt;&lt; "log";</span>
+
+<span style = "background-color:#fdd">    switch (runningModel)</span>
+    {
+        case RunningModel::Thread:
+            {
+<span style = "background-color:#fdd">                MITK_INFO &lt;&lt; "log.start.thread";
+                this-&gt;m_imp-&gt;thread = QThread::create(&amp;UdpSocketRobotHeartbeat::onThreadHandle, this);
+                this-&gt;stopRepetitiveHeartbeat();
+                MITK_INFO &lt;&lt; "log.thread.object " &lt;&lt; this-&gt;m_imp-&gt;thread;
+                this-&gt;m_imp-&gt;isStartRepetitiveHeartbeat = true;
+                this-&gt;m_imp-&gt;thread-&gt;start();
+                break;</span>
+            }
+        case RunningModel::Timer:
+<span style = "background-color:#fdd">            MITK_INFO &lt;&lt; "log.start.timer";
+            this-&gt;m_imp-&gt;repetitiveHeartbeatInterval.start();</span>
+            break;
+    }
+<span style = "background-color:#fdd">    this-&gt;m_imp-&gt;runningModel = (RunningModel)runningModel;
+}</span>
+
+QString UdpSocketRobotHeartbeat::remoteHostAddress() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;remoteHostAddress;
+}</span>
+
+void UdpSocketRobotHeartbeat::setRemoteHostAddress(const QString&amp; address)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;remoteHostAddress = address;
+}</span>
+
+uint UdpSocketRobotHeartbeat::remoteHostPort() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;remoteHostPort;
+}</span>
+
+void UdpSocketRobotHeartbeat::setRemoteHostPort(const uint&amp; port)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;remoteHostPort = port;
+}</span>
+
+long UdpSocketRobotHeartbeat::frameRate() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;frameRate;
+}</span>
+
+int UdpSocketRobotHeartbeat::repetitiveHeartbeatInterval() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;repetitiveHeartbeatInterval.interval();
+}</span>
+
+void UdpSocketRobotHeartbeat::setRepetitiveHeartbeatInterval(int msec)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;repetitiveHeartbeatInterval.setInterval(std::chrono::milliseconds(msec));
+}</span>
+
+int UdpSocketRobotHeartbeat::deathTimeout() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;deathTimeout;
+}</span>
+
+void UdpSocketRobotHeartbeat::setDeathTimeout(int t)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;deathTimeout = t;
+}</span>
+
+RobotUDPMessage UdpSocketRobotHeartbeat::lastRobotUDPMessage() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;lastRobotUDPMessage;
+}</span>
+
+void UdpSocketRobotHeartbeat::setLastRobotUDPMessage(const RobotUDPMessage&amp; o)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;lastRobotUDPMessage = o;
+}</span>
+
+void UdpSocketRobotHeartbeat::updateRobotHeartbeat()
+<span style = "background-color:#fdd">{
+    MITK_DEBUG &lt;&lt; "log";</span>
+
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "info.fream " &lt;&lt; this-&gt;lastRobotUDPMessage().errorCode();
+    if(this-&gt;lastRobotUDPMessage().errorCode() != 0)</span>
+    {
+<span style = "background-color:#fdd">        MITK_DEBUG &lt;&lt; "try repair error code " &lt;&lt; this-&gt;lastRobotUDPMessage().errorCode();
+        if(this-&gt;tryRepairErrorCodeOf(this-&gt;lastRobotUDPMessage().errorCode()))</span>
+        {
+<span style = "background-color:#fdd">            MITK_INFO &lt;&lt; "repair error code sucess.";
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">            MITK_WARN &lt;&lt; "repair error code faild.";</span>
+        }
+    }
+
+    static clock_t deathClock = 0;
+<span style = "background-color:#fdd">    if(false == this-&gt;routineHeartbeat())</span>
+    {
+<span style = "background-color:#fdd">        if((clock() - deathClock) &gt; this-&gt;deathTimeout())</span>
+        {
+            // éä¿¡ä¸­æ­
+        }
+<span style = "background-color:#fdd">    }</span>
+    else
+    {
+<span style = "background-color:#fdd">        deathClock = clock();</span>
+    }
+<span style = "background-color:#fdd">}</span>
+
+void UdpSocketRobotHeartbeat::onReadyRead()
+<span style = "background-color:#fdd">{
+    MITK_DEBUG &lt;&lt; __func__ &lt;&lt; ": log";
+    while (this-&gt;hasPendingDatagrams())</span>
+    {
+<span style = "background-color:#fdd">        QByteArray stream;
+        QNetworkDatagram datagram = this-&gt;receiveDatagram();
+        this-&gt;setLastRobotUDPMessage(datagram.data());
+    }
+}</span>
+
+void UdpSocketRobotHeartbeat::onSendDataStream()
+<span style = "background-color:#fdd">{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+bool UdpSocketRobotHeartbeat::tryRepairErrorCodeOf(int error)
+<span style = "background-color:#fdd">{
+    MITK_DEBUG &lt;&lt; "log.error.value " &lt;&lt; error;
+    switch (error)</span>
+    {
+        case -3:
+            {
+<span style = "background-color:#fdd">                int frame_count = this-&gt;lastRobotUDPMessage().validFrames();
+                MITK_DEBUG &lt;&lt; "log.count.value.App_Strat.false " &lt;&lt; frame_count + 1;
+                if(false == this-&gt;simulateSpecialAction(frame_count + 1, false))</span>
+                {
+<span style = "background-color:#fdd">                    return false;</span>
+                }
+
+                // wait udp buffer flsh
+<span style = "background-color:#fdd">                QThread::msleep(20);
+                MITK_DEBUG &lt;&lt; "log.count.value.App_Strat.true " &lt;&lt; frame_count + 2;
+                if(false == this-&gt;simulateSpecialAction(frame_count + 2, true))</span>
+                {
+<span style = "background-color:#fdd">                    return false;</span>
+                }
+
+//                if(false == this-&gt;simulateSpecialActionOfAppGetState(frame_count + 3, true))
+//                {
+//                    return false;
+//                }
+<span style = "background-color:#fdd">                return true;</span>
+            }
+            break;
+    }
+<span style = "background-color:#fdd">    return false;
+}</span>
+
+void UdpSocketRobotHeartbeat::onThreadHandle(UdpSocketRobotHeartbeat* __this)
+<span style = "background-color:#fdd">{
+    clock_t tclock_tab = clock();
+    while (__this-&gt;m_imp-&gt;isStartRepetitiveHeartbeat)</span>
+    {
+        // security restore
+<span style = "background-color:#fdd">        MITK_DEBUG &lt;&lt; "info.fream " &lt;&lt; __this-&gt;lastRobotUDPMessage().errorCode();
+        if(__this-&gt;lastRobotUDPMessage().errorCode() != 0)</span>
+        {
+<span style = "background-color:#fdd">            MITK_DEBUG &lt;&lt; "try repair error code " &lt;&lt; __this-&gt;lastRobotUDPMessage().errorCode();
+            if(__this-&gt;tryRepairErrorCodeOf(__this-&gt;lastRobotUDPMessage().errorCode()))</span>
+            {
+<span style = "background-color:#fdd">                MITK_INFO &lt;&lt; "repair error code sucess.";
+            }</span>
+            else
+            {
+<span style = "background-color:#fdd">                MITK_WARN &lt;&lt; "repair error code faild.";</span>
+            }
+        }
+
+        // sleep ms
+<span style = "background-color:#fdd">        if((clock() - tclock_tab) &lt; __this-&gt;repetitiveHeartbeatInterval())</span>
+        {
+<span style = "background-color:#fdd">            MITK_DEBUG &lt;&lt; "wait fream update " &lt;&lt; (__this-&gt;repetitiveHeartbeatInterval() - (clock() - tclock_tab));
+            QThread::msleep((__this-&gt;repetitiveHeartbeatInterval() - (clock() - tclock_tab)));
+            tclock_tab = clock();</span>
+        }
+<span style = "background-color:#fdd">        __this-&gt;routineHeartbeat();
+    }
+    MITK_INFO &lt;&lt; "log.thread.close";
+}</span></pre>
+	</body>
+</html>

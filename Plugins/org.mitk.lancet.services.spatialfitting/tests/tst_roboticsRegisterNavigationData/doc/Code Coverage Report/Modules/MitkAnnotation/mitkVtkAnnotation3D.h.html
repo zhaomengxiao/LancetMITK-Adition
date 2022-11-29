@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVtkAnnotation3D.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef VTKAnnotation3D_H
+#define VTKAnnotation3D_H
+
+#include "mitkVtkAnnotation.h"
+#include &lt;MitkAnnotationExports.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+
+namespace mitk
+{
+  /**
+   * @brief The VtkAnnotation3D class is the basis for all VTK based Annotation which create
+   * any 3D element as a vtkProp that will be drawn on the renderer.
+   */
+  class MITKANNOTATION_EXPORT VtkAnnotation3D : public VtkAnnotation
+  {
+  public:
+    void SetPosition3D(const Point3D &amp;position3D);
+
+    Point3D GetPosition3D() const;
+
+    void SetOffsetVector(const Point3D &amp;OffsetVector);
+
+    Point3D GetOffsetVector() const;
+
+<span style = "background-color:#fdd">    mitkClassMacro(VtkAnnotation3D, VtkAnnotation);</span>
+
+  protected:
+    void UpdateVtkAnnotation(BaseRenderer *renderer) override = 0;
+
+    /** \brief explicit constructor which disallows implicit conversions */
+    explicit VtkAnnotation3D();
+
+    /** \brief virtual destructor in order to derive from this class */
+    ~VtkAnnotation3D() override;
+
+  private:
+    /** \brief copy constructor */
+    VtkAnnotation3D(const VtkAnnotation3D &amp;);
+
+    /** \brief assignment operator */
+    VtkAnnotation3D &amp;operator=(const VtkAnnotation3D &amp;);
+  };
+
+} // namespace mitk
+#endif // Annotation_H</pre>
+	</body>
+</html>

@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPropertyRelations.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;algorithm&gt;
+#include &lt;regex&gt;
+#include &lt;utility&gt;
+
+#include &lt;mitkPropertyRelations.h&gt;
+
+mitk::PropertyRelations::PropertyRelations()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::PropertyRelations::~PropertyRelations()
+<span style = "background-color:#dfd">{
+}</span>
+
+bool mitk::PropertyRelations::AddRule(const PropertyRelationRuleBase *rule, bool overwrite)
+<span style = "background-color:#fdd">{
+  if (!rule)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (rule-&gt;GetRuleID().empty())</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto ruleFinding = m_RuleMap.find(rule-&gt;GetRuleID());</span>
+
+<span style = "background-color:#fdd">  bool result = false;
+  if (ruleFinding == m_RuleMap.end())</span>
+  {
+<span style = "background-color:#fdd">    m_RuleMap.insert(std::make_pair(rule-&gt;GetRuleID(), rule));
+    result = true;
+  }
+  else if (overwrite)</span>
+  {
+<span style = "background-color:#fdd">    m_RuleMap[rule-&gt;GetRuleID()] = rule;
+    result = true;</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::PropertyRelations::RuleResultVectorType mitk::PropertyRelations::GetRulesForSource(const IPropertyProvider* source) const
+<span style = "background-color:#fdd">{
+  RuleResultVectorType result;</span>
+
+<span style = "background-color:#fdd">  if (source)</span>
+  {
+<span style = "background-color:#fdd">    for (const auto&amp; rule : m_RuleMap)</span>
+    {
+<span style = "background-color:#fdd">      if (rule.second-&gt;IsSource(source))</span>
+      {
+<span style = "background-color:#fdd">        result.push_back(rule.second);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::PropertyRelations::RuleResultVectorType mitk::PropertyRelations::GetRulesForSourceCandidate(const IPropertyProvider* sourceCandidate) const
+<span style = "background-color:#fdd">{
+  RuleResultVectorType result;</span>
+
+<span style = "background-color:#fdd">  for (const auto&amp; rule : m_RuleMap)</span>
+  {
+<span style = "background-color:#fdd">    if (rule.second-&gt;IsSourceCandidate(sourceCandidate))</span>
+    {
+<span style = "background-color:#fdd">      result.push_back(rule.second);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::PropertyRelations::RuleResultVectorType mitk::PropertyRelations::GetRulesForDestinationCandidate(const IPropertyProvider* destCandidate) const
+<span style = "background-color:#fdd">{
+  RuleResultVectorType result;</span>
+
+<span style = "background-color:#fdd">  for (const auto&amp; rule : m_RuleMap)</span>
+  {
+<span style = "background-color:#fdd">    if (rule.second-&gt;IsDestinationCandidate(destCandidate))</span>
+    {
+<span style = "background-color:#fdd">      result.push_back(rule.second);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::PropertyRelationRuleBase::ConstPointer mitk::PropertyRelations::GetRule(const RuleIDType &amp;ruleID) const
+<span style = "background-color:#fdd">{
+  mitk::PropertyRelationRuleBase::ConstPointer result;</span>
+
+<span style = "background-color:#fdd">  auto ruleFinding = m_RuleMap.find(ruleID);</span>
+
+<span style = "background-color:#fdd">  if (ruleFinding != m_RuleMap.end())</span>
+  {
+<span style = "background-color:#fdd">    result = ruleFinding-&gt;second;</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::PropertyRelations::RuleIDVectorType mitk::PropertyRelations::GetRuleIDs() const
+<span style = "background-color:#fdd">{
+  RuleIDVectorType result;</span>
+
+<span style = "background-color:#fdd">  for (const auto&amp; rule : m_RuleMap)</span>
+  {
+<span style = "background-color:#fdd">    result.push_back(rule.first);
+  }
+  return result;
+};</span>
+
+
+bool mitk::PropertyRelations::HasRuleForSource(const IPropertyProvider* source) const
+<span style = "background-color:#fdd">{
+  return !this-&gt;GetRulesForSource(source).empty();
+};</span>
+
+void mitk::PropertyRelations::RemoveAllRules()
+<span style = "background-color:#fdd">{
+  m_RuleMap.clear();
+}</span>
+
+void mitk::PropertyRelations::RemoveRule(const RuleIDType &amp;ruleID)
+<span style = "background-color:#fdd">{
+  if (!ruleID.empty())</span>
+  {
+<span style = "background-color:#fdd">    m_RuleMap.erase(ruleID);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+
+mitk::IPropertyRelations *mitk::CreateTestInstancePropertyRelations()
+<span style = "background-color:#fdd">{
+  return new PropertyRelations();
+};</span></pre>
+	</body>
+</html>

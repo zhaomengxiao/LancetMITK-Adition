@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usModuleManifest.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+#include "usModuleManifest_p.h"
+
+#include "jsoncpp.h"
+
+#include &lt;stdexcept&gt;
+
+US_BEGIN_NAMESPACE
+
+namespace {
+
+  typedef std::map&lt;std::string, Any&gt; AnyMap;
+  typedef std::vector&lt;Any&gt; AnyVector;
+
+  void ParseJsonObject(const Json::Value&amp; jsonObject, AnyMap&amp; anyMap);
+  void ParseJsonArray(const Json::Value&amp; jsonArray, AnyVector&amp; anyVector);
+
+  Any ParseJsonValue(const Json::Value&amp; jsonValue)
+<span style = "background-color:#dfd">  {
+    if (jsonValue.isObject())</span>
+    {
+<span style = "background-color:#fdd">      Any any = AnyMap();
+      ParseJsonObject(jsonValue, ref_any_cast&lt;AnyMap&gt;(any));
+      return any;
+    }</span>
+<span style = "background-color:#dfd">    else if (jsonValue.isArray())</span>
+    {
+<span style = "background-color:#fdd">      Any any = AnyVector();
+      ParseJsonArray(jsonValue, ref_any_cast&lt;AnyVector&gt;(any));
+      return any;
+    }</span>
+<span style = "background-color:#dfd">    else if (jsonValue.isString())</span>
+    {
+<span style = "background-color:#dfd">      return Any(jsonValue.asString());</span>
+<span style = "background-color:#fdd">    }
+    else if (jsonValue.isBool())</span>
+    {
+<span style = "background-color:#fdd">      return Any(jsonValue.asBool());
+    }
+    else if (jsonValue.isIntegral())</span>
+    {
+<span style = "background-color:#fdd">      return Any(jsonValue.asInt());
+    }
+    else if (jsonValue.isDouble())</span>
+    {
+<span style = "background-color:#fdd">      return Any(jsonValue.asDouble());</span>
+    }
+
+<span style = "background-color:#fdd">    return Any();</span>
+<span style = "background-color:#dfd">  }</span>
+
+  void ParseJsonObject(const Json::Value&amp; jsonObject, AnyMap&amp; anyMap)
+<span style = "background-color:#dfd">  {
+    for (Json::Value::const_iterator it = jsonObject.begin();
+         it != jsonObject.end(); ++it)</span>
+    {
+<span style = "background-color:#dfd">      const Json::Value&amp; jsonValue = *it;
+      Any anyValue = ParseJsonValue(jsonValue);
+      if (!anyValue.Empty())</span>
+      {
+<span style = "background-color:#dfd">        anyMap.insert(std::make_pair(it.name(), anyValue));</span>
+      }
+<span style = "background-color:#dfd">    }
+  }</span>
+
+  void ParseJsonArray(const Json::Value&amp; jsonArray, AnyVector&amp; anyVector)
+<span style = "background-color:#fdd">  {
+    for (Json::Value::const_iterator it = jsonArray.begin();
+         it != jsonArray.end(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      const Json::Value&amp; jsonValue = *it;
+      Any anyValue = ParseJsonValue(jsonValue);
+      if (!anyValue.Empty())</span>
+      {
+<span style = "background-color:#fdd">        anyVector.push_back(anyValue);</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+}
+
+ModuleManifest::ModuleManifest()
+<span style = "background-color:#dfd">{
+}</span>
+
+void ModuleManifest::Parse(std::istream&amp; is)
+<span style = "background-color:#dfd">{
+  Json::Value root;
+  Json::Reader jsonReader(Json::Features::strictMode());
+  if (!jsonReader.parse(is, root, false))</span>
+  {
+<span style = "background-color:#fdd">    throw std::runtime_error(jsonReader.getFormattedErrorMessages());</span>
+  }
+
+<span style = "background-color:#dfd">  if (!root.isObject())</span>
+  {
+<span style = "background-color:#fdd">    throw std::runtime_error("The Json root element must be an object.");</span>
+  }
+
+<span style = "background-color:#dfd">  ParseJsonObject(root, m_Properties);
+}</span>
+
+bool ModuleManifest::Contains(const std::string&amp; key) const
+<span style = "background-color:#dfd">{
+  return m_Properties.count(key) &gt; 0;
+}</span>
+
+Any ModuleManifest::GetValue(const std::string&amp; key) const
+<span style = "background-color:#dfd">{
+  AnyMap::const_iterator iter = m_Properties.find(key);
+  if (iter != m_Properties.end())</span>
+  {
+<span style = "background-color:#dfd">    return iter-&gt;second;</span>
+  }
+<span style = "background-color:#fdd">  return Any();</span>
+<span style = "background-color:#dfd">}</span>
+
+std::vector&lt;std::string&gt; ModuleManifest::GetKeys() const
+<span style = "background-color:#fdd">{
+  std::vector&lt;std::string&gt; keys;
+  for (AnyMap::const_iterator iter = m_Properties.begin();
+       iter != m_Properties.end(); ++iter)</span>
+  {
+<span style = "background-color:#fdd">    keys.push_back(iter-&gt;first);
+  }
+  return keys;
+}</span>
+
+void ModuleManifest::SetValue(const std::string&amp; key, const Any&amp; value)
+<span style = "background-color:#dfd">{
+  m_Properties[key] = value;
+}</span>
+
+US_END_NAMESPACE</pre>
+	</body>
+</html>

@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>lancetSpatialFittingNavigationToolToNavigationToolFilter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/**
+ * \par Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.
+ *
+ * \brief This is the header file that declares the data processing filter from 
+ *        space to space coordinate system of space fitting.
+ * 
+ * \ingroup org_mitk_lancet_services_spatialfitting
+ * \version V1.0.0
+ * \date 2022-11-18 10:16:37
+ * 
+ * \par Modify History
+ *		-# Sun initialization the version for 2022-11-18 10:16:37.
+ *
+ * \author Sun
+ * \date 2022-11-18 10:16:37
+ * \remark Non
+ */
+#ifndef LancetSpatialFittingNavigationToolToNavigationToolFilter_H
+#define LancetSpatialFittingNavigationToolToNavigationToolFilter_H
+
+#include "lancetSpatialFittingGlobal.h"
+
+// mitk
+#include &lt;mitkNavigationDataToNavigationDataFilter.h&gt;
+
+BEGIN_SPATIAL_FITTING_NAMESPACE
+
+/**
+ * \ingroup org_mitk_lancet_services_spatialfitting
+ * \brief This is a tool to tool spatial data conversion filter.
+ *
+ * This filter will transfer the navigation tool input data to the UCS tool 
+ * coordinate system.
+ * 
+ * \warning The filter itself will not monitor the validity of any data. If 
+ *          correct output data is required, please ensure the validity of the 
+ *          input data.&lt;br&gt;
+ *
+ * Please refer to
+ * &lt;a href="https://docs.mitk.org/nightly/classmitk_1_1NavigationDataToNavigationDataFilter.html"&gt;
+ * mitk::NavigationDataToNavigationDataFilter&lt;/a&gt; for details.
+ *
+ * &lt;b&gt;Class diagram:&lt;/b&gt;&lt;br&gt;
+ * \image html SpatialFittingNavigationToolToNavigationToolFilter.svg
+ *
+ * \author Sun
+ * \version V1.0.0
+ * \date 2022-11-18 17:21:18
+ * \remark Non
+ *
+ * Contact: sh4a01@163.com
+ *
+ */
+class ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
+	NavigationToolToNavigationToolFilter
+	: public mitk::NavigationDataToNavigationDataFilter
+{
+public:
+<span style = "background-color:#fdd">	mitkClassMacro(NavigationToolToNavigationToolFilter,
+		mitk::NavigationDataToNavigationDataFilter);</span>
+
+<span style = "background-color:#fdd">	itkNewMacro(NavigationToolToNavigationToolFilter)</span>
+
+	NavigationToolToNavigationToolFilter();
+	virtual ~NavigationToolToNavigationToolFilter();
+
+<span style = "background-color:#fdd">	itkSetObjectMacro(UCSNavigationData, mitk::NavigationData);
+	itkGetObjectMacro(UCSNavigationData, mitk::NavigationData);</span>
+
+	/**
+	 * \brief Get the tool data object from the input data to the target coordinate 
+	 *        system.
+	 * 
+	 * UCS: User specified Coordinate system.
+	 */
+	// virtual mitk::NavigationData::Pointer GetUCSTool() const;
+	// virtual void SetUCSTool(mitk::NavigationData::Pointer tool);
+protected:
+	virtual void GenerateData() override;
+	mitk::NavigationData::Pointer m_UCSNavigationData;
+
+private:
+	// struct NavigationToolToNavigationToolFilterPrivateImp;
+	// std::shared_ptr&lt;NavigationToolToNavigationToolFilterPrivateImp&gt; imp;
+};
+
+END_SPATIAL_FITTING_NAMESPACE
+
+
+#endif // !lancetSpatialFittingNavigationToolToNavigationToolFilter_H</pre>
+	</body>
+</html>

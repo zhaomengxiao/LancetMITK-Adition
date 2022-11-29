@@ -1,0 +1,419 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkEventConfig.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkEventConfig.h"
+
+#include "mitkEventFactory.h"
+#include "mitkInteractionEvent.h"
+#include "mitkInteractionEventConst.h"
+#include "mitkInteractionKeyEvent.h"
+#include "mitkInternalEvent.h"
+
+// VTK
+#include &lt;vtkXMLDataElement.h&gt;
+#include &lt;vtkXMLParser.h&gt;
+
+// us
+#include "usGetModuleContext.h"
+#include "usModule.h"
+#include "usModuleResource.h"
+#include "usModuleResourceStream.h"
+
+namespace mitk
+{
+  class EventConfigXMLParser : public vtkXMLParser
+  {
+  public:
+    EventConfigXMLParser(EventConfigPrivate *d);
+
+  protected:
+    /**
+     * @brief Derived from XMLReader
+     **/
+    void StartElement(const char *elementName, const char **atts) override;
+
+    /**
+     * @brief Derived from XMLReader
+     **/
+    void EndElement(const char *elementName) override;
+
+    std::string ReadXMLStringAttribute(const std::string &amp;name, const char **atts);
+    bool ReadXMLBooleanAttribute(const std::string &amp;name, const char **atts);
+
+  private:
+    EventConfigPrivate *const d;
+  };
+
+  struct EventConfigPrivate : public us::SharedData
+  {
+    EventConfigPrivate();
+    EventConfigPrivate(const EventConfigPrivate &amp;other);
+
+    struct EventMapping
+    {
+      std::string variantName;
+      InteractionEvent::ConstPointer interactionEvent;
+    };
+
+    typedef std::list&lt;EventMapping&gt; EventListType;
+
+    /**
+     * Checks if mapping with the same parameters already exists, if so, it is replaced,
+     * else the new mapping added
+     */
+    void InsertMapping(const EventMapping &amp;mapping);
+
+    void CopyMapping(const EventListType);
+
+    /**
+     * @brief List of all global properties of the config object.
+     */
+    PropertyList::Pointer m_PropertyList;
+
+    /**
+     * @brief Temporal list of all prMousePressEventoperties of a Event. Used to parse an Input-Event and collect all
+     * parameters between the two &lt;input&gt;
+     * and &lt;/event_variant&gt; tags.
+     */
+    PropertyList::Pointer m_EventPropertyList;
+
+    EventMapping m_CurrEventMapping;
+
+    /**
+     * Stores InteractionEvents and their corresponding VariantName
+     */
+    EventListType m_EventList;
+
+    bool
+      m_Errors; // use member, because of inheritance from vtkXMLParser we can't return a success value for parsing the
+                // file.
+
+    EventConfigXMLParser m_XmlParser;
+  };
+}
+
+mitk::EventConfigPrivate::EventConfigPrivate()
+<span style = "background-color:#fdd">  : m_PropertyList(PropertyList::New()), m_EventPropertyList(PropertyList::New()), m_Errors(false), m_XmlParser(this)
+{</span>
+  // Avoid VTK warning: Trying to delete object with non-zero reference count.
+<span style = "background-color:#fdd">  m_XmlParser.SetReferenceCount(0);
+}</span>
+
+mitk::EventConfigPrivate::EventConfigPrivate(const EventConfigPrivate &amp;other)
+<span style = "background-color:#fdd">  : us::SharedData(other),
+    m_PropertyList(other.m_PropertyList-&gt;Clone()),
+    m_EventPropertyList(other.m_EventPropertyList-&gt;Clone()),
+    m_CurrEventMapping(other.m_CurrEventMapping),
+    m_EventList(other.m_EventList),
+    m_Errors(other.m_Errors),
+    m_XmlParser(this)
+{</span>
+  // Avoid VTK warning: Trying to delete object with non-zero reference count.
+<span style = "background-color:#fdd">  m_XmlParser.SetReferenceCount(0);
+}</span>
+
+void mitk::EventConfigPrivate::InsertMapping(const EventMapping &amp;mapping)
+<span style = "background-color:#fdd">{
+  for (auto it = m_EventList.begin(); it != m_EventList.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    if (*(it-&gt;interactionEvent) == *mapping.interactionEvent)</span>
+    {
+      // MITK_INFO&lt;&lt; "Configuration overwritten:" &lt;&lt; (*it).variantName;
+<span style = "background-color:#fdd">      m_EventList.erase(it);
+      break;
+    }
+  }
+  m_EventList.push_back(mapping);
+}</span>
+
+void mitk::EventConfigPrivate::CopyMapping(const EventListType eventList)
+<span style = "background-color:#fdd">{
+  EventListType::const_iterator iter;
+  for (iter = eventList.begin(); iter != eventList.end(); ++iter)</span>
+  {
+<span style = "background-color:#fdd">    InsertMapping(*(iter));
+  }
+}</span>
+
+<span style = "background-color:#fdd">mitk::EventConfigXMLParser::EventConfigXMLParser(EventConfigPrivate *d) : d(d)
+{
+}</span>
+
+void mitk::EventConfigXMLParser::StartElement(const char *elementName, const char **atts)
+<span style = "background-color:#fdd">{
+  std::string name(elementName);</span>
+
+<span style = "background-color:#fdd">  if (name == InteractionEventConst::xmlTagConfigRoot())</span>
+  {
+    //
+<span style = "background-color:#fdd">  }
+  else if (name == InteractionEventConst::xmlTagParam())</span>
+  {
+<span style = "background-color:#fdd">    const std::string name = ReadXMLStringAttribute(InteractionEventConst::xmlParameterName(), atts);
+    const std::string value = ReadXMLStringAttribute(InteractionEventConst::xmlParameterValue(), atts);
+    d-&gt;m_PropertyList-&gt;SetStringProperty(name.c_str(), value.c_str());
+  }
+  else if (name == InteractionEventConst::xmlTagEventVariant())</span>
+  {
+<span style = "background-color:#fdd">    const std::string eventClass = ReadXMLStringAttribute(InteractionEventConst::xmlParameterEventClass(), atts);
+    const std::string eventVariant = ReadXMLStringAttribute(InteractionEventConst::xmlParameterName(), atts);</span>
+    // New list in which all parameters are stored that are given within the &lt;input/&gt; tag
+<span style = "background-color:#fdd">    d-&gt;m_EventPropertyList = PropertyList::New();
+    d-&gt;m_EventPropertyList-&gt;SetStringProperty(InteractionEventConst::xmlParameterEventClass().c_str(),</span>
+                                              eventClass.c_str());
+<span style = "background-color:#fdd">    d-&gt;m_EventPropertyList-&gt;SetStringProperty(InteractionEventConst::xmlParameterEventVariant().c_str(),</span>
+                                              eventVariant.c_str());
+<span style = "background-color:#fdd">    d-&gt;m_CurrEventMapping.variantName = eventVariant;
+  }
+  else if (name == InteractionEventConst::xmlTagAttribute())</span>
+  {
+    // Attributes that describe an Input Event, such as which MouseButton triggered the event,or which modifier keys are
+    // pressed
+<span style = "background-color:#fdd">    const std::string name = ReadXMLStringAttribute(InteractionEventConst::xmlParameterName(), atts);
+    const std::string value = ReadXMLStringAttribute(InteractionEventConst::xmlParameterValue(), atts);
+    d-&gt;m_EventPropertyList-&gt;SetStringProperty(name.c_str(), value.c_str());
+  }
+}</span>
+
+void mitk::EventConfigXMLParser::EndElement(const char *elementName)
+<span style = "background-color:#fdd">{
+  const std::string name(elementName);</span>
+  // At end of input section, all necessary infos are collected to created an interaction event.
+<span style = "background-color:#fdd">  if (name == InteractionEventConst::xmlTagEventVariant())</span>
+  {
+<span style = "background-color:#fdd">    InteractionEvent::Pointer event = EventFactory::CreateEvent(d-&gt;m_EventPropertyList);
+    if (event.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      d-&gt;m_CurrEventMapping.interactionEvent = event;
+      d-&gt;InsertMapping(d-&gt;m_CurrEventMapping);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "EventConfig: Unknown Event-Type in config. Entry skipped: " &lt;&lt; name;</span>
+    }
+<span style = "background-color:#fdd">  }
+}</span>
+
+std::string mitk::EventConfigXMLParser::ReadXMLStringAttribute(const std::string &amp;name, const char **atts)
+<span style = "background-color:#fdd">{
+  if (atts)</span>
+  {
+<span style = "background-color:#fdd">    const char **attsIter = atts;</span>
+
+<span style = "background-color:#fdd">    while (*attsIter)</span>
+    {
+<span style = "background-color:#fdd">      if (name == *attsIter)</span>
+      {
+<span style = "background-color:#fdd">        attsIter++;
+        return *attsIter;</span>
+      }
+<span style = "background-color:#fdd">      attsIter += 2;
+    }</span>
+  }
+<span style = "background-color:#fdd">  return std::string();
+}</span>
+
+bool mitk::EventConfigXMLParser::ReadXMLBooleanAttribute(const std::string &amp;name, const char **atts)
+<span style = "background-color:#fdd">{
+  std::string s = ReadXMLStringAttribute(name, atts);
+  std::transform(s.begin(), s.end(), s.begin(), ::toupper);</span>
+
+<span style = "background-color:#fdd">  return s == "TRUE";
+}</span>
+
+<span style = "background-color:#fdd">mitk::EventConfig::EventConfig() : d(new EventConfigPrivate)
+{
+}</span>
+
+<span style = "background-color:#fdd">mitk::EventConfig::EventConfig(const EventConfig &amp;other) : d(other.d)
+{
+}</span>
+
+<span style = "background-color:#fdd">mitk::EventConfig::EventConfig(const std::string &amp;filename, const us::Module *module) : d(new EventConfigPrivate)
+{
+  if (module == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    module = us::GetModuleContext()-&gt;GetModule();</span>
+  }
+<span style = "background-color:#fdd">  us::ModuleResource resource = module-&gt;GetResource("Interactions/" + filename);
+  if (!resource.IsValid())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Resource not valid. State machine pattern in module " &lt;&lt; module-&gt;GetName()</span>
+               &lt;&lt; " not found: /Interactions/" &lt;&lt; filename;
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  EventConfig newConfig;
+  us::ModuleResourceStream stream(resource);
+  newConfig.d-&gt;m_XmlParser.SetStream(&amp;stream);
+  bool success = newConfig.d-&gt;m_XmlParser.Parse() &amp;&amp; !newConfig.d-&gt;m_Errors;
+  if (success)</span>
+  {
+<span style = "background-color:#fdd">    *this = newConfig;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+<span style = "background-color:#fdd">mitk::EventConfig::EventConfig(std::istream &amp;inputStream) : d(new EventConfigPrivate)
+{
+  EventConfig newConfig;
+  newConfig.d-&gt;m_XmlParser.SetStream(&amp;inputStream);
+  bool success = newConfig.d-&gt;m_XmlParser.Parse() &amp;&amp; !newConfig.d-&gt;m_Errors;
+  if (success)</span>
+  {
+<span style = "background-color:#fdd">    *this = newConfig;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+<span style = "background-color:#fdd">mitk::EventConfig::EventConfig(const std::vector&lt;PropertyList::Pointer&gt; &amp;configDescription) : d(new EventConfigPrivate)
+{
+  auto it_end = configDescription.end();
+  for (auto it = configDescription.begin(); it != it_end; ++it)</span>
+  {
+<span style = "background-color:#fdd">    std::string typeVariant;
+    (*it)-&gt;GetStringProperty(InteractionEventConst::xmlTagEventVariant().c_str(), typeVariant);
+    if (typeVariant != "")</span>
+    {
+<span style = "background-color:#fdd">      InteractionEvent::Pointer event = EventFactory::CreateEvent(*it);
+      if (event.IsNotNull())</span>
+      {
+<span style = "background-color:#fdd">        d-&gt;m_CurrEventMapping.interactionEvent = event;
+        std::string eventVariant;
+        (*it)-&gt;GetStringProperty(InteractionEventConst::xmlTagEventVariant().c_str(), eventVariant);
+        d-&gt;m_CurrEventMapping.variantName = eventVariant;
+        d-&gt;InsertMapping(d-&gt;m_CurrEventMapping);
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        MITK_WARN &lt;&lt; "EventConfig: Unknown Event-Type in config. When constructing from PropertyList.";</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      (*it)-&gt;GetStringProperty(InteractionEventConst::xmlTagParam().c_str(), typeVariant);
+      if (typeVariant != "")</span>
+      {
+<span style = "background-color:#fdd">        std::string name, value;
+        (*it)-&gt;GetStringProperty(InteractionEventConst::xmlParameterName().c_str(), name);
+        (*it)-&gt;GetStringProperty(InteractionEventConst::xmlParameterValue().c_str(), value);
+        d-&gt;m_PropertyList-&gt;SetStringProperty(name.c_str(), value.c_str());
+      }</span>
+    }
+<span style = "background-color:#fdd">  }
+}</span>
+
+mitk::EventConfig &amp;mitk::EventConfig::operator=(const mitk::EventConfig &amp;other)
+<span style = "background-color:#fdd">{
+  d = other.d;
+  return *this;
+}</span>
+
+mitk::EventConfig::~EventConfig()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::EventConfig::IsValid() const
+<span style = "background-color:#fdd">{
+  return !(d-&gt;m_EventList.empty() &amp;&amp; d-&gt;m_PropertyList-&gt;IsEmpty());
+}</span>
+
+bool mitk::EventConfig::AddConfig(const std::string &amp;fileName, const us::Module *module)
+<span style = "background-color:#fdd">{
+  if (module == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    module = us::GetModuleContext()-&gt;GetModule();</span>
+  }
+<span style = "background-color:#fdd">  us::ModuleResource resource = module-&gt;GetResource("Interactions/" + fileName);
+  if (!resource.IsValid())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Resource not valid. State machine pattern in module " &lt;&lt; module-&gt;GetName()</span>
+               &lt;&lt; " not found: /Interactions/" &lt;&lt; fileName;
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  EventConfig newConfig(*this);
+  us::ModuleResourceStream stream(resource);
+  newConfig.d-&gt;m_XmlParser.SetStream(&amp;stream);
+  bool success = newConfig.d-&gt;m_XmlParser.Parse() &amp;&amp; !newConfig.d-&gt;m_Errors;
+  if (success)</span>
+  {
+<span style = "background-color:#fdd">    *this = newConfig;</span>
+  }
+<span style = "background-color:#fdd">  return success;
+}</span>
+
+bool mitk::EventConfig::AddConfig(const EventConfig &amp;config)
+<span style = "background-color:#fdd">{
+  if (!config.IsValid())
+    return false;</span>
+
+<span style = "background-color:#fdd">  d-&gt;m_PropertyList-&gt;ConcatenatePropertyList(config.d-&gt;m_PropertyList-&gt;Clone(), true);
+  d-&gt;m_EventPropertyList = config.d-&gt;m_EventPropertyList-&gt;Clone();
+  d-&gt;m_CurrEventMapping = config.d-&gt;m_CurrEventMapping;
+  d-&gt;CopyMapping(config.d-&gt;m_EventList);</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+mitk::PropertyList::Pointer mitk::EventConfig::GetAttributes() const
+<span style = "background-color:#fdd">{
+  return d-&gt;m_PropertyList;
+}</span>
+
+std::string mitk::EventConfig::GetMappedEvent(const EventType &amp;interactionEvent) const
+<span style = "background-color:#fdd">{</span>
+  // internal events are excluded from mapping
+<span style = "background-color:#fdd">  if (std::strcmp(interactionEvent-&gt;GetNameOfClass(), "InternalEvent") == 0)</span>
+  {
+<span style = "background-color:#fdd">    auto *internalEvent = dynamic_cast&lt;InternalEvent *&gt;(interactionEvent.GetPointer());
+    return internalEvent-&gt;GetSignalName();</span>
+  }
+
+<span style = "background-color:#fdd">  for (auto it = d-&gt;m_EventList.begin(); it != d-&gt;m_EventList.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    if (*(it-&gt;interactionEvent) == *interactionEvent)</span>
+    {
+<span style = "background-color:#fdd">      return (*it).variantName;
+    }
+  }</span>
+  // if this part is reached, no mapping has been found,
+  // so here we handle key events and map a key event to the string "Std" + letter/code
+  // so "A" will be returned as "StdA"
+<span style = "background-color:#fdd">  if (std::strcmp(interactionEvent-&gt;GetNameOfClass(), "InteractionKeyEvent") == 0)</span>
+  {
+<span style = "background-color:#fdd">    auto *keyEvent = dynamic_cast&lt;InteractionKeyEvent *&gt;(interactionEvent.GetPointer());
+    return ("Std" + keyEvent-&gt;GetKey());</span>
+  }
+<span style = "background-color:#fdd">  return "";
+}</span>
+
+void mitk::EventConfig::ClearConfig()
+<span style = "background-color:#fdd">{
+  d-&gt;m_PropertyList-&gt;Clear();
+  d-&gt;m_EventPropertyList-&gt;Clear();
+  d-&gt;m_CurrEventMapping.variantName.clear();
+  d-&gt;m_CurrEventMapping.interactionEvent = nullptr;
+  d-&gt;m_EventList.clear();
+  d-&gt;m_Errors = false;
+}</span></pre>
+	</body>
+</html>

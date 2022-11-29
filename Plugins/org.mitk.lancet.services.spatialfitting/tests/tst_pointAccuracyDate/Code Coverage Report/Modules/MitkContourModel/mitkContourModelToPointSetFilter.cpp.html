@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelToPointSetFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkContourModelToPointSetFilter.h"
+#include &lt;mitkInteractionConst.h&gt;
+#include &lt;mitkPointOperation.h&gt;
+
+mitk::ContourModelToPointSetFilter::ContourModelToPointSetFilter()
+<span style = "background-color:#fdd">{
+  itk::DataObject::Pointer output = this-&gt;MakeOutput(0);
+  this-&gt;SetNumberOfRequiredInputs(1);
+  this-&gt;SetNumberOfRequiredOutputs(1);
+  this-&gt;SetNthOutput(0, output.GetPointer());
+}</span>
+mitk::ContourModelToPointSetFilter::~ContourModelToPointSetFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ContourModelToPointSetFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::ContourModel::Pointer inputContour = static_cast&lt;mitk::ContourModel *&gt;(this-&gt;GetInput(0));
+  mitk::ContourModelToPointSetFilter::OutputType *outputPointSet = this-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  auto it = inputContour-&gt;IteratorBegin();
+  auto end = inputContour-&gt;IteratorEnd();
+  unsigned int pointId = 0;</span>
+
+<span style = "background-color:#fdd">  std::size_t timestep = inputContour-&gt;GetTimeSteps();</span>
+
+<span style = "background-color:#fdd">  for (std::size_t i = 0; i &lt; timestep; i++)</span>
+  {
+<span style = "background-color:#fdd">    while (it &lt;= end)</span>
+    {
+<span style = "background-color:#fdd">      mitk::Point3D p = (*it)-&gt;Coordinates;
+      mitk::PointOperation popInsert(</span>
+        mitk::OpINSERT, inputContour-&gt;GetTimeGeometry()-&gt;TimeStepToTimePoint(timestep), p, pointId++, false);
+
+<span style = "background-color:#fdd">      outputPointSet-&gt;ExecuteOperation(&amp;popInsert);</span>
+
+<span style = "background-color:#fdd">      it++;
+    }
+  }
+}</span></pre>
+	</body>
+</html>

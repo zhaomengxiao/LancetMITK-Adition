@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRegistrationWrapperMapperBase.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef _MITK_MITK_REGISTRATION_WRAPPER_MAPPER_BASE_H
+#define _MITK_MITK_REGISTRATION_WRAPPER_MAPPER_BASE_H
+
+
+#include &lt;vtkSmartPointer.h&gt;
+
+#include &lt;mitkVtkMapper.h&gt;
+#include &lt;mitkLocalStorageHandler.h&gt;
+
+#include "MitkMatchPointRegistrationExports.h"
+
+class vtkPropAssembly;
+class vtkPolyDataMapper;
+class vtkPolyData;
+class vtkColorTransferFunction;
+class vtkActor;
+
+namespace mitk {
+
+/**Base class for all mapper that visualize a registration object.*/
+class MITKRegistrationWrapperMapperBase : public VtkMapper
+{
+public:
+
+<span style = "background-color:#fdd">    mitkClassMacro(MITKRegistrationWrapperMapperBase, VtkMapper);</span>
+
+    //========== essential implementation for mapper ==========
+    vtkProp *GetVtkProp(mitk::BaseRenderer *renderer) override;
+    static void SetDefaultProperties(DataNode* node, BaseRenderer* renderer = nullptr, bool overwrite = false );
+    void GenerateDataForRenderer(mitk::BaseRenderer* renderer) override;
+    //=========================================================
+
+    virtual bool GetGeometryDescription(mitk::BaseRenderer *renderer, mitk::BaseGeometry::ConstPointer&amp; gridDesc, unsigned int&amp; gridFrequ) const = 0;
+    virtual bool RendererGeometryIsOutdated(mitk::BaseRenderer *renderer, const itk::TimeStamp&amp; time) const = 0;
+
+    /**Internal class to store all informations and helper needed by a mapper to provide the render data for a
+     certain renderer.*/
+    class MITKMATCHPOINTREGISTRATION_EXPORT RegWrapperLocalStorage : public mitk::Mapper::BaseLocalStorage
+    {
+    public:
+      vtkSmartPointer&lt;vtkPolyData&gt; m_DeformedGridData;
+      vtkSmartPointer&lt;vtkPolyData&gt; m_StartGridData;
+
+      vtkSmartPointer&lt;vtkActor&gt; m_DeformedGridActor;
+      vtkSmartPointer&lt;vtkPolyDataMapper&gt; m_DeformedGridMapper;
+      vtkSmartPointer&lt;vtkActor&gt; m_StartGridActor;
+      vtkSmartPointer&lt;vtkPolyDataMapper&gt; m_StartGridMapper;
+
+      vtkSmartPointer&lt;vtkPropAssembly&gt; m_RegAssembly;
+
+      vtkSmartPointer&lt;vtkColorTransferFunction&gt;  m_LUT;
+
+        /** \brief Timestamp of last update of stored data. */
+        itk::TimeStamp m_LastUpdateTime;
+        /** \brief Constructor of the local storage. Do as much actions as possible in here to avoid double executions. */
+        RegWrapperLocalStorage();
+
+        ~RegWrapperLocalStorage() override
+<span style = "background-color:#fdd">        {
+        }</span>
+    };
+
+    /** \brief This member holds all three LocalStorages for the 3D render window(s). */
+    mitk::LocalStorageHandler&lt;RegWrapperLocalStorage&gt; m_LSH;
+
+
+protected:
+
+    MITKRegistrationWrapperMapperBase();
+    ~MITKRegistrationWrapperMapperBase() override;
+
+
+private:
+
+};
+
+} // end namespace mitk
+
+
+
+
+#endif /* MITKRegistrationWrapperMapperBase_H_HEADER_INCLUDED */
+</pre>
+	</body>
+</html>

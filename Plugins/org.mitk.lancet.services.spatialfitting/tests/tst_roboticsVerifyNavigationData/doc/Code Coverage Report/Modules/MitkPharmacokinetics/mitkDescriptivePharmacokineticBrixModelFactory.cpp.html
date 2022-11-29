@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDescriptivePharmacokineticBrixModelFactory.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkImageTimeSelector.h&gt;
+#include &lt;mitkImageCast.h&gt;
+
+#include "mitkDescriptivePharmacokineticBrixModelFactory.h"
+#include "mitkDescriptivePharmacokineticBrixModelParameterizer.h"
+#include "mitkDescriptivePharmacokineticBrixModelValueBasedParameterizer.h"
+
+mitk::DescriptivePharmacokineticBrixModelFactory::DescriptivePharmacokineticBrixModelFactory()
+<span style = "background-color:#dfd">{
+};</span>
+
+mitk::DescriptivePharmacokineticBrixModelFactory::~DescriptivePharmacokineticBrixModelFactory()
+<span style = "background-color:#dfd">{
+};</span>
+
+mitk::ModelParameterizerBase::ParametersType
+mitk::DescriptivePharmacokineticBrixModelFactory::GetDefaultInitialParameterization() const
+<span style = "background-color:#fdd">{
+  return DescriptivePharmacokineticBrixModelParameterizer::New()-&gt;GetDefaultInitialParameterization();
+};</span>
+
+mitk::ModelParameterizerBase::Pointer
+mitk::DescriptivePharmacokineticBrixModelFactory::DoCreateParameterizer(
+  const mitk::modelFit::ModelFitInfo* fit) const
+<span style = "background-color:#fdd">{
+  mitk::ModelParameterizerBase::Pointer result;</span>
+
+<span style = "background-color:#fdd">  if (fit-&gt;fitType == ModelFitConstants::FIT_TYPE_VALUE_PIXELBASED())</span>
+  {
+<span style = "background-color:#fdd">    DescriptivePharmacokineticBrixModelParameterizer::Pointer modelParameterizer =</span>
+      DescriptivePharmacokineticBrixModelParameterizer::New();
+
+<span style = "background-color:#fdd">    modelFit::StaticParameterMap::ValueType tau = fit-&gt;staticParamMap.Get(</span>
+          DescriptivePharmacokineticBrixModel::NAME_STATIC_PARAMETER_Tau);
+<span style = "background-color:#fdd">    modelParameterizer-&gt;SetTau(tau[0]);</span>
+
+<span style = "background-color:#fdd">    mitk::ImageTimeSelector::Pointer imageTimeSelector =	mitk::ImageTimeSelector::New();
+    imageTimeSelector-&gt;SetInput(fit-&gt;inputImage);
+    imageTimeSelector-&gt;SetTimeNr(0);
+    imageTimeSelector-&gt;UpdateLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">    mitk::DescriptivePharmacokineticBrixModelParameterizer::BaseImageType::Pointer baseImage;
+    mitk::CastToItkImage(imageTimeSelector-&gt;GetOutput(), baseImage);</span>
+
+<span style = "background-color:#fdd">    modelParameterizer-&gt;SetBaseImage(baseImage);</span>
+
+<span style = "background-color:#fdd">    result = modelParameterizer.GetPointer();
+  }
+  else if (fit-&gt;fitType == ModelFitConstants::FIT_TYPE_VALUE_ROIBASED())</span>
+  {
+<span style = "background-color:#fdd">    DescriptivePharmacokineticBrixModelValueBasedParameterizer::Pointer modelParameterizer =</span>
+      DescriptivePharmacokineticBrixModelValueBasedParameterizer::New();
+
+<span style = "background-color:#fdd">    modelFit::StaticParameterMap::ValueType tau = fit-&gt;staticParamMap.Get(</span>
+          DescriptivePharmacokineticBrixModel::NAME_STATIC_PARAMETER_Tau);
+<span style = "background-color:#fdd">    modelParameterizer-&gt;SetTau(tau[0]);</span>
+
+<span style = "background-color:#fdd">    if (!fit-&gt;inputData.ValueExists("ROI"))</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt;</span>
+                  "Cannot generate parameterizer for fit of type ROIbased. Input data with the lable \"ROI\" is missing in fit.";
+    }
+
+<span style = "background-color:#fdd">    ScalarListLookupTable::ValueType signal = fit-&gt;inputData.GetTableValue("ROI");</span>
+
+<span style = "background-color:#fdd">    if (signal.empty())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt;</span>
+                  "Cannot generate parameterizer for fit of type ROIbased. Input data with the lable \"ROI\" is invalid: No values available.";
+    }
+
+<span style = "background-color:#fdd">    modelParameterizer-&gt;SetBaseValue(signal[0]);</span>
+
+<span style = "background-color:#fdd">    result = modelParameterizer.GetPointer();
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span></pre>
+	</body>
+</html>

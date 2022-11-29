@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNodePredicateDataProperty.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKNODEPREDICATEDATAPROPERTY_H_HEADER_INCLUDED_
+#define MITKNODEPREDICATEDATAPROPERTY_H_HEADER_INCLUDED_
+
+#include "mitkBaseProperty.h"
+#include "mitkNodePredicateBase.h"
+
+namespace mitk
+{
+  /** @brief Predicate that evaluates if the data of a given DataNode has a specific property.
+   If the second parameter is nullptr, it will only be checked whether there is a property with the specified name
+   for the data instance of the node.*/
+  class MITKCORE_EXPORT NodePredicateDataProperty : public NodePredicateBase
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(NodePredicateDataProperty, NodePredicateBase);
+    mitkNewMacro1Param(NodePredicateDataProperty, const char *);
+    mitkNewMacro2Param(NodePredicateDataProperty, const char *, mitk::BaseProperty *);</span>
+
+    //##Documentation
+    //## @brief Standard Destructor
+    ~NodePredicateDataProperty() override;
+
+    //##Documentation
+    //## @brief Checks, if the nodes contains a property that is equal to m_ValidProperty
+    bool CheckNode(const mitk::DataNode *node) const override;
+
+  protected:
+    //##Documentation
+    //## @brief Constructor to check for a named property
+    NodePredicateDataProperty(const char *propertyName,
+                          mitk::BaseProperty *p = nullptr);
+
+    mitk::BaseProperty::Pointer m_ValidProperty;
+    // mitk::BaseProperty* m_ValidProperty;
+    std::string m_ValidPropertyName;
+  };
+
+} // namespace mitk
+
+#endif /* MITKNODEPREDICATEPROPERTY_H_HEADER_INCLUDED_ */</pre>
+	</body>
+</html>

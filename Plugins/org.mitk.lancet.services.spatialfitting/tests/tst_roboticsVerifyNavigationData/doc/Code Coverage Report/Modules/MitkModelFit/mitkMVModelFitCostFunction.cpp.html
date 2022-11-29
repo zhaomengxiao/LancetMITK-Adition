@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMVModelFitCostFunction.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkMVModelFitCostFunction.h"
+
+#include &lt;iostream&gt;
+
+
+mitk::MVModelFitCostFunction::MeasureType mitk::MVModelFitCostFunction::GetValue(const ParametersType &amp;parameter) const
+<span style = "background-color:#fdd">{
+  MeasureType measure;</span>
+
+<span style = "background-color:#fdd">  SignalType signal = m_Model-&gt;GetSignal(parameter);</span>
+
+<span style = "background-color:#fdd">  if(signal.GetSize() != m_Sample.GetSize()) itkExceptionMacro("Signal size does not matche sample size!");
+  if(signal.GetSize() == 0)  itkExceptionMacro("Signal is empty!");</span>
+
+<span style = "background-color:#fdd">  measure = CalcMeasure(parameter, signal);</span>
+
+<span style = "background-color:#fdd">  return measure;
+}</span>
+
+void mitk::MVModelFitCostFunction::GetDerivative (const ParametersType &amp;parameters, DerivativeType &amp;derivative) const
+<span style = "background-color:#fdd">{
+  ParametersType::SizeValueType paramCount = parameters.Size();
+  MeasureType::SizeValueType measureCount = GetNumberOfValues();</span>
+
+<span style = "background-color:#fdd">  derivative.SetSize(paramCount,m_Sample.Size());</span>
+
+<span style = "background-color:#fdd">  for ( ParametersType::SizeValueType i = 0; i &lt; paramCount; i++ )</span>
+  {
+<span style = "background-color:#fdd">    ParametersType newParameters = parameters;
+    newParameters[i] -= m_DerivativeStepLength;</span>
+
+<span style = "background-color:#fdd">    MeasureType e0 = GetValue(newParameters);</span>
+
+<span style = "background-color:#fdd">    newParameters = parameters;
+    newParameters[i] += m_DerivativeStepLength;</span>
+
+<span style = "background-color:#fdd">    MeasureType e1 = GetValue(newParameters);</span>
+
+<span style = "background-color:#fdd">    for(MeasureType::SizeValueType j = 0; j&lt;measureCount; ++j)</span>
+    {
+<span style = "background-color:#fdd">      derivative[i][j] = (e1[j] - e0[j]) / ( 2 * m_DerivativeStepLength );
+    }
+  }</span>
+
+
+<span style = "background-color:#fdd">};</span>
+
+unsigned int mitk::MVModelFitCostFunction::GetNumberOfParameters() const
+<span style = "background-color:#fdd">{
+  return m_Model-&gt;GetNumberOfParameters();
+}</span>
+
+<span style = "background-color:#fdd">unsigned int mitk::MVModelFitCostFunction::GetNumberOfValues() const{
+  return m_Sample.GetSize();
+}</span>
+
+void mitk::MVModelFitCostFunction::SetSample(const SignalType &amp;sampleSet)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("setting Sample to " &lt;&lt; sampleSet);
+  this-&gt;m_Sample = sampleSet;
+  this-&gt;Modified();
+}</span>
+</pre>
+	</body>
+</html>

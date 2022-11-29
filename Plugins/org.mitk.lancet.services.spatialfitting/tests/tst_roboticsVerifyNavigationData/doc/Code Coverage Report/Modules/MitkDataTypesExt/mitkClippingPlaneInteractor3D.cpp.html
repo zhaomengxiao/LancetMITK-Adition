@@ -1,0 +1,346 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkClippingPlaneInteractor3D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkClippingPlaneInteractor3D.h"
+
+#include &lt;mitkInteractionConst.h&gt;
+#include &lt;mitkInteractionPositionEvent.h&gt;
+#include &lt;mitkRotationOperation.h&gt;
+#include &lt;mitkSurface.h&gt;
+
+#include &lt;vtkCamera.h&gt;
+#include &lt;vtkInteractorObserver.h&gt;
+#include &lt;vtkInteractorStyle.h&gt;
+#include &lt;vtkPointData.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkRenderWindowInteractor.h&gt;
+
+mitk::ClippingPlaneInteractor3D::ClippingPlaneInteractor3D()
+<span style = "background-color:#fdd">{
+  m_OriginalGeometry = Geometry3D::New();</span>
+
+  // Initialize vector arithmetic
+<span style = "background-color:#fdd">  m_ObjectNormal[0] = 0.0;
+  m_ObjectNormal[1] = 0.0;
+  m_ObjectNormal[2] = 1.0;
+}</span>
+
+mitk::ClippingPlaneInteractor3D::~ClippingPlaneInteractor3D()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ClippingPlaneInteractor3D::ConnectActionsAndFunctions()
+<span style = "background-color:#fdd">{</span>
+  // **Conditions** that can be used in the state machine, to ensure that certain conditions are met, before actually
+  // executing an action
+<span style = "background-color:#fdd">  CONNECT_CONDITION("isOverObject", CheckOverObject);</span>
+
+  // **Function** in the statmachine patterns also referred to as **Actions**
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("selectObject", SelectObject);
+  CONNECT_FUNCTION("deselectObject", DeselectObject);
+  CONNECT_FUNCTION("initTranslate", InitTranslate);
+  CONNECT_FUNCTION("initRotate", InitRotate);
+  CONNECT_FUNCTION("translateObject", TranslateObject);
+  CONNECT_FUNCTION("rotateObject", RotateObject);
+}</span>
+
+void mitk::ClippingPlaneInteractor3D::DataNodeChanged()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::ClippingPlaneInteractor3D::CheckOverObject(const InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  const auto *positionEvent = dynamic_cast&lt;const InteractionPositionEvent *&gt;(interactionEvent);
+  if (positionEvent == nullptr)
+    return false;</span>
+
+<span style = "background-color:#fdd">  Point3D currentWorldPoint;
+  if (interactionEvent-&gt;GetSender()-&gt;PickObject(positionEvent-&gt;GetPointerPositionOnScreen(), currentWorldPoint) ==</span>
+      this-&gt;GetDataNode())
+<span style = "background-color:#fdd">    return true;</span>
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::ClippingPlaneInteractor3D::SelectObject(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  DataNode::Pointer node = this-&gt;GetDataNode();</span>
+
+<span style = "background-color:#fdd">  if (node.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  node-&gt;SetColor(1.0, 0.0, 0.0);</span>
+
+  // Colorize surface / wireframe dependend on distance from picked point
+<span style = "background-color:#fdd">  this-&gt;ColorizeSurface(interactionEvent-&gt;GetSender(), 0.0);</span>
+
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::ClippingPlaneInteractor3D::DeselectObject(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  DataNode::Pointer node = this-&gt;GetDataNode();</span>
+
+<span style = "background-color:#fdd">  if (node.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  node-&gt;SetColor(1.0, 1.0, 1.0);</span>
+
+  // Colorize surface / wireframe as inactive
+<span style = "background-color:#fdd">  this-&gt;ColorizeSurface(interactionEvent-&gt;GetSender(), -1.0);</span>
+
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::ClippingPlaneInteractor3D::InitTranslate(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto *positionEvent = dynamic_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);
+  if (positionEvent == nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  m_InitialPickedDisplayPoint = positionEvent-&gt;GetPointerPositionOnScreen();</span>
+
+<span style = "background-color:#fdd">  vtkInteractorObserver::ComputeDisplayToWorld(interactionEvent-&gt;GetSender()-&gt;GetVtkRenderer(),</span>
+                                               m_InitialPickedDisplayPoint[0],
+                                               m_InitialPickedDisplayPoint[1],
+                                               0.0, // m_InitialInteractionPickedPoint[2],
+                                               m_InitialPickedWorldPoint);
+
+  // Get the timestep to also support 3D+t
+<span style = "background-color:#fdd">  int timeStep = 0;
+  if ((interactionEvent-&gt;GetSender()) != nullptr)
+    timeStep = interactionEvent-&gt;GetSender()-&gt;GetTimeStep(this-&gt;GetDataNode()-&gt;GetData());</span>
+
+  // Make deep copy of current Geometry3D of the plane
+<span style = "background-color:#fdd">  this-&gt;GetDataNode()-&gt;GetData()-&gt;UpdateOutputInformation(); // make sure that the Geometry is up-to-date
+  m_OriginalGeometry =</span>
+    static_cast&lt;Geometry3D *&gt;(this-&gt;GetDataNode()-&gt;GetData()-&gt;GetGeometry(timeStep)-&gt;Clone().GetPointer());
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ClippingPlaneInteractor3D::InitRotate(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto *positionEvent = dynamic_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);
+  if (positionEvent == nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  m_InitialPickedDisplayPoint = positionEvent-&gt;GetPointerPositionOnScreen();</span>
+
+<span style = "background-color:#fdd">  vtkInteractorObserver::ComputeDisplayToWorld(interactionEvent-&gt;GetSender()-&gt;GetVtkRenderer(),</span>
+                                               m_InitialPickedDisplayPoint[0],
+                                               m_InitialPickedDisplayPoint[1],
+                                               0.0, // m_InitialInteractionPickedPoint[2],
+                                               m_InitialPickedWorldPoint);
+
+  // Get the timestep to also support 3D+t
+<span style = "background-color:#fdd">  int timeStep = interactionEvent-&gt;GetSender()-&gt;GetTimeStep(this-&gt;GetDataNode()-&gt;GetData());</span>
+
+  // Make deep copy of current Geometry3D of the plane
+<span style = "background-color:#fdd">  this-&gt;GetDataNode()-&gt;GetData()-&gt;UpdateOutputInformation(); // make sure that the Geometry is up-to-date
+  m_OriginalGeometry =</span>
+    static_cast&lt;Geometry3D *&gt;(this-&gt;GetDataNode()-&gt;GetData()-&gt;GetGeometry(timeStep)-&gt;Clone().GetPointer());
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ClippingPlaneInteractor3D::TranslateObject(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto *positionEvent = dynamic_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);
+  if (positionEvent == nullptr)
+    return;</span>
+
+  double currentWorldPoint[4];
+<span style = "background-color:#fdd">  mitk::Point2D currentDisplayPoint = positionEvent-&gt;GetPointerPositionOnScreen();
+  vtkInteractorObserver::ComputeDisplayToWorld(interactionEvent-&gt;GetSender()-&gt;GetVtkRenderer(),</span>
+                                               currentDisplayPoint[0],
+                                               currentDisplayPoint[1],
+                                               0.0, // m_InitialInteractionPickedPoint[2],
+                                               currentWorldPoint);
+
+<span style = "background-color:#fdd">  Vector3D interactionMove;
+  interactionMove[0] = currentWorldPoint[0] - m_InitialPickedWorldPoint[0];
+  interactionMove[1] = currentWorldPoint[1] - m_InitialPickedWorldPoint[1];
+  interactionMove[2] = currentWorldPoint[2] - m_InitialPickedWorldPoint[2];</span>
+
+<span style = "background-color:#fdd">  Point3D origin = m_OriginalGeometry-&gt;GetOrigin();</span>
+
+  // Get the timestep to also support 3D+t
+<span style = "background-color:#fdd">  int timeStep = interactionEvent-&gt;GetSender()-&gt;GetTimeStep(this-&gt;GetDataNode()-&gt;GetData());</span>
+
+  // If data is an mitk::Surface, extract it
+<span style = "background-color:#fdd">  Surface::Pointer surface = dynamic_cast&lt;Surface *&gt;(this-&gt;GetDataNode()-&gt;GetData());
+  vtkPolyData *polyData = nullptr;
+  if (surface.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    polyData = surface-&gt;GetVtkPolyData(timeStep);</span>
+
+    // Extract surface normal from surface (if existent, otherwise use default)
+<span style = "background-color:#fdd">    vtkPointData *pointData = polyData-&gt;GetPointData();
+    if (pointData != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      vtkDataArray *normal = polyData-&gt;GetPointData()-&gt;GetVectors("planeNormal");
+      if (normal != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        m_ObjectNormal[0] = normal-&gt;GetComponent(0, 0);
+        m_ObjectNormal[1] = normal-&gt;GetComponent(0, 1);
+        m_ObjectNormal[2] = normal-&gt;GetComponent(0, 2);</span>
+      }
+    }
+  }
+
+<span style = "background-color:#fdd">  Vector3D transformedObjectNormal;
+  this-&gt;GetDataNode()-&gt;GetData()-&gt;GetGeometry(timeStep)-&gt;IndexToWorld(m_ObjectNormal, transformedObjectNormal);</span>
+
+<span style = "background-color:#fdd">  this-&gt;GetDataNode()-&gt;GetData()-&gt;GetGeometry(timeStep)-&gt;SetOrigin(</span>
+    origin + transformedObjectNormal * (interactionMove * transformedObjectNormal));
+
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::ClippingPlaneInteractor3D::RotateObject(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto *positionEvent = dynamic_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);
+  if (positionEvent == nullptr)
+    return;</span>
+
+  double currentWorldPoint[4];
+<span style = "background-color:#fdd">  Point2D currentPickedDisplayPoint = positionEvent-&gt;GetPointerPositionOnScreen();
+  vtkInteractorObserver::ComputeDisplayToWorld(interactionEvent-&gt;GetSender()-&gt;GetVtkRenderer(),</span>
+                                               currentPickedDisplayPoint[0],
+                                               currentPickedDisplayPoint[1],
+                                               0.0, // m_InitialInteractionPickedPoint[2],
+                                               currentWorldPoint);
+
+<span style = "background-color:#fdd">  vtkCamera *camera = nullptr;
+  vtkRenderer *currentVtkRenderer = nullptr;</span>
+
+<span style = "background-color:#fdd">  if ((interactionEvent-&gt;GetSender()) != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    vtkRenderWindow *renderWindow = interactionEvent-&gt;GetSender()-&gt;GetRenderWindow();
+    if (renderWindow != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      vtkRenderWindowInteractor *renderWindowInteractor = renderWindow-&gt;GetInteractor();
+      if (renderWindowInteractor != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        currentVtkRenderer = renderWindowInteractor-&gt;GetInteractorStyle()-&gt;GetCurrentRenderer();
+        if (currentVtkRenderer != nullptr)
+          camera = currentVtkRenderer-&gt;GetActiveCamera();</span>
+      }
+    }
+  }
+<span style = "background-color:#fdd">  if (camera)</span>
+  {
+    double vpn[3];
+<span style = "background-color:#fdd">    camera-&gt;GetViewPlaneNormal(vpn);</span>
+
+<span style = "background-color:#fdd">    Vector3D viewPlaneNormal;
+    viewPlaneNormal[0] = vpn[0];
+    viewPlaneNormal[1] = vpn[1];
+    viewPlaneNormal[2] = vpn[2];</span>
+
+<span style = "background-color:#fdd">    Vector3D interactionMove;
+    interactionMove[0] = currentWorldPoint[0] - m_InitialPickedWorldPoint[0];
+    interactionMove[1] = currentWorldPoint[1] - m_InitialPickedWorldPoint[1];
+    interactionMove[2] = currentWorldPoint[2] - m_InitialPickedWorldPoint[2];</span>
+
+<span style = "background-color:#fdd">    if (interactionMove[0] == 0 &amp;&amp; interactionMove[1] == 0 &amp;&amp; interactionMove[2] == 0)
+      return;</span>
+
+<span style = "background-color:#fdd">    Vector3D rotationAxis = itk::CrossProduct(viewPlaneNormal, interactionMove);
+    rotationAxis.Normalize();</span>
+
+<span style = "background-color:#fdd">    int *size = currentVtkRenderer-&gt;GetSize();
+    double l2 = (currentPickedDisplayPoint[0] - m_InitialPickedDisplayPoint[0]) *</span>
+                  (currentPickedDisplayPoint[0] - m_InitialPickedDisplayPoint[0]) +
+                (currentPickedDisplayPoint[1] - m_InitialPickedDisplayPoint[1]) *
+                  (currentPickedDisplayPoint[1] - m_InitialPickedDisplayPoint[1]);
+
+<span style = "background-color:#fdd">    double rotationAngle = 360.0 * sqrt(l2 / (size[0] * size[0] + size[1] * size[1]));</span>
+
+    // Use center of data bounding box as center of rotation
+<span style = "background-color:#fdd">    Point3D rotationCenter = m_OriginalGeometry-&gt;GetCenter();</span>
+
+<span style = "background-color:#fdd">    int timeStep = 0;
+    if ((interactionEvent-&gt;GetSender()) != nullptr)
+      timeStep = interactionEvent-&gt;GetSender()-&gt;GetTimeStep(this-&gt;GetDataNode()-&gt;GetData());</span>
+
+    // Reset current Geometry3D to original state (pre-interaction) and
+    // apply rotation
+<span style = "background-color:#fdd">    RotationOperation op(OpROTATE, rotationCenter, rotationAxis, rotationAngle);
+    Geometry3D::Pointer newGeometry = static_cast&lt;Geometry3D *&gt;(m_OriginalGeometry-&gt;Clone().GetPointer());
+    newGeometry-&gt;ExecuteOperation(&amp;op);
+    mitk::TimeGeometry::Pointer timeGeometry = this-&gt;GetDataNode()-&gt;GetData()-&gt;GetTimeGeometry();
+    if (timeGeometry.IsNotNull())
+      timeGeometry-&gt;SetTimeStepGeometry(newGeometry, timeStep);</span>
+
+<span style = "background-color:#fdd">    RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+  }
+}</span>
+
+void mitk::ClippingPlaneInteractor3D::ColorizeSurface(BaseRenderer::Pointer renderer, double scalar)
+<span style = "background-color:#fdd">{
+  BaseData::Pointer data = this-&gt;GetDataNode()-&gt;GetData();
+  if (data.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "ClippingPlaneInteractor3D: No data object present!";
+    return;</span>
+  }
+
+  // Get the timestep to also support 3D+t
+<span style = "background-color:#fdd">  int timeStep = 0;
+  if (renderer.IsNotNull())
+    timeStep = renderer-&gt;GetTimeStep(data);</span>
+
+  // If data is an mitk::Surface, extract it
+<span style = "background-color:#fdd">  Surface::Pointer surface = dynamic_cast&lt;Surface *&gt;(data.GetPointer());
+  vtkPolyData *polyData = nullptr;
+  if (surface.IsNotNull())
+    polyData = surface-&gt;GetVtkPolyData(timeStep);</span>
+
+<span style = "background-color:#fdd">  if (polyData == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "ClippingPlaneInteractor3D: No poly data present!";
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  vtkPointData *pointData = polyData-&gt;GetPointData();
+  if (pointData == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "ClippingPlaneInteractor3D: No point data present!";
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  vtkDataArray *scalars = pointData-&gt;GetScalars();
+  if (scalars == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "ClippingPlaneInteractor3D: No scalars for point data present!";
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  for (vtkIdType i = 0; i &lt; pointData-&gt;GetNumberOfTuples(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    scalars-&gt;SetComponent(i, 0, scalar);
+  }</span>
+
+<span style = "background-color:#fdd">  polyData-&gt;Modified();
+  pointData-&gt;Update();
+}</span></pre>
+	</body>
+</html>

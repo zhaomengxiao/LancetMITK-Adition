@@ -1,0 +1,240 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLookupTablePropertySerializer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLookupTablePropertySerializer.h"
+#include "mitkStringsToNumbers.h"
+#include &lt;mitkLocaleSwitch.h&gt;
+#include &lt;mitkLookupTableProperty.h&gt;
+
+#include &lt;array&gt;
+
+#include &lt;tinyxml2.h&gt;
+
+tinyxml2::XMLElement *mitk::LookupTablePropertySerializer::Serialize(tinyxml2::XMLDocument&amp; doc)
+<span style = "background-color:#fdd">{
+  if (const auto *prop = dynamic_cast&lt;const LookupTableProperty *&gt;(m_Property.GetPointer()))</span>
+  {
+<span style = "background-color:#fdd">    LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">    LookupTable::Pointer mitkLut = const_cast&lt;LookupTableProperty *&gt;(prop)-&gt;GetLookupTable();
+    if (mitkLut.IsNull())
+      return nullptr; // really?</span>
+
+<span style = "background-color:#fdd">    vtkLookupTable *lut = mitkLut-&gt;GetVtkLookupTable();
+    if (!lut)
+      return nullptr;</span>
+
+<span style = "background-color:#fdd">    auto *element = doc.NewElement("LookupTable");</span>
+
+    double *range;
+    double *rgba;
+
+<span style = "background-color:#fdd">    element-&gt;SetAttribute("NumberOfColors", static_cast&lt;int&gt;(lut-&gt;GetNumberOfTableValues()));
+    element-&gt;SetAttribute("Scale", lut-&gt;GetScale());
+    element-&gt;SetAttribute("Ramp", lut-&gt;GetRamp());</span>
+
+<span style = "background-color:#fdd">    range = lut-&gt;GetHueRange();
+    auto *child = doc.NewElement("HueRange");
+    element-&gt;InsertEndChild(child);
+    child-&gt;SetAttribute("min", boost::lexical_cast&lt;std::string&gt;(range[0]).c_str());
+    child-&gt;SetAttribute("max", boost::lexical_cast&lt;std::string&gt;(range[1]).c_str());</span>
+
+<span style = "background-color:#fdd">    range = lut-&gt;GetValueRange();
+    child = doc.NewElement("ValueRange");
+    element-&gt;InsertEndChild(child);
+    child-&gt;SetAttribute("min", boost::lexical_cast&lt;std::string&gt;(range[0]).c_str());
+    child-&gt;SetAttribute("max", boost::lexical_cast&lt;std::string&gt;(range[1]).c_str());</span>
+
+<span style = "background-color:#fdd">    range = lut-&gt;GetSaturationRange();
+    child = doc.NewElement("SaturationRange");
+    element-&gt;InsertEndChild(child);
+    child-&gt;SetAttribute("min", boost::lexical_cast&lt;std::string&gt;(range[0]).c_str());
+    child-&gt;SetAttribute("max", boost::lexical_cast&lt;std::string&gt;(range[1]).c_str());</span>
+
+<span style = "background-color:#fdd">    range = lut-&gt;GetAlphaRange();
+    child = doc.NewElement("AlphaRange");
+    element-&gt;InsertEndChild(child);
+    child-&gt;SetAttribute("min", boost::lexical_cast&lt;std::string&gt;(range[0]).c_str());
+    child-&gt;SetAttribute("max", boost::lexical_cast&lt;std::string&gt;(range[1]).c_str());</span>
+
+<span style = "background-color:#fdd">    range = lut-&gt;GetTableRange();
+    child = doc.NewElement("TableRange");
+    element-&gt;InsertEndChild(child);
+    child-&gt;SetAttribute("min", boost::lexical_cast&lt;std::string&gt;(range[0]).c_str());
+    child-&gt;SetAttribute("max", boost::lexical_cast&lt;std::string&gt;(range[1]).c_str());</span>
+
+<span style = "background-color:#fdd">    child = doc.NewElement("Table");
+    element-&gt;InsertEndChild(child);
+    for (int index = 0; index &lt; lut-&gt;GetNumberOfTableValues(); ++index)</span>
+    {
+<span style = "background-color:#fdd">      auto grandChild = doc.NewElement("RgbaColor");
+      rgba = lut-&gt;GetTableValue(index);
+      grandChild-&gt;SetAttribute("R", boost::lexical_cast&lt;std::string&gt;(rgba[0]).c_str());
+      grandChild-&gt;SetAttribute("G", boost::lexical_cast&lt;std::string&gt;(rgba[1]).c_str());
+      grandChild-&gt;SetAttribute("B", boost::lexical_cast&lt;std::string&gt;(rgba[2]).c_str());
+      grandChild-&gt;SetAttribute("A", boost::lexical_cast&lt;std::string&gt;(rgba[3]).c_str());
+      child-&gt;InsertEndChild(grandChild);
+    }
+    return element;
+  }</span>
+  else
+<span style = "background-color:#fdd">    return nullptr;
+}</span>
+
+mitk::BaseProperty::Pointer mitk::LookupTablePropertySerializer::Deserialize(const tinyxml2::XMLElement *element)
+<span style = "background-color:#fdd">{
+  if (!element)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  LocaleSwitch localeSwitch("C");</span>
+
+  double range[2];
+  double rgba[4];
+
+  std::array&lt;const char*, 4&gt; double_strings;
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkLookupTable&gt; lut = vtkSmartPointer&lt;vtkLookupTable&gt;::New();</span>
+
+  int numberOfColors;
+  int scale;
+  int ramp; // hope the int values don't change betw. vtk versions...
+<span style = "background-color:#fdd">  if (element-&gt;QueryIntAttribute("NumberOfColors", &amp;numberOfColors) == tinyxml2::XML_SUCCESS)</span>
+  {
+<span style = "background-color:#fdd">    lut-&gt;SetNumberOfTableValues(numberOfColors);
+  }</span>
+  else
+<span style = "background-color:#fdd">    return nullptr;
+  if (element-&gt;QueryIntAttribute("Scale", &amp;scale) == tinyxml2::XML_SUCCESS)</span>
+  {
+<span style = "background-color:#fdd">    lut-&gt;SetScale(scale);
+  }</span>
+  else
+<span style = "background-color:#fdd">    return nullptr;
+  if (element-&gt;QueryIntAttribute("Ramp", &amp;ramp) == tinyxml2::XML_SUCCESS)</span>
+  {
+<span style = "background-color:#fdd">    lut-&gt;SetRamp(ramp);
+  }</span>
+  else
+<span style = "background-color:#fdd">    return nullptr;</span>
+
+  try
+  {
+<span style = "background-color:#fdd">    auto *child = element-&gt;FirstChildElement("HueRange");
+    if (child)</span>
+    {
+<span style = "background-color:#fdd">      double_strings[0] = child-&gt;Attribute("min");
+      double_strings[1] = child-&gt;Attribute("max");</span>
+
+<span style = "background-color:#fdd">      if (nullptr == double_strings[0] || nullptr == double_strings[1])
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      StringsToNumbers&lt;double&gt;(2, double_strings, range);
+      lut-&gt;SetHueRange(range);</span>
+    }
+
+<span style = "background-color:#fdd">    child = element-&gt;FirstChildElement("ValueRange");
+    if (child)</span>
+    {
+<span style = "background-color:#fdd">      double_strings[0] = child-&gt;Attribute("min");
+      double_strings[1] = child-&gt;Attribute("max");</span>
+
+<span style = "background-color:#fdd">      if (nullptr == double_strings[0] || nullptr == double_strings[1])
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      StringsToNumbers&lt;double&gt;(2, double_strings, range);
+      lut-&gt;SetValueRange(range);</span>
+    }
+
+<span style = "background-color:#fdd">    child = element-&gt;FirstChildElement("SaturationRange");
+    if (child)</span>
+    {
+<span style = "background-color:#fdd">      double_strings[0] = child-&gt;Attribute("min");
+      double_strings[1] = child-&gt;Attribute("max");</span>
+
+<span style = "background-color:#fdd">      if (nullptr == double_strings[0] || nullptr == double_strings[1])
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      StringsToNumbers&lt;double&gt;(2, double_strings, range);
+      lut-&gt;SetSaturationRange(range);</span>
+    }
+
+<span style = "background-color:#fdd">    child = element-&gt;FirstChildElement("AlphaRange");
+    if (child)</span>
+    {
+<span style = "background-color:#fdd">      double_strings[0] = child-&gt;Attribute("min");
+      double_strings[1] = child-&gt;Attribute("max");</span>
+
+<span style = "background-color:#fdd">      if (nullptr == double_strings[0] || nullptr == double_strings[1])
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      StringsToNumbers&lt;double&gt;(2, double_strings, range);
+      lut-&gt;SetAlphaRange(range);</span>
+    }
+
+<span style = "background-color:#fdd">    child = element-&gt;FirstChildElement("TableRange");
+    if (child)</span>
+    {
+<span style = "background-color:#fdd">      double_strings[0] = child-&gt;Attribute("min");
+      double_strings[1] = child-&gt;Attribute("max");</span>
+
+<span style = "background-color:#fdd">      if (nullptr == double_strings[0] || nullptr == double_strings[1])
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      StringsToNumbers&lt;double&gt;(2, double_strings, range);
+      lut-&gt;SetTableRange(range);</span>
+    }
+
+<span style = "background-color:#fdd">    child = element-&gt;FirstChildElement("Table");
+    if (child)</span>
+    {
+<span style = "background-color:#fdd">      unsigned int index(0);
+      for (auto *grandChild = child-&gt;FirstChildElement("RgbaColor"); grandChild;
+           grandChild = grandChild-&gt;NextSiblingElement("RgbaColor"))</span>
+      {
+<span style = "background-color:#fdd">        double_strings[0] = grandChild-&gt;Attribute("R");
+        double_strings[1] = grandChild-&gt;Attribute("G");
+        double_strings[2] = grandChild-&gt;Attribute("B");
+        double_strings[3] = grandChild-&gt;Attribute("A");</span>
+
+<span style = "background-color:#fdd">        if (nullptr == double_strings[0] || nullptr == double_strings[1] || nullptr == double_strings[2] || nullptr == double_strings[3])
+          return nullptr;</span>
+
+<span style = "background-color:#fdd">        StringsToNumbers&lt;double&gt;(4, double_strings, rgba);
+        lut-&gt;SetTableValue(index, rgba);
+        ++index;
+      }</span>
+    }
+  }
+  catch (boost::bad_lexical_cast &amp;e)
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "Could not parse string as number: " &lt;&lt; e.what();
+    return nullptr;
+  }</span>
+
+<span style = "background-color:#fdd">  LookupTable::Pointer mitkLut = LookupTable::New();
+  mitkLut-&gt;SetVtkLookupTable(lut);</span>
+
+<span style = "background-color:#fdd">  return LookupTableProperty::New(mitkLut).GetPointer();
+}</span></pre>
+	</body>
+</html>

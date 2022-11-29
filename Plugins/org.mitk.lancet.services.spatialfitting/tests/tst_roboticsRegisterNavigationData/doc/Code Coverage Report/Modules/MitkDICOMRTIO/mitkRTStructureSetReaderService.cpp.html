@@ -1,0 +1,301 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRTStructureSetReaderService.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkRTStructureSetReaderService.h"
+
+#include &lt;mitkDICOMRTMimeTypes.h&gt;
+#include &lt;mitkDICOMIOHelper.h&gt;
+#include &lt;mitkDICOMTagPath.h&gt;
+#include &lt;mitkDICOMDCMTKTagScanner.h&gt;
+
+#include "dcmtk/dcmrt/drtstrct.h"
+
+namespace mitk
+{
+<span style = "background-color:#dfd">  RTStructureSetReaderService::RTStructureSetReaderService() : AbstractFileReader(CustomMimeType(mitk::DICOMRTMimeTypes::DICOMRT_STRUCT_MIMETYPE_NAME()), mitk::DICOMRTMimeTypes::DICOMRT_STRUCT_MIMETYPE_DESCRIPTION()) {
+    m_FileReaderServiceReg = RegisterService();
+  }</span>
+
+<span style = "background-color:#fdd">  RTStructureSetReaderService::RTStructureSetReaderService(const RTStructureSetReaderService&amp; other) : mitk::AbstractFileReader(other)
+  {
+  }</span>
+
+<span style = "background-color:#dfd">  RTStructureSetReaderService::~RTStructureSetReaderService() {}</span>
+
+  RTStructureSetReaderService::RoiEntry::RoiEntry()
+<span style = "background-color:#fdd">  {
+    Number = 0;
+    DisplayColor[0] = 1.0;
+    DisplayColor[1] = 0.0;
+    DisplayColor[2] = 0.0;
+    ContourModelSet = mitk::ContourModelSet::New();
+  }</span>
+
+  RTStructureSetReaderService::RoiEntry::RoiEntry(const RoiEntry&amp; src)
+<span style = "background-color:#fdd">  {
+    Number = src.Number;
+    Name = src.Name;
+    Description = src.Description;
+    DisplayColor[0] = src.DisplayColor[0];
+    DisplayColor[1] = src.DisplayColor[1];
+    DisplayColor[2] = src.DisplayColor[2];
+    ContourModelSet = mitk::ContourModelSet::New();
+    SetPolyData(src.ContourModelSet);
+  }</span>
+
+<span style = "background-color:#fdd">  RTStructureSetReaderService::RoiEntry::~RoiEntry() {}</span>
+
+  RTStructureSetReaderService::RoiEntry&amp; RTStructureSetReaderService::
+    RoiEntry::operator =(const RoiEntry&amp; src)
+<span style = "background-color:#fdd">  {
+    Number = src.Number;
+    Name = src.Name;
+    Description = src.Description;
+    DisplayColor[0] = src.DisplayColor[0];
+    DisplayColor[1] = src.DisplayColor[1];
+    DisplayColor[2] = src.DisplayColor[2];
+    SetPolyData(src.ContourModelSet);
+    return (*this);
+  }</span>
+
+  void RTStructureSetReaderService::RoiEntry::
+    SetPolyData(mitk::ContourModelSet::Pointer roiPolyData)
+<span style = "background-color:#fdd">  {
+    if (roiPolyData == this-&gt;ContourModelSet)</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;ContourModelSet = roiPolyData;
+  }</span>
+
+  size_t RTStructureSetReaderService::GetNumberOfROIs() const
+<span style = "background-color:#fdd">  {
+    return this-&gt;ROISequenceVector.size();
+  }</span>
+
+  RTStructureSetReaderService::RoiEntry* RTStructureSetReaderService::
+    FindRoiByNumber(unsigned int roiNum)
+<span style = "background-color:#fdd">  {
+    for (unsigned int i = 0; i &lt; this-&gt;ROISequenceVector.size(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      if (this-&gt;ROISequenceVector[i].Number == roiNum)</span>
+      {
+<span style = "background-color:#fdd">        return &amp;this-&gt;ROISequenceVector[i];</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    return nullptr;
+  }</span>
+
+  std::vector&lt;itk::SmartPointer&lt;BaseData&gt; &gt; RTStructureSetReaderService::DoRead()
+<span style = "background-color:#fdd">  {
+    std::vector&lt;itk::SmartPointer&lt;mitk::BaseData&gt; &gt; result;</span>
+
+<span style = "background-color:#fdd">    std::string location = GetInputLocation();</span>
+
+<span style = "background-color:#fdd">    auto DICOMTagsOfInterestService = GetDicomTagsOfInterestService();
+    auto tagsOfInterest = DICOMTagsOfInterestService-&gt;GetTagsOfInterest();
+    DICOMTagPathList tagsOfInterestList;
+    for (const auto&amp; tag : tagsOfInterest) {
+      tagsOfInterestList.push_back(tag.first);
+    }</span>
+
+<span style = "background-color:#fdd">    mitk::DICOMDCMTKTagScanner::Pointer scanner = mitk::DICOMDCMTKTagScanner::New();
+    scanner-&gt;SetInputFiles({ location });
+    scanner-&gt;AddTagPaths(tagsOfInterestList);
+    scanner-&gt;Scan();</span>
+
+<span style = "background-color:#fdd">    mitk::DICOMDatasetAccessingImageFrameList frames = scanner-&gt;GetFrameInfoList();
+    if (frames.empty()) {
+      MITK_ERROR &lt;&lt; "Error reading the RTSTRUCT file" &lt;&lt; std::endl;
+      return result;</span>
+    }
+
+<span style = "background-color:#fdd">    auto findings = ExtractPathsOfInterest(tagsOfInterestList, frames);</span>
+
+<span style = "background-color:#fdd">    DcmFileFormat file;
+    OFCondition output = file.loadFile(location.c_str(), EXS_Unknown);</span>
+
+<span style = "background-color:#fdd">    if (output.bad())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Can't read the file" &lt;&lt; std::endl;
+      return result;</span>
+    }
+
+<span style = "background-color:#fdd">    DcmDataset* dataset = file.getDataset();</span>
+
+<span style = "background-color:#fdd">    DRTStructureSetIOD structureSetObject;
+    OFCondition outp = structureSetObject.read(*dataset);</span>
+
+<span style = "background-color:#fdd">    if (!outp.good())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Error reading the file" &lt;&lt; std::endl;
+      return result;</span>
+    }
+
+<span style = "background-color:#fdd">    DRTStructureSetROISequence&amp; roiSequence =</span>
+      structureSetObject.getStructureSetROISequence();
+
+<span style = "background-color:#fdd">    if (!roiSequence.gotoFirstItem().good())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Error reading the structure sequence" &lt;&lt; std::endl;
+      return result;</span>
+    }
+
+    do
+    {
+<span style = "background-color:#fdd">      DRTStructureSetROISequence::Item&amp; currentSequence =</span>
+        roiSequence.getCurrentItem();
+
+<span style = "background-color:#fdd">      if (!currentSequence.isValid())</span>
+      {
+<span style = "background-color:#fdd">        continue;</span>
+      }
+
+<span style = "background-color:#fdd">      OFString roiName;
+      OFString roiDescription;</span>
+      Sint32 roiNumber;
+<span style = "background-color:#fdd">      RoiEntry roi;</span>
+
+<span style = "background-color:#fdd">      currentSequence.getROIName(roiName);
+      currentSequence.getROIDescription(roiDescription);
+      currentSequence.getROINumber(roiNumber);</span>
+
+<span style = "background-color:#fdd">      roi.Name = roiName.c_str();
+      roi.Description = roiDescription.c_str();
+      roi.Number = roiNumber;</span>
+
+<span style = "background-color:#fdd">      this-&gt;ROISequenceVector.push_back(roi);
+    } while (roiSequence.gotoNextItem().good());</span>
+
+    Sint32 refRoiNumber;
+<span style = "background-color:#fdd">    DRTROIContourSequence&amp; roiContourSeqObject =</span>
+      structureSetObject.getROIContourSequence();
+
+<span style = "background-color:#fdd">    if (!roiContourSeqObject.gotoFirstItem().good())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Error reading the contour sequence" &lt;&lt; std::endl;
+      return result;</span>
+    }
+
+    do
+    {
+<span style = "background-color:#fdd">      mitk::ContourModelSet::Pointer contourSet = mitk::ContourModelSet::New();
+      DRTROIContourSequence::Item&amp; currentRoiObject =</span>
+        roiContourSeqObject.getCurrentItem();
+
+<span style = "background-color:#fdd">      if (!currentRoiObject.isValid())</span>
+      {
+<span style = "background-color:#fdd">        continue;</span>
+      }
+
+<span style = "background-color:#fdd">      currentRoiObject.getReferencedROINumber(refRoiNumber);
+      DRTContourSequence&amp; contourSeqObject =</span>
+        currentRoiObject.getContourSequence();
+
+<span style = "background-color:#fdd">      if (contourSeqObject.getNumberOfItems() &gt; 0 &amp;&amp; contourSeqObject.gotoFirstItem().good())</span>
+      {
+        do
+        {
+<span style = "background-color:#fdd">          DRTContourSequence::Item&amp; contourItem =</span>
+            contourSeqObject.getCurrentItem();
+
+<span style = "background-color:#fdd">          if (!contourItem.isValid())</span>
+          {
+<span style = "background-color:#fdd">            continue;</span>
+          }
+
+<span style = "background-color:#fdd">          OFString contourNumber;
+          OFString numberOfPoints;
+          OFVector&lt;Float64&gt; contourData_LPS;
+          mitk::ContourModel::Pointer contourSequence =</span>
+            mitk::ContourModel::New();
+
+<span style = "background-color:#fdd">          contourItem.getContourNumber(contourNumber);
+          contourItem.getNumberOfContourPoints(numberOfPoints);
+          contourItem.getContourData(contourData_LPS);</span>
+
+<span style = "background-color:#fdd">          for (unsigned int i = 0; i &lt; contourData_LPS.size() / 3; i++)</span>
+          {
+<span style = "background-color:#fdd">            mitk::Point3D point;
+            point[0] = contourData_LPS.at(3 * i);
+            point[1] = contourData_LPS.at(3 * i + 1);
+            point[2] = contourData_LPS.at(3 * i + 2);
+            contourSequence-&gt;AddVertex(point);
+          }</span>
+
+<span style = "background-color:#fdd">          contourSequence-&gt;Close();
+          contourSet-&gt;AddContourModel(contourSequence);
+        } while (contourSeqObject.gotoNextItem().good());
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        MITK_WARN &lt;&lt; "contourSeqObject has no items in sequence. Object is neglected and not read. Struct name: " &lt;&lt; this-&gt;FindRoiByNumber(refRoiNumber)-&gt;Name &lt;&lt; std::endl;</span>
+      }
+
+<span style = "background-color:#fdd">      RoiEntry* refROI = this-&gt;FindRoiByNumber(refRoiNumber);</span>
+
+<span style = "background-color:#fdd">      if (refROI == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "Can not find references ROI" &lt;&lt; std::endl;
+        continue;</span>
+      }
+
+      Sint32 roiColor;
+
+<span style = "background-color:#fdd">      for (unsigned int j = 0; j &lt; 3; j++)</span>
+      {
+<span style = "background-color:#fdd">        currentRoiObject.getROIDisplayColor(roiColor, j);
+        refROI-&gt;DisplayColor[j] = roiColor / 255.0;
+      }</span>
+
+<span style = "background-color:#fdd">      refROI-&gt;ContourModelSet = contourSet;
+      contourSet-&gt;SetProperty("name", mitk::StringProperty::New(refROI-&gt;Name));
+      contourSet-&gt;SetProperty("contour.color", mitk::ColorProperty::New(</span>
+        refROI-&gt;DisplayColor[0],
+        refROI-&gt;DisplayColor[1],
+        refROI-&gt;DisplayColor[2]));
+
+<span style = "background-color:#fdd">    } while (roiContourSeqObject.gotoNextItem().good());</span>
+
+<span style = "background-color:#fdd">    for (auto const&amp; aROI : ROISequenceVector)</span>
+    {
+<span style = "background-color:#fdd">      result.push_back(aROI.ContourModelSet.GetPointer());
+      result.at(result.size() - 1)-&gt;SetProperty("name", aROI.ContourModelSet-&gt;GetProperty("name"));
+      result.at(result.size() - 1)-&gt;SetProperty("color", aROI.ContourModelSet-&gt;GetProperty("contour.color"));
+      result.at(result.size() - 1)-&gt;SetProperty("contour.color", aROI.ContourModelSet-&gt;GetProperty("contour.color"));
+      SetProperties(result.at(result.size() - 1).GetPointer(), findings);
+    }</span>
+
+<span style = "background-color:#fdd">    return result;
+  }</span>
+
+  RTStructureSetReaderService* RTStructureSetReaderService::Clone() const
+<span style = "background-color:#fdd">  {
+    return new RTStructureSetReaderService(*this);
+  }</span>
+
+}</pre>
+	</body>
+</html>

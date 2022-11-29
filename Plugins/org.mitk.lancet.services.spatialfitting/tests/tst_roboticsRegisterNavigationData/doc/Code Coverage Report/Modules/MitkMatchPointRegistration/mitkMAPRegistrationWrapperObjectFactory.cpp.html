@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMAPRegistrationWrapperObjectFactory.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkMAPRegistrationWrapperObjectFactory.h"
+
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkBaseRenderer.h&gt;
+#include &lt;mitkDataNode.h&gt;
+
+#include "mitkRegistrationWrapperMapper2D.h"
+#include "mitkRegistrationWrapperMapper3D.h"
+#include "mitkMAPRegistrationWrapper.h"
+
+typedef std::multimap&lt;std::string, std::string&gt; MultimapType;
+
+mitk::MAPRegistrationWrapperObjectFactory::MAPRegistrationWrapperObjectFactory()
+<span style = "background-color:#dfd">: CoreObjectFactoryBase()
+{</span>
+  static bool alreadyDone = false;
+<span style = "background-color:#dfd">  if (!alreadyDone)</span>
+  {
+<span style = "background-color:#dfd">    alreadyDone = true;</span>
+  }
+
+<span style = "background-color:#dfd">}</span>
+
+mitk::MAPRegistrationWrapperObjectFactory::~MAPRegistrationWrapperObjectFactory()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::Mapper::Pointer
+mitk::MAPRegistrationWrapperObjectFactory::
+CreateMapper(mitk::DataNode* node, MapperSlotId slotId)
+<span style = "background-color:#fdd">{
+    mitk::Mapper::Pointer newMapper=nullptr;</span>
+
+<span style = "background-color:#fdd">    if ( slotId == mitk::BaseRenderer::Standard2D )</span>
+    {
+<span style = "background-color:#fdd">        std::string classname("MAPRegistrationWrapper");
+        if(node-&gt;GetData() &amp;&amp; classname.compare(node-&gt;GetData()-&gt;GetNameOfClass())==0)</span>
+        {
+<span style = "background-color:#fdd">          newMapper = mitk::MITKRegistrationWrapperMapper2D::New();
+          newMapper-&gt;SetDataNode(node);</span>
+        }
+<span style = "background-color:#fdd">    }
+    else if ( slotId == mitk::BaseRenderer::Standard3D )</span>
+    {
+<span style = "background-color:#fdd">      std::string classname("MAPRegistrationWrapper");
+      if(node-&gt;GetData() &amp;&amp; classname.compare(node-&gt;GetData()-&gt;GetNameOfClass())==0)</span>
+      {
+<span style = "background-color:#fdd">        newMapper = mitk::MITKRegistrationWrapperMapper3D::New();
+        newMapper-&gt;SetDataNode(node);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    return newMapper;
+};</span>
+
+void mitk::MAPRegistrationWrapperObjectFactory::SetDefaultProperties(mitk::DataNode* node)
+<span style = "background-color:#fdd">{
+  if(node==nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  mitk::DataNode::Pointer nodePointer = node;</span>
+
+<span style = "background-color:#fdd">  if(node-&gt;GetData() ==nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  if( dynamic_cast&lt;mitk::MAPRegistrationWrapper*&gt;(node-&gt;GetData())!=nullptr )</span>
+  {
+<span style = "background-color:#fdd">    mitk::MITKRegistrationWrapperMapperBase::SetDefaultProperties(node);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+std::string mitk::MAPRegistrationWrapperObjectFactory::GetFileExtensions()
+<span style = "background-color:#dfd">{
+  std::string fileExtension;
+  this-&gt;CreateFileExtensions({}, fileExtension);
+  return fileExtension.c_str();
+};</span>
+
+mitk::CoreObjectFactoryBase::MultimapType mitk::MAPRegistrationWrapperObjectFactory::GetFileExtensionsMap()
+<span style = "background-color:#dfd">{
+  return {};
+}</span>
+
+std::string mitk::MAPRegistrationWrapperObjectFactory::GetSaveFileExtensions()
+<span style = "background-color:#dfd">{
+  std::string fileExtension;
+  this-&gt;CreateFileExtensions({}, fileExtension);
+  return fileExtension.c_str();
+}</span>
+
+mitk::CoreObjectFactoryBase::MultimapType mitk::MAPRegistrationWrapperObjectFactory::GetSaveFileExtensionsMap()
+<span style = "background-color:#dfd">{
+  return {};
+}</span>
+
+struct RegisterMAPRegistrationWrapperObjectFactoryHelper{
+  RegisterMAPRegistrationWrapperObjectFactoryHelper()
+<span style = "background-color:#dfd">    : m_Factory( mitk::MAPRegistrationWrapperObjectFactory::New() )
+  {
+    mitk::CoreObjectFactory::GetInstance()-&gt;RegisterExtraFactory( m_Factory );
+  }</span>
+
+  ~RegisterMAPRegistrationWrapperObjectFactoryHelper()
+<span style = "background-color:#dfd">  {
+    mitk::CoreObjectFactory::GetInstance()-&gt;UnRegisterExtraFactory( m_Factory );
+  }</span>
+
+  mitk::MAPRegistrationWrapperObjectFactory::Pointer m_Factory;
+};
+
+<span style = "background-color:#dfd">static RegisterMAPRegistrationWrapperObjectFactoryHelper registerMITKRegistrationWrapperIOFactoryHelper;</span></pre>
+	</body>
+</html>

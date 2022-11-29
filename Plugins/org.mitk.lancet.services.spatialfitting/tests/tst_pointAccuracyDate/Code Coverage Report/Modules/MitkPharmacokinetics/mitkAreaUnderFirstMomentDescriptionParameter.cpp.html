@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkAreaUnderFirstMomentDescriptionParameter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkAreaUnderFirstMomentDescriptionParameter.h"
+
+<span style = "background-color:#dfd">const std::string mitk::AreaUnderFirstMomentDescriptionParameter::PARAMETER_NAME = "AreaUnderFirstMoment";</span>
+
+mitk::AreaUnderFirstMomentDescriptionParameter::AreaUnderFirstMomentDescriptionParameter()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::AreaUnderFirstMomentDescriptionParameter::~AreaUnderFirstMomentDescriptionParameter()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::CurveDescriptionParameterBase::DescriptionParameterNamesType mitk::AreaUnderFirstMomentDescriptionParameter::GetDescriptionParameterName() const
+<span style = "background-color:#fdd">{
+  DescriptionParameterNamesType result = { PARAMETER_NAME };
+  return result;
+}</span>
+
+mitk::CurveDescriptionParameterBase::DescriptionParameterResultsType mitk::AreaUnderFirstMomentDescriptionParameter::ComputeCurveDescriptionParameter(const CurveType &amp;curve, const CurveGridType &amp;grid) const
+<span style = "background-color:#fdd">{
+  DescriptionParameterResultsType results;
+  CurveDescriptionParameterResultType aumc = 0;
+  auto steps = grid.GetSize();</span>
+
+<span style = "background-color:#fdd">  for (CurveGridType::size_type i = 0; i &lt; steps - 1; ++i)</span>
+  {
+<span style = "background-color:#fdd">    double deltaX = grid(i + 1) - grid(i);
+    double deltaY = curve(i + 1)*grid(i + 1) - curve(i)*grid(i);
+    double Yi = curve(i)*grid(i);</span>
+
+<span style = "background-color:#fdd">    double intI = 1 / 2 * deltaX * deltaY + Yi * deltaX;</span>
+
+<span style = "background-color:#fdd">    aumc += std::abs(intI);</span>
+
+<span style = "background-color:#fdd">  }
+  results.push_back(aumc);
+  return results;
+}</span></pre>
+	</body>
+</html>

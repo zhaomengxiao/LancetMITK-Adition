@@ -1,0 +1,296 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTrackingTool.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTrackingTool.h"
+
+mitk::TrackingTool::TrackingTool()
+<span style = "background-color:#fdd">: itk::Object(),
+  m_ToolName(""),
+  m_ErrorMessage(""),
+  m_IGTTimeStamp(0),
+  m_TrackingError(0.0f),
+  m_Enabled(true),
+  m_DataValid(false),
+  m_ToolTipSet(false)
+{
+  m_Position[0] = 0.0f;
+  m_Position[1] = 0.0f;
+  m_Position[2] = 0.0f;
+  m_Orientation[0] = 0.0f;
+  m_Orientation[1] = 0.0f;
+  m_Orientation[2] = 0.0f;
+  m_Orientation[3] = 0.0f;</span>
+  // this should not be necessary as the tools bring their own tooltip transformation
+<span style = "background-color:#fdd">  m_ToolTipPosition[0] = 0.0f;
+  m_ToolTipPosition[1] = 0.0f;
+  m_ToolTipPosition[2] = 0.0f;
+  m_ToolAxisOrientation[0] = 0.0f;
+  m_ToolAxisOrientation[1] = 0.0f;
+  m_ToolAxisOrientation[2] = 0.0f;
+  m_ToolAxisOrientation[3] = 1.0f;
+}</span>
+
+mitk::TrackingTool::~TrackingTool()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::TrackingTool::PrintSelf(std::ostream&amp; os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);
+  os &lt;&lt; indent &lt;&lt; "ToolName: " &lt;&lt; m_ToolName &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "ErrorMesage: " &lt;&lt; m_ErrorMessage &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Position: " &lt;&lt; m_Position &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Orientation: " &lt;&lt; m_Orientation &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "TrackingError: " &lt;&lt; m_TrackingError &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Enabled: " &lt;&lt; m_Enabled &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "DataValid: " &lt;&lt; m_DataValid &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "ToolTip: " &lt;&lt; m_ToolTipPosition &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "ToolTipRotation: " &lt;&lt; m_ToolAxisOrientation &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "ToolTipSet: " &lt;&lt; m_ToolTipSet &lt;&lt; std::endl;
+}</span>
+
+const char* mitk::TrackingTool::GetToolName() const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  return this-&gt;m_ToolName.c_str();
+}</span>
+
+void mitk::TrackingTool::SetToolName(const char* _arg)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("setting m_ToolName to " &lt;&lt; _arg);
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  if ( _arg &amp;&amp; (_arg == this-&gt;m_ToolName) )</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+<span style = "background-color:#fdd">  if (_arg)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_ToolName= _arg;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;m_ToolName= "";</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;Modified();
+}</span>
+
+
+void mitk::TrackingTool::SetToolName( const std::string _arg )
+<span style = "background-color:#fdd">{
+  this-&gt;SetToolName(_arg.c_str());
+}</span>
+
+mitk::Point3D mitk::TrackingTool::GetToolTipPosition() const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  return m_ToolTipPosition;
+}</span>
+
+mitk::Quaternion mitk::TrackingTool::GetToolAxisOrientation() const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  return m_ToolAxisOrientation;
+}</span>
+
+void mitk::TrackingTool::SetToolTipPosition(mitk::Point3D toolTipPosition,
+                                    mitk::Quaternion orientation,
+                                    mitk::ScalarType eps)
+<span style = "background-color:#fdd">{
+  if ( !Equal(m_ToolTipPosition, toolTipPosition, eps) ||</span>
+       !Equal(m_ToolAxisOrientation, orientation, eps) )
+  {
+    if( (toolTipPosition[0] == 0) &amp;&amp;
+        (toolTipPosition[1] == 0) &amp;&amp;
+        (toolTipPosition[2] == 0) &amp;&amp;
+        (orientation.x() == 0) &amp;&amp;
+        (orientation.y() == 0) &amp;&amp;
+<span style = "background-color:#fdd">        (orientation.z() == 0) &amp;&amp;</span>
+        (orientation.r() == 1))
+    {
+<span style = "background-color:#fdd">      m_ToolTipSet = false;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      m_ToolTipSet = true;</span>
+    }
+<span style = "background-color:#fdd">    m_ToolTipPosition = toolTipPosition;
+    m_ToolAxisOrientation = orientation;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::TrackingTool::IsToolTipSet() const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  return m_ToolTipSet;
+}</span>
+
+void mitk::TrackingTool::GetPosition(mitk::Point3D&amp; position) const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  if (m_ToolTipSet)</span>
+  {
+    // Compute the position of tool tip in the coordinate frame of the
+    // tracking device: Rotate the position of the tip into the tracking
+    // device coordinate frame then add to the position of the tracking
+    // sensor
+<span style = "background-color:#fdd">    vnl_vector&lt;mitk::ScalarType&gt; pos_vnl = m_Position.GetVnlVector() + m_Orientation.rotate( m_ToolTipPosition.GetVnlVector() ) ;</span>
+
+<span style = "background-color:#fdd">    position[0] = pos_vnl[0];
+    position[1] = pos_vnl[1];
+    position[2] = pos_vnl[2];
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    position[0] = m_Position[0];
+    position[1] = m_Position[1];
+    position[2] = m_Position[2];</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;Modified();
+}</span>
+
+void mitk::TrackingTool::SetPosition(mitk::Point3D position)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("setting m_Position to " &lt;&lt; position);</span>
+
+<span style = "background-color:#fdd">  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  if (m_Position != position)</span>
+  {
+<span style = "background-color:#fdd">    m_Position = position;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::TrackingTool::GetOrientation(mitk::Quaternion&amp; orientation) const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  if (m_ToolTipSet)</span>
+  {
+    // Compute the orientation of the tool tip in the coordinate frame of
+    // the tracking device.
+    //
+    //   * m_Orientation is the orientation of the sensor relative to the transmitter
+    //   * m_ToolAxisOrientation is the orientation of the tool tip relative to the sensor
+<span style = "background-color:#fdd">    orientation = m_Orientation * m_ToolAxisOrientation;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    orientation = m_Orientation;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::TrackingTool::SetOrientation(mitk::Quaternion orientation)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("setting m_Orientation to " &lt;&lt; orientation);</span>
+
+<span style = "background-color:#fdd">  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  if (m_Orientation != orientation)</span>
+  {
+<span style = "background-color:#fdd">    m_Orientation = orientation;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::TrackingTool::Enable()
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  if (m_Enabled == false)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_Enabled = true;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+bool mitk::TrackingTool::Disable()
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  if (m_Enabled == true)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_Enabled = false;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+bool mitk::TrackingTool::IsEnabled() const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  return m_Enabled;
+}</span>
+
+void mitk::TrackingTool::SetDataValid(bool isDataValid)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("setting m_DataValid to " &lt;&lt; isDataValid);
+  if (this-&gt;m_DataValid != isDataValid)</span>
+  {
+<span style = "background-color:#fdd">    std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+    this-&gt;m_DataValid = isDataValid;
+    this-&gt;Modified();
+  }
+}</span>
+
+bool mitk::TrackingTool::IsDataValid() const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  return m_DataValid;
+}</span>
+
+float mitk::TrackingTool::GetTrackingError() const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  return m_TrackingError;
+}</span>
+
+void mitk::TrackingTool::SetTrackingError(float error)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("setting m_TrackingError to " &lt;&lt; error);
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  if (m_TrackingError != error)</span>
+  {
+<span style = "background-color:#fdd">    m_TrackingError = error;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const char* mitk::TrackingTool::GetErrorMessage() const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  return this-&gt;m_ErrorMessage.c_str();
+}</span>
+
+void mitk::TrackingTool::SetErrorMessage(const char* _arg)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("setting m_ErrorMessage to " &lt;&lt; _arg);
+  std::lock_guard&lt;std::mutex&gt; lock(m_MyMutex);
+  if ((_arg == nullptr) || (_arg == this-&gt;m_ErrorMessage))
+    return;</span>
+
+<span style = "background-color:#fdd">  if (_arg != nullptr)
+    this-&gt;m_ErrorMessage = _arg;</span>
+  else
+<span style = "background-color:#fdd">    this-&gt;m_ErrorMessage = "";
+  this-&gt;Modified();
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkExtractImageFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkExtractImageFilter.h"
+#include "mitkITKImageImport.h"
+#include "mitkImageCast.h"
+#include "mitkImageTimeSelector.h"
+#include "mitkPlaneGeometry.h"
+
+#include &lt;itkExtractImageFilter.h&gt;
+
+#include &lt;mitkImageAccessByItk.h&gt;
+
+mitk::ExtractImageFilter::ExtractImageFilter()
+<span style = "background-color:#fdd">  : m_SliceIndex(0), m_SliceDimension(0), m_TimeStep(0), m_DirectionCollapseToStrategy(DIRECTIONCOLLAPSETOGUESS)
+{
+  MITK_WARN &lt;&lt; "Class ExtractImageFilter is deprecated! Use ExtractSliceFilter instead.";
+}</span>
+
+mitk::ExtractImageFilter::~ExtractImageFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ExtractImageFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  Image::ConstPointer input = ImageToImageFilter::GetInput(0);</span>
+
+<span style = "background-color:#fdd">  if ((input-&gt;GetDimension() &gt; 4) || (input-&gt;GetDimension() &lt; 2))</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::ExtractImageFilter:GenerateData works only with 3D and 3D+t images, sorry." &lt;&lt; std::endl;
+    itkExceptionMacro("mitk::ExtractImageFilter works only with 3D and 3D+t images, sorry.");
+    return;
+  }
+  else if (input-&gt;GetDimension() == 4)</span>
+  {
+<span style = "background-color:#fdd">    mitk::ImageTimeSelector::Pointer timeSelector = ImageTimeSelector::New();
+    timeSelector-&gt;SetInput(input);
+    timeSelector-&gt;SetTimeNr(m_TimeStep);
+    timeSelector-&gt;UpdateLargestPossibleRegion();
+    input = timeSelector-&gt;GetOutput();
+  }
+  else if (input-&gt;GetDimension() == 2)</span>
+  {
+<span style = "background-color:#fdd">    Image::Pointer resultImage = ImageToImageFilter::GetOutput();
+    resultImage = const_cast&lt;Image *&gt;(input.GetPointer());
+    ImageToImageFilter::SetNthOutput(0, resultImage);
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_SliceDimension &gt;= input-&gt;GetDimension())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::ExtractImageFilter:GenerateData  m_SliceDimension == " &lt;&lt; m_SliceDimension</span>
+               &lt;&lt; " makes no sense with an " &lt;&lt; input-&gt;GetDimension() &lt;&lt; "D image." &lt;&lt; std::endl;
+<span style = "background-color:#fdd">    itkExceptionMacro("This is not a sensible value for m_SliceDimension.");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  AccessFixedDimensionByItk(input, ItkImageProcessing, 3);</span>
+
+  // set a nice geometry for display and point transformations
+<span style = "background-color:#fdd">  BaseGeometry *inputImageGeometry = ImageToImageFilter::GetInput(0)-&gt;GetGeometry();
+  if (!inputImageGeometry)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "In ExtractImageFilter::ItkImageProcessing: Input image has no geometry!" &lt;&lt; std::endl;
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  PlaneGeometry::PlaneOrientation orientation = PlaneGeometry::Axial;</span>
+
+<span style = "background-color:#fdd">  switch (m_SliceDimension)</span>
+  {
+    default:
+    case 2:
+<span style = "background-color:#fdd">      orientation = PlaneGeometry::Axial;
+      break;</span>
+    case 1:
+<span style = "background-color:#fdd">      orientation = PlaneGeometry::Frontal;
+      break;</span>
+    case 0:
+<span style = "background-color:#fdd">      orientation = PlaneGeometry::Sagittal;</span>
+      break;
+  }
+
+<span style = "background-color:#fdd">  PlaneGeometry::Pointer planeGeometry = PlaneGeometry::New();
+  planeGeometry-&gt;InitializeStandardPlane(inputImageGeometry, orientation, (ScalarType)m_SliceIndex, true, false);
+  Image::Pointer resultImage = ImageToImageFilter::GetOutput();
+  planeGeometry-&gt;ChangeImageGeometryConsideringOriginOffset(true);
+  resultImage-&gt;SetGeometry(planeGeometry);
+}</span>
+
+template &lt;typename TPixel, unsigned int VImageDimension&gt;
+void mitk::ExtractImageFilter::ItkImageProcessing(const itk::Image&lt;TPixel, VImageDimension&gt; *itkImage)
+<span style = "background-color:#fdd">{</span>
+  // use the itk::ExtractImageFilter to get a 2D image
+  typedef itk::Image&lt;TPixel, VImageDimension&gt; ImageType3D;
+  typedef itk::Image&lt;TPixel, VImageDimension - 1&gt; ImageType2D;
+
+  typedef itk::ExtractImageFilter&lt;ImageType3D, ImageType2D&gt; ExtractImageFilterType;
+<span style = "background-color:#fdd">  typename ImageType3D::RegionType inSliceRegion = itkImage-&gt;GetLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">  inSliceRegion.SetSize(m_SliceDimension, 0);</span>
+
+<span style = "background-color:#fdd">  typename ExtractImageFilterType::Pointer sliceExtractor = ExtractImageFilterType::New();</span>
+
+  typename ExtractImageFilterType::DirectionCollapseStrategyEnum collapseStrategy;
+<span style = "background-color:#fdd">  switch (m_DirectionCollapseToStrategy)</span>
+  {
+    case DIRECTIONCOLLAPSETOUNKOWN:
+<span style = "background-color:#fdd">      collapseStrategy = ExtractImageFilterType::DirectionCollapseStrategyEnum::DIRECTIONCOLLAPSETOUNKOWN;
+      break;</span>
+    case DIRECTIONCOLLAPSETOIDENTITY:
+<span style = "background-color:#fdd">      collapseStrategy = ExtractImageFilterType::DirectionCollapseStrategyEnum::DIRECTIONCOLLAPSETOIDENTITY;
+      break;</span>
+    case DIRECTIONCOLLAPSETOSUBMATRIX:
+<span style = "background-color:#fdd">      collapseStrategy = ExtractImageFilterType::DirectionCollapseStrategyEnum::DIRECTIONCOLLAPSETOSUBMATRIX;
+      break;</span>
+    case DIRECTIONCOLLAPSETOGUESS:
+    default:
+<span style = "background-color:#fdd">      collapseStrategy = ExtractImageFilterType::DirectionCollapseStrategyEnum::DIRECTIONCOLLAPSETOGUESS;</span>
+      break;
+  }
+
+<span style = "background-color:#fdd">  sliceExtractor-&gt;SetDirectionCollapseToStrategy(collapseStrategy);
+  sliceExtractor-&gt;SetInput(itkImage);</span>
+
+<span style = "background-color:#fdd">  inSliceRegion.SetIndex(m_SliceDimension, m_SliceIndex);</span>
+
+<span style = "background-color:#fdd">  sliceExtractor-&gt;SetExtractionRegion(inSliceRegion);</span>
+
+  // calculate the output
+<span style = "background-color:#fdd">  sliceExtractor-&gt;UpdateLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">  typename ImageType2D::Pointer slice = sliceExtractor-&gt;GetOutput();</span>
+
+  // re-import to MITK
+<span style = "background-color:#fdd">  Image::Pointer resultImage = ImageToImageFilter::GetOutput();
+  GrabItkImageMemory(slice, resultImage, nullptr, false);
+}</span>
+
+/*
+ * What is the input requested region that is required to produce the output
+ * requested region? By default, the largest possible region is always
+ * required but this is overridden in many subclasses. For instance, for an
+ * image processing filter where an output pixel is a simple function of an
+ * input pixel, the input requested region will be set to the output
+ * requested region. For an image processing filter where an output pixel is
+ * a function of the pixels in a neighborhood of an input pixel, then the
+ * input requested region will need to be larger than the output requested
+ * region (to avoid introducing artificial boundary conditions). This
+ * function should never request an input region that is outside the the
+ * input largest possible region (i.e. implementations of this method should
+ * crop the input requested region at the boundaries of the input largest
+ * possible region).
+ */
+void mitk::ExtractImageFilter::GenerateInputRequestedRegion()
+<span style = "background-color:#fdd">{
+  Superclass::GenerateInputRequestedRegion();</span>
+
+<span style = "background-color:#fdd">  ImageToImageFilter::InputImagePointer input = dynamic_cast&lt;ImageToImageFilter::InputImageType *&gt;(this-&gt;GetInput());
+  Image::Pointer output = this-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  if (input-&gt;GetDimension() == 2)</span>
+  {
+<span style = "background-color:#fdd">    input-&gt;SetRequestedRegionToLargestPossibleRegion();
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  Image::RegionType requestedRegion;
+  requestedRegion = output-&gt;GetRequestedRegion();
+  requestedRegion.SetIndex(0, 0);
+  requestedRegion.SetIndex(1, 0);
+  requestedRegion.SetIndex(2, 0);
+  requestedRegion.SetSize(0, input-&gt;GetDimension(0));
+  requestedRegion.SetSize(1, input-&gt;GetDimension(1));
+  requestedRegion.SetSize(2, input-&gt;GetDimension(2));</span>
+
+<span style = "background-color:#fdd">  requestedRegion.SetIndex(m_SliceDimension, m_SliceIndex); // only one slice needed
+  requestedRegion.SetSize(m_SliceDimension, 1);</span>
+
+<span style = "background-color:#fdd">  input-&gt;SetRequestedRegion(&amp;requestedRegion);
+}</span>
+
+/*
+ * Generate the information decribing the output data. The default
+ * implementation of this method will copy information from the input to the
+ * output. A filter may override this method if its output will have different
+ * information than its input. For instance, a filter that shrinks an image will
+ * need to provide an implementation for this method that changes the spacing of
+ * the pixels. Such filters should call their superclass' implementation of this
+ * method prior to changing the information values they need (i.e.
+ * GenerateOutputInformation() should call
+ * Superclass::GenerateOutputInformation() prior to changing the information.
+ */
+void mitk::ExtractImageFilter::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+  Image::Pointer output = this-&gt;GetOutput();
+  Image::ConstPointer input = this-&gt;GetInput();
+  if (input.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  if (m_SliceDimension &gt;= input-&gt;GetDimension() &amp;&amp; input-&gt;GetDimension() != 2)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::ExtractImageFilter:GenerateOutputInformation  m_SliceDimension == " &lt;&lt; m_SliceDimension</span>
+               &lt;&lt; " makes no sense with an " &lt;&lt; input-&gt;GetDimension() &lt;&lt; "D image." &lt;&lt; std::endl;
+<span style = "background-color:#fdd">    itkExceptionMacro("This is not a sensible value for m_SliceDimension.");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  unsigned int sliceDimension(m_SliceDimension);
+  if (input-&gt;GetDimension() == 2)</span>
+  {
+<span style = "background-color:#fdd">    sliceDimension = 2;</span>
+  }
+
+  unsigned int tmpDimensions[2];
+
+<span style = "background-color:#fdd">  switch (sliceDimension)</span>
+  {
+    default:
+    case 2:
+      // orientation = PlaneGeometry::Axial;
+<span style = "background-color:#fdd">      tmpDimensions[0] = input-&gt;GetDimension(0);
+      tmpDimensions[1] = input-&gt;GetDimension(1);
+      break;</span>
+    case 1:
+      // orientation = PlaneGeometry::Frontal;
+<span style = "background-color:#fdd">      tmpDimensions[0] = input-&gt;GetDimension(0);
+      tmpDimensions[1] = input-&gt;GetDimension(2);
+      break;</span>
+    case 0:
+      // orientation = PlaneGeometry::Sagittal;
+<span style = "background-color:#fdd">      tmpDimensions[0] = input-&gt;GetDimension(1);
+      tmpDimensions[1] = input-&gt;GetDimension(2);</span>
+      break;
+  }
+
+<span style = "background-color:#fdd">  output-&gt;Initialize(input-&gt;GetPixelType(), 2, tmpDimensions, 1 /*input-&gt;GetNumberOfChannels()*/);</span>
+
+  // initialize the spacing of the output
+  /*
+    Vector3D spacing = input-&gt;GetSlicedGeometry()-&gt;GetSpacing();
+    if(input-&gt;GetDimension()&gt;=2)
+      spacing[2]=spacing[1];
+    else
+      spacing[2] = 1.0;
+    output-&gt;GetSlicedGeometry()-&gt;SetSpacing(spacing);
+  */
+
+<span style = "background-color:#fdd">  output-&gt;SetPropertyList(input-&gt;GetPropertyList()-&gt;Clone());
+}</span></pre>
+	</body>
+</html>

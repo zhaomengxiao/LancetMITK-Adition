@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>vtkGLMapperProp.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "vtkGLMapperProp.h"
+
+#include &lt;vtkObjectFactory.h&gt;
+
+<span style = "background-color:#fdd">vtkStandardNewMacro(vtkGLMapperProp);</span>
+
+<span style = "background-color:#fdd">vtkGLMapperProp::vtkGLMapperProp() : m_WrappedGLMapper(nullptr), m_BaseRenderer(nullptr)
+{
+}</span>
+
+vtkGLMapperProp::~vtkGLMapperProp()
+<span style = "background-color:#fdd">{
+}</span>
+
+int vtkGLMapperProp::RenderOpaqueGeometry(vtkViewport *)
+<span style = "background-color:#fdd">{
+  if (!m_WrappedGLMapper || !m_BaseRenderer)
+    return 0;</span>
+
+<span style = "background-color:#fdd">  this-&gt;m_WrappedGLMapper-&gt;MitkRender(m_BaseRenderer, mitk::VtkPropRenderer::Opaque);
+  return 1;
+}</span>
+
+int vtkGLMapperProp::RenderTranslucentPolygonalGeometry(vtkViewport *)
+<span style = "background-color:#fdd">{
+  return 0;
+}</span>
+
+int vtkGLMapperProp::RenderVolumetricGeometry(vtkViewport *)
+<span style = "background-color:#fdd">{
+  return 0;
+}</span>
+
+int vtkGLMapperProp::RenderOverlay(vtkViewport *)
+<span style = "background-color:#fdd">{
+  return 0;
+}</span>
+
+const mitk::GLMapper *vtkGLMapperProp::GetWrappedGLMapper() const
+<span style = "background-color:#fdd">{
+  return m_WrappedGLMapper;
+}</span>
+
+void vtkGLMapperProp::SetWrappedGLMapper(mitk::GLMapper *glMapper)
+<span style = "background-color:#fdd">{
+  this-&gt;m_WrappedGLMapper = glMapper;
+}</span>
+
+void vtkGLMapperProp::SetBaseRenderer(mitk::BaseRenderer *baseRenderer)
+<span style = "background-color:#fdd">{
+  this-&gt;m_BaseRenderer = baseRenderer;
+}</span></pre>
+	</body>
+</html>

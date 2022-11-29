@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlanarCircle.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef _MITK_PLANAR_CIRCLE_H_
+#define _MITK_PLANAR_CIRCLE_H_
+
+#include "mitkPlanarFigure.h"
+#include &lt;MitkPlanarFigureExports.h&gt;
+
+namespace mitk
+{
+  class PlaneGeometry;
+
+  /**
+   * \brief Implementation of PlanarFigure representing a circle
+   * either through two control points or by one control point (fixed radius mode)
+   * The mode is defined by the chosen constructor.
+   */
+  class MITKPLANARFIGURE_EXPORT PlanarCircle : public PlanarFigure
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(PlanarCircle, PlanarFigure);
+    mitkNewMacro1Param(PlanarCircle, double);
+    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+      /** \brief Place figure in its minimal configuration (a point at least)
+       * onto the given 2D geometry.
+       *
+       * Must be implemented in sub-classes.
+       */
+      // virtual void Initialize();
+
+      bool SetControlPoint(unsigned int index, const Point2D &amp;point, bool createIfDoesNotExist = false) override;
+
+    /** \brief Circle has 2 control points per definition. */
+<span style = "background-color:#fdd">    unsigned int GetMinimumNumberOfControlPoints() const override { return (m_RadiusFixed) ? 1 : 2; }</span>
+    /** \brief Circle has 2 control points per definition. */
+<span style = "background-color:#fdd">    unsigned int GetMaximumNumberOfControlPoints() const override { return (m_RadiusFixed) ? 1 : 2; }</span>
+    /** \brief Sets the minimum radius
+    */
+<span style = "background-color:#fdd">    void SetMinimumRadius(double radius) { m_MinRadius = radius; }</span>
+    /** \brief Gets the minimum radius
+    */
+<span style = "background-color:#fdd">    double GetMinimumRadius() { return m_MinRadius; }</span>
+    /** \brief Sets the maximum radius
+    */
+<span style = "background-color:#fdd">    void SetMaximumRadius(double radius) { m_MaxRadius = radius; }</span>
+    /** \brief Gets the minimum radius
+    */
+<span style = "background-color:#fdd">    double GetMaximumRadius() { return m_MaxRadius; }
+    void ActivateMinMaxRadiusContstraints(bool active) { m_MinMaxRadiusContraintsActive = active; }</span>
+    bool SetCurrentControlPoint(const Point2D &amp;point) override;
+
+    bool Equals(const mitk::PlanarFigure &amp;other) const override;
+
+  protected:
+    PlanarCircle();
+    /** Constructor for fixed radius mode.*/
+    PlanarCircle(double fixedRadius);
+
+<span style = "background-color:#fdd">    mitkCloneMacro(Self);</span>
+
+    /** \brief Generates the poly-line representation of the planar figure. */
+    void GeneratePolyLine() override;
+
+    /** \brief Generates the poly-lines that should be drawn the same size regardless of zoom.*/
+    void GenerateHelperPolyLine(double mmPerDisplayUnit, unsigned int displayHeight) override;
+
+    /** \brief Spatially constrain control points of second (orthogonal) line */
+    Point2D ApplyControlPointConstraints(unsigned int index, const Point2D &amp;point) override;
+
+    /** \brief Calculates feature quantities of the planar figure. */
+    void EvaluateFeaturesInternal() override;
+
+    void PrintSelf(std::ostream &amp;os, itk::Indent indent) const override;
+
+    // Feature identifiers
+    const unsigned int FEATURE_ID_RADIUS;
+    const unsigned int FEATURE_ID_DIAMETER;
+    const unsigned int FEATURE_ID_AREA;
+
+    // Member variables:
+    double m_MinRadius;
+    double m_MaxRadius;
+    bool m_MinMaxRadiusContraintsActive;
+    //indicate if the circle is created with fixed radius. The radius is stored in m_MinRadius
+    bool m_RadiusFixed;
+
+  private:
+  };
+
+} // namespace mitk
+
+#endif //_MITK_PLANAR_CIRCLE_H_</pre>
+	</body>
+</html>

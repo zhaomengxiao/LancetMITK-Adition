@@ -1,0 +1,525 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkAffineBaseDataInteractor3D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkAffineBaseDataInteractor3D.h"
+
+#include &lt;mitkInteractionConst.h&gt;
+#include &lt;mitkInteractionPositionEvent.h&gt;
+#include &lt;mitkRotationOperation.h&gt;
+#include &lt;mitkScaleOperation.h&gt;
+#include &lt;mitkSurface.h&gt;
+
+#include &lt;mitkInteractionKeyEvent.h&gt;
+#include &lt;vtkCamera.h&gt;
+#include &lt;vtkInteractorObserver.h&gt;
+#include &lt;vtkInteractorStyle.h&gt;
+#include &lt;vtkPointData.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkRenderWindowInteractor.h&gt;
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  itkEventMacroDefinition(AffineInteractionEvent, itk::AnyEvent);
+  itkEventMacroDefinition(ScaleEvent, AffineInteractionEvent);
+  itkEventMacroDefinition(RotateEvent, AffineInteractionEvent);
+  itkEventMacroDefinition(TranslateEvent, AffineInteractionEvent);</span>
+}
+
+// Properties to allow the user to interact with the base data
+const char *translationStepSizePropertyName = "AffineBaseDataInteractor3D.Translation Step Size";
+const char *selectedColorPropertyName = "AffineBaseDataInteractor3D.Selected Color";
+const char *deselectedColorPropertyName = "AffineBaseDataInteractor3D.Deselected Color";
+const char *priorPropertyName = "AffineBaseDataInteractor3D.Prior Color";
+const char *rotationStepSizePropertyName = "AffineBaseDataInteractor3D.Rotation Step Size";
+const char *scaleStepSizePropertyName = "AffineBaseDataInteractor3D.Scale Step Size";
+const char *anchorPointX = "AffineBaseDataInteractor3D.Anchor Point X";
+const char *anchorPointY = "AffineBaseDataInteractor3D.Anchor Point Y";
+const char *anchorPointZ = "AffineBaseDataInteractor3D.Anchor Point Z";
+
+mitk::AffineBaseDataInteractor3D::AffineBaseDataInteractor3D()
+<span style = "background-color:#fdd">{
+  m_OriginalGeometry = mitk::Geometry3D::New();
+}</span>
+
+mitk::AffineBaseDataInteractor3D::~AffineBaseDataInteractor3D()
+<span style = "background-color:#fdd">{
+  this-&gt;RestoreNodeProperties();
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::ConnectActionsAndFunctions()
+<span style = "background-color:#fdd">{</span>
+  // **Conditions** that can be used in the state machine, to ensure that certain conditions are met, before actually
+  // executing an action
+<span style = "background-color:#fdd">  CONNECT_CONDITION("isOverObject", CheckOverObject);</span>
+
+  // **Function** in the statmachine patterns also referred to as **Actions**
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("selectObject", SelectObject);
+  CONNECT_FUNCTION("deselectObject", DeselectObject);
+  CONNECT_FUNCTION("initTranslate", InitTranslate);
+  CONNECT_FUNCTION("initRotate", InitRotate);
+  CONNECT_FUNCTION("translateObject", TranslateObject);
+  CONNECT_FUNCTION("rotateObject", RotateObject);
+  CONNECT_FUNCTION("scaleObject", ScaleObject);</span>
+
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("translateUpKey", TranslateUpKey);
+  CONNECT_FUNCTION("translateDownKey", TranslateDownKey);
+  CONNECT_FUNCTION("translateLeftKey", TranslateLeftKey);
+  CONNECT_FUNCTION("translateRightKey", TranslateRightKey);
+  CONNECT_FUNCTION("translateUpModifierKey", TranslateUpModifierKey);
+  CONNECT_FUNCTION("translateDownModifierKey", TranslateDownModifierKey);</span>
+
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("scaleDownKey", ScaleDownKey);
+  CONNECT_FUNCTION("scaleUpKey", ScaleUpKey);</span>
+
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("rotateUpKey", RotateUpKey);
+  CONNECT_FUNCTION("rotateDownKey", RotateDownKey);
+  CONNECT_FUNCTION("rotateLeftKey", RotateLeftKey);
+  CONNECT_FUNCTION("rotateRightKey", RotateRightKey);
+  CONNECT_FUNCTION("rotateUpModifierKey", RotateUpModifierKey);
+  CONNECT_FUNCTION("rotateDownModifierKey", RotateDownModifierKey);
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::TranslateUpKey(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(translationStepSizePropertyName, stepSize);
+  mitk::Vector3D movementVector;
+  movementVector.Fill(0.0);
+  movementVector.SetElement(2, stepSize);
+  this-&gt;TranslateGeometry(movementVector, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::TranslateDownKey(mitk::StateMachineAction *,
+                                                        mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(translationStepSizePropertyName, stepSize);
+  mitk::Vector3D movementVector;
+  movementVector.Fill(0.0);
+  movementVector.SetElement(2, -stepSize);
+  this-&gt;TranslateGeometry(movementVector, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::TranslateLeftKey(mitk::StateMachineAction *,
+                                                        mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(translationStepSizePropertyName, stepSize);
+  mitk::Vector3D movementVector;
+  movementVector.Fill(0.0);
+  movementVector.SetElement(0, -stepSize);
+  this-&gt;TranslateGeometry(movementVector, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::TranslateRightKey(mitk::StateMachineAction *,
+                                                         mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(translationStepSizePropertyName, stepSize);
+  mitk::Vector3D movementVector;
+  movementVector.Fill(0.0);
+  movementVector.SetElement(0, stepSize);
+  this-&gt;TranslateGeometry(movementVector, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::TranslateUpModifierKey(mitk::StateMachineAction *,
+                                                              mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(translationStepSizePropertyName, stepSize);
+  mitk::Vector3D movementVector;
+  movementVector.Fill(0.0);
+  movementVector.SetElement(1, stepSize);
+  this-&gt;TranslateGeometry(movementVector, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::TranslateDownModifierKey(mitk::StateMachineAction *,
+                                                                mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(translationStepSizePropertyName, stepSize);
+  mitk::Vector3D movementVector;
+  movementVector.Fill(0.0);
+  movementVector.SetElement(1, -stepSize);
+  this-&gt;TranslateGeometry(movementVector, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::RotateUpKey(mitk::StateMachineAction *, mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(rotationStepSizePropertyName, stepSize);
+  this-&gt;RotateGeometry(-stepSize, 0, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::RotateDownKey(mitk::StateMachineAction *,
+                                                     mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(rotationStepSizePropertyName, stepSize);
+  this-&gt;RotateGeometry(stepSize, 0, this-&gt;GetUpdatedTimeGeometry(interactionEvent));</span>
+  return;
+<span style = "background-color:#fdd">}</span>
+
+void mitk::AffineBaseDataInteractor3D::RotateLeftKey(mitk::StateMachineAction *,
+                                                     mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(rotationStepSizePropertyName, stepSize);
+  this-&gt;RotateGeometry(-stepSize, 2, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::RotateRightKey(mitk::StateMachineAction *,
+                                                      mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(rotationStepSizePropertyName, stepSize);
+  this-&gt;RotateGeometry(stepSize, 2, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::RotateUpModifierKey(mitk::StateMachineAction *,
+                                                           mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(rotationStepSizePropertyName, stepSize);
+  this-&gt;RotateGeometry(stepSize, 1, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::RotateDownModifierKey(mitk::StateMachineAction *,
+                                                             mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(rotationStepSizePropertyName, stepSize);
+  this-&gt;RotateGeometry(-stepSize, 1, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::ScaleUpKey(mitk::StateMachineAction *, mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 0.1f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(scaleStepSizePropertyName, stepSize);
+  mitk::Point3D newScale;
+  newScale.Fill(stepSize);
+  this-&gt;ScaleGeometry(newScale, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::ScaleDownKey(mitk::StateMachineAction *,
+                                                    mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float stepSize = 0.1f;
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(scaleStepSizePropertyName, stepSize);
+  mitk::Point3D newScale;
+  newScale.Fill(-stepSize);
+  this-&gt;ScaleGeometry(newScale, this-&gt;GetUpdatedTimeGeometry(interactionEvent));
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::ScaleGeometry(mitk::Point3D newScale, mitk::BaseGeometry *geometry)
+<span style = "background-color:#fdd">{
+  mitk::Point3D anchorPoint;
+  float pointX = 0.0f;
+  float pointY = 0.0f;
+  float pointZ = 0.0f;
+  anchorPoint.Fill(0.0);
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(anchorPointX, pointX);
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(anchorPointY, pointY);
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(anchorPointZ, pointZ);
+  anchorPoint[0] = pointX;
+  anchorPoint[1] = pointY;
+  anchorPoint[2] = pointZ;</span>
+
+<span style = "background-color:#fdd">  auto *doOp = new mitk::ScaleOperation(OpSCALE, newScale, anchorPoint);
+  geometry-&gt;ExecuteOperation(doOp);</span>
+
+<span style = "background-color:#fdd">  mitk::RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::RotateGeometry(mitk::ScalarType angle,
+                                                      int rotationaxis,
+                                                      mitk::BaseGeometry *geometry)
+<span style = "background-color:#fdd">{
+  mitk::Vector3D rotationAxis = geometry-&gt;GetAxisVector(rotationaxis);
+  float pointX = 0.0f;
+  float pointY = 0.0f;
+  float pointZ = 0.0f;
+  mitk::Point3D pointOfRotation;
+  pointOfRotation.Fill(0.0);
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(anchorPointX, pointX);
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(anchorPointY, pointY);
+  this-&gt;GetDataNode()-&gt;GetFloatProperty(anchorPointZ, pointZ);
+  pointOfRotation[0] = pointX;
+  pointOfRotation[1] = pointY;
+  pointOfRotation[2] = pointZ;</span>
+
+<span style = "background-color:#fdd">  auto *doOp = new mitk::RotationOperation(OpROTATE, pointOfRotation, rotationAxis, angle);</span>
+
+<span style = "background-color:#fdd">  geometry-&gt;ExecuteOperation(doOp);
+  delete doOp;
+  mitk::RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::TranslateGeometry(mitk::Vector3D translate, mitk::BaseGeometry *geometry)
+<span style = "background-color:#fdd">{
+  geometry-&gt;Translate(translate);
+  this-&gt;GetDataNode()-&gt;Modified();
+  mitk::RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+mitk::BaseGeometry *mitk::AffineBaseDataInteractor3D::GetUpdatedTimeGeometry(mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{</span>
+  // Get the correct time geometry to support 3D + t
+<span style = "background-color:#fdd">  int timeStep = interactionEvent-&gt;GetSender()-&gt;GetTimeStep(this-&gt;GetDataNode()-&gt;GetData());
+  BaseGeometry *geometry = this-&gt;GetDataNode()-&gt;GetData()-&gt;GetUpdatedTimeGeometry()-&gt;GetGeometryForTimeStep(timeStep);
+  if (geometry == nullptr)
+    MITK_ERROR &lt;&lt; "Geometry is nullptr. Cannot modify it.";
+  return geometry;
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::DataNodeChanged()
+<span style = "background-color:#fdd">{
+  mitk::DataNode::Pointer newInputNode = this-&gt;GetDataNode();
+  if (newInputNode.IsNotNull())</span>
+  {
+    // add default properties
+<span style = "background-color:#fdd">    newInputNode-&gt;AddProperty(selectedColorPropertyName, mitk::ColorProperty::New(0.0, 1.0, 0.0));
+    newInputNode-&gt;AddProperty(deselectedColorPropertyName, mitk::ColorProperty::New(0.0, 0.0, 1.0));
+    newInputNode-&gt;AddProperty(translationStepSizePropertyName, mitk::FloatProperty::New(1.0f));
+    newInputNode-&gt;AddProperty(rotationStepSizePropertyName, mitk::FloatProperty::New(1.0f));
+    newInputNode-&gt;AddProperty(scaleStepSizePropertyName, mitk::FloatProperty::New(0.1f));</span>
+
+    // save the previous color of the node, in order to restore it after the interactor is destroyed
+<span style = "background-color:#fdd">    mitk::ColorProperty::Pointer priorColor = dynamic_cast&lt;mitk::ColorProperty *&gt;(newInputNode-&gt;GetProperty("color"));
+    if (priorColor.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      mitk::ColorProperty::Pointer tmpCopyOfPriorColor = mitk::ColorProperty::New();
+      tmpCopyOfPriorColor-&gt;SetColor(priorColor-&gt;GetColor());
+      newInputNode-&gt;AddProperty(priorPropertyName, tmpCopyOfPriorColor);
+    }
+    newInputNode-&gt;SetColor(0.0, 0.0, 1.0);
+  }
+  mitk::RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::SetDataNode(DataNode *node)
+<span style = "background-color:#fdd">{
+  this-&gt;RestoreNodeProperties(); // if there was another node set, restore it's color
+  DataInteractor::SetDataNode(node);
+}</span>
+
+bool mitk::AffineBaseDataInteractor3D::CheckOverObject(const InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  const auto *positionEvent = dynamic_cast&lt;const InteractionPositionEvent *&gt;(interactionEvent);
+  if (positionEvent == nullptr)
+    return false;</span>
+
+<span style = "background-color:#fdd">  Point3D currentWorldPoint;
+  if (interactionEvent-&gt;GetSender()-&gt;PickObject(positionEvent-&gt;GetPointerPositionOnScreen(), currentWorldPoint) ==</span>
+      this-&gt;GetDataNode())
+<span style = "background-color:#fdd">    return true;</span>
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::SelectObject(StateMachineAction *, InteractionEvent *)
+<span style = "background-color:#fdd">{
+  DataNode::Pointer node = this-&gt;GetDataNode();</span>
+
+<span style = "background-color:#fdd">  if (node.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  mitk::ColorProperty::Pointer selectedColor =</span>
+    dynamic_cast&lt;mitk::ColorProperty *&gt;(node-&gt;GetProperty(selectedColorPropertyName));
+<span style = "background-color:#fdd">  if (selectedColor.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    node-&gt;GetPropertyList()-&gt;SetProperty("color", selectedColor);</span>
+  }
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();</span>
+
+<span style = "background-color:#fdd">  return;
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::DeselectObject(StateMachineAction *, InteractionEvent *)
+<span style = "background-color:#fdd">{
+  DataNode::Pointer node = this-&gt;GetDataNode();</span>
+
+<span style = "background-color:#fdd">  if (node.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  mitk::ColorProperty::Pointer selectedColor =</span>
+    dynamic_cast&lt;mitk::ColorProperty *&gt;(node-&gt;GetProperty(deselectedColorPropertyName));
+<span style = "background-color:#fdd">  if (selectedColor.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    node-&gt;GetPropertyList()-&gt;SetProperty("color", selectedColor);</span>
+  }
+
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();</span>
+
+<span style = "background-color:#fdd">  return;
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::InitTranslate(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  InitMembers(interactionEvent);
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::InitRotate(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  InitMembers(interactionEvent);
+}</span>
+
+bool mitk::AffineBaseDataInteractor3D::InitMembers(InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto *positionEvent = dynamic_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);
+  if (positionEvent == nullptr)
+    return false;</span>
+
+<span style = "background-color:#fdd">  m_InitialPickedDisplayPoint = positionEvent-&gt;GetPointerPositionOnScreen();
+  m_InitialPickedWorldPoint = positionEvent-&gt;GetPositionInWorld();</span>
+
+  // Get the timestep to also support 3D+t
+<span style = "background-color:#fdd">  int timeStep = 0;
+  if ((interactionEvent-&gt;GetSender()) != nullptr)
+    timeStep = interactionEvent-&gt;GetSender()-&gt;GetTimeStep(this-&gt;GetDataNode()-&gt;GetData());</span>
+
+  // Make deep copy of current Geometry3D of the plane
+<span style = "background-color:#fdd">  this-&gt;GetDataNode()-&gt;GetData()-&gt;UpdateOutputInformation(); // make sure that the Geometry is up-to-date
+  m_OriginalGeometry =</span>
+    static_cast&lt;Geometry3D *&gt;(this-&gt;GetDataNode()-&gt;GetData()-&gt;GetGeometry(timeStep)-&gt;Clone().GetPointer());
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::TranslateObject(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto *positionEvent = dynamic_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);
+  if (positionEvent == nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  Point3D currentPickedPoint = positionEvent-&gt;GetPositionInWorld();</span>
+
+<span style = "background-color:#fdd">  Vector3D interactionMove;
+  interactionMove[0] = currentPickedPoint[0] - m_InitialPickedWorldPoint[0];
+  interactionMove[1] = currentPickedPoint[1] - m_InitialPickedWorldPoint[1];
+  interactionMove[2] = currentPickedPoint[2] - m_InitialPickedWorldPoint[2];</span>
+
+<span style = "background-color:#fdd">  int timeStep = interactionEvent-&gt;GetSender()-&gt;GetTimeStep(this-&gt;GetDataNode()-&gt;GetData());</span>
+
+<span style = "background-color:#fdd">  mitk::BaseGeometry::Pointer geometry =</span>
+    this-&gt;GetDataNode()-&gt;GetData()-&gt;GetUpdatedTimeGeometry()-&gt;GetGeometryForTimeStep(timeStep);
+<span style = "background-color:#fdd">  geometry-&gt;SetOrigin(m_OriginalGeometry-&gt;GetOrigin());</span>
+
+<span style = "background-color:#fdd">  this-&gt;TranslateGeometry(interactionMove, this-&gt;GetUpdatedTimeGeometry(interactionEvent));</span>
+
+<span style = "background-color:#fdd">  return;
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::RotateObject(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto *positionEvent = dynamic_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);
+  if (positionEvent == nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  Point2D currentPickedDisplayPoint = positionEvent-&gt;GetPointerPositionOnScreen();
+  Point3D currentWorldPoint = positionEvent-&gt;GetPositionInWorld();</span>
+
+<span style = "background-color:#fdd">  vtkCamera *camera = nullptr;
+  vtkRenderer *currentVtkRenderer = nullptr;</span>
+
+<span style = "background-color:#fdd">  if ((interactionEvent-&gt;GetSender()) != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    camera = interactionEvent-&gt;GetSender()-&gt;GetVtkRenderer()-&gt;GetActiveCamera();
+    currentVtkRenderer = interactionEvent-&gt;GetSender()-&gt;GetVtkRenderer();</span>
+  }
+<span style = "background-color:#fdd">  if (camera &amp;&amp; currentVtkRenderer)</span>
+  {
+    double vpn[3];
+<span style = "background-color:#fdd">    camera-&gt;GetViewPlaneNormal(vpn);</span>
+
+<span style = "background-color:#fdd">    Vector3D viewPlaneNormal;
+    viewPlaneNormal[0] = vpn[0];
+    viewPlaneNormal[1] = vpn[1];
+    viewPlaneNormal[2] = vpn[2];</span>
+
+<span style = "background-color:#fdd">    Vector3D interactionMove;
+    interactionMove[0] = currentWorldPoint[0] - m_InitialPickedWorldPoint[0];
+    interactionMove[1] = currentWorldPoint[1] - m_InitialPickedWorldPoint[1];
+    interactionMove[2] = currentWorldPoint[2] - m_InitialPickedWorldPoint[2];</span>
+
+<span style = "background-color:#fdd">    if (interactionMove[0] == 0 &amp;&amp; interactionMove[1] == 0 &amp;&amp; interactionMove[2] == 0)
+      return;</span>
+
+<span style = "background-color:#fdd">    Vector3D rotationAxis = itk::CrossProduct(viewPlaneNormal, interactionMove);
+    rotationAxis.Normalize();</span>
+
+<span style = "background-color:#fdd">    int *size = currentVtkRenderer-&gt;GetSize();
+    double l2 = (currentPickedDisplayPoint[0] - m_InitialPickedDisplayPoint[0]) *</span>
+                  (currentPickedDisplayPoint[0] - m_InitialPickedDisplayPoint[0]) +
+                (currentPickedDisplayPoint[1] - m_InitialPickedDisplayPoint[1]) *
+                  (currentPickedDisplayPoint[1] - m_InitialPickedDisplayPoint[1]);
+
+<span style = "background-color:#fdd">    double rotationAngle = 360.0 * sqrt(l2 / (size[0] * size[0] + size[1] * size[1]));</span>
+
+    // Use center of data bounding box as center of rotation
+<span style = "background-color:#fdd">    Point3D rotationCenter = m_OriginalGeometry-&gt;GetCenter();</span>
+
+<span style = "background-color:#fdd">    int timeStep = 0;
+    if ((interactionEvent-&gt;GetSender()) != nullptr)
+      timeStep = interactionEvent-&gt;GetSender()-&gt;GetTimeStep(this-&gt;GetDataNode()-&gt;GetData());</span>
+
+    // Reset current Geometry3D to original state (pre-interaction) and
+    // apply rotation
+<span style = "background-color:#fdd">    RotationOperation op(OpROTATE, rotationCenter, rotationAxis, rotationAngle);
+    Geometry3D::Pointer newGeometry = static_cast&lt;Geometry3D *&gt;(m_OriginalGeometry-&gt;Clone().GetPointer());
+    newGeometry-&gt;ExecuteOperation(&amp;op);
+    mitk::TimeGeometry::Pointer timeGeometry = this-&gt;GetDataNode()-&gt;GetData()-&gt;GetTimeGeometry();
+    if (timeGeometry.IsNotNull())
+      timeGeometry-&gt;SetTimeStepGeometry(newGeometry, timeStep);</span>
+
+<span style = "background-color:#fdd">    RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+  }
+}</span>
+
+void mitk::AffineBaseDataInteractor3D::ScaleObject(StateMachineAction *, InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{</span>
+  return;
+<span style = "background-color:#fdd">}</span>
+
+void mitk::AffineBaseDataInteractor3D::RestoreNodeProperties()
+<span style = "background-color:#fdd">{
+  mitk::DataNode::Pointer inputNode = this-&gt;GetDataNode();
+  if (inputNode.IsNull())
+    return;
+  mitk::ColorProperty::Pointer color = dynamic_cast&lt;mitk::ColorProperty *&gt;(inputNode-&gt;GetProperty(priorPropertyName));
+  if (color.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    inputNode-&gt;GetPropertyList()-&gt;SetProperty("color", color);</span>
+  }
+
+<span style = "background-color:#fdd">  inputNode-&gt;GetPropertyList()-&gt;DeleteProperty(selectedColorPropertyName);
+  inputNode-&gt;GetPropertyList()-&gt;DeleteProperty(deselectedColorPropertyName);
+  inputNode-&gt;GetPropertyList()-&gt;DeleteProperty(priorPropertyName);
+  inputNode-&gt;GetPropertyList()-&gt;DeleteProperty(translationStepSizePropertyName);
+  inputNode-&gt;GetPropertyList()-&gt;DeleteProperty(rotationStepSizePropertyName);
+  inputNode-&gt;GetPropertyList()-&gt;DeleteProperty(scaleStepSizePropertyName);</span>
+
+  // update rendering
+<span style = "background-color:#fdd">  mitk::RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMaximumCurveDescriptionParameter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkMaximumCurveDescriptionParameter.h"
+#include &lt;algorithm&gt;
+
+<span style = "background-color:#dfd">const std::string mitk::MaximumCurveDescriptionParameter::PARAMETER_NAME = "MaximumConcentrationUptake";</span>
+
+mitk::MaximumCurveDescriptionParameter::MaximumCurveDescriptionParameter()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::MaximumCurveDescriptionParameter::~MaximumCurveDescriptionParameter()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::CurveDescriptionParameterBase::DescriptionParameterNamesType mitk::MaximumCurveDescriptionParameter::GetDescriptionParameterName() const
+<span style = "background-color:#fdd">{
+  DescriptionParameterNamesType result = { PARAMETER_NAME };
+  return result;
+}</span>
+
+mitk::CurveDescriptionParameterBase::DescriptionParameterResultsType mitk::MaximumCurveDescriptionParameter::ComputeCurveDescriptionParameter(const CurveType &amp;curve, const CurveGridType &amp;grid) const
+<span style = "background-color:#fdd">{
+  DescriptionParameterResultsType results;
+  CurveDescriptionParameterResultType maximum = itk::NumericTraits&lt;CurveDescriptionParameterResultType&gt;::NonpositiveMin();
+  int steps = grid.GetSize();</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; steps - 1; ++i)</span>
+  {
+<span style = "background-color:#fdd">    maximum = std::max(maximum, curve(i));
+  }</span>
+
+<span style = "background-color:#fdd">  results.push_back(maximum);
+  return results;
+}</span></pre>
+	</body>
+</html>

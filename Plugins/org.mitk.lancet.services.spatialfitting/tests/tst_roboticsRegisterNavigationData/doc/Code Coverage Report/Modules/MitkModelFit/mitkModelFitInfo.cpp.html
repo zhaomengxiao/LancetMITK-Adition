@@ -1,0 +1,444 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModelFitInfo.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkModelFitInfo.h"
+
+#include &lt;mitkNodePredicateDataProperty.h&gt;
+#include &lt;mitkNodePredicateAnd.h&gt;
+#include &lt;mitkUIDGenerator.h&gt;
+#include "mitkDataNode.h"
+#include "mitkDataStorage.h"
+
+#include "mitkScalarListLookupTableProperty.h"
+#include "mitkModelFitException.h"
+#include "mitkModelFitResultRelationRule.h"
+
+void mitk::modelFit::ModelFitInfo::AddParameter(Parameter::Pointer p)
+<span style = "background-color:#fdd">{
+  if (p.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Given parameter must not be NULL";</span>
+  }
+
+<span style = "background-color:#fdd">  if (GetParameter(p-&gt;name, p-&gt;type).IsNull())</span>
+  {
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Adding parameter '" &lt;&lt; p-&gt;name &lt;&lt; "with type " &lt;&lt; p-&gt;type</span>
+               &lt;&lt; "' to modelFit '" &lt;&lt; uid &lt;&lt; "'.";
+
+<span style = "background-color:#fdd">    LockType lock(mutex);
+    parameterList.push_back(p);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Parameter '" &lt;&lt; p-&gt;name &lt;&lt; "' of modelFit '" &lt;&lt; uid</span>
+               &lt;&lt; "' already exists. Aborting.";
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::modelFit::Parameter::ConstPointer
+mitk::modelFit::ModelFitInfo::GetParameter(const std::string&amp; name,
+    const Parameter::Type&amp; type) const
+<span style = "background-color:#fdd">{
+  for (ConstIterType iter = parameterList.begin(); iter != parameterList.end(); ++iter)</span>
+  {
+<span style = "background-color:#fdd">    Parameter::ConstPointer p = static_cast&lt;Parameter::ConstPointer&gt;(*iter);</span>
+
+<span style = "background-color:#fdd">    if (p-&gt;name == name &amp;&amp; p-&gt;type == type)</span>
+    {
+<span style = "background-color:#fdd">      return p;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+
+const mitk::modelFit::ModelFitInfo::ParamListType&amp; mitk::modelFit::ModelFitInfo::GetParameters()
+const
+<span style = "background-color:#fdd">{
+  return this-&gt;parameterList;
+};</span>
+
+void mitk::modelFit::ModelFitInfo::DeleteParameter(const std::string&amp; name,
+    const Parameter::Type&amp; type)
+<span style = "background-color:#fdd">{
+  for (IterType iter = parameterList.begin(); iter != parameterList.end(); ++iter)</span>
+  {
+<span style = "background-color:#fdd">    Parameter::ConstPointer p = static_cast&lt;Parameter::ConstPointer&gt;(*iter);</span>
+
+<span style = "background-color:#fdd">    if (p-&gt;name == name &amp;&amp; p-&gt;type == type)</span>
+    {
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "Deleting parameter '" &lt;&lt; name &lt;&lt; " with type " &lt;&lt; type</span>
+                 &lt;&lt; "' from modelFit '" &lt;&lt; uid &lt;&lt; "'.";
+
+<span style = "background-color:#fdd">      LockType lock(mutex);
+      parameterList.erase(iter);
+      return;</span>
+    }
+<span style = "background-color:#fdd">  }
+}</span>
+
+
+const std::string mitk::modelFit::GetMandatoryProperty(const mitk::DataNode* node,
+    const std::string&amp; prop)
+<span style = "background-color:#fdd">{
+  std::string result;</span>
+
+  if (!node || !node-&gt;GetData() ||
+<span style = "background-color:#fdd">      !node-&gt;GetData()-&gt;GetPropertyList()-&gt;GetStringProperty(prop.c_str(), result) || result.empty())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrowException(mitk::modelFit::ModelFitException) &lt;&lt; "Node " &lt;&lt; node-&gt;GetName()</span>
+        &lt;&lt; " is lacking the required "
+        &lt;&lt; "property '" &lt;&lt; prop
+        &lt;&lt; "' or contains an empty string.";
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+const std::string mitk::modelFit::GetMandatoryProperty(const mitk::BaseData* data,
+  const std::string&amp; prop)
+<span style = "background-color:#fdd">{
+  std::string result;</span>
+
+<span style = "background-color:#fdd">  if (!data || !data-&gt;GetPropertyList()-&gt;GetStringProperty(prop.c_str(), result) || result.empty())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrowException(mitk::modelFit::ModelFitException) &lt;&lt; "Data is lacking the required "</span>
+      &lt;&lt; "property '" &lt;&lt; prop
+      &lt;&lt; "' or contains an empty string.";
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::modelFit::ModelFitInfo::Pointer
+mitk::modelFit::CreateFitInfoFromNode(const ModelFitInfo::UIDType&amp; uid,
+                                      const mitk::DataStorage* storage)
+<span style = "background-color:#fdd">{
+  if (!storage)</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::DataStorage::SetOfObjects::ConstPointer nodes = GetNodesOfFit(uid, storage);</span>
+
+<span style = "background-color:#fdd">  if (nodes.IsNull() || nodes-&gt;empty())</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::DataNode::ConstPointer node = nodes-&gt;GetElement(</span>
+                                        0).GetPointer(); //take one of the nodes as template
+
+<span style = "background-color:#fdd">  if (!node-&gt;GetData())</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  ModelFitInfo::Pointer fit = ModelFitInfo::New();
+  fit-&gt;uid = uid;</span>
+
+  // Mandatory properties
+  try
+  {
+<span style = "background-color:#fdd">    fit-&gt;fitType = GetMandatoryProperty(node, mitk::ModelFitConstants::FIT_TYPE_PROPERTY_NAME());
+    fit-&gt;modelType = GetMandatoryProperty(node, mitk::ModelFitConstants::MODEL_TYPE_PROPERTY_NAME());
+    fit-&gt;modelName = GetMandatoryProperty(node, mitk::ModelFitConstants::MODEL_NAME_PROPERTY_NAME());</span>
+  }
+  catch (const ModelFitException&amp; e)
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; e.what();
+    return nullptr;
+  }</span>
+
+  // Either a function string or a function class must exist
+<span style = "background-color:#fdd">  if (!node-&gt;GetData()-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::MODEL_FUNCTION_PROPERTY_NAME().c_str(),</span>
+                               fit-&gt;function))
+  {
+<span style = "background-color:#fdd">    fit-&gt;function = "";</span>
+  }
+
+  try
+  {
+<span style = "background-color:#fdd">    fit-&gt;functionClassID =</span>
+      GetMandatoryProperty(node, mitk::ModelFitConstants::MODEL_FUNCTION_CLASS_PROPERTY_NAME());
+  }
+  catch (const ModelFitException&amp;)
+<span style = "background-color:#fdd">  {
+    if (fit-&gt;function.empty())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "The properties '"</span>
+                 &lt;&lt; mitk::ModelFitConstants::MODEL_FUNCTION_PROPERTY_NAME()
+                 &lt;&lt; "'and '" &lt;&lt; mitk::ModelFitConstants::MODEL_FUNCTION_CLASS_PROPERTY_NAME()
+                 &lt;&lt; "' are both empty or missing. One of these is required.";
+<span style = "background-color:#fdd">      return nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  node-&gt;GetData()-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::FIT_NAME_PROPERTY_NAME().c_str(), fit-&gt;fitName);
+  node-&gt;GetData()-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::MODEL_X_PROPERTY_NAME().c_str(), fit-&gt;x);
+  node-&gt;GetData()-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::XAXIS_NAME_PROPERTY_NAME().c_str(), fit-&gt;xAxisName);
+  node-&gt;GetData()-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::XAXIS_UNIT_PROPERTY_NAME().c_str(), fit-&gt;xAxisUnit);
+  node-&gt;GetData()-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::YAXIS_NAME_PROPERTY_NAME().c_str(), fit-&gt;yAxisName);
+  node-&gt;GetData()-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::YAXIS_UNIT_PROPERTY_NAME().c_str(), fit-&gt;yAxisUnit);</span>
+
+  // Parameter
+<span style = "background-color:#fdd">  for (DataStorage::SetOfObjects::ConstIterator pos = nodes-&gt;Begin(); pos != nodes-&gt;End(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    modelFit::Parameter::Pointer param = ExtractParameterFromData(pos-&gt;Value()-&gt;GetData());</span>
+
+<span style = "background-color:#fdd">    if (param.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      fit-&gt;AddParameter(param);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // Static parameters
+<span style = "background-color:#fdd">  mitk::ScalarListLookupTableProperty::ConstPointer varProp = dynamic_cast&lt;const mitk::ScalarListLookupTableProperty*&gt;(node-&gt;GetData()-&gt;GetProperty(mitk::ModelFitConstants::FIT_STATIC_PARAMETERS_PROPERTY_NAME().c_str()).GetPointer());</span>
+
+<span style = "background-color:#fdd">  if (varProp.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    const mitk::ScalarListLookupTable lut = varProp-&gt;GetValue();
+    const mitk::ScalarListLookupTable::LookupTableType&amp; varMap = lut.GetLookupTable();</span>
+
+<span style = "background-color:#fdd">    for (mitk::ScalarListLookupTable::LookupTableType::const_iterator mapIter =
+           varMap.begin(); mapIter != varMap.end(); ++mapIter)</span>
+    {
+<span style = "background-color:#fdd">      fit-&gt;staticParamMap.Add(mapIter-&gt;first, mapIter-&gt;second);
+    }
+  }</span>
+
+  //fit input and ROI
+<span style = "background-color:#fdd">  if (storage)</span>
+  {
+<span style = "background-color:#fdd">    auto inputRule = ModelFitResultRelationRule::New();
+    auto inputPredicate = inputRule-&gt;GetDestinationsDetector(node);
+    auto inputNodes = storage-&gt;GetSubset(inputPredicate);
+    if (inputNodes-&gt;empty())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Cannot create valid model fit info. Input node cannot be found.";
+      return nullptr;</span>
+    }
+<span style = "background-color:#fdd">    if (inputNodes-&gt;size()&gt;1)</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "More then one node found as input node. This could indicate an invalid state as only one input node should be present. Used first found input node.";</span>
+    }
+
+<span style = "background-color:#fdd">    auto inputNode = inputNodes-&gt;front();</span>
+
+<span style = "background-color:#fdd">    mitk::Image::ConstPointer inputImage = dynamic_cast&lt;const mitk::Image*&gt;(inputNode-&gt;GetData());</span>
+
+<span style = "background-color:#fdd">    if (inputImage.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Cannot create valid model fit info. input node does not contain an image.";
+      return nullptr;</span>
+    }
+
+<span style = "background-color:#fdd">    fit-&gt;inputImage = inputImage;
+  }</span>
+
+<span style = "background-color:#fdd">  node-&gt;GetData()-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::FIT_INPUT_ROIUID_PROPERTY_NAME().c_str(),</span>
+                          fit-&gt;roiUID);
+
+<span style = "background-color:#fdd">  mitk::ScalarListLookupTableProperty::ConstPointer inputDataProp = dynamic_cast&lt;const mitk::ScalarListLookupTableProperty*&gt;(node-&gt;GetData()-&gt;GetProperty(mitk::ModelFitConstants::FIT_INPUT_DATA_PROPERTY_NAME().c_str()).GetPointer());
+  if (inputDataProp.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    fit-&gt;inputData = inputDataProp-&gt;GetValue();</span>
+  }
+
+<span style = "background-color:#fdd">  return fit;
+}</span>
+
+mitk::modelFit::ModelFitInfo::Pointer
+mitk::modelFit::CreateFitInfoFromModelParameterizer(const ModelParameterizerBase* usedParameterizer,
+mitk::BaseData* inputImage, const std::string&amp; fitType, const std::string&amp; fitName,
+    const ModelFitInfo::UIDType&amp; roiUID)
+<span style = "background-color:#fdd">{
+  if (!usedParameterizer)</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  UIDGenerator generator("FitUID_");
+  std::string uid = generator.GetUID();</span>
+
+<span style = "background-color:#fdd">  ModelFitInfo::Pointer fit = ModelFitInfo::New();
+  fit-&gt;uid = uid;
+  fit-&gt;fitType = fitType;
+  fit-&gt;fitName = fitName;
+  fit-&gt;inputImage = dynamic_cast&lt;Image*&gt;(inputImage);</span>
+
+<span style = "background-color:#fdd">  if (fit-&gt;inputImage.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot generate model fit info. Input node does not contain an image.";</span>
+  }
+
+<span style = "background-color:#fdd">  fit-&gt;modelType = usedParameterizer-&gt;GetModelType();
+  fit-&gt;modelName = usedParameterizer-&gt;GetModelDisplayName();</span>
+
+<span style = "background-color:#fdd">  fit-&gt;function = usedParameterizer-&gt;GetFunctionString();
+  fit-&gt;x = usedParameterizer-&gt;GetXName();
+  fit-&gt;functionClassID = usedParameterizer-&gt;GetClassID();</span>
+
+<span style = "background-color:#fdd">  fit-&gt;xAxisName = usedParameterizer-&gt;GetXAxisName();
+  fit-&gt;xAxisUnit = usedParameterizer-&gt;GetXAxisUnit();
+  fit-&gt;yAxisName = usedParameterizer-&gt;GetYAxisName();
+  fit-&gt;yAxisUnit = usedParameterizer-&gt;GetYAxisUnit();</span>
+
+  // Parameter
+<span style = "background-color:#fdd">  ModelTraitsInterface::ParameterNamesType paramNames = usedParameterizer-&gt;GetParameterNames();
+  ModelTraitsInterface::ParamterScaleMapType paramScales = usedParameterizer-&gt;GetParameterScales();
+  ModelTraitsInterface::ParamterUnitMapType paramUnits = usedParameterizer-&gt;GetParameterUnits();</span>
+
+<span style = "background-color:#fdd">  for (ModelTraitsInterface::ParameterNamesType::iterator pos = paramNames.begin();
+       pos != paramNames.end(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    modelFit::Parameter::Pointer param = modelFit::Parameter::New();
+    param-&gt;name = *pos;
+    param-&gt;type = Parameter::ParameterType;</span>
+
+<span style = "background-color:#fdd">    if (paramScales.find(*pos) == paramScales.end())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt;</span>
+                  "Cannot generate model fit info. Model traits invalid (scales do not include parameter). Parameter name: "
+                  &lt;&lt; *pos;
+    }
+
+<span style = "background-color:#fdd">    if (paramUnits.find(*pos) == paramUnits.end())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt;</span>
+                  "Cannot generate model fit info. Model traits invalid (units do not include parameter). Parameter name: "
+                  &lt;&lt; *pos;
+    }
+
+<span style = "background-color:#fdd">    param-&gt;scale = paramScales[*pos];
+    param-&gt;unit = paramUnits[*pos];
+    fit-&gt;AddParameter(param);
+  }</span>
+
+  //derived parameter
+<span style = "background-color:#fdd">  ModelTraitsInterface::DerivedParameterNamesType derivedNames =</span>
+    usedParameterizer-&gt;GetDerivedParameterNames();
+<span style = "background-color:#fdd">  ModelTraitsInterface::DerivedParamterScaleMapType derivedScales =</span>
+    usedParameterizer-&gt;GetDerivedParameterScales();
+<span style = "background-color:#fdd">  ModelTraitsInterface::DerivedParamterUnitMapType derivedUnits =</span>
+    usedParameterizer-&gt;GetDerivedParameterUnits();
+
+<span style = "background-color:#fdd">  for (ModelTraitsInterface::ParameterNamesType::iterator pos = derivedNames.begin();
+       pos != derivedNames.end(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    modelFit::Parameter::Pointer param = modelFit::Parameter::New();
+    param-&gt;name = *pos;
+    param-&gt;type = Parameter::DerivedType;</span>
+
+<span style = "background-color:#fdd">    if (derivedScales.find(*pos) == derivedScales.end())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt;</span>
+                  "Cannot generate model fit info. Model traits invalid (scales do not include parameter). Parameter name: "
+                  &lt;&lt; *pos;
+    }
+
+<span style = "background-color:#fdd">    if (derivedUnits.find(*pos) == derivedUnits.end())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt;</span>
+                  "Cannot generate model fit info. Model traits invalid (units do not include parameter). Parameter name: "
+                  &lt;&lt; *pos;
+    }
+
+<span style = "background-color:#fdd">    param-&gt;scale = derivedScales[*pos];
+    param-&gt;unit = derivedUnits[*pos];
+    fit-&gt;AddParameter(param);
+  }</span>
+
+  // Static parameters (but transfer only the global ones)
+<span style = "background-color:#fdd">  ModelParameterizerBase::StaticParameterMapType staticParamMap =</span>
+    usedParameterizer-&gt;GetGlobalStaticParameters();
+
+<span style = "background-color:#fdd">  for (ModelParameterizerBase::StaticParameterMapType::const_iterator pos = staticParamMap.begin();
+       pos != staticParamMap.end(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    fit-&gt;staticParamMap.Add(pos-&gt;first, pos-&gt;second);
+  }</span>
+
+
+<span style = "background-color:#fdd">  fit-&gt;roiUID = roiUID;</span>
+
+<span style = "background-color:#fdd">  return fit;
+}</span>
+
+mitk::modelFit::ModelFitInfo::Pointer
+mitk::modelFit::CreateFitInfoFromModelParameterizer(const ModelParameterizerBase* usedParameterizer,
+mitk::BaseData* inputImage, const std::string&amp; fitType, const ScalarListLookupTable&amp; inputData,
+const std::string&amp; fitName, const ModelFitInfo::UIDType&amp; roiUID)
+<span style = "background-color:#fdd">{
+  mitk::modelFit::ModelFitInfo::Pointer info = CreateFitInfoFromModelParameterizer(usedParameterizer,</span>
+    inputImage, fitType, fitName, roiUID);
+
+<span style = "background-color:#fdd">  info-&gt;inputData = inputData;</span>
+
+<span style = "background-color:#fdd">  return info;
+}</span>
+
+mitk::DataStorage::SetOfObjects::ConstPointer
+mitk::modelFit::GetNodesOfFit(const ModelFitInfo::UIDType&amp; fitUID, const mitk::DataStorage* storage)
+<span style = "background-color:#fdd">{
+  if (!storage)</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::NodePredicateDataProperty::Pointer predicate = mitk::NodePredicateDataProperty::New(</span>
+        mitk::ModelFitConstants::FIT_UID_PROPERTY_NAME().c_str(), mitk::StringProperty::New(fitUID));
+<span style = "background-color:#fdd">  return storage-&gt;GetSubset(predicate);
+};</span>
+
+
+mitk::modelFit::NodeUIDSetType
+mitk::modelFit::GetFitUIDsOfNode(const mitk::DataNode* node,	const mitk::DataStorage* storage)
+<span style = "background-color:#fdd">{
+  auto rule = ModelFitResultRelationRule::New();
+  mitk::modelFit::NodeUIDSetType result;</span>
+
+<span style = "background-color:#fdd">  if (node &amp;&amp; storage)</span>
+  {
+<span style = "background-color:#fdd">    auto fitUIDPredicate = mitk::NodePredicateDataProperty::New(</span>
+          mitk::ModelFitConstants::FIT_UID_PROPERTY_NAME().c_str());
+<span style = "background-color:#fdd">    auto rulePredicate = rule-&gt;GetSourcesDetector(node);
+    auto predicate = NodePredicateAnd::New(fitUIDPredicate, rulePredicate);
+    mitk::DataStorage::SetOfObjects::ConstPointer nodes = storage-&gt;GetSubset(predicate);</span>
+
+<span style = "background-color:#fdd">    for (mitk::DataStorage::SetOfObjects::ConstIterator pos = nodes-&gt;Begin(); pos != nodes-&gt;End();
+         ++pos)</span>
+    {
+<span style = "background-color:#fdd">      mitk::modelFit::ModelFitInfo::UIDType uid;
+      pos-&gt;Value()-&gt;GetData()-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::FIT_UID_PROPERTY_NAME().c_str(), uid);</span>
+
+<span style = "background-color:#fdd">      result.insert(uid);
+    }</span>
+
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span></pre>
+	</body>
+</html>

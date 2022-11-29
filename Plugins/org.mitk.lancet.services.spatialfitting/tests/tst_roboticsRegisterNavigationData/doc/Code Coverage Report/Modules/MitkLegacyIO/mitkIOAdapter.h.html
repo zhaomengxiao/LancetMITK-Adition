@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIOAdapter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#ifndef __mitkIOAdapter_h
+#define __mitkIOAdapter_h
+
+#include "mitkBaseProcess.h"
+
+#include "itkObject.h"
+
+namespace mitk
+{
+  /**
+   * @brief IOAdapterBase class is an abstract adapter class for IO process objects.
+   *
+   * @ingroup DeprecatedIO
+   * @deprecatedSince{2014_10} Use mitk::IFileReader instead
+   */
+  class IOAdapterBase : public itk::Object
+  {
+  public:
+    /** Standard typedefs. */
+    typedef IOAdapterBase Self;
+    typedef itk::Object Superclass;
+    typedef itk::SmartPointer&lt;Self&gt; Pointer;
+    typedef itk::SmartPointer&lt;const Self&gt; ConstPointer;
+
+    /// Create an object and return a pointer to it as a mitk::BaseProcess.
+    virtual itk::SmartPointer&lt;BaseDataSource&gt; CreateIOProcessObject(const std::string filename,
+                                                                    const std::string filePrefix,
+                                                                    const std::string filePattern) = 0;
+    virtual bool CanReadFile(const std::string filename,
+                             const std::string filePrefix,
+                             const std::string filePattern) = 0;
+
+  protected:
+<span style = "background-color:#fdd">    IOAdapterBase() {}
+    ~IOAdapterBase() override {}</span>
+  private:
+    IOAdapterBase(const Self &amp;);  // purposely not implemented
+    void operator=(const Self &amp;); // purposely not implemented
+  };
+
+  /**
+   * @brief IOAdapter class is an adapter class for instantiation of IO process objects.
+   * Additional this interface defines the function CanReadFile().
+   * This interface allows the target (object) the access to the adaptee (IO process object).
+   *
+   * @ingroup IO
+   * @deprecatedSince{2014_10} Use mitk::IFileReader instead
+   */
+  template &lt;class T&gt;
+  class IOAdapter : public IOAdapterBase
+  {
+  public:
+    /** Standard class typedefs. */
+    typedef IOAdapter Self;
+    typedef itk::SmartPointer&lt;Self&gt; Pointer;
+
+    /** Methods from mitk::BaseProcess. */
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+    mitk::BaseDataSource::Pointer CreateIOProcessObject(const std::string filename,
+                                                        const std::string filePrefix,
+                                                        const std::string filePattern) override
+<span style = "background-color:#fdd">    {
+      typename T::Pointer ioProcessObject = T::New();
+      ioProcessObject-&gt;SetFileName(filename.c_str());
+      ioProcessObject-&gt;SetFilePrefix(filePrefix.c_str());
+      ioProcessObject-&gt;SetFilePattern(filePattern.c_str());
+      return ioProcessObject.GetPointer();
+    }</span>
+
+    bool CanReadFile(const std::string filename,
+                             const std::string filePrefix,
+                             const std::string filePattern) override
+<span style = "background-color:#fdd">    {
+      return T::CanReadFile(filename, filePrefix, filePattern);
+    }</span>
+
+  protected:
+<span style = "background-color:#fdd">    IOAdapter() {}
+    ~IOAdapter() override {}</span>
+  private:
+    IOAdapter(const Self &amp;);      // purposely not implemented
+    void operator=(const Self &amp;); // purposely not implemented
+  };
+
+} // end namespace mitk
+
+#endif</pre>
+	</body>
+</html>

@@ -1,0 +1,662 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabelSetImageVtkMapper2D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLabelSetImageVtkMapper2D.h"
+
+// MITK
+#include &lt;mitkAbstractTransformGeometry.h&gt;
+#include &lt;mitkDataNode.h&gt;
+#include &lt;mitkImageSliceSelector.h&gt;
+#include &lt;mitkImageStatisticsHolder.h&gt;
+#include &lt;mitkLevelWindowProperty.h&gt;
+#include &lt;mitkLookupTableProperty.h&gt;
+#include &lt;mitkPixelType.h&gt;
+#include &lt;mitkPlaneClipping.h&gt;
+#include &lt;mitkPlaneGeometry.h&gt;
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkResliceMethodProperty.h&gt;
+#include &lt;mitkTransferFunctionProperty.h&gt;
+#include &lt;mitkVtkResliceInterpolationProperty.h&gt;
+
+// MITK Rendering
+#include "vtkMitkLevelWindowFilter.h"
+#include "vtkMitkThickSlicesFilter.h"
+#include "vtkNeverTranslucentTexture.h"
+
+// VTK
+#include &lt;vtkCamera.h&gt;
+#include &lt;vtkCellArray.h&gt;
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkImageReslice.h&gt;
+#include &lt;vtkLookupTable.h&gt;
+#include &lt;vtkMatrix4x4.h&gt;
+#include &lt;vtkPlaneSource.h&gt;
+#include &lt;vtkPoints.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkPolyDataMapper.h&gt;
+#include &lt;vtkProperty.h&gt;
+#include &lt;vtkTransform.h&gt;
+//#include &lt;vtkOpenGLTexture.h&gt;
+
+// ITK
+#include &lt;itkRGBAPixel.h&gt;
+#include &lt;mitkRenderingModeProperty.h&gt;
+
+mitk::LabelSetImageVtkMapper2D::LabelSetImageVtkMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::LabelSetImageVtkMapper2D::~LabelSetImageVtkMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+vtkProp *mitk::LabelSetImageVtkMapper2D::GetVtkProp(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{</span>
+  // return the actor corresponding to the renderer
+<span style = "background-color:#fdd">  return m_LSH.GetLocalStorage(renderer)-&gt;m_Actors;
+}</span>
+
+mitk::LabelSetImageVtkMapper2D::LocalStorage *mitk::LabelSetImageVtkMapper2D::GetLocalStorage(
+  mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  return m_LSH.GetLocalStorage(renderer);
+}</span>
+
+void mitk::LabelSetImageVtkMapper2D::GenerateDataForRenderer(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);
+  mitk::DataNode *node = this-&gt;GetDataNode();
+  auto *image = dynamic_cast&lt;mitk::LabelSetImage *&gt;(node-&gt;GetData());
+  assert(image &amp;&amp; image-&gt;IsInitialized());</span>
+
+  // check if there is a valid worldGeometry
+<span style = "background-color:#fdd">  const PlaneGeometry *worldGeometry = renderer-&gt;GetCurrentWorldPlaneGeometry();
+  if ((worldGeometry == nullptr) || (!worldGeometry-&gt;IsValid()) || (!worldGeometry-&gt;HasReferenceGeometry()))
+    return;</span>
+
+<span style = "background-color:#fdd">  image-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  int numberOfLayers = image-&gt;GetNumberOfLayers();
+  int activeLayer = image-&gt;GetActiveLayer();</span>
+
+<span style = "background-color:#fdd">  float opacity = 1.0f;
+  node-&gt;GetOpacity(opacity, renderer, "opacity");</span>
+
+<span style = "background-color:#fdd">  if (numberOfLayers != localStorage-&gt;m_NumberOfLayers)</span>
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_NumberOfLayers = numberOfLayers;
+    localStorage-&gt;m_ReslicedImageVector.clear();
+    localStorage-&gt;m_ReslicerVector.clear();
+    localStorage-&gt;m_LayerTextureVector.clear();
+    localStorage-&gt;m_LevelWindowFilterVector.clear();
+    localStorage-&gt;m_LayerMapperVector.clear();
+    localStorage-&gt;m_LayerActorVector.clear();</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_Actors = vtkSmartPointer&lt;vtkPropAssembly&gt;::New();</span>
+
+<span style = "background-color:#fdd">    for (int lidx = 0; lidx &lt; numberOfLayers; ++lidx)</span>
+    {
+<span style = "background-color:#fdd">      localStorage-&gt;m_ReslicedImageVector.push_back(vtkSmartPointer&lt;vtkImageData&gt;::New());
+      localStorage-&gt;m_ReslicerVector.push_back(mitk::ExtractSliceFilter::New());
+      localStorage-&gt;m_LayerTextureVector.push_back(vtkSmartPointer&lt;vtkNeverTranslucentTexture&gt;::New());
+      localStorage-&gt;m_LevelWindowFilterVector.push_back(vtkSmartPointer&lt;vtkMitkLevelWindowFilter&gt;::New());
+      localStorage-&gt;m_LayerMapperVector.push_back(vtkSmartPointer&lt;vtkPolyDataMapper&gt;::New());
+      localStorage-&gt;m_LayerActorVector.push_back(vtkSmartPointer&lt;vtkActor&gt;::New());</span>
+
+      // do not repeat the texture (the image)
+<span style = "background-color:#fdd">      localStorage-&gt;m_LayerTextureVector[lidx]-&gt;RepeatOff();</span>
+
+      // set corresponding mappers for the actors
+<span style = "background-color:#fdd">      localStorage-&gt;m_LayerActorVector[lidx]-&gt;SetMapper(localStorage-&gt;m_LayerMapperVector[lidx]);</span>
+
+<span style = "background-color:#fdd">      localStorage-&gt;m_Actors-&gt;AddPart(localStorage-&gt;m_LayerActorVector[lidx]);
+    }</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_Actors-&gt;AddPart(localStorage-&gt;m_OutlineShadowActor);
+    localStorage-&gt;m_Actors-&gt;AddPart(localStorage-&gt;m_OutlineActor);</span>
+  }
+
+  // early out if there is no intersection of the current rendering geometry
+  // and the geometry of the image that is to be rendered.
+<span style = "background-color:#fdd">  if (!RenderingGeometryIntersectsImage(worldGeometry, image-&gt;GetSlicedGeometry()))</span>
+  {
+    // set image to nullptr, to clear the texture in 3D, because
+    // the latest image is used there if the plane is out of the geometry
+    // see bug-13275
+<span style = "background-color:#fdd">    for (int lidx = 0; lidx &lt; numberOfLayers; ++lidx)</span>
+    {
+<span style = "background-color:#fdd">      localStorage-&gt;m_ReslicedImageVector[lidx] = nullptr;
+      localStorage-&gt;m_LayerMapperVector[lidx]-&gt;SetInputData(localStorage-&gt;m_EmptyPolyData);
+      localStorage-&gt;m_OutlineActor-&gt;SetVisibility(false);
+      localStorage-&gt;m_OutlineShadowActor-&gt;SetVisibility(false);
+    }
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  for (int lidx = 0; lidx &lt; numberOfLayers; ++lidx)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Image *layerImage = nullptr;</span>
+
+    // set main input for ExtractSliceFilter
+<span style = "background-color:#fdd">    if (lidx == activeLayer)
+      layerImage = image;</span>
+    else
+<span style = "background-color:#fdd">      layerImage = image-&gt;GetLayerImage(lidx);</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_ReslicerVector[lidx]-&gt;SetInput(layerImage);
+    localStorage-&gt;m_ReslicerVector[lidx]-&gt;SetWorldGeometry(worldGeometry);
+    localStorage-&gt;m_ReslicerVector[lidx]-&gt;SetTimeStep(this-&gt;GetTimestep());</span>
+
+    // set the transformation of the image to adapt reslice axis
+<span style = "background-color:#fdd">    localStorage-&gt;m_ReslicerVector[lidx]-&gt;SetResliceTransformByGeometry(</span>
+      layerImage-&gt;GetTimeGeometry()-&gt;GetGeometryForTimeStep(this-&gt;GetTimestep()));
+
+    // is the geometry of the slice based on the image image or the worldgeometry?
+<span style = "background-color:#fdd">    bool inPlaneResampleExtentByGeometry = false;
+    node-&gt;GetBoolProperty("in plane resample extent by geometry", inPlaneResampleExtentByGeometry, renderer);
+    localStorage-&gt;m_ReslicerVector[lidx]-&gt;SetInPlaneResampleExtentByGeometry(inPlaneResampleExtentByGeometry);
+    localStorage-&gt;m_ReslicerVector[lidx]-&gt;SetInterpolationMode(ExtractSliceFilter::RESLICE_NEAREST);
+    localStorage-&gt;m_ReslicerVector[lidx]-&gt;SetVtkOutputRequest(true);</span>
+
+    // this is needed when thick mode was enabled before. These variables have to be reset to default values
+<span style = "background-color:#fdd">    localStorage-&gt;m_ReslicerVector[lidx]-&gt;SetOutputDimensionality(2);
+    localStorage-&gt;m_ReslicerVector[lidx]-&gt;SetOutputSpacingZDirection(1.0);
+    localStorage-&gt;m_ReslicerVector[lidx]-&gt;SetOutputExtentZDirection(0, 0);</span>
+
+    // Bounds information for reslicing (only required if reference geometry is present)
+    // this used for generating a vtkPLaneSource with the right size
+    double sliceBounds[6];
+<span style = "background-color:#fdd">    sliceBounds[0] = 0.0;
+    sliceBounds[1] = 0.0;
+    sliceBounds[2] = 0.0;
+    sliceBounds[3] = 0.0;
+    sliceBounds[4] = 0.0;
+    sliceBounds[5] = 0.0;</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_ReslicerVector[lidx]-&gt;GetClippedPlaneBounds(sliceBounds);</span>
+
+    // setup the textured plane
+<span style = "background-color:#fdd">    this-&gt;GeneratePlane(renderer, sliceBounds);</span>
+
+    // get the spacing of the slice
+<span style = "background-color:#fdd">    localStorage-&gt;m_mmPerPixel = localStorage-&gt;m_ReslicerVector[lidx]-&gt;GetOutputSpacing();
+    localStorage-&gt;m_ReslicerVector[lidx]-&gt;Modified();</span>
+    // start the pipeline with updating the largest possible, needed if the geometry of the image has changed
+<span style = "background-color:#fdd">    localStorage-&gt;m_ReslicerVector[lidx]-&gt;UpdateLargestPossibleRegion();
+    localStorage-&gt;m_ReslicedImageVector[lidx] = localStorage-&gt;m_ReslicerVector[lidx]-&gt;GetVtkOutput();</span>
+
+<span style = "background-color:#fdd">    const auto *planeGeometry = dynamic_cast&lt;const PlaneGeometry *&gt;(worldGeometry);</span>
+
+    double textureClippingBounds[6];
+<span style = "background-color:#fdd">    for (auto &amp;textureClippingBound : textureClippingBounds)</span>
+    {
+<span style = "background-color:#fdd">      textureClippingBound = 0.0;
+    }</span>
+
+    // Calculate the actual bounds of the transformed plane clipped by the
+    // dataset bounding box; this is required for drawing the texture at the
+    // correct position during 3D mapping.
+<span style = "background-color:#fdd">    mitk::PlaneClipping::CalculateClippedPlaneBounds(layerImage-&gt;GetGeometry(), planeGeometry, textureClippingBounds);</span>
+
+<span style = "background-color:#fdd">    textureClippingBounds[0] = static_cast&lt;int&gt;(textureClippingBounds[0] / localStorage-&gt;m_mmPerPixel[0] + 0.5);
+    textureClippingBounds[1] = static_cast&lt;int&gt;(textureClippingBounds[1] / localStorage-&gt;m_mmPerPixel[0] + 0.5);
+    textureClippingBounds[2] = static_cast&lt;int&gt;(textureClippingBounds[2] / localStorage-&gt;m_mmPerPixel[1] + 0.5);
+    textureClippingBounds[3] = static_cast&lt;int&gt;(textureClippingBounds[3] / localStorage-&gt;m_mmPerPixel[1] + 0.5);</span>
+
+    // clipping bounds for cutting the imageLayer
+<span style = "background-color:#fdd">    localStorage-&gt;m_LevelWindowFilterVector[lidx]-&gt;SetClippingBounds(textureClippingBounds);</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_LevelWindowFilterVector[lidx]-&gt;SetLookupTable(</span>
+      image-&gt;GetLabelSet(lidx)-&gt;GetLookupTable()-&gt;GetVtkLookupTable());
+
+    // do not use a VTK lookup table (we do that ourselves in m_LevelWindowFilter)
+<span style = "background-color:#fdd">    localStorage-&gt;m_LayerTextureVector[lidx]-&gt;SetColorModeToDirectScalars();</span>
+
+    // connect the imageLayer with the levelwindow filter
+<span style = "background-color:#fdd">    localStorage-&gt;m_LevelWindowFilterVector[lidx]-&gt;SetInputData(localStorage-&gt;m_ReslicedImageVector[lidx]);</span>
+    // connect the texture with the output of the levelwindow filter
+
+    // check for texture interpolation property
+<span style = "background-color:#fdd">    bool textureInterpolation = false;
+    node-&gt;GetBoolProperty("texture interpolation", textureInterpolation, renderer);</span>
+
+    // set the interpolation modus according to the property
+<span style = "background-color:#fdd">    localStorage-&gt;m_LayerTextureVector[lidx]-&gt;SetInterpolate(textureInterpolation);</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_LayerTextureVector[lidx]-&gt;SetInputConnection(</span>
+      localStorage-&gt;m_LevelWindowFilterVector[lidx]-&gt;GetOutputPort());
+
+<span style = "background-color:#fdd">    this-&gt;TransformActor(renderer);</span>
+
+    // set the plane as input for the mapper
+<span style = "background-color:#fdd">    localStorage-&gt;m_LayerMapperVector[lidx]-&gt;SetInputConnection(localStorage-&gt;m_Plane-&gt;GetOutputPort());</span>
+
+    // set the texture for the actor
+<span style = "background-color:#fdd">    localStorage-&gt;m_LayerActorVector[lidx]-&gt;SetTexture(localStorage-&gt;m_LayerTextureVector[lidx]);
+    localStorage-&gt;m_LayerActorVector[lidx]-&gt;GetProperty()-&gt;SetOpacity(opacity);
+  }</span>
+
+<span style = "background-color:#fdd">  mitk::Label* activeLabel = image-&gt;GetActiveLabel(activeLayer);
+  if (nullptr != activeLabel)</span>
+  {
+<span style = "background-color:#fdd">    bool contourActive = false;
+    node-&gt;GetBoolProperty("labelset.contour.active", contourActive, renderer);
+    if (contourActive &amp;&amp; activeLabel-&gt;GetVisible()) //contour rendering</span>
+    {
+      //generate contours/outlines
+<span style = "background-color:#fdd">      localStorage-&gt;m_OutlinePolyData =</span>
+        this-&gt;CreateOutlinePolyData(renderer, localStorage-&gt;m_ReslicedImageVector[activeLayer], activeLabel-&gt;GetValue());
+<span style = "background-color:#fdd">      localStorage-&gt;m_OutlineActor-&gt;SetVisibility(true);
+      localStorage-&gt;m_OutlineShadowActor-&gt;SetVisibility(true);
+      const mitk::Color&amp; color = activeLabel-&gt;GetColor();
+      localStorage-&gt;m_OutlineActor-&gt;GetProperty()-&gt;SetColor(color.GetRed(), color.GetGreen(), color.GetBlue());
+      localStorage-&gt;m_OutlineShadowActor-&gt;GetProperty()-&gt;SetColor(0, 0, 0);</span>
+
+<span style = "background-color:#fdd">      float contourWidth(2.0);
+      node-&gt;GetFloatProperty("labelset.contour.width", contourWidth, renderer);
+      localStorage-&gt;m_OutlineActor-&gt;GetProperty()-&gt;SetLineWidth(contourWidth);
+      localStorage-&gt;m_OutlineShadowActor-&gt;GetProperty()-&gt;SetLineWidth(contourWidth * 1.5);</span>
+
+<span style = "background-color:#fdd">      localStorage-&gt;m_OutlineActor-&gt;GetProperty()-&gt;SetOpacity(opacity);
+      localStorage-&gt;m_OutlineShadowActor-&gt;GetProperty()-&gt;SetOpacity(opacity);</span>
+
+<span style = "background-color:#fdd">      localStorage-&gt;m_OutlineMapper-&gt;SetInputData(localStorage-&gt;m_OutlinePolyData);
+      return;</span>
+    }
+  }
+<span style = "background-color:#fdd">  localStorage-&gt;m_OutlineActor-&gt;SetVisibility(false);
+  localStorage-&gt;m_OutlineShadowActor-&gt;SetVisibility(false);
+}</span>
+
+bool mitk::LabelSetImageVtkMapper2D::RenderingGeometryIntersectsImage(const PlaneGeometry *renderingGeometry,
+                                                                      SlicedGeometry3D *imageGeometry)
+<span style = "background-color:#fdd">{</span>
+  // if either one of the two geometries is nullptr we return true
+  // for safety reasons
+<span style = "background-color:#fdd">  if (renderingGeometry == nullptr || imageGeometry == nullptr)
+    return true;</span>
+
+  // get the distance for the first cornerpoint
+<span style = "background-color:#fdd">  ScalarType initialDistance = renderingGeometry-&gt;SignedDistance(imageGeometry-&gt;GetCornerPoint(0));
+  for (int i = 1; i &lt; 8; i++)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D cornerPoint = imageGeometry-&gt;GetCornerPoint(i);</span>
+
+    // get the distance to the other cornerpoints
+<span style = "background-color:#fdd">    ScalarType distance = renderingGeometry-&gt;SignedDistance(cornerPoint);</span>
+
+    // if it has not the same signing as the distance of the first point
+<span style = "background-color:#fdd">    if (initialDistance * distance &lt; 0)</span>
+    {
+      // we have an intersection and return true
+<span style = "background-color:#fdd">      return true;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // all distances have the same sign, no intersection and we return false
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+vtkSmartPointer&lt;vtkPolyData&gt; mitk::LabelSetImageVtkMapper2D::CreateOutlinePolyData(mitk::BaseRenderer *renderer,
+                                                                                   vtkImageData *image,
+                                                                                   int pixelValue)
+<span style = "background-color:#fdd">{
+  LocalStorage *localStorage = this-&gt;GetLocalStorage(renderer);</span>
+
+  // get the min and max index values of each direction
+<span style = "background-color:#fdd">  int *extent = image-&gt;GetExtent();
+  int xMin = extent[0];
+  int xMax = extent[1];
+  int yMin = extent[2];
+  int yMax = extent[3];</span>
+
+<span style = "background-color:#fdd">  int *dims = image-&gt;GetDimensions(); // dimensions of the image
+  int line = dims[0];                 // how many pixels per line?
+  int x = xMin;                       // pixel index x
+  int y = yMin;                       // pixel index y</span>
+
+  // get the depth for each contour
+<span style = "background-color:#fdd">  float depth = this-&gt;CalculateLayerDepth(renderer);</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkPoints&gt; points = vtkSmartPointer&lt;vtkPoints&gt;::New();      // the points to draw
+  vtkSmartPointer&lt;vtkCellArray&gt; lines = vtkSmartPointer&lt;vtkCellArray&gt;::New(); // the lines to connect the points</span>
+
+  // We take the pointer to the first pixel of the image
+<span style = "background-color:#fdd">  auto *currentPixel = static_cast&lt;mitk::Label::PixelType *&gt;(image-&gt;GetScalarPointer());</span>
+
+<span style = "background-color:#fdd">  while (y &lt;= yMax)</span>
+  {
+    // if the current pixel value is set to something
+<span style = "background-color:#fdd">    if ((currentPixel) &amp;&amp; (*currentPixel == pixelValue))</span>
+    {
+      // check in which direction a line is necessary
+      // a line is added if the neighbor of the current pixel has the value 0
+      // and if the pixel is located at the edge of the image
+
+      // if   vvvvv  not the first line vvvvv
+<span style = "background-color:#fdd">      if (y &gt; yMin &amp;&amp; *(currentPixel - line) != pixelValue)</span>
+      { // x direction - bottom edge of the pixel
+        // add the 2 points
+<span style = "background-color:#fdd">        vtkIdType p1 =</span>
+          points-&gt;InsertNextPoint(x * localStorage-&gt;m_mmPerPixel[0], y * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        vtkIdType p2 =</span>
+          points-&gt;InsertNextPoint((x + 1) * localStorage-&gt;m_mmPerPixel[0], y * localStorage-&gt;m_mmPerPixel[1], depth);
+        // add the line between both points
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(p1);
+        lines-&gt;InsertCellPoint(p2);</span>
+      }
+
+      // if   vvvvv  not the last line vvvvv
+<span style = "background-color:#fdd">      if (y &lt; yMax &amp;&amp; *(currentPixel + line) != pixelValue)</span>
+      { // x direction - top edge of the pixel
+<span style = "background-color:#fdd">        vtkIdType p1 =</span>
+          points-&gt;InsertNextPoint(x * localStorage-&gt;m_mmPerPixel[0], (y + 1) * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        vtkIdType p2 = points-&gt;InsertNextPoint(</span>
+          (x + 1) * localStorage-&gt;m_mmPerPixel[0], (y + 1) * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(p1);
+        lines-&gt;InsertCellPoint(p2);</span>
+      }
+
+      // if   vvvvv  not the first pixel vvvvv
+<span style = "background-color:#fdd">      if ((x &gt; xMin || y &gt; yMin) &amp;&amp; *(currentPixel - 1) != pixelValue)</span>
+      { // y direction - left edge of the pixel
+<span style = "background-color:#fdd">        vtkIdType p1 =</span>
+          points-&gt;InsertNextPoint(x * localStorage-&gt;m_mmPerPixel[0], y * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        vtkIdType p2 =</span>
+          points-&gt;InsertNextPoint(x * localStorage-&gt;m_mmPerPixel[0], (y + 1) * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(p1);
+        lines-&gt;InsertCellPoint(p2);</span>
+      }
+
+      // if   vvvvv  not the last pixel vvvvv
+<span style = "background-color:#fdd">      if ((y &lt; yMax || (x &lt; xMax)) &amp;&amp; *(currentPixel + 1) != pixelValue)</span>
+      { // y direction - right edge of the pixel
+<span style = "background-color:#fdd">        vtkIdType p1 =</span>
+          points-&gt;InsertNextPoint((x + 1) * localStorage-&gt;m_mmPerPixel[0], y * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        vtkIdType p2 = points-&gt;InsertNextPoint(</span>
+          (x + 1) * localStorage-&gt;m_mmPerPixel[0], (y + 1) * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(p1);
+        lines-&gt;InsertCellPoint(p2);</span>
+      }
+
+      /*  now consider pixels at the edge of the image  */
+
+      // if   vvvvv  left edge of image vvvvv
+<span style = "background-color:#fdd">      if (x == xMin)</span>
+      { // draw left edge of the pixel
+<span style = "background-color:#fdd">        vtkIdType p1 =</span>
+          points-&gt;InsertNextPoint(x * localStorage-&gt;m_mmPerPixel[0], y * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        vtkIdType p2 =</span>
+          points-&gt;InsertNextPoint(x * localStorage-&gt;m_mmPerPixel[0], (y + 1) * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(p1);
+        lines-&gt;InsertCellPoint(p2);</span>
+      }
+
+      // if   vvvvv  right edge of image vvvvv
+<span style = "background-color:#fdd">      if (x == xMax)</span>
+      { // draw right edge of the pixel
+<span style = "background-color:#fdd">        vtkIdType p1 =</span>
+          points-&gt;InsertNextPoint((x + 1) * localStorage-&gt;m_mmPerPixel[0], y * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        vtkIdType p2 = points-&gt;InsertNextPoint(</span>
+          (x + 1) * localStorage-&gt;m_mmPerPixel[0], (y + 1) * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(p1);
+        lines-&gt;InsertCellPoint(p2);</span>
+      }
+
+      // if   vvvvv  bottom edge of image vvvvv
+<span style = "background-color:#fdd">      if (y == yMin)</span>
+      { // draw bottom edge of the pixel
+<span style = "background-color:#fdd">        vtkIdType p1 =</span>
+          points-&gt;InsertNextPoint(x * localStorage-&gt;m_mmPerPixel[0], y * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        vtkIdType p2 =</span>
+          points-&gt;InsertNextPoint((x + 1) * localStorage-&gt;m_mmPerPixel[0], y * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(p1);
+        lines-&gt;InsertCellPoint(p2);</span>
+      }
+
+      // if   vvvvv  top edge of image vvvvv
+<span style = "background-color:#fdd">      if (y == yMax)</span>
+      { // draw top edge of the pixel
+<span style = "background-color:#fdd">        vtkIdType p1 =</span>
+          points-&gt;InsertNextPoint(x * localStorage-&gt;m_mmPerPixel[0], (y + 1) * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        vtkIdType p2 = points-&gt;InsertNextPoint(</span>
+          (x + 1) * localStorage-&gt;m_mmPerPixel[0], (y + 1) * localStorage-&gt;m_mmPerPixel[1], depth);
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(p1);
+        lines-&gt;InsertCellPoint(p2);</span>
+      }
+    } // end if currentpixel is set
+
+<span style = "background-color:#fdd">    x++;</span>
+
+<span style = "background-color:#fdd">    if (x &gt; xMax)</span>
+    { // reached end of line
+<span style = "background-color:#fdd">      x = xMin;
+      y++;</span>
+    }
+
+    // Increase the pointer-position to the next pixel.
+    // This is safe, as the while-loop and the x-reset logic above makes
+    // sure we do not exceed the bounds of the image
+<span style = "background-color:#fdd">    currentPixel++;
+  } // end of while</span>
+
+  // Create a polydata to store everything in
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkPolyData&gt; polyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();</span>
+  // Add the points to the dataset
+<span style = "background-color:#fdd">  polyData-&gt;SetPoints(points);</span>
+  // Add the lines to the dataset
+<span style = "background-color:#fdd">  polyData-&gt;SetLines(lines);
+  return polyData;
+}</span>
+
+void mitk::LabelSetImageVtkMapper2D::ApplyColor(mitk::BaseRenderer *renderer, const mitk::Color &amp;color)
+<span style = "background-color:#fdd">{
+  LocalStorage *localStorage = this-&gt;GetLocalStorage(renderer);
+  localStorage-&gt;m_OutlineActor-&gt;GetProperty()-&gt;SetColor(color.GetRed(), color.GetGreen(), color.GetBlue());
+  localStorage-&gt;m_OutlineShadowActor-&gt;GetProperty()-&gt;SetColor(0, 0, 0);
+}</span>
+
+void mitk::LabelSetImageVtkMapper2D::ApplyOpacity(mitk::BaseRenderer *renderer, int layer)
+<span style = "background-color:#fdd">{
+  LocalStorage *localStorage = this-&gt;GetLocalStorage(renderer);
+  float opacity = 1.0f;
+  this-&gt;GetDataNode()-&gt;GetOpacity(opacity, renderer, "opacity");
+  localStorage-&gt;m_LayerActorVector[layer]-&gt;GetProperty()-&gt;SetOpacity(opacity);
+  localStorage-&gt;m_OutlineActor-&gt;GetProperty()-&gt;SetOpacity(opacity);
+  localStorage-&gt;m_OutlineShadowActor-&gt;GetProperty()-&gt;SetOpacity(opacity);
+}</span>
+
+void mitk::LabelSetImageVtkMapper2D::ApplyLookuptable(mitk::BaseRenderer *renderer, int layer)
+<span style = "background-color:#fdd">{
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);
+  auto *input = dynamic_cast&lt;mitk::LabelSetImage *&gt;(this-&gt;GetDataNode()-&gt;GetData());
+  localStorage-&gt;m_LevelWindowFilterVector[layer]-&gt;SetLookupTable(</span>
+    input-&gt;GetLabelSet(layer)-&gt;GetLookupTable()-&gt;GetVtkLookupTable());
+<span style = "background-color:#fdd">}</span>
+
+void mitk::LabelSetImageVtkMapper2D::Update(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  bool visible = true;
+  const DataNode *node = this-&gt;GetDataNode();
+  node-&gt;GetVisibility(visible, renderer, "visible");</span>
+
+<span style = "background-color:#fdd">  if (!visible)
+    return;</span>
+
+<span style = "background-color:#fdd">  auto *image = dynamic_cast&lt;mitk::LabelSetImage *&gt;(node-&gt;GetData());</span>
+
+<span style = "background-color:#fdd">  if (image == nullptr || image-&gt;IsInitialized() == false)
+    return;</span>
+
+  // Calculate time step of the image data for the specified renderer (integer value)
+<span style = "background-color:#fdd">  this-&gt;CalculateTimeStep(renderer);</span>
+
+  // Check if time step is valid
+<span style = "background-color:#fdd">  const TimeGeometry *dataTimeGeometry = image-&gt;GetTimeGeometry();
+  if ((dataTimeGeometry == nullptr) || (dataTimeGeometry-&gt;CountTimeSteps() == 0) ||</span>
+      (!dataTimeGeometry-&gt;IsValidTimeStep(this-&gt;GetTimestep())))
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  image-&gt;UpdateOutputInformation();
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+
+  // check if something important has changed and we need to re-render
+
+  if ((localStorage-&gt;m_LastDataUpdateTime &lt; image-&gt;GetMTime()) ||
+      (localStorage-&gt;m_LastDataUpdateTime &lt; image-&gt;GetPipelineMTime()) ||
+<span style = "background-color:#fdd">      (localStorage-&gt;m_LastDataUpdateTime &lt; renderer-&gt;GetCurrentWorldPlaneGeometryUpdateTime()) ||</span>
+      (localStorage-&gt;m_LastDataUpdateTime &lt; renderer-&gt;GetCurrentWorldPlaneGeometry()-&gt;GetMTime()))
+  {
+<span style = "background-color:#fdd">    this-&gt;GenerateDataForRenderer(renderer);
+    localStorage-&gt;m_LastDataUpdateTime.Modified();
+  }</span>
+  else if ((localStorage-&gt;m_LastPropertyUpdateTime &lt; node-&gt;GetPropertyList()-&gt;GetMTime()) ||
+<span style = "background-color:#fdd">           (localStorage-&gt;m_LastPropertyUpdateTime &lt; node-&gt;GetPropertyList(renderer)-&gt;GetMTime()) ||</span>
+           (localStorage-&gt;m_LastPropertyUpdateTime &lt; image-&gt;GetPropertyList()-&gt;GetMTime()))
+  {
+<span style = "background-color:#fdd">    this-&gt;GenerateDataForRenderer(renderer);
+    localStorage-&gt;m_LastPropertyUpdateTime.Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+// set the two points defining the textured plane according to the dimension and spacing
+void mitk::LabelSetImageVtkMapper2D::GeneratePlane(mitk::BaseRenderer *renderer, double planeBounds[6])
+<span style = "background-color:#fdd">{
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  float depth = this-&gt;CalculateLayerDepth(renderer);</span>
+  // Set the origin to (xMin; yMin; depth) of the plane. This is necessary for obtaining the correct
+  // plane size in crosshair rotation and swivel mode.
+<span style = "background-color:#fdd">  localStorage-&gt;m_Plane-&gt;SetOrigin(planeBounds[0], planeBounds[2], depth);</span>
+  // These two points define the axes of the plane in combination with the origin.
+  // Point 1 is the x-axis and point 2 the y-axis.
+  // Each plane is transformed according to the view (axial, coronal and saggital) afterwards.
+<span style = "background-color:#fdd">  localStorage-&gt;m_Plane-&gt;SetPoint1(planeBounds[1], planeBounds[2], depth); // P1: (xMax, yMin, depth)
+  localStorage-&gt;m_Plane-&gt;SetPoint2(planeBounds[0], planeBounds[3], depth); // P2: (xMin, yMax, depth)
+}</span>
+
+float mitk::LabelSetImageVtkMapper2D::CalculateLayerDepth(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{</span>
+  // get the clipping range to check how deep into z direction we can render images
+<span style = "background-color:#fdd">  double maxRange = renderer-&gt;GetVtkRenderer()-&gt;GetActiveCamera()-&gt;GetClippingRange()[1];</span>
+
+  // Due to a VTK bug, we cannot use the whole clipping range. /100 is empirically determined
+<span style = "background-color:#fdd">  float depth = -maxRange * 0.01; // divide by 100
+  int layer = 0;
+  GetDataNode()-&gt;GetIntProperty("layer", layer, renderer);</span>
+  // add the layer property for each image to render images with a higher layer on top of the others
+<span style = "background-color:#fdd">  depth += layer * 10; //*10: keep some room for each image (e.g. for ODFs in between)
+  if (depth &gt; 0.0f)</span>
+  {
+<span style = "background-color:#fdd">    depth = 0.0f;
+    MITK_WARN &lt;&lt; "Layer value exceeds clipping range. Set to minimum instead.";</span>
+  }
+<span style = "background-color:#fdd">  return depth;
+}</span>
+
+void mitk::LabelSetImageVtkMapper2D::TransformActor(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+  // get the transformation matrix of the reslicer in order to render the slice as axial, coronal or saggital
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkTransform&gt; trans = vtkSmartPointer&lt;vtkTransform&gt;::New();
+  vtkSmartPointer&lt;vtkMatrix4x4&gt; matrix = localStorage-&gt;m_ReslicerVector[0]-&gt;GetResliceAxes(); // same for all layers
+  trans-&gt;SetMatrix(matrix);</span>
+
+<span style = "background-color:#fdd">  for (int lidx = 0; lidx &lt; localStorage-&gt;m_NumberOfLayers; ++lidx)</span>
+  {
+    // transform the plane/contour (the actual actor) to the corresponding view (axial, coronal or saggital)
+<span style = "background-color:#fdd">    localStorage-&gt;m_LayerActorVector[lidx]-&gt;SetUserTransform(trans);</span>
+    // transform the origin to center based coordinates, because MITK is center based.
+<span style = "background-color:#fdd">    localStorage-&gt;m_LayerActorVector[lidx]-&gt;SetPosition(</span>
+      -0.5 * localStorage-&gt;m_mmPerPixel[0], -0.5 * localStorage-&gt;m_mmPerPixel[1], 0.0);
+<span style = "background-color:#fdd">  }</span>
+  // same for outline actor
+<span style = "background-color:#fdd">  localStorage-&gt;m_OutlineActor-&gt;SetUserTransform(trans);
+  localStorage-&gt;m_OutlineActor-&gt;SetPosition(</span>
+    -0.5 * localStorage-&gt;m_mmPerPixel[0], -0.5 * localStorage-&gt;m_mmPerPixel[1], 0.0);
+  // same for outline shadow actor
+<span style = "background-color:#fdd">  localStorage-&gt;m_OutlineShadowActor-&gt;SetUserTransform(trans);
+  localStorage-&gt;m_OutlineShadowActor-&gt;SetPosition(</span>
+    -0.5 * localStorage-&gt;m_mmPerPixel[0], -0.5 * localStorage-&gt;m_mmPerPixel[1], 0.0);
+<span style = "background-color:#fdd">}</span>
+
+void mitk::LabelSetImageVtkMapper2D::SetDefaultProperties(mitk::DataNode *node,
+                                                          mitk::BaseRenderer *renderer,
+                                                          bool overwrite)
+<span style = "background-color:#fdd">{</span>
+  // add/replace the following properties
+<span style = "background-color:#fdd">  node-&gt;SetProperty("opacity", FloatProperty::New(1.0f), renderer);
+  node-&gt;SetProperty("binary", BoolProperty::New(false), renderer);</span>
+
+<span style = "background-color:#fdd">  mitk::RenderingModeProperty::Pointer renderingModeProperty =</span>
+    mitk::RenderingModeProperty::New(RenderingModeProperty::LOOKUPTABLE_LEVELWINDOW_COLOR);
+<span style = "background-color:#fdd">  node-&gt;SetProperty("Image Rendering.Mode", renderingModeProperty, renderer);</span>
+
+<span style = "background-color:#fdd">  mitk::LevelWindow levelwindow(32767.5, 65535);
+  mitk::LevelWindowProperty::Pointer levWinProp = mitk::LevelWindowProperty::New(levelwindow);</span>
+
+<span style = "background-color:#fdd">  levWinProp-&gt;SetLevelWindow(levelwindow);
+  node-&gt;SetProperty("levelwindow", levWinProp, renderer);</span>
+
+<span style = "background-color:#fdd">  node-&gt;SetProperty("labelset.contour.active", BoolProperty::New(true), renderer);
+  node-&gt;SetProperty("labelset.contour.width", FloatProperty::New(2.0), renderer);</span>
+
+<span style = "background-color:#fdd">  Superclass::SetDefaultProperties(node, renderer, overwrite);
+}</span>
+
+mitk::LabelSetImageVtkMapper2D::LocalStorage::~LocalStorage()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::LabelSetImageVtkMapper2D::LocalStorage::LocalStorage()
+<span style = "background-color:#fdd">{</span>
+  // Do as much actions as possible in here to avoid double executions.
+<span style = "background-color:#fdd">  m_Plane = vtkSmartPointer&lt;vtkPlaneSource&gt;::New();
+  m_Actors = vtkSmartPointer&lt;vtkPropAssembly&gt;::New();
+  m_OutlinePolyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();
+  m_EmptyPolyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();
+  m_OutlineActor = vtkSmartPointer&lt;vtkActor&gt;::New();
+  m_OutlineMapper = vtkSmartPointer&lt;vtkPolyDataMapper&gt;::New();
+  m_OutlineShadowActor = vtkSmartPointer&lt;vtkActor&gt;::New();</span>
+
+<span style = "background-color:#fdd">  m_NumberOfLayers = 0;
+  m_mmPerPixel = nullptr;</span>
+
+<span style = "background-color:#fdd">  m_OutlineActor-&gt;SetMapper(m_OutlineMapper);
+  m_OutlineShadowActor-&gt;SetMapper(m_OutlineMapper);</span>
+
+<span style = "background-color:#fdd">  m_OutlineActor-&gt;SetVisibility(false);
+  m_OutlineShadowActor-&gt;SetVisibility(false);
+}</span></pre>
+	</body>
+</html>

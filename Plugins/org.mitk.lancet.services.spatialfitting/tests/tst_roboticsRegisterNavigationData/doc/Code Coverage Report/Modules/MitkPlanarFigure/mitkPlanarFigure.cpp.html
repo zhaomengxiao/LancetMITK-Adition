@@ -1,0 +1,794 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlanarFigure.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPlanarFigure.h"
+#include "mitkPlaneGeometry.h"
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkProportionalTimeGeometry.h&gt;
+
+#include &lt;algorithm&gt;
+
+mitk::PlanarFigure::PlanarFigure()
+<span style = "background-color:#fdd">  : m_SelectedControlPoint(-1),
+    m_PreviewControlPointVisible(false),
+    m_FigurePlaced(false),
+    m_PolyLineUpToDate(false),
+    m_HelperLinesUpToDate(false),
+    m_FeaturesUpToDate(false),
+    m_FeaturesMTime(0)
+{
+  m_HelperPolyLinesToBePainted = BoolContainerType::New();</span>
+
+<span style = "background-color:#fdd">  m_DisplaySize.first = 0.0;
+  m_DisplaySize.second = 0;</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetProperty("closed", mitk::BoolProperty::New(false));</span>
+
+  // Currently only single-time-step geometries are supported
+<span style = "background-color:#fdd">  this-&gt;InitializeTimeGeometry(1);
+}</span>
+
+mitk::PlanarFigure::PlanarFigure(const Self &amp;other)
+<span style = "background-color:#fdd">  : BaseData(other),
+    m_ControlPoints(other.m_ControlPoints),
+    m_NumberOfControlPoints(other.m_NumberOfControlPoints),
+    m_SelectedControlPoint(other.m_SelectedControlPoint),
+    m_PolyLines(other.m_PolyLines),
+    m_HelperPolyLines(other.m_HelperPolyLines),
+    m_PreviewControlPoint(other.m_PreviewControlPoint),
+    m_PreviewControlPointVisible(other.m_PreviewControlPointVisible),
+    m_FigurePlaced(other.m_FigurePlaced),
+    m_PolyLineUpToDate(other.m_PolyLineUpToDate),
+    m_HelperLinesUpToDate(other.m_HelperLinesUpToDate),
+    m_FeaturesUpToDate(other.m_FeaturesUpToDate),
+    m_Features(other.m_Features),
+    m_FeaturesMTime(other.m_FeaturesMTime),
+    m_DisplaySize(other.m_DisplaySize)
+{
+  m_HelperPolyLinesToBePainted = BoolContainerType::New();
+  for (unsigned long i = 0; i &lt; other.m_HelperPolyLinesToBePainted-&gt;Size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    m_HelperPolyLinesToBePainted-&gt;InsertElement(i, other.m_HelperPolyLinesToBePainted-&gt;GetElement(i));
+  }
+}</span>
+
+void mitk::PlanarFigure::SetPlaneGeometry(mitk::PlaneGeometry *geometry)
+<span style = "background-color:#fdd">{
+  this-&gt;SetGeometry(geometry);</span>
+
+<span style = "background-color:#fdd">}</span>
+
+const mitk::PlaneGeometry *mitk::PlanarFigure::GetPlaneGeometry() const
+<span style = "background-color:#fdd">{
+  return dynamic_cast&lt;PlaneGeometry*&gt;(GetGeometry(0));
+}</span>
+
+bool mitk::PlanarFigure::IsClosed() const
+<span style = "background-color:#fdd">{
+  mitk::BoolProperty *closed = dynamic_cast&lt;mitk::BoolProperty *&gt;(this-&gt;GetProperty("closed").GetPointer());
+  if (closed != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    return closed-&gt;GetValue();</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::PlanarFigure::PlaceFigure(const mitk::Point2D &amp;point)
+<span style = "background-color:#fdd">{
+  for (unsigned int i = 0; i &lt; this-&gt;GetNumberOfControlPoints(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    m_ControlPoints.push_back(this-&gt;ApplyControlPointConstraints(i, point));
+  }</span>
+
+<span style = "background-color:#fdd">  m_FigurePlaced = true;
+  m_SelectedControlPoint = 1;
+}</span>
+
+bool mitk::PlanarFigure::AddControlPoint(const mitk::Point2D &amp;point, int position)
+<span style = "background-color:#fdd">{</span>
+  // if we already have the maximum number of control points, do nothing
+<span style = "background-color:#fdd">  if (m_NumberOfControlPoints &lt; this-&gt;GetMaximumNumberOfControlPoints())</span>
+  {
+    // if position has not been defined or position would be the last control point, just append the new one
+    // we also append a new point if we click onto the line between the first two control-points if the second
+    // control-point is selected
+    // -&gt; special case for PlanarCross
+<span style = "background-color:#fdd">    if (position == -1 || position &gt; (int)m_NumberOfControlPoints - 1 || (position == 1 &amp;&amp; m_SelectedControlPoint == 2))</span>
+    {
+<span style = "background-color:#fdd">      if (m_ControlPoints.size() &gt; this-&gt;GetMaximumNumberOfControlPoints() - 1)</span>
+      {
+        // get rid of deprecated control points in the list. This is necessary
+        // as ::ResetNumberOfControlPoints() only sets the member, does not resize the list!
+<span style = "background-color:#fdd">        m_ControlPoints.resize(this-&gt;GetNumberOfControlPoints());</span>
+      }
+
+<span style = "background-color:#fdd">      m_ControlPoints.push_back(this-&gt;ApplyControlPointConstraints(m_NumberOfControlPoints, point));
+      m_SelectedControlPoint = m_NumberOfControlPoints;
+    }</span>
+    else
+    {
+      // insert the point at the given position and set it as selected point
+<span style = "background-color:#fdd">      auto iter = m_ControlPoints.begin() + position;
+      m_ControlPoints.insert(iter, this-&gt;ApplyControlPointConstraints(position, point));
+      for (unsigned int i = 0; i &lt; m_ControlPoints.size(); ++i)</span>
+      {
+<span style = "background-color:#fdd">        if (point == m_ControlPoints.at(i))</span>
+        {
+<span style = "background-color:#fdd">          m_SelectedControlPoint = i;</span>
+        }
+<span style = "background-color:#fdd">      }
+    }</span>
+
+    // polylines &amp; helperpolylines need to be repainted
+<span style = "background-color:#fdd">    m_PolyLineUpToDate = false;
+    m_HelperLinesUpToDate = false;
+    m_FeaturesUpToDate = false;</span>
+
+    // one control point more
+<span style = "background-color:#fdd">    ++m_NumberOfControlPoints;
+    return true;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PlanarFigure::SetControlPoint(unsigned int index, const Point2D &amp;point, bool createIfDoesNotExist)
+<span style = "background-color:#fdd">{
+  bool controlPointSetCorrectly = false;
+  if (createIfDoesNotExist)</span>
+  {
+<span style = "background-color:#fdd">    if (m_NumberOfControlPoints &lt;= index)</span>
+    {
+<span style = "background-color:#fdd">      m_ControlPoints.push_back(this-&gt;ApplyControlPointConstraints(index, point));
+      m_NumberOfControlPoints++;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      m_ControlPoints.at(index) = this-&gt;ApplyControlPointConstraints(index, point);</span>
+    }
+<span style = "background-color:#fdd">    controlPointSetCorrectly = true;
+  }
+  else if (index &lt; m_NumberOfControlPoints)</span>
+  {
+<span style = "background-color:#fdd">    m_ControlPoints.at(index) = this-&gt;ApplyControlPointConstraints(index, point);
+    controlPointSetCorrectly = true;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (controlPointSetCorrectly)</span>
+  {
+<span style = "background-color:#fdd">    m_PolyLineUpToDate = false;
+    m_HelperLinesUpToDate = false;
+    m_FeaturesUpToDate = false;</span>
+  }
+
+<span style = "background-color:#fdd">  return controlPointSetCorrectly;
+}</span>
+
+bool mitk::PlanarFigure::SetCurrentControlPoint(const Point2D &amp;point)
+<span style = "background-color:#fdd">{
+  if ((m_SelectedControlPoint &lt; 0) || (m_SelectedControlPoint &gt;= (int)m_NumberOfControlPoints))</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  return this-&gt;SetControlPoint(m_SelectedControlPoint, point, false);
+}</span>
+
+unsigned int mitk::PlanarFigure::GetNumberOfControlPoints() const
+<span style = "background-color:#fdd">{
+  return m_NumberOfControlPoints;
+}</span>
+
+bool mitk::PlanarFigure::SelectControlPoint(unsigned int index)
+<span style = "background-color:#fdd">{
+  if (index &lt; this-&gt;GetNumberOfControlPoints())</span>
+  {
+<span style = "background-color:#fdd">    m_SelectedControlPoint = index;
+    return true;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PlanarFigure::DeselectControlPoint()
+<span style = "background-color:#fdd">{
+  bool wasSelected = (m_SelectedControlPoint != -1);</span>
+
+<span style = "background-color:#fdd">  m_SelectedControlPoint = -1;</span>
+
+<span style = "background-color:#fdd">  return wasSelected;
+}</span>
+
+void mitk::PlanarFigure::SetPreviewControlPoint(const Point2D &amp;point)
+<span style = "background-color:#fdd">{
+  m_PreviewControlPoint = point;
+  m_PreviewControlPointVisible = true;
+}</span>
+
+void mitk::PlanarFigure::ResetPreviewContolPoint()
+<span style = "background-color:#fdd">{
+  m_PreviewControlPointVisible = false;
+}</span>
+
+mitk::Point2D mitk::PlanarFigure::GetPreviewControlPoint() const
+<span style = "background-color:#fdd">{
+  return m_PreviewControlPoint;
+}</span>
+
+bool mitk::PlanarFigure::IsPreviewControlPointVisible() const
+<span style = "background-color:#fdd">{
+  return m_PreviewControlPointVisible;
+}</span>
+
+mitk::Point2D mitk::PlanarFigure::GetControlPoint(unsigned int index) const
+<span style = "background-color:#fdd">{
+  if (index &lt; m_NumberOfControlPoints)</span>
+  {
+<span style = "background-color:#fdd">    return m_ControlPoints.at(index);</span>
+  }
+
+<span style = "background-color:#fdd">  itkExceptionMacro(&lt;&lt; "GetControlPoint(): Invalid index!");
+}</span>
+
+mitk::Point3D mitk::PlanarFigure::GetWorldControlPoint(unsigned int index) const
+<span style = "background-color:#fdd">{
+  Point3D point3D;
+  const auto planeGeometry = this-&gt;GetPlaneGeometry();
+  if ((nullptr != planeGeometry) &amp;&amp; (index &lt; m_NumberOfControlPoints))</span>
+  {
+<span style = "background-color:#fdd">    planeGeometry-&gt;Map(m_ControlPoints.at(index), point3D);
+    return point3D;</span>
+  }
+
+<span style = "background-color:#fdd">  itkExceptionMacro(&lt;&lt; "GetWorldControlPoint(): Invalid plane geometry or index!");
+}</span>
+
+const mitk::PlanarFigure::PolyLineType mitk::PlanarFigure::GetPolyLine(unsigned int index)
+<span style = "background-color:#fdd">{
+  mitk::PlanarFigure::PolyLineType polyLine;
+  if (index &gt; m_PolyLines.size() || !m_PolyLineUpToDate)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;GeneratePolyLine();
+    m_PolyLineUpToDate = true;</span>
+  }
+
+<span style = "background-color:#fdd">  return m_PolyLines.at(index);
+}</span>
+
+const mitk::PlanarFigure::PolyLineType mitk::PlanarFigure::GetPolyLine(unsigned int index) const
+<span style = "background-color:#fdd">{
+  return m_PolyLines.at(index);
+}</span>
+
+void mitk::PlanarFigure::ClearPolyLines()
+<span style = "background-color:#fdd">{
+  for (std::vector&lt;PolyLineType&gt;::size_type i = 0; i &lt; m_PolyLines.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">    m_PolyLines.at(i).clear();
+  }
+  m_PolyLineUpToDate = false;
+}</span>
+
+const mitk::PlanarFigure::PolyLineType mitk::PlanarFigure::GetHelperPolyLine(unsigned int index,
+                                                                             double mmPerDisplayUnit,
+                                                                             unsigned int displayHeight)
+<span style = "background-color:#fdd">{
+  mitk::PlanarFigure::PolyLineType helperPolyLine;
+  if (index &lt; m_HelperPolyLines.size())</span>
+  {
+    // m_HelperLinesUpToDate does not cover changes in zoom-level, so we have to check previous values of the
+    // two parameters as well
+<span style = "background-color:#fdd">    if (!m_HelperLinesUpToDate || m_DisplaySize.first != mmPerDisplayUnit || m_DisplaySize.second != displayHeight)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;GenerateHelperPolyLine(mmPerDisplayUnit, displayHeight);
+      m_HelperLinesUpToDate = true;</span>
+
+      // store these parameters to be able to check next time if somebody zoomed in or out
+<span style = "background-color:#fdd">      m_DisplaySize.first = mmPerDisplayUnit;
+      m_DisplaySize.second = displayHeight;</span>
+    }
+
+<span style = "background-color:#fdd">    helperPolyLine = m_HelperPolyLines.at(index);</span>
+  }
+
+<span style = "background-color:#fdd">  return helperPolyLine;
+}</span>
+
+void mitk::PlanarFigure::ClearHelperPolyLines()
+<span style = "background-color:#fdd">{
+  for (std::vector&lt;PolyLineType&gt;::size_type i = 0; i &lt; m_HelperPolyLines.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">    m_HelperPolyLines.at(i).clear();
+  }
+  m_HelperLinesUpToDate = false;
+}</span>
+
+/** \brief Returns the number of features available for this PlanarFigure
+* (such as, radius, area, ...). */
+unsigned int mitk::PlanarFigure::GetNumberOfFeatures() const
+<span style = "background-color:#fdd">{
+  return m_Features.size();
+}</span>
+
+int mitk::PlanarFigure::GetControlPointForPolylinePoint(int indexOfPolylinePoint, int /*polyLineIndex*/) const
+<span style = "background-color:#fdd">{
+  return indexOfPolylinePoint;
+}</span>
+
+const char *mitk::PlanarFigure::GetFeatureName(unsigned int index) const
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    return m_Features[index].Name.c_str();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const char *mitk::PlanarFigure::GetFeatureUnit(unsigned int index) const
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    return m_Features[index].Unit.c_str();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+double mitk::PlanarFigure::GetQuantity(unsigned int index) const
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    return m_Features[index].Quantity;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return 0.0;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PlanarFigure::IsFeatureActive(unsigned int index) const
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    return m_Features[index].Active;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PlanarFigure::IsFeatureVisible(unsigned int index) const
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    return m_Features[index].Visible;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigure::SetFeatureVisible(unsigned int index, bool visible)
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    m_Features[index].Visible = visible;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigure::EvaluateFeatures()
+<span style = "background-color:#fdd">{
+  if (!m_FeaturesUpToDate || !m_PolyLineUpToDate)</span>
+  {
+<span style = "background-color:#fdd">    if (!m_PolyLineUpToDate)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;GeneratePolyLine();</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;EvaluateFeaturesInternal();</span>
+
+<span style = "background-color:#fdd">    m_FeaturesUpToDate = true;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigure::UpdateOutputInformation()
+<span style = "background-color:#fdd">{</span>
+  // Bounds are NOT calculated here, since the PlaneGeometry defines a fixed
+  // frame (= bounds) for the planar figure.
+<span style = "background-color:#fdd">  Superclass::UpdateOutputInformation();
+  this-&gt;GetTimeGeometry()-&gt;Update();
+}</span>
+
+void mitk::PlanarFigure::SetRequestedRegionToLargestPossibleRegion()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::PlanarFigure::RequestedRegionIsOutsideOfTheBufferedRegion()
+<span style = "background-color:#fdd">{
+  return false;
+}</span>
+
+bool mitk::PlanarFigure::VerifyRequestedRegion()
+<span style = "background-color:#fdd">{
+  return true;
+}</span>
+
+void mitk::PlanarFigure::SetRequestedRegion(const itk::DataObject * /*data*/)
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::PlanarFigure::ResetNumberOfControlPoints(int numberOfControlPoints)
+<span style = "background-color:#fdd">{</span>
+  // DO NOT resize the list here, will cause crash!!
+<span style = "background-color:#fdd">  m_NumberOfControlPoints = numberOfControlPoints;
+}</span>
+
+mitk::Point2D mitk::PlanarFigure::ApplyControlPointConstraints(unsigned int /*index*/, const Point2D &amp;point)
+<span style = "background-color:#fdd">{
+  const auto planeGeometry = this-&gt;GetPlaneGeometry();
+  if (nullptr == planeGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return point;</span>
+  }
+
+<span style = "background-color:#fdd">  Point2D indexPoint;
+  planeGeometry-&gt;WorldToIndex(point, indexPoint);</span>
+
+<span style = "background-color:#fdd">  BoundingBox::BoundsArrayType bounds = planeGeometry-&gt;GetBounds();
+  if (indexPoint[0] &lt; bounds[0])</span>
+  {
+<span style = "background-color:#fdd">    indexPoint[0] = bounds[0];</span>
+  }
+<span style = "background-color:#fdd">  if (indexPoint[0] &gt; bounds[1])</span>
+  {
+<span style = "background-color:#fdd">    indexPoint[0] = bounds[1];</span>
+  }
+<span style = "background-color:#fdd">  if (indexPoint[1] &lt; bounds[2])</span>
+  {
+<span style = "background-color:#fdd">    indexPoint[1] = bounds[2];</span>
+  }
+<span style = "background-color:#fdd">  if (indexPoint[1] &gt; bounds[3])</span>
+  {
+<span style = "background-color:#fdd">    indexPoint[1] = bounds[3];</span>
+  }
+
+<span style = "background-color:#fdd">  Point2D constrainedPoint;
+  planeGeometry-&gt;IndexToWorld(indexPoint, constrainedPoint);</span>
+
+<span style = "background-color:#fdd">  return constrainedPoint;
+}</span>
+
+unsigned int mitk::PlanarFigure::AddFeature(const char *featureName, const char *unitName)
+<span style = "background-color:#fdd">{
+  unsigned int index = m_Features.size();</span>
+
+<span style = "background-color:#fdd">  Feature newFeature(featureName, unitName);
+  m_Features.push_back(newFeature);</span>
+
+<span style = "background-color:#fdd">  return index;
+}</span>
+
+void mitk::PlanarFigure::SetFeatureName(unsigned int index, const char *featureName)
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    m_Features[index].Name = featureName;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigure::SetFeatureUnit(unsigned int index, const char *unitName)
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    m_Features[index].Unit = unitName;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigure::SetQuantity(unsigned int index, double quantity)
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    m_Features[index].Quantity = quantity;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigure::ActivateFeature(unsigned int index)
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    m_Features[index].Active = true;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigure::DeactivateFeature(unsigned int index)
+<span style = "background-color:#fdd">{
+  if (index &lt; m_Features.size())</span>
+  {
+<span style = "background-color:#fdd">    m_Features[index].Active = false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigure::InitializeTimeGeometry(unsigned int timeSteps)
+<span style = "background-color:#fdd">{
+  mitk::PlaneGeometry::Pointer geometry2D = mitk::PlaneGeometry::New();
+  geometry2D-&gt;Initialize();</span>
+
+  // The geometry is propagated automatically to all time steps,
+  // if EvenlyTimed is true...
+<span style = "background-color:#fdd">  ProportionalTimeGeometry::Pointer timeGeometry = ProportionalTimeGeometry::New();
+  timeGeometry-&gt;Initialize(geometry2D, timeSteps);
+  SetTimeGeometry(timeGeometry);
+}</span>
+
+void mitk::PlanarFigure::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);
+  os &lt;&lt; indent &lt;&lt; this-&gt;GetNameOfClass() &lt;&lt; ":\n";</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;IsClosed())
+    os &lt;&lt; indent &lt;&lt; "This figure is closed\n";</span>
+  else
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "This figure is not closed\n";
+  os &lt;&lt; indent &lt;&lt; "Minimum number of control points: " &lt;&lt; this-&gt;GetMinimumNumberOfControlPoints() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Maximum number of control points: " &lt;&lt; this-&gt;GetMaximumNumberOfControlPoints() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Current number of control points: " &lt;&lt; this-&gt;GetNumberOfControlPoints() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Control points:" &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; this-&gt;GetNumberOfControlPoints(); ++i)</span>
+  {
+    // os &lt;&lt; indent.GetNextIndent() &lt;&lt; i &lt;&lt; ": " &lt;&lt; m_ControlPoints-&gt;ElementAt( i ) &lt;&lt; std::endl;
+<span style = "background-color:#fdd">    os &lt;&lt; indent.GetNextIndent() &lt;&lt; i &lt;&lt; ": " &lt;&lt; m_ControlPoints.at(i) &lt;&lt; std::endl;
+  }
+  os &lt;&lt; indent &lt;&lt; "Geometry:\n";
+  this-&gt;GetPlaneGeometry()-&gt;Print(os, indent.GetNextIndent());
+}</span>
+
+unsigned short mitk::PlanarFigure::GetPolyLinesSize()
+<span style = "background-color:#fdd">{
+  if (!m_PolyLineUpToDate)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;GeneratePolyLine();
+    m_PolyLineUpToDate = true;</span>
+  }
+<span style = "background-color:#fdd">  return m_PolyLines.size();
+}</span>
+
+unsigned short mitk::PlanarFigure::GetHelperPolyLinesSize() const
+<span style = "background-color:#fdd">{
+  return m_HelperPolyLines.size();
+}</span>
+
+bool mitk::PlanarFigure::IsHelperToBePainted(unsigned int index) const
+<span style = "background-color:#fdd">{
+  return m_HelperPolyLinesToBePainted-&gt;GetElement(index);
+}</span>
+
+bool mitk::PlanarFigure::ResetOnPointSelect()
+<span style = "background-color:#fdd">{
+  return false;
+}</span>
+
+bool mitk::PlanarFigure::ResetOnPointSelectNeeded() const
+<span style = "background-color:#fdd">{
+  return false;
+}</span>
+
+void mitk::PlanarFigure::RemoveControlPoint(unsigned int index)
+<span style = "background-color:#fdd">{
+  if (index &gt; m_ControlPoints.size())
+    return;</span>
+
+<span style = "background-color:#fdd">  if ((m_ControlPoints.size() - 1) &lt; this-&gt;GetMinimumNumberOfControlPoints())
+    return;</span>
+
+<span style = "background-color:#fdd">  ControlPointListType::iterator iter;
+  iter = m_ControlPoints.begin() + index;</span>
+
+<span style = "background-color:#fdd">  m_ControlPoints.erase(iter);</span>
+
+<span style = "background-color:#fdd">  m_PolyLineUpToDate = false;
+  m_HelperLinesUpToDate = false;
+  m_FeaturesUpToDate = false;</span>
+
+<span style = "background-color:#fdd">  --m_NumberOfControlPoints;
+}</span>
+
+void mitk::PlanarFigure::RemoveLastControlPoint()
+<span style = "background-color:#fdd">{
+  RemoveControlPoint(m_ControlPoints.size() - 1);
+}</span>
+
+void mitk::PlanarFigure::SetNumberOfPolyLines(unsigned int numberOfPolyLines)
+<span style = "background-color:#fdd">{
+  m_PolyLines.resize(numberOfPolyLines);
+}</span>
+
+void mitk::PlanarFigure::SetNumberOfHelperPolyLines(unsigned int numberOfHerlperPolyLines)
+<span style = "background-color:#fdd">{
+  m_HelperPolyLines.resize(numberOfHerlperPolyLines);
+}</span>
+
+void mitk::PlanarFigure::AppendPointToPolyLine(unsigned int index, PolyLineElement element)
+<span style = "background-color:#fdd">{
+  if (index &lt; m_PolyLines.size())</span>
+  {
+<span style = "background-color:#fdd">    m_PolyLines[index].push_back(element);
+    m_PolyLineUpToDate = false;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Tried to add point to PolyLine " &lt;&lt; index + 1 &lt;&lt; ", although only " &lt;&lt; m_PolyLines.size()</span>
+               &lt;&lt; " exists";
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigure::AppendPointToHelperPolyLine(unsigned int index, PolyLineElement element)
+<span style = "background-color:#fdd">{
+  if (index &lt; m_HelperPolyLines.size())</span>
+  {
+<span style = "background-color:#fdd">    m_HelperPolyLines[index].push_back(element);
+    m_HelperLinesUpToDate = false;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Tried to add point to HelperPolyLine " &lt;&lt; index + 1 &lt;&lt; ", although only " &lt;&lt; m_HelperPolyLines.size()</span>
+               &lt;&lt; " exists";
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PlanarFigure::Equals(const mitk::PlanarFigure &amp;other) const
+<span style = "background-color:#fdd">{</span>
+  // check geometries
+<span style = "background-color:#fdd">  if (this-&gt;GetPlaneGeometry() &amp;&amp; other.GetPlaneGeometry())</span>
+  {
+<span style = "background-color:#fdd">    if (!Equal(*(this-&gt;GetPlaneGeometry()), *(other.GetPlaneGeometry()), mitk::eps, true))</span>
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Geometry is not equal";
+    return false;</span>
+  }
+
+  // check isPlaced member
+<span style = "background-color:#fdd">  if (this-&gt;m_FigurePlaced != other.m_FigurePlaced)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Is_Placed is not equal";
+    return false;</span>
+  }
+
+  // check closed property
+<span style = "background-color:#fdd">  if (this-&gt;IsClosed() != other.IsClosed())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Is_closed is not equal";
+    return false;</span>
+  }
+
+  // check poly lines
+<span style = "background-color:#fdd">  if (this-&gt;m_PolyLines.size() != other.m_PolyLines.size())</span>
+  {
+<span style = "background-color:#fdd">    return false;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    auto itThis = this-&gt;m_PolyLines.begin();
+    auto itEnd = this-&gt;m_PolyLines.end();
+    auto itOther = other.m_PolyLines.begin();</span>
+
+<span style = "background-color:#fdd">    while (itThis != itEnd)</span>
+    {
+<span style = "background-color:#fdd">      if (itThis-&gt;size() != itOther-&gt;size())
+        return false;</span>
+      else
+      {
+<span style = "background-color:#fdd">        auto itLineThis = itThis-&gt;begin();
+        auto itLineEnd = itThis-&gt;end();
+        auto itLineOther = itOther-&gt;begin();</span>
+
+<span style = "background-color:#fdd">        while (itLineThis != itLineEnd)</span>
+        {
+<span style = "background-color:#fdd">          Point2D p1 = *itLineThis;
+          Point2D p2 = *itLineOther;
+          ScalarType delta = fabs(p1[0] - p2[0]) + fabs(p1[1] - p2[1]);
+          if (delta &gt; .001)</span>
+          {
+<span style = "background-color:#fdd">            MITK_ERROR &lt;&lt; "Poly line is not equal";
+            MITK_ERROR &lt;&lt; p1 &lt;&lt; "/" &lt;&lt; p2;
+            return false;</span>
+          }
+
+<span style = "background-color:#fdd">          ++itLineThis;
+          ++itLineOther;
+        }
+      }
+      ++itThis;
+      ++itOther;
+    }
+  }</span>
+
+  // check features
+<span style = "background-color:#fdd">  if (this-&gt;GetNumberOfFeatures() != other.GetNumberOfFeatures())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Number of Features is Different";
+    return false;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    auto itThis = m_Features.begin();
+    auto itEnd = m_Features.end();
+    auto itOther = other.m_Features.begin();</span>
+
+<span style = "background-color:#fdd">    while (itThis != itEnd)</span>
+    {
+<span style = "background-color:#fdd">      if ((itThis-&gt;Quantity - itOther-&gt;Quantity) &gt; .001)</span>
+      {
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "Quantity is Different" &lt;&lt; itThis-&gt;Quantity &lt;&lt; "/" &lt;&lt; itOther-&gt;Quantity;
+        return false;</span>
+      }
+<span style = "background-color:#fdd">      if (itThis-&gt;Unit.compare(itOther-&gt;Unit) != 0)</span>
+      {
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "Unit is Different" &lt;&lt; itThis-&gt;Unit &lt;&lt; "/" &lt;&lt; itOther-&gt;Unit;
+        return false;</span>
+      }
+<span style = "background-color:#fdd">      if (itThis-&gt;Name.compare(itOther-&gt;Name) != 0)</span>
+      {
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "Name of Measure is Different " &lt;&lt; itThis-&gt;Name &lt;&lt; "/ " &lt;&lt; itOther-&gt;Name;</span>
+        ;
+<span style = "background-color:#fdd">        return false;</span>
+      }
+
+<span style = "background-color:#fdd">      ++itThis;
+      ++itOther;
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+bool mitk::Equal(const mitk::PlanarFigure &amp;leftHandSide,
+                 const mitk::PlanarFigure &amp;rightHandSide,
+                 ScalarType /*eps*/,
+                 bool /*verbose*/)
+<span style = "background-color:#fdd">{</span>
+  // FIXME: use eps and verbose
+<span style = "background-color:#fdd">  return leftHandSide.Equals(rightHandSide);
+}</span></pre>
+	</body>
+</html>

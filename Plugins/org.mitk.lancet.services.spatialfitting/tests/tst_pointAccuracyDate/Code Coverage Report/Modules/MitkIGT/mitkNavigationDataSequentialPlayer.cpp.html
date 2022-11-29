@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataSequentialPlayer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationDataSequentialPlayer.h"
+
+#include &lt;itksys/SystemTools.hxx&gt; //for the pause
+#include &lt;fstream&gt;
+#include &lt;sstream&gt;
+
+//Exceptions
+#include "mitkIGTException.h"
+#include "mitkIGTIOException.h"
+
+mitk::NavigationDataSequentialPlayer::NavigationDataSequentialPlayer()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::NavigationDataSequentialPlayer::~NavigationDataSequentialPlayer()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::NavigationDataSequentialPlayer::GoToSnapshot(unsigned int i)
+<span style = "background-color:#fdd">{
+  if( !m_Repeat &amp;&amp; (this-&gt;GetNumberOfSnapshots() &lt;= i) )</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Snaphot " &lt;&lt; i &lt;&lt; " does not exist and repat is off: can't go to that snapshot!";
+    mitkThrowException(mitk::IGTException) &lt;&lt; "Snapshot " &lt;&lt; i &lt;&lt; " does not exist and repat is off: can't go to that snapshot!";</span>
+  }
+
+  // set iterator to given position (modulo for allowing repeat)
+<span style = "background-color:#fdd">  m_NavigationDataSetIterator = m_NavigationDataSet-&gt;Begin() + ( i % this-&gt;GetNumberOfSnapshots() );</span>
+
+  // set outputs to selected snapshot
+<span style = "background-color:#fdd">  this-&gt;GenerateData();
+}</span>
+
+bool mitk::NavigationDataSequentialPlayer::GoToNextSnapshot()
+<span style = "background-color:#fdd">{
+  if (m_NavigationDataSetIterator == m_NavigationDataSet-&gt;End())</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN("NavigationDataSequentialPlayer") &lt;&lt; "Cannot go to next snapshot, already at end of NavigationDataset. Ignoring...";
+    return false;</span>
+  }
+<span style = "background-color:#fdd">  ++m_NavigationDataSetIterator;
+  if ( m_NavigationDataSetIterator == m_NavigationDataSet-&gt;End() )</span>
+  {
+<span style = "background-color:#fdd">    if ( m_Repeat )</span>
+    {
+      // set data back to start if repeat is enabled
+<span style = "background-color:#fdd">      m_NavigationDataSetIterator = m_NavigationDataSet-&gt;Begin();
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+  }
+<span style = "background-color:#fdd">  this-&gt;GenerateData();
+  return true;
+}</span>
+
+void mitk::NavigationDataSequentialPlayer::GenerateData()
+<span style = "background-color:#fdd">{
+  if ( m_NavigationDataSetIterator == m_NavigationDataSet-&gt;End() )</span>
+  {
+    // no more data available
+<span style = "background-color:#fdd">    this-&gt;GraftEmptyOutput();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    for (unsigned int index = 0; index &lt; GetNumberOfOutputs(); index++)</span>
+    {
+<span style = "background-color:#fdd">      mitk::NavigationData* output = this-&gt;GetOutput(index);
+      if( !output ) { mitkThrowException(mitk::IGTException) &lt;&lt; "Output of index "&lt;&lt;index&lt;&lt;" is null."; }</span>
+
+<span style = "background-color:#fdd">      output-&gt;Graft(m_NavigationDataSetIterator-&gt;at(index));
+    }</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::NavigationDataSequentialPlayer::UpdateOutputInformation()
+<span style = "background-color:#fdd">{
+  this-&gt;Modified();  // make sure that we need to be updated
+  Superclass::UpdateOutputInformation();
+}</span></pre>
+	</body>
+</html>

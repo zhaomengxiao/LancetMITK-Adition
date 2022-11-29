@@ -1,0 +1,625 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkHotspotMaskGenerator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkHotspotMaskGenerator.h&gt;
+#include &lt;mitkImageTimeSelector.h&gt;
+#include &lt;mitkImageCast.h&gt;
+#include &lt;mitkPoint.h&gt;
+#include &lt;itkImageRegionIterator.h&gt;
+#include "mitkImageAccessByItk.h"
+#include &lt;itkImageDuplicator.h&gt;
+#include &lt;itkFFTConvolutionImageFilter.h&gt;
+#include &lt;mitkITKImageImport.h&gt;
+
+namespace mitk
+{
+    HotspotMaskGenerator::HotspotMaskGenerator():
+<span style = "background-color:#fdd">        m_HotspotRadiusinMM(6.2035049089940),   // radius of a 1cm3 sphere in mm
+        m_HotspotMustBeCompletelyInsideImage(true),
+        m_Label(1)
+    {
+        m_TimeStep = 0;
+        m_InternalMask = mitk::Image::New();
+        m_InternalMaskUpdateTime = 0;
+    }</span>
+
+    void HotspotMaskGenerator::SetInputImage(mitk::Image::Pointer inputImage)
+<span style = "background-color:#fdd">    {
+        if (inputImage != m_inputImage)</span>
+        {
+<span style = "background-color:#fdd">            m_inputImage = inputImage;
+            m_ConvolutionImageMaxIndex.set_size(inputImage-&gt;GetDimension());
+            m_ConvolutionImageMinIndex.set_size(inputImage-&gt;GetDimension());
+            this-&gt;Modified();</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+    void HotspotMaskGenerator::SetMask(MaskGenerator::Pointer mask)
+<span style = "background-color:#fdd">    {
+        if (mask != m_Mask)</span>
+        {
+<span style = "background-color:#fdd">            m_Mask = mask;
+            this-&gt;Modified();</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+    HotspotMaskGenerator::~HotspotMaskGenerator()
+<span style = "background-color:#fdd">    {
+    }</span>
+
+    void HotspotMaskGenerator::SetHotspotRadiusInMM(double radiusInMillimeter)
+<span style = "background-color:#fdd">    {
+        if(radiusInMillimeter != m_HotspotRadiusinMM)</span>
+        {
+<span style = "background-color:#fdd">            m_HotspotRadiusinMM = radiusInMillimeter;
+            this-&gt;Modified();</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+    const double&amp; HotspotMaskGenerator::GetHotspotRadiusinMM() const
+<span style = "background-color:#fdd">    {
+        return m_HotspotRadiusinMM;
+    }</span>
+
+    bool HotspotMaskGenerator::GetHotspotMustBeCompletelyInsideImage() const
+<span style = "background-color:#fdd">    {
+        return m_HotspotMustBeCompletelyInsideImage;
+    }</span>
+
+    void HotspotMaskGenerator::SetHotspotMustBeCompletelyInsideImage(bool mustBeCompletelyInImage)
+<span style = "background-color:#fdd">    {
+        if (m_HotspotMustBeCompletelyInsideImage != mustBeCompletelyInImage)</span>
+        {
+<span style = "background-color:#fdd">            m_HotspotMustBeCompletelyInsideImage = mustBeCompletelyInImage;
+            this-&gt;Modified();</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+
+    mitk::Image::Pointer HotspotMaskGenerator::GetMask()
+<span style = "background-color:#fdd">    {
+        if (IsUpdateRequired())</span>
+        {
+<span style = "background-color:#fdd">            if ( m_inputImage.IsNull() )</span>
+            {
+<span style = "background-color:#fdd">              throw std::runtime_error( "Error: image empty!" );</span>
+            }
+
+<span style = "background-color:#fdd">            if ( m_TimeStep &gt;= m_inputImage-&gt;GetTimeSteps() )</span>
+            {
+<span style = "background-color:#fdd">              throw std::runtime_error( "Error: invalid time step!" );</span>
+            }
+
+<span style = "background-color:#fdd">            mitk::ImageTimeSelector::Pointer imageTimeSelector = mitk::ImageTimeSelector::New();
+            imageTimeSelector-&gt;SetInput( m_inputImage );
+            imageTimeSelector-&gt;SetTimeNr( m_TimeStep );
+            imageTimeSelector-&gt;UpdateLargestPossibleRegion();
+            mitk::Image::Pointer timeSliceImage = imageTimeSelector-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">            m_internalImage = timeSliceImage;
+            m_internalMask2D = nullptr; // is this correct when this variable holds a smart pointer?
+            m_internalMask3D = nullptr;</span>
+
+<span style = "background-color:#fdd">            if ( m_Mask != nullptr )</span>
+            {
+<span style = "background-color:#fdd">                m_Mask-&gt;SetTimeStep(m_TimeStep);
+                mitk::Image::Pointer timeSliceMask = m_Mask-&gt;GetMask();</span>
+
+<span style = "background-color:#fdd">                if ( m_internalImage-&gt;GetDimension() == 3 )</span>
+                {
+<span style = "background-color:#fdd">                    CastToItkImage(timeSliceMask, m_internalMask3D);
+                    AccessFixedDimensionByItk_2(m_internalImage, CalculateHotspotMask, 3, m_internalMask3D, m_Label);
+                }
+                else if ( m_internalImage-&gt;GetDimension() == 2 )</span>
+                {
+<span style = "background-color:#fdd">                    CastToItkImage(timeSliceMask, m_internalMask2D);
+                    AccessFixedDimensionByItk_2(m_internalImage, CalculateHotspotMask, 2, m_internalMask2D, m_Label);
+                }</span>
+                else
+                {
+<span style = "background-color:#fdd">                    throw std::runtime_error( "Error: invalid image dimension" );</span>
+                }
+<span style = "background-color:#fdd">            }</span>
+            else
+            {
+
+<span style = "background-color:#fdd">                if ( m_internalImage-&gt;GetDimension() == 3 )</span>
+                {
+<span style = "background-color:#fdd">                    AccessFixedDimensionByItk_2(m_internalImage, CalculateHotspotMask, 3, m_internalMask3D, m_Label);
+                }
+                else if ( m_internalImage-&gt;GetDimension() == 2 )</span>
+                {
+<span style = "background-color:#fdd">                    AccessFixedDimensionByItk_2(m_internalImage, CalculateHotspotMask, 2, m_internalMask2D, m_Label);
+                }</span>
+                else
+                {
+<span style = "background-color:#fdd">                    throw std::runtime_error( "Error: invalid image dimension" );</span>
+                }
+            }
+<span style = "background-color:#fdd">            this-&gt;Modified();
+        }</span>
+
+<span style = "background-color:#fdd">        m_InternalMaskUpdateTime = m_InternalMask-&gt;GetMTime();
+        return m_InternalMask;
+    }</span>
+
+    void HotspotMaskGenerator::SetTimeStep(unsigned int timeStep)
+<span style = "background-color:#fdd">    {
+        if (m_TimeStep != timeStep)</span>
+        {
+<span style = "background-color:#fdd">            m_TimeStep = timeStep;</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+    void HotspotMaskGenerator::SetLabel(unsigned short label)
+<span style = "background-color:#fdd">    {
+        if (label != m_Label)</span>
+        {
+<span style = "background-color:#fdd">            m_Label = label;
+            this-&gt;Modified();</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+    vnl_vector&lt;int&gt; HotspotMaskGenerator::GetConvolutionImageMinIndex()
+<span style = "background-color:#fdd">    {
+        this-&gt;GetMask(); // make sure we are up to date
+        return m_ConvolutionImageMinIndex;
+    }</span>
+
+    vnl_vector&lt;int&gt; HotspotMaskGenerator::GetHotspotIndex()
+<span style = "background-color:#fdd">    {
+        this-&gt;GetMask(); // make sure we are up to date
+        return m_ConvolutionImageMaxIndex;
+    }</span>
+
+    template &lt;typename TPixel, unsigned int VImageDimension  &gt;
+    HotspotMaskGenerator::ImageExtrema
+      HotspotMaskGenerator::CalculateExtremaWorld( const itk::Image&lt;TPixel, VImageDimension&gt;* inputImage,
+                                                    typename itk::Image&lt;unsigned short, VImageDimension&gt;::Pointer maskImage,
+                                                    double neccessaryDistanceToImageBorderInMM,
+                                                    unsigned int label )
+<span style = "background-color:#fdd">    {</span>
+      typedef itk::Image&lt; TPixel, VImageDimension &gt; ImageType;
+      typedef itk::Image&lt; unsigned short, VImageDimension &gt; MaskImageType;
+
+      typedef itk::ImageRegionConstIteratorWithIndex&lt;MaskImageType&gt; MaskImageIteratorType;
+      typedef itk::ImageRegionConstIteratorWithIndex&lt;ImageType&gt; InputImageIndexIteratorType;
+
+<span style = "background-color:#fdd">      typename ImageType::SpacingType spacing = inputImage-&gt;GetSpacing();</span>
+
+<span style = "background-color:#fdd">      ImageExtrema minMax;
+      minMax.Defined = false;
+      minMax.MaxIndex.set_size(VImageDimension);
+      minMax.MaxIndex.set_size(VImageDimension);</span>
+
+<span style = "background-color:#fdd">      typename ImageType::RegionType allowedExtremaRegion = inputImage-&gt;GetLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">      bool keepDistanceToImageBorders( neccessaryDistanceToImageBorderInMM &gt; 0 );
+      if (keepDistanceToImageBorders)</span>
+      {
+        itk::IndexValueType distanceInPixels[VImageDimension];
+<span style = "background-color:#fdd">        for(unsigned short dimension = 0; dimension &lt; VImageDimension; ++dimension)</span>
+        {
+          // To confirm that the whole hotspot is inside the image we have to keep a specific distance to the image-borders, which is as long as
+          // the radius. To get the amount of indices we divide the radius by spacing and add 0.5 because voxels are center based:
+          // For example with a radius of 2.2 and a spacing of 1 two indices are enough because 2.2 / 1 + 0.5 = 2.7 =&gt; 2.
+          // But with a radius of 2.7 we need 3 indices because 2.7 / 1 + 0.5 = 3.2 =&gt; 3
+<span style = "background-color:#fdd">          distanceInPixels[dimension] = int( neccessaryDistanceToImageBorderInMM / spacing[dimension] + 0.5);
+        }</span>
+
+<span style = "background-color:#fdd">        allowedExtremaRegion.ShrinkByRadius(distanceInPixels);</span>
+      }
+
+<span style = "background-color:#fdd">      InputImageIndexIteratorType imageIndexIt(inputImage, allowedExtremaRegion);</span>
+
+<span style = "background-color:#fdd">      float maxValue = itk::NumericTraits&lt;float&gt;::min();
+      float minValue = itk::NumericTraits&lt;float&gt;::max();</span>
+
+      typename ImageType::IndexType maxIndex;
+      typename ImageType::IndexType minIndex;
+
+<span style = "background-color:#fdd">      for(unsigned short i = 0; i &lt; VImageDimension; ++i)</span>
+      {
+<span style = "background-color:#fdd">        maxIndex[i] = 0;
+        minIndex[i] = 0;
+      }</span>
+
+<span style = "background-color:#fdd">      if (maskImage != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        MaskImageIteratorType maskIt(maskImage, maskImage-&gt;GetLargestPossibleRegion());</span>
+        typename ImageType::IndexType imageIndex;
+        typename ImageType::IndexType maskIndex;
+
+<span style = "background-color:#fdd">        for(maskIt.GoToBegin(); !maskIt.IsAtEnd(); ++maskIt)</span>
+        {
+<span style = "background-color:#fdd">          imageIndex = maskIndex = maskIt.GetIndex();</span>
+
+<span style = "background-color:#fdd">          if(maskIt.Get() == label)</span>
+          {
+<span style = "background-color:#fdd">            if( allowedExtremaRegion.IsInside(imageIndex) )</span>
+            {
+<span style = "background-color:#fdd">              imageIndexIt.SetIndex( imageIndex );
+              double value = imageIndexIt.Get();
+              minMax.Defined = true;</span>
+
+              //Calculate minimum, maximum and corresponding index-values
+<span style = "background-color:#fdd">              if( value &gt; maxValue )</span>
+              {
+<span style = "background-color:#fdd">                maxIndex = imageIndexIt.GetIndex();
+                maxValue = value;</span>
+              }
+
+<span style = "background-color:#fdd">              if(value &lt; minValue )</span>
+              {
+<span style = "background-color:#fdd">                minIndex = imageIndexIt.GetIndex();
+                minValue = value;</span>
+              }
+            }
+          }
+<span style = "background-color:#fdd">        }
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        for(imageIndexIt.GoToBegin(); !imageIndexIt.IsAtEnd(); ++imageIndexIt)</span>
+        {
+<span style = "background-color:#fdd">          double value = imageIndexIt.Get();
+          minMax.Defined = true;</span>
+
+          //Calculate minimum, maximum and corresponding index-values
+<span style = "background-color:#fdd">          if( value &gt; maxValue )</span>
+          {
+<span style = "background-color:#fdd">            maxIndex = imageIndexIt.GetIndex();
+            maxValue = value;</span>
+          }
+
+<span style = "background-color:#fdd">          if(value &lt; minValue )</span>
+          {
+<span style = "background-color:#fdd">            minIndex = imageIndexIt.GetIndex();
+            minValue = value;</span>
+          }
+<span style = "background-color:#fdd">        }</span>
+      }
+
+<span style = "background-color:#fdd">      minMax.MaxIndex.set_size(VImageDimension);
+      minMax.MinIndex.set_size(VImageDimension);</span>
+
+<span style = "background-color:#fdd">      for(unsigned int i = 0; i &lt; minMax.MaxIndex.size(); ++i)</span>
+      {
+<span style = "background-color:#fdd">        minMax.MaxIndex[i] = maxIndex[i];
+      }</span>
+
+<span style = "background-color:#fdd">      for(unsigned int i = 0; i &lt; minMax.MinIndex.size(); ++i)</span>
+      {
+<span style = "background-color:#fdd">        minMax.MinIndex[i] = minIndex[i];
+      }</span>
+
+<span style = "background-color:#fdd">      minMax.Max = maxValue;
+      minMax.Min = minValue;</span>
+
+<span style = "background-color:#fdd">      return minMax;
+    }</span>
+
+    template &lt;unsigned int VImageDimension&gt;
+    itk::Size&lt;VImageDimension&gt;
+      HotspotMaskGenerator::CalculateConvolutionKernelSize( double spacing[VImageDimension],
+                                                             double radiusInMM )
+<span style = "background-color:#fdd">    {</span>
+      typedef itk::Image&lt; float, VImageDimension &gt; KernelImageType;
+      typedef typename KernelImageType::SizeType SizeType;
+      SizeType maskSize;
+
+<span style = "background-color:#fdd">      for(unsigned int i = 0; i &lt; VImageDimension; ++i)</span>
+      {
+<span style = "background-color:#fdd">        maskSize[i] = static_cast&lt;int&gt;( 2 * radiusInMM / spacing[i]);</span>
+
+        // We always want an uneven size to have a clear center point in the convolution mask
+<span style = "background-color:#fdd">        if(maskSize[i] % 2 == 0 )</span>
+        {
+<span style = "background-color:#fdd">          ++maskSize[i];</span>
+        }
+<span style = "background-color:#fdd">      }
+      return maskSize;
+    }</span>
+
+    template &lt;unsigned int VImageDimension&gt;
+    itk::SmartPointer&lt; itk::Image&lt;float, VImageDimension&gt; &gt;
+      HotspotMaskGenerator::GenerateHotspotSearchConvolutionKernel(double mmPerPixel[VImageDimension],
+                                                                    double radiusInMM )
+<span style = "background-color:#fdd">    {
+      std::stringstream ss;
+      for (unsigned int i = 0; i &lt; VImageDimension; ++i)</span>
+      {
+<span style = "background-color:#fdd">        ss &lt;&lt; mmPerPixel[i];
+        if (i &lt; VImageDimension -1)
+          ss &lt;&lt; ",";
+      }
+      MITK_DEBUG &lt;&lt; "Update convolution kernel for spacing (" &lt;&lt; ss.str() &lt;&lt; ") and radius " &lt;&lt; radiusInMM &lt;&lt; "mm";</span>
+
+
+<span style = "background-color:#fdd">      double radiusInMMSquared = radiusInMM * radiusInMM;</span>
+      typedef itk::Image&lt; float, VImageDimension &gt; KernelImageType;
+<span style = "background-color:#fdd">      typename KernelImageType::Pointer convolutionKernel = KernelImageType::New();</span>
+
+      // Calculate size and allocate mask image
+      typedef typename KernelImageType::SizeType SizeType;
+<span style = "background-color:#fdd">      SizeType maskSize = this-&gt;CalculateConvolutionKernelSize&lt;VImageDimension&gt;(mmPerPixel, radiusInMM);</span>
+
+<span style = "background-color:#fdd">      mitk::Point3D convolutionMaskCenterIndex;
+      convolutionMaskCenterIndex.Fill(0.0);
+      for(unsigned int i = 0; i &lt; VImageDimension; ++i)</span>
+      {
+<span style = "background-color:#fdd">        convolutionMaskCenterIndex[i] = 0.5 * (double)(maskSize[i]-1);
+      }</span>
+
+      typedef typename KernelImageType::IndexType IndexType;
+      IndexType maskIndex;
+<span style = "background-color:#fdd">      maskIndex.Fill(0);</span>
+
+      typedef typename KernelImageType::RegionType RegionType;
+<span style = "background-color:#fdd">      RegionType maskRegion;
+      maskRegion.SetSize(maskSize);
+      maskRegion.SetIndex(maskIndex);</span>
+
+<span style = "background-color:#fdd">      convolutionKernel-&gt;SetRegions(maskRegion);
+      convolutionKernel-&gt;SetSpacing(mmPerPixel);
+      convolutionKernel-&gt;Allocate();</span>
+
+      // Fill mask image values by subsampling the image grid
+      typedef itk::ImageRegionIteratorWithIndex&lt;KernelImageType&gt; MaskIteratorType;
+<span style = "background-color:#fdd">      MaskIteratorType maskIt(convolutionKernel,maskRegion);</span>
+
+<span style = "background-color:#fdd">      int numberOfSubVoxelsPerDimension = 2; // per dimension!
+      int numberOfSubVoxels = ::pow( static_cast&lt;float&gt;(numberOfSubVoxelsPerDimension), static_cast&lt;float&gt;(VImageDimension) );
+      double subVoxelSizeInPixels = 1.0 / (double)numberOfSubVoxelsPerDimension;
+      double valueOfOneSubVoxel = 1.0 / (double)numberOfSubVoxels;
+      mitk::Point3D subVoxelIndexPosition;
+      double distanceSquared = 0.0;</span>
+
+      typedef itk::ContinuousIndex&lt;double, VImageDimension&gt; ContinuousIndexType;
+<span style = "background-color:#fdd">      for(maskIt.GoToBegin(); !maskIt.IsAtEnd(); ++maskIt)</span>
+      {
+<span style = "background-color:#fdd">        ContinuousIndexType indexPoint(maskIt.GetIndex());
+        mitk::Point3D voxelPosition;
+        for (unsigned int dimension = 0; dimension &lt; VImageDimension; ++dimension)</span>
+        {
+<span style = "background-color:#fdd">          voxelPosition[dimension] = indexPoint[dimension];
+        }</span>
+
+<span style = "background-color:#fdd">        double maskValue = 0.0;
+        mitk::Vector3D subVoxelOffset; subVoxelOffset.Fill(0.0);</span>
+        // iterate sub-voxels by iterating all possible offsets
+<span style = "background-color:#fdd">        for (subVoxelOffset[0] = -0.5 + subVoxelSizeInPixels / 2.0;
+          subVoxelOffset[0] &lt; +0.5;
+          subVoxelOffset[0] += subVoxelSizeInPixels)</span>
+        {
+<span style = "background-color:#fdd">          for (subVoxelOffset[1] = -0.5 + subVoxelSizeInPixels / 2.0;
+            subVoxelOffset[1] &lt; +0.5;
+            subVoxelOffset[1] += subVoxelSizeInPixels)</span>
+          {
+<span style = "background-color:#fdd">            for (subVoxelOffset[2] = -0.5 + subVoxelSizeInPixels / 2.0;
+              subVoxelOffset[2] &lt; +0.5;
+              subVoxelOffset[2] += subVoxelSizeInPixels)</span>
+            {
+<span style = "background-color:#fdd">              subVoxelIndexPosition = voxelPosition + subVoxelOffset; // this COULD be integrated into the for-loops if neccessary (add voxelPosition to initializer and end condition)
+              distanceSquared =</span>
+                (subVoxelIndexPosition[0]-convolutionMaskCenterIndex[0]) * mmPerPixel[0] * (subVoxelIndexPosition[0]-convolutionMaskCenterIndex[0]) * mmPerPixel[0]
+              + (subVoxelIndexPosition[1]-convolutionMaskCenterIndex[1]) * mmPerPixel[1] * (subVoxelIndexPosition[1]-convolutionMaskCenterIndex[1]) * mmPerPixel[1]
+              + (subVoxelIndexPosition[2]-convolutionMaskCenterIndex[2]) * mmPerPixel[2] * (subVoxelIndexPosition[2]-convolutionMaskCenterIndex[2]) * mmPerPixel[2];
+
+<span style = "background-color:#fdd">              if (distanceSquared &lt;= radiusInMMSquared)</span>
+              {
+<span style = "background-color:#fdd">                maskValue += valueOfOneSubVoxel;</span>
+              }
+<span style = "background-color:#fdd">            }
+          }
+        }
+        maskIt.Set( maskValue );
+      }</span>
+
+<span style = "background-color:#fdd">      return convolutionKernel;
+    }</span>
+
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    itk::SmartPointer&lt;itk::Image&lt;TPixel, VImageDimension&gt; &gt;
+      HotspotMaskGenerator::GenerateConvolutionImage( const itk::Image&lt;TPixel, VImageDimension&gt;* inputImage )
+<span style = "background-color:#fdd">    {</span>
+      double mmPerPixel[VImageDimension];
+<span style = "background-color:#fdd">      for (unsigned int dimension = 0; dimension &lt; VImageDimension; ++dimension)</span>
+      {
+<span style = "background-color:#fdd">        mmPerPixel[dimension] = inputImage-&gt;GetSpacing()[dimension];
+      }</span>
+
+      // update convolution kernel
+      typedef itk::Image&lt; float, VImageDimension &gt; KernelImageType;
+<span style = "background-color:#fdd">      typename KernelImageType::Pointer convolutionKernel = this-&gt;GenerateHotspotSearchConvolutionKernel&lt;VImageDimension&gt;(mmPerPixel, m_HotspotRadiusinMM);</span>
+
+      // update convolution image
+      typedef itk::Image&lt; TPixel, VImageDimension &gt; InputImageType;
+      typedef itk::Image&lt; TPixel, VImageDimension &gt; ConvolutionImageType;
+      typedef itk::FFTConvolutionImageFilter&lt;InputImageType,
+        KernelImageType,
+        ConvolutionImageType&gt; ConvolutionFilterType;
+
+<span style = "background-color:#fdd">      typename ConvolutionFilterType::Pointer convolutionFilter = ConvolutionFilterType::New();</span>
+      typedef itk::ConstantBoundaryCondition&lt;InputImageType, InputImageType&gt; BoundaryConditionType;
+<span style = "background-color:#fdd">      BoundaryConditionType boundaryCondition;
+      boundaryCondition.SetConstant(0.0);</span>
+
+<span style = "background-color:#fdd">      if (m_HotspotMustBeCompletelyInsideImage)</span>
+      {
+        // overwrite default boundary condition
+<span style = "background-color:#fdd">        convolutionFilter-&gt;SetBoundaryCondition(&amp;boundaryCondition);</span>
+      }
+
+<span style = "background-color:#fdd">      convolutionFilter-&gt;SetInput(inputImage);
+      convolutionFilter-&gt;SetKernelImage(convolutionKernel);
+      convolutionFilter-&gt;SetNormalize(true);
+      MITK_DEBUG &lt;&lt; "Update Convolution image for hotspot search";
+      convolutionFilter-&gt;UpdateLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">      typename ConvolutionImageType::Pointer convolutionImage = convolutionFilter-&gt;GetOutput();
+      convolutionImage-&gt;SetSpacing( inputImage-&gt;GetSpacing() ); // only workaround because convolution filter seems to ignore spacing of input image</span>
+
+<span style = "background-color:#fdd">      return convolutionImage;
+    }</span>
+
+    template &lt; typename TPixel, unsigned int VImageDimension&gt;
+    void
+      HotspotMaskGenerator::FillHotspotMaskPixels( itk::Image&lt;TPixel, VImageDimension&gt;* maskImage,
+                                                itk::Point&lt;double, VImageDimension&gt; sphereCenter,
+                                                double sphereRadiusInMM )
+<span style = "background-color:#fdd">    {</span>
+      typedef itk::Image&lt; TPixel, VImageDimension &gt; MaskImageType;
+      typedef itk::ImageRegionIteratorWithIndex&lt;MaskImageType&gt; MaskImageIteratorType;
+
+<span style = "background-color:#fdd">      MaskImageIteratorType maskIt(maskImage, maskImage-&gt;GetLargestPossibleRegion());</span>
+
+      typename MaskImageType::IndexType maskIndex;
+      typename MaskImageType::PointType worldPosition;
+
+      // this is not very smart. I would rather use a 0 initialized mask (not the case here -&gt; blame CalculateHotspotMask) and find the region where I need to iterate over, then iterate only over the small region
+<span style = "background-color:#fdd">      for(maskIt.GoToBegin(); !maskIt.IsAtEnd(); ++maskIt)</span>
+      {
+<span style = "background-color:#fdd">        maskIndex = maskIt.GetIndex();
+        maskImage-&gt;TransformIndexToPhysicalPoint(maskIndex, worldPosition);
+        maskIt.Set( worldPosition.EuclideanDistanceTo(sphereCenter) &lt;= sphereRadiusInMM ? 1 : 0 );
+      }
+    }</span>
+
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    void
+      HotspotMaskGenerator::CalculateHotspotMask(itk::Image&lt;TPixel, VImageDimension&gt;* inputImage,
+                                              typename itk::Image&lt;unsigned short, VImageDimension&gt;::Pointer maskImage,
+                                              unsigned int label)
+<span style = "background-color:#fdd">    {</span>
+        typedef itk::Image&lt; TPixel, VImageDimension &gt; InputImageType;
+        typedef itk::Image&lt; TPixel, VImageDimension &gt; ConvolutionImageType;
+        typedef itk::Image&lt; unsigned short, VImageDimension &gt; MaskImageType;
+
+<span style = "background-color:#fdd">        typename ConvolutionImageType::Pointer convolutionImage = this-&gt;GenerateConvolutionImage(inputImage);</span>
+
+<span style = "background-color:#fdd">        if (convolutionImage.IsNull())</span>
+        {
+<span style = "background-color:#fdd">          MITK_ERROR &lt;&lt; "Empty convolution image in CalculateHotspotStatistics(). We should never reach this state (logic error).";
+          throw std::logic_error("Empty convolution image in CalculateHotspotStatistics()");</span>
+        }
+
+        // if mask image is not defined, create an image of the same size as inputImage and fill it with 1's
+        // there is maybe a better way to do this!?
+<span style = "background-color:#fdd">        if (maskImage == nullptr)</span>
+        {
+<span style = "background-color:#fdd">            maskImage = MaskImageType::New();
+            typename MaskImageType::RegionType maskRegion = inputImage-&gt;GetLargestPossibleRegion();
+            typename MaskImageType::SpacingType maskSpacing = inputImage-&gt;GetSpacing();
+            typename MaskImageType::PointType maskOrigin = inputImage-&gt;GetOrigin();
+            typename MaskImageType::DirectionType maskDirection = inputImage-&gt;GetDirection();
+            maskImage-&gt;SetRegions(maskRegion);
+            maskImage-&gt;Allocate();
+            maskImage-&gt;SetOrigin(maskOrigin);
+            maskImage-&gt;SetSpacing(maskSpacing);
+            maskImage-&gt;SetDirection(maskDirection);</span>
+
+<span style = "background-color:#fdd">            maskImage-&gt;FillBuffer(1);</span>
+
+<span style = "background-color:#fdd">            label = 1;
+        }</span>
+
+        // find maximum in convolution image, given the current mask
+<span style = "background-color:#fdd">        double requiredDistanceToBorder = m_HotspotMustBeCompletelyInsideImage ? m_HotspotRadiusinMM : -1.0;
+        ImageExtrema convolutionImageInformation = CalculateExtremaWorld(convolutionImage.GetPointer(), maskImage, requiredDistanceToBorder, label);</span>
+
+<span style = "background-color:#fdd">        bool isHotspotDefined = convolutionImageInformation.Defined;</span>
+
+<span style = "background-color:#fdd">        if (!isHotspotDefined)</span>
+        {
+<span style = "background-color:#fdd">          MITK_ERROR &lt;&lt; "No origin of hotspot-sphere was calculated!";
+          m_InternalMask = nullptr;
+        }</span>
+        else
+        {
+          // create a binary mask around the "hotspot" region, fill the shape of a sphere around our hotspot center
+//          typename DuplicatorType::Pointer copyMachine = DuplicatorType::New();
+//          copyMachine-&gt;SetInputImage(inputImage);
+//          copyMachine-&gt;Update();
+
+//          typename CastFilterType::Pointer caster = CastFilterType::New();
+//          caster-&gt;SetInput( copyMachine-&gt;GetOutput() );
+//          caster-&gt;Update();
+<span style = "background-color:#fdd">          typename MaskImageType::Pointer hotspotMaskITK = MaskImageType::New();
+          hotspotMaskITK-&gt;SetOrigin(inputImage-&gt;GetOrigin());
+          hotspotMaskITK-&gt;SetSpacing(inputImage-&gt;GetSpacing());
+          hotspotMaskITK-&gt;SetLargestPossibleRegion(inputImage-&gt;GetLargestPossibleRegion());
+          hotspotMaskITK-&gt;SetBufferedRegion(inputImage-&gt;GetBufferedRegion());
+          hotspotMaskITK-&gt;SetDirection(inputImage-&gt;GetDirection());
+          hotspotMaskITK-&gt;SetNumberOfComponentsPerPixel(inputImage-&gt;GetNumberOfComponentsPerPixel());
+          hotspotMaskITK-&gt;Allocate();
+          hotspotMaskITK-&gt;FillBuffer(1);</span>
+
+          typedef typename InputImageType::IndexType IndexType;
+          IndexType maskCenterIndex;
+<span style = "background-color:#fdd">          for (unsigned int d =0; d&lt; VImageDimension;++d)</span>
+          {
+<span style = "background-color:#fdd">              maskCenterIndex[d]=convolutionImageInformation.MaxIndex[d];
+          }</span>
+
+          typename ConvolutionImageType::PointType maskCenter;
+<span style = "background-color:#fdd">          inputImage-&gt;TransformIndexToPhysicalPoint(maskCenterIndex,maskCenter);</span>
+
+<span style = "background-color:#fdd">          FillHotspotMaskPixels(hotspotMaskITK.GetPointer(), maskCenter, m_HotspotRadiusinMM);</span>
+
+          //obtain mitk::Image::Pointer from itk::Image
+<span style = "background-color:#fdd">          mitk::Image::Pointer hotspotMaskAsMITKImage = mitk::GrabItkImageMemory(hotspotMaskITK);</span>
+
+<span style = "background-color:#fdd">          m_InternalMask = hotspotMaskAsMITKImage;
+          m_ConvolutionImageMaxIndex = convolutionImageInformation.MaxIndex;
+          m_ConvolutionImageMinIndex = convolutionImageInformation.MinIndex;
+        }
+    }</span>
+
+    bool HotspotMaskGenerator::IsUpdateRequired() const
+<span style = "background-color:#fdd">    {
+        unsigned long thisClassTimeStamp = this-&gt;GetMTime();
+        unsigned long internalMaskTimeStamp = m_InternalMask-&gt;GetMTime();
+        unsigned long maskGeneratorTimeStamp = m_Mask-&gt;GetMTime();
+        unsigned long inputImageTimeStamp = m_inputImage-&gt;GetMTime();</span>
+
+<span style = "background-color:#fdd">        if (thisClassTimeStamp &gt; m_InternalMaskUpdateTime) // inputs have changed</span>
+        {
+<span style = "background-color:#fdd">            return true;</span>
+        }
+
+<span style = "background-color:#fdd">        if (m_InternalMaskUpdateTime &lt; maskGeneratorTimeStamp || m_InternalMaskUpdateTime &lt; inputImageTimeStamp) // mask image has changed outside of this class</span>
+        {
+<span style = "background-color:#fdd">            return true;</span>
+        }
+
+<span style = "background-color:#fdd">        if (internalMaskTimeStamp &gt; m_InternalMaskUpdateTime) // internal mask has been changed outside of this class</span>
+        {
+<span style = "background-color:#fdd">            return true;</span>
+        }
+
+<span style = "background-color:#fdd">        return false;
+    }</span>
+}</pre>
+	</body>
+</html>

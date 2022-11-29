@@ -1,0 +1,473 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>lancetVegaTrackingDevice.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+#include "lancetVegaTrackingDevice.h"
+#include "mitkIGTHardwareException.h"
+#include "mitkIGTTimeStamp.h"
+#include "lancetVegaTypeInformation.h"
+//#include "IGTController.h"
+// vtk
+
+
+namespace lancet
+{
+  NDIVegaTrackingDevice::NDIVegaTrackingDevice()
+<span style = "background-color:#fdd">    : TrackingDevice(),
+      m_DeviceName("Vega"),
+      m_hostName("192.168.1.10"),
+      m_OperationMode(mitk::ToolTracking6D)
+  {
+    m_Data = lancet::NDIVegaTypeInformation::GetDeviceDataLancetVegaTrackingDevice();
+    m_6DTools.clear();
+    m_MarkerPoints.reserve(50); // a maximum of 50 marker positions can be reported by the tracking device
+  }</span>
+
+  NDIVegaTrackingDevice::~NDIVegaTrackingDevice()
+<span style = "background-color:#fdd">  {
+    if (this-&gt;GetState() == Tracking)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;StopTracking();</span>
+    }
+<span style = "background-color:#fdd">    if (this-&gt;GetState() == Ready)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;CloseConnection();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  /*bool NDIVegaTrackingDevice::SetVolume(mitk::TrackingDeviceData volume)
+  {
+      if (m_DeviceProtocol-&gt;VSEL(volume) != mitk::NDIOKAY)
+      {
+          mitkThrowException(mitk::IGTHardwareException) &lt;&lt; "Could not set volume!";
+      }
+      return true;
+  }*/
+
+  bool NDIVegaTrackingDevice::InternalAddTool(mitk::NDIPassiveTool *tool)
+<span style = "background-color:#fdd">  {
+    MITK_INFO &lt;&lt; "InternalAddTool Called!!!!";
+    if (tool == nullptr)
+      return false;
+    mitk::NDIPassiveTool::Pointer p = tool;</span>
+    //p-&gt;Enable();
+    int returnValue;
+    /* if the connection to the tracking device is already established, add the new tool to the device now */
+<span style = "background-color:#fdd">    if (this-&gt;GetState() == Ready)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "State Ready";</span>
+      // Request a port handle to load a passive tool into
+<span style = "background-color:#fdd">      int portHandle = m_capi.portHandleRequest();</span>
+
+<span style = "background-color:#fdd">      p-&gt;SetPortHandle(intToString(portHandle, 2));</span>
+      // Load the .rom file using the previously obtained port handle
+<span style = "background-color:#fdd">      m_capi.loadSromToPort(p-&gt;GetFile(), portHandle);</span>
+
+      /* initialize the port handle */
+<span style = "background-color:#fdd">      returnValue = m_capi.portHandleInitialize(intToString(portHandle, 2));
+      if (warningOrError(returnValue, "capi.portHandleInitialize()"))</span>
+      {
+<span style = "background-color:#fdd">        return false;</span>
+      }
+      /* enable the port handle */
+<span style = "background-color:#fdd">      if (p-&gt;IsEnabled() == true)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "enable portHandle";
+        returnValue = m_capi.portHandleEnable(p-&gt;GetPortHandle());
+        if (warningOrError(returnValue, "capi.portHandleInitialize()"))</span>
+        {
+<span style = "background-color:#fdd">          return false;</span>
+        }
+      }
+      /* now that the tool is added to the device, add it to list too */
+<span style = "background-color:#fdd">      m_ToolsMutex.lock();
+      this-&gt;m_6DTools.push_back(p);
+      m_ToolsMutex.unlock();
+      this-&gt;Modified();
+      return true;
+    }
+    else if (this-&gt;GetState() == Setup)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "State Setup";</span>
+      /* In Setup mode, we only add it to the list, so that OpenConnection() can add it later */
+<span style = "background-color:#fdd">      m_ToolsMutex.lock();
+      this-&gt;m_6DTools.push_back(p);
+      m_ToolsMutex.unlock();
+      this-&gt;Modified();
+      return true;
+    }</span>
+    else // in Tracking mode, no tools can be added
+<span style = "background-color:#fdd">      return false;
+  }</span>
+
+  std::string NDIVegaTrackingDevice::intToString(int input, int width) const
+<span style = "background-color:#fdd">  {
+    std::stringstream convert;
+    convert &lt;&lt; std::dec &lt;&lt; std::setfill('0');
+    convert &lt;&lt; std::setw(width) &lt;&lt; input;
+    return convert.str();
+  }</span>
+
+  bool NDIVegaTrackingDevice::StartTracking()
+<span style = "background-color:#fdd">  {
+    if (this-&gt;GetState() != Ready)
+      return false;</span>
+
+<span style = "background-color:#fdd">    this-&gt;SetState(Tracking);          // go to mode Tracking
+    this-&gt;m_StopTrackingMutex.lock(); // update the local copy of m_StopTracking
+    this-&gt;m_StopTracking = false;
+    this-&gt;m_StopTrackingMutex.unlock();</span>
+
+<span style = "background-color:#fdd">    m_Thread = std::thread(&amp;NDIVegaTrackingDevice::ThreadStartTracking, this);</span>
+    // start a new thread that executes the TrackTools() method
+<span style = "background-color:#fdd">    mitk::IGTTimeStamp::GetInstance()-&gt;Start(this);
+    MITK_INFO &lt;&lt; "lancet vega start tracking";
+    return true;
+  }</span>
+
+  bool NDIVegaTrackingDevice::OpenConnection()
+<span style = "background-color:#fdd">  {
+    if (this-&gt;GetState() != Setup)</span>
+    {
+<span style = "background-color:#fdd">      mitkThrowException(mitk::IGTException) &lt;&lt; "Can only try to open the connection if in setup mode";</span>
+    }
+    int errorCode;
+<span style = "background-color:#fdd">    errorCode = this-&gt;m_capi.connect(m_hostName);
+    if (this-&gt;warningOrError(errorCode, "capi.connect()"))</span>
+    {
+<span style = "background-color:#fdd">      mitkThrowException(mitk::IGTHardwareException) &lt;&lt; "Can not connect to " &lt;&lt; m_hostName;
+      return false;</span>
+    }
+    // Print the firmware version for debugging purposes
+<span style = "background-color:#fdd">    MITK_INFO&lt;&lt; m_capi.getUserParameter("Features.Firmware.Version");</span>
+
+    // Determine if the connected device supports the BX2 command
+<span style = "background-color:#fdd">    determineApiSupportForBX2();</span>
+
+    // Initialize the system. This clears all previously loaded tools, unsaved settings etc...
+<span style = "background-color:#fdd">    errorCode = this-&gt;m_capi.initialize();
+    if (this-&gt;warningOrError(errorCode, "capi.initialize()"))</span>
+    {
+<span style = "background-color:#fdd">      mitkThrowException(mitk::IGTHardwareException) &lt;&lt; "initialize failed " &lt;&lt; m_hostName;
+      return false;</span>
+    }
+    // Print the frame  for debugging purposes
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "NDI PARAMETER:" &lt;&lt; m_capi.getUserParameter("Param.Tracking.Frame Frequency");</span>
+    
+<span style = "background-color:#fdd">    errorCode = m_capi.setUserParameter("Param.Tracking.Track Frequency", std::to_string(m_TrackingFrequencyPara));
+    if (this-&gt;warningOrError(errorCode, "capi.setUserParameter()"))</span>
+    {
+<span style = "background-color:#fdd">      mitkThrowException(mitk::IGTHardwareException) &lt;&lt; "setUserParameter failed " &lt;&lt; m_hostName;
+        return false;</span>
+    }
+    // Print the frame  for debugging purposes
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "NDI PARAMETER:" &lt;&lt; m_capi.getUserParameter("Param.Tracking.Track Frequency");</span>
+    /**
+* POLARIS: initialize the tools that were added manually
+**/
+    {
+<span style = "background-color:#fdd">      std::lock_guard&lt;std::mutex&gt; lock(m_ToolsMutex); // lock and unlock the mutex</span>
+      int returnValue;
+<span style = "background-color:#fdd">      auto endIt = m_6DTools.end();
+      for (auto it = m_6DTools.begin(); it != endIt; ++it)</span>
+      {
+        /* get a port handle for the tool */
+<span style = "background-color:#fdd">        int portHandle = m_capi.portHandleRequest();
+        if (!warningOrError(portHandle, "capi.portHandleRequest()"))</span>
+        {
+<span style = "background-color:#fdd">          (*it)-&gt;SetPortHandle(intToString(portHandle, 2));</span>
+          /* now write the SROM file of the tool to the tracking system using PVWR */
+<span style = "background-color:#fdd">          if (this-&gt;m_Data.Line == lancet::NDIVegaTypeInformation::GetTrackingDeviceName())</span>
+          {
+<span style = "background-color:#fdd">            m_capi.loadSromToPort((*it)-&gt;GetFile(), portHandle);</span>
+
+<span style = "background-color:#fdd">            returnValue = m_capi.portHandleInitialize(intToString(portHandle, 2));
+            if (warningOrError(returnValue, "capi.portHandleInitialize()"))</span>
+            {
+<span style = "background-color:#fdd">              mitkThrowException(mitk::IGTHardwareException) &lt;&lt; "portHandleInitialize failed " &lt;&lt; m_hostName;
+              return false;</span>
+            }
+
+<span style = "background-color:#fdd">            if ((*it)-&gt;IsEnabled() == true)</span>
+            {
+<span style = "background-color:#fdd">              MITK_INFO &lt;&lt; "enable portHandle";
+              returnValue = m_capi.portHandleEnable((*it)-&gt;GetPortHandle());
+              if (warningOrError(returnValue, "capi.portHandleEnable()"))</span>
+              {
+<span style = "background-color:#fdd">                mitkThrowException(mitk::IGTHardwareException) &lt;&lt; "portHandleEnable failed " &lt;&lt; m_hostName;
+                return false;</span>
+              }
+            }
+          }
+<span style = "background-color:#fdd">        }
+      }
+    } // end of toolsmutexlockholder scope</span>
+
+<span style = "background-color:#fdd">    this-&gt;SetState(Ready);</span>
+
+    //SetVolume(this-&gt;m_Data);
+
+<span style = "background-color:#fdd">    return true;
+  }</span>
+
+  bool NDIVegaTrackingDevice::CloseConnection()
+<span style = "background-color:#fdd">  {
+    if (this-&gt;GetState() == Setup)</span>
+    {
+<span style = "background-color:#fdd">      return true;</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;SetState(Setup);
+    return true;
+  }</span>
+
+  bool NDIVegaTrackingDevice::SetTrackingFrequency(unsigned n)
+<span style = "background-color:#fdd">  {
+      if (this-&gt;GetState() == Tracking)
+          return false;</span>
+
+<span style = "background-color:#fdd">      itkDebugMacro("setting tracking Frequency to " &lt;&lt; n);</span>
+         
+      
+<span style = "background-color:#fdd">      if(m_TrackingFrequencyPara!=n)</span>
+      {
+<span style = "background-color:#fdd">          this-&gt;Modified();
+          m_TrackingFrequencyPara = n;
+          if (this-&gt;GetState() == Ready)// if the connection to the tracking system is established, send the new rate to the tracking device too</span>
+          {
+              int returnValue;
+<span style = "background-color:#fdd">              if (n &gt; 2)</span>
+              {
+<span style = "background-color:#fdd">                  returnValue = m_capi.setUserParameter("Param.Tracking.Track Frequency", std::to_string(2));
+              }
+              else returnValue = m_capi.setUserParameter("Param.Tracking.Track Frequency", std::to_string(n));</span>
+
+<span style = "background-color:#fdd">              if (warningOrError(returnValue, "capi.setUserParameter(Param.Tracking.Track Frequency)"))</span>
+              {
+<span style = "background-color:#fdd">                  return false;</span>
+              }
+          }
+          
+      }
+<span style = "background-color:#fdd">      return true;
+  }</span>
+
+  unsigned int NDIVegaTrackingDevice::GetToolCount() const
+<span style = "background-color:#fdd">  {
+    return static_cast&lt;unsigned int&gt;(this-&gt;m_6DTools.size());
+  }</span>
+
+  mitk::TrackingTool *NDIVegaTrackingDevice::GetTool(unsigned int toolNumber) const
+<span style = "background-color:#fdd">  {
+    std::lock_guard&lt;std::mutex&gt; lock(m_ToolsMutex); // lock and unlock the mutex
+    if (toolNumber &lt; m_6DTools.size())
+      return m_6DTools.at(toolNumber);
+    return nullptr;
+  }</span>
+
+  mitk::TrackingTool *NDIVegaTrackingDevice::GetToolByName(std::string name) const
+<span style = "background-color:#fdd">  {
+    std::lock_guard&lt;std::mutex&gt; lock(m_ToolsMutex); // lock and unlock the mutex
+    auto end = m_6DTools.end();
+    for (auto iterator = m_6DTools.begin(); iterator != end; ++iterator)
+      if (name.compare((*iterator)-&gt;GetToolName()) == 0)
+        return *iterator;
+    return nullptr;
+  }</span>
+
+  mitk::NDIPassiveTool *NDIVegaTrackingDevice::GetInternalTool(std::string portHandle)
+<span style = "background-color:#fdd">  {
+    std::lock_guard&lt;std::mutex&gt; lock(m_ToolsMutex); // lock and unlock the mutex
+    auto end = m_6DTools.end();
+    for (auto iterator = m_6DTools.begin(); iterator != end; ++iterator)
+      if (portHandle.compare((*iterator)-&gt;GetPortHandle()) == 0)
+        return *iterator;
+    return nullptr;
+  }</span>
+
+  mitk::TrackingTool *NDIVegaTrackingDevice::AddTool(const char *toolName,
+                                                        const char *fileName,
+                                                        TrackingPriority p /*= NDIPassiveTool::Dynamic*/)
+<span style = "background-color:#fdd">  {
+    mitk::NDIPassiveTool::Pointer t = mitk::NDIPassiveTool::New();
+    if (t-&gt;LoadSROMFile(fileName) == false)
+      return nullptr;
+    t-&gt;SetToolName(toolName);
+    t-&gt;SetTrackingPriority(p);
+    if (this-&gt;InternalAddTool(t) == false)</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "InternalAddTool failed";
+      return nullptr;</span>
+    }
+
+<span style = "background-color:#fdd">    return t.GetPointer();
+  }</span>
+
+
+  bool NDIVegaTrackingDevice::RemoveTool(mitk::TrackingTool *pTool)
+
+<span style = "background-color:#fdd">  {
+    Tool6DContainerType::const_iterator cit = std::find(</span>
+      this-&gt;m_6DTools.cbegin(),
+      this-&gt;m_6DTools.cend(),
+      pTool
+      );
+<span style = "background-color:#fdd">    if (cit == this-&gt;m_6DTools.cend())</span>
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+<span style = "background-color:#fdd">    this-&gt;m_6DTools.erase(cit);
+    return true;
+  }</span>
+
+  void NDIVegaTrackingDevice::ClearTool()
+<span style = "background-color:#fdd">  {
+    this-&gt;m_6DTools.clear();
+  }</span>
+
+  mitk::OperationMode NDIVegaTrackingDevice::GetOperationMode() const
+<span style = "background-color:#fdd">  {
+    return m_OperationMode;
+  }</span>
+
+  void NDIVegaTrackingDevice::TrackTools()
+<span style = "background-color:#fdd">  {
+    MITK_INFO &lt;&lt; "tracktools called";</span>
+    /* lock the TrackingFinishedMutex to signal that the execution rights are now transfered to the tracking thread */
+    // keep lock until end of scope
+<span style = "background-color:#fdd">    std::lock_guard&lt;std::mutex&gt; lock(m_TrackingFinishedMutex);
+    if (this-&gt;GetState() != Tracking)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "TrackTools Return: state not tracking";
+      return;</span>
+    }
+
+    int returnvalue;
+<span style = "background-color:#fdd">    returnvalue = m_capi.startTracking();
+    if (warningOrError(returnvalue, "m_capi.startTracking()"))</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "TrackTools Return: startTracking warning";
+      return;</span>
+    }
+
+    bool localStopTracking;
+    // Because m_StopTracking is used by two threads, access has to be guarded by a mutex. To minimize thread locking, a local copy is used here
+<span style = "background-color:#fdd">    this-&gt;m_StopTrackingMutex.lock(); // update the local copy of m_StopTracking
+    localStopTracking = this-&gt;m_StopTracking;
+    this-&gt;m_StopTrackingMutex.unlock();
+    while ((this-&gt;GetState() == Tracking) &amp;&amp; (localStopTracking == false))</span>
+    {
+      //MITK_INFO &lt;&lt; "tracking";
+<span style = "background-color:#fdd">      std::vector&lt;ToolData&gt; dataOfTools = m_capi.getTrackingDataBX();
+      if (dataOfTools.empty())</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "dataOfTools.empty()";
+        break;</span>
+      }
+
+<span style = "background-color:#fdd">      for (auto toolData : dataOfTools)</span>
+      {
+<span style = "background-color:#fdd">        mitk::NDIPassiveTool::Pointer tool = GetInternalTool(intToString(toolData.transform.toolHandle, 2));
+        mitk::Quaternion quaternion{toolData.transform.qx, toolData.transform.qy, toolData.transform.qz,</span>
+                                    toolData.transform.q0};
+<span style = "background-color:#fdd">        tool-&gt;SetOrientation(quaternion);
+        mitk::Point3D position;
+        position[0] = toolData.transform.tx;
+        position[1] = toolData.transform.ty;
+        position[2] = toolData.transform.tz;</span>
+        
+<span style = "background-color:#fdd">        tool-&gt;SetPosition(position);
+        tool-&gt;SetTrackingError(toolData.transform.error);
+        tool-&gt;SetErrorMessage("");
+        tool-&gt;SetFrameNumber(toolData.frameNumber);</span>
+        
+<span style = "background-color:#fdd">        tool-&gt;SetDataValid(!toolData.transform.isMissing());</span>
+        
+<span style = "background-color:#fdd">      }</span>
+      /* Update the local copy of m_StopTracking */
+<span style = "background-color:#fdd">      this-&gt;m_StopTrackingMutex.lock();
+      localStopTracking = m_StopTracking;
+      this-&gt;m_StopTrackingMutex.unlock();
+    }</span>
+    /* StopTracking was called, thus the mode should be changed back to Ready now that the tracking loop has ended. */
+
+<span style = "background-color:#fdd">    returnvalue = m_capi.stopTracking();
+    if (warningOrError(returnvalue, "m_capi.stopTracking()"))</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "m_capi.stopTracking() err";
+      return;</span>
+    }
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "m_capi stopTracking()";
+    return;</span>
+    // returning from this function (and ThreadStartTracking()) this will end the thread and transfer control back to main thread by releasing trackingFinishedLockHolder
+<span style = "background-color:#fdd">  }</span>
+
+  void NDIVegaTrackingDevice::ThreadStartTracking()
+<span style = "background-color:#fdd">  {
+    MITK_INFO &lt;&lt; "threadStartTracking Called";
+    if (this-&gt;GetOperationMode() == mitk::ToolTracking6D)
+      this-&gt;TrackTools(); // call TrackTools() from the original object</span>
+                                    // else if (trackingDevice-&gt;GetOperationMode() == MarkerTracking3D)
+    // trackingDevice-&gt;TrackMarkerPositions(); // call TrackMarkerPositions() from the original object
+    // else if (trackingDevice-&gt;GetOperationMode() == ToolTracking5D)
+    // trackingDevice-&gt;TrackMarkerPositions(); // call TrackMarkerPositions() from the original object
+    // else if (trackingDevice-&gt;GetOperationMode() == HybridTracking)
+    //{
+    //  trackingDevice-&gt;TrackToolsAndMarkers();
+    //}
+<span style = "background-color:#fdd">  }</span>
+
+  bool NDIVegaTrackingDevice::determineApiSupportForBX2()
+<span style = "background-color:#fdd">  {</span>
+    // Lookup the API revision
+<span style = "background-color:#fdd">    std::string response = m_capi.getApiRevision();</span>
+
+    // Refer to the API guide for how to interpret the APIREV response
+<span style = "background-color:#fdd">    char deviceFamily = response[0];
+    int majorVersion = m_capi.stringToInt(response.substr(2, 3));</span>
+
+    // As of early 2017, the only NDI device supporting BX2 is the Vega
+    // Vega is a Polaris device with API major version 003
+<span style = "background-color:#fdd">    if (deviceFamily == 'G' &amp;&amp; majorVersion &gt;= 3)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "BX2 supported";
+      return true;</span>
+    }
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "BX2 unsupported";
+    return false;
+  }</span>
+
+  bool NDIVegaTrackingDevice::warningOrError(int code, const char *message) const
+<span style = "background-color:#fdd">  {
+    if (code &gt;= 0)</span>
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+    /*std::string errStr = CombinedApi::errorToString(code);
+    MITK_WARN(message) &lt;&lt; errStr;
+    return true;*/
+    //std::string codeToString = CombinedApi::errorToString(code);
+<span style = "background-color:#fdd">    code *= -1; // restore the errorCode to a positive value
+    if (code &gt; 1000)</span>
+    {
+<span style = "background-color:#fdd">      std::string errString = CombinedApi::errorToString(code *= -1);
+      MITK_WARN(message) &lt;&lt; code &lt;&lt; errString;
+      return false;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      std::string errString = CombinedApi::errorToString(code *= -1);
+      MITK_ERROR(message) &lt;&lt; code &lt;&lt; errString;
+      return true;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+}</pre>
+	</body>
+</html>

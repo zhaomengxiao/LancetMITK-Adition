@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlaneGeometryData.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPlaneGeometryData.h"
+#include "mitkAbstractTransformGeometry.h"
+#include "mitkBaseProcess.h"
+#include &lt;mitkProportionalTimeGeometry.h&gt;
+
+mitk::PlaneGeometryData::PlaneGeometryData()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::PlaneGeometryData::~PlaneGeometryData()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::PlaneGeometryData::SetGeometry(mitk::BaseGeometry *geometry)
+<span style = "background-color:#fdd">{
+  if (geometry == nullptr)
+    SetPlaneGeometry(nullptr);</span>
+  else
+  {
+<span style = "background-color:#fdd">    PlaneGeometry *geometry2d = dynamic_cast&lt;PlaneGeometry *&gt;(geometry);
+    if (geometry2d == nullptr || dynamic_cast&lt;AbstractTransformGeometry *&gt;(geometry) != nullptr)
+      itkExceptionMacro(&lt;&lt; "Trying to set a geometry which is not a PlaneGeometry into PlaneGeometryData.");
+    SetPlaneGeometry(geometry2d);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlaneGeometryData::SetPlaneGeometry(mitk::PlaneGeometry *geometry2d)
+<span style = "background-color:#fdd">{
+  if (geometry2d != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    ProportionalTimeGeometry::Pointer timeGeometry = ProportionalTimeGeometry::New();
+    timeGeometry-&gt;Initialize(geometry2d, 1);
+    SetTimeGeometry(timeGeometry);
+    Modified();
+  }</span>
+  else
+<span style = "background-color:#fdd">    Superclass::SetGeometry(geometry2d);
+}</span>
+
+void mitk::PlaneGeometryData::UpdateOutputInformation()
+<span style = "background-color:#fdd">{
+  Superclass::UpdateOutputInformation();
+}</span>
+
+void mitk::PlaneGeometryData::SetRequestedRegionToLargestPossibleRegion()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::PlaneGeometryData::RequestedRegionIsOutsideOfTheBufferedRegion()
+<span style = "background-color:#fdd">{
+  if (GetPlaneGeometry() == nullptr)
+    return true;</span>
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+bool mitk::PlaneGeometryData::VerifyRequestedRegion()
+<span style = "background-color:#fdd">{
+  if (GetPlaneGeometry() == nullptr)
+    return false;</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+void mitk::PlaneGeometryData::SetRequestedRegion(const itk::DataObject *)
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::PlaneGeometryData::CopyInformation(const itk::DataObject *)
+<span style = "background-color:#fdd">{
+}</span></pre>
+	</body>
+</html>

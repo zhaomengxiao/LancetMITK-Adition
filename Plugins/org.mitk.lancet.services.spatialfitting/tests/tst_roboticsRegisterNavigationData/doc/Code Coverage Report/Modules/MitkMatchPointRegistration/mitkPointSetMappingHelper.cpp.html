@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPointSetMappingHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mapRegistration.h"
+
+#include "mitkPointSetMappingHelper.h"
+#include "mitkRegistrationHelper.h"
+
+
+#include "mapPointSetMappingTask.h"
+
+::map::core::continuous::Elements&lt;3&gt;::InternalPointSetType::Pointer mitk::PointSetMappingHelper::ConvertPointSetMITKtoMAP(const mitk::PointSet::DataType* mitkSet)
+<span style = "background-color:#fdd">{
+  if (! mitkSet) mapDefaultExceptionStaticMacro(&lt;&lt; "Error, cannot convert point set. Passed mitk point set is null.");</span>
+
+<span style = "background-color:#fdd">  ::map::core::continuous::Elements&lt;3&gt;::InternalPointSetType::Pointer mapSet = ::map::core::continuous::Elements&lt;3&gt;::InternalPointSetType::New();
+  ::map::core::continuous::Elements&lt;3&gt;::InternalPointSetType::PointsContainer::Pointer mapContainer = ::map::core::continuous::Elements&lt;3&gt;::InternalPointSetType::PointsContainer::New();
+  ::map::core::continuous::Elements&lt;3&gt;::InternalPointSetType::PointDataContainer::Pointer mapDataContainer = ::map::core::continuous::Elements&lt;3&gt;::InternalPointSetType::PointDataContainer::New();
+  mapSet-&gt;SetPoints(mapContainer);
+  mapSet-&gt;SetPointData(mapDataContainer);</span>
+
+<span style = "background-color:#fdd">  unsigned int pointCount = mitkSet-&gt;GetNumberOfPoints();</span>
+
+<span style = "background-color:#fdd">  for (unsigned int pointId = 0; pointId &lt; pointCount; ++pointId)</span>
+  {
+<span style = "background-color:#fdd">    mapSet-&gt;SetPoint(pointId, mitkSet-&gt;GetPoint(pointId));</span>
+
+    mitk::PointSet::PointDataType data;
+<span style = "background-color:#fdd">    if (mitkSet-&gt;GetPointData(pointId,&amp;data))</span>
+    {
+<span style = "background-color:#fdd">      mapSet-&gt;SetPointData(pointId,data.id);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return mapSet;
+}</span>
+
+::mitk::PointSet::Pointer
+  mitk::PointSetMappingHelper::map(const ::mitk::PointSet* input, const mitk::PointSetMappingHelper::RegistrationType* registration, int timeStep,
+  bool throwOnMappingError, const ::mitk::PointSet::PointDataType&amp; errorPointValue)
+<span style = "background-color:#fdd">{
+  if (!registration)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot map point set. Passed registration wrapper pointer is nullptr.";</span>
+  }
+<span style = "background-color:#fdd">  if (!input)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot map point set. Passed point set pointer is nullptr.";</span>
+  }
+<span style = "background-color:#fdd">  if (static_cast&lt;int&gt;(input-&gt;GetTimeSteps())&lt;=timeStep &amp;&amp; timeStep&gt;=0)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot set point set. Selected time step is larger then mitk point set. MITK time step count: "&lt;&lt;input-&gt;GetTimeSteps()&lt;&lt;"; selected time step: "&lt;&lt;timeStep;</span>
+  }
+
+<span style = "background-color:#fdd">  ::mitk::PointSet::Pointer result = input-&gt;Clone();</span>
+
+  typedef ::map::core::continuous::Elements&lt;3&gt;::InternalPointSetType MAPPointSetType;
+  typedef ::map::core::Registration&lt;3,3&gt; ConcreteRegistrationType;
+<span style = "background-color:#fdd">  const ConcreteRegistrationType* castedReg = dynamic_cast&lt;const ConcreteRegistrationType*&gt;(registration);
+  if (!castedReg)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt;"Moving and/or fixed dimension of the registration is not 3. Cannot map point 3D set.";</span>
+  }
+
+  typedef ::map::core::PointSetMappingTask&lt;ConcreteRegistrationType, MAPPointSetType, MAPPointSetType&gt; MappingTaskType;
+<span style = "background-color:#fdd">  MappingTaskType::ErrorPointValueType internalErrorValue = itk::NumericTraits&lt;MappingTaskType::ErrorPointValueType&gt;::NonpositiveMin();
+  MappingTaskType::Pointer spTask = MappingTaskType::New();
+  spTask-&gt;setRegistration(castedReg);
+  spTask-&gt;setThrowOnMappingError(throwOnMappingError);
+  spTask-&gt;setErrorPointValue(internalErrorValue);</span>
+
+<span style = "background-color:#fdd">  unsigned int timePos = timeStep;
+  unsigned int timeEndPos = timeStep+1;
+  if (timeStep &lt; 0)</span>
+  {
+<span style = "background-color:#fdd">    timePos = 0;
+    timeEndPos = input-&gt;GetTimeSteps();</span>
+  }
+
+<span style = "background-color:#fdd">  while (timePos&lt;timeEndPos)</span>
+  {
+<span style = "background-color:#fdd">    MAPPointSetType::Pointer inputTempSet = ConvertPointSetMITKtoMAP(input-&gt;GetPointSet(timePos));
+    spTask-&gt;setInputPointSet(inputTempSet);
+    spTask-&gt;execute();</span>
+
+<span style = "background-color:#fdd">    MAPPointSetType::Pointer mappedSet = spTask-&gt;getResultPointSet();</span>
+
+<span style = "background-color:#fdd">    unsigned int pointCount = input-&gt;GetSize(timePos);</span>
+
+<span style = "background-color:#fdd">    for (unsigned int pointId = 0; pointId &lt; pointCount; ++pointId)</span>
+    {
+<span style = "background-color:#fdd">      result-&gt;SetPoint(pointId, mappedSet-&gt;GetPoint(pointId), timePos);
+      bool invalid = true;</span>
+      MAPPointSetType::PixelType mappedData;
+<span style = "background-color:#fdd">      if (mappedSet-&gt;GetPointData(pointId,&amp;mappedData))</span>
+      {
+<span style = "background-color:#fdd">        invalid = mappedData == internalErrorValue;</span>
+      }
+
+<span style = "background-color:#fdd">      if (invalid)</span>
+      {
+<span style = "background-color:#fdd">        result-&gt;GetPointSet(timePos)-&gt;GetPointData()-&gt;SetElement(pointId,errorPointValue);
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        result-&gt;GetPointSet(timePos)-&gt;GetPointData()-&gt;SetElement(pointId,input-&gt;GetPointSet(timePos)-&gt;GetPointData()-&gt;GetElement(pointId));</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    ++timePos;
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+::mitk::PointSet::Pointer
+  mitk::PointSetMappingHelper::map(const ::mitk::PointSet* input, const MITKRegistrationType* registration, int timeStep,
+  bool throwOnMappingError, const ::mitk::PointSet::PointDataType&amp; errorPointValue)
+<span style = "background-color:#fdd">{
+  if (!registration)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot map point set. Passed registration wrapper pointer is nullptr.";</span>
+  }
+<span style = "background-color:#fdd">  if (!registration-&gt;GetRegistration())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot map point set. Passed registration wrapper containes no registration.";</span>
+  }
+<span style = "background-color:#fdd">  if (!input)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot map point set. Passed point set pointer is nullptr.";</span>
+  }
+
+<span style = "background-color:#fdd">  ::mitk::PointSet::Pointer result = map(input, registration-&gt;GetRegistration(), timeStep, throwOnMappingError, errorPointValue);
+  return result;
+}</span></pre>
+	</body>
+</html>

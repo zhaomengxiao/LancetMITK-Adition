@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMSortCriterion.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMSortCriterion.h"
+
+mitk::DICOMSortCriterion
+::DICOMSortCriterion(DICOMSortCriterion::Pointer secondaryCriterion)
+<span style = "background-color:#dfd">:itk::LightObject()
+,m_SecondaryCriterion(secondaryCriterion)
+{
+}</span>
+
+mitk::DICOMSortCriterion
+::~DICOMSortCriterion()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::DICOMSortCriterion
+::DICOMSortCriterion(const DICOMSortCriterion&amp; other )
+<span style = "background-color:#fdd">:itk::LightObject()
+,m_SecondaryCriterion(other.m_SecondaryCriterion)
+{
+}</span>
+
+mitk::DICOMSortCriterion&amp;
+mitk::DICOMSortCriterion
+::operator=(const DICOMSortCriterion&amp; other)
+<span style = "background-color:#fdd">{
+  if (this != &amp;other)</span>
+  {
+<span style = "background-color:#fdd">    m_SecondaryCriterion = other.m_SecondaryCriterion;</span>
+  }
+<span style = "background-color:#fdd">  return *this;
+}</span>
+
+mitk::DICOMSortCriterion::ConstPointer
+mitk::DICOMSortCriterion
+::GetSecondaryCriterion() const
+<span style = "background-color:#fdd">{
+  return m_SecondaryCriterion.GetPointer();
+}</span>
+
+mitk::DICOMTagList
+mitk::DICOMSortCriterion
+::GetAllTagsOfInterest() const
+<span style = "background-color:#fdd">{
+  DICOMTagList allTags;</span>
+
+ // iterate all secondary criteria, return all tags
+<span style = "background-color:#fdd">  const DICOMSortCriterion* criterionToCheck = this;
+  while (criterionToCheck)</span>
+  {
+<span style = "background-color:#fdd">    DICOMTagList newElements = criterionToCheck-&gt;GetTagsOfInterest();
+    allTags.insert( allTags.end(), newElements.begin(), newElements.end() ); // append
+    criterionToCheck = criterionToCheck-&gt;m_SecondaryCriterion.GetPointer();
+  }</span>
+
+<span style = "background-color:#fdd">  return allTags;
+}</span>
+
+bool
+mitk::DICOMSortCriterion
+::NextLevelIsLeftBeforeRight(const mitk::DICOMDatasetAccess* left, const mitk::DICOMDatasetAccess* right) const
+<span style = "background-color:#fdd">{
+  if (m_SecondaryCriterion.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    return m_SecondaryCriterion-&gt;IsLeftBeforeRight(left, right);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return (void*)left &lt; (void*)right;</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

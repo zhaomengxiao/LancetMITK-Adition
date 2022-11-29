@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModalityProperty.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkModalityProperty_h_Included
+#define mitkModalityProperty_h_Included
+
+#include "mitkEnumerationProperty.h"
+#include &lt;MitkCoreExports.h&gt;
+#include &lt;itkObjectFactory.h&gt;
+
+namespace mitk
+{
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4522)
+#endif
+
+  /**
+    \brief Enumerates all known modalities
+
+    \ingroup DataManagement
+  */
+  class MITKCORE_EXPORT ModalityProperty : public EnumerationProperty
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(ModalityProperty, EnumerationProperty);
+    itkFactorylessNewMacro(Self);
+    itkCloneMacro(Self);
+    mitkNewMacro1Param(ModalityProperty, const IdType&amp;);
+    mitkNewMacro1Param(ModalityProperty, const std::string &amp;);</span>
+
+    using BaseProperty::operator=;
+
+  protected:
+    ModalityProperty();
+    ModalityProperty(const IdType &amp;value);
+    ModalityProperty(const std::string &amp;value);
+
+    ~ModalityProperty() override;
+    virtual void AddEnumerationTypes();
+
+  private:
+    // purposely not implemented
+    const ModalityProperty &amp;operator=(const ModalityProperty &amp;);
+
+    itk::LightObject::Pointer InternalClone() const override;
+  };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+} // namespace
+
+#endif</pre>
+	</body>
+</html>

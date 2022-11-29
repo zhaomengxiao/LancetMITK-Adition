@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageStatisticsContainerManager.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkImageStatisticsContainerManager.h"
+
+#include "mitkNodePredicateAnd.h"
+#include "mitkNodePredicateOr.h"
+#include "mitkNodePredicateDataType.h"
+#include "mitkNodePredicateNot.h"
+#include "mitkNodePredicateFunction.h"
+#include "mitkNodePredicateDataProperty.h"
+#include "mitkProperties.h"
+
+#include "mitkStatisticsToImageRelationRule.h"
+#include "mitkStatisticsToMaskRelationRule.h"
+
+mitk::ImageStatisticsContainer::Pointer mitk::ImageStatisticsContainerManager::GetImageStatistics(const mitk::DataStorage* dataStorage, const mitk::BaseData* image, const mitk::BaseData* mask, bool ignoreZeroVoxel, unsigned int histogramNBins, bool onlyIfUpToDate, bool noWIP)
+<span style = "background-color:#fdd">{
+  auto node = GetImageStatisticsNode(dataStorage, image, mask, ignoreZeroVoxel, histogramNBins, onlyIfUpToDate, noWIP);</span>
+
+<span style = "background-color:#fdd">  mitk::ImageStatisticsContainer::Pointer result;</span>
+
+<span style = "background-color:#fdd">  if (node.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    result = dynamic_cast&lt;mitk::ImageStatisticsContainer*&gt;(node-&gt;GetData());</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::DataNode::Pointer mitk::ImageStatisticsContainerManager::GetImageStatisticsNode(const mitk::DataStorage* dataStorage, const mitk::BaseData* image, const mitk::BaseData* mask, bool ignoreZeroVoxel, unsigned int histogramNBins, bool onlyIfUpToDate, bool noWIP)
+<span style = "background-color:#fdd">{
+  if (!dataStorage) {
+    mitkThrow() &lt;&lt; "data storage is nullptr!";</span>
+  }
+<span style = "background-color:#fdd">  if (!image) {
+    mitkThrow() &lt;&lt; "Image is nullptr";</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::NodePredicateBase::ConstPointer predicate = GetStatisticsPredicateForSources(image, mask);</span>
+
+<span style = "background-color:#fdd">  mitk::DataNode::Pointer result;</span>
+
+<span style = "background-color:#fdd">  if (predicate)</span>
+  {
+<span style = "background-color:#fdd">    auto binPredicate = mitk::NodePredicateDataProperty::New(mitk::STATS_HISTOGRAM_BIN_PROPERTY_NAME.c_str(), mitk::UIntProperty::New(histogramNBins));
+    auto zeroPredicate = mitk::NodePredicateDataProperty::New(mitk::STATS_IGNORE_ZERO_VOXEL_PROPERTY_NAME.c_str(), mitk::BoolProperty::New(ignoreZeroVoxel));</span>
+
+<span style = "background-color:#fdd">    predicate = mitk::NodePredicateAnd::New(predicate, binPredicate, zeroPredicate).GetPointer();</span>
+
+<span style = "background-color:#fdd">    if (noWIP)</span>
+    {
+<span style = "background-color:#fdd">      auto noWIPPredicate = mitk::NodePredicateNot::New(mitk::NodePredicateDataProperty::New(mitk::STATS_GENERATION_STATUS_PROPERTY_NAME.c_str()));
+      predicate = mitk::NodePredicateAnd::New(predicate, noWIPPredicate).GetPointer();
+    }</span>
+
+<span style = "background-color:#fdd">    auto statisticContainerCandidateNodes = dataStorage-&gt;GetSubset(predicate);</span>
+
+<span style = "background-color:#fdd">    auto statisticContainerCandidateNodesFiltered = mitk::DataStorage::SetOfObjects::New();</span>
+
+<span style = "background-color:#fdd">    for (const auto&amp; node : *statisticContainerCandidateNodes)</span>
+    {
+<span style = "background-color:#fdd">      auto isUpToDate = image-&gt;GetMTime() &lt; node-&gt;GetData()-&gt;GetMTime()</span>
+        &amp;&amp; (mask == nullptr || mask-&gt;GetMTime() &lt; node-&gt;GetData()-&gt;GetMTime());
+
+<span style = "background-color:#fdd">      if (!onlyIfUpToDate || isUpToDate)</span>
+      {
+<span style = "background-color:#fdd">        statisticContainerCandidateNodesFiltered-&gt;push_back(node);
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    if (!statisticContainerCandidateNodesFiltered-&gt;empty())</span>
+    {
+<span style = "background-color:#fdd">      auto newestElement = statisticContainerCandidateNodesFiltered-&gt;front();
+      if (statisticContainerCandidateNodesFiltered-&gt;size() &gt; 1)</span>
+      {
+        //in case of multiple found statistics, return only newest one
+<span style = "background-color:#fdd">        auto newestIter = std::max_element(std::begin(*statisticContainerCandidateNodesFiltered), std::end(*statisticContainerCandidateNodesFiltered), [](mitk::DataNode::Pointer a, mitk::DataNode::Pointer b) {
+          return a-&gt;GetData()-&gt;GetMTime() &lt; b-&gt;GetData()-&gt;GetMTime();
+        });
+        newestElement = *newestIter;
+        MITK_DEBUG &lt;&lt; "multiple statistics (" &lt;&lt; statisticContainerCandidateNodesFiltered-&gt;size() &lt;&lt; ") for image/mask found. Returning only newest one.";
+        for (const auto&amp; node : *statisticContainerCandidateNodesFiltered)</span>
+        {
+<span style = "background-color:#fdd">          MITK_DEBUG &lt;&lt; node-&gt;GetName() &lt;&lt; ", timestamp: " &lt;&lt; node-&gt;GetData()-&gt;GetMTime();
+        }
+      }
+      result = newestElement;
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::NodePredicateBase::ConstPointer mitk::ImageStatisticsContainerManager::GetStatisticsPredicateForSources(const mitk::BaseData* image, const mitk::BaseData* mask)
+<span style = "background-color:#fdd">{
+  if (!image) {
+    mitkThrow() &lt;&lt; "Image is nullptr";</span>
+  }
+
+<span style = "background-color:#fdd">  auto nodePredicateImageStatisticsContainer = mitk::NodePredicateDataType::New(ImageStatisticsContainer::GetStaticNameOfClass());</span>
+
+<span style = "background-color:#fdd">  auto imageRule = mitk::StatisticsToImageRelationRule::New();
+  auto imagePredicate = imageRule-&gt;GetSourcesDetector(image);</span>
+
+<span style = "background-color:#fdd">  mitk::NodePredicateBase::ConstPointer predicate = mitk::NodePredicateAnd::New(nodePredicateImageStatisticsContainer, imagePredicate).GetPointer();</span>
+
+<span style = "background-color:#fdd">  auto maskRule = mitk::StatisticsToMaskRelationRule::New();
+  if (mask)</span>
+  {
+<span style = "background-color:#fdd">    auto maskPredicate = maskRule-&gt;GetSourcesDetector(mask);
+    predicate = mitk::NodePredicateAnd::New(predicate, maskPredicate).GetPointer();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    auto maskPredicate = mitk::NodePredicateNot::New(maskRule-&gt;GetConnectedSourcesDetector());
+    predicate = mitk::NodePredicateAnd::New(predicate, maskPredicate).GetPointer();
+  }</span>
+
+<span style = "background-color:#fdd">  return predicate;
+}</span></pre>
+	</body>
+</html>

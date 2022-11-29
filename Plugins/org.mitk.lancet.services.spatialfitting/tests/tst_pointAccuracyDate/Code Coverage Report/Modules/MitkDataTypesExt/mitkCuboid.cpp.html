@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCuboid.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkCuboid.h"
+#include "mitkNumericTypes.h"
+#include "vtkCubeSource.h"
+#include "vtkLinearTransform.h"
+
+#include &lt;vtkSTLReader.h&gt;
+
+<span style = "background-color:#fdd">mitk::Cuboid::Cuboid() : BoundingObject()
+{
+  vtkCubeSource *cube = vtkCubeSource::New();
+  cube-&gt;SetXLength(2.0);
+  cube-&gt;SetYLength(2.0);
+  cube-&gt;SetZLength(2.0);
+  cube-&gt;Update();
+  SetVtkPolyData(cube-&gt;GetOutput());
+  cube-&gt;Delete();
+}</span>
+
+mitk::Cuboid::~Cuboid()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::Cuboid::IsInside(const Point3D &amp;worldPoint) const
+<span style = "background-color:#fdd">{</span>
+  // transform point from world to object coordinates
+  ScalarType p[4];
+<span style = "background-color:#fdd">  p[0] = worldPoint[0];
+  p[1] = worldPoint[1];
+  p[2] = worldPoint[2];
+  p[3] = 1;</span>
+
+<span style = "background-color:#fdd">  GetGeometry()-&gt;GetVtkTransform()-&gt;GetInverse()-&gt;TransformPoint(p, p);</span>
+
+<span style = "background-color:#fdd">  return (p[0] &gt;= -1) &amp;&amp; (p[0] &lt;= 1) &amp;&amp; (p[1] &gt;= -1) &amp;&amp; (p[1] &lt;= 1) &amp;&amp; (p[2] &gt;= -1) &amp;&amp; (p[2] &lt;= 1);
+}</span>
+
+mitk::ScalarType mitk::Cuboid::GetVolume()
+<span style = "background-color:#fdd">{
+  TimeGeometry *geometry = GetTimeGeometry();
+  return geometry-&gt;GetExtentInWorld(0) * geometry-&gt;GetExtentInWorld(1) * geometry-&gt;GetExtentInWorld(2);
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMinMaxLabelmageFilterWithIndex.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITK_MINMAXLABELIMAGEFILTERWITHINDEX_H
+#define MITK_MINMAXLABELIMAGEFILTERWITHINDEX_H
+
+#include &lt;MitkImageStatisticsExports.h&gt;
+
+#include &lt;itkImage.h&gt;
+#include &lt;itkImageToImageFilter.h&gt;
+#include &lt;itkImageRegionConstIteratorWithIndex.h&gt;
+#include &lt;unordered_map&gt;
+
+
+namespace itk
+{
+template &lt;typename TInputImage, typename TLabelImage&gt;
+class MinMaxLabelImageFilterWithIndex: public itk::ImageToImageFilter&lt;TInputImage, TInputImage&gt;
+{
+public:
+    /** Standard Self typedef */
+    typedef MinMaxLabelImageFilterWithIndex                          Self;
+    typedef ImageToImageFilter&lt; TInputImage, TInputImage &gt; Superclass;
+    typedef SmartPointer&lt; Self &gt;                           Pointer;
+    typedef SmartPointer&lt; const Self &gt;                     ConstPointer;
+
+    /** Method for creation through the object factory. */
+<span style = "background-color:#fdd">    itkNewMacro(Self);</span>
+
+    /** Runtime information support. */
+<span style = "background-color:#fdd">    itkTypeMacro(MinMaxLabelImageFilterWithIndex, ImageToImageFilter);</span>
+
+    typedef typename TInputImage::RegionType RegionType;
+    typedef typename TInputImage::SizeType   SizeType;
+    typedef typename TInputImage::IndexType  IndexType;
+    typedef typename TInputImage::PixelType  PixelType;
+    typedef typename NumericTraits&lt; PixelType &gt;::RealType RealType;
+
+    typedef typename TLabelImage::RegionType LabelRegionType;
+    typedef typename TLabelImage::SizeType   LabelSizeType;
+    typedef typename TLabelImage::IndexType  LabelIndexType;
+    typedef typename TLabelImage::PixelType  LabelPixelType;
+
+    /**
+     * @brief The LabelExtrema class is just a container for global min/max values and their indices as well as all min and max values (+indices) of the mask labels
+     */
+    class LabelExtrema
+    {
+    public:
+        PixelType m_Min, m_Max;
+        IndexType m_MinIndex, m_MaxIndex;
+
+        LabelExtrema():
+<span style = "background-color:#fdd">            m_Min(std::numeric_limits&lt;PixelType&gt;::max()),
+            m_Max(std::numeric_limits&lt;PixelType&gt;::min())
+        {}</span>
+    };
+
+    typedef typename std::unordered_map&lt;LabelPixelType, LabelExtrema&gt; ExtremaMapType;
+    typedef typename ExtremaMapType::iterator                         ExtremaMapTypeIterator;
+    typedef typename ExtremaMapType::const_iterator                   ExtremaMapTypeConstIterator;
+    typedef typename ExtremaMapType::value_type                       MapValueType;
+
+    PixelType GetMin(LabelPixelType label) const
+<span style = "background-color:#fdd">    {
+        ExtremaMapTypeConstIterator it = m_LabelExtrema.find(label);
+        if (it == m_LabelExtrema.end())</span>
+        {
+<span style = "background-color:#fdd">            MITK_ERROR &lt;&lt; "invalid label";</span>
+        }
+
+<span style = "background-color:#fdd">        return (*it).second.m_Min;
+    }</span>
+
+    PixelType GetMax(LabelPixelType label) const
+<span style = "background-color:#fdd">    {
+        ExtremaMapTypeConstIterator it = m_LabelExtrema.find(label);
+        if (it == m_LabelExtrema.end())</span>
+        {
+<span style = "background-color:#fdd">            MITK_ERROR &lt;&lt; "invalid label";</span>
+        }
+
+<span style = "background-color:#fdd">        return (*it).second.m_Max;
+    }</span>
+
+    /**
+     * @brief Returns a std::vector containing all labels for which min and max values (and indices) have been computed
+     */
+    std::vector&lt;LabelPixelType&gt; GetRelevantLabels() const
+<span style = "background-color:#fdd">    {
+        std::vector&lt;LabelPixelType&gt; labels;
+        for (auto&amp;&amp; it:m_LabelExtrema)</span>
+        {
+<span style = "background-color:#fdd">            labels.push_back(it.first);
+        }
+        return labels;
+    }</span>
+
+    IndexType GetMinIndex(LabelPixelType label) const
+<span style = "background-color:#fdd">    {
+        ExtremaMapTypeConstIterator it = m_LabelExtrema.find(label);
+        if (it == m_LabelExtrema.end())</span>
+        {
+<span style = "background-color:#fdd">            MITK_ERROR &lt;&lt; "invalid label";</span>
+        }
+
+<span style = "background-color:#fdd">        return (*it).second.m_MinIndex;</span>
+
+<span style = "background-color:#fdd">    }</span>
+
+    IndexType GetMaxIndex(LabelPixelType label) const
+<span style = "background-color:#fdd">    {
+        ExtremaMapTypeConstIterator it = m_LabelExtrema.find(label);
+        if (it == m_LabelExtrema.end())</span>
+        {
+<span style = "background-color:#fdd">            MITK_ERROR &lt;&lt; "invalid label";</span>
+        }
+
+<span style = "background-color:#fdd">        return (*it).second.m_MaxIndex;</span>
+
+<span style = "background-color:#fdd">    }</span>
+
+    PixelType GetGlobalMin() const
+    {
+        return m_GlobalMin;
+    }
+
+    PixelType GetGlobalMax() const
+    {
+        return m_GlobalMax;
+    }
+
+    IndexType GetGlobalMinIndex() const
+    {
+        return m_GlobalMinIndex;
+    }
+
+    IndexType GetGlobalMaxIndex() const
+    {
+        return m_GlobalMaxIndex;
+    }
+
+    /** Set the label image */
+    void SetLabelInput(const TLabelImage *input)
+<span style = "background-color:#fdd">    {</span>
+      // Process object is not const-correct so the const casting is required.
+<span style = "background-color:#fdd">      this-&gt;SetNthInput( 1, const_cast&lt; TLabelImage * &gt;( input ) );
+    }</span>
+
+    /** Get the label image */
+    const TLabelImage * GetLabelInput() const
+<span style = "background-color:#fdd">    {
+      return itkDynamicCastInDebugMode&lt; TLabelImage * &gt;( const_cast&lt; DataObject * &gt;( this-&gt;ProcessObject::GetInput(1) ) );
+    }</span>
+
+protected:
+<span style = "background-color:#fdd">    MinMaxLabelImageFilterWithIndex()
+    {
+      this-&gt;DynamicMultiThreadingOff();
+    }</span>
+
+    void AllocateOutputs() override;
+
+    void ThreadedGenerateData(const RegionType &amp;
+                                          outputRegionForThread,
+                                          ThreadIdType threadId) override;
+
+    void BeforeThreadedGenerateData() override;
+
+    void AfterThreadedGenerateData() override;
+
+private:
+    std::vector&lt;ExtremaMapType&gt; m_ThreadExtrema;
+
+    ExtremaMapType m_LabelExtrema;
+    PixelType m_GlobalMin;
+    PixelType m_GlobalMax;
+    IndexType m_GlobalMinIndex, m_GlobalMaxIndex;
+};
+}
+
+#include "mitkMinMaxLabelmageFilterWithIndex.hxx"
+
+
+#endif</pre>
+	</body>
+</html>

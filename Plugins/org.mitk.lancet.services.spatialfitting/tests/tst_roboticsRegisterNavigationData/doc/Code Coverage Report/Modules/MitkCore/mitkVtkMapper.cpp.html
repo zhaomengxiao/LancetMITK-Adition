@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVtkMapper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkVtkMapper.h"
+
+mitk::VtkMapper::VtkMapper()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::VtkMapper::~VtkMapper()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::VtkMapper::MitkRender(mitk::BaseRenderer *renderer, mitk::VtkPropRenderer::RenderType type)
+<span style = "background-color:#fdd">{
+  switch (type)</span>
+  {
+    case mitk::VtkPropRenderer::Opaque:
+<span style = "background-color:#fdd">      this-&gt;MitkRenderOpaqueGeometry(renderer);
+      break;</span>
+    case mitk::VtkPropRenderer::Translucent:
+<span style = "background-color:#fdd">      this-&gt;MitkRenderTranslucentGeometry(renderer);
+      break;</span>
+    case mitk::VtkPropRenderer::Overlay:
+<span style = "background-color:#fdd">      this-&gt;MitkRenderOverlay(renderer);
+      break;</span>
+    case mitk::VtkPropRenderer::Volumetric:
+<span style = "background-color:#fdd">      this-&gt;MitkRenderVolumetricGeometry(renderer);</span>
+      break;
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::VtkMapper::IsVtkBased() const
+<span style = "background-color:#fdd">{
+  return true;
+}</span>
+
+void mitk::VtkMapper::MitkRenderOverlay(BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  bool visible = true;
+  GetDataNode()-&gt;GetVisibility(visible, renderer, "visible");
+  if (!visible)
+    return;</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetVtkProp(renderer)-&gt;GetVisibility())</span>
+  {
+<span style = "background-color:#fdd">    GetVtkProp(renderer)-&gt;RenderOverlay(renderer-&gt;GetVtkRenderer());</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::VtkMapper::MitkRenderOpaqueGeometry(BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  bool visible = true;</span>
+
+<span style = "background-color:#fdd">  GetDataNode()-&gt;GetVisibility(visible, renderer, "visible");
+  if (!visible)
+    return;</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetVtkProp(renderer)-&gt;GetVisibility())</span>
+  {
+<span style = "background-color:#fdd">    GetVtkProp(renderer)-&gt;RenderOpaqueGeometry(renderer-&gt;GetVtkRenderer());</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::VtkMapper::MitkRenderTranslucentGeometry(BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  bool visible = true;
+  GetDataNode()-&gt;GetVisibility(visible, renderer, "visible");
+  if (!visible)
+    return;</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetVtkProp(renderer)-&gt;GetVisibility())</span>
+  {
+<span style = "background-color:#fdd">    GetVtkProp(renderer)-&gt;RenderTranslucentPolygonalGeometry(renderer-&gt;GetVtkRenderer());</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::VtkMapper::MitkRenderVolumetricGeometry(BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  bool visible = true;
+  GetDataNode()-&gt;GetVisibility(visible, renderer, "visible");
+  if (!visible)
+    return;</span>
+
+<span style = "background-color:#fdd">  if (GetVtkProp(renderer)-&gt;GetVisibility())</span>
+  {
+<span style = "background-color:#fdd">    GetVtkProp(renderer)-&gt;RenderVolumetricGeometry(renderer-&gt;GetVtkRenderer());</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::VtkMapper::HasVtkProp(const vtkProp *prop, BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  vtkProp *myProp = this-&gt;GetVtkProp(renderer);</span>
+
+  // TODO: check if myProp is a vtkAssembly and if so, check if prop is contained in its leafs
+<span style = "background-color:#fdd">  return (prop == myProp);
+}</span>
+
+void mitk::VtkMapper::UpdateVtkTransform(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  vtkLinearTransform *vtktransform = GetDataNode()-&gt;GetVtkTransform(this-&gt;GetTimestep());</span>
+
+<span style = "background-color:#fdd">  auto *prop = dynamic_cast&lt;vtkProp3D *&gt;(GetVtkProp(renderer));
+  if (prop)
+    prop-&gt;SetUserTransform(vtktransform);
+}</span>
+
+void mitk::VtkMapper::ApplyColorAndOpacityProperties(BaseRenderer *renderer, vtkActor *actor)
+<span style = "background-color:#fdd">{
+  float rgba[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  DataNode *node = GetDataNode();</span>
+
+  // check for color prop and use it for rendering if it exists
+<span style = "background-color:#fdd">  node-&gt;GetColor(rgba, renderer, "color");</span>
+  // check for opacity prop and use it for rendering if it exists
+<span style = "background-color:#fdd">  node-&gt;GetOpacity(rgba[3], renderer, "opacity");</span>
+
+<span style = "background-color:#fdd">  double drgba[4] = {rgba[0], rgba[1], rgba[2], rgba[3]};
+  actor-&gt;GetProperty()-&gt;SetColor(drgba);
+  actor-&gt;GetProperty()-&gt;SetOpacity(drgba[3]);
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPoint.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKPOINT_H_
+#define MITKPOINT_H_
+
+#include &lt;itkPoint.h&gt;
+
+#include "mitkArray.h"
+#include "mitkEqual.h"
+#include "mitkNumericConstants.h"
+
+namespace mitk
+{
+  //##Documentation
+  //##@brief enumeration of the type a point can be
+  enum PointSpecificationType
+  {
+    PTUNDEFINED = 0,
+    PTSTART,
+    PTCORNER,
+    PTEDGE,
+    PTEND
+  };
+
+  template &lt;class TCoordRep, unsigned int NPointDimension = 3&gt;
+  class Point : public itk::Point&lt;TCoordRep, NPointDimension&gt;
+  {
+  public:
+    /** Default constructor has nothing to do. */
+<span style = "background-color:#dfd">    explicit Point&lt;TCoordRep, NPointDimension&gt;() : itk::Point&lt;TCoordRep, NPointDimension&gt;() {}</span>
+    /** Pass-through constructors for the Array base class. */
+    template &lt;typename TPointValueType&gt;
+    explicit Point(const Point&lt;TPointValueType, NPointDimension&gt; &amp;r) : itk::Point&lt;TCoordRep, NPointDimension&gt;(r)
+    {
+    }
+
+    template &lt;typename TPointValueType&gt;
+    explicit Point(const TPointValueType r[NPointDimension]) : itk::Point&lt;TCoordRep, NPointDimension&gt;(r)
+    {
+    }
+
+    template &lt;typename TPointValueType&gt;
+<span style = "background-color:#dfd">    explicit Point(const TPointValueType &amp;v) : itk::Point&lt;TCoordRep, NPointDimension&gt;(v)
+    {
+    }</span>
+
+    Point&lt;TCoordRep, NPointDimension&gt;(const mitk::Point&lt;TCoordRep, NPointDimension&gt; &amp;r)
+<span style = "background-color:#dfd">      : itk::Point&lt;TCoordRep, NPointDimension&gt;(r)
+    {
+    }</span>
+<span style = "background-color:#fdd">    Point&lt;TCoordRep, NPointDimension&gt;(const TCoordRep r[NPointDimension]) : itk::Point&lt;TCoordRep, NPointDimension&gt;(r) {}
+    Point&lt;TCoordRep, NPointDimension&gt;(const TCoordRep &amp;v) : itk::Point&lt;TCoordRep, NPointDimension&gt;(v) {}</span>
+    Point&lt;TCoordRep, NPointDimension&gt;(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;p)
+<span style = "background-color:#fdd">      : itk::Point&lt;TCoordRep, NPointDimension&gt;(p)
+    {
+    }</span>
+
+    /**
+     * Copies the elements from array array to this.
+     * Note that this method will assign doubles to floats without complaining!
+     *
+     * @param array the array whose values shall be copied. Must overload [] operator.
+     */
+    template &lt;typename ArrayType&gt;
+    void FillPoint(const ArrayType &amp;array)
+    {
+      itk::FixedArray&lt;TCoordRep, NPointDimension&gt; *thisP =
+        dynamic_cast&lt;itk::FixedArray&lt;TCoordRep, NPointDimension&gt; *&gt;(this);
+      mitk::FillArray&lt;ArrayType, TCoordRep, NPointDimension&gt;(*thisP, array);
+    }
+
+    /**
+     * Copies the values stored in this point into the array array.
+     *
+     * @param array the array which should store the values of this.
+     */
+    template &lt;typename ArrayType&gt;
+    void ToArray(ArrayType array) const
+    {
+      mitk::ToArray&lt;ArrayType, TCoordRep, NPointDimension&gt;(array, *this);
+    }
+  };
+
+  typedef Point&lt;ScalarType, 2&gt; Point2D;
+  typedef Point&lt;ScalarType, 3&gt; Point3D;
+  typedef Point&lt;ScalarType, 4&gt; Point4D;
+
+  typedef Point&lt;int, 2&gt; Point2I;
+  typedef Point&lt;int, 3&gt; Point3I;
+  typedef Point&lt;int, 4&gt; Point4I;
+
+  /**
+   * @ingroup MITKTestingAPI
+   *
+   * @param point1 Point to compare.
+   * @param point2 Point to compare.
+   * @param eps Tolerance for floating point comparison.
+   * @param verbose Flag indicating detailed console output.
+   * @return True if points are equal.
+   */
+  template &lt;typename TCoordRep, unsigned int NPointDimension&gt;
+  inline bool Equal(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point1,
+                    const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point2,
+                    TCoordRep eps = mitk::eps,
+                    bool verbose = false)
+<span style = "background-color:#fdd">  {
+    bool isEqual = true;
+    typename itk::Point&lt;TCoordRep, NPointDimension&gt;::VectorType diff = point1 - point2;
+    for (unsigned int i = 0; i &lt; NPointDimension; i++)</span>
+    {
+<span style = "background-color:#fdd">      if (DifferenceBiggerOrEqualEps(diff[i], eps))</span>
+      {
+<span style = "background-color:#fdd">        isEqual = false;
+        break;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    ConditionalOutputOfDifference(point1, point2, eps, verbose, isEqual);</span>
+
+<span style = "background-color:#fdd">    return isEqual;
+  }</span>
+
+} // namespace mitk
+
+#endif /* MITKPOINT_H_ */</pre>
+	</body>
+</html>

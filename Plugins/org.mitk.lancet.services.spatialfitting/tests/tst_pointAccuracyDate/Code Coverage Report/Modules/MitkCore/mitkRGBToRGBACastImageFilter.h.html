@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRGBToRGBACastImageFilter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKRGBTORGBACASTIMAGEFILTER_H_HEADER_INCLUDED
+#define MITKRGBTORGBACASTIMAGEFILTER_H_HEADER_INCLUDED
+
+#include "mitkImageTimeSelector.h"
+#include "mitkImageToImageFilter.h"
+#include &lt;MitkCoreExports.h&gt;
+
+#include &lt;itkRGBPixel.h&gt;
+
+namespace itk
+{
+  template &lt;class TPixel, unsigned int VImageDimension&gt;
+  class ITK_EXPORT Image;
+}
+
+namespace mitk
+{
+  //##Documentation
+  //## @brief
+  //## @ingroup Process
+  class MITKCORE_EXPORT RGBToRGBACastImageFilter : public ImageToImageFilter
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(RGBToRGBACastImageFilter, ImageToImageFilter);</span>
+
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+      /** Static convenience method to check if the passed mitk::Image is
+       * an RGB image in the sense of this converter filter.
+       *
+       * Returns falsefor RGBA and all other images.
+       */
+      static bool IsRGBImage(const mitk::Image *image);
+
+  protected:
+    // Typedefs for supported RGB pixel types
+    typedef itk::RGBPixel&lt;unsigned char&gt; UCRGBPixelType;
+    typedef itk::RGBPixel&lt;unsigned short&gt; USRGBPixelType;
+    typedef itk::RGBPixel&lt;float&gt; FloatRGBPixelType;
+    typedef itk::RGBPixel&lt;double&gt; DoubleRGBPixelType;
+
+    RGBToRGBACastImageFilter();
+
+    ~RGBToRGBACastImageFilter() override;
+
+    void GenerateInputRequestedRegion() override;
+
+    void GenerateOutputInformation() override;
+
+    void GenerateData() override;
+
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    void InternalCast(itk::Image&lt;TPixel, VImageDimension&gt; *itkImage,
+                      mitk::RGBToRGBACastImageFilter *addComponentFilter,
+                      typename TPixel::ComponentType defaultAlpha);
+
+    mitk::ImageTimeSelector::Pointer m_InputTimeSelector;
+    mitk::ImageTimeSelector::Pointer m_OutputTimeSelector;
+
+    //##Description
+    //## @brief Time when Header was last initialized
+    itk::TimeStamp m_TimeOfHeaderInitialization;
+  };
+
+} // namespace mitk
+
+#endif /* MITKRGBTORGBACASTIMAGEFILTER_H_HEADER_INCLUDED */</pre>
+	</body>
+</html>

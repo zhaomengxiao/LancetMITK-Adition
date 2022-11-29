@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkGeometry3D.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef GEOMETRY3D_H_HEADER_INCLUDED_C1EBD0AD
+#define GEOMETRY3D_H_HEADER_INCLUDED_C1EBD0AD
+
+#include "mitkNumericTypes.h"
+#include &lt;MitkCoreExports.h&gt;
+#include &lt;mitkCommon.h&gt;
+
+#include "itkScalableAffineTransform.h"
+#include &lt;itkIndex.h&gt;
+
+#include "mitkBaseGeometry.h"
+
+class vtkLinearTransform;
+
+namespace mitk
+{
+  /** @brief Standard implementation of BaseGeometry.
+    * @ingroup Geometry
+    */
+  class MITKCORE_EXPORT Geometry3D : public BaseGeometry
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(Geometry3D, mitk::BaseGeometry);</span>
+
+    typedef itk::QuaternionRigidTransform&lt;ScalarType&gt; QuaternionTransformType;
+    typedef QuaternionTransformType::VnlQuaternionType VnlQuaternionType;
+
+    /** Method for creation through the object factory. */
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);
+    mitkNewMacro1Param(Self, const Self&amp;);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+  protected : Geometry3D();
+    Geometry3D(const Geometry3D &amp;);
+
+    /**
+      * @brief clones the geometry
+      *
+      * Overwrite in all sub-classes.
+      * Normally looks like:
+      * \code
+      *  Self::Pointer newGeometry = new Self(*this);
+      *  newGeometry-&gt;UnRegister();
+      *  return newGeometry.GetPointer();
+      * \endcode
+      */
+    itk::LightObject::Pointer InternalClone() const override;
+
+    ~Geometry3D() override;
+
+    /**
+      * @brief PreSetSpacing
+      *
+      * These virtual function allows a different beahiour in subclasses.
+      * Do implement them in every subclass of BaseGeometry. If not needed, use
+      * \c Superclass::PreSetSpacing().
+      */
+<span style = "background-color:#fdd">    void PreSetSpacing(const mitk::Vector3D &amp;aSpacing) override { Superclass::PreSetSpacing(aSpacing); };</span>
+  };
+} // namespace mitk
+
+#endif /* GEOMETRY3D_H_HEADER_INCLUDED_C1EBD0AD */</pre>
+	</body>
+</html>

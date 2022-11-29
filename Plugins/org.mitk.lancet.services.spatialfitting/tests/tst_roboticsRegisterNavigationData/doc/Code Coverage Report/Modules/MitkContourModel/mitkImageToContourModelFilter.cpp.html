@@ -1,0 +1,179 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageToContourModelFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkImageToContourModelFilter.h"
+#include "mitkImageAccessByItk.h"
+
+#include &lt;itkConstantPadImageFilter.h&gt;
+#include &lt;itkContourExtractor2DImageFilter.h&gt;
+
+
+<span style = "background-color:#fdd">mitk::ImageToContourModelFilter::ImageToContourModelFilter() : m_SliceGeometry(nullptr), m_ContourValue(0.5)
+{
+}</span>
+
+mitk::ImageToContourModelFilter::~ImageToContourModelFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ImageToContourModelFilter::SetInput(const mitk::ImageToContourModelFilter::InputType *input)
+<span style = "background-color:#fdd">{
+  this-&gt;SetInput(0, input);
+}</span>
+
+void mitk::ImageToContourModelFilter::SetInput(unsigned int idx,
+                                               const mitk::ImageToContourModelFilter::InputType *input)
+<span style = "background-color:#fdd">{
+  if (idx + 1 &gt; this-&gt;GetNumberOfInputs())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetNumberOfRequiredInputs(idx + 1);</span>
+  }
+<span style = "background-color:#fdd">  if (input != static_cast&lt;InputType *&gt;(this-&gt;ProcessObject::GetInput(idx)))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ProcessObject::SetNthInput(idx, const_cast&lt;InputType *&gt;(input));
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const mitk::ImageToContourModelFilter::InputType *mitk::ImageToContourModelFilter::GetInput(void)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;
+  return static_cast&lt;const mitk::ImageToContourModelFilter::InputType *&gt;(this-&gt;ProcessObject::GetInput(0));
+}</span>
+
+const mitk::ImageToContourModelFilter::InputType *mitk::ImageToContourModelFilter::GetInput(unsigned int idx)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;
+  return static_cast&lt;const mitk::ImageToContourModelFilter::InputType *&gt;(this-&gt;ProcessObject::GetInput(idx));
+}</span>
+
+void mitk::ImageToContourModelFilter::SetContourValue(float contourValue)
+<span style = "background-color:#fdd">{
+  this-&gt;m_ContourValue = contourValue;
+  this-&gt;Modified();
+}</span>
+
+float mitk::ImageToContourModelFilter::GetContourValue()
+<span style = "background-color:#fdd">{
+  return this-&gt;m_ContourValue;
+}</span>
+
+void mitk::ImageToContourModelFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::Image::ConstPointer sliceImage = this-&gt;GetInput();</span>
+
+<span style = "background-color:#fdd">  if (!sliceImage)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::ImageToContourModelFilter: No input available. Please set the input!" &lt;&lt; std::endl;
+    itkExceptionMacro("mitk::ImageToContourModelFilter: No input available. Please set the input!");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if (sliceImage-&gt;GetDimension() &gt; 2 || sliceImage-&gt;GetDimension() &lt; 2)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::ImageToContourModelFilter::GenerateData() works only with 2D images. Please assure that your "</span>
+                  "input image is 2D!"
+               &lt;&lt; std::endl;
+<span style = "background-color:#fdd">    itkExceptionMacro("mitk::ImageToContourModelFilter::GenerateData() works only with 2D images. Please assure that "</span>
+                      "your input image is 2D!");
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  m_SliceGeometry = sliceImage-&gt;GetGeometry();</span>
+
+<span style = "background-color:#fdd">  AccessFixedDimensionByItk(sliceImage, Itk2DContourExtraction, 2);
+}</span>
+
+template &lt;typename TPixel, unsigned int VImageDimension&gt;
+void mitk::ImageToContourModelFilter::Itk2DContourExtraction(const itk::Image&lt;TPixel, VImageDimension&gt; *sliceImage)
+<span style = "background-color:#fdd">{</span>
+  typedef itk::Image&lt;TPixel, VImageDimension&gt; ImageType;
+  typedef itk::ContourExtractor2DImageFilter&lt;ImageType&gt; ContourExtractor;
+
+  typedef itk::PolyLineParametricPath&lt;2&gt; PolyLineParametricPath2D;
+  typedef PolyLineParametricPath2D::VertexListType ContourPath;
+
+  typedef itk::ConstantPadImageFilter&lt;ImageType, ImageType&gt; PadFilterType;
+<span style = "background-color:#fdd">  typename PadFilterType::Pointer padFilter = PadFilterType::New();</span>
+  typename ImageType::SizeType lowerExtendRegion;
+<span style = "background-color:#fdd">  lowerExtendRegion[0] = 1;
+  lowerExtendRegion[1] = 1;</span>
+
+  typename ImageType::SizeType upperExtendRegion;
+<span style = "background-color:#fdd">  upperExtendRegion[0] = 1;
+  upperExtendRegion[1] = 1;</span>
+
+  /*
+   * We need to pad here, since the ITK contour extractor fails if the
+   * segmentation touches more than one image edge.
+   * By padding the image for one row at each edge we overcome this issue
+   */
+<span style = "background-color:#fdd">  padFilter-&gt;SetInput(sliceImage);
+  padFilter-&gt;SetConstant(0);
+  padFilter-&gt;SetPadLowerBound(lowerExtendRegion);
+  padFilter-&gt;SetPadUpperBound(upperExtendRegion);</span>
+
+<span style = "background-color:#fdd">  typename ContourExtractor::Pointer contourExtractor = ContourExtractor::New();
+  contourExtractor-&gt;SetInput(padFilter-&gt;GetOutput());
+  contourExtractor-&gt;SetContourValue(m_ContourValue);</span>
+
+<span style = "background-color:#fdd">  contourExtractor-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  unsigned int foundPaths = contourExtractor-&gt;GetNumberOfOutputs();
+  this-&gt;SetNumberOfIndexedOutputs(foundPaths);</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; foundPaths; i++)</span>
+  {
+<span style = "background-color:#fdd">    const ContourPath *currentPath = contourExtractor-&gt;GetOutput(i)-&gt;GetVertexList();</span>
+
+<span style = "background-color:#fdd">    mitk::Point3D currentPoint;
+    mitk::Point3D currentWorldPoint;</span>
+
+<span style = "background-color:#fdd">    mitk::ContourModel::Pointer contour = this-&gt;GetOutput(i);
+    if (contour.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      contour = mitk::ContourModel::New();</span>
+    }
+
+<span style = "background-color:#fdd">    if (contour.IsNull())
+      contour = mitk::ContourModel::New();</span>
+
+<span style = "background-color:#fdd">    for (unsigned int j = 0; j &lt; currentPath-&gt;Size(); j++)</span>
+    {
+<span style = "background-color:#fdd">      currentPoint[0] = currentPath-&gt;ElementAt(j)[0];
+      currentPoint[1] = currentPath-&gt;ElementAt(j)[1];
+      currentPoint[2] = 0;</span>
+
+<span style = "background-color:#fdd">      m_SliceGeometry-&gt;IndexToWorld(currentPoint, currentWorldPoint);</span>
+
+<span style = "background-color:#fdd">      contour-&gt;AddVertex(currentWorldPoint);
+    } // for2</span>
+
+<span style = "background-color:#fdd">    contour-&gt;Close();</span>
+
+<span style = "background-color:#fdd">  } // for1
+}</span></pre>
+	</body>
+</html>

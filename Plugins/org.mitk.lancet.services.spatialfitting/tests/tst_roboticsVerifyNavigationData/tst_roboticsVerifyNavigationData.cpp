@@ -1,5 +1,10 @@
 #include <QTest>
 
+// Import memory test function module.
+#if defined(VLD_INSTALL_X64) || defined(VLD_INSTALL_X32)
+#include <vld.h>
+#endif // !defined(VLD_INSTALL_X64) || defined(VLD_INSTALL_X32)
+
 #include <lancetSpatialFittingAbstractPipelineBuilder.h>
 #include <core/lancetSpatialFittingRoboticsVerifyDirector.h>
 #include <core/lancetSpatialFittingPipelineManager.h>
@@ -16,19 +21,40 @@ private slots:
 
 	}
 
+	void tst_MemoryLeak_case()
+	{
+		using RoboticsVerifyDirector = lancet::spatial_fitting::RoboticsVerifyDirector;
+
+		for (auto index = 0; index < 100; ++index)
+		{
+			RoboticsVerifyDirector obj1 = RoboticsVerifyDirector();
+			std::shared_ptr<RoboticsVerifyDirector> obj2 =
+				std::make_shared<RoboticsVerifyDirector>();
+			RoboticsVerifyDirector::Pointer obj3 = RoboticsVerifyDirector::New();
+			RoboticsVerifyDirector::Pointer obj4(new RoboticsVerifyDirector);
+		}
+	}
+
 	void tst_BuilderRoboticsVerifyDirector_case()
 	{
-		lancet::spatial_fitting::RoboticsVerifyDirector::Pointer roboticsVerifyDirector 
+		lancet::spatial_fitting::RoboticsVerifyDirector::Pointer roboticsRegisterDirector
 			= lancet::spatial_fitting::RoboticsVerifyDirector::New();
 
-		roboticsVerifyDirector->Builder();
+		QCOMPARE(true, roboticsRegisterDirector.IsNotNull());
+		QCOMPARE(true, roboticsRegisterDirector->Builder());
+		QCOMPARE(true, roboticsRegisterDirector->GetBuilder()->GetOutput().IsNotNull());
 
-		//roboticsVerifyDirector->GetBuilder()->GetOutput()->Update();
-		//roboticsVerifyDirector->GetBuilder()->GetOutput()->FindFilter(1)->Update();
+		auto pipelineManage = roboticsRegisterDirector->GetBuilder()->GetOutput();
 
-		roboticsVerifyDirector->GetBuilder()->GetOutput()->UpdateFilter();
+		QCOMPARE(true, pipelineManage.IsNotNull());
+		QCOMPARE(false, pipelineManage->IsEmpty());
+
+		roboticsRegisterDirector->SetBuilder(nullptr);
+		QCOMPARE(true, roboticsRegisterDirector->GetBuilder().IsNull());
+		QCOMPARE(false, roboticsRegisterDirector->Builder());
 	}
 };
+
 
 QTEST_MAIN(tst_roboticsVerifyNavigationData)
 #include "tst_roboticsVerifyNavigationData.moc"

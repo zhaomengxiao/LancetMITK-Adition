@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkQuaternionAveraging.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef QUATERNIONAVERAGING_H_HEADER_INCLUDED_
+#define QUATERNIONAVERAGING_H_HEADER_INCLUDED_
+
+#include "MitkIGTBaseExports.h"
+#include &lt;itkObject.h&gt;
+#include &lt;itkObjectFactory.h&gt;
+#include &lt;mitkCommon.h&gt;
+#include &lt;mitkQuaternion.h&gt;
+#include &lt;mitkVector.h&gt;
+#include &lt;vector&gt;
+
+
+namespace mitk {
+    /**Documentation
+    * \brief This class offers methods to average quaternions.
+    * \ingroup IGT Base
+    */
+  class MITKIGTBASE_EXPORT QuaternionAveraging : public itk::Object
+    {
+    public:
+
+<span style = "background-color:#fdd">      mitkClassMacroItkParent(QuaternionAveraging, itk::Object);
+      itkNewMacro(Self);</span>
+
+      enum Mode
+      {
+      SimpleMean, //simple averaging over all components of the quaternion, only valid for small differences.
+      Slerp       //more advanced algorithm for averaging (spherical linear interpolation), may also be used for huge differences
+      };
+
+      static mitk::Quaternion CalcAverage(const std::vector&lt;Quaternion&gt;&amp; quaternions, Mode mode = SimpleMean);
+
+    protected:
+      QuaternionAveraging();
+      ~QuaternionAveraging() override;
+
+    };
+} // Ende Namespace
+#endif</pre>
+	</body>
+</html>

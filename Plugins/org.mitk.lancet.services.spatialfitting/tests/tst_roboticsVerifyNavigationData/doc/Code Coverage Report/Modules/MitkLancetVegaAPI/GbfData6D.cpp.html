@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>GbfData6D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+//----------------------------------------------------------------------------
+//
+//  Copyright (C) 2017, Northern Digital Inc. All rights reserved.
+//
+//  All Northern Digital Inc. ("NDI") Media and/or Sample Code and/or Sample Code
+//  Documentation (collectively referred to as "Sample Code") is licensed and provided "as
+//  is" without warranty of any kind. The licensee, by use of the Sample Code, warrants to
+//  NDI that the Sample Code is fit for the use and purpose for which the licensee intends to
+//  use the Sample Code. NDI makes no warranties, express or implied, that the functions
+//  contained in the Sample Code will meet the licensee's requirements or that the operation
+//  of the programs contained therein will be error free. This warranty as expressed herein is
+//  exclusive and NDI expressly disclaims any and all express and/or implied, in fact or in
+//  law, warranties, representations, and conditions of every kind pertaining in any way to
+//  the Sample Code licensed and provided by NDI hereunder, including without limitation,
+//  each warranty and/or condition of quality, merchantability, description, operation,
+//  adequacy, suitability, fitness for particular purpose, title, interference with use or
+//  enjoyment, and/or non infringement, whether express or implied by statute, common law,
+//  usage of trade, course of dealing, custom, or otherwise. No NDI dealer, distributor, agent
+//  or employee is authorized to make any modification or addition to this warranty.
+//  In no event shall NDI nor any of its employees be liable for any direct, indirect,
+//  incidental, special, exemplary, or consequential damages, sundry damages or any
+//  damages whatsoever, including, but not limited to, procurement of substitute goods or
+//  services, loss of use, data or profits, or business interruption, however caused. In no
+//  event shall NDI's liability to the licensee exceed the amount paid by the licensee for the
+//  Sample Code or any NDI products that accompany the Sample Code. The said limitations
+//  and exclusions of liability shall apply whether or not any such damages are construed as
+//  arising from a breach of a representation, warranty, guarantee, covenant, obligation,
+//  condition or fundamental term or on any theory of liability, whether in contract, strict
+//  liability, or tort (including negligence or otherwise) arising in any way out of the use of
+//  the Sample Code even if advised of the possibility of such damage. In no event shall
+//  NDI be liable for any claims, losses, damages, judgments, costs, awards, expenses or
+//  liabilities of any kind whatsoever arising directly or indirectly from any injury to person
+//  or property, arising from the Sample Code or any use thereof
+//
+//----------------------------------------------------------------------------
+
+#include &lt;iomanip&gt;
+#include &lt;sstream&gt;
+
+#include "GbfData6D.h"
+
+GbfData6D::GbfData6D(BufferedReader&amp; reader, int numberOfTools)
+<span style = "background-color:#fdd">{
+	for ( int i = 0; i &lt; numberOfTools; i++)</span>
+	{
+<span style = "background-color:#fdd">		Transform data6D;
+		data6D.toolHandle = reader.get_uint16();
+		data6D.status = reader.get_uint16();</span>
+
+<span style = "background-color:#fdd">		if (data6D.isMissing())</span>
+		{
+<span style = "background-color:#fdd">			data6D.q0 = BAD_FLOAT;
+			data6D.qx = BAD_FLOAT;
+			data6D.qy = BAD_FLOAT;
+			data6D.qz = BAD_FLOAT;
+			data6D.tx = BAD_FLOAT;
+			data6D.ty = BAD_FLOAT;
+			data6D.tz = BAD_FLOAT;
+			data6D.error = BAD_FLOAT;
+		}</span>
+		else
+		{
+<span style = "background-color:#fdd">			data6D.q0 = reader.get_double();
+			data6D.qx = reader.get_double();
+			data6D.qy = reader.get_double();
+			data6D.qz = reader.get_double();
+			data6D.tx = reader.get_double();
+			data6D.ty = reader.get_double();
+			data6D.tz = reader.get_double();
+			data6D.error = reader.get_double();</span>
+		}
+<span style = "background-color:#fdd">		toolTransforms.push_back(data6D);
+	}
+}</span>
+
+std::string GbfData6D::toString() const
+<span style = "background-color:#fdd">{
+	std::stringstream stream;
+	stream &lt;&lt; std::hex &lt;&lt; std::setfill('0') &lt;&lt; std::setprecision(4);
+	stream &lt;&lt; "-----GbfData6D " &lt;&lt; std::endl &lt;&lt; GbfComponent::toString();</span>
+
+<span style = "background-color:#fdd">	for ( int i = 0; i &lt; toolTransforms.size(); i++)</span>
+	{
+<span style = "background-color:#fdd">		stream &lt;&lt; "toolHandle=" &lt;&lt; std::setw(4) &lt;&lt; static_cast&lt;unsigned&gt;(toolTransforms[i].toolHandle) &lt;&lt; std::endl</span>
+		       &lt;&lt; "status=" &lt;&lt; std::setw(4) &lt;&lt; static_cast&lt;unsigned&gt;(toolTransforms[i].status) &lt;&lt; (toolTransforms[i].isMissing() ? " - MISSING " : "")
+						&lt;&lt; ", error=" &lt;&lt; std::setw(2) &lt;&lt; static_cast&lt;unsigned&gt;(toolTransforms[i].getErrorCode())
+						&lt;&lt; " (" &lt;&lt; TransformStatus::toString(toolTransforms[i].getErrorCode()) &lt;&lt; ")" &lt;&lt; std::endl
+		   &lt;&lt; "transform=[q0, qx, qy, qz, tx, ty, tz, error ] = ["
+		   &lt;&lt; toolTransforms[i].q0 &lt;&lt; ","
+		   &lt;&lt; toolTransforms[i].qx &lt;&lt; ","
+		   &lt;&lt; toolTransforms[i].qy &lt;&lt; ","
+		   &lt;&lt; toolTransforms[i].qz &lt;&lt; ","
+		   &lt;&lt; toolTransforms[i].tx &lt;&lt; ","
+		   &lt;&lt; toolTransforms[i].ty &lt;&lt; ","
+		   &lt;&lt; toolTransforms[i].tz &lt;&lt; ","
+		   &lt;&lt; toolTransforms[i].error &lt;&lt; "]" &lt;&lt; std::endl;
+<span style = "background-color:#fdd">	}</span>
+
+<span style = "background-color:#fdd">	return stream.str();
+}</span></pre>
+	</body>
+</html>

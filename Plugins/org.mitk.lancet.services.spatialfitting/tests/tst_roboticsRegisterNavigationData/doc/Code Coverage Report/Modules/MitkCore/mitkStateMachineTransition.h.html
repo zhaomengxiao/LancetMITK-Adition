@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkStateMachineTransition.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef SMTRANSITION_H_HEADER_INCLUDED
+#define SMTRANSITION_H_HEADER_INCLUDED
+
+#include "mitkCommon.h"
+#include "mitkInteractionEvent.h"
+#include "mitkStateMachineAction.h"
+#include "mitkStateMachineCondition.h"
+#include &lt;itkLightObject.h&gt;
+#include &lt;string&gt;
+
+#include "MitkCoreExports.h"
+
+namespace mitk
+{
+  class StateMachineState;
+
+  typedef std::vector&lt;mitk::StateMachineAction::Pointer&gt; ActionVectorType;
+  typedef std::vector&lt;StateMachineCondition&gt; ConditionVectorType;
+  typedef itk::SmartPointer&lt;StateMachineState&gt; SpStateMachineState;
+
+  /**
+  * \class StateMachineTransition
+  * \brief Connects two states, and holds references to corresponding actions and conditions.
+  *
+  * This class represents a transition between two states of a statemachine. It holds a
+  * list of conditions that have to be fulfilled in order to be executed correctly.
+  * It also holds a list of actions that will be executed if all conditions are fulfilled.
+  *
+  * \ingroup Interaction
+  **/
+
+  class MITKCORE_EXPORT StateMachineTransition : public itk::LightObject
+  {
+    friend class StateMachineFactory;
+    friend class StateMachineContainer;
+
+  public:
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(StateMachineTransition, itk::LightObject);
+    mitkNewMacro3Param(Self, const std::string &amp;, const std::string &amp;, const std::string &amp;);</span>
+
+    SpStateMachineState GetNextState() const;
+    std::string GetNextStateName() const;
+    /**
+     * Check for equality. Equality is given if event variant is the same and
+     * classes are the same or the first argument is a superclass of the second.
+     * \warning Here the order of arguments matters. !
+     */
+    bool operator==(const StateMachineTransition &amp;transition) const;
+
+    /**
+     * @brief Get an iterator on the first action in list.
+     **/
+    ActionVectorType GetActions() const;
+
+    const ConditionVectorType &amp;GetConditions() const;
+
+    /**
+     * @brief Set the next state of this object.
+     **/
+    void SetNextState(const SpStateMachineState &amp;nextState);
+
+  protected:
+    StateMachineTransition(const std::string &amp;nextStateName,
+                           const std::string &amp;eventClass,
+                           const std::string &amp;eventVariant);
+    ~StateMachineTransition() override;
+
+    // Triggering Event
+    std::string m_EventClass;
+    std::string m_EventVariant;
+
+  private:
+    void AddAction(const StateMachineAction::Pointer &amp;action);
+
+    void AddCondition(const StateMachineCondition &amp;condition);
+
+    SpStateMachineState m_NextState;
+
+    std::string m_NextStateName;
+
+    InteractionEvent::Pointer m_TransitionEvent;
+
+    /**
+     * @brief The list of actions, that are executed if this transition is done.
+     **/
+    std::vector&lt;StateMachineAction::Pointer&gt; m_Actions;
+
+    ConditionVectorType m_Conditions;
+  };
+
+} // namespace mitk
+
+#endif /* SMTRANSITION_H_HEADER_INCLUDED */</pre>
+	</body>
+</html>

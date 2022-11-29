@@ -1,0 +1,192 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPointSetWriterService.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPointSetWriterService.h"
+#include "mitkGeometry3DToXML.h"
+#include "mitkIOMimeTypes.h"
+#include "mitkLocaleSwitch.h"
+
+#include "mitkGeometry3D.h"
+
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+#include &lt;locale&gt;
+
+#include &lt;tinyxml2.h&gt;
+
+//
+// Initialization of the xml tags.
+//
+<span style = "background-color:#dfd">const std::string mitk::PointSetWriterService::XML_POINT_SET_FILE = "point_set_file";
+const std::string mitk::PointSetWriterService::XML_FILE_VERSION = "file_version";
+const std::string mitk::PointSetWriterService::XML_POINT_SET = "point_set";
+const std::string mitk::PointSetWriterService::XML_TIME_SERIES = "time_series";
+const std::string mitk::PointSetWriterService::XML_TIME_SERIES_ID = "time_series_id";
+const std::string mitk::PointSetWriterService::XML_POINT = "point";
+const std::string mitk::PointSetWriterService::XML_ID = "id";
+const std::string mitk::PointSetWriterService::XML_SPEC = "specification";
+const std::string mitk::PointSetWriterService::XML_X = "x";
+const std::string mitk::PointSetWriterService::XML_Y = "y";
+const std::string mitk::PointSetWriterService::XML_Z = "z";
+const std::string mitk::PointSetWriterService::VERSION_STRING = "0.1";</span>
+
+mitk::PointSetWriterService::PointSetWriterService()
+<span style = "background-color:#dfd">  : AbstractFileWriter(</span>
+      PointSet::GetStaticNameOfClass(), CustomMimeType(IOMimeTypes::POINTSET_MIMETYPE()), "MITK Point Set Writer")
+<span style = "background-color:#dfd">{
+  RegisterService();
+}</span>
+
+<span style = "background-color:#fdd">mitk::PointSetWriterService::PointSetWriterService(const mitk::PointSetWriterService &amp;other) : AbstractFileWriter(other)
+{
+}</span>
+
+mitk::PointSetWriterService::~PointSetWriterService()
+<span style = "background-color:#dfd">{
+}</span>
+
+void mitk::PointSetWriterService::Write()
+<span style = "background-color:#fdd">{
+  mitk::LocaleSwitch localeC("C");</span>
+
+<span style = "background-color:#fdd">  tinyxml2::XMLDocument doc;
+  doc.InsertEndChild(doc.NewDeclaration());</span>
+
+<span style = "background-color:#fdd">  auto *rootNode = doc.NewElement(XML_POINT_SET_FILE.c_str());
+  doc.InsertEndChild(rootNode);</span>
+
+<span style = "background-color:#fdd">  auto *versionNode = doc.NewElement(XML_FILE_VERSION.c_str());
+  auto *versionText = doc.NewText(VERSION_STRING.c_str());
+  versionNode-&gt;InsertEndChild(versionText);
+  rootNode-&gt;InsertEndChild(versionNode);</span>
+
+<span style = "background-color:#fdd">  auto *pointSetNode = ToXML(doc, static_cast&lt;const PointSet *&gt;(this-&gt;GetInput()));
+  if (!pointSetNode)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Serialization error during PointSet writing.";</span>
+  }
+<span style = "background-color:#fdd">  rootNode-&gt;InsertEndChild(pointSetNode);</span>
+
+  // out &lt;&lt; doc; // streaming of TinyXML write no new-lines,
+  // rendering XML files unreadable (for humans)
+
+<span style = "background-color:#fdd">  LocalFile f(this);
+  if (tinyxml2::XML_SUCCESS != doc.SaveFile(f.GetFileName().c_str()))</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Some error during point set writing.";</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::PointSetWriterService *mitk::PointSetWriterService::Clone() const
+<span style = "background-color:#fdd">{
+  return new PointSetWriterService(*this);
+}</span>
+
+tinyxml2::XMLElement *mitk::PointSetWriterService::ToXML(tinyxml2::XMLDocument&amp; doc, const mitk::PointSet *pointSet)
+<span style = "background-color:#fdd">{</span>
+  // the following is rather bloated and could be expressed in more compact XML
+  // (e.g. using attributes instead of tags for x/y/z). The current format is
+  // kept to be compatible with the previous writer.
+<span style = "background-color:#fdd">  auto *pointSetElement = doc.NewElement(XML_POINT_SET.c_str());
+  unsigned int timecount = pointSet-&gt;GetTimeSteps();</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; timecount; i++)</span>
+  {
+<span style = "background-color:#fdd">    auto *timeSeriesElement = doc.NewElement(XML_TIME_SERIES.c_str());
+    pointSetElement-&gt;InsertEndChild(timeSeriesElement);</span>
+
+<span style = "background-color:#fdd">    auto *timeSeriesIDElement = doc.NewElement(XML_TIME_SERIES_ID.c_str());
+    timeSeriesElement-&gt;InsertEndChild(timeSeriesIDElement);
+    auto *timeSeriesIDText = doc.NewText(ConvertToString(i).c_str());
+    timeSeriesIDElement-&gt;InsertEndChild(timeSeriesIDText);</span>
+
+<span style = "background-color:#fdd">    PointSet::PointsContainer *pointsContainer = pointSet-&gt;GetPointSet(i)-&gt;GetPoints();
+    PointSet::PointsContainer::Iterator it;</span>
+
+<span style = "background-color:#fdd">    auto *geometry = dynamic_cast&lt;Geometry3D *&gt;(pointSet-&gt;GetGeometry(i));
+    if (geometry == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Writing a PointSet with something other that a Geometry3D. This is not foreseen and not handled.";</span>
+      // we'll continue anyway, this imitates previous behavior
+<span style = "background-color:#fdd">    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      auto *geometryElement = Geometry3DToXML::ToXML(doc, geometry);
+      timeSeriesElement-&gt;InsertEndChild(geometryElement);</span>
+    }
+
+<span style = "background-color:#fdd">    for (it = pointsContainer-&gt;Begin(); it != pointsContainer-&gt;End(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      auto *pointElement = doc.NewElement(XML_POINT.c_str());
+      timeSeriesElement-&gt;InsertEndChild(pointElement);</span>
+
+<span style = "background-color:#fdd">      auto *pointIDElement = doc.NewElement(XML_ID.c_str());
+      auto *pointIDText = doc.NewText(ConvertToString(it-&gt;Index()).c_str());
+      pointIDElement-&gt;InsertEndChild(pointIDText);
+      pointElement-&gt;InsertEndChild(pointIDElement);</span>
+
+<span style = "background-color:#fdd">      mitk::PointSet::PointType point = it-&gt;Value();</span>
+
+<span style = "background-color:#fdd">      auto *pointSpecElement = doc.NewElement(XML_SPEC.c_str());
+      auto *pointSpecText = doc.NewText(ConvertToString(pointSet-&gt;GetSpecificationTypeInfo(it-&gt;Index(), i)).c_str());
+      pointSpecElement-&gt;InsertEndChild(pointSpecText);
+      pointElement-&gt;InsertEndChild(pointSpecElement);</span>
+
+<span style = "background-color:#fdd">      auto *pointXElement = doc.NewElement(XML_X.c_str());
+      auto *pointXText = doc.NewText(ConvertToString(point[0]).c_str());
+      pointXElement-&gt;InsertEndChild(pointXText);
+      pointElement-&gt;InsertEndChild(pointXElement);</span>
+
+<span style = "background-color:#fdd">      auto *pointYElement = doc.NewElement(XML_Y.c_str());
+      auto *pointYText = doc.NewText(ConvertToString(point[1]).c_str());
+      pointYElement-&gt;InsertEndChild(pointYText);
+      pointElement-&gt;InsertEndChild(pointYElement);</span>
+
+<span style = "background-color:#fdd">      auto *pointZElement = doc.NewElement(XML_Z.c_str());
+      auto *pointZText = doc.NewText(ConvertToString(point[2]).c_str());
+      pointZElement-&gt;InsertEndChild(pointZText);
+      pointElement-&gt;InsertEndChild(pointZElement);
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return pointSetElement;
+}</span>
+
+template &lt;typename T&gt;
+std::string mitk::PointSetWriterService::ConvertToString(T value)
+<span style = "background-color:#fdd">{
+  std::ostringstream o;
+  std::locale I("C");
+  o.imbue(I);</span>
+
+<span style = "background-color:#fdd">  if (o &lt;&lt; std::setprecision(12) &lt;&lt; value)</span>
+  {
+<span style = "background-color:#fdd">    return o.str();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return "conversion error";</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

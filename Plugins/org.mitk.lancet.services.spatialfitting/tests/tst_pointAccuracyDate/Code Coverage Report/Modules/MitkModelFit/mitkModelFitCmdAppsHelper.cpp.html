@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModelFitCmdAppsHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkModelFitCmdAppsHelper.h&gt;
+
+
+std::string sanitizeString(const std::string&amp; path)
+<span style = "background-color:#fdd">{
+  auto result = path;
+  std::string illegalChars = "\\/:?\"&lt;&gt;|%* ";
+  for (auto &amp;c : result)</span>
+    {
+<span style = "background-color:#fdd">      bool found = illegalChars.find(c) != std::string::npos;
+      if (found){
+        c = '_';</span>
+      }
+<span style = "background-color:#fdd">    }
+  return result;
+}</span>
+
+MITKMODELFIT_EXPORT std::string mitk::generateModelFitResultImagePath(const std::string&amp; outputPathTemplate, const std::string&amp; parameterName)
+<span style = "background-color:#fdd">{
+  std::string ext = ::itksys::SystemTools::GetFilenameLastExtension(outputPathTemplate);</span>
+
+<span style = "background-color:#fdd">  std::string dir = itksys::SystemTools::GetFilenamePath(outputPathTemplate);
+  dir = itksys::SystemTools::ConvertToOutputPath(dir);</span>
+
+<span style = "background-color:#fdd">  std::string rootName = itksys::SystemTools::GetFilenameWithoutLastExtension(outputPathTemplate);</span>
+
+<span style = "background-color:#fdd">  std::string fileName = rootName + "_" + sanitizeString(parameterName) + ext;</span>
+
+<span style = "background-color:#fdd">  std::string fullOutPath = itksys::SystemTools::ConvertToOutputPath(dir + "/" + fileName);</span>
+
+<span style = "background-color:#fdd">  return fullOutPath;
+}</span>
+
+std::string convertParameterTypeToStr(mitk::modelFit::Parameter::Type type)
+<span style = "background-color:#fdd">{
+  switch (type)</span>
+  {
+<span style = "background-color:#fdd">  case mitk::modelFit::Parameter::ParameterType: return "parameter";
+  case mitk::modelFit::Parameter::DerivedType: return "derived";
+  case mitk::modelFit::Parameter::CriterionType: return "criterion";
+  case mitk::modelFit::Parameter::EvaluationType: return "evaluation";
+  default: return "unkown";</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+MITKMODELFIT_EXPORT void mitk::storeModelFitResultImage(const std::string&amp; outputPathTemplate, const std::string&amp; parameterName, mitk::Image* image, mitk::modelFit::Parameter::Type nodeType, const mitk::modelFit::ModelFitInfo* modelFitInfo)
+<span style = "background-color:#fdd">{
+  mitk::modelFit::SetModelFitDataProperties(image, parameterName, nodeType, modelFitInfo);</span>
+
+<span style = "background-color:#fdd">  storeParameterResultImage(outputPathTemplate, parameterName, image, nodeType);
+}</span>
+
+MITKMODELFIT_EXPORT void mitk::storeParameterResultImage(const std::string&amp; outputPathTemplate, const std::string&amp; parameterName, mitk::Image* image, mitk::modelFit::Parameter::Type parameterType)
+<span style = "background-color:#fdd">{
+  std::string fullOutPath = generateModelFitResultImagePath(outputPathTemplate, parameterName);</span>
+
+<span style = "background-color:#fdd">  mitk::IOUtil::Save(image, fullOutPath);</span>
+
+<span style = "background-color:#fdd">  std::cout &lt;&lt; "Store result " &lt;&lt; convertParameterTypeToStr(parameterType) &lt;&lt; ": " &lt;&lt; parameterName &lt;&lt; " -&gt; " &lt;&lt; fullOutPath &lt;&lt; std::endl;
+}</span>
+
+MITKMODELFIT_EXPORT void mitk::storeModelFitGeneratorResults(const std::string&amp; outputPathTemplate, mitk::ParameterFitImageGeneratorBase* generator, const mitk::modelFit::ModelFitInfo* fitSession)
+<span style = "background-color:#fdd">{
+  if (generator)</span>
+  {
+<span style = "background-color:#fdd">    for (const auto &amp;imageIterator : generator-&gt;GetParameterImages())</span>
+    {
+<span style = "background-color:#fdd">      storeModelFitResultImage(outputPathTemplate, imageIterator.first, imageIterator.second, mitk::modelFit::Parameter::ParameterType, fitSession);
+    }
+    for (const auto &amp;imageIterator : generator-&gt;GetDerivedParameterImages())</span>
+    {
+<span style = "background-color:#fdd">      storeModelFitResultImage(outputPathTemplate, imageIterator.first, imageIterator.second, mitk::modelFit::Parameter::DerivedType, fitSession);
+    }
+    for (const auto &amp;imageIterator : generator-&gt;GetCriterionImages())</span>
+    {
+<span style = "background-color:#fdd">      storeModelFitResultImage(outputPathTemplate, imageIterator.first, imageIterator.second, mitk::modelFit::Parameter::CriterionType, fitSession);
+    }
+    for (const auto &amp;imageIterator : generator-&gt;GetEvaluationParameterImages())</span>
+    {
+<span style = "background-color:#fdd">      storeModelFitResultImage(outputPathTemplate, imageIterator.first, imageIterator.second, mitk::modelFit::Parameter::EvaluationType, fitSession);
+    }</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+
+MITKMODELFIT_EXPORT void mitk::previewModelFitGeneratorResults(const std::string&amp; outputPathTemplate, mitk::ParameterFitImageGeneratorBase* generator)
+<span style = "background-color:#fdd">{
+  if (generator)</span>
+  {
+<span style = "background-color:#fdd">    for (const auto &amp;aName : generator-&gt;GetParameterNames())</span>
+    {
+<span style = "background-color:#fdd">      std::cout &lt;&lt; "Store result " &lt;&lt; convertParameterTypeToStr(modelFit::Parameter::ParameterType) &lt;&lt; ": " &lt;&lt; aName &lt;&lt; " -&gt; " &lt;&lt; generateModelFitResultImagePath(outputPathTemplate, aName) &lt;&lt; std::endl;
+    }
+    for (const auto &amp;aName : generator-&gt;GetDerivedParameterNames())</span>
+    {
+<span style = "background-color:#fdd">      std::cout &lt;&lt; "Store result " &lt;&lt; convertParameterTypeToStr(modelFit::Parameter::DerivedType) &lt;&lt; ": " &lt;&lt; aName &lt;&lt; " -&gt; " &lt;&lt; generateModelFitResultImagePath(outputPathTemplate, aName) &lt;&lt; std::endl;
+    }
+    for (const auto &amp;aName : generator-&gt;GetCriterionNames())</span>
+    {
+<span style = "background-color:#fdd">      std::cout &lt;&lt; "Store result " &lt;&lt; convertParameterTypeToStr(modelFit::Parameter::CriterionType) &lt;&lt; ": " &lt;&lt; aName &lt;&lt; " -&gt; " &lt;&lt; generateModelFitResultImagePath(outputPathTemplate, aName) &lt;&lt; std::endl;
+    }
+    for (const auto &amp;aName : generator-&gt;GetEvaluationParameterNames())</span>
+    {
+<span style = "background-color:#fdd">      std::cout &lt;&lt; "Store result " &lt;&lt; convertParameterTypeToStr(modelFit::Parameter::EvaluationType) &lt;&lt; ": " &lt;&lt; aName &lt;&lt; " -&gt; " &lt;&lt; generateModelFitResultImagePath(outputPathTemplate, aName) &lt;&lt; std::endl;
+    }
+    std::cout &lt;&lt; "Preview done." &lt;&lt; std::endl;</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

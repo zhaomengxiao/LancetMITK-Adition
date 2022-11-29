@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkStatusBarImplementation.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKSTATUSBARIMPLEMENTATION_H
+#define MITKSTATUSBARIMPLEMENTATION_H
+#include &lt;MitkCoreExports.h&gt;
+#include &lt;mitkCommon.h&gt;
+
+namespace mitk
+{
+  //##Documentation
+  //## @brief GUI indepentent Interface for all Gui depentent implementations of a StatusBar.
+  class MITKCORE_EXPORT StatusBarImplementation
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacroNoParent(StatusBarImplementation)</span>
+
+      //##Documentation
+      //## @brief Constructor
+<span style = "background-color:#fdd">      StatusBarImplementation(){};</span>
+    //##Documentation
+    //## @brief Destructor
+<span style = "background-color:#fdd">    virtual ~StatusBarImplementation(){};</span>
+
+    //##Documentation
+    //## @brief Send a string to the applications StatusBar
+    virtual void DisplayText(const char *t) = 0;
+
+    //##Documentation
+    //## @brief Send a string with a time delay to the applications StatusBar
+    virtual void DisplayText(const char *t, int ms) = 0;
+    virtual void DisplayErrorText(const char *t) = 0;
+    virtual void DisplayWarningText(const char *t) = 0;
+    virtual void DisplayWarningText(const char *t, int ms) = 0;
+    virtual void DisplayGenericOutputText(const char *t) = 0;
+    virtual void DisplayDebugText(const char *t) = 0;
+    virtual void DisplayGreyValueText(const char *t) = 0;
+
+    //##Documentation
+    //## @brief removes any temporary message being shown.
+    virtual void Clear() = 0;
+
+    //##Documentation
+    //## @brief Set the SizeGrip of the window
+    //## (the triangle in the lower right Windowcorner for changing the size)
+    //## to enabled or disabled
+    virtual void SetSizeGripEnabled(bool enable) = 0;
+  };
+
+} // end namespace mitk
+#endif /* define MITKSTATUSBARIMPLEMENTATION_H */</pre>
+	</body>
+</html>

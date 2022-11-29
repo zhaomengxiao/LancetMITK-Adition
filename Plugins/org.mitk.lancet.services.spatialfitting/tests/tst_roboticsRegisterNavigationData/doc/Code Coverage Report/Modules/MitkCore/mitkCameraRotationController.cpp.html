@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCameraRotationController.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkCameraRotationController.h"
+
+#include &lt;itkCommand.h&gt;
+#include &lt;vtkCamera.h&gt;
+#include &lt;vtkRenderWindow.h&gt;
+#include &lt;vtkRenderer.h&gt;
+
+#include "mitkRenderingManager.h"
+#include "mitkVtkPropRenderer.h"
+
+mitk::CameraRotationController::CameraRotationController()
+<span style = "background-color:#fdd">  : BaseController(), m_LastStepperValue(180), m_Camera(nullptr), m_RenderWindow(nullptr)
+{
+  m_Slice-&gt;SetAutoRepeat(true);
+  m_Slice-&gt;SetSteps(360);
+  m_Slice-&gt;SetPos(180);</span>
+
+<span style = "background-color:#fdd">  itk::SimpleMemberCommand&lt;CameraRotationController&gt;::Pointer sliceStepperChangedCommand, timeStepperChangedCommand;
+  sliceStepperChangedCommand = itk::SimpleMemberCommand&lt;CameraRotationController&gt;::New();
+  sliceStepperChangedCommand-&gt;SetCallbackFunction(this, &amp;CameraRotationController::RotateCamera);</span>
+
+<span style = "background-color:#fdd">  m_Slice-&gt;AddObserver(itk::ModifiedEvent(), sliceStepperChangedCommand);
+}</span>
+
+mitk::CameraRotationController::~CameraRotationController()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::CameraRotationController::RotateCamera()
+<span style = "background-color:#fdd">{
+  if (!m_Camera)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;AcquireCamera();</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_Camera)</span>
+  {
+<span style = "background-color:#fdd">    int newStepperValue = m_Slice-&gt;GetPos();
+    m_Camera-&gt;Azimuth(m_LastStepperValue - newStepperValue);
+    m_LastStepperValue = newStepperValue;</span>
+    // const_cast&lt; RenderWindow* &gt;(m_RenderWindow)-&gt;RequestUpdate(); // TODO does not work with movie generator!
+<span style = "background-color:#fdd">    mitk::RenderingManager::GetInstance()-&gt;RequestUpdate(m_RenderWindow);</span>
+    // m_MultiWidget-&gt;RequestUpdate();
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::CameraRotationController::AcquireCamera()
+<span style = "background-color:#fdd">{
+  BaseRenderer *renderer = mitk::BaseRenderer::GetInstance(m_RenderWindow);</span>
+
+<span style = "background-color:#fdd">  const auto *propRenderer = dynamic_cast&lt;const mitk::VtkPropRenderer *&gt;(renderer);
+  if (propRenderer)</span>
+  {
+    // get vtk renderer
+<span style = "background-color:#fdd">    vtkRenderer *vtkrenderer = propRenderer-&gt;GetVtkRenderer();
+    if (vtkrenderer)</span>
+    {
+      // get vtk camera
+<span style = "background-color:#fdd">      vtkCamera *vtkcam = vtkrenderer-&gt;GetActiveCamera();
+      if (vtkcam)</span>
+      {
+        // vtk smart pointer handling
+<span style = "background-color:#fdd">        if (!m_Camera)</span>
+        {
+<span style = "background-color:#fdd">          m_Camera = vtkcam;
+          m_Camera-&gt;Register(nullptr);
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          m_Camera-&gt;UnRegister(nullptr);
+          m_Camera = vtkcam;
+          m_Camera-&gt;Register(nullptr);</span>
+        }
+      }
+    }
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

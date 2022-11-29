@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkAbstractAnnotationRenderer.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef ABSTRACTANNOTATIONRENDERER_H
+#define ABSTRACTANNOTATIONRENDERER_H
+
+#include "mitkAnnotation.h"
+#include "mitkServiceInterface.h"
+#include "usGetModuleContext.h"
+#include "usServiceTracker.h"
+#include &lt;MitkCoreExports.h&gt;
+#include &lt;mitkCommon.h&gt;
+
+namespace mitk
+{
+  class BaseRenderer;
+
+  /** @brief Baseclass of Annotation layouters
+   * An AbstractAnnotationRenderer can be implemented to control a set of Annotation by means of position and size.
+   * @ingroup Annotation
+  */
+  class MITKCORE_EXPORT AbstractAnnotationRenderer : public us::ServiceTracker&lt;Annotation&gt;
+  {
+  public:
+    typedef us::ServiceTracker&lt;Annotation&gt; Superclass;
+    AbstractAnnotationRenderer(const std::string &amp;rendererID, const std::string &amp;arID);
+
+    /** \brief virtual destructor in order to derive from this class */
+    ~AbstractAnnotationRenderer() override;
+
+    const std::string GetID() const;
+    const std::string GetRendererID() const;
+
+    void CurrentBaseRendererChanged();
+
+<span style = "background-color:#fdd">    virtual void OnRenderWindowModified() {}</span>
+    void RemoveAllAnnotation();
+
+    void Update();
+    static const std::string US_INTERFACE_NAME;
+    static const std::string US_PROPKEY_ID;
+    static const std::string US_PROPKEY_RENDERER_ID;
+
+  protected:
+    BaseRenderer *GetCurrentBaseRenderer();
+
+  private:
+    /** \brief copy constructor */
+    AbstractAnnotationRenderer(const AbstractAnnotationRenderer &amp;);
+
+    /** \brief assignment operator */
+    AbstractAnnotationRenderer &amp;operator=(const AbstractAnnotationRenderer &amp;);
+
+    TrackedType AddingService(const ServiceReferenceType &amp;reference) override;
+
+    void ModifiedService(const ServiceReferenceType &amp; /*reference*/, TrackedType tracked) override;
+
+    void RemovedService(const ServiceReferenceType &amp; /*reference*/, TrackedType tracked) override;
+
+<span style = "background-color:#fdd">    virtual void OnAnnotationRenderersChanged() {}</span>
+    const std::string m_RendererID;
+    const std::string m_ID;
+  };
+
+} // namespace mitk
+
+<span style = "background-color:#fdd">MITK_DECLARE_SERVICE_INTERFACE(mitk::AbstractAnnotationRenderer, "org.mitk.services.AbstractAnnotationRenderer")</span>
+
+#endif // ABSTRACTANNOTATIONRENDERER_H</pre>
+	</body>
+</html>

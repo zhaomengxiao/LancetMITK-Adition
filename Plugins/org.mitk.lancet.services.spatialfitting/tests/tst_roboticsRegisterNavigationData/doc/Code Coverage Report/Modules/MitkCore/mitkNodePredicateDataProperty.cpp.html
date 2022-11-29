@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNodePredicateDataProperty.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNodePredicateDataProperty.h"
+#include "mitkDataNode.h"
+#include "mitkExceptionMacro.h"
+
+mitk::NodePredicateDataProperty::NodePredicateDataProperty(const char *propertyName, mitk::BaseProperty *p)
+<span style = "background-color:#fdd">: NodePredicateBase(), m_ValidProperty(p), m_ValidPropertyName(propertyName)
+{
+  if (m_ValidPropertyName.empty())
+    mitkThrow() &lt;&lt; "NodePredicateDataProperty cannot check invalid (empty) property name";
+}</span>
+
+mitk::NodePredicateDataProperty::~NodePredicateDataProperty()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::NodePredicateDataProperty::CheckNode(const mitk::DataNode *node) const
+<span style = "background-color:#fdd">{
+  if (node == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "NodePredicateDataProperty cannot check invalid node";</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_ValidPropertyName.empty())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "NodePredicateDataProperty cannot check invalid (empty) property name";</span>
+  }
+
+<span style = "background-color:#fdd">  bool result = false;
+  auto data = node-&gt;GetData();
+  if (data)</span>
+  {
+<span style = "background-color:#fdd">    if (m_ValidProperty.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      result = data-&gt;GetProperty(m_ValidPropertyName.c_str()).IsNotNull(); // search only for name
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      mitk::BaseProperty::Pointer p = data-&gt;GetProperty(m_ValidPropertyName.c_str());</span>
+
+<span style = "background-color:#fdd">      if (p.IsNotNull())</span>
+      {
+<span style = "background-color:#fdd">        result = (*p == *m_ValidProperty);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+  }
+<span style = "background-color:#fdd">  return result;
+}</span></pre>
+	</body>
+</html>

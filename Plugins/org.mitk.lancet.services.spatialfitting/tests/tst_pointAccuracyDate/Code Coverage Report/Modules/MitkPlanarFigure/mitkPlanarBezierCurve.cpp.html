@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlanarBezierCurve.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPlanarBezierCurve.h"
+#include &lt;mitkProperties.h&gt;
+
+#include &lt;limits&gt;
+
+mitk::PlanarBezierCurve::PlanarBezierCurve()
+<span style = "background-color:#fdd">  : FEATURE_ID_LENGTH(Superclass::AddFeature("Length", "mm")), m_NumberOfSegments(100)
+{
+  this-&gt;ResetNumberOfControlPoints(2);
+  this-&gt;SetNumberOfPolyLines(1);
+  this-&gt;SetNumberOfHelperPolyLines(1);
+}</span>
+
+void mitk::PlanarBezierCurve::EvaluateFeaturesInternal()
+<span style = "background-color:#fdd">{
+  double length = 0.0;</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; m_NumberOfSegments; ++i)
+    length += static_cast&lt;Point2D&gt;(m_PolyLines[0][i]).EuclideanDistanceTo(static_cast&lt;Point2D&gt;(m_PolyLines[0][i + 1]));</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetQuantity(FEATURE_ID_LENGTH, length);
+}</span>
+
+unsigned int mitk::PlanarBezierCurve::GetNumberOfSegments() const
+<span style = "background-color:#fdd">{
+  return m_NumberOfSegments;
+}</span>
+
+void mitk::PlanarBezierCurve::SetNumberOfSegments(unsigned int numSegments)
+<span style = "background-color:#fdd">{
+  m_NumberOfSegments = std::max(1U, numSegments);</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;IsPlaced())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;GeneratePolyLine();
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarBezierCurve::GenerateHelperPolyLine(double, unsigned int)
+<span style = "background-color:#fdd">{
+  this-&gt;ClearHelperPolyLines();</span>
+
+<span style = "background-color:#fdd">  unsigned int numHelperPolyLinePoints = m_ControlPoints.size();</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; numHelperPolyLinePoints; ++i)
+    this-&gt;AppendPointToHelperPolyLine(0, m_ControlPoints[i]);
+}</span>
+
+void mitk::PlanarBezierCurve::GeneratePolyLine()
+<span style = "background-color:#fdd">{
+  this-&gt;ClearPolyLines();</span>
+
+<span style = "background-color:#fdd">  const unsigned int numPolyLinePoints = m_NumberOfSegments + 1;</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; numPolyLinePoints; ++i)
+    this-&gt;AppendPointToPolyLine(0, this-&gt;ComputeDeCasteljauPoint(i / static_cast&lt;ScalarType&gt;(m_NumberOfSegments)));
+}</span>
+
+mitk::Point2D mitk::PlanarBezierCurve::ComputeDeCasteljauPoint(mitk::ScalarType t)
+<span style = "background-color:#fdd">{
+  unsigned int n = m_ControlPoints.size() - 1;</span>
+
+<span style = "background-color:#fdd">  if (m_DeCasteljauPoints.size() != n)
+    m_DeCasteljauPoints.resize(n);</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; n; ++i)</span>
+  {
+<span style = "background-color:#fdd">    m_DeCasteljauPoints[i][0] = (1 - t) * m_ControlPoints[i][0] + t * m_ControlPoints[i + 1][0];
+    m_DeCasteljauPoints[i][1] = (1 - t) * m_ControlPoints[i][1] + t * m_ControlPoints[i + 1][1];
+  }</span>
+
+<span style = "background-color:#fdd">  for (--n; n &gt; 0; --n)</span>
+  {
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; n; ++i)</span>
+    {
+<span style = "background-color:#fdd">      m_DeCasteljauPoints[i][0] = (1 - t) * m_DeCasteljauPoints[i][0] + t * m_DeCasteljauPoints[i + 1][0];
+      m_DeCasteljauPoints[i][1] = (1 - t) * m_DeCasteljauPoints[i][1] + t * m_DeCasteljauPoints[i + 1][1];
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return m_DeCasteljauPoints[0];
+}</span>
+
+int mitk::PlanarBezierCurve::GetControlPointForPolylinePoint(int indexOfPolylinePoint, int polyLineIndex) const
+<span style = "background-color:#fdd">{
+  mitk::PlanarFigure::PolyLineType polyLine = GetPolyLine(polyLineIndex);</span>
+
+<span style = "background-color:#fdd">  if (indexOfPolylinePoint &lt; 0 || indexOfPolylinePoint &gt; static_cast&lt;int&gt;(polyLine.size()))
+    return -1;</span>
+
+<span style = "background-color:#fdd">  mitk::PlanarFigure::ControlPointListType::const_iterator elem;
+  auto first = m_ControlPoints.cbegin();
+  auto end = m_ControlPoints.cend();</span>
+
+<span style = "background-color:#fdd">  mitk::PlanarFigure::PolyLineType::const_iterator polyLineIter;
+  auto polyLineEnd = polyLine.cend();
+  auto polyLineStart = polyLine.cbegin();
+  polyLineStart += indexOfPolylinePoint;</span>
+
+<span style = "background-color:#fdd">  for (polyLineIter = polyLineStart; polyLineIter != polyLineEnd; ++polyLineIter)</span>
+  {
+<span style = "background-color:#fdd">    elem = std::find(first, end, *polyLineIter);</span>
+
+<span style = "background-color:#fdd">    if (elem != end)
+      return std::distance(first, elem);
+  }</span>
+
+<span style = "background-color:#fdd">  return GetNumberOfControlPoints();
+}</span>
+
+unsigned int mitk::PlanarBezierCurve::GetMaximumNumberOfControlPoints() const
+<span style = "background-color:#fdd">{
+  return std::numeric_limits&lt;unsigned int&gt;::max();
+}</span>
+
+unsigned int mitk::PlanarBezierCurve::GetMinimumNumberOfControlPoints() const
+<span style = "background-color:#fdd">{
+  return 2;
+}</span>
+
+bool mitk::PlanarBezierCurve::IsHelperToBePainted(unsigned int index) const
+<span style = "background-color:#fdd">{
+  return index == 0 &amp;&amp; m_ControlPoints.size() &gt; 2;
+}</span>
+
+bool mitk::PlanarBezierCurve::Equals(const PlanarFigure &amp;other) const
+<span style = "background-color:#fdd">{
+  const auto *otherBezierCurve = dynamic_cast&lt;const mitk::PlanarBezierCurve *&gt;(&amp;other);
+  if (otherBezierCurve)</span>
+  {
+<span style = "background-color:#fdd">    if (this-&gt;m_NumberOfSegments != otherBezierCurve-&gt;m_NumberOfSegments)
+      return false;
+    if (this-&gt;m_DeCasteljauPoints != otherBezierCurve-&gt;m_DeCasteljauPoints)
+      return false;
+    return Superclass::Equals(other);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

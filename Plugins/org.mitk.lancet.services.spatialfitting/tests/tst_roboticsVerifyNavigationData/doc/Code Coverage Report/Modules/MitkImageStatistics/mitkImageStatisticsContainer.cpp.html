@@ -1,0 +1,261 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageStatisticsContainer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include &lt;mitkImageStatisticsContainer.h&gt;
+
+#include &lt;algorithm&gt;
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  ImageStatisticsContainer::ImageStatisticsContainer() { this-&gt;Reset(); }</span>
+
+  // The order is derived from the old (&lt;2018) image statistics plugin.
+  const ImageStatisticsContainer::ImageStatisticsObject::StatisticNameVector
+<span style = "background-color:#dfd">    ImageStatisticsContainer::ImageStatisticsObject::m_DefaultNames = {ImageStatisticsConstants::MEAN(),</span>
+                                                                  ImageStatisticsConstants::MEDIAN(),
+                                                                  ImageStatisticsConstants::STANDARDDEVIATION(),
+                                                                  ImageStatisticsConstants::RMS(),
+                                                                  ImageStatisticsConstants::MAXIMUM(),
+                                                                  ImageStatisticsConstants::MAXIMUMPOSITION(),
+                                                                  ImageStatisticsConstants::MINIMUM(),
+                                                                  ImageStatisticsConstants::MINIMUMPOSITION(),
+                                                                  ImageStatisticsConstants::NUMBEROFVOXELS(),
+                                                                  ImageStatisticsConstants::VOLUME(),
+                                                                  ImageStatisticsConstants::SKEWNESS(),
+                                                                  ImageStatisticsConstants::KURTOSIS(),
+                                                                  ImageStatisticsConstants::UNIFORMITY(),
+                                                                  ImageStatisticsConstants::ENTROPY(),
+                                                                  ImageStatisticsConstants::MPP(),
+<span style = "background-color:#dfd">                                                                  ImageStatisticsConstants::UPP()};</span>
+
+<span style = "background-color:#fdd">  ImageStatisticsContainer::ImageStatisticsObject::ImageStatisticsObject() { Reset(); }</span>
+
+  void ImageStatisticsContainer::ImageStatisticsObject::AddStatistic(const std::string &amp;key, StatisticsVariantType value)
+<span style = "background-color:#fdd">  {
+    m_Statistics.emplace(key, value);</span>
+
+<span style = "background-color:#fdd">    if (std::find(m_DefaultNames.cbegin(), m_DefaultNames.cend(), key) == m_DefaultNames.cend())</span>
+    {
+<span style = "background-color:#fdd">      if (std::find(m_CustomNames.cbegin(), m_CustomNames.cend(), key) == m_CustomNames.cend())</span>
+      {
+<span style = "background-color:#fdd">        m_CustomNames.emplace_back(key);</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  const ImageStatisticsContainer::ImageStatisticsObject::StatisticNameVector &amp;
+    ImageStatisticsContainer::ImageStatisticsObject::GetDefaultStatisticNames()
+<span style = "background-color:#fdd">  {
+    return m_DefaultNames;
+  }</span>
+
+  const ImageStatisticsContainer::ImageStatisticsObject::StatisticNameVector &amp;
+    ImageStatisticsContainer::ImageStatisticsObject::GetCustomStatisticNames() const
+<span style = "background-color:#fdd">  {
+    return m_CustomNames;
+  }</span>
+
+  ImageStatisticsContainer::ImageStatisticsObject::StatisticNameVector
+    ImageStatisticsContainer::ImageStatisticsObject::GetAllStatisticNames() const
+<span style = "background-color:#fdd">  {
+    StatisticNameVector names = GetDefaultStatisticNames();</span>
+
+<span style = "background-color:#fdd">      names.insert(names.cend(), m_CustomNames.cbegin(), m_CustomNames.cend());</span>
+
+<span style = "background-color:#fdd">    return names;
+  }</span>
+
+    ImageStatisticsContainer::ImageStatisticsObject::StatisticNameVector
+    ImageStatisticsContainer::ImageStatisticsObject::GetExistingStatisticNames() const
+<span style = "background-color:#fdd">  {
+    StatisticNameVector names;</span>
+
+<span style = "background-color:#fdd">      std::transform(m_Statistics.begin(), m_Statistics.end(), std::back_inserter(names), [](const auto &amp;pair) {
+        return pair.first;
+      });</span>
+
+<span style = "background-color:#fdd">    return names;
+  }</span>
+
+  bool ImageStatisticsContainer::ImageStatisticsObject::HasStatistic(const std::string &amp;name) const
+<span style = "background-color:#fdd">  {
+    return m_Statistics.find(name) != m_Statistics.cend();
+  }</span>
+
+  ImageStatisticsContainer::StatisticsVariantType ImageStatisticsContainer::ImageStatisticsObject::GetValueNonConverted(
+    const std::string &amp;name) const
+<span style = "background-color:#fdd">  {
+    if (HasStatistic(name))</span>
+    {
+<span style = "background-color:#fdd">      return m_Statistics.find(name)-&gt;second;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "invalid statistic key, could not find";</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void ImageStatisticsContainer::ImageStatisticsObject::Reset()
+<span style = "background-color:#fdd">  {
+    m_Statistics.clear();
+    m_CustomNames.clear();
+  }</span>
+
+  bool ImageStatisticsContainer::TimeStepExists(TimeStepType timeStep) const
+<span style = "background-color:#fdd">  {
+    return m_TimeStepMap.find(timeStep) != m_TimeStepMap.end();
+  }</span>
+
+  const ImageStatisticsContainer::HistogramType*
+    ImageStatisticsContainer::GetHistogramForTimeStep(TimeStepType timeStep) const
+<span style = "background-color:#fdd">  {
+    return this-&gt;GetStatisticsForTimeStep(timeStep).m_Histogram;
+  }</span>
+
+  const ImageStatisticsContainer::ImageStatisticsObject &amp;ImageStatisticsContainer::GetStatisticsForTimeStep(
+    TimeStepType timeStep) const
+<span style = "background-color:#fdd">  {
+    auto it = m_TimeStepMap.find(timeStep);
+    if (it != m_TimeStepMap.end())</span>
+    {
+<span style = "background-color:#fdd">      return it-&gt;second;</span>
+    }
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "StatisticsObject for timeStep " &lt;&lt; timeStep &lt;&lt; " not found!";
+  }</span>
+
+  void ImageStatisticsContainer::SetStatisticsForTimeStep(TimeStepType timeStep, ImageStatisticsObject statistics)
+<span style = "background-color:#fdd">  {
+    if (timeStep &lt; this-&gt;GetTimeSteps())</span>
+    {
+<span style = "background-color:#fdd">      m_TimeStepMap.emplace(timeStep, statistics);
+      this-&gt;Modified();
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Given timeStep " &lt;&lt; timeStep</span>
+                  &lt;&lt; " out of timeStep geometry bounds. TimeSteps in geometry: " &lt;&lt; this-&gt;GetTimeSteps();
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void ImageStatisticsContainer::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">  {
+    Superclass::PrintSelf(os, indent);
+    for (unsigned int i = 0; i &lt; this-&gt;GetTimeSteps(); i++)</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; std::endl &lt;&lt; indent &lt;&lt; "Statistics instance for timeStep " &lt;&lt; i &lt;&lt; ":";
+      if (this-&gt;TimeStepExists(i))</span>
+      {
+<span style = "background-color:#fdd">        auto statisticsValues = GetStatisticsForTimeStep(i);</span>
+
+<span style = "background-color:#fdd">        auto statisticKeys = statisticsValues.GetExistingStatisticNames();
+        os &lt;&lt; std::endl &lt;&lt; indent &lt;&lt; "Number of entries: " &lt;&lt; statisticKeys.size();
+        for (const auto&amp; aKey : statisticKeys)</span>
+        {
+<span style = "background-color:#fdd">          os &lt;&lt; std::endl &lt;&lt; indent.GetNextIndent() &lt;&lt; aKey &lt;&lt; ": " &lt;&lt; statisticsValues.GetValueNonConverted(aKey);
+        }
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        os &lt;&lt; std::endl &lt;&lt; indent &lt;&lt; "N/A";</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+<span style = "background-color:#fdd">  unsigned int ImageStatisticsContainer::GetNumberOfTimeSteps() const { return this-&gt;GetTimeSteps(); }</span>
+
+  void ImageStatisticsContainer::Reset()
+<span style = "background-color:#fdd">  {
+    for (auto iter = m_TimeStepMap.begin(); iter != m_TimeStepMap.end(); iter++)</span>
+    {
+<span style = "background-color:#fdd">      iter-&gt;second.Reset();
+    }
+  }</span>
+
+  itk::LightObject::Pointer ImageStatisticsContainer::InternalClone() const
+<span style = "background-color:#fdd">  {
+    itk::LightObject::Pointer ioPtr = Superclass::InternalClone();
+    Self::Pointer rval = dynamic_cast&lt;Self *&gt;(ioPtr.GetPointer());
+    if (rval.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      itkExceptionMacro(&lt;&lt; "downcast to type "</span>
+                        &lt;&lt; "StatisticsContainer"
+                        &lt;&lt; " failed.");
+    }
+
+<span style = "background-color:#fdd">    rval-&gt;SetTimeStepMap(m_TimeStepMap);
+    rval-&gt;SetTimeGeometry(this-&gt;GetTimeGeometry()-&gt;Clone());</span>
+
+<span style = "background-color:#fdd">    return ioPtr;
+  }</span>
+
+<span style = "background-color:#fdd">  void ImageStatisticsContainer::SetTimeStepMap(TimeStepMapType map) { m_TimeStepMap = map; }</span>
+
+  ImageStatisticsContainer::ImageStatisticsObject::StatisticNameVector GetAllStatisticNames(
+    const ImageStatisticsContainer *container)
+<span style = "background-color:#fdd">  {
+    ImageStatisticsContainer::ImageStatisticsObject::StatisticNameVector names =</span>
+      ImageStatisticsContainer::ImageStatisticsObject::GetDefaultStatisticNames();
+
+<span style = "background-color:#fdd">    if (container)</span>
+    {
+<span style = "background-color:#fdd">      std::set&lt;std::string&gt; customKeys;</span>
+
+<span style = "background-color:#fdd">      for (unsigned int i = 0; i &lt; container-&gt;GetTimeSteps(); i++)</span>
+      {
+<span style = "background-color:#fdd">        auto statisticKeys = container-&gt;GetStatisticsForTimeStep(i).GetCustomStatisticNames();
+        customKeys.insert(statisticKeys.cbegin(), statisticKeys.cend());
+      }</span>
+
+<span style = "background-color:#fdd">      names.insert(names.cend(), customKeys.cbegin(), customKeys.cend());
+    }</span>
+
+<span style = "background-color:#fdd">    return names;
+  }</span>
+
+  ImageStatisticsContainer::ImageStatisticsObject::StatisticNameVector GetAllStatisticNames(
+    std::vector&lt;ImageStatisticsContainer::ConstPointer&gt; containers)
+<span style = "background-color:#fdd">  {
+    ImageStatisticsContainer::ImageStatisticsObject::StatisticNameVector names =</span>
+      ImageStatisticsContainer::ImageStatisticsObject::GetDefaultStatisticNames();
+
+<span style = "background-color:#fdd">    std::set&lt;std::string&gt; customKeys;</span>
+
+<span style = "background-color:#fdd">    for (const auto &amp;container : containers)</span>
+    {
+<span style = "background-color:#fdd">      for (unsigned int i = 0; i &lt; container-&gt;GetTimeSteps(); i++)</span>
+      {
+<span style = "background-color:#fdd">        if(container-&gt;TimeStepExists(i))</span>
+        {
+<span style = "background-color:#fdd">          auto statisticKeys = container-&gt;GetStatisticsForTimeStep(i).GetCustomStatisticNames();
+          customKeys.insert(statisticKeys.cbegin(), statisticKeys.cend());
+        }
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    names.insert(names.end(), customKeys.begin(), customKeys.end());</span>
+
+<span style = "background-color:#fdd">    return names;
+  };</span>
+
+} // namespace mitk</pre>
+	</body>
+</html>

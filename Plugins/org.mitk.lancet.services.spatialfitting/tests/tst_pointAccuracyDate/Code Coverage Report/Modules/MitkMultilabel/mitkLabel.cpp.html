@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabel.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLabel.h"
+
+#include "itkProcessObject.h"
+#include &lt;itkCommand.h&gt;
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkDICOMSegmentationPropertyHelper.h&gt;
+#include &lt;mitkStringProperty.h&gt;
+
+const mitk::Label::PixelType mitk::Label::MAX_LABEL_VALUE = std::numeric_limits&lt;mitk::Label::PixelType&gt;::max();
+
+<span style = "background-color:#fdd">mitk::Label::Label() : PropertyList()
+{
+  if (GetProperty("locked") == nullptr)
+    SetLocked(true);
+  if (GetProperty("visible") == nullptr)
+    SetVisible(true);
+  if (GetProperty("opacity") == nullptr)
+    SetOpacity(0.6);
+  if (GetProperty("center.coordinates") == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D pnt;
+    pnt.SetElement(0, 0);
+    pnt.SetElement(1, 0);
+    pnt.SetElement(2, 0);
+    SetCenterOfMassCoordinates(pnt);</span>
+  }
+<span style = "background-color:#fdd">  if (GetProperty("center.index") == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D pnt;
+    pnt.SetElement(0, 0);
+    pnt.SetElement(1, 0);
+    pnt.SetElement(2, 0);
+    SetCenterOfMassIndex(pnt);</span>
+  }
+<span style = "background-color:#fdd">  if (GetProperty("color") == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Color col;
+    col.Set(0, 0, 0);
+    SetColor(col);</span>
+  }
+<span style = "background-color:#fdd">  if (GetProperty("name") == nullptr)
+    SetName("noName!");
+  if (GetProperty("value") == nullptr)
+    SetValue(0);
+  if (GetProperty("layer") == nullptr)
+    SetLayer(0);</span>
+
+<span style = "background-color:#fdd">  DICOMSegmentationPropertyHelper::SetDICOMSegmentProperties(this);
+}</span>
+
+<span style = "background-color:#fdd">mitk::Label::Label(const Label &amp;other) : PropertyList(other)</span>
+// copyconstructer of property List handles the coping action
+<span style = "background-color:#fdd">{
+  auto *map = this-&gt;GetMap();
+  auto it = map-&gt;begin();
+  auto end = map-&gt;end();</span>
+
+<span style = "background-color:#fdd">  for (; it != end; ++it)</span>
+  {
+<span style = "background-color:#fdd">    itk::SimpleMemberCommand&lt;Label&gt;::Pointer command = itk::SimpleMemberCommand&lt;Label&gt;::New();
+    command-&gt;SetCallbackFunction(this, &amp;Label::Modified);
+    it-&gt;second-&gt;AddObserver(itk::ModifiedEvent(), command);
+  }
+}</span>
+
+mitk::Label::~Label()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::Label::SetProperty(const std::string &amp;propertyKey, BaseProperty *property, const std::string &amp;contextName, bool fallBackOnDefaultContext)
+<span style = "background-color:#fdd">{
+  itk::SimpleMemberCommand&lt;Label&gt;::Pointer command = itk::SimpleMemberCommand&lt;Label&gt;::New();
+  command-&gt;SetCallbackFunction(this, &amp;Label::Modified);
+  property-&gt;AddObserver(itk::ModifiedEvent(), command);</span>
+
+<span style = "background-color:#fdd">  Superclass::SetProperty(propertyKey, property, contextName, fallBackOnDefaultContext);
+}</span>
+
+void mitk::Label::SetLocked(bool locked)
+<span style = "background-color:#fdd">{
+  mitk::BoolProperty *property = dynamic_cast&lt;mitk::BoolProperty *&gt;(GetProperty("locked"));
+  if (property != nullptr)</span>
+    // Update Property
+<span style = "background-color:#fdd">    property-&gt;SetValue(locked);</span>
+  else
+    // Create new Property
+<span style = "background-color:#fdd">    SetBoolProperty("locked", locked);
+}</span>
+
+bool mitk::Label::GetLocked() const
+<span style = "background-color:#fdd">{</span>
+  bool locked;
+<span style = "background-color:#fdd">  GetBoolProperty("locked", locked);
+  return locked;
+}</span>
+
+void mitk::Label::SetVisible(bool visible)
+<span style = "background-color:#fdd">{
+  mitk::BoolProperty *property = dynamic_cast&lt;mitk::BoolProperty *&gt;(GetProperty("visible"));
+  if (property != nullptr)</span>
+    // Update Property
+<span style = "background-color:#fdd">    property-&gt;SetValue(visible);</span>
+  else
+    // Create new Property
+<span style = "background-color:#fdd">    SetBoolProperty("visible", visible);
+}</span>
+
+bool mitk::Label::GetVisible() const
+<span style = "background-color:#fdd">{</span>
+  bool visible;
+<span style = "background-color:#fdd">  GetBoolProperty("visible", visible);
+  return visible;
+}</span>
+
+void mitk::Label::SetOpacity(float opacity)
+<span style = "background-color:#fdd">{
+  mitk::FloatProperty *property = dynamic_cast&lt;mitk::FloatProperty *&gt;(GetProperty("opacity"));
+  if (property != nullptr)</span>
+    // Update Property
+<span style = "background-color:#fdd">    property-&gt;SetValue(opacity);</span>
+  else
+    // Create new Property
+<span style = "background-color:#fdd">    SetFloatProperty("opacity", opacity);
+}</span>
+
+float mitk::Label::GetOpacity() const
+<span style = "background-color:#fdd">{</span>
+  float opacity;
+<span style = "background-color:#fdd">  GetFloatProperty("opacity", opacity);
+  return opacity;
+}</span>
+
+void mitk::Label::SetName(const std::string &amp;name)
+<span style = "background-color:#fdd">{
+  SetStringProperty("name", name.c_str());
+}</span>
+
+std::string mitk::Label::GetName() const
+<span style = "background-color:#fdd">{
+  std::string name;
+  GetStringProperty("name", name);
+  return name;
+}</span>
+
+void mitk::Label::SetValue(PixelType pixelValue)
+<span style = "background-color:#fdd">{
+  mitk::UShortProperty *property = dynamic_cast&lt;mitk::UShortProperty *&gt;(GetProperty("value"));
+  if (property != nullptr)</span>
+    // Update Property
+<span style = "background-color:#fdd">    property-&gt;SetValue(pixelValue);</span>
+  else
+    // Create new Property
+<span style = "background-color:#fdd">    SetProperty("value", mitk::UShortProperty::New(pixelValue));
+}</span>
+
+mitk::Label::PixelType mitk::Label::GetValue() const
+<span style = "background-color:#fdd">{</span>
+  PixelType pixelValue;
+<span style = "background-color:#fdd">  mitk::UShortProperty *property = dynamic_cast&lt;UShortProperty *&gt;(GetProperty("value"));
+  assert(property);
+  pixelValue = property-&gt;GetValue();
+  return pixelValue;
+}</span>
+
+void mitk::Label::SetLayer(unsigned int layer)
+<span style = "background-color:#fdd">{
+  mitk::UIntProperty *property = dynamic_cast&lt;mitk::UIntProperty *&gt;(GetProperty("layer"));
+  if (property != nullptr)</span>
+    // Update Property
+<span style = "background-color:#fdd">    property-&gt;SetValue(layer);</span>
+  else
+    // Create new Property
+<span style = "background-color:#fdd">    SetProperty("layer", mitk::UIntProperty::New(layer));
+}</span>
+
+unsigned int mitk::Label::GetLayer() const
+<span style = "background-color:#fdd">{</span>
+  unsigned int layer;
+<span style = "background-color:#fdd">  mitk::UIntProperty *prop = dynamic_cast&lt;mitk::UIntProperty *&gt;(GetProperty("layer"));
+  layer = prop-&gt;GetValue();
+  return layer;
+}</span>
+
+const mitk::Color &amp;mitk::Label::GetColor() const
+<span style = "background-color:#fdd">{
+  mitk::ColorProperty *colorProp = dynamic_cast&lt;mitk::ColorProperty *&gt;(GetProperty("color"));
+  return colorProp-&gt;GetColor();
+}</span>
+
+void mitk::Label::SetColor(const mitk::Color &amp;_color)
+<span style = "background-color:#fdd">{
+  mitk::ColorProperty *colorProp = dynamic_cast&lt;mitk::ColorProperty *&gt;(GetProperty("color"));
+  if (colorProp != nullptr)</span>
+    // Update Property
+<span style = "background-color:#fdd">    colorProp-&gt;SetColor(_color);</span>
+  else
+    // Create new Property
+<span style = "background-color:#fdd">    SetProperty("color", mitk::ColorProperty::New(_color));
+}</span>
+
+void mitk::Label::SetCenterOfMassIndex(const mitk::Point3D &amp;center)
+<span style = "background-color:#fdd">{
+  mitk::Point3dProperty *property = dynamic_cast&lt;mitk::Point3dProperty *&gt;(GetProperty("center.index"));
+  if (property != nullptr)</span>
+    // Update Property
+<span style = "background-color:#fdd">    property-&gt;SetValue(center);</span>
+  else
+    // Create new Property
+<span style = "background-color:#fdd">    SetProperty("center.index", mitk::Point3dProperty::New(center));
+}</span>
+
+mitk::Point3D mitk::Label::GetCenterOfMassIndex() const
+<span style = "background-color:#fdd">{
+  mitk::Point3dProperty *property = dynamic_cast&lt;mitk::Point3dProperty *&gt;(GetProperty("center.index"));
+  return property-&gt;GetValue();
+}</span>
+
+void mitk::Label::SetCenterOfMassCoordinates(const mitk::Point3D &amp;center)
+<span style = "background-color:#fdd">{
+  mitk::Point3dProperty *property = dynamic_cast&lt;mitk::Point3dProperty *&gt;(GetProperty("center.coordinates"));
+  if (property != nullptr)</span>
+    // Update Property
+<span style = "background-color:#fdd">    property-&gt;SetValue(center);</span>
+  else
+    // Create new Property
+<span style = "background-color:#fdd">    SetProperty("center.coordinates", mitk::Point3dProperty::New(center));
+}</span>
+
+mitk::Point3D mitk::Label::GetCenterOfMassCoordinates() const
+<span style = "background-color:#fdd">{
+  mitk::Point3dProperty *property = dynamic_cast&lt;mitk::Point3dProperty *&gt;(GetProperty("center.coordinates"));
+  return property-&gt;GetValue();
+}</span>
+
+itk::LightObject::Pointer mitk::Label::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result(new Self(*this));
+  result-&gt;UnRegister();
+  return result;
+}</span>
+
+void mitk::Label::PrintSelf(std::ostream &amp; /*os*/, itk::Indent /*indent*/) const
+<span style = "background-color:#fdd">{</span>
+  // todo
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::Equal(const mitk::Label &amp;leftHandSide, const mitk::Label &amp;rightHandSide, ScalarType /*eps*/, bool verbose)
+<span style = "background-color:#fdd">{
+  MITK_INFO(verbose) &lt;&lt; "--- Label Equal ---";</span>
+
+<span style = "background-color:#fdd">  bool returnValue = true;</span>
+  // have to be replaced until a PropertyList Equal was implemented :
+  // returnValue = mitk::Equal((const mitk::PropertyList &amp;)leftHandSide,(const mitk::PropertyList
+  // &amp;)rightHandSide,eps,verbose);
+
+<span style = "background-color:#fdd">  const mitk::PropertyList::PropertyMap *lhsmap = leftHandSide.GetMap();
+  const mitk::PropertyList::PropertyMap *rhsmap = rightHandSide.GetMap();</span>
+
+<span style = "background-color:#fdd">  returnValue = lhsmap-&gt;size() == rhsmap-&gt;size();</span>
+
+<span style = "background-color:#fdd">  if (!returnValue)</span>
+  {
+<span style = "background-color:#fdd">    MITK_INFO(verbose) &lt;&lt; "Labels in label container are not equal.";
+    return returnValue;</span>
+  }
+
+<span style = "background-color:#fdd">  auto lhsmapIt = lhsmap-&gt;begin();
+  auto lhsmapItEnd = lhsmap-&gt;end();</span>
+
+<span style = "background-color:#fdd">  for (; lhsmapIt != lhsmapItEnd; ++lhsmapIt)</span>
+  {
+<span style = "background-color:#fdd">    if (rhsmap-&gt;find(lhsmapIt-&gt;first) == rhsmap-&gt;end())</span>
+    {
+<span style = "background-color:#fdd">      returnValue = false;
+      break;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  if (!returnValue)</span>
+  {
+<span style = "background-color:#fdd">    MITK_INFO(verbose) &lt;&lt; "Labels in label container are not equal.";
+    return returnValue;</span>
+  }
+
+<span style = "background-color:#fdd">  return returnValue;
+}</span></pre>
+	</body>
+</html>

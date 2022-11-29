@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkColorProperty.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkColorProperty.h"
+#include &lt;sstream&gt;
+
+<span style = "background-color:#fdd">mitk::ColorProperty::ColorProperty() : m_Color(0.0f)
+{
+}</span>
+
+<span style = "background-color:#fdd">mitk::ColorProperty::ColorProperty(const mitk::ColorProperty &amp;other) : BaseProperty(other), m_Color(other.m_Color)
+{
+}</span>
+
+<span style = "background-color:#fdd">mitk::ColorProperty::ColorProperty(const float color[3]) : m_Color(color)
+{
+}</span>
+
+mitk::ColorProperty::ColorProperty(const float red, const float green, const float blue)
+<span style = "background-color:#dfd">{
+  m_Color.Set(red, green, blue);
+}</span>
+
+<span style = "background-color:#fdd">mitk::ColorProperty::ColorProperty(const mitk::Color &amp;color) : m_Color(color)
+{
+}</span>
+
+bool mitk::ColorProperty::IsEqual(const BaseProperty &amp;property) const
+<span style = "background-color:#fdd">{
+  return this-&gt;m_Color == static_cast&lt;const Self &amp;&gt;(property).m_Color;
+}</span>
+
+bool mitk::ColorProperty::Assign(const BaseProperty &amp;property)
+<span style = "background-color:#fdd">{
+  this-&gt;m_Color = static_cast&lt;const Self &amp;&gt;(property).m_Color;
+  return true;
+}</span>
+
+const mitk::Color &amp;mitk::ColorProperty::GetColor() const
+<span style = "background-color:#dfd">{
+  return m_Color;
+}</span>
+
+void mitk::ColorProperty::SetColor(const mitk::Color &amp;color)
+<span style = "background-color:#fdd">{
+  if (m_Color != color)</span>
+  {
+<span style = "background-color:#fdd">    m_Color = color;
+    Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ColorProperty::SetValue(const mitk::Color &amp;color)
+<span style = "background-color:#fdd">{
+  SetColor(color);
+}</span>
+
+void mitk::ColorProperty::SetColor(float red, float green, float blue)
+<span style = "background-color:#fdd">{
+  float tmp[3] = {red, green, blue};
+  SetColor(mitk::Color(tmp));
+}</span>
+
+std::string mitk::ColorProperty::GetValueAsString() const
+<span style = "background-color:#fdd">{
+  std::stringstream myStr;
+  myStr.imbue(std::locale::classic());
+  myStr &lt;&lt; GetValue();
+  return myStr.str();
+}</span>
+const mitk::Color &amp;mitk::ColorProperty::GetValue() const
+<span style = "background-color:#fdd">{
+  return GetColor();
+}</span>
+
+itk::LightObject::Pointer mitk::ColorProperty::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result(new Self(*this));
+  result-&gt;UnRegister();
+  return result;
+}</span></pre>
+	</body>
+</html>

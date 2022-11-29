@@ -1,0 +1,430 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSurfaceVtkMapper2D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkSurfaceVtkMapper2D.h"
+
+// MITK includes
+#include "mitkVtkPropRenderer.h"
+#include &lt;mitkCoreServices.h&gt;
+#include &lt;mitkDataNode.h&gt;
+#include &lt;mitkIPropertyAliases.h&gt;
+#include &lt;mitkIPropertyDescriptions.h&gt;
+#include &lt;mitkLookupTableProperty.h&gt;
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkSurface.h&gt;
+#include &lt;mitkTransferFunctionProperty.h&gt;
+#include &lt;mitkVtkScalarModeProperty.h&gt;
+
+// VTK includes
+#include &lt;vtkActor.h&gt;
+#include &lt;vtkArrowSource.h&gt;
+#include &lt;vtkAssembly.h&gt;
+#include &lt;vtkCutter.h&gt;
+#include &lt;vtkGlyph3D.h&gt;
+#include &lt;vtkLookupTable.h&gt;
+#include &lt;vtkPlane.h&gt;
+#include &lt;vtkPointData.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkReverseSense.h&gt;
+#include &lt;vtkTransformPolyDataFilter.h&gt;
+
+// constructor LocalStorage
+mitk::SurfaceVtkMapper2D::LocalStorage::LocalStorage()
+<span style = "background-color:#fdd">{
+  m_Mapper = vtkSmartPointer&lt;vtkPolyDataMapper&gt;::New();
+  m_Mapper-&gt;ScalarVisibilityOff();
+  m_Actor = vtkSmartPointer&lt;vtkActor&gt;::New();
+  m_PropAssembly = vtkSmartPointer&lt;vtkAssembly&gt;::New();
+  m_PropAssembly-&gt;AddPart(m_Actor);
+  m_CuttingPlane = vtkSmartPointer&lt;vtkPlane&gt;::New();
+  m_Cutter = vtkSmartPointer&lt;vtkCutter&gt;::New();
+  m_Cutter-&gt;SetCutFunction(m_CuttingPlane);
+  m_Mapper-&gt;SetInputConnection(m_Cutter-&gt;GetOutputPort());</span>
+
+<span style = "background-color:#fdd">  m_NormalGlyph = vtkSmartPointer&lt;vtkGlyph3D&gt;::New();</span>
+
+<span style = "background-color:#fdd">  m_InverseNormalGlyph = vtkSmartPointer&lt;vtkGlyph3D&gt;::New();</span>
+
+  // Source for the glyph filter
+<span style = "background-color:#fdd">  m_ArrowSource = vtkSmartPointer&lt;vtkArrowSource&gt;::New();</span>
+  // set small default values for fast rendering
+<span style = "background-color:#fdd">  m_ArrowSource-&gt;SetTipRadius(0.05);
+  m_ArrowSource-&gt;SetTipLength(0.20);
+  m_ArrowSource-&gt;SetTipResolution(5);
+  m_ArrowSource-&gt;SetShaftResolution(5);
+  m_ArrowSource-&gt;SetShaftRadius(0.01);</span>
+
+<span style = "background-color:#fdd">  m_NormalGlyph-&gt;SetSourceConnection(m_ArrowSource-&gt;GetOutputPort());
+  m_NormalGlyph-&gt;SetVectorModeToUseNormal();
+  m_NormalGlyph-&gt;OrientOn();</span>
+
+<span style = "background-color:#fdd">  m_InverseNormalGlyph-&gt;SetSourceConnection(m_ArrowSource-&gt;GetOutputPort());
+  m_InverseNormalGlyph-&gt;SetVectorModeToUseNormal();
+  m_InverseNormalGlyph-&gt;OrientOn();</span>
+
+<span style = "background-color:#fdd">  m_NormalMapper = vtkSmartPointer&lt;vtkPolyDataMapper&gt;::New();
+  m_NormalMapper-&gt;SetInputConnection(m_NormalGlyph-&gt;GetOutputPort());
+  m_NormalMapper-&gt;ScalarVisibilityOff();</span>
+
+<span style = "background-color:#fdd">  m_InverseNormalMapper = vtkSmartPointer&lt;vtkPolyDataMapper&gt;::New();
+  m_InverseNormalMapper-&gt;SetInputConnection(m_NormalGlyph-&gt;GetOutputPort());
+  m_InverseNormalMapper-&gt;ScalarVisibilityOff();</span>
+
+<span style = "background-color:#fdd">  m_NormalActor = vtkSmartPointer&lt;vtkActor&gt;::New();
+  m_NormalActor-&gt;SetMapper(m_NormalMapper);</span>
+
+<span style = "background-color:#fdd">  m_InverseNormalActor = vtkSmartPointer&lt;vtkActor&gt;::New();
+  m_InverseNormalActor-&gt;SetMapper(m_InverseNormalMapper);</span>
+
+<span style = "background-color:#fdd">  m_ReverseSense = vtkSmartPointer&lt;vtkReverseSense&gt;::New();
+}</span>
+
+// destructor LocalStorage
+mitk::SurfaceVtkMapper2D::LocalStorage::~LocalStorage()
+<span style = "background-color:#fdd">{
+}</span>
+
+const mitk::Surface *mitk::SurfaceVtkMapper2D::GetInput() const
+<span style = "background-color:#fdd">{
+  return static_cast&lt;const mitk::Surface *&gt;(GetDataNode()-&gt;GetData());
+}</span>
+
+// constructor PointSetVtkMapper2D
+mitk::SurfaceVtkMapper2D::SurfaceVtkMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::SurfaceVtkMapper2D::~SurfaceVtkMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+// reset mapper so that nothing is displayed e.g. toggle visiblity of the propassembly
+void mitk::SurfaceVtkMapper2D::ResetMapper(BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+  ls-&gt;m_PropAssembly-&gt;VisibilityOff();
+}</span>
+
+vtkProp *mitk::SurfaceVtkMapper2D::GetVtkProp(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+  return ls-&gt;m_PropAssembly;
+}</span>
+
+void mitk::SurfaceVtkMapper2D::Update(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  const mitk::DataNode *node = GetDataNode();</span>
+
+<span style = "background-color:#fdd">  if (node == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ResetMapper(renderer);
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  bool visible = true;
+  node-&gt;GetVisibility(visible, renderer, "visible");</span>
+
+<span style = "background-color:#fdd">  if (!visible)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ResetMapper(renderer);
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto *surface = static_cast&lt;mitk::Surface *&gt;(node-&gt;GetData());</span>
+
+<span style = "background-color:#fdd">  if (surface == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ResetMapper(renderer);
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  const auto* worldGeometry = renderer-&gt;GetWorldTimeGeometry();
+  const auto timeBounds = worldGeometry-&gt;GetTimeBounds(renderer-&gt;GetTimeStep());</span>
+
+<span style = "background-color:#fdd">  if (!surface-&gt;GetTimeGeometry()-&gt;IsValidTimePoint(timeBounds[0]))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ResetMapper(renderer);
+    return;</span>
+  }
+
+  // Calculate time step of the input data for the specified renderer (integer value)
+<span style = "background-color:#fdd">  this-&gt;CalculateTimeStep(renderer);</span>
+
+<span style = "background-color:#fdd">  surface-&gt;UpdateOutputInformation();
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);
+  localStorage-&gt;m_PropAssembly-&gt;VisibilityOn();</span>
+
+  // check if something important has changed and we need to rerender
+  if ((localStorage-&gt;m_LastUpdateTime &lt; node-&gt;GetMTime()) // was the node modified?
+      ||
+      (localStorage-&gt;m_LastUpdateTime &lt; surface-&gt;GetPipelineMTime()) // Was the data modified?
+      ||
+      (localStorage-&gt;m_LastUpdateTime &lt;
+       renderer-&gt;GetCurrentWorldPlaneGeometryUpdateTime()) // was the geometry modified?
+      ||
+      (localStorage-&gt;m_LastUpdateTime &lt; renderer-&gt;GetCurrentWorldPlaneGeometry()-&gt;GetMTime()) ||
+      (localStorage-&gt;m_LastUpdateTime &lt; node-&gt;GetPropertyList()-&gt;GetMTime()) // was a property modified?
+<span style = "background-color:#fdd">      ||</span>
+      (localStorage-&gt;m_LastUpdateTime &lt; node-&gt;GetPropertyList(renderer)-&gt;GetMTime()))
+  {
+<span style = "background-color:#fdd">    this-&gt;GenerateDataForRenderer(renderer);</span>
+  }
+
+  // since we have checked that nothing important has changed, we can set
+  // m_LastUpdateTime to the current time
+<span style = "background-color:#fdd">  localStorage-&gt;m_LastUpdateTime.Modified();
+}</span>
+
+void mitk::SurfaceVtkMapper2D::GenerateDataForRenderer(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  const DataNode *node = GetDataNode();
+  auto *surface = static_cast&lt;Surface *&gt;(node-&gt;GetData());
+  const TimeGeometry *dataTimeGeometry = surface-&gt;GetTimeGeometry();
+  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  ScalarType time = renderer-&gt;GetTime();
+  int timestep = 0;</span>
+
+<span style = "background-color:#fdd">  if (time &gt; itk::NumericTraits&lt;ScalarType&gt;::NonpositiveMin())
+    timestep = dataTimeGeometry-&gt;TimePointToTimeStep(time);</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkPolyData&gt; inputPolyData = surface-&gt;GetVtkPolyData(timestep);
+  if ((inputPolyData == nullptr) || (inputPolyData-&gt;GetNumberOfPoints() &lt; 1))
+    return;</span>
+
+  // apply color and opacity read from the PropertyList
+<span style = "background-color:#fdd">  this-&gt;ApplyAllProperties(renderer);</span>
+
+<span style = "background-color:#fdd">  const PlaneGeometry *planeGeometry = renderer-&gt;GetCurrentWorldPlaneGeometry();
+  if ((planeGeometry == nullptr) || (!planeGeometry-&gt;IsValid()) || (!planeGeometry-&gt;HasReferenceGeometry()))</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if (localStorage-&gt;m_Actor-&gt;GetMapper() == nullptr)
+    localStorage-&gt;m_Actor-&gt;SetMapper(localStorage-&gt;m_Mapper);</span>
+
+  double origin[3];
+<span style = "background-color:#fdd">  origin[0] = planeGeometry-&gt;GetOrigin()[0];
+  origin[1] = planeGeometry-&gt;GetOrigin()[1];
+  origin[2] = planeGeometry-&gt;GetOrigin()[2];</span>
+
+  double normal[3];
+<span style = "background-color:#fdd">  normal[0] = planeGeometry-&gt;GetNormal()[0];
+  normal[1] = planeGeometry-&gt;GetNormal()[1];
+  normal[2] = planeGeometry-&gt;GetNormal()[2];</span>
+
+<span style = "background-color:#fdd">  localStorage-&gt;m_CuttingPlane-&gt;SetOrigin(origin);
+  localStorage-&gt;m_CuttingPlane-&gt;SetNormal(normal);</span>
+  // Transform the data according to its geometry.
+  // See UpdateVtkTransform documentation for details.
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkLinearTransform&gt; vtktransform = GetDataNode()-&gt;GetVtkTransform(this-&gt;GetTimestep());
+  vtkSmartPointer&lt;vtkTransformPolyDataFilter&gt; filter = vtkSmartPointer&lt;vtkTransformPolyDataFilter&gt;::New();
+  filter-&gt;SetTransform(vtktransform);
+  filter-&gt;SetInputData(inputPolyData);
+  localStorage-&gt;m_Cutter-&gt;SetInputConnection(filter-&gt;GetOutputPort());
+  localStorage-&gt;m_Cutter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  bool generateNormals = false;
+  node-&gt;GetBoolProperty("draw normals 2D", generateNormals);
+  if (generateNormals)</span>
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_NormalGlyph-&gt;SetInputConnection(localStorage-&gt;m_Cutter-&gt;GetOutputPort());
+    localStorage-&gt;m_NormalGlyph-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_NormalMapper-&gt;SetInputConnection(localStorage-&gt;m_NormalGlyph-&gt;GetOutputPort());</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_PropAssembly-&gt;AddPart(localStorage-&gt;m_NormalActor);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_NormalGlyph-&gt;SetInputConnection(nullptr);
+    localStorage-&gt;m_PropAssembly-&gt;RemovePart(localStorage-&gt;m_NormalActor);</span>
+  }
+
+<span style = "background-color:#fdd">  bool generateInverseNormals = false;
+  node-&gt;GetBoolProperty("invert normals", generateInverseNormals);
+  if (generateInverseNormals)</span>
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_ReverseSense-&gt;SetInputConnection(localStorage-&gt;m_Cutter-&gt;GetOutputPort());
+    localStorage-&gt;m_ReverseSense-&gt;ReverseCellsOff();
+    localStorage-&gt;m_ReverseSense-&gt;ReverseNormalsOn();</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_InverseNormalGlyph-&gt;SetInputConnection(localStorage-&gt;m_ReverseSense-&gt;GetOutputPort());
+    localStorage-&gt;m_InverseNormalGlyph-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_InverseNormalMapper-&gt;SetInputConnection(localStorage-&gt;m_InverseNormalGlyph-&gt;GetOutputPort());</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_PropAssembly-&gt;AddPart(localStorage-&gt;m_InverseNormalActor);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_ReverseSense-&gt;SetInputConnection(nullptr);
+    localStorage-&gt;m_PropAssembly-&gt;RemovePart(localStorage-&gt;m_InverseNormalActor);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::SurfaceVtkMapper2D::FixupLegacyProperties(PropertyList *properties)
+<span style = "background-color:#fdd">{</span>
+  // Before bug 18528, "line width" was an IntProperty, now it is a FloatProperty
+<span style = "background-color:#fdd">  float lineWidth = 1.0f;
+  if (!properties-&gt;GetFloatProperty("line width", lineWidth))</span>
+  {
+<span style = "background-color:#fdd">    int legacyLineWidth = lineWidth;
+    if (properties-&gt;GetIntProperty("line width", legacyLineWidth))</span>
+    {
+<span style = "background-color:#fdd">      properties-&gt;ReplaceProperty("line width", FloatProperty::New(static_cast&lt;float&gt;(legacyLineWidth)));</span>
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::SurfaceVtkMapper2D::ApplyAllProperties(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  const DataNode *node = GetDataNode();</span>
+
+<span style = "background-color:#fdd">  if (node == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  FixupLegacyProperties(node-&gt;GetPropertyList(renderer));
+  FixupLegacyProperties(node-&gt;GetPropertyList());</span>
+
+<span style = "background-color:#fdd">  float lineWidth = 1.0f;
+  node-&gt;GetFloatProperty("line width", lineWidth, renderer);</span>
+
+<span style = "background-color:#fdd">  LocalStorage *localStorage = m_LSH.GetLocalStorage(renderer);</span>
+
+  // check for color and opacity properties, use it for rendering if they exists
+<span style = "background-color:#fdd">  float color[3] = {1.0f, 1.0f, 1.0f};
+  node-&gt;GetColor(color, renderer, "color");
+  float opacity = 1.0f;
+  node-&gt;GetOpacity(opacity, renderer, "opacity");</span>
+
+  // Pass properties to VTK
+<span style = "background-color:#fdd">  localStorage-&gt;m_Actor-&gt;GetProperty()-&gt;SetColor(color[0], color[1], color[2]);
+  localStorage-&gt;m_Actor-&gt;GetProperty()-&gt;SetOpacity(opacity);
+  localStorage-&gt;m_NormalActor-&gt;GetProperty()-&gt;SetOpacity(opacity);
+  localStorage-&gt;m_InverseNormalActor-&gt;GetProperty()-&gt;SetOpacity(opacity);
+  localStorage-&gt;m_Actor-&gt;GetProperty()-&gt;SetLineWidth(lineWidth);</span>
+  // By default, the cutter will also copy/compute normals of the cut
+  // to the output polydata. The normals will influence the
+  // vtkPolyDataMapper lightning. To view a clean cut the lighting has
+  // to be disabled.
+<span style = "background-color:#fdd">  localStorage-&gt;m_Actor-&gt;GetProperty()-&gt;SetLighting(false);</span>
+
+  // same block for scalar data rendering as in 3D mapper
+<span style = "background-color:#fdd">  mitk::TransferFunctionProperty::Pointer transferFuncProp;
+  this-&gt;GetDataNode()-&gt;GetProperty(transferFuncProp, "Surface.TransferFunction", renderer);
+  if (transferFuncProp.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_Mapper-&gt;SetLookupTable(transferFuncProp-&gt;GetValue()-&gt;GetColorTransferFunction());</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::LookupTableProperty::Pointer lookupTableProp;
+  this-&gt;GetDataNode()-&gt;GetProperty(lookupTableProp, "LookupTable", renderer);
+  if (lookupTableProp.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_Mapper-&gt;SetLookupTable(lookupTableProp-&gt;GetLookupTable()-&gt;GetVtkLookupTable());</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::LevelWindow levelWindow;
+  if (this-&gt;GetDataNode()-&gt;GetLevelWindow(levelWindow, renderer, "levelWindow"))</span>
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_Mapper-&gt;SetScalarRange(levelWindow.GetLowerWindowBound(), levelWindow.GetUpperWindowBound());
+  }
+  else if (this-&gt;GetDataNode()-&gt;GetLevelWindow(levelWindow, renderer))</span>
+  {
+<span style = "background-color:#fdd">    localStorage-&gt;m_Mapper-&gt;SetScalarRange(levelWindow.GetLowerWindowBound(), levelWindow.GetUpperWindowBound());</span>
+  }
+
+<span style = "background-color:#fdd">  bool scalarVisibility = false;
+  this-&gt;GetDataNode()-&gt;GetBoolProperty("scalar visibility", scalarVisibility);
+  localStorage-&gt;m_Mapper-&gt;SetScalarVisibility((scalarVisibility ? 1 : 0));</span>
+
+<span style = "background-color:#fdd">  if (scalarVisibility)</span>
+  {
+    mitk::VtkScalarModeProperty *scalarMode;
+<span style = "background-color:#fdd">    if (this-&gt;GetDataNode()-&gt;GetProperty(scalarMode, "scalar mode", renderer))
+      localStorage-&gt;m_Mapper-&gt;SetScalarMode(scalarMode-&gt;GetVtkScalarMode());</span>
+    else
+<span style = "background-color:#fdd">      localStorage-&gt;m_Mapper-&gt;SetScalarModeToDefault();</span>
+
+<span style = "background-color:#fdd">    bool colorMode = false;
+    this-&gt;GetDataNode()-&gt;GetBoolProperty("color mode", colorMode);
+    localStorage-&gt;m_Mapper-&gt;SetColorMode((colorMode ? 1 : 0));</span>
+
+<span style = "background-color:#fdd">    double scalarsMin = 0;
+    this-&gt;GetDataNode()-&gt;GetDoubleProperty("ScalarsRangeMinimum", scalarsMin, renderer);</span>
+
+<span style = "background-color:#fdd">    double scalarsMax = 1.0;
+    this-&gt;GetDataNode()-&gt;GetDoubleProperty("ScalarsRangeMaximum", scalarsMax, renderer);</span>
+
+<span style = "background-color:#fdd">    localStorage-&gt;m_Mapper-&gt;SetScalarRange(scalarsMin, scalarsMax);</span>
+  }
+
+  // color for inverse normals
+<span style = "background-color:#fdd">  float inverseNormalsColor[3] = {1.0f, 0.0f, 0.0f};
+  node-&gt;GetColor(inverseNormalsColor, renderer, "back color");
+  localStorage-&gt;m_InverseNormalActor-&gt;GetProperty()-&gt;SetColor(</span>
+    inverseNormalsColor[0], inverseNormalsColor[1], inverseNormalsColor[2]);
+
+  // color for normals
+<span style = "background-color:#fdd">  float normalsColor[3] = {0.0f, 1.0f, 0.0f};
+  node-&gt;GetColor(normalsColor, renderer, "front color");
+  localStorage-&gt;m_NormalActor-&gt;GetProperty()-&gt;SetColor(normalsColor[0], normalsColor[1], normalsColor[2]);</span>
+
+  // normals scaling
+<span style = "background-color:#fdd">  float normalScaleFactor = 10.0f;
+  node-&gt;GetFloatProperty("front normal lenth (px)", normalScaleFactor, renderer);
+  localStorage-&gt;m_NormalGlyph-&gt;SetScaleFactor(normalScaleFactor);</span>
+
+  // inverse normals scaling
+<span style = "background-color:#fdd">  float inverseNormalScaleFactor = 10.0f;
+  node-&gt;GetFloatProperty("back normal lenth (px)", inverseNormalScaleFactor, renderer);
+  localStorage-&gt;m_InverseNormalGlyph-&gt;SetScaleFactor(inverseNormalScaleFactor);
+}</span>
+
+void mitk::SurfaceVtkMapper2D::SetDefaultProperties(mitk::DataNode *node, mitk::BaseRenderer *renderer, bool overwrite)
+<span style = "background-color:#fdd">{
+  mitk::CoreServicePointer&lt;mitk::IPropertyAliases&gt; aliases(mitk::CoreServices::GetPropertyAliases());
+  node-&gt;AddProperty("line width", FloatProperty::New(2.0f), renderer, overwrite);
+  aliases-&gt;AddAlias("line width", "Surface.2D.Line Width", "Surface");
+  node-&gt;AddProperty("scalar mode", VtkScalarModeProperty::New(), renderer, overwrite);
+  node-&gt;AddProperty("draw normals 2D", BoolProperty::New(false), renderer, overwrite);
+  aliases-&gt;AddAlias("draw normals 2D", "Surface.2D.Normals.Draw Normals", "Surface");
+  node-&gt;AddProperty("invert normals", BoolProperty::New(false), renderer, overwrite);
+  aliases-&gt;AddAlias("invert normals", "Surface.2D.Normals.Draw Inverse Normals", "Surface");
+  node-&gt;AddProperty("front color", ColorProperty::New(0.0, 1.0, 0.0), renderer, overwrite);
+  aliases-&gt;AddAlias("front color", "Surface.2D.Normals.Normals Color", "Surface");
+  node-&gt;AddProperty("back color", ColorProperty::New(1.0, 0.0, 0.0), renderer, overwrite);
+  aliases-&gt;AddAlias("back color", "Surface.2D.Normals.Inverse Normals Color", "Surface");
+  node-&gt;AddProperty("front normal lenth (px)", FloatProperty::New(10.0), renderer, overwrite);
+  aliases-&gt;AddAlias("front normal lenth (px)", "Surface.2D.Normals.Normals Scale Factor", "Surface");
+  node-&gt;AddProperty("back normal lenth (px)", FloatProperty::New(10.0), renderer, overwrite);
+  aliases-&gt;AddAlias("back normal lenth (px)", "Surface.2D.Normals.Inverse Normals Scale Factor", "Surface");
+  node-&gt;AddProperty("layer", IntProperty::New(100), renderer, overwrite);
+  Superclass::SetDefaultProperties(node, renderer, overwrite);
+}</span></pre>
+	</body>
+</html>

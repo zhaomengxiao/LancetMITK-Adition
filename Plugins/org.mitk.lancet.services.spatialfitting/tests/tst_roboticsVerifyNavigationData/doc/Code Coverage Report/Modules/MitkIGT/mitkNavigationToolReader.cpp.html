@@ -1,0 +1,319 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationToolReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+//Poco headers
+#include &lt;Poco/Zip/Decompress.h&gt;
+#include &lt;Poco/Path.h&gt;
+
+//mitk headers
+#include "mitkNavigationToolReader.h"
+#include "mitkTrackingTypes.h"
+#include &lt;mitkIOUtil.h&gt;
+#include &lt;mitkSceneIO.h&gt;
+
+//All Tracking devices, which should be available by default
+#include "mitkNDIAuroraTypeInformation.h"
+#include "mitkNDIPolarisTypeInformation.h"
+#include "mitkVirtualTrackerTypeInformation.h"
+#include "mitkMicronTrackerTypeInformation.h"
+#include "mitkNPOptitrackTrackingTypeInformation.h"
+#include "mitkOpenIGTLinkTypeInformation.h"
+#include "mitkUnspecifiedTrackingTypeInformation.h"
+
+mitk::NavigationToolReader::NavigationToolReader()
+<span style = "background-color:#fdd">{
+  m_ToolfilePath = mitk::IOUtil::GetTempPath() + Poco::Path::separator() + "IGT_Toolfiles" + Poco::Path::separator();
+}</span>
+
+mitk::NavigationToolReader::~NavigationToolReader()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::NavigationTool::Pointer mitk::NavigationToolReader::DoRead(std::string filename)
+<span style = "background-color:#fdd">{</span>
+  //decompress all files into a temporary directory
+<span style = "background-color:#fdd">  std::ifstream file(filename.c_str(), std::ios::binary);
+  if (!file.good())</span>
+  {
+<span style = "background-color:#fdd">    m_ErrorMessage = "Cannot open '" + filename + "' for reading";
+    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  std::string tempDirectory = m_ToolfilePath + GetFileWithoutPath(filename);
+  Poco::Zip::Decompress unzipper(file, Poco::Path(tempDirectory));
+  unzipper.decompressAllFiles();</span>
+
+  //use SceneSerialization to load the DataStorage
+<span style = "background-color:#fdd">  mitk::SceneIO::Pointer mySceneIO = mitk::SceneIO::New();
+  mitk::DataStorage::Pointer loadedStorage = mySceneIO-&gt;LoadScene(tempDirectory + Poco::Path::separator() + GetFileWithoutPath(filename) + ".storage");</span>
+
+<span style = "background-color:#fdd">  if (loadedStorage-&gt;GetAll()-&gt;size() == 0 || loadedStorage.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    m_ErrorMessage = "Invalid file: cannot parse tool data.";
+    return nullptr;</span>
+  }
+
+  //convert the DataStorage back to a NavigationTool-Object
+<span style = "background-color:#fdd">  mitk::DataNode::Pointer myNode = loadedStorage-&gt;GetAll()-&gt;ElementAt(0);
+  mitk::NavigationTool::Pointer returnValue = ConvertDataNodeToNavigationTool(myNode, tempDirectory);</span>
+
+  //delete the data-storage file which is not needed any more. The toolfile must be left in the temporary directory becauses it is linked in the datatreenode of the tool
+<span style = "background-color:#fdd">  std::remove((std::string(tempDirectory + Poco::Path::separator() + GetFileWithoutPath(filename) + ".storage")).c_str());</span>
+
+<span style = "background-color:#fdd">  return returnValue;
+}</span>
+
+mitk::NavigationTool::Pointer mitk::NavigationToolReader::ConvertDataNodeToNavigationTool(mitk::DataNode::Pointer node, std::string toolPath)
+<span style = "background-color:#fdd">{
+  mitk::NavigationTool::Pointer returnValue = mitk::NavigationTool::New();</span>
+
+  //DateTreeNode with Name and Surface
+<span style = "background-color:#fdd">  returnValue-&gt;SetDataNode(node);</span>
+
+  //Identifier
+<span style = "background-color:#fdd">  std::string identifier;
+  node-&gt;GetStringProperty("identifier", identifier);
+  returnValue-&gt;SetIdentifier(identifier);</span>
+
+<span style = "background-color:#fdd">  node-&gt;RemoveProperty("identifier");</span>
+
+  //Serial Number
+<span style = "background-color:#fdd">  std::string serial;
+  node-&gt;GetStringProperty("serial number", serial);
+  returnValue-&gt;SetSerialNumber(serial);</span>
+
+<span style = "background-color:#fdd">  node-&gt;RemoveProperty("serial number");</span>
+
+  //Tracking Device
+<span style = "background-color:#fdd">  mitk::TrackingDeviceType device_type;
+  node-&gt;GetStringProperty("tracking device type", device_type);</span>
+
+  //For backward compability with old tool stroages (before 12/2015 device_type was an int value, now it is string)
+<span style = "background-color:#fdd">  if (device_type.size() == 0)</span>
+  {
+    /*
+    This was the old enum. Numbers inserted for better readibility. Don't delete this if-case to allow loading of ols storages...
+    enum TrackingDeviceType
+    {
+    0 NDIPolaris,                 ///&lt; Polaris: optical Tracker from NDI
+    1 NDIAurora,                  ///&lt; Aurora: electromagnetic Tracker from NDI
+    2 ClaronMicron,               ///&lt; Micron Tracker: optical Tracker from Claron
+    3 IntuitiveDaVinci,           ///&lt; Intuitive Surgical: DaVinci Telemanipulator API Interface
+    4 AscensionMicroBird,         ///&lt; Ascension microBird / PCIBird family
+    5 VirtualTracker,             ///&lt; Virtual Tracking device class that produces random tracking coordinates
+    6 TrackingSystemNotSpecified, ///&lt; entry for not specified or initialized tracking system
+    7 TrackingSystemInvalid,      ///&lt; entry for invalid state (mainly for testing)
+    8 NPOptitrack,                          ///&lt; NaturalPoint: Optitrack optical Tracking System
+    9 OpenIGTLinkTrackingDeviceConnection   ///&lt; Device which is connected via open igt link
+    };
+    */
+    int device_type_old;
+<span style = "background-color:#fdd">    node-&gt;GetIntProperty("tracking device type", device_type_old);
+    switch (device_type_old)</span>
+    {
+<span style = "background-color:#fdd">    case 0:device_type = mitk::NDIPolarisTypeInformation::GetTrackingDeviceName(); break;
+    case 1:device_type = mitk::NDIAuroraTypeInformation::GetTrackingDeviceName(); break;
+    case 2:device_type = mitk::MicronTrackerTypeInformation::GetTrackingDeviceName(); break;
+    case 3:device_type = "IntuitiveDaVinci"; break;
+    case 4:device_type = "AscensionMicroBird"; break;
+    case 5:device_type = mitk::VirtualTrackerTypeInformation::GetTrackingDeviceName(); break;
+    case 6:device_type = mitk::UnspecifiedTrackingTypeInformation::GetTrackingDeviceName(); break;
+    case 7:device_type = "TrackingSystemInvalid"; break;
+    case 8:device_type = mitk::NPOptitrackTrackingTypeInformation::GetTrackingDeviceName(); break;
+    case 9:device_type = mitk::OpenIGTLinkTypeInformation::GetTrackingDeviceName(); break;
+    default: device_type = mitk::UnspecifiedTrackingTypeInformation::GetTrackingDeviceName(); break; //default... unknown...</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  node-&gt;RemoveProperty("tracking device type");</span>
+
+<span style = "background-color:#fdd">  returnValue-&gt;SetTrackingDeviceType(static_cast&lt;mitk::TrackingDeviceType&gt;(device_type));</span>
+
+  //Tool Type
+  int type;
+<span style = "background-color:#fdd">  node-&gt;GetIntProperty("tracking tool type", type);
+  returnValue-&gt;SetType(static_cast&lt;mitk::NavigationTool::NavigationToolType&gt;(type));</span>
+
+<span style = "background-color:#fdd">  node-&gt;RemoveProperty("tracking tool type");</span>
+
+  //Calibration File Name
+<span style = "background-color:#fdd">  std::string calibration_filename;
+  node-&gt;GetStringProperty("toolfileName", calibration_filename);
+  if (calibration_filename == "none")</span>
+  {
+<span style = "background-color:#fdd">    returnValue-&gt;SetCalibrationFile("none");
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    std::string calibration_filename_with_path = toolPath + Poco::Path::separator() + calibration_filename;
+    returnValue-&gt;SetCalibrationFile(calibration_filename_with_path);
+  }</span>
+
+<span style = "background-color:#fdd">  node-&gt;RemoveProperty("toolfileName");</span>
+
+  //Tool Landmarks
+<span style = "background-color:#fdd">  mitk::PointSet::Pointer ToolRegLandmarks = mitk::PointSet::New();
+  mitk::PointSet::Pointer ToolCalLandmarks = mitk::PointSet::New();
+  std::string RegLandmarksString;
+  std::string CalLandmarksString;
+  node-&gt;GetStringProperty("ToolRegistrationLandmarks", RegLandmarksString);
+  node-&gt;GetStringProperty("ToolCalibrationLandmarks", CalLandmarksString);
+  ToolRegLandmarks = ConvertStringToPointSet(RegLandmarksString);
+  ToolCalLandmarks = ConvertStringToPointSet(CalLandmarksString);
+  returnValue-&gt;SetToolLandmarks(ToolRegLandmarks);
+  returnValue-&gt;SetToolControlPoints(ToolCalLandmarks);</span>
+
+<span style = "background-color:#fdd">  node-&gt;RemoveProperty("ToolRegistrationLandmarks");
+  node-&gt;RemoveProperty("ToolCalibrationLandmarks");</span>
+
+  //Tool Tip
+<span style = "background-color:#fdd">  std::string toolTipPositionString;
+  std::string toolTipOrientationString;
+  bool positionSet = node-&gt;GetStringProperty("ToolTipPosition", toolTipPositionString);
+  bool orientationSet = node-&gt;GetStringProperty("ToolAxisOrientation", toolTipOrientationString);</span>
+
+<span style = "background-color:#fdd">  if (positionSet &amp;&amp; orientationSet) //only define tooltip if it is set</span>
+  {
+<span style = "background-color:#fdd">    returnValue-&gt;SetToolTipPosition(ConvertStringToPoint(toolTipPositionString));
+    returnValue-&gt;SetToolAxisOrientation(ConvertStringToQuaternion(toolTipOrientationString));
+  }
+  else if (positionSet != orientationSet)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Tooltip definition incomplete: position and orientation have to be set! Skipping tooltip definition.";</span>
+  }
+
+<span style = "background-color:#fdd">  node-&gt;RemoveProperty("ToolTipPosition");
+  node-&gt;RemoveProperty("ToolAxisOrientation");</span>
+
+  //Tool Registration Matrix
+<span style = "background-color:#fdd">  mitk::AffineTransform3D::Pointer matrix;
+  std::string toolRegistrationMatrixString;
+  node-&gt;GetStringProperty("ToolRegistrationMatrix", toolRegistrationMatrixString);
+  matrix = ConvertStringToAffineTransform(toolRegistrationMatrixString);</span>
+
+<span style = "background-color:#fdd">  returnValue-&gt;SetToolRegistrationMatrix(matrix);
+  return returnValue;
+}</span>
+
+std::string mitk::NavigationToolReader::GetFileWithoutPath(std::string FileWithPath)
+<span style = "background-color:#fdd">{
+  Poco::Path myFile(FileWithPath.c_str());
+  return myFile.getFileName();
+}</span>
+
+mitk::PointSet::Pointer mitk::NavigationToolReader::ConvertStringToPointSet(std::string string)
+<span style = "background-color:#fdd">{
+  mitk::PointSet::Pointer returnValue = mitk::PointSet::New();
+  std::string pointSeperator = "|";
+  std::string valueSeperator = ";";
+  std::vector&lt;std::string&gt; points;
+  split(string, pointSeperator, points);
+  for (unsigned int i = 0; i &lt; points.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">    std::vector&lt;std::string&gt; values;
+    split(points.at(i), valueSeperator, values);
+    if (values.size() == 4)</span>
+    {
+<span style = "background-color:#fdd">      double index = atof(values.at(0).c_str());
+      mitk::Point3D point;
+      point[0] = atof(values.at(1).c_str());
+      point[1] = atof(values.at(2).c_str());
+      point[2] = atof(values.at(3).c_str());
+      returnValue-&gt;SetPoint(index, point);</span>
+    }
+<span style = "background-color:#fdd">  }
+  return returnValue;
+}</span>
+mitk::Point3D mitk::NavigationToolReader::ConvertStringToPoint(std::string string)
+<span style = "background-color:#fdd">{
+  std::string valueSeperator = ";";
+  std::vector&lt;std::string&gt; values;
+  split(string, valueSeperator, values);
+  mitk::Point3D point;
+  if (values.size() == 3)</span>
+  {
+<span style = "background-color:#fdd">    point[0] = atof(values.at(0).c_str());
+    point[1] = atof(values.at(1).c_str());
+    point[2] = atof(values.at(2).c_str());</span>
+  }
+<span style = "background-color:#fdd">  return point;
+}</span>
+
+mitk::Quaternion mitk::NavigationToolReader::ConvertStringToQuaternion(std::string string)
+<span style = "background-color:#fdd">{
+  std::string valueSeperator = ";";
+  std::vector&lt;std::string&gt; values;
+  split(string, valueSeperator, values);
+  mitk::Quaternion quat = mitk::Quaternion(0, 0, 0, 1);
+  if (values.size() == 4)</span>
+  {
+<span style = "background-color:#fdd">    quat = mitk::Quaternion(atof(values.at(0).c_str()),</span>
+      atof(values.at(1).c_str()),
+      atof(values.at(2).c_str()),
+      atof(values.at(3).c_str()));
+  }
+<span style = "background-color:#fdd">  return quat;
+}</span>
+
+mitk::AffineTransform3D::Pointer mitk::NavigationToolReader::ConvertStringToAffineTransform(std::string string)
+<span style = "background-color:#fdd">{
+  std::string valueSeperator = ";";
+  std::vector&lt;std::string&gt; values;
+  split(string, valueSeperator, values);
+  mitk::AffineTransform3D::Pointer affine = mitk::AffineTransform3D::New();
+  if (values.size() == 12)</span>
+  {
+<span style = "background-color:#fdd">    vnl_matrix_fixed&lt;double, 3, 3&gt; &amp;vnlmat =</span>
+      const_cast&lt;vnl_matrix_fixed&lt;double, 3, 3&gt; &amp;&gt; (affine-&gt;GetMatrix().GetVnlMatrix());
+    double data[9];
+<span style = "background-color:#fdd">    for (int i = 0; i &lt; 9; ++i)</span>
+    {
+<span style = "background-color:#fdd">      data[i] = atof(values.at(i).c_str());
+    }</span>
+     
+<span style = "background-color:#fdd">    vnlmat.set(data);</span>
+
+<span style = "background-color:#fdd">    double data_offset[3]{atof(values.at(9).c_str()), atof(values.at(10).c_str()), atof(values.at(11).c_str())};
+    Vector&lt;double, 3&gt; offset{data_offset};</span>
+
+<span style = "background-color:#fdd">    affine-&gt;SetOffset(offset);</span>
+  }
+<span style = "background-color:#fdd">  return affine;
+}</span>
+
+void mitk::NavigationToolReader::split(std::string&amp; text, std::string&amp; separators, std::vector&lt;std::string&gt;&amp; words)
+<span style = "background-color:#fdd">{
+  int n = text.length();</span>
+  int start, stop;
+
+<span style = "background-color:#fdd">  start = text.find_first_not_of(separators);
+  while ((start &gt;= 0) &amp;&amp; (start &lt; n))</span>
+  {
+<span style = "background-color:#fdd">    stop = text.find_first_of(separators, start);
+    if ((stop &lt; 0) || (stop &gt; n)) stop = n;
+    words.push_back(text.substr(start, stop - start));
+    start = text.find_first_not_of(separators, stop + 1);
+  }
+}</span></pre>
+	</body>
+</html>

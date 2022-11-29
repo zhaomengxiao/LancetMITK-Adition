@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModelFitResultRelationRule.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkModelFitResultRelationRule.h"
+#include "mitkModelFitConstants.h"
+
+#include &lt;mitkDataNode.h&gt;
+
+bool mitk::ModelFitResultRelationRule::IsDestinationCandidate(const IPropertyProvider *owner) const
+<span style = "background-color:#fdd">{
+  auto node = dynamic_cast&lt;const DataNode*&gt;(owner);</span>
+
+<span style = "background-color:#fdd">  auto image = nullptr != node</span>
+    ? dynamic_cast&lt;const Image*&gt;(node-&gt;GetData())
+    : dynamic_cast&lt;const Image*&gt;(owner);
+
+<span style = "background-color:#fdd">  return image != nullptr &amp;&amp; image-&gt;GetTimeSteps()&gt;1;
+}</span>
+
+
+mitk::ModelFitResultRelationRule::ModelFitResultRelationRule()
+<span style = "background-color:#fdd">  : SourceImageRelationRule("Model fit input", "Model fit result relation", "fit result", "source image")
+{}</span>
+
+
+mitk::ModelFitResultRelationRule::DataRelationUIDVectorType
+mitk::ModelFitResultRelationRule::GetRelationUIDs_DataLayer(const IPropertyProvider* source,
+  const IPropertyProvider* destination, const InstanceIDVectorType&amp; instances_IDLayer) const
+<span style = "background-color:#fdd">{
+  DataRelationUIDVectorType result = Superclass::GetRelationUIDs_DataLayer(source, destination, instances_IDLayer);</span>
+
+<span style = "background-color:#fdd">  if (result.empty())</span>
+  { //check if there is a relation based on legacy ModelFitUID
+<span style = "background-color:#fdd">    auto imageUIDprop = source-&gt;GetConstProperty(ModelFitConstants::LEGACY_FIT_INPUT_IMAGEUID_PROPERTY_NAME());
+    if (imageUIDprop.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      const auto inputImageUID = imageUIDprop-&gt;GetValueAsString();
+      bool isValid = nullptr == destination;
+      if (nullptr != destination)</span>
+      {
+<span style = "background-color:#fdd">        auto modelFitUIDprop = destination-&gt;GetConstProperty(ModelFitConstants::LEGACY_UID_PROPERTY_NAME());</span>
+
+<span style = "background-color:#fdd">        if (modelFitUIDprop.IsNotNull())</span>
+        {
+<span style = "background-color:#fdd">          const auto destinationUID = modelFitUIDprop-&gt;GetValueAsString();
+          isValid = destinationUID == inputImageUID;
+        }
+      }
+      if (isValid)</span>
+      {
+<span style = "background-color:#fdd">        result.emplace_back("model.fit.input.image.legacy.relation", this-&gt;GetRuleID());</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+void mitk::ModelFitResultRelationRule::Disconnect_datalayer(IPropertyOwner * source, const RelationUIDType &amp; relationUID) const
+<span style = "background-color:#fdd">{
+  Superclass::Disconnect_datalayer(source, relationUID);</span>
+  //Legacy connection (LEGACY_FIT_INPUT_IMAGEUID_PROPERTY_NAME) cannot be
+  //disconnected on purpose.
+<span style = "background-color:#fdd">}</span>
+
+itk::LightObject::Pointer mitk::ModelFitResultRelationRule::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result = Self::New().GetPointer();</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span></pre>
+	</body>
+</html>

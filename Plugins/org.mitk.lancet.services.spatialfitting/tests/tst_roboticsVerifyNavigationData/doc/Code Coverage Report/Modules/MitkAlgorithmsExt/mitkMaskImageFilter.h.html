@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMaskImageFilter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKMASKIMAGEFILTER_H_HEADER_INCLUDED_C1F48A22
+#define MITKMASKIMAGEFILTER_H_HEADER_INCLUDED_C1F48A22
+
+#include "MitkAlgorithmsExtExports.h"
+#include "mitkCommon.h"
+#include "mitkImageTimeSelector.h"
+#include "mitkImageToImageFilter.h"
+
+#include "itkImage.h"
+
+namespace mitk
+{
+  //##Documentation
+  //## @brief
+  //## @ingroup Process
+  class MITKALGORITHMSEXT_EXPORT MaskImageFilter : public ImageToImageFilter
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(MaskImageFilter, ImageToImageFilter);</span>
+
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+      void SetMask(const mitk::Image *mask);
+    const mitk::Image *GetMask() const;
+
+    /**
+    * get/set the min Value of the original image in the masked area
+    **/
+<span style = "background-color:#fdd">    itkGetMacro(MinValue, mitk::ScalarType);
+    itkSetMacro(MinValue, mitk::ScalarType);</span>
+
+    /**
+    * get/set the max Value of the original image in the masked area
+    **/
+<span style = "background-color:#fdd">    itkGetMacro(MaxValue, mitk::ScalarType);
+    itkSetMacro(MaxValue, mitk::ScalarType);</span>
+
+    /**
+     * This value is used as outside value. This only works
+     * if OverrideOutsideValue is set to true. Default is 0.
+     **/
+<span style = "background-color:#fdd">    itkSetMacro(OutsideValue, mitk::ScalarType);</span>
+
+    /**
+     * This value is used as outside value. This only works
+     * if OverrideOutsideValue is set to true. Default is 0.
+     */
+<span style = "background-color:#fdd">    itkGetMacro(OutsideValue, mitk::ScalarType);</span>
+
+    /**
+     * If OverrideOutsideValue is set to false, this minimum
+     * of the pixel type of the output image is taken as outside
+     * value. If set to true, the value set via SetOutsideValue is
+     * used as background.
+     */
+<span style = "background-color:#fdd">    itkSetMacro(OverrideOutsideValue, bool);</span>
+    /**
+     * If OverrideOutsideValue is set to false, this minimum
+     * of the pixel type of the output image is taken as outside
+     * value. If set to true, the value set via SetOutsideValue is
+     * used as background.
+     */
+<span style = "background-color:#fdd">    itkGetMacro(OverrideOutsideValue, bool);
+    itkBooleanMacro(OverrideOutsideValue);</span>
+
+  protected:
+    MaskImageFilter();
+
+    ~MaskImageFilter() override;
+
+    void GenerateInputRequestedRegion() override;
+
+    void GenerateOutputInformation() override;
+
+    void GenerateData() override;
+
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    void InternalComputeMask(itk::Image&lt;TPixel, VImageDimension&gt; *itkImage);
+
+    mitk::Image::Pointer m_Mask;
+    mitk::ImageTimeSelector::Pointer m_InputTimeSelector;
+    mitk::ImageTimeSelector::Pointer m_MaskTimeSelector;
+    mitk::ImageTimeSelector::Pointer m_OutputTimeSelector;
+
+    //##Description
+    //## @brief Time when Header was last initialized
+    itk::TimeStamp m_TimeOfHeaderInitialization;
+
+    mitk::ScalarType m_OutsideValue;
+    mitk::ScalarType m_MinValue;
+    mitk::ScalarType m_MaxValue;
+    bool m_OverrideOutsideValue;
+  };
+
+} // namespace mitk
+
+#endif /* MITKMASKIMAGEFILTER_H_HEADER_INCLUDED_C1F48A22 */</pre>
+	</body>
+</html>

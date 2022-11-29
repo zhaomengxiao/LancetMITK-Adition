@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkGeometryData.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKGEOMETRYDATA_H_HEADER_INCLUDED_C19C01E2
+#define MITKGEOMETRYDATA_H_HEADER_INCLUDED_C19C01E2
+
+#include "mitkBaseData.h"
+
+namespace mitk
+{
+  //##Documentation
+  //## @brief Data class only having a BaseGeometry but not containing
+  //## any specific data.
+  //##
+  //## Only implements pipeline methods which are abstract in BaseData.
+  //## @ingroup Geometry
+  class MITKCORE_EXPORT GeometryData : public BaseData
+  {
+  public:
+<span style = "background-color:#dfd">    mitkClassMacro(GeometryData, BaseData);</span>
+
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+      void UpdateOutputInformation() override;
+
+    void SetRequestedRegionToLargestPossibleRegion() override;
+
+    bool RequestedRegionIsOutsideOfTheBufferedRegion() override;
+
+    bool VerifyRequestedRegion() override;
+
+    void SetRequestedRegion(const itk::DataObject *data) override;
+
+    void CopyInformation(const itk::DataObject *data) override;
+
+  protected:
+    GeometryData();
+
+    ~GeometryData() override;
+  };
+
+  /**
+  * @brief Equal Compare two GeometryData objects for equality, returns true if found equal.
+  * @ingroup MITKTestingAPI
+  * @param rightHandSide GeometryData to compare.
+  * @param leftHandSide GeometryData to compare.
+  * @param eps Epsilon to use for floating point comparison. Most of the time mitk::eps will be sufficient.
+  * @param verbose Flag indicating if the method should give a detailed console output.
+  * @return True if every comparison is true, false in any other case.
+  */
+  MITKCORE_EXPORT bool Equal(const mitk::GeometryData &amp;leftHandSide,
+                             const mitk::GeometryData &amp;rightHandSide,
+                             mitk::ScalarType eps,
+                             bool verbose);
+
+} // namespace mitk
+#endif /* MITKGEOMETRYDATA_H_HEADER_INCLUDED_C19C01E2 */</pre>
+	</body>
+</html>

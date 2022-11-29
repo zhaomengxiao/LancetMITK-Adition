@@ -1,0 +1,277 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPropertyPersistenceInfo.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;cassert&gt;
+#include &lt;regex&gt;
+
+#include &lt;mitkIOMimeTypes.h&gt;
+#include &lt;mitkPropertyPersistenceInfo.h&gt;
+#include &lt;mitkStringProperty.h&gt;
+
+namespace mitk
+{
+  struct PropertyPersistenceInfo::Impl
+  {
+    Impl();
+    ~Impl();
+
+    std::string Name;
+    std::string Key;
+    bool IsRegEx;
+    std::string NameTemplate;
+    std::string KeyTemplate;
+    DeserializationFunctionType DeSerFnc;
+    SerializationFunctionType SerFnc;
+    MimeTypeNameType MimeTypeName;
+  };
+
+  PropertyPersistenceInfo::Impl::Impl()
+<span style = "background-color:#dfd">    : Name(""),
+      Key(""),
+      IsRegEx(false),
+      DeSerFnc(PropertyPersistenceDeserialization::deserializeToStringProperty),
+      SerFnc(PropertyPersistenceSerialization::serializeByGetValueAsString),
+      MimeTypeName(PropertyPersistenceInfo::ANY_MIMETYPE_NAME())
+  {
+  }</span>
+
+<span style = "background-color:#dfd">  PropertyPersistenceInfo::Impl::~Impl() {}</span>
+}
+
+<span style = "background-color:#dfd">mitk::PropertyPersistenceInfo::PropertyPersistenceInfo(const std::string &amp;name) : m_Impl(new Impl())
+{
+  m_Impl-&gt;Name = name;
+  m_Impl-&gt;Key = name;
+}</span>
+
+mitk::PropertyPersistenceInfo::PropertyPersistenceInfo(const std::string &amp;name, const std::string &amp;mimeTypeName)
+<span style = "background-color:#fdd">  : m_Impl(new Impl())
+{
+  m_Impl-&gt;Name = name;
+  m_Impl-&gt;Key = name;
+  m_Impl-&gt;MimeTypeName = mimeTypeName;
+}</span>
+
+mitk::PropertyPersistenceInfo::~PropertyPersistenceInfo()
+<span style = "background-color:#dfd">{
+  delete m_Impl;
+}</span>
+
+std::string mitk::PropertyPersistenceInfo::GetName() const
+<span style = "background-color:#dfd">{
+  return m_Impl-&gt;Name;
+}</span>
+
+std::string mitk::PropertyPersistenceInfo::GetKey() const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;Key;
+}</span>
+
+void mitk::PropertyPersistenceInfo::SetName(const std::string &amp;name)
+<span style = "background-color:#fdd">{
+  m_Impl-&gt;Name = name;
+  m_Impl-&gt;Key = name;
+  m_Impl-&gt;IsRegEx = false;
+  m_Impl-&gt;NameTemplate.clear();
+  m_Impl-&gt;KeyTemplate.clear();
+}</span>
+
+void mitk::PropertyPersistenceInfo::SetNameAndKey(const std::string &amp;name, const std::string &amp;key)
+<span style = "background-color:#dfd">{
+  m_Impl-&gt;Name = name;
+  m_Impl-&gt;Key = key;
+  m_Impl-&gt;IsRegEx = false;
+  m_Impl-&gt;NameTemplate.clear();
+  m_Impl-&gt;KeyTemplate.clear();
+}</span>
+
+void mitk::PropertyPersistenceInfo::UseRegEx(const std::string &amp;nameRegEx, const std::string &amp;nameTemplate)
+<span style = "background-color:#fdd">{
+  std::regex checker(nameRegEx); // no exception =&gt; valid we can change the info
+  m_Impl-&gt;Name = nameRegEx;
+  m_Impl-&gt;Key = nameRegEx;
+  m_Impl-&gt;IsRegEx = true;
+  m_Impl-&gt;NameTemplate = nameTemplate;
+  m_Impl-&gt;KeyTemplate = nameTemplate;
+}</span>
+
+void mitk::PropertyPersistenceInfo::UseRegEx(const std::string &amp;nameRegEx,
+                                             const std::string &amp;nameTemplate,
+                                             const std::string &amp;keyRegEx,
+                                             const std::string keyTemplate)
+<span style = "background-color:#dfd">{
+  std::regex nameChecker(nameRegEx); // no exception =&gt; valid we can change the info
+  std::regex keyChecker(keyRegEx);   // no exception =&gt; valid we can change the info
+  m_Impl-&gt;Name = nameRegEx;
+  m_Impl-&gt;Key = keyRegEx;
+  m_Impl-&gt;IsRegEx = true;
+  m_Impl-&gt;NameTemplate = nameTemplate;
+  m_Impl-&gt;KeyTemplate = keyTemplate;
+}</span>
+
+bool mitk::PropertyPersistenceInfo::IsRegEx() const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;IsRegEx;
+};</span>
+
+const std::string &amp;mitk::PropertyPersistenceInfo::GetKeyTemplate() const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;KeyTemplate;
+}</span>
+
+const std::string &amp;mitk::PropertyPersistenceInfo::GetNameTemplate() const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;NameTemplate;
+}</span>
+
+const mitk::PropertyPersistenceInfo::MimeTypeNameType &amp;mitk::PropertyPersistenceInfo::GetMimeTypeName() const
+<span style = "background-color:#dfd">{
+  return m_Impl-&gt;MimeTypeName;
+};</span>
+
+void mitk::PropertyPersistenceInfo::SetMimeTypeName(const mitk::PropertyPersistenceInfo::MimeTypeNameType &amp;mimeTypeName)
+<span style = "background-color:#fdd">{
+  m_Impl-&gt;MimeTypeName = mimeTypeName;
+};</span>
+
+const mitk::PropertyPersistenceInfo::DeserializationFunctionType
+  mitk::PropertyPersistenceInfo::GetDeserializationFunction() const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;DeSerFnc;
+};</span>
+
+void mitk::PropertyPersistenceInfo::SetDeserializationFunction(
+  const mitk::PropertyPersistenceInfo::DeserializationFunctionType &amp;fnc)
+<span style = "background-color:#dfd">{
+  m_Impl-&gt;DeSerFnc = fnc;
+};</span>
+
+const mitk::PropertyPersistenceInfo::SerializationFunctionType mitk::PropertyPersistenceInfo::GetSerializationFunction()
+  const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;SerFnc;
+};</span>
+
+void mitk::PropertyPersistenceInfo::SetSerializationFunction(
+  const mitk::PropertyPersistenceInfo::SerializationFunctionType &amp;fnc)
+<span style = "background-color:#dfd">{
+  m_Impl-&gt;SerFnc = fnc;
+};</span>
+
+std::string GenerateFromTemplate(const std::string &amp;sourceStr,
+                                 const std::string &amp;templateStr,
+                                 const std::string &amp;regexStr)
+<span style = "background-color:#fdd">{
+  std::smatch sm;
+  std::regex ex(regexStr);
+  std::regex_match(sourceStr, sm, ex);</span>
+
+<span style = "background-color:#fdd">  std::string result = templateStr;</span>
+
+<span style = "background-color:#fdd">  int groupID = 0;
+  for (const auto &amp;match : sm)</span>
+  {
+<span style = "background-color:#fdd">    if (groupID)</span>
+    {
+<span style = "background-color:#fdd">      std::ostringstream stream;
+      stream &lt;&lt; "(\\$" &lt;&lt; groupID &lt;&lt; ")";
+      std::regex rex(stream.str());
+      result = std::regex_replace(result, rex, match.str());
+    }
+    ++groupID;
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::PropertyPersistenceInfo::Pointer mitk::PropertyPersistenceInfo::UnRegExByName(
+  const std::string &amp;propertyName) const
+<span style = "background-color:#fdd">{
+  PropertyPersistenceInfo::Pointer resultInfo = PropertyPersistenceInfo::New();
+  *(resultInfo-&gt;m_Impl) = *(this-&gt;m_Impl);</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;IsRegEx())</span>
+  {
+<span style = "background-color:#fdd">    std::string newKey = GenerateFromTemplate(propertyName, this-&gt;GetKeyTemplate(), this-&gt;GetName());
+    resultInfo-&gt;SetNameAndKey(propertyName, newKey);
+  }</span>
+
+<span style = "background-color:#fdd">  return resultInfo;
+};</span>
+
+mitk::PropertyPersistenceInfo::Pointer mitk::PropertyPersistenceInfo::UnRegExByKey(const std::string &amp;key) const
+<span style = "background-color:#fdd">{
+  PropertyPersistenceInfo::Pointer resultInfo = PropertyPersistenceInfo::New();
+  *(resultInfo-&gt;m_Impl) = *(this-&gt;m_Impl);</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;IsRegEx())</span>
+  {
+<span style = "background-color:#fdd">    std::string newName = GenerateFromTemplate(key, this-&gt;GetNameTemplate(), this-&gt;GetKey());
+    resultInfo-&gt;SetNameAndKey(newName, key);
+  }</span>
+
+<span style = "background-color:#fdd">  return resultInfo;
+};</span>
+
+mitk::PropertyPersistenceInfo::MimeTypeNameType mitk::PropertyPersistenceInfo::ANY_MIMETYPE_NAME()
+<span style = "background-color:#dfd">{
+  static std::string name = IOMimeTypes::DEFAULT_BASE_NAME() + ".any_type";
+  return name;
+};</span>
+
+void mitk::PropertyPersistenceInfo::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  this-&gt;Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; "Name:         " &lt;&lt; this-&gt;m_Impl-&gt;Name &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Key:          " &lt;&lt; this-&gt;m_Impl-&gt;Key &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "IsRegEx:      " &lt;&lt; this-&gt;m_Impl-&gt;IsRegEx &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "NameTemplate: " &lt;&lt; this-&gt;m_Impl-&gt;NameTemplate &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "KeyTemplate:  " &lt;&lt; this-&gt;m_Impl-&gt;KeyTemplate &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "MimeTypeName: " &lt;&lt; this-&gt;m_Impl-&gt;MimeTypeName &lt;&lt; std::endl;
+};</span>
+
+std::ostream &amp;mitk::operator&lt;&lt;(std::ostream &amp;os, const PropertyPersistenceInfo &amp;info)
+<span style = "background-color:#fdd">{
+  info.Print(os);
+  return os;
+}</span>
+
+::std::string mitk::PropertyPersistenceSerialization::serializeByGetValueAsString(const mitk::BaseProperty *prop)
+<span style = "background-color:#fdd">{
+  std::string result = "";
+  if (prop)</span>
+  {
+<span style = "background-color:#fdd">    result = prop-&gt;GetValueAsString();</span>
+  }
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::BaseProperty::Pointer mitk::PropertyPersistenceDeserialization::deserializeToStringProperty(
+  const std::string &amp;value)
+<span style = "background-color:#fdd">{
+  StringProperty::Pointer result = StringProperty::New(value);
+  return result.GetPointer();
+}</span></pre>
+	</body>
+</html>

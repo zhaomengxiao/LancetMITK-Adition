@@ -1,0 +1,426 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkUnstructuredGridVtkMapper3D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkUnstructuredGridVtkMapper3D.h"
+#include "mitkColorProperty.h"
+#include "mitkDataNode.h"
+#include "mitkProperties.h"
+#include "mitkTransferFunctionProperty.h"
+//#include "mitkLookupTableProperty.h"
+#include "mitkGridRepresentationProperty.h"
+#include "mitkGridVolumeMapperProperty.h"
+#include "mitkVtkInterpolationProperty.h"
+#include "mitkVtkScalarModeProperty.h"
+
+#include "mitkDataStorage.h"
+
+#include "mitkSurfaceVtkMapper3D.h"
+
+#include &lt;vtkProperty.h&gt;
+#include &lt;vtkUnstructuredGrid.h&gt;
+#include &lt;vtkVolume.h&gt;
+#include &lt;vtkVolumeProperty.h&gt;
+
+#include &lt;vtkPlanes.h&gt;
+
+const mitk::UnstructuredGrid *mitk::UnstructuredGridVtkMapper3D::GetInput()
+<span style = "background-color:#fdd">{
+  return static_cast&lt;const mitk::UnstructuredGrid *&gt;(GetDataNode()-&gt;GetData());
+}</span>
+
+mitk::UnstructuredGridVtkMapper3D::UnstructuredGridVtkMapper3D()
+<span style = "background-color:#fdd">{
+  m_VtkTriangleFilter = vtkDataSetTriangleFilter::New();</span>
+
+<span style = "background-color:#fdd">  m_Assembly = vtkAssembly::New();</span>
+
+<span style = "background-color:#fdd">  m_Volume = vtkVolume::New();
+  m_Actor = vtkActor::New();
+  m_ActorWireframe = vtkActor::New();</span>
+
+<span style = "background-color:#fdd">  m_VtkDataSetMapper = vtkUnstructuredGridMapper::New();
+  m_VtkDataSetMapper-&gt;SetResolveCoincidentTopologyToPolygonOffset();
+  m_VtkDataSetMapper-&gt;SetResolveCoincidentTopologyPolygonOffsetParameters(0, 1);
+  m_Actor-&gt;SetMapper(m_VtkDataSetMapper);</span>
+
+<span style = "background-color:#fdd">  m_VtkDataSetMapper2 = vtkUnstructuredGridMapper::New();
+  m_VtkDataSetMapper2-&gt;SetResolveCoincidentTopologyToPolygonOffset();
+  m_VtkDataSetMapper2-&gt;SetResolveCoincidentTopologyPolygonOffsetParameters(1, 1);
+  m_ActorWireframe-&gt;SetMapper(m_VtkDataSetMapper2);
+  m_ActorWireframe-&gt;GetProperty()-&gt;SetRepresentationToWireframe();</span>
+
+<span style = "background-color:#fdd">  m_Assembly-&gt;AddPart(m_Actor);
+  m_Assembly-&gt;AddPart(m_ActorWireframe);
+  m_Assembly-&gt;AddPart(m_Volume);</span>
+
+<span style = "background-color:#fdd">  m_VtkVolumeRayCastMapper = nullptr;
+  m_VtkPTMapper = nullptr;
+  m_VtkVolumeZSweepMapper = nullptr;</span>
+
+  // m_GenerateNormals = false;
+<span style = "background-color:#fdd">}</span>
+
+mitk::UnstructuredGridVtkMapper3D::~UnstructuredGridVtkMapper3D()
+<span style = "background-color:#fdd">{
+  if (m_VtkTriangleFilter != nullptr)
+    m_VtkTriangleFilter-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (m_VtkVolumeRayCastMapper != nullptr)
+    m_VtkVolumeRayCastMapper-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (m_VtkVolumeZSweepMapper != nullptr)
+    m_VtkVolumeZSweepMapper-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (m_VtkPTMapper != nullptr)
+    m_VtkPTMapper-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (m_VtkDataSetMapper != nullptr)
+    m_VtkDataSetMapper-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (m_VtkDataSetMapper2 != nullptr)
+    m_VtkDataSetMapper2-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (m_Assembly != nullptr)
+    m_Assembly-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (m_Actor != nullptr)
+    m_Actor-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (m_ActorWireframe != nullptr)
+    m_ActorWireframe-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (m_Volume != nullptr)
+    m_Volume-&gt;Delete();
+}</span>
+
+vtkProp *mitk::UnstructuredGridVtkMapper3D::GetVtkProp(mitk::BaseRenderer * /*renderer*/)
+<span style = "background-color:#fdd">{
+  return m_Assembly;
+}</span>
+
+void mitk::UnstructuredGridVtkMapper3D::GenerateDataForRenderer(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  mitk::DataNode::ConstPointer node = this-&gt;GetDataNode();</span>
+
+<span style = "background-color:#fdd">  BaseLocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+  bool needGenerateData = ls-&gt;IsGenerateDataRequired(renderer, this, GetDataNode());</span>
+
+<span style = "background-color:#fdd">  if (needGenerateData)</span>
+  {
+<span style = "background-color:#fdd">    ls-&gt;UpdateGenerateDataTime();</span>
+
+<span style = "background-color:#fdd">    m_Assembly-&gt;VisibilityOn();</span>
+
+<span style = "background-color:#fdd">    m_ActorWireframe-&gt;GetProperty()-&gt;SetAmbient(1.0);
+    m_ActorWireframe-&gt;GetProperty()-&gt;SetDiffuse(0.0);
+    m_ActorWireframe-&gt;GetProperty()-&gt;SetSpecular(0.0);</span>
+
+<span style = "background-color:#fdd">    mitk::TransferFunctionProperty::Pointer transferFuncProp;
+    if (node-&gt;GetProperty(transferFuncProp, "TransferFunction"))</span>
+    {
+<span style = "background-color:#fdd">      mitk::TransferFunction::Pointer transferFunction = transferFuncProp-&gt;GetValue();
+      if (transferFunction-&gt;GetColorTransferFunction()-&gt;GetSize() &lt; 2)</span>
+      {
+<span style = "background-color:#fdd">        mitk::UnstructuredGrid::Pointer input = const_cast&lt;mitk::UnstructuredGrid *&gt;(this-&gt;GetInput());
+        if (input.IsNull())
+          return;</span>
+
+<span style = "background-color:#fdd">        vtkUnstructuredGrid *grid = input-&gt;GetVtkUnstructuredGrid(this-&gt;GetTimestep());
+        if (grid == nullptr)
+          return;</span>
+
+<span style = "background-color:#fdd">        double *scalarRange = grid-&gt;GetScalarRange();
+        vtkColorTransferFunction *colorFunc = transferFunction-&gt;GetColorTransferFunction();
+        colorFunc-&gt;RemoveAllPoints();
+        colorFunc-&gt;AddRGBPoint(scalarRange[0], 1, 0, 0);
+        colorFunc-&gt;AddRGBPoint((scalarRange[0] + scalarRange[1]) / 2.0, 0, 1, 0);
+        colorFunc-&gt;AddRGBPoint(scalarRange[1], 0, 0, 1);
+      }
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  bool visible = true;
+  GetDataNode()-&gt;GetVisibility(visible, renderer, "visible");</span>
+
+<span style = "background-color:#fdd">  if (!visible)</span>
+  {
+<span style = "background-color:#fdd">    m_Assembly-&gt;VisibilityOff();
+    return;</span>
+  }
+
+  //
+  // get the TimeGeometry of the input object
+  //
+<span style = "background-color:#fdd">  mitk::UnstructuredGrid::Pointer input = const_cast&lt;mitk::UnstructuredGrid *&gt;(this-&gt;GetInput());</span>
+
+  //
+  // set the input-object at time t for the mapper
+  //
+<span style = "background-color:#fdd">  vtkUnstructuredGrid *grid = input-&gt;GetVtkUnstructuredGrid(this-&gt;GetTimestep());
+  if (grid == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_Assembly-&gt;VisibilityOff();
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  m_Assembly-&gt;VisibilityOn();</span>
+
+<span style = "background-color:#fdd">  m_VtkTriangleFilter-&gt;SetInputData(grid);
+  m_VtkDataSetMapper-&gt;SetInput(grid);
+  m_VtkDataSetMapper2-&gt;SetInput(grid);</span>
+
+<span style = "background-color:#fdd">  bool clip = false;
+  node-&gt;GetBoolProperty("enable clipping", clip);
+  mitk::DataNode::Pointer bbNode = renderer-&gt;GetDataStorage()-&gt;GetNamedDerivedNode("Clipping Bounding Object", node);
+  if (clip &amp;&amp; bbNode.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    m_VtkDataSetMapper-&gt;SetBoundingObject(dynamic_cast&lt;mitk::BoundingObject *&gt;(bbNode-&gt;GetData()));
+    m_VtkDataSetMapper2-&gt;SetBoundingObject(dynamic_cast&lt;mitk::BoundingObject *&gt;(bbNode-&gt;GetData()));
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_VtkDataSetMapper-&gt;SetBoundingObject(nullptr);
+    m_VtkDataSetMapper2-&gt;SetBoundingObject(nullptr);</span>
+  }
+
+  //
+  // apply properties read from the PropertyList
+  //
+<span style = "background-color:#fdd">  ApplyProperties(nullptr, renderer);
+}</span>
+
+void mitk::UnstructuredGridVtkMapper3D::ResetMapper(BaseRenderer * /*renderer*/)
+<span style = "background-color:#fdd">{
+  m_Assembly-&gt;VisibilityOff();
+}</span>
+
+void mitk::UnstructuredGridVtkMapper3D::ApplyProperties(vtkActor * /*actor*/, mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  mitk::DataNode::Pointer node = this-&gt;GetDataNode();
+  ApplyColorAndOpacityProperties(renderer, m_Actor);
+  ApplyColorAndOpacityProperties(renderer, m_ActorWireframe);</span>
+
+<span style = "background-color:#fdd">  vtkVolumeProperty *volProp = m_Volume-&gt;GetProperty();
+  vtkProperty *property = m_Actor-&gt;GetProperty();
+  vtkProperty *wireframeProp = m_ActorWireframe-&gt;GetProperty();</span>
+
+<span style = "background-color:#fdd">  mitk::SurfaceVtkMapper3D::ApplyMitkPropertiesToVtkProperty(node, property, renderer);
+  mitk::SurfaceVtkMapper3D::ApplyMitkPropertiesToVtkProperty(node, wireframeProp, renderer);</span>
+
+<span style = "background-color:#fdd">  mitk::TransferFunctionProperty::Pointer transferFuncProp;
+  if (node-&gt;GetProperty(transferFuncProp, "TransferFunction", renderer))</span>
+  {
+<span style = "background-color:#fdd">    mitk::TransferFunction::Pointer transferFunction = transferFuncProp-&gt;GetValue();</span>
+
+<span style = "background-color:#fdd">    volProp-&gt;SetColor(transferFunction-&gt;GetColorTransferFunction());
+    volProp-&gt;SetScalarOpacity(transferFunction-&gt;GetScalarOpacityFunction());
+    volProp-&gt;SetGradientOpacity(transferFunction-&gt;GetGradientOpacityFunction());</span>
+
+<span style = "background-color:#fdd">    m_VtkDataSetMapper-&gt;SetLookupTable(transferFunction-&gt;GetColorTransferFunction());
+    m_VtkDataSetMapper2-&gt;SetLookupTable(transferFunction-&gt;GetColorTransferFunction());
+  }</span>
+
+<span style = "background-color:#fdd">  bool isVolumeRenderingOn = false;
+  node-&gt;GetBoolProperty("volumerendering", isVolumeRenderingOn, renderer);</span>
+
+<span style = "background-color:#fdd">  if (isVolumeRenderingOn)</span>
+  {
+<span style = "background-color:#fdd">    m_Assembly-&gt;RemovePart(m_Actor);
+    m_Assembly-&gt;RemovePart(m_ActorWireframe);
+    m_Assembly-&gt;AddPart(m_Volume);</span>
+
+<span style = "background-color:#fdd">    mitk::GridVolumeMapperProperty::Pointer mapperProp;
+    if (node-&gt;GetProperty(mapperProp, "volumerendering.mapper", renderer))</span>
+    {
+<span style = "background-color:#fdd">      mitk::GridVolumeMapperProperty::IdType type = mapperProp-&gt;GetValueAsId();
+      switch (type)</span>
+      {
+        case mitk::GridVolumeMapperProperty::RAYCAST:
+<span style = "background-color:#fdd">          if (m_VtkVolumeRayCastMapper == nullptr)</span>
+          {
+<span style = "background-color:#fdd">            m_VtkVolumeRayCastMapper = vtkUnstructuredGridVolumeRayCastMapper::New();
+            m_VtkVolumeRayCastMapper-&gt;SetInputConnection(m_VtkTriangleFilter-&gt;GetOutputPort());</span>
+          }
+<span style = "background-color:#fdd">          m_Volume-&gt;SetMapper(m_VtkVolumeRayCastMapper);
+          break;</span>
+        case mitk::GridVolumeMapperProperty::PT:
+<span style = "background-color:#fdd">          if (m_VtkPTMapper == nullptr)</span>
+          {
+<span style = "background-color:#fdd">            m_VtkPTMapper = vtkProjectedTetrahedraMapper::New();
+            m_VtkPTMapper-&gt;SetInputConnection(m_VtkTriangleFilter-&gt;GetOutputPort());</span>
+          }
+<span style = "background-color:#fdd">          m_Volume-&gt;SetMapper(m_VtkPTMapper);
+          break;</span>
+        case mitk::GridVolumeMapperProperty::ZSWEEP:
+<span style = "background-color:#fdd">          if (m_VtkVolumeZSweepMapper == nullptr)</span>
+          {
+<span style = "background-color:#fdd">            m_VtkVolumeZSweepMapper = vtkUnstructuredGridVolumeZSweepMapper::New();
+            m_VtkVolumeZSweepMapper-&gt;SetInputConnection(m_VtkTriangleFilter-&gt;GetOutputPort());</span>
+          }
+<span style = "background-color:#fdd">          m_Volume-&gt;SetMapper(m_VtkVolumeZSweepMapper);</span>
+          break;
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_Assembly-&gt;RemovePart(m_Volume);
+    m_Assembly-&gt;AddPart(m_Actor);
+    m_Assembly-&gt;RemovePart(m_ActorWireframe);</span>
+
+<span style = "background-color:#fdd">    mitk::GridRepresentationProperty::Pointer gridRepProp;
+    if (node-&gt;GetProperty(gridRepProp, "grid representation", renderer))</span>
+    {
+<span style = "background-color:#fdd">      mitk::GridRepresentationProperty::IdType type = gridRepProp-&gt;GetValueAsId();
+      switch (type)</span>
+      {
+        case mitk::GridRepresentationProperty::POINTS:
+<span style = "background-color:#fdd">          property-&gt;SetRepresentationToPoints();
+          break;</span>
+        case mitk::GridRepresentationProperty::WIREFRAME:
+<span style = "background-color:#fdd">          property-&gt;SetRepresentationToWireframe();
+          break;</span>
+        case mitk::GridRepresentationProperty::SURFACE:
+<span style = "background-color:#fdd">          property-&gt;SetRepresentationToSurface();</span>
+          break;
+      }
+
+      //      if (type == mitk::GridRepresentationProperty::WIREFRAME_SURFACE)
+      //      {
+      //        m_Assembly-&gt;AddPart(m_ActorWireframe);
+      //      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  //   mitk::LevelWindow levelWindow;
+  //   if(node-&gt;GetLevelWindow(levelWindow, renderer, "levelWindow"))
+  //   {
+  //     m_VtkVolumeRayCastMapper-&gt;SetScalarRange(levelWindow.GetMin(),levelWindow.GetMax());
+  //   }
+  //   else
+  //   if(node-&gt;GetLevelWindow(levelWindow, renderer))
+  //   {
+  //     m_VtkVolumeRayCastMapper-&gt;SetScalarRange(levelWindow.GetMin(),levelWindow.GetMax());
+  //   }
+  //
+  //   mitk::VtkRepresentationProperty* representationProperty;
+  //   node-&gt;GetProperty(representationProperty, "material.representation", renderer);
+  //   if ( representationProperty != nullptr )
+  //     m_Volume-&gt;GetProperty()-&gt;SetRepresentation( representationProperty-&gt;GetVtkRepresentation() );
+  //
+  //   mitk::VtkInterpolationProperty* interpolationProperty;
+  //   node-&gt;GetProperty(interpolationProperty, "material.interpolation", renderer);
+  //   if ( interpolationProperty != nullptr )
+  //     m_Volume-&gt;GetProperty()-&gt;SetInterpolation( interpolationProperty-&gt;GetVtkInterpolation() );
+  //
+
+<span style = "background-color:#fdd">  mitk::VtkScalarModeProperty *scalarMode = nullptr;
+  if (node-&gt;GetProperty(scalarMode, "scalar mode", renderer))</span>
+  {
+<span style = "background-color:#fdd">    if (m_VtkVolumeRayCastMapper)
+      m_VtkVolumeRayCastMapper-&gt;SetScalarMode(scalarMode-&gt;GetVtkScalarMode());
+    if (m_VtkPTMapper)
+      m_VtkPTMapper-&gt;SetScalarMode(scalarMode-&gt;GetVtkScalarMode());
+    if (m_VtkVolumeZSweepMapper)
+      m_VtkVolumeZSweepMapper-&gt;SetScalarMode(scalarMode-&gt;GetVtkScalarMode());</span>
+
+<span style = "background-color:#fdd">    m_VtkDataSetMapper-&gt;SetScalarMode(scalarMode-&gt;GetVtkScalarMode());
+    m_VtkDataSetMapper2-&gt;SetScalarMode(scalarMode-&gt;GetVtkScalarMode());
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    if (m_VtkVolumeRayCastMapper)
+      m_VtkVolumeRayCastMapper-&gt;SetScalarModeToDefault();
+    if (m_VtkPTMapper)
+      m_VtkPTMapper-&gt;SetScalarModeToDefault();
+    if (m_VtkVolumeZSweepMapper)
+      m_VtkVolumeZSweepMapper-&gt;SetScalarModeToDefault();</span>
+
+<span style = "background-color:#fdd">    m_VtkDataSetMapper-&gt;SetScalarModeToDefault();
+    m_VtkDataSetMapper2-&gt;SetScalarModeToDefault();</span>
+  }
+
+<span style = "background-color:#fdd">  bool scalarVisibility = true;
+  node-&gt;GetBoolProperty("scalar visibility", scalarVisibility, renderer);
+  m_VtkDataSetMapper-&gt;SetScalarVisibility(scalarVisibility ? 1 : 0);
+  m_VtkDataSetMapper2-&gt;SetScalarVisibility(scalarVisibility ? 1 : 0);</span>
+
+  //   double scalarRangeLower = std::numeric_limits&lt;double&gt;::min();
+  //   double scalarRangeUpper = std::numeric_limits&lt;double&gt;::max();
+  //   mitk::DoubleProperty* lowerRange = 0;
+  //   if (node-&gt;GetProperty(lowerRange, "scalar range min", renderer))
+  //   {
+  //     scalarRangeLower = lowerRange-&gt;GetValue();
+  //   }
+  //   mitk::DoubleProperty* upperRange = 0;
+  //   if (node-&gt;GetProperty(upperRange, "scalar range max", renderer))
+  //   {
+  //     scalarRangeUpper = upperRange-&gt;GetValue();
+  //   }
+  //   m_VtkDataSetMapper-&gt;SetScalarRange(scalarRangeLower, scalarRangeUpper);
+  //   m_VtkDataSetMapper2-&gt;SetScalarRange(scalarRangeLower, scalarRangeUpper);
+
+  //   bool colorMode = false;
+  //   node-&gt;GetBoolProperty("color mode", colorMode);
+  //   m_VtkVolumeRayCastMapper-&gt;SetColorMode( (colorMode ? 1 : 0) );
+
+  //   double scalarsMin = 0;
+  //   node-&gt;GetDoubleProperty("ScalarsRangeMinimum", scalarsMin, renderer);
+
+  //   double scalarsMax = 1.0;
+  //   node-&gt;GetProperty("ScalarsRangeMaximum", scalarsMax, renderer);
+
+  //   m_VtkVolumeRayCastMapper-&gt;SetScalarRange(scalarsMin,scalarsMax);
+<span style = "background-color:#fdd">}</span>
+
+void mitk::UnstructuredGridVtkMapper3D::SetDefaultProperties(mitk::DataNode *node,
+                                                             mitk::BaseRenderer *renderer,
+                                                             bool overwrite)
+<span style = "background-color:#fdd">{
+  SurfaceVtkMapper3D::SetDefaultPropertiesForVtkProperty(node, renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  node-&gt;AddProperty("grid representation", GridRepresentationProperty::New(), renderer, overwrite);
+  node-&gt;AddProperty("volumerendering", BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("volumerendering.mapper", GridVolumeMapperProperty::New(), renderer, overwrite);
+  node-&gt;AddProperty("scalar mode", VtkScalarModeProperty::New(0), renderer, overwrite);
+  node-&gt;AddProperty("scalar visibility", BoolProperty::New(true), renderer, overwrite);</span>
+  // node-&gt;AddProperty("scalar range min", DoubleProperty::New(std::numeric_limits&lt;double&gt;::min()), renderer,
+  // overwrite);
+  // node-&gt;AddProperty("scalar range max", DoubleProperty::New(std::numeric_limits&lt;double&gt;::max()), renderer,
+  // overwrite);
+<span style = "background-color:#fdd">  node-&gt;AddProperty("outline polygons", BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("color", ColorProperty::New(1.0f, 1.0f, 1.0f), renderer, overwrite);
+  node-&gt;AddProperty("line width", IntProperty::New(1), renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  if (overwrite || node-&gt;GetProperty("TransferFunction", renderer) == nullptr)</span>
+  {
+    // add a default transfer function
+<span style = "background-color:#fdd">    mitk::TransferFunction::Pointer tf = mitk::TransferFunction::New();</span>
+    // tf-&gt;GetColorTransferFunction()-&gt;RemoveAllPoints();
+<span style = "background-color:#fdd">    node-&gt;SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(tf.GetPointer()));
+  }</span>
+
+<span style = "background-color:#fdd">  Superclass::SetDefaultProperties(node, renderer, overwrite);
+}</span></pre>
+	</body>
+</html>

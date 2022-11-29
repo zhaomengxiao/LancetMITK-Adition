@@ -1,0 +1,389 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPropertyList.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPropertyList.h"
+
+#include "mitkNumericTypes.h"
+#include "mitkProperties.h"
+#include "mitkStringProperty.h"
+
+mitk::BaseProperty::ConstPointer mitk::PropertyList::GetConstProperty(const std::string &amp;propertyKey, const std::string &amp;/*contextName*/, bool /*fallBackOnDefaultContext*/) const
+<span style = "background-color:#fdd">{
+  PropertyMap::const_iterator it;</span>
+
+<span style = "background-color:#fdd">  it = m_Properties.find(propertyKey);
+  if (it != m_Properties.cend())
+    return it-&gt;second.GetPointer();</span>
+  else
+<span style = "background-color:#fdd">    return nullptr;
+};</span>
+
+std::vector&lt;std::string&gt; mitk::PropertyList::GetPropertyKeys(const std::string &amp;contextName, bool includeDefaultContext) const
+<span style = "background-color:#fdd">{
+  std::vector&lt;std::string&gt; propertyKeys;</span>
+
+<span style = "background-color:#fdd">  if (contextName.empty() || includeDefaultContext)</span>
+  {
+<span style = "background-color:#fdd">    for (const auto &amp;property : this-&gt;m_Properties)
+      propertyKeys.push_back(property.first);</span>
+  }
+
+<span style = "background-color:#fdd">  return propertyKeys;
+};</span>
+
+std::vector&lt;std::string&gt; mitk::PropertyList::GetPropertyContextNames() const
+<span style = "background-color:#fdd">{
+  return std::vector&lt;std::string&gt;();
+};</span>
+
+mitk::BaseProperty *mitk::PropertyList::GetProperty(const std::string &amp;propertyKey) const
+<span style = "background-color:#fdd">{
+  PropertyMap::const_iterator it;</span>
+
+<span style = "background-color:#fdd">  it = m_Properties.find(propertyKey);
+  if (it != m_Properties.cend())
+    return it-&gt;second;</span>
+  else
+<span style = "background-color:#fdd">    return nullptr;
+}</span>
+
+mitk::BaseProperty * mitk::PropertyList::GetNonConstProperty(const std::string &amp;propertyKey, const std::string &amp;/*contextName*/, bool /*fallBackOnDefaultContext*/)
+<span style = "background-color:#fdd">{
+  return this-&gt;GetProperty(propertyKey);
+}</span>
+
+void mitk::PropertyList::SetProperty(const std::string &amp;propertyKey, BaseProperty *property, const std::string &amp;/*contextName*/, bool /*fallBackOnDefaultContext*/)
+<span style = "background-color:#fdd">{
+  if (propertyKey.empty())
+    mitkThrow() &lt;&lt; "Property key is empty.";</span>
+
+<span style = "background-color:#fdd">  if (!property)
+    return;</span>
+  // make sure that BaseProperty*, which may have just been created and never been
+  // assigned to a SmartPointer, is registered/unregistered properly. If we do not
+  // do that, it will a) not deleted in case it is identical to the old one or
+  // b) possibly deleted when temporarily added to a smartpointer somewhere below.
+<span style = "background-color:#fdd">  BaseProperty::Pointer tmpSmartPointerToProperty = property;</span>
+
+<span style = "background-color:#fdd">  auto it(m_Properties.find(propertyKey));</span>
+
+  // Is a property with key @a propertyKey contained in the list?
+<span style = "background-color:#fdd">  if (it != m_Properties.cend())</span>
+  {
+    // yes
+    // is the property contained in the list identical to the new one?
+<span style = "background-color:#fdd">    if (it-&gt;second-&gt;operator==(*property))</span>
+    {
+      // yes? do nothing and return.
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    if (it-&gt;second-&gt;AssignProperty(*property))</span>
+    {
+      // The assignment was successfull
+<span style = "background-color:#fdd">      this-&gt;Modified();
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "In " __FILE__ ", l." &lt;&lt; __LINE__ &lt;&lt; ": Trying to set existing property " &lt;&lt; it-&gt;first</span>
+        &lt;&lt; " of type " &lt;&lt; it-&gt;second-&gt;GetNameOfClass() &lt;&lt; " to a property with different type "
+        &lt;&lt; property-&gt;GetNameOfClass() &lt;&lt; "."
+        &lt;&lt; " Use ReplaceProperty() instead." &lt;&lt; std::endl;
+    }
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // no? add it.
+<span style = "background-color:#fdd">  m_Properties.insert(PropertyMap::value_type(propertyKey, property));
+  this-&gt;Modified();
+}</span>
+
+void mitk::PropertyList::ReplaceProperty(const std::string &amp;propertyKey, BaseProperty *property)
+<span style = "background-color:#fdd">{
+  if (!property)
+    return;</span>
+
+<span style = "background-color:#fdd">  auto it(m_Properties.find(propertyKey));</span>
+
+  // Is a property with key @a propertyKey contained in the list?
+<span style = "background-color:#fdd">  if (it != m_Properties.cend())</span>
+  {
+<span style = "background-color:#fdd">    it-&gt;second = nullptr;
+    m_Properties.erase(it);</span>
+  }
+
+  // no? add/replace it.
+<span style = "background-color:#fdd">  m_Properties.insert(PropertyMap::value_type(propertyKey, property));
+  Modified();
+}</span>
+
+void mitk::PropertyList::RemoveProperty(const std::string &amp;propertyKey, const std::string &amp;/*contextName*/, bool /*fallBackOnDefaultContext*/)
+<span style = "background-color:#fdd">{
+  auto it(m_Properties.find(propertyKey));</span>
+
+  // Is a property with key @a propertyKey contained in the list?
+<span style = "background-color:#fdd">  if (it != m_Properties.cend())</span>
+  {
+<span style = "background-color:#fdd">    it-&gt;second = nullptr;
+    m_Properties.erase(it);
+    Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::PropertyList::PropertyList()
+<span style = "background-color:#fdd">{
+}</span>
+
+<span style = "background-color:#fdd">mitk::PropertyList::PropertyList(const mitk::PropertyList &amp;other) : itk::Object()
+{
+  for (auto i = other.m_Properties.cbegin(); i != other.m_Properties.cend(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    m_Properties.insert(std::make_pair(i-&gt;first, i-&gt;second-&gt;Clone()));
+  }
+}</span>
+
+mitk::PropertyList::~PropertyList()
+<span style = "background-color:#fdd">{
+  Clear();
+}</span>
+
+/**
+ * Consider the list as changed when any of the properties has changed recently.
+ */
+itk::ModifiedTimeType mitk::PropertyList::GetMTime() const
+<span style = "background-color:#fdd">{
+  for (auto it = m_Properties.cbegin(); it != m_Properties.cend(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    if (it-&gt;second.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      itkWarningMacro(&lt;&lt; "Property '" &lt;&lt; it-&gt;first &lt;&lt; "' contains nothing (nullptr).");
+      continue;</span>
+    }
+<span style = "background-color:#fdd">    if (Superclass::GetMTime() &lt; it-&gt;second-&gt;GetMTime())</span>
+    {
+<span style = "background-color:#fdd">      Modified();
+      break;
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return Superclass::GetMTime();
+}</span>
+
+bool mitk::PropertyList::DeleteProperty(const std::string &amp;propertyKey)
+<span style = "background-color:#fdd">{
+  auto it = m_Properties.find(propertyKey);</span>
+
+<span style = "background-color:#fdd">  if (it != m_Properties.end())</span>
+  {
+<span style = "background-color:#fdd">    it-&gt;second = nullptr;
+    m_Properties.erase(it);
+    Modified();
+    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::PropertyList::Clear()
+<span style = "background-color:#fdd">{
+  auto it = m_Properties.begin(), end = m_Properties.end();
+  while (it != end)</span>
+  {
+<span style = "background-color:#fdd">    it-&gt;second = nullptr;
+    ++it;
+  }
+  m_Properties.clear();
+}</span>
+
+itk::LightObject::Pointer mitk::PropertyList::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result(new Self(*this));
+  result-&gt;UnRegister();
+  return result;
+}</span>
+
+void mitk::PropertyList::ConcatenatePropertyList(PropertyList *pList, bool replace)
+<span style = "background-color:#fdd">{
+  if (pList)</span>
+  {
+<span style = "background-color:#fdd">    const PropertyMap *propertyMap = pList-&gt;GetMap();</span>
+
+<span style = "background-color:#fdd">    for (auto iter = propertyMap-&gt;cbegin(); // m_PropertyList is created in the constructor, so we don't check it here
+         iter != propertyMap-&gt;cend();
+         ++iter)</span>
+    {
+<span style = "background-color:#fdd">      const std::string key = iter-&gt;first;
+      BaseProperty *value = iter-&gt;second;
+      if (replace)</span>
+      {
+<span style = "background-color:#fdd">        ReplaceProperty(key.c_str(), value);
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        SetProperty(key.c_str(), value);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PropertyList::GetBoolProperty(const char *propertyKey, bool &amp;boolValue) const
+<span style = "background-color:#fdd">{
+  BoolProperty *gp = dynamic_cast&lt;BoolProperty *&gt;(GetProperty(propertyKey));
+  if (gp != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    boolValue = gp-&gt;GetValue();
+    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;</span>
+  // Templated Method does not work on Macs
+  // return GetPropertyValue&lt;bool&gt;(propertyKey, boolValue);
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PropertyList::GetIntProperty(const char *propertyKey, int &amp;intValue) const
+<span style = "background-color:#fdd">{
+  IntProperty *gp = dynamic_cast&lt;IntProperty *&gt;(GetProperty(propertyKey));
+  if (gp != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    intValue = gp-&gt;GetValue();
+    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;</span>
+  // Templated Method does not work on Macs
+  // return GetPropertyValue&lt;int&gt;(propertyKey, intValue);
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PropertyList::GetFloatProperty(const char *propertyKey, float &amp;floatValue) const
+<span style = "background-color:#fdd">{
+  FloatProperty *gp = dynamic_cast&lt;FloatProperty *&gt;(GetProperty(propertyKey));
+  if (gp != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    floatValue = gp-&gt;GetValue();
+    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;</span>
+  // Templated Method does not work on Macs
+  // return GetPropertyValue&lt;float&gt;(propertyKey, floatValue);
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PropertyList::GetStringProperty(const char *propertyKey, std::string &amp;stringValue) const
+<span style = "background-color:#fdd">{
+  StringProperty *sp = dynamic_cast&lt;StringProperty *&gt;(GetProperty(propertyKey));
+  if (sp != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    stringValue = sp-&gt;GetValue();
+    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::PropertyList::SetIntProperty(const char *propertyKey, int intValue)
+<span style = "background-color:#fdd">{
+  SetProperty(propertyKey, mitk::IntProperty::New(intValue));
+}</span>
+
+void mitk::PropertyList::SetBoolProperty(const char *propertyKey, bool boolValue)
+<span style = "background-color:#fdd">{
+  SetProperty(propertyKey, mitk::BoolProperty::New(boolValue));
+}</span>
+
+void mitk::PropertyList::SetFloatProperty(const char *propertyKey, float floatValue)
+<span style = "background-color:#fdd">{
+  SetProperty(propertyKey, mitk::FloatProperty::New(floatValue));
+}</span>
+
+void mitk::PropertyList::SetStringProperty(const char *propertyKey, const char *stringValue)
+<span style = "background-color:#fdd">{
+  SetProperty(propertyKey, mitk::StringProperty::New(stringValue));
+}</span>
+
+void mitk::PropertyList::Set(const char *propertyKey, bool boolValue)
+<span style = "background-color:#fdd">{
+  this-&gt;SetBoolProperty(propertyKey, boolValue);
+}</span>
+
+void mitk::PropertyList::Set(const char *propertyKey, int intValue)
+<span style = "background-color:#fdd">{
+  this-&gt;SetIntProperty(propertyKey, intValue);
+}</span>
+
+void mitk::PropertyList::Set(const char *propertyKey, float floatValue)
+<span style = "background-color:#fdd">{
+  this-&gt;SetFloatProperty(propertyKey, floatValue);
+}</span>
+
+void mitk::PropertyList::Set(const char *propertyKey, double doubleValue)
+<span style = "background-color:#fdd">{
+  this-&gt;SetDoubleProperty(propertyKey, doubleValue);
+}</span>
+
+void mitk::PropertyList::Set(const char *propertyKey, const char *stringValue)
+<span style = "background-color:#fdd">{
+  this-&gt;SetStringProperty(propertyKey, stringValue);
+}</span>
+
+void mitk::PropertyList::Set(const char *propertyKey, const std::string &amp;stringValue)
+<span style = "background-color:#fdd">{
+  this-&gt;SetStringProperty(propertyKey, stringValue.c_str());
+}</span>
+
+bool mitk::PropertyList::Get(const char *propertyKey, bool &amp;boolValue) const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetBoolProperty(propertyKey, boolValue);
+}</span>
+
+bool mitk::PropertyList::Get(const char *propertyKey, int &amp;intValue) const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetIntProperty(propertyKey, intValue);
+}</span>
+
+bool mitk::PropertyList::Get(const char *propertyKey, float &amp;floatValue) const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetFloatProperty(propertyKey, floatValue);
+}</span>
+
+bool mitk::PropertyList::Get(const char *propertyKey, double &amp;doubleValue) const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetDoubleProperty(propertyKey, doubleValue);
+}</span>
+
+bool mitk::PropertyList::Get(const char *propertyKey, std::string &amp;stringValue) const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetStringProperty(propertyKey, stringValue);
+}</span>
+
+bool mitk::PropertyList::GetDoubleProperty(const char *propertyKey, double &amp;doubleValue) const
+<span style = "background-color:#fdd">{
+  DoubleProperty *gp = dynamic_cast&lt;DoubleProperty *&gt;(GetProperty(propertyKey));
+  if (gp != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    doubleValue = gp-&gt;GetValue();
+    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::PropertyList::SetDoubleProperty(const char *propertyKey, double doubleValue)
+<span style = "background-color:#fdd">{
+  SetProperty(propertyKey, mitk::DoubleProperty::New(doubleValue));
+}</span></pre>
+	</body>
+</html>

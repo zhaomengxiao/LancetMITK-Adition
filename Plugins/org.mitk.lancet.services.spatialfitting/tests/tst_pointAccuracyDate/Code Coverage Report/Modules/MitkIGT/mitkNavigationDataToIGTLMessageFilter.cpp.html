@@ -1,0 +1,332 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataToIGTLMessageFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationDataToIGTLMessageFilter.h"
+
+#include "igtlQuaternionTrackingDataMessage.h"
+#include "igtlTrackingDataMessage.h"
+#include "igtlTransformMessage.h"
+#include "igtlPositionMessage.h"
+
+#include &lt;mitkInteractionConst.h&gt;
+#include &lt;itksys/SystemTools.hxx&gt;
+
+mitk::NavigationDataToIGTLMessageFilter::NavigationDataToIGTLMessageFilter()
+<span style = "background-color:#fdd">{
+  mitk::IGTLMessage::Pointer output = mitk::IGTLMessage::New();
+  this-&gt;SetNumberOfRequiredOutputs(1);
+  this-&gt;SetNthOutput(0, output.GetPointer());
+  this-&gt;SetNumberOfRequiredInputs(1);</span>
+
+  //  m_OperationMode = Mode3D;
+<span style = "background-color:#fdd">  m_CurrentTimeStep = 0;</span>
+  //  m_RingBufferSize = 50; //the default ring buffer size
+  //  m_NumberForMean = 100;
+<span style = "background-color:#fdd">}</span>
+
+mitk::NavigationDataToIGTLMessageFilter::~NavigationDataToIGTLMessageFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::NavigationDataToIGTLMessageFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  switch (m_OperationMode)</span>
+  {
+  case ModeSendQTDataMsg:
+<span style = "background-color:#fdd">    this-&gt;GenerateDataModeSendQTDataMsg();
+    break;</span>
+  case ModeSendTDataMsg:
+<span style = "background-color:#fdd">    this-&gt;GenerateDataModeSendTDataMsg();
+    break;</span>
+  case ModeSendQTransMsg:
+<span style = "background-color:#fdd">    this-&gt;GenerateDataModeSendQTransMsg();
+    break;</span>
+  case ModeSendTransMsg:
+<span style = "background-color:#fdd">    this-&gt;GenerateDataModeSendTransMsg();</span>
+    break;
+  default:
+    break;
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::NavigationDataToIGTLMessageFilter::SetInput(const NavigationData* nd)
+<span style = "background-color:#fdd">{</span>
+  // Process object is not const-correct so the const_cast is required here
+<span style = "background-color:#fdd">  this-&gt;ProcessObject::SetNthInput(0, const_cast&lt;NavigationData*&gt;(nd));
+  this-&gt;CreateOutputsForAllInputs();
+}</span>
+
+void mitk::NavigationDataToIGTLMessageFilter::SetInput(unsigned int idx, const NavigationData* nd)
+<span style = "background-color:#fdd">{</span>
+  // Process object is not const-correct so the const_cast is required here
+<span style = "background-color:#fdd">  this-&gt;ProcessObject::SetNthInput(idx, const_cast&lt;NavigationData*&gt;(nd));
+  this-&gt;CreateOutputsForAllInputs();
+}</span>
+
+const mitk::NavigationData* mitk::NavigationDataToIGTLMessageFilter::GetInput(void)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;
+  return static_cast&lt;const NavigationData*&gt;(this-&gt;ProcessObject::GetInput(0));
+}</span>
+
+const mitk::NavigationData* mitk::NavigationDataToIGTLMessageFilter::GetInput(unsigned int idx)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;
+  return static_cast&lt;const NavigationData*&gt;(this-&gt;ProcessObject::GetInput(idx));
+}</span>
+
+void mitk::NavigationDataToIGTLMessageFilter::CreateOutputsForAllInputs()
+<span style = "background-color:#fdd">{
+  switch (m_OperationMode)</span>
+  {
+  case ModeSendQTDataMsg:
+    // create one message output for all navigation data inputs
+<span style = "background-color:#fdd">    this-&gt;SetNumberOfIndexedOutputs(1);</span>
+    // set the type for this filter
+<span style = "background-color:#fdd">    this-&gt;SetType("QTDATA");
+    break;</span>
+  case ModeSendTDataMsg:
+    // create one message output for all navigation data inputs
+<span style = "background-color:#fdd">    this-&gt;SetNumberOfIndexedOutputs(1);</span>
+    // set the type for this filter
+<span style = "background-color:#fdd">    this-&gt;SetType("TDATA");
+    break;</span>
+  case ModeSendQTransMsg:
+    // create one message output for all navigation data input together
+<span style = "background-color:#fdd">    this-&gt;SetNumberOfIndexedOutputs(1);</span>
+    // set the type for this filter
+<span style = "background-color:#fdd">    this-&gt;SetType("POSITION");
+    break;</span>
+  case ModeSendTransMsg:
+    // create one message output for each navigation data input
+<span style = "background-color:#fdd">    this-&gt;SetNumberOfIndexedOutputs(this-&gt;GetNumberOfIndexedInputs());</span>
+    // set the type for this filter
+<span style = "background-color:#fdd">    this-&gt;SetType("TRANS");</span>
+    break;
+  default:
+    break;
+  }
+
+<span style = "background-color:#fdd">  for (unsigned int idx = 0; idx &lt; this-&gt;GetNumberOfIndexedOutputs(); ++idx)</span>
+  {
+<span style = "background-color:#fdd">    if (this-&gt;GetOutput(idx) == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      DataObjectPointer newOutput = this-&gt;MakeOutput(idx);
+      this-&gt;SetNthOutput(idx, newOutput);
+    }
+    this-&gt;Modified();
+  }
+}</span>
+
+void ConvertAffineTransformationIntoIGTLMatrix(mitk::AffineTransform3D* trans,
+  igtl::Matrix4x4 igtlTransform)
+<span style = "background-color:#fdd">{
+  const mitk::AffineTransform3D::MatrixType&amp; matrix = trans-&gt;GetMatrix();
+  mitk::Vector3D position = trans-&gt;GetOffset();</span>
+  //copy the data into a matrix type that igtl understands
+<span style = "background-color:#fdd">  for (unsigned int r = 0; r &lt; 3; r++)</span>
+  {
+<span style = "background-color:#fdd">    for (unsigned int c = 0; c &lt; 3; c++)</span>
+    {
+<span style = "background-color:#fdd">      igtlTransform[r][c] = matrix(r, c);
+    }
+    igtlTransform[r][3] = position[r];
+  }
+  for (unsigned int c = 0; c &lt; 3; c++)</span>
+  {
+<span style = "background-color:#fdd">    igtlTransform[3][c] = 0.0;
+  }
+  igtlTransform[3][3] = 1.0;
+}</span>
+
+void mitk::NavigationDataToIGTLMessageFilter::GenerateDataModeSendQTransMsg()
+<span style = "background-color:#fdd">{</span>
+  // for each output message
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; this-&gt;GetNumberOfIndexedInputs(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    mitk::IGTLMessage* output = this-&gt;GetOutput(i);
+    assert(output);
+    const mitk::NavigationData* input = this-&gt;GetInput(i);
+    assert(input);</span>
+    // do not add navigation data to message if input is invalid
+<span style = "background-color:#fdd">    if (input-&gt;IsDataValid() == false)
+      continue;</span>
+
+    //get the navigation data components
+<span style = "background-color:#fdd">    mitk::NavigationData::PositionType pos = input-&gt;GetPosition();
+    mitk::NavigationData::OrientationType ori = input-&gt;GetOrientation();</span>
+
+    //insert this information into the message
+<span style = "background-color:#fdd">    igtl::PositionMessage::Pointer posMsg = igtl::PositionMessage::New();
+    posMsg-&gt;SetPosition(pos[0], pos[1], pos[2]);
+    posMsg-&gt;SetQuaternion(ori[0], ori[1], ori[2], ori[3]);
+    igtl::TimeStamp::Pointer timestamp = ConvertToIGTLTimeStamp(input-&gt;GetIGTTimeStamp());
+    posMsg-&gt;SetTimeStamp(timestamp);
+    posMsg-&gt;SetDeviceName(input-&gt;GetName());
+    posMsg-&gt;Pack();</span>
+
+    //add the igtl message to the mitk::IGTLMessage
+<span style = "background-color:#fdd">    output-&gt;SetMessage(posMsg.GetPointer());
+  }
+}</span>
+
+void mitk::NavigationDataToIGTLMessageFilter::GenerateDataModeSendTransMsg()
+<span style = "background-color:#fdd">{</span>
+  // for each output message
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; this-&gt;GetNumberOfIndexedInputs(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    mitk::IGTLMessage* output = this-&gt;GetOutput(i);
+    assert(output);
+    const mitk::NavigationData* input = this-&gt;GetInput(i);
+    assert(input);</span>
+    // do not add navigation data to message if input is invalid
+<span style = "background-color:#fdd">    if (input-&gt;IsDataValid() == false)
+      continue;</span>
+
+    //get the navigation data components
+<span style = "background-color:#fdd">    mitk::AffineTransform3D::Pointer transform = input-&gt;GetAffineTransform3D();
+    mitk::NavigationData::PositionType position = Point3D(transform-&gt;GetOffset());</span>
+
+    //convert the transform into a igtl type
+    igtl::Matrix4x4 igtlTransform;
+<span style = "background-color:#fdd">    ConvertAffineTransformationIntoIGTLMatrix(transform, igtlTransform);</span>
+
+    //insert this information into the message
+<span style = "background-color:#fdd">    igtl::TransformMessage::Pointer transMsg = igtl::TransformMessage::New();
+    transMsg-&gt;SetMatrix(igtlTransform);
+    transMsg-&gt;SetPosition(position[0], position[1], position[2]);
+    igtl::TimeStamp::Pointer timestamp = ConvertToIGTLTimeStamp(input-&gt;GetIGTTimeStamp());
+    transMsg-&gt;SetTimeStamp(timestamp);
+    transMsg-&gt;SetDeviceName(input-&gt;GetName());
+    transMsg-&gt;Pack();</span>
+
+    //add the igtl message to the mitk::IGTLMessage
+<span style = "background-color:#fdd">    output-&gt;SetMessage(transMsg.GetPointer());
+  }
+}</span>
+igtl::TimeStamp::Pointer mitk::NavigationDataToIGTLMessageFilter::ConvertToIGTLTimeStamp(double IGTTimeStamp)
+<span style = "background-color:#fdd">{
+  igtl::TimeStamp::Pointer timestamp = igtl::TimeStamp::New();
+  timestamp-&gt;SetTime(IGTTimeStamp / 1000, (int)(IGTTimeStamp) % 1000);
+  return timestamp;
+}</span>
+
+void mitk::NavigationDataToIGTLMessageFilter::GenerateDataModeSendQTDataMsg()
+<span style = "background-color:#fdd">{
+  mitk::IGTLMessage* output = this-&gt;GetOutput();
+  assert(output);</span>
+
+  //create a output igtl message
+<span style = "background-color:#fdd">  igtl::QuaternionTrackingDataMessage::Pointer qtdMsg =</span>
+    igtl::QuaternionTrackingDataMessage::New();
+
+<span style = "background-color:#fdd">  mitk::NavigationData::PositionType pos;</span>
+  mitk::NavigationData::OrientationType ori;
+
+<span style = "background-color:#fdd">  for (unsigned int index = 0; index &lt; this-&gt;GetNumberOfIndexedInputs(); index++)</span>
+  {
+<span style = "background-color:#fdd">    const mitk::NavigationData* nd = GetInput(index);
+    assert(nd);</span>
+
+    //get the navigation data components
+<span style = "background-color:#fdd">    pos = nd-&gt;GetPosition();
+    ori = nd-&gt;GetOrientation();</span>
+
+    //insert the information into the tracking element
+<span style = "background-color:#fdd">    igtl::QuaternionTrackingDataElement::Pointer tde =</span>
+      igtl::QuaternionTrackingDataElement::New();
+<span style = "background-color:#fdd">    tde-&gt;SetPosition(pos[0], pos[1], pos[2]);
+    tde-&gt;SetQuaternion(ori[0], ori[1], ori[2], ori[3]);
+    tde-&gt;SetName(nd-&gt;GetName());</span>
+
+    //insert this element into the tracking data message
+<span style = "background-color:#fdd">    qtdMsg-&gt;AddQuaternionTrackingDataElement(tde);</span>
+
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; ConvertToIGTLTimeStamp(nd-&gt;GetIGTTimeStamp());
+  }
+  qtdMsg-&gt;Pack();</span>
+
+  //add the igtl message to the mitk::IGTLMessage
+<span style = "background-color:#fdd">  output-&gt;SetMessage(qtdMsg.GetPointer());
+}</span>
+
+void mitk::NavigationDataToIGTLMessageFilter::GenerateDataModeSendTDataMsg()
+<span style = "background-color:#fdd">{
+  igtl::TrackingDataMessage::Pointer tdMsg = igtl::TrackingDataMessage::New();
+  mitk::IGTLMessage* output = this-&gt;GetOutput(0);
+  assert(output);</span>
+
+  // for each output message
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; this-&gt;GetNumberOfIndexedInputs(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    const mitk::NavigationData* input = this-&gt;GetInput(i);
+    assert(input);</span>
+    // do not add navigation data to message if input is invalid
+<span style = "background-color:#fdd">    if (input-&gt;IsDataValid() == false)
+      continue;</span>
+
+    //get the navigation data components
+<span style = "background-color:#fdd">    mitk::AffineTransform3D::Pointer transform = input-&gt;GetAffineTransform3D();
+    mitk::NavigationData::PositionType position = Point3D(transform-&gt;GetOffset());</span>
+
+    //convert the transform into a igtl type
+    igtl::Matrix4x4 igtlTransform;
+<span style = "background-color:#fdd">    ConvertAffineTransformationIntoIGTLMatrix(transform, igtlTransform);</span>
+
+    //insert this information into the message
+<span style = "background-color:#fdd">    igtl::TrackingDataElement::Pointer tde = igtl::TrackingDataElement::New();
+    tde-&gt;SetMatrix(igtlTransform);
+    tde-&gt;SetPosition(position[0], position[1], position[2]);
+    tde-&gt;SetName(input-&gt;GetName());
+    tde-&gt;SetType(igtl::TrackingDataElement::TYPE_6D);
+    tdMsg-&gt;AddTrackingDataElement(tde);
+  }</span>
+
+  //use time stamp from first input
+<span style = "background-color:#fdd">  igtl::TimeStamp::Pointer timestamp = ConvertToIGTLTimeStamp(this-&gt;GetInput(0)-&gt;GetIGTTimeStamp());
+  tdMsg-&gt;SetTimeStamp(timestamp);</span>
+  //tdMsg-&gt;SetDeviceName("MITK OpenIGTLink Connection");
+<span style = "background-color:#fdd">  tdMsg-&gt;Pack();
+  tdMsg-&gt;SetDeviceName("MITK OpenIGTLink Source");
+  output-&gt;SetMessage(tdMsg.GetPointer());
+}</span>
+
+void mitk::NavigationDataToIGTLMessageFilter::SetOperationMode(OperationMode mode)
+<span style = "background-color:#fdd">{
+  m_OperationMode = mode;
+  this-&gt;Modified();
+}</span>
+
+void mitk::NavigationDataToIGTLMessageFilter::ConnectTo(
+  mitk::NavigationDataSource* UpstreamFilter)
+<span style = "background-color:#fdd">{
+  for (DataObjectPointerArraySizeType i = 0;
+    i &lt; UpstreamFilter-&gt;GetNumberOfOutputs(); i++)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetInput(i, UpstreamFilter-&gt;GetOutput(i));
+  }
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>vtkMitkThickSlicesFilter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+// .NAME vtkMitkThickSlicesFilter - Computes the gradient vector.
+// .SECTION Description
+// vtkMitkThickSlicesFilter computes the gradient vector of an image.  The
+// vector results are stored as scalar components. The Dimensionality
+// determines whether to perform a 2d or 3d gradient. The default is
+// two dimensional XY gradient.  OutputScalarType is always
+// double. Gradient is computed using central differences.
+
+#ifndef __vtkMitkThickSlicesFilter_h
+#define __vtkMitkThickSlicesFilter_h
+
+#include &lt;MitkCoreExports.h&gt;
+
+#include "vtkThreadedImageAlgorithm.h"
+
+class MITKCORE_EXPORT vtkMitkThickSlicesFilter : public vtkThreadedImageAlgorithm
+{
+public:
+  static vtkMitkThickSlicesFilter *New();
+<span style = "background-color:#fdd">  vtkTypeMacro(vtkMitkThickSlicesFilter, vtkThreadedImageAlgorithm);</span>
+  void PrintSelf(ostream &amp;os, vtkIndent indent) override;
+
+  // Description:
+  // Determines how the input is interpreted (set of 2d slices ...)
+<span style = "background-color:#fdd">  vtkSetClampMacro(Dimensionality, int, 2, 3);
+  vtkGetMacro(Dimensionality, int);</span>
+
+  // Description:
+  // Get/Set whether to handle boundaries.  If enabled, boundary
+  // pixels are treated as duplicated so that central differencing
+  // works for the boundary pixels.  If disabled, the output whole
+  // extent of the image is reduced by one pixel.
+<span style = "background-color:#fdd">  vtkSetMacro(HandleBoundaries, int);
+  vtkGetMacro(HandleBoundaries, int);
+  vtkBooleanMacro(HandleBoundaries, int);</span>
+
+  enum
+  {
+    MIP = 0,
+    SUM,
+    WEIGHTED,
+    MINIP,
+    MEAN
+  };
+
+protected:
+  vtkMitkThickSlicesFilter();
+<span style = "background-color:#fdd">  ~vtkMitkThickSlicesFilter() override{};</span>
+
+  int HandleBoundaries;
+  int Dimensionality;
+
+  int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+
+  void ThreadedRequestData(vtkInformation *,
+                           vtkInformationVector **,
+                           vtkInformationVector *,
+                           vtkImageData ***inData,
+                           vtkImageData **outData,
+                           int outExt[6],
+                           int threadId) override;
+
+  int m_CurrentMode;
+
+private:
+  vtkMitkThickSlicesFilter(const vtkMitkThickSlicesFilter &amp;); // Not implemented.
+  void operator=(const vtkMitkThickSlicesFilter &amp;);           // Not implemented.
+
+public:
+<span style = "background-color:#fdd">  void SetThickSliceMode(int mode) { m_CurrentMode = mode; }
+  int GetThickSliceMode() { return m_CurrentMode; }</span>
+};
+
+#endif</pre>
+	</body>
+</html>

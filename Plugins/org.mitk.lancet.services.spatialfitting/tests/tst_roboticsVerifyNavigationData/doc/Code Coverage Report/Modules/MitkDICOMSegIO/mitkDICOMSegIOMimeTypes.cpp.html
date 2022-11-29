@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMSegIOMimeTypes.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMSegIOMimeTypes.h"
+#include "mitkIOMimeTypes.h"
+
+#include &lt;array&gt;
+
+#include &lt;mitkLogMacros.h&gt;
+
+#include &lt;itkGDCMImageIO.h&gt;
+#include &lt;itksys/SystemTools.hxx&gt;
+
+#include &lt;dcmtk/dcmdata/dcfilefo.h&gt;
+#include &lt;dcmtk/dcmdata/dcdeftag.h&gt;
+
+namespace mitk
+{
+  std::vector&lt;CustomMimeType *&gt; MitkDICOMSEGIOMimeTypes::Get()
+<span style = "background-color:#dfd">  {
+    std::vector&lt;CustomMimeType *&gt; mimeTypes;</span>
+
+    // order matters here (descending rank for mime types)
+
+<span style = "background-color:#dfd">    mimeTypes.push_back(DICOMSEG_MIMETYPE().Clone());
+    return mimeTypes;
+  }</span>
+
+
+<span style = "background-color:#dfd">  MitkDICOMSEGIOMimeTypes::MitkDICOMSEGMimeType::MitkDICOMSEGMimeType() : CustomMimeType(DICOMSEG_MIMETYPE_NAME())
+  {
+    this-&gt;AddExtension("dcm");
+    this-&gt;SetCategory(IOMimeTypes::CATEGORY_IMAGES());
+    this-&gt;SetComment("DICOM SEG");
+  }</span>
+
+
+  bool MitkDICOMSEGIOMimeTypes::MitkDICOMSEGMimeType::AppliesTo(const std::string &amp;path) const
+<span style = "background-color:#fdd">  {
+    bool canRead(CustomMimeType::AppliesTo(path));</span>
+
+    // fix for bug 18572
+    // Currently this function is called for writing as well as reading, in that case
+    // the image information can of course not be read
+    // This is a bug, this function should only be called for reading.
+<span style = "background-color:#fdd">    if (!itksys::SystemTools::FileExists(path.c_str()))</span>
+    {
+<span style = "background-color:#fdd">      return canRead;</span>
+    }
+    // end fix for bug 18572
+
+<span style = "background-color:#fdd">    const std::size_t offset = 128;
+    const std::size_t bufferSize = 4;</span>
+
+<span style = "background-color:#fdd">    std::ifstream myfile(path, std::ifstream::binary);</span>
+
+<span style = "background-color:#fdd">    if (!myfile.is_open())
+      return false;</span>
+
+<span style = "background-color:#fdd">    myfile.seekg(0, std::ifstream::end);
+    const auto fileSize = static_cast&lt;std::size_t&gt;(myfile.tellg());</span>
+
+<span style = "background-color:#fdd">    if (fileSize &lt; offset + bufferSize)
+      return false;</span>
+
+<span style = "background-color:#fdd">    myfile.seekg(offset);</span>
+    std::array&lt;char, bufferSize&gt; buffer;
+<span style = "background-color:#fdd">    myfile.read(buffer.data(), bufferSize);</span>
+
+<span style = "background-color:#fdd">    if (0 != std::string(buffer.data(), bufferSize).compare("DICM"))
+      return false;</span>
+
+<span style = "background-color:#fdd">    DcmFileFormat dcmFileFormat;
+    OFCondition status = dcmFileFormat.loadFile(path.c_str());</span>
+
+<span style = "background-color:#fdd">    if (status.bad())</span>
+    {
+<span style = "background-color:#fdd">      canRead = false;</span>
+    }
+
+<span style = "background-color:#fdd">    if (!canRead)</span>
+    {
+<span style = "background-color:#fdd">      return canRead;</span>
+    }
+
+<span style = "background-color:#fdd">    OFString modality;
+    OFString sopClassUID;
+    if (dcmFileFormat.getDataset()-&gt;findAndGetOFString(DCM_Modality, modality).good() &amp;&amp; dcmFileFormat.getDataset()-&gt;findAndGetOFString(DCM_SOPClassUID, sopClassUID).good())</span>
+    {
+<span style = "background-color:#fdd">      if (modality.compare("SEG") == 0)</span>
+      {//atm we could read SegmentationStorage files. Other storage classes with "SEG" modality, e.g. SurfaceSegmentationStorage (1.2.840.10008.5.1.4.1.1.66.5), are not supported yet.
+<span style = "background-color:#fdd">        if (sopClassUID.compare("1.2.840.10008.5.1.4.1.1.66.4") == 0)</span>
+        {
+<span style = "background-color:#fdd">          canRead = true;
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          canRead = false;</span>
+        }
+<span style = "background-color:#fdd">      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        canRead = false;</span>
+      }
+    }
+
+<span style = "background-color:#fdd">    return canRead;
+  }</span>
+
+  MitkDICOMSEGIOMimeTypes::MitkDICOMSEGMimeType *MitkDICOMSEGIOMimeTypes::MitkDICOMSEGMimeType::Clone() const
+<span style = "background-color:#dfd">  {
+    return new MitkDICOMSEGMimeType(*this);
+  }</span>
+
+  MitkDICOMSEGIOMimeTypes::MitkDICOMSEGMimeType MitkDICOMSEGIOMimeTypes::DICOMSEG_MIMETYPE()
+<span style = "background-color:#dfd">  {
+    return MitkDICOMSEGMimeType();
+  }</span>
+
+  std::string MitkDICOMSEGIOMimeTypes::DICOMSEG_MIMETYPE_NAME()
+<span style = "background-color:#dfd">  {</span>
+    // create a unique and sensible name for this mime type
+<span style = "background-color:#dfd">    return IOMimeTypes::DEFAULT_BASE_NAME() + ".image.dicom.seg";
+  }</span>
+}</pre>
+	</body>
+</html>

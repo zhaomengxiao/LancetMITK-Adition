@@ -1,0 +1,279 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModelBase.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkModelBase.h"
+#include "itkMacro.h"
+
+#include &lt;algorithm&gt;
+
+mitk::ModelBase::ParamterScaleMapType
+mitk::ModelBase::GetParameterScales() const
+<span style = "background-color:#fdd">{
+  ParamterScaleMapType result;
+  ParameterNamesType names = GetParameterNames();</span>
+
+<span style = "background-color:#fdd">  for (ParameterNamesType::iterator pos = names.begin(); pos != names.end(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    result.insert(std::make_pair(*pos, 1.0));
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::ModelBase::ParamterUnitMapType
+mitk::ModelBase::GetParameterUnits() const
+<span style = "background-color:#fdd">{
+  ParamterUnitMapType result;
+  ParameterNamesType names = GetParameterNames();</span>
+
+<span style = "background-color:#fdd">  for (ParameterNamesType::iterator pos = names.begin(); pos != names.end(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    result.insert(std::make_pair(*pos, ""));
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::ModelBase::DerivedParamterScaleMapType
+mitk::ModelBase::GetDerivedParameterScales() const
+<span style = "background-color:#fdd">{
+  DerivedParamterScaleMapType result;
+  DerivedParameterNamesType names = this-&gt;GetDerivedParameterNames();</span>
+
+<span style = "background-color:#fdd">  for (DerivedParameterNamesType::iterator pos = names.begin(); pos != names.end(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    result.insert(std::make_pair(*pos, 1.0));
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::ModelBase::DerivedParamterUnitMapType
+mitk::ModelBase::GetDerivedParameterUnits() const
+<span style = "background-color:#fdd">{
+  DerivedParamterUnitMapType result;
+  DerivedParameterNamesType names = this-&gt;GetDerivedParameterNames();</span>
+
+<span style = "background-color:#fdd">  for (DerivedParameterNamesType::iterator pos = names.begin(); pos != names.end(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    result.insert(std::make_pair(*pos, ""));
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+std::string
+mitk::ModelBase::GetModelDisplayName() const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetClassID();
+};</span>
+
+std::string mitk::ModelBase::GetModelType() const
+<span style = "background-color:#fdd">{
+  return "Unkown";
+};</span>
+
+mitk::ModelBase::FunctionStringType mitk::ModelBase::GetFunctionString() const
+<span style = "background-color:#fdd">{
+  return "";
+};</span>
+
+mitk::ModelBase::ModellClassIDType mitk::ModelBase::GetClassID() const
+<span style = "background-color:#dfd">{
+  return this-&gt;GetNameOfClass();
+};</span>
+
+std::string mitk::ModelBase::GetXName() const
+<span style = "background-color:#fdd">{
+  return "";
+};</span>
+
+std::string mitk::ModelBase::GetXAxisName() const
+<span style = "background-color:#fdd">{
+  return "";
+};</span>
+
+std::string mitk::ModelBase::GetXAxisUnit() const
+<span style = "background-color:#fdd">{
+  return "";
+};</span>
+
+std::string mitk::ModelBase::GetYAxisName() const
+<span style = "background-color:#fdd">{
+  return "";
+};</span>
+
+std::string mitk::ModelBase::GetYAxisUnit() const
+<span style = "background-color:#fdd">{
+  return "";
+}</span>
+
+mitk::ModelBase::ModelBase()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::ModelBase::~ModelBase()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::ModelBase::ModelResultType mitk::ModelBase::GetSignal(const ParametersType&amp; parameters) const
+<span style = "background-color:#fdd">{
+  if (parameters.size() != this-&gt;GetNumberOfParameters())</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("Passed parameter set has wrong size for model. Cannot evaluate model. Required size: "</span>
+                      &lt;&lt; this-&gt;GetNumberOfParameters() &lt;&lt; "; passed parameters: " &lt;&lt; parameters);
+  }
+
+<span style = "background-color:#fdd">  std::string error;</span>
+
+<span style = "background-color:#fdd">  if (!ValidateModel(error))</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("Cannot evaluate model and return signal. Model is in an invalid state. Validation error: "</span>
+                      &lt;&lt; error);
+  }
+
+<span style = "background-color:#fdd">  ModelResultType signal = ComputeModelfunction(parameters);</span>
+
+<span style = "background-color:#fdd">  return signal;
+}</span>
+
+bool mitk::ModelBase::ValidateModel(std::string&amp; /*error*/) const
+<span style = "background-color:#fdd">{
+  return true;
+};</span>
+
+
+void mitk::ModelBase::SetTimeGrid(const TimeGridType&amp; grid)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("setting TimeGrid to " &lt;&lt; grid);</span>
+
+<span style = "background-color:#fdd">  if (grid.GetSize() == 0)</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("Time Grid Vector is empty! Set valid time grid");</span>
+  }
+
+<span style = "background-color:#fdd">  if (this-&gt;m_TimeGrid != grid)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_TimeGrid = grid;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ModelBase::PrintSelf(std::ostream&amp; os, ::itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; "Time grid: " &lt;&lt; m_TimeGrid;
+};</span>
+
+void mitk::ModelBase::SetStaticParameters(const StaticParameterMapType&amp; parameters,
+    bool allParameters)
+<span style = "background-color:#fdd">{
+  ParameterNamesType names = this-&gt;GetStaticParameterNames();</span>
+
+<span style = "background-color:#fdd">  if ((parameters.size() != names.size()) &amp;&amp; allParameters)</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("Cannot set static parameter of model. Passed parameters does not define all parameters correctly. Required size:"</span>
+                      &lt;&lt; names.size() &lt;&lt; "; passed size: " &lt;&lt; parameters.size());
+  }
+
+<span style = "background-color:#fdd">  for (StaticParameterMapType::const_iterator pos = parameters.begin(); pos != parameters.end();
+       ++pos)</span>
+  {
+<span style = "background-color:#fdd">    ParameterNamesType::iterator finding = std::find(names.begin(), names.end(), pos-&gt;first);</span>
+
+<span style = "background-color:#fdd">    if (finding == names.end())</span>
+    {
+<span style = "background-color:#fdd">      itkExceptionMacro("Cannot set static parameter of model. Passed parameter name is not in the list of valid names. Passed name: "</span>
+                        &lt;&lt; pos-&gt;first);
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  //Setting is done in an other loop to ensure that the state of the model only changes if all values are valid.
+<span style = "background-color:#fdd">  for (StaticParameterMapType::const_iterator pos = parameters.begin(); pos != parameters.end();
+       ++pos)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetStaticParameter(pos-&gt;first, pos-&gt;second);
+  }</span>
+
+<span style = "background-color:#fdd">};</span>
+
+mitk::ModelBase::StaticParameterMapType mitk::ModelBase::GetStaticParameters() const
+<span style = "background-color:#fdd">{
+  StaticParameterMapType result;
+  ParameterNamesType names = this-&gt;GetStaticParameterNames();</span>
+
+<span style = "background-color:#fdd">  for (ParameterNamesType::const_iterator pos = names.begin(); pos != names.end(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    StaticParameterValuesType values = this-&gt;GetStaticParameterValue(*pos);
+    result.insert(std::make_pair(*pos, values));
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::ModelBase::DerivedParameterNamesType mitk::ModelBase::GetDerivedParameterNames() const
+<span style = "background-color:#fdd">{
+  ParameterNamesType emptyResult;
+  return emptyResult;
+};</span>
+
+mitk::ModelBase::ParamterUnitMapType
+mitk::ModelBase::GetStaticParameterUnits() const
+<span style = "background-color:#fdd">{
+  ParamterUnitMapType result;
+  ParameterNamesType names = GetStaticParameterNames();</span>
+
+<span style = "background-color:#fdd">  for (ParameterNamesType::iterator pos = names.begin(); pos != names.end(); ++pos)</span>
+  {
+<span style = "background-color:#fdd">    result.insert(std::make_pair(*pos, ""));
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::ModelBase::DerivedParametersSizeType mitk::ModelBase::GetNumberOfDerivedParameters() const
+<span style = "background-color:#fdd">{
+  return 0;
+};</span>
+
+mitk::ModelBase::DerivedParameterMapType mitk::ModelBase::GetDerivedParameters(
+  const mitk::ModelBase::ParametersType&amp; parameters) const
+<span style = "background-color:#fdd">{
+  if (parameters.size() != this-&gt;GetNumberOfParameters())</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("Cannot compute derived parametes. Passed parameters does not define all parameters correctly. Required size:"</span>
+                      &lt;&lt; this-&gt;GetNumberOfParameters() &lt;&lt; "; passed size: " &lt;&lt; parameters.size());
+  }
+
+<span style = "background-color:#fdd">  return ComputeDerivedParameters(parameters);
+};</span>
+
+mitk::ModelBase::DerivedParameterMapType mitk::ModelBase::ComputeDerivedParameters(
+  const mitk::ModelBase::ParametersType&amp; /*parameters*/) const
+<span style = "background-color:#fdd">{
+  DerivedParameterMapType emptyResult;
+  return emptyResult;
+};</span></pre>
+	</body>
+</html>

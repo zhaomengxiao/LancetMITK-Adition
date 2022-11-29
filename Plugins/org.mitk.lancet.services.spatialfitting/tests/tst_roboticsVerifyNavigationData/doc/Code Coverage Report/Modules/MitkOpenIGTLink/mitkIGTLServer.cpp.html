@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIGTLServer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkIGTLServer.h"
+#include &lt;cstdio&gt;
+
+#include &lt;itksys/SystemTools.hxx&gt;
+
+#include &lt;igtlServerSocket.h&gt;
+#include &lt;igtlTrackingDataMessage.h&gt;
+#include &lt;igtlImageMessage.h&gt;
+#include &lt;igtl_status.h&gt;
+
+mitk::IGTLServer::IGTLServer(bool ReadFully) :
+<span style = "background-color:#fdd">IGTLDevice(ReadFully)
+{
+}</span>
+
+mitk::IGTLServer::~IGTLServer()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::IGTLServer::OpenConnection()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetState() != Setup)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrowException(mitk::Exception) &lt;&lt;</span>
+      "Can only try to create a server if in setup mode";
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  int portNumber = this-&gt;GetPortNumber();</span>
+
+<span style = "background-color:#fdd">  if (portNumber == -1)</span>
+  {
+    //port number was not correct
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+  //create a new server socket
+<span style = "background-color:#fdd">  m_Socket = igtl::ServerSocket::New();</span>
+
+  //try to create the igtl server
+<span style = "background-color:#fdd">  int response = dynamic_cast&lt;igtl::ServerSocket*&gt;(m_Socket.GetPointer())-&gt;</span>
+    CreateServer(portNumber);
+
+  //check the response
+<span style = "background-color:#fdd">  if (response != 0)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrowException(mitk::Exception) &lt;&lt;</span>
+      "The server could not be created. Port: " &lt;&lt; portNumber;
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+  // everything is initialized and connected so the communication can be started
+<span style = "background-color:#fdd">  this-&gt;SetState(Ready);</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+bool mitk::IGTLServer::CloseConnection()
+<span style = "background-color:#fdd">{</span>
+  //remove all registered clients
+<span style = "background-color:#fdd">  m_SentListMutex.lock();
+  m_ReceiveListMutex.lock();
+  SocketListType allRegisteredSockets(m_RegisteredClients);
+  m_SentListMutex.unlock();
+  m_ReceiveListMutex.unlock();
+  this-&gt;StopCommunicationWithSocket(allRegisteredSockets);</span>
+
+<span style = "background-color:#fdd">  return mitk::IGTLDevice::CloseConnection();
+}</span>
+
+void mitk::IGTLServer::Connect()
+<span style = "background-color:#fdd">{
+  igtl::Socket::Pointer socket;</span>
+  //check if another igtl device wants to connect to this socket
+<span style = "background-color:#fdd">  socket =</span>
+    ((igtl::ServerSocket*)(this-&gt;m_Socket.GetPointer()))-&gt;WaitForConnection(1);
+  //if there is a new connection the socket is not null
+<span style = "background-color:#fdd">  if (socket.IsNotNull())</span>
+  {
+    //add the new client socket to the list of registered clients
+<span style = "background-color:#fdd">    m_SentListMutex.lock();
+    m_ReceiveListMutex.lock();
+    this-&gt;m_RegisteredClients.push_back(socket);
+    m_SentListMutex.unlock();
+    m_ReceiveListMutex.unlock();</span>
+    //inform observers about this new client
+<span style = "background-color:#fdd">    this-&gt;InvokeEvent(NewClientConnectionEvent());
+    MITK_INFO("IGTLServer") &lt;&lt; "Connected to a new client: " &lt;&lt; socket;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTLServer::Receive()
+<span style = "background-color:#fdd">{
+  unsigned int status = IGTL_STATUS_OK;
+  SocketListType socketsToBeRemoved;</span>
+
+  //the server can be connected with several clients, therefore it has to check
+  //all registered clients
+<span style = "background-color:#fdd">  SocketListIteratorType it;
+  m_ReceiveListMutex.lock();
+  auto it_end = this-&gt;m_RegisteredClients.end();
+  for (it = this-&gt;m_RegisteredClients.begin(); it != it_end; ++it)</span>
+  {
+    //it is possible that ReceivePrivate detects that the current socket is
+    //already disconnected. Therefore, it is necessary to remove this socket
+    //from the registered clients list
+<span style = "background-color:#fdd">    status = this-&gt;ReceivePrivate(*it);
+    if (status == IGTL_STATUS_NOT_PRESENT)</span>
+    {
+      //remember this socket for later, it is not a good idea to remove it
+      //from the list directly because we iterate over the list at this point
+<span style = "background-color:#fdd">      socketsToBeRemoved.push_back(*it);
+      MITK_WARN("IGTLServer") &lt;&lt; "Lost connection to a client socket. ";
+    }
+    else if (status != 1)</span>
+    {
+<span style = "background-color:#fdd">      MITK_DEBUG("IGTLServer") &lt;&lt; "IGTL Message with status: " &lt;&lt; status;</span>
+    }
+<span style = "background-color:#fdd">  }
+  m_ReceiveListMutex.unlock();
+  if (socketsToBeRemoved.size() &gt; 0)</span>
+  {
+    //remove the sockets that are not connected anymore
+<span style = "background-color:#fdd">    this-&gt;StopCommunicationWithSocket(socketsToBeRemoved);</span>
+    //inform observers about loosing the connection to these sockets
+<span style = "background-color:#fdd">    this-&gt;InvokeEvent(LostConnectionEvent());</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTLServer::Send()
+<span style = "background-color:#fdd">{</span>
+  //get the latest message from the queue
+<span style = "background-color:#fdd">  mitk::IGTLMessage::Pointer curMessage = this-&gt;m_MessageQueue-&gt;PullSendMessage();</span>
+
+  // there is no message =&gt; return
+<span style = "background-color:#fdd">  if (curMessage.IsNull())
+    return;</span>
+
+  //the server can be connected with several clients, therefore it has to check
+  //all registered clients
+  //sending a message to all registered clients might not be the best solution,
+  //it could be better to store the client together with the requested type. Then
+  //the data would be send to the appropriate client and to noone else.
+  //(I know it is no excuse but PLUS is doing exactly the same, they broadcast
+  //everything)
+<span style = "background-color:#fdd">  m_SentListMutex.lock();
+  SocketListIteratorType it;
+  auto it_end =</span>
+    this-&gt;m_RegisteredClients.end();
+<span style = "background-color:#fdd">  for (it = this-&gt;m_RegisteredClients.begin(); it != it_end; ++it)</span>
+  {
+    //maybe there should be a check here if the current socket is still active
+<span style = "background-color:#fdd">    this-&gt;SendMessagePrivate(curMessage, *it);
+    MITK_DEBUG("IGTLServer") &lt;&lt; "Sent IGTL Message";
+  }
+  m_SentListMutex.unlock();
+}</span>
+
+void mitk::IGTLServer::StopCommunicationWithSocket(
+  SocketListType&amp; toBeRemovedSockets)
+<span style = "background-color:#fdd">{
+  for (auto i = toBeRemovedSockets.begin(); i != toBeRemovedSockets.end(); i++)
+    this-&gt;StopCommunicationWithSocket(*i);
+}</span>
+
+void mitk::IGTLServer::StopCommunicationWithSocket(igtl::Socket* client)
+<span style = "background-color:#fdd">{
+  m_SentListMutex.lock();
+  m_ReceiveListMutex.lock();
+  auto i = m_RegisteredClients.begin();
+  auto end = m_RegisteredClients.end();
+  while (i != end)</span>
+  {
+<span style = "background-color:#fdd">    if ((*i) == client)</span>
+    {
+      //    //close the socket
+<span style = "background-color:#fdd">      (*i)-&gt;CloseSocket();</span>
+      //and remove it from the list
+<span style = "background-color:#fdd">      i = this-&gt;m_RegisteredClients.erase(i);
+      MITK_INFO("IGTLServer") &lt;&lt; "Removed client socket from server client list.";
+      break;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      ++i;</span>
+    }
+<span style = "background-color:#fdd">  }
+  m_SentListMutex.unlock();
+  m_ReceiveListMutex.unlock();
+}</span>
+
+unsigned int mitk::IGTLServer::GetNumberOfConnections()
+<span style = "background-color:#fdd">{
+  return this-&gt;m_RegisteredClients.size();
+}</span></pre>
+	</body>
+</html>

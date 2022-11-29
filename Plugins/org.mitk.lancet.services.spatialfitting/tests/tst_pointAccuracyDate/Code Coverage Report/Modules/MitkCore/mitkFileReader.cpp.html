@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkFileReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkFileReader.h"
+
+<span style = "background-color:#fdd">mitk::FileReader::FileReader() : m_CanReadFromMemory(false), m_ReadFromMemory(false)
+{
+}</span>
+
+mitk::FileReader::~FileReader()
+<span style = "background-color:#fdd">{
+}</span>
+bool mitk::FileReader::CanReadFromMemory()
+<span style = "background-color:#fdd">{
+  return m_CanReadFromMemory;
+}</span>
+
+void mitk::FileReader::SetReadFromMemory(bool read)
+<span style = "background-color:#fdd">{
+  m_ReadFromMemory = read;
+}</span>
+bool mitk::FileReader::GetReadFromMemory()
+<span style = "background-color:#fdd">{
+  return m_ReadFromMemory;
+}</span>
+void mitk::FileReader::SetMemoryBuffer(const char *dataArray, unsigned int size)
+<span style = "background-color:#fdd">{
+  m_MemoryBuffer = dataArray;
+  m_MemorySize = size;
+}</span></pre>
+	</body>
+</html>

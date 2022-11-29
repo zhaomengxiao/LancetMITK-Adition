@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>itkImportMitkImageContainer.txx</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef _itkImportMitkImageContainer_txx
+#define _itkImportMitkImageContainer_txx
+
+#include "itkImportMitkImageContainer.h"
+
+namespace itk
+{
+  template &lt;typename TElementIdentifier, typename TElement&gt;
+<span style = "background-color:#fdd">  ImportMitkImageContainer&lt;TElementIdentifier, TElement&gt;::ImportMitkImageContainer() : m_imageAccess(nullptr)
+  {
+  }</span>
+
+  template &lt;typename TElementIdentifier, typename TElement&gt;
+  ImportMitkImageContainer&lt;TElementIdentifier, TElement&gt;::~ImportMitkImageContainer()
+<span style = "background-color:#fdd">  {
+    if (m_imageAccess != nullptr)
+      delete m_imageAccess;
+    m_imageAccess = nullptr;
+  }</span>
+
+  /*
+  template &lt;typename TElementIdentifier, typename TElement&gt;
+  void
+  ImportMitkImageContainer&lt; TElementIdentifier , TElement &gt;
+  ::SetImageDataItem(mitk::ImageDataItem* imageDataItem)
+  {
+    m_ImageDataItem = imageDataItem;
+
+    this-&gt;SetImportPointer( (TElement*) m_ImageDataItem-&gt;GetData(), m_ImageDataItem-&gt;GetSize()/sizeof(Element), false);
+
+    this-&gt;Modified();
+  }
+  */
+
+  template &lt;typename TElementIdentifier, typename TElement&gt;
+  void ImportMitkImageContainer&lt;TElementIdentifier, TElement&gt;::SetImageAccessor(mitk::ImageAccessorBase *imageAccess,
+                                                                                size_t noOfBytes)
+<span style = "background-color:#fdd">  {
+    m_imageAccess = imageAccess;</span>
+
+<span style = "background-color:#fdd">    this-&gt;SetImportPointer((TElement *)m_imageAccess-&gt;GetData(), noOfBytes / sizeof(Element), false);</span>
+
+<span style = "background-color:#fdd">    this-&gt;Modified();
+  }</span>
+
+  template &lt;typename TElementIdentifier, typename TElement&gt;
+  void ImportMitkImageContainer&lt;TElementIdentifier, TElement&gt;::PrintSelf(std::ostream &amp;os, Indent indent) const
+<span style = "background-color:#fdd">  {
+    Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "ImageAccessor: " &lt;&lt; m_imageAccess &lt;&lt; std::endl;
+  }</span>
+
+} // end namespace itk
+
+#endif</pre>
+	</body>
+</html>

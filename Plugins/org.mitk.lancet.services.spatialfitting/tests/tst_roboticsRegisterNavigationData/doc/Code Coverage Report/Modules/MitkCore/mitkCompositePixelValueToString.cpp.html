@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCompositePixelValueToString.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkCompositePixelValueToString.h&gt;
+#include &lt;mitkImageAccessByItk.h&gt;
+#include &lt;sstream&gt;
+
+namespace mitk
+{
+  // The output operator for RGBA in ITK does not properly cast to printable type,
+  // like the RGB pixel output operator. This here is an indirection to fix this until
+  // ITK-3501 is fixed.
+  template &lt;typename TComponent&gt;
+  std::ostream &amp;operator&lt;&lt;(std::ostream &amp;os, const itk::RGBPixel&lt;TComponent&gt; &amp;c)
+<span style = "background-color:#fdd">  {
+    return itk::operator&lt;&lt;(os, c);
+  }</span>
+
+  template &lt;typename TComponent&gt;
+  std::ostream &amp;operator&lt;&lt;(std::ostream &amp;os, const itk::RGBAPixel&lt;TComponent&gt; &amp;c)
+<span style = "background-color:#fdd">  {
+    os &lt;&lt; static_cast&lt;typename itk::NumericTraits&lt;TComponent&gt;::PrintType&gt;(c[0]) &lt;&lt; "  ";
+    os &lt;&lt; static_cast&lt;typename itk::NumericTraits&lt;TComponent&gt;::PrintType&gt;(c[1]) &lt;&lt; "  ";
+    os &lt;&lt; static_cast&lt;typename itk::NumericTraits&lt;TComponent&gt;::PrintType&gt;(c[2]) &lt;&lt; "  ";
+    os &lt;&lt; static_cast&lt;typename itk::NumericTraits&lt;TComponent&gt;::PrintType&gt;(c[3]);
+    return os;
+  }</span>
+
+  template &lt;typename TPixel, unsigned int VImageDimension&gt;
+  static void ConvertCompositePixelValueToString(itk::Image&lt;TPixel, VImageDimension&gt; *image,
+                                                 itk::Index&lt;3&gt; index3,
+                                                 std::string &amp;string)
+<span style = "background-color:#fdd">  {</span>
+    itk::Index&lt;VImageDimension&gt; index;
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; VImageDimension; ++i)
+      index[i] = index3[i];</span>
+
+<span style = "background-color:#fdd">    if (image-&gt;GetLargestPossibleRegion().IsInside(index))</span>
+    {
+<span style = "background-color:#fdd">      std::ostringstream stream;
+      mitk::operator&lt;&lt;(stream, image-&gt;GetPixel(index));</span>
+
+<span style = "background-color:#fdd">      string = stream.str();
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      string = "Out of bounds";</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+}
+
+std::string mitk::ConvertCompositePixelValueToString(Image::Pointer image, itk::Index&lt;3&gt; index)
+<span style = "background-color:#fdd">{
+  std::string string;</span>
+
+<span style = "background-color:#fdd">  if (image.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Image is null.";</span>
+  }
+
+<span style = "background-color:#fdd">  AccessFixedPixelTypeByItk_n(</span>
+    image, ConvertCompositePixelValueToString, MITK_ACCESSBYITK_COMPOSITE_PIXEL_TYPES_SEQ, (index, string));
+
+<span style = "background-color:#fdd">  return string;
+}</span></pre>
+	</body>
+</html>

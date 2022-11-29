@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkThinPlateSplineCurvedGeometry.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkThinPlateSplineCurvedGeometry.h"
+#include &lt;vtkPoints.h&gt;
+#include &lt;vtkThinPlateSplineTransform.h&gt;
+
+<span style = "background-color:#fdd">mitk::ThinPlateSplineCurvedGeometry::ThinPlateSplineCurvedGeometry() : Superclass()
+{
+  m_InterpolatingAbstractTransform = m_ThinPlateSplineTransform = vtkThinPlateSplineTransform::New();</span>
+
+<span style = "background-color:#fdd">  m_VtkTargetLandmarks = vtkPoints::New();
+  m_VtkProjectedLandmarks = vtkPoints::New();
+  m_ThinPlateSplineTransform-&gt;SetInverseIterations(5000);
+}</span>
+
+mitk::ThinPlateSplineCurvedGeometry::ThinPlateSplineCurvedGeometry(const ThinPlateSplineCurvedGeometry &amp;other)
+<span style = "background-color:#fdd">  : Superclass(other)
+{
+  this-&gt;SetSigma(other.GetSigma());
+}</span>
+
+mitk::ThinPlateSplineCurvedGeometry::~ThinPlateSplineCurvedGeometry()
+<span style = "background-color:#fdd">{</span>
+  // don't need to delete m_ThinPlateSplineTransform, because it is
+  // the same as m_InterpolatingAbstractTransform, which will be deleted
+  // by the superclass.
+
+<span style = "background-color:#fdd">  if (m_VtkTargetLandmarks != nullptr)
+    m_VtkTargetLandmarks-&gt;Delete();
+  if (m_VtkProjectedLandmarks != nullptr)
+    m_VtkProjectedLandmarks-&gt;Delete();
+}</span>
+
+bool mitk::ThinPlateSplineCurvedGeometry::IsValid() const
+<span style = "background-color:#fdd">{
+  return m_TargetLandmarks.IsNotNull() &amp;&amp; (m_TargetLandmarks-&gt;Size() &gt;= 3) &amp;&amp; m_LandmarkProjector.IsNotNull();
+}</span>
+
+void mitk::ThinPlateSplineCurvedGeometry::SetSigma(double sigma)
+<span style = "background-color:#fdd">{
+  m_ThinPlateSplineTransform-&gt;SetSigma(sigma);
+}</span>
+
+double mitk::ThinPlateSplineCurvedGeometry::GetSigma() const
+<span style = "background-color:#fdd">{
+  return m_ThinPlateSplineTransform-&gt;GetSigma();
+}</span>
+
+void mitk::ThinPlateSplineCurvedGeometry::ComputeGeometry()
+<span style = "background-color:#fdd">{
+  Superclass::ComputeGeometry();</span>
+
+  const mitk::PointSet::DataType::PointsContainer *finalTargetLandmarks, *projectedTargetLandmarks;
+
+<span style = "background-color:#fdd">  finalTargetLandmarks = m_LandmarkProjector-&gt;GetFinalTargetLandmarks();
+  projectedTargetLandmarks = m_LandmarkProjector-&gt;GetProjectedLandmarks();</span>
+
+<span style = "background-color:#fdd">  mitk::PointSet::DataType::PointsContainer::ConstIterator targetIt, projectedIt;</span>
+
+<span style = "background-color:#fdd">  targetIt = finalTargetLandmarks-&gt;Begin();
+  projectedIt = projectedTargetLandmarks-&gt;Begin();</span>
+
+  // initialize Thin-Plate-Spline
+<span style = "background-color:#fdd">  m_VtkTargetLandmarks-&gt;Reset();
+  m_VtkProjectedLandmarks-&gt;Reset();</span>
+  vtkIdType id;
+<span style = "background-color:#fdd">  int size = finalTargetLandmarks-&gt;Size();
+  for (id = 0; id &lt; size; ++id, ++targetIt, ++projectedIt)</span>
+  {
+<span style = "background-color:#fdd">    const mitk::PointSet::PointType &amp;target = targetIt-&gt;Value();
+    m_VtkTargetLandmarks-&gt;InsertPoint(id, target[0], target[1], target[2]);
+    const mitk::PointSet::PointType &amp;projected = projectedIt-&gt;Value();
+    m_VtkProjectedLandmarks-&gt;InsertPoint(id, projected[0], projected[1], projected[2]);
+  }
+  m_VtkTargetLandmarks-&gt;Modified();
+  m_VtkProjectedLandmarks-&gt;Modified();</span>
+
+<span style = "background-color:#fdd">  m_ThinPlateSplineTransform-&gt;SetSourceLandmarks(m_VtkProjectedLandmarks);
+  m_ThinPlateSplineTransform-&gt;SetTargetLandmarks(m_VtkTargetLandmarks);
+}</span>
+
+itk::LightObject::Pointer mitk::ThinPlateSplineCurvedGeometry::InternalClone() const
+<span style = "background-color:#fdd">{
+  mitk::BaseGeometry::Pointer newGeometry = new Self(*this);
+  newGeometry-&gt;UnRegister();
+  return newGeometry.GetPointer();
+}</span></pre>
+	</body>
+</html>

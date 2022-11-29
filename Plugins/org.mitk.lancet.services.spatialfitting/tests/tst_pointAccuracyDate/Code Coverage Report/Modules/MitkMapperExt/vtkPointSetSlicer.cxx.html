@@ -1,0 +1,642 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>vtkPointSetSlicer.cxx</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include &lt;algorithm&gt;
+#include &lt;vector&gt;
+
+#include "vtkPointSetSlicer.h"
+
+#include "vtkCellArray.h"
+#include "vtkCellArrayIterator.h"
+#include "vtkCellData.h"
+#include "vtkCutter.h"
+#include "vtkDataSet.h"
+#include "vtkDoubleArray.h"
+#include "vtkFloatArray.h"
+#include "vtkGenericCell.h"
+#include "vtkMergePoints.h"
+#include "vtkObjectFactory.h"
+#include "vtkPlane.h"
+#include "vtkPointData.h"
+#include "vtkPolyData.h"
+
+#include "vtkUnstructuredGrid.h"
+
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
+
+<span style = "background-color:#fdd">vtkStandardNewMacro(vtkPointSetSlicer);</span>
+
+// Construct with user-specified implicit function; initial value of 0.0; and
+// generating cut scalars turned off.
+vtkPointSetSlicer::vtkPointSetSlicer(vtkPlane *cf)
+<span style = "background-color:#fdd">{
+  this-&gt;SlicePlane = cf;
+  this-&gt;GenerateCutScalars = 0;
+  this-&gt;Locator = nullptr;</span>
+
+<span style = "background-color:#fdd">  this-&gt;Cutter = vtkCutter::New();
+  this-&gt;Cutter-&gt;GenerateValues(1, 0, 1);
+}</span>
+
+vtkPointSetSlicer::~vtkPointSetSlicer()
+<span style = "background-color:#fdd">{
+  this-&gt;SetSlicePlane(nullptr);
+  if (this-&gt;Locator)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;Locator-&gt;UnRegister(this);
+    this-&gt;Locator = nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;Cutter-&gt;Delete();
+}</span>
+
+void vtkPointSetSlicer::SetSlicePlane(vtkPlane *plane)
+<span style = "background-color:#fdd">{
+  if (this-&gt;SlicePlane == plane)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+<span style = "background-color:#fdd">  if (this-&gt;SlicePlane)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SlicePlane-&gt;UnRegister(this);
+    this-&gt;SlicePlane = nullptr;</span>
+  }
+<span style = "background-color:#fdd">  if (plane)</span>
+  {
+<span style = "background-color:#fdd">    plane-&gt;Register(this);
+    this-&gt;Cutter-&gt;SetCutFunction(plane);</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;SlicePlane = plane;
+  this-&gt;Modified();
+}</span>
+
+// Overload standard modified time function. If cut functions is modified,
+// or contour values modified, then this object is modified as well.
+vtkMTimeType vtkPointSetSlicer::GetMTime()
+<span style = "background-color:#fdd">{
+  vtkMTimeType mTime = this-&gt;Superclass::GetMTime();</span>
+  vtkMTimeType time;
+
+<span style = "background-color:#fdd">  if (this-&gt;SlicePlane != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    time = this-&gt;SlicePlane-&gt;GetMTime();
+    mTime = (time &gt; mTime ? time : mTime);</span>
+  }
+
+<span style = "background-color:#fdd">  if (this-&gt;Locator != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    time = this-&gt;Locator-&gt;GetMTime();
+    mTime = (time &gt; mTime ? time : mTime);</span>
+  }
+
+<span style = "background-color:#fdd">  return mTime;
+}</span>
+
+int vtkPointSetSlicer::RequestData(vtkInformation * /*request*/,
+                                   vtkInformationVector **inputVector,
+                                   vtkInformationVector *outputVector)
+<span style = "background-color:#fdd">{</span>
+  // get the info objects
+<span style = "background-color:#fdd">  vtkInformation *inInfo = inputVector[0]-&gt;GetInformationObject(0);
+  vtkInformation *outInfo = outputVector-&gt;GetInformationObject(0);</span>
+
+  // get the input and ouptut
+<span style = "background-color:#fdd">  vtkDataSet *input = vtkDataSet::SafeDownCast(inInfo-&gt;Get(vtkDataObject::DATA_OBJECT()));
+  vtkPolyData *output = vtkPolyData::SafeDownCast(outInfo-&gt;Get(vtkDataObject::DATA_OBJECT()));</span>
+
+<span style = "background-color:#fdd">  vtkDebugMacro(&lt;&lt; "Executing cutter");</span>
+
+<span style = "background-color:#fdd">  if (!this-&gt;SlicePlane)</span>
+  {
+<span style = "background-color:#fdd">    vtkErrorMacro("No slice plane specified");
+    return 0;</span>
+  }
+
+<span style = "background-color:#fdd">  if (input-&gt;GetNumberOfPoints() &lt; 1)</span>
+  {
+<span style = "background-color:#fdd">    return 1;</span>
+  }
+
+<span style = "background-color:#fdd">  if (input-&gt;GetDataObjectType() == VTK_STRUCTURED_POINTS || input-&gt;GetDataObjectType() == VTK_IMAGE_DATA)</span>
+  {
+<span style = "background-color:#fdd">    if (input-&gt;GetCell(0) &amp;&amp; input-&gt;GetCell(0)-&gt;GetCellDimension() &gt;= 3)</span>
+    {
+      // this-&gt;StructuredPointsCutter(input, output, request, inputVector, outputVector);
+<span style = "background-color:#fdd">      return 1;</span>
+    }
+  }
+<span style = "background-color:#fdd">  if (input-&gt;GetDataObjectType() == VTK_STRUCTURED_GRID)</span>
+  {
+<span style = "background-color:#fdd">    if (input-&gt;GetCell(0))</span>
+    {
+<span style = "background-color:#fdd">      int dim = input-&gt;GetCell(0)-&gt;GetCellDimension();</span>
+      // only do 3D structured grids (to be extended in the future)
+<span style = "background-color:#fdd">      if (dim &gt;= 3)</span>
+      {
+        // this-&gt;StructuredGridCutter(input, output);
+<span style = "background-color:#fdd">        return 1;</span>
+      }
+    }
+  }
+<span style = "background-color:#fdd">  if (input-&gt;GetDataObjectType() == VTK_RECTILINEAR_GRID)</span>
+  {
+    // this-&gt;RectilinearGridCutter(input, output);
+<span style = "background-color:#fdd">    return 1;</span>
+  }
+
+<span style = "background-color:#fdd">  if (input-&gt;GetDataObjectType() == VTK_UNSTRUCTURED_GRID)</span>
+  {
+<span style = "background-color:#fdd">    vtkDebugMacro(&lt;&lt; "Executing Unstructured Grid Cutter");
+    this-&gt;UnstructuredGridCutter(input, output);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    vtkDebugMacro(&lt;&lt; "Executing DataSet Cutter");</span>
+    // this-&gt;DataSetCutter(input, output);
+  }
+
+<span style = "background-color:#fdd">  return 1;
+}</span>
+int vtkPointSetSlicer::RequestUpdateExtent(vtkInformation *, vtkInformationVector **inputVector, vtkInformationVector *)
+<span style = "background-color:#fdd">{
+  vtkInformation *inInfo = inputVector[0]-&gt;GetInformationObject(0);
+  inInfo-&gt;Set(vtkStreamingDemandDrivenPipeline::EXACT_EXTENT(), 1);
+  return 1;
+}</span>
+int vtkPointSetSlicer::FillInputPortInformation(int, vtkInformation *info)
+<span style = "background-color:#fdd">{
+  info-&gt;Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataSet");
+  return 1;
+}</span>
+
+void vtkPointSetSlicer::UnstructuredGridCutter(vtkDataSet *input, vtkPolyData *output)
+<span style = "background-color:#fdd">{</span>
+  vtkIdType i;
+  vtkDoubleArray *cellScalars;
+  vtkCellArray *newVerts, *newLines, *newPolys;
+  vtkPoints *newPoints;
+  vtkDoubleArray *cutScalars;
+  double s;
+<span style = "background-color:#fdd">  vtkIdType estimatedSize, numCells = input-&gt;GetNumberOfCells();
+  vtkIdType numPts = input-&gt;GetNumberOfPoints();</span>
+  vtkIdType numCellPts;
+<span style = "background-color:#fdd">  const vtkIdType* cellPts = nullptr;</span>
+  vtkPointData *inPD, *outPD;
+<span style = "background-color:#fdd">  vtkCellData *inCD = input-&gt;GetCellData(), *outCD = output-&gt;GetCellData();</span>
+  vtkIdList *cellIds;
+<span style = "background-color:#fdd">  int abortExecute = 0;</span>
+
+  double range[2];
+
+  // Create objects to hold output of contour operation
+  //
+<span style = "background-color:#fdd">  estimatedSize = (vtkIdType)pow((double)numCells, .75);
+  estimatedSize = estimatedSize / 1024 * 1024; // multiple of 1024
+  if (estimatedSize &lt; 1024)</span>
+  {
+<span style = "background-color:#fdd">    estimatedSize = 1024;</span>
+  }
+
+<span style = "background-color:#fdd">  newPoints = vtkPoints::New();
+  newPoints-&gt;Allocate(estimatedSize, estimatedSize / 2);
+  newVerts = vtkCellArray::New();
+  newVerts-&gt;Allocate(estimatedSize, estimatedSize / 2);
+  newLines = vtkCellArray::New();
+  newLines-&gt;Allocate(estimatedSize, estimatedSize / 2);
+  newPolys = vtkCellArray::New();
+  newPolys-&gt;Allocate(estimatedSize, estimatedSize / 2);
+  cutScalars = vtkDoubleArray::New();
+  cutScalars-&gt;SetNumberOfTuples(numPts);</span>
+
+  // Interpolate data along edge. If generating cut scalars, do necessary setup
+<span style = "background-color:#fdd">  if (this-&gt;GenerateCutScalars)</span>
+  {
+<span style = "background-color:#fdd">    inPD = vtkPointData::New();
+    inPD-&gt;ShallowCopy(input-&gt;GetPointData()); // copies original attributes
+    inPD-&gt;SetScalars(cutScalars);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    inPD = input-&gt;GetPointData();</span>
+  }
+<span style = "background-color:#fdd">  outPD = output-&gt;GetPointData();
+  outPD-&gt;InterpolateAllocate(inPD, estimatedSize, estimatedSize / 2);
+  outCD-&gt;CopyAllocate(inCD, estimatedSize, estimatedSize / 2);</span>
+
+  // locator used to merge potentially duplicate points
+<span style = "background-color:#fdd">  if (this-&gt;Locator == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;CreateDefaultLocator();</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;Locator-&gt;InitPointInsertion(newPoints, input-&gt;GetBounds());</span>
+
+  // Loop over all points evaluating scalar function at each point
+  //
+<span style = "background-color:#fdd">  for (i = 0; i &lt; numPts; i++)</span>
+  {
+<span style = "background-color:#fdd">    s = this-&gt;SlicePlane-&gt;FunctionValue(input-&gt;GetPoint(i));
+    cutScalars-&gt;SetComponent(i, 0, s);
+  }</span>
+
+  // Compute some information for progress methods
+  //
+<span style = "background-color:#fdd">  vtkIdType numCuts = numCells;
+  vtkIdType progressInterval = numCuts / 20 + 1;
+  int cut = 0;</span>
+
+<span style = "background-color:#fdd">  vtkUnstructuredGrid *grid = (vtkUnstructuredGrid *)input;
+  auto cellArrayIt = vtk::TakeSmartPointer(grid-&gt;GetCells()-&gt;NewIterator());
+  double *scalarArrayPtr = cutScalars-&gt;GetPointer(0);</span>
+  double tempScalar;
+<span style = "background-color:#fdd">  cellScalars = cutScalars-&gt;NewInstance();
+  cellScalars-&gt;SetNumberOfComponents(cutScalars-&gt;GetNumberOfComponents());
+  cellScalars-&gt;Allocate(VTK_CELL_SIZE * cutScalars-&gt;GetNumberOfComponents());</span>
+
+  // Three passes over the cells to process lower dimensional cells first.
+  // For poly data output cells need to be added in the order:
+  // verts, lines and then polys, or cell data gets mixed up.
+  // A better solution is to have an unstructured grid output.
+  // I create a table that maps cell type to cell dimensionality,
+  // because I need a fast way to get cell dimensionality.
+  // This assumes GetCell is slow and GetCellType is fast.
+  // I do not like hard coding a list of cell types here,
+  // but I do not want to add GetCellDimension(vtkIdType cellId)
+  // to the vtkDataSet API.  Since I anticipate that the output
+  // will change to vtkUnstructuredGrid.  This temporary solution
+  // is acceptable.
+  //
+  int cellType;
+  unsigned char cellTypeDimensions[VTK_NUMBER_OF_CELL_TYPES];
+<span style = "background-color:#fdd">  vtkCutter::GetCellTypeDimensions(cellTypeDimensions);</span>
+  int dimensionality;
+  // We skip 0d cells (points), because they cannot be cut (generate no data).
+<span style = "background-color:#fdd">  for (dimensionality = 1; dimensionality &lt;= 3; ++dimensionality)</span>
+  {
+    // Loop over all cells; get scalar values for all cell points
+    // and process each cell.
+    //
+<span style = "background-color:#fdd">    for(cellArrayIt-&gt;GoToFirstCell(); !cellArrayIt-&gt;IsDoneWithTraversal() &amp;&amp; !abortExecute; cellArrayIt-&gt;GoToNextCell())</span>
+    {
+<span style = "background-color:#fdd">      cellArrayIt-&gt;GetCurrentCell(numCellPts, cellPts);</span>
+      // I assume that "GetCellType" is fast.
+<span style = "background-color:#fdd">      cellType = input-&gt;GetCellType(cellArrayIt-&gt;GetCurrentCellId());
+      if (cellType &gt;= VTK_NUMBER_OF_CELL_TYPES)</span>
+      { // Protect against new cell types added.
+<span style = "background-color:#fdd">        vtkErrorMacro("Unknown cell type " &lt;&lt; cellType);
+        continue;</span>
+      }
+<span style = "background-color:#fdd">      if (cellTypeDimensions[cellType] != dimensionality)</span>
+      {
+<span style = "background-color:#fdd">        continue;</span>
+      }
+
+      // find min and max values in scalar data
+<span style = "background-color:#fdd">      range[0] = scalarArrayPtr[cellPts[0]];
+      range[1] = scalarArrayPtr[cellPts[0]];</span>
+
+<span style = "background-color:#fdd">      for (i = 1; i &lt; numCellPts; i++)</span>
+      {
+<span style = "background-color:#fdd">        tempScalar = scalarArrayPtr[cellPts[i]];
+        if (tempScalar &lt;= range[0])</span>
+        {
+<span style = "background-color:#fdd">          range[0] = tempScalar;</span>
+        } // if tempScalar &lt;= min range value
+<span style = "background-color:#fdd">        if (tempScalar &gt;= range[1])</span>
+        {
+<span style = "background-color:#fdd">          range[1] = tempScalar;</span>
+        } // if tempScalar &gt;= max range value
+<span style = "background-color:#fdd">      }   // for all points in this cell</span>
+
+<span style = "background-color:#fdd">      int needCell = 0;
+      if (0.0 &gt;= range[0] &amp;&amp; 0.0 &lt;= range[1])</span>
+      {
+<span style = "background-color:#fdd">        needCell = 1;</span>
+      }
+
+<span style = "background-color:#fdd">      if (needCell)</span>
+      {
+<span style = "background-color:#fdd">        vtkCell *cell = input-&gt;GetCell(cellArrayIt-&gt;GetCurrentCellId());
+        cellIds = cell-&gt;GetPointIds();
+        cutScalars-&gt;GetTuples(cellIds, cellScalars);</span>
+        // Loop over all contour values.
+<span style = "background-color:#fdd">        if (dimensionality == 3 &amp;&amp; !(++cut % progressInterval))</span>
+        {
+<span style = "background-color:#fdd">          vtkDebugMacro(&lt;&lt; "Cutting #" &lt;&lt; cut);
+          this-&gt;UpdateProgress(static_cast&lt;double&gt;(cut) / numCuts);
+          abortExecute = this-&gt;GetAbortExecute();</span>
+        }
+
+<span style = "background-color:#fdd">        this-&gt;ContourUnstructuredGridCell(</span>
+          cell, cellScalars, this-&gt;Locator, newVerts, newLines, newPolys, inPD, outPD, inCD, cellArrayIt-&gt;GetCurrentCellId(), outCD);
+      } // if need cell
+<span style = "background-color:#fdd">    }   // for all cells
+  }     // for all dimensions (1,2,3).</span>
+
+  // Update ourselves.  Because we don't know upfront how many verts, lines,
+  // polys we've created, take care to reclaim memory.
+  //
+<span style = "background-color:#fdd">  cellScalars-&gt;Delete();
+  cutScalars-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GenerateCutScalars)</span>
+  {
+<span style = "background-color:#fdd">    inPD-&gt;Delete();</span>
+  }
+
+<span style = "background-color:#fdd">  output-&gt;SetPoints(newPoints);
+  newPoints-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (newVerts-&gt;GetNumberOfCells())</span>
+  {
+<span style = "background-color:#fdd">    output-&gt;SetVerts(newVerts);</span>
+  }
+<span style = "background-color:#fdd">  newVerts-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (newLines-&gt;GetNumberOfCells())</span>
+  {
+<span style = "background-color:#fdd">    output-&gt;SetLines(newLines);</span>
+  }
+<span style = "background-color:#fdd">  newLines-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if (newPolys-&gt;GetNumberOfCells())</span>
+  {
+<span style = "background-color:#fdd">    output-&gt;SetPolys(newPolys);</span>
+  }
+<span style = "background-color:#fdd">  newPolys-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  this-&gt;Locator-&gt;Initialize(); // release any extra memory
+  output-&gt;Squeeze();
+}</span>
+
+void vtkPointSetSlicer::ContourUnstructuredGridCell(vtkCell *cell,
+                                                    vtkDataArray *cellScalars,
+                                                    vtkPointLocator *locator,
+                                                    vtkCellArray *verts,
+                                                    vtkCellArray *lines,
+                                                    vtkCellArray *polys,
+                                                    vtkPointData *inPd,
+                                                    vtkPointData *outPd,
+                                                    vtkCellData *inCd,
+                                                    vtkIdType cellId,
+                                                    vtkCellData *outCd)
+<span style = "background-color:#fdd">{
+  if (cell-&gt;GetCellType() == VTK_HEXAHEDRON)</span>
+  {
+    static int CASE_MASK[8] = {1, 2, 4, 8, 16, 32, 64, 128};
+    POLY_CASES *polyCase;
+    EDGE_LIST *edge;
+    int i, j, index, *vert;
+    volatile int pnum;
+    int v1, v2, newCellId;
+    double t, x1[3], x2[3], x[3], deltaScalar;
+<span style = "background-color:#fdd">    vtkIdType offset = verts-&gt;GetNumberOfCells() + lines-&gt;GetNumberOfCells();</span>
+
+    // Build the case table
+<span style = "background-color:#fdd">    for (i = 0, index = 0; i &lt; 8; i++)</span>
+    {
+<span style = "background-color:#fdd">      if (cellScalars-&gt;GetComponent(i, 0) &gt;= 0)</span>
+      {
+<span style = "background-color:#fdd">        index |= CASE_MASK[i];</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    polyCase = polyCases + index;
+    edge = polyCase-&gt;edges;</span>
+
+    // get the point number of the polygon
+<span style = "background-color:#fdd">    pnum = 0;
+    for (i = 0; i &lt; 8; i++)
+      if (edge[i] &gt; -1)
+        pnum++;</span>
+      else
+<span style = "background-color:#fdd">        break;</span>
+
+<span style = "background-color:#fdd">    vtkIdType *pts = new vtkIdType[pnum];
+    for (i = 0; i &lt; pnum; i++) // insert polygon</span>
+    {
+<span style = "background-color:#fdd">      vert = edges[edge[i]];</span>
+
+      // calculate a preferred interpolation direction
+<span style = "background-color:#fdd">      deltaScalar = (cellScalars-&gt;GetComponent(vert[1], 0) - cellScalars-&gt;GetComponent(vert[0], 0));
+      if (deltaScalar &gt; 0)</span>
+      {
+<span style = "background-color:#fdd">        v1 = vert[0];
+        v2 = vert[1];
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        v1 = vert[1];
+        v2 = vert[0];
+        deltaScalar = -deltaScalar;</span>
+      }
+
+      // linear interpolation
+<span style = "background-color:#fdd">      t = (deltaScalar == 0.0 ? 0.0 : (-cellScalars-&gt;GetComponent(v1, 0)) / deltaScalar);</span>
+
+<span style = "background-color:#fdd">      cell-&gt;GetPoints()-&gt;GetPoint(v1, x1);
+      cell-&gt;GetPoints()-&gt;GetPoint(v2, x2);</span>
+
+<span style = "background-color:#fdd">      for (j = 0; j &lt; 3; j++)</span>
+      {
+<span style = "background-color:#fdd">        x[j] = x1[j] + t * (x2[j] - x1[j]);
+      }
+      if (locator-&gt;InsertUniquePoint(x, pts[i]))</span>
+      {
+<span style = "background-color:#fdd">        if (outPd)</span>
+        {
+<span style = "background-color:#fdd">          vtkIdType p1 = cell-&gt;GetPointIds()-&gt;GetId(v1);
+          vtkIdType p2 = cell-&gt;GetPointIds()-&gt;GetId(v2);
+          outPd-&gt;InterpolateEdge(inPd, pts[i], p1, p2, t);</span>
+        }
+      }
+<span style = "background-color:#fdd">    }</span>
+
+    // check for degenerate polygon
+<span style = "background-color:#fdd">    std::vector&lt;vtkIdType&gt; pset;
+    for (i = 0; i &lt; pnum; i++)</span>
+    {
+<span style = "background-color:#fdd">      if (std::find(pset.begin(), pset.end(), pts[i]) == pset.end())
+        pset.push_back(pts[i]);
+    }</span>
+
+<span style = "background-color:#fdd">    if (pset.size() &gt; 2)</span>
+    {
+<span style = "background-color:#fdd">      i = 0;
+      for (std::vector&lt;vtkIdType&gt;::iterator iter = pset.begin(); iter != pset.end(); iter++)</span>
+      {
+<span style = "background-color:#fdd">        pts[i] = *iter;
+        i++;
+      }
+      newCellId = offset + polys-&gt;InsertNextCell(pset.size(), pts);
+      outCd-&gt;CopyData(inCd, cellId, newCellId);</span>
+    }
+<span style = "background-color:#fdd">    delete[] pts;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    cell-&gt;Contour(0, cellScalars, locator, verts, lines, polys, inPd, outPd, inCd, cellId, outCd);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+// Specify a spatial locator for merging points. By default,
+// an instance of vtkMergePoints is used.
+void vtkPointSetSlicer::SetLocator(vtkPointLocator *locator)
+<span style = "background-color:#fdd">{
+  if (this-&gt;Locator == locator)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+<span style = "background-color:#fdd">  if (this-&gt;Locator)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;Locator-&gt;UnRegister(this);
+    this-&gt;Locator = nullptr;</span>
+  }
+<span style = "background-color:#fdd">  if (locator)</span>
+  {
+<span style = "background-color:#fdd">    locator-&gt;Register(this);</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;Locator = locator;
+  this-&gt;Modified();
+}</span>
+
+void vtkPointSetSlicer::CreateDefaultLocator()
+<span style = "background-color:#fdd">{
+  if (this-&gt;Locator == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;Locator = vtkMergePoints::New();
+    this-&gt;Locator-&gt;Register(this);
+    this-&gt;Locator-&gt;Delete();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void vtkPointSetSlicer::PrintSelf(std::ostream &amp;os, vtkIndent indent)
+<span style = "background-color:#fdd">{
+  this-&gt;Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; "Slice Plane: " &lt;&lt; this-&gt;SlicePlane &lt;&lt; "\n";</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;Locator)</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Locator: " &lt;&lt; this-&gt;Locator &lt;&lt; "\n";
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Locator: (none)\n";</span>
+  }
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; "Generate Cut Scalars: " &lt;&lt; (this-&gt;GenerateCutScalars ? "On\n" : "Off\n");
+}</span>
+
+int vtkPointSetSlicer::edges[12][2] = {
+  {0, 1}, {1, 2}, {3, 2}, {0, 3}, {4, 5}, {5, 6}, {7, 6}, {4, 7}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
+
+vtkPointSetSlicer::POLY_CASES vtkPointSetSlicer::polyCases[256] = {
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{0, 3, 8, -1, -1, -1, -1, -1}},    {{1, 0, 9, -1, -1, -1, -1, -1}},
+  {{1, 3, 8, 9, -1, -1, -1, -1}},     {{2, 1, 10, -1, -1, -1, -1, -1}},   {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{2, 0, 9, 10, -1, -1, -1, -1}},    {{2, 10, 9, 8, 3, -1, -1, -1}},     {{3, 2, 11, -1, -1, -1, -1, -1}},
+  {{0, 2, 11, 8, -1, -1, -1, -1}},    {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{1, 9, 8, 11, 2, -1, -1, -1}},
+  {{3, 1, 10, 11, -1, -1, -1, -1}},   {{0, 8, 11, 10, 1, -1, -1, -1}},    {{3, 11, 10, 9, 0, -1, -1, -1}},
+  {{8, 9, 10, 11, -1, -1, -1, -1}},   {{4, 7, 8, -1, -1, -1, -1, -1}},    {{3, 7, 4, 0, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{9, 1, 3, 7, 4, -1, -1, -1}},      {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{11, 2, 0, 4, 7, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{1, 2, 11, 7, 4, 9, -1, -1}},      {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{4, 7, 11, 10, 9, -1, -1, -1}},    {{5, 4, 9, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{0, 4, 5, 1, -1, -1, -1, -1}},     {{8, 3, 1, 5, 4, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{10, 2, 0, 4, 5, -1, -1, -1}},
+  {{2, 3, 8, 4, 5, 10, -1, -1}},      {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{5, 4, 8, 11, 10, -1, -1, -1}},
+  {{5, 7, 8, 9, -1, -1, -1, -1}},     {{9, 5, 7, 3, 0, -1, -1, -1}},      {{8, 7, 5, 1, 0, -1, -1, -1}},
+  {{1, 3, 7, 5, -1, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{2, 10, 5, 7, 3, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{2, 11, 7, 5, 1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{5, 7, 11, 10, -1, -1, -1, -1}},   {{6, 5, 10, -1, -1, -1, -1, -1}},   {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{1, 5, 6, 2, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{9, 0, 2, 6, 5, -1, -1, -1}},      {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{11, 3, 1, 5, 6, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{3, 0, 9, 5, 6, 11, -1, -1}},      {{6, 5, 9, 8, 11, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{6, 4, 9, 10, -1, -1, -1, -1}},    {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{10, 6, 4, 0, 1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{9, 4, 6, 2, 1, -1, -1, -1}},      {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{2, 0, 4, 6, -1, -1, -1, -1}},     {{3, 8, 4, 6, 2, -1, -1, -1}},      {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{3, 11, 6, 4, 0, -1, -1, -1}},
+  {{6, 4, 8, 11, -1, -1, -1, -1}},    {{6, 10, 9, 8, 7, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{6, 7, 8, 0, 1, 10, -1, -1}},      {{6, 10, 1, 3, 7, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{7, 8, 0, 2, 6, -1, -1, -1}},      {{2, 6, 7, 3, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{6, 7, 11, -1, -1, -1, -1, -1}},   {{7, 6, 11, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{2, 6, 7, 3, -1, -1, -1, -1}},     {{8, 0, 2, 6, 7, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{10, 1, 3, 7, 6, -1, -1, -1}},
+  {{0, 1, 10, 6, 7, 8, -1, -1}},      {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{7, 6, 10, 9, 8, -1, -1, -1}},
+  {{4, 6, 11, 8, -1, -1, -1, -1}},    {{11, 6, 4, 0, 3, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{8, 4, 6, 2, 3, -1, -1, -1}},
+  {{0, 2, 6, 4, -1, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{1, 9, 4, 6, 2, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{1, 10, 6, 4, 0, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{4, 6, 10, 9, -1, -1, -1, -1}},    {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{5, 9, 8, 11, 6, -1, -1, -1}},
+  {{5, 6, 11, 3, 0, 9, -1, -1}},      {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{6, 11, 3, 1, 5, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{5, 9, 0, 2, 6, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{1, 5, 6, 2, -1, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{5, 6, 10, -1, -1, -1, -1, -1}},
+  {{7, 5, 10, 11, -1, -1, -1, -1}},   {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{11, 7, 5, 1, 2, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{10, 5, 7, 3, 2, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{3, 1, 5, 7, -1, -1, -1, -1}},     {{0, 8, 7, 5, 1, -1, -1, -1}},      {{0, 9, 5, 7, 3, -1, -1, -1}},
+  {{7, 5, 9, 8, -1, -1, -1, -1}},     {{4, 8, 11, 10, 5, -1, -1, -1}},    {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{4, 5, 10, 2, 3, 8, -1, -1}},      {{5, 10, 2, 0, 4, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{4, 8, 3, 1, 5, -1, -1, -1}},      {{0, 4, 5, 1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{4, 5, 9, -1, -1, -1, -1, -1}},    {{7, 11, 10, 9, 4, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{7, 4, 9, 1, 2, 11, -1, -1}},      {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{7, 11, 2, 0, 4, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{4, 9, 1, 3, 7, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{3, 7, 4, 0, -1, -1, -1, -1}},     {{7, 4, 8, -1, -1, -1, -1, -1}},
+  {{10, 11, 8, 9, -1, -1, -1, -1}},   {{0, 3, 11, 10, 9, -1, -1, -1}},    {{1, 0, 8, 11, 10, -1, -1, -1}},
+  {{1, 3, 11, 10, -1, -1, -1, -1}},   {{2, 1, 9, 8, 11, -1, -1, -1}},     {{-1, -1, -1, -1, -1, -1, -1, -1}},
+  {{2, 0, 8, 11, -1, -1, -1, -1}},    {{2, 3, 11, -1, -1, -1, -1, -1}},   {{3, 2, 10, 9, 8, -1, -1, -1}},
+  {{0, 2, 10, 9, -1, -1, -1, -1}},    {{-1, -1, -1, -1, -1, -1, -1, -1}}, {{1, 2, 10, -1, -1, -1, -1, -1}},
+  {{3, 1, 9, 8, -1, -1, -1, -1}},     {{0, 1, 9, -1, -1, -1, -1, -1}},    {{3, 0, 8, -1, -1, -1, -1, -1}},
+  {{-1, -1, -1, -1, -1, -1, -1, -1}}};</pre>
+	</body>
+</html>

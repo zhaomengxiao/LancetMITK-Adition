@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkGenericParamModel.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __MITK_GENERIC_PARAM_MODEL_H_
+#define __MITK_GENERIC_PARAM_MODEL_H_
+
+#include "mitkModelBase.h"
+
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+
+  /** Model that can parse a user specified function string and uses it as model function
+  that is represented by the model instance.
+  The parser used to interpret the string can handle simple mathematical formulas (e.g. "3.5 + a * x * sin(x) - 1 / 2").
+  The parser is able to recognize:
+  - sums, differences, products and divisions (a + b, 4 - 3, 2 * x, 9 / 3)
+  - algebraic signs ( +5, -5)
+  - exponentiation ( 2 ^ 4 )
+  - parentheses (3 * (4 + 2))
+  - following unary functions: abs, exp, sin, cos, tan, sind (sine in degrees), cosd (cosine in degrees), tand (tangent in degrees)
+  - variables (x, a, b, ... j)
+
+  Remark: The variable "x" is reserved. It is the signal position / timepoint.
+  Remark: The current version supports up to 10 model parameter.
+  Don't use it for a model parameter that should be deduced by fitting (these are a..j).*/
+  class MITKMODELFIT_EXPORT GenericParamModel : public mitk::ModelBase
+  {
+
+  public:
+    typedef GenericParamModel Self;
+    typedef mitk::ModelBase Superclass;
+    typedef itk::SmartPointer&lt; Self &gt;                            Pointer;
+    typedef itk::SmartPointer&lt; const Self &gt;                      ConstPointer;
+
+    typedef Superclass::ParameterNameType  ParameterNameType;
+    typedef Superclass::ParametersSizeType ParametersSizeType;
+
+    /** Method for creation through the object factory. */
+<span style = "background-color:#dfd">    itkFactorylessNewMacro(Self);</span>
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+    /** Run-time type information (and related methods). */
+<span style = "background-color:#dfd">    itkTypeMacro(GenericParamModel, ModelBase);</span>
+
+    static const std::string NAME_STATIC_PARAMETER_number;
+
+    std::string GetModelDisplayName() const override;
+
+    std::string GetModelType() const override;
+
+    FunctionStringType GetFunctionString() const override;
+<span style = "background-color:#fdd">    itkSetStringMacro(FunctionString);</span>
+
+    /**@pre The Number of paremeters must be between 1 and 10.*/
+<span style = "background-color:#fdd">    itkSetClampMacro(NumberOfParameters, ParametersSizeType, 1, 10);</span>
+
+    std::string GetXName() const override;
+
+    ParameterNamesType GetParameterNames() const override;
+
+    ParametersSizeType  GetNumberOfParameters() const override;
+
+    ParameterNamesType GetStaticParameterNames() const override;
+
+    ParametersSizeType GetNumberOfStaticParameters() const override;
+
+  protected:
+    GenericParamModel();
+<span style = "background-color:#dfd">    ~GenericParamModel() override {};</span>
+
+    /**
+     * Actual implementation of the clone method. This method should be reimplemeted
+     * in subclasses to clone the extra required parameters.
+     */
+    itk::LightObject::Pointer InternalClone() const override;
+
+    ModelResultType ComputeModelfunction(const ParametersType&amp; parameters) const override;
+
+    void SetStaticParameter(const ParameterNameType&amp; name,
+                                    const StaticParameterValuesType&amp; values) override;
+    StaticParameterValuesType GetStaticParameterValue(const ParameterNameType&amp; name) const override;
+
+  private:
+    /**Function string that should be parsed when computing the model function.*/
+    FunctionStringType m_FunctionString;
+
+    /**Number of parameters the model should offer / the function string contains.*/
+    ParametersSizeType m_NumberOfParameters;
+
+    //No copy constructor allowed
+    GenericParamModel(const Self&amp; source);
+    void operator=(const Self&amp;);  //purposely not implemented
+
+  };
+}
+
+#endif</pre>
+	</body>
+</html>

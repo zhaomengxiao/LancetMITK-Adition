@@ -1,0 +1,184 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usStaticInit_p.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+/*============================================================================
+
+Extracted from qglobal.h from Qt 4.7.3 and adapted for CppMicroServices.
+Original copyright (c) Nokia Corporation. Usage covered by the
+GNU Lesser General Public License version 2.1
+(http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) and the Nokia Qt
+LGPL Exception version 1.1 (file LGPL_EXCEPTION.txt in Qt 4.7.3 package).
+
+============================================================================*/
+
+#ifndef US_STATIC_INIT_H
+#define US_STATIC_INIT_H
+
+#include "usThreads_p.h"
+
+US_BEGIN_NAMESPACE
+
+// POD for US_GLOBAL_STATIC
+template &lt;typename T&gt;
+class GlobalStatic : public MultiThreaded&lt;&gt;
+{
+public:
+
+<span style = "background-color:#dfd">  GlobalStatic(T* p = nullptr, bool destroyed = false) : pointer(p), destroyed(destroyed) {}</span>
+
+  T* pointer;
+  bool destroyed;
+
+private:
+
+  // purposely not implemented
+  GlobalStatic(const GlobalStatic&amp;);
+  GlobalStatic&amp; operator=(const GlobalStatic&amp;);
+};
+
+template&lt;typename T&gt;
+struct DefaultGlobalStaticDeleter
+{
+  void operator()(GlobalStatic&lt;T&gt;&amp; globalStatic) const
+<span style = "background-color:#dfd">  {
+    delete globalStatic.pointer;
+    globalStatic.pointer = nullptr;
+    globalStatic.destroyed = true;
+  }</span>
+};
+
+// Created as a function-local static to delete a GlobalStatic&lt;T&gt;
+template &lt;typename T, template&lt;typename T_&gt; class Deleter = DefaultGlobalStaticDeleter&gt;
+class GlobalStaticDeleter
+{
+public:
+  GlobalStatic&lt;T&gt; &amp;globalStatic;
+
+  GlobalStaticDeleter(GlobalStatic&lt;T&gt; &amp;_globalStatic)
+<span style = "background-color:#dfd">    : globalStatic(_globalStatic)
+  { }</span>
+
+  inline ~GlobalStaticDeleter()
+<span style = "background-color:#dfd">  {</span>
+    Deleter&lt;T&gt; deleter;
+<span style = "background-color:#dfd">    deleter(globalStatic);
+  }</span>
+};
+
+US_END_NAMESPACE
+
+
+#define US_GLOBAL_STATIC_INIT(TYPE, NAME)                                \
+  static US_PREPEND_NAMESPACE(GlobalStatic)&lt;TYPE&gt;&amp; this_##NAME()         \
+  {                                                                      \
+    static US_PREPEND_NAMESPACE(GlobalStatic)&lt;TYPE&gt; l;                   \
+    return l;                                                            \
+  }
+
+#define US_GLOBAL_STATIC(TYPE, NAME)                                     \
+  US_GLOBAL_STATIC_INIT(TYPE, NAME)                                      \
+  static TYPE *NAME()                                                    \
+  {                                                                      \
+    if (!this_##NAME().pointer &amp;&amp; !this_##NAME().destroyed)              \
+    {                                                                    \
+      TYPE *x = new TYPE;                                                \
+      bool ok = false;                                                   \
+      {                                                                  \
+        US_PREPEND_NAMESPACE(GlobalStatic)&lt;TYPE&gt;::Lock lock(this_##NAME()); \
+        US_UNUSED(lock);                                                 \
+        if (!this_##NAME().pointer)                                      \
+        {                                                                \
+          this_##NAME().pointer = x;                                     \
+          ok = true;                                                     \
+        }                                                                \
+      }                                                                  \
+      if (!ok)                                                           \
+        delete x;                                                        \
+      else                                                               \
+        static US_PREPEND_NAMESPACE(GlobalStaticDeleter)&lt;TYPE&gt; cleanup(this_##NAME()); \
+    }                                                                    \
+    return this_##NAME().pointer;                                        \
+  }
+
+#define US_GLOBAL_STATIC_WITH_DELETER(TYPE, NAME, DELETER)               \
+  US_GLOBAL_STATIC_INIT(TYPE, NAME)                                      \
+  static TYPE *NAME()                                                    \
+  {                                                                      \
+    if (!this_##NAME().pointer &amp;&amp; !this_##NAME().destroyed)              \
+    {                                                                    \
+      TYPE *x = new TYPE;                                                \
+      bool ok = false;                                                   \
+      {                                                                  \
+        US_PREPEND_NAMESPACE(GlobalStatic)&lt;TYPE&gt;::Lock lock(this_##NAME()); \
+        US_UNUSED(lock);                                                 \
+        if (!this_##NAME().pointer)                                      \
+        {                                                                \
+          this_##NAME().pointer = x;                                     \
+          ok = true;                                                     \
+        }                                                                \
+      }                                                                  \
+      if (!ok)                                                           \
+        delete x;                                                        \
+      else                                                               \
+        static US_PREPEND_NAMESPACE(GlobalStaticDeleter)&lt;TYPE, DELETER &gt; cleanup(this_##NAME()); \
+    }                                                                    \
+    return this_##NAME().pointer;                                        \
+  }
+
+#define US_GLOBAL_STATIC_WITH_ARGS(TYPE, NAME, ARGS)                     \
+  US_GLOBAL_STATIC_INIT(TYPE, NAME)                                      \
+  static TYPE *NAME()                                                    \
+  {                                                                      \
+    if (!this_##NAME().pointer &amp;&amp; !this_##NAME().destroyed)              \
+    {                                                                    \
+      TYPE *x = new TYPE ARGS;                                           \
+      bool ok = false;                                                   \
+      {                                                                  \
+        US_PREPEND_NAMESPACE(GlobalStatic)&lt;TYPE&gt;::Lock lock(this_##NAME()); \
+        US_UNUSED(lock);                                                 \
+        if (!this_##NAME().pointer)                                      \
+        {                                                                \
+          this_##NAME().pointer = x;                                     \
+          ok = true;                                                     \
+        }                                                                \
+      }                                                                  \
+      if (!ok)                                                           \
+        delete x;                                                        \
+      else                                                               \
+        static US_PREPEND_NAMESPACE(GlobalStaticDeleter)&lt;TYPE&gt; cleanup(this_##NAME()); \
+    }                                                                    \
+    return this_##NAME().pointer;                                        \
+  }
+
+#endif // US_STATIC_INIT_H</pre>
+	</body>
+</html>

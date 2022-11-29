@@ -1,0 +1,315 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTimeGeometry.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include &lt;mitkTimeGeometry.h&gt;
+
+#include &lt;mitkExceptionMacro.h&gt;
+#include &lt;mitkGeometry3D.h&gt;
+
+<span style = "background-color:#fdd">mitk::TimeGeometry::TimeGeometry() : m_BoundingBox(BoundingBox::New())
+{</span>
+  typedef BoundingBox::PointsContainer ContainerType;
+<span style = "background-color:#fdd">  ContainerType::Pointer points = ContainerType::New();
+  m_BoundingBox-&gt;SetPoints(points.GetPointer());
+}</span>
+
+<span style = "background-color:#fdd">mitk::TimeGeometry::~TimeGeometry() = default;</span>
+
+void mitk::TimeGeometry::Initialize()
+<span style = "background-color:#fdd">{
+}</span>
+
+/* \brief short description
+ * parameters
+ *
+ */
+mitk::Point3D mitk::TimeGeometry::GetCornerPointInWorld(int id) const
+<span style = "background-color:#fdd">{
+  assert(id &gt;= 0);
+  assert(m_BoundingBox.IsNotNull());</span>
+
+<span style = "background-color:#fdd">  auto&amp; bounds = m_BoundingBox-&gt;GetBounds();</span>
+
+<span style = "background-color:#fdd">  Point3D cornerpoint;
+  switch (id)</span>
+  {
+    case 0:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[0], bounds[2], bounds[4]);
+      break;</span>
+    case 1:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[0], bounds[2], bounds[5]);
+      break;</span>
+    case 2:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[0], bounds[3], bounds[4]);
+      break;</span>
+    case 3:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[0], bounds[3], bounds[5]);
+      break;</span>
+    case 4:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[1], bounds[2], bounds[4]);
+      break;</span>
+    case 5:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[1], bounds[2], bounds[5]);
+      break;</span>
+    case 6:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[1], bounds[3], bounds[4]);
+      break;</span>
+    case 7:
+<span style = "background-color:#fdd">      FillVector3D(cornerpoint, bounds[1], bounds[3], bounds[5]);
+      break;</span>
+    default:
+    {
+<span style = "background-color:#fdd">      itkExceptionMacro(&lt;&lt; "A cube only has 8 corners. These are labeled 0-7.");
+      return Point3D();</span>
+    }
+  }
+
+  // TimeGeometry has no Transformation. Therefore the bounding box
+  // contains all data in world coordinates
+<span style = "background-color:#fdd">  return cornerpoint;
+}</span>
+
+mitk::Point3D mitk::TimeGeometry::GetCornerPointInWorld(bool xFront, bool yFront, bool zFront) const
+<span style = "background-color:#fdd">{
+  assert(m_BoundingBox.IsNotNull());
+  auto&amp; bounds = m_BoundingBox-&gt;GetBounds();</span>
+
+<span style = "background-color:#fdd">  Point3D cornerpoint;
+  cornerpoint[0] = (xFront ? bounds[0] : bounds[1]);
+  cornerpoint[1] = (yFront ? bounds[2] : bounds[3]);
+  cornerpoint[2] = (zFront ? bounds[4] : bounds[5]);</span>
+
+<span style = "background-color:#fdd">  return cornerpoint;
+}</span>
+
+mitk::Point3D mitk::TimeGeometry::GetCenterInWorld() const
+<span style = "background-color:#fdd">{
+  assert(m_BoundingBox.IsNotNull());
+  return m_BoundingBox-&gt;GetCenter();
+}</span>
+
+double mitk::TimeGeometry::GetDiagonalLength2InWorld() const
+<span style = "background-color:#fdd">{
+  const Vector3D diagonalvector = GetCornerPointInWorld()-GetCornerPointInWorld(false, false, false);
+  return diagonalvector.GetSquaredNorm();
+}</span>
+
+double mitk::TimeGeometry::GetDiagonalLengthInWorld() const
+<span style = "background-color:#fdd">{
+  return sqrt(GetDiagonalLength2InWorld());
+}</span>
+
+bool mitk::TimeGeometry::IsWorldPointInside(const mitk::Point3D &amp;p) const
+<span style = "background-color:#fdd">{
+  return m_BoundingBox-&gt;IsInside(p);
+}</span>
+
+void mitk::TimeGeometry::UpdateBoundingBox()
+<span style = "background-color:#fdd">{
+  assert(m_BoundingBox.IsNotNull());</span>
+  typedef BoundingBox::PointsContainer ContainerType;
+
+<span style = "background-color:#fdd">  unsigned long lastModifiedTime = 0;
+  unsigned long currentModifiedTime = 0;</span>
+
+<span style = "background-color:#fdd">  ContainerType::Pointer points = ContainerType::New();
+  const TimeStepType numberOfTimesteps = CountTimeSteps();</span>
+
+<span style = "background-color:#fdd">  points-&gt;reserve(2*numberOfTimesteps);
+  for (TimeStepType step = 0; step &lt;numberOfTimesteps; ++step)</span>
+  {
+<span style = "background-color:#fdd">    currentModifiedTime = GetGeometryForTimeStep(step)-&gt;GetMTime();
+    if (currentModifiedTime &gt; lastModifiedTime)
+      lastModifiedTime = currentModifiedTime;</span>
+
+<span style = "background-color:#fdd">    for (int i = 0; i &lt; 8; ++i)</span>
+    {
+<span style = "background-color:#fdd">      Point3D cornerPoint = GetGeometryForTimeStep(step)-&gt;GetCornerPoint(i);
+      points-&gt;push_back(cornerPoint);
+    }
+  }
+  m_BoundingBox-&gt;SetPoints(points);
+  m_BoundingBox-&gt;ComputeBoundingBox();
+  if (this-&gt;GetMTime() &lt; lastModifiedTime)
+    this-&gt;Modified();
+}</span>
+
+mitk::ScalarType mitk::TimeGeometry::GetExtentInWorld(unsigned int direction) const
+<span style = "background-color:#fdd">{
+  assert(direction &lt; 3);
+  assert(m_BoundingBox.IsNotNull());
+  auto&amp; bounds = m_BoundingBox-&gt;GetBounds();
+  return bounds[direction * 2 + 1] - bounds[direction * 2];
+}</span>
+
+void mitk::TimeGeometry::Update()
+<span style = "background-color:#fdd">{
+  this-&gt;UpdateBoundingBox();
+  this-&gt;UpdateWithoutBoundingBox();
+}</span>
+
+void mitk::TimeGeometry::ExecuteOperation(mitk::Operation *op)
+<span style = "background-color:#fdd">{
+  for (TimeStepType step = 0; step &lt; CountTimeSteps(); ++step)</span>
+  {
+<span style = "background-color:#fdd">    GetGeometryForTimeStep(step)-&gt;ExecuteOperation(op);
+  }
+}</span>
+
+void mitk::TimeGeometry::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{</span>
+  // Superclass::PrintSelf(os,indent);
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; " TimeSteps: " &lt;&lt; this-&gt;CountTimeSteps() &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " GetGeometryForTimeStep(0): ";
+  if (GetGeometryForTimeStep(0).IsNull())
+    os &lt;&lt; "nullptr" &lt;&lt; std::endl;</span>
+  else
+<span style = "background-color:#fdd">    GetGeometryForTimeStep(0)-&gt;Print(os, indent);
+}</span>
+
+itk::LightObject::Pointer mitk::TimeGeometry::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer parent = Superclass::InternalClone();
+  Self::Pointer rval = dynamic_cast&lt;Self *&gt;(parent.GetPointer());
+  if (rval.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; " Downcast to type " &lt;&lt; this-&gt;GetNameOfClass() &lt;&lt; " failed.";</span>
+  }
+<span style = "background-color:#fdd">  rval-&gt;m_BoundingBox = m_BoundingBox-&gt;DeepCopy();
+  return parent;
+}</span>
+
+bool mitk::Equal(const TimeGeometry&amp; leftHandSide, const TimeGeometry&amp; rightHandSide, ScalarType eps, bool verbose)
+<span style = "background-color:#fdd">{
+  return mitk::Equal(leftHandSide, rightHandSide, eps, eps, verbose);
+}</span>
+
+bool mitk::Equal(const TimeGeometry &amp;leftHandSide, const TimeGeometry &amp;rightHandSide, ScalarType coordinateEps,
+    ScalarType directionEps, bool verbose)
+<span style = "background-color:#fdd">{
+  bool result = true;</span>
+
+  // Compare BoundingBoxInWorld
+<span style = "background-color:#fdd">  if (!mitk::Equal(*(leftHandSide.GetBoundingBoxInWorld()), *(rightHandSide.GetBoundingBoxInWorld()), coordinateEps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( TimeGeometry )] BoundingBoxInWorld differs.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.GetBoundingBoxInWorld()</span>
+                &lt;&lt; " : leftHandSide is " &lt;&lt; leftHandSide.GetBoundsInWorld() &lt;&lt; " and tolerance is " &lt;&lt; coordinateEps;
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.CountTimeSteps(), rightHandSide.CountTimeSteps(), coordinateEps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( TimeGeometry )] CountTimeSteps differs.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.CountTimeSteps() &lt;&lt; " : leftHandSide is "</span>
+                &lt;&lt; leftHandSide.CountTimeSteps() &lt;&lt; " and tolerance is " &lt;&lt; coordinateEps;
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetMinimumTimePoint(), rightHandSide.GetMinimumTimePoint(), coordinateEps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( TimeGeometry )] MinimumTimePoint differs.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.GetMinimumTimePoint()</span>
+                &lt;&lt; " : leftHandSide is " &lt;&lt; leftHandSide.GetMinimumTimePoint() &lt;&lt; " and tolerance is " &lt;&lt; coordinateEps;
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetMaximumTimePoint(), rightHandSide.GetMaximumTimePoint(), coordinateEps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( TimeGeometry )] MaximumTimePoint differs.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.GetMaximumTimePoint()</span>
+                &lt;&lt; " : leftHandSide is " &lt;&lt; leftHandSide.GetMaximumTimePoint() &lt;&lt; " and tolerance is " &lt;&lt; coordinateEps;
+    }
+<span style = "background-color:#fdd">    result = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!result)
+    return false; // further tests require that both parts have identical number of time steps</span>
+
+<span style = "background-color:#fdd">  for (mitk::TimeStepType t = 0; t &lt; leftHandSide.CountTimeSteps(); ++t)</span>
+  {
+<span style = "background-color:#fdd">    if (!mitk::Equal(leftHandSide.TimeStepToTimePoint(t), rightHandSide.TimeStepToTimePoint(t), coordinateEps, verbose))</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[( TimeGeometry )] TimeStepToTimePoint(" &lt;&lt; t &lt;&lt; ") differs.";
+        MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; setprecision(12) &lt;&lt; rightHandSide.TimeStepToTimePoint(t)</span>
+                  &lt;&lt; " : leftHandSide is " &lt;&lt; leftHandSide.TimeStepToTimePoint(t) &lt;&lt; " and tolerance is " &lt;&lt; coordinateEps;
+      }
+<span style = "background-color:#fdd">      result = false;</span>
+    }
+
+<span style = "background-color:#fdd">    BaseGeometry::Pointer leftGeometry = leftHandSide.GetGeometryForTimeStep(t);
+    BaseGeometry::Pointer rightGeometry = rightHandSide.GetGeometryForTimeStep(t);</span>
+
+<span style = "background-color:#fdd">    if (leftGeometry.IsNotNull() &amp;&amp; rightGeometry.IsNull())
+      continue; // identical
+    if (leftGeometry.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[( TimeGeometry )] TimeStepToTimePoint(" &lt;&lt; t &lt;&lt; ") differs.";
+        MITK_INFO &lt;&lt; "rightHandSide is an object : leftHandSide is nullptr";</span>
+      }
+<span style = "background-color:#fdd">      result = false;
+      continue; // next geometry</span>
+    }
+
+<span style = "background-color:#fdd">    if (rightGeometry.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[( TimeGeometry )] TimeStepToTimePoint(" &lt;&lt; t &lt;&lt; ") differs.";
+        MITK_INFO &lt;&lt; "rightHandSide is nullptr : leftHandSide is an object";</span>
+      }
+<span style = "background-color:#fdd">      result = false;
+      continue; // next geometry</span>
+    }
+
+<span style = "background-color:#fdd">    if (!mitk::Equal(*leftGeometry, *rightGeometry, coordinateEps, directionEps, verbose))</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[( TimeGeometry )] GetGeometryForTimeStep(" &lt;&lt; t &lt;&lt; ") differs.";</span>
+      }
+<span style = "background-color:#fdd">      result = false;</span>
+    }
+
+<span style = "background-color:#fdd">  } // end for each t</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span></pre>
+	</body>
+</html>

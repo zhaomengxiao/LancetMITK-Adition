@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImagePixelWriteAccessor.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKIMAGEPIXELWRITEACCESSOR_H
+#define MITKIMAGEPIXELWRITEACCESSOR_H
+
+#include "mitkImagePixelAccessor.h"
+#include "mitkImageWriteAccessor.h"
+
+namespace mitk
+{
+  /**
+   * @brief Gives locked and index-based write access for a particular image part.
+   * The class provides several set- and get-methods, which allow an easy pixel access.
+   * It needs to know about pixel type and dimension of its image at compile time.
+   * @tparam TPixel defines the PixelType
+   * @tparam VDimension defines the dimension for accessing data
+   * @ingroup Data
+   */
+  template &lt;class TPixel, unsigned int VDimension = 3&gt;
+  class ImagePixelWriteAccessor : public ImagePixelAccessor&lt;TPixel, VDimension&gt;
+  {
+    friend class Image;
+
+  public:
+    typedef ImagePixelAccessor&lt;TPixel, VDimension&gt; ImagePixelAccessorType;
+    typedef itk::SmartPointer&lt;mitk::Image&gt; ImagePointer;
+
+    /** \brief Instantiates a mitk::ImageWriteAccessor (see its doxygen page for more details)
+     *  \param iP specifies the associated Image
+     *  \param iDI specifies the allocated image part
+     *  \param OptionFlags properties from mitk::ImageAccessorBase::Options can be chosen and assembled with bitwise
+     * unification.
+     *  \throws mitk::Exception if the Constructor was created inappropriately
+     *  \throws mitk::MemoryIsLockedException if requested image area is exclusively locked and
+     * mitk::ImageAccessorBase::ExceptionIfLocked is set in OptionFlags
+     *
+     *   Includes a check if typeid of PixelType coincides with templated TPixel
+     *   and a check if VDimension equals to the Dimension of the Image.
+     *
+     *  \note
+     *  To avoid intermittent Update() calls to a predecessing filter pipeline, a call to Modifed() method after the
+     * access is finished is left to the developer.
+     */
+    ImagePixelWriteAccessor(ImagePointer iP,
+                            const ImageDataItem *iDI = nullptr,
+                            int OptionFlags = ImageAccessorBase::DefaultBehavior)
+<span style = "background-color:#fdd">      : ImagePixelAccessor&lt;TPixel, VDimension&gt;(iP.GetPointer(), iDI), m_WriteAccessor(iP, iDI, OptionFlags)
+    {
+    }</span>
+
+    /** \brief Gives full data access. */
+<span style = "background-color:#fdd">    virtual inline TPixel *GetData() const { return static_cast&lt;TPixel *&gt;(m_WriteAccessor.m_AddressBegin); }</span>
+    /// Sets a pixel value at given index.
+    void SetPixelByIndex(const itk::Index&lt;VDimension&gt; &amp;idx, const TPixel &amp;value)
+    {
+      unsigned int offset = ImagePixelAccessor&lt;TPixel, VDimension&gt;::GetOffset(idx);
+
+      *(((TPixel *)m_WriteAccessor.m_AddressBegin) + offset) = value;
+    }
+
+    /** Extends SetPixel by integrating index validation to prevent overflow. */
+    void SetPixelByIndexSafe(const itk::Index&lt;VDimension&gt; &amp;idx, const TPixel &amp;value)
+    {
+      unsigned int offset = ImagePixelAccessorType::GetOffset(idx);
+
+      TPixel *targetAddress = ((TPixel *)m_WriteAccessor.m_AddressBegin) + offset;
+
+      if (targetAddress &gt;= m_WriteAccessor.m_AddressBegin &amp;&amp; targetAddress &lt; m_WriteAccessor.m_AddressEnd)
+      {
+        *targetAddress = value;
+      }
+      else
+      {
+        // printf("image dimensions = %d, %d, %d\n", imageDims[0], imageDims[1], imageDims[2]);
+        // printf("m_AddressBegin: %p, m_AddressEnd: %p, offset: %u\n", m_WriteAccessor.m_AddressBegin,
+        // m_WriteAccessor.m_AddressEnd, offset);
+        mitkThrow() &lt;&lt; "ImageAccessor Overflow: image access exceeds the requested image area at " &lt;&lt; idx &lt;&lt; ".";
+      }
+    }
+
+    /** Returns a const reference to the pixel at given index. */
+    const TPixel &amp;GetPixelByIndex(const itk::Index&lt;VDimension&gt; &amp;idx) const
+    {
+      unsigned int offset = ImagePixelAccessorType::GetOffset(idx);
+
+      return *(((TPixel *)m_WriteAccessor.m_AddressBegin) + offset);
+    }
+
+    /** Extends GetPixel by integrating index validation to prevent overflow.
+      * \throws mitk::Exception in case of overflow
+      */
+    const TPixel &amp;GetPixelByIndexSafe(const itk::Index&lt;VDimension&gt; &amp;idx) const
+    {
+      unsigned int offset = ImagePixelAccessorType::GetOffset(idx);
+
+      TPixel *targetAddress = ((TPixel *)m_WriteAccessor.m_AddressBegin) + offset;
+
+      if (!(targetAddress &gt;= m_WriteAccessor.m_AddressBegin &amp;&amp; targetAddress &lt; m_WriteAccessor.m_AddressEnd))
+      {
+        mitkThrow() &lt;&lt; "ImageAccessor Overflow: image access exceeds the requested image area at " &lt;&lt; idx &lt;&lt; ".";
+      }
+
+      return *targetAddress;
+    }
+
+    /** Returns a const reference to the pixel at given world coordinate - works only with three-dimensional
+     * ImageAccessor
+     */
+    const TPixel &amp;GetPixelByWorldCoordinates(mitk::Point3D position)
+    {
+      itk::Index&lt;3&gt; itkIndex;
+      m_WriteAccessor.GetImage()-&gt;GetGeometry()-&gt;WorldToIndex(position, itkIndex);
+
+      return GetPixelByIndex(itkIndex);
+    }
+
+    /** Returns a reference to the pixel at given world coordinate */
+    void SetPixelByWorldCoordinates(const mitk::Point3D &amp;, const TPixel &amp;value, unsigned int timestep = 0);
+
+<span style = "background-color:#fdd">    ~ImagePixelWriteAccessor() override {}</span>
+  private:
+    ImageWriteAccessor m_WriteAccessor;
+
+    ImagePixelWriteAccessor &amp;operator=(const ImagePixelWriteAccessor &amp;); // Not implemented on purpose.
+    ImagePixelWriteAccessor(const ImagePixelWriteAccessor &amp;);
+  };
+}
+#endif // MITKIMAGEWRITEACCESSOR_H</pre>
+	</body>
+</html>

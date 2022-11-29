@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMRTMimeTypes.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkDICOMRTMimeTypes.h&gt;
+
+#include &lt;mitkIOMimeTypes.h&gt;
+
+#include &lt;mitkDICOMDCMTKTagScanner.h&gt;
+#include &lt;mitkDICOMTagPath.h&gt;
+#include &lt;mitkDICOMFileReaderSelector.h&gt;
+#include &lt;mitkDICOMFileReader.h&gt;
+
+#include &lt;itksys/SystemTools.hxx&gt;
+
+
+
+namespace mitk
+{
+
+std::array&lt;std::unique_ptr&lt;CustomMimeType&gt;, 3&gt; DICOMRTMimeTypes::Get()
+<span style = "background-color:#dfd">{
+  return {</span>
+    std::make_unique&lt;RTDoseMimeType&gt;(),
+    std::make_unique&lt;RTPlanMimeType&gt;(),
+    std::make_unique&lt;RTStructMimeType&gt;()
+  };
+<span style = "background-color:#dfd">}</span>
+
+// Mime Types
+
+DICOMRTMimeTypes::RTDoseMimeType::RTDoseMimeType()
+<span style = "background-color:#dfd">  : CustomMimeType(DICOMRT_DOSE_MIMETYPE_NAME())
+{
+  std::string category = "DICOMRT";
+  this-&gt;SetCategory(category);
+  this-&gt;SetComment("RTDose");</span>
+
+<span style = "background-color:#dfd">  this-&gt;AddExtension("dcm");
+}</span>
+
+bool DICOMRTMimeTypes::RTDoseMimeType::AppliesTo(const std::string &amp;path) const
+<span style = "background-color:#fdd">{
+  bool canRead( CustomMimeType::AppliesTo(path) );</span>
+
+<span style = "background-color:#fdd">  if (!canRead)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+  // fix for bug 18572
+  // Currently this function is called for writing as well as reading, in that case
+  // the image information can of course not be parsed or further identifyed.
+  //so as a work arround we just return the current canRead if the file does not exist.
+<span style = "background-color:#fdd">  if (!itksys::SystemTools::FileExists(path.c_str()))</span>
+  {
+<span style = "background-color:#fdd">    return canRead;</span>
+  }
+  // end fix for bug 18572
+
+<span style = "background-color:#fdd">  auto modality = GetModality(path);
+  if (modality == "RTDOSE")</span>
+  {
+<span style = "background-color:#fdd">    return canReadByDicomFileReader(path);</span>
+  }
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+std::string DICOMRTMimeTypes::GetModality(const std::string &amp; path)
+<span style = "background-color:#fdd">{
+  const auto modalityTagPath = DICOMTagPath(0x0008, 0x0060);</span>
+
+<span style = "background-color:#fdd">  mitk::DICOMDCMTKTagScanner::Pointer scanner = mitk::DICOMDCMTKTagScanner::New();
+  scanner-&gt;SetInputFiles({ path });
+  scanner-&gt;AddTagPaths({ modalityTagPath });
+  scanner-&gt;Scan();</span>
+
+<span style = "background-color:#fdd">  mitk::DICOMDatasetAccessingImageFrameList frames = scanner-&gt;GetFrameInfoList();
+  std::string modality = "";
+  if (frames.empty())
+    return modality;
+  auto findings = frames.front()-&gt;GetTagValueAsString(modalityTagPath);</span>
+
+<span style = "background-color:#fdd">  modality = findings.front().value;
+  return modality;
+}</span>
+
+bool DICOMRTMimeTypes::canReadByDicomFileReader(const std::string &amp; filename)
+<span style = "background-color:#fdd">{
+  mitk::DICOMFileReaderSelector::Pointer selector = mitk::DICOMFileReaderSelector::New();
+  selector-&gt;LoadBuiltIn3DConfigs();
+  selector-&gt;SetInputFiles({ filename });</span>
+
+<span style = "background-color:#fdd">  mitk::DICOMFileReader::Pointer reader = selector-&gt;GetFirstReaderWithMinimumNumberOfOutputImages();</span>
+
+<span style = "background-color:#fdd">  return reader.IsNotNull();
+}</span>
+
+DICOMRTMimeTypes::RTDoseMimeType* DICOMRTMimeTypes::RTDoseMimeType::Clone() const
+<span style = "background-color:#dfd">{
+  return new RTDoseMimeType(*this);
+}</span>
+
+DICOMRTMimeTypes::RTStructMimeType::RTStructMimeType()
+<span style = "background-color:#dfd">  : CustomMimeType(DICOMRT_STRUCT_MIMETYPE_NAME())
+{
+  std::string category = "DICOMRT";
+  this-&gt;SetCategory(category);
+  this-&gt;SetComment("RTStruct");</span>
+
+<span style = "background-color:#dfd">  this-&gt;AddExtension("dcm");
+}</span>
+
+bool DICOMRTMimeTypes::RTStructMimeType::AppliesTo(const std::string &amp;path) const
+<span style = "background-color:#fdd">{
+  bool canRead(CustomMimeType::AppliesTo(path));</span>
+
+<span style = "background-color:#fdd">  if (!canRead) {
+    return false;</span>
+  }
+
+  // fix for bug 18572
+  // Currently this function is called for writing as well as reading, in that case
+  // the image information can of course not be parsed or further identifyed.
+  //so as a work arround we just return the current canRead if the file does not exist.
+<span style = "background-color:#fdd">  if (!itksys::SystemTools::FileExists(path.c_str()))</span>
+  {
+<span style = "background-color:#fdd">    return canRead;</span>
+  }
+  // end fix for bug 18572
+
+<span style = "background-color:#fdd">  auto modality = GetModality(path);
+  if (modality == "RTSTRUCT") {
+    return true;</span>
+  }
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+DICOMRTMimeTypes::RTStructMimeType* DICOMRTMimeTypes::RTStructMimeType::Clone() const
+<span style = "background-color:#dfd">{
+  return new RTStructMimeType(*this);
+}</span>
+
+DICOMRTMimeTypes::RTPlanMimeType::RTPlanMimeType()
+<span style = "background-color:#dfd">  : CustomMimeType(DICOMRT_PLAN_MIMETYPE_NAME())
+{
+  std::string category = "DICOMRT";
+  this-&gt;SetCategory(category);
+  this-&gt;SetComment("RTPLAN");</span>
+
+<span style = "background-color:#dfd">  this-&gt;AddExtension("dcm");
+}</span>
+
+bool DICOMRTMimeTypes::RTPlanMimeType::AppliesTo(const std::string &amp;path) const
+<span style = "background-color:#fdd">{
+  bool canRead(CustomMimeType::AppliesTo(path));</span>
+
+<span style = "background-color:#fdd">  if (!canRead) {
+    return false;</span>
+  }
+
+  // fix for bug 18572
+  // Currently this function is called for writing as well as reading, in that case
+  // the image information can of course not be parsed or further identifyed.
+  //so as a work arround we just return the current canRead if the file does not exist.
+<span style = "background-color:#fdd">  if (!itksys::SystemTools::FileExists(path.c_str()))</span>
+  {
+<span style = "background-color:#fdd">    return canRead;</span>
+  }
+  // end fix for bug 18572
+
+<span style = "background-color:#fdd">  auto modality = GetModality(path);
+  if (modality == "RTPLAN") {
+    return true;</span>
+  }
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+DICOMRTMimeTypes::RTPlanMimeType* DICOMRTMimeTypes::RTPlanMimeType::Clone() const
+<span style = "background-color:#dfd">{
+  return new RTPlanMimeType(*this);
+}</span>
+
+
+DICOMRTMimeTypes::RTDoseMimeType DICOMRTMimeTypes::DICOMRT_DOSE_MIMETYPE()
+<span style = "background-color:#fdd">{
+  return RTDoseMimeType();
+}</span>
+
+DICOMRTMimeTypes::RTStructMimeType DICOMRTMimeTypes::DICOMRT_STRUCT_MIMETYPE()
+<span style = "background-color:#fdd">{
+  return RTStructMimeType();
+}</span>
+
+DICOMRTMimeTypes::RTPlanMimeType DICOMRTMimeTypes::DICOMRT_PLAN_MIMETYPE()
+<span style = "background-color:#fdd">{
+  return RTPlanMimeType();
+}</span>
+
+// Names
+std::string DICOMRTMimeTypes::DICOMRT_DOSE_MIMETYPE_NAME()
+<span style = "background-color:#dfd">{
+  return IOMimeTypes::DEFAULT_BASE_NAME() + ".dicomrt.dose";
+}</span>
+
+std::string DICOMRTMimeTypes::DICOMRT_STRUCT_MIMETYPE_NAME()
+<span style = "background-color:#dfd">{
+  return IOMimeTypes::DEFAULT_BASE_NAME() + ".dicomrt.struct";
+}</span>
+
+std::string DICOMRTMimeTypes::DICOMRT_PLAN_MIMETYPE_NAME()
+<span style = "background-color:#dfd">{
+  return IOMimeTypes::DEFAULT_BASE_NAME() + ".dicomrt.plan";
+}</span>
+
+// Descriptions
+
+std::string DICOMRTMimeTypes::DICOMRT_DOSE_MIMETYPE_DESCRIPTION()
+<span style = "background-color:#dfd">{
+  return "RTDOSE reader";
+}</span>
+
+std::string DICOMRTMimeTypes::DICOMRT_STRUCT_MIMETYPE_DESCRIPTION()
+<span style = "background-color:#dfd">{
+  return "RTSTRUCT reader";
+}</span>
+
+std::string DICOMRTMimeTypes::DICOMRT_PLAN_MIMETYPE_DESCRIPTION()
+<span style = "background-color:#dfd">{
+  return "RTPLAN reader";
+}</span>
+
+}</pre>
+	</body>
+</html>

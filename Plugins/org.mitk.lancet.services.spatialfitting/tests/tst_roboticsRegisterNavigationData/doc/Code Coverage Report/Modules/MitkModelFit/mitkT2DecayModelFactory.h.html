@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkT2DecayModelFactory.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __T2_DECAY_TEST_MODEL_FACTORY_H
+#define __T2_DECAY_TEST_MODEL_FACTORY_H
+
+#include &lt;mitkCommon.h&gt;
+
+#include "mitkConcreteModelFactoryBase.h"
+#include "mitkT2DecayModel.h"
+
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+
+  class MITKMODELFIT_EXPORT T2DecayModelFactory : public ConcreteModelFactoryBase&lt;T2DecayModel&gt;
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(T2DecayModelFactory, ConcreteModelFactoryBase&lt;T2DecayModel&gt;);</span>
+<span style = "background-color:#dfd">    itkFactorylessNewMacro(Self);</span>
+
+    ParametersType GetDefaultInitialParameterization() const override;
+
+    ConstraintCheckerBase::Pointer CreateDefaultConstraints() const override;
+
+  protected:
+    ModelParameterizerBase::Pointer DoCreateParameterizer(const modelFit::ModelFitInfo* fit)
+    const override;
+
+    T2DecayModelFactory();
+
+    ~T2DecayModelFactory() override;
+
+  private:
+
+    //No copy constructor allowed
+    T2DecayModelFactory(const Self&amp; source);
+    void operator=(const Self&amp;);  //purposely not implemented
+  };
+}
+
+
+#endif //__LINEAR_TEST_MODEL_FACTORY_H</pre>
+	</body>
+</html>

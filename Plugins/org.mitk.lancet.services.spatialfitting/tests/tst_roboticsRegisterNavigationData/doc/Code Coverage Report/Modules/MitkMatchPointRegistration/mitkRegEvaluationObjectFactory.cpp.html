@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRegEvaluationObjectFactory.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkRegEvaluationObjectFactory.h"
+
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkBaseRenderer.h&gt;
+#include &lt;mitkDataNode.h&gt;
+
+#include "mitkRegEvaluationMapper2D.h"
+
+typedef std::multimap&lt;std::string, std::string&gt; MultimapType;
+
+mitk::RegEvaluationObjectFactory::RegEvaluationObjectFactory()
+<span style = "background-color:#dfd">: CoreObjectFactoryBase()
+{</span>
+  static bool alreadyDone = false;
+<span style = "background-color:#dfd">  if (!alreadyDone)</span>
+  {
+<span style = "background-color:#dfd">    alreadyDone = true;</span>
+  }
+
+<span style = "background-color:#dfd">}</span>
+
+mitk::RegEvaluationObjectFactory::~RegEvaluationObjectFactory()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::Mapper::Pointer
+mitk::RegEvaluationObjectFactory::
+CreateMapper(mitk::DataNode* node, MapperSlotId slotId)
+<span style = "background-color:#fdd">{
+    mitk::Mapper::Pointer newMapper = nullptr;</span>
+
+<span style = "background-color:#fdd">    if ( slotId == mitk::BaseRenderer::Standard2D )</span>
+    {
+<span style = "background-color:#fdd">        std::string classname("RegEvaluationObject");
+        if(node-&gt;GetData() &amp;&amp; classname.compare(node-&gt;GetData()-&gt;GetNameOfClass())==0)</span>
+        {
+<span style = "background-color:#fdd">          newMapper = mitk::RegEvaluationMapper2D::New();
+          newMapper-&gt;SetDataNode(node);</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    return newMapper;
+};</span>
+
+void mitk::RegEvaluationObjectFactory::SetDefaultProperties(mitk::DataNode*)
+<span style = "background-color:#fdd">{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+std::string mitk::RegEvaluationObjectFactory::GetFileExtensions()
+<span style = "background-color:#dfd">{</span>
+  //return empty (dummy) extension string
+<span style = "background-color:#dfd">  return m_FileExtensions.c_str();
+};</span>
+
+mitk::CoreObjectFactoryBase::MultimapType mitk::RegEvaluationObjectFactory::GetFileExtensionsMap()
+<span style = "background-color:#dfd">{
+  return mitk::CoreObjectFactoryBase::MultimapType();
+}</span>
+
+std::string mitk::RegEvaluationObjectFactory::GetSaveFileExtensions()
+<span style = "background-color:#dfd">{</span>
+  //return empty (dummy) extension string
+<span style = "background-color:#dfd">  return m_FileExtensions.c_str();
+}</span>
+
+mitk::CoreObjectFactoryBase::MultimapType mitk::RegEvaluationObjectFactory::GetSaveFileExtensionsMap()
+<span style = "background-color:#dfd">{
+  return mitk::CoreObjectFactoryBase::MultimapType();
+}</span>
+
+void mitk::RegEvaluationObjectFactory::RegisterIOFactories()
+<span style = "background-color:#fdd">{
+}</span>
+
+struct RegisterRegEvaluationObjectFactoryHelper{
+  RegisterRegEvaluationObjectFactoryHelper()
+<span style = "background-color:#dfd">    : m_Factory( mitk::RegEvaluationObjectFactory::New() )
+  {
+    mitk::CoreObjectFactory::GetInstance()-&gt;RegisterExtraFactory( m_Factory );
+  }</span>
+
+  ~RegisterRegEvaluationObjectFactoryHelper()
+<span style = "background-color:#dfd">  {
+    mitk::CoreObjectFactory::GetInstance()-&gt;UnRegisterExtraFactory( m_Factory );
+  }</span>
+
+  mitk::RegEvaluationObjectFactory::Pointer m_Factory;
+};
+
+<span style = "background-color:#dfd">static RegisterRegEvaluationObjectFactoryHelper registerMITKRegistrationWrapperIOFactoryHelper;</span></pre>
+	</body>
+</html>

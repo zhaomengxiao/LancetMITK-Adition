@@ -1,0 +1,522 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSurface.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkSurface.h"
+#include "mitkInteractionConst.h"
+#include "mitkSurfaceOperation.h"
+
+#include &lt;algorithm&gt;
+#include &lt;vtkPolyData.h&gt;
+
+static vtkSmartPointer&lt;vtkPolyData&gt; DeepCopy(vtkPolyData *other)
+<span style = "background-color:#fdd">{
+  if (other == nullptr)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkPolyData&gt; copy = vtkSmartPointer&lt;vtkPolyData&gt;::New();
+  copy-&gt;DeepCopy(other);</span>
+
+<span style = "background-color:#fdd">  return copy;
+}</span>
+
+static void Update(vtkPolyData * /*polyData*/)
+<span style = "background-color:#fdd">{</span>
+  //  if (polyData != nullptr)
+  //    polyData-&gt;Update(); //VTK6_TODO vtk pipeline
+<span style = "background-color:#fdd">}</span>
+
+<span style = "background-color:#fdd">mitk::Surface::Surface() : m_CalculateBoundingBox(false)
+{
+  this-&gt;InitializeEmpty();
+}</span>
+
+mitk::Surface::Surface(const mitk::Surface &amp;other)
+<span style = "background-color:#fdd">  : BaseData(other),
+    m_LargestPossibleRegion(other.m_LargestPossibleRegion),
+    m_RequestedRegion(other.m_RequestedRegion),
+    m_CalculateBoundingBox(other.m_CalculateBoundingBox)
+{
+  if (!other.m_PolyDatas.empty())</span>
+  {
+<span style = "background-color:#fdd">    m_PolyDatas.resize(other.m_PolyDatas.size());
+    std::transform(other.m_PolyDatas.cbegin(), other.m_PolyDatas.cend(), m_PolyDatas.begin(), DeepCopy);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;InitializeEmpty();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::Surface::Swap(mitk::Surface &amp;other)
+<span style = "background-color:#fdd">{
+  std::swap(m_PolyDatas, other.m_PolyDatas);
+  std::swap(m_LargestPossibleRegion, other.m_LargestPossibleRegion);
+  std::swap(m_RequestedRegion, other.m_RequestedRegion);
+  std::swap(m_CalculateBoundingBox, other.m_CalculateBoundingBox);
+}</span>
+
+mitk::Surface &amp;mitk::Surface::operator=(Surface other)
+<span style = "background-color:#fdd">{
+  this-&gt;Swap(other);
+  return *this;
+}</span>
+
+mitk::Surface::~Surface()
+<span style = "background-color:#fdd">{
+  this-&gt;ClearData();
+}</span>
+
+void mitk::Surface::ClearData()
+<span style = "background-color:#fdd">{
+  m_PolyDatas.clear();</span>
+
+<span style = "background-color:#fdd">  Superclass::ClearData();
+}</span>
+
+const mitk::Surface::RegionType &amp;mitk::Surface::GetLargestPossibleRegion() const
+<span style = "background-color:#fdd">{
+  m_LargestPossibleRegion.SetIndex(3, 0);
+  m_LargestPossibleRegion.SetSize(3, GetTimeGeometry()-&gt;CountTimeSteps());</span>
+
+<span style = "background-color:#fdd">  return m_LargestPossibleRegion;
+}</span>
+
+const mitk::Surface::RegionType &amp;mitk::Surface::GetRequestedRegion() const
+<span style = "background-color:#fdd">{
+  return m_RequestedRegion;
+}</span>
+
+void mitk::Surface::InitializeEmpty()
+<span style = "background-color:#fdd">{
+  if (!m_PolyDatas.empty())
+    this-&gt;ClearData();</span>
+
+<span style = "background-color:#fdd">  Superclass::InitializeTimeGeometry();</span>
+
+<span style = "background-color:#fdd">  m_PolyDatas.push_back(nullptr);
+  m_Initialized = true;
+}</span>
+
+void mitk::Surface::SetVtkPolyData(vtkPolyData *polyData, unsigned int t)
+<span style = "background-color:#fdd">{
+  this-&gt;Expand(t + 1);</span>
+
+<span style = "background-color:#fdd">  if (m_PolyDatas[t] != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    if (m_PolyDatas[t].GetPointer() == polyData)
+      return;</span>
+  }
+
+<span style = "background-color:#fdd">  m_PolyDatas[t].TakeReference(polyData);</span>
+
+<span style = "background-color:#fdd">  if (polyData != nullptr)
+    polyData-&gt;Register(nullptr);</span>
+
+<span style = "background-color:#fdd">  m_CalculateBoundingBox = true;</span>
+
+<span style = "background-color:#fdd">  this-&gt;Modified();
+  this-&gt;UpdateOutputInformation();
+}</span>
+
+bool mitk::Surface::IsEmptyTimeStep(unsigned int t) const
+<span style = "background-color:#fdd">{
+  if (!IsInitialized())
+    return false;</span>
+
+<span style = "background-color:#fdd">  vtkPolyData *polyData = this-&gt;GetVtkPolyData(t);</span>
+
+<span style = "background-color:#fdd">  return polyData == nullptr || (polyData-&gt;GetNumberOfLines() == 0 &amp;&amp; polyData-&gt;GetNumberOfPolys() == 0 &amp;&amp;</span>
+                                 polyData-&gt;GetNumberOfStrips() == 0 &amp;&amp; polyData-&gt;GetNumberOfVerts() == 0);
+<span style = "background-color:#fdd">}</span>
+
+vtkPolyData *mitk::Surface::GetVtkPolyData(unsigned int t) const
+<span style = "background-color:#fdd">{
+  if (t &lt; m_PolyDatas.size())</span>
+  {
+<span style = "background-color:#fdd">    if (m_PolyDatas[t] == nullptr &amp;&amp; this-&gt;GetSource().IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      RegionType requestedRegion;
+      requestedRegion.SetIndex(3, t);
+      requestedRegion.SetSize(3, 1);
+      this-&gt;m_RequestedRegion = requestedRegion;
+      this-&gt;GetSource()-&gt;Update();
+    }</span>
+
+<span style = "background-color:#fdd">    return m_PolyDatas[t].GetPointer();</span>
+  }
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+void mitk::Surface::UpdateOutputInformation()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetSource().IsNotNull())
+    this-&gt;GetSource()-&gt;UpdateOutputInformation();</span>
+
+<span style = "background-color:#fdd">  if (m_CalculateBoundingBox == true &amp;&amp; !m_PolyDatas.empty())
+    this-&gt;CalculateBoundingBox();</span>
+  else
+<span style = "background-color:#fdd">    this-&gt;GetTimeGeometry()-&gt;Update();
+}</span>
+
+void mitk::Surface::CalculateBoundingBox()
+<span style = "background-color:#fdd">{
+  TimeGeometry *timeGeometry = this-&gt;GetTimeGeometry();</span>
+
+<span style = "background-color:#fdd">  if (timeGeometry-&gt;CountTimeSteps() != m_PolyDatas.size())
+    mitkThrow() &lt;&lt; "Number of geometry time steps is inconsistent with number of poly data pointers.";</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; m_PolyDatas.size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    vtkPolyData *polyData = m_PolyDatas[i].GetPointer();
+    double bounds[6] = {0};</span>
+
+<span style = "background-color:#fdd">    if (polyData != nullptr &amp;&amp; polyData-&gt;GetNumberOfPoints() &gt; 0)</span>
+    {
+      //      polyData-&gt;Update(); //VTK6_TODO vtk pipeline
+<span style = "background-color:#fdd">      polyData-&gt;ComputeBounds();
+      polyData-&gt;GetBounds(bounds);</span>
+    }
+
+<span style = "background-color:#fdd">    BaseGeometry::Pointer geometry = timeGeometry-&gt;GetGeometryForTimeStep(i);</span>
+
+<span style = "background-color:#fdd">    if (geometry.IsNull())
+      mitkThrow() &lt;&lt; "Time-sliced geometry is invalid (equals nullptr).";</span>
+
+<span style = "background-color:#fdd">    geometry-&gt;SetFloatBounds(bounds);
+  }</span>
+
+<span style = "background-color:#fdd">  timeGeometry-&gt;Update();
+  m_CalculateBoundingBox = false;
+}</span>
+
+void mitk::Surface::SetRequestedRegionToLargestPossibleRegion()
+<span style = "background-color:#fdd">{
+  m_RequestedRegion = GetLargestPossibleRegion();
+}</span>
+
+bool mitk::Surface::RequestedRegionIsOutsideOfTheBufferedRegion()
+<span style = "background-color:#fdd">{
+  RegionType::IndexValueType end = m_RequestedRegion.GetIndex(3) + m_RequestedRegion.GetSize(3);</span>
+
+<span style = "background-color:#fdd">  if (static_cast&lt;RegionType::IndexValueType&gt;(m_PolyDatas.size()) &lt; end)
+    return true;</span>
+
+<span style = "background-color:#fdd">  for (RegionType::IndexValueType t = m_RequestedRegion.GetIndex(3); t &lt; end; ++t)</span>
+  {
+<span style = "background-color:#fdd">    if (m_PolyDatas[t] == nullptr)
+      return true;
+  }</span>
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+bool mitk::Surface::VerifyRequestedRegion()
+<span style = "background-color:#fdd">{
+  if (m_RequestedRegion.GetIndex(3) &gt;= 0 &amp;&amp;</span>
+      m_RequestedRegion.GetIndex(3) + m_RequestedRegion.GetSize(3) &lt;= m_PolyDatas.size())
+<span style = "background-color:#fdd">    return true;</span>
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::Surface::SetRequestedRegion(const itk::DataObject *data)
+<span style = "background-color:#fdd">{
+  const auto *surface = dynamic_cast&lt;const mitk::Surface *&gt;(data);</span>
+
+<span style = "background-color:#fdd">  if (surface != nullptr)
+    m_RequestedRegion = surface-&gt;GetRequestedRegion();</span>
+  else
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Data object used to get requested region is not a mitk::Surface.";
+}</span>
+
+void mitk::Surface::SetRequestedRegion(Surface::RegionType *region)
+<span style = "background-color:#fdd">{
+  if (region == nullptr)
+    mitkThrow() &lt;&lt; "Requested region is invalid (equals nullptr)";</span>
+
+<span style = "background-color:#fdd">  m_RequestedRegion = *region;
+}</span>
+
+void mitk::Surface::CopyInformation(const itk::DataObject *data)
+<span style = "background-color:#fdd">{
+  Superclass::CopyInformation(data);</span>
+
+<span style = "background-color:#fdd">  const auto *surface = dynamic_cast&lt;const mitk::Surface *&gt;(data);</span>
+
+<span style = "background-color:#fdd">  if (surface == nullptr)
+    mitkThrow() &lt;&lt; "Data object used to get largest possible region is not a mitk::Surface.";</span>
+
+<span style = "background-color:#fdd">  m_LargestPossibleRegion = surface-&gt;GetLargestPossibleRegion();
+}</span>
+
+void mitk::Surface::Update()
+<span style = "background-color:#fdd">{</span>
+  using ::Update;
+
+<span style = "background-color:#fdd">  if (this-&gt;GetSource().IsNull())
+    std::for_each(m_PolyDatas.begin(), m_PolyDatas.end(), Update);</span>
+
+<span style = "background-color:#fdd">  Superclass::Update();
+}</span>
+
+void mitk::Surface::Expand(unsigned int timeSteps)
+<span style = "background-color:#fdd">{
+  if (timeSteps &gt; m_PolyDatas.size())</span>
+  {
+<span style = "background-color:#fdd">    Superclass::Expand(timeSteps);</span>
+
+<span style = "background-color:#fdd">    m_PolyDatas.resize(timeSteps);
+    m_CalculateBoundingBox = true;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::Surface::ExecuteOperation(Operation *operation)
+<span style = "background-color:#fdd">{
+  switch (operation-&gt;GetOperationType())</span>
+  {
+    case OpSURFACECHANGED:
+    {
+<span style = "background-color:#fdd">      auto *surfaceOperation = dynamic_cast&lt;mitk::SurfaceOperation *&gt;(operation);</span>
+
+<span style = "background-color:#fdd">      if (surfaceOperation == nullptr)
+        break;</span>
+
+<span style = "background-color:#fdd">      unsigned int timeStep = surfaceOperation-&gt;GetTimeStep();</span>
+
+<span style = "background-color:#fdd">      if (m_PolyDatas[timeStep] != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        vtkPolyData *updatedPolyData = surfaceOperation-&gt;GetVtkPolyData();</span>
+
+<span style = "background-color:#fdd">        if (updatedPolyData != nullptr)</span>
+        {
+<span style = "background-color:#fdd">          this-&gt;SetVtkPolyData(updatedPolyData, timeStep);
+          this-&gt;CalculateBoundingBox();
+          this-&gt;Modified();</span>
+        }
+      }
+
+      break;
+    }
+
+    default:
+      return;
+  }
+<span style = "background-color:#fdd">}</span>
+
+unsigned int mitk::Surface::GetSizeOfPolyDataSeries() const
+<span style = "background-color:#fdd">{
+  return m_PolyDatas.size();
+}</span>
+
+void mitk::Surface::Graft(const DataObject *data)
+<span style = "background-color:#fdd">{
+  const auto *surface = dynamic_cast&lt;const Surface *&gt;(data);</span>
+
+<span style = "background-color:#fdd">  if (surface == nullptr)
+    mitkThrow() &lt;&lt; "Data object used to graft surface is not a mitk::Surface.";</span>
+
+<span style = "background-color:#fdd">  this-&gt;CopyInformation(data);
+  m_PolyDatas.clear();</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; surface-&gt;GetSizeOfPolyDataSeries(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    m_PolyDatas.push_back(vtkSmartPointer&lt;vtkPolyData&gt;::New());
+    m_PolyDatas.back()-&gt;DeepCopy(surface-&gt;GetVtkPolyData(i));
+  }
+}</span>
+
+void mitk::Surface::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; "\nNumber PolyDatas: " &lt;&lt; m_PolyDatas.size() &lt;&lt; "\n";</span>
+
+<span style = "background-color:#fdd">  unsigned int count = 0;</span>
+
+<span style = "background-color:#fdd">  for (auto it = m_PolyDatas.begin(); it != m_PolyDatas.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; "\n";</span>
+
+<span style = "background-color:#fdd">    if (*it != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; indent &lt;&lt; "PolyData at time step " &lt;&lt; count &lt;&lt; ":\n";
+      os &lt;&lt; indent &lt;&lt; "Number of cells: " &lt;&lt; (*it)-&gt;GetNumberOfCells() &lt;&lt; "\n";
+      os &lt;&lt; indent &lt;&lt; "Number of points: " &lt;&lt; (*it)-&gt;GetNumberOfPoints() &lt;&lt; "\n\n";
+      os &lt;&lt; indent &lt;&lt; "VTKPolyData:\n";</span>
+
+<span style = "background-color:#fdd">      (*it)-&gt;Print(os);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; indent &lt;&lt; "Empty PolyData at time step " &lt;&lt; count &lt;&lt; "\n";</span>
+    }
+
+<span style = "background-color:#fdd">    ++count;
+  }
+}</span>
+
+bool mitk::Equal(vtkPolyData *leftHandSide, vtkPolyData *rightHandSide, mitk::ScalarType eps, bool verbose)
+<span style = "background-color:#fdd">{
+  if ((leftHandSide == nullptr) || (rightHandSide == nullptr))</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::Equal( vtkPolyData* leftHandSide, vtkPolyData* rightHandSide, mitk::ScalarType eps, bool "</span>
+                  "verbose ) does not work for nullptr pointer input.";
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">  return Equal(*leftHandSide, *rightHandSide, eps, verbose);
+}</span>
+
+bool mitk::Equal(vtkPolyData &amp;leftHandSide, vtkPolyData &amp;rightHandSide, mitk::ScalarType eps, bool verbose)
+<span style = "background-color:#fdd">{
+  bool noDifferenceFound = true;</span>
+
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetNumberOfCells(), rightHandSide.GetNumberOfCells(), eps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)
+      MITK_INFO &lt;&lt; "[Equal( vtkPolyData*, vtkPolyData* )] Number of cells not equal";
+    noDifferenceFound = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetNumberOfVerts(), rightHandSide.GetNumberOfVerts(), eps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)
+      MITK_INFO &lt;&lt; "[Equal( vtkPolyData*, vtkPolyData* )] Number of vertices not equal";
+    noDifferenceFound = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetNumberOfLines(), rightHandSide.GetNumberOfLines(), eps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)
+      MITK_INFO &lt;&lt; "[Equal( vtkPolyData*, vtkPolyData* )] Number of lines not equal";
+    noDifferenceFound = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetNumberOfPolys(), rightHandSide.GetNumberOfPolys(), eps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)
+      MITK_INFO &lt;&lt; "[Equal( vtkPolyData*, vtkPolyData* )] Number of polys not equal";
+    noDifferenceFound = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetNumberOfStrips(), rightHandSide.GetNumberOfStrips(), eps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)
+      MITK_INFO &lt;&lt; "[Equal( vtkPolyData*, vtkPolyData* )] Number of strips not equal";
+    noDifferenceFound = false;</span>
+  }
+
+  {
+<span style = "background-color:#fdd">    unsigned int numberOfPointsRight = rightHandSide.GetPoints()-&gt;GetNumberOfPoints();
+    unsigned int numberOfPointsLeft = leftHandSide.GetPoints()-&gt;GetNumberOfPoints();
+    if (!mitk::Equal(numberOfPointsLeft, numberOfPointsRight, eps, verbose))</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)
+        MITK_INFO &lt;&lt; "[Equal( vtkPolyData*, vtkPolyData* )] Number of points not equal";
+      noDifferenceFound = false;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      for (unsigned int i(0); i &lt; numberOfPointsRight; i++)</span>
+      {
+<span style = "background-color:#fdd">        bool pointFound = false;</span>
+        double pointOne[3];
+<span style = "background-color:#fdd">        rightHandSide.GetPoints()-&gt;GetPoint(i, pointOne);</span>
+
+<span style = "background-color:#fdd">        for (unsigned int j(0); j &lt; numberOfPointsLeft; j++)</span>
+        {
+          double pointTwo[3];
+<span style = "background-color:#fdd">          leftHandSide.GetPoints()-&gt;GetPoint(j, pointTwo);</span>
+
+<span style = "background-color:#fdd">          double x = pointOne[0] - pointTwo[0];
+          double y = pointOne[1] - pointTwo[1];
+          double z = pointOne[2] - pointTwo[2];
+          double distance = x * x + y * y + z * z;</span>
+
+<span style = "background-color:#fdd">          if (distance &lt; eps)</span>
+          {
+<span style = "background-color:#fdd">            pointFound = true;
+            break;</span>
+          }
+<span style = "background-color:#fdd">        }
+        if (!pointFound)</span>
+        {
+<span style = "background-color:#fdd">          if (verbose)</span>
+          {
+<span style = "background-color:#fdd">            MITK_INFO &lt;&lt; "[Equal( vtkPolyData*, vtkPolyData* )] Right hand side point with id " &lt;&lt; i</span>
+                      &lt;&lt; " and coordinates ( " &lt;&lt; std::setprecision(12) &lt;&lt; pointOne[0] &lt;&lt; " ; " &lt;&lt; pointOne[1] &lt;&lt; " ; "
+                      &lt;&lt; pointOne[2] &lt;&lt; " ) could not be found in left hand side with epsilon " &lt;&lt; eps &lt;&lt; ".";
+          }
+<span style = "background-color:#fdd">          noDifferenceFound = false;
+          break;</span>
+        }
+<span style = "background-color:#fdd">      }</span>
+    }
+  }
+<span style = "background-color:#fdd">  return noDifferenceFound;
+}</span>
+
+bool mitk::Equal(mitk::Surface *leftHandSide, mitk::Surface *rightHandSide, mitk::ScalarType eps, bool verbose)
+<span style = "background-color:#fdd">{
+  if ((leftHandSide == nullptr) || (rightHandSide == nullptr))</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::Equal( mitk::Surface* leftHandSide, mitk::Surface* rightHandSide, mitk::ScalarType eps, bool "</span>
+                  "verbose ) does not work with nullptr pointer input.";
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">  return Equal(*leftHandSide, *rightHandSide, eps, verbose);
+}</span>
+
+bool mitk::Equal(mitk::Surface &amp;leftHandSide, mitk::Surface &amp;rightHandSide, mitk::ScalarType eps, bool verbose)
+<span style = "background-color:#fdd">{
+  bool noDifferenceFound = true;</span>
+
+<span style = "background-color:#fdd">  if (!mitk::Equal(leftHandSide.GetSizeOfPolyDataSeries(), rightHandSide.GetSizeOfPolyDataSeries(), eps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)
+      MITK_INFO &lt;&lt; "[Equal( mitk::surface&amp;, mitk::surface&amp; )] Size of PolyData series not equal.";
+    return false;</span>
+  }
+
+  // No mitk::Equal for TimeGeometry implemented.
+  // if( ! mitk::Equal( leftHandSide-&gt;GetTimeGeometry(), rightHandSide-&gt;GetTimeGeometry(), eps, verbose ) )
+  //{
+  //  if(verbose)
+  //    MITK_INFO &lt;&lt; "[Equal( mitk::surface&amp;, mitk::surface&amp; )] Time sliced geometries not equal";
+  //  noDifferenceFound = false;
+  //}
+
+<span style = "background-color:#fdd">  for (unsigned int i(0); i &lt; rightHandSide.GetSizeOfPolyDataSeries(); i++)</span>
+  {
+<span style = "background-color:#fdd">    if (!mitk::Equal(*leftHandSide.GetVtkPolyData(i), *rightHandSide.GetVtkPolyData(i), eps, verbose))</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)
+        MITK_INFO &lt;&lt; "[Equal( mitk::surface&amp;, mitk::surface&amp; )] Poly datas not equal.";
+      noDifferenceFound = false;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return noDifferenceFound;
+}</span></pre>
+	</body>
+</html>

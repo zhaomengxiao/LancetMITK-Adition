@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSceneReaderV1.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkSceneReader.h"
+
+namespace tinyxml2
+{
+  class XMLElement;
+}
+
+namespace mitk
+{
+  class SceneReaderV1 : public SceneReader
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(SceneReaderV1, SceneReader);
+    itkFactorylessNewMacro(Self);</span>
+    itkCloneMacro(Self);
+
+    bool LoadScene(tinyxml2::XMLDocument &amp;document,
+                             const std::string &amp;workingDirectory,
+                             DataStorage *storage) override;
+
+  protected:
+    /**
+      \brief tries to create one DataNode from a given XML \&lt;node\&gt; element
+    */
+    DataNode::Pointer LoadBaseDataFromDataTag(const tinyxml2::XMLElement *dataElement,
+                                              const std::string &amp;workingDirectory,
+                                              bool &amp;error);
+
+    /**
+      \brief reads all the properties from the XML document and recreates them in node
+    */
+    bool DecorateNodeWithProperties(DataNode *node, const tinyxml2::XMLElement *nodeElement, const std::string &amp;workingDirectory);
+
+    /**
+      \brief Clear a default property list and handle some exceptions.
+
+      Called after assigning a BaseData object to a fresh DataNode via SetData().
+      This call to SetData() would create default properties that have not been
+      there when saving the scene. Since they can produce problems, we clear the
+      list and use only those properties that we read from the scene file.
+
+      This method also handles some exceptions for backwards compatibility.
+      Those exceptions are documented directly in the code of the method.
+    */
+    void ClearNodePropertyListWithExceptions(DataNode &amp;node, PropertyList &amp;propertyList);
+
+    /**
+      \brief reads all properties assigned to a base data element and assigns the list to the base data object
+
+      The baseDataNodeElem is supposed to be the \c \&lt;properties file="..."\&gt; element.
+    */
+    bool DecorateBaseDataWithProperties(BaseData::Pointer data,
+                                        const tinyxml2::XMLElement *baseDataNodeElem,
+                                        const std::string &amp;workingDir);
+
+    typedef std::pair&lt;DataNode::Pointer, std::list&lt;std::string&gt;&gt; NodesAndParentsPair;
+    typedef std::list&lt;NodesAndParentsPair&gt; OrderedNodesList;
+    typedef std::map&lt;std::string, DataNode *&gt; IDToNodeMappingType;
+    typedef std::map&lt;DataNode *, std::string&gt; NodeToIDMappingType;
+
+    OrderedNodesList m_OrderedNodePairs;
+    IDToNodeMappingType m_NodeForID;
+    NodeToIDMappingType m_IDForNode;
+
+    UIDGenerator m_UIDGen;
+  };
+}</pre>
+	</body>
+</html>

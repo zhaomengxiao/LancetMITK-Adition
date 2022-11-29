@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkGeometryData.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkGeometryData.h"
+#include "mitkBaseProcess.h"
+#include "mitkTimeGeometry.h"
+
+mitk::GeometryData::GeometryData()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::GeometryData::~GeometryData()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::GeometryData::UpdateOutputInformation()
+<span style = "background-color:#fdd">{
+  Superclass::UpdateOutputInformation();
+}</span>
+
+void mitk::GeometryData::SetRequestedRegionToLargestPossibleRegion()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::GeometryData::RequestedRegionIsOutsideOfTheBufferedRegion()
+<span style = "background-color:#fdd">{
+  if (GetGeometry() != nullptr)
+    return true;</span>
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+bool mitk::GeometryData::VerifyRequestedRegion()
+<span style = "background-color:#fdd">{
+  if (GetGeometry() == nullptr)
+    return false;</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+void mitk::GeometryData::SetRequestedRegion(const itk::DataObject *)
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::GeometryData::CopyInformation(const itk::DataObject *)
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::Equal(const mitk::GeometryData &amp;leftHandSide,
+                 const mitk::GeometryData &amp;rightHandSide,
+                 mitk::ScalarType eps,
+                 bool verbose)
+<span style = "background-color:#fdd">{
+  unsigned int timeStepsLeft = leftHandSide.GetTimeGeometry()-&gt;CountTimeSteps();
+  unsigned int timeStepsRight = rightHandSide.GetTimeGeometry()-&gt;CountTimeSteps();</span>
+
+<span style = "background-color:#fdd">  if (timeStepsLeft != timeStepsRight)</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( GeometryData::GetTimeGeometry )] number of time steps are not equal.";
+      MITK_INFO &lt;&lt; "rightHandSide is " &lt;&lt; timeStepsRight &lt;&lt; " : leftHandSide is " &lt;&lt; timeStepsLeft;</span>
+    }
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  bool allEqual = true;</span>
+
+<span style = "background-color:#fdd">  for (unsigned int t = 0; t &lt; timeStepsLeft; ++t)</span>
+  {
+<span style = "background-color:#fdd">    BaseGeometry *geomLeft = leftHandSide.GetGeometry(t);
+    BaseGeometry *geomRight = rightHandSide.GetGeometry(t);
+    allEqual &amp;= mitk::Equal(*geomLeft, *geomRight, eps, verbose);
+  }</span>
+
+<span style = "background-color:#fdd">  return allEqual; // valid with initial true for timestep count == 0
+}</span></pre>
+	</body>
+</html>

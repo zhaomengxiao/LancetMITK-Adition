@@ -1,0 +1,358 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkEventStateMachine.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkEventStateMachine.h"
+#include "mitkApplicationCursor.h"
+#include "mitkInteractionEvent.h"
+#include "mitkStateMachineAction.h"
+#include "mitkStateMachineCondition.h"
+#include "mitkStateMachineContainer.h"
+#include "mitkStateMachineState.h"
+#include "mitkStateMachineTransition.h"
+#include "mitkUndoController.h"
+
+mitk::EventStateMachine::EventStateMachine()
+<span style = "background-color:#fdd">  : m_IsActive(true),
+    m_UndoController(nullptr),
+    m_StateMachineContainer(nullptr),
+    m_CurrentState(nullptr),
+    m_MouseCursorSet(false)
+{
+  if (!m_UndoController)</span>
+  {
+<span style = "background-color:#fdd">    m_UndoController = new UndoController(UndoController::VERBOSE_LIMITEDLINEARUNDO); // switch to LLU or add LLU</span>
+
+    /**
+    * here the Undo mechanism is enabled / disabled for all interactors.
+    **/
+<span style = "background-color:#fdd">    m_UndoEnabled = true;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::EventStateMachine::LoadStateMachine(const std::string &amp;filename, const us::Module *module)
+<span style = "background-color:#fdd">{
+  if (m_StateMachineContainer != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_StateMachineContainer-&gt;Delete();</span>
+  }
+<span style = "background-color:#fdd">  m_StateMachineContainer = StateMachineContainer::New();</span>
+
+<span style = "background-color:#fdd">  if (m_StateMachineContainer-&gt;LoadBehavior(filename, module))</span>
+  {
+<span style = "background-color:#fdd">    m_CurrentState = m_StateMachineContainer-&gt;GetStartState();</span>
+
+<span style = "background-color:#fdd">    for (auto i = m_ConditionDelegatesMap.begin(); i != m_ConditionDelegatesMap.end();
+         ++i)</span>
+    {
+<span style = "background-color:#fdd">      delete i-&gt;second;
+    }
+    m_ConditionDelegatesMap.clear();</span>
+
+    // clear actions map ,and connect all actions as declared in sub-class
+<span style = "background-color:#fdd">    for (auto i = m_ActionFunctionsMap.begin();
+         i != m_ActionFunctionsMap.end();
+         ++i)</span>
+    {
+<span style = "background-color:#fdd">      delete i-&gt;second;
+    }
+    m_ActionFunctionsMap.clear();
+    for (auto i = m_ActionDelegatesMap.begin(); i != m_ActionDelegatesMap.end(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      delete i-&gt;second;
+    }
+    m_ActionDelegatesMap.clear();</span>
+
+<span style = "background-color:#fdd">    ConnectActionsAndFunctions();
+    return true;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Unable to load StateMachine from file: " &lt;&lt; filename;
+    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::EventStateMachine::~EventStateMachine()
+<span style = "background-color:#fdd">{
+  if (m_StateMachineContainer != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_StateMachineContainer-&gt;Delete();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::EventStateMachine::AddActionFunction(const std::string &amp;action, mitk::TActionFunctor *functor)
+<span style = "background-color:#fdd">{
+  if (!functor)
+    return;</span>
+  // make sure double calls for same action won't cause memory leaks
+<span style = "background-color:#fdd">  delete m_ActionFunctionsMap[action];
+  auto i = m_ActionDelegatesMap.find(action);
+  if (i != m_ActionDelegatesMap.end())</span>
+  {
+<span style = "background-color:#fdd">    delete i-&gt;second;
+    m_ActionDelegatesMap.erase(i);</span>
+  }
+<span style = "background-color:#fdd">  m_ActionFunctionsMap[action] = functor;
+}</span>
+
+void mitk::EventStateMachine::AddActionFunction(const std::string &amp;action, const ActionFunctionDelegate &amp;delegate)
+<span style = "background-color:#fdd">{
+  auto i = m_ActionFunctionsMap.find(action);
+  if (i != m_ActionFunctionsMap.end())</span>
+  {
+<span style = "background-color:#fdd">    delete i-&gt;second;
+    m_ActionFunctionsMap.erase(i);</span>
+  }
+
+<span style = "background-color:#fdd">  delete m_ActionDelegatesMap[action];
+  m_ActionDelegatesMap[action] = delegate.Clone();
+}</span>
+
+void mitk::EventStateMachine::AddConditionFunction(const std::string &amp;condition,
+                                                   const ConditionFunctionDelegate &amp;delegate)
+<span style = "background-color:#fdd">{
+  m_ConditionDelegatesMap[condition] = delegate.Clone();
+}</span>
+
+bool mitk::EventStateMachine::HandleEvent(InteractionEvent *event, DataNode *dataNode)
+<span style = "background-color:#fdd">{
+  if (!m_IsActive)
+    return false;</span>
+
+<span style = "background-color:#fdd">  if (!FilterEvents(event, dataNode))</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+  // Get the transition that can be executed
+<span style = "background-color:#fdd">  mitk::StateMachineTransition::Pointer transition = GetExecutableTransition(event);</span>
+
+  // check if the current state holds a transition that works with the given event.
+<span style = "background-color:#fdd">  if (transition.IsNotNull())</span>
+  {
+    // all conditions are fulfilled so we can continue with the actions
+<span style = "background-color:#fdd">    m_CurrentState = transition-&gt;GetNextState();</span>
+
+    // iterate over all actions in this transition and execute them
+<span style = "background-color:#fdd">    const ActionVectorType actions = transition-&gt;GetActions();
+    for (auto it = actions.cbegin(); it != actions.cend(); ++it)</span>
+    {
+      try
+      {
+<span style = "background-color:#fdd">        ExecuteAction(*it, event);</span>
+      }
+      catch (const std::exception &amp;e)
+<span style = "background-color:#fdd">      {
+        MITK_ERROR &lt;&lt; "Unhandled excaption caught in ExecuteAction(): " &lt;&lt; e.what();
+        return false;
+      }</span>
+      catch (...)
+<span style = "background-color:#fdd">      {
+        MITK_ERROR &lt;&lt; "Unhandled excaption caught in ExecuteAction()";
+        return false;
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::EventStateMachine::ConnectActionsAndFunctions()
+<span style = "background-color:#fdd">{
+  MITK_WARN &lt;&lt; "ConnectActionsAndFunctions in DataInteractor not implemented.\n DataInteractor will not be able to "</span>
+               "process any events.";
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::EventStateMachine::CheckCondition(const StateMachineCondition &amp;condition, const InteractionEvent *event)
+<span style = "background-color:#fdd">{
+  bool retVal = false;
+  ConditionDelegatesMapType::const_iterator delegateIter = m_ConditionDelegatesMap.find(condition.GetConditionName());
+  if (delegateIter != m_ConditionDelegatesMap.cend())</span>
+  {
+<span style = "background-color:#fdd">    retVal = delegateIter-&gt;second-&gt;Execute(event);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "No implementation of condition '" &lt;&lt; condition.GetConditionName() &lt;&lt; "' has been found.";</span>
+  }
+
+<span style = "background-color:#fdd">  return retVal;
+}</span>
+
+void mitk::EventStateMachine::ExecuteAction(StateMachineAction *action, InteractionEvent *event)
+<span style = "background-color:#fdd">{
+  if (action == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // Maps Action-Name to Functor and executes the Functor.
+<span style = "background-color:#fdd">  ActionDelegatesMapType::const_iterator delegateIter = m_ActionDelegatesMap.find(action-&gt;GetActionName());
+  if (delegateIter != m_ActionDelegatesMap.cend())</span>
+  {
+<span style = "background-color:#fdd">    delegateIter-&gt;second-&gt;Execute(action, event);
+  }</span>
+  else
+  {
+    // try the legacy system
+<span style = "background-color:#fdd">    std::map&lt;std::string, TActionFunctor *&gt;::const_iterator functionIter =</span>
+      m_ActionFunctionsMap.find(action-&gt;GetActionName());
+<span style = "background-color:#fdd">    if (functionIter != m_ActionFunctionsMap.cend())</span>
+    {
+<span style = "background-color:#fdd">      functionIter-&gt;second-&gt;DoAction(action, event);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "No implementation of action '" &lt;&lt; action-&gt;GetActionName() &lt;&lt; "' has been found.";</span>
+    }
+<span style = "background-color:#fdd">  }
+}</span>
+
+mitk::StateMachineState *mitk::EventStateMachine::GetCurrentState() const
+<span style = "background-color:#fdd">{
+  return m_CurrentState.GetPointer();
+}</span>
+
+bool mitk::EventStateMachine::FilterEvents(InteractionEvent *interactionEvent, DataNode *dataNode)
+<span style = "background-color:#fdd">{
+  if (dataNode == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "EventStateMachine: Empty DataNode received along with this Event " &lt;&lt; interactionEvent;
+    return false;</span>
+  }
+<span style = "background-color:#fdd">  bool visible = false;
+  if (dataNode-&gt;GetBoolProperty("visible", visible, interactionEvent-&gt;GetSender()) == false)</span>
+  { // property doesn't exist
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">  return visible;
+}</span>
+
+mitk::StateMachineTransition *mitk::EventStateMachine::GetExecutableTransition(mitk::InteractionEvent *event)
+<span style = "background-color:#fdd">{</span>
+  // Map that will contain all conditions that are possibly used by the
+  // transitions
+<span style = "background-color:#fdd">  std::map&lt;std::string, bool&gt; conditionsMap;</span>
+
+  // Get a list of all transitions that match the given event
+<span style = "background-color:#fdd">  const mitk::StateMachineState::TransitionVector transitionList =</span>
+    m_CurrentState-&gt;GetTransitionList(event-&gt;GetNameOfClass(), MapToEventVariant(event));
+
+  // if there are not transitions, we can return nullptr here.
+<span style = "background-color:#fdd">  if (transitionList.empty())</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  StateMachineState::TransitionVector::const_iterator transitionIter;
+  ConditionVectorType::const_iterator conditionIter;
+  for (transitionIter = transitionList.cbegin(); transitionIter != transitionList.cend(); ++transitionIter)</span>
+  {
+<span style = "background-color:#fdd">    bool allConditionsFulfilled(true);</span>
+
+    // Get all conditions for the current transition
+<span style = "background-color:#fdd">    const ConditionVectorType conditions = (*transitionIter)-&gt;GetConditions();
+    for (conditionIter = conditions.cbegin(); conditionIter != conditions.cend(); ++conditionIter)</span>
+    {
+<span style = "background-color:#fdd">      bool currentConditionFulfilled(false);</span>
+
+      // sequentially check all conditions that we have evaluated above
+<span style = "background-color:#fdd">      const std::string conditionName = (*conditionIter).GetConditionName();</span>
+
+      // Check if the condition has already been evaluated
+<span style = "background-color:#fdd">      if (conditionsMap.find(conditionName) == conditionsMap.cend())</span>
+      {
+        // if the condition has not been evaluated yet, do it now and store
+        // the result in the map
+        try
+        {
+<span style = "background-color:#fdd">          currentConditionFulfilled = CheckCondition((*conditionIter), event);
+          conditionsMap.insert(std::pair&lt;std::string, bool&gt;(conditionName, currentConditionFulfilled));</span>
+        }
+        catch (const std::exception &amp;e)
+<span style = "background-color:#fdd">        {
+          MITK_ERROR &lt;&lt; "Unhandled excaption caught in CheckCondition(): " &lt;&lt; e.what();
+          currentConditionFulfilled = false;
+          break;
+        }</span>
+        catch (...)
+<span style = "background-color:#fdd">        {
+          MITK_ERROR &lt;&lt; "Unhandled excaption caught in CheckCondition()";
+          currentConditionFulfilled = false;
+          break;
+        }
+      }</span>
+      else
+      {
+        // if the condition has been evaluated before, use that result
+<span style = "background-color:#fdd">        currentConditionFulfilled = conditionsMap[conditionName];</span>
+      }
+
+      // set 'allConditionsFulfilled' under consideration of a possible
+      // inversion of the condition
+<span style = "background-color:#fdd">      if (currentConditionFulfilled == (*conditionIter).IsInverted())</span>
+      {
+<span style = "background-color:#fdd">        allConditionsFulfilled = false;
+        break;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+    // If all conditions are fulfilled, we execute this transition
+<span style = "background-color:#fdd">    if (allConditionsFulfilled)</span>
+    {
+<span style = "background-color:#fdd">      return (*transitionIter);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // We have found no transition that can be executed, return nullptr
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+void mitk::EventStateMachine::ResetToStartState()
+<span style = "background-color:#fdd">{
+  m_CurrentState = m_StateMachineContainer-&gt;GetStartState();
+}</span>
+
+void mitk::EventStateMachine::SetMouseCursor(const char *xpm[], int hotspotX, int hotspotY)
+<span style = "background-color:#fdd">{</span>
+  // Remove previously set mouse cursor
+<span style = "background-color:#fdd">  if (m_MouseCursorSet)</span>
+  {
+<span style = "background-color:#fdd">    ApplicationCursor::GetInstance()-&gt;PopCursor();</span>
+  }
+
+<span style = "background-color:#fdd">  ApplicationCursor::GetInstance()-&gt;PushCursor(xpm, hotspotX, hotspotY);
+  m_MouseCursorSet = true;
+}</span>
+
+void mitk::EventStateMachine::ResetMouseCursor()
+<span style = "background-color:#fdd">{
+  if (m_MouseCursorSet)</span>
+  {
+<span style = "background-color:#fdd">    ApplicationCursor::GetInstance()-&gt;PopCursor();
+    m_MouseCursorSet = false;</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

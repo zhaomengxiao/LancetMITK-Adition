@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNodePredicateOr.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNodePredicateOr.h"
+
+<span style = "background-color:#fdd">mitk::NodePredicateOr::NodePredicateOr() : NodePredicateCompositeBase()
+{
+}</span>
+
+mitk::NodePredicateOr::NodePredicateOr(const NodePredicateBase *p1, const NodePredicateBase *p2)
+<span style = "background-color:#fdd">  : NodePredicateCompositeBase()
+{
+  this-&gt;AddPredicate(p1);
+  this-&gt;AddPredicate(p2);
+}</span>
+
+mitk::NodePredicateOr::~NodePredicateOr()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::NodePredicateOr::CheckNode(const DataNode *node) const
+<span style = "background-color:#fdd">{
+  if (m_ChildPredicates.empty())
+    throw std::invalid_argument("NodePredicateOr: no child predicates available");</span>
+
+<span style = "background-color:#fdd">  if (node == nullptr)
+    throw std::invalid_argument("NodePredicateOr: invalid node");</span>
+
+  /* return the disjunction of the child predicate. If any predicate returns true, we return true too. Return false only
+   * if all child predicates return false */
+<span style = "background-color:#fdd">  for (auto it = m_ChildPredicates.cbegin(); it != m_ChildPredicates.cend(); ++it)
+    if ((*it)-&gt;CheckNode(node) == true)
+      return true;
+  return false; // none of the childs was true, so return false
+}</span></pre>
+	</body>
+</html>

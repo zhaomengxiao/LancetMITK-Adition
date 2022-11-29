@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkFloatPropertyExtension.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkFloatPropertyExtension.h"
+
+namespace mitk
+{
+  struct FloatPropertyExtension::Impl
+  {
+    Impl();
+    Impl(float minimum, float maximum, float singleStep, int decimals);
+    ~Impl();
+
+    int Decimals;
+    float Maximum;
+    float Minimum;
+    float SingleStep;
+  };
+
+<span style = "background-color:#fdd">  FloatPropertyExtension::Impl::Impl() : Decimals(2), Maximum(99.9999999999f), Minimum(0.0f), SingleStep(1.0f) {}</span>
+  FloatPropertyExtension::Impl::Impl(float minimum, float maximum, float singleStep, int decimals)
+<span style = "background-color:#fdd">    : Decimals(decimals), Maximum(maximum), Minimum(minimum), SingleStep(singleStep)
+  {
+  }</span>
+
+<span style = "background-color:#fdd">  FloatPropertyExtension::Impl::~Impl() {}</span>
+}
+
+<span style = "background-color:#fdd">mitk::FloatPropertyExtension::FloatPropertyExtension() : m_Impl(new Impl)
+{
+}</span>
+
+mitk::FloatPropertyExtension::FloatPropertyExtension(float minimum, float maximum, float singleStep, int decimals)
+<span style = "background-color:#fdd">  : m_Impl(new Impl(minimum, maximum, singleStep, decimals))
+{
+}</span>
+
+mitk::FloatPropertyExtension::~FloatPropertyExtension()
+<span style = "background-color:#fdd">{
+  delete m_Impl;
+}</span>
+
+int mitk::FloatPropertyExtension::GetDecimals() const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;Decimals;
+}</span>
+
+void mitk::FloatPropertyExtension::SetDecimals(int decimals)
+<span style = "background-color:#fdd">{
+  m_Impl-&gt;Decimals = decimals;
+}</span>
+
+float mitk::FloatPropertyExtension::GetMaximum() const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;Maximum;
+}</span>
+
+void mitk::FloatPropertyExtension::SetMaximum(float maximum)
+<span style = "background-color:#fdd">{
+  m_Impl-&gt;Maximum = maximum;
+}</span>
+
+float mitk::FloatPropertyExtension::GetMinimum() const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;Minimum;
+}</span>
+
+void mitk::FloatPropertyExtension::SetMinimum(float minimum)
+<span style = "background-color:#fdd">{
+  m_Impl-&gt;Minimum = minimum;
+}</span>
+
+float mitk::FloatPropertyExtension::GetSingleStep() const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;SingleStep;
+}</span>
+
+void mitk::FloatPropertyExtension::SetSingleStep(float singleStep)
+<span style = "background-color:#fdd">{
+  m_Impl-&gt;SingleStep = singleStep;
+}</span></pre>
+	</body>
+</html>

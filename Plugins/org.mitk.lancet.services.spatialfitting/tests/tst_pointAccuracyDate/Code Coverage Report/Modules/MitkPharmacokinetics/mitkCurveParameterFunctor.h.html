@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCurveParameterFunctor.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef CURVE_PARAMETER_FUNCTOR_H
+#define CURVE_PARAMETER_FUNCTOR_H
+
+#include "mitkCurveDescriptionParameterBase.h"
+#include "mitkSimpleFunctorBase.h"
+#include "MitkPharmacokineticsExports.h"
+
+namespace mitk
+{
+
+  /**Functor for the curve description values by using the itkMulitOutputNaryImageFilter.
+   * You may register any number of CurveDescriptionParamterBase instances to the functor.
+   * The Functor will compute all values.
+   * @warning the functor must be threadsafe and so must be the registered CurveDescriptionParamterBase instances.*/
+  class MITKPHARMACOKINETICS_EXPORT CurveParameterFunctor : public SimpleFunctorBase
+  {
+  public:
+    typedef CurveParameterFunctor Self;
+    typedef itk::Object Superclass;
+    typedef itk::SmartPointer&lt; Self &gt;                            Pointer;
+    typedef itk::SmartPointer&lt; const Self &gt;                      ConstPointer;
+
+<span style = "background-color:#fdd">      itkFactorylessNewMacro(Self);
+      itkTypeMacro(CurveParameterFunctor, SimpleFunctorBase);</span>
+
+      typedef CurveDescriptionParameterBase::CurveDescriptionParameterNameType ParameterNameType;
+      typedef CurveDescriptionParameterBase::DescriptionParameterNamesType ParameterNamesType;
+      using GridArrayType = SimpleFunctorBase::GridArrayType;
+
+    SimpleFunctorBase::OutputPixelVectorType Compute(const InputPixelVectorType &amp; value) const override;
+
+    unsigned int GetNumberOfOutputs() const override;
+
+    GridArrayType GetGrid() const override;
+<span style = "background-color:#fdd">    itkSetMacro(Grid, GridArrayType);</span>
+
+    ParameterNamesType GetDescriptionParameterNames() const;
+
+    /**@warning Teh function is currently not thread safe.
+     @todo reimplement with shareable lock to allow other class methods to be used parallel but lock this one exclusively.*/
+    void ResetDescriptionParameters();
+    /**@warning Teh function is currently not thread safe.
+    @todo reimplement with shareable lock to allow other class methods to be used parallel but lock this one exclusively.*/
+    void RegisterDescriptionParameter(const ParameterNameType&amp; parameterName, CurveDescriptionParameterBase* parameterFunction);
+    /**@warning Teh function is currently not thread safe.
+    @todo reimplement with shareable lock to allow other class methods to be used parallel but lock this one exclusively.*/
+    const CurveDescriptionParameterBase* GetDescriptionParameterFunction(const ParameterNameType&amp; parameterName) const;
+
+  protected:
+    CurveParameterFunctor();
+    ~CurveParameterFunctor() override;
+
+  private:
+    typedef std::map&lt;ParameterNameType, CurveDescriptionParameterBase::Pointer&gt; DescriptionParameterMapType;
+    DescriptionParameterMapType m_DescriptorMap;
+    GridArrayType m_Grid;
+  };
+
+}
+
+#endif // CURVE_PARAMETER_FUNCTOR_H</pre>
+	</body>
+</html>

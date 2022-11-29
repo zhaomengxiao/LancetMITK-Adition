@@ -1,0 +1,514 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkOpenIGTLinkTrackingDevice.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkOpenIGTLinkTrackingDevice.h"
+#include "mitkOpenIGTLinkTrackingTool.h"
+#include "mitkIGTConfig.h"
+#include "mitkIGTTimeStamp.h"
+#include "mitkIGTHardwareException.h"
+#include "mitkTrackingTypes.h"
+#include &lt;itksys/SystemTools.hxx&gt;
+#include &lt;iostream&gt;
+#include &lt;itkCommand.h&gt;
+#include &lt;mitkOpenIGTLinkTypeInformation.h&gt;
+#include &lt;vtkConeSource.h&gt;
+
+//sleep headers
+#include &lt;chrono&gt;
+#include &lt;thread&gt;
+
+<span style = "background-color:#fdd">mitk::OpenIGTLinkTrackingDevice::OpenIGTLinkTrackingDevice() : mitk::TrackingDevice(), m_UpdateRate(60)
+{</span>
+  //set the type of this tracking device
+<span style = "background-color:#fdd">  this-&gt;m_Data = mitk::OpenIGTLinkTypeInformation::GetDeviceDataOpenIGTLinkTrackingDeviceConnection();</span>
+
+<span style = "background-color:#fdd">  m_OpenIGTLinkClient = mitk::IGTLClient::New(true);
+  m_OpenIGTLinkClient-&gt;SetName("OpenIGTLink Tracking Device");
+  m_OpenIGTLinkClient-&gt;EnableNoBufferingMode(false);</span>
+
+<span style = "background-color:#fdd">  m_IGTLDeviceSource = mitk::IGTLTrackingDataDeviceSource::New();
+  m_IGTLDeviceSource-&gt;SetIGTLDevice(m_OpenIGTLinkClient);
+}</span>
+
+mitk::OpenIGTLinkTrackingDevice::~OpenIGTLinkTrackingDevice()
+<span style = "background-color:#fdd">{
+}</span>
+
+int mitk::OpenIGTLinkTrackingDevice::GetPortNumber()
+<span style = "background-color:#fdd">{
+  return m_OpenIGTLinkClient-&gt;GetPortNumber();
+}</span>
+
+bool mitk::OpenIGTLinkTrackingDevice::AutoDetectToolsAvailable()
+<span style = "background-color:#fdd">{
+  return true;
+}</span>
+
+mitk::NavigationToolStorage::Pointer mitk::OpenIGTLinkTrackingDevice::AutoDetectTools()
+<span style = "background-color:#fdd">{
+  mitk::NavigationToolStorage::Pointer returnValue = mitk::NavigationToolStorage::New();</span>
+
+<span style = "background-color:#fdd">  if (m_OpenIGTLinkClient-&gt;GetPortNumber() == -1)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Connection not initialized, aborting (invalid port number).";
+    return mitk::NavigationToolStorage::New();</span>
+  }
+
+  //open connection
+  try
+  {
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;Connect();
+    m_IGTLDeviceSource-&gt;StartCommunication();</span>
+  }
+  catch (std::runtime_error &amp;e)
+<span style = "background-color:#fdd">  {
+    MITK_WARN &lt;&lt; "AutoDetection: Open IGT Link device retruned an error while trying to connect: " &lt;&lt; e.what();
+    return mitk::NavigationToolStorage::New();
+  }</span>
+
+  //get a message to find out type
+<span style = "background-color:#fdd">  m_IGTLDeviceSource-&gt;SettrackingDataType(mitk::IGTLTrackingDataDeviceSource::UNKNOWN);
+  mitk::IGTLMessage::Pointer receivedMessage = ReceiveMessage(100);</span>
+
+<span style = "background-color:#fdd">  const char* msgType = receivedMessage-&gt;GetIGTLMessageType();</span>
+
+<span style = "background-color:#fdd">  if (std::string(msgType).empty())</span>
+  {
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "Did not receive a message. Do you have to start the stream manually at the server?";
+    MITK_INFO &lt;&lt; "Waiting for 10 seconds ...";
+    receivedMessage = ReceiveMessage(10000);
+    msgType = receivedMessage-&gt;GetIGTLMessageType();</span>
+  }
+<span style = "background-color:#fdd">  MITK_INFO &lt;&lt; "################# got message type: " &lt;&lt; msgType;
+  mitk::OpenIGTLinkTrackingDevice::TrackingMessageType type = GetMessageTypeFromString(msgType);
+  switch (type)</span>
+  {
+  case UNKNOWN:
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;SettrackingDataType(mitk::IGTLTrackingDataDeviceSource::UNKNOWN);
+    break;</span>
+  case TDATA:
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;SettrackingDataType(mitk::IGTLTrackingDataDeviceSource::TDATA);
+    break;</span>
+  case QTDATA:
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;SettrackingDataType(mitk::IGTLTrackingDataDeviceSource::QTDATA);
+    break;</span>
+  case TRANSFORM:
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;SettrackingDataType(mitk::IGTLTrackingDataDeviceSource::TRANSFORM);</span>
+    break;
+  }
+<span style = "background-color:#fdd">  returnValue = DiscoverToolsAndConvertToNavigationTools(type);</span>
+
+  //close connection
+  try
+  {
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;StopCommunication();
+    m_IGTLDeviceSource-&gt;Disconnect();</span>
+  }
+  catch (std::runtime_error &amp;e)
+<span style = "background-color:#fdd">  {
+    MITK_WARN &lt;&lt; "AutoDetection: Open IGT Link device retruned an error while trying to disconnect: " &lt;&lt; e.what();
+    return mitk::NavigationToolStorage::New();
+  }</span>
+
+
+<span style = "background-color:#fdd">  return returnValue;
+}</span>
+
+mitk::NavigationToolStorage::Pointer mitk::OpenIGTLinkTrackingDevice::DiscoverToolsAndConvertToNavigationTools(mitk::OpenIGTLinkTrackingDevice::TrackingMessageType type, int NumberOfMessagesToWait)
+<span style = "background-color:#fdd">{
+  MITK_INFO &lt;&lt; "Start discovering tools by " &lt;&lt; type &lt;&lt; " messages";
+  mitk::NavigationToolStorage::Pointer returnValue = mitk::NavigationToolStorage::New();
+  std::map&lt;std::string, int&gt; toolNameMap;</span>
+
+<span style = "background-color:#fdd">  for (int j = 0; j&lt;NumberOfMessagesToWait; j++)</span>
+  {
+<span style = "background-color:#fdd">    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    m_IGTLDeviceSource-&gt;Update();
+    switch (type)</span>
+    {
+    case TRANSFORM:
+      {
+<span style = "background-color:#fdd">      igtl::TransformMessage::Pointer msg = dynamic_cast&lt;igtl::TransformMessage*&gt;(m_IGTLDeviceSource-&gt;GetOutput()-&gt;GetMessage().GetPointer());
+      if (msg == nullptr || msg.IsNull()) { MITK_INFO &lt;&lt; "Received message is invalid / null. Skipping.."; continue; }
+      int count = toolNameMap[msg-&gt;GetDeviceName()];
+      if (count == 0) { toolNameMap[msg-&gt;GetDeviceName()] = 1; }
+      else { toolNameMap[msg-&gt;GetDeviceName()]++; }
+      }
+      break;</span>
+    case TDATA:
+      {
+<span style = "background-color:#fdd">      igtl::TrackingDataMessage::Pointer msg = dynamic_cast&lt;igtl::TrackingDataMessage*&gt;(m_IGTLDeviceSource-&gt;GetOutput()-&gt;GetMessage().GetPointer());
+      if (msg == nullptr || msg.IsNull()) { MITK_INFO &lt;&lt; "Received message is invalid / null. Skipping.."; continue; }
+      for (int k = 0; k &lt; msg-&gt;GetNumberOfTrackingDataElements(); k++)</span>
+        {
+<span style = "background-color:#fdd">        igtl::TrackingDataElement::Pointer tde;
+        msg-&gt;GetTrackingDataElement(k, tde);
+        if (tde.IsNotNull())</span>
+          {
+<span style = "background-color:#fdd">          int count = toolNameMap[tde-&gt;GetName()];
+          if (count == 0) { toolNameMap[tde-&gt;GetName()] = 1; }
+          else { toolNameMap[tde-&gt;GetName()]++; }</span>
+          }
+<span style = "background-color:#fdd">        }
+      }
+      break;</span>
+    default:
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Only TRANSFORM and TDATA is currently supported, skipping!";</span>
+      break;
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  int i = 0;
+  for (std::map&lt;std::string, int&gt;::iterator it = toolNameMap.begin(); it != toolNameMap.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "Found tool: " &lt;&lt; it-&gt;first;</span>
+
+<span style = "background-color:#fdd">    std::stringstream name;
+    name &lt;&lt; it-&gt;first;</span>
+
+<span style = "background-color:#fdd">    std::stringstream identifier;
+    identifier &lt;&lt; "AutoDetectedTool-" &lt;&lt; i;
+    i++;</span>
+
+<span style = "background-color:#fdd">    mitk::NavigationTool::Pointer newTool = ConstructDefaultOpenIGTLinkTool(name.str(), identifier.str());</span>
+
+<span style = "background-color:#fdd">    returnValue-&gt;AddTool(newTool);
+  }</span>
+
+<span style = "background-color:#fdd">  return returnValue;
+}</span>
+
+std::string mitk::OpenIGTLinkTrackingDevice::GetHostname()
+<span style = "background-color:#fdd">{
+  return m_OpenIGTLinkClient-&gt;GetHostname();
+}</span>
+
+void mitk::OpenIGTLinkTrackingDevice::SetPortNumber(int portNumber)
+<span style = "background-color:#fdd">{
+  m_OpenIGTLinkClient-&gt;SetPortNumber(portNumber);
+}</span>
+
+void mitk::OpenIGTLinkTrackingDevice::SetHostname(std::string hostname)
+<span style = "background-color:#fdd">{
+  m_OpenIGTLinkClient-&gt;SetHostname(hostname);
+}</span>
+
+bool mitk::OpenIGTLinkTrackingDevice::IsDeviceInstalled()
+<span style = "background-color:#fdd">{
+  return true;
+}</span>
+
+mitk::TrackingTool* mitk::OpenIGTLinkTrackingDevice::AddTool(const char*, const char*)
+<span style = "background-color:#fdd">{
+  mitk::OpenIGTLinkTrackingTool::Pointer t;// = mitk::OpenIGTLinkTrackingTool::New();</span>
+  //TODO: Implement
+<span style = "background-color:#fdd">  if (this-&gt;InternalAddTool(t) == false)
+    return nullptr;
+  return t.GetPointer();
+}</span>
+
+bool mitk::OpenIGTLinkTrackingDevice::InternalAddTool(OpenIGTLinkTrackingTool::Pointer tool)
+<span style = "background-color:#fdd">{
+  m_AllTools.push_back(tool);
+  return true;
+}</span>
+
+bool mitk::OpenIGTLinkTrackingDevice::DiscoverTools(int waitingTime)
+<span style = "background-color:#fdd">{
+  if (m_OpenIGTLinkClient-&gt;GetPortNumber() == -1)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Connection not initialized, aborting (invalid port number).";
+    return false;</span>
+  }
+
+  try
+  {
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;Connect();
+    m_IGTLDeviceSource-&gt;StartCommunication();</span>
+  }
+  catch (std::runtime_error &amp;e)
+<span style = "background-color:#fdd">  {
+    MITK_WARN &lt;&lt; "Open IGT Link device retruned an error while trying to connect: " &lt;&lt; e.what();
+    return false;
+  }</span>
+
+<span style = "background-color:#fdd">  mitk::IGTLMessage::Pointer receivedMessage = ReceiveMessage(waitingTime);</span>
+
+  //check the tracking stream for the number and type of tools
+  //igtl::MessageBase::Pointer receivedMessage = m_OpenIGTLinkClient-&gt;GetNextMessage();
+<span style = "background-color:#fdd">  if (receivedMessage.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "No message was received. Is there really a server?";
+    return false;
+  }
+  else if (!receivedMessage-&gt;IsDataValid())</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Received invalid message.";
+    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  const char* msgType = receivedMessage-&gt;GetIGTLMessageType();</span>
+
+<span style = "background-color:#fdd">  mitk::OpenIGTLinkTrackingDevice::TrackingMessageType type = GetMessageTypeFromString(msgType);</span>
+
+<span style = "background-color:#fdd">  mitk::NavigationToolStorage::Pointer foundTools = this-&gt;DiscoverToolsAndConvertToNavigationTools(type);
+  if (foundTools.IsNull() || (foundTools-&gt;GetToolCount() == 0)) { return false; }
+  for (unsigned int i = 0; i &lt; foundTools-&gt;GetToolCount(); i++) { AddNewToolForName(foundTools-&gt;GetTool(i)-&gt;GetToolName(), i); }
+  MITK_INFO &lt;&lt; "Found tools: " &lt;&lt; foundTools-&gt;GetToolCount();
+  return true;
+}</span>
+
+mitk::IGTLMessage::Pointer mitk::OpenIGTLinkTrackingDevice::ReceiveMessage(int waitingTime)
+<span style = "background-color:#fdd">{
+  mitk::IGTLMessage::Pointer receivedMessage;</span>
+  //send a message to the server: start tracking stream
+<span style = "background-color:#fdd">  mitk::IGTLMessageFactory::Pointer msgFactory = m_OpenIGTLinkClient-&gt;GetMessageFactory();
+  std::string message[2] = {"STT_QTDATA","STT_TDATA"};</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 2; i++)</span>
+  {
+<span style = "background-color:#fdd">    igtl::MessageBase::Pointer sttMsg = msgFactory-&gt;CreateInstance(message[i]);</span>
+    //TODO: Fix this to dynamically get this from GUI
+<span style = "background-color:#fdd">    ((igtl::StartTrackingDataMessage*)sttMsg.GetPointer())-&gt;SetResolution(m_UpdateRate);
+    m_OpenIGTLinkClient-&gt;SendMessage(mitk::IGTLMessage::New(sttMsg));
+  }</span>
+
+<span style = "background-color:#fdd">  std::chrono::high_resolution_clock::time_point time = std::chrono::high_resolution_clock::now();
+  std::chrono::milliseconds d = std::chrono::milliseconds(waitingTime);</span>
+
+<span style = "background-color:#fdd">  while (!(receivedMessage.IsNotNull() &amp;&amp; receivedMessage-&gt;IsDataValid()))</span>
+  {
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;Update();
+    receivedMessage = m_IGTLDeviceSource-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">    if ((time + d) &lt; std::chrono::high_resolution_clock::now())
+      break;</span>
+
+<span style = "background-color:#fdd">    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  return receivedMessage;
+}</span>
+
+void mitk::OpenIGTLinkTrackingDevice::AddNewToolForName(std::string name, int i)
+<span style = "background-color:#fdd">{
+  mitk::OpenIGTLinkTrackingTool::Pointer newTool = mitk::OpenIGTLinkTrackingTool::New();
+  if (name == "") //if no name was given create a default name</span>
+  {
+<span style = "background-color:#fdd">    std::stringstream defaultName;
+    defaultName &lt;&lt; "OpenIGTLinkTool#" &lt;&lt; i;
+    name = defaultName.str();
+  }
+  MITK_INFO &lt;&lt; "Added tool " &lt;&lt; name &lt;&lt; " to tracking device.";
+  newTool-&gt;SetToolName(name);
+  InternalAddTool(newTool);
+}</span>
+
+mitk::NavigationTool::Pointer mitk::OpenIGTLinkTrackingDevice::ConstructDefaultOpenIGTLinkTool(std::string name, std::string identifier)
+<span style = "background-color:#fdd">{
+  mitk::NavigationTool::Pointer newTool = mitk::NavigationTool::New();
+  newTool-&gt;GetDataNode()-&gt;SetName(name);
+  newTool-&gt;SetIdentifier(identifier);</span>
+
+<span style = "background-color:#fdd">  newTool-&gt;SetTrackingDeviceType(mitk::OpenIGTLinkTypeInformation::GetDeviceDataOpenIGTLinkTrackingDeviceConnection().Line);</span>
+
+<span style = "background-color:#fdd">  return newTool;</span>
+
+<span style = "background-color:#fdd">}</span>
+
+void mitk::OpenIGTLinkTrackingDevice::UpdateTools()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetState() != Tracking)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Method was called in the wrong state, something went wrong!";
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  m_IGTLMsgToNavDataFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  for (std::size_t j = 0; j &lt; m_IGTLMsgToNavDataFilter-&gt;GetNumberOfIndexedOutputs(); ++j)</span>
+  {
+<span style = "background-color:#fdd">    mitk::NavigationData::Pointer currentNavData = m_IGTLMsgToNavDataFilter-&gt;GetOutput(j);
+    const char* name = currentNavData-&gt;GetName();
+    for (std::size_t i = 0; i &lt; m_AllTools.size(); i++)</span>
+    {
+<span style = "background-color:#fdd">      if (strcmp(m_AllTools.at(i)-&gt;GetToolName(), name) == 0)</span>
+      {
+<span style = "background-color:#fdd">        m_AllTools.at(i)-&gt;SetDataValid(currentNavData-&gt;IsDataValid());
+        m_AllTools.at(i)-&gt;SetPosition(currentNavData-&gt;GetPosition());
+        m_AllTools.at(i)-&gt;SetOrientation(currentNavData-&gt;GetOrientation());
+        m_AllTools.at(i)-&gt;SetIGTTimeStamp(currentNavData-&gt;GetIGTTimeStamp());</span>
+      }
+<span style = "background-color:#fdd">    }
+  }
+}</span>
+
+bool mitk::OpenIGTLinkTrackingDevice::StartTracking()
+<span style = "background-color:#fdd">{</span>
+  //check tracking state
+<span style = "background-color:#fdd">  if (this-&gt;GetState() != Ready)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Cannot start tracking, device is not ready!";
+    return false;</span>
+  }
+
+  try
+  {
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;StartCommunication();</span>
+
+    //send a message to the server: start tracking stream
+<span style = "background-color:#fdd">    mitk::IGTLMessageFactory::Pointer msgFactory = m_OpenIGTLinkClient-&gt;GetMessageFactory();
+    std::string message = "STT_TDATA";</span>
+    //m_OpenIGTLinkClient-&gt;SendMessage(msgFactory-&gt;CreateInstance(message));
+<span style = "background-color:#fdd">  }</span>
+  catch (std::runtime_error &amp;e)
+<span style = "background-color:#fdd">  {
+    MITK_WARN &lt;&lt; "Open IGT Link device retruned an error while starting communication: " &lt;&lt; e.what();
+    return false;
+  }</span>
+
+  //create internal igtl pipeline
+<span style = "background-color:#fdd">  m_IGTLMsgToNavDataFilter = mitk::IGTLMessageToNavigationDataFilter::New();
+  m_IGTLMsgToNavDataFilter-&gt;SetNumberOfExpectedOutputs(this-&gt;GetToolCount());
+  m_IGTLMsgToNavDataFilter-&gt;ConnectTo(m_IGTLDeviceSource);</span>
+
+  //connect itk events
+  typedef itk::SimpleMemberCommand&lt; mitk::OpenIGTLinkTrackingDevice &gt; CurCommandType;
+<span style = "background-color:#fdd">  CurCommandType::Pointer messageReceivedCommand = CurCommandType::New();
+  messageReceivedCommand-&gt;SetCallbackFunction(this, &amp;mitk::OpenIGTLinkTrackingDevice::UpdateTools);
+  m_MessageReceivedObserverTag = m_OpenIGTLinkClient-&gt;AddObserver(mitk::MessageReceivedEvent(), messageReceivedCommand);</span>
+
+<span style = "background-color:#fdd">  m_OpenIGTLinkClient-&gt;EnableNoBufferingMode(true);
+  this-&gt;SetState(Tracking);
+  return true;
+}</span>
+
+bool mitk::OpenIGTLinkTrackingDevice::StopTracking()
+<span style = "background-color:#fdd">{</span>
+  //check tracking state
+<span style = "background-color:#fdd">  if (this-&gt;GetState() != Tracking)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Cannot open connection, device is already connected!";
+    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  m_OpenIGTLinkClient-&gt;RemoveObserver(m_MessageReceivedObserverTag); //disconnect itk events</span>
+
+  try
+  {
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;StopCommunication();</span>
+  }
+  catch (std::runtime_error &amp;e)
+<span style = "background-color:#fdd">  {
+    MITK_WARN &lt;&lt; "Open IGT Link device retruned an error while stopping communication: " &lt;&lt; e.what();
+    return false;
+  }
+  m_OpenIGTLinkClient-&gt;EnableNoBufferingMode(false);
+  this-&gt;SetState(Ready);
+  return true;
+}</span>
+
+unsigned int mitk::OpenIGTLinkTrackingDevice::GetToolCount() const
+<span style = "background-color:#fdd">{
+  return (unsigned int)this-&gt;m_AllTools.size();
+}</span>
+
+mitk::TrackingTool* mitk::OpenIGTLinkTrackingDevice::GetTool(unsigned int toolNumber) const
+<span style = "background-color:#fdd">{
+  if (toolNumber &gt;= this-&gt;GetToolCount())
+    return nullptr;</span>
+  else
+<span style = "background-color:#fdd">    return this-&gt;m_AllTools[toolNumber];
+}</span>
+
+bool mitk::OpenIGTLinkTrackingDevice::OpenConnection()
+<span style = "background-color:#fdd">{</span>
+  //check tracking state
+<span style = "background-color:#fdd">  if (this-&gt;GetState() != Setup)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Cannot open connection, device is already connected!";
+    return false;</span>
+  }
+
+  try
+  {
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;Connect();</span>
+  }
+  catch (std::runtime_error &amp;e)
+<span style = "background-color:#fdd">  {
+    MITK_WARN &lt;&lt; "Open IGT Link device retruned an error while trying to connect: " &lt;&lt; e.what();
+    return false;
+  }
+  this-&gt;SetState(Ready);
+  return true;
+}</span>
+
+bool mitk::OpenIGTLinkTrackingDevice::CloseConnection()
+<span style = "background-color:#fdd">{</span>
+  //check tracking state
+<span style = "background-color:#fdd">  if (this-&gt;GetState() != Ready)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Cannot close connection, device is in the wrong state!";
+    return false;</span>
+  }
+
+  try
+  {
+<span style = "background-color:#fdd">    m_IGTLDeviceSource-&gt;Disconnect();</span>
+  }
+  catch (std::runtime_error &amp;e)
+<span style = "background-color:#fdd">  {
+    MITK_WARN &lt;&lt; "Open IGT Link device retruned an error while trying to disconnect: " &lt;&lt; e.what();
+    return false;
+  }</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetState(Setup);</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+std::vector&lt;mitk::OpenIGTLinkTrackingTool::Pointer&gt; mitk::OpenIGTLinkTrackingDevice::GetAllTools()
+<span style = "background-color:#fdd">{
+  return this-&gt;m_AllTools;
+}</span>
+
+mitk::OpenIGTLinkTrackingDevice::TrackingMessageType mitk::OpenIGTLinkTrackingDevice::GetMessageTypeFromString(const char* messageTypeString)
+<span style = "background-color:#fdd">{
+  if (strcmp(messageTypeString, "TDATA") == 0)</span>
+  {
+<span style = "background-color:#fdd">    return mitk::OpenIGTLinkTrackingDevice::TrackingMessageType::TDATA;
+  }
+  else if (strcmp(messageTypeString, "QTDATA") == 0)</span>
+  {
+<span style = "background-color:#fdd">    return mitk::OpenIGTLinkTrackingDevice::TrackingMessageType::QTDATA;
+  }
+  else if (strcmp(messageTypeString, "TRANSFORM") == 0)</span>
+  {
+<span style = "background-color:#fdd">    return mitk::OpenIGTLinkTrackingDevice::TrackingMessageType::TRANSFORM;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return mitk::OpenIGTLinkTrackingDevice::TrackingMessageType::UNKNOWN;</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

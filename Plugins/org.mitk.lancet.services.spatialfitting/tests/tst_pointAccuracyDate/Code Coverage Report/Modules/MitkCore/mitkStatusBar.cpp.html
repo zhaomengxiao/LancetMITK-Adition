@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkStatusBar.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkStatusBar.h"
+#include &lt;itkObjectFactory.h&gt;
+#include &lt;itkOutputWindow.h&gt;
+
+namespace mitk
+{
+  StatusBarImplementation *StatusBar::m_Implementation = nullptr;
+  StatusBar *StatusBar::m_Instance = nullptr;
+
+  /**
+   * Display the text in the statusbar of the applikation
+   */
+  void StatusBar::DisplayText(const char *t)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)
+      m_Implementation-&gt;DisplayText(t);
+  }</span>
+
+  /**
+   * Display the text in the statusbar of the applikation for ms seconds
+   */
+  void StatusBar::DisplayText(const char *t, int ms)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)
+      m_Implementation-&gt;DisplayText(t, ms);
+  }</span>
+
+  void StatusBar::DisplayErrorText(const char *t)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)
+      m_Implementation-&gt;DisplayErrorText(t);
+  }</span>
+  void StatusBar::DisplayWarningText(const char *t)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)
+      m_Implementation-&gt;DisplayWarningText(t);
+  }</span>
+  void StatusBar::DisplayWarningText(const char *t, int ms)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)
+      m_Implementation-&gt;DisplayWarningText(t, ms);
+  }</span>
+  void StatusBar::DisplayGenericOutputText(const char *t)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)
+      m_Implementation-&gt;DisplayGenericOutputText(t);
+  }</span>
+  void StatusBar::DisplayDebugText(const char *t)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)
+      m_Implementation-&gt;DisplayDebugText(t);
+  }</span>
+  void StatusBar::DisplayGreyValueText(const char *t)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)
+      m_Implementation-&gt;DisplayGreyValueText(t);
+  }</span>
+
+  static void WriteCommonImageInfo(
+    std::ostringstream &amp;stream, Point3D point, itk::Index&lt;3&gt; index, ScalarType time)
+<span style = "background-color:#fdd">  {
+    stream &lt;&lt; "Position: &lt;" &lt;&lt; std::fixed &lt;&lt; point[0] &lt;&lt; ", "</span>
+                            &lt;&lt; std::fixed &lt;&lt; point[1] &lt;&lt; ", "
+                            &lt;&lt; std::fixed &lt;&lt; point[2] &lt;&lt; "&gt; mm; ";
+
+<span style = "background-color:#fdd">    stream &lt;&lt; "Index: &lt;" &lt;&lt; index[0] &lt;&lt; ", "</span>
+                         &lt;&lt; index[1] &lt;&lt; ", "
+                         &lt;&lt; index[2] &lt;&lt; "&gt; ; ";
+
+<span style = "background-color:#fdd">    stream &lt;&lt; "Time: " &lt;&lt; time &lt;&lt; " ms";
+  }</span>
+
+  void StatusBar::DisplayImageInfo(Point3D point, itk::Index&lt;3&gt; index, ScalarType time, ScalarType pixelValue)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation == nullptr)
+      return;</span>
+
+<span style = "background-color:#fdd">    std::ostringstream stream;
+    stream.imbue(std::locale::classic());
+    stream.precision(2);</span>
+
+<span style = "background-color:#fdd">    WriteCommonImageInfo(stream, point, index, time);
+    stream &lt;&lt; "; Pixel value: ";</span>
+
+<span style = "background-color:#fdd">    if (fabs(pixelValue) &gt; 1000000 || fabs(pixelValue) &lt; 0.01)
+      stream &lt;&lt; std::scientific;</span>
+
+<span style = "background-color:#fdd">    stream &lt;&lt; pixelValue;</span>
+
+<span style = "background-color:#fdd">    m_Implementation-&gt;DisplayGreyValueText(stream.str().c_str());
+  }</span>
+
+  void StatusBar::DisplayImageInfo(Point3D point, itk::Index&lt;3&gt; index, ScalarType time, const char *pixelValue)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation == nullptr)
+      return;</span>
+
+<span style = "background-color:#fdd">    std::ostringstream stream;
+    stream.imbue(std::locale::classic());
+    stream.precision(2);</span>
+
+<span style = "background-color:#fdd">    WriteCommonImageInfo(stream, point, index, time);
+    stream &lt;&lt; "; " &lt;&lt; pixelValue;</span>
+
+<span style = "background-color:#fdd">    m_Implementation-&gt;DisplayGreyValueText(stream.str().c_str());
+  }</span>
+
+  void StatusBar::DisplayImageInfoInvalid()
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)
+      m_Implementation-&gt;DisplayGreyValueText("No image information at this position!");
+  }</span>
+  void StatusBar::Clear()
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)
+      m_Implementation-&gt;Clear();
+  }</span>
+  void StatusBar::SetSizeGripEnabled(bool enable)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      m_Implementation-&gt;SetSizeGripEnabled(enable);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  /**
+   * Get the instance of this StatusBar
+   */
+  StatusBar *StatusBar::GetInstance()
+<span style = "background-color:#fdd">  {
+    if (m_Instance == nullptr) // if not set, then send a errormessage on OutputWindow</span>
+    {
+<span style = "background-color:#fdd">      m_Instance = new StatusBar();</span>
+    }
+
+<span style = "background-color:#fdd">    return m_Instance;
+  }</span>
+
+  /**
+   * Set an instance of this; application must do this!See Header!
+   */
+  void StatusBar::SetImplementation(StatusBarImplementation *implementation)
+<span style = "background-color:#fdd">  {
+    if (m_Implementation == implementation)</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+<span style = "background-color:#fdd">    m_Implementation = implementation;
+  }</span>
+
+<span style = "background-color:#fdd">  StatusBar::StatusBar() {}
+  StatusBar::~StatusBar() {}</span>
+} // end namespace mitk</pre>
+	</body>
+</html>

@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImagePixelAccessor.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKIMAGEPIXELACCESSOR_H
+#define MITKIMAGEPIXELACCESSOR_H
+
+#include "mitkImage.h"
+#include "mitkImageDataItem.h"
+
+#include &lt;typeinfo&gt;
+
+namespace mitk
+{
+  /**
+   * @brief Provides templated image access for all inheriting classes
+   * @tparam TPixel defines the PixelType
+   * @tparam VDimension defines the dimension for accessing data
+   * @ingroup Data
+   */
+  template &lt;class TPixel, unsigned int VDimension = 3&gt;
+  class ImagePixelAccessor
+  {
+  public:
+    typedef itk::Index&lt;VDimension&gt; IndexType;
+    typedef ImagePixelAccessor&lt;TPixel, VDimension&gt; ImagePixelAccessorType;
+    typedef Image::ConstPointer ImageConstPointer;
+
+    /** Get Dimensions from ImageDataItem */
+<span style = "background-color:#fdd">    int GetDimension(int i) const { return m_ImageDataItem-&gt;GetDimension(i); }</span>
+
+  private:
+  friend class Image;
+
+  protected:
+    /** 
+     * \param iP
+     * \param iDI specifies the allocated image part
+     */
+<span style = "background-color:#fdd">    ImagePixelAccessor(ImageConstPointer iP, const mitk::ImageDataItem *iDI) : m_ImageDataItem(iDI)
+    {
+      if (iDI == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        m_ImageDataItem = iP-&gt;GetChannelData();</span>
+      }
+<span style = "background-color:#fdd">      CheckData(iP.GetPointer());
+    }</span>
+
+    /** Destructor */
+<span style = "background-color:#fdd">    virtual ~ImagePixelAccessor() {}</span>
+
+    void CheckData( const Image *image )
+<span style = "background-color:#fdd">    {</span>
+      // Check if Dimensions are correct
+<span style = "background-color:#fdd">      if ( m_ImageDataItem == nullptr )</span>
+      {
+<span style = "background-color:#fdd">        if ( image-&gt;GetDimension() != VDimension )</span>
+        {
+<span style = "background-color:#fdd">          mitkThrow() &lt;&lt; "Invalid ImageAccessor: The Dimensions of ImageAccessor and Image are not equal."</span>
+          &lt;&lt; " They have to be equal if an entire image is requested."
+          &lt;&lt; " image-&gt;GetDimension(): " &lt;&lt; image-&gt;GetDimension() &lt;&lt; " , VDimension: " &lt;&lt; VDimension;
+        }
+<span style = "background-color:#fdd">      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        if ( m_ImageDataItem-&gt;GetDimension() != VDimension )</span>
+        {
+<span style = "background-color:#fdd">          mitkThrow() &lt;&lt; "Invalid ImageAccessor: The Dimensions of ImageAccessor and ImageDataItem are not equal."</span>
+          &lt;&lt; " m_ImageDataItem-&gt;GetDimension(): " &lt;&lt; m_ImageDataItem-&gt;GetDimension() &lt;&lt; " , VDimension: " &lt;&lt; VDimension;
+        }
+      }
+
+<span style = "background-color:#fdd">      if (!( image-&gt;GetPixelType() == mitk::MakePixelType&lt; itk::Image&lt; TPixel, VDimension &gt; &gt;() ||</span>
+             image-&gt;GetPixelType() == mitk::MakePixelType&lt; itk::VectorImage&lt; TPixel, VDimension &gt; &gt;
+               ( image-&gt;GetPixelType().GetNumberOfComponents() )
+         ) )
+      {
+<span style = "background-color:#fdd">        mitkThrow() &lt;&lt; "Invalid ImageAccessor: PixelTypes of Image and ImageAccessor are not equal."</span>
+        &lt;&lt; " image-&gt;GetPixelType(): " &lt;&lt; typeid(image-&gt;GetPixelType()).name()
+        &lt;&lt; "\n m_ImageDataItem-&gt;GetDimension(): " &lt;&lt; m_ImageDataItem-&gt;GetDimension()
+        &lt;&lt; " , VDimension: " &lt;&lt; VDimension
+        &lt;&lt; " , TPixel: " &lt;&lt; typeid(TPixel).name()
+        &lt;&lt; " , NumberOfComponents: " &lt;&lt; image-&gt;GetPixelType().GetNumberOfComponents() &lt;&lt; std::endl;
+      }
+<span style = "background-color:#fdd">    }</span>
+
+    /** Holds the specified ImageDataItem */
+    const ImageDataItem *m_ImageDataItem;
+
+    /** \brief Pointer to the used Geometry.
+     *  Since Geometry can be different to the Image (if memory was forced to be coherent) it is necessary to store
+     * Geometry separately.
+     */
+    BaseGeometry::Pointer m_Geometry;
+
+    /** \brief A Subregion defines an arbitrary area within the image.
+     *  If no SubRegion is defined, the whole ImageDataItem or Image is regarded.
+     *  A subregion (e.g. subvolume) can lead to non-coherent memory access where every dimension has a start- and
+     * end-offset.
+     */
+    itk::ImageRegion&lt;VDimension&gt; *m_SubRegion;
+
+    /** \brief Stores all extended properties of an ImageAccessor.
+     * The different flags in mitk::ImageAccessorBase::Options can be unified by bitwise operations.
+     */
+    int m_Options;
+
+    /** Get memory offset for a given image index */
+    unsigned int GetOffset(const IndexType &amp;idx) const
+<span style = "background-color:#fdd">    {
+      const unsigned int *imageDims = m_ImageDataItem-&gt;m_Dimensions;</span>
+
+<span style = "background-color:#fdd">      unsigned int offset = 0;
+      switch (VDimension)</span>
+      {
+        case 4:
+<span style = "background-color:#fdd">          offset += idx[3] * imageDims[0] * imageDims[1] * imageDims[2];</span>
+          /* FALLTHRU */
+        case 3:
+<span style = "background-color:#fdd">          offset += idx[2] * imageDims[0] * imageDims[1];</span>
+          /* FALLTHRU */
+        case 2:
+<span style = "background-color:#fdd">          offset += idx[0] + idx[1] * imageDims[0];</span>
+          /* FALLTHRU */
+        default:
+          break;
+      }
+<span style = "background-color:#fdd">      return offset;
+    }</span>
+  };
+}
+
+#endif // MITKIMAGEACCESSOR_H</pre>
+	</body>
+</html>

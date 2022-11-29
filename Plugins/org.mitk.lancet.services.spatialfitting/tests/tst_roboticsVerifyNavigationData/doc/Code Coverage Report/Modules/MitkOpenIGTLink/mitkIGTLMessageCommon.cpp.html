@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIGTLMessageCommon.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkIGTLMessageCommon.h"
+#include "mitkException.h"
+
+<span style = "background-color:#fdd">mitk::IGTLMessageCommon::IGTLMessageCommon() : itk::DataObject()
+{
+}</span>
+
+
+mitk::IGTLMessageCommon::~IGTLMessageCommon()
+<span style = "background-color:#fdd">{
+}</span>
+
+//bool mitk::IGTLMessageCommon::Clone(igtl::TransformMessage::Pointer clone,
+//                                    igtl::TransformMessage::Pointer original)
+//{
+//  bool copySuccess = false;
+
+//  //copy all meta data
+//  copySuccess = clone-&gt;Copy(original);
+
+//  if ( !copySuccess )
+//    return false;
+
+//  //copy all data that is important for this class
+//  //copy the matrix
+//  igtl::Matrix4x4 mat;
+//  original-&gt;GetMatrix(mat);
+//  clone-&gt;SetMatrix(mat);
+
+//  //copy the normals
+//  float normals[3][3];
+//  original-&gt;GetNormals(normals);
+//  clone-&gt;SetNormals(normals);
+
+//  //copy the position
+//  float position[3];
+//  original-&gt;GetPosition(position);
+//  clone-&gt;SetPosition(position);
+
+//  return true;
+//}
+
+//igtl::MessageBase::Pointer mitk::IGTLMessageCommon::Clone(igtl::TransformMessage::Pointer original)
+//{
+//  bool copySuccess = false;
+//  igtl::TransformMessage::Pointer clone_ = igtl::TransformMessage::New();
+
+//  //initialize the clone
+////  clone = igtl::MessageBase::New();
+
+//  //copy all meta data
+//  copySuccess = clone_-&gt;Copy(original);
+
+//  if ( !copySuccess )
+//    return false;
+
+//  //copy all data that is important for this class
+//  //copy the matrix
+//  igtl::Matrix4x4 mat;
+//  original-&gt;GetMatrix(mat);
+//  clone_-&gt;SetMatrix(mat);
+
+//  //copy the normals
+//  float normals[3][3];
+//  original-&gt;GetNormals(normals);
+//  clone_-&gt;SetNormals(normals);
+
+//  //copy the position
+//  float position[3];
+//  original-&gt;GetPosition(position);
+//  clone_-&gt;SetPosition(position);
+
+//  return igtl::MessageBase::Pointer(clone_.GetPointer());
+
+////  return true;
+//}</pre>
+	</body>
+</html>

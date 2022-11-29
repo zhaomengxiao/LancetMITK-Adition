@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDicomSR_ImageBlockDescriptor.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;legacy/mitkDicomSeriesReader.h&gt;
+
+#include &lt;gdcmUIDs.h&gt;
+
+namespace mitk
+{
+  DicomSeriesReader::ImageBlockDescriptor::ImageBlockDescriptor()
+<span style = "background-color:#fdd">    : m_HasGantryTiltCorrected(false), m_HasMultipleTimePoints(false), m_IsMultiFrameImage(false)
+  {
+  }</span>
+
+  DicomSeriesReader::ImageBlockDescriptor::~ImageBlockDescriptor()
+<span style = "background-color:#fdd">  {</span>
+    // nothing
+<span style = "background-color:#fdd">  }</span>
+
+  DicomSeriesReader::ImageBlockDescriptor::ImageBlockDescriptor(const StringContainer &amp;files)
+<span style = "background-color:#fdd">    : m_HasGantryTiltCorrected(false), m_HasMultipleTimePoints(false), m_IsMultiFrameImage(false)
+  {
+    m_Filenames = files;
+  }</span>
+
+  void DicomSeriesReader::ImageBlockDescriptor::AddFile(const std::string &amp;filename)
+<span style = "background-color:#fdd">  {
+    m_Filenames.push_back(filename);
+  }</span>
+
+  void DicomSeriesReader::ImageBlockDescriptor::AddFiles(const StringContainer &amp;files)
+<span style = "background-color:#fdd">  {
+    m_Filenames.insert(m_Filenames.end(), files.begin(), files.end());
+  }</span>
+
+  DicomSeriesReader::StringContainer DicomSeriesReader::ImageBlockDescriptor::GetFilenames() const
+<span style = "background-color:#fdd">  {
+    return m_Filenames;
+  }</span>
+
+<span style = "background-color:#fdd">  std::string DicomSeriesReader::ImageBlockDescriptor::GetImageBlockUID() const { return m_ImageBlockUID; }
+  std::string DicomSeriesReader::ImageBlockDescriptor::GetSeriesInstanceUID() const { return m_SeriesInstanceUID; }
+  std::string DicomSeriesReader::ImageBlockDescriptor::GetModality() const { return m_Modality; }</span>
+  std::string DicomSeriesReader::ImageBlockDescriptor::GetSOPClassUIDAsString() const
+<span style = "background-color:#fdd">  {</span>
+    gdcm::UIDs uidKnowledge;
+<span style = "background-color:#fdd">    uidKnowledge.SetFromUID(m_SOPClassUID.c_str());
+    return uidKnowledge.GetName();
+  }</span>
+
+<span style = "background-color:#fdd">  std::string DicomSeriesReader::ImageBlockDescriptor::GetSOPClassUID() const { return m_SOPClassUID; }
+  bool DicomSeriesReader::ImageBlockDescriptor::IsMultiFrameImage() const { return m_IsMultiFrameImage; }</span>
+  DicomSeriesReader::ReaderImplementationLevel DicomSeriesReader::ImageBlockDescriptor::GetReaderImplementationLevel()
+    const
+<span style = "background-color:#fdd">  {
+    if (this-&gt;IsMultiFrameImage())
+      return ReaderImplementationLevel_Unsupported;</span>
+
+    gdcm::UIDs uidKnowledge;
+<span style = "background-color:#fdd">    uidKnowledge.SetFromUID(m_SOPClassUID.c_str());</span>
+
+<span style = "background-color:#fdd">    gdcm::UIDs::TSName uid = static_cast&lt;gdcm::UIDs::TSName&gt;((gdcm::UIDs::TSType)uidKnowledge);</span>
+
+<span style = "background-color:#fdd">    switch (uid)</span>
+    {
+      case gdcm::UIDs::CTImageStorage:
+      case gdcm::UIDs::MRImageStorage:
+      case gdcm::UIDs::PositronEmissionTomographyImageStorage:
+      case gdcm::UIDs::ComputedRadiographyImageStorage:
+      case gdcm::UIDs::DigitalXRayImageStorageForPresentation:
+      case gdcm::UIDs::DigitalXRayImageStorageForProcessing:
+<span style = "background-color:#fdd">        return ReaderImplementationLevel_Supported;</span>
+
+      case gdcm::UIDs::NuclearMedicineImageStorage:
+<span style = "background-color:#fdd">        return ReaderImplementationLevel_PartlySupported;</span>
+
+      case gdcm::UIDs::SecondaryCaptureImageStorage:
+<span style = "background-color:#fdd">        return ReaderImplementationLevel_Implemented;</span>
+
+      default:
+<span style = "background-color:#fdd">        return ReaderImplementationLevel_Unsupported;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  bool DicomSeriesReader::ImageBlockDescriptor::HasGantryTiltCorrected() const { return m_HasGantryTiltCorrected; }</span>
+  /*
+     PS defined      IPS defined     PS==IPS
+          0               0                     --&gt; UNKNOWN spacing, loader will invent
+          0               1                     --&gt; spacing as at detector surface
+          1               0                     --&gt; spacing as in patient
+          1               1             0       --&gt; detector surface spacing CORRECTED for geometrical magnifications:
+     spacing as in patient
+          1               1             1       --&gt; detector surface spacing NOT corrected for geometrical
+     magnifications:
+     spacing as at detector
+  */
+  DicomSeriesReader::PixelSpacingInterpretation DicomSeriesReader::ImageBlockDescriptor::GetPixelSpacingType() const
+<span style = "background-color:#fdd">  {
+    if (m_PixelSpacing.empty())</span>
+    {
+<span style = "background-color:#fdd">      if (m_ImagerPixelSpacing.empty())</span>
+      {
+<span style = "background-color:#fdd">        return PixelSpacingInterpretation_SpacingUnknown;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        return PixelSpacingInterpretation_SpacingAtDetector;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else // Pixel Spacing defined
+    {
+<span style = "background-color:#fdd">      if (m_ImagerPixelSpacing.empty())</span>
+      {
+<span style = "background-color:#fdd">        return PixelSpacingInterpretation_SpacingInPatient;
+      }
+      else if (m_PixelSpacing != m_ImagerPixelSpacing)</span>
+      {
+<span style = "background-color:#fdd">        return PixelSpacingInterpretation_SpacingInPatient;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        return PixelSpacingInterpretation_SpacingAtDetector;</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  bool DicomSeriesReader::ImageBlockDescriptor::PixelSpacingRelatesToPatient() const
+<span style = "background-color:#fdd">  {
+    return GetPixelSpacingType() == PixelSpacingInterpretation_SpacingInPatient;
+  }</span>
+
+  bool DicomSeriesReader::ImageBlockDescriptor::PixelSpacingRelatesToDetector() const
+<span style = "background-color:#fdd">  {
+    return GetPixelSpacingType() == PixelSpacingInterpretation_SpacingAtDetector;
+  }</span>
+
+  bool DicomSeriesReader::ImageBlockDescriptor::PixelSpacingIsUnknown() const
+<span style = "background-color:#fdd">  {
+    return GetPixelSpacingType() == PixelSpacingInterpretation_SpacingUnknown;
+  }</span>
+
+  void DicomSeriesReader::ImageBlockDescriptor::SetPixelSpacingInformation(const std::string &amp;pixelSpacing,
+                                                                           const std::string &amp;imagerPixelSpacing)
+<span style = "background-color:#fdd">  {
+    m_PixelSpacing = pixelSpacing;
+    m_ImagerPixelSpacing = imagerPixelSpacing;
+  }</span>
+
+  void DicomSeriesReader::ImageBlockDescriptor::GetDesiredMITKImagePixelSpacing(ScalarType &amp;spacingX,
+                                                                                ScalarType &amp;spacingY) const
+<span style = "background-color:#fdd">  {</span>
+    // preference for "in patient" pixel spacing
+<span style = "background-color:#fdd">    if (!DICOMStringToSpacing(m_PixelSpacing, spacingX, spacingY))</span>
+    {
+      // fallback to "on detector" spacing
+<span style = "background-color:#fdd">      if (!DICOMStringToSpacing(m_ImagerPixelSpacing, spacingX, spacingY))</span>
+      {
+        // last resort: invent something
+<span style = "background-color:#fdd">        spacingX = spacingY = 1.0;</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  bool DicomSeriesReader::ImageBlockDescriptor::HasMultipleTimePoints() const { return m_HasMultipleTimePoints; }
+  void DicomSeriesReader::ImageBlockDescriptor::SetImageBlockUID(const std::string &amp;uid) { m_ImageBlockUID = uid; }</span>
+  void DicomSeriesReader::ImageBlockDescriptor::SetSeriesInstanceUID(const std::string &amp;uid)
+<span style = "background-color:#fdd">  {
+    m_SeriesInstanceUID = uid;
+  }</span>
+
+<span style = "background-color:#fdd">  void DicomSeriesReader::ImageBlockDescriptor::SetModality(const std::string &amp;modality) { m_Modality = modality; }</span>
+  void DicomSeriesReader::ImageBlockDescriptor::SetNumberOfFrames(const std::string &amp;numberOfFrames)
+<span style = "background-color:#fdd">  {
+    m_IsMultiFrameImage = !numberOfFrames.empty();
+  }</span>
+
+  void DicomSeriesReader::ImageBlockDescriptor::SetSOPClassUID(const std::string &amp;sopClassUID)
+<span style = "background-color:#fdd">  {
+    m_SOPClassUID = sopClassUID;
+  }</span>
+
+<span style = "background-color:#fdd">  void DicomSeriesReader::ImageBlockDescriptor::SetHasGantryTiltCorrected(bool on) { m_HasGantryTiltCorrected = on; }
+  void DicomSeriesReader::ImageBlockDescriptor::SetHasMultipleTimePoints(bool on) { m_HasMultipleTimePoints = on; }</span>
+} // end namespace mitk</pre>
+	</body>
+</html>

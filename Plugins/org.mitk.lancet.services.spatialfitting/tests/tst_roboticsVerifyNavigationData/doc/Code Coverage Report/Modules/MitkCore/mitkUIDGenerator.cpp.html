@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkUIDGenerator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkUIDGenerator.h&gt;
+
+#include &lt;sstream&gt;
+
+#include &lt;mutex&gt;
+
+#include &lt;boost/uuid/uuid.hpp&gt;
+#include &lt;boost/uuid/uuid_io.hpp&gt;
+#include &lt;boost/uuid/uuid_generators.hpp&gt;
+
+<span style = "background-color:#dfd">boost::uuids::random_generator uuidGen;
+std::mutex uuidGen_mutex;</span>
+
+mitk::UIDGenerator::UIDGenerator(const char *prefix)
+<span style = "background-color:#dfd">  : m_Prefix(prefix)
+{
+}</span>
+
+std::string mitk::UIDGenerator::GetUID()
+<span style = "background-color:#fdd">{
+  std::ostringstream s;</span>
+
+  {
+<span style = "background-color:#fdd">    std::lock_guard&lt;std::mutex&gt; guard(uuidGen_mutex);
+    auto uuid = uuidGen();
+    s &lt;&lt; m_Prefix &lt;&lt; uuid;
+  }</span>
+
+<span style = "background-color:#fdd">  return s.str();
+}</span></pre>
+	</body>
+</html>

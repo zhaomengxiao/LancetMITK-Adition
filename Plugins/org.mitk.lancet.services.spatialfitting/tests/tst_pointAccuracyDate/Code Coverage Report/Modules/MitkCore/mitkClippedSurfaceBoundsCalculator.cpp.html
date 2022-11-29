@@ -1,0 +1,305 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkClippedSurfaceBoundsCalculator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include "mitkClippedSurfaceBoundsCalculator.h"
+#include "mitkLine.h"
+
+#define ROUND_P(x) ((x) &gt;= 0 ? (int)((x) + 0.5) : (int)((x)-0.5))
+
+mitk::ClippedSurfaceBoundsCalculator::ClippedSurfaceBoundsCalculator(const mitk::PlaneGeometry *geometry,
+                                                                     mitk::Image::Pointer image)
+<span style = "background-color:#fdd">  : m_PlaneGeometry(nullptr), m_Geometry3D(nullptr), m_Image(nullptr)
+{
+  this-&gt;InitializeOutput();</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetInput(geometry, image);
+}</span>
+
+mitk::ClippedSurfaceBoundsCalculator::ClippedSurfaceBoundsCalculator(const mitk::BaseGeometry *geometry,
+                                                                     mitk::Image::Pointer image)
+<span style = "background-color:#fdd">  : m_PlaneGeometry(nullptr), m_Geometry3D(nullptr), m_Image(nullptr)
+{
+  this-&gt;InitializeOutput();</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetInput(geometry, image);
+}</span>
+
+mitk::ClippedSurfaceBoundsCalculator::ClippedSurfaceBoundsCalculator(const PointListType pointlist,
+                                                                     mitk::Image::Pointer image)
+<span style = "background-color:#fdd">  : m_PlaneGeometry(nullptr), m_Geometry3D(nullptr), m_Image(image)
+{
+  this-&gt;InitializeOutput();</span>
+
+<span style = "background-color:#fdd">  m_ObjectPointsInWorldCoordinates = pointlist;
+}</span>
+
+void mitk::ClippedSurfaceBoundsCalculator::InitializeOutput()
+<span style = "background-color:#fdd">{</span>
+  // initialize with meaningless slice indices
+<span style = "background-color:#fdd">  m_MinMaxOutput.clear();
+  m_MinMaxOutput.reserve(3);
+  for (int i = 0; i &lt; 3; i++)</span>
+  {
+<span style = "background-color:#fdd">    m_MinMaxOutput.push_back(OutputType(std::numeric_limits&lt;int&gt;::max(), std::numeric_limits&lt;int&gt;::min()));
+  }
+}</span>
+
+mitk::ClippedSurfaceBoundsCalculator::~ClippedSurfaceBoundsCalculator()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ClippedSurfaceBoundsCalculator::SetInput(const mitk::PlaneGeometry *geometry, mitk::Image *image)
+<span style = "background-color:#fdd">{
+  if (geometry &amp;&amp; image)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_PlaneGeometry = geometry;
+    this-&gt;m_Image = image;
+    this-&gt;m_Geometry3D = nullptr; // Not possible to set both
+    m_ObjectPointsInWorldCoordinates.clear();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ClippedSurfaceBoundsCalculator::SetInput(const mitk::BaseGeometry *geometry, mitk::Image *image)
+<span style = "background-color:#fdd">{
+  if (geometry &amp;&amp; image)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_Geometry3D = geometry;
+    this-&gt;m_Image = image;
+    this-&gt;m_PlaneGeometry = nullptr; // Not possible to set both
+    m_ObjectPointsInWorldCoordinates.clear();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ClippedSurfaceBoundsCalculator::SetInput(const PointListType pointlist, mitk::Image *image)
+<span style = "background-color:#fdd">{
+  if (!pointlist.empty() &amp;&amp; image)</span>
+  {
+<span style = "background-color:#fdd">    m_Geometry3D = nullptr;
+    m_PlaneGeometry = nullptr;
+    m_Image = image;
+    m_ObjectPointsInWorldCoordinates = pointlist;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::ClippedSurfaceBoundsCalculator::OutputType mitk::ClippedSurfaceBoundsCalculator::GetMinMaxSpatialDirectionX()
+<span style = "background-color:#fdd">{
+  return this-&gt;m_MinMaxOutput[0];
+}</span>
+
+mitk::ClippedSurfaceBoundsCalculator::OutputType mitk::ClippedSurfaceBoundsCalculator::GetMinMaxSpatialDirectionY()
+<span style = "background-color:#fdd">{
+  return this-&gt;m_MinMaxOutput[1];
+}</span>
+
+mitk::ClippedSurfaceBoundsCalculator::OutputType mitk::ClippedSurfaceBoundsCalculator::GetMinMaxSpatialDirectionZ()
+<span style = "background-color:#fdd">{
+  return this-&gt;m_MinMaxOutput[2];
+}</span>
+
+void mitk::ClippedSurfaceBoundsCalculator::Update()
+<span style = "background-color:#fdd">{
+  this-&gt;m_MinMaxOutput.clear();
+  m_MinMaxOutput.reserve(3);
+  for (int i = 0; i &lt; 3; i++)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_MinMaxOutput.push_back(OutputType(std::numeric_limits&lt;int&gt;::max(), std::numeric_limits&lt;int&gt;::min()));
+  }</span>
+
+<span style = "background-color:#fdd">  if (m_PlaneGeometry.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;CalculateIntersectionPoints(m_PlaneGeometry);
+  }
+  else if (m_Geometry3D.IsNotNull())</span>
+  {
+    // go through all slices of the image, ...
+<span style = "background-color:#fdd">    const auto *slicedGeometry3D =</span>
+      dynamic_cast&lt;const mitk::SlicedGeometry3D *&gt;(m_Geometry3D.GetPointer());
+<span style = "background-color:#fdd">    int allSlices = slicedGeometry3D-&gt;GetSlices();
+    this-&gt;CalculateIntersectionPoints(dynamic_cast&lt;mitk::PlaneGeometry *&gt;(slicedGeometry3D-&gt;GetPlaneGeometry(0)));
+    this-&gt;CalculateIntersectionPoints(</span>
+      dynamic_cast&lt;mitk::PlaneGeometry *&gt;(slicedGeometry3D-&gt;GetPlaneGeometry(allSlices - 1)));
+<span style = "background-color:#fdd">  }
+  else if (!m_ObjectPointsInWorldCoordinates.empty())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;CalculateIntersectionPoints(m_ObjectPointsInWorldCoordinates);
+    this-&gt;EnforceImageBounds();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ClippedSurfaceBoundsCalculator::CalculateIntersectionPoints(const mitk::PlaneGeometry *geometry)
+<span style = "background-color:#fdd">{</span>
+  // SEE HEADER DOCUMENTATION for explanation
+
+<span style = "background-color:#fdd">  const mitk::BaseGeometry::Pointer imageGeometry = m_Image-&gt;GetGeometry()-&gt;Clone();</span>
+
+  //  the cornerpoint(0) is the corner based Origin, which is original center based
+<span style = "background-color:#fdd">  Point3D origin = imageGeometry-&gt;GetCornerPoint(0); // Left, bottom, front</span>
+
+  // Get axis vector for the spatial directions
+<span style = "background-color:#fdd">  const Vector3D xDirection = imageGeometry-&gt;GetAxisVector(0);
+  const Vector3D yDirection = imageGeometry-&gt;GetAxisVector(1);
+  const Vector3D zDirection = imageGeometry-&gt;GetAxisVector(2);</span>
+
+<span style = "background-color:#fdd">  const Point3D leftBottomFront = origin;
+  const Point3D leftTopFront = origin + yDirection;
+  const Point3D leftBottomBack = origin + zDirection;
+  const Point3D leftTopBack = origin + yDirection + zDirection;
+  const Point3D rightBottomFront = origin + xDirection;
+  const Point3D rightTopFront = origin + xDirection + yDirection;
+  const Point3D rightBottomBack = origin + xDirection + zDirection;
+  const Point3D rightTopBack = origin + xDirection + yDirection + zDirection;</span>
+
+  typedef std::vector&lt;std::pair&lt;mitk::Point3D, mitk::Point3D&gt;&gt; EdgesVector;
+<span style = "background-color:#fdd">  EdgesVector edgesOf3DBox;
+  edgesOf3DBox.reserve(12);</span>
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(leftBottomFront, // x = left=xfront, y=bottom=yfront, z=front=zfront</span>
+                                        leftTopFront));  // left, top, front
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(leftBottomFront,  // left, bottom, front</span>
+                                        leftBottomBack)); // left, bottom, back
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(leftBottomFront,    // left, bottom, front</span>
+                                        rightBottomFront)); // right, bottom, front
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(leftTopFront,    // left, top, front</span>
+                                        rightTopFront)); // right, top, front
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(leftTopFront,  // left, top, front</span>
+                                        leftTopBack)); // left, top, back
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(rightTopFront,  // right, top, front</span>
+                                        rightTopBack)); // right, top, back
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(rightTopFront,      // right, top, front</span>
+                                        rightBottomFront)); // right, bottom, front
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(rightBottomFront,  // right, bottom, front</span>
+                                        rightBottomBack)); // right, bottom, back
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(rightBottomBack,  // right, bottom, back</span>
+                                        leftBottomBack)); // left, bottom, back
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(rightBottomBack, // right, bottom, back</span>
+                                        rightTopBack));  // right, top, back
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(rightTopBack,  // right, top, back</span>
+                                        leftTopBack)); // left, top, back
+
+<span style = "background-color:#fdd">  edgesOf3DBox.push_back(std::make_pair(leftTopBack,      // left, top, back</span>
+                                        leftBottomBack)); // left, bottom, back
+
+<span style = "background-color:#fdd">  for (auto iterator = edgesOf3DBox.cbegin(); iterator != edgesOf3DBox.cend(); ++iterator)</span>
+  {
+<span style = "background-color:#fdd">    const Point3D startPoint = (*iterator).first; // start point of the line
+    const Point3D endPoint = (*iterator).second;  // end point of the line
+    const Vector3D lineDirection = endPoint - startPoint;</span>
+
+<span style = "background-color:#fdd">    const mitk::Line3D line(startPoint, lineDirection);</span>
+
+    // Get intersection point of line and plane geometry
+<span style = "background-color:#fdd">    Point3D intersectionWorldPoint(std::numeric_limits&lt;int&gt;::min());</span>
+
+<span style = "background-color:#fdd">    double t = -1.0;
+    bool doesLineIntersectWithPlane(false);</span>
+
+<span style = "background-color:#fdd">    const double norm = line.GetDirection().GetNorm();
+    const double dist = geometry-&gt;Distance(line.GetPoint1());
+    if (norm &lt; mitk::eps &amp;&amp; dist &lt; mitk::sqrteps)</span>
+    {
+<span style = "background-color:#fdd">      t = 1.0;
+      doesLineIntersectWithPlane = true;
+      intersectionWorldPoint = line.GetPoint1();
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      geometry-&gt;IntersectionPoint(line, intersectionWorldPoint);
+      doesLineIntersectWithPlane = geometry-&gt;IntersectionPointParam(line, t);</span>
+    }
+
+    // Get index point
+<span style = "background-color:#fdd">    mitk::Point3D intersectionIndexPoint;
+    imageGeometry-&gt;WorldToIndex(intersectionWorldPoint, intersectionIndexPoint);</span>
+
+<span style = "background-color:#fdd">    const bool lowerBoundGood = (0 - mitk::sqrteps) &lt;= t;
+    const bool upperBoundGood = t &lt;= 1.0 + mitk::sqrteps;
+    if (doesLineIntersectWithPlane &amp;&amp; lowerBoundGood &amp;&amp; upperBoundGood)</span>
+    {
+<span style = "background-color:#fdd">      for (int dim = 0; dim &lt; 3; ++dim)</span>
+      {
+<span style = "background-color:#fdd">        m_MinMaxOutput[dim].first = std::min(m_MinMaxOutput[dim].first, ROUND_P(intersectionIndexPoint[dim]));
+        m_MinMaxOutput[dim].second = std::max(m_MinMaxOutput[dim].second, ROUND_P(intersectionIndexPoint[dim]));
+      }
+      this-&gt;EnforceImageBounds();
+    }
+  }
+}</span>
+
+void mitk::ClippedSurfaceBoundsCalculator::CalculateIntersectionPoints(PointListType pointList)
+<span style = "background-color:#fdd">{
+  PointListType::const_iterator pointIterator;</span>
+
+<span style = "background-color:#fdd">  const mitk::SlicedGeometry3D::Pointer imageGeometry = m_Image-&gt;GetSlicedGeometry();
+  for (pointIterator = pointList.cbegin(); pointIterator != pointList.cend(); ++pointIterator)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D pntInIndexCoordinates;
+    imageGeometry-&gt;WorldToIndex((*pointIterator), pntInIndexCoordinates);</span>
+
+<span style = "background-color:#fdd">    m_MinMaxOutput[0].first =</span>
+      pntInIndexCoordinates[0] &lt; m_MinMaxOutput[0].first ? ROUND_P(pntInIndexCoordinates[0]) : m_MinMaxOutput[0].first;
+<span style = "background-color:#fdd">    m_MinMaxOutput[0].second = pntInIndexCoordinates[0] &gt; m_MinMaxOutput[0].second ? ROUND_P(pntInIndexCoordinates[0]) :</span>
+                                                                                     m_MinMaxOutput[0].second;
+
+<span style = "background-color:#fdd">    m_MinMaxOutput[1].first =</span>
+      pntInIndexCoordinates[1] &lt; m_MinMaxOutput[1].first ? ROUND_P(pntInIndexCoordinates[1]) : m_MinMaxOutput[1].first;
+<span style = "background-color:#fdd">    m_MinMaxOutput[1].second = pntInIndexCoordinates[1] &gt; m_MinMaxOutput[1].second ? ROUND_P(pntInIndexCoordinates[1]) :</span>
+                                                                                     m_MinMaxOutput[1].second;
+
+<span style = "background-color:#fdd">    m_MinMaxOutput[2].first =</span>
+      pntInIndexCoordinates[2] &lt; m_MinMaxOutput[2].first ? ROUND_P(pntInIndexCoordinates[2]) : m_MinMaxOutput[2].first;
+<span style = "background-color:#fdd">    m_MinMaxOutput[2].second = pntInIndexCoordinates[2] &gt; m_MinMaxOutput[2].second ? ROUND_P(pntInIndexCoordinates[2]) :</span>
+                                                                                     m_MinMaxOutput[2].second;
+<span style = "background-color:#fdd">  }</span>
+
+  // this-&gt;EnforceImageBounds();
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ClippedSurfaceBoundsCalculator::EnforceImageBounds()
+<span style = "background-color:#fdd">{
+  m_MinMaxOutput[0].first = std::max(m_MinMaxOutput[0].first, 0);
+  m_MinMaxOutput[1].first = std::max(m_MinMaxOutput[1].first, 0);
+  m_MinMaxOutput[2].first = std::max(m_MinMaxOutput[2].first, 0);</span>
+
+<span style = "background-color:#fdd">  m_MinMaxOutput[0].first = std::min(m_MinMaxOutput[0].first, (int)m_Image-&gt;GetDimension(0) - 1);
+  m_MinMaxOutput[1].first = std::min(m_MinMaxOutput[1].first, (int)m_Image-&gt;GetDimension(1) - 1);
+  m_MinMaxOutput[2].first = std::min(m_MinMaxOutput[2].first, (int)m_Image-&gt;GetDimension(2) - 1);</span>
+
+<span style = "background-color:#fdd">  m_MinMaxOutput[0].second = std::min(m_MinMaxOutput[0].second, (int)m_Image-&gt;GetDimension(0) - 1);
+  m_MinMaxOutput[1].second = std::min(m_MinMaxOutput[1].second, (int)m_Image-&gt;GetDimension(1) - 1);
+  m_MinMaxOutput[2].second = std::min(m_MinMaxOutput[2].second, (int)m_Image-&gt;GetDimension(2) - 1);</span>
+
+<span style = "background-color:#fdd">  m_MinMaxOutput[0].second = std::max(m_MinMaxOutput[0].second, 0);
+  m_MinMaxOutput[1].second = std::max(m_MinMaxOutput[1].second, 0);
+  m_MinMaxOutput[2].second = std::max(m_MinMaxOutput[2].second, 0);
+}</span></pre>
+	</body>
+</html>

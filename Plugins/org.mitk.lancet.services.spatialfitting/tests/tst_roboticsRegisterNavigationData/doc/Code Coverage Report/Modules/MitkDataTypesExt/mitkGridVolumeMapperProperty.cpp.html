@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkGridVolumeMapperProperty.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkGridVolumeMapperProperty.h"
+#include &lt;vtkProperty.h&gt;
+
+mitk::GridVolumeMapperProperty::GridVolumeMapperProperty()
+<span style = "background-color:#fdd">{
+  AddRepresentationTypes();
+  SetValue(PT);
+}</span>
+
+mitk::GridVolumeMapperProperty::GridVolumeMapperProperty(const IdType &amp;value)
+<span style = "background-color:#fdd">{
+  AddRepresentationTypes();
+  if (IsValidEnumerationValue(value))</span>
+  {
+<span style = "background-color:#fdd">    SetValue(value);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    SetValue(PT);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::GridVolumeMapperProperty::GridVolumeMapperProperty(const std::string &amp;value)
+<span style = "background-color:#fdd">{
+  AddRepresentationTypes();
+  if (IsValidEnumerationValue(value))</span>
+  {
+<span style = "background-color:#fdd">    SetValue(value);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    SetValue(PT);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::GridVolumeMapperProperty::SetVolumeMapperToPT()
+<span style = "background-color:#fdd">{
+  SetValue(PT);
+}</span>
+
+void mitk::GridVolumeMapperProperty::SetVolumeMapperToZSweep()
+<span style = "background-color:#fdd">{
+  SetValue(ZSWEEP);
+}</span>
+
+void mitk::GridVolumeMapperProperty::SetVolumeMapperToRayCast()
+<span style = "background-color:#fdd">{
+  SetValue(RAYCAST);
+}</span>
+
+void mitk::GridVolumeMapperProperty::AddRepresentationTypes()
+<span style = "background-color:#fdd">{
+  AddEnum("Ray Cast", RAYCAST);
+  AddEnum("Projected Tetrahedra", PT);
+  AddEnum("ZSweep", ZSWEEP);
+}</span>
+
+bool mitk::GridVolumeMapperProperty::AddEnum(const std::string &amp;name, const IdType &amp;id)
+<span style = "background-color:#fdd">{
+  return Superclass::AddEnum(name, id);
+}</span>
+
+itk::LightObject::Pointer mitk::GridVolumeMapperProperty::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result(new Self(*this));
+  result-&gt;UnRegister();
+  return result;
+}</span></pre>
+	</body>
+</html>

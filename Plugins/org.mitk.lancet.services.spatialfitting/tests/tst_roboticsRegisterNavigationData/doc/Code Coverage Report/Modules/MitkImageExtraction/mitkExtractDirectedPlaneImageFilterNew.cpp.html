@@ -1,0 +1,297 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkExtractDirectedPlaneImageFilterNew.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkExtractDirectedPlaneImageFilterNew.h"
+#include "itkImageRegionIterator.h"
+#include "mitkImageCast.h"
+#include "mitkImageTimeSelector.h"
+
+#include &lt;mitkImageAccessByItk.h&gt;
+
+mitk::ExtractDirectedPlaneImageFilterNew::ExtractDirectedPlaneImageFilterNew()
+<span style = "background-color:#fdd">  : m_CurrentWorldPlaneGeometry(nullptr), m_ImageGeometry(nullptr), m_ActualInputTimestep(0)
+{
+  MITK_WARN &lt;&lt; "Class ExtractDirectedPlaneImageFilterNew is deprecated! Use ExtractSliceFilter instead.";
+}</span>
+
+mitk::ExtractDirectedPlaneImageFilterNew::~ExtractDirectedPlaneImageFilterNew()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ExtractDirectedPlaneImageFilterNew::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::Image::ConstPointer inputImage = ImageToImageFilter::GetInput(0);</span>
+
+<span style = "background-color:#fdd">  if (!inputImage)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::ExtractDirectedPlaneImageFilterNew: No input available. Please set the input!" &lt;&lt; std::endl;
+    itkExceptionMacro("mitk::ExtractDirectedPlaneImageFilterNew: No input available. Please set the input!");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  m_ImageGeometry = inputImage-&gt;GetGeometry();</span>
+
+  // If no timestep is set, the lowest given will be selected
+  // const mitk::TimeGeometry* inputTimeGeometry = this-&gt;GetInput()-&gt;GetTimeGeometry();
+
+<span style = "background-color:#fdd">  if (inputImage-&gt;GetDimension() &gt; 4 || inputImage-&gt;GetDimension() &lt; 2)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::ExtractDirectedPlaneImageFilterNew:GenerateData works only with 3D and 3D+t images, sorry."</span>
+               &lt;&lt; std::endl;
+<span style = "background-color:#fdd">    itkExceptionMacro("mitk::ExtractDirectedPlaneImageFilterNew works only with 3D and 3D+t images, sorry.");
+    return;
+  }
+  else if (inputImage-&gt;GetDimension() == 4)</span>
+  {
+<span style = "background-color:#fdd">    mitk::ImageTimeSelector::Pointer timeselector = mitk::ImageTimeSelector::New();
+    timeselector-&gt;SetInput(inputImage);
+    timeselector-&gt;SetTimeNr(m_ActualInputTimestep);
+    timeselector-&gt;UpdateLargestPossibleRegion();
+    inputImage = timeselector-&gt;GetOutput();
+  }
+  else if (inputImage-&gt;GetDimension() == 2)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Image::Pointer resultImage = ImageToImageFilter::GetOutput();
+    resultImage = const_cast&lt;mitk::Image *&gt;(inputImage.GetPointer());
+    ImageToImageFilter::SetNthOutput(0, resultImage);
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!m_CurrentWorldPlaneGeometry)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::ExtractDirectedPlaneImageFilterNew::GenerateData has no CurrentWorldPlaneGeometry set"</span>
+               &lt;&lt; std::endl;
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  AccessFixedDimensionByItk(inputImage, ItkSliceExtraction, 3);
+} // Generate Data</span>
+
+void mitk::ExtractDirectedPlaneImageFilterNew::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+  Superclass::GenerateOutputInformation();
+}</span>
+
+/*
+* The desired slice is extracted by filling the image`s corresponding pixel values in an empty 2 dimensional itk::Image
+* Therefor the itk image`s extent in pixel (in each direction) is doubled and its spacing (also in each direction) is
+* divided by two
+* (similar to the shannon theorem).
+*/
+template &lt;typename TPixel, unsigned int VImageDimension&gt;
+void mitk::ExtractDirectedPlaneImageFilterNew::ItkSliceExtraction(const itk::Image&lt;TPixel, VImageDimension&gt; *inputImage)
+<span style = "background-color:#fdd">{</span>
+  typedef itk::Image&lt;TPixel, VImageDimension&gt; InputImageType;
+  typedef itk::Image&lt;TPixel, VImageDimension - 1&gt; SliceImageType;
+
+  typedef itk::ImageRegionConstIterator&lt;SliceImageType&gt; SliceIterator;
+
+  // Creating an itk::Image that represents the sampled slice
+<span style = "background-color:#fdd">  typename SliceImageType::Pointer resultSlice = SliceImageType::New();</span>
+
+  typename SliceImageType::IndexType start;
+
+<span style = "background-color:#fdd">  start[0] = 0;
+  start[1] = 0;</span>
+
+<span style = "background-color:#fdd">  Point3D origin = m_CurrentWorldPlaneGeometry-&gt;GetOrigin();
+  Vector3D right = m_CurrentWorldPlaneGeometry-&gt;GetAxisVector(0);
+  Vector3D bottom = m_CurrentWorldPlaneGeometry-&gt;GetAxisVector(1);</span>
+
+  // Calculation the sample-spacing, i.e the half of the smallest spacing existing in the original image
+<span style = "background-color:#fdd">  Vector3D newPixelSpacing = m_ImageGeometry-&gt;GetSpacing();
+  float minSpacing = newPixelSpacing[0];
+  for (unsigned int i = 1; i &lt; newPixelSpacing.Size(); i++)</span>
+  {
+<span style = "background-color:#fdd">    if (newPixelSpacing[i] &lt; minSpacing)</span>
+    {
+<span style = "background-color:#fdd">      minSpacing = newPixelSpacing[i];</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  newPixelSpacing[0] = 0.5 * minSpacing;
+  newPixelSpacing[1] = 0.5 * minSpacing;
+  newPixelSpacing[2] = 0.5 * minSpacing;</span>
+
+  float pixelSpacing[2];
+<span style = "background-color:#fdd">  pixelSpacing[0] = newPixelSpacing[0];
+  pixelSpacing[1] = newPixelSpacing[1];</span>
+
+  // Calculating the size of the sampled slice
+  typename SliceImageType::SizeType size;
+<span style = "background-color:#fdd">  Vector2D extentInMM;
+  extentInMM[0] = m_CurrentWorldPlaneGeometry-&gt;GetExtentInMM(0);
+  extentInMM[1] = m_CurrentWorldPlaneGeometry-&gt;GetExtentInMM(1);</span>
+
+  // The maximum extent is the lenght of the diagonal of the considered plane
+<span style = "background-color:#fdd">  double maxExtent = sqrt(extentInMM[0] * extentInMM[0] + extentInMM[1] * extentInMM[1]);
+  unsigned int xTranlation = (maxExtent - extentInMM[0]);
+  unsigned int yTranlation = (maxExtent - extentInMM[1]);
+  size[0] = (maxExtent + xTranlation) / newPixelSpacing[0];
+  size[1] = (maxExtent + yTranlation) / newPixelSpacing[1];</span>
+
+  // Creating an ImageRegion Object
+<span style = "background-color:#fdd">  typename SliceImageType::RegionType region;</span>
+
+<span style = "background-color:#fdd">  region.SetSize(size);
+  region.SetIndex(start);</span>
+
+  // Defining the image`s extent and origin by passing the region to it and allocating memory for it
+<span style = "background-color:#fdd">  resultSlice-&gt;SetRegions(region);
+  resultSlice-&gt;SetSpacing(pixelSpacing);
+  resultSlice-&gt;Allocate();</span>
+
+  /*
+  * Here we create an new geometry so that the transformations are calculated correctly (our resulting slice has a
+  * different bounding box and spacing)
+  * The original current worldgeometry must be cloned because we have to keep the directions of the axis vector which
+  * represents the rotation
+  */
+<span style = "background-color:#fdd">  right.Normalize();
+  bottom.Normalize();</span>
+  // Here we translate the origin to adapt the new geometry to the previous calculated extent
+<span style = "background-color:#fdd">  origin[0] -= xTranlation * right[0] + yTranlation * bottom[0];
+  origin[1] -= xTranlation * right[1] + yTranlation * bottom[1];
+  origin[2] -= xTranlation * right[2] + yTranlation * bottom[2];</span>
+
+  // Putting it together for the new geometry
+<span style = "background-color:#fdd">  mitk::BaseGeometry::Pointer newSliceGeometryTest =</span>
+    dynamic_cast&lt;BaseGeometry *&gt;(m_CurrentWorldPlaneGeometry-&gt;Clone().GetPointer());
+<span style = "background-color:#fdd">  newSliceGeometryTest-&gt;ChangeImageGeometryConsideringOriginOffset(true);</span>
+
+  // Workaround because of BUG (#6505)
+<span style = "background-color:#fdd">  newSliceGeometryTest-&gt;GetIndexToWorldTransform()-&gt;SetMatrix(</span>
+    m_CurrentWorldPlaneGeometry-&gt;GetIndexToWorldTransform()-&gt;GetMatrix());
+  // Workaround end
+
+<span style = "background-color:#fdd">  newSliceGeometryTest-&gt;SetOrigin(origin);
+  ScalarType bounds[6] = {0, static_cast&lt;ScalarType&gt;(size[0]), 0, static_cast&lt;ScalarType&gt;(size[1]), 0, 1};
+  newSliceGeometryTest-&gt;SetBounds(bounds);
+  newSliceGeometryTest-&gt;SetSpacing(newPixelSpacing);
+  newSliceGeometryTest-&gt;Modified();</span>
+
+  // Workaround because of BUG (#6505)
+<span style = "background-color:#fdd">  itk::MatrixOffsetTransformBase&lt;mitk::ScalarType, 3, 3&gt;::MatrixType tempTransform =</span>
+    newSliceGeometryTest-&gt;GetIndexToWorldTransform()-&gt;GetMatrix();
+  // Workaround end
+
+  /*
+  * Now we iterate over the recently created slice.
+  * For each slice - pixel we check whether there is an according
+  * pixel in the input - image which can be set in the slice.
+  * In this way a slice is sampled out of the input - image regrading to the given PlaneGeometry
+  */
+<span style = "background-color:#fdd">  Point3D currentSliceIndexPointIn2D;
+  Point3D currentImageWorldPointIn3D;</span>
+  typename InputImageType::IndexType inputIndex;
+
+<span style = "background-color:#fdd">  SliceIterator sliceIterator(resultSlice, resultSlice-&gt;GetLargestPossibleRegion());
+  sliceIterator.GoToBegin();</span>
+
+<span style = "background-color:#fdd">  while (!sliceIterator.IsAtEnd())</span>
+  {
+    /*
+    * Here we add 0.5 to to assure that the indices are correctly transformed.
+    * (Because of the 0.5er Bug)
+    */
+<span style = "background-color:#fdd">    currentSliceIndexPointIn2D[0] = sliceIterator.GetIndex()[0] + 0.5;
+    currentSliceIndexPointIn2D[1] = sliceIterator.GetIndex()[1] + 0.5;
+    currentSliceIndexPointIn2D[2] = 0;</span>
+
+<span style = "background-color:#fdd">    newSliceGeometryTest-&gt;IndexToWorld(currentSliceIndexPointIn2D, currentImageWorldPointIn3D);</span>
+
+<span style = "background-color:#fdd">    m_ImageGeometry-&gt;WorldToIndex(currentImageWorldPointIn3D, inputIndex);</span>
+
+<span style = "background-color:#fdd">    if (m_ImageGeometry-&gt;IsIndexInside(inputIndex))</span>
+    {
+<span style = "background-color:#fdd">      resultSlice-&gt;SetPixel(sliceIterator.GetIndex(), inputImage-&gt;GetPixel(inputIndex));
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      resultSlice-&gt;SetPixel(sliceIterator.GetIndex(), 0);</span>
+    }
+
+<span style = "background-color:#fdd">    ++sliceIterator;
+  }</span>
+
+<span style = "background-color:#fdd">  Image::Pointer resultImage = ImageToImageFilter::GetOutput();
+  GrabItkImageMemory(resultSlice, resultImage, nullptr, false);
+  resultImage-&gt;SetClonedGeometry(newSliceGeometryTest);</span>
+  // Workaround because of BUG (#6505)
+<span style = "background-color:#fdd">  resultImage-&gt;GetGeometry()-&gt;GetIndexToWorldTransform()-&gt;SetMatrix(tempTransform);</span>
+  // Workaround end
+<span style = "background-color:#fdd">}</span>
+
+///**TEST** May ba a little bit more efficient but doesn`t already work/
+// right.Normalize();
+// bottom.Normalize();
+// Point3D currentImagePointIn3D = origin /*+ bottom*newPixelSpacing*/;
+// unsigned int columns ( 0 );
+/**ENDE**/
+
+/****TEST***/
+
+// SliceImageType::IndexType index = sliceIterator.GetIndex();
+
+// if ( columns == (extentInPixel[0]) )
+//{
+// If we are at the end of a row, then we have to go to the beginning of the next row
+// currentImagePointIn3D = origin;
+// currentImagePointIn3D += newPixelSpacing[1]*bottom*index[1];
+// columns = 0;
+// m_ImageGeometry-&gt;WorldToIndex(currentImagePointIn3D, inputIndex);
+//}
+// else
+//{
+////
+// if ( columns != 0 )
+//{
+// currentImagePointIn3D += newPixelSpacing[0]*right;
+//}
+// m_ImageGeometry-&gt;WorldToIndex(currentImagePointIn3D, inputIndex);
+//}
+
+// if ( m_ImageGeometry-&gt;IsIndexInside( inputIndex ))
+//{
+// resultSlice-&gt;SetPixel( sliceIterator.GetIndex(), inputImage-&gt;GetPixel(inputIndex) );
+//}
+// else if (currentImagePointIn3D == origin)
+//{
+// Point3D temp;
+// temp[0] = bottom[0]*newPixelSpacing[0]*0.5;
+// temp[1] = bottom[1]*newPixelSpacing[1]*0.5;
+// temp[2] = bottom[2]*newPixelSpacing[2]*0.5;
+// origin[0] += temp[0];
+// origin[1] += temp[1];
+// origin[2] += temp[2];
+// currentImagePointIn3D = origin;
+// m_ImageGeometry-&gt;WorldToIndex(currentImagePointIn3D, inputIndex);
+// if ( m_ImageGeometry-&gt;IsIndexInside( inputIndex ))
+//{
+// resultSlice-&gt;SetPixel( sliceIterator.GetIndex(), inputImage-&gt;GetPixel(inputIndex) );
+//}
+//}
+
+/****TEST ENDE****/</pre>
+	</body>
+</html>

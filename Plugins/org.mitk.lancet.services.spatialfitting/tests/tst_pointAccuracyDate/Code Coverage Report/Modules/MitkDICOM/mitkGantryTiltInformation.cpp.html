@@ -1,0 +1,268 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkGantryTiltInformation.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+//#define MBILOG_ENABLE_DEBUG
+
+#include "mitkGantryTiltInformation.h"
+
+#include "mitkDICOMTag.h"
+
+#include "mitkLogMacros.h"
+
+mitk::GantryTiltInformation::GantryTiltInformation()
+<span style = "background-color:#dfd">: m_ShiftUp(0.0)
+, m_ShiftRight(0.0)
+, m_ShiftNormal(0.0)
+, m_ITKAssumedSliceSpacing(0.0)
+, m_NumberOfSlicesApart(0)
+{
+}</span>
+
+
+#define doublepoint(x) \
+  Point3Dd x; \
+  x[0] = x ## f[0]; \
+  x[1] = x ## f[1]; \
+  x[2] = x ## f[2];
+
+
+#define doublevector(x) \
+  Vector3Dd x; \
+  x[0] = x ## f[0]; \
+  x[1] = x ## f[1]; \
+  x[2] = x ## f[2];
+
+mitk::GantryTiltInformation::GantryTiltInformation(
+    const Point3D&amp; origin1f, const Point3D&amp; origin2f,
+    const Vector3D&amp; rightf, const Vector3D&amp; upf,
+    unsigned int numberOfSlicesApart)
+<span style = "background-color:#fdd">: m_ShiftUp(0.0)
+, m_ShiftRight(0.0)
+, m_ShiftNormal(0.0)
+, m_ITKAssumedSliceSpacing(0.0)
+, m_NumberOfSlicesApart(numberOfSlicesApart)
+{
+  assert(numberOfSlicesApart);</span>
+
+<span style = "background-color:#fdd">  doublepoint(origin1);
+  doublepoint(origin2);
+  doublevector(right);
+  doublevector(up);</span>
+
+  // determine if slice 1 (imagePosition1 and imageOrientation1) and slice 2 can be in one orthogonal slice stack:
+  // calculate a line from origin 1, directed along the normal of slice (calculated as the cross product of orientation 1)
+  // check if this line passes through origin 2
+
+  /*
+     Determine if line (imagePosition2 + l * normal) contains imagePosition1.
+     Done by calculating the distance of imagePosition1 from line (imagePosition2 + l *normal)
+
+     E.g. http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
+
+     squared distance = | (pointAlongNormal - origin2) x (origin2 - origin1) | ^ 2
+     /
+     |pointAlongNormal - origin2| ^ 2
+
+     ( x meaning the cross product )
+  */
+
+<span style = "background-color:#fdd">  Vector3Dd normal = itk::CrossProduct(right, up);
+  Point3Dd pointAlongNormal = origin2 + normal;</span>
+
+<span style = "background-color:#fdd">  double numerator = itk::CrossProduct( pointAlongNormal - origin2 , origin2 - origin1 ).GetSquaredNorm();
+  double denominator = (pointAlongNormal - origin2).GetSquaredNorm();</span>
+
+<span style = "background-color:#fdd">  double distance = sqrt(numerator / denominator);</span>
+
+<span style = "background-color:#fdd">  if ( distance &gt; 0.001 ) // mitk::eps is too small; 1/1000 of a mm should be enough to detect tilt</span>
+  {
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "  Series seems to contain a tilted (or sheared) geometry";
+    MITK_DEBUG &lt;&lt; "  Distance of expected slice origin from actual slice origin: " &lt;&lt; distance;
+    MITK_DEBUG &lt;&lt; "    ==&gt; storing this shift for later analysis:";
+    MITK_DEBUG &lt;&lt; "    v origin1: " &lt;&lt; origin1;
+    MITK_DEBUG &lt;&lt; "    v origin2: " &lt;&lt; origin2;
+    MITK_DEBUG &lt;&lt; "    v right: " &lt;&lt; right;
+    MITK_DEBUG &lt;&lt; "    v up: " &lt;&lt; up;
+    MITK_DEBUG &lt;&lt; "    v normal: " &lt;&lt; normal;</span>
+
+<span style = "background-color:#fdd">    Point3Dd projectionRight = projectPointOnLine( origin1, origin2, right );
+    Point3Dd projectionNormal = projectPointOnLine( origin1, origin2, normal );</span>
+
+<span style = "background-color:#fdd">    m_ShiftRight = (projectionRight - origin2).GetNorm();
+    m_ShiftNormal = (projectionNormal - origin2).GetNorm();</span>
+
+    /*
+       now also check to which side the image is shifted.
+
+       Calculation e.g. from
+       http://mathworld.wolfram.com/Point-PlaneDistance.html
+    */
+
+<span style = "background-color:#fdd">    Point3Dd  testPoint = origin1;
+    Vector3Dd planeNormal = up;</span>
+
+<span style = "background-color:#fdd">    double signedDistance = (</span>
+                             planeNormal[0] * testPoint[0]
+                           + planeNormal[1] * testPoint[1]
+                           + planeNormal[2] * testPoint[2]
+                           - (
+                               planeNormal[0] * origin2[0]
+                             + planeNormal[1] * origin2[1]
+                             + planeNormal[2] * origin2[2]
+                             )
+                           )
+                           /
+                           sqrt( planeNormal[0] * planeNormal[0]
+                               + planeNormal[1] * planeNormal[1]
+                               + planeNormal[2] * planeNormal[2]
+                               );
+
+<span style = "background-color:#fdd">    m_ShiftUp = signedDistance;</span>
+
+<span style = "background-color:#fdd">    m_ITKAssumedSliceSpacing = (origin2 - origin1).GetNorm();</span>
+    // How do we now this is assumed? See header documentation for ITK code references
+    //double itkAssumedSliceSpacing = sqrt( m_ShiftUp * m_ShiftUp + m_ShiftNormal * m_ShiftNormal );
+
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "    calculated from slices " &lt;&lt; m_NumberOfSlicesApart &lt;&lt; " slices apart";
+    MITK_DEBUG &lt;&lt; "    shift normal: " &lt;&lt; m_ShiftNormal;
+    MITK_DEBUG &lt;&lt; "    shift normal assumed by ITK: " &lt;&lt; m_ITKAssumedSliceSpacing;
+    MITK_DEBUG &lt;&lt; "    shift up: " &lt;&lt; m_ShiftUp;
+    MITK_DEBUG &lt;&lt; "    shift right: " &lt;&lt; m_ShiftRight;</span>
+
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "    tilt angle (deg): " &lt;&lt; atan( m_ShiftUp / m_ShiftNormal ) * 180.0 / 3.1415926535;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::GantryTiltInformation
+mitk::GantryTiltInformation
+::MakeFromTagValues(
+    const std::string&amp; origin1String,
+    const std::string&amp; origin2String,
+    const std::string&amp; orientationString,
+    unsigned int numberOfSlicesApart)
+<span style = "background-color:#fdd">{
+  Vector3D right; right.Fill(0.0);
+  Vector3D up; right.Fill(0.0); // might be down as well, but it is just a name at this point
+  bool orientationConversion(false);
+  DICOMStringToOrientationVectors( orientationString, right, up, orientationConversion );</span>
+
+  if (orientationConversion
+<span style = "background-color:#fdd">      &amp;&amp; !origin1String.empty() &amp;&amp; !origin2String.empty()</span>
+    )
+  {
+<span style = "background-color:#fdd">    bool firstOriginConversion(false);
+    bool lastOriginConversion(false);</span>
+
+<span style = "background-color:#fdd">    Point3D firstOrigin = DICOMStringToPoint3D( origin1String, firstOriginConversion );
+    Point3D lastOrigin = DICOMStringToPoint3D( origin2String, lastOriginConversion );</span>
+
+<span style = "background-color:#fdd">    if (firstOriginConversion &amp;&amp; lastOriginConversion)</span>
+    {
+<span style = "background-color:#fdd">      return GantryTiltInformation( firstOrigin, lastOrigin, right, up, numberOfSlicesApart );</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  std::stringstream ss;
+  ss &lt;&lt; "Invalid tag values when constructing tilt information from origin1 '" &lt;&lt; origin1String</span>
+     &lt;&lt; "', origin2 '" &lt;&lt; origin2String
+     &lt;&lt; "', and orientation '" &lt;&lt; orientationString &lt;&lt; "'";
+
+<span style = "background-color:#fdd">  throw std::invalid_argument(ss.str());
+}</span>
+
+void
+mitk::GantryTiltInformation
+::Print(std::ostream&amp; os) const
+<span style = "background-color:#fdd">{
+  os &lt;&lt; "  calculated from slices " &lt;&lt; m_NumberOfSlicesApart &lt;&lt; " slices apart" &lt;&lt; std::endl;
+  os &lt;&lt; "  shift normal: " &lt;&lt; m_ShiftNormal &lt;&lt; std::endl;
+  os &lt;&lt; "  shift normal assumed by ITK: " &lt;&lt; m_ITKAssumedSliceSpacing &lt;&lt; std::endl;
+  os &lt;&lt; "  shift up: " &lt;&lt; m_ShiftUp &lt;&lt; std::endl;
+  os &lt;&lt; "  shift right: " &lt;&lt; m_ShiftRight &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; "  tilt angle (deg): " &lt;&lt; atan( m_ShiftUp / m_ShiftNormal ) * 180.0 / 3.1415926535 &lt;&lt; std::endl;
+}</span>
+
+mitk::Point3D
+mitk::GantryTiltInformation::projectPointOnLine( Point3Dd p, Point3Dd lineOrigin, Vector3Dd lineDirection )
+<span style = "background-color:#fdd">{</span>
+  /**
+    See illustration at http://mo.mathematik.uni-stuttgart.de/inhalt/aussage/aussage472/
+
+    vector(lineOrigin,p) = normal * ( innerproduct((p - lineOrigin),normal) / squared-length(normal) )
+  */
+
+<span style = "background-color:#fdd">  Vector3Dd lineOriginToP = p - lineOrigin;
+  double innerProduct = lineOriginToP * lineDirection;</span>
+
+<span style = "background-color:#fdd">  double factor = innerProduct / lineDirection.GetSquaredNorm();
+  Point3Dd projection = lineOrigin + factor * lineDirection;</span>
+
+<span style = "background-color:#fdd">  return projection;
+}</span>
+
+double
+mitk::GantryTiltInformation::GetTiltCorrectedAdditionalSize(unsigned int imageSizeZ) const
+<span style = "background-color:#fdd">{
+  return fabs(m_ShiftUp /  static_cast&lt;double&gt;(m_NumberOfSlicesApart) * static_cast&lt;double&gt;(imageSizeZ-1));
+}</span>
+
+double
+mitk::GantryTiltInformation::GetTiltAngleInDegrees() const
+<span style = "background-color:#fdd">{
+  return atan( fabs(m_ShiftUp) / m_ShiftNormal ) * 180.0 / 3.1415926535;
+}</span>
+
+double
+mitk::GantryTiltInformation::GetMatrixCoefficientForCorrectionInWorldCoordinates() const
+<span style = "background-color:#fdd">{</span>
+  // so many mm need to be shifted per slice!
+<span style = "background-color:#fdd">  return m_ShiftUp / static_cast&lt;double&gt;(m_NumberOfSlicesApart);
+}</span>
+
+double
+mitk::GantryTiltInformation::GetRealZSpacing() const
+<span style = "background-color:#fdd">{
+  return m_ShiftNormal / static_cast&lt;double&gt;(m_NumberOfSlicesApart);
+}</span>
+
+
+bool
+mitk::GantryTiltInformation::IsSheared() const
+<span style = "background-color:#fdd">{
+  return m_NumberOfSlicesApart &amp;&amp;</span>
+         (   fabs(m_ShiftRight) &gt; 0.001
+          ||    fabs(m_ShiftUp) &gt; 0.001);
+<span style = "background-color:#fdd">}</span>
+
+
+bool
+mitk::GantryTiltInformation::IsRegularGantryTilt() const
+<span style = "background-color:#fdd">{
+  return m_NumberOfSlicesApart &amp;&amp;</span>
+         (   fabs(m_ShiftRight) &lt; 0.001
+          &amp;&amp;    fabs(m_ShiftUp) &gt; 0.001);
+<span style = "background-color:#fdd">}</span>
+</pre>
+	</body>
+</html>

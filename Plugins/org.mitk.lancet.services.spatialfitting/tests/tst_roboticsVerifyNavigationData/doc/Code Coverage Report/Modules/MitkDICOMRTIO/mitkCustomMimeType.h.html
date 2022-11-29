@@ -1,0 +1,144 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCustomMimeType.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKCUSTOMMIMETYPE_H
+#define MITKCUSTOMMIMETYPE_H
+
+#include &lt;MitkCoreExports.h&gt;
+
+#include &lt;mitkServiceInterface.h&gt;
+
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+namespace mitk
+{
+  class MimeType;
+
+  /**
+   * @ingroup IO
+   * @ingroup MicroServices_Interfaces
+   *
+   * @brief The CustomMimeType class represents a custom mime-type which
+   *        may be registered as a service object. It should only be used for mime-type registration,
+   *        see also mitk::MimeType.
+   *
+   * Instances of this class are usually created and registered as a service.
+   * They act as meta data information to allow the linking of files to reader and writer.
+   * They write files to specific IFileReader instances and provide data format
+   * meta-data for selecting compatible IFileWriter instances.
+   * mirk::CustomMimetype should only be used to register mime-types. All other interaction should happen trough
+   * mitk::MimeTypeProvider, from which registered mimetypes can be pulled. mitk::MimeType provides a safe and
+   * memory-managed
+   * way of interacting with Mimetypes.
+   */
+  class MITKCORE_EXPORT CustomMimeType
+  {
+  public:
+    CustomMimeType();
+    CustomMimeType(const std::string &amp;name);
+    CustomMimeType(const CustomMimeType &amp;other);
+    explicit CustomMimeType(const MimeType &amp;other);
+
+    virtual ~CustomMimeType();
+
+    CustomMimeType &amp;operator=(const CustomMimeType &amp;other);
+    CustomMimeType &amp;operator=(const MimeType &amp;other);
+
+    /**
+    * \brief Returns the unique name for the MimeType.
+    */
+    std::string GetName() const;
+
+    /**
+    * \brief Returns the human-readable Category of the mime-type. Allows grouping of similar mime-types (like Surfaces)
+    */
+    std::string GetCategory() const;
+
+    /**
+    * \brief Returns all extensions that this MimeType can handle.
+    */
+    std::vector&lt;std::string&gt; GetExtensions() const;
+
+    /**
+    * \brief Returns the Human readable comment of the MimeType, a string that describes its unique role.
+    */
+    std::string GetComment() const;
+
+    /**
+    * \brief Checks if the MimeType can handle file at the given location.
+    *
+    * In its base implementation, this function exclusively looks a the given string.
+    * However, child classes can override this behaviour and peek into the file.
+    */
+    virtual bool AppliesTo(const std::string &amp;path) const;
+
+    /**
+    * \brief Checks if the MimeType can handle the etension of the given path
+    *
+    * This function exclusively looks a the given string
+    */
+    bool MatchesExtension(const std::string &amp;path) const;
+
+    /**
+    * \brief Provides the first matching extension
+    *
+    * Checks whether any of its extensions are present at the end of the provided path.
+    * Returns the first found one.
+    */
+    std::string GetExtension(const std::string &amp;path) const;
+
+    /**
+    * \brief Provides the filename minus the extension
+    *
+    * Checks whether any of its extensions are present at the end of the provided path.
+    * Returns the filename without that extension and without the directory.
+    */
+    std::string GetFilenameWithoutExtension(const std::string &amp;path) const;
+
+    void SetName(const std::string &amp;name);
+    void SetCategory(const std::string &amp;category);
+    void SetExtension(const std::string &amp;extension);
+    void AddExtension(const std::string &amp;extension);
+    void SetComment(const std::string &amp;comment);
+
+    void Swap(CustomMimeType &amp;r);
+
+    virtual CustomMimeType *Clone() const;
+
+  private:
+    // returns true if an extension was found
+    bool ParsePathForExtension(const std::string &amp;path, std::string &amp;extension, std::string &amp;filename) const;
+
+    struct Impl;
+    Impl *d;
+  };
+
+  void swap(CustomMimeType &amp;l, CustomMimeType &amp;r);
+}
+
+<span style = "background-color:#dfd">MITK_DECLARE_SERVICE_INTERFACE(mitk::CustomMimeType, "org.mitk.CustomMimeType")</span>
+
+#endif // MITKCUSTOMMIMETYPE_H</pre>
+	</body>
+</html>

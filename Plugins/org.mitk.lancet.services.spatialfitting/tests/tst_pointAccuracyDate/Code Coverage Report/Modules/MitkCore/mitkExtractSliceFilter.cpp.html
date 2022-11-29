@@ -1,0 +1,517 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkExtractSliceFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkExtractSliceFilter.h"
+
+#include &lt;mitkAbstractTransformGeometry.h&gt;
+#include &lt;mitkPlaneClipping.h&gt;
+
+#include &lt;vtkGeneralTransform.h&gt;
+#include &lt;vtkImageChangeInformation.h&gt;
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkImageExtractComponents.h&gt;
+#include &lt;vtkLinearTransform.h&gt;
+
+<span style = "background-color:#fdd">mitk::ExtractSliceFilter::ExtractSliceFilter(vtkImageReslice *reslicer): m_XMin(0), m_XMax(0), m_YMin(0), m_YMax(0)
+{
+  if (reslicer == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_Reslicer = vtkSmartPointer&lt;vtkImageReslice&gt;::New();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_Reslicer = reslicer;</span>
+  }
+
+<span style = "background-color:#fdd">  m_TimeStep = 0;
+  m_Reslicer-&gt;ReleaseDataFlagOn();
+  m_InterpolationMode = ExtractSliceFilter::RESLICE_NEAREST;
+  m_ResliceTransform = nullptr;
+  m_InPlaneResampleExtentByGeometry = false;
+  m_OutPutSpacing = new mitk::ScalarType[2];
+  m_OutputDimension = 2;
+  m_ZSpacing = 1.0;
+  m_ZMin = 0;
+  m_ZMax = 0;
+  m_VtkOutputRequested = false;
+  m_BackgroundLevel = -32768.0;
+  m_Component = 0;
+}</span>
+
+mitk::ExtractSliceFilter::~ExtractSliceFilter()
+<span style = "background-color:#fdd">{
+  m_ResliceTransform = nullptr;
+  m_WorldGeometry = nullptr;
+  delete[] m_OutPutSpacing;
+}</span>
+
+void mitk::ExtractSliceFilter::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+  Image::ConstPointer input = this-&gt;GetInput();</span>
+
+<span style = "background-color:#fdd">  if (input.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if (nullptr == m_WorldGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  Vector3D right, bottom;</span>
+  double widthInMM, heightInMM;
+<span style = "background-color:#fdd">  Vector2D extent;</span>
+
+  // set the geometry from current worldgeometry for the resultimage
+  // this is needed that the image has the correct mitk geometry
+  // the sliceGeometry is the Geometry of the result slice
+<span style = "background-color:#fdd">  PlaneGeometry::Pointer sliceGeometry = m_WorldGeometry-&gt;Clone();</span>
+
+<span style = "background-color:#fdd">  sliceGeometry-&gt;GetIndexToWorldTransform()-&gt;SetMatrix(m_WorldGeometry-&gt;GetIndexToWorldTransform()-&gt;GetMatrix());</span>
+
+  // the origin of the worldGeometry is transformed to center based coordinates to be an imageGeometry
+<span style = "background-color:#fdd">  Point3D sliceOrigin = sliceGeometry-&gt;GetOrigin();</span>
+
+<span style = "background-color:#fdd">  auto abstractGeometry =</span>
+    dynamic_cast&lt;const AbstractTransformGeometry *&gt;(m_WorldGeometry.GetPointer());
+
+<span style = "background-color:#fdd">  if (abstractGeometry != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    extent[0] = abstractGeometry-&gt;GetParametricExtent(0);
+    extent[1] = abstractGeometry-&gt;GetParametricExtent(1);</span>
+
+<span style = "background-color:#fdd">    widthInMM = abstractGeometry-&gt;GetParametricExtentInMM(0);
+    heightInMM = abstractGeometry-&gt;GetParametricExtentInMM(1);</span>
+
+<span style = "background-color:#fdd">    right = abstractGeometry-&gt;GetPlane()-&gt;GetAxisVector(0);
+    bottom = abstractGeometry-&gt;GetPlane()-&gt;GetAxisVector(1);
+  }</span>
+  else
+  {
+    // if the worldGeomatry is a PlaneGeometry everything is straight forward
+<span style = "background-color:#fdd">    right = m_WorldGeometry-&gt;GetAxisVector(0);
+    bottom = m_WorldGeometry-&gt;GetAxisVector(1);</span>
+
+<span style = "background-color:#fdd">    if (m_InPlaneResampleExtentByGeometry)</span>
+    {
+      // Resampling grid corresponds to the current world geometry. This
+      // means that the spacing of the output 2D image depends on the
+      // currently selected world geometry, and *not* on the image itself.
+<span style = "background-color:#fdd">      extent[0] = m_WorldGeometry-&gt;GetExtent(0);
+      extent[1] = m_WorldGeometry-&gt;GetExtent(1);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      const TimeGeometry *inputTimeGeometry = input-&gt;GetTimeGeometry();
+      if ((inputTimeGeometry == nullptr) || (inputTimeGeometry-&gt;CountTimeSteps() &lt;= 0))</span>
+      {
+<span style = "background-color:#fdd">        itkWarningMacro(&lt;&lt; "Error reading input image TimeGeometry.");
+        return;</span>
+      }
+
+      // Resampling grid corresponds to the input geometry. This means that
+      // the spacing of the output 2D image is directly derived from the
+      // associated input image, regardless of the currently selected world
+      // geometry.
+<span style = "background-color:#fdd">      Vector3D rightInIndex, bottomInIndex;
+      inputTimeGeometry-&gt;GetGeometryForTimeStep(m_TimeStep)-&gt;WorldToIndex(right, rightInIndex);
+      inputTimeGeometry-&gt;GetGeometryForTimeStep(m_TimeStep)-&gt;WorldToIndex(bottom, bottomInIndex);
+      extent[0] = rightInIndex.GetNorm();
+      extent[1] = bottomInIndex.GetNorm();</span>
+    }
+
+    // Get the extent of the current world geometry and calculate resampling
+    // spacing therefrom.
+<span style = "background-color:#fdd">    widthInMM = m_WorldGeometry-&gt;GetExtentInMM(0);
+    heightInMM = m_WorldGeometry-&gt;GetExtentInMM(1);</span>
+  }
+
+<span style = "background-color:#fdd">  right.Normalize();
+  bottom.Normalize();</span>
+
+<span style = "background-color:#fdd">  m_OutPutSpacing[0] = widthInMM / extent[0];
+  m_OutPutSpacing[1] = heightInMM / extent[1];</span>
+
+  /*========== BEGIN setup extent of the slice ==========*/
+  int xMin, xMax, yMin, yMax;
+
+<span style = "background-color:#fdd">  xMin = yMin = 0;
+  xMax = static_cast&lt;int&gt;(extent[0]);
+  yMax = static_cast&lt;int&gt;(extent[1]);</span>
+
+<span style = "background-color:#fdd">  if (m_WorldGeometry-&gt;GetReferenceGeometry())</span>
+  {
+    double sliceBounds[6];
+<span style = "background-color:#fdd">    for (auto &amp;sliceBound : sliceBounds)</span>
+    {
+<span style = "background-color:#fdd">      sliceBound = 0.0;
+    }</span>
+
+<span style = "background-color:#fdd">    if (this-&gt;GetClippedPlaneBounds(m_WorldGeometry-&gt;GetReferenceGeometry(), m_WorldGeometry, sliceBounds))</span>
+    {
+      // Calculate output extent (integer values)
+<span style = "background-color:#fdd">      xMin = static_cast&lt;int&gt;(sliceBounds[0] / m_OutPutSpacing[0] + 0.5);
+      xMax = static_cast&lt;int&gt;(sliceBounds[1] / m_OutPutSpacing[0] + 0.5);
+      yMin = static_cast&lt;int&gt;(sliceBounds[2] / m_OutPutSpacing[1] + 0.5);
+      yMax = static_cast&lt;int&gt;(sliceBounds[3] / m_OutPutSpacing[1] + 0.5);</span>
+    } // ELSE we use the default values
+  }
+
+
+<span style = "background-color:#fdd">  sliceOrigin += right * (m_OutPutSpacing[0] * 0.5);
+  sliceOrigin += bottom * (m_OutPutSpacing[1] * 0.5);</span>
+
+  // a worldGeometry is no imageGeometry, thus it is manually set to true
+<span style = "background-color:#fdd">  sliceGeometry-&gt;ImageGeometryOn();</span>
+
+  /*At this point we have to adjust the geometry because the origin isn't correct.
+  The wrong origin is related to the rotation of the current world geometry plane.
+  This causes errors on transferring world to index coordinates. We just shift the
+  origin in each direction about the amount of the expanding (needed while rotating
+  the plane).
+  */
+<span style = "background-color:#fdd">  Vector3D axis0 = sliceGeometry-&gt;GetAxisVector(0);
+  Vector3D axis1 = sliceGeometry-&gt;GetAxisVector(1);
+  axis0.Normalize();
+  axis1.Normalize();</span>
+
+  // adapt the origin. Note that for orthogonal planes the minima are '0' and thus the origin stays the same.
+<span style = "background-color:#fdd">  sliceOrigin += (axis0 * (xMin * m_OutPutSpacing[0])) + (axis1 * (yMin * m_OutPutSpacing[1]));</span>
+
+<span style = "background-color:#fdd">  sliceGeometry-&gt;SetOrigin(sliceOrigin);</span>
+
+  /*the bounds as well as the extent of the worldGeometry are not adapted correctly during crosshair rotation.
+  This is only a quick fix and has to be evaluated.
+  The new bounds are set via the max values of the calculated slice extent. It will look like [ 0, x, 0, y, 0, 1].
+  */
+  mitk::BoundingBox::BoundsArrayType boundsCopy;
+<span style = "background-color:#fdd">  boundsCopy[0] = boundsCopy[2] = boundsCopy[4] = 0;
+  boundsCopy[5] = 1;
+  boundsCopy[1] = std::max(xMax - xMin, 1);
+  boundsCopy[3] = std::max(yMax - yMin, 1);
+  sliceGeometry-&gt;SetBounds(boundsCopy);</span>
+
+<span style = "background-color:#fdd">  sliceGeometry-&gt;Modified();</span>
+
+<span style = "background-color:#fdd">  Image::Pointer output = this-&gt;GetOutput();
+  output-&gt;Initialize(input-&gt;GetPixelType(), 1, *sliceGeometry);</span>
+
+<span style = "background-color:#fdd">  m_XMin = xMin;
+  m_XMax = xMax;
+  m_YMin = yMin;
+  m_YMax = yMax;
+  m_Right = right;
+  m_Bottom = bottom;
+}</span>
+
+void mitk::ExtractSliceFilter::GenerateInputRequestedRegion()
+<span style = "background-color:#fdd">{</span>
+  // As we want all pixel information fo the image in our plane, the requested region
+  // is set to the largest possible region in the image.
+  // This is needed because an oblique plane has a larger extent then the image
+  // and the in pipeline it is checked via PropagateResquestedRegion(). But the
+  // extent of the slice is actually fitting because it is oblique within the image.
+<span style = "background-color:#fdd">  ImageToImageFilter::InputImagePointer input = this-&gt;GetInput();
+  input-&gt;SetRequestedRegionToLargestPossibleRegion();
+}</span>
+
+mitk::ScalarType *mitk::ExtractSliceFilter::GetOutputSpacing()
+<span style = "background-color:#fdd">{
+  return m_OutPutSpacing;
+}</span>
+
+void mitk::ExtractSliceFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::Image *input = this-&gt;GetInput();</span>
+
+<span style = "background-color:#fdd">  if (!input)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::ExtractSliceFilter: No input image available. Please set the input!" &lt;&lt; std::endl;
+    itkExceptionMacro("mitk::ExtractSliceFilter: No input image available. Please set the input!");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!m_WorldGeometry)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::ExtractSliceFilter: No Geometry for reslicing available." &lt;&lt; std::endl;
+    itkExceptionMacro("mitk::ExtractSliceFilter: No Geometry for reslicing available.");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  const TimeGeometry *inputTimeGeometry = this-&gt;GetInput()-&gt;GetTimeGeometry();
+  if ((inputTimeGeometry == nullptr) || (inputTimeGeometry-&gt;CountTimeSteps() &lt;= 0))</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Error reading input image TimeGeometry.");
+    return;</span>
+  }
+
+  // is it a valid timeStep?
+<span style = "background-color:#fdd">  if (inputTimeGeometry-&gt;IsValidTimeStep(m_TimeStep) == false)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "This is not a valid timestep: " &lt;&lt; m_TimeStep);
+    return;</span>
+  }
+
+  // check if there is something to display.
+<span style = "background-color:#fdd">  if (!input-&gt;IsVolumeSet(m_TimeStep))</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "No volume data existent at given timestep " &lt;&lt; m_TimeStep);
+    return;</span>
+  }
+
+  /*================#BEGIN setup vtkImageReslice properties================*/
+<span style = "background-color:#fdd">  Point3D origin;
+  Vector3D normal;</span>
+
+<span style = "background-color:#fdd">  const auto *planeGeometry = dynamic_cast&lt;const PlaneGeometry *&gt;(m_WorldGeometry.GetPointer());</span>
+  // Code for curved planes, mostly taken 1:1 from imageVtkMapper2D and not tested yet.
+  // Do we have an AbstractTransformGeometry?
+  // This is the case for AbstractTransformGeometry's (e.g. a ThinPlateSplineCurvedGeometry )
+<span style = "background-color:#fdd">  const auto *abstractGeometry =</span>
+    dynamic_cast&lt;const AbstractTransformGeometry *&gt;(m_WorldGeometry.GetPointer());
+
+<span style = "background-color:#fdd">  if (abstractGeometry != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_ResliceTransform = abstractGeometry;</span>
+
+<span style = "background-color:#fdd">    origin = abstractGeometry-&gt;GetPlane()-&gt;GetOrigin();</span>
+
+<span style = "background-color:#fdd">    normal = abstractGeometry-&gt;GetPlane()-&gt;GetNormal();
+    normal.Normalize();</span>
+
+    // Use a combination of the InputGeometry *and* the possible non-rigid
+    // AbstractTransformGeometry for reslicing the 3D Image
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkGeneralTransform&gt; composedResliceTransform = vtkSmartPointer&lt;vtkGeneralTransform&gt;::New();
+    composedResliceTransform-&gt;Identity();
+    composedResliceTransform-&gt;Concatenate(</span>
+      inputTimeGeometry-&gt;GetGeometryForTimeStep(m_TimeStep)-&gt;GetVtkTransform()-&gt;GetLinearInverse());
+<span style = "background-color:#fdd">    composedResliceTransform-&gt;Concatenate(abstractGeometry-&gt;GetVtkAbstractTransform());</span>
+
+<span style = "background-color:#fdd">    m_Reslicer-&gt;SetResliceTransform(composedResliceTransform);</span>
+
+    // Set background level to BLACK instead of translucent, to avoid
+    // boundary artifacts (see PlaneGeometryDataVtkMapper3D)
+    // Note: Backgroundlevel was hardcoded before to -1023
+<span style = "background-color:#fdd">    m_Reslicer-&gt;SetBackgroundLevel(m_BackgroundLevel);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    if (planeGeometry != nullptr)</span>
+    {
+      // if the worldGeomatry is a PlaneGeometry everything is straight forward
+
+<span style = "background-color:#fdd">      origin = planeGeometry-&gt;GetOrigin();
+      normal = planeGeometry-&gt;GetNormal();
+      normal.Normalize();</span>
+
+      /*
+      * Transform the origin to center based coordinates.
+      * Note:
+      * This is needed besause vtk's origin is center based too (!!!) ( see 'The VTK book' page 88 )
+      * and the worldGeometry surrouding the image is no imageGeometry. So the worldGeometry
+      * has its origin at the corner of the voxel and needs to be transformed.
+      */
+<span style = "background-color:#fdd">      origin += m_Right * (m_OutPutSpacing[0] * 0.5);
+      origin += m_Bottom * (m_OutPutSpacing[1] * 0.5);</span>
+
+      // set the tranform for reslicing.
+      // Use inverse transform of the input geometry for reslicing the 3D image.
+      // This is needed if the image volume already transformed
+<span style = "background-color:#fdd">      if (m_ResliceTransform.IsNotNull())
+        m_Reslicer-&gt;SetResliceTransform(m_ResliceTransform-&gt;GetVtkTransform()-&gt;GetLinearInverse());</span>
+
+      // Set background level to TRANSLUCENT (see PlaneGeometryDataVtkMapper3D),
+      // else the background of the image turns out gray
+      // Note: Backgroundlevel was hardcoded to -32768
+<span style = "background-color:#fdd">      m_Reslicer-&gt;SetBackgroundLevel(m_BackgroundLevel);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      itkExceptionMacro("mitk::ExtractSliceFilter: No fitting geometry for reslice axis!");
+      return;</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  if (m_ResliceTransform.IsNotNull())</span>
+  {
+    // if the resliceTransform is set the reslice axis are recalculated.
+    // Thus the geometry information is not fitting. Therefor a unitSpacingFilter
+    // is used to set up a global spacing of 1 and compensate the transform.
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkImageChangeInformation&gt; unitSpacingImageFilter =</span>
+      vtkSmartPointer&lt;vtkImageChangeInformation&gt;::New();
+<span style = "background-color:#fdd">    unitSpacingImageFilter-&gt;ReleaseDataFlagOn();</span>
+
+<span style = "background-color:#fdd">    unitSpacingImageFilter-&gt;SetOutputSpacing(1.0, 1.0, 1.0);
+    unitSpacingImageFilter-&gt;SetInputData(input-&gt;GetVtkImageData(m_TimeStep));</span>
+
+<span style = "background-color:#fdd">    m_Reslicer-&gt;SetInputConnection(unitSpacingImageFilter-&gt;GetOutputPort());
+  }</span>
+  else
+  {
+    // if no transform is set the image can be used directly
+<span style = "background-color:#fdd">    m_Reslicer-&gt;SetInputData(input-&gt;GetVtkImageData(m_TimeStep));</span>
+  }
+
+  /*setup the plane where vktImageReslice extracts the slice*/
+
+  // ResliceAxesOrigin is the anchor point of the plane
+  double originInVtk[3];
+<span style = "background-color:#fdd">  itk2vtk(origin, originInVtk);
+  m_Reslicer-&gt;SetResliceAxesOrigin(originInVtk);</span>
+
+  // the cosines define the plane: x and y are the direction vectors, n is the planes normal
+  // this specifies a matrix 3x3
+  //  x1 y1 n1
+  //  x2 y2 n2
+  //  x3 y3 n3
+  double cosines[9];
+
+<span style = "background-color:#fdd">  vnl2vtk(m_Right.GetVnlVector(), cosines); // x</span>
+
+<span style = "background-color:#fdd">  vnl2vtk(m_Bottom.GetVnlVector(), cosines + 3); // y</span>
+
+<span style = "background-color:#fdd">  vnl2vtk(normal.GetVnlVector(), cosines + 6); // n</span>
+
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetResliceAxesDirectionCosines(cosines);</span>
+
+  // we only have one slice, not a volume
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetOutputDimensionality(m_OutputDimension);</span>
+
+  // set the interpolation mode for slicing
+<span style = "background-color:#fdd">  switch (this-&gt;m_InterpolationMode)</span>
+  {
+    case RESLICE_NEAREST:
+<span style = "background-color:#fdd">      m_Reslicer-&gt;SetInterpolationModeToNearestNeighbor();
+      break;</span>
+    case RESLICE_LINEAR:
+<span style = "background-color:#fdd">      m_Reslicer-&gt;SetInterpolationModeToLinear();
+      break;</span>
+    case RESLICE_CUBIC:
+<span style = "background-color:#fdd">      m_Reslicer-&gt;SetInterpolationModeToCubic();
+      break;</span>
+    default:
+      // the default interpolation used by mitk
+<span style = "background-color:#fdd">      m_Reslicer-&gt;SetInterpolationModeToNearestNeighbor();</span>
+  }
+
+  /*========== BEGIN setup extent of the slice ==========*/
+  // Set the output extents! First included pixel index and last included pixel index
+  // xMax and yMax are one after the last pixel. so they have to be decremented by 1.
+  // In case we have a 2D image, xMax or yMax might be 0. in this case, do not decrement, but take 0.
+
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetOutputExtent(m_XMin, std::max(0, m_XMax - 1), m_YMin, std::max(0, m_YMax - 1), m_ZMin, m_ZMax);</span>
+  /*========== END setup extent of the slice ==========*/
+
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetOutputOrigin(0.0, 0.0, 0.0);</span>
+
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetOutputSpacing(m_OutPutSpacing[0], m_OutPutSpacing[1], m_ZSpacing);</span>
+
+  // TODO check the following lines, they are responsible whether vtk error outputs appear or not
+<span style = "background-color:#fdd">  m_Reslicer-&gt;UpdateWholeExtent(); // this produces a bad allocation error for 2D images</span>
+  // m_Reslicer-&gt;GetOutput()-&gt;UpdateInformation();
+  // m_Reslicer-&gt;GetOutput()-&gt;SetUpdateExtentToWholeExtent();
+
+  // start the pipeline
+<span style = "background-color:#fdd">  m_Reslicer-&gt;Update();</span>
+  /*================ #END setup vtkImageReslice properties================*/
+
+<span style = "background-color:#fdd">  if (m_VtkOutputRequested)</span>
+  {
+    // no conversion to mitk
+    // no mitk geometry will be set, as the output is vtkImageData only!!!
+    // no image component will be extracted, as the caller might need the whole multi-component image as vtk output
+<span style = "background-color:#fdd">    return;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    auto reslicedImage = vtkSmartPointer&lt;vtkImageData&gt;::New();
+    reslicedImage = m_Reslicer-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">    if (nullptr == reslicedImage)</span>
+    {
+<span style = "background-color:#fdd">      itkWarningMacro(&lt;&lt; "Reslicer returned empty image");
+      return;</span>
+    }
+
+    /*================ #BEGIN Extract component from image slice ================*/
+<span style = "background-color:#fdd">    int numberOfScalarComponent = reslicedImage-&gt;GetNumberOfScalarComponents();
+    if (numberOfScalarComponent &gt; 1 &amp;&amp; static_cast&lt;unsigned int&gt;(numberOfScalarComponent) &gt;= m_Component)</span>
+    {
+      // image has more than one component, extract the correct component information with the given 'component' parameter
+<span style = "background-color:#fdd">      auto vectorComponentExtractor = vtkSmartPointer&lt;vtkImageExtractComponents&gt;::New();
+      vectorComponentExtractor-&gt;SetInputData(reslicedImage);
+      vectorComponentExtractor-&gt;SetComponents(m_Component);
+      vectorComponentExtractor-&gt;Update();</span>
+
+<span style = "background-color:#fdd">      reslicedImage = vectorComponentExtractor-&gt;GetOutput();
+    }</span>
+    /*================ #END Extract component from image slice ================*/
+
+    /*================ #BEGIN Convert the slice to an mitk::Image ================*/
+<span style = "background-color:#fdd">    mitk::Image::Pointer resultImage = GetOutput();</span>
+
+    /*Temporary store the geometry that is already correct (set in GeneratOutputInformation())
+     but will be reset due to initialize.*/
+<span style = "background-color:#fdd">    mitk::BaseGeometry::Pointer resultGeometry = resultImage-&gt;GetGeometry();</span>
+
+    // initialize resultimage with the specs of the vtkImageData object returned from vtkImageReslice
+<span style = "background-color:#fdd">    if (reslicedImage-&gt;GetDataDimension() == 1)</span>
+    {
+      // If original image was 2D, the slice might have an y extent of 0.
+      // Still i want to ensure here that Image is 2D
+<span style = "background-color:#fdd">      resultImage-&gt;Initialize(reslicedImage, 1, -1, -1, 1);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      resultImage-&gt;Initialize(reslicedImage);</span>
+    }
+
+    // transfer the voxel data
+<span style = "background-color:#fdd">    resultImage-&gt;SetVolume(reslicedImage-&gt;GetScalarPointer());</span>
+
+    /*================ #END Convert the slice to an mitk::Image ================*/
+
+<span style = "background-color:#fdd">    resultImage-&gt;SetGeometry(resultGeometry);
+  }
+}</span>
+
+bool mitk::ExtractSliceFilter::GetClippedPlaneBounds(double bounds[6])
+<span style = "background-color:#fdd">{
+  if (!m_WorldGeometry || !this-&gt;GetInput())
+    return false;</span>
+
+<span style = "background-color:#fdd">  return this-&gt;GetClippedPlaneBounds(</span>
+    m_WorldGeometry-&gt;GetReferenceGeometry(), m_WorldGeometry, bounds);
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::ExtractSliceFilter::GetClippedPlaneBounds(const BaseGeometry *boundingGeometry,
+                                                     const PlaneGeometry *planeGeometry,
+                                                     double *bounds)
+<span style = "background-color:#fdd">{
+  bool b = mitk::PlaneClipping::CalculateClippedPlaneBounds(boundingGeometry, planeGeometry, bounds);</span>
+
+<span style = "background-color:#fdd">  return b;
+}</span></pre>
+	</body>
+</html>

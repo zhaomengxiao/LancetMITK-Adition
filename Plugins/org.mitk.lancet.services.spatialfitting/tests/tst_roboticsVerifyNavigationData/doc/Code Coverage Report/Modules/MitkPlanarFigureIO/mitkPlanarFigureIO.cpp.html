@@ -1,0 +1,575 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlanarFigureIO.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkPlanarFigureIO.h&gt;
+
+#include "mitkCustomMimeType.h"
+#include "mitkIOMimeTypes.h"
+#include "mitkExceptionMacro.h"
+
+#include "mitkPlanarAngle.h"
+#include "mitkPlanarArrow.h"
+#include "mitkPlanarBezierCurve.h"
+#include "mitkPlanarCircle.h"
+#include "mitkPlanarCross.h"
+#include "mitkPlanarDoubleEllipse.h"
+#include "mitkPlanarEllipse.h"
+#include "mitkPlanarFourPointAngle.h"
+#include "mitkPlanarLine.h"
+#include "mitkPlanarPolygon.h"
+#include "mitkPlanarRectangle.h"
+#include "mitkPlanarSubdivisionPolygon.h"
+#include "mitkPlaneGeometry.h"
+
+#include "mitkBasePropertySerializer.h"
+
+#include &lt;mitkLocaleSwitch.h&gt;
+
+#include &lt;tinyxml2.h&gt;
+
+namespace mitk
+{
+
+  PlanarFigureIO::PlanarFigureIO()
+<span style = "background-color:#dfd">    : AbstractFileIO(PlanarFigure::GetStaticNameOfClass())
+  {
+    std::string category = "MITK PlanarFigure File";
+    CustomMimeType customMimeType;
+    customMimeType.SetCategory(category);
+    customMimeType.AddExtension("pf");
+    this-&gt;AbstractFileIOWriter::SetMimeType(customMimeType);
+    this-&gt;AbstractFileIOWriter::SetDescription(category);</span>
+
+<span style = "background-color:#dfd">    customMimeType.AddExtension("pf");
+    customMimeType.AddExtension("PF");
+    this-&gt;AbstractFileIOReader::SetMimeType(customMimeType);
+    this-&gt;AbstractFileIOReader::SetDescription(category);</span>
+
+<span style = "background-color:#dfd">    AbstractFileWriter::SetRanking(10);
+    AbstractFileReader::SetRanking(10);
+    this-&gt;RegisterService();
+  }</span>
+
+  IFileIO::ConfidenceLevel PlanarFigureIO::GetWriterConfidenceLevel() const
+<span style = "background-color:#fdd">  {
+    if (AbstractFileIO::GetWriterConfidenceLevel() == Unsupported)
+      return Unsupported;</span>
+
+<span style = "background-color:#fdd">    const auto *input = static_cast&lt;const PlanarFigure *&gt;(this-&gt;GetInput());
+    if (input != nullptr)
+      return Supported;</span>
+    else
+<span style = "background-color:#fdd">      return Unsupported;
+  }</span>
+
+  void PlanarFigureIO::Write()
+<span style = "background-color:#fdd">  {
+    this-&gt;ValidateOutputLocation();</span>
+
+<span style = "background-color:#fdd">    mitk::LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">    tinyxml2::XMLDocument document;
+    document.InsertEndChild(document.NewDeclaration());</span>
+
+<span style = "background-color:#fdd">    auto *version = document.NewElement("Version");
+    version-&gt;SetAttribute("Writer", __FILE__);
+    version-&gt;SetAttribute("CVSRevision", "$Revision: 17055 $");
+    version-&gt;SetAttribute("FileVersion", 1);
+    document.InsertEndChild(version);</span>
+
+<span style = "background-color:#fdd">    auto pf = dynamic_cast&lt;const PlanarFigure*&gt;(this-&gt;GetInput());
+    if (pf == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Try to safe a BaseData instance as PlanarFigure. That is not a planar figure. This should not happen and is a violated precondition. Please check the program logic.";</span>
+    }
+
+<span style = "background-color:#fdd">    auto *pfElement = document.NewElement("PlanarFigure");
+    pfElement-&gt;SetAttribute("type", pf-&gt;GetNameOfClass());
+    document.InsertEndChild(pfElement);</span>
+
+    // Serialize property list of PlanarFigure
+<span style = "background-color:#fdd">    mitk::PropertyList::Pointer propertyList = pf-&gt;GetPropertyList();
+    mitk::PropertyList::PropertyMap::const_iterator it;
+    for (it = propertyList-&gt;GetMap()-&gt;begin(); it != propertyList-&gt;GetMap()-&gt;end(); ++it)</span>
+    {
+      // Create seralizer for this property
+<span style = "background-color:#fdd">      const mitk::BaseProperty* prop = it-&gt;second;
+      std::string serializerName = std::string(prop-&gt;GetNameOfClass()) + "Serializer";
+      std::list&lt;itk::LightObject::Pointer&gt; allSerializers =</span>
+        itk::ObjectFactoryBase::CreateAllInstance(serializerName.c_str());
+
+<span style = "background-color:#fdd">      if (allSerializers.size() != 1)</span>
+      {
+        // No or too many serializer(s) found, skip this property
+<span style = "background-color:#fdd">        continue;</span>
+      }
+
+<span style = "background-color:#fdd">      auto* serializer =</span>
+        dynamic_cast&lt;mitk::BasePropertySerializer*&gt;(allSerializers.begin()-&gt;GetPointer());
+      if (serializer == nullptr)
+      {
+        // Serializer not valid; skip this property
+      }
+
+<span style = "background-color:#fdd">      auto *keyElement = document.NewElement("property");
+      keyElement-&gt;SetAttribute("key", it-&gt;first.c_str());
+      keyElement-&gt;SetAttribute("type", prop-&gt;GetNameOfClass());</span>
+
+<span style = "background-color:#fdd">      serializer-&gt;SetProperty(prop);
+      tinyxml2::XMLElement* valueElement = nullptr;</span>
+      try
+      {
+<span style = "background-color:#fdd">        valueElement = serializer-&gt;Serialize(document);</span>
+      }
+      catch (...)
+<span style = "background-color:#fdd">      {
+      }</span>
+
+<span style = "background-color:#fdd">      if (valueElement == nullptr)</span>
+      {
+        // Serialization failed; skip this property
+<span style = "background-color:#fdd">        continue;</span>
+      }
+
+      // Add value to property element
+<span style = "background-color:#fdd">      keyElement-&gt;InsertEndChild(valueElement);</span>
+
+      // Append serialized property to property list
+<span style = "background-color:#fdd">      pfElement-&gt;InsertEndChild(keyElement);
+    }</span>
+
+    // Serialize control points of PlanarFigure
+<span style = "background-color:#fdd">    auto *controlPointsElement = document.NewElement("ControlPoints");
+    pfElement-&gt;InsertEndChild(controlPointsElement);
+    for (unsigned int i = 0; i &lt; pf-&gt;GetNumberOfControlPoints(); i++)</span>
+    {
+<span style = "background-color:#fdd">      auto *vElement = document.NewElement("Vertex");
+      vElement-&gt;SetAttribute("id", i);
+      vElement-&gt;SetAttribute("x", pf-&gt;GetControlPoint(i)[0]);
+      vElement-&gt;SetAttribute("y", pf-&gt;GetControlPoint(i)[1]);
+      controlPointsElement-&gt;InsertEndChild(vElement);
+    }
+    auto *geoElement = document.NewElement("Geometry");
+    const auto* planeGeo = dynamic_cast&lt;const PlaneGeometry*&gt;(pf-&gt;GetPlaneGeometry());
+    if (planeGeo != nullptr)</span>
+    {
+      // Write parameters of IndexToWorldTransform of the PlaneGeometry
+      typedef mitk::Geometry3D::TransformType TransformType;
+<span style = "background-color:#fdd">      const TransformType* affineGeometry = planeGeo-&gt;GetIndexToWorldTransform();
+      const TransformType::ParametersType&amp; parameters = affineGeometry-&gt;GetParameters();
+      auto *vElement = document.NewElement("transformParam");
+      for (unsigned int i = 0; i &lt; affineGeometry-&gt;GetNumberOfParameters(); ++i)</span>
+      {
+<span style = "background-color:#fdd">        std::stringstream paramName;
+        paramName &lt;&lt; "param" &lt;&lt; i;
+        vElement-&gt;SetAttribute(paramName.str().c_str(), parameters.GetElement(i));
+      }
+      geoElement-&gt;InsertEndChild(vElement);</span>
+
+      // Write bounds of the PlaneGeometry
+      typedef mitk::Geometry3D::BoundsArrayType BoundsArrayType;
+<span style = "background-color:#fdd">      const BoundsArrayType&amp; bounds = planeGeo-&gt;GetBounds();
+      vElement = document.NewElement("boundsParam");
+      for (unsigned int i = 0; i &lt; 6; ++i)</span>
+      {
+<span style = "background-color:#fdd">        std::stringstream boundName;
+        boundName &lt;&lt; "bound" &lt;&lt; i;
+        vElement-&gt;SetAttribute(boundName.str().c_str(), bounds.GetElement(i));
+      }
+      geoElement-&gt;InsertEndChild(vElement);</span>
+
+      // Write spacing and origin of the PlaneGeometry
+<span style = "background-color:#fdd">      Vector3D spacing = planeGeo-&gt;GetSpacing();
+      Point3D origin = planeGeo-&gt;GetOrigin();
+      geoElement-&gt;InsertEndChild(this-&gt;CreateXMLVectorElement(document, "Spacing", spacing));
+      geoElement-&gt;InsertEndChild(this-&gt;CreateXMLVectorElement(document, "Origin", origin));</span>
+
+<span style = "background-color:#fdd">      pfElement-&gt;InsertEndChild(geoElement);</span>
+    }
+
+<span style = "background-color:#fdd">    if (this-&gt;GetOutputStream() != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      tinyxml2::XMLPrinter printer;
+      document.Print(&amp;printer);
+      *(this-&gt;GetOutputStream()) &lt;&lt; printer.CStr();
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      if (document.SaveFile(this-&gt;GetOutputLocation().c_str()) != tinyxml2::XML_SUCCESS)</span>
+      {
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "Could not write planar figures to " &lt;&lt; this-&gt;GetOutputLocation() &lt;&lt; "\nTinyXML reports '" &lt;&lt; document.ErrorStr()</span>
+          &lt;&lt; "'";
+<span style = "background-color:#fdd">        throw std::ios_base::failure("Error during writing of planar figure xml file.");</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  tinyxml2::XMLElement* mitk::PlanarFigureIO::CreateXMLVectorElement(tinyxml2::XMLDocument&amp; doc, const char* name, itk::FixedArray&lt;mitk::ScalarType, 3&gt; v)
+<span style = "background-color:#fdd">  {
+    auto vElement = doc.NewElement(name);
+    vElement-&gt;SetAttribute("x", v.GetElement(0));
+    vElement-&gt;SetAttribute("y", v.GetElement(1));
+    vElement-&gt;SetAttribute("z", v.GetElement(2));
+    return vElement;
+  }</span>
+
+  IFileIO::ConfidenceLevel PlanarFigureIO::GetReaderConfidenceLevel() const
+<span style = "background-color:#fdd">  {
+    if (AbstractFileIO::GetReaderConfidenceLevel() == Unsupported)
+      return Unsupported;</span>
+
+<span style = "background-color:#fdd">    return Supported;</span>
+    //Remark: The original reader code assumed that al pf files can be read.
+    //So no content checking was done. Thus was not implemented while refactoring
+    //to services yet. But I think it would make sense.
+<span style = "background-color:#fdd">  }</span>
+
+  std::vector&lt;BaseData::Pointer&gt; PlanarFigureIO::DoRead()
+<span style = "background-color:#fdd">  {
+    mitk::LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">    std::vector&lt;BaseData::Pointer&gt; results;</span>
+
+<span style = "background-color:#fdd">    tinyxml2::XMLDocument document;</span>
+
+<span style = "background-color:#fdd">    if (this-&gt;GetInputStream() != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      std::string s(std::istreambuf_iterator&lt;char&gt;(*(this-&gt;GetInputStream())), {});
+      document.Parse(s.c_str());</span>
+      //Remark: didn't use *(this-&gt;GetInputStream()) &gt;&gt; document;
+      //because our PlanarFigure files version 1 are illformed (multiple top level elements)
+      //and therefor tinyxml does not read them completly when streamed directly.
+      //only the first (version element) is read.
+<span style = "background-color:#fdd">    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      if (tinyxml2::XML_SUCCESS != document.LoadFile(this-&gt;GetInputLocation().c_str()))</span>
+      {
+<span style = "background-color:#fdd">        MITK_ERROR &lt;&lt; "Could not open/read/parse " &lt;&lt; this-&gt;GetInputLocation() &lt;&lt; ". TinyXML reports: '" &lt;&lt; document.ErrorStr() &lt;&lt; "'.";
+        return {};</span>
+      }
+    }
+
+<span style = "background-color:#fdd">    int fileVersion = 1;
+    auto* versionObject = document.FirstChildElement("Version");
+    if (versionObject != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      if (versionObject-&gt;QueryIntAttribute("FileVersion", &amp;fileVersion) != tinyxml2::XML_SUCCESS)</span>
+      {
+<span style = "background-color:#fdd">        MITK_WARN &lt;&lt; this-&gt;GetInputLocation() &lt;&lt; " does not contain version information! Trying version 1 format." &lt;&lt; std::endl;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; this-&gt;GetInputLocation() &lt;&lt; " does not contain version information! Trying version 1 format." &lt;&lt; std::endl;</span>
+    }
+<span style = "background-color:#fdd">    if (fileVersion !=</span>
+      1) // add file version selection and version specific file parsing here, if newer file versions are created
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "File version &gt; 1 is not supported by this reader.";
+      return {};</span>
+    }
+
+    /* file version 1 reader code */
+<span style = "background-color:#fdd">    for (auto* pfElement = document.FirstChildElement("PlanarFigure"); pfElement != nullptr;
+      pfElement = pfElement-&gt;NextSiblingElement("PlanarFigure"))</span>
+    {
+<span style = "background-color:#fdd">      const char* typeC = pfElement-&gt;Attribute("type");
+      std::string type = nullptr != typeC</span>
+        ? typeC
+        : "";
+
+<span style = "background-color:#fdd">      mitk::PlanarFigure::Pointer planarFigure = nullptr;
+      if (type == "PlanarAngle")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarAngle::New();
+      }
+      else if (type == "PlanarCircle")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarCircle::New();
+      }
+      else if (type == "PlanarEllipse")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarEllipse::New();
+      }
+      else if (type == "PlanarCross")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarCross::New();
+      }
+      else if (type == "PlanarFourPointAngle")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarFourPointAngle::New();
+      }
+      else if (type == "PlanarLine")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarLine::New();
+      }
+      else if (type == "PlanarPolygon")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarPolygon::New();
+      }
+      else if (type == "PlanarSubdivisionPolygon")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarSubdivisionPolygon::New();
+      }
+      else if (type == "PlanarRectangle")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarRectangle::New();
+      }
+      else if (type == "PlanarArrow")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarArrow::New();
+      }
+      else if (type == "PlanarDoubleEllipse")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarDoubleEllipse::New();
+      }
+      else if (type == "PlanarBezierCurve")</span>
+      {
+<span style = "background-color:#fdd">        planarFigure = mitk::PlanarBezierCurve::New();
+      }</span>
+      else
+      {
+        // unknown type
+<span style = "background-color:#fdd">        MITK_WARN &lt;&lt; "encountered unknown planar figure type '" &lt;&lt; type &lt;&lt; "'. Skipping this element.";
+        continue;</span>
+      }
+
+      // Read properties of the planar figure
+<span style = "background-color:#fdd">      for (auto* propertyElement = pfElement-&gt;FirstChildElement("property"); propertyElement != nullptr;
+        propertyElement = propertyElement-&gt;NextSiblingElement("property"))</span>
+      {
+<span style = "background-color:#fdd">        const char* keya = propertyElement-&gt;Attribute("key");
+        const std::string key(keya ? keya : "");</span>
+
+<span style = "background-color:#fdd">        const char* typea = propertyElement-&gt;Attribute("type");
+        const std::string type(typea ? typea : "");</span>
+
+        // hand propertyElement to specific reader
+<span style = "background-color:#fdd">        std::stringstream propertyDeserializerClassName;
+        propertyDeserializerClassName &lt;&lt; type &lt;&lt; "Serializer";</span>
+
+<span style = "background-color:#fdd">        const std::list&lt;itk::LightObject::Pointer&gt; readers =</span>
+          itk::ObjectFactoryBase::CreateAllInstance(propertyDeserializerClassName.str().c_str());
+<span style = "background-color:#fdd">        if (readers.size() &lt; 1)</span>
+        {
+<span style = "background-color:#fdd">          MITK_ERROR &lt;&lt; "No property reader found for " &lt;&lt; type;</span>
+        }
+<span style = "background-color:#fdd">        if (readers.size() &gt; 1)</span>
+        {
+<span style = "background-color:#fdd">          MITK_WARN &lt;&lt; "Multiple property readers found for " &lt;&lt; type &lt;&lt; ". Using arbitrary first one.";</span>
+        }
+
+<span style = "background-color:#fdd">        for (auto iter = readers.cbegin(); iter != readers.cend(); ++iter)</span>
+        {
+<span style = "background-color:#fdd">          if (auto* reader = dynamic_cast&lt;BasePropertySerializer*&gt;(iter-&gt;GetPointer()))</span>
+          {
+<span style = "background-color:#fdd">            const BaseProperty::Pointer property = reader-&gt;Deserialize(propertyElement-&gt;FirstChildElement());
+            if (property.IsNotNull())</span>
+            {
+<span style = "background-color:#fdd">              planarFigure-&gt;GetPropertyList()-&gt;ReplaceProperty(key, property);
+            }</span>
+            else
+            {
+<span style = "background-color:#fdd">              MITK_ERROR &lt;&lt; "There were errors while loading property '" &lt;&lt; key &lt;&lt; "' of type " &lt;&lt; type</span>
+                &lt;&lt; ". Your data may be corrupted";
+            }
+<span style = "background-color:#fdd">            break;
+          }
+        }
+      }</span>
+
+      // If we load a planarFigure, it has definitely been placed correctly.
+      // If we do not set this property here, we cannot load old planarFigures
+      // without messing up the interaction (PF-Interactor needs this property.
+<span style = "background-color:#fdd">      planarFigure-&gt;GetPropertyList()-&gt;SetBoolProperty("initiallyplaced", true);</span>
+
+      // Which features (length or circumference etc) a figure has is decided by whether it is closed or not
+      // the function SetClosed has to be called in case of PlanarPolygons to ensure they hold the correct feature
+<span style = "background-color:#fdd">      auto* planarPolygon = dynamic_cast&lt;PlanarPolygon*&gt;(planarFigure.GetPointer());
+      if (planarPolygon != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        bool isClosed = false;
+        planarFigure-&gt;GetPropertyList()-&gt;GetBoolProperty("closed", isClosed);
+        planarPolygon-&gt;SetClosed(isClosed);</span>
+      }
+
+      // Read geometry of containing plane
+<span style = "background-color:#fdd">      auto* geoElement = pfElement-&gt;FirstChildElement("Geometry");
+      if (geoElement != nullptr)</span>
+      {
+        try
+        {
+          // Create plane geometry
+<span style = "background-color:#fdd">          mitk::PlaneGeometry::Pointer planeGeo = mitk::PlaneGeometry::New();</span>
+
+          // Extract and set plane transform parameters
+<span style = "background-color:#fdd">          const DoubleList transformList =</span>
+            this-&gt;GetDoubleAttributeListFromXMLNode(geoElement-&gt;FirstChildElement("transformParam"), "param", 12);
+
+          typedef mitk::BaseGeometry::TransformType TransformType;
+<span style = "background-color:#fdd">          TransformType::ParametersType parameters;
+          parameters.SetSize(12);</span>
+
+          unsigned int i;
+<span style = "background-color:#fdd">          DoubleList::const_iterator it;
+          for (it = transformList.cbegin(), i = 0; it != transformList.cend(); ++it, ++i)</span>
+          {
+<span style = "background-color:#fdd">            parameters.SetElement(i, *it);
+          }</span>
+
+          typedef mitk::BaseGeometry::TransformType TransformType;
+<span style = "background-color:#fdd">          TransformType::Pointer affineGeometry = TransformType::New();
+          affineGeometry-&gt;SetParameters(parameters);
+          planeGeo-&gt;SetIndexToWorldTransform(affineGeometry);</span>
+
+          // Extract and set plane bounds
+<span style = "background-color:#fdd">          const DoubleList boundsList =</span>
+            this-&gt;GetDoubleAttributeListFromXMLNode(geoElement-&gt;FirstChildElement("boundsParam"), "bound", 6);
+
+          typedef mitk::BaseGeometry::BoundsArrayType BoundsArrayType;
+
+          BoundsArrayType bounds;
+<span style = "background-color:#fdd">          for (it = boundsList.cbegin(), i = 0; it != boundsList.cend(); ++it, ++i)</span>
+          {
+<span style = "background-color:#fdd">            bounds[i] = *it;
+          }</span>
+
+<span style = "background-color:#fdd">          planeGeo-&gt;SetBounds(bounds);</span>
+
+          // Extract and set spacing and origin
+<span style = "background-color:#fdd">          const Vector3D spacing = this-&gt;GetVectorFromXMLNode(geoElement-&gt;FirstChildElement("Spacing"));
+          planeGeo-&gt;SetSpacing(spacing);</span>
+
+<span style = "background-color:#fdd">          const Point3D origin = this-&gt;GetPointFromXMLNode(geoElement-&gt;FirstChildElement("Origin"));
+          planeGeo-&gt;SetOrigin(origin);
+          planarFigure-&gt;SetPlaneGeometry(planeGeo);
+        }</span>
+        catch (...)
+<span style = "background-color:#fdd">        {
+        }</span>
+      }
+<span style = "background-color:#fdd">      auto* cpElement = pfElement-&gt;FirstChildElement("ControlPoints");
+      bool first = true;
+      if (cpElement != nullptr)
+        for (auto* vertElement = cpElement-&gt;FirstChildElement("Vertex"); vertElement != nullptr;
+          vertElement = vertElement-&gt;NextSiblingElement("Vertex"))</span>
+      {
+<span style = "background-color:#fdd">        int id = 0;
+        mitk::Point2D::ValueType x = 0.0;
+        mitk::Point2D::ValueType y = 0.0;
+        if (vertElement-&gt;QueryIntAttribute("id", &amp;id) != tinyxml2::XML_SUCCESS)
+          return{}; // TODO: can we do a better error handling?
+        if (vertElement-&gt;QueryDoubleAttribute("x", &amp;x) != tinyxml2::XML_SUCCESS)
+          return{}; // TODO: can we do a better error handling?
+        if (vertElement-&gt;QueryDoubleAttribute("y", &amp;y) != tinyxml2::XML_SUCCESS)
+          return{}; // TODO: can we do a better error handling?
+        Point2D p;
+        p.SetElement(0, x);
+        p.SetElement(1, y);
+        if (first == true) // needed to set m_FigurePlaced to true</span>
+        {
+<span style = "background-color:#fdd">          planarFigure-&gt;PlaceFigure(p);
+          first = false;</span>
+        }
+<span style = "background-color:#fdd">        planarFigure-&gt;SetControlPoint(id, p, true);
+      }</span>
+
+      // Calculate feature quantities of this PlanarFigure
+<span style = "background-color:#fdd">      planarFigure-&gt;EvaluateFeatures();</span>
+
+      // Make sure that no control point is currently selected
+<span style = "background-color:#fdd">      planarFigure-&gt;DeselectControlPoint();</span>
+
+<span style = "background-color:#fdd">      if (planarFigure.IsNotNull())</span>
+      {
+<span style = "background-color:#fdd">        results.emplace_back(planarFigure);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    return results;
+  }</span>
+
+  mitk::PlanarFigureIO::DoubleList mitk::PlanarFigureIO::GetDoubleAttributeListFromXMLNode(
+    const tinyxml2::XMLElement* e, const char* attributeNameBase, unsigned int count)
+<span style = "background-color:#fdd">  {
+    DoubleList list;</span>
+
+<span style = "background-color:#fdd">    if (e == nullptr)
+      throw std::invalid_argument("node invalid"); // TODO: can we do a better error handling?</span>
+
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; count; ++i)</span>
+    {
+<span style = "background-color:#fdd">      mitk::ScalarType p(-1.0);
+      std::stringstream attributeName;
+      attributeName &lt;&lt; attributeNameBase &lt;&lt; i;</span>
+
+<span style = "background-color:#fdd">      if (e-&gt;QueryDoubleAttribute(attributeName.str().c_str(), &amp;p) != tinyxml2::XML_SUCCESS)
+        throw std::invalid_argument("node malformatted"); // TODO: can we do a better error handling?
+      list.push_back(p);
+    }</span>
+
+<span style = "background-color:#fdd">    return list;
+  }</span>
+
+  mitk::Point3D mitk::PlanarFigureIO::GetPointFromXMLNode(const tinyxml2::XMLElement* e)
+<span style = "background-color:#fdd">  {
+    if (e == nullptr)
+      throw std::invalid_argument("node invalid"); // TODO: can we do a better error handling?
+    mitk::Point3D point;
+    mitk::ScalarType p(-1.0);
+    if (e-&gt;QueryDoubleAttribute("x", &amp;p) != tinyxml2::XML_SUCCESS)
+      throw std::invalid_argument("node malformatted"); // TODO: can we do a better error handling?
+    point.SetElement(0, p);
+    if (e-&gt;QueryDoubleAttribute("y", &amp;p) != tinyxml2::XML_SUCCESS)
+      throw std::invalid_argument("node malformatted"); // TODO: can we do a better error handling?
+    point.SetElement(1, p);
+    if (e-&gt;QueryDoubleAttribute("z", &amp;p) != tinyxml2::XML_SUCCESS)
+      throw std::invalid_argument("node malformatted"); // TODO: can we do a better error handling?
+    point.SetElement(2, p);
+    return point;
+  }</span>
+
+  mitk::Vector3D mitk::PlanarFigureIO::GetVectorFromXMLNode(const tinyxml2::XMLElement* e)
+<span style = "background-color:#fdd">  {
+    if (e == nullptr)
+      throw std::invalid_argument("node invalid"); // TODO: can we do a better error handling?
+    mitk::Vector3D vector;
+    mitk::ScalarType p(-1.0);
+    if (e-&gt;QueryDoubleAttribute("x", &amp;p) != tinyxml2::XML_SUCCESS)
+      throw std::invalid_argument("node malformatted"); // TODO: can we do a better error handling?
+    vector.SetElement(0, p);
+    if (e-&gt;QueryDoubleAttribute("y", &amp;p) != tinyxml2::XML_SUCCESS)
+      throw std::invalid_argument("node malformatted"); // TODO: can we do a better error handling?
+    vector.SetElement(1, p);
+    if (e-&gt;QueryDoubleAttribute("z", &amp;p) != tinyxml2::XML_SUCCESS)
+      throw std::invalid_argument("node malformatted"); // TODO: can we do a better error handling?
+    vector.SetElement(2, p);
+    return vector;
+  }</span>
+
+<span style = "background-color:#fdd">  PlanarFigureIO *PlanarFigureIO::IOClone() const { return new PlanarFigureIO(*this); }</span>
+
+} // namespace</pre>
+	</body>
+</html>

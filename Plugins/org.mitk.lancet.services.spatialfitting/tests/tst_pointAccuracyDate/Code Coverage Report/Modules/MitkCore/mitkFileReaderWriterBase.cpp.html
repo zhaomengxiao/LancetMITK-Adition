@@ -1,0 +1,221 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkFileReaderWriterBase.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkFileReaderWriterBase.h"
+
+#include "mitkCoreServices.h"
+#include "mitkIMimeTypeProvider.h"
+#include "mitkIOMimeTypes.h"
+#include "mitkLogMacros.h"
+
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usLDAPProp.h&gt;
+
+namespace mitk
+{
+<span style = "background-color:#dfd">  FileReaderWriterBase::FileReaderWriterBase() : m_Ranking(0), m_MimeTypePrefix(IOMimeTypes::DEFAULT_BASE_NAME() + ".")
+  {
+  }</span>
+
+<span style = "background-color:#dfd">  FileReaderWriterBase::~FileReaderWriterBase() { this-&gt;UnregisterMimeType(); }</span>
+  FileReaderWriterBase::FileReaderWriterBase(const FileReaderWriterBase &amp;other)
+<span style = "background-color:#fdd">    : m_Description(other.m_Description),
+      m_Ranking(other.m_Ranking),
+      m_MimeTypePrefix(other.m_MimeTypePrefix),
+      m_Options(other.m_Options),
+      m_DefaultOptions(other.m_DefaultOptions),
+      m_CustomMimeType(other.m_CustomMimeType-&gt;Clone())
+  {
+  }</span>
+
+  FileReaderWriterBase::Options FileReaderWriterBase::GetOptions() const
+<span style = "background-color:#fdd">  {
+    Options options = m_Options;
+    options.insert(m_DefaultOptions.begin(), m_DefaultOptions.end());
+    return options;
+  }</span>
+
+  us::Any FileReaderWriterBase::GetOption(const std::string &amp;name) const
+<span style = "background-color:#fdd">  {
+    auto iter = m_Options.find(name);
+    if (iter != m_Options.end())</span>
+    {
+<span style = "background-color:#fdd">      return iter-&gt;second;</span>
+    }
+<span style = "background-color:#fdd">    iter = m_DefaultOptions.find(name);
+    if (iter != m_DefaultOptions.end())</span>
+    {
+<span style = "background-color:#fdd">      return iter-&gt;second;</span>
+    }
+<span style = "background-color:#fdd">    return us::Any();
+  }</span>
+
+  void FileReaderWriterBase::SetOptions(const FileReaderWriterBase::Options &amp;options)
+<span style = "background-color:#fdd">  {
+    for (const auto &amp;option : options)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;SetOption(option.first, option.second);
+    }
+  }</span>
+
+  void FileReaderWriterBase::SetOption(const std::string &amp;name, const us::Any &amp;value)
+<span style = "background-color:#fdd">  {
+    if (m_DefaultOptions.find(name) == m_DefaultOptions.end())</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Ignoring unknown IFileReader option '" &lt;&lt; name &lt;&lt; "'";
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      if (value.Empty())</span>
+      {
+        // an empty Any signals 'reset to default value'
+<span style = "background-color:#fdd">        m_Options.erase(name);
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        m_Options[name] = value;</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void FileReaderWriterBase::SetDefaultOptions(const FileReaderWriterBase::Options &amp;defaultOptions)
+<span style = "background-color:#dfd">  {
+    m_DefaultOptions = defaultOptions;
+  }</span>
+
+<span style = "background-color:#fdd">  FileReaderWriterBase::Options FileReaderWriterBase::GetDefaultOptions() const { return m_DefaultOptions; }</span>
+<span style = "background-color:#dfd">  void FileReaderWriterBase::SetRanking(int ranking) { m_Ranking = ranking; }
+  int FileReaderWriterBase::GetRanking() const { return m_Ranking; }
+  void FileReaderWriterBase::SetMimeType(const CustomMimeType &amp;mimeType) { m_CustomMimeType.reset(mimeType.Clone()); }</span>
+<span style = "background-color:#fdd">  const CustomMimeType *FileReaderWriterBase::GetMimeType() const { return m_CustomMimeType.get(); }</span>
+<span style = "background-color:#dfd">  CustomMimeType *FileReaderWriterBase::GetMimeType() { return m_CustomMimeType.get(); }</span>
+  MimeType FileReaderWriterBase::GetRegisteredMimeType() const
+<span style = "background-color:#dfd">  {
+    MimeType result;
+    if (!m_MimeTypeReg)</span>
+    {
+<span style = "background-color:#fdd">      if (!m_CustomMimeType-&gt;GetName().empty())</span>
+      {
+<span style = "background-color:#fdd">        CoreServicePointer&lt;IMimeTypeProvider&gt; mimeTypeProvider(</span>
+          CoreServices::GetMimeTypeProvider(us::GetModuleContext()));
+<span style = "background-color:#fdd">        return mimeTypeProvider-&gt;GetMimeTypeForName(m_CustomMimeType-&gt;GetName());</span>
+      }
+<span style = "background-color:#fdd">      return result;</span>
+    }
+
+<span style = "background-color:#dfd">    us::ServiceReferenceU reference = m_MimeTypeReg.GetReference();</span>
+    try
+    {
+<span style = "background-color:#dfd">      int rank = 0;
+      us::Any rankProp = reference.GetProperty(us::ServiceConstants::SERVICE_RANKING());
+      if (!rankProp.Empty())</span>
+      {
+<span style = "background-color:#fdd">        rank = us::any_cast&lt;int&gt;(rankProp);</span>
+      }
+<span style = "background-color:#dfd">      auto id = us::any_cast&lt;long&gt;(reference.GetProperty(us::ServiceConstants::SERVICE_ID()));
+      result = MimeType(*m_CustomMimeType, rank, id);
+    }</span>
+    catch (const us::BadAnyCastException &amp;e)
+<span style = "background-color:#fdd">    {
+      MITK_WARN &lt;&lt; "Unexpected exception: " &lt;&lt; e.what();
+    }</span>
+<span style = "background-color:#dfd">    return result;
+  }</span>
+
+<span style = "background-color:#dfd">  void FileReaderWriterBase::SetMimeTypePrefix(const std::string &amp;prefix) { m_MimeTypePrefix = prefix; }
+  std::string FileReaderWriterBase::GetMimeTypePrefix() const { return m_MimeTypePrefix; }
+  void FileReaderWriterBase::SetDescription(const std::string &amp;description) { m_Description = description; }
+  std::string FileReaderWriterBase::GetDescription() const { return m_Description; }</span>
+  void FileReaderWriterBase::AddProgressCallback(const FileReaderWriterBase::ProgressCallback &amp;callback)
+<span style = "background-color:#fdd">  {
+    m_ProgressMessage += callback;
+  }</span>
+
+  void FileReaderWriterBase::RemoveProgressCallback(const FileReaderWriterBase::ProgressCallback &amp;callback)
+<span style = "background-color:#fdd">  {
+    m_ProgressMessage -= callback;
+  }</span>
+
+  us::ServiceRegistration&lt;CustomMimeType&gt; FileReaderWriterBase::RegisterMimeType(us::ModuleContext *context)
+<span style = "background-color:#dfd">  {
+    if (context == nullptr)</span>
+<span style = "background-color:#fdd">      throw std::invalid_argument("The context argument must not be nullptr.");</span>
+
+<span style = "background-color:#dfd">    CoreServicePointer&lt;IMimeTypeProvider&gt; mimeTypeProvider(CoreServices::GetMimeTypeProvider(context));</span>
+
+<span style = "background-color:#dfd">    const std::vector&lt;std::string&gt; extensions = m_CustomMimeType-&gt;GetExtensions();</span>
+
+    // If the mime type name is set and the list of extensions is empty,
+    // look up the mime type in the registry and print a warning if
+    // there is none
+<span style = "background-color:#dfd">    if (!m_CustomMimeType-&gt;GetName().empty() &amp;&amp; extensions.empty())</span>
+    {
+<span style = "background-color:#dfd">      if (!mimeTypeProvider-&gt;GetMimeTypeForName(m_CustomMimeType-&gt;GetName()).IsValid())</span>
+      {
+<span style = "background-color:#fdd">        MITK_WARN &lt;&lt; "Registering a MITK reader or writer with an unknown MIME type " &lt;&lt; m_CustomMimeType-&gt;GetName();</span>
+      }
+<span style = "background-color:#dfd">      return m_MimeTypeReg;</span>
+    }
+
+    // If the mime type name and extensions list is empty, print a warning
+<span style = "background-color:#dfd">    if (m_CustomMimeType-&gt;GetName().empty() &amp;&amp; extensions.empty())</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Trying to register a MITK reader or writer with an empty mime type name and empty extension list.";
+      return m_MimeTypeReg;</span>
+    }
+
+    // extensions is not empty
+
+<span style = "background-color:#dfd">    if (m_CustomMimeType-&gt;GetName().empty())</span>
+    {
+      // Create a synthetic mime type name from the
+      // first extension in the list
+<span style = "background-color:#dfd">      m_CustomMimeType-&gt;SetName(m_MimeTypePrefix + extensions.front());</span>
+    }
+
+    // Register a new mime type
+    // us::ServiceProperties props;
+    // props["name"] = m_CustomMimeType.GetName();
+    // props["extensions"] = m_CustomMimeType.GetExtensions();
+<span style = "background-color:#dfd">    m_MimeTypeReg = context-&gt;RegisterService&lt;CustomMimeType&gt;(m_CustomMimeType.get());</span>
+
+<span style = "background-color:#dfd">    return m_MimeTypeReg;
+  }</span>
+
+  void FileReaderWriterBase::UnregisterMimeType()
+<span style = "background-color:#dfd">  {
+    if (m_MimeTypeReg)</span>
+    {
+      try
+      {
+<span style = "background-color:#dfd">        m_MimeTypeReg.Unregister();</span>
+      }
+      catch (const std::logic_error &amp;)
+<span style = "background-color:#dfd">      {</span>
+        // service already unregistered
+<span style = "background-color:#dfd">      }</span>
+    }
+<span style = "background-color:#dfd">  }</span>
+}</pre>
+	</body>
+</html>

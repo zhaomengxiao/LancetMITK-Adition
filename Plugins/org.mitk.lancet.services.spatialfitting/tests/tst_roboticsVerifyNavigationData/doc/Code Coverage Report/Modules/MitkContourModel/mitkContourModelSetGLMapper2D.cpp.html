@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelSetGLMapper2D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkContourModelSetGLMapper2D.h"
+
+#include "mitkColorProperty.h"
+#include "mitkContourModelSet.h"
+#include "mitkPlaneGeometry.h"
+#include "mitkProperties.h"
+#include &lt;vtkLinearTransform.h&gt;
+
+#include "mitkGL.h"
+
+mitk::ContourModelSetGLMapper2D::ContourModelSetGLMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::ContourModelSetGLMapper2D::~ContourModelSetGLMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ContourModelSetGLMapper2D::MitkRender(mitk::BaseRenderer *renderer, mitk::VtkPropRenderer::RenderType /*type*/)
+<span style = "background-color:#fdd">{
+    BaseLocalStorage *ls = m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">    mitk::DataNode::Pointer dataNode = this-&gt;GetDataNode();
+    bool visible = true;
+    dataNode-&gt;GetVisibility(visible, nullptr);</span>
+
+<span style = "background-color:#fdd">    if (!visible)
+        return;</span>
+
+<span style = "background-color:#fdd">    mitk::ContourModelSet::Pointer input = this-&gt;GetInput();</span>
+
+<span style = "background-color:#fdd">    auto centerOfViewPointZ = renderer-&gt;GetCurrentWorldPlaneGeometry()-&gt;GetCenter()[2];
+    auto it = input-&gt;Begin();</span>
+
+<span style = "background-color:#fdd">    auto end = input-&gt;End();</span>
+
+<span style = "background-color:#fdd">    while (it != end)</span>
+    {
+        //we have the assumption that each contour model vertex has the same z coordinate
+<span style = "background-color:#fdd">        auto currentZValue = (*it)-&gt;GetVertexAt(0)-&gt;Coordinates[2];
+        double acceptedDeviationInMM = 5.0;</span>
+        //only draw contour if it is visible
+<span style = "background-color:#fdd">        if (currentZValue - acceptedDeviationInMM &lt; centerOfViewPointZ &amp;&amp; currentZValue + acceptedDeviationInMM &gt; centerOfViewPointZ){
+            this-&gt;DrawContour(it-&gt;GetPointer(), renderer);</span>
+        }
+<span style = "background-color:#fdd">        ++it;
+    }</span>
+
+<span style = "background-color:#fdd">    if (input-&gt;GetSize() &lt; 1)
+        return;</span>
+
+<span style = "background-color:#fdd">    ls-&gt;UpdateGenerateDataTime();
+}</span>
+
+mitk::ContourModelSet *mitk::ContourModelSetGLMapper2D::GetInput(void)
+<span style = "background-color:#fdd">{
+  return static_cast&lt;mitk::ContourModelSet *&gt;(GetDataNode()-&gt;GetData());
+}</span>
+
+void mitk::ContourModelSetGLMapper2D::SetDefaultProperties(mitk::DataNode *node,
+                                                           mitk::BaseRenderer *renderer,
+                                                           bool overwrite)
+<span style = "background-color:#fdd">{
+  node-&gt;AddProperty("contour.color", ColorProperty::New(0.9, 1.0, 0.1), renderer, overwrite);
+  node-&gt;AddProperty("contour.points.color", ColorProperty::New(1.0, 0.0, 0.1), renderer, overwrite);
+  node-&gt;AddProperty("contour.points.show", mitk::BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("contour.segments.show", mitk::BoolProperty::New(true), renderer, overwrite);
+  node-&gt;AddProperty("contour.controlpoints.show", mitk::BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("contour.width", mitk::FloatProperty::New(1.0), renderer, overwrite);
+  node-&gt;AddProperty("contour.hovering.width", mitk::FloatProperty::New(3.0), renderer, overwrite);
+  node-&gt;AddProperty("contour.hovering", mitk::BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("contour.points.text", mitk::BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("contour.controlpoints.text", mitk::BoolProperty::New(false), renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  node-&gt;AddProperty("contour.project-onto-plane", mitk::BoolProperty::New(false), renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  node-&gt;AddProperty("opacity", mitk::FloatProperty::New(1.0f), renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  Superclass::SetDefaultProperties(node, renderer, overwrite);
+}</span></pre>
+	</body>
+</html>

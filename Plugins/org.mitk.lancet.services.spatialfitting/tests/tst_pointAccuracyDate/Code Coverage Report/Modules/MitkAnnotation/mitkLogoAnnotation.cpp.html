@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLogoAnnotation.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLogoAnnotation.h"
+#include &lt;mitkIOUtil.h&gt;
+#include "vtkUnicodeString.h"
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkImageMapper.h&gt;
+#include &lt;vtkImageMapper.h&gt;
+#include &lt;vtkImageReader2.h&gt;
+#include &lt;vtkImageReader2Factory.h&gt;
+#include &lt;vtkTextActor.h&gt;
+#include &lt;vtkTextProperty.h&gt;
+#include &lt;vtkTextRenderer.h&gt;
+#include &lt;vtkTextRendererStringToImage.h&gt;
+
+#include &lt;mitkVtkLogoRepresentation.h&gt;
+#include &lt;vtkImageImport.h&gt;
+#include &lt;vtkProperty2D.h&gt;
+#include &lt;vtkImageFlip.h&gt;
+#include &lt;vtkNew.h&gt;
+
+mitk::LogoAnnotation::LogoAnnotation()
+<span style = "background-color:#fdd">{
+  m_readerFactory = vtkSmartPointer&lt;vtkImageReader2Factory&gt;::New();
+  mitk::Point2D offset;
+  offset.Fill(0.03);
+  SetOffsetVector(offset);
+  SetRelativeSize(0.2);
+  SetLogoImagePath("mbiLogo");
+  SetCornerPosition(3);
+  m_VtkImageImport = vtkSmartPointer&lt;vtkImageImport&gt;::New();
+  m_UpdatedLogoImage = vtkSmartPointer&lt;vtkImageData&gt;::New();
+}</span>
+
+mitk::LogoAnnotation::~LogoAnnotation()
+<span style = "background-color:#fdd">{
+  for (BaseRenderer *renderer : m_LSH.GetRegisteredBaseRenderer())</span>
+  {
+<span style = "background-color:#fdd">    if (renderer)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;RemoveFromBaseRenderer(renderer);
+    }
+  }
+}</span>
+
+mitk::LogoAnnotation::LocalStorage::~LocalStorage()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::LogoAnnotation::LocalStorage::LocalStorage()
+<span style = "background-color:#fdd">{
+  m_LogoRep = vtkSmartPointer&lt;mitkVtkLogoRepresentation&gt;::New();
+}</span>
+
+void mitk::LogoAnnotation::UpdateVtkAnnotation(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);
+  if (ls-&gt;IsGenerateDataRequired(renderer, this))</span>
+  {
+<span style = "background-color:#fdd">    ls-&gt;m_LogoImage = m_UpdatedLogoImage;</span>
+
+<span style = "background-color:#fdd">    ls-&gt;m_LogoRep-&gt;SetImage(ls-&gt;m_LogoImage);
+    ls-&gt;m_LogoRep-&gt;SetDragable(false);
+    ls-&gt;m_LogoRep-&gt;SetMoving(false);
+    ls-&gt;m_LogoRep-&gt;SetPickable(false);
+    ls-&gt;m_LogoRep-&gt;SetShowBorder(true);
+    ls-&gt;m_LogoRep-&gt;SetRenderer(renderer-&gt;GetVtkRenderer());
+    float size = GetRelativeSize();
+    ls-&gt;m_LogoRep-&gt;SetPosition2(size, size);
+    int corner = GetCornerPosition();
+    ls-&gt;m_LogoRep-&gt;SetCornerPosition(corner);
+    mitk::Point2D offset = GetOffsetVector();
+    ls-&gt;m_LogoRep-&gt;SetPosition(offset[0], offset[1]);
+    float opacity = 1.0;
+    GetOpacity(opacity);
+    ls-&gt;m_LogoRep-&gt;GetImageProperty()-&gt;SetOpacity(opacity);
+    ls-&gt;m_LogoRep-&gt;BuildRepresentation();
+    ls-&gt;UpdateGenerateDataTime();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::LogoAnnotation::SetLogoImagePath(std::string path)
+<span style = "background-color:#fdd">{
+  SetStringProperty("Annotation.LogoImagePath", path.c_str());
+  Modified();
+}</span>
+
+void mitk::LogoAnnotation::LoadLogoImageFromPath()
+<span style = "background-color:#fdd">{
+  auto imageNodeVector = mitk::IOUtil::Load(this-&gt;GetLogoImagePath());</span>
+
+<span style = "background-color:#fdd">  if (imageNodeVector.size() == 1)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Image::Pointer image = dynamic_cast&lt;mitk::Image *&gt;(imageNodeVector.front().GetPointer());</span>
+
+<span style = "background-color:#fdd">    if (image.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      vtkNew&lt;vtkImageFlip&gt; flip;
+      flip-&gt;SetInputData(image-&gt;GetVtkImageData());
+      flip-&gt;SetFilteredAxis(1);
+      flip-&gt;Update();
+      m_UpdatedLogoImage-&gt;DeepCopy(flip-&gt;GetOutput());
+      Modified();
+    }
+  }
+}</span>
+
+void mitk::LogoAnnotation::SetLogoImage(vtkSmartPointer&lt;vtkImageData&gt; logo)
+<span style = "background-color:#fdd">{
+  m_UpdatedLogoImage = logo;
+  Modified();
+}</span>
+
+std::string mitk::LogoAnnotation::GetLogoImagePath() const
+<span style = "background-color:#fdd">{
+  std::string path;
+  GetPropertyList()-&gt;GetStringProperty("Annotation.LogoImagePath", path);
+  return path;
+}</span>
+
+void mitk::LogoAnnotation::SetOffsetVector(const Point2D &amp;OffsetVector)
+<span style = "background-color:#fdd">{
+  mitk::Point2dProperty::Pointer OffsetVectorProperty = mitk::Point2dProperty::New(OffsetVector);
+  SetProperty("Annotation.OffsetVector", OffsetVectorProperty.GetPointer());
+  Modified();
+}</span>
+
+mitk::Point2D mitk::LogoAnnotation::GetOffsetVector() const
+<span style = "background-color:#fdd">{
+  mitk::Point2D OffsetVector;
+  OffsetVector.Fill(0);
+  GetPropertyValue&lt;mitk::Point2D&gt;("Annotation.OffsetVector", OffsetVector);
+  return OffsetVector;
+}</span>
+
+void mitk::LogoAnnotation::SetCornerPosition(const int &amp;corner)
+<span style = "background-color:#fdd">{
+  SetIntProperty("Annotation.CornerPosition", corner);
+  Modified();
+}</span>
+
+int mitk::LogoAnnotation::GetCornerPosition() const
+<span style = "background-color:#fdd">{
+  int corner = 0;
+  GetIntProperty("Annotation.CornerPosition", corner);
+  return corner;
+}</span>
+
+void mitk::LogoAnnotation::SetRelativeSize(const float &amp;size)
+<span style = "background-color:#fdd">{
+  SetFloatProperty("Annotation.RelativeSize", size);
+  Modified();
+}</span>
+
+float mitk::LogoAnnotation::GetRelativeSize() const
+<span style = "background-color:#fdd">{
+  float size = 0;
+  GetFloatProperty("Annotation.RelativeSize", size);
+  return size;
+}</span>
+
+vtkProp *mitk::LogoAnnotation::GetVtkProp(BaseRenderer *renderer) const
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);
+  return ls-&gt;m_LogoRep;
+}</span></pre>
+	</body>
+</html>

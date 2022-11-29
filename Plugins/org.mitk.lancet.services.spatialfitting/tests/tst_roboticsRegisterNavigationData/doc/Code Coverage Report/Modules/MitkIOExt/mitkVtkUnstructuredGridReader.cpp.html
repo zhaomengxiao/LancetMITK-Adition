@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVtkUnstructuredGridReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include "mitkVtkUnstructuredGridReader.h"
+#include &lt;mitkUnstructuredGrid.h&gt;
+#include &lt;vtkDataReader.h&gt;
+#include &lt;vtkUnstructuredGridReader.h&gt;
+#include &lt;vtkXMLUnstructuredGridReader.h&gt;
+
+#include &lt;itksys/SystemTools.hxx&gt;
+
+#include &lt;mitkCustomMimeType.h&gt;
+#include &lt;mitkIOMimeTypes.h&gt;
+
+<span style = "background-color:#dfd">mitk::VtkUnstructuredGridReader::VtkUnstructuredGridReader() : AbstractFileReader()
+{
+  CustomMimeType mimeType(IOMimeTypes::DEFAULT_BASE_NAME() + ".vtu");
+  mimeType.SetComment("Vtk Unstructured Grid Files");
+  mimeType.SetCategory("Vtk Unstructured Grid");
+  mimeType.AddExtension("vtu");
+  mimeType.AddExtension("vtk");</span>
+
+<span style = "background-color:#dfd">  this-&gt;SetDescription("Vtk Unstructured Grid Files");
+  this-&gt;SetMimeType(mimeType);</span>
+
+<span style = "background-color:#dfd">  this-&gt;RegisterService();
+}</span>
+
+mitk::VtkUnstructuredGridReader::~VtkUnstructuredGridReader()
+<span style = "background-color:#dfd">{
+}</span>
+
+std::vector&lt;itk::SmartPointer&lt;mitk::BaseData&gt;&gt; mitk::VtkUnstructuredGridReader::DoRead()
+<span style = "background-color:#fdd">{
+  MITK_INFO &lt;&lt; "Loading "</span>
+            &lt;&lt; " as vtk unstructured grid";
+<span style = "background-color:#fdd">  std::vector&lt;itk::SmartPointer&lt;mitk::BaseData&gt;&gt; result;
+  MITK_INFO &lt;&lt; this-&gt;GetLocalFileName();
+  std::string ext = itksys::SystemTools::GetFilenameLastExtension(GetLocalFileName().c_str());
+  ext = itksys::SystemTools::LowerCase(ext);
+  if (ext == ".vtk")</span>
+  {
+<span style = "background-color:#fdd">    vtkDataReader *chooser = vtkDataReader::New();
+    chooser-&gt;SetFileName(GetLocalFileName().c_str());
+    if (chooser-&gt;IsFileUnstructuredGrid())</span>
+    {
+<span style = "background-color:#fdd">      vtkUnstructuredGridReader *reader = vtkUnstructuredGridReader::New();
+      reader-&gt;SetFileName(GetLocalFileName().c_str());
+      reader-&gt;Update();</span>
+
+<span style = "background-color:#fdd">      if (reader-&gt;GetOutput() != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        mitk::UnstructuredGrid::Pointer grid = mitk::UnstructuredGrid::New();
+        grid-&gt;SetVtkUnstructuredGrid(reader-&gt;GetOutput());
+        result.push_back(grid.GetPointer());
+      }
+      reader-&gt;Delete();</span>
+    }
+<span style = "background-color:#fdd">  }
+  else if (ext == ".vtu")</span>
+  {
+<span style = "background-color:#fdd">    vtkXMLUnstructuredGridReader *reader = vtkXMLUnstructuredGridReader::New();
+    reader-&gt;SetFileName(GetLocalFileName().c_str());
+    reader-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    if (reader-&gt;GetOutput() != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      mitk::UnstructuredGrid::Pointer grid = mitk::UnstructuredGrid::New();
+      grid-&gt;SetVtkUnstructuredGrid(reader-&gt;GetOutput());
+      result.push_back(grid.GetPointer());
+    }
+    reader-&gt;Delete();</span>
+  }
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::VtkUnstructuredGridReader *mitk::VtkUnstructuredGridReader::Clone() const
+<span style = "background-color:#fdd">{
+  return new mitk::VtkUnstructuredGridReader(*this);
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,669 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSliceNavigationController.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkSliceNavigationController.h"
+#include "mitkAction.h"
+#include "mitkBaseRenderer.h"
+#include "mitkCrosshairPositionEvent.h"
+#include "mitkInteractionConst.h"
+#include "mitkOperation.h"
+#include "mitkOperationActor.h"
+#include "mitkPlaneGeometry.h"
+#include "mitkProportionalTimeGeometry.h"
+#include "mitkArbitraryTimeGeometry.h"
+#include "mitkRenderingManager.h"
+#include "mitkSlicedGeometry3D.h"
+#include "mitkVtkPropRenderer.h"
+
+#include "mitkImage.h"
+#include "mitkImagePixelReadAccessor.h"
+#include "mitkInteractionConst.h"
+#include "mitkNodePredicateDataType.h"
+#include "mitkOperationEvent.h"
+#include "mitkPixelTypeMultiplex.h"
+#include "mitkPlaneOperation.h"
+#include "mitkPointOperation.h"
+#include "mitkStatusBar.h"
+#include "mitkUndoController.h"
+
+#include "mitkApplyTransformMatrixOperation.h"
+
+#include "mitkMemoryUtilities.h"
+
+#include &lt;itkCommand.h&gt;
+
+namespace mitk
+{
+  SliceNavigationController::SliceNavigationController()
+<span style = "background-color:#fdd">    : BaseController(),
+  m_InputWorldGeometry3D( mitk::BaseGeometry::ConstPointer() ),
+  m_InputWorldTimeGeometry( mitk::TimeGeometry::ConstPointer() ),
+  m_CreatedWorldGeometry( mitk::TimeGeometry::Pointer() ),
+      m_ViewDirection(Axial),
+      m_DefaultViewDirection(Axial),
+  m_RenderingManager( mitk::RenderingManager::Pointer() ),
+  m_Renderer( nullptr ),
+      m_Top(false),
+      m_FrontSide(false),
+      m_Rotated(false),
+      m_BlockUpdate(false),
+      m_SliceLocked(false),
+      m_SliceRotationLocked(false),
+      m_OldPos(0)
+  {</span>
+    typedef itk::SimpleMemberCommand&lt;SliceNavigationController&gt; SNCCommandType;
+<span style = "background-color:#fdd">    SNCCommandType::Pointer sliceStepperChangedCommand, timeStepperChangedCommand;</span>
+
+<span style = "background-color:#fdd">    sliceStepperChangedCommand = SNCCommandType::New();
+    timeStepperChangedCommand = SNCCommandType::New();</span>
+
+<span style = "background-color:#fdd">    sliceStepperChangedCommand-&gt;SetCallbackFunction(this, &amp;SliceNavigationController::SendSlice);</span>
+
+<span style = "background-color:#fdd">    timeStepperChangedCommand-&gt;SetCallbackFunction(this, &amp;SliceNavigationController::SendTime);</span>
+
+<span style = "background-color:#fdd">    m_Slice-&gt;AddObserver(itk::ModifiedEvent(), sliceStepperChangedCommand);
+    m_Time-&gt;AddObserver(itk::ModifiedEvent(), timeStepperChangedCommand);</span>
+
+<span style = "background-color:#fdd">    m_Slice-&gt;SetUnitName("mm");
+    m_Time-&gt;SetUnitName("ms");</span>
+
+<span style = "background-color:#fdd">    m_Top = false;
+    m_FrontSide = false;
+    m_Rotated = false;
+  }</span>
+
+<span style = "background-color:#fdd">  SliceNavigationController::~SliceNavigationController() {}</span>
+  void SliceNavigationController::SetInputWorldGeometry3D(const BaseGeometry *geometry)
+<span style = "background-color:#fdd">  {
+  if ( geometry != nullptr )</span>
+    {
+<span style = "background-color:#fdd">      if (geometry-&gt;GetBoundingBox()-&gt;GetDiagonalLength2() &lt; eps)</span>
+      {
+<span style = "background-color:#fdd">        itkWarningMacro("setting an empty bounding-box");
+      geometry = nullptr;</span>
+      }
+    }
+<span style = "background-color:#fdd">    if (m_InputWorldGeometry3D != geometry)</span>
+    {
+<span style = "background-color:#fdd">      m_InputWorldGeometry3D = geometry;
+    m_InputWorldTimeGeometry = mitk::TimeGeometry::ConstPointer();
+      this-&gt;Modified();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void SliceNavigationController::SetInputWorldTimeGeometry(const TimeGeometry *geometry)
+<span style = "background-color:#fdd">  {
+  if ( geometry != nullptr )</span>
+    {
+<span style = "background-color:#fdd">      if (geometry-&gt;GetBoundingBoxInWorld()-&gt;GetDiagonalLength2() &lt; eps)</span>
+      {
+<span style = "background-color:#fdd">        itkWarningMacro("setting an empty bounding-box");
+        geometry = nullptr;</span>
+      }
+    }
+<span style = "background-color:#fdd">    if (m_InputWorldTimeGeometry != geometry)</span>
+    {
+<span style = "background-color:#fdd">      m_InputWorldTimeGeometry = geometry;
+      m_InputWorldGeometry3D = mitk::BaseGeometry::ConstPointer();
+      this-&gt;Modified();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  void SliceNavigationController::SetViewDirectionToDefault() { m_ViewDirection = m_DefaultViewDirection; }</span>
+  const char *SliceNavigationController::GetViewDirectionAsString() const
+<span style = "background-color:#fdd">  {</span>
+    const char *viewDirectionString;
+<span style = "background-color:#fdd">    switch (m_ViewDirection)</span>
+    {
+      case SliceNavigationController::Axial:
+<span style = "background-color:#fdd">        viewDirectionString = "Axial";
+        break;</span>
+
+      case SliceNavigationController::Sagittal:
+<span style = "background-color:#fdd">        viewDirectionString = "Sagittal";
+        break;</span>
+
+      case SliceNavigationController::Frontal:
+<span style = "background-color:#fdd">        viewDirectionString = "Coronal";
+        break;</span>
+
+      case SliceNavigationController::Original:
+<span style = "background-color:#fdd">        viewDirectionString = "Original";
+        break;</span>
+
+      default:
+<span style = "background-color:#fdd">        viewDirectionString = "No View Direction Available";</span>
+        break;
+    }
+<span style = "background-color:#fdd">    return viewDirectionString;
+  }</span>
+
+  void SliceNavigationController::Update()
+<span style = "background-color:#fdd">  {
+    if (!m_BlockUpdate)</span>
+    {
+<span style = "background-color:#fdd">      if (m_ViewDirection == Sagittal)</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;Update(Sagittal, true, true, false);
+      }
+      else if (m_ViewDirection == Frontal)</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;Update(Frontal, false, true, false);
+      }
+      else if (m_ViewDirection == Axial)</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;Update(Axial, false, false, true);
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        this-&gt;Update(m_ViewDirection);</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void SliceNavigationController::Update(SliceNavigationController::ViewDirection viewDirection,
+                                         bool top,
+                                         bool frontside,
+                                         bool rotated)
+<span style = "background-color:#fdd">  {
+    TimeGeometry::ConstPointer worldTimeGeometry = m_InputWorldTimeGeometry;</span>
+
+<span style = "background-color:#fdd">    if (m_BlockUpdate || (m_InputWorldTimeGeometry.IsNull() &amp;&amp; m_InputWorldGeometry3D.IsNull()) ||</span>
+        ((worldTimeGeometry.IsNotNull()) &amp;&amp; (worldTimeGeometry-&gt;CountTimeSteps() == 0)))
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    m_BlockUpdate = true;</span>
+
+<span style = "background-color:#fdd">    if (m_InputWorldTimeGeometry.IsNotNull() &amp;&amp; m_LastUpdateTime &lt; m_InputWorldTimeGeometry-&gt;GetMTime())</span>
+    {
+<span style = "background-color:#fdd">      Modified();</span>
+    }
+<span style = "background-color:#fdd">    if (m_InputWorldGeometry3D.IsNotNull() &amp;&amp; m_LastUpdateTime &lt; m_InputWorldGeometry3D-&gt;GetMTime())</span>
+    {
+<span style = "background-color:#fdd">      Modified();</span>
+    }
+<span style = "background-color:#fdd">    this-&gt;SetViewDirection(viewDirection);
+    this-&gt;SetTop(top);
+    this-&gt;SetFrontSide(frontside);
+    this-&gt;SetRotated(rotated);</span>
+
+<span style = "background-color:#fdd">    if (m_LastUpdateTime &lt; GetMTime())</span>
+    {
+<span style = "background-color:#fdd">      m_LastUpdateTime = GetMTime();</span>
+
+      // initialize the viewplane
+<span style = "background-color:#fdd">      SlicedGeometry3D::Pointer slicedWorldGeometry = SlicedGeometry3D::Pointer();
+      BaseGeometry::ConstPointer currentGeometry = BaseGeometry::ConstPointer();
+      if (m_InputWorldTimeGeometry.IsNotNull())
+        if (m_InputWorldTimeGeometry-&gt;IsValidTimeStep(GetTime()-&gt;GetPos()))
+          currentGeometry = m_InputWorldTimeGeometry-&gt;GetGeometryForTimeStep(GetTime()-&gt;GetPos());</span>
+        else
+<span style = "background-color:#fdd">          currentGeometry = m_InputWorldTimeGeometry-&gt;GetGeometryForTimeStep(0);</span>
+      else
+<span style = "background-color:#fdd">        currentGeometry = m_InputWorldGeometry3D;</span>
+
+<span style = "background-color:#fdd">      m_CreatedWorldGeometry = mitk::TimeGeometry::Pointer();
+      switch (viewDirection)</span>
+      {
+        case Original:
+<span style = "background-color:#fdd">          if (worldTimeGeometry.IsNotNull())</span>
+          {
+<span style = "background-color:#fdd">            m_CreatedWorldGeometry = worldTimeGeometry-&gt;Clone();</span>
+
+<span style = "background-color:#fdd">            worldTimeGeometry = m_CreatedWorldGeometry.GetPointer();</span>
+
+<span style = "background-color:#fdd">            slicedWorldGeometry = dynamic_cast&lt;SlicedGeometry3D *&gt;(</span>
+              m_CreatedWorldGeometry-&gt;GetGeometryForTimeStep(this-&gt;GetTime()-&gt;GetPos()).GetPointer());
+
+<span style = "background-color:#fdd">            if (slicedWorldGeometry.IsNotNull())</span>
+            {
+<span style = "background-color:#fdd">              break;</span>
+            }
+<span style = "background-color:#fdd">          }</span>
+          else
+          {
+<span style = "background-color:#fdd">            const auto *worldSlicedGeometry =</span>
+              dynamic_cast&lt;const SlicedGeometry3D *&gt;(currentGeometry.GetPointer());
+
+<span style = "background-color:#fdd">          if ( worldSlicedGeometry != nullptr )</span>
+            {
+<span style = "background-color:#fdd">              slicedWorldGeometry = static_cast&lt;SlicedGeometry3D *&gt;(currentGeometry-&gt;Clone().GetPointer());
+              break;</span>
+            }
+          }
+<span style = "background-color:#fdd">          slicedWorldGeometry = SlicedGeometry3D::New();
+          slicedWorldGeometry-&gt;InitializePlanes(currentGeometry, PlaneGeometry::None, top, frontside, rotated);
+          slicedWorldGeometry-&gt;SetSliceNavigationController(this);
+          break;</span>
+
+        case Axial:
+<span style = "background-color:#fdd">          slicedWorldGeometry = SlicedGeometry3D::New();
+          slicedWorldGeometry-&gt;InitializePlanes(currentGeometry, PlaneGeometry::Axial, top, frontside, rotated);
+          slicedWorldGeometry-&gt;SetSliceNavigationController(this);
+          break;</span>
+
+        case Frontal:
+<span style = "background-color:#fdd">          slicedWorldGeometry = SlicedGeometry3D::New();
+          slicedWorldGeometry-&gt;InitializePlanes(currentGeometry, PlaneGeometry::Frontal, top, frontside, rotated);
+          slicedWorldGeometry-&gt;SetSliceNavigationController(this);
+          break;</span>
+
+        case Sagittal:
+<span style = "background-color:#fdd">          slicedWorldGeometry = SlicedGeometry3D::New();
+          slicedWorldGeometry-&gt;InitializePlanes(currentGeometry, PlaneGeometry::Sagittal, top, frontside, rotated);
+          slicedWorldGeometry-&gt;SetSliceNavigationController(this);
+          break;</span>
+        default:
+<span style = "background-color:#fdd">          itkExceptionMacro("unknown ViewDirection");</span>
+      }
+
+<span style = "background-color:#fdd">      m_Slice-&gt;SetPos(0);
+      m_Slice-&gt;SetSteps((int)slicedWorldGeometry-&gt;GetSlices());</span>
+
+<span style = "background-color:#fdd">      if ( worldTimeGeometry.IsNull() )</span>
+      {
+<span style = "background-color:#fdd">        auto createdTimeGeometry = ProportionalTimeGeometry::New();
+        createdTimeGeometry-&gt;Initialize( slicedWorldGeometry, 1 );
+        m_CreatedWorldGeometry = createdTimeGeometry;</span>
+
+<span style = "background-color:#fdd">        m_Time-&gt;SetSteps(0);
+        m_Time-&gt;SetPos(0);
+        m_Time-&gt;InvalidateRange();
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        m_BlockUpdate = true;
+        m_Time-&gt;SetSteps(worldTimeGeometry-&gt;CountTimeSteps());
+        m_Time-&gt;SetPos(0);</span>
+
+<span style = "background-color:#fdd">        const TimeBounds &amp;timeBounds = worldTimeGeometry-&gt;GetTimeBounds();
+        m_Time-&gt;SetRange(timeBounds[0], timeBounds[1]);</span>
+
+<span style = "background-color:#fdd">        m_BlockUpdate = false;</span>
+
+<span style = "background-color:#fdd">        const auto currentTemporalPosition = this-&gt;GetTime()-&gt;GetPos();
+        assert( worldTimeGeometry-&gt;GetGeometryForTimeStep( currentTemporalPosition ).IsNotNull() );</span>
+
+<span style = "background-color:#fdd">      if ( dynamic_cast&lt;const mitk::ProportionalTimeGeometry*&gt;( worldTimeGeometry.GetPointer() ) != nullptr )</span>
+      {
+<span style = "background-color:#fdd">        const TimePointType minimumTimePoint =</span>
+          worldTimeGeometry-&gt;TimeStepToTimePoint( currentTemporalPosition );
+
+<span style = "background-color:#fdd">        const TimePointType stepDuration =</span>
+          worldTimeGeometry-&gt;TimeStepToTimePoint( currentTemporalPosition + 1 ) - minimumTimePoint;
+
+<span style = "background-color:#fdd">        auto createdTimeGeometry = ProportionalTimeGeometry::New();
+        createdTimeGeometry-&gt;Initialize( slicedWorldGeometry, worldTimeGeometry-&gt;CountTimeSteps() );
+        createdTimeGeometry-&gt;SetFirstTimePoint( minimumTimePoint );
+        createdTimeGeometry-&gt;SetStepDuration( stepDuration );</span>
+
+<span style = "background-color:#fdd">        m_CreatedWorldGeometry = createdTimeGeometry;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        auto createdTimeGeometry = mitk::ArbitraryTimeGeometry::New();
+        const TimeStepType numberOfTimeSteps = worldTimeGeometry-&gt;CountTimeSteps();
+        createdTimeGeometry-&gt;ReserveSpaceForGeometries( numberOfTimeSteps );</span>
+
+<span style = "background-color:#fdd">        for ( TimeStepType i = 0; i &lt; numberOfTimeSteps; ++i )</span>
+        {
+<span style = "background-color:#fdd">          const BaseGeometry::Pointer clonedGeometry = slicedWorldGeometry-&gt;Clone().GetPointer();
+          const auto bounds = worldTimeGeometry-&gt;GetTimeBounds( i );
+          createdTimeGeometry-&gt;AppendNewTimeStep( clonedGeometry,</span>
+            bounds[0], bounds[1]);
+<span style = "background-color:#fdd">        }
+        createdTimeGeometry-&gt;Update();</span>
+
+<span style = "background-color:#fdd">        m_CreatedWorldGeometry = createdTimeGeometry;
+      }</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+    // unblock update; we may do this now, because if m_BlockUpdate was already
+    // true before this method was entered, then we will never come here.
+<span style = "background-color:#fdd">    m_BlockUpdate = false;</span>
+
+    // Send the geometry. Do this even if nothing was changed, because maybe
+    // Update() was only called to re-send the old geometry and time/slice data.
+<span style = "background-color:#fdd">    this-&gt;SendCreatedWorldGeometry();
+    this-&gt;SendSlice();
+    this-&gt;SendTime();</span>
+
+    // Adjust the stepper range of slice stepper according to geometry
+<span style = "background-color:#fdd">    this-&gt;AdjustSliceStepperRange();
+  }</span>
+
+  void SliceNavigationController::SendCreatedWorldGeometry()
+<span style = "background-color:#fdd">  {</span>
+    // Send the geometry. Do this even if nothing was changed, because maybe
+    // Update() was only called to re-send the old geometry.
+<span style = "background-color:#fdd">    if (!m_BlockUpdate)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;InvokeEvent(GeometrySendEvent(m_CreatedWorldGeometry, 0));</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void SliceNavigationController::SendCreatedWorldGeometryUpdate()
+<span style = "background-color:#fdd">  {
+    if (!m_BlockUpdate)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;InvokeEvent(GeometryUpdateEvent(m_CreatedWorldGeometry, m_Slice-&gt;GetPos()));</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void SliceNavigationController::SendSlice()
+<span style = "background-color:#fdd">  {
+    if (!m_BlockUpdate)</span>
+    {
+<span style = "background-color:#fdd">      if (m_CreatedWorldGeometry.IsNotNull())</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;InvokeEvent(GeometrySliceEvent(m_CreatedWorldGeometry, m_Slice-&gt;GetPos()));
+        RenderingManager::GetInstance()-&gt;RequestUpdateAll();</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void SliceNavigationController::SendTime()
+<span style = "background-color:#fdd">  {
+    if (!m_BlockUpdate)</span>
+    {
+<span style = "background-color:#fdd">      if (m_CreatedWorldGeometry.IsNotNull())</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;InvokeEvent(GeometryTimeEvent(m_CreatedWorldGeometry, m_Time-&gt;GetPos()));
+        RenderingManager::GetInstance()-&gt;RequestUpdateAll();</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  void SliceNavigationController::SetGeometry(const itk::EventObject &amp;) {}</span>
+  void SliceNavigationController::SetGeometryTime(const itk::EventObject &amp;geometryTimeEvent)
+<span style = "background-color:#fdd">  {
+    if (m_CreatedWorldGeometry.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    const auto *timeEvent =</span>
+      dynamic_cast&lt; const SliceNavigationController::GeometryTimeEvent * &gt;(&amp;geometryTimeEvent);
+<span style = "background-color:#fdd">    assert( timeEvent != nullptr );</span>
+
+<span style = "background-color:#fdd">    TimeGeometry *timeGeometry = timeEvent-&gt;GetTimeGeometry();
+    assert( timeGeometry != nullptr );</span>
+
+<span style = "background-color:#fdd">    auto timeStep = (int)timeEvent-&gt;GetPos();</span>
+    ScalarType timeInMS;
+<span style = "background-color:#fdd">    timeInMS = timeGeometry-&gt;TimeStepToTimePoint(timeStep);
+    timeStep = m_CreatedWorldGeometry-&gt;TimePointToTimeStep(timeInMS);
+    this-&gt;GetTime()-&gt;SetPos(timeStep);
+  }</span>
+
+  void SliceNavigationController::SetGeometrySlice(const itk::EventObject &amp;geometrySliceEvent)
+<span style = "background-color:#fdd">  {
+    const auto *sliceEvent =</span>
+      dynamic_cast&lt;const SliceNavigationController::GeometrySliceEvent *&gt;(&amp;geometrySliceEvent);
+<span style = "background-color:#fdd">    assert(sliceEvent!=nullptr);</span>
+
+<span style = "background-color:#fdd">    this-&gt;GetSlice()-&gt;SetPos(sliceEvent-&gt;GetPos());
+  }</span>
+
+  void SliceNavigationController::SelectSliceByPoint(const Point3D &amp;point)
+<span style = "background-color:#fdd">  {
+    if (m_CreatedWorldGeometry.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+    //@todo add time to PositionEvent and use here!!
+<span style = "background-color:#fdd">    SlicedGeometry3D *slicedWorldGeometry = dynamic_cast&lt;SlicedGeometry3D *&gt;(</span>
+      m_CreatedWorldGeometry-&gt;GetGeometryForTimeStep(this-&gt;GetTime()-&gt;GetPos()).GetPointer());
+
+<span style = "background-color:#fdd">    if (slicedWorldGeometry)</span>
+    {
+<span style = "background-color:#fdd">      int bestSlice = -1;
+      double bestDistance = itk::NumericTraits&lt;double&gt;::max();</span>
+
+      int s, slices;
+<span style = "background-color:#fdd">      slices = slicedWorldGeometry-&gt;GetSlices();
+      if (slicedWorldGeometry-&gt;GetEvenlySpaced())</span>
+      {
+<span style = "background-color:#fdd">        mitk::PlaneGeometry *plane = slicedWorldGeometry-&gt;GetPlaneGeometry(0);</span>
+
+<span style = "background-color:#fdd">        const Vector3D &amp;direction = slicedWorldGeometry-&gt;GetDirectionVector();</span>
+
+<span style = "background-color:#fdd">        Point3D projectedPoint;
+        plane-&gt;Project(point, projectedPoint);</span>
+
+        // Check whether the point is somewhere within the slice stack volume;
+        // otherwise, the default slice (0) will be selected
+        if (direction[0] * (point[0] - projectedPoint[0]) + direction[1] * (point[1] - projectedPoint[1]) +
+<span style = "background-color:#fdd">              direction[2] * (point[2] - projectedPoint[2]) &gt;=</span>
+            0)
+        {
+<span style = "background-color:#fdd">          bestSlice = (int)(plane-&gt;Distance(point) / slicedWorldGeometry-&gt;GetSpacing()[2] + 0.5);</span>
+        }
+<span style = "background-color:#fdd">      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        Point3D projectedPoint;
+        for (s = 0; s &lt; slices; ++s)</span>
+        {
+<span style = "background-color:#fdd">          slicedWorldGeometry-&gt;GetPlaneGeometry(s)-&gt;Project(point, projectedPoint);
+          const Vector3D distance = projectedPoint - point;
+          ScalarType currentDistance = distance.GetSquaredNorm();</span>
+
+<span style = "background-color:#fdd">          if (currentDistance &lt; bestDistance)</span>
+          {
+<span style = "background-color:#fdd">            bestDistance = currentDistance;
+            bestSlice = s;</span>
+          }
+<span style = "background-color:#fdd">        }</span>
+      }
+<span style = "background-color:#fdd">      if (bestSlice &gt;= 0)</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;GetSlice()-&gt;SetPos(bestSlice);
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        this-&gt;GetSlice()-&gt;SetPos(0);</span>
+      }
+<span style = "background-color:#fdd">      this-&gt;SendCreatedWorldGeometryUpdate();</span>
+      // send crosshair event
+<span style = "background-color:#fdd">      SetCrosshairEvent.Send(point);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void SliceNavigationController::ReorientSlices(const Point3D &amp;point, const Vector3D &amp;normal)
+<span style = "background-color:#fdd">  {
+    if (m_CreatedWorldGeometry.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    PlaneOperation op(OpORIENT, point, normal);</span>
+
+<span style = "background-color:#fdd">    m_CreatedWorldGeometry-&gt;ExecuteOperation(&amp;op);</span>
+
+<span style = "background-color:#fdd">    this-&gt;SendCreatedWorldGeometryUpdate();
+  }</span>
+
+  void SliceNavigationController::ReorientSlices(const mitk::Point3D &amp;point,
+                                                 const mitk::Vector3D &amp;axisVec0,
+                                                 const mitk::Vector3D &amp;axisVec1)
+<span style = "background-color:#fdd">  {
+    if (m_CreatedWorldGeometry)</span>
+    {
+<span style = "background-color:#fdd">      PlaneOperation op(OpORIENT, point, axisVec0, axisVec1);
+      m_CreatedWorldGeometry-&gt;ExecuteOperation(&amp;op);</span>
+
+<span style = "background-color:#fdd">      this-&gt;SendCreatedWorldGeometryUpdate();
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  mitk::TimeGeometry *SliceNavigationController::GetCreatedWorldGeometry() { return m_CreatedWorldGeometry; }</span>
+  const mitk::BaseGeometry *SliceNavigationController::GetCurrentGeometry3D()
+<span style = "background-color:#fdd">  {
+    if (m_CreatedWorldGeometry.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      return m_CreatedWorldGeometry-&gt;GetGeometryForTimeStep(this-&gt;GetTime()-&gt;GetPos());
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  const mitk::PlaneGeometry *SliceNavigationController::GetCurrentPlaneGeometry()
+<span style = "background-color:#fdd">  {
+    const auto *slicedGeometry =</span>
+      dynamic_cast&lt;const mitk::SlicedGeometry3D *&gt;(this-&gt;GetCurrentGeometry3D());
+
+<span style = "background-color:#fdd">    if (slicedGeometry)</span>
+    {
+<span style = "background-color:#fdd">      const mitk::PlaneGeometry *planeGeometry = (slicedGeometry-&gt;GetPlaneGeometry(this-&gt;GetSlice()-&gt;GetPos()));
+      return planeGeometry;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  void SliceNavigationController::SetRenderer(BaseRenderer *renderer) { m_Renderer = renderer; }
+  BaseRenderer *SliceNavigationController::GetRenderer() const { return m_Renderer; }</span>
+  void SliceNavigationController::AdjustSliceStepperRange()
+<span style = "background-color:#fdd">  {
+    const auto *slicedGeometry =</span>
+      dynamic_cast&lt;const mitk::SlicedGeometry3D *&gt;(this-&gt;GetCurrentGeometry3D());
+
+<span style = "background-color:#fdd">    const Vector3D &amp;direction = slicedGeometry-&gt;GetDirectionVector();</span>
+
+<span style = "background-color:#fdd">    int c = 0;
+    int i, k = 0;
+    for (i = 0; i &lt; 3; ++i)</span>
+    {
+<span style = "background-color:#fdd">      if (fabs(direction[i]) &lt; 0.000000001)</span>
+      {
+<span style = "background-color:#fdd">        ++c;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        k = i;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    if (c == 2)</span>
+    {
+<span style = "background-color:#fdd">      ScalarType min = slicedGeometry-&gt;GetOrigin()[k];
+      ScalarType max = min + slicedGeometry-&gt;GetExtentInMM(k);</span>
+
+<span style = "background-color:#fdd">      m_Slice-&gt;SetRange(min, max);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      m_Slice-&gt;InvalidateRange();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void SliceNavigationController::ExecuteOperation(Operation *operation)
+<span style = "background-color:#fdd">  {</span>
+    // switch on type
+    // - select best slice for a given point
+    // - rotate created world geometry according to Operation-&gt;SomeInfo()
+<span style = "background-color:#fdd">    if (!operation || m_CreatedWorldGeometry.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    switch (operation-&gt;GetOperationType())</span>
+    {
+      case OpMOVE: // should be a point operation
+      {
+<span style = "background-color:#fdd">        if (!m_SliceLocked) // do not move the cross position</span>
+        {
+          // select a slice
+<span style = "background-color:#fdd">          auto *po = dynamic_cast&lt;PointOperation *&gt;(operation);
+          if (po &amp;&amp; po-&gt;GetIndex() == -1)</span>
+          {
+<span style = "background-color:#fdd">            this-&gt;SelectSliceByPoint(po-&gt;GetPoint());
+          }
+          else if (po &amp;&amp;</span>
+                   po-&gt;GetIndex() != -1) // undo case because index != -1, index holds the old position of this slice
+          {
+<span style = "background-color:#fdd">            this-&gt;GetSlice()-&gt;SetPos(po-&gt;GetIndex());</span>
+          }
+        }
+<span style = "background-color:#fdd">        break;</span>
+      }
+      case OpRESTOREPLANEPOSITION:
+      {
+<span style = "background-color:#fdd">        m_CreatedWorldGeometry-&gt;ExecuteOperation(operation);</span>
+
+<span style = "background-color:#fdd">        this-&gt;SendCreatedWorldGeometryUpdate();</span>
+
+<span style = "background-color:#fdd">        break;</span>
+      }
+      case OpAPPLYTRANSFORMMATRIX:
+      {
+<span style = "background-color:#fdd">        m_CreatedWorldGeometry-&gt;ExecuteOperation(operation);</span>
+
+<span style = "background-color:#fdd">        this-&gt;SendCreatedWorldGeometryUpdate();</span>
+
+        break;
+      }
+      default:
+      {
+        // do nothing
+        break;
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  TimeStepType SliceNavigationController::GetSelectedTimeStep() const
+<span style = "background-color:#fdd">  {
+    return this-&gt;GetTime()-&gt;GetPos();
+  }</span>
+
+  TimePointType SliceNavigationController::GetSelectedTimePoint() const
+<span style = "background-color:#fdd">  {
+    auto timeStep = this-&gt;GetSelectedTimeStep();</span>
+
+<span style = "background-color:#fdd">    if (m_CreatedWorldGeometry.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      return 0.0;</span>
+    }
+
+<span style = "background-color:#fdd">    if (!m_CreatedWorldGeometry-&gt;IsValidTimeStep(timeStep))</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "SliceNavigationController is in an invalid state. It has a time step"</span>
+        &lt;&lt; "selected that is not covered by its time geometry. Selected time step: "
+        &lt;&lt; timeStep &lt;&lt; "; TimeGeometry steps count: " &lt;&lt; m_CreatedWorldGeometry-&gt;CountTimeSteps();
+    }
+
+<span style = "background-color:#fdd">    return m_CreatedWorldGeometry-&gt;TimeStepToTimePoint(timeStep);
+  }</span>
+
+} // namespace</pre>
+	</body>
+</html>

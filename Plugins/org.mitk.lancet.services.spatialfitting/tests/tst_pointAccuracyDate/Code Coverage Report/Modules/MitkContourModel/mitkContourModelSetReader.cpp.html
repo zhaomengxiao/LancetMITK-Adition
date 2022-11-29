@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelSetReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkContourModelSetReader.h"
+#include "mitkContourModelReader.h"
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+#include &lt;mitkCustomMimeType.h&gt;
+#include &lt;mitkLocaleSwitch.h&gt;
+
+mitk::ContourModelSetReader::ContourModelSetReader(const mitk::ContourModelSetReader &amp;other)
+<span style = "background-color:#fdd">  : mitk::AbstractFileReader(other)
+{
+}</span>
+
+<span style = "background-color:#dfd">mitk::ContourModelSetReader::ContourModelSetReader() : AbstractFileReader()
+{
+  std::string category = "ContourModelSet File";
+  CustomMimeType customMimeType;
+  customMimeType.SetCategory(category);
+  customMimeType.AddExtension("cnt_set");</span>
+
+<span style = "background-color:#dfd">  this-&gt;SetDescription(category);
+  this-&gt;SetMimeType(customMimeType);</span>
+
+<span style = "background-color:#dfd">  m_ServiceReg = this-&gt;RegisterService();
+}</span>
+
+mitk::ContourModelSetReader::~ContourModelSetReader()
+<span style = "background-color:#dfd">{
+}</span>
+
+std::vector&lt;itk::SmartPointer&lt;mitk::BaseData&gt;&gt; mitk::ContourModelSetReader::DoRead()
+<span style = "background-color:#fdd">{
+  std::vector&lt;itk::SmartPointer&lt;mitk::BaseData&gt;&gt; result;
+  std::vector&lt;itk::SmartPointer&lt;mitk::BaseData&gt;&gt; internalResult;</span>
+
+<span style = "background-color:#fdd">  std::string location = GetInputLocation();</span>
+
+  // Switch the current locale to "C"
+<span style = "background-color:#fdd">  LocaleSwitch localeSwitch("C");</span>
+
+  try
+  {
+<span style = "background-color:#fdd">    mitk::ContourModelSet::Pointer contourSet = mitk::ContourModelSet::New();</span>
+
+<span style = "background-color:#fdd">    mitk::ContourModelReader reader;
+    reader.SetInput(location);
+    internalResult = reader.Read();</span>
+
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; internalResult.size(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      contourSet-&gt;AddContourModel(dynamic_cast&lt;mitk::ContourModel *&gt;(internalResult.at(i).GetPointer()));
+    }
+    result.push_back(dynamic_cast&lt;mitk::BaseData *&gt;(contourSet.GetPointer()));
+  }</span>
+  catch (...)
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "Cannot read contourModel.";
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::ContourModelSetReader *mitk::ContourModelSetReader::Clone() const
+<span style = "background-color:#fdd">{
+  return new ContourModelSetReader(*this);
+}</span></pre>
+	</body>
+</html>

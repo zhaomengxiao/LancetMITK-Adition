@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPadImageFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPadImageFilter.h"
+#include "mitkImageCast.h"
+
+#include "itkBinaryThresholdImageFilter.h"
+#include "itkConstantPadImageFilter.h"
+
+mitk::PadImageFilter::PadImageFilter()
+<span style = "background-color:#fdd">{
+  this-&gt;SetNumberOfIndexedInputs(2);
+  this-&gt;SetNumberOfRequiredInputs(2);
+  m_BinaryFilter = false;</span>
+
+<span style = "background-color:#fdd">  m_PadConstant = -32766;
+  m_LowerThreshold = -32766;
+  m_UpperThreshold = -32765;
+}</span>
+
+mitk::PadImageFilter::~PadImageFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::PadImageFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::Image::ConstPointer image = this-&gt;GetInput(0);
+  mitk::Image::ConstPointer referenceImage = this-&gt;GetInput(1);</span>
+
+  typedef itk::Image&lt;short, 3&gt; ImageType;
+<span style = "background-color:#fdd">  ImageType::Pointer itkImage = ImageType::New();
+  mitk::CastToItkImage(image, itkImage);</span>
+
+<span style = "background-color:#fdd">  mitk::BaseGeometry *imageGeometry = image-&gt;GetGeometry();
+  mitk::Point3D origin = imageGeometry-&gt;GetOrigin();
+  mitk::Vector3D spacing = imageGeometry-&gt;GetSpacing();</span>
+
+<span style = "background-color:#fdd">  mitk::BaseGeometry *referenceImageGeometry = referenceImage-&gt;GetGeometry();
+  mitk::Point3D referenceOrigin = referenceImageGeometry-&gt;GetOrigin();</span>
+
+  double outputOrigin[3];
+  itk::SizeValueType padLowerBound[3];
+  itk::SizeValueType padUpperBound[3];
+
+  int i;
+<span style = "background-color:#fdd">  for (i = 0; i &lt; 3; ++i)</span>
+  {
+<span style = "background-color:#fdd">    outputOrigin[i] = referenceOrigin[i];</span>
+
+<span style = "background-color:#fdd">    padLowerBound[i] = static_cast&lt;unsigned long&gt;((origin[i] - referenceOrigin[i]) / spacing[i] + 0.5);</span>
+
+<span style = "background-color:#fdd">    padUpperBound[i] = referenceImage-&gt;GetDimension(i) - image-&gt;GetDimension(i) - padLowerBound[i];
+  }</span>
+
+  // The origin of the input image is passed through the filter and used as
+  // output origin as well. Hence, it needs to be overwritten accordingly.
+<span style = "background-color:#fdd">  itkImage-&gt;SetOrigin(outputOrigin);</span>
+
+  typedef itk::ConstantPadImageFilter&lt;ImageType, ImageType&gt; PadFilterType;
+<span style = "background-color:#fdd">  PadFilterType::Pointer padFilter = PadFilterType::New();
+  padFilter-&gt;SetInput(itkImage);
+  padFilter-&gt;SetConstant(m_PadConstant);
+  padFilter-&gt;SetPadLowerBound(padLowerBound);
+  padFilter-&gt;SetPadUpperBound(padUpperBound);</span>
+
+<span style = "background-color:#fdd">  mitk::Image::Pointer outputImage = this-&gt;GetOutput();</span>
+
+  // If the Binary flag is set, use an additional binary threshold filter after
+  // padding.
+<span style = "background-color:#fdd">  if (m_BinaryFilter)</span>
+  {
+    typedef itk::Image&lt;unsigned char, 3&gt; BinaryImageType;
+    typedef itk::BinaryThresholdImageFilter&lt;ImageType, BinaryImageType&gt; BinaryFilterType;
+<span style = "background-color:#fdd">    BinaryFilterType::Pointer binaryFilter = BinaryFilterType::New();</span>
+
+<span style = "background-color:#fdd">    binaryFilter-&gt;SetInput(padFilter-&gt;GetOutput());
+    binaryFilter-&gt;SetLowerThreshold(m_LowerThreshold);
+    binaryFilter-&gt;SetUpperThreshold(m_UpperThreshold);
+    binaryFilter-&gt;SetInsideValue(1);
+    binaryFilter-&gt;SetOutsideValue(0);
+    binaryFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    mitk::CastToMitkImage(binaryFilter-&gt;GetOutput(), outputImage);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    padFilter-&gt;Update();
+    mitk::CastToMitkImage(padFilter-&gt;GetOutput(), outputImage);</span>
+  }
+
+<span style = "background-color:#fdd">  outputImage-&gt;SetRequestedRegionToLargestPossibleRegion();
+}</span></pre>
+	</body>
+</html>

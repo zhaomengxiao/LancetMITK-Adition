@@ -1,0 +1,782 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="utf-8"/>
+        <title>liborg_mitk_lancet_services_spatialfitting.dll</title>
+        <link rel="stylesheet" type="text/css" href="../third-party/css/style.css"/>
+        <script src="../third-party/RGraph/libraries/RGraph.common.core.js" type="text/javascript"></script>
+        <script src="../third-party/RGraph/libraries/RGraph.common.dynamic.js" type="text/javascript"></script>
+        <script src="../third-party/RGraph/libraries/RGraph.common.tooltips.js" type="text/javascript"></script>
+        <script src="../third-party/RGraph/libraries/RGraph.pie.js" type="text/javascript"></script>
+        <script src="../third-party/JQuery/jquery-1.11.1.min.js"></script>
+    </head>
+    <body>
+    <script type="text/javascript">
+        $(document).ready(function ()
+        {
+            
+            new RGraph.Pie('pi_f21c6b4a-2b41-438c-9457-f17c495ed22f', [61, 528])
+                .set('labels', ['Cover 10%','Uncover 90%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 61 lines (10%)', 'uncover 528 lines (90%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_502b3298-2d76-4f34-89b1-aa5e7baabc57', [0, 6])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 6 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_fa320fd2-73c7-4384-8c78-c9eaaa26da32', [0, 49])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 49 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_b1bed344-f304-49bd-90d5-7485f5431772', [0, 14])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 14 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_d2403765-3d7f-4356-85a9-0450539ee4ca', [0, 66])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 66 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_1883cac8-ca99-46db-ba4f-8cb4dc49a340', [0, 4])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 4 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_8c9c9a69-c76f-4142-870f-e80fae0596df', [0, 32])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 32 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_3293e6c8-b685-4865-8434-480032beb93c', [0, 5])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 5 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_b139c41c-b1f1-420b-badf-59ef4ec9b496', [0, 30])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 30 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_01113bba-1adc-4fe7-83ec-966074b94ddf', [0, 5])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 5 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_a0111169-cbaa-4e86-ba90-ce8ef025fc71', [0, 28])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 28 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_5544dafe-ca46-4e23-9341-cb30d680d28a', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_65b27507-6b63-41fc-aad0-001f0a179002', [0, 86])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 86 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_cc5aa55a-b3af-4e1d-ae85-fed58a03b340', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_5f3264f4-40a3-40eb-9a0d-62f66c835878', [0, 18])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 18 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_5ef74e95-b9cb-4961-9773-e856fab855b9', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_1178df21-b407-41fc-a066-51ea881bef42', [0, 18])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 18 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_df0e1d9e-5f65-4896-a9e9-ae2f07681860', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_bb80f276-1930-484f-8f69-cb29536298a9', [0, 1])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 1 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_fcc4be99-446d-4592-9a2b-e87d5003e4ae', [0, 30])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 30 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_8687dbe5-62d0-41e4-8b2c-c82e3a864ff1', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_dc19196e-aaa9-4f97-bbc9-7cf247637e68', [0, 9])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 9 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_1e0617cc-8be0-4cda-9030-d04974ff7da9', [0, 1])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 1 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_fc6f6a85-68d1-4d60-8d3f-e3af6a8a7f28', [0, 1])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 1 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_065206d7-ec20-4009-9fcc-4200fd791849', [1, 13])
+                .set('labels', ['Cover 7%','Uncover 93%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 1 lines (7%)', 'uncover 13 lines (93%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_b5a4d245-bce1-446b-8ade-6c305d372b08', [1, 10])
+                .set('labels', ['Cover 9%','Uncover 91%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 1 lines (9%)', 'uncover 10 lines (91%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_e0c22dda-ff59-46aa-b922-9c369490d29a', [7, 56])
+                .set('labels', ['Cover 11%','Uncover 89%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 7 lines (11%)', 'uncover 56 lines (89%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_43fd7722-4d9d-42f8-aea6-3f063d002814', [7, 20])
+                .set('labels', ['Cover 25%','Uncover 75%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 7 lines (25%)', 'uncover 20 lines (75%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_236ec233-ad69-42f8-8265-314e36d9d3ce', [7, 16])
+                .set('labels', ['Cover 30%','Uncover 70%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 7 lines (30%)', 'uncover 16 lines (70%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_2ac5ead2-b1cc-40b7-a1a4-882c59c9b7d8', [3, 0])
+                .set('labels', ['Cover 100%','Uncover 0%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 3 lines (100%)', 'uncover 0 lines (0%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_b2ac358a-c68a-4c81-92bd-551e5ca360f5', [24, 0])
+                .set('labels', ['Cover 100%','Uncover 0%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 24 lines (100%)', 'uncover 0 lines (0%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_1c901201-be18-4c66-b59f-2086cf06b7be', [11, 0])
+                .set('labels', ['Cover 100%','Uncover 0%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 11 lines (100%)', 'uncover 0 lines (0%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+
+      })
+    </script>    
+        <h1>
+        liborg_mitk_lancet_services_spatialfitting.dll
+        </h1>
+        <h4>
+        
+        </h4>
+        <table id="rounded-corner">
+            <thead>
+                <tr>
+                    <th scope="col" class="rounded-left">Coverage</th>
+                    <th scope="col">Total lines</th>
+                    <th scope="col" class="rounded-right">Items</th>
+                </tr>
+            </thead> 
+            <tbody>
+                
+                <tr>
+                    <td>
+            <canvas id="pi_f21c6b4a-2b41-438c-9457-f17c495ed22f" width="280" height="100">Cover 10%</canvas>
+                    </td>            
+                    <td>589</td>
+                    <td>            
+                      
+                      Y:\LancetMitk_SBD\MITK-build\bin\plugins\Debug\liborg_mitk_lancet_services_spatialfitting.dll
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_502b3298-2d76-4f34-89b1-aa5e7baabc57" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>6</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/mitkDataInteractor.h.html">E:\LancetMITK\Modules\Core\include\mitkDataInteractor.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_fa320fd2-73c7-4384-8c78-c9eaaa26da32" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>49</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/mitkDataNode.h.html">E:\LancetMITK\Modules\Core\include\mitkDataNode.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_b1bed344-f304-49bd-90d5-7485f5431772" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>14</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/mitkGetClassHierarchy.h.html">E:\LancetMITK\Modules\Core\include\mitkGetClassHierarchy.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_d2403765-3d7f-4356-85a9-0450539ee4ca" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>66</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingNavigationToolCollector.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingNavigationToolCollector.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_1883cac8-ca99-46db-ba4f-8cb4dc49a340" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>4</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingNavigationToolCollector.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingNavigationToolCollector.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_8c9c9a69-c76f-4142-870f-e80fae0596df" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>32</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingNavigationToolToNavigationToolFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_3293e6c8-b685-4865-8434-480032beb93c" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>5</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingNavigationToolToNavigationToolFilter.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingNavigationToolToNavigationToolFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_b139c41c-b1f1-420b-badf-59ef4ec9b496" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>30</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingNavigationToolToSpaceFilter.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingNavigationToolToSpaceFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_01113bba-1adc-4fe7-83ec-966074b94ddf" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>5</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingNavigationToolToSpaceFilter.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingNavigationToolToSpaceFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_a0111169-cbaa-4e86-ba90-ce8ef025fc71" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>28</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingPipelineBuilder.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingPipelineBuilder.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_5544dafe-ca46-4e23-9341-cb30d680d28a" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingPipelineBuilder.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingPipelineBuilder.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_65b27507-6b63-41fc-aad0-001f0a179002" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>86</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingPipelineManager.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingPipelineManager.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_cc5aa55a-b3af-4e1d-ae85-fed58a03b340" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingPipelineManager.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingPipelineManager.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_5f3264f4-40a3-40eb-9a0d-62f66c835878" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>18</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingRoboticsRegisterDirector.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingRoboticsRegisterDirector.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_5ef74e95-b9cb-4961-9773-e856fab855b9" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingRoboticsRegisterDirector.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingRoboticsRegisterDirector.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_1178df21-b407-41fc-a066-51ea881bef42" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>18</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingRoboticsVerifyDirector.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingRoboticsVerifyDirector.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_df0e1d9e-5f65-4896-a9e9-ae2f07681860" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingRoboticsVerifyDirector.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingRoboticsVerifyDirector.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_bb80f276-1930-484f-8f69-cb29536298a9" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>1</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetPluginActivator.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\internal\lancetPluginActivator.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_fcc4be99-446d-4592-9a2b-e87d5003e4ae" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>30</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingRoboticsRegisterModel.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\internal\lancetSpatialFittingRoboticsRegisterModel.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_8687dbe5-62d0-41e4-8b2c-c82e3a864ff1" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingRoboticsRegisterModel.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\internal\lancetSpatialFittingRoboticsRegisterModel.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_dc19196e-aaa9-4f97-bbc9-7cf247637e68" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>9</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingAbstractDirector.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\lancetSpatialFittingAbstractDirector.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_1e0617cc-8be0-4cda-9030-d04974ff7da9" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>1</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingAbstractDirector.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\lancetSpatialFittingAbstractDirector.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_fc6f6a85-68d1-4d60-8d3f-e3af6a8a7f28" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>1</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingAbstractPipelineBuilder.h.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\lancetSpatialFittingAbstractPipelineBuilder.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_065206d7-ec20-4009-9fcc-4200fd791849" width="280" height="100">Cover 7%</canvas>
+                    </td>            
+                    <td>14</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetPluginActivator.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\internal\lancetPluginActivator.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_b5a4d245-bce1-446b-8ade-6c305d372b08" width="280" height="100">Cover 9%</canvas>
+                    </td>            
+                    <td>11</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/mitkPointSet.h.html">E:\LancetMITK\Modules\Core\include\mitkPointSet.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_e0c22dda-ff59-46aa-b922-9c369490d29a" width="280" height="100">Cover 11%</canvas>
+                    </td>            
+                    <td>63</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/moc_lancetSpatialFittingNavigationToolCollector.cpp.html">Y:\LancetMitk_SBD\MITK-build\private_plugins\org.mitk.lancet.services.spatialfitting\src\core\moc_lancetSpatialFittingNavigationToolCollector.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_43fd7722-4d9d-42f8-aea6-3f063d002814" width="280" height="100">Cover 25%</canvas>
+                    </td>            
+                    <td>27</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/moc_lancetPluginActivator.cpp.html">Y:\LancetMitk_SBD\MITK-build\private_plugins\org.mitk.lancet.services.spatialfitting\src\internal\moc_lancetPluginActivator.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_236ec233-ad69-42f8-8265-314e36d9d3ce" width="280" height="100">Cover 30%</canvas>
+                    </td>            
+                    <td>23</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/mitkPoint.h.html">E:\LancetMITK\Modules\Core\include\mitkPoint.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_2ac5ead2-b1cc-40b7-a1a4-882c59c9b7d8" width="280" height="100">Cover 100%</canvas>
+                    </td>            
+                    <td>3</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/mitkTrackingTypes.h.html">E:\LancetMITK\Modules\IGT\Common\mitkTrackingTypes.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_b2ac358a-c68a-4c81-92bd-551e5ca360f5" width="280" height="100">Cover 100%</canvas>
+                    </td>            
+                    <td>24</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/lancetSpatialFittingPointAccuracyDate.cpp.html">E:\LancetMITK-Adition\Plugins\org.mitk.lancet.services.spatialfitting\src\core\lancetSpatialFittingPointAccuracyDate.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_1c901201-be18-4c66-b59f-2086cf06b7be" width="280" height="100">Cover 100%</canvas>
+                    </td>            
+                    <td>11</td>
+                    <td>            
+                       <a href="liborg_mitk_lancet_services_spatialfitting/qrc_org_mitk_lancet_services_spatialfitting_manifest.cpp.html">Y:\LancetMitk_SBD\MITK-build\private_plugins\org.mitk.lancet.services.spatialfitting\qrc_org_mitk_lancet_services_spatialfitting_manifest.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+            </tbody>
+            <tfoot>
+                <tr>
+                <td colspan="2" class="rounded-foot-left"></td>
+                <td class="rounded-foot-right"></td>
+                </tr>
+            </tfoot>            
+        </table>
+    </body>
+</html>

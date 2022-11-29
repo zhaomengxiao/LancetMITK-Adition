@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataRecorder.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationDataRecorder.h"
+#include &lt;mitkIGTTimeStamp.h&gt;
+
+mitk::NavigationDataRecorder::NavigationDataRecorder()
+<span style = "background-color:#fdd"> : m_NumberOfInputs(0),
+   m_NavigationDataSet(nullptr),
+   m_Recording(false),
+   m_StandardizeTime(false),
+   m_StandardizedTimeInitialized(false),
+   m_RecordCountLimit(-1),
+   m_RecordOnlyValidData(false)
+{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+mitk::NavigationDataRecorder::~NavigationDataRecorder()
+<span style = "background-color:#fdd">{</span>
+  //mitk::IGTTimeStamp::GetInstance()-&gt;Stop(this); //commented out because of bug 18952
+<span style = "background-color:#fdd">}</span>
+
+void mitk::NavigationDataRecorder::GenerateData()
+<span style = "background-color:#fdd">{</span>
+  // get each input, lookup the associated BaseData and transfer the data
+<span style = "background-color:#fdd">  DataObjectPointerArray inputs = this-&gt;GetIndexedInputs(); //get all inputs</span>
+
+  //This vector will hold the NavigationDatas that are copied from the inputs
+<span style = "background-color:#fdd">  std::vector&lt; mitk::NavigationData::Pointer &gt; clonedDatas;</span>
+
+<span style = "background-color:#fdd">  bool atLeastOneInputIsInvalid = false;</span>
+
+  // For each input
+<span style = "background-color:#fdd">  for (unsigned int index=0; index &lt; inputs.size(); index++)</span>
+  {
+    // First copy input to output
+<span style = "background-color:#fdd">    this-&gt;GetOutput(index)-&gt;Graft(this-&gt;GetInput(index));</span>
+
+    // if we are not recording, that's all there is to do
+<span style = "background-color:#fdd">    if (! m_Recording) continue;</span>
+
+<span style = "background-color:#fdd">    if (atLeastOneInputIsInvalid || !this-&gt;GetInput(index)-&gt;IsDataValid())</span>
+    {
+<span style = "background-color:#fdd">       atLeastOneInputIsInvalid = true;</span>
+    }
+
+    // Clone a Navigation Data
+<span style = "background-color:#fdd">    mitk::NavigationData::Pointer clone = mitk::NavigationData::New();
+    clone-&gt;Graft(this-&gt;GetInput(index));
+    clonedDatas.push_back(clone);</span>
+
+<span style = "background-color:#fdd">    if (m_StandardizeTime)</span>
+    {
+<span style = "background-color:#fdd">      mitk::NavigationData::TimeStampType igtTimestamp = mitk::IGTTimeStamp::GetInstance()-&gt;GetElapsed(this);
+      clonedDatas[index]-&gt;SetIGTTimeStamp(igtTimestamp);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // if limitation is set and has been reached, stop recording
+<span style = "background-color:#fdd">  if ((m_RecordCountLimit &gt; 0) &amp;&amp; (m_NavigationDataSet-&gt;Size() &gt;= static_cast&lt;unsigned int&gt;(m_RecordCountLimit)))
+    m_Recording = false;</span>
+  // We can skip the rest of the method, if recording is deactivated
+<span style = "background-color:#fdd">  if (!m_Recording) return;</span>
+  // We can skip the rest of the method, if we read only valid data
+<span style = "background-color:#fdd">  if (m_RecordOnlyValidData &amp;&amp; atLeastOneInputIsInvalid) return;</span>
+
+  // Add data to set
+<span style = "background-color:#fdd">  m_NavigationDataSet-&gt;AddNavigationDatas(clonedDatas);
+}</span>
+
+void mitk::NavigationDataRecorder::StartRecording()
+<span style = "background-color:#fdd">{
+  if (m_Recording)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Already recording please stop before start new recording session";
+    return;</span>
+  }
+<span style = "background-color:#fdd">  m_Recording = true;</span>
+
+  // The first time this StartRecording is called, we initialize the standardized time.
+  // Afterwards, it can be reset via ResetNavigationDataSet();
+<span style = "background-color:#fdd">  if (! m_StandardizedTimeInitialized)
+    mitk::IGTTimeStamp::GetInstance()-&gt;Start(this);</span>
+
+<span style = "background-color:#fdd">  if (m_NavigationDataSet.IsNull())
+    m_NavigationDataSet = mitk::NavigationDataSet::New(GetNumberOfIndexedInputs());
+}</span>
+
+void mitk::NavigationDataRecorder::StopRecording()
+<span style = "background-color:#fdd">{
+  if (!m_Recording)</span>
+  {
+<span style = "background-color:#fdd">    std::cout &lt;&lt; "You have to start a recording first" &lt;&lt; std::endl;
+    return;</span>
+  }
+<span style = "background-color:#fdd">  m_Recording = false;
+}</span>
+
+void mitk::NavigationDataRecorder::ResetRecording()
+<span style = "background-color:#fdd">{
+  m_NavigationDataSet = mitk::NavigationDataSet::New(GetNumberOfIndexedInputs());</span>
+
+<span style = "background-color:#fdd">  if (m_Recording)</span>
+  {
+<span style = "background-color:#fdd">    mitk::IGTTimeStamp::GetInstance()-&gt;Stop(this);
+    mitk::IGTTimeStamp::GetInstance()-&gt;Start(this);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+int mitk::NavigationDataRecorder::GetNumberOfRecordedSteps()
+<span style = "background-color:#fdd">{
+  return m_NavigationDataSet-&gt;Size();
+}</span></pre>
+	</body>
+</html>

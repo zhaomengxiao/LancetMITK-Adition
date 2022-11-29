@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVtkVolumeTimeSeriesReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkVtkVolumeTimeSeriesReader.h"
+#include "mitkSurface.h"
+#include "mitkVtkSurfaceReader.h"
+#include "vtkPolyData.h"
+
+void mitk::VtkVolumeTimeSeriesReader::GenerateData()
+<span style = "background-color:#fdd">{
+  if (!this-&gt;GenerateFileList())</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Sorry, file list could not be determined...");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::Surface::Pointer output = this-&gt;GetOutput();
+  MITK_INFO &lt;&lt; "prefix: " &lt;&lt; m_FilePrefix &lt;&lt; ", pattern: " &lt;&lt; m_FilePattern &lt;&lt; std::endl;
+  output-&gt;Expand(m_MatchedFileNames.size());
+  for (unsigned int i = 0; i &lt; m_MatchedFileNames.size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    std::string fileName = m_MatchedFileNames[i];
+    MITK_INFO &lt;&lt; "Loading " &lt;&lt; fileName &lt;&lt; " as vtk..." &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">    VtkSurfaceReader::Pointer vtkReader = VtkSurfaceReader::New();
+    vtkReader-&gt;SetFileName(fileName.c_str());
+    vtkReader-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    if (vtkReader-&gt;GetOutput() != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      output-&gt;SetVtkPolyData(vtkReader-&gt;GetOutput()-&gt;GetVtkPolyData(), i);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      itkWarningMacro(&lt;&lt; "vtkPolyDataReader returned nullptr while reading " &lt;&lt; fileName</span>
+                      &lt;&lt; ". Trying to continue with empty vtkPolyData...");
+<span style = "background-color:#fdd">      output-&gt;SetVtkPolyData(vtkPolyData::New(), i);</span>
+    }
+<span style = "background-color:#fdd">  }
+}</span>
+
+bool mitk::VtkVolumeTimeSeriesReader::CanReadFile(const std::string /*filename*/,
+                                                  const std::string filePrefix,
+                                                  const std::string filePattern)
+<span style = "background-color:#fdd">{
+  if (filePattern != "" &amp;&amp; filePrefix != "")
+    return false;</span>
+
+<span style = "background-color:#fdd">  bool extensionFound = false;
+  std::string::size_type VTKPos = filePattern.rfind(".vtk");
+  if ((VTKPos != std::string::npos) &amp;&amp; (VTKPos == filePattern.length() - 4))
+    extensionFound = true;</span>
+
+<span style = "background-color:#fdd">  VTKPos = filePattern.rfind(".VTK");
+  if ((VTKPos != std::string::npos) &amp;&amp; (VTKPos == filePattern.length() - 4))
+    extensionFound = true;</span>
+
+<span style = "background-color:#fdd">  if (!extensionFound)
+    return false;</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+mitk::VtkVolumeTimeSeriesReader::VtkVolumeTimeSeriesReader()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::VtkVolumeTimeSeriesReader::~VtkVolumeTimeSeriesReader()
+<span style = "background-color:#fdd">{
+}</span></pre>
+	</body>
+</html>

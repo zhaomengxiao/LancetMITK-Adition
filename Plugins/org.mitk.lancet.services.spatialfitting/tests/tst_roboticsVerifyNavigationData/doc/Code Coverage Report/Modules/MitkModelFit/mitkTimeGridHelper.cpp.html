@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTimeGridHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTimeGridHelper.h"
+
+#include "itkMacro.h"
+
+bool mitk::TimeGridIsMonotonIncreasing(const mitk::ModelBase::TimeGridType timeGrid)
+<span style = "background-color:#fdd">{
+    const auto beginPos = timeGrid.begin();
+    const auto endPos = timeGrid.end();
+    for(mitk::ModelBase::TimeGridType::const_iterator posTime = beginPos; posTime != endPos; ++posTime)</span>
+    {
+<span style = "background-color:#fdd">      if (posTime != beginPos &amp;&amp; *(posTime-1)&lt;*posTime) return false;
+    }</span>
+
+<span style = "background-color:#fdd">    return true;
+};</span>
+
+mitk::ModelBase::ModelResultType mitk::InterpolateSignalToNewTimeGrid(const ModelBase::ModelResultType&amp; inputSignal, const ModelBase::TimeGridType&amp; inputGrid, const ModelBase::TimeGridType&amp; outputGrid)
+<span style = "background-color:#fdd">{
+    mitk::ModelBase::ModelResultType result(outputGrid.GetSize());
+    if (! inputSignal.GetSize())</span>
+    {
+<span style = "background-color:#fdd">      return result;</span>
+    }
+
+<span style = "background-color:#fdd">    if (inputSignal.GetSize() != inputGrid.GetSize())</span>
+    {
+<span style = "background-color:#fdd">      itkGenericExceptionMacro("Input signal and input time grid have not the same size.");</span>
+    }
+
+<span style = "background-color:#fdd">    mitk::ModelBase::ModelResultType::ValueType lastValue = inputSignal[0];
+    mitk::ModelBase::TimeGridType::ValueType lastTime = itk::NumericTraits&lt;mitk::ModelBase::TimeGridType::ValueType&gt;::NonpositiveMin();</span>
+
+<span style = "background-color:#fdd">    mitk::ModelBase::TimeGridType::const_iterator posITime = inputGrid.begin();
+    mitk::ModelBase::ModelResultType::const_iterator posValue = inputSignal.begin();
+    mitk::ModelBase::ModelResultType::iterator posResult = result.begin();</span>
+
+<span style = "background-color:#fdd">    for(mitk::ModelBase::TimeGridType::const_iterator posOTime = outputGrid.begin(); posOTime != outputGrid.end(); ++posResult, ++posOTime)</span>
+    {
+<span style = "background-color:#fdd">        while(posITime!=inputGrid.end() &amp;&amp; *posOTime &gt; *posITime)</span>
+      { //forward in the input grid until the current output point
+        //is between last and the current input point.
+<span style = "background-color:#fdd">        lastValue = *posValue;
+        lastTime = *posITime;
+        ++posValue;
+        ++posITime;
+      }</span>
+
+<span style = "background-color:#fdd">      double weightLast = 1 - (*posOTime - lastTime)/(*posITime - lastTime);
+      double weightNext = 1 - (*posITime - *posOTime)/(*posITime - lastTime);</span>
+
+<span style = "background-color:#fdd">      *posResult = weightLast * lastValue + weightNext * (*posValue);
+    }</span>
+
+<span style = "background-color:#fdd">    return result;
+};</span>
+
+mitk::ModelBase::TimeGridType
+mitk::GenerateSupersampledTimeGrid(const mitk::ModelBase::TimeGridType&amp; grid, const unsigned int samplingRate)
+<span style = "background-color:#fdd">{
+  unsigned int origGridSize = grid.size();</span>
+
+<span style = "background-color:#fdd">  mitk::ModelBase::TimeGridType interpolatedTimeGrid(((origGridSize - 1) * samplingRate) + 1);</span>
+
+<span style = "background-color:#fdd">  for (unsigned int t = 0; t &lt; origGridSize - 1; ++t)</span>
+  {
+<span style = "background-color:#fdd">    double delta = (grid[t + 1] - grid[t]) / samplingRate;</span>
+
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; samplingRate; ++i)</span>
+    {
+<span style = "background-color:#fdd">      interpolatedTimeGrid[(t * samplingRate) + i] = grid[t] + i * delta;
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  interpolatedTimeGrid[interpolatedTimeGrid.size() - 1] = grid[grid.size() - 1];</span>
+
+<span style = "background-color:#fdd">  return interpolatedTimeGrid;
+};</span></pre>
+	</body>
+</html>

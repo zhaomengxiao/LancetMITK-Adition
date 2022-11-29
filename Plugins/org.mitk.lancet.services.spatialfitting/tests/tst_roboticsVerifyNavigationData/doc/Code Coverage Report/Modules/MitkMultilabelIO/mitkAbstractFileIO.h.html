@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkAbstractFileIO.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKABSTRACTFILEIO_H
+#define MITKABSTRACTFILEIO_H
+
+#include "mitkAbstractFileReader.h"
+#include "mitkAbstractFileWriter.h"
+
+namespace mitk
+{
+#ifndef DOXYGEN_SKIP
+
+  // Skip this code during Doxygen processing, because it only
+  // exists to resolve name clashes when inheriting from both
+  // AbstractFileReader and AbstractFileWriter.
+
+  class AbstractFileIOReader : public AbstractFileReader
+  {
+  public:
+<span style = "background-color:#fdd">    virtual ConfidenceLevel GetReaderConfidenceLevel() const { return AbstractFileReader::GetConfidenceLevel(); }
+    ConfidenceLevel GetConfidenceLevel() const override { return this-&gt;GetReaderConfidenceLevel(); }</span>
+  protected:
+<span style = "background-color:#dfd">    AbstractFileIOReader() {}</span>
+    AbstractFileIOReader(const CustomMimeType &amp;mimeType, const std::string &amp;description)
+<span style = "background-color:#dfd">      : AbstractFileReader(mimeType, description)
+    {
+    }</span>
+
+  private:
+    virtual IFileReader *ReaderClone() const = 0;
+<span style = "background-color:#fdd">    IFileReader *Clone() const override { return ReaderClone(); }</span>
+  };
+
+  struct AbstractFileIOWriter : public AbstractFileWriter
+  {
+<span style = "background-color:#fdd">    virtual ConfidenceLevel GetWriterConfidenceLevel() const { return AbstractFileWriter::GetConfidenceLevel(); }
+    ConfidenceLevel GetConfidenceLevel() const override { return this-&gt;GetWriterConfidenceLevel(); }</span>
+  protected:
+<span style = "background-color:#dfd">    AbstractFileIOWriter(const std::string &amp;baseDataType) : AbstractFileWriter(baseDataType) {}</span>
+    AbstractFileIOWriter(const std::string &amp;baseDataType,
+                         const CustomMimeType &amp;mimeType,
+                         const std::string &amp;description)
+<span style = "background-color:#dfd">      : AbstractFileWriter(baseDataType, mimeType, description)
+    {
+    }</span>
+
+  private:
+    virtual IFileWriter *WriterClone() const = 0;
+<span style = "background-color:#fdd">    IFileWriter *Clone() const override { return WriterClone(); }</span>
+  };
+
+#endif // DOXYGEN_SKIP
+
+  /**
+   * @ingroup IO
+   *
+   * @brief Abstract class for implementing a reader and writer.
+   */
+  class MITKCORE_EXPORT AbstractFileIO : public AbstractFileIOReader, public AbstractFileIOWriter
+  {
+  public:
+    Options GetReaderOptions() const;
+    us::Any GetReaderOption(const std::string &amp;name) const;
+
+    void SetReaderOptions(const Options &amp;options);
+    void SetReaderOption(const std::string &amp;name, const us::Any &amp;value);
+
+    Options GetWriterOptions() const;
+    us::Any GetWriterOption(const std::string &amp;name) const;
+
+    void SetWriterOptions(const Options &amp;options);
+    void SetWriterOption(const std::string &amp;name, const us::Any &amp;value);
+
+    ConfidenceLevel GetReaderConfidenceLevel() const override;
+
+    ConfidenceLevel GetWriterConfidenceLevel() const override;
+
+    std::pair&lt;us::ServiceRegistration&lt;IFileReader&gt;, us::ServiceRegistration&lt;IFileWriter&gt;&gt; RegisterService(
+      us::ModuleContext *context = us::GetModuleContext());
+
+  protected:
+    AbstractFileIO(const AbstractFileIO &amp;other);
+
+    AbstractFileIO(const std::string &amp;baseDataType);
+
+    /**
+     * Associate this reader instance with the given MIME type.
+     *
+     * If the given MIME type has nothing but its name set, the according MIME type
+     * is looked up in the service registry.
+     *
+     * @param baseDataType
+     * @param mimeType The MIME type this reader can read.
+     * @param description A human readable description of this reader.
+     *
+     * @throws std::invalid_argument if \c mimeType is empty.
+     *
+     * @see RegisterService
+     */
+    explicit AbstractFileIO(const std::string &amp;baseDataType,
+                            const CustomMimeType &amp;mimeType,
+                            const std::string &amp;description);
+
+    void SetMimeType(const CustomMimeType &amp;mimeType);
+
+    /**
+     * @return The mime-type this reader can handle.
+     */
+    const CustomMimeType *GetMimeType() const;
+
+    void SetReaderDescription(const std::string &amp;description);
+    std::string GetReaderDescription() const;
+
+    void SetWriterDescription(const std::string &amp;description);
+    std::string GetWriterDescription() const;
+
+    void SetDefaultReaderOptions(const Options &amp;defaultOptions);
+    Options GetDefaultReaderOptions() const;
+
+    void SetDefaultWriterOptions(const Options &amp;defaultOptions);
+    Options GetDefaultWriterOptions() const;
+
+    /**
+     * \brief Set the service ranking for this file reader.
+     *
+     * Default is zero and should only be chosen differently for a reason.
+     * The ranking is used to determine which reader to use if several
+     * equivalent readers have been found.
+     * It may be used to replace a default reader from MITK in your own project.
+     * E.g. if you want to use your own reader for nrrd files instead of the default,
+     * implement it and give it a higher ranking than zero.
+     */
+    void SetReaderRanking(int ranking);
+    int GetReaderRanking() const;
+
+    void SetWriterRanking(int ranking);
+    int GetWriterRanking() const;
+
+  private:
+    AbstractFileIO &amp;operator=(const AbstractFileIO &amp;other);
+
+    virtual AbstractFileIO *IOClone() const = 0;
+
+    IFileReader *ReaderClone() const override;
+    IFileWriter *WriterClone() const override;
+  };
+}
+
+#endif // MITKABSTRACTFILEIO_H</pre>
+	</body>
+</html>

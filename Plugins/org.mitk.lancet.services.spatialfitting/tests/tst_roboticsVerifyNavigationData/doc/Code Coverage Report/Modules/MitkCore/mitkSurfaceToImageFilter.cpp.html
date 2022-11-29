@@ -1,0 +1,266 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSurfaceToImageFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkSurfaceToImageFilter.h"
+#include "mitkImageWriteAccessor.h"
+#include "mitkTimeHelper.h"
+#include &lt;mitkImageReadAccessor.h&gt;
+
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkImageStencil.h&gt;
+#include &lt;vtkPointData.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkPolyDataNormals.h&gt;
+#include &lt;vtkPolyDataToImageStencil.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+#include &lt;vtkTransform.h&gt;
+#include &lt;vtkTransformPolyDataFilter.h&gt;
+
+mitk::SurfaceToImageFilter::SurfaceToImageFilter()
+<span style = "background-color:#fdd">  : m_MakeOutputBinary(false),
+    m_UShortBinaryPixelType(false),
+    m_BackgroundValue(-10000),
+    m_Tolerance(0.0),
+    m_ReverseStencil(false)
+{
+}</span>
+
+<span style = "background-color:#fdd">mitk::SurfaceToImageFilter::~SurfaceToImageFilter() {}</span>
+
+void mitk::SurfaceToImageFilter::GenerateInputRequestedRegion()
+<span style = "background-color:#fdd">{
+  mitk::Image *output = this-&gt;GetOutput();
+  if ((output-&gt;IsInitialized() == false))
+    return;</span>
+
+<span style = "background-color:#fdd">  GenerateTimeInInputRegion(output, const_cast&lt;mitk::Image *&gt;(this-&gt;GetImage()));
+}</span>
+
+void mitk::SurfaceToImageFilter::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+  mitk::Image *inputImage = (mitk::Image *)this-&gt;GetImage();
+  mitk::Image::Pointer output = this-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  itkDebugMacro(&lt;&lt; "GenerateOutputInformation()");</span>
+
+<span style = "background-color:#fdd">  if ((inputImage == nullptr) || (inputImage-&gt;IsInitialized() == false) || (inputImage-&gt;GetTimeGeometry() == nullptr))
+    return;</span>
+
+<span style = "background-color:#fdd">  if (m_MakeOutputBinary)</span>
+  {
+<span style = "background-color:#fdd">    if (m_UShortBinaryPixelType)</span>
+    {
+<span style = "background-color:#fdd">      output-&gt;Initialize(mitk::MakeScalarPixelType&lt;unsigned short&gt;(), *inputImage-&gt;GetTimeGeometry());
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      output-&gt;Initialize(mitk::MakeScalarPixelType&lt;unsigned char&gt;(), *inputImage-&gt;GetTimeGeometry());</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    output-&gt;Initialize(inputImage-&gt;GetPixelType(), *inputImage-&gt;GetTimeGeometry());</span>
+  }
+
+<span style = "background-color:#fdd">  output-&gt;SetPropertyList(inputImage-&gt;GetPropertyList()-&gt;Clone());
+}</span>
+
+void mitk::SurfaceToImageFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::Image::ConstPointer inputImage = this-&gt;GetImage();
+  mitk::Image::Pointer output = this-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  if (inputImage.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  if (output-&gt;IsInitialized() == false)
+    return;</span>
+
+<span style = "background-color:#fdd">  mitk::Image::RegionType outputRegion = output-&gt;GetRequestedRegion();</span>
+
+<span style = "background-color:#fdd">  int tstart = outputRegion.GetIndex(3);
+  int tmax = tstart + outputRegion.GetSize(3);</span>
+
+<span style = "background-color:#fdd">  if (tmax &gt; 0)</span>
+  {
+    int t;
+<span style = "background-color:#fdd">    for (t = tstart; t &lt; tmax; ++t)</span>
+    {
+<span style = "background-color:#fdd">      Stencil3DImage(t);
+    }
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    Stencil3DImage(0);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::SurfaceToImageFilter::Stencil3DImage(int time)
+<span style = "background-color:#fdd">{
+  mitk::Image::Pointer output = this-&gt;GetOutput();
+  mitk::Image::Pointer binaryImage = mitk::Image::New();</span>
+
+<span style = "background-color:#fdd">  unsigned int size = sizeof(unsigned char);
+  if (m_MakeOutputBinary)</span>
+  {
+<span style = "background-color:#fdd">    if (m_UShortBinaryPixelType)</span>
+    {
+<span style = "background-color:#fdd">      binaryImage-&gt;Initialize(mitk::MakeScalarPixelType&lt;unsigned short&gt;(), *this-&gt;GetImage()-&gt;GetTimeGeometry(), 1, 1);
+      size = sizeof(unsigned short);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      binaryImage-&gt;Initialize(mitk::MakeScalarPixelType&lt;unsigned char&gt;(), *this-&gt;GetImage()-&gt;GetTimeGeometry(), 1, 1);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    binaryImage-&gt;Initialize(this-&gt;GetImage()-&gt;GetPixelType(), *this-&gt;GetImage()-&gt;GetTimeGeometry(), 1, 1);
+    size = this-&gt;GetImage()-&gt;GetPixelType().GetSize();</span>
+  }
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; binaryImage-&gt;GetDimension(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    size *= binaryImage-&gt;GetDimension(i);
+  }</span>
+
+<span style = "background-color:#fdd">  mitk::ImageWriteAccessor accessor(binaryImage);
+  memset(accessor.GetData(), 1, size);</span>
+
+<span style = "background-color:#fdd">  const mitk::TimeGeometry *surfaceTimeGeometry = GetInput()-&gt;GetTimeGeometry();
+  const mitk::TimeGeometry *imageTimeGeometry = GetImage()-&gt;GetTimeGeometry();</span>
+
+  // Convert time step from image time-frame to surface time-frame
+<span style = "background-color:#fdd">  mitk::TimePointType matchingTimePoint = imageTimeGeometry-&gt;TimeStepToTimePoint(time);
+  mitk::TimeStepType surfaceTimeStep = surfaceTimeGeometry-&gt;TimePointToTimeStep(matchingTimePoint);</span>
+
+<span style = "background-color:#fdd">  vtkPolyData *polydata = ((mitk::Surface *)GetInput())-&gt;GetVtkPolyData(surfaceTimeStep);
+  if (polydata)</span>
+  {
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkTransformPolyDataFilter&gt; move = vtkSmartPointer&lt;vtkTransformPolyDataFilter&gt;::New();
+    move-&gt;SetInputData(polydata);
+    move-&gt;ReleaseDataFlagOn();</span>
+
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkTransform&gt; transform = vtkSmartPointer&lt;vtkTransform&gt;::New();
+    BaseGeometry *geometry = surfaceTimeGeometry-&gt;GetGeometryForTimeStep(surfaceTimeStep);
+    if (!geometry)</span>
+    {
+<span style = "background-color:#fdd">      geometry = GetInput()-&gt;GetGeometry();</span>
+    }
+<span style = "background-color:#fdd">    transform-&gt;PostMultiply();
+    transform-&gt;Concatenate(geometry-&gt;GetVtkTransform()-&gt;GetMatrix());</span>
+    // take image geometry into account. vtk-Image information will be changed to unit spacing and zero origin below.
+<span style = "background-color:#fdd">    BaseGeometry *imageGeometry = imageTimeGeometry-&gt;GetGeometryForTimeStep(time);
+    transform-&gt;Concatenate(imageGeometry-&gt;GetVtkTransform()-&gt;GetLinearInverse());
+    move-&gt;SetTransform(transform);</span>
+
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPolyDataNormals&gt; normalsFilter = vtkSmartPointer&lt;vtkPolyDataNormals&gt;::New();
+    normalsFilter-&gt;SetFeatureAngle(50);
+    normalsFilter-&gt;SetConsistency(1);
+    normalsFilter-&gt;SetSplitting(1);
+    normalsFilter-&gt;SetFlipNormals(0);
+    normalsFilter-&gt;ReleaseDataFlagOn();</span>
+
+<span style = "background-color:#fdd">    normalsFilter-&gt;SetInputConnection(move-&gt;GetOutputPort());</span>
+
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPolyDataToImageStencil&gt; surfaceConverter = vtkSmartPointer&lt;vtkPolyDataToImageStencil&gt;::New();
+    surfaceConverter-&gt;SetTolerance(m_Tolerance);
+    surfaceConverter-&gt;ReleaseDataFlagOn();</span>
+
+<span style = "background-color:#fdd">    surfaceConverter-&gt;SetInputConnection(normalsFilter-&gt;GetOutputPort());</span>
+
+<span style = "background-color:#fdd">    vtkImageData *image = m_MakeOutputBinary ? binaryImage-&gt;GetVtkImageData() :</span>
+                                               const_cast&lt;mitk::Image *&gt;(this-&gt;GetImage())-&gt;GetVtkImageData(time);
+
+    // fill the image with foreground voxels:
+    // bug: only binary need this, line 135 already setted 1;
+    // unsigned char inval = 1;
+    // vtkIdType count = image-&gt;GetNumberOfPoints();
+    // for (vtkIdType i = 0; i &lt; count; ++i)
+    // {
+    //   image-&gt;GetPointData()-&gt;GetScalars()-&gt;SetTuple1(i, inval);
+    // }
+
+    // Create stencil and use numerical minimum of pixel type as background value
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkImageStencil&gt; stencil = vtkSmartPointer&lt;vtkImageStencil&gt;::New();
+    stencil-&gt;SetInputData(image);
+    if (m_ReverseStencil)</span>
+    {
+<span style = "background-color:#fdd">      stencil-&gt;ReverseStencilOn();</span>
+    }
+
+<span style = "background-color:#fdd">    stencil-&gt;ReleaseDataFlagOn();
+    stencil-&gt;SetStencilConnection(surfaceConverter-&gt;GetOutputPort());</span>
+
+<span style = "background-color:#fdd">    stencil-&gt;SetBackgroundValue(m_MakeOutputBinary ? 0 : m_BackgroundValue);
+    stencil-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    output-&gt;SetVolume(stencil-&gt;GetOutput()-&gt;GetScalarPointer(), time);
+    MITK_INFO &lt;&lt; "stencil ref count: " &lt;&lt; stencil-&gt;GetReferenceCount() &lt;&lt; std::endl;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    memset(accessor.GetData(), 0, size);
+    output-&gt;SetVolume(accessor.GetData(), time);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const mitk::Surface *mitk::SurfaceToImageFilter::GetInput(void)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  return static_cast&lt;const mitk::Surface *&gt;(this-&gt;ProcessObject::GetInput(0));
+}</span>
+
+void mitk::SurfaceToImageFilter::SetInput(const mitk::Surface *input)
+<span style = "background-color:#fdd">{</span>
+  // Process object is not const-correct so the const_cast is required here
+<span style = "background-color:#fdd">  this-&gt;ProcessObject::SetNthInput(0, const_cast&lt;mitk::Surface *&gt;(input));
+}</span>
+
+void mitk::SurfaceToImageFilter::SetImage(const mitk::Image *source)
+<span style = "background-color:#fdd">{
+  this-&gt;ProcessObject::SetNthInput(1, const_cast&lt;mitk::Image *&gt;(source));
+}</span>
+
+const mitk::Image *mitk::SurfaceToImageFilter::GetImage(void)
+<span style = "background-color:#fdd">{
+  return static_cast&lt;const mitk::Image *&gt;(this-&gt;ProcessObject::GetInput(1));
+}</span></pre>
+	</body>
+</html>

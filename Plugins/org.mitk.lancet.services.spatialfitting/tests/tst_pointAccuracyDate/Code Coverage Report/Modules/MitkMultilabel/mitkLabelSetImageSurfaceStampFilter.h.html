@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabelSetImageSurfaceStampFilter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#ifndef __mitkLabelSetImageSurfaceStampFilter_h
+#define __mitkLabelSetImageSurfaceStampFilter_h
+
+#include "MitkMultilabelExports.h"
+
+// MITK
+#include "mitkImageToImageFilter.h"
+#include &lt;itkImage.h&gt;
+#include &lt;mitkImage.h&gt;
+#include &lt;mitkSurface.h&gt;
+
+namespace mitk
+{
+  class MITKMULTILABEL_EXPORT LabelSetImageSurfaceStampFilter : public ImageToImageFilter
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(LabelSetImageSurfaceStampFilter, ImageToImageFilter);
+    itkFactorylessNewMacro(Self);
+    itkCloneMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkGetConstMacro(Surface, Surface::Pointer);
+    itkSetMacro(Surface, Surface::Pointer);
+    itkGetConstMacro(ForceOverwrite, bool);
+    itkSetMacro(ForceOverwrite, bool);</span>
+
+  private:
+    /*!
+    \brief standard constructor
+    */
+    LabelSetImageSurfaceStampFilter();
+    /*!
+    \brief standard destructor
+    */
+    ~LabelSetImageSurfaceStampFilter() override;
+    /*!
+    \brief Method generating the output information of this filter (e.g. image dimension, image type, etc.).
+    The interface ImageToImageFilter requires this implementation. Everything is taken from the input image.
+    */
+    void GenerateOutputInformation() override;
+    /*!
+    \brief Method generating the output of this filter. Called in the updated process of the pipeline.
+    This method generates the smoothed output image.
+    */
+    void GenerateData() override;
+
+    /*!
+    \brief Internal templated method calling the ITK bilteral filter. Here the actual filtering is performed.
+    */
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    void ItkImageProcessing(itk::Image&lt;TPixel, VImageDimension&gt; *itkImage, mitk::Image::Pointer resultImage);
+
+    Surface::Pointer m_Surface;
+    bool m_ForceOverwrite;
+  };
+} // END mitk namespace
+#endif</pre>
+	</body>
+</html>

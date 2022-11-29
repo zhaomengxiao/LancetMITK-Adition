@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkResliceMethodProperty.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkResliceMethodProperty.h"
+
+mitk::ResliceMethodProperty::ResliceMethodProperty()
+<span style = "background-color:#fdd">{
+  AddThickSlicesTypes();
+  SetValue((IdType)0);
+}</span>
+
+mitk::ResliceMethodProperty::ResliceMethodProperty(const IdType &amp;value)
+<span style = "background-color:#fdd">{
+  AddThickSlicesTypes();
+  if (IsValidEnumerationValue(value))
+    SetValue(value);
+}</span>
+
+mitk::ResliceMethodProperty::ResliceMethodProperty(const std::string &amp;value)
+<span style = "background-color:#fdd">{
+  AddThickSlicesTypes();
+  if (IsValidEnumerationValue(value))
+    SetValue(value);
+}</span>
+
+void mitk::ResliceMethodProperty::AddThickSlicesTypes()
+<span style = "background-color:#fdd">{
+  AddEnum("disabled", (IdType)0);
+  AddEnum("mip", (IdType)1);
+  AddEnum("sum", (IdType)2);
+  AddEnum("weighted", (IdType)3);
+  AddEnum("minip", (IdType)4);
+  AddEnum("mean", (IdType)5);
+}</span>
+
+itk::LightObject::Pointer mitk::ResliceMethodProperty::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result(new Self(*this));
+  result-&gt;UnRegister();
+  return result;
+}</span></pre>
+	</body>
+</html>

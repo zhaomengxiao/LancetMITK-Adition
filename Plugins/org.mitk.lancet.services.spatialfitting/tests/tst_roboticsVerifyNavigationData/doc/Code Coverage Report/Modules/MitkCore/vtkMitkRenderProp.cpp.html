@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>vtkMitkRenderProp.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "vtkMitkRenderProp.h"
+
+#include &lt;vtkObjectFactory.h&gt;
+#include &lt;vtkPropAssembly.h&gt;
+#include &lt;vtkInformation.h&gt;
+
+#include "mitkVtkMapper.h"
+
+<span style = "background-color:#fdd">vtkStandardNewMacro(vtkMitkRenderProp);</span>
+
+vtkMitkRenderProp::vtkMitkRenderProp()
+<span style = "background-color:#fdd">{
+}</span>
+vtkMitkRenderProp::~vtkMitkRenderProp()
+<span style = "background-color:#fdd">{
+}</span>
+
+double *vtkMitkRenderProp::GetBounds()
+<span style = "background-color:#fdd">{
+  return const_cast&lt;double *&gt;(m_VtkPropRenderer-&gt;GetBounds());
+}</span>
+
+void vtkMitkRenderProp::SetPropRenderer(mitk::VtkPropRenderer::Pointer propRenderer)
+<span style = "background-color:#fdd">{
+  this-&gt;m_VtkPropRenderer = propRenderer;
+}</span>
+
+void vtkMitkRenderProp::SetPropertyKeys(vtkInformation *keys)
+<span style = "background-color:#fdd">{
+  Superclass::SetPropertyKeys(keys);</span>
+
+<span style = "background-color:#fdd">  if (nullptr != m_VtkPropRenderer)
+    m_VtkPropRenderer-&gt;SetPropertyKeys(keys);
+}</span>
+
+int vtkMitkRenderProp::RenderOpaqueGeometry(vtkViewport * /*viewport*/)
+<span style = "background-color:#fdd">{
+  return m_VtkPropRenderer-&gt;Render(mitk::VtkPropRenderer::Opaque);
+}</span>
+
+int vtkMitkRenderProp::RenderOverlay(vtkViewport * /*viewport*/)
+<span style = "background-color:#fdd">{
+  return m_VtkPropRenderer-&gt;Render(mitk::VtkPropRenderer::Overlay);
+}</span>
+
+void vtkMitkRenderProp::ReleaseGraphicsResources(vtkWindow *window)
+<span style = "background-color:#fdd">{
+  m_VtkPropRenderer-&gt;ReleaseGraphicsResources(window);
+}</span>
+
+void vtkMitkRenderProp::InitPathTraversal()
+<span style = "background-color:#fdd">{
+  m_VtkPropRenderer-&gt;InitPathTraversal();
+}</span>
+
+vtkAssemblyPath *vtkMitkRenderProp::GetNextPath()
+<span style = "background-color:#fdd">{
+  return m_VtkPropRenderer-&gt;GetNextPath();
+}</span>
+
+int vtkMitkRenderProp::GetNumberOfPaths()
+<span style = "background-color:#fdd">{
+  return m_VtkPropRenderer-&gt;GetNumberOfPaths();
+}</span>
+
+int vtkMitkRenderProp::HasTranslucentPolygonalGeometry()
+<span style = "background-color:#fdd">{
+  for (const auto &amp;mapEntry : m_VtkPropRenderer-&gt;GetMappersMap())</span>
+  {
+<span style = "background-color:#fdd">    auto vtkMapper = dynamic_cast&lt;mitk::VtkMapper*&gt;(mapEntry.second);</span>
+
+<span style = "background-color:#fdd">    if (nullptr != vtkMapper)</span>
+    {
+      // Due to VTK 5.2 bug, we need to initialize the Paths object in vtkPropAssembly
+      // manually (see issue #8186 committed to VTK's Mantis issue tracker)
+      // --&gt; VTK bug resolved on 2008-12-01
+<span style = "background-color:#fdd">      auto propAssembly = dynamic_cast&lt;vtkPropAssembly *&gt;(vtkMapper-&gt;GetVtkProp(m_VtkPropRenderer));</span>
+
+<span style = "background-color:#fdd">      if (nullptr != propAssembly)
+        propAssembly-&gt;InitPathTraversal();</span>
+
+<span style = "background-color:#fdd">      if (1 == vtkMapper-&gt;GetVtkProp(m_VtkPropRenderer)-&gt;HasTranslucentPolygonalGeometry())
+        return 1;
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return 0;
+}</span>
+
+int vtkMitkRenderProp::RenderTranslucentPolygonalGeometry(vtkViewport *)
+<span style = "background-color:#fdd">{
+  return m_VtkPropRenderer-&gt;Render(mitk::VtkPropRenderer::Translucent);
+}</span>
+int vtkMitkRenderProp::RenderVolumetricGeometry(vtkViewport *)
+<span style = "background-color:#fdd">{
+  return m_VtkPropRenderer-&gt;Render(mitk::VtkPropRenderer::Volumetric);
+}</span></pre>
+	</body>
+</html>

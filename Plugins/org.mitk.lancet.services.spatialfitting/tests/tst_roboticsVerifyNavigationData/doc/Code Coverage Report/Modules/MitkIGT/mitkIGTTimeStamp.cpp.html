@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIGTTimeStamp.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkIGTTimeStamp.h"
+#include &lt;map&gt;
+
+#include "mitkRealTimeClock.h"
+
+<span style = "background-color:#dfd">mitk::IGTTimeStamp::Pointer mitk::IGTTimeStamp::s_Instance = nullptr;</span>
+
+<span style = "background-color:#fdd">mitk::IGTTimeStamp::IGTTimeStamp() : itk::Object()
+, m_Time(-1.0), m_ReferenceTime(0.0)
+{
+}</span>
+
+mitk::IGTTimeStamp::~IGTTimeStamp()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::IGTTimeStamp* mitk::IGTTimeStamp::CreateInstance()
+<span style = "background-color:#fdd">{
+return mitk::IGTTimeStamp::GetInstance();
+}</span>
+
+mitk::IGTTimeStamp* mitk::IGTTimeStamp::GetInstance()
+<span style = "background-color:#fdd">{
+  if (IGTTimeStamp::s_Instance.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitk::IGTTimeStamp::Pointer ts = new mitk::IGTTimeStamp;
+    s_Instance = ts;
+    return s_Instance;
+  }</span>
+  else
+<span style = "background-color:#fdd">    return s_Instance;
+}</span>
+
+void mitk::IGTTimeStamp::Start(itk::Object::Pointer device)
+<span style = "background-color:#fdd">{
+  if (m_RealTimeClock.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    Initialize();</span>
+  }
+<span style = "background-color:#fdd">  if ( s_Instance.IsNotNull() )</span>
+  {
+<span style = "background-color:#fdd">    if (m_DeviceMap.empty())</span>
+    {
+<span style = "background-color:#fdd">      m_ReferenceTime = GetCurrentStamp();
+      m_Time = 0.0;</span>
+    }
+<span style = "background-color:#fdd">    m_DeviceMap.insert( std::pair&lt;itk::Object::Pointer, double&gt;(device, this-&gt;GetElapsed()) );
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    itkGenericOutputMacro("Trying to use mitk::TimeStamp::Start() "</span>
+        &lt;&lt; "without an available singleton instance. Either no instance has "
+        &lt;&lt; "been created (use TimeStamp::CreateInstance) or it has already "
+        &lt;&lt; "been destroyed.");
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTTimeStamp::Stop(itk::Object::Pointer device)
+<span style = "background-color:#fdd">{
+  if ( s_Instance.IsNotNull() )</span>
+  {
+<span style = "background-color:#fdd">    m_MapIterator =  m_DeviceMap.find(device);
+    if ( m_MapIterator != m_DeviceMap.end() )</span>
+    {
+<span style = "background-color:#fdd">      m_DeviceMap.erase( m_MapIterator );</span>
+    }
+
+<span style = "background-color:#fdd">    if (m_DeviceMap.empty())</span>
+    {
+<span style = "background-color:#fdd">      m_ReferenceTime = 0;
+      m_Time = -1;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    itkGenericOutputMacro("Trying to use mitk::TimeStamp::Stop() "</span>
+        &lt;&lt; "without an available singleton instance. Either no instance has "
+        &lt;&lt; "been created (use TimeStamp::CreateInstance) or it has already "
+        &lt;&lt; "been destroyed.");
+  }
+<span style = "background-color:#fdd">}</span>
+
+
+double mitk::IGTTimeStamp::GetElapsed()
+<span style = "background-color:#fdd">{
+  if (m_Time &gt; -1)</span>
+  {
+<span style = "background-color:#fdd">    m_Time = GetCurrentStamp();
+    m_Time = m_Time - m_ReferenceTime;</span>
+  }
+<span style = "background-color:#fdd">  return (double) m_Time;
+}</span>
+
+
+double mitk::IGTTimeStamp::GetElapsed(itk::Object::Pointer device)
+<span style = "background-color:#fdd">{
+  double offset = this-&gt;GetOffset( device );
+  if ( offset &gt; -1 )</span>
+  {
+<span style = "background-color:#fdd">    double time = this-&gt;GetElapsed();
+    return (double) time - this-&gt;GetOffset(device);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return (double) -1;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+double mitk::IGTTimeStamp::GetCurrentStamp()
+<span style = "background-color:#fdd">{
+  if (m_RealTimeClock.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    return m_RealTimeClock-&gt;GetCurrentStamp();
+  }
+  else return 0.0;
+}</span>
+
+void mitk::IGTTimeStamp::SetRealTimeClock(mitk::RealTimeClock::Pointer Clock)
+<span style = "background-color:#fdd">{
+  m_RealTimeClock = Clock;
+}</span>
+
+double mitk::IGTTimeStamp::GetOffset(itk::Object::Pointer Device)
+<span style = "background-color:#fdd">{
+  m_MapIterator =  m_DeviceMap.find(Device);
+  if ( m_MapIterator != m_DeviceMap.end() )</span>
+  {
+<span style = "background-color:#fdd">    return m_MapIterator-&gt;second;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return -1.0;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTTimeStamp::Initialize()
+<span style = "background-color:#fdd">{
+  if ( m_RealTimeClock.IsNull() )
+    m_RealTimeClock = mitk::RealTimeClock::New();
+}</span></pre>
+	</body>
+</html>

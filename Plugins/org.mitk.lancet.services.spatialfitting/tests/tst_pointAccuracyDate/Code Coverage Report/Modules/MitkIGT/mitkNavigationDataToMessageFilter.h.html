@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataToMessageFilter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef MITKNAVIGATIONDATATOMESSAGEFILTER_H_HEADER_INCLUDED_
+#define MITKNAVIGATIONDATATOMESSAGEFILTER_H_HEADER_INCLUDED_
+
+#include &lt;mitkNavigationDataToNavigationDataFilter.h&gt;
+#include "mitkMessage.h"
+
+namespace mitk
+{
+  /**Documentation
+  * \brief NavigationDataToMessageFilter emits multiple mitk::Message messages when the input NavigationData values change
+  *
+  * This filter can have multiple inputs. It emits
+  * the following Messages if an input navigation data values changed since the last Update()
+  * - PositionChangedMessage
+  * - OrientationChangedMessage
+  * - ErrorChangedMessage
+  * - TimeStampChangedMessage
+  * - DataValidChangedMessage
+  *
+  * The first parameter of these messages is the new value, the second is the index of the input that has changed
+  * The filter has as many outputs as it has inputs. It copies the inputs to the outputs after sending the messages.
+  * \ingroup IGT
+  */
+  class MITKIGT_EXPORT NavigationDataToMessageFilter : public NavigationDataToNavigationDataFilter
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(NavigationDataToMessageFilter, NavigationDataToNavigationDataFilter);
+    itkFactorylessNewMacro(Self);
+    itkCloneMacro(Self);
+    mitkNewMessage2Macro(PositionChanged, mitk::NavigationData::PositionType, unsigned int);       ///&lt; Sends the message PositionChangedMessage whenever the position of the input changes. First parameter is the new position, second parameter is the index of the input that changed
+    mitkNewMessage2Macro(OrientationChanged, mitk::NavigationData::OrientationType, unsigned int); ///&lt; Sends the message OrientationChangedMessage whenever the orientation of the input changes. First parameter is the new orientation, second parameter is the index of the input that changed
+    mitkNewMessage2Macro(ErrorChanged, mitk::NavigationData::CovarianceMatrixType, unsigned int);  ///&lt; Sends the message ErrorChangedMessage whenever the error covariance matrix of the input changes. First parameter is the new error covariance matrix, second parameter is the index of the input that changed
+    mitkNewMessage2Macro(TimeStampChanged, mitk::NavigationData::TimeStampType, unsigned int);     ///&lt; Sends the message TimeStampChangedMessage whenever the timestamp of the input changes. First parameter is the new timestamp, second parameter is the index of the input that changed
+    mitkNewMessage2Macro(DataValidChanged, bool, unsigned int);                                    ///&lt; Sends the message DataValidChangedMessage whenever the DataValid flag of the input changes. First parameter is the new DataValid value, second parameter is the index of the input that changed</span>
+
+    /**Documentation
+    * \brief sets the nth input of the filter. Warning: this filter only has input #0!
+    *
+    * WARNING: NavigationDataToMessageFilter manages only one input. Calling this method
+    * with an idx parameter other than 0 will raise an std::invalid_argument exception!
+    */
+    //virtual void SetInput(unsigned int idx, const NavigationData* nd);
+
+    /**Documentation
+    * \brief Sets the input of this filter
+    *
+    * Sets the input navigation data object for this filter.
+    */
+    //virtual void SetInput(const NavigationData* nd);
+
+<span style = "background-color:#fdd">    itkSetMacro(PositionEpsilon, double);
+    itkSetMacro(OrientationEpsilon, double);
+    itkSetMacro(CovErrorEpsilon, double);
+    itkSetMacro(TimeStampEpsilon, double);</span>
+
+<span style = "background-color:#fdd">    itkGetMacro(PositionEpsilon, double);
+    itkGetMacro(OrientationEpsilon, double);
+    itkGetMacro(CovErrorEpsilon, double);
+    itkGetMacro(TimeStampEpsilon, double);</span>
+  protected:
+    double m_PositionEpsilon;
+    double m_OrientationEpsilon;
+    double m_CovErrorEpsilon;
+    double m_TimeStampEpsilon;
+
+    NavigationDataToMessageFilter();
+    ~NavigationDataToMessageFilter() override;
+
+    /**Documentation
+    * \brief filter execute method
+    *
+    * emits the Messages
+    */
+    void GenerateData() override;
+  };
+} // namespace mitk
+#endif /* MITKNAVIGATIONDATATOMESSAGEFILTER_H_HEADER_INCLUDED_ */</pre>
+	</body>
+</html>

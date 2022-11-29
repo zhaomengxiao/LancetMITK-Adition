@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageWriterFactory.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkImageWriterFactory.h"
+
+#include "itkCreateObjectFunction.h"
+#include "itkVersion.h"
+
+#include "mitkImageWriter.h"
+
+namespace mitk
+{
+  template &lt;class T&gt;
+  class CreateImageWriter : public itk::CreateObjectFunctionBase
+  {
+  public:
+    /** Standard class typedefs. */
+    typedef CreateImageWriter Self;
+    typedef itk::SmartPointer&lt;Self&gt; Pointer;
+
+    /** Methods from itk:LightObject. */
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+    LightObject::Pointer CreateObject() override
+<span style = "background-color:#fdd">    {
+      typename T::Pointer p = T::New();
+      p-&gt;Register();
+      return p.GetPointer();
+    }</span>
+
+  protected:
+<span style = "background-color:#fdd">    CreateImageWriter() {}
+    ~CreateImageWriter() override {}</span>
+  private:
+    CreateImageWriter(const Self &amp;); // purposely not implemented
+    void operator=(const Self &amp;);    // purposely not implemented
+  };
+
+  ImageWriterFactory::ImageWriterFactory()
+<span style = "background-color:#fdd">  {
+    this-&gt;RegisterOverride(</span>
+      "IOWriter", "ImageWriter", "Image Writer", true, mitk::CreateImageWriter&lt;mitk::ImageWriter&gt;::New());
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  ImageWriterFactory::~ImageWriterFactory() {}
+  const char *ImageWriterFactory::GetITKSourceVersion() const { return ITK_SOURCE_VERSION; }
+  const char *ImageWriterFactory::GetDescription() const { return "ImageWriterFactory"; }</span>
+} // end namespace mitk</pre>
+	</body>
+</html>

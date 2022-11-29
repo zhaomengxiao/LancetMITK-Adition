@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMIOHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMIOHelper.h"
+
+#include &lt;mitkImage.h&gt;
+#include &lt;mitkTemporoSpatialStringProperty.h&gt;
+
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModuleContext.h&gt;
+
+namespace mitk
+{
+  mitk::IDICOMTagsOfInterest *GetDicomTagsOfInterestService()
+<span style = "background-color:#fdd">  {
+    mitk::IDICOMTagsOfInterest *result = nullptr;</span>
+
+<span style = "background-color:#fdd">    us::ModuleContext *context = us::GetModuleContext();
+    if (context == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "No MitkDICOM module context found.";
+      return result;</span>
+    }
+<span style = "background-color:#fdd">    std::vector&lt;us::ServiceReference&lt;mitk::IDICOMTagsOfInterest&gt;&gt; toiRegisters =</span>
+      context-&gt;GetServiceReferences&lt;mitk::IDICOMTagsOfInterest&gt;();
+<span style = "background-color:#fdd">    if (!toiRegisters.empty())</span>
+    {
+<span style = "background-color:#fdd">      if (toiRegisters.size() &gt; 1)</span>
+      {
+<span style = "background-color:#fdd">        MITK_WARN &lt;&lt; "Multiple DICOM tags of interest services found. Using just one.";</span>
+      }
+<span style = "background-color:#fdd">      result = us::GetModuleContext()-&gt;GetService&lt;mitk::IDICOMTagsOfInterest&gt;(toiRegisters.front());</span>
+    }
+
+<span style = "background-color:#fdd">    return result;
+  }</span>
+
+  FindingsListVectorType ExtractPathsOfInterest(const DICOMTagPathList &amp;pathsOfInterest,
+                                                const DICOMDatasetAccessingImageFrameList &amp;frames)
+<span style = "background-color:#fdd">  {
+    std::vector&lt;mitk::DICOMDatasetAccess::FindingsListType&gt; findings;
+    for (const auto &amp;entry : pathsOfInterest)</span>
+    {
+<span style = "background-color:#fdd">      findings.push_back(frames.front()-&gt;GetTagValueAsString(entry));
+    }
+    return findings;
+  }</span>
+
+  void SetProperties(BaseDataPointer image, const FindingsListVectorType &amp;findings)
+<span style = "background-color:#fdd">  {
+    for (const auto &amp;finding : findings)</span>
+    {
+<span style = "background-color:#fdd">      for (const auto &amp;entry : finding)</span>
+      {
+<span style = "background-color:#fdd">        const std::string propertyName = mitk::DICOMTagPathToPropertyName(entry.path);
+        auto property = mitk::TemporoSpatialStringProperty::New();
+        property-&gt;SetValue(entry.value);
+        image-&gt;SetProperty(propertyName.c_str(), property);
+      }
+    }
+  }</span>
+}</pre>
+	</body>
+</html>

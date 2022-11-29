@@ -1,0 +1,338 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkStatisticsImageFilter.hxx</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkStatisticsImageFilter_hxx
+#define mitkStatisticsImageFilter_hxx
+
+#include &lt;mitkStatisticsImageFilter.h&gt;
+#include &lt;mitkHistogramStatisticsCalculator.h&gt;
+#include &lt;itkImageScanlineConstIterator.h&gt;
+
+template &lt;typename TInputImage&gt;
+mitk::StatisticsImageFilter&lt;TInputImage&gt;::StatisticsImageFilter()
+<span style = "background-color:#fdd">  : m_ComputeHistogram(false),
+    m_HistogramSize(0),
+    m_HistogramLowerBound(itk::NumericTraits&lt;RealType&gt;::NonpositiveMin()),
+    m_HistogramUpperBound(itk::NumericTraits&lt;RealType&gt;::max()),
+    m_Sum(1),
+    m_SumOfPositivePixels(1),
+    m_SumOfSquares(1),
+    m_SumOfCubes(1),
+    m_SumOfQuadruples(1),
+    m_Count(1),
+    m_CountOfPositivePixels(1),
+    m_Min(1),
+    m_Max(1)
+{
+  this-&gt;SetNumberOfRequiredInputs(1);</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetMinimum(itk::NumericTraits&lt;PixelType&gt;::max());
+  this-&gt;SetMaximum(itk::NumericTraits&lt;PixelType&gt;::NonpositiveMin());
+  this-&gt;SetMean(itk::NumericTraits&lt;RealType&gt;::max());
+  this-&gt;SetSigma(itk::NumericTraits&lt;RealType&gt;::max());
+  this-&gt;SetVariance(itk::NumericTraits&lt;RealType&gt;::max());
+  this-&gt;SetSum(0);
+  this-&gt;SetSumOfSquares(0);
+  this-&gt;SetSumOfCubes(0);
+  this-&gt;SetSumOfQuadruples(0);
+  this-&gt;SetSkewness(0);
+  this-&gt;SetKurtosis(0);
+  this-&gt;SetMPP(0);
+  this-&gt;SetEntropy(-1.0);
+  this-&gt;SetUniformity(0);
+  this-&gt;SetUPP(0);
+  this-&gt;SetMedian(0);
+}</span>
+
+template &lt;typename TInputImage&gt;
+mitk::StatisticsImageFilter&lt;TInputImage&gt;::~StatisticsImageFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+template &lt;typename TInputImage&gt;
+typename mitk::StatisticsImageFilter&lt;TInputImage&gt;::DataObjectPointer mitk::StatisticsImageFilter&lt;TInputImage&gt;::MakeOutput(const DataObjectIdentifierType&amp; name)
+<span style = "background-color:#fdd">{
+  if (name == "Minimum" ||</span>
+      name == "Maximum")
+  {
+<span style = "background-color:#fdd">    return PixelObjectType::New();</span>
+  }
+
+  if (name == "Mean" ||
+      name == "Sigma" ||
+      name == "Variance" ||
+      name == "Sum" ||
+      name == "SumOfSquares" ||
+      name == "SumOfCubes" ||
+      name == "SumOfQuadruples" ||
+      name == "Skewness" ||
+      name == "Kurtosis" ||
+      name == "MPP" ||
+      name == "Entropy" || 
+      name == "Uniformity" || 
+<span style = "background-color:#fdd">      name == "UPP" || </span>
+      name == "Median")
+  {
+<span style = "background-color:#fdd">    return RealObjectType::New();</span>
+  }
+
+<span style = "background-color:#fdd">  if (name == "Histogram")</span>
+  {
+<span style = "background-color:#fdd">    return HistogramType::New();</span>
+  }
+
+<span style = "background-color:#fdd">  return Superclass::MakeOutput(name);
+}</span>
+
+template &lt;typename TInputImage&gt;
+void mitk::StatisticsImageFilter&lt;TInputImage&gt;::SetHistogramParameters(unsigned int size, RealType lowerBound, RealType upperBound)
+<span style = "background-color:#fdd">{
+  bool modified = false;</span>
+
+<span style = "background-color:#fdd">  if (m_HistogramSize != size)</span>
+  {
+<span style = "background-color:#fdd">    m_HistogramSize = size;
+    modified = true;</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_HistogramLowerBound != lowerBound)</span>
+  {
+<span style = "background-color:#fdd">    m_HistogramLowerBound = lowerBound;
+    modified = true;</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_HistogramUpperBound != upperBound)</span>
+  {
+<span style = "background-color:#fdd">    m_HistogramUpperBound = upperBound;
+    modified = true;</span>
+  }
+
+<span style = "background-color:#fdd">  m_ComputeHistogram = true;</span>
+
+<span style = "background-color:#fdd">  if (modified)
+    this-&gt;Modified();
+}</span>
+
+template &lt;typename TInputImage&gt;
+auto mitk::StatisticsImageFilter&lt;TInputImage&gt;::CreateInitializedHistogram() const -&gt; HistogramPointer
+<span style = "background-color:#fdd">{
+  typename HistogramType::SizeType size;
+  size.SetSize(1);
+  size.Fill(m_HistogramSize);</span>
+
+<span style = "background-color:#fdd">  typename HistogramType::MeasurementVectorType lowerBound;
+  lowerBound.SetSize(1);
+  lowerBound.Fill(m_HistogramLowerBound);</span>
+
+<span style = "background-color:#fdd">  typename HistogramType::MeasurementVectorType upperBound;
+  upperBound.SetSize(1);
+  upperBound.Fill(m_HistogramUpperBound);</span>
+
+<span style = "background-color:#fdd">  auto histogram = HistogramType::New();
+  histogram-&gt;SetMeasurementVectorSize(1);
+  histogram-&gt;Initialize(size, lowerBound, upperBound);</span>
+
+<span style = "background-color:#fdd">  return histogram;
+}</span>
+
+template &lt;typename TInputImage&gt;
+void mitk::StatisticsImageFilter&lt;TInputImage&gt;::BeforeStreamedGenerateData()
+<span style = "background-color:#fdd">{
+  Superclass::BeforeStreamedGenerateData();</span>
+
+<span style = "background-color:#fdd">  m_Sum = 0;
+  m_SumOfPositivePixels = 0;
+  m_SumOfSquares = 0;
+  m_SumOfCubes = 0;
+  m_SumOfQuadruples = 0;
+  m_Count = 0;
+  m_CountOfPositivePixels = 0;
+  m_Min = itk::NumericTraits&lt;PixelType&gt;::max();
+  m_Max = itk::NumericTraits&lt;PixelType&gt;::NonpositiveMin();</span>
+
+<span style = "background-color:#fdd">  if (m_ComputeHistogram)
+    m_Histogram = this-&gt;CreateInitializedHistogram();
+}</span>
+
+template &lt;typename TInputImage&gt;
+void mitk::StatisticsImageFilter&lt;TInputImage&gt;::ThreadedStreamedGenerateData(const RegionType&amp; regionForThread)
+<span style = "background-color:#fdd">{
+  itk::CompensatedSummation&lt;RealType&gt; sum = 0;
+  itk::CompensatedSummation&lt;RealType&gt; sumOfPositivePixels = 0;
+  itk::CompensatedSummation&lt;RealType&gt; sumOfSquares = 0;
+  itk::CompensatedSummation&lt;RealType&gt; sumOfCubes = 0;
+  itk::CompensatedSummation&lt;RealType&gt; sumOfQuadruples = 0;
+  itk::SizeValueType count = 0;
+  itk::SizeValueType countOfPositivePixels = 0;
+  auto min = itk::NumericTraits&lt;PixelType&gt;::max();
+  auto max = itk::NumericTraits&lt;PixelType&gt;::NonpositiveMin();
+  RealType realValue = 0;
+  RealType squareValue = 0;</span>
+
+<span style = "background-color:#fdd">  HistogramPointer histogram;
+  typename HistogramType::MeasurementVectorType histogramMeasurement;
+  typename HistogramType::IndexType histogramIndex;</span>
+
+<span style = "background-color:#fdd">  if (m_ComputeHistogram) // Initialize histogram</span>
+  {
+<span style = "background-color:#fdd">    histogram = this-&gt;CreateInitializedHistogram();
+    histogramMeasurement.SetSize(1);</span>
+  }
+
+<span style = "background-color:#fdd">  itk::ImageScanlineConstIterator&lt;TInputImage&gt; it(this-&gt;GetInput(), regionForThread);</span>
+
+<span style = "background-color:#fdd">  while (!it.IsAtEnd())</span>
+  {
+<span style = "background-color:#fdd">    while (!it.IsAtEndOfLine())</span>
+    {
+<span style = "background-color:#fdd">      const auto&amp; value = it.Get();
+      realValue = static_cast&lt;RealType&gt;(value);</span>
+
+<span style = "background-color:#fdd">      if (m_ComputeHistogram) // Compute histogram</span>
+      {
+<span style = "background-color:#fdd">        histogramMeasurement[0] = realValue;
+        histogram-&gt;GetIndex(histogramMeasurement, histogramIndex);
+        histogram-&gt;IncreaseFrequencyOfIndex(histogramIndex, 1);</span>
+      }
+
+<span style = "background-color:#fdd">      min = std::min(min, value);
+      max = std::max(max, value);
+      squareValue = realValue * realValue;</span>
+
+<span style = "background-color:#fdd">      sum += realValue;
+      sumOfSquares += squareValue;
+      sumOfCubes += squareValue * realValue;
+      sumOfQuadruples += squareValue * squareValue;
+      ++count;</span>
+
+<span style = "background-color:#fdd">      if (0 &lt; realValue)</span>
+      {
+<span style = "background-color:#fdd">        sumOfPositivePixels += realValue;
+        ++countOfPositivePixels;</span>
+      }
+
+<span style = "background-color:#fdd">      ++it;
+    }</span>
+
+<span style = "background-color:#fdd">    it.NextLine();
+  }</span>
+
+<span style = "background-color:#fdd">  std::lock_guard&lt;std::mutex&gt; mutexHolder(m_Mutex);</span>
+
+<span style = "background-color:#fdd">  if (m_ComputeHistogram) // Merge histograms</span>
+  {
+<span style = "background-color:#fdd">    typename HistogramType::ConstIterator histogramIt = histogram-&gt;Begin();
+    typename HistogramType::ConstIterator histogramEnd = histogram-&gt;End();</span>
+
+<span style = "background-color:#fdd">    while (histogramIt != histogramEnd)</span>
+    {
+<span style = "background-color:#fdd">      m_Histogram-&gt;GetIndex(histogramIt.GetMeasurementVector(), histogramIndex);
+      m_Histogram-&gt;IncreaseFrequencyOfIndex(histogramIndex, histogramIt.GetFrequency());
+      ++histogramIt;
+    }</span>
+  }
+
+<span style = "background-color:#fdd">  m_Sum += sum;
+  m_SumOfPositivePixels += sumOfPositivePixels;
+  m_SumOfSquares += sumOfSquares;
+  m_SumOfCubes += sumOfCubes;
+  m_SumOfQuadruples += sumOfQuadruples;
+  m_Count += count;
+  m_CountOfPositivePixels += countOfPositivePixels;
+  m_Min = std::min(min, m_Min);
+  m_Max = std::max(max, m_Max);
+}</span>
+
+template &lt;typename TInputImage&gt;
+void mitk::StatisticsImageFilter&lt;TInputImage&gt;::AfterStreamedGenerateData()
+<span style = "background-color:#fdd">{
+  Superclass::AfterStreamedGenerateData();</span>
+
+<span style = "background-color:#fdd">  const RealType sum = m_Sum.GetSum();
+  const RealType sumOfPositivePixels = m_SumOfPositivePixels.GetSum();
+  const RealType sumOfSquares = m_SumOfSquares.GetSum();
+  const RealType sumOfCubes = m_SumOfCubes.GetSum();
+  const RealType sumOfQuadruples = m_SumOfQuadruples.GetSum();
+  const itk::SizeValueType count = m_Count;
+  const itk::SizeValueType countOfPositivePixels = m_CountOfPositivePixels;
+  const PixelType minimum = m_Min;
+  const PixelType maximum = m_Max;</span>
+
+<span style = "background-color:#fdd">  const RealType mean = sum / static_cast&lt;RealType&gt;(count);
+  const RealType variance = (sumOfSquares - (sum * sum / static_cast&lt;RealType&gt;(count))) / (static_cast&lt;RealType&gt;(count) - 1);
+  const RealType sigma = std::sqrt(variance);</span>
+
+<span style = "background-color:#fdd">  const RealType secondMoment = sumOfSquares / static_cast&lt;RealType&gt;(count);
+  const RealType thirdMoment = sumOfCubes / static_cast&lt;RealType&gt;(count);
+  const RealType fourthMoment = sumOfQuadruples / static_cast&lt;RealType&gt;(count);
+  const RealType skewness = (thirdMoment - 3 * secondMoment * mean + 2 * std::pow(mean, 3)) / std::pow(secondMoment - std::pow(mean, 2), 1.5);
+  const RealType kurtosis = (fourthMoment - 4 * thirdMoment * mean + 6 * secondMoment * std::pow(mean, 2) - 3 * std::pow(mean, 4)) / std::pow(secondMoment - std::pow(mean, 2), 2);
+  const RealType meanOfPositivePixels = sumOfPositivePixels / static_cast&lt;RealType&gt;(countOfPositivePixels);</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetMinimum(minimum);
+  this-&gt;SetMaximum(maximum);
+  this-&gt;SetMean(mean);
+  this-&gt;SetSigma(sigma);
+  this-&gt;SetVariance(variance);
+  this-&gt;SetSum(sum);
+  this-&gt;SetSumOfSquares(sumOfSquares);
+  this-&gt;SetSumOfCubes(sumOfCubes);
+  this-&gt;SetSumOfQuadruples(sumOfQuadruples);
+  this-&gt;SetSkewness(skewness);
+  this-&gt;SetKurtosis(kurtosis);
+  this-&gt;SetMPP(meanOfPositivePixels);</span>
+
+<span style = "background-color:#fdd">  if (m_ComputeHistogram)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetHistogram(m_Histogram);</span>
+
+<span style = "background-color:#fdd">    mitk::HistogramStatisticsCalculator histogramStatisticsCalculator;
+    histogramStatisticsCalculator.SetHistogram(m_Histogram);
+    histogramStatisticsCalculator.CalculateStatistics();</span>
+
+<span style = "background-color:#fdd">    this-&gt;SetEntropy(histogramStatisticsCalculator.GetEntropy());
+    this-&gt;SetUniformity(histogramStatisticsCalculator.GetUniformity());
+    this-&gt;SetUPP(histogramStatisticsCalculator.GetUPP());
+    this-&gt;SetMedian(histogramStatisticsCalculator.GetMedian());
+  }
+}</span>
+
+template &lt;typename TInputImage&gt;
+void mitk::StatisticsImageFilter&lt;TInputImage&gt;::PrintSelf(std::ostream&amp; os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; "SumOfCubes: " &lt;&lt; this-&gt;GetSumOfCubes() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "SumOfQuadruples: " &lt;&lt; this-&gt;GetSumOfQuadruples() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Skewness: " &lt;&lt; this-&gt;GetSkewness() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Kurtosis: " &lt;&lt; this-&gt;GetKurtosis() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "MPP: " &lt;&lt; this-&gt;GetMPP() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Entropy: " &lt;&lt; this-&gt;GetEntropy() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Uniformity: " &lt;&lt; this-&gt;GetUniformity() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "UPP: " &lt;&lt; this-&gt;GetUPP() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Median: " &lt;&lt; this-&gt;GetMedian() &lt;&lt; std::endl;
+}</span>
+
+#endif</pre>
+	</body>
+</html>

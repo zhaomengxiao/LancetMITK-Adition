@@ -1,0 +1,208 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPointSetReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPointSetReader.h"
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+#include &lt;mitkLocaleSwitch.h&gt;
+#include &lt;tinyxml2.h&gt;
+
+mitk::PointSetReader::PointSetReader()
+<span style = "background-color:#fdd">{
+  m_Success = false;
+}</span>
+
+mitk::PointSetReader::~PointSetReader()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::PointSetReader::GenerateData()
+<span style = "background-color:#fdd">{</span>
+  // Switch the current locale to "C"
+<span style = "background-color:#fdd">  LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">  m_Success = false;
+  if (m_FileName == "")</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Sorry, filename has not been set!");
+    return;</span>
+  }
+<span style = "background-color:#fdd">  if (!this-&gt;CanReadFile(m_FileName.c_str()))</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Sorry, can't read file " &lt;&lt; m_FileName &lt;&lt; "!");
+    return;</span>
+  }
+
+  try
+  {
+<span style = "background-color:#fdd">    tinyxml2::XMLDocument doc;
+    if (tinyxml2::XML_SUCCESS == doc.LoadFile(m_FileName.c_str()))</span>
+    {
+<span style = "background-color:#fdd">      tinyxml2::XMLHandle docHandle(&amp;doc);
+      unsigned int pointSetCounter(0);
+      for (auto *currentPointSetElement =</span>
+             docHandle.FirstChildElement("point_set_file").FirstChildElement("point_set").ToElement();
+<span style = "background-color:#fdd">           currentPointSetElement != nullptr;
+           currentPointSetElement = currentPointSetElement-&gt;NextSiblingElement())</span>
+      {
+<span style = "background-color:#fdd">        mitk::PointSet::Pointer newPointSet = mitk::PointSet::New();
+        if (currentPointSetElement-&gt;FirstChildElement("time_series") != nullptr)</span>
+        {
+<span style = "background-color:#fdd">          for (auto *currentTimeSeries = currentPointSetElement-&gt;FirstChildElement("time_series");
+               currentTimeSeries != nullptr;
+               currentTimeSeries = currentTimeSeries-&gt;NextSiblingElement())</span>
+          {
+<span style = "background-color:#fdd">            unsigned int currentTimeStep(0);
+            auto *currentTimeSeriesID = currentTimeSeries-&gt;FirstChildElement("time_series_id");</span>
+
+<span style = "background-color:#fdd">            currentTimeStep = atoi(currentTimeSeriesID-&gt;GetText());</span>
+
+<span style = "background-color:#fdd">            newPointSet = this-&gt;ReadPoint(newPointSet, currentTimeSeries, currentTimeStep);
+          }
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          newPointSet = this-&gt;ReadPoint(newPointSet, currentPointSetElement, 0);</span>
+        }
+<span style = "background-color:#fdd">        this-&gt;SetNthOutput(pointSetCounter, newPointSet);
+        pointSetCounter++;
+      }
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "XML parser error!";</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  catch (...)
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "Cannot read point set.";
+    m_Success = false;
+  }
+  m_Success = true;
+}</span>
+
+mitk::PointSet::Pointer mitk::PointSetReader::ReadPoint(mitk::PointSet::Pointer newPointSet,
+                                                        const tinyxml2::XMLElement *currentTimeSeries,
+                                                        unsigned int currentTimeStep)
+<span style = "background-color:#fdd">{
+  if (currentTimeSeries-&gt;FirstChildElement("point") != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    for (auto *currentPoint = currentTimeSeries-&gt;FirstChildElement("point");
+         currentPoint != nullptr;
+         currentPoint = currentPoint-&gt;NextSiblingElement())</span>
+    {
+<span style = "background-color:#fdd">      unsigned int id(0);
+      mitk::PointSpecificationType spec((mitk::PointSpecificationType)0);
+      double x(0.0);
+      double y(0.0);
+      double z(0.0);</span>
+
+<span style = "background-color:#fdd">      id = atoi(currentPoint-&gt;FirstChildElement("id")-&gt;GetText());
+      if (currentPoint-&gt;FirstChildElement("specification") != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        spec = (mitk::PointSpecificationType)atoi(currentPoint-&gt;FirstChildElement("specification")-&gt;GetText());</span>
+      }
+<span style = "background-color:#fdd">      x = atof(currentPoint-&gt;FirstChildElement("x")-&gt;GetText());
+      y = atof(currentPoint-&gt;FirstChildElement("y")-&gt;GetText());
+      z = atof(currentPoint-&gt;FirstChildElement("z")-&gt;GetText());</span>
+
+<span style = "background-color:#fdd">      mitk::Point3D point;
+      mitk::FillVector3D(point, x, y, z);
+      newPointSet-&gt;SetPoint(id, point, spec, currentTimeStep);
+    }
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    if (currentTimeStep != newPointSet-&gt;GetTimeSteps() + 1)</span>
+    {
+<span style = "background-color:#fdd">      newPointSet-&gt;Expand(currentTimeStep + 1); // expand time step series with empty time step</span>
+    }
+  }
+<span style = "background-color:#fdd">  return newPointSet;
+}</span>
+
+void mitk::PointSetReader::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+}</span>
+
+int mitk::PointSetReader::CanReadFile(const char *name)
+<span style = "background-color:#fdd">{
+  std::ifstream in(name);
+  bool isGood = in.good();
+  in.close();
+  return isGood;
+}</span>
+
+bool mitk::PointSetReader::CanReadFile(const std::string filename,
+                                       const std::string filePrefix,
+                                       const std::string filePattern)
+<span style = "background-color:#fdd">{</span>
+  // First check the extension
+<span style = "background-color:#fdd">  if (filename == "")</span>
+  {
+    // MITK_INFO&lt;&lt;"No filename specified."&lt;&lt;std::endl;
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+  // check if image is serie
+<span style = "background-color:#fdd">  if (filePattern != "" &amp;&amp; filePrefix != "")
+    return false;</span>
+
+<span style = "background-color:#fdd">  bool extensionFound = false;
+  std::string::size_type MPSPos = filename.rfind(".mps");
+  if ((MPSPos != std::string::npos) &amp;&amp; (MPSPos == filename.length() - 4))</span>
+  {
+<span style = "background-color:#fdd">    extensionFound = true;</span>
+  }
+
+<span style = "background-color:#fdd">  MPSPos = filename.rfind(".MPS");
+  if ((MPSPos != std::string::npos) &amp;&amp; (MPSPos == filename.length() - 4))</span>
+  {
+<span style = "background-color:#fdd">    extensionFound = true;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!extensionFound)</span>
+  {
+    // MITK_INFO&lt;&lt;"The filename extension is not recognized."&lt;&lt;std::endl;
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+void mitk::PointSetReader::ResizeOutputs(const unsigned int &amp;num)
+<span style = "background-color:#fdd">{
+  unsigned int prevNum = this-&gt;GetNumberOfOutputs();
+  this-&gt;SetNumberOfIndexedOutputs(num);
+  for (unsigned int i = prevNum; i &lt; num; ++i)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetNthOutput(i, this-&gt;MakeOutput(i).GetPointer());
+  }
+}</span>
+
+bool mitk::PointSetReader::GetSuccess() const
+<span style = "background-color:#fdd">{
+  return m_Success;
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRegVisStyleProperty.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef _MITK_REG_VIS_STYLE_PROPERTY__H_
+#define _MITK_REG_VIS_STYLE_PROPERTY__H_
+
+// MITK
+#include &lt;mitkEnumerationProperty.h&gt;
+
+// MITK
+#include "MitkMatchPointRegistrationExports.h"
+
+namespace mitk
+{
+
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable: 4522)
+#endif
+
+/**
+ * Encapsulates the enumeration for visualization styles. Valid values are:
+ * 0/Grid, 1/Glyph, 2/Points
+ * Default is "Grid"
+ */
+class MITKMATCHPOINTREGISTRATION_EXPORT RegVisStyleProperty : public EnumerationProperty
+{
+public:
+
+<span style = "background-color:#fdd">  mitkClassMacro( RegVisStyleProperty, EnumerationProperty );</span>
+
+<span style = "background-color:#fdd">  itkNewMacro(RegVisStyleProperty);</span>
+
+<span style = "background-color:#fdd">  mitkNewMacro1Param(RegVisStyleProperty, const IdType&amp;);</span>
+
+<span style = "background-color:#fdd">  mitkNewMacro1Param(RegVisStyleProperty, const std::string&amp;);</span>
+
+
+  using BaseProperty::operator=;
+
+protected:
+
+  /**
+   * Constructor. Sets the representation to a default value of 0
+   */
+  RegVisStyleProperty( );
+
+  /**
+   * Constructor. Sets the enumeration to the given value. If it is not
+   * valid, the enumeration is set to 0
+   */
+  RegVisStyleProperty( const IdType&amp; value );
+
+  /**
+   * Constructor. Sets the enumeration to the given value. If it is not
+   * valid, the enumeration is set to 0
+   */
+  RegVisStyleProperty( const std::string&amp; value );
+
+  /**
+   * this function is overridden as protected, so that the user may not add
+   * additional invalid interpolation types.
+   */
+  bool AddEnum( const std::string&amp; name, const IdType&amp; id ) override;
+
+  /**
+   * Adds the enumeration types
+   */
+  void AddTypes();
+
+private:
+
+  // purposely not implemented
+  RegVisStyleProperty(const RegVisStyleProperty&amp;);
+  RegVisStyleProperty&amp; operator=(const RegVisStyleProperty&amp;);
+};
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
+
+} // end of namespace mitk
+
+#endif
+
+</pre>
+	</body>
+</html>

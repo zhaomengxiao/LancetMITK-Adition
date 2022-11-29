@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataSetWriterXML.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+// MITK
+#include "mitkNavigationDataSetWriterXML.h"
+#include &lt;mitkIGTMimeTypes.h&gt;
+#include &lt;mitkLocaleSwitch.h&gt;
+
+// Third Party
+#include &lt;tinyxml2.h&gt;
+#include &lt;itksys/SystemTools.hxx&gt;
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+
+<span style = "background-color:#dfd">mitk::NavigationDataSetWriterXML::NavigationDataSetWriterXML() : AbstractFileWriter(NavigationDataSet::GetStaticNameOfClass(),</span>
+  mitk::IGTMimeTypes::NAVIGATIONDATASETXML_MIMETYPE(),
+  "MITK NavigationDataSet Writer (XML)")
+<span style = "background-color:#dfd">{
+  RegisterService();
+}</span>
+
+<span style = "background-color:#fdd">mitk::NavigationDataSetWriterXML::NavigationDataSetWriterXML(const mitk::NavigationDataSetWriterXML&amp; other) : AbstractFileWriter(other)
+{
+}</span>
+
+mitk::NavigationDataSetWriterXML::~NavigationDataSetWriterXML()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::NavigationDataSetWriterXML* mitk::NavigationDataSetWriterXML::Clone() const
+<span style = "background-color:#fdd">{
+  return new NavigationDataSetWriterXML(*this);
+}</span>
+
+void mitk::NavigationDataSetWriterXML::Write()
+<span style = "background-color:#fdd">{
+  std::ostream* out = GetOutputStream();
+  if (out == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    out = new std::ofstream( GetOutputLocation().c_str() );</span>
+  }
+<span style = "background-color:#fdd">  mitk::NavigationDataSet::ConstPointer data = dynamic_cast&lt;const NavigationDataSet*&gt; (this-&gt;GetInput());</span>
+
+<span style = "background-color:#fdd">  mitk::LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">  StreamHeader(out, data);
+  StreamData(out, data);
+  StreamFooter(out);</span>
+
+  // Cleanup
+<span style = "background-color:#fdd">  out-&gt;flush();
+  delete out;
+}</span>
+
+void mitk::NavigationDataSetWriterXML::StreamHeader (std::ostream* stream, mitk::NavigationDataSet::ConstPointer data)
+<span style = "background-color:#fdd">{
+  stream-&gt;precision(10);</span>
+
+  //TODO store date and GMT time
+  //checking if the stream is good
+<span style = "background-color:#fdd">  if (stream-&gt;good())</span>
+  {
+<span style = "background-color:#fdd">    *stream &lt;&lt; "&lt;?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?&gt;" &lt;&lt; std::endl;</span>
+    /**m_Stream &lt;&lt; "&lt;Version Ver=\"1\" /&gt;" &lt;&lt; std::endl;*/
+    // should be a generic version, meaning a member variable, which has the actual version
+<span style = "background-color:#fdd">    *stream &lt;&lt; "    " &lt;&lt; "&lt;Data ToolCount=\"" &lt;&lt; data-&gt;GetNumberOfTools() &lt;&lt; "\" version=\"1.0\"&gt;" &lt;&lt; std::endl;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::NavigationDataSetWriterXML::StreamData (std::ostream* stream, mitk::NavigationDataSet::ConstPointer data)
+<span style = "background-color:#fdd">{</span>
+  // For each time step in the Dataset
+<span style = "background-color:#fdd">  for (auto it = data-&gt;Begin(); it != data-&gt;End(); it++)</span>
+  {
+<span style = "background-color:#fdd">    for (std::size_t toolIndex = 0; toolIndex &lt; it-&gt;size(); toolIndex++)</span>
+    {
+<span style = "background-color:#fdd">      mitk::NavigationData::Pointer nd = it-&gt;at(toolIndex);
+      tinyxml2::XMLDocument doc;
+      auto *elem = doc.NewElement("ND");</span>
+
+<span style = "background-color:#fdd">      elem-&gt;SetAttribute("Time", nd-&gt;GetIGTTimeStamp());</span>
+      // elem-&gt;SetAttribute("SystemTime", sysTimeStr); // tag for system time
+<span style = "background-color:#fdd">      elem-&gt;SetAttribute("Tool", static_cast&lt;int&gt;(toolIndex));
+      elem-&gt;SetAttribute("X", nd-&gt;GetPosition()[0]);
+      elem-&gt;SetAttribute("Y", nd-&gt;GetPosition()[1]);
+      elem-&gt;SetAttribute("Z", nd-&gt;GetPosition()[2]);</span>
+
+<span style = "background-color:#fdd">      elem-&gt;SetAttribute("QX", nd-&gt;GetOrientation()[0]);
+      elem-&gt;SetAttribute("QY", nd-&gt;GetOrientation()[1]);
+      elem-&gt;SetAttribute("QZ", nd-&gt;GetOrientation()[2]);
+      elem-&gt;SetAttribute("QR", nd-&gt;GetOrientation()[3]);</span>
+
+<span style = "background-color:#fdd">      elem-&gt;SetAttribute("C00", nd-&gt;GetCovErrorMatrix()[0][0]);
+      elem-&gt;SetAttribute("C01", nd-&gt;GetCovErrorMatrix()[0][1]);
+      elem-&gt;SetAttribute("C02", nd-&gt;GetCovErrorMatrix()[0][2]);
+      elem-&gt;SetAttribute("C03", nd-&gt;GetCovErrorMatrix()[0][3]);
+      elem-&gt;SetAttribute("C04", nd-&gt;GetCovErrorMatrix()[0][4]);
+      elem-&gt;SetAttribute("C05", nd-&gt;GetCovErrorMatrix()[0][5]);
+      elem-&gt;SetAttribute("C10", nd-&gt;GetCovErrorMatrix()[1][0]);
+      elem-&gt;SetAttribute("C11", nd-&gt;GetCovErrorMatrix()[1][1]);
+      elem-&gt;SetAttribute("C12", nd-&gt;GetCovErrorMatrix()[1][2]);
+      elem-&gt;SetAttribute("C13", nd-&gt;GetCovErrorMatrix()[1][3]);
+      elem-&gt;SetAttribute("C14", nd-&gt;GetCovErrorMatrix()[1][4]);
+      elem-&gt;SetAttribute("C15", nd-&gt;GetCovErrorMatrix()[1][5]);</span>
+
+<span style = "background-color:#fdd">      if (nd-&gt;IsDataValid())
+        elem-&gt;SetAttribute("Valid",1);</span>
+      else
+<span style = "background-color:#fdd">        elem-&gt;SetAttribute("Valid",0);</span>
+
+<span style = "background-color:#fdd">      if (nd-&gt;GetHasOrientation())
+        elem-&gt;SetAttribute("hO",1);</span>
+      else
+<span style = "background-color:#fdd">        elem-&gt;SetAttribute("hO",0);</span>
+
+<span style = "background-color:#fdd">      if (nd-&gt;GetHasPosition())
+        elem-&gt;SetAttribute("hP",1);</span>
+      else
+<span style = "background-color:#fdd">        elem-&gt;SetAttribute("hP",0);</span>
+
+<span style = "background-color:#fdd">      tinyxml2::XMLPrinter printer;
+      doc.Print(&amp;printer);</span>
+
+<span style = "background-color:#fdd">      *stream &lt;&lt; "        " &lt;&lt; printer.CStr() &lt;&lt; std::endl;
+    }
+  }
+}</span>
+
+void mitk::NavigationDataSetWriterXML::StreamFooter (std::ostream* stream)
+<span style = "background-color:#fdd">{
+  *stream &lt;&lt; "&lt;/Data&gt;" &lt;&lt; std::endl;
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,394 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationData.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationData.h"
+#include "vnl/vnl_det.h"
+#include "mitkException.h"
+
+<span style = "background-color:#dfd">mitk::NavigationData::NavigationData() : itk::DataObject(),
+m_Position(), m_Orientation(0.0, 0.0, 0.0, 1.0), m_CovErrorMatrix(),
+m_HasPosition(true), m_HasOrientation(true), m_DataValid(false), m_IGTTimeStamp(0.0),
+m_Name()
+{
+  m_Position.Fill(0.0);
+  m_CovErrorMatrix.SetIdentity();
+}</span>
+
+
+<span style = "background-color:#fdd">mitk::NavigationData::NavigationData(const mitk::NavigationData&amp; toCopy) : itk::DataObject(),
+    m_Position(toCopy.GetPosition()), m_Orientation(toCopy.GetOrientation()), m_CovErrorMatrix(toCopy.GetCovErrorMatrix()),
+        m_HasPosition(toCopy.GetHasPosition()), m_HasOrientation(toCopy.GetHasOrientation()), m_DataValid(toCopy.IsDataValid()), m_IGTTimeStamp(toCopy.GetIGTTimeStamp()),
+        m_Name(toCopy.GetName())
+{/* TODO SW: Graft does the same, remove code duplications, set Graft to deprecated, remove duplication in tescode */}</span>
+
+mitk::NavigationData::~NavigationData()
+<span style = "background-color:#dfd">{
+}</span>
+
+
+void mitk::NavigationData::Graft( const DataObject *data )
+<span style = "background-color:#fdd">{</span>
+  // Attempt to cast data to an NavigationData
+  const Self* nd;
+  try
+  {
+<span style = "background-color:#fdd">    nd = dynamic_cast&lt;const Self *&gt;( data );</span>
+  }
+  catch( ... )
+<span style = "background-color:#fdd">  {
+    itkExceptionMacro( &lt;&lt; "mitk::NavigationData::Graft cannot cast "</span>
+      &lt;&lt; typeid(data).name() &lt;&lt; " to "
+      &lt;&lt; typeid(const Self *).name() );
+<span style = "background-color:#fdd">    return;
+  }
+  if (!nd)</span>
+  {
+    // pointer could not be cast back down
+<span style = "background-color:#fdd">    itkExceptionMacro( &lt;&lt; "mitk::NavigationData::Graft cannot cast "</span>
+      &lt;&lt; typeid(data).name() &lt;&lt; " to "
+      &lt;&lt; typeid(const Self *).name() );
+<span style = "background-color:#fdd">    return;</span>
+  }
+  // Now copy anything that is needed
+<span style = "background-color:#fdd">  this-&gt;SetPosition(nd-&gt;GetPosition());
+  this-&gt;SetOrientation(nd-&gt;GetOrientation());
+  this-&gt;SetDataValid(nd-&gt;IsDataValid());
+  this-&gt;SetIGTTimeStamp(nd-&gt;GetIGTTimeStamp());
+  this-&gt;SetHasPosition(nd-&gt;GetHasPosition());
+  this-&gt;SetHasOrientation(nd-&gt;GetHasOrientation());
+  this-&gt;SetCovErrorMatrix(nd-&gt;GetCovErrorMatrix());
+  this-&gt;SetName(nd-&gt;GetName());
+}</span>
+
+
+bool mitk::NavigationData::IsDataValid() const
+<span style = "background-color:#fdd">{
+    return m_DataValid;
+}</span>
+
+
+void mitk::NavigationData::PrintSelf(std::ostream&amp; os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  this-&gt;Superclass::PrintSelf(os, indent);
+  os &lt;&lt; indent &lt;&lt; "data valid: "     &lt;&lt; this-&gt;IsDataValid() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Position: "       &lt;&lt; this-&gt;GetPosition() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "Orientation: "    &lt;&lt; this-&gt;GetOrientation() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "TimeStamp: "      &lt;&lt; this-&gt;GetIGTTimeStamp() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "HasPosition: "    &lt;&lt; this-&gt;GetHasPosition() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "HasOrientation: " &lt;&lt; this-&gt;GetHasOrientation() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; "CovErrorMatrix: " &lt;&lt; this-&gt;GetCovErrorMatrix() &lt;&lt; std::endl;
+}</span>
+
+
+void mitk::NavigationData::CopyInformation( const DataObject* data )
+<span style = "background-color:#fdd">{
+  this-&gt;Superclass::CopyInformation( data );</span>
+
+<span style = "background-color:#fdd">  const Self * nd = nullptr;</span>
+  try
+  {
+<span style = "background-color:#fdd">    nd = dynamic_cast&lt;const Self*&gt;(data);</span>
+  }
+  catch( ... )
+<span style = "background-color:#fdd">  {</span>
+    // data could not be cast back down
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt; "mitk::NavigationData::CopyInformation() cannot cast "</span>
+      &lt;&lt; typeid(data).name() &lt;&lt; " to "
+      &lt;&lt; typeid(Self*).name() );
+<span style = "background-color:#fdd">  }
+  if ( !nd )</span>
+  {
+    // pointer could not be cast back down
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt; "mitk::NavigationData::CopyInformation() cannot cast "</span>
+      &lt;&lt; typeid(data).name() &lt;&lt; " to "
+      &lt;&lt; typeid(Self*).name() );
+  }
+  /* copy all meta data */
+<span style = "background-color:#fdd">}</span>
+
+
+void mitk::NavigationData::SetPositionAccuracy(mitk::ScalarType error)
+<span style = "background-color:#fdd">{
+  for ( int i = 0; i &lt; 3; i++ )
+    for ( int j = 0; j &lt; 3; j++ )</span>
+    {
+<span style = "background-color:#fdd">      m_CovErrorMatrix[ i ][ j ] = 0;</span>
+      // assume independence of position and orientation
+<span style = "background-color:#fdd">      m_CovErrorMatrix[ i + 3 ][ j ] = 0;
+      m_CovErrorMatrix[ i ][ j + 3 ] = 0;
+    }
+  m_CovErrorMatrix[0][0] = m_CovErrorMatrix[1][1] = m_CovErrorMatrix[2][2] = error * error;
+}</span>
+
+
+void mitk::NavigationData::SetOrientationAccuracy(mitk::ScalarType error)
+<span style = "background-color:#fdd">{
+  for ( int i = 0; i &lt; 3; i++ )
+    for ( int j = 0; j &lt; 3; j++ ) {
+      m_CovErrorMatrix[ i + 3 ][ j + 3 ] = 0;</span>
+      // assume independence of position and orientation
+<span style = "background-color:#fdd">      m_CovErrorMatrix[ i + 3 ][ j ] = 0;
+      m_CovErrorMatrix[ i ][ j + 3 ] = 0;
+    }
+  m_CovErrorMatrix[3][3] = m_CovErrorMatrix[4][4] = m_CovErrorMatrix[5][5] = error * error;
+}</span>
+
+void
+mitk::NavigationData::Compose(const mitk::NavigationData::Pointer n, const bool pre)
+<span style = "background-color:#fdd">{
+  NavigationData::Pointer nd3;
+  if (!pre)
+    nd3 = getComposition(this, n);</span>
+  else
+<span style = "background-color:#fdd">    nd3 = getComposition(n, this);</span>
+
+<span style = "background-color:#fdd">  this-&gt;Graft(nd3);
+}</span>
+
+mitk::NavigationData::NavigationData(
+    mitk::AffineTransform3D::Pointer affineTransform3D,
+<span style = "background-color:#fdd">    const bool checkForRotationMatrix) : itk::DataObject(),
+        m_Position(),
+        m_CovErrorMatrix(), m_HasPosition(true), m_HasOrientation(true), m_DataValid(true), m_IGTTimeStamp(0.0),
+        m_Name()
+{
+  mitk::Vector3D offset = affineTransform3D-&gt;GetOffset();</span>
+
+<span style = "background-color:#fdd">  m_Position[0] = offset[0];
+  m_Position[1] = offset[1];
+  m_Position[2] = offset[2];</span>
+
+<span style = "background-color:#fdd">  vnl_matrix_fixed&lt;ScalarType, 3, 3&gt; rotationMatrix           = affineTransform3D-&gt;GetMatrix().GetVnlMatrix();
+  vnl_matrix_fixed&lt;ScalarType, 3, 3&gt; rotationMatrixTransposed = rotationMatrix.transpose();</span>
+
+<span style = "background-color:#fdd">  if (checkForRotationMatrix)</span>
+  {
+    // a quadratic matrix is a rotation matrix exactly when determinant is 1 and transposed is inverse
+     if (!Equal(1.0, vnl_det(rotationMatrix), 0.1)
+<span style = "background-color:#fdd">         || !((rotationMatrix*rotationMatrixTransposed).is_identity(0.1)))</span>
+     {
+<span style = "background-color:#fdd">       mitkThrow() &lt;&lt; "tried to initialize NavigationData with non-rotation matrix :" &lt;&lt; rotationMatrix &lt;&lt; " (Does your AffineTransform3D object include spacing? This is not supported by NavigationData objects!)";</span>
+     }
+
+  }
+
+  // the transpose is because vnl_quaterion expects a transposed rotation matrix
+<span style = "background-color:#fdd">  m_Orientation = Quaternion(rotationMatrixTransposed);
+}</span>
+
+mitk::AffineTransform3D::Pointer
+mitk::NavigationData::GetAffineTransform3D() const
+<span style = "background-color:#fdd">{
+  AffineTransform3D::Pointer affineTransform3D = AffineTransform3D::New();</span>
+
+  // first set rotation
+<span style = "background-color:#fdd">  affineTransform3D-&gt;SetMatrix(this-&gt;GetRotationMatrix());</span>
+
+  // now set offset
+<span style = "background-color:#fdd">  Vector3D vector3D;</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 3; ++i) {
+    vector3D[i] = m_Position[i];
+  }
+  affineTransform3D-&gt;SetOffset(vector3D);</span>
+
+<span style = "background-color:#fdd">  return affineTransform3D;
+}</span>
+
+mitk::Matrix3D
+mitk::NavigationData::GetRotationMatrix() const
+<span style = "background-color:#fdd">{
+  vnl_matrix_fixed&lt;ScalarType,3,3&gt; vnl_rotation = m_Orientation.rotation_matrix_transpose().transpose(); // :-)
+  Matrix3D mitkRotation;</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 3; ++i) {
+    for (int j = 0; j &lt; 3; ++j) {
+      mitkRotation[i][j] = vnl_rotation[i][j];
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return mitkRotation;
+}</span>
+
+mitk::Point3D
+mitk::NavigationData::TransformPoint(const mitk::Point3D point) const
+<span style = "background-color:#fdd">{</span>
+  vnl_vector_fixed&lt;ScalarType, 3&gt; vnlPoint;
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 3; ++i) {
+    vnlPoint[i] = point[i];
+  }</span>
+
+<span style = "background-color:#fdd">  Quaternion normalizedQuaternion = this-&gt;GetOrientation().normalize();</span>
+  // first get rotated point
+<span style = "background-color:#fdd">  vnlPoint = normalizedQuaternion.rotate(vnlPoint);</span>
+
+<span style = "background-color:#fdd">  Point3D resultingPoint;</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 3; ++i) {</span>
+    // now copy it to our format + offset
+<span style = "background-color:#fdd">    resultingPoint[i] = vnlPoint[i] + this-&gt;GetPosition()[i];
+  }</span>
+
+<span style = "background-color:#fdd">  return resultingPoint;
+}</span>
+
+mitk::NavigationData::Pointer
+mitk::NavigationData::GetInverse() const
+<span style = "background-color:#fdd">{</span>
+  // non-zero quaternion does not have inverse: throw exception in this case.
+  Quaternion zeroQuaternion;
+<span style = "background-color:#fdd">  zeroQuaternion.fill(0);
+  if (Equal(zeroQuaternion, this-&gt;GetOrientation()))
+    mitkThrow() &lt;&lt; "tried to invert zero quaternion in NavigationData";</span>
+
+<span style = "background-color:#fdd">  mitk::NavigationData::Pointer navigationDataInverse = this-&gt;Clone();
+  navigationDataInverse-&gt;SetOrientation(this-&gt;GetOrientation().inverse());</span>
+
+  // To vnl_vector
+  vnl_vector_fixed&lt;ScalarType, 3&gt; vnlPoint;
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 3; ++i) {
+    vnlPoint[i] = this-&gt;GetPosition()[i];
+  }</span>
+
+  // invert position
+<span style = "background-color:#fdd">  vnlPoint = -(navigationDataInverse-&gt;GetOrientation().rotate(vnlPoint));</span>
+
+  // back to Point3D
+<span style = "background-color:#fdd">  Point3D invertedPosition = this-&gt;GetPosition();
+  for (int i = 0; i &lt; 3; ++i) {
+    invertedPosition[i] = vnlPoint[i];
+  }</span>
+
+<span style = "background-color:#fdd">  navigationDataInverse-&gt;SetPosition(invertedPosition);</span>
+
+  // Inversion does not care for covariances for now
+<span style = "background-color:#fdd">  navigationDataInverse-&gt;ResetCovarianceValidity();</span>
+
+<span style = "background-color:#fdd">  return navigationDataInverse;
+}</span>
+
+void
+mitk::NavigationData::ResetCovarianceValidity()
+<span style = "background-color:#fdd">{
+  this-&gt;SetHasPosition(false);
+  this-&gt;SetHasOrientation(false);
+}</span>
+
+mitk::NavigationData::Pointer
+mitk::NavigationData::getComposition(const mitk::NavigationData::Pointer nd1,
+    const mitk::NavigationData::Pointer nd2)
+<span style = "background-color:#fdd">{
+  NavigationData::Pointer nd3 = nd1-&gt;Clone();</span>
+
+  // A2 * A1
+<span style = "background-color:#fdd">  nd3-&gt;SetOrientation(nd2-&gt;GetOrientation() * nd1-&gt;GetOrientation());</span>
+
+  // first: b1, b2 vnl vector
+  vnl_vector_fixed&lt;ScalarType,3&gt; b1, b2, b3;
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 3; ++i) {
+    b1[i] = nd1-&gt;GetPosition()[i];
+    b2[i] = nd2-&gt;GetPosition()[i];
+  }</span>
+
+  // b3 = A2b1 + b2
+<span style = "background-color:#fdd">  b3  = nd2-&gt;GetOrientation().rotate(b1) + b2;</span>
+
+  // back to mitk::Point3D
+<span style = "background-color:#fdd">  Point3D point;
+  for (int i = 0; i &lt; 3; ++i) {
+    point[i] = b3[i];
+  }</span>
+
+<span style = "background-color:#fdd">  nd3-&gt;SetPosition(point);</span>
+
+<span style = "background-color:#fdd">  nd3-&gt;ResetCovarianceValidity();</span>
+
+<span style = "background-color:#fdd">  return nd3;
+}</span>
+
+bool mitk::Equal(const mitk::NavigationData&amp; leftHandSide, const mitk::NavigationData&amp; rightHandSide, ScalarType eps, bool verbose)
+<span style = "background-color:#fdd">{
+  bool returnValue = true;</span>
+
+  // Dimensionality
+<span style = "background-color:#fdd">  if( !mitk::Equal(rightHandSide.GetPosition(), leftHandSide.GetPosition(), eps) )</span>
+  {
+<span style = "background-color:#fdd">    if(verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( NavigationData )] Position differs.";
+      MITK_INFO &lt;&lt; "leftHandSide is " &lt;&lt; leftHandSide.GetPosition()</span>
+       &lt;&lt; "rightHandSide is " &lt;&lt; rightHandSide.GetPosition();
+    }
+<span style = "background-color:#fdd">    returnValue = false;</span>
+  }
+
+  // Dimensionality
+<span style = "background-color:#fdd">  if( !mitk::Equal(rightHandSide.GetOrientation(), leftHandSide.GetOrientation(), eps) )</span>
+  {
+<span style = "background-color:#fdd">    if(verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( NavigationData )] Orientation differs.";
+      MITK_INFO &lt;&lt; "leftHandSide is " &lt;&lt; leftHandSide.GetOrientation()</span>
+       &lt;&lt; "rightHandSide is " &lt;&lt; rightHandSide.GetOrientation();
+    }
+<span style = "background-color:#fdd">    returnValue = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if( rightHandSide.GetCovErrorMatrix() != leftHandSide.GetCovErrorMatrix() )</span>
+  {
+<span style = "background-color:#fdd">    if(verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( NavigationData )] CovErrorMatrix differs.";
+      MITK_INFO &lt;&lt; "leftHandSide is " &lt;&lt; leftHandSide.GetCovErrorMatrix()</span>
+       &lt;&lt; "rightHandSide is " &lt;&lt; rightHandSide.GetCovErrorMatrix();
+    }
+<span style = "background-color:#fdd">    returnValue = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if( std::string(rightHandSide.GetName()) != std::string(leftHandSide.GetName()) )</span>
+  {
+<span style = "background-color:#fdd">    if(verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( NavigationData )] Name differs.";
+      MITK_INFO &lt;&lt; "leftHandSide is " &lt;&lt; leftHandSide.GetName()</span>
+       &lt;&lt; "rightHandSide is " &lt;&lt; rightHandSide.GetName();
+    }
+<span style = "background-color:#fdd">    returnValue = false;</span>
+  }
+
+<span style = "background-color:#fdd">  if( rightHandSide.GetIGTTimeStamp() != leftHandSide.GetIGTTimeStamp() )</span>
+  {
+<span style = "background-color:#fdd">    if(verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( NavigationData )] IGTTimeStamp differs.";
+      MITK_INFO &lt;&lt; "leftHandSide is " &lt;&lt; leftHandSide.GetIGTTimeStamp()</span>
+       &lt;&lt; "rightHandSide is " &lt;&lt; rightHandSide.GetIGTTimeStamp();
+    }
+<span style = "background-color:#fdd">    returnValue = false;</span>
+  }
+
+<span style = "background-color:#fdd">  return returnValue;
+}</span></pre>
+	</body>
+</html>

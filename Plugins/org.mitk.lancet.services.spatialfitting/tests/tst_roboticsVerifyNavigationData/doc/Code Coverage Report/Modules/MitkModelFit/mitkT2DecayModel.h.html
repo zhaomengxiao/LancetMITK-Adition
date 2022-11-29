@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkT2DecayModel.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __MITK_T2_DECAY_MODEL_H_
+#define __MITK_T2_DECAY_MODEL_H_
+
+#include "mitkModelBase.h"
+
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+
+  /** @class T2DecayModel
+  * @brief Simple model of the MR T2 signal decay. This corresponds to an exponential decay in the form of:
+  * f(t) = M0 * exp(-t/T2) with T2 being the transverse / spin-spin relaxation time. The derived parameter R2
+  * is calculated from T2 by inversion.
+  */
+  class MITKMODELFIT_EXPORT T2DecayModel : public mitk::ModelBase
+  {
+
+  public:
+    typedef T2DecayModel Self;
+    typedef mitk::ModelBase Superclass;
+    typedef itk::SmartPointer&lt; Self &gt;                            Pointer;
+    typedef itk::SmartPointer&lt; const Self &gt;                      ConstPointer;
+
+    typedef Superclass::ParameterNameType  ParameterNameType;
+    typedef Superclass::ParametersSizeType ParametersSizeType;
+
+    /** Method for creation through the object factory. */
+<span style = "background-color:#dfd">    itkFactorylessNewMacro(Self);</span>
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+    /** Run-time type information (and related methods). */
+<span style = "background-color:#dfd">    itkTypeMacro(T2DecayModel, ModelBase);</span>
+
+    std::string GetModelDisplayName() const override;
+
+    std::string GetModelType() const override;
+
+    FunctionStringType GetFunctionString() const override;
+
+    std::string GetXName() const override;
+
+    ParameterNamesType GetParameterNames() const override;
+
+    ParametersSizeType  GetNumberOfParameters() const override;
+
+    ParameterNamesType GetStaticParameterNames() const override;
+
+    ParametersSizeType GetNumberOfStaticParameters() const override;
+
+    DerivedParametersSizeType GetNumberOfDerivedParameters() const override;
+
+    DerivedParameterNamesType GetDerivedParameterNames() const override;
+
+    mitk::ModelBase::DerivedParameterMapType ComputeDerivedParameters(
+      const mitk::ModelBase::ParametersType &amp;parameters) const;
+
+  protected:
+<span style = "background-color:#dfd">    T2DecayModel() {};
+    ~T2DecayModel() override {};</span>
+
+    /**
+     * Actual implementation of the clone method. This method should be reimplemeted
+     * in subclasses to clone the extra required parameters.
+     */
+    itk::LightObject::Pointer InternalClone() const override;
+
+    ModelResultType ComputeModelfunction(const ParametersType&amp; parameters) const override;
+
+    void SetStaticParameter(const ParameterNameType&amp; name,
+                                    const StaticParameterValuesType&amp; values) override;
+    StaticParameterValuesType GetStaticParameterValue(const ParameterNameType&amp; name) const override;
+
+  private:
+
+    //No copy constructor allowed
+    T2DecayModel(const Self&amp; source);
+    void operator=(const Self&amp;);  //purposely not implemented
+
+  };
+}
+
+#endif</pre>
+	</body>
+</html>

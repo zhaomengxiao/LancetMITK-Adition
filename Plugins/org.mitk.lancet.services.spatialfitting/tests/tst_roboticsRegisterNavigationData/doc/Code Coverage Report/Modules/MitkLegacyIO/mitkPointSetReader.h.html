@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPointSetReader.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef _MITK_POINT_SET_READER__H_
+#define _MITK_POINT_SET_READER__H_
+
+#include &lt;MitkLegacyIOExports.h&gt;
+
+#include &lt;mitkFileReader.h&gt;
+#include &lt;mitkPointSetSource.h&gt;
+#include &lt;stack&gt;
+#include &lt;string&gt;
+#include &lt;vtkXMLParser.h&gt;
+
+namespace tinyxml2
+{
+  class XMLElement;
+}
+
+namespace mitk
+{
+  /**
+   * @brief reads xml representations of mitk::PointSets from a file
+   *
+   * Reader for xml files containing one or multiple xml represenations of
+   * mitk::PointSets. If multiple mitk::PointSets are stored in one file,
+   * these are assigned to multiple outputs of the filter. The number of point
+   * sets which have be read can be retrieven by a call to GetNumberOfOutputs()
+   * after the pipeline update().
+   * The reader is able to read the old 3D Pointsets without the "specification" and "timeseries" tags and the new 4D
+   * Pointsets.
+   * @note loading point sets from multiple files according to a given file pattern
+   * is not yet supported!
+   *
+   * @ingroup MitkLegacyIOModule
+   *
+   * @deprecatedSince{2014_10} Use mitk::IOUtils or mitk::FileReaderRegistry instead.
+  */
+  class MITKLEGACYIO_EXPORT PointSetReader : public PointSetSource, public FileReader
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(PointSetReader, FileReader);</span>
+
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+      /**
+       * @brief Sets the filename of the file to be read
+       * @param _arg the filename of the point set xml-file
+       */
+<span style = "background-color:#fdd">      itkSetStringMacro(FileName);</span>
+
+    /**
+     * @brief Returns the filename of the point set xml-file.
+     * @returns the filename of the point set xml-file.
+     */
+<span style = "background-color:#fdd">    itkGetStringMacro(FileName);</span>
+
+    /**
+     * @warning multiple load not (yet) supported
+     */
+<span style = "background-color:#fdd">    itkSetStringMacro(FilePrefix);</span>
+
+    /**
+     * @warning multiple load not (yet) supported
+     */
+<span style = "background-color:#fdd">    itkGetStringMacro(FilePrefix);</span>
+
+    /**
+     * @warning multiple load not (yet) supported
+     */
+<span style = "background-color:#fdd">    itkSetStringMacro(FilePattern);</span>
+
+    /**
+     * @warning multiple load not (yet) supported
+     */
+<span style = "background-color:#fdd">    itkGetStringMacro(FilePattern);</span>
+
+    static bool CanReadFile(const std::string filename, const std::string filePrefix, const std::string filePattern);
+
+    /**
+     * @returns whether the last read attempt was successful or not.
+     */
+    bool GetSuccess() const;
+
+  protected:
+    /**
+     * Constructor
+     */
+    PointSetReader();
+
+    /**
+     * Virtual destructor
+     */
+    ~PointSetReader() override;
+
+    /**
+     * Actually reads the point sets from the given file
+     */
+    void GenerateData() override;
+
+    virtual mitk::PointSet::Pointer ReadPoint(mitk::PointSet::Pointer newPointSet,
+                                              const tinyxml2::XMLElement *currentTimeSeries,
+                                              unsigned int currentTimeStep);
+
+    /**
+     * Does nothing in the current implementation
+     */
+    void GenerateOutputInformation() override;
+
+    /**
+     * Resizes the output-objects according to the given number.
+     * @param num the new number of output objects.
+     */
+    virtual void ResizeOutputs(const unsigned int &amp;num);
+
+    /**
+     * Checks if the given file has appropriate
+     * read access.
+     * @returns true if the file exists and may be read
+     *          or false otherwise.
+     */
+    virtual int CanReadFile(const char *name);
+
+    std::string m_FileName;
+
+    std::string m_FilePrefix;
+
+    std::string m_FilePattern;
+
+    bool m_Success;
+  };
+}
+
+#endif</pre>
+	</body>
+</html>

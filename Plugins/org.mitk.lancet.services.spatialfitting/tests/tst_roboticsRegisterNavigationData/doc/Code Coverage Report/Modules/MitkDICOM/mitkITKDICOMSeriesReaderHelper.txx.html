@@ -1,0 +1,315 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkITKDICOMSeriesReaderHelper.txx</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkITKDICOMSeriesReaderHelper.h"
+
+#include &lt;itkImageSeriesReader.h&gt;
+#include &lt;itkResampleImageFilter.h&gt;
+//#include &lt;itkAffineTransform.h&gt;
+//#include &lt;itkLinearInterpolateImageFunction.h&gt;
+//#include &lt;itkTimeProbesCollectorBase.h&gt;
+
+#include "dcmtk/ofstd/ofdatime.h"
+
+template &lt;typename PixelType&gt;
+mitk::Image::Pointer
+mitk::ITKDICOMSeriesReaderHelper
+::LoadDICOMByITK(
+    const StringContainer&amp; filenames,
+    bool correctTilt,
+    const GantryTiltInformation&amp; tiltInfo,
+    itk::GDCMImageIO::Pointer&amp; io)
+<span style = "background-color:#fdd">{</span>
+  /******** Normal Case, 3D (also for GDCM &lt; 2 usable) ***************/
+<span style = "background-color:#fdd">  mitk::Image::Pointer image = mitk::Image::New();</span>
+
+  typedef itk::Image&lt;PixelType, 3&gt; ImageType;
+  typedef itk::ImageSeriesReader&lt;ImageType&gt; ReaderType;
+
+<span style = "background-color:#fdd">  io = itk::GDCMImageIO::New();
+  typename ReaderType::Pointer reader = ReaderType::New();</span>
+
+<span style = "background-color:#fdd">  reader-&gt;SetImageIO(io);
+  reader-&gt;ReverseOrderOff(); // at this point we require an order of input images so that</span>
+                             // the direction between the origin of the first and the last slice
+                             // is the same direction as the image normals! Otherwise we might
+                             // see images upside down. Unclear whether this is a bug in MITK,
+                             // see NormalDirectionConsistencySorter.
+
+<span style = "background-color:#fdd">  reader-&gt;SetFileNames(filenames);
+  reader-&gt;Update();
+  typename ImageType::Pointer readVolume = reader-&gt;GetOutput();</span>
+
+  // if we detected that the images are from a tilted gantry acquisition, we need to push some pixels into the right position
+<span style = "background-color:#fdd">  if (correctTilt)</span>
+  {
+<span style = "background-color:#fdd">    readVolume = FixUpTiltedGeometry( reader-&gt;GetOutput(), tiltInfo );</span>
+  }
+
+<span style = "background-color:#fdd">  image-&gt;InitializeByItk(readVolume.GetPointer());
+  image-&gt;SetImportVolume(readVolume-&gt;GetBufferPointer());</span>
+
+#ifdef MBILOG_ENABLE_DEBUG
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "Volume dimension: [" &lt;&lt; image-&gt;GetDimension(0) &lt;&lt; ", "</span>
+                                      &lt;&lt; image-&gt;GetDimension(1) &lt;&lt; ", "
+                                      &lt;&lt; image-&gt;GetDimension(2) &lt;&lt; "]";
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "Volume spacing: [" &lt;&lt; image-&gt;GetGeometry()-&gt;GetSpacing()[0] &lt;&lt; ", "</span>
+                                    &lt;&lt; image-&gt;GetGeometry()-&gt;GetSpacing()[1] &lt;&lt; ", "
+                                    &lt;&lt; image-&gt;GetGeometry()-&gt;GetSpacing()[2] &lt;&lt; "]";
+#endif //MBILOG_ENABLE_DEBUG
+
+<span style = "background-color:#fdd">  return image;
+}</span>
+
+#define MITK_DEBUG_OUTPUT_FILELIST(list)\
+  MITK_DEBUG &lt;&lt; "-------------------------------------------"; \
+  for (StringContainer::const_iterator _iter = (list).cbegin(); _iter!=(list).cend(); ++_iter) \
+    { \
+      MITK_DEBUG &lt;&lt;" file '" &lt;&lt; *_iter&lt;&lt; "'"; \
+    } \
+  MITK_DEBUG &lt;&lt; "-------------------------------------------";
+
+template &lt;typename PixelType&gt;
+mitk::Image::Pointer
+mitk::ITKDICOMSeriesReaderHelper
+::LoadDICOMByITK3DnT(
+    const StringContainerList&amp; filenamesForTimeSteps,
+    bool correctTilt,
+    const GantryTiltInformation&amp; tiltInfo,
+    itk::GDCMImageIO::Pointer&amp; io)
+<span style = "background-color:#fdd">{
+  unsigned int numberOfTimeSteps = filenamesForTimeSteps.size();</span>
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "Start extracting time bounds of time steps";
+  const TimeBoundsList timeBoundsList = ExtractTimeBoundsOfTimeSteps(filenamesForTimeSteps);
+  if (numberOfTimeSteps!=timeBoundsList.size())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error while loading 3D+t. Inconsistent size of generated time bounds list. List size: "&lt;&lt; timeBoundsList.size() &lt;&lt; "; number of steps: "&lt;&lt;numberOfTimeSteps;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::Image::Pointer image = mitk::Image::New();</span>
+
+  typedef itk::Image&lt;PixelType, 4&gt; ImageType;
+  typedef itk::ImageSeriesReader&lt;ImageType&gt; ReaderType;
+
+<span style = "background-color:#fdd">  io = itk::GDCMImageIO::New();
+  typename ReaderType::Pointer reader = ReaderType::New();</span>
+
+<span style = "background-color:#fdd">  reader-&gt;SetImageIO(io);
+  reader-&gt;ReverseOrderOff(); // at this point we require an order of input images so that</span>
+                             // the direction between the origin of the first and the last slice
+                             // is the same direction as the image normals! Otherwise we might
+                             // see images upside down. Unclear whether this is a bug in MITK,
+                             // see NormalDirectionConsistencySorter.
+
+
+<span style = "background-color:#fdd">  unsigned int currentTimeStep = 0;</span>
+
+#ifdef MBILOG_ENABLE_DEBUG
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "Start loading timestep " &lt;&lt; currentTimeStep;
+  MITK_DEBUG_OUTPUT_FILELIST( filenamesForTimeSteps.front() )</span>
+#endif // MBILOG_ENABLE_DEBUG
+
+<span style = "background-color:#fdd">  reader-&gt;SetFileNames(filenamesForTimeSteps.front());
+  reader-&gt;Update();
+  typename ImageType::Pointer readVolume = reader-&gt;GetOutput();</span>
+
+  // if we detected that the images are from a tilted gantry acquisition, we need to push some pixels into the right position
+<span style = "background-color:#fdd">  if (correctTilt)</span>
+  {
+<span style = "background-color:#fdd">    readVolume = FixUpTiltedGeometry( reader-&gt;GetOutput(), tiltInfo );</span>
+  }
+
+<span style = "background-color:#fdd">  image-&gt;InitializeByItk(readVolume.GetPointer(), 1, numberOfTimeSteps);
+  image-&gt;SetImportVolume(readVolume-&gt;GetBufferPointer(), currentTimeStep++); // timestep 0</span>
+
+  // for other time-steps
+<span style = "background-color:#fdd">  for (auto timestepsIter = ++(filenamesForTimeSteps.cbegin()); // start with SECOND entry
+      timestepsIter != filenamesForTimeSteps.cend();
+      ++currentTimeStep, ++timestepsIter)</span>
+  {
+#ifdef MBILOG_ENABLE_DEBUG
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Start loading timestep " &lt;&lt; currentTimeStep;
+    MITK_DEBUG_OUTPUT_FILELIST( *timestepsIter )</span>
+#endif // MBILOG_ENABLE_DEBUG
+
+<span style = "background-color:#fdd">    reader-&gt;SetFileNames( *timestepsIter );
+    reader-&gt;Update();
+    readVolume = reader-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">    if (correctTilt)</span>
+    {
+<span style = "background-color:#fdd">      readVolume = FixUpTiltedGeometry( reader-&gt;GetOutput(), tiltInfo );</span>
+    }
+
+<span style = "background-color:#fdd">    image-&gt;SetImportVolume(readVolume-&gt;GetBufferPointer(), currentTimeStep);
+  }</span>
+
+#ifdef MBILOG_ENABLE_DEBUG
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "Volume dimension: [" &lt;&lt; image-&gt;GetDimension(0) &lt;&lt; ", "</span>
+                                      &lt;&lt; image-&gt;GetDimension(1) &lt;&lt; ", "
+                                      &lt;&lt; image-&gt;GetDimension(2) &lt;&lt; "]";
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "Volume spacing: [" &lt;&lt; image-&gt;GetGeometry()-&gt;GetSpacing()[0] &lt;&lt; ", "</span>
+                                    &lt;&lt; image-&gt;GetGeometry()-&gt;GetSpacing()[1] &lt;&lt; ", "
+                                    &lt;&lt; image-&gt;GetGeometry()-&gt;GetSpacing()[2] &lt;&lt; "]";
+#endif // MBILOG_ENABLE_DEBUG
+
+  //construct timegeometry
+<span style = "background-color:#fdd">  TimeGeometry::Pointer timeGeometry = GenerateTimeGeometry(image-&gt;GetGeometry(),timeBoundsList);
+  image-&gt;SetTimeGeometry(timeGeometry);
+  return image;
+}</span>
+
+
+template &lt;typename ImageType&gt;
+typename ImageType::Pointer
+mitk::ITKDICOMSeriesReaderHelper
+::FixUpTiltedGeometry( ImageType* input, const GantryTiltInformation&amp; tiltInfo )
+<span style = "background-color:#fdd">{</span>
+  typedef itk::ResampleImageFilter&lt;ImageType,ImageType&gt; ResampleFilterType;
+<span style = "background-color:#fdd">  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  resampler-&gt;SetInput( input );</span>
+
+  /*
+     Transform for a point is
+      - transform from actual position to index coordinates
+      - apply a shear that undoes the gantry tilt
+      - transform back into world coordinates
+
+     Anybody who does this in a simpler way: don't forget to write up how and why your solution works
+  */
+  typedef itk::ScalableAffineTransform&lt; double, ImageType::ImageDimension &gt; TransformType;
+<span style = "background-color:#fdd">  typename TransformType::Pointer transformShear = TransformType::New();</span>
+
+  /**
+    - apply a shear and spacing correction to the image block that corrects the ITK reader's error
+      - ITK ignores the shear and loads slices into an orthogonal volume
+      - ITK calculates the spacing from the origin distance, which is more than the actual spacing with gantry tilt images
+    - to undo the effect
+      - we have calculated some information in tiltInfo:
+        - the shift in Y direction that is added with each additional slice is the most important information
+        - the Y-shift is calculated in mm world coordinates
+      - we apply a shearing transformation to the ITK-read image volume
+        - to do this locally,
+          - we transform the image volume back to origin and "normal" orientation by applying the inverse of its transform
+            (this brings us into the image's "index coordinate" system)
+          - we apply a shear with the Y-shift factor put into a unit transform at row 1, col 2
+          - we transform the image volume back to its actual position (from index to world coordinates)
+      - we lastly apply modify the image spacing in z direction by replacing this number with the correctly calulcated inter-slice distance
+  */
+
+<span style = "background-color:#fdd">  const ScalarType factor = tiltInfo.GetMatrixCoefficientForCorrectionInWorldCoordinates() / input-&gt;GetSpacing()[1];</span>
+  // row 1, column 2 corrects shear in parallel to Y axis, proportional to distance in Z direction
+<span style = "background-color:#fdd">  transformShear-&gt;Shear( 1, 2, factor );</span>
+
+<span style = "background-color:#fdd">  typename TransformType::Pointer imageIndexToWorld = TransformType::New();
+  imageIndexToWorld-&gt;SetOffset( input-&gt;GetOrigin().GetVectorFromOrigin() );</span>
+
+<span style = "background-color:#fdd">  typename TransformType::MatrixType indexToWorldMatrix;
+  indexToWorldMatrix = input-&gt;GetDirection();</span>
+
+<span style = "background-color:#fdd">  typename ImageType::DirectionType scale;
+  for ( unsigned int i = 0; i &lt; ImageType::ImageDimension; i++ )</span>
+  {
+<span style = "background-color:#fdd">    scale[i][i] = input-&gt;GetSpacing()[i];
+  }
+  indexToWorldMatrix *= scale;</span>
+
+<span style = "background-color:#fdd">  imageIndexToWorld-&gt;SetMatrix( indexToWorldMatrix );</span>
+
+<span style = "background-color:#fdd">  typename TransformType::Pointer imageWorldToIndex = TransformType::New();
+  imageIndexToWorld-&gt;GetInverse( imageWorldToIndex );</span>
+
+<span style = "background-color:#fdd">  typename TransformType::Pointer gantryTiltCorrection = TransformType::New();
+  gantryTiltCorrection-&gt;Compose( imageWorldToIndex );
+  gantryTiltCorrection-&gt;Compose( transformShear );
+  gantryTiltCorrection-&gt;Compose( imageIndexToWorld );</span>
+
+<span style = "background-color:#fdd">  resampler-&gt;SetTransform( gantryTiltCorrection );</span>
+
+  typedef itk::LinearInterpolateImageFunction&lt; ImageType, double &gt; InterpolatorType;
+<span style = "background-color:#fdd">  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  resampler-&gt;SetInterpolator( interpolator );</span>
+  /*
+     This would be the right place to invent a meaningful value for positions outside of the image.
+     For CT, HU -1000 might be meaningful, but a general solution seems not possible. Even for CT,
+     -1000 would only look natural for many not all images.
+  */
+
+  // TODO use (0028,0120) Pixel Padding Value if present
+<span style = "background-color:#fdd">  resampler-&gt;SetDefaultPixelValue( itk::NumericTraits&lt; typename ImageType::PixelType &gt;::min() );</span>
+
+  // adjust size in Y direction! (maybe just transform the outer last pixel to see how much space we would need
+
+<span style = "background-color:#fdd">  resampler-&gt;SetOutputParametersFromImage( input ); // we basically need the same image again, just sheared</span>
+
+
+  // if tilt positive, then we need additional pixels BELOW origin, otherwise we need pixels behind the end of the block
+
+  // in any case we need more size to accomodate shifted slices
+<span style = "background-color:#fdd">  typename ImageType::SizeType largerSize = resampler-&gt;GetSize(); // now the resampler already holds the input image's size.
+  const double imageSizeZ = largerSize[2];</span>
+  //MITK_DEBUG &lt;&lt;"Calculate lager size = " &lt;&lt; largerSize[1] &lt;&lt; " + " &lt;&lt; tiltInfo.GetTiltCorrectedAdditionalSize(imageSizeZ) &lt;&lt; " / " &lt;&lt; input-&gt;GetSpacing()[1] &lt;&lt; "+ 2.0";
+<span style = "background-color:#fdd">  largerSize[1] += static_cast&lt;typename ImageType::SizeType::SizeValueType&gt;(tiltInfo.GetTiltCorrectedAdditionalSize(imageSizeZ) / input-&gt;GetSpacing()[1]+ 2.0);
+  resampler-&gt;SetSize( largerSize );</span>
+  //MITK_DEBUG &lt;&lt; "Fix Y size of image w/ spacing " &lt;&lt; input-&gt;GetSpacing()[1] &lt;&lt; " from " &lt;&lt; input-&gt;GetLargestPossibleRegion().GetSize()[1] &lt;&lt; " to " &lt;&lt; largerSize[1];
+
+  // in SOME cases this additional size is below/behind origin
+<span style = "background-color:#fdd">  if ( tiltInfo.GetMatrixCoefficientForCorrectionInWorldCoordinates() &gt; 0.0 )</span>
+  {
+<span style = "background-color:#fdd">    typename ImageType::DirectionType imageDirection = input-&gt;GetDirection();
+    Vector3D yDirection;
+    yDirection[0] = imageDirection[0][1];
+    yDirection[1] = imageDirection[1][1];
+    yDirection[2] = imageDirection[2][1];
+    yDirection.Normalize();</span>
+
+    typename ImageType::PointType shiftedOrigin;
+<span style = "background-color:#fdd">    shiftedOrigin = input-&gt;GetOrigin();</span>
+
+    // add some pixels to make everything fit
+<span style = "background-color:#fdd">    shiftedOrigin[0] -= yDirection[0] * (tiltInfo.GetTiltCorrectedAdditionalSize(imageSizeZ) + 1.0 * input-&gt;GetSpacing()[1]);
+    shiftedOrigin[1] -= yDirection[1] * (tiltInfo.GetTiltCorrectedAdditionalSize(imageSizeZ) + 1.0 * input-&gt;GetSpacing()[1]);
+    shiftedOrigin[2] -= yDirection[2] * (tiltInfo.GetTiltCorrectedAdditionalSize(imageSizeZ) + 1.0 * input-&gt;GetSpacing()[1]);</span>
+
+<span style = "background-color:#fdd">    resampler-&gt;SetOutputOrigin( shiftedOrigin );</span>
+  }
+
+<span style = "background-color:#fdd">  resampler-&gt;Update();
+  typename ImageType::Pointer result = resampler-&gt;GetOutput();</span>
+
+  // ImageSeriesReader calculates z spacing as the distance between the first two origins.
+  // This is not correct in case of gantry tilt, so we set our calculated spacing.
+<span style = "background-color:#fdd">  typename ImageType::SpacingType correctedSpacing = result-&gt;GetSpacing();
+  correctedSpacing[2] = tiltInfo.GetRealZSpacing();
+  result-&gt;SetSpacing( correctedSpacing );</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+</pre>
+	</body>
+</html>

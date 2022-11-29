@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNumericTwoCompartmentExchangeModelFactory.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNumericTwoCompartmentExchangeModelFactory.h"
+
+
+#include "mitkNumericTwoCompartmentExchangeModelParameterizer.h"
+#include "mitkAIFParametrizerHelper.h"
+
+mitk::NumericTwoCompartmentExchangeModelFactory::NumericTwoCompartmentExchangeModelFactory()
+<span style = "background-color:#dfd">{
+};</span>
+
+mitk::NumericTwoCompartmentExchangeModelFactory::~NumericTwoCompartmentExchangeModelFactory()
+<span style = "background-color:#dfd">{
+};</span>
+
+mitk::ModelParameterizerBase::Pointer
+mitk::NumericTwoCompartmentExchangeModelFactory::DoCreateParameterizer(
+  const modelFit::ModelFitInfo* fit)
+const
+<span style = "background-color:#fdd">{
+  mitk::ModelParameterizerBase::Pointer result;</span>
+
+<span style = "background-color:#fdd">  ModelParameterizerType::Pointer modelParameterizer =</span>
+    ModelParameterizerType::New();
+
+<span style = "background-color:#fdd">  modelFit::StaticParameterMap::ValueType aif = fit-&gt;staticParamMap.Get(</span>
+        ModelType::NAME_STATIC_PARAMETER_AIF);
+
+<span style = "background-color:#fdd">  modelParameterizer-&gt;SetAIF(mitk::convertParameterToArray(aif));</span>
+
+<span style = "background-color:#fdd">  modelFit::StaticParameterMap::ValueType aifGrid = fit-&gt;staticParamMap.Get(</span>
+        ModelType::NAME_STATIC_PARAMETER_AIFTimeGrid);
+<span style = "background-color:#fdd">  modelParameterizer-&gt;SetAIFTimeGrid(mitk::convertParameterToArray(aifGrid));</span>
+
+<span style = "background-color:#fdd">  modelFit::StaticParameterMap::ValueType odeStepSize = fit-&gt;staticParamMap.Get(</span>
+        ModelType::NAME_STATIC_PARAMETER_ODEINTStepSize);
+<span style = "background-color:#fdd">  modelParameterizer-&gt;SetODEINTStepSize(odeStepSize[0]);</span>
+
+
+<span style = "background-color:#fdd">  result = modelParameterizer.GetPointer();</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span></pre>
+	</body>
+</html>

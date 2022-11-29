@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSimpleFunctorPolicy.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef SIMPLEFUNCTOR_POLICY_H
+#define SIMPLEFUNCTOR_POLICY_H
+
+#include "itkIndex.h"
+#include "mitkSimpleFunctorBase.h"
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+
+  class MITKMODELFIT_EXPORT SimpleFunctorPolicy
+  {
+  public:
+    typedef std::vector&lt;mitk::ScalarType&gt; InputPixelArrayType;
+    typedef std::vector&lt;mitk::ScalarType&gt; OutputPixelArrayType;
+
+    typedef SimpleFunctorBase               FunctorType;
+    typedef SimpleFunctorBase::ConstPointer FunctorConstPointer;
+
+    typedef itk::Index&lt;3&gt; IndexType;
+
+    SimpleFunctorPolicy();
+
+    ~SimpleFunctorPolicy();
+
+    unsigned int GetNumberOfOutputs() const;
+
+    void SetFunctor(const mitk::SimpleFunctorBase *functor);
+
+    bool operator!=(const SimpleFunctorPolicy &amp; other) const;
+
+    bool operator==(const SimpleFunctorPolicy &amp; other) const;
+
+    inline OutputPixelArrayType operator()( const InputPixelArrayType &amp; value, const IndexType&amp; /*currentIndex*/ ) const
+<span style = "background-color:#fdd">    {
+      if (!m_Functor)</span>
+      {
+<span style = "background-color:#fdd">        itkGenericExceptionMacro(&lt;&lt; "Error. Cannot process operator(). Functor is Null.");</span>
+      }
+
+<span style = "background-color:#fdd">      OutputPixelArrayType result = m_Functor-&gt;Compute(value);</span>
+
+<span style = "background-color:#fdd">      return result;
+    }</span>
+
+  private:
+
+    FunctorConstPointer m_Functor;
+  };
+
+}
+
+
+#endif // SIMPLEFUNCTORPOLICY_H</pre>
+	</body>
+</html>

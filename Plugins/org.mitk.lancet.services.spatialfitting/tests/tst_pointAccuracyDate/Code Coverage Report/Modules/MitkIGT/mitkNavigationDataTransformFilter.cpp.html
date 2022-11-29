@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataTransformFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationDataTransformFilter.h"
+
+
+mitk::NavigationDataTransformFilter::NavigationDataTransformFilter()
+<span style = "background-color:#fdd">: mitk::NavigationDataToNavigationDataFilter()
+{
+  m_Rigid3DTransform = nullptr;
+  m_Precompose = false;
+}</span>
+
+
+mitk::NavigationDataTransformFilter::~NavigationDataTransformFilter()
+<span style = "background-color:#fdd">{
+  m_Rigid3DTransform = nullptr;
+}</span>
+
+void mitk::NavigationDataTransformFilter::GenerateData()
+<span style = "background-color:#fdd">{</span>
+
+  // only update data if m_Transform was set
+<span style = "background-color:#fdd">  if(m_Rigid3DTransform.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("Invalid parameter: Transform was not set!  Use SetRigid3DTransform() before updating the filter.");
+    return;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;CreateOutputsForAllInputs(); // make sure that we have the same number of outputs as inputs</span>
+
+    /* update outputs with tracking data from tools */
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; this-&gt;GetNumberOfIndexedOutputs() ; ++i)</span>
+    {
+<span style = "background-color:#fdd">      mitk::NavigationData* output = this-&gt;GetOutput(i);
+      assert(output);
+      const mitk::NavigationData* input = this-&gt;GetInput(i);
+      assert(input);</span>
+
+<span style = "background-color:#fdd">      if (input-&gt;IsDataValid() == false)</span>
+      {
+<span style = "background-color:#fdd">        output-&gt;SetDataValid(false);
+        continue;</span>
+      }
+
+      // Get input position/orientation as float numbers
+<span style = "background-color:#fdd">      const NavigationData::PositionType    pInF = input-&gt;GetPosition();
+      const NavigationData::OrientationType oInF = input-&gt;GetOrientation();</span>
+
+      // Cast the input NavigationData to double precision
+      TransformType::OutputVectorType pInD;
+<span style = "background-color:#fdd">      FillVector3D(pInD, pInF[0], pInF[1], pInF[2]);
+      TransformType::VersorType oInD;
+      oInD.Set(oInF.x(), oInF.y(), oInF.z(), oInF.r());</span>
+
+<span style = "background-color:#fdd">      TransformType::Pointer composedTransform = TransformType::New();</span>
+      // SetRotation+SetOffset defines the Tip-to-World coordinate frame
+      // transformation ("World" is used in the generic sense)
+<span style = "background-color:#fdd">      composedTransform-&gt;SetRotation(oInD);
+      composedTransform-&gt;SetOffset(pInD);</span>
+      // If !m_Precompose: The resulting transform is Tip-to-UserWorld
+      // If m_Precompose:  The resulting transform is UserTip-to-World
+<span style = "background-color:#fdd">      composedTransform-&gt;Compose(m_Rigid3DTransform, m_Precompose);</span>
+
+      // Transformed position/orientation as double numbers
+<span style = "background-color:#fdd">      const TransformType::OutputVectorType  pOutD = composedTransform-&gt;GetOffset();
+      const TransformType::VersorType        oOutD = composedTransform-&gt;GetVersor();</span>
+
+      // Cast to transformed NavigationData back to float precision
+<span style = "background-color:#fdd">      NavigationData::OrientationType oOutF(oOutD.GetX(), oOutD.GetY(), oOutD.GetZ(), oOutD.GetW());
+      NavigationData::PositionType pOutF;
+      FillVector3D(pOutF, pOutD[0], pOutD[1], pOutD[2]);</span>
+
+<span style = "background-color:#fdd">      output-&gt;SetOrientation(oOutF);
+      output-&gt;SetPosition(pOutF);
+      output-&gt;SetDataValid(true); // operation was successful, therefore data of output is valid.
+    }</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

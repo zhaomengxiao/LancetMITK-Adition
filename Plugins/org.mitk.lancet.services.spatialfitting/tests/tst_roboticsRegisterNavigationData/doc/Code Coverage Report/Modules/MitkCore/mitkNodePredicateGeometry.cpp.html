@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNodePredicateGeometry.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNodePredicateGeometry.h"
+#include "mitkDataNode.h"
+#include "mitkImage.h"
+
+mitk::NodePredicateGeometry::NodePredicateGeometry(const BaseGeometry* refGeometry, TimePointType relevantTimePoint)
+<span style = "background-color:#fdd">  : m_RefGeometry(refGeometry), m_RefTimeGeometry(nullptr), m_TimePoint(relevantTimePoint), m_UseTimePoint(true), m_CheckCoordinatePrecision(NODE_PREDICATE_GEOMETRY_DEFAULT_CHECK_COORDINATE_PRECISION), m_CheckDirectionPrecision(NODE_PREDICATE_GEOMETRY_DEFAULT_CHECK_DIRECTION_PRECISION)
+{
+  if (m_RefGeometry.IsNull()) mitkThrow() &lt;&lt; "Invalid constructor initialization. Reference base geometry instance is nullptr pointer.";
+}</span>
+
+mitk::NodePredicateGeometry::NodePredicateGeometry(const BaseGeometry* refGeometry)
+<span style = "background-color:#fdd">  : m_RefGeometry(refGeometry), m_RefTimeGeometry(nullptr), m_TimePoint(0), m_UseTimePoint(false), m_CheckCoordinatePrecision(NODE_PREDICATE_GEOMETRY_DEFAULT_CHECK_COORDINATE_PRECISION), m_CheckDirectionPrecision(NODE_PREDICATE_GEOMETRY_DEFAULT_CHECK_DIRECTION_PRECISION)
+{
+  if (m_RefGeometry.IsNull()) mitkThrow() &lt;&lt; "Invalid constructor initialization. Reference base geometry instance is nullptr pointer.";
+}</span>
+
+mitk::NodePredicateGeometry::NodePredicateGeometry(const TimeGeometry* refGeometry)
+<span style = "background-color:#fdd">  : m_RefGeometry(nullptr), m_RefTimeGeometry(refGeometry), m_TimePoint(0), m_UseTimePoint(false), m_CheckCoordinatePrecision(NODE_PREDICATE_GEOMETRY_DEFAULT_CHECK_COORDINATE_PRECISION), m_CheckDirectionPrecision(NODE_PREDICATE_GEOMETRY_DEFAULT_CHECK_DIRECTION_PRECISION)
+{
+  if (m_RefTimeGeometry.IsNull()) mitkThrow() &lt;&lt; "Invalid constructor initialization. Reference base geometry instance is nullptr pointer.";
+}</span>
+
+void mitk::NodePredicateGeometry::SetCheckPrecision(ScalarType precision)
+<span style = "background-color:#fdd">{
+  SetCheckCoordinatePrecision(precision);
+  SetCheckDirectionPrecision(precision);
+}</span>
+
+mitk::NodePredicateGeometry::~NodePredicateGeometry()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::NodePredicateGeometry::CheckNode(const mitk::DataNode *node) const
+<span style = "background-color:#fdd">{
+  if (node == nullptr)
+    mitkThrow() &lt;&lt; "NodePredicateGeometry: invalid node";</span>
+
+<span style = "background-color:#fdd">  mitk::BaseData *data = node-&gt;GetData();
+  if (data)</span>
+  {
+<span style = "background-color:#fdd">    if (m_RefGeometry.IsNotNull())</span>
+    { //check only one time point.
+<span style = "background-color:#fdd">      mitk::BaseGeometry::Pointer testGeometry = data-&gt;GetGeometry();
+      if (this-&gt;m_UseTimePoint)</span>
+      {
+<span style = "background-color:#fdd">        testGeometry = data-&gt;GetTimeGeometry()-&gt;GetGeometryForTimePoint(m_TimePoint);</span>
+      }
+
+<span style = "background-color:#fdd">      if (testGeometry)</span>
+      {
+<span style = "background-color:#fdd">        return Equal(*testGeometry, *m_RefGeometry, this-&gt;m_CheckCoordinatePrecision, this-&gt;m_CheckDirectionPrecision, false);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else
+    { //check whole time geometry
+<span style = "background-color:#fdd">      return Equal(*data-&gt;GetTimeGeometry(), *m_RefTimeGeometry, this-&gt;m_CheckCoordinatePrecision, this-&gt;m_CheckDirectionPrecision, false);</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  return false;
+}</span></pre>
+	</body>
+</html>

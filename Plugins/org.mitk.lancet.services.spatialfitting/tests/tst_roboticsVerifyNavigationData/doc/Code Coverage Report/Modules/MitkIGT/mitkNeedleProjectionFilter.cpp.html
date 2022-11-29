@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNeedleProjectionFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+// MITK
+#include "mitkNeedleProjectionFilter.h"
+#include &lt;mitkPlaneGeometry.h&gt;
+
+// VTK
+#include &lt;vtkPlane.h&gt;
+
+mitk::NeedleProjectionFilter::NeedleProjectionFilter()
+<span style = "background-color:#fdd">  : m_Projection(mitk::PointSet::New()),
+  m_OriginalPoints(mitk::PointSet::New()),
+  m_ShowToolAxis(false),
+  m_SelectedInput(0)
+{</span>
+  // Tool Coordinates: z-axis is chosen as default axis when no axis is specified
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "Constructor called";</span>
+
+<span style = "background-color:#fdd">  mitk::Point3D toolAxis;
+  mitk::FillVector3D(toolAxis, 0, 0, -1);
+  m_ToolAxis = toolAxis;
+  InitializeOriginalPoints(toolAxis, m_ShowToolAxis);</span>
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "orginal point 0 set constructor" &lt;&lt; m_OriginalPoints-&gt;GetPoint(0);
+  MITK_DEBUG &lt;&lt; "orginal point 1 set constructor" &lt;&lt; m_OriginalPoints-&gt;GetPoint(1);
+}</span>
+
+void mitk::NeedleProjectionFilter::InitializeOriginalPoints(mitk::Point3D toolAxis, bool showToolAxis)
+<span style = "background-color:#fdd">{
+  m_OriginalPoints = mitk::PointSet::New();</span>
+
+<span style = "background-color:#fdd">  mitk::Point3D projectionPoint;
+  projectionPoint.SetElement(0, toolAxis.GetElement(0) * 400);
+  projectionPoint.SetElement(1, toolAxis.GetElement(1) * 400);
+  projectionPoint.SetElement(2, toolAxis.GetElement(2) * 400);
+  m_OriginalPoints-&gt;InsertPoint(projectionPoint);</span>
+
+<span style = "background-color:#fdd">  mitk::Point3D toolOrigin;
+  toolOrigin.SetElement(0, 0);
+  toolOrigin.SetElement(1, 0);
+  toolOrigin.SetElement(2, 0);
+  m_OriginalPoints-&gt;InsertPoint(toolOrigin);</span>
+
+<span style = "background-color:#fdd">  if (showToolAxis)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D axisPoint;
+    axisPoint.SetElement(0, toolAxis.GetElement(0) * -400);
+    axisPoint.SetElement(1, toolAxis.GetElement(1) * -400);
+    axisPoint.SetElement(2, toolAxis.GetElement(2) * -400);
+    m_OriginalPoints-&gt;InsertPoint(axisPoint);</span>
+  }
+
+<span style = "background-color:#fdd">}</span>
+
+void mitk::NeedleProjectionFilter::ShowToolAxis(bool enabled)
+<span style = "background-color:#fdd">{
+  m_ShowToolAxis = enabled;
+  InitializeOriginalPoints(m_ToolAxis,m_ShowToolAxis);
+}</span>
+
+void mitk::NeedleProjectionFilter::SetToolAxisForFilter(mitk::Point3D point)
+<span style = "background-color:#fdd">{
+  m_ToolAxis = point;
+  InitializeOriginalPoints(m_ToolAxis, m_ShowToolAxis);</span>
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "orginal point 1 set mutator" &lt;&lt; m_OriginalPoints-&gt;GetPoint(1);
+  MITK_DEBUG &lt;&lt; "orginal point 0 set mutator" &lt;&lt; m_OriginalPoints-&gt;GetPoint(0);
+}</span>
+
+mitk::NeedleProjectionFilter::~NeedleProjectionFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::NeedleProjectionFilter::SelectInput(int i)
+<span style = "background-color:#fdd">{
+  if (i &lt; 0) mitkThrow() &lt;&lt; "Negative Input selected in NeedleProjectionFilter";
+  if (! (static_cast&lt;unsigned int&gt;(i) &lt; this-&gt;GetInputs().size())) mitkThrow() &lt;&lt; "Selected input index is larger than actual number of inputs in NeedleProjectionFilter";
+  m_SelectedInput = i;
+}</span>
+
+void mitk::NeedleProjectionFilter::GenerateData()
+<span style = "background-color:#fdd">{</span>
+  // copy the navigation data from the inputs to the outputs
+<span style = "background-color:#fdd">  mitk::NavigationDataPassThroughFilter::GenerateData();</span>
+
+  // If no reference has been set yet, warn and abort
+<span style = "background-color:#fdd">  if (m_SelectedInput == -1)</span>
+  {
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "No input has been selected in NeedleProjection Filter. Only forwarding NavigationData...";
+    return;</span>
+  }
+
+  // Cancel, if selected tool is currently not being tracked
+<span style = "background-color:#fdd">  if (! GetInput(m_SelectedInput)-&gt;IsDataValid()) return;</span>
+
+  // Outputs have been updated, now to calculate the Projection
+  // 1) Generate Pseudo-Geometry for Input
+<span style = "background-color:#fdd">  mitk::AffineTransform3D::Pointer refTrans = this-&gt;NavigationDataToTransform(this-&gt;GetInput(m_SelectedInput));
+  mitk::Geometry3D::Pointer refGeom = this-&gt;TransformToGeometry(refTrans);</span>
+
+  // 2) Transform Original Pointset
+<span style = "background-color:#fdd">  m_OriginalPoints-&gt;SetGeometry(refGeom);</span>
+  // Update Projection (We do not clone, since we want to keep properties alive)
+<span style = "background-color:#fdd">  m_Projection-&gt;SetPoint(0, m_OriginalPoints-&gt;GetPoint(0));
+  m_Projection-&gt;SetPoint(1, m_OriginalPoints-&gt;GetPoint(1));
+  if (m_ShowToolAxis) { m_Projection-&gt;SetPoint(2, m_OriginalPoints-&gt;GetPoint(2)); }</span>
+
+  // 3a) If no target Plane has been set, then leave it at that
+<span style = "background-color:#fdd">  if (this-&gt;m_TargetPlane.IsNull())
+    return;</span>
+
+  // 3b) else, calculate intersection with plane
+<span style = "background-color:#fdd">  mitk::PlaneGeometry::Pointer plane = mitk::PlaneGeometry::New();
+  plane-&gt;SetIndexToWorldTransform(m_TargetPlane);</span>
+  //plane-&gt;TransferItkToVtkTransform(); //included in SetIndexToWorldTransform
+
+  double t;
+  double x[3];
+  // Points that define the needle vector
+<span style = "background-color:#fdd">  double p1[3] = {m_OriginalPoints-&gt;GetPoint(0)[0], m_OriginalPoints-&gt;GetPoint(0)[1], m_OriginalPoints-&gt;GetPoint(0)[2]};
+  double p2[3] = {m_OriginalPoints-&gt;GetPoint(1)[0], m_OriginalPoints-&gt;GetPoint(1)[1], m_OriginalPoints-&gt;GetPoint(1)[2]};</span>
+  // Center of image plane and it's normal
+<span style = "background-color:#fdd">  double center[3] = {plane-&gt;GetCenter()[0], plane-&gt;GetCenter()[1], plane-&gt;GetCenter()[2]};
+  double normal[3] = {plane-&gt;GetNormal()[0], plane-&gt;GetNormal()[1], plane-&gt;GetNormal()[2]};</span>
+
+<span style = "background-color:#fdd">  vtkPlane::IntersectWithLine(p1, p2, normal, center, t, x);</span>
+
+  // change (cut) needle path only if the needle points to the image plane;
+  // otherwise the needle path direction would be changed pointing to the image plane
+<span style = "background-color:#fdd">  if ( t &gt;= 0 )</span>
+  {
+    // Convert vtk to itk
+<span style = "background-color:#fdd">    mitk::Point3D intersection;
+    intersection[0] = x[0];
+    intersection[1] = x[1];
+    intersection[2] = x[2];</span>
+
+    // Replace distant point with image intersection
+<span style = "background-color:#fdd">    m_Projection-&gt;SetPoint(0, intersection);</span>
+
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::AffineTransform3D::Pointer mitk::NeedleProjectionFilter::NavigationDataToTransform(const mitk::NavigationData * nd)
+<span style = "background-color:#fdd">{
+  mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
+  affineTransform-&gt;SetIdentity();</span>
+
+  //calculate the transform from the quaternions
+<span style = "background-color:#fdd">  static itk::QuaternionRigidTransform&lt;double&gt;::Pointer quatTransform = itk::QuaternionRigidTransform&lt;double&gt;::New();</span>
+
+<span style = "background-color:#fdd">  mitk::NavigationData::OrientationType orientation = nd-&gt;GetOrientation();</span>
+  // convert mitk::ScalarType quaternion to double quaternion because of itk bug
+<span style = "background-color:#fdd">  vnl_quaternion&lt;double&gt; doubleQuaternion(orientation.x(), orientation.y(), orientation.z(), orientation.r());
+  quatTransform-&gt;SetIdentity();
+  quatTransform-&gt;SetRotation(doubleQuaternion);
+  quatTransform-&gt;Modified();</span>
+
+  /* because of an itk bug, the transform can not be calculated with float data type.
+  To use it in the mitk geometry classes, it has to be transfered to mitk::ScalarType which is float */
+  static AffineTransform3D::MatrixType m;
+<span style = "background-color:#fdd">  mitk::TransferMatrix(quatTransform-&gt;GetMatrix(), m);
+  affineTransform-&gt;SetMatrix(m);</span>
+
+  /*set the offset by convert from itkPoint to itkVector and setting offset of transform*/
+<span style = "background-color:#fdd">  mitk::Vector3D pos;
+  pos.SetVnlVector(nd-&gt;GetPosition().GetVnlVector());
+  affineTransform-&gt;SetOffset(pos);</span>
+
+<span style = "background-color:#fdd">  affineTransform-&gt;Modified();
+  return affineTransform;
+}</span>
+
+<span style = "background-color:#fdd">mitk::Geometry3D::Pointer mitk::NeedleProjectionFilter::TransformToGeometry(mitk::AffineTransform3D::Pointer transform){
+  mitk::Geometry3D::Pointer g3d = mitk::Geometry3D::New();
+  mitk::ScalarType scale[] = {1.0, 1.0, 1.0};
+  g3d-&gt;SetSpacing(scale);
+  g3d-&gt;SetIndexToWorldTransform(transform);</span>
+  //g3d-&gt;TransferItkToVtkTransform(); // update VTK Transform for rendering too //included in SetIndexToWorldTransform
+<span style = "background-color:#fdd">  g3d-&gt;Modified();
+  return g3d;
+}</span></pre>
+	</body>
+</html>

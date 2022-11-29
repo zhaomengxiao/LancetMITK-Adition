@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelMapper2D.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef _MITK_CONTOURMODEL_MAPPER_H_
+#define _MITK_CONTOURMODEL_MAPPER_H_
+
+#include "mitkCommon.h"
+#include &lt;MitkContourModelExports.h&gt;
+
+#include "mitkBaseRenderer.h"
+#include "mitkVtkMapper.h"
+
+#include "mitkContourModel.h"
+//#include "mitkContourModelToVtkPolyDataFilter.h"
+
+#include &lt;vtkActor.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkPolyDataMapper.h&gt;
+#include &lt;vtkProp.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+
+namespace mitk
+{
+  class MITKCONTOURMODEL_EXPORT ContourModelMapper2D : public VtkMapper
+  {
+  public:
+    /** Standard class typedefs. */
+<span style = "background-color:#fdd">    mitkClassMacro(ContourModelMapper2D, VtkMapper);</span>
+
+    /** Method for creation through the object factory. */
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);
+    itkCloneMacro(Self);</span>
+
+      const mitk::ContourModel *GetInput(void);
+
+    /** \brief Checks whether this mapper needs to update itself and generate
+   * data. */
+    void Update(mitk::BaseRenderer *renderer) override;
+
+    /*+++ methods of MITK-VTK rendering pipeline +++*/
+    vtkProp *GetVtkProp(mitk::BaseRenderer *renderer) override;
+    /*+++ END methods of MITK-VTK rendering pipeline +++*/
+
+    class MITKCONTOURMODEL_EXPORT LocalStorage : public mitk::Mapper::BaseLocalStorage
+    {
+    public:
+      /** \brief Actor of a 2D render window. */
+      vtkSmartPointer&lt;vtkActor&gt; m_Actor;
+      /** \brief Mapper of a 2D render window. */
+      vtkSmartPointer&lt;vtkPolyDataMapper&gt; m_Mapper;
+
+      // mitk::ContourModelToVtkPolyDataFilter::Pointer m_contourToPolyData;
+
+      vtkSmartPointer&lt;vtkPolyData&gt; m_OutlinePolyData;
+
+      /** \brief Timestamp of last update of stored data. */
+      itk::TimeStamp m_LastUpdateTime;
+
+      /** \brief Default constructor of the local storage. */
+      LocalStorage();
+      /** \brief Default deconstructor of the local storage. */
+<span style = "background-color:#fdd">      ~LocalStorage() override {}</span>
+    };
+
+    /** \brief The LocalStorageHandler holds all (three) LocalStorages for the three 2D render windows. */
+    mitk::LocalStorageHandler&lt;LocalStorage&gt; m_LSH;
+
+    /** \brief Get the LocalStorage corresponding to the current renderer. */
+    LocalStorage *GetLocalStorage(mitk::BaseRenderer *renderer);
+
+    /** \brief Set the default properties for general image rendering. */
+    static void SetDefaultProperties(mitk::DataNode *node, mitk::BaseRenderer *renderer = nullptr, bool overwrite = false);
+
+  protected:
+    ContourModelMapper2D();
+    ~ContourModelMapper2D() override;
+
+    void GenerateDataForRenderer(mitk::BaseRenderer *renderer) override;
+
+    virtual vtkSmartPointer&lt;vtkPolyData&gt; CreateVtkPolyDataFromContour(mitk::ContourModel *inputContour,
+                                                                      mitk::BaseRenderer *renderer);
+
+    virtual void ApplyContourProperties(mitk::BaseRenderer *renderer);
+  };
+}
+#endif</pre>
+	</body>
+</html>

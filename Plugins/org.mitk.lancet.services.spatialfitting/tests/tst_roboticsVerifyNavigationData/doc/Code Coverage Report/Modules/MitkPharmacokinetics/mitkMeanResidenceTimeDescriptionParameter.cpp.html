@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMeanResidenceTimeDescriptionParameter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkMeanResidenceTimeDescriptionParameter.h"
+
+<span style = "background-color:#dfd">const std::string mitk::MeanResidenceTimeDescriptionParameter::PARAMETER_NAME = "MeanResidenceTime";</span>
+
+mitk::MeanResidenceTimeDescriptionParameter::MeanResidenceTimeDescriptionParameter()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::MeanResidenceTimeDescriptionParameter::~MeanResidenceTimeDescriptionParameter()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::CurveDescriptionParameterBase::DescriptionParameterNamesType mitk::MeanResidenceTimeDescriptionParameter::GetDescriptionParameterName() const
+<span style = "background-color:#fdd">{
+  DescriptionParameterNamesType result = { PARAMETER_NAME };
+  return result;
+}</span>
+
+mitk::CurveDescriptionParameterBase::DescriptionParameterResultsType mitk::MeanResidenceTimeDescriptionParameter::ComputeCurveDescriptionParameter(const CurveType &amp;curve, const CurveGridType &amp;grid) const
+<span style = "background-color:#fdd">{
+  DescriptionParameterResultsType results;
+  CurveDescriptionParameterResultType aumc = 0;
+  CurveDescriptionParameterResultType auc = 0;
+  CurveDescriptionParameterResultType mrt = 0;</span>
+
+<span style = "background-color:#fdd">  auto steps = grid.GetSize();</span>
+
+<span style = "background-color:#fdd">  for (CurveGridType::size_type i = 0; i &lt; steps - 1; ++i)</span>
+  {
+<span style = "background-color:#fdd">    double deltaX = grid(i + 1) - grid(i);</span>
+
+<span style = "background-color:#fdd">    double deltaY1 = curve(i + 1)*grid(i + 1) - curve(i)*grid(i);
+    double Y1 = curve(i)*grid(i);
+    double intI1 = 1 / 2 * deltaX * deltaY1 + Y1 * deltaX;
+    aumc += std::abs(intI1);</span>
+
+
+<span style = "background-color:#fdd">    double deltaY2 = curve(i + 1) - curve(i);
+    double Y2 = curve(i);
+    double intI2 = 1 / 2 * deltaX * deltaY2 + Y2 * deltaX;
+    auc += std::abs(intI2);</span>
+
+
+<span style = "background-color:#fdd">  }
+  if(auc != 0)</span>
+  {
+<span style = "background-color:#fdd">    mrt = aumc/auc;</span>
+  }
+<span style = "background-color:#fdd">  results.push_back(mrt);
+  return results;
+}</span></pre>
+	</body>
+</html>

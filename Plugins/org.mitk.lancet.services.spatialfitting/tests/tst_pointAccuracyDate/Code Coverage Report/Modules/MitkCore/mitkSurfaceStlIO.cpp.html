@@ -1,0 +1,173 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSurfaceStlIO.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkSurfaceStlIO.h"
+
+#include "mitkIOMimeTypes.h"
+#include "mitkLocaleSwitch.h"
+#include "mitkSurface.h"
+
+#include &lt;vtkCleanPolyData.h&gt;
+#include &lt;vtkErrorCode.h&gt;
+#include &lt;vtkPolyDataNormals.h&gt;
+#include &lt;vtkSTLReader.h&gt;
+#include &lt;vtkSTLWriter.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+#include &lt;vtkTriangleFilter.h&gt;
+
+namespace mitk
+{
+  // std::string SurfaceStlIO::OPTION_MERGE_POINTS()
+  // {
+  //   static std::string s = "Merge points";
+  //   return s;
+  // }
+
+  std::string SurfaceStlIO::OPTION_TAG_SOLIDS()
+<span style = "background-color:#dfd">  {
+    static std::string s = "Tag solids";
+    return s;
+  }</span>
+
+  std::string SurfaceStlIO::OPTION_CLEAN()
+<span style = "background-color:#dfd">  {
+    static std::string s = "Clean poly data";
+    return s;
+  }</span>
+
+  SurfaceStlIO::SurfaceStlIO()
+<span style = "background-color:#dfd">    : SurfaceVtkIO(Surface::GetStaticNameOfClass(), IOMimeTypes::STEREOLITHOGRAPHY_MIMETYPE(), "Stereolithography")
+  {
+    Options defaultOptions;</span>
+
+    // defaultOptions[OPTION_MERGE_POINTS()] = us::Any(true);
+<span style = "background-color:#dfd">    defaultOptions[OPTION_TAG_SOLIDS()] = us::Any(false);
+    defaultOptions[OPTION_CLEAN()] = us::Any(true);</span>
+
+<span style = "background-color:#dfd">    this-&gt;SetDefaultReaderOptions(defaultOptions);</span>
+
+<span style = "background-color:#dfd">    this-&gt;RegisterService();
+  }</span>
+
+  std::vector&lt;itk::SmartPointer&lt;BaseData&gt;&gt; SurfaceStlIO::DoRead()
+<span style = "background-color:#fdd">  {
+    LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">    Options options = this-&gt;GetReaderOptions();</span>
+
+<span style = "background-color:#fdd">    mitk::Surface::Pointer output = mitk::Surface::New();</span>
+
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkSTLReader&gt; stlReader = vtkSmartPointer&lt;vtkSTLReader&gt;::New();
+    stlReader-&gt;SetFileName(this-&gt;GetLocalFileName().c_str());</span>
+
+    // bool mergePoints = true;
+<span style = "background-color:#fdd">    bool tagSolids = false;
+    bool cleanData = true;</span>
+
+    try
+    {
+      // mergePoints = us::any_cast&lt;bool&gt;(options[OPTION_MERGE_POINTS()]);
+<span style = "background-color:#fdd">      tagSolids = us::any_cast&lt;bool&gt;(options[OPTION_TAG_SOLIDS()]);
+      cleanData = us::any_cast&lt;bool&gt;(options[OPTION_CLEAN()]);</span>
+    }
+    catch (const us::BadAnyCastException &amp;e)
+<span style = "background-color:#fdd">    {
+      MITK_WARN &lt;&lt; "Unexpected error: " &lt;&lt; e.what();
+    }</span>
+
+    // stlReader-&gt;SetMerging(mergePoints);
+<span style = "background-color:#fdd">    stlReader-&gt;SetScalarTags(tagSolids);</span>
+
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPolyDataNormals&gt; normalsGenerator = vtkSmartPointer&lt;vtkPolyDataNormals&gt;::New();
+    normalsGenerator-&gt;SetInputConnection(stlReader-&gt;GetOutputPort());</span>
+
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPolyDataAlgorithm&gt; algo = normalsGenerator;
+    if (cleanData)</span>
+    {
+<span style = "background-color:#fdd">      vtkSmartPointer&lt;vtkCleanPolyData&gt; cleanPolyDataFilter = vtkSmartPointer&lt;vtkCleanPolyData&gt;::New();
+      cleanPolyDataFilter-&gt;SetInputConnection(normalsGenerator-&gt;GetOutputPort());
+      cleanPolyDataFilter-&gt;PieceInvariantOff();
+      cleanPolyDataFilter-&gt;ConvertLinesToPointsOff();
+      cleanPolyDataFilter-&gt;ConvertPolysToLinesOff();
+      cleanPolyDataFilter-&gt;ConvertStripsToPolysOff();</span>
+      // if (mergePoints)
+      // {
+<span style = "background-color:#fdd">        cleanPolyDataFilter-&gt;PointMergingOn();</span>
+      // }
+<span style = "background-color:#fdd">      algo = cleanPolyDataFilter;
+    }
+    algo-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    if (algo-&gt;GetOutput() != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      vtkSmartPointer&lt;vtkPolyData&gt; surfaceWithNormals = algo-&gt;GetOutput();
+      output-&gt;SetVtkPolyData(surfaceWithNormals);
+    }</span>
+
+<span style = "background-color:#fdd">    std::vector&lt;BaseData::Pointer&gt; result;
+    result.push_back(output.GetPointer());
+    return result;
+  }</span>
+
+  void SurfaceStlIO::Write()
+<span style = "background-color:#fdd">  {
+    LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">    ValidateOutputLocation();
+    const auto *input = dynamic_cast&lt;const Surface *&gt;(this-&gt;GetInput());</span>
+
+<span style = "background-color:#fdd">    const unsigned int timesteps = input-&gt;GetTimeGeometry()-&gt;CountTimeSteps();
+    for (unsigned int t = 0; t &lt; timesteps; ++t)</span>
+    {
+<span style = "background-color:#fdd">      std::string fileName;
+      vtkSmartPointer&lt;vtkPolyData&gt; polyData = this-&gt;GetPolyData(t, fileName);
+      vtkSmartPointer&lt;vtkTriangleFilter&gt; triangleFilter = vtkSmartPointer&lt;vtkTriangleFilter&gt;::New();
+      triangleFilter-&gt;SetInputData(polyData);
+      vtkSmartPointer&lt;vtkSTLWriter&gt; writer = vtkSmartPointer&lt;vtkSTLWriter&gt;::New();
+      writer-&gt;SetInputConnection(triangleFilter-&gt;GetOutputPort());</span>
+
+      // The vtk stl writer cannot write to streams
+<span style = "background-color:#fdd">      LocalFile localFile(this);
+      writer-&gt;SetFileName(localFile.GetFileName().c_str());</span>
+
+<span style = "background-color:#fdd">      if (writer-&gt;Write() == 0 || writer-&gt;GetErrorCode() != 0)</span>
+      {
+<span style = "background-color:#fdd">        mitkThrow() &lt;&lt; "Error during surface writing"</span>
+                    &lt;&lt; (writer-&gt;GetErrorCode() ?
+                          std::string(": ") + vtkErrorCode::GetStringFromErrorCode(writer-&gt;GetErrorCode()) :
+                          std::string());
+      }
+
+<span style = "background-color:#fdd">      if (this-&gt;GetOutputStream() &amp;&amp; input-&gt;GetTimeGeometry()-&gt;CountTimeSteps() &gt; 1)</span>
+      {
+<span style = "background-color:#fdd">        MITK_WARN &lt;&lt; "Writing multiple time-steps to output streams is not supported. "</span>
+                  &lt;&lt; "Only the first time-step will be written";
+<span style = "background-color:#fdd">        break;</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+<span style = "background-color:#fdd">  SurfaceStlIO *SurfaceStlIO::IOClone() const { return new SurfaceStlIO(*this); }</span>
+}</pre>
+	</body>
+</html>

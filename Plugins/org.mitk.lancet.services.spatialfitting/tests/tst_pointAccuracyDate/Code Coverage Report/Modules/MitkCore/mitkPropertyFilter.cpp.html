@@ -1,0 +1,184 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPropertyFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPropertyFilter.h"
+#include &lt;algorithm&gt;
+
+namespace mitk
+{
+  class PropertyFilter::Impl
+  {
+  public:
+    Impl();
+    ~Impl();
+
+    void AddEntry(const std::string &amp;propertyName, PropertyFilter::List list);
+    std::map&lt;std::string, BaseProperty::Pointer&gt; Apply(
+      const std::map&lt;std::string, BaseProperty::Pointer&gt; &amp;propertyMap) const;
+    bool HasEntry(const std::string &amp;propertyName, PropertyFilter::List list) const;
+    bool IsEmpty() const;
+    void RemoveAllEntries(PropertyFilter::List list);
+    void RemoveEntry(const std::string &amp;propertyName, PropertyFilter::List list);
+
+  private:
+    void AddEntry(const std::string &amp;propertyName, std::vector&lt;std::string&gt; &amp;list);
+    bool HasEntry(const std::string &amp;propertyName, const std::vector&lt;std::string&gt; &amp;list) const;
+    void RemoveAllEntries(std::vector&lt;std::string&gt; &amp;list);
+    void RemoveEntry(const std::string &amp;propertyName, std::vector&lt;std::string&gt; &amp;list);
+
+    std::vector&lt;std::vector&lt;std::string&gt;&gt; m_Lists;
+  };
+
+<span style = "background-color:#fdd">  PropertyFilter::Impl::Impl() : m_Lists(2) {}
+  PropertyFilter::Impl::~Impl() {}</span>
+  void mitk::PropertyFilter::Impl::AddEntry(const std::string &amp;propertyName, List list)
+<span style = "background-color:#fdd">  {
+    this-&gt;AddEntry(propertyName, m_Lists.at(list));
+  }</span>
+
+  void PropertyFilter::Impl::AddEntry(const std::string &amp;propertyName, std::vector&lt;std::string&gt; &amp;list)
+<span style = "background-color:#fdd">  {
+    if (std::find(list.begin(), list.end(), propertyName) == list.end())
+      list.push_back(propertyName);
+  }</span>
+
+  std::map&lt;std::string, BaseProperty::Pointer&gt; PropertyFilter::Impl::Apply(
+    const std::map&lt;std::string, BaseProperty::Pointer&gt; &amp;propertyMap) const
+<span style = "background-color:#fdd">  {
+    std::map&lt;std::string, BaseProperty::Pointer&gt; ret =</span>
+      !m_Lists[Whitelist].empty() ? std::map&lt;std::string, BaseProperty::Pointer&gt;() : propertyMap;
+
+<span style = "background-color:#fdd">    if (!m_Lists[Whitelist].empty())</span>
+    {
+<span style = "background-color:#fdd">      auto end = propertyMap.end();</span>
+
+<span style = "background-color:#fdd">      for (auto iter = propertyMap.begin(); iter != end; ++iter)</span>
+      {
+<span style = "background-color:#fdd">        if (std::find(m_Lists[Whitelist].begin(), m_Lists[Whitelist].end(), iter-&gt;first) != m_Lists[Whitelist].end())
+          ret.insert(*iter);
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    if (!m_Lists[Blacklist].empty())</span>
+    {
+<span style = "background-color:#fdd">      auto end = m_Lists[Blacklist].end();</span>
+
+<span style = "background-color:#fdd">      for (auto iter = m_Lists[Blacklist].begin(); iter != end; ++iter)
+        ret.erase(*iter);
+    }</span>
+
+<span style = "background-color:#fdd">    return ret;
+  }</span>
+
+  bool mitk::PropertyFilter::Impl::HasEntry(const std::string &amp;propertyName, List list) const
+<span style = "background-color:#fdd">  {
+    return this-&gt;HasEntry(propertyName, m_Lists.at(list));
+  }</span>
+
+  bool PropertyFilter::Impl::HasEntry(const std::string &amp;propertyName, const std::vector&lt;std::string&gt; &amp;list) const
+<span style = "background-color:#fdd">  {
+    return std::find(list.begin(), list.end(), propertyName) != list.end();
+  }</span>
+
+  bool PropertyFilter::Impl::IsEmpty() const
+<span style = "background-color:#fdd">  {
+    auto end = m_Lists.end();</span>
+
+<span style = "background-color:#fdd">    for (auto iter = m_Lists.begin(); iter != end; ++iter)</span>
+    {
+<span style = "background-color:#fdd">      if (!iter-&gt;empty())
+        return false;
+    }</span>
+
+<span style = "background-color:#fdd">    return true;
+  }</span>
+
+<span style = "background-color:#fdd">  void mitk::PropertyFilter::Impl::RemoveAllEntries(List list) { this-&gt;RemoveAllEntries(m_Lists.at(list)); }
+  void PropertyFilter::Impl::RemoveAllEntries(std::vector&lt;std::string&gt; &amp;list) { list.clear(); }</span>
+  void mitk::PropertyFilter::Impl::RemoveEntry(const std::string &amp;propertyName, List list)
+<span style = "background-color:#fdd">  {
+    this-&gt;RemoveEntry(propertyName, m_Lists.at(list));
+  }</span>
+
+  void PropertyFilter::Impl::RemoveEntry(const std::string &amp;propertyName, std::vector&lt;std::string&gt; &amp;list)
+<span style = "background-color:#fdd">  {
+    auto iter = std::find(list.begin(), list.end(), propertyName);</span>
+
+<span style = "background-color:#fdd">    if (iter != list.end())
+      list.erase(iter);
+  }</span>
+}
+
+<span style = "background-color:#fdd">mitk::PropertyFilter::PropertyFilter() : m_Impl(new Impl)
+{
+}</span>
+
+mitk::PropertyFilter::~PropertyFilter()
+<span style = "background-color:#fdd">{
+  delete m_Impl;
+}</span>
+
+<span style = "background-color:#fdd">mitk::PropertyFilter::PropertyFilter(const mitk::PropertyFilter &amp;other) : m_Impl(new Impl(*other.m_Impl))
+{
+}</span>
+
+mitk::PropertyFilter &amp;mitk::PropertyFilter::operator=(mitk::PropertyFilter other)
+<span style = "background-color:#fdd">{
+  std::swap(this-&gt;m_Impl, other.m_Impl);
+  return *this;
+}</span>
+
+void mitk::PropertyFilter::AddEntry(const std::string &amp;propertyName, List list)
+<span style = "background-color:#fdd">{
+  if (!propertyName.empty())
+    m_Impl-&gt;AddEntry(propertyName, list);
+}</span>
+
+std::map&lt;std::string, mitk::BaseProperty::Pointer&gt; mitk::PropertyFilter::Apply(
+  const std::map&lt;std::string, mitk::BaseProperty::Pointer&gt; &amp;propertyMap) const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;Apply(propertyMap);
+}</span>
+
+bool mitk::PropertyFilter::HasEntry(const std::string &amp;propertyName, List list) const
+<span style = "background-color:#fdd">{
+  return !propertyName.empty() ? m_Impl-&gt;HasEntry(propertyName, list) : false;
+}</span>
+
+bool mitk::PropertyFilter::IsEmpty() const
+<span style = "background-color:#fdd">{
+  return m_Impl-&gt;IsEmpty();
+}</span>
+
+void mitk::PropertyFilter::RemoveAllEntries(List list)
+<span style = "background-color:#fdd">{
+  m_Impl-&gt;RemoveAllEntries(list);
+}</span>
+
+void mitk::PropertyFilter::RemoveEntry(const std::string &amp;propertyName, List list)
+<span style = "background-color:#fdd">{
+  if (!propertyName.empty())
+    m_Impl-&gt;RemoveEntry(propertyName, list);
+}</span></pre>
+	</body>
+</html>

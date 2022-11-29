@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkGeometryDataReaderService.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+// MITK
+#include "mitkGeometryDataReaderService.h"
+#include "mitkGeometry3DToXML.h"
+#include "mitkIOMimeTypes.h"
+#include "mitkProportionalTimeGeometryToXML.h"
+
+// STL
+#include &lt;mitkLocaleSwitch.h&gt;
+
+#include &lt;tinyxml2.h&gt;
+
+mitk::GeometryDataReaderService::GeometryDataReaderService()
+<span style = "background-color:#dfd">  : AbstractFileReader(IOMimeTypes::GEOMETRY_DATA_MIMETYPE(), "MITK Geometry Data Reader")
+{
+  RegisterService();
+}</span>
+
+mitk::GeometryDataReaderService::~GeometryDataReaderService()
+<span style = "background-color:#dfd">{
+}</span>
+
+std::vector&lt;itk::SmartPointer&lt;mitk::BaseData&gt;&gt; mitk::GeometryDataReaderService::DoRead()
+<span style = "background-color:#fdd">{</span>
+  // Switch the current locale to "C"
+<span style = "background-color:#fdd">  LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">  std::vector&lt;itk::SmartPointer&lt;BaseData&gt;&gt; result;</span>
+
+<span style = "background-color:#fdd">  InputStream stream(this);</span>
+
+<span style = "background-color:#fdd">  std::string s(std::istreambuf_iterator&lt;char&gt;{stream.rdbuf()}, std::istreambuf_iterator&lt;char&gt;());
+  tinyxml2::XMLDocument doc;
+  doc.Parse(s.c_str(), s.size());
+  if (!doc.Error())</span>
+  {
+<span style = "background-color:#fdd">    tinyxml2::XMLHandle docHandle(&amp;doc);</span>
+
+<span style = "background-color:#fdd">    for (auto *geomDataElement = docHandle.FirstChildElement("GeometryData").ToElement();
+         geomDataElement != nullptr;
+         geomDataElement = geomDataElement-&gt;NextSiblingElement())</span>
+    {
+<span style = "background-color:#fdd">      for (auto *currentElement = geomDataElement-&gt;FirstChildElement(); currentElement != nullptr;
+           currentElement = currentElement-&gt;NextSiblingElement())</span>
+      {
+        // different geometries could have been serialized from a GeometryData
+        // object:
+<span style = "background-color:#fdd">        std::string tagName = currentElement-&gt;Value();
+        if (tagName == "Geometry3D")</span>
+        {
+<span style = "background-color:#fdd">          Geometry3D::Pointer restoredGeometry = Geometry3DToXML::FromXML(currentElement);
+          if (restoredGeometry.IsNotNull())</span>
+          {
+<span style = "background-color:#fdd">            GeometryData::Pointer newGeometryData = GeometryData::New();
+            newGeometryData-&gt;SetGeometry(restoredGeometry);
+            result.push_back(newGeometryData.GetPointer());
+          }</span>
+          else
+          {
+<span style = "background-color:#fdd">            MITK_ERROR &lt;&lt; "Invalid &lt;Geometry3D&gt; tag encountered. Skipping.";</span>
+          }
+<span style = "background-color:#fdd">        }
+        else if (tagName == "ProportionalTimeGeometry")</span>
+        {
+<span style = "background-color:#fdd">          ProportionalTimeGeometry::Pointer restoredTimeGeometry =</span>
+            ProportionalTimeGeometryToXML::FromXML(currentElement);
+<span style = "background-color:#fdd">          if (restoredTimeGeometry.IsNotNull())</span>
+          {
+<span style = "background-color:#fdd">            GeometryData::Pointer newGeometryData = GeometryData::New();
+            newGeometryData-&gt;SetTimeGeometry(restoredTimeGeometry);
+            result.push_back(newGeometryData.GetPointer());
+          }</span>
+          else
+          {
+<span style = "background-color:#fdd">            MITK_ERROR &lt;&lt; "Invalid &lt;ProportionalTimeGeometry&gt; tag encountered. Skipping.";</span>
+          }
+<span style = "background-color:#fdd">        }
+      } // for child of &lt;GeometryData&gt;
+    }   // for &lt;GeometryData&gt;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; doc.ErrorStr();</span>
+  }
+
+<span style = "background-color:#fdd">  if (result.empty())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Did not read a single GeometryData object from input.";</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::GeometryDataReaderService::GeometryDataReaderService(const mitk::GeometryDataReaderService &amp;other)
+<span style = "background-color:#fdd">  : mitk::AbstractFileReader(other)
+{
+}</span>
+
+mitk::GeometryDataReaderService *mitk::GeometryDataReaderService::Clone() const
+<span style = "background-color:#fdd">{
+  return new GeometryDataReaderService(*this);
+}</span></pre>
+	</body>
+</html>

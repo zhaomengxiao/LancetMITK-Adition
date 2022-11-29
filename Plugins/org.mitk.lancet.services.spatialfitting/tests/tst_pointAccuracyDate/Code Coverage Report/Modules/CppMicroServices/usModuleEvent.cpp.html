@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usModuleEvent.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+#include "usModuleEvent.h"
+
+#include "usModule.h"
+
+US_BEGIN_NAMESPACE
+
+class ModuleEventData : public SharedData
+{
+public:
+
+  ModuleEventData(ModuleEvent::Type type, Module* module)
+<span style = "background-color:#dfd">    : type(type), module(module)
+  {</span>
+
+<span style = "background-color:#dfd">  }</span>
+
+  ModuleEventData(const ModuleEventData&amp; other)
+    : SharedData(other), type(other.type), module(other.module)
+  {
+
+  }
+
+  const ModuleEvent::Type type;
+  Module* const module;
+
+private:
+
+  // purposely not implemented
+  ModuleEventData&amp; operator=(const ModuleEventData&amp;);
+};
+
+ModuleEvent::ModuleEvent()
+<span style = "background-color:#fdd">  : d(nullptr)
+{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+ModuleEvent::~ModuleEvent()
+<span style = "background-color:#dfd">{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+bool ModuleEvent::IsNull() const
+<span style = "background-color:#fdd">{
+  return !d;
+}</span>
+
+ModuleEvent::ModuleEvent(Type type, Module* module)
+<span style = "background-color:#dfd">  : d(new ModuleEventData(type, module))
+{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+ModuleEvent::ModuleEvent(const ModuleEvent&amp; other)
+<span style = "background-color:#fdd">  : d(other.d)
+{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+ModuleEvent&amp; ModuleEvent::operator=(const ModuleEvent&amp; other)
+<span style = "background-color:#fdd">{
+  d = other.d;
+  return *this;
+}</span>
+
+Module* ModuleEvent::GetModule() const
+<span style = "background-color:#fdd">{
+  return d-&gt;module;
+}</span>
+
+ModuleEvent::Type ModuleEvent::GetType() const
+<span style = "background-color:#fdd">{
+  return d-&gt;type;
+}</span>
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, ModuleEvent::Type eventType)
+<span style = "background-color:#fdd">{
+  switch (eventType)</span>
+  {
+<span style = "background-color:#fdd">  case ModuleEvent::LOADED:    return os &lt;&lt; "LOADED";
+  case ModuleEvent::UNLOADED:  return os &lt;&lt; "UNLOADED";
+  case ModuleEvent::LOADING:   return os &lt;&lt; "LOADING";
+  case ModuleEvent::UNLOADING: return os &lt;&lt; "UNLOADING";</span>
+
+<span style = "background-color:#fdd">  default: return os &lt;&lt; "Unknown module event type (" &lt;&lt; static_cast&lt;int&gt;(eventType) &lt;&lt; ")";</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const ModuleEvent&amp; event)
+<span style = "background-color:#fdd">{
+  if (event.IsNull()) return os &lt;&lt; "NONE";</span>
+
+<span style = "background-color:#fdd">  Module* m = event.GetModule();
+  os &lt;&lt; event.GetType() &lt;&lt; " #" &lt;&lt; m-&gt;GetModuleId() &lt;&lt; " (" &lt;&lt; m-&gt;GetLocation() &lt;&lt; ")";
+  return os;
+}</span>
+
+US_END_NAMESPACE</pre>
+	</body>
+</html>

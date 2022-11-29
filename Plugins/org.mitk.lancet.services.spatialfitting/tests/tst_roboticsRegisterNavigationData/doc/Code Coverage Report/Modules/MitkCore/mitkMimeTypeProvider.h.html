@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMimeTypeProvider.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKMIMETYPEPROVIDER_H
+#define MITKMIMETYPEPROVIDER_H
+
+#include "mitkCustomMimeType.h"
+#include "mitkIMimeTypeProvider.h"
+
+#include "usServiceTracker.h"
+#include "usServiceTrackerCustomizer.h"
+
+#include &lt;set&gt;
+
+namespace mitk
+{
+  struct MimeTypeTrackerTypeTraits : public us::TrackedTypeTraitsBase&lt;MimeType, MimeTypeTrackerTypeTraits&gt;
+  {
+    typedef MimeType TrackedType;
+
+<span style = "background-color:#dfd">    static bool IsValid(const TrackedType &amp;t) { return t.IsValid(); }
+    static TrackedType DefaultValue() { return TrackedType(); }
+    static void Dispose(TrackedType &amp; /*t*/) {}</span>
+  };
+
+  class MimeTypeProvider : public IMimeTypeProvider, private us::ServiceTrackerCustomizer&lt;CustomMimeType, MimeType&gt;
+  {
+  public:
+    MimeTypeProvider();
+    ~MimeTypeProvider() override;
+
+    void Start();
+    void Stop();
+
+    std::vector&lt;MimeType&gt; GetMimeTypes() const override;
+    std::vector&lt;MimeType&gt; GetMimeTypesForFile(const std::string &amp;filePath) const override;
+    std::vector&lt;MimeType&gt; GetMimeTypesForCategory(const std::string &amp;category) const override;
+    MimeType GetMimeTypeForName(const std::string &amp;name) const override;
+
+    std::vector&lt;std::string&gt; GetCategories() const override;
+
+  private:
+    TrackedType AddingService(const ServiceReferenceType &amp;reference) override;
+    void ModifiedService(const ServiceReferenceType &amp;reference, TrackedType service) override;
+    void RemovedService(const ServiceReferenceType &amp;reference, TrackedType service) override;
+
+    MimeType GetMimeType(const ServiceReferenceType &amp;reference) const;
+
+    us::ServiceTracker&lt;CustomMimeType, MimeTypeTrackerTypeTraits&gt; *m_Tracker;
+
+    typedef std::map&lt;std::string, std::set&lt;MimeType&gt;&gt; MapType;
+    MapType m_NameToMimeTypes;
+
+    std::map&lt;std::string, MimeType&gt; m_NameToMimeType;
+  };
+}
+
+#endif // MITKMIMETYPEPROVIDER_H</pre>
+	</body>
+</html>

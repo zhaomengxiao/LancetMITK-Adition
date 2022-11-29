@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLogoAnnotation.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef LOGOAnnotation_H
+#define LOGOAnnotation_H
+
+#include "MitkAnnotationExports.h"
+#include &lt;mitkLocalStorageHandler.h&gt;
+#include &lt;mitkVtkAnnotation.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+
+class mitkVtkLogoRepresentation;
+class vtkImageData;
+class vtkImageReader2Factory;
+class vtkImageImport;
+
+namespace mitk
+{
+  /** \brief Displays a logo on the renderwindow */
+  class MITKANNOTATION_EXPORT LogoAnnotation : public mitk::VtkAnnotation
+  {
+  public:
+    class LocalStorage : public mitk::Annotation::BaseLocalStorage
+    {
+    public:
+      /** \brief Actor of a 2D render window. */
+      vtkSmartPointer&lt;vtkImageData&gt; m_LogoImage;
+      vtkSmartPointer&lt;mitkVtkLogoRepresentation&gt; m_LogoRep;
+
+      /** \brief Timestamp of last update of stored data. */
+      itk::TimeStamp m_LastUpdateTime;
+
+      /** \brief Default constructor of the local storage. */
+      LocalStorage();
+      /** \brief Default deconstructor of the local storage. */
+      ~LocalStorage();
+    };
+
+<span style = "background-color:#fdd">    mitkClassMacro(LogoAnnotation, mitk::VtkAnnotation);
+    itkFactorylessNewMacro(Self);
+    itkCloneMacro(Self);</span>
+
+    vtkSmartPointer&lt;vtkImageReader2Factory&gt; m_readerFactory;
+    void SetLogoImage(vtkSmartPointer&lt;vtkImageData&gt; logo);
+
+    void SetLogoImagePath(std::string text);
+    std::string GetLogoImagePath() const;
+    void LoadLogoImageFromPath();
+
+    /** \brief The relative offset to the corner position */
+    void SetOffsetVector(const Point2D &amp;OffsetVector);
+    Point2D GetOffsetVector() const;
+
+    /** \brief The corner where the logo is displayed.
+   0 = Bottom left
+   1 = Bottom right
+   2 = Top right
+   3 = Top left
+   4 = Center*/
+    void SetCornerPosition(const int &amp;corner);
+    int GetCornerPosition() const;
+
+    void SetRelativeSize(const float &amp;size);
+    float GetRelativeSize() const;
+
+  protected:
+    /** \brief The LocalStorageHandler holds all LocalStorages for the render windows. */
+    mutable mitk::LocalStorageHandler&lt;LocalStorage&gt; m_LSH;
+
+    vtkProp *GetVtkProp(BaseRenderer *renderer) const override;
+    void UpdateVtkAnnotation(mitk::BaseRenderer *renderer) override;
+
+    /** \brief explicit constructor which disallows implicit conversions */
+    explicit LogoAnnotation();
+
+    /** \brief virtual destructor in order to derive from this class */
+    ~LogoAnnotation() override;
+
+  private:
+
+    vtkSmartPointer&lt;vtkImageData&gt; m_UpdatedLogoImage;
+    vtkSmartPointer&lt;vtkImageImport&gt; m_VtkImageImport;
+
+    /** \brief copy constructor */
+    LogoAnnotation(const LogoAnnotation &amp;);
+
+    /** \brief assignment operator */
+    LogoAnnotation &amp;operator=(const LogoAnnotation &amp;);
+  };
+
+} // namespace mitk
+#endif // LOGOAnnotation_H</pre>
+	</body>
+</html>

@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTrackingDeviceTypeCollection.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTrackingDeviceTypeCollection.h"
+
+#include "mitkUnspecifiedTrackingTypeInformation.h"
+
+//Microservices
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModuleContext.h&gt;
+
+
+mitk::TrackingDeviceTypeCollection::TrackingDeviceTypeCollection()
+<span style = "background-color:#dfd">  : m_ServiceRegistration()
+  , m_TrackingDeviceTypeInformations()
+{
+}</span>
+
+mitk::TrackingDeviceTypeCollection::~TrackingDeviceTypeCollection()
+<span style = "background-color:#dfd">{
+  std::vector&lt;TrackingDeviceTypeInformation*&gt;::iterator iter = m_TrackingDeviceTypeInformations.begin();</span>
+
+<span style = "background-color:#dfd">  for (; iter != m_TrackingDeviceTypeInformations.end(); iter++)</span>
+  {
+<span style = "background-color:#dfd">    delete (*iter);
+  }</span>
+
+<span style = "background-color:#dfd">  m_TrackingDeviceTypeInformations.clear();
+}</span>
+
+void mitk::TrackingDeviceTypeCollection::RegisterAsMicroservice()
+<span style = "background-color:#dfd">{
+  us::ModuleContext* context = us::GetModuleContext();</span>
+
+<span style = "background-color:#dfd">  m_ServiceRegistration = context-&gt;RegisterService(this);
+}</span>
+
+void mitk::TrackingDeviceTypeCollection::UnRegisterMicroservice()
+<span style = "background-color:#dfd">{
+  if (m_ServiceRegistration != nullptr) m_ServiceRegistration.Unregister();
+  m_ServiceRegistration = 0;
+}</span>
+
+void mitk::TrackingDeviceTypeCollection::RegisterTrackingDeviceType(TrackingDeviceTypeInformation* typeInformation)
+<span style = "background-color:#dfd">{
+  if (typeInformation != nullptr)</span>
+  {
+<span style = "background-color:#dfd">    m_TrackingDeviceTypeInformations.push_back(typeInformation);</span>
+  }
+<span style = "background-color:#dfd">}</span>
+
+mitk::TrackingDeviceTypeInformation* mitk::TrackingDeviceTypeCollection::GetTrackingDeviceTypeInformation(mitk::TrackingDeviceType type)
+<span style = "background-color:#fdd">{
+  for (auto deviceType : m_TrackingDeviceTypeInformations)</span>
+  {
+<span style = "background-color:#fdd">    if (deviceType-&gt;GetTrackingDeviceName() == type)</span>
+    {
+<span style = "background-color:#fdd">      return deviceType;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+std::vector&lt;mitk::TrackingDeviceData&gt; mitk::TrackingDeviceTypeCollection::GetDeviceDataForLine(TrackingDeviceType type)
+<span style = "background-color:#fdd">{
+  for (auto deviceType : m_TrackingDeviceTypeInformations)</span>
+  {
+<span style = "background-color:#fdd">    if (deviceType-&gt;GetTrackingDeviceName() == type)</span>
+    {
+<span style = "background-color:#fdd">      return deviceType-&gt;m_TrackingDeviceData;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return std::vector&lt;TrackingDeviceData&gt;();
+}</span>
+
+mitk::TrackingDeviceData mitk::TrackingDeviceTypeCollection::GetFirstCompatibleDeviceDataForLine(TrackingDeviceType type)
+<span style = "background-color:#fdd">{
+  if (GetDeviceDataForLine(type).empty())</span>
+  {
+<span style = "background-color:#fdd">    return mitk::UnspecifiedTrackingTypeInformation::GetDeviceDataInvalid();</span>
+  }
+
+<span style = "background-color:#fdd">  return GetDeviceDataForLine(type).front();
+}</span>
+
+mitk::TrackingDeviceData mitk::TrackingDeviceTypeCollection::GetDeviceDataByName(const std::string&amp; modelName)
+<span style = "background-color:#fdd">{
+  for (auto deviceType : m_TrackingDeviceTypeInformations)</span>
+  {
+<span style = "background-color:#fdd">    for (auto deviceData : deviceType-&gt;m_TrackingDeviceData)</span>
+    {
+<span style = "background-color:#fdd">      if (deviceData.Model == modelName)</span>
+      {
+<span style = "background-color:#fdd">        return deviceData;</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+<span style = "background-color:#fdd">  return mitk::UnspecifiedTrackingTypeInformation::GetDeviceDataInvalid();
+}</span>
+
+std::vector&lt;std::string&gt; mitk::TrackingDeviceTypeCollection::GetTrackingDeviceTypeNames()
+<span style = "background-color:#fdd">{
+  std::vector&lt;std::string&gt; names;
+  for (auto deviceType : m_TrackingDeviceTypeInformations)</span>
+  {
+<span style = "background-color:#fdd">    names.push_back(deviceType-&gt;GetTrackingDeviceName());
+  }
+  return names;
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMaskAndCutRoiImageFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include "mitkMaskAndCutRoiImageFilter.h"
+
+#include "mitkBoundingObjectToSegmentationFilter.h"
+#include "mitkImageCast.h"
+
+mitk::MaskAndCutRoiImageFilter::MaskAndCutRoiImageFilter()
+<span style = "background-color:#fdd">{
+  this-&gt;SetNumberOfRequiredInputs(2);
+  m_CropFilter = mitk::AutoCropImageFilter::New();
+  m_RoiFilter = ROIFilterType::New();
+  m_MaskFilter = mitk::MaskImageFilter::New();
+}</span>
+
+mitk::MaskAndCutRoiImageFilter::~MaskAndCutRoiImageFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::MaskAndCutRoiImageFilter::SetRegionOfInterest(mitk::BaseData *roi)
+<span style = "background-color:#fdd">{
+  mitk::Image::Pointer image = dynamic_cast&lt;mitk::Image *&gt;(roi);</span>
+
+<span style = "background-color:#fdd">  if (image.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetInput(1, image);
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::BoundingObject::Pointer boundingObject = dynamic_cast&lt;mitk::BoundingObject *&gt;(roi);
+  if (boundingObject.IsNotNull() &amp;&amp; this-&gt;GetInput(0) != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitk::BoundingObjectToSegmentationFilter::Pointer filter = mitk::BoundingObjectToSegmentationFilter::New();
+    filter-&gt;SetBoundingObject(boundingObject);
+    filter-&gt;SetInput(this-&gt;GetInput(0));
+    filter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    this-&gt;SetInput(1, filter-&gt;GetOutput());
+    return;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::Image::Pointer mitk::MaskAndCutRoiImageFilter::GetOutput()
+<span style = "background-color:#fdd">{
+  return m_outputImage;
+}</span>
+
+void mitk::MaskAndCutRoiImageFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::Image::ConstPointer inputImage = this-&gt;GetInput(0);
+  mitk::Image::ConstPointer maskImage = this-&gt;GetInput(1);</span>
+  // mitk::Image::Pointer outputImage = this-&gt;GetOutput();
+  // temporary fix for bug #
+<span style = "background-color:#fdd">  m_outputImage = this-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  ItkImageType::Pointer itkImage = ItkImageType::New();
+  mitk::Image::Pointer tmpImage = mitk::Image::New();</span>
+
+<span style = "background-color:#fdd">  m_CropFilter-&gt;SetInput(maskImage);
+  m_CropFilter-&gt;SetBackgroundValue(0);
+  m_CropFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  RegionType region = m_CropFilter-&gt;GetCroppingRegion();</span>
+
+<span style = "background-color:#fdd">  mitk::CastToItkImage(inputImage, itkImage);
+  m_RoiFilter-&gt;SetInput(itkImage);
+  m_RoiFilter-&gt;SetRegionOfInterest(region);
+  m_RoiFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  mitk::CastToMitkImage(m_RoiFilter-&gt;GetOutput(), tmpImage);</span>
+
+<span style = "background-color:#fdd">  m_MaskFilter-&gt;SetInput(0, tmpImage);
+  m_MaskFilter-&gt;SetMask(m_CropFilter-&gt;GetOutput());</span>
+
+<span style = "background-color:#fdd">  m_MaskFilter-&gt;SetOutsideValue(-32765);
+  m_MaskFilter-&gt;Update();
+  m_MaxValue = m_MaskFilter-&gt;GetMaxValue();
+  m_MinValue = m_MaskFilter-&gt;GetMinValue();</span>
+
+  // temporary fix for bug #
+<span style = "background-color:#fdd">  m_outputImage = m_MaskFilter-&gt;GetOutput();
+  m_outputImage-&gt;DisconnectPipeline();
+}</span></pre>
+	</body>
+</html>

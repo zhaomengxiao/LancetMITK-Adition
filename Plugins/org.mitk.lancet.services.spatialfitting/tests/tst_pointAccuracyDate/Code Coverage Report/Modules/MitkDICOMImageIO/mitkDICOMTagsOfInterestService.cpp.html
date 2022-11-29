@@ -1,0 +1,193 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMTagsOfInterestService.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMTagsOfInterestService.h"
+
+#include "usModuleContext.h"
+#include "usGetModuleContext.h"
+
+#include "mitkIPropertyDescriptions.h"
+#include "mitkIPropertyPersistence.h"
+#include "mitkTemporoSpatialStringProperty.h"
+
+mitk::IPropertyDescriptions*
+GetDescriptionsService()
+<span style = "background-color:#dfd">{
+  mitk::IPropertyDescriptions* result = nullptr;</span>
+
+<span style = "background-color:#dfd">  std::vector&lt;us::ServiceReference&lt;mitk::IPropertyDescriptions&gt; &gt; descriptionRegisters = us::GetModuleContext()-&gt;GetServiceReferences&lt;mitk::IPropertyDescriptions&gt;();
+  if (!descriptionRegisters.empty())</span>
+  {
+<span style = "background-color:#dfd">    if (descriptionRegisters.size() &gt; 1)</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Multiple property description services found. Using just one.";</span>
+    }
+<span style = "background-color:#dfd">    result = us::GetModuleContext()-&gt;GetService&lt;mitk::IPropertyDescriptions&gt;(descriptionRegisters.front());</span>
+  }
+
+<span style = "background-color:#dfd">  return result;
+};</span>
+
+mitk::IPropertyPersistence*
+GetPersistenceService()
+<span style = "background-color:#dfd">{
+  mitk::IPropertyPersistence* result = nullptr;</span>
+
+<span style = "background-color:#dfd">  std::vector&lt;us::ServiceReference&lt;mitk::IPropertyPersistence&gt; &gt; persRegisters = us::GetModuleContext()-&gt;GetServiceReferences&lt;mitk::IPropertyPersistence&gt;();
+  if (!persRegisters.empty())</span>
+  {
+<span style = "background-color:#dfd">    if (persRegisters.size() &gt; 1)</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Multiple property description services found. Using just one.";</span>
+    }
+<span style = "background-color:#dfd">    result = us::GetModuleContext()-&gt;GetService&lt;mitk::IPropertyPersistence&gt;(persRegisters.front());</span>
+  }
+
+<span style = "background-color:#dfd">  return result;
+};</span>
+
+mitk::DICOMTagsOfInterestService::
+DICOMTagsOfInterestService()
+<span style = "background-color:#dfd">{
+};</span>
+
+mitk::DICOMTagsOfInterestService::
+~DICOMTagsOfInterestService()
+<span style = "background-color:#dfd">{
+};</span>
+
+void
+mitk::DICOMTagsOfInterestService::
+AddTagOfInterest(const DICOMTagPath&amp; tagPath, bool makePersistant)
+<span style = "background-color:#dfd">{
+  if (tagPath.Size() == 0)</span>
+  {
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Indication for wrong DICOMTagsOfInterestService::AddTagOfInterest() usage. Empty DICOM tag path was passed.";
+    return;</span>
+  }
+
+<span style = "background-color:#dfd">  MutexHolder lock(m_Lock);
+  std::string propRegEx = mitk::DICOMTagPathToPropertyRegEx(tagPath);
+  this-&gt;m_Tags.insert(tagPath);</span>
+
+<span style = "background-color:#dfd">  mitk::IPropertyDescriptions* descriptionSrv = GetDescriptionsService();
+  if (descriptionSrv)</span>
+  {
+<span style = "background-color:#dfd">    descriptionSrv-&gt;AddDescriptionRegEx(propRegEx, "DICOM tag: " + tagPath.GetLastNode().tag.GetName());</span>
+  }
+
+<span style = "background-color:#dfd">  mitk::IPropertyPersistence* persSrv = GetPersistenceService();
+  if (persSrv &amp;&amp; makePersistant)</span>
+  {
+<span style = "background-color:#dfd">    PropertyPersistenceInfo::Pointer info = PropertyPersistenceInfo::New();
+    if (tagPath.IsExplicit())</span>
+    {
+<span style = "background-color:#dfd">      std::string name = mitk::DICOMTagPathToPropertyName(tagPath);
+      std::string key = name;
+      std::replace(key.begin(), key.end(), '.', '_');
+      info-&gt;SetNameAndKey(name, key);
+    }</span>
+    else
+    {
+<span style = "background-color:#dfd">      std::string key = mitk::DICOMTagPathToPersistenceKeyRegEx(tagPath);
+      std::string keyTemplate = mitk::DICOMTagPathToPersistenceKeyTemplate(tagPath);
+      std::string propTemplate = mitk::DICOMTagPathToPersistenceNameTemplate(tagPath);
+      info-&gt;UseRegEx(propRegEx, propTemplate, key, keyTemplate);
+    }</span>
+
+<span style = "background-color:#dfd">    info-&gt;SetDeserializationFunction(mitk::PropertyPersistenceDeserialization::deserializeJSONToTemporoSpatialStringProperty);
+    info-&gt;SetSerializationFunction(mitk::PropertyPersistenceSerialization::serializeTemporoSpatialStringPropertyToJSON);
+    persSrv-&gt;AddInfo(info);
+  }
+};</span>
+
+mitk::DICOMTagPathMapType
+mitk::DICOMTagsOfInterestService::
+GetTagsOfInterest() const
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_Lock);
+  DICOMTagPathMapType result;</span>
+
+<span style = "background-color:#fdd">  for (auto tag : this-&gt;m_Tags)</span>
+  {
+<span style = "background-color:#fdd">    result.insert(std::make_pair(tag, ""));
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+bool
+mitk::DICOMTagsOfInterestService::
+HasTag(const DICOMTagPath&amp; tag) const
+<span style = "background-color:#fdd">{
+  return this-&gt;m_Tags.find(tag) != this-&gt;m_Tags.cend();
+};</span>
+
+void
+mitk::DICOMTagsOfInterestService::
+RemoveTag(const DICOMTagPath&amp; tag)
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_Lock);
+  this-&gt;m_Tags.erase(tag);
+  std::string propRegEx = mitk::DICOMTagPathToPropertyRegEx(tag);</span>
+
+<span style = "background-color:#fdd">  mitk::IPropertyDescriptions* descriptionSrv = GetDescriptionsService();
+  if (descriptionSrv)</span>
+  {
+<span style = "background-color:#fdd">    descriptionSrv-&gt;RemoveDescription(propRegEx);</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::IPropertyPersistence* persSrv = GetPersistenceService();
+  if (persSrv)</span>
+  {
+<span style = "background-color:#fdd">    persSrv-&gt;RemoveInfo(propRegEx);</span>
+  }
+<span style = "background-color:#fdd">};</span>
+
+void
+mitk::DICOMTagsOfInterestService::
+RemoveAllTags()
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_Lock);
+  mitk::IPropertyDescriptions* descriptionSrv = GetDescriptionsService();
+  mitk::IPropertyPersistence* persSrv = GetPersistenceService();</span>
+
+<span style = "background-color:#fdd">  for (const auto&amp; tag : m_Tags)</span>
+  {
+<span style = "background-color:#fdd">    std::string propRegEx = mitk::DICOMTagPathToPropertyRegEx(tag);</span>
+
+<span style = "background-color:#fdd">    if (descriptionSrv)</span>
+    {
+<span style = "background-color:#fdd">      descriptionSrv-&gt;RemoveDescription(propRegEx);</span>
+    }
+
+<span style = "background-color:#fdd">    if (persSrv)</span>
+    {
+<span style = "background-color:#fdd">      persSrv-&gt;RemoveInfo(propRegEx);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  this-&gt;m_Tags.clear();
+};</span></pre>
+	</body>
+</html>

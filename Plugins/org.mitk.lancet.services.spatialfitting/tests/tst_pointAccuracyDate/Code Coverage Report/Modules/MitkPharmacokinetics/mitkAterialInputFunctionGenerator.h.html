@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkAterialInputFunctionGenerator.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef ATERIALINPUTFUNCTIONGENERATOR_H
+#define ATERIALINPUTFUNCTIONGENERATOR_H
+
+#include &lt;mitkImage.h&gt;
+#include "mitkAIFBasedModelBase.h"
+#include "MitkPharmacokineticsExports.h"
+
+
+namespace mitk
+{
+  /** \class AterialInputFunctionGenerator
+  * \brief Compute the Aterial Input Function from a given dynamic image and a mask defining the tumour supplying artery
+  *
+  * The AterialInputFunctionGenerator takes a given 4D dynamic image and a corresponding mask and returns an array of the averaged values and
+  * an array of the corresponding TimeGrid
+  * within the mask over time. No conversion is performed, so  conversion from signal to concentration has to be performed in advanced
+  * and the resulting image is fed into the Generator.
+  * The generator checks wether both image and mask  are set and passes them to the itkMaskedNaryStatisticsImageFilter and the mitkExtractTimeGrid, to
+  * calculate the mean of every time slice within the ROI and extract the corresponding time grid from the date set.
+  */
+  class MITKPHARMACOKINETICS_EXPORT AterialInputFunctionGenerator : public itk::Object
+  {
+  public:
+
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(AterialInputFunctionGenerator, itk::Object);
+    itkNewMacro(Self);</span>
+
+    /** @brief Setter and Getter for Input Image for calculation of AIF, already converted to concentrations
+    * Getter calls CheckValidInputs() and CalculateAIFAndGetResult() if HasOutdatedResults() is true */
+<span style = "background-color:#fdd">    itkSetConstObjectMacro(DynamicImage, Image);
+    itkGetConstObjectMacro(DynamicImage, Image);</span>
+
+    /** @brief Setter and Getter for mask defining the tumour feeding atery
+    * Getter calls CheckValidInputs() and CalculateAIFAndGetResult() if HasOutdatedResults() is true */
+<span style = "background-color:#fdd">    itkSetConstObjectMacro(Mask, Image);
+    itkGetConstObjectMacro(Mask, Image);</span>
+
+    /** @brief Setter and Getter for the hematocritlevel, important for conversion to plasma curve*/
+<span style = "background-color:#fdd">    itkSetMacro(HCL, double);
+    itkGetConstReferenceMacro(HCL, double);</span>
+
+    //Common Value for Hematocrit level is 0.45
+    static const double DEFAULT_HEMATOCRIT_LEVEL;
+
+    void SetDefaultHematocritLevel()
+<span style = "background-color:#fdd">    {
+        this-&gt;m_HCL = DEFAULT_HEMATOCRIT_LEVEL;
+    };</span>
+    double GetDefaultHematocritLevel()
+<span style = "background-color:#fdd">    {
+        return DEFAULT_HEMATOCRIT_LEVEL;
+    }</span>
+
+    AIFBasedModelBase::AterialInputFunctionType GetAterialInputFunction();
+    ModelBase::TimeGridType GetAterialInputFunctionTimeGrid();
+
+  protected:
+<span style = "background-color:#fdd">    AterialInputFunctionGenerator()</span>
+    {
+<span style = "background-color:#fdd">      m_Mask = nullptr;
+      m_DynamicImage = nullptr;
+      this-&gt;SetDefaultHematocritLevel();
+    };</span>
+
+<span style = "background-color:#fdd">    ~AterialInputFunctionGenerator() override {};</span>
+
+    //template &lt;typename TPixel, unsigned int VDim&gt;
+    //void DoCalculateAIF(itk::Image&lt;TPixel, VDim&gt;* image);
+
+    /** @brief Passes m_DynamicImage and m_Mask to the itkMaskedNaryStatisticsImageFilter and mitkExtractTimeGrid
+     * and inserts the result into m_AIFValues and m_AIFTimeGrid and modiefies the Timestamp*/
+    virtual void CalculateAIFAndGetResult();
+
+    /** @brief Makes sure that m_DynamicImage and m_Mask are set */
+    virtual void CheckValidInputs() const;
+
+    bool HasOutdatedResults();
+
+
+    itk::TimeStamp m_GenerationTimeStamp;
+
+  private:
+    Image::ConstPointer m_DynamicImage;
+    Image::ConstPointer m_Mask;
+
+
+    AIFBasedModelBase::AterialInputFunctionType m_AIFValues;
+    ModelBase::TimeGridType m_AIFTimeGrid;
+
+    double m_HCL;
+  };
+
+}
+
+#endif // ATERIALINPUTFUNCTIONGENERATOR_H</pre>
+	</body>
+</html>

@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkEqual.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+/*
+ * mitkEqual.h
+ *
+ *  Created on: Apr 14, 2014
+ *      Author: wirkert
+ */
+
+#ifndef MITKEQUAL_H_
+#define MITKEQUAL_H_
+
+#include &lt;cmath&gt;
+#include &lt;iomanip&gt;
+
+#include "mitkLogMacros.h"
+#include "mitkNumericConstants.h"
+
+namespace mitk
+{
+  /**
+   * Helper method to check if the difference is bigger or equal to a given epsilon
+   *
+   * @param diff the difference to be checked against the epsilon
+   * @param epsilon The absolute difference needs to be smaller than this.
+   * @return true if abs(diff) &gt;= eps
+   */
+  template &lt;typename DifferenceType&gt;
+  inline bool DifferenceBiggerOrEqualEps(DifferenceType diff, mitk::ScalarType epsilon = mitk::eps)
+<span style = "background-color:#fdd">  {
+    return std::fabs(diff) &gt;= epsilon;
+  }</span>
+
+  /**
+   * outputs elem1, elem2 and eps in case verbose and !isEqual.
+   * Elem can e.g. be a mitk::Vector or an mitk::Point.
+   *
+   * @param elem1 first element to be output
+   * @param elem2 second
+   * @param eps the epsilon which their difference was bigger than
+   * @param verbose tells the function if something shall be output
+   * @param isEqual function will only output something if the two elements are not equal
+   */
+  template &lt;typename ElementToOutput1, typename ElementToOutput2&gt;
+  inline void ConditionalOutputOfDifference(
+    ElementToOutput1 elem1, ElementToOutput2 elem2, mitk::ScalarType eps, bool verbose, bool isEqual)
+<span style = "background-color:#fdd">  {
+    if (verbose &amp;&amp; !isEqual)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; typeid(ElementToOutput1).name() &lt;&lt; " and " &lt;&lt; typeid(ElementToOutput2).name()</span>
+                &lt;&lt; " not equal. Lefthandside " &lt;&lt; std::setprecision(12) &lt;&lt; elem1 &lt;&lt; " - Righthandside " &lt;&lt; elem2
+                &lt;&lt; " - epsilon " &lt;&lt; eps;
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  /**
+   * @ingroup MITKTestingAPI
+   *
+   * @param scalar1 Scalar value to compare.
+   * @param scalar2 Scalar value to compare.
+   * @param eps Tolerance for floating point comparison.
+   * @param verbose Flag indicating detailed console output.
+   * @return True if scalars are equal.
+   */
+  inline bool Equal(ScalarType scalar1, ScalarType scalar2, ScalarType eps = mitk::eps, bool verbose = false)
+<span style = "background-color:#fdd">  {
+    bool isEqual(!DifferenceBiggerOrEqualEps(scalar1 - scalar2, eps));</span>
+
+<span style = "background-color:#fdd">    ConditionalOutputOfDifference(scalar1, scalar2, eps, verbose, isEqual);</span>
+
+<span style = "background-color:#fdd">    return isEqual;
+  }</span>
+}
+
+#endif /* MITKEQUAL_H_ */</pre>
+	</body>
+</html>

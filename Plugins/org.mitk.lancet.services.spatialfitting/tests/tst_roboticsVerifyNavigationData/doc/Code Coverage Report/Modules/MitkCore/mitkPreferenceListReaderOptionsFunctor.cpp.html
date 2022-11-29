@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPreferenceListReaderOptionsFunctor.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPreferenceListReaderOptionsFunctor.h"
+
+mitk::PreferenceListReaderOptionsFunctor::PreferenceListReaderOptionsFunctor()
+<span style = "background-color:#fdd">{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+<span style = "background-color:#fdd">mitk::PreferenceListReaderOptionsFunctor::PreferenceListReaderOptionsFunctor(const ListType&amp; preference, const IFileReader::Options&amp; options) : m_PreferenceList(preference), m_Options(options)
+{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+<span style = "background-color:#fdd">mitk::PreferenceListReaderOptionsFunctor::PreferenceListReaderOptionsFunctor(const ListType&amp; preference, const ListType&amp; black) : m_PreferenceList(preference), m_BlackList(black)
+{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+<span style = "background-color:#fdd">mitk::PreferenceListReaderOptionsFunctor::PreferenceListReaderOptionsFunctor(const ListType&amp; preference, const ListType&amp; black, const IFileReader::Options&amp; options) : m_PreferenceList(preference), m_BlackList(black), m_Options(options)
+{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PreferenceListReaderOptionsFunctor::operator()(IOUtil::LoadInfo &amp;loadInfo) const
+<span style = "background-color:#fdd">{
+  auto readerItems = loadInfo.m_ReaderSelector.Get();</span>
+
+<span style = "background-color:#fdd">  auto selectedID = loadInfo.m_ReaderSelector.GetSelectedId();</span>
+
+  //check if the pre selected ID is on the blacklist. If true, "un"select.
+<span style = "background-color:#fdd">  auto finding = std::find(m_BlackList.begin(), m_BlackList.end(), loadInfo.m_ReaderSelector.GetSelected().GetDescription());
+  if (finding != m_BlackList.end())</span>
+  {
+<span style = "background-color:#fdd">    selectedID = -1;</span>
+  }
+
+<span style = "background-color:#fdd">  for (const auto &amp;reader : readerItems)</span>
+  {
+<span style = "background-color:#fdd">    finding = std::find(m_BlackList.begin(), m_BlackList.end(), reader.GetDescription());</span>
+
+<span style = "background-color:#fdd">    if (finding != m_BlackList.end())</span>
+    {
+<span style = "background-color:#fdd">      continue;</span>
+    }
+
+<span style = "background-color:#fdd">    finding = std::find(m_PreferenceList.begin(), m_PreferenceList.end(), reader.GetDescription());</span>
+
+<span style = "background-color:#fdd">    if (finding != m_PreferenceList.end())</span>
+    {
+<span style = "background-color:#fdd">      selectedID = reader.GetServiceId();
+      break;</span>
+    }
+
+<span style = "background-color:#fdd">    if (selectedID==-1)</span>
+    {
+<span style = "background-color:#fdd">      selectedID = reader.GetServiceId();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  if (selectedID == -1)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "No valid reader found. All available readers are black listed.";</span>
+  }
+
+<span style = "background-color:#fdd">  if (!loadInfo.m_ReaderSelector.Select(selectedID))</span>
+  {
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Was not able to select reader found by the PreferenceListReaderOptionsFunctor";</span>
+  }
+
+<span style = "background-color:#fdd">  auto reader = loadInfo.m_ReaderSelector.GetSelected().GetReader();
+  if (!m_Options.empty() &amp;&amp; nullptr != reader)</span>
+  {
+<span style = "background-color:#fdd">    reader-&gt;SetOptions(m_Options);</span>
+  }
+
+<span style = "background-color:#fdd">  return true;
+}</span></pre>
+	</body>
+</html>

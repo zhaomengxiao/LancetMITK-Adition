@@ -1,0 +1,978 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPointSet.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPointSet.h"
+#include "mitkInteractionConst.h"
+#include "mitkPointOperation.h"
+
+#include &lt;iomanip&gt;
+#include &lt;mitkNumericTypes.h&gt;
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  itkEventMacroDefinition(PointSetEvent, itk::AnyEvent);
+  itkEventMacroDefinition(PointSetMoveEvent, PointSetEvent);
+  itkEventMacroDefinition(PointSetSizeChangeEvent, PointSetEvent);
+  itkEventMacroDefinition(PointSetAddEvent, PointSetSizeChangeEvent);
+  itkEventMacroDefinition(PointSetRemoveEvent, PointSetSizeChangeEvent);
+  itkEventMacroDefinition(PointSetExtendTimeRangeEvent, PointSetEvent);</span>
+}
+
+<span style = "background-color:#fdd">mitk::PointSet::PointSet() : m_CalculateBoundingBox(true)
+{
+  this-&gt;InitializeEmpty();
+}</span>
+
+mitk::PointSet::PointSet(const PointSet &amp;other)
+<span style = "background-color:#fdd">  : BaseData(other), m_PointSetSeries(other.GetPointSetSeriesSize()), m_CalculateBoundingBox(true)
+{</span>
+  // Copy points
+<span style = "background-color:#fdd">  for (std::size_t t = 0; t &lt; m_PointSetSeries.size(); ++t)</span>
+  {
+<span style = "background-color:#fdd">    m_PointSetSeries[t] = DataType::New();</span>
+
+<span style = "background-color:#fdd">    DataType::Pointer otherPts = other.GetPointSet(t);
+    for (PointsConstIterator i = other.Begin(t); i != other.End(t); ++i)</span>
+    {
+<span style = "background-color:#fdd">      m_PointSetSeries[t]-&gt;SetPoint(i.Index(), i.Value());</span>
+      PointDataType pointData;
+<span style = "background-color:#fdd">      if (otherPts-&gt;GetPointData(i.Index(), &amp;pointData))</span>
+      {
+<span style = "background-color:#fdd">        m_PointSetSeries[t]-&gt;SetPointData(i.Index(), pointData);
+      }
+    }
+  }
+}</span>
+
+mitk::PointSet::~PointSet()
+<span style = "background-color:#fdd">{
+  this-&gt;ClearData();
+}</span>
+
+void mitk::PointSet::ClearData()
+<span style = "background-color:#fdd">{
+  m_PointSetSeries.clear();
+  Superclass::ClearData();
+}</span>
+
+void mitk::PointSet::InitializeEmpty()
+<span style = "background-color:#fdd">{
+  m_PointSetSeries.resize(1);</span>
+
+<span style = "background-color:#fdd">  m_PointSetSeries[0] = DataType::New();
+  PointDataContainer::Pointer pointData = PointDataContainer::New();
+  m_PointSetSeries[0]-&gt;SetPointData(pointData);
+  m_CalculateBoundingBox = false;</span>
+
+<span style = "background-color:#fdd">  Superclass::InitializeTimeGeometry(1);
+  m_Initialized = true;</span>
+
+<span style = "background-color:#fdd">  m_EmptyPointsContainer = DataType::PointsContainer::New();
+}</span>
+
+bool mitk::PointSet::IsEmptyTimeStep(unsigned int t) const
+<span style = "background-color:#fdd">{
+  return IsInitialized() &amp;&amp; (GetSize(t) == 0);
+}</span>
+
+void mitk::PointSet::Expand(unsigned int timeSteps)
+<span style = "background-color:#fdd">{</span>
+  // Check if the vector is long enough to contain the new element
+  // at the given position. If not, expand it with sufficient pre-initialized
+  // elements.
+  //
+  // NOTE: This method will never REDUCE the vector size; it should only
+  // be used to make sure that the vector has enough elements to include the
+  // specified time step.
+
+<span style = "background-color:#fdd">  unsigned int oldSize = m_PointSetSeries.size();</span>
+
+<span style = "background-color:#fdd">  if (timeSteps &gt; oldSize)</span>
+  {
+<span style = "background-color:#fdd">    Superclass::Expand(timeSteps);</span>
+
+<span style = "background-color:#fdd">    m_PointSetSeries.resize(timeSteps);
+    for (unsigned int i = oldSize; i &lt; timeSteps; ++i)</span>
+    {
+<span style = "background-color:#fdd">      m_PointSetSeries[i] = DataType::New();
+      PointDataContainer::Pointer pointData = PointDataContainer::New();
+      m_PointSetSeries[i]-&gt;SetPointData(pointData);
+    }</span>
+
+    // if the size changes, then compute the bounding box
+<span style = "background-color:#fdd">    m_CalculateBoundingBox = true;</span>
+
+<span style = "background-color:#fdd">    this-&gt;InvokeEvent(PointSetExtendTimeRangeEvent());</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+unsigned int mitk::PointSet::GetPointSetSeriesSize() const
+<span style = "background-color:#fdd">{
+  return m_PointSetSeries.size();
+}</span>
+
+int mitk::PointSet::GetSize(unsigned int t) const
+<span style = "background-color:#fdd">{
+  if (t &lt; m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    return m_PointSetSeries[t]-&gt;GetNumberOfPoints();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return 0;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::PointSet::DataType::Pointer mitk::PointSet::GetPointSet(int t) const
+<span style = "background-color:#fdd">{
+  if (t &lt; (int)m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    return m_PointSetSeries[t];
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::PointSet::PointsIterator mitk::PointSet::Begin(int t)
+<span style = "background-color:#fdd">{
+  if (t &gt;= 0 &amp;&amp; t &lt; static_cast&lt;int&gt;(m_PointSetSeries.size()))</span>
+  {
+<span style = "background-color:#fdd">    return m_PointSetSeries[t]-&gt;GetPoints()-&gt;Begin();</span>
+  }
+<span style = "background-color:#fdd">  return m_EmptyPointsContainer-&gt;End();
+}</span>
+
+mitk::PointSet::PointsConstIterator mitk::PointSet::Begin(int t) const
+<span style = "background-color:#fdd">{
+  if (t &gt;= 0 &amp;&amp; t &lt; static_cast&lt;int&gt;(m_PointSetSeries.size()))</span>
+  {
+<span style = "background-color:#fdd">    return m_PointSetSeries[t]-&gt;GetPoints()-&gt;Begin();</span>
+  }
+<span style = "background-color:#fdd">  return m_EmptyPointsContainer-&gt;End();
+}</span>
+
+mitk::PointSet::PointsIterator mitk::PointSet::End(int t)
+<span style = "background-color:#fdd">{
+  if (t &gt;= 0 &amp;&amp; t &lt; static_cast&lt;int&gt;(m_PointSetSeries.size()))</span>
+  {
+<span style = "background-color:#fdd">    return m_PointSetSeries[t]-&gt;GetPoints()-&gt;End();</span>
+  }
+<span style = "background-color:#fdd">  return m_EmptyPointsContainer-&gt;End();
+}</span>
+
+mitk::PointSet::PointsConstIterator mitk::PointSet::End(int t) const
+<span style = "background-color:#fdd">{
+  if (t &gt;= 0 &amp;&amp; t &lt; static_cast&lt;int&gt;(m_PointSetSeries.size()))</span>
+  {
+<span style = "background-color:#fdd">    return m_PointSetSeries[t]-&gt;GetPoints()-&gt;End();</span>
+  }
+<span style = "background-color:#fdd">  return m_EmptyPointsContainer-&gt;End();
+}</span>
+
+mitk::PointSet::PointsIterator mitk::PointSet::GetMaxId(int t)
+<span style = "background-color:#fdd">{
+  if ((unsigned int)t &gt;= m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    return m_EmptyPointsContainer-&gt;End();</span>
+  }
+
+<span style = "background-color:#fdd">  return this-&gt;Begin(t) == this-&gt;End(t) ? this-&gt;End(t) : --End(t);
+}</span>
+
+int mitk::PointSet::SearchPoint(Point3D point, ScalarType distance, int t) const
+<span style = "background-color:#fdd">{
+  if (t &gt;= (int)m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    return -1;</span>
+  }
+
+  // Out is the point which is checked to be the searched point
+<span style = "background-color:#fdd">  PointType out;
+  out.Fill(0);
+  PointType indexPoint;</span>
+
+<span style = "background-color:#fdd">  this-&gt;GetGeometry(t)-&gt;WorldToIndex(point, indexPoint);</span>
+
+  // Searching the first point in the Set, that is +- distance far away fro
+  // the given point
+  unsigned int i;
+<span style = "background-color:#fdd">  PointsContainer::Iterator it, end;
+  end = m_PointSetSeries[t]-&gt;GetPoints()-&gt;End();
+  int bestIndex = -1;
+  distance = distance * distance;</span>
+
+  // To correct errors from converting index to world and world to index
+<span style = "background-color:#fdd">  if (distance == 0.0)</span>
+  {
+<span style = "background-color:#fdd">    distance = 0.000001;</span>
+  }
+
+<span style = "background-color:#fdd">  ScalarType bestDist = distance;</span>
+  ScalarType dist, tmp;
+
+<span style = "background-color:#fdd">  for (it = m_PointSetSeries[t]-&gt;GetPoints()-&gt;Begin(), i = 0; it != end; ++it, ++i)</span>
+  {
+<span style = "background-color:#fdd">    bool ok = m_PointSetSeries[t]-&gt;GetPoints()-&gt;GetElementIfIndexExists(it-&gt;Index(), &amp;out);</span>
+
+<span style = "background-color:#fdd">    if (!ok)</span>
+    {
+<span style = "background-color:#fdd">      return -1;
+    }
+    else if (indexPoint == out) // if totally equal</span>
+    {
+<span style = "background-color:#fdd">      return it-&gt;Index();</span>
+    }
+
+    // distance calculation
+<span style = "background-color:#fdd">    tmp = out[0] - indexPoint[0];
+    dist = tmp * tmp;
+    tmp = out[1] - indexPoint[1];
+    dist += tmp * tmp;
+    tmp = out[2] - indexPoint[2];
+    dist += tmp * tmp;</span>
+
+<span style = "background-color:#fdd">    if (dist &lt; bestDist)</span>
+    {
+<span style = "background-color:#fdd">      bestIndex = it-&gt;Index();
+      bestDist = dist;</span>
+    }
+<span style = "background-color:#fdd">  }
+  return bestIndex;
+}</span>
+
+mitk::PointSet::PointType mitk::PointSet::GetPoint(PointIdentifier id, int t) const
+<span style = "background-color:#fdd">{
+  PointType out;
+  out.Fill(0);</span>
+
+<span style = "background-color:#fdd">  if ((unsigned int)t &gt;= m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    return out;</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_PointSetSeries[t]-&gt;GetPoints()-&gt;IndexExists(id))</span>
+  {
+<span style = "background-color:#fdd">    m_PointSetSeries[t]-&gt;GetPoint(id, &amp;out);
+    this-&gt;GetGeometry(t)-&gt;IndexToWorld(out, out);
+    return out;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return out;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PointSet::GetPointIfExists(PointIdentifier id, PointType *point, int t) const
+<span style = "background-color:#fdd">{
+  if ((unsigned int)t &gt;= m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_PointSetSeries[t]-&gt;GetPoints()-&gt;GetElementIfIndexExists(id, point))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;GetGeometry(t)-&gt;IndexToWorld(*point, *point);
+    return true;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PointSet::SetPoint(PointIdentifier id, PointType point, int t)
+<span style = "background-color:#fdd">{</span>
+  // Adapt the size of the data vector if necessary
+<span style = "background-color:#fdd">  this-&gt;Expand(t + 1);</span>
+
+<span style = "background-color:#fdd">  mitk::Point3D indexPoint;
+  this-&gt;GetGeometry(t)-&gt;WorldToIndex(point, indexPoint);
+  m_PointSetSeries[t]-&gt;SetPoint(id, indexPoint);</span>
+  PointDataType defaultPointData;
+<span style = "background-color:#fdd">  defaultPointData.id = id;
+  defaultPointData.selected = false;
+  defaultPointData.pointSpec = mitk::PTUNDEFINED;</span>
+
+<span style = "background-color:#fdd">  m_PointSetSeries[t]-&gt;SetPointData(id, defaultPointData);</span>
+  // boundingbox has to be computed anyway
+<span style = "background-color:#fdd">  m_CalculateBoundingBox = true;
+  this-&gt;Modified();
+}</span>
+
+void mitk::PointSet::SetPoint(PointIdentifier id, PointType point, PointSpecificationType spec, int t)
+<span style = "background-color:#fdd">{</span>
+  // Adapt the size of the data vector if necessary
+<span style = "background-color:#fdd">  this-&gt;Expand(t + 1);</span>
+
+<span style = "background-color:#fdd">  mitk::Point3D indexPoint;
+  this-&gt;GetGeometry(t)-&gt;WorldToIndex(point, indexPoint);
+  m_PointSetSeries[t]-&gt;SetPoint(id, indexPoint);</span>
+  PointDataType defaultPointData;
+<span style = "background-color:#fdd">  defaultPointData.id = id;
+  defaultPointData.selected = false;
+  defaultPointData.pointSpec = spec;
+  m_PointSetSeries[t]-&gt;SetPointData(id, defaultPointData);</span>
+  // boundingbox has to be computed anyway
+<span style = "background-color:#fdd">  m_CalculateBoundingBox = true;
+  this-&gt;Modified();
+}</span>
+
+void mitk::PointSet::InsertPoint(PointIdentifier id, PointType point, int t)
+<span style = "background-color:#fdd">{
+  this-&gt;InsertPoint(id, point, mitk::PTUNDEFINED, t);
+}</span>
+
+void mitk::PointSet::InsertPoint(PointIdentifier id, PointType point, PointSpecificationType spec, int t)
+<span style = "background-color:#fdd">{
+  if ((unsigned int)t &lt; m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D indexPoint;
+    mitk::BaseGeometry *tempGeometry = this-&gt;GetGeometry(t);
+    if (tempGeometry == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; __FILE__ &lt;&lt; ", l." &lt;&lt; __LINE__ &lt;&lt; ": GetGeometry of " &lt;&lt; t &lt;&lt; " returned nullptr!" &lt;&lt; std::endl;
+      return;</span>
+    }
+<span style = "background-color:#fdd">    tempGeometry-&gt;WorldToIndex(point, indexPoint);
+    m_PointSetSeries[t]-&gt;GetPoints()-&gt;InsertElement(id, indexPoint);</span>
+    PointDataType defaultPointData;
+<span style = "background-color:#fdd">    defaultPointData.id = id;
+    defaultPointData.selected = false;
+    defaultPointData.pointSpec = spec;
+    m_PointSetSeries[t]-&gt;GetPointData()-&gt;InsertElement(id, defaultPointData);</span>
+
+    // boundingbox has to be computed anyway
+<span style = "background-color:#fdd">    m_CalculateBoundingBox = true;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::PointSet::PointIdentifier mitk::PointSet::InsertPoint(PointType point, int t)
+<span style = "background-color:#fdd">{</span>
+  // Adapt the size of the data vector if necessary
+<span style = "background-color:#fdd">  this-&gt;Expand(t + 1);</span>
+
+<span style = "background-color:#fdd">  PointIdentifier id = 0;
+  if (m_PointSetSeries[t]-&gt;GetNumberOfPoints() &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    PointsIterator it = --End(t);
+    id = it.Index();
+    ++id;
+  }</span>
+
+<span style = "background-color:#fdd">  mitk::Point3D indexPoint;
+  this-&gt;GetGeometry(t)-&gt;WorldToIndex(point, indexPoint);
+  m_PointSetSeries[t]-&gt;SetPoint(id, indexPoint);</span>
+  PointDataType defaultPointData;
+<span style = "background-color:#fdd">  defaultPointData.id = id;
+  defaultPointData.selected = false;
+  defaultPointData.pointSpec = mitk::PTUNDEFINED;</span>
+
+<span style = "background-color:#fdd">  m_PointSetSeries[t]-&gt;SetPointData(id, defaultPointData);</span>
+  // boundingbox has to be computed anyway
+<span style = "background-color:#fdd">  m_CalculateBoundingBox = true;
+  this-&gt;Modified();</span>
+
+<span style = "background-color:#fdd">  return id;
+}</span>
+
+bool mitk::PointSet::RemovePointIfExists(PointIdentifier id, int t)
+<span style = "background-color:#fdd">{
+  if ((unsigned int)t &lt; m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    DataType *pointSet = m_PointSetSeries[t];</span>
+
+<span style = "background-color:#fdd">    PointsContainer *points = pointSet-&gt;GetPoints();
+    PointDataContainer *pdata = pointSet-&gt;GetPointData();</span>
+
+<span style = "background-color:#fdd">    bool exists = points-&gt;IndexExists(id);
+    if (exists)</span>
+    {
+<span style = "background-color:#fdd">      points-&gt;DeleteIndex(id);
+      pdata-&gt;DeleteIndex(id);
+      return true;</span>
+    }
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+mitk::PointSet::PointsIterator mitk::PointSet::RemovePointAtEnd(int t)
+<span style = "background-color:#fdd">{
+  if ((unsigned int)t &lt; m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    DataType *pointSet = m_PointSetSeries[t];</span>
+
+<span style = "background-color:#fdd">    PointsContainer *points = pointSet-&gt;GetPoints();
+    PointDataContainer *pdata = pointSet-&gt;GetPointData();</span>
+
+<span style = "background-color:#fdd">    PointsIterator bit = points-&gt;Begin();
+    PointsIterator eit = points-&gt;End();</span>
+
+<span style = "background-color:#fdd">    if (eit != bit)</span>
+    {
+<span style = "background-color:#fdd">      PointsContainer::ElementIdentifier id = (--eit).Index();
+      points-&gt;DeleteIndex(id);
+      pdata-&gt;DeleteIndex(id);
+      PointsIterator eit2 = points-&gt;End();
+      return points-&gt;empty()? eit2 : --eit2;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return eit;</span>
+    }
+<span style = "background-color:#fdd">  }
+  return m_EmptyPointsContainer-&gt;End();
+}</span>
+
+bool mitk::PointSet::SwapPointPosition(PointIdentifier id, bool moveUpwards, int t)
+<span style = "background-color:#fdd">{
+  if (IndexExists(id, t))</span>
+  {
+<span style = "background-color:#fdd">    PointType point = GetPoint(id, t);</span>
+
+<span style = "background-color:#fdd">    if (moveUpwards)</span>
+    { // up
+<span style = "background-color:#fdd">      if (IndexExists(id - 1, t))</span>
+      {
+<span style = "background-color:#fdd">        InsertPoint(id, GetPoint(id - 1, t), t);
+        InsertPoint(id - 1, point, t);
+        this-&gt;Modified();
+        return true;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else
+    { // down
+<span style = "background-color:#fdd">      if (IndexExists(id + 1, t))</span>
+      {
+<span style = "background-color:#fdd">        InsertPoint(id, GetPoint(id + 1, t), t);
+        InsertPoint(id + 1, point, t);
+        this-&gt;Modified();
+        return true;</span>
+      }
+    }
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+bool mitk::PointSet::IndexExists(int position, int t) const
+<span style = "background-color:#fdd">{
+  if ((unsigned int)t &lt; m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    return m_PointSetSeries[t]-&gt;GetPoints()-&gt;IndexExists(position);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PointSet::GetSelectInfo(int position, int t) const
+<span style = "background-color:#fdd">{
+  if (this-&gt;IndexExists(position, t))</span>
+  {
+<span style = "background-color:#fdd">    PointDataType pointData = {0, false, PTUNDEFINED};
+    m_PointSetSeries[t]-&gt;GetPointData(position, &amp;pointData);
+    return pointData.selected;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PointSet::SetSelectInfo(int position, bool selected, int t)
+<span style = "background-color:#fdd">{
+  if (this-&gt;IndexExists(position, t))</span>
+  {
+    // timeStep to ms
+<span style = "background-color:#fdd">    TimePointType timeInMS = this-&gt;GetTimeGeometry()-&gt;TimeStepToTimePoint(t);</span>
+
+    // point
+<span style = "background-color:#fdd">    Point3D point = this-&gt;GetPoint(position, t);</span>
+
+<span style = "background-color:#fdd">    std::unique_ptr&lt;PointOperation&gt; op;
+    if (selected)</span>
+    {
+<span style = "background-color:#fdd">      op.reset(new mitk::PointOperation(OpSELECTPOINT, timeInMS, point, position));
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      op.reset(new mitk::PointOperation(OpDESELECTPOINT, timeInMS, point, position));</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;ExecuteOperation(op.get());
+  }
+}</span>
+
+mitk::PointSpecificationType mitk::PointSet::GetSpecificationTypeInfo(int position, int t) const
+<span style = "background-color:#fdd">{
+  if (this-&gt;IndexExists(position, t))</span>
+  {
+<span style = "background-color:#fdd">    PointDataType pointData = {0, false, PTUNDEFINED};
+    m_PointSetSeries[t]-&gt;GetPointData(position, &amp;pointData);
+    return pointData.pointSpec;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return PTUNDEFINED;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+int mitk::PointSet::GetNumberOfSelected(int t) const
+<span style = "background-color:#fdd">{
+  if ((unsigned int)t &gt;= m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    return 0;</span>
+  }
+
+<span style = "background-color:#fdd">  int numberOfSelected = 0;
+  PointDataIterator it;
+  for (it = m_PointSetSeries[t]-&gt;GetPointData()-&gt;Begin(); it != m_PointSetSeries[t]-&gt;GetPointData()-&gt;End(); it++)</span>
+  {
+<span style = "background-color:#fdd">    if (it-&gt;Value().selected == true)</span>
+    {
+<span style = "background-color:#fdd">      ++numberOfSelected;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return numberOfSelected;
+}</span>
+
+int mitk::PointSet::SearchSelectedPoint(int t) const
+<span style = "background-color:#fdd">{
+  if ((unsigned int)t &gt;= m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    return -1;</span>
+  }
+
+<span style = "background-color:#fdd">  PointDataIterator it;
+  for (it = m_PointSetSeries[t]-&gt;GetPointData()-&gt;Begin(); it != m_PointSetSeries[t]-&gt;GetPointData()-&gt;End(); it++)</span>
+  {
+<span style = "background-color:#fdd">    if (it-&gt;Value().selected == true)</span>
+    {
+<span style = "background-color:#fdd">      return it-&gt;Index();</span>
+    }
+<span style = "background-color:#fdd">  }
+  return -1;
+}</span>
+
+void mitk::PointSet::ExecuteOperation(Operation *operation)
+<span style = "background-color:#fdd">{
+  int timeStep = -1;</span>
+
+<span style = "background-color:#fdd">  mitkCheckOperationTypeMacro(PointOperation, operation, pointOp);</span>
+
+<span style = "background-color:#fdd">  if (pointOp)</span>
+  {
+<span style = "background-color:#fdd">    timeStep = this-&gt;GetTimeGeometry()-&gt;TimePointToTimeStep(pointOp-&gt;GetTimeInMS());</span>
+  }
+
+<span style = "background-color:#fdd">  if (timeStep &lt; 0)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Time step (" &lt;&lt; timeStep &lt;&lt; ") outside of PointSet time bounds" &lt;&lt; std::endl;
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  switch (operation-&gt;GetOperationType())</span>
+  {
+    case OpNOTHING:
+<span style = "background-color:#fdd">      break;</span>
+
+    case OpINSERT: // inserts the point at the given position and selects it.
+    {
+<span style = "background-color:#fdd">      int position = pointOp-&gt;GetIndex();</span>
+
+<span style = "background-color:#fdd">      PointType pt;
+      pt.CastFrom(pointOp-&gt;GetPoint());</span>
+
+<span style = "background-color:#fdd">      if (timeStep &gt;= (int)this-&gt;GetTimeSteps())
+        this-&gt;Expand(timeStep + 1);</span>
+
+      // transfer from world to index coordinates
+<span style = "background-color:#fdd">      mitk::BaseGeometry *geometry = this-&gt;GetGeometry(timeStep);
+      if (geometry == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "GetGeometry returned nullptr!\n";
+        return;</span>
+      }
+<span style = "background-color:#fdd">      geometry-&gt;WorldToIndex(pt, pt);</span>
+
+<span style = "background-color:#fdd">      m_PointSetSeries[timeStep]-&gt;GetPoints()-&gt;InsertElement(position, pt);</span>
+
+      PointDataType pointData = {
+<span style = "background-color:#fdd">        static_cast&lt;unsigned int&gt;(pointOp-&gt;GetIndex()), pointOp-&gt;GetSelected(), pointOp-&gt;GetPointType()};</span>
+
+<span style = "background-color:#fdd">      m_PointSetSeries[timeStep]-&gt;GetPointData()-&gt;InsertElement(position, pointData);</span>
+
+<span style = "background-color:#fdd">      this-&gt;Modified();</span>
+
+      // boundingbox has to be computed
+<span style = "background-color:#fdd">      m_CalculateBoundingBox = true;</span>
+
+<span style = "background-color:#fdd">      this-&gt;InvokeEvent(PointSetAddEvent());
+      this-&gt;OnPointSetChange();</span>
+    }
+<span style = "background-color:#fdd">    break;</span>
+
+    case OpMOVE: // moves the point given by index
+    {
+<span style = "background-color:#fdd">      PointType pt;
+      pt.CastFrom(pointOp-&gt;GetPoint());</span>
+
+      // transfer from world to index coordinates
+<span style = "background-color:#fdd">      this-&gt;GetGeometry(timeStep)-&gt;WorldToIndex(pt, pt);</span>
+
+      // Copy new point into container
+<span style = "background-color:#fdd">      m_PointSetSeries[timeStep]-&gt;SetPoint(pointOp-&gt;GetIndex(), pt);</span>
+
+      // Insert a default point data object to keep the containers in sync
+      // (if no point data object exists yet)
+      PointDataType pointData;
+<span style = "background-color:#fdd">      if (!m_PointSetSeries[timeStep]-&gt;GetPointData(pointOp-&gt;GetIndex(), &amp;pointData))</span>
+      {
+<span style = "background-color:#fdd">        m_PointSetSeries[timeStep]-&gt;SetPointData(pointOp-&gt;GetIndex(), pointData);</span>
+      }
+
+<span style = "background-color:#fdd">      this-&gt;OnPointSetChange();</span>
+
+<span style = "background-color:#fdd">      this-&gt;Modified();</span>
+
+      // boundingbox has to be computed anyway
+<span style = "background-color:#fdd">      m_CalculateBoundingBox = true;</span>
+
+<span style = "background-color:#fdd">      this-&gt;InvokeEvent(PointSetMoveEvent());</span>
+    }
+<span style = "background-color:#fdd">    break;</span>
+
+    case OpREMOVE: // removes the point at given by position
+    {
+<span style = "background-color:#fdd">      m_PointSetSeries[timeStep]-&gt;GetPoints()-&gt;DeleteIndex((unsigned)pointOp-&gt;GetIndex());
+      m_PointSetSeries[timeStep]-&gt;GetPointData()-&gt;DeleteIndex((unsigned)pointOp-&gt;GetIndex());</span>
+
+<span style = "background-color:#fdd">      this-&gt;OnPointSetChange();</span>
+
+<span style = "background-color:#fdd">      this-&gt;Modified();</span>
+      // boundingbox has to be computed anyway
+<span style = "background-color:#fdd">      m_CalculateBoundingBox = true;</span>
+
+<span style = "background-color:#fdd">      this-&gt;InvokeEvent(PointSetRemoveEvent());</span>
+    }
+<span style = "background-color:#fdd">    break;</span>
+
+    case OpSELECTPOINT: // select the given point
+    {
+<span style = "background-color:#fdd">      PointDataType pointData = {0, false, PTUNDEFINED};
+      m_PointSetSeries[timeStep]-&gt;GetPointData(pointOp-&gt;GetIndex(), &amp;pointData);
+      pointData.selected = true;
+      m_PointSetSeries[timeStep]-&gt;SetPointData(pointOp-&gt;GetIndex(), pointData);
+      this-&gt;Modified();</span>
+    }
+<span style = "background-color:#fdd">    break;</span>
+
+    case OpDESELECTPOINT: // unselect the given point
+    {
+<span style = "background-color:#fdd">      PointDataType pointData = {0, false, PTUNDEFINED};
+      m_PointSetSeries[timeStep]-&gt;GetPointData(pointOp-&gt;GetIndex(), &amp;pointData);
+      pointData.selected = false;
+      m_PointSetSeries[timeStep]-&gt;SetPointData(pointOp-&gt;GetIndex(), pointData);
+      this-&gt;Modified();</span>
+    }
+<span style = "background-color:#fdd">    break;</span>
+
+    case OpSETPOINTTYPE:
+    {
+<span style = "background-color:#fdd">      PointDataType pointData = {0, false, PTUNDEFINED};
+      m_PointSetSeries[timeStep]-&gt;GetPointData(pointOp-&gt;GetIndex(), &amp;pointData);
+      pointData.pointSpec = pointOp-&gt;GetPointType();
+      m_PointSetSeries[timeStep]-&gt;SetPointData(pointOp-&gt;GetIndex(), pointData);
+      this-&gt;Modified();</span>
+    }
+<span style = "background-color:#fdd">    break;</span>
+
+    case OpMOVEPOINTUP: // swap content of point with ID pointOp-&gt;GetIndex() with the point preceding it in the
+                        // container // move point position within the pointset
+      {
+<span style = "background-color:#fdd">        PointIdentifier currentID = pointOp-&gt;GetIndex();</span>
+        /* search for point with this id and point that precedes this one in the data container */
+<span style = "background-color:#fdd">        PointsContainer::STLContainerType points = m_PointSetSeries[timeStep]-&gt;GetPoints()-&gt;CastToSTLContainer();
+        auto it = points.find(currentID);
+        if (it == points.end()) // ID not found
+          break;
+        if (it == points.begin()) // we are at the first element, there is no previous element
+          break;</span>
+
+        /* get and cache current point &amp; pointdata and previous point &amp; pointdata */
+<span style = "background-color:#fdd">        --it;
+        PointIdentifier prevID = it-&gt;first;
+        if (this-&gt;SwapPointContents(prevID, currentID, timeStep) == true)
+          this-&gt;Modified();
+      }
+      break;</span>
+    case OpMOVEPOINTDOWN: // move point position within the pointset
+    {
+<span style = "background-color:#fdd">      PointIdentifier currentID = pointOp-&gt;GetIndex();</span>
+      /* search for point with this id and point that succeeds this one in the data container */
+<span style = "background-color:#fdd">      PointsContainer::STLContainerType points = m_PointSetSeries[timeStep]-&gt;GetPoints()-&gt;CastToSTLContainer();
+      auto it = points.find(currentID);
+      if (it == points.end()) // ID not found
+        break;
+      ++it;
+      if (it == points.end()) // ID is already the last element, there is no succeeding element
+        break;</span>
+
+      /* get and cache current point &amp; pointdata and previous point &amp; pointdata */
+<span style = "background-color:#fdd">      PointIdentifier nextID = it-&gt;first;
+      if (this-&gt;SwapPointContents(nextID, currentID, timeStep) == true)
+        this-&gt;Modified();
+    }
+    break;</span>
+
+    default:
+<span style = "background-color:#fdd">      itkWarningMacro("mitkPointSet could not understrand the operation. Please check!");</span>
+      break;
+  }
+
+  // to tell the mappers, that the data is modified and has to be updated
+  // only call modified if anything is done, so call in cases
+  // this-&gt;Modified();
+
+<span style = "background-color:#fdd">  mitk::OperationEndEvent endevent(operation);
+  ((const itk::Object *)this)-&gt;InvokeEvent(endevent);</span>
+
+  //*todo has to be done here, cause of update-pipeline not working yet
+  // As discussed lately, don't mess with the rendering from inside data structures
+  // mitk::RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PointSet::UpdateOutputInformation()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetSource())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;GetSource()-&gt;UpdateOutputInformation();</span>
+  }
+
+  //
+  // first make sure, that the associated time sliced geometry has
+  // the same number of geometry 3d's as PointSets are present
+  //
+<span style = "background-color:#fdd">  TimeGeometry *timeGeometry = GetTimeGeometry();
+  if (timeGeometry-&gt;CountTimeSteps() != m_PointSetSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt; "timeGeometry-&gt;CountTimeSteps() != m_PointSetSeries.size() -- use Initialize(timeSteps) with "</span>
+                         "correct number of timeSteps!");
+  }
+
+  // This is needed to detect zero objects
+<span style = "background-color:#fdd">  mitk::ScalarType nullpoint[] = {0, 0, 0, 0, 0, 0};
+  BoundingBox::BoundsArrayType itkBoundsNull(nullpoint);</span>
+
+  //
+  // Iterate over the PointSets and update the Geometry
+  // information of each of the items.
+  //
+<span style = "background-color:#fdd">  if (m_CalculateBoundingBox)</span>
+  {
+<span style = "background-color:#fdd">    for (unsigned int i = 0; i &lt; m_PointSetSeries.size(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      const DataType::BoundingBoxType *bb = m_PointSetSeries[i]-&gt;GetBoundingBox();
+      BoundingBox::BoundsArrayType itkBounds = bb-&gt;GetBounds();</span>
+
+<span style = "background-color:#fdd">      if (m_PointSetSeries[i].IsNull() || (m_PointSetSeries[i]-&gt;GetNumberOfPoints() == 0) ||</span>
+          (itkBounds == itkBoundsNull))
+      {
+<span style = "background-color:#fdd">        itkBounds = itkBoundsNull;
+        continue;</span>
+      }
+
+      // Ensure minimal bounds of 1.0 in each dimension
+<span style = "background-color:#fdd">      for (unsigned int j = 0; j &lt; 3; ++j)</span>
+      {
+<span style = "background-color:#fdd">        if (itkBounds[j * 2 + 1] - itkBounds[j * 2] &lt; 1.0)</span>
+        {
+<span style = "background-color:#fdd">          BoundingBox::CoordRepType center = (itkBounds[j * 2] + itkBounds[j * 2 + 1]) / 2.0;
+          itkBounds[j * 2] = center - 0.5;
+          itkBounds[j * 2 + 1] = center + 0.5;</span>
+        }
+<span style = "background-color:#fdd">      }
+      this-&gt;GetGeometry(i)-&gt;SetBounds(itkBounds);
+    }
+    m_CalculateBoundingBox = false;</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;GetTimeGeometry()-&gt;Update();
+}</span>
+
+void mitk::PointSet::SetRequestedRegionToLargestPossibleRegion()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::PointSet::RequestedRegionIsOutsideOfTheBufferedRegion()
+<span style = "background-color:#fdd">{
+  return false;
+}</span>
+
+bool mitk::PointSet::VerifyRequestedRegion()
+<span style = "background-color:#fdd">{
+  return true;
+}</span>
+
+void mitk::PointSet::SetRequestedRegion(const DataObject *)
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::PointSet::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; "Number timesteps: " &lt;&lt; m_PointSetSeries.size() &lt;&lt; "\n";
+  unsigned int i = 0;
+  for (auto it = m_PointSetSeries.begin(); it != m_PointSetSeries.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Timestep " &lt;&lt; i++ &lt;&lt; ": \n";
+    MeshType::Pointer ps = *it;
+    itk::Indent nextIndent = indent.GetNextIndent();
+    ps-&gt;Print(os, nextIndent);
+    MeshType::PointsContainer *points = ps-&gt;GetPoints();
+    MeshType::PointDataContainer *datas = ps-&gt;GetPointData();
+    MeshType::PointDataContainer::Iterator dataIterator = datas-&gt;Begin();
+    for (MeshType::PointsContainer::Iterator pointIterator = points-&gt;Begin(); pointIterator != points-&gt;End();
+         ++pointIterator, ++dataIterator)</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; nextIndent &lt;&lt; "Point " &lt;&lt; pointIterator-&gt;Index() &lt;&lt; ": [";
+      os &lt;&lt; pointIterator-&gt;Value().GetElement(0);
+      for (unsigned int i = 1; i &lt; PointType::GetPointDimension(); ++i)</span>
+      {
+<span style = "background-color:#fdd">        os &lt;&lt; ", " &lt;&lt; pointIterator-&gt;Value().GetElement(i);
+      }
+      os &lt;&lt; "]";
+      os &lt;&lt; ", selected: " &lt;&lt; dataIterator-&gt;Value().selected &lt;&lt; ", point spec: " &lt;&lt; dataIterator-&gt;Value().pointSpec</span>
+         &lt;&lt; "\n";
+<span style = "background-color:#fdd">    }
+  }
+}</span>
+
+bool mitk::PointSet::SwapPointContents(PointIdentifier id1, PointIdentifier id2, int timeStep)
+<span style = "background-color:#fdd">{</span>
+  /* search and cache contents */
+<span style = "background-color:#fdd">  PointType p1;
+  if (m_PointSetSeries[timeStep]-&gt;GetPoint(id1, &amp;p1) == false)
+    return false;</span>
+  PointDataType data1;
+<span style = "background-color:#fdd">  if (m_PointSetSeries[timeStep]-&gt;GetPointData(id1, &amp;data1) == false)
+    return false;
+  PointType p2;
+  if (m_PointSetSeries[timeStep]-&gt;GetPoint(id2, &amp;p2) == false)
+    return false;</span>
+  PointDataType data2;
+<span style = "background-color:#fdd">  if (m_PointSetSeries[timeStep]-&gt;GetPointData(id2, &amp;data2) == false)
+    return false;</span>
+  /* now swap contents */
+<span style = "background-color:#fdd">  m_PointSetSeries[timeStep]-&gt;SetPoint(id1, p2);
+  m_PointSetSeries[timeStep]-&gt;SetPointData(id1, data2);
+  m_PointSetSeries[timeStep]-&gt;SetPoint(id2, p1);
+  m_PointSetSeries[timeStep]-&gt;SetPointData(id2, data1);
+  return true;
+}</span>
+
+bool mitk::PointSet::PointDataType::operator==(const mitk::PointSet::PointDataType &amp;other) const
+<span style = "background-color:#fdd">{
+  return id == other.id &amp;&amp; selected == other.selected &amp;&amp; pointSpec == other.pointSpec;
+}</span>
+
+bool mitk::Equal(const mitk::PointSet *leftHandSide,
+                 const mitk::PointSet *rightHandSide,
+                 mitk::ScalarType eps,
+                 bool verbose,
+                 bool checkGeometry)
+<span style = "background-color:#fdd">{
+  if ((leftHandSide == nullptr) || (rightHandSide == nullptr))</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "mitk::Equal( const mitk::PointSet* leftHandSide, const mitk::PointSet* rightHandSide, "</span>
+                  "mitk::ScalarType eps, bool verbose ) does not work with nullptr pointer input.";
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">  return Equal(*leftHandSide, *rightHandSide, eps, verbose, checkGeometry);
+}</span>
+
+bool mitk::Equal(const mitk::PointSet &amp;leftHandSide,
+                 const mitk::PointSet &amp;rightHandSide,
+                 mitk::ScalarType eps,
+                 bool verbose,
+                 bool checkGeometry)
+<span style = "background-color:#fdd">{
+  bool result = true;</span>
+
+  // If comparing point sets from file, you must not compare the geometries, as they are not saved. In other cases, you
+  // do need to check them.
+<span style = "background-color:#fdd">  if (checkGeometry)</span>
+  {
+<span style = "background-color:#fdd">    if (!mitk::Equal(*leftHandSide.GetGeometry(), *rightHandSide.GetGeometry(), eps, verbose))</span>
+    {
+<span style = "background-color:#fdd">      if (verbose)
+        MITK_INFO &lt;&lt; "[( PointSet )] Geometries differ.";
+      result = false;</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  if (leftHandSide.GetSize() != rightHandSide.GetSize())</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)
+      MITK_INFO &lt;&lt; "[( PointSet )] Number of points differ.";
+    result = false;
+  }</span>
+  else
+  {
+    // if the size is equal, we compare the point values
+<span style = "background-color:#fdd">    mitk::Point3D pointLeftHandSide;
+    mitk::Point3D pointRightHandSide;</span>
+
+<span style = "background-color:#fdd">    int numberOfIncorrectPoints = 0;</span>
+
+    // Iterate over both pointsets in order to compare all points pair-wise
+<span style = "background-color:#fdd">    mitk::PointSet::PointsConstIterator end = leftHandSide.End();
+    for (mitk::PointSet::PointsConstIterator pointSetIteratorLeft = leftHandSide.Begin(),
+                                             pointSetIteratorRight = rightHandSide.Begin();
+         pointSetIteratorLeft != end;
+         ++pointSetIteratorLeft, ++pointSetIteratorRight) // iterate simultaneously over both sets</span>
+    {
+<span style = "background-color:#fdd">      pointLeftHandSide = pointSetIteratorLeft.Value();
+      pointRightHandSide = pointSetIteratorRight.Value();
+      if (!mitk::Equal(pointLeftHandSide, pointRightHandSide, eps, verbose))</span>
+      {
+<span style = "background-color:#fdd">        if (verbose)
+          MITK_INFO &lt;&lt; "[( PointSet )] Point values are different.";
+        result = false;
+        numberOfIncorrectPoints++;
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    if ((numberOfIncorrectPoints &gt; 0) &amp;&amp; verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; numberOfIncorrectPoints &lt;&lt; " of a total of " &lt;&lt; leftHandSide.GetSize() &lt;&lt; " points are different.";</span>
+    }
+<span style = "background-color:#fdd">  }
+  return result;
+}</span></pre>
+	</body>
+</html>

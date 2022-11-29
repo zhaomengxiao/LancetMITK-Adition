@@ -1,0 +1,719 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlaneGeometryDataMapper2D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPlaneGeometryDataMapper2D.h"
+
+// mitk includes
+#include "mitkVtkPropRenderer.h"
+#include &lt;mitkAbstractTransformGeometry.h&gt;
+#include &lt;mitkDataNode.h&gt;
+#include &lt;mitkLine.h&gt;
+#include &lt;mitkPlaneGeometry.h&gt;
+#include &lt;mitkPlaneOrientationProperty.h&gt;
+#include &lt;mitkPointSet.h&gt;
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkResliceMethodProperty.h&gt;
+#include &lt;mitkSlicedGeometry3D.h&gt;
+
+// vtk includes
+#include &lt;mitkIPropertyAliases.h&gt;
+#include &lt;vtkActor2D.h&gt;
+#include &lt;vtkCellArray.h&gt;
+#include &lt;vtkCellData.h&gt;
+#include &lt;vtkLine.h&gt;
+#include &lt;vtkPoints.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkPolyDataMapper2D.h&gt;
+#include &lt;vtkProperty2D.h&gt;
+#include &lt;vtkTriangle.h&gt;
+
+///
+#include &lt;algorithm&gt;
+#include &lt;array&gt;
+#include &lt;cassert&gt;
+#include &lt;set&gt;
+
+namespace
+{
+  /// Some simple interval arithmetic
+  template &lt;typename T&gt;
+  class SimpleInterval
+  {
+  public:
+    SimpleInterval(T start = T(), T end = T())
+<span style = "background-color:#fdd">      : m_LowerBoundary(std::min(start, end)), m_UpperBoundary(std::max(start, end))
+    {
+    }</span>
+
+<span style = "background-color:#fdd">    T GetLowerBoundary() const { return m_LowerBoundary; }
+    T GetUpperBoundary() const { return m_UpperBoundary; }
+    bool empty() const { return m_LowerBoundary == m_UpperBoundary; }</span>
+    bool operator&lt;(const SimpleInterval &amp;otherInterval) const
+<span style = "background-color:#fdd">    {
+      return this-&gt;m_UpperBoundary &lt; otherInterval.GetLowerBoundary();
+    }</span>
+
+  private:
+    T m_LowerBoundary;
+    T m_UpperBoundary;
+  };
+
+  template &lt;typename T&gt;
+  class IntervalSet
+  {
+  public:
+    typedef SimpleInterval&lt;T&gt; IntervalType;
+
+<span style = "background-color:#fdd">    IntervalSet(IntervalType startingInterval) { m_IntervalsContainer.insert(std::move(startingInterval)); }</span>
+    void operator-=(const IntervalType &amp;interval)
+<span style = "background-color:#fdd">    {</span>
+      // equal_range will find all the intervals in the interval set which intersect with the input interval
+      //   due to the nature of operator&lt; of SimpleInterval
+<span style = "background-color:#fdd">      auto range = m_IntervalsContainer.equal_range(interval);</span>
+
+<span style = "background-color:#fdd">      for (auto iter = range.first; iter != range.second;)</span>
+      {
+<span style = "background-color:#fdd">        auto subtractionResult = SubtractIntervals(*iter, interval);</span>
+
+        // Remove the old interval from the set
+<span style = "background-color:#fdd">        iter = m_IntervalsContainer.erase(iter);
+        for (auto &amp;&amp;interval : subtractionResult)</span>
+        {
+<span style = "background-color:#fdd">          if (!interval.empty())</span>
+          {
+            // Add the new interval to the set
+            // emplace_hint adds the element at the closest valid place before the hint iterator,
+            //   which is exactly where the new interval should be
+<span style = "background-color:#fdd">            iter = m_IntervalsContainer.insert(iter, std::move(interval));
+            ++iter;</span>
+          }
+<span style = "background-color:#fdd">        }
+      }
+    }</span>
+
+    IntervalSet operator-(const IntervalType &amp;interval)
+    {
+      IntervalSet result = *this;
+      result -= interval;
+      return result;
+    }
+
+    typedef std::set&lt;IntervalType&gt; IntervalsContainer;
+
+<span style = "background-color:#fdd">    const IntervalsContainer &amp;getIntervals() const { return m_IntervalsContainer; }</span>
+  private:
+    IntervalsContainer m_IntervalsContainer;
+
+    std::array&lt;IntervalType, 2&gt; SubtractIntervals(const IntervalType &amp;firstInterval, const IntervalType &amp;secondInterval)
+<span style = "background-color:#fdd">    {
+      assert(secondInterval.GetUpperBoundary() &gt;= firstInterval.GetLowerBoundary() &amp;&amp;</span>
+             firstInterval.GetUpperBoundary() &gt;=
+               secondInterval.GetLowerBoundary()); // Non-intersecting intervals should never reach here
+
+<span style = "background-color:#fdd">      if (secondInterval.GetLowerBoundary() &lt; firstInterval.GetLowerBoundary())</span>
+      {
+<span style = "background-color:#fdd">        if (firstInterval.GetUpperBoundary() &lt; secondInterval.GetUpperBoundary())</span>
+        {
+<span style = "background-color:#fdd">          std::array&lt;IntervalType, 2&gt; result = {{IntervalType(), IntervalType()}};
+          return result; // firstInterval completely enclosed</span>
+        }
+        std::array&lt;IntervalType, 2&gt; result = {
+<span style = "background-color:#fdd">          {IntervalType(firstInterval.GetUpperBoundary(), secondInterval.GetUpperBoundary()), IntervalType()}};
+        return result; // secondInterval removes the beginning of firstInterval</span>
+      }
+
+<span style = "background-color:#fdd">      if (firstInterval.GetUpperBoundary() &lt; secondInterval.GetUpperBoundary())</span>
+      {
+        std::array&lt;IntervalType, 2&gt; result = {
+<span style = "background-color:#fdd">          {IntervalType(firstInterval.GetLowerBoundary(), secondInterval.GetLowerBoundary()), IntervalType()}};
+        return result; // secondInterval removes the end of firstInterval</span>
+      }
+      std::array&lt;IntervalType, 2&gt; result = {
+<span style = "background-color:#fdd">        {IntervalType(firstInterval.GetLowerBoundary(), secondInterval.GetLowerBoundary()),
+         IntervalType(secondInterval.GetUpperBoundary(), firstInterval.GetUpperBoundary())}};
+      return result; // secondInterval is completely enclosed in firstInterval and removes the middle
+    }</span>
+  };
+}
+
+<span style = "background-color:#dfd">mitk::PlaneGeometryDataMapper2D::AllInstancesContainer mitk::PlaneGeometryDataMapper2D::s_AllInstances;</span>
+
+// input for this mapper ( = PlaneGeometryData)
+const mitk::PlaneGeometryData *mitk::PlaneGeometryDataMapper2D::GetInput() const
+<span style = "background-color:#fdd">{
+  return static_cast&lt;PlaneGeometryData *&gt;(GetDataNode()-&gt;GetData());
+}</span>
+
+mitk::PlaneGeometryDataMapper2D::PlaneGeometryDataMapper2D()
+<span style = "background-color:#fdd">  : m_RenderOrientationArrows(false), m_ArrowOrientationPositive(true), m_DepthValue(1.0f)
+{
+  s_AllInstances.insert(this);
+}</span>
+
+mitk::PlaneGeometryDataMapper2D::~PlaneGeometryDataMapper2D()
+<span style = "background-color:#fdd">{
+  s_AllInstances.erase(this);
+}</span>
+
+vtkProp *mitk::PlaneGeometryDataMapper2D::GetVtkProp(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+  return ls-&gt;m_CrosshairAssembly;
+}</span>
+
+void mitk::PlaneGeometryDataMapper2D::GenerateDataForRenderer(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  BaseLocalStorage *ls = m_LSH.GetLocalStorage(renderer);</span>
+
+  // The PlaneGeometryDataMapper2D mapper is special in that the rendering of
+  // OTHER PlaneGeometryDatas affects how we render THIS PlaneGeometryData
+  // (for the gap at the point where they intersect). A change in any of the
+  // other PlaneGeometryData nodes could mean that we render ourself
+  // differently, so we check for that here.
+<span style = "background-color:#fdd">  for (auto it = s_AllInstances.begin(); it != s_AllInstances.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    bool generateDataRequired = ls-&gt;IsGenerateDataRequired(renderer, this, (*it)-&gt;GetDataNode());
+    if (generateDataRequired)
+      break;
+  }</span>
+
+<span style = "background-color:#fdd">  ls-&gt;UpdateGenerateDataTime();</span>
+
+  // Collect all other PlaneGeometryDatas that are being mapped by this mapper
+<span style = "background-color:#fdd">  m_OtherPlaneGeometries.clear();</span>
+
+<span style = "background-color:#fdd">  for (auto it = s_AllInstances.begin(); it != s_AllInstances.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    Self *otherInstance = *it;</span>
+
+    // Skip ourself
+<span style = "background-color:#fdd">    if (otherInstance == this)
+      continue;</span>
+
+<span style = "background-color:#fdd">    mitk::DataNode *otherNode = otherInstance-&gt;GetDataNode();
+    if (!otherNode)
+      continue;</span>
+
+    // Skip other PlaneGeometryData nodes that are not visible on this renderer
+<span style = "background-color:#fdd">    if (!otherNode-&gt;IsVisible(renderer))
+      continue;</span>
+
+<span style = "background-color:#fdd">    auto *otherData = dynamic_cast&lt;PlaneGeometryData *&gt;(otherNode-&gt;GetData());
+    if (!otherData)
+      continue;</span>
+
+<span style = "background-color:#fdd">    auto *otherGeometry = dynamic_cast&lt;PlaneGeometry *&gt;(otherData-&gt;GetPlaneGeometry());
+    if (otherGeometry &amp;&amp; !dynamic_cast&lt;AbstractTransformGeometry *&gt;(otherData-&gt;GetPlaneGeometry()))</span>
+    {
+<span style = "background-color:#fdd">      m_OtherPlaneGeometries.push_back(otherNode);
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  CreateVtkCrosshair(renderer);</span>
+
+<span style = "background-color:#fdd">  ApplyAllProperties(renderer);
+}</span>
+
+void mitk::PlaneGeometryDataMapper2D::CreateVtkCrosshair(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  bool visible = true;
+  LocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+  ls-&gt;m_CrosshairActor-&gt;SetVisibility(0);
+  ls-&gt;m_ArrowActor-&gt;SetVisibility(0);
+  ls-&gt;m_CrosshairHelperLineActor-&gt;SetVisibility(0);</span>
+
+<span style = "background-color:#fdd">  GetDataNode()-&gt;GetVisibility(visible, renderer, "visible");</span>
+
+<span style = "background-color:#fdd">  if (!visible)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  PlaneGeometryData::ConstPointer input = this-&gt;GetInput();
+  mitk::DataNode *geometryDataNode = renderer-&gt;GetCurrentWorldPlaneGeometryNode();
+  const PlaneGeometryData *rendererWorldPlaneGeometryData =</span>
+    dynamic_cast&lt;PlaneGeometryData *&gt;(geometryDataNode-&gt;GetData());
+
+  // intersecting with ourself?
+<span style = "background-color:#fdd">  if (input.IsNull() || input.GetPointer() == rendererWorldPlaneGeometryData)</span>
+  {
+<span style = "background-color:#fdd">    return; // nothing to do in this case</span>
+  }
+
+<span style = "background-color:#fdd">  const auto *inputPlaneGeometry = dynamic_cast&lt;const PlaneGeometry *&gt;(input-&gt;GetPlaneGeometry());</span>
+
+<span style = "background-color:#fdd">  const auto *worldPlaneGeometry =</span>
+    dynamic_cast&lt;const PlaneGeometry *&gt;(rendererWorldPlaneGeometryData-&gt;GetPlaneGeometry());
+
+  if (worldPlaneGeometry &amp;&amp; dynamic_cast&lt;const AbstractTransformGeometry *&gt;(worldPlaneGeometry) == nullptr &amp;&amp;
+<span style = "background-color:#fdd">      inputPlaneGeometry &amp;&amp; dynamic_cast&lt;const AbstractTransformGeometry *&gt;(input-&gt;GetPlaneGeometry()) == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    const BaseGeometry *referenceGeometry = inputPlaneGeometry-&gt;GetReferenceGeometry();</span>
+
+    // calculate intersection of the plane data with the border of the
+    // world geometry rectangle
+<span style = "background-color:#fdd">    Point3D point1, point2;</span>
+
+<span style = "background-color:#fdd">    Line3D crossLine;</span>
+
+    // Calculate the intersection line of the input plane with the world plane
+<span style = "background-color:#fdd">    if (worldPlaneGeometry-&gt;IntersectionLine(inputPlaneGeometry, crossLine))</span>
+    {
+<span style = "background-color:#fdd">      bool hasIntersection = referenceGeometry ? CutCrossLineWithReferenceGeometry(referenceGeometry, crossLine) :</span>
+                                                 CutCrossLineWithPlaneGeometry(inputPlaneGeometry, crossLine);
+
+<span style = "background-color:#fdd">      if (!hasIntersection)</span>
+      {
+<span style = "background-color:#fdd">        return;</span>
+      }
+
+<span style = "background-color:#fdd">      point1 = crossLine.GetPoint1();
+      point2 = crossLine.GetPoint2();</span>
+
+<span style = "background-color:#fdd">      vtkSmartPointer&lt;vtkCellArray&gt; lines = vtkSmartPointer&lt;vtkCellArray&gt;::New();
+      vtkSmartPointer&lt;vtkPoints&gt; points = vtkSmartPointer&lt;vtkPoints&gt;::New();
+      vtkSmartPointer&lt;vtkPolyData&gt; linesPolyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();</span>
+
+      // Now iterate through all other lines displayed in this window and
+      // calculate the positions of intersection with the line to be
+      // rendered; these positions will be stored in lineParams to form a
+      // gap afterwards.
+<span style = "background-color:#fdd">      auto otherPlanesIt = m_OtherPlaneGeometries.begin();
+      auto otherPlanesEnd = m_OtherPlaneGeometries.end();</span>
+
+<span style = "background-color:#fdd">      int gapSize = 32;
+      this-&gt;GetDataNode()-&gt;GetPropertyValue("Crosshair.Gap Size", gapSize, nullptr);</span>
+
+<span style = "background-color:#fdd">      auto intervals = IntervalSet&lt;double&gt;(SimpleInterval&lt;double&gt;(0, 1));</span>
+
+<span style = "background-color:#fdd">      ScalarType lineLength = point1.EuclideanDistanceTo(point2);
+      ScalarType gapInMM = gapSize * renderer-&gt;GetScaleFactorMMPerDisplayUnit();
+      float gapSizeParam = gapInMM / lineLength;</span>
+
+<span style = "background-color:#fdd">      if (gapSize != 0)</span>
+      {
+<span style = "background-color:#fdd">        while (otherPlanesIt != otherPlanesEnd)</span>
+        {
+<span style = "background-color:#fdd">          bool ignorePlane = false;
+          (*otherPlanesIt)-&gt;GetPropertyValue("Crosshair.Ignore", ignorePlane);
+          if (ignorePlane)</span>
+          {
+<span style = "background-color:#fdd">            ++otherPlanesIt;
+            continue;</span>
+          }
+
+<span style = "background-color:#fdd">          auto *otherPlaneGeometry = static_cast&lt;PlaneGeometry *&gt;(</span>
+            static_cast&lt;PlaneGeometryData *&gt;((*otherPlanesIt)-&gt;GetData())-&gt;GetPlaneGeometry());
+
+<span style = "background-color:#fdd">          if (otherPlaneGeometry != inputPlaneGeometry &amp;&amp; otherPlaneGeometry != worldPlaneGeometry)</span>
+          {
+            double intersectionParam;
+<span style = "background-color:#fdd">            if (otherPlaneGeometry-&gt;IntersectionPointParam(crossLine, intersectionParam) &amp;&amp; intersectionParam &gt; 0 &amp;&amp;</span>
+                intersectionParam &lt; 1)
+            {
+<span style = "background-color:#fdd">              Point3D point = crossLine.GetPoint() + intersectionParam * crossLine.GetDirection();</span>
+
+<span style = "background-color:#fdd">              bool intersectionPointInsideOtherPlane =</span>
+                otherPlaneGeometry-&gt;HasReferenceGeometry() ?
+                  TestPointInReferenceGeometry(otherPlaneGeometry-&gt;GetReferenceGeometry(), point) :
+                  TestPointInPlaneGeometry(otherPlaneGeometry, point);
+
+<span style = "background-color:#fdd">              if (intersectionPointInsideOtherPlane)</span>
+              {
+<span style = "background-color:#fdd">                intervals -= SimpleInterval&lt;double&gt;(intersectionParam - gapSizeParam, intersectionParam + gapSizeParam);</span>
+              }
+            }
+          }
+<span style = "background-color:#fdd">          ++otherPlanesIt;
+        }</span>
+      }
+
+<span style = "background-color:#fdd">      for (const auto &amp;interval : intervals.getIntervals())</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;DrawLine(crossLine.GetPoint(interval.GetLowerBoundary()),</span>
+                       crossLine.GetPoint(interval.GetUpperBoundary()),
+                       lines,
+                       points);
+<span style = "background-color:#fdd">      }</span>
+
+      // Add the points to the dataset
+<span style = "background-color:#fdd">      linesPolyData-&gt;SetPoints(points);</span>
+      // Add the lines to the dataset
+<span style = "background-color:#fdd">      linesPolyData-&gt;SetLines(lines);</span>
+
+<span style = "background-color:#fdd">      Vector3D orthogonalVector;
+      orthogonalVector = inputPlaneGeometry-&gt;GetNormal();
+      worldPlaneGeometry-&gt;Project(orthogonalVector, orthogonalVector);
+      orthogonalVector.Normalize();</span>
+
+      // Visualize
+<span style = "background-color:#fdd">      ls-&gt;m_Mapper-&gt;SetInputData(linesPolyData);
+      ls-&gt;m_CrosshairActor-&gt;SetMapper(ls-&gt;m_Mapper);</span>
+
+      // Determine if we should draw the area covered by the thick slicing, default is false.
+      // This will also show the area of slices that do not have thick slice mode enabled
+<span style = "background-color:#fdd">      bool showAreaOfThickSlicing = false;
+      GetDataNode()-&gt;GetBoolProperty("reslice.thickslices.showarea", showAreaOfThickSlicing);</span>
+
+      // determine the pixelSpacing in that direction
+<span style = "background-color:#fdd">      double thickSliceDistance = SlicedGeometry3D::CalculateSpacing(</span>
+        referenceGeometry ? referenceGeometry-&gt;GetSpacing() : inputPlaneGeometry-&gt;GetSpacing(), orthogonalVector);
+
+<span style = "background-color:#fdd">      IntProperty *intProperty = nullptr;
+      if (GetDataNode()-&gt;GetProperty(intProperty, "reslice.thickslices.num") &amp;&amp; intProperty)
+        thickSliceDistance *= intProperty-&gt;GetValue() + 0.5;</span>
+      else
+<span style = "background-color:#fdd">        showAreaOfThickSlicing = false;</span>
+
+      // not the nicest place to do it, but we have the width of the visible bloc in MM here
+      // so we store it in this fancy property
+<span style = "background-color:#fdd">      GetDataNode()-&gt;SetFloatProperty("reslice.thickslices.sizeinmm", thickSliceDistance * 2);</span>
+
+<span style = "background-color:#fdd">      ls-&gt;m_CrosshairActor-&gt;SetVisibility(1);</span>
+
+<span style = "background-color:#fdd">      vtkSmartPointer&lt;vtkPolyData&gt; arrowPolyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();
+      ls-&gt;m_Arrowmapper-&gt;SetInputData(arrowPolyData);
+      if (this-&gt;m_RenderOrientationArrows)</span>
+      {
+<span style = "background-color:#fdd">        ScalarType triangleSizeMM = 7.0 * renderer-&gt;GetScaleFactorMMPerDisplayUnit();</span>
+
+<span style = "background-color:#fdd">        vtkSmartPointer&lt;vtkCellArray&gt; triangles = vtkSmartPointer&lt;vtkCellArray&gt;::New();
+        vtkSmartPointer&lt;vtkPoints&gt; triPoints = vtkSmartPointer&lt;vtkPoints&gt;::New();</span>
+
+<span style = "background-color:#fdd">        DrawOrientationArrow(triangles, triPoints, triangleSizeMM, orthogonalVector, point1, point2);
+        DrawOrientationArrow(triangles, triPoints, triangleSizeMM, orthogonalVector, point2, point1);
+        arrowPolyData-&gt;SetPoints(triPoints);
+        arrowPolyData-&gt;SetPolys(triangles);
+        ls-&gt;m_ArrowActor-&gt;SetVisibility(1);
+      }</span>
+
+      // Visualize
+<span style = "background-color:#fdd">      vtkSmartPointer&lt;vtkPolyData&gt; helperlinesPolyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();
+      ls-&gt;m_HelperLinesmapper-&gt;SetInputData(helperlinesPolyData);
+      if (showAreaOfThickSlicing)</span>
+      {
+<span style = "background-color:#fdd">        vtkSmartPointer&lt;vtkCellArray&gt; helperlines = vtkSmartPointer&lt;vtkCellArray&gt;::New();</span>
+        // vectorToHelperLine defines how to reach the helperLine from the mainLine
+        // got the right direction, so we multiply the width
+<span style = "background-color:#fdd">        Vector3D vecToHelperLine = orthogonalVector * thickSliceDistance;</span>
+
+<span style = "background-color:#fdd">        this-&gt;DrawLine(point1 - vecToHelperLine, point2 - vecToHelperLine, helperlines, points);
+        this-&gt;DrawLine(point1 + vecToHelperLine, point2 + vecToHelperLine, helperlines, points);</span>
+
+        // Add the points to the dataset
+<span style = "background-color:#fdd">        helperlinesPolyData-&gt;SetPoints(points);</span>
+
+        // Add the lines to the dataset
+<span style = "background-color:#fdd">        helperlinesPolyData-&gt;SetLines(helperlines);</span>
+
+<span style = "background-color:#fdd">        ls-&gt;m_CrosshairActor-&gt;GetProperty()-&gt;SetLineStipplePattern(0xf0f0);
+        ls-&gt;m_CrosshairActor-&gt;GetProperty()-&gt;SetLineStippleRepeatFactor(1);
+        ls-&gt;m_CrosshairHelperLineActor-&gt;SetVisibility(1);
+      }
+    }</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PlaneGeometryDataMapper2D::TestPointInPlaneGeometry(const PlaneGeometry *planeGeometry, const Point3D &amp;point)
+<span style = "background-color:#fdd">{
+  Point2D mappedPoint;
+  planeGeometry-&gt;Map(point, mappedPoint);
+  planeGeometry-&gt;WorldToIndex(mappedPoint, mappedPoint);</span>
+
+<span style = "background-color:#fdd">  return (planeGeometry-&gt;GetBounds()[0] &lt; mappedPoint[0] &amp;&amp; mappedPoint[0] &lt; planeGeometry-&gt;GetBounds()[1] &amp;&amp;</span>
+          planeGeometry-&gt;GetBounds()[2] &lt; mappedPoint[1] &amp;&amp; mappedPoint[1] &lt; planeGeometry-&gt;GetBounds()[3]);
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PlaneGeometryDataMapper2D::TestPointInReferenceGeometry(const BaseGeometry *referenceGeometry,
+                                                                   const Point3D &amp;point)
+<span style = "background-color:#fdd">{
+  return referenceGeometry-&gt;IsInside(point);
+}</span>
+
+bool mitk::PlaneGeometryDataMapper2D::CutCrossLineWithPlaneGeometry(const PlaneGeometry *planeGeometry,
+                                                                    Line3D &amp;crossLine)
+<span style = "background-color:#fdd">{
+  Point2D indexLinePoint;
+  Vector2D indexLineDirection;</span>
+
+<span style = "background-color:#fdd">  planeGeometry-&gt;Map(crossLine.GetPoint(), indexLinePoint);
+  planeGeometry-&gt;Map(crossLine.GetPoint(), crossLine.GetDirection(), indexLineDirection);</span>
+
+<span style = "background-color:#fdd">  planeGeometry-&gt;WorldToIndex(indexLinePoint, indexLinePoint);
+  planeGeometry-&gt;WorldToIndex(indexLineDirection, indexLineDirection);</span>
+
+<span style = "background-color:#fdd">  mitk::Point2D intersectionPoints[2];</span>
+
+  // Then, clip this line with the (transformed) bounding box of the
+  // reference geometry.
+<span style = "background-color:#fdd">  int nIntersections = Line3D::RectangleLineIntersection(planeGeometry-&gt;GetBounds()[0],</span>
+                                                         planeGeometry-&gt;GetBounds()[2],
+                                                         planeGeometry-&gt;GetBounds()[1],
+                                                         planeGeometry-&gt;GetBounds()[3],
+                                                         indexLinePoint,
+                                                         indexLineDirection,
+                                                         intersectionPoints[0],
+                                                         intersectionPoints[1]);
+
+<span style = "background-color:#fdd">  if (nIntersections &lt; 2)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  planeGeometry-&gt;IndexToWorld(intersectionPoints[0], intersectionPoints[0]);
+  planeGeometry-&gt;IndexToWorld(intersectionPoints[1], intersectionPoints[1]);</span>
+
+<span style = "background-color:#fdd">  Point3D point1, point2;</span>
+
+<span style = "background-color:#fdd">  planeGeometry-&gt;Map(intersectionPoints[0], point1);
+  planeGeometry-&gt;Map(intersectionPoints[1], point2);
+  crossLine.SetPoints(point1, point2);</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+bool mitk::PlaneGeometryDataMapper2D::CutCrossLineWithReferenceGeometry(const BaseGeometry *referenceGeometry,
+                                                                        Line3D &amp;crossLine)
+<span style = "background-color:#fdd">{
+  Point3D boundingBoxMin, boundingBoxMax;
+  boundingBoxMin = referenceGeometry-&gt;GetCornerPoint(0);
+  boundingBoxMax = referenceGeometry-&gt;GetCornerPoint(7);</span>
+
+<span style = "background-color:#fdd">  Point3D indexLinePoint;
+  Vector3D indexLineDirection;</span>
+
+<span style = "background-color:#fdd">  referenceGeometry-&gt;WorldToIndex(crossLine.GetPoint(), indexLinePoint);
+  referenceGeometry-&gt;WorldToIndex(crossLine.GetDirection(), indexLineDirection);</span>
+
+<span style = "background-color:#fdd">  referenceGeometry-&gt;WorldToIndex(boundingBoxMin, boundingBoxMin);
+  referenceGeometry-&gt;WorldToIndex(boundingBoxMax, boundingBoxMax);</span>
+
+<span style = "background-color:#fdd">  Point3D point1, point2;</span>
+
+  // Then, clip this line with the (transformed) bounding box of the
+  // reference geometry.
+<span style = "background-color:#fdd">  int nIntersections = Line3D::BoxLineIntersection(boundingBoxMin[0],</span>
+                                                   boundingBoxMin[1],
+                                                   boundingBoxMin[2],
+                                                   boundingBoxMax[0],
+                                                   boundingBoxMax[1],
+                                                   boundingBoxMax[2],
+                                                   indexLinePoint,
+                                                   indexLineDirection,
+                                                   point1,
+                                                   point2);
+
+<span style = "background-color:#fdd">  if (nIntersections &lt; 2)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  referenceGeometry-&gt;IndexToWorld(point1, point1);
+  referenceGeometry-&gt;IndexToWorld(point2, point2);
+  crossLine.SetPoints(point1, point2);</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+void mitk::PlaneGeometryDataMapper2D::DrawLine(mitk::Point3D p0,
+                                               mitk::Point3D p1,
+                                               vtkCellArray *lines,
+                                               vtkPoints *points)
+<span style = "background-color:#fdd">{
+  vtkIdType pidStart = points-&gt;InsertNextPoint(p0[0], p0[1], p0[2]);
+  vtkIdType pidEnd = points-&gt;InsertNextPoint(p1[0], p1[1], p1[2]);</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkLine&gt; lineVtk = vtkSmartPointer&lt;vtkLine&gt;::New();
+  lineVtk-&gt;GetPointIds()-&gt;SetId(0, pidStart);
+  lineVtk-&gt;GetPointIds()-&gt;SetId(1, pidEnd);</span>
+
+<span style = "background-color:#fdd">  lines-&gt;InsertNextCell(lineVtk);
+}</span>
+
+void mitk::PlaneGeometryDataMapper2D::DrawOrientationArrow(vtkSmartPointer&lt;vtkCellArray&gt; triangles,
+                                                           vtkSmartPointer&lt;vtkPoints&gt; triPoints,
+                                                           double triangleSizeMM,
+                                                           Vector3D &amp;orthogonalVector,
+                                                           Point3D &amp;point1,
+                                                           Point3D &amp;point2)
+<span style = "background-color:#fdd">{</span>
+  // Draw arrows to indicate plane orientation
+  // Vector along line
+<span style = "background-color:#fdd">  Vector3D v1 = point2 - point1;
+  v1.Normalize();
+  v1 *= triangleSizeMM;</span>
+
+  // Orthogonal vector
+<span style = "background-color:#fdd">  Vector3D v2 = orthogonalVector;
+  v2 *= triangleSizeMM;
+  if (!this-&gt;m_ArrowOrientationPositive)
+    v2 *= -1.0;</span>
+
+  // Initialize remaining triangle coordinates accordingly
+<span style = "background-color:#fdd">  Point3D p1 = point1 + v1 * 2.0;
+  Point3D p2 = point1 + v1 + v2;</span>
+
+<span style = "background-color:#fdd">  vtkIdType t0 = triPoints-&gt;InsertNextPoint(point1[0], point1[1], point1[2]); // start of the line
+  vtkIdType t1 = triPoints-&gt;InsertNextPoint(p1[0], p1[1], p1[2]);             // point on line
+  vtkIdType t2 = triPoints-&gt;InsertNextPoint(p2[0], p2[1], p2[2]);             // direction point</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkTriangle&gt; triangle = vtkSmartPointer&lt;vtkTriangle&gt;::New();
+  triangle-&gt;GetPointIds()-&gt;SetId(0, t0);
+  triangle-&gt;GetPointIds()-&gt;SetId(1, t1);
+  triangle-&gt;GetPointIds()-&gt;SetId(2, t2);</span>
+
+<span style = "background-color:#fdd">  triangles-&gt;InsertNextCell(triangle);
+}</span>
+
+int mitk::PlaneGeometryDataMapper2D::DetermineThickSliceMode(DataNode *dn, int &amp;thickSlicesNum)
+<span style = "background-color:#fdd">{
+  int thickSlicesMode = 0;</span>
+  // determine the state and the extend of the thick-slice mode
+<span style = "background-color:#fdd">  mitk::ResliceMethodProperty *resliceMethodEnumProperty = nullptr;
+  if (dn-&gt;GetProperty(resliceMethodEnumProperty, "reslice.thickslices") &amp;&amp; resliceMethodEnumProperty)
+    thickSlicesMode = resliceMethodEnumProperty-&gt;GetValueAsId();</span>
+
+<span style = "background-color:#fdd">  IntProperty *intProperty = nullptr;
+  if (dn-&gt;GetProperty(intProperty, "reslice.thickslices.num") &amp;&amp; intProperty)</span>
+  {
+<span style = "background-color:#fdd">    thickSlicesNum = intProperty-&gt;GetValue();
+    if (thickSlicesNum &lt; 1)
+      thickSlicesNum = 0;
+    if (thickSlicesNum &gt; 10)
+      thickSlicesNum = 10;</span>
+  }
+
+<span style = "background-color:#fdd">  if (thickSlicesMode == 0)
+    thickSlicesNum = 0;</span>
+
+<span style = "background-color:#fdd">  return thickSlicesMode;
+}</span>
+
+void mitk::PlaneGeometryDataMapper2D::ApplyAllProperties(BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = m_LSH.GetLocalStorage(renderer);
+  ApplyColorAndOpacityProperties2D(renderer, ls-&gt;m_CrosshairActor);
+  ApplyColorAndOpacityProperties2D(renderer, ls-&gt;m_CrosshairHelperLineActor);
+  ApplyColorAndOpacityProperties2D(renderer, ls-&gt;m_ArrowActor);</span>
+
+  float thickness;
+<span style = "background-color:#fdd">  this-&gt;GetDataNode()-&gt;GetFloatProperty("Line width", thickness, renderer);
+  ls-&gt;m_CrosshairActor-&gt;GetProperty()-&gt;SetLineWidth(thickness);
+  ls-&gt;m_CrosshairHelperLineActor-&gt;GetProperty()-&gt;SetLineWidth(thickness);</span>
+
+  PlaneOrientationProperty *decorationProperty;
+<span style = "background-color:#fdd">  this-&gt;GetDataNode()-&gt;GetProperty(decorationProperty, "decoration", renderer);
+  if (decorationProperty != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    if (decorationProperty-&gt;GetPlaneDecoration() == PlaneOrientationProperty::PLANE_DECORATION_POSITIVE_ORIENTATION)</span>
+    {
+<span style = "background-color:#fdd">      m_RenderOrientationArrows = true;
+      m_ArrowOrientationPositive = true;
+    }
+    else if (decorationProperty-&gt;GetPlaneDecoration() ==</span>
+             PlaneOrientationProperty::PLANE_DECORATION_NEGATIVE_ORIENTATION)
+    {
+<span style = "background-color:#fdd">      m_RenderOrientationArrows = true;
+      m_ArrowOrientationPositive = false;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      m_RenderOrientationArrows = false;</span>
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlaneGeometryDataMapper2D::ApplyColorAndOpacityProperties2D(BaseRenderer *renderer, vtkActor2D *actor)
+<span style = "background-color:#fdd">{
+  float rgba[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  DataNode *node = GetDataNode();</span>
+
+  // check for color prop and use it for rendering if it exists
+<span style = "background-color:#fdd">  node-&gt;GetColor(rgba, renderer, "color");</span>
+  // check for opacity prop and use it for rendering if it exists
+<span style = "background-color:#fdd">  node-&gt;GetOpacity(rgba[3], renderer, "opacity");</span>
+
+<span style = "background-color:#fdd">  double drgba[4] = {rgba[0], rgba[1], rgba[2], rgba[3]};
+  actor-&gt;GetProperty()-&gt;SetColor(drgba);
+  actor-&gt;GetProperty()-&gt;SetOpacity(drgba[3]);
+}</span>
+
+void mitk::PlaneGeometryDataMapper2D::SetDefaultProperties(mitk::DataNode *node,
+                                                           mitk::BaseRenderer *renderer,
+                                                           bool overwrite)
+<span style = "background-color:#fdd">{
+  mitk::CoreServicePointer&lt;mitk::IPropertyAliases&gt; aliases(mitk::CoreServices::GetPropertyAliases());
+  node-&gt;AddProperty("Line width", mitk::FloatProperty::New(1), renderer, overwrite);
+  aliases-&gt;AddAlias("line width", "Crosshair.Line Width", "");
+  node-&gt;AddProperty("Crosshair.Gap Size", mitk::IntProperty::New(32), renderer, overwrite);
+  node-&gt;AddProperty("decoration",</span>
+                    mitk::PlaneOrientationProperty::New(PlaneOrientationProperty::PLANE_DECORATION_NONE),
+                    renderer,
+                    overwrite);
+<span style = "background-color:#fdd">  aliases-&gt;AddAlias("decoration", "Crosshair.Orientation Decoration", "");</span>
+
+<span style = "background-color:#fdd">  Superclass::SetDefaultProperties(node, renderer, overwrite);
+}</span>
+
+void mitk::PlaneGeometryDataMapper2D::UpdateVtkTransform(mitk::BaseRenderer * /*renderer*/)
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::PlaneGeometryDataMapper2D::LocalStorage::LocalStorage()
+<span style = "background-color:#fdd">{
+  m_CrosshairAssembly = vtkSmartPointer&lt;vtkPropAssembly&gt;::New();</span>
+
+<span style = "background-color:#fdd">  m_CrosshairActor = vtkSmartPointer&lt;vtkActor2D&gt;::New();
+  m_ArrowActor = vtkSmartPointer&lt;vtkActor2D&gt;::New();
+  m_CrosshairHelperLineActor = vtkSmartPointer&lt;vtkActor2D&gt;::New();</span>
+
+<span style = "background-color:#fdd">  m_HelperLinesmapper = vtkSmartPointer&lt;vtkPolyDataMapper2D&gt;::New();
+  m_Mapper = vtkSmartPointer&lt;vtkPolyDataMapper2D&gt;::New();
+  m_Arrowmapper = vtkSmartPointer&lt;vtkPolyDataMapper2D&gt;::New();</span>
+
+<span style = "background-color:#fdd">  m_CrosshairActor-&gt;SetMapper(m_Mapper);
+  m_ArrowActor-&gt;SetMapper(m_Arrowmapper);
+  m_CrosshairHelperLineActor-&gt;SetMapper(m_HelperLinesmapper);</span>
+
+<span style = "background-color:#fdd">  m_CrosshairActor-&gt;SetVisibility(0);
+  m_ArrowActor-&gt;SetVisibility(0);
+  m_CrosshairHelperLineActor-&gt;SetVisibility(0);</span>
+
+<span style = "background-color:#fdd">  m_CrosshairAssembly-&gt;AddPart(m_CrosshairActor);
+  m_CrosshairAssembly-&gt;AddPart(m_ArrowActor);
+  m_CrosshairAssembly-&gt;AddPart(m_CrosshairHelperLineActor);</span>
+
+<span style = "background-color:#fdd">  vtkCoordinate *tcoord = vtkCoordinate::New();
+  tcoord-&gt;SetCoordinateSystemToWorld();
+  m_HelperLinesmapper-&gt;SetTransformCoordinate(tcoord);
+  m_Mapper-&gt;SetTransformCoordinate(tcoord);</span>
+  //  tcoord-&gt;SetCoordinateSystemToNormalizedDisplay();
+<span style = "background-color:#fdd">  m_Arrowmapper-&gt;SetTransformCoordinate(tcoord);
+  tcoord-&gt;Delete();
+}</span>
+
+mitk::PlaneGeometryDataMapper2D::LocalStorage::~LocalStorage()
+<span style = "background-color:#fdd">{
+}</span></pre>
+	</body>
+</html>

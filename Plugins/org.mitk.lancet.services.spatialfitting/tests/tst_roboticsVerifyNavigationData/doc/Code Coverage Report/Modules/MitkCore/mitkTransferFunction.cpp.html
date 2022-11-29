@@ -1,0 +1,288 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTransferFunction.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTransferFunction.h"
+#include "mitkHistogramGenerator.h"
+#include "mitkImageToItk.h"
+
+#include &lt;itkRGBPixel.h&gt;
+
+#include &lt;vector&gt;
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  TransferFunction::TransferFunction() : m_Min(0), m_Max(0)
+  {
+    m_ScalarOpacityFunction = vtkSmartPointer&lt;vtkPiecewiseFunction&gt;::New();
+    m_ColorTransferFunction = vtkSmartPointer&lt;vtkColorTransferFunction&gt;::New();
+    m_GradientOpacityFunction = vtkSmartPointer&lt;vtkPiecewiseFunction&gt;::New();</span>
+
+<span style = "background-color:#fdd">    m_ScalarOpacityFunction-&gt;Initialize();
+    m_ScalarOpacityFunction-&gt;AddPoint(0, 1);</span>
+
+<span style = "background-color:#fdd">    m_GradientOpacityFunction-&gt;Initialize();
+    m_GradientOpacityFunction-&gt;AddPoint(0, 1);</span>
+
+<span style = "background-color:#fdd">    m_ColorTransferFunction-&gt;RemoveAllPoints();
+    m_ColorTransferFunction-&gt;SetColorSpaceToHSV();
+    m_ColorTransferFunction-&gt;AddRGBPoint(0, 1, 1, 1);
+  }</span>
+
+  TransferFunction::TransferFunction(const TransferFunction &amp;other)
+<span style = "background-color:#fdd">    : itk::Object(),
+      m_ScalarOpacityFunction(other.m_ScalarOpacityFunction.New()),
+      m_GradientOpacityFunction(other.m_GradientOpacityFunction.New()),
+      m_ColorTransferFunction(other.m_ColorTransferFunction.New()),
+      m_Min(other.m_Min),
+      m_Max(other.m_Max),
+      m_Histogram(other.m_Histogram),
+      m_ScalarOpacityPoints(other.m_ScalarOpacityPoints),
+      m_GradientOpacityPoints(other.m_GradientOpacityPoints),
+      m_RGBPoints(other.m_RGBPoints)
+  {
+    m_ScalarOpacityFunction-&gt;DeepCopy(other.m_ScalarOpacityFunction);
+    m_GradientOpacityFunction-&gt;DeepCopy(other.m_GradientOpacityFunction);
+    m_ColorTransferFunction-&gt;DeepCopy(other.m_ColorTransferFunction);
+  }</span>
+
+<span style = "background-color:#fdd">  TransferFunction::~TransferFunction() {}</span>
+  bool TransferFunction::operator==(Self &amp;other)
+<span style = "background-color:#fdd">  {
+    if ((m_Min != other.m_Min) || (m_Max != other.m_Max))
+      return false;</span>
+
+<span style = "background-color:#fdd">    bool sizes = (m_ScalarOpacityFunction-&gt;GetSize() == other.m_ScalarOpacityFunction-&gt;GetSize()) &amp;&amp;</span>
+                 (m_GradientOpacityFunction-&gt;GetSize() == other.m_GradientOpacityFunction-&gt;GetSize()) &amp;&amp;
+                 (m_ColorTransferFunction-&gt;GetSize() == other.m_ColorTransferFunction-&gt;GetSize());
+<span style = "background-color:#fdd">    if (sizes == false)
+      return false;</span>
+
+<span style = "background-color:#fdd">    for (int i = 0; i &lt; m_ScalarOpacityFunction-&gt;GetSize(); i++)</span>
+    {
+      double myVal[4];
+      double otherVal[4];
+<span style = "background-color:#fdd">      m_ScalarOpacityFunction-&gt;GetNodeValue(i, myVal);
+      other.m_ScalarOpacityFunction-&gt;GetNodeValue(i, otherVal);
+      bool equal = (myVal[0] == otherVal[0]) &amp;&amp; (myVal[1] == otherVal[1]) &amp;&amp; (myVal[2] == otherVal[2]) &amp;&amp;</span>
+                   (myVal[3] == otherVal[3]);
+<span style = "background-color:#fdd">      if (equal == false)
+        return false;
+    }
+    for (int i = 0; i &lt; m_GradientOpacityFunction-&gt;GetSize(); i++)</span>
+    {
+      double myVal[4];
+      double otherVal[4];
+<span style = "background-color:#fdd">      m_GradientOpacityFunction-&gt;GetNodeValue(i, myVal);
+      other.m_GradientOpacityFunction-&gt;GetNodeValue(i, otherVal);
+      bool equal = (myVal[0] == otherVal[0]) &amp;&amp; (myVal[1] == otherVal[1]) &amp;&amp; (myVal[2] == otherVal[2]) &amp;&amp;</span>
+                   (myVal[3] == otherVal[3]);
+<span style = "background-color:#fdd">      if (equal == false)
+        return false;
+    }
+    for (int i = 0; i &lt; m_ColorTransferFunction-&gt;GetSize(); i++)</span>
+    {
+      double myVal[6];
+      double otherVal[6];
+<span style = "background-color:#fdd">      m_ColorTransferFunction-&gt;GetNodeValue(i, myVal);
+      other.m_ColorTransferFunction-&gt;GetNodeValue(i, otherVal);
+      bool equal = (myVal[0] == otherVal[0])     // X</span>
+                   &amp;&amp; (myVal[1] == otherVal[1])  // R
+                   &amp;&amp; (myVal[2] == otherVal[2])  // G
+                   &amp;&amp; (myVal[3] == otherVal[3])  // B
+                   &amp;&amp; (myVal[4] == otherVal[4])  // midpoint
+                   &amp;&amp; (myVal[5] == otherVal[5]); // sharpness
+<span style = "background-color:#fdd">      if (equal == false)
+        return false;
+    }
+    return true;
+  }</span>
+
+  void TransferFunction::SetScalarOpacityPoints(TransferFunction::ControlPoints points)
+<span style = "background-color:#fdd">  {
+    m_ScalarOpacityFunction-&gt;RemoveAllPoints();
+    for (unsigned int i = 0; i &lt;= points.size() - 1; i++)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;AddScalarOpacityPoint(points[i].first, points[i].second);
+    }
+  }</span>
+
+  void TransferFunction::SetGradientOpacityPoints(TransferFunction::ControlPoints points)
+<span style = "background-color:#fdd">  {
+    m_GradientOpacityFunction-&gt;RemoveAllPoints();
+    for (unsigned int i = 0; i &lt;= points.size() - 1; i++)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;AddGradientOpacityPoint(points[i].first, points[i].second);
+    }
+  }</span>
+
+  void TransferFunction::SetRGBPoints(TransferFunction::RGBControlPoints rgbpoints)
+<span style = "background-color:#fdd">  {
+    m_ColorTransferFunction-&gt;RemoveAllPoints();
+    for (unsigned int i = 0; i &lt;= rgbpoints.size() - 1; i++)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;AddRGBPoint(rgbpoints[i].first, rgbpoints[i].second[0], rgbpoints[i].second[1], rgbpoints[i].second[2]);
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  void TransferFunction::AddScalarOpacityPoint(double x, double value) { m_ScalarOpacityFunction-&gt;AddPoint(x, value); }</span>
+  void TransferFunction::AddGradientOpacityPoint(double x, double value)
+<span style = "background-color:#fdd">  {
+    m_GradientOpacityFunction-&gt;AddPoint(x, value);
+  }</span>
+
+  void TransferFunction::AddRGBPoint(double x, double r, double g, double b)
+<span style = "background-color:#fdd">  {
+    m_ColorTransferFunction-&gt;AddRGBPoint(x, r, g, b);
+  }</span>
+
+  TransferFunction::ControlPoints &amp;TransferFunction::GetScalarOpacityPoints()
+<span style = "background-color:#fdd">  {</span>
+    // Retrieve data points from VTK transfer function and store them in a vector
+<span style = "background-color:#fdd">    m_ScalarOpacityPoints.clear();
+    double *data = m_ScalarOpacityFunction-&gt;GetDataPointer();
+    for (int i = 0; i &lt; m_ScalarOpacityFunction-&gt;GetSize(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      m_ScalarOpacityPoints.push_back(std::make_pair(data[i * 2], data[i * 2 + 1]));
+    }</span>
+
+<span style = "background-color:#fdd">    return m_ScalarOpacityPoints;
+  }</span>
+
+  TransferFunction::ControlPoints &amp;TransferFunction::GetGradientOpacityPoints()
+<span style = "background-color:#fdd">  {</span>
+    // Retrieve data points from VTK transfer function and store them in a vector
+<span style = "background-color:#fdd">    m_GradientOpacityPoints.clear();
+    double *data = m_GradientOpacityFunction-&gt;GetDataPointer();
+    for (int i = 0; i &lt; m_GradientOpacityFunction-&gt;GetSize(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      m_GradientOpacityPoints.push_back(std::make_pair(data[i * 2], data[i * 2 + 1]));
+    }</span>
+
+<span style = "background-color:#fdd">    return m_GradientOpacityPoints;
+  }</span>
+
+  TransferFunction::RGBControlPoints &amp;TransferFunction::GetRGBPoints()
+<span style = "background-color:#fdd">  {</span>
+    // Retrieve data points from VTK transfer function and store them in a vector
+<span style = "background-color:#fdd">    m_RGBPoints.clear();
+    double *data = m_ColorTransferFunction-&gt;GetDataPointer();
+    for (int i = 0; i &lt; m_ColorTransferFunction-&gt;GetSize(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      double rgb[] = {data[i * 4 + 1], data[i * 4 + 2], data[i * 4 + 3]};
+      m_RGBPoints.push_back(std::make_pair(data[i * 4], rgb));
+    }</span>
+
+<span style = "background-color:#fdd">    return m_RGBPoints;
+  }</span>
+
+<span style = "background-color:#fdd">  int TransferFunction::RemoveScalarOpacityPoint(double x) { return m_ScalarOpacityFunction-&gt;RemovePoint(x); }
+  int TransferFunction::RemoveGradientOpacityPoint(double x) { return m_GradientOpacityFunction-&gt;RemovePoint(x); }
+  int TransferFunction::RemoveRGBPoint(double x) { return m_ColorTransferFunction-&gt;RemovePoint(x); }
+  void TransferFunction::ClearScalarOpacityPoints() { m_ScalarOpacityFunction-&gt;RemoveAllPoints(); }
+  void TransferFunction::ClearGradientOpacityPoints() { m_GradientOpacityFunction-&gt;RemoveAllPoints(); }
+  void TransferFunction::ClearRGBPoints() { m_ColorTransferFunction-&gt;RemoveAllPoints(); }</span>
+  void TransferFunction::InitializeByItkHistogram(const itk::Statistics::Histogram&lt;double&gt; *histogram)
+<span style = "background-color:#fdd">  {
+    m_Histogram = histogram;
+    m_Min = (int)GetHistogram()-&gt;GetBinMin(0, 0);
+    m_Max = (int)GetHistogram()-&gt;GetBinMax(0, GetHistogram()-&gt;Size() - 1);</span>
+
+    /*
+    m_ScalarOpacityFunction-&gt;Initialize();
+    m_ScalarOpacityFunction-&gt;AddPoint(m_Min,0.0);
+    m_ScalarOpacityFunction-&gt;AddPoint(0.0,0.0);
+    m_ScalarOpacityFunction-&gt;AddPoint(m_Max,1.0);
+    m_GradientOpacityFunction-&gt;Initialize();
+    m_GradientOpacityFunction-&gt;AddPoint(m_Min,0.0);
+    m_GradientOpacityFunction-&gt;AddPoint(0.0,1.0);
+    m_GradientOpacityFunction-&gt;AddPoint((m_Max*0.125),1.0);
+    m_GradientOpacityFunction-&gt;AddPoint((m_Max*0.2),1.0);
+    m_GradientOpacityFunction-&gt;AddPoint((m_Max*0.25),1.0);
+    m_GradientOpacityFunction-&gt;AddPoint(m_Max,1.0);
+    m_ColorTransferFunction-&gt;RemoveAllPoints();
+    m_ColorTransferFunction-&gt;AddRGBPoint(m_Min,1,0,0);
+    m_ColorTransferFunction-&gt;AddRGBPoint(m_Max,1,1,0);
+    m_ColorTransferFunction-&gt;SetColorSpaceToHSV();
+    MITK_INFO &lt;&lt; "min/max in tf-c'tor:" &lt;&lt; m_Min &lt;&lt; "/" &lt;&lt; m_Max &lt;&lt; std::endl;
+    */
+<span style = "background-color:#fdd">  }</span>
+
+  void TransferFunction::InitializeByMitkImage(const Image *image)
+<span style = "background-color:#fdd">  {
+    HistogramGenerator::Pointer histGen = HistogramGenerator::New();
+    histGen-&gt;SetImage(image);
+    histGen-&gt;SetSize(256);
+    histGen-&gt;ComputeHistogram();
+    m_Histogram = histGen-&gt;GetHistogram();
+    m_Min = (int)GetHistogram()-&gt;GetBinMin(0, 0);
+    m_Max = (int)GetHistogram()-&gt;GetBinMax(0, GetHistogram()-&gt;Size() - 1);
+    m_ScalarOpacityFunction-&gt;Initialize();
+    m_ScalarOpacityFunction-&gt;AddPoint(m_Min, 0.0);
+    m_ScalarOpacityFunction-&gt;AddPoint(0.0, 0.0);
+    m_ScalarOpacityFunction-&gt;AddPoint(m_Max, 1.0);
+    m_GradientOpacityFunction-&gt;Initialize();
+    m_GradientOpacityFunction-&gt;AddPoint(m_Min, 0.0);
+    m_GradientOpacityFunction-&gt;AddPoint(0.0, 1.0);
+    m_GradientOpacityFunction-&gt;AddPoint((m_Max * 0.125), 1.0);
+    m_GradientOpacityFunction-&gt;AddPoint((m_Max * 0.2), 1.0);
+    m_GradientOpacityFunction-&gt;AddPoint((m_Max * 0.25), 1.0);
+    m_GradientOpacityFunction-&gt;AddPoint(m_Max, 1.0);
+    m_ColorTransferFunction-&gt;RemoveAllPoints();
+    m_ColorTransferFunction-&gt;AddRGBPoint(m_Min, 1, 0, 0);
+    m_ColorTransferFunction-&gt;AddRGBPoint(m_Max, 1, 1, 0);
+    m_ColorTransferFunction-&gt;SetColorSpaceToHSV();</span>
+    // MITK_INFO &lt;&lt; "min/max in tf-c'tor:" &lt;&lt; m_Min &lt;&lt; "/" &lt;&lt; m_Max &lt;&lt; std::endl;
+<span style = "background-color:#fdd">  }</span>
+
+  void TransferFunction::InitializeHistogram(const Image *image)
+<span style = "background-color:#fdd">  {
+    HistogramGenerator::Pointer histGen = HistogramGenerator::New();
+    histGen-&gt;SetImage(image);
+    histGen-&gt;SetSize(256);
+    histGen-&gt;ComputeHistogram();
+    m_Histogram = histGen-&gt;GetHistogram();
+    m_Min = (int)GetHistogram()-&gt;GetBinMin(0, 0);
+    m_Max = (int)GetHistogram()-&gt;GetBinMax(0, GetHistogram()-&gt;Size() - 1);
+  }</span>
+
+  void TransferFunction::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">  {
+    os &lt;&lt; indent &lt;&lt; "ScalarOpacity: ";
+    m_ScalarOpacityFunction-&gt;PrintHeader(os, vtkIndent());
+    os &lt;&lt; indent &lt;&lt; "GradientOpacity: ";
+    m_GradientOpacityFunction-&gt;PrintHeader(os, vtkIndent());
+    os &lt;&lt; indent &lt;&lt; "ColorTransfer: ";
+    m_ColorTransferFunction-&gt;PrintHeader(os, vtkIndent());
+    os &lt;&lt; indent &lt;&lt; "Min: " &lt;&lt; m_Min &lt;&lt; ", Max: " &lt;&lt; m_Max &lt;&lt; std::endl;
+  }</span>
+
+  itk::LightObject::Pointer mitk::TransferFunction::InternalClone() const
+<span style = "background-color:#fdd">  {
+    itk::LightObject::Pointer result(new Self(*this));
+    result-&gt;UnRegister();
+    return result;
+  }</span>
+
+} // namespace</pre>
+	</body>
+</html>

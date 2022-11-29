@@ -1,0 +1,321 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIGTLDeviceSource.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkIGTLDeviceSource.h"
+
+#include "mitkIGTLDevice.h"
+#include "mitkIGTLMessage.h"
+
+//#include "mitkIGTTimeStamp.h"
+//#include "mitkIGTException.h"
+
+//Microservices
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModule.h&gt;
+#include &lt;usServiceProperties.h&gt;
+#include &lt;usModuleContext.h&gt;
+
+//itk
+#include &lt;itkCommand.h&gt;
+
+const std::string mitk::IGTLDeviceSource::US_PROPKEY_IGTLDEVICENAME =
+<span style = "background-color:#dfd">mitk::IGTLMessageSource::US_INTERFACE_NAME + ".igtldevicename";</span>
+
+mitk::IGTLDeviceSource::IGTLDeviceSource()
+<span style = "background-color:#fdd">  : mitk::IGTLMessageSource(), m_IGTLDevice(nullptr)
+{
+  this-&gt;SetName("IGTLDeviceSource (no defined type)");
+}</span>
+
+mitk::IGTLDeviceSource::~IGTLDeviceSource()
+<span style = "background-color:#fdd">{
+  if (m_IGTLDevice.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if (m_IGTLDevice-&gt;GetState() == mitk::IGTLDevice::Running)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;StopCommunication();</span>
+    }
+<span style = "background-color:#fdd">    if (m_IGTLDevice-&gt;GetState() == mitk::IGTLDevice::Ready)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;Disconnect();</span>
+    }
+<span style = "background-color:#fdd">    this-&gt;RemoveObservers();
+    m_IGTLDevice = nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTLDeviceSource::GenerateData()
+<span style = "background-color:#fdd">{
+  if (m_IGTLDevice.IsNull())
+    return;</span>
+
+  /* update output with message from the device */
+<span style = "background-color:#fdd">  IGTLMessage* msgOut = this-&gt;GetOutput();
+  assert(msgOut);
+  igtl::MessageBase::Pointer msgIn = dynamic_cast&lt;igtl::MessageBase*&gt;(m_IGTLDevice-&gt;GetNextImage2dMessage().GetPointer());
+  if (msgIn.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    assert(msgIn);</span>
+
+<span style = "background-color:#fdd">    msgOut-&gt;SetMessage(msgIn);
+    msgOut-&gt;SetName(msgIn-&gt;GetDeviceName());</span>
+  }
+  //  else
+  //  {
+  //    MITK_ERROR("IGTLDeviceSource") &lt;&lt; "Could not get the latest message.";
+  //  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTLDeviceSource::RemoveObservers()
+<span style = "background-color:#fdd">{
+  if (this-&gt;m_IGTLDevice.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_IGTLDevice-&gt;RemoveObserver(m_IncomingMessageObserverTag);
+    this-&gt;m_IGTLDevice-&gt;RemoveObserver(m_IncomingCommandObserverTag);
+    this-&gt;m_IGTLDevice-&gt;RemoveObserver(m_LostConnectionObserverTag);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTLDeviceSource::SetIGTLDevice(mitk::IGTLDevice* igtlDevice)
+<span style = "background-color:#fdd">{
+  MITK_DEBUG &lt;&lt; "Setting IGTLDevice to " &lt;&lt; igtlDevice;
+  if (this-&gt;m_IGTLDevice.GetPointer() != igtlDevice)</span>
+  {
+    //check if we want to override the device
+<span style = "background-color:#fdd">    if (this-&gt;m_IGTLDevice.IsNotNull())</span>
+    {
+      //the device was set previously =&gt; we need to reset the observers
+<span style = "background-color:#fdd">      this-&gt;RemoveObservers();</span>
+    }
+    //set the device
+<span style = "background-color:#fdd">    this-&gt;m_IGTLDevice = igtlDevice;
+    this-&gt;CreateOutputs();
+    std::stringstream name; // create a human readable name for the source
+    name &lt;&lt; "OIGTL Device Source ( " &lt;&lt; igtlDevice-&gt;GetName() &lt;&lt; " )";
+    this-&gt;SetName(name.str());</span>
+
+    //setup a observer that listens to new messages and new commands
+    typedef itk::SimpleMemberCommand&lt;IGTLDeviceSource&gt; DeviceSrcCommand;
+
+<span style = "background-color:#fdd">    DeviceSrcCommand::Pointer msgReceivedCommand = DeviceSrcCommand::New();
+    msgReceivedCommand-&gt;SetCallbackFunction(this, &amp;IGTLDeviceSource::OnIncomingMessage);
+    this-&gt;m_IncomingMessageObserverTag =</span>
+      this-&gt;m_IGTLDevice-&gt;AddObserver(mitk::MessageReceivedEvent(), msgReceivedCommand);
+
+<span style = "background-color:#fdd">    DeviceSrcCommand::Pointer cmdReceivedCommand = DeviceSrcCommand::New();
+    cmdReceivedCommand-&gt;SetCallbackFunction(this, &amp;IGTLDeviceSource::OnIncomingCommand);
+    this-&gt;m_IncomingCommandObserverTag =</span>
+      this-&gt;m_IGTLDevice-&gt;AddObserver(mitk::CommandReceivedEvent(), cmdReceivedCommand);
+
+<span style = "background-color:#fdd">    DeviceSrcCommand::Pointer connectionLostCommand = DeviceSrcCommand::New();
+    connectionLostCommand-&gt;SetCallbackFunction(this, &amp;IGTLDeviceSource::OnLostConnection);
+    this-&gt;m_LostConnectionObserverTag =</span>
+      this-&gt;m_IGTLDevice-&gt;AddObserver(mitk::LostConnectionEvent(), connectionLostCommand);
+<span style = "background-color:#fdd">  }
+}</span>
+
+void mitk::IGTLDeviceSource::CreateOutputs()
+<span style = "background-color:#fdd">{</span>
+  //if outputs are set then delete them
+<span style = "background-color:#fdd">  if (this-&gt;GetNumberOfOutputs() &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    for (int numOP = this-&gt;GetNumberOfOutputs() - 1; numOP &gt;= 0; numOP--)
+      this-&gt;RemoveOutput(numOP);
+    this-&gt;Modified();</span>
+  }
+
+  //fill the outputs if a valid OpenIGTLink device is set
+<span style = "background-color:#fdd">  if (m_IGTLDevice.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetNumberOfIndexedOutputs(1);
+  if (this-&gt;GetOutput(0) == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    DataObjectPointer newOutput = this-&gt;MakeOutput(0);
+    this-&gt;SetNthOutput(0, newOutput);
+    this-&gt;Modified();
+  }
+}</span>
+
+void mitk::IGTLDeviceSource::Connect()
+<span style = "background-color:#fdd">{
+  if (m_IGTLDevice.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    throw std::invalid_argument("mitk::IGTLDeviceSource: "</span>
+      "No OpenIGTLink device set");
+  }
+<span style = "background-color:#fdd">  if (this-&gt;IsConnected())</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+  try
+  {
+<span style = "background-color:#fdd">    m_IGTLDevice-&gt;OpenConnection();</span>
+  }
+  catch (mitk::Exception &amp;e)
+<span style = "background-color:#fdd">  {
+    throw std::runtime_error(std::string("mitk::IGTLDeviceSource: Could not open"</span>
+      "connection to OpenIGTLink device. Error: ") + e.GetDescription());
+<span style = "background-color:#fdd">  }
+}</span>
+
+void mitk::IGTLDeviceSource::StartCommunication()
+<span style = "background-color:#fdd">{
+  if (m_IGTLDevice.IsNull())
+    throw std::invalid_argument("mitk::IGTLDeviceSource: "</span>
+    "No OpenIGTLink device set");
+<span style = "background-color:#fdd">  if (m_IGTLDevice-&gt;GetState() == mitk::IGTLDevice::Running)
+    return;
+  if (m_IGTLDevice-&gt;StartCommunication() == false)
+    throw std::runtime_error("mitk::IGTLDeviceSource: "</span>
+    "Could not start communication");
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTLDeviceSource::Disconnect()
+<span style = "background-color:#fdd">{
+  if (m_IGTLDevice.IsNull())
+    throw std::invalid_argument("mitk::IGTLDeviceSource: "</span>
+    "No OpenIGTLink device set");
+<span style = "background-color:#fdd">  if (m_IGTLDevice-&gt;CloseConnection() == false)
+    throw std::runtime_error("mitk::IGTLDeviceSource: Could not close connection"</span>
+    " to OpenIGTLink device");
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTLDeviceSource::StopCommunication()
+<span style = "background-color:#fdd">{
+  if (m_IGTLDevice.IsNull())
+    throw std::invalid_argument("mitk::IGTLDeviceSource: "</span>
+    "No OpenIGTLink device set");
+<span style = "background-color:#fdd">  if (m_IGTLDevice-&gt;StopCommunication() == false)
+    throw std::runtime_error("mitk::IGTLDeviceSource: "</span>
+    "Could not stop communicating");
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTLDeviceSource::UpdateOutputInformation()
+<span style = "background-color:#fdd">{
+  this-&gt;Modified();  // make sure that we need to be updated
+  Superclass::UpdateOutputInformation();
+}</span>
+
+void mitk::IGTLDeviceSource::SetInput(unsigned int idx, const IGTLMessage* msg)
+<span style = "background-color:#fdd">{
+  if (msg == nullptr) // if an input is set to nullptr, remove it</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;RemoveInput(idx);
+  }</span>
+  else
+  {
+    // ProcessObject is not const-correct so a const_cast is required here
+<span style = "background-color:#fdd">    this-&gt;ProcessObject::SetNthInput(idx, const_cast&lt;IGTLMessage*&gt;(msg));</span>
+  }
+  //  this-&gt;CreateOutputsForAllInputs();
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::IGTLDeviceSource::IsConnected()
+<span style = "background-color:#fdd">{
+  if (m_IGTLDevice.IsNull())
+    return false;</span>
+
+<span style = "background-color:#fdd">  return (m_IGTLDevice-&gt;GetState() == mitk::IGTLDevice::Ready) ||</span>
+    (m_IGTLDevice-&gt;GetState() == mitk::IGTLDevice::Running);
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::IGTLDeviceSource::IsCommunicating()
+<span style = "background-color:#fdd">{
+  if (m_IGTLDevice.IsNull())
+    return false;</span>
+
+<span style = "background-color:#fdd">  return m_IGTLDevice-&gt;GetState() == mitk::IGTLDevice::Running;
+}</span>
+
+void mitk::IGTLDeviceSource::RegisterAsMicroservice()
+<span style = "background-color:#fdd">{</span>
+  // Get Context
+<span style = "background-color:#fdd">  us::ModuleContext* context = us::GetModuleContext();</span>
+
+  // Define ServiceProps
+<span style = "background-color:#fdd">  us::ServiceProperties props;
+  mitk::UIDGenerator uidGen =</span>
+    mitk::UIDGenerator("org.mitk.services.IGTLDeviceSource.id_");
+<span style = "background-color:#fdd">  props[US_PROPKEY_ID] = uidGen.GetUID();
+  props[US_PROPKEY_DEVICENAME] = this-&gt;GetName();
+  props[US_PROPKEY_IGTLDEVICENAME] = m_Name;
+  props[US_PROPKEY_DEVICETYPE] = m_Type;
+  m_ServiceRegistration = context-&gt;RegisterService(this, props);</span>
+
+<span style = "background-color:#fdd">  MITK_INFO &lt;&lt; "Registered new DeviceSource as microservice: " &lt;&lt; uidGen.GetUID();
+}</span>
+
+void mitk::IGTLDeviceSource::OnIncomingMessage()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::IGTLDeviceSource::OnIncomingCommand()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::IGTLDeviceSource::OnLostConnection()
+<span style = "background-color:#fdd">{
+}</span>
+
+const mitk::IGTLMessage* mitk::IGTLDeviceSource::GetInput(void) const
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  return static_cast&lt;const IGTLMessage*&gt;(this-&gt;ProcessObject::GetInput(0));
+}</span>
+
+const mitk::IGTLMessage*
+mitk::IGTLDeviceSource::GetInput(unsigned int idx) const
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  return static_cast&lt;const IGTLMessage*&gt;(this-&gt;ProcessObject::GetInput(idx));
+}</span>
+
+const mitk::IGTLMessage*
+mitk::IGTLDeviceSource::GetInput(std::string msgName) const
+<span style = "background-color:#fdd">{
+  const DataObjectPointerArray&amp; inputs = const_cast&lt;Self*&gt;(this)-&gt;GetInputs();
+  for (DataObjectPointerArray::const_iterator it = inputs.begin();
+    it != inputs.end(); ++it)
+    if (std::string(msgName) ==</span>
+      (static_cast&lt;IGTLMessage*&gt;(it-&gt;GetPointer()))-&gt;GetName())
+<span style = "background-color:#fdd">      return static_cast&lt;IGTLMessage*&gt;(it-&gt;GetPointer());
+  return nullptr;
+}</span>
+
+itk::ProcessObject::DataObjectPointerArraySizeType
+mitk::IGTLDeviceSource::GetInputIndex(std::string msgName)
+<span style = "background-color:#fdd">{
+  DataObjectPointerArray outputs = this-&gt;GetInputs();
+  for (DataObjectPointerArray::size_type i = 0; i &lt; outputs.size(); ++i)
+    if (msgName ==</span>
+      (static_cast&lt;IGTLMessage*&gt;(outputs.at(i).GetPointer()))-&gt;GetName())
+<span style = "background-color:#fdd">      return i;
+  throw std::invalid_argument("output name does not exist");
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkItkPictureWrite.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;MitkLegacyIOExports.h&gt;
+
+#include "mitkItkPictureWrite.h"
+#include &lt;mitkInstantiateAccessFunctions.h&gt;
+
+#include &lt;itkImageSeriesWriter.h&gt;
+#include &lt;itkNumericSeriesFileNames.h&gt;
+#include &lt;itkRescaleIntensityImageFilter.h&gt;
+
+#include &lt;itkRGBAPixel.h&gt;
+
+/** Set the filenames to the specified writer in dependace on the number of images passed in */
+template &lt;class WriterType&gt;
+void SetOutputNames(typename WriterType::Pointer writer, const std::string &amp;baseFileName, unsigned int numberOfImages)
+<span style = "background-color:#fdd">{
+  if (numberOfImages &gt; 1)</span>
+  {
+<span style = "background-color:#fdd">    itk::NumericSeriesFileNames::Pointer numericFileNameWriter = itk::NumericSeriesFileNames::New();</span>
+
+<span style = "background-color:#fdd">    std::string finalFileName = baseFileName;
+    std::string::size_type pos = baseFileName.find_last_of(".", baseFileName.length() - 1);
+    if (pos == std::string::npos)
+      finalFileName.append(".%d.png");</span>
+    else
+<span style = "background-color:#fdd">      finalFileName.insert(pos, ".%d");</span>
+
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Filename: " &lt;&lt; finalFileName;</span>
+
+<span style = "background-color:#fdd">    numericFileNameWriter-&gt;SetEndIndex(numberOfImages);
+    numericFileNameWriter-&gt;SetSeriesFormat(finalFileName.c_str());
+    numericFileNameWriter-&gt;Modified();
+    writer-&gt;SetFileNames(numericFileNameWriter-&gt;GetFileNames());
+  }</span>
+  // if the given image is an 2D-png image, do not use the numericFileNameWriter
+  // to generate the name, since it alters the fileName given as parameter
+  else
+  {
+<span style = "background-color:#fdd">    writer-&gt;SetFileName(baseFileName.c_str());</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+template &lt;typename TPixel, unsigned int VImageDimension&gt;
+void _mitkItkPictureWrite(itk::Image&lt;TPixel, VImageDimension&gt; *itkImage, const std::string &amp;fileName)
+<span style = "background-color:#fdd">{</span>
+  typedef itk::Image&lt;TPixel, VImageDimension&gt; TImageType;
+
+  typedef itk::Image&lt;unsigned char, 3&gt; UCharOutputImage3DType;
+  typedef itk::Image&lt;unsigned short, 3&gt; ShortOutputImage3DType;
+  typedef itk::Image&lt;unsigned char, 2&gt; OutputImage2D_8bitType;
+  typedef itk::Image&lt;unsigned short, 2&gt; OutputImage2D_16bitType;
+
+  typedef itk::ImageSeriesWriter&lt;UCharOutputImage3DType, OutputImage2D_8bitType&gt; UCharWriterType;
+  typedef itk::ImageSeriesWriter&lt;ShortOutputImage3DType, OutputImage2D_16bitType&gt; ShortWriterType;
+
+  typedef itk::RescaleIntensityImageFilter&lt;TImageType, UCharOutputImage3DType&gt; UCharRescalerFilterType;
+  typedef itk::RescaleIntensityImageFilter&lt;TImageType, ShortOutputImage3DType&gt; ShortRescalerFilterType;
+
+  // get the size info
+<span style = "background-color:#fdd">  size_t inputTypeSize = sizeof(TPixel);
+  size_t supportedOutputMaxSize = 1; // default value 8bit</span>
+
+  // the PNG and TIFF formats can handle up-to 16-bit images
+<span style = "background-color:#fdd">  if (fileName.find(".png") != std::string::npos || fileName.find(".tif") != std::string::npos)</span>
+  {
+<span style = "background-color:#fdd">    supportedOutputMaxSize = 2;</span>
+  }
+
+  // get the dimension info
+<span style = "background-color:#fdd">  unsigned int numberOfImages = 1;
+  if (itkImage-&gt;GetImageDimension() &gt; 2)
+    numberOfImages = itkImage-&gt;GetLargestPossibleRegion().GetSize()[2];</span>
+
+<span style = "background-color:#fdd">  typename ShortRescalerFilterType::Pointer sh_rescaler = ShortRescalerFilterType::New();
+  sh_rescaler-&gt;SetInput(itkImage);
+  sh_rescaler-&gt;SetOutputMinimum(0);
+  sh_rescaler-&gt;SetOutputMaximum(65535);</span>
+
+<span style = "background-color:#fdd">  typename UCharRescalerFilterType::Pointer rescaler = UCharRescalerFilterType::New();
+  rescaler-&gt;SetInput(itkImage);
+  rescaler-&gt;SetOutputMinimum(0);
+  rescaler-&gt;SetOutputMaximum(255);</span>
+
+  try
+  {
+    // input is 8 bit
+<span style = "background-color:#fdd">    if (inputTypeSize == 1)</span>
+    {
+<span style = "background-color:#fdd">      UCharWriterType::Pointer writer = UCharWriterType::New();
+      SetOutputNames&lt;UCharWriterType&gt;(writer, fileName, numberOfImages);
+      writer-&gt;SetInput(rescaler-&gt;GetOutput());
+      writer-&gt;Update();
+    }</span>
+    // input pixel type is 16bit -&gt; writer can handle 16bit images
+<span style = "background-color:#fdd">    else if (inputTypeSize == supportedOutputMaxSize &amp;&amp; supportedOutputMaxSize == 2)</span>
+    {
+<span style = "background-color:#fdd">      ShortWriterType::Pointer writer = ShortWriterType::New();
+      SetOutputNames&lt;ShortWriterType&gt;(writer, fileName, numberOfImages);
+      writer-&gt;SetInput(sh_rescaler-&gt;GetOutput());
+      writer-&gt;Update();
+    }</span>
+    // rescaling input to maximum of supported format
+    else
+    {
+<span style = "background-color:#fdd">      if (supportedOutputMaxSize == 2)</span>
+      {
+<span style = "background-color:#fdd">        typename ShortWriterType::Pointer writer = ShortWriterType::New();
+        SetOutputNames&lt;ShortWriterType&gt;(writer, fileName, numberOfImages);
+        writer-&gt;SetInput(sh_rescaler-&gt;GetOutput());
+        writer-&gt;Update();
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        typename UCharWriterType::Pointer writer = UCharWriterType::New();
+        SetOutputNames&lt;UCharWriterType&gt;(writer, fileName, numberOfImages);
+        writer-&gt;SetInput(rescaler-&gt;GetOutput());
+        writer-&gt;Update();
+      }</span>
+    }
+  }
+  catch (const itk::ExceptionObject &amp;e)
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "ITK Exception occured: " &lt;&lt; e.what();
+    mitkThrow() &lt;&lt; "Caught ITK exception while writing image with scalar type \n" &lt;&lt; e.what();
+  }
+}</span>
+
+template &lt;typename TPixel, unsigned int VImageDimension&gt;
+void _mitkItkPictureWriteComposite(itk::Image&lt;TPixel, VImageDimension&gt; *itkImage, const std::string &amp;fileName)
+<span style = "background-color:#fdd">{</span>
+  typedef itk::Image&lt;TPixel, VImageDimension&gt; TImageType;
+  typedef itk::Image&lt;TPixel, 2&gt; TImageType2D;
+
+  typedef itk::ImageSeriesWriter&lt;TImageType, TImageType2D&gt; WriterType;
+<span style = "background-color:#fdd">  typename WriterType::Pointer writer = WriterType::New();</span>
+
+  // get the dimension info
+<span style = "background-color:#fdd">  unsigned int numberOfImages = 1;
+  if (itkImage-&gt;GetImageDimension() &gt; 2)
+    numberOfImages = itkImage-&gt;GetLargestPossibleRegion().GetSize()[2];</span>
+
+  // create output name(s)
+<span style = "background-color:#fdd">  SetOutputNames&lt;WriterType&gt;(writer, fileName, numberOfImages);</span>
+
+<span style = "background-color:#fdd">  writer-&gt;SetInput(itkImage);</span>
+  try
+  {
+<span style = "background-color:#fdd">    writer-&gt;Update();</span>
+  }
+  catch (const itk::ExceptionObject &amp;e)
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "ITK Exception occured: " &lt;&lt; e.what();
+    mitkThrow() &lt;&lt; "Caught ITK exception while writing image with composite type \n" &lt;&lt; e.what();
+  }
+}</span>
+
+#define InstantiateAccessFunction__mitkItkPictureWrite(pixelType, dim)                                                 \
+  template MITKLEGACYIO_EXPORT void _mitkItkPictureWrite(itk::Image&lt;pixelType, dim&gt; *, const std::string &amp;);
+
+#define InstantiateAccessFunction__mitkItkPictureWriteComposite(pixelType, dim)                                        \
+  template MITKLEGACYIO_EXPORT void _mitkItkPictureWriteComposite(itk::Image&lt;pixelType, dim&gt; *, const std::string &amp;);
+
+InstantiateAccessFunction(_mitkItkPictureWrite)
+
+  InstantiateAccessFunctionForFixedPixelType(
+    _mitkItkPictureWriteComposite, MITK_ACCESSBYITK_PIXEL_TYPES_SEQ MITK_ACCESSBYITK_COMPOSITE_PIXEL_TYPES_SEQ)</pre>
+	</body>
+</html>

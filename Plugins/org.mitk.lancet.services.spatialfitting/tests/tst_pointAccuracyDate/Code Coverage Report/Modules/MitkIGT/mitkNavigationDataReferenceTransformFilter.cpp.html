@@ -1,0 +1,204 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataReferenceTransformFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationDataReferenceTransformFilter.h"
+
+
+
+<span style = "background-color:#fdd">mitk::NavigationDataReferenceTransformFilter::NavigationDataReferenceTransformFilter() : mitk::NavigationDataLandmarkTransformFilter()
+,m_QuaternionTransform(nullptr)
+,m_SourceLandmarksFromNavigationDatas(nullptr)
+,m_TargetLandmarksFromNavigationDatas(nullptr)
+{</span>
+  // initialize transform and point containers
+<span style = "background-color:#fdd">  m_QuaternionTransform = QuaternionTransformType::New();
+  m_SourceLandmarksFromNavigationDatas = mitk::PointSet::New();
+  m_TargetLandmarksFromNavigationDatas = mitk::PointSet::New();
+}</span>
+
+
+mitk::NavigationDataReferenceTransformFilter::~NavigationDataReferenceTransformFilter()
+<span style = "background-color:#fdd">{
+  m_QuaternionTransform = nullptr;
+}</span>
+
+
+void mitk::NavigationDataReferenceTransformFilter::SetSourceNavigationDatas(const std::vector&lt;mitk::NavigationData::Pointer&gt;&amp; sourceNavigationDatas)
+<span style = "background-color:#fdd">{
+  if(m_SourceLandmarksFromNavigationDatas.IsNotNull()) // check if source landmark container available and clear it
+    m_SourceLandmarksFromNavigationDatas-&gt;Clear();</span>
+  else
+<span style = "background-color:#fdd">    return;</span>
+
+<span style = "background-color:#fdd">  if(sourceNavigationDatas.empty()) // if no ND's passed set filter back</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ReinitFilter();
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if(sourceNavigationDatas.size() &lt; 3) // if less than 3 ND's passed, more source points have to be generated
+    this-&gt;CreateLandmarkPointsForSingleNavigationData(m_SourceLandmarksFromNavigationDatas, sourceNavigationDatas);</span>
+  else{
+<span style = "background-color:#fdd">    for(unsigned int i=0; i &lt; sourceNavigationDatas.size(); ++i){
+      mitk::Point3D point = sourceNavigationDatas.at(i)-&gt;GetPosition();
+      m_SourceLandmarksFromNavigationDatas-&gt;InsertPoint(i,point); // pass the position of every ND as point to the source points container
+    }</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;InitializeTransform();
+}</span>
+
+
+void mitk::NavigationDataReferenceTransformFilter::SetTargetNavigationDatas(const std::vector&lt;mitk::NavigationData::Pointer&gt;&amp; targetNavigationDatas)
+<span style = "background-color:#fdd">{
+  if(m_TargetLandmarksFromNavigationDatas.IsNotNull()) // check if target landmark container available and clear it
+    m_TargetLandmarksFromNavigationDatas-&gt;Clear();</span>
+  else
+<span style = "background-color:#fdd">    return;</span>
+
+<span style = "background-color:#fdd">  if(targetNavigationDatas.empty()) // if no ND's passed set filter back</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ReinitFilter();
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if(targetNavigationDatas.size() &lt; 3) // if less than 3 ND's passed, more target points have to be generated
+    this-&gt;CreateLandmarkPointsForSingleNavigationData(m_TargetLandmarksFromNavigationDatas, targetNavigationDatas);</span>
+  else {
+<span style = "background-color:#fdd">    for(unsigned int i=0; i &lt; targetNavigationDatas.size(); ++i){
+      mitk::Point3D point = targetNavigationDatas.at(i)-&gt;GetPosition();
+      m_TargetLandmarksFromNavigationDatas-&gt;InsertPoint(i,point);// pass the position of every ND as point to the target points container
+    }</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;InitializeTransform();
+}</span>
+
+bool mitk::NavigationDataReferenceTransformFilter::InitializeTransform()
+<span style = "background-color:#fdd">{
+  bool sameSize = m_SourceLandmarksFromNavigationDatas-&gt;GetSize() == m_TargetLandmarksFromNavigationDatas-&gt;GetSize();
+  if(!sameSize)
+    return false;</span>
+
+<span style = "background-color:#fdd">  if(m_SourceLandmarksFromNavigationDatas-&gt;GetSize() &gt;= 3 &amp;&amp; m_TargetLandmarksFromNavigationDatas-&gt;GetSize() &gt;= 3)</span>
+  {
+<span style = "background-color:#fdd">    m_SourcePoints.clear();
+    m_TargetPoints.clear();</span>
+
+<span style = "background-color:#fdd">    this-&gt;SetSourceLandmarks(this-&gt;GetSourceLandmarks());
+    this-&gt;SetTargetLandmarks(this-&gt;GetTargetLandmarks());</span>
+
+<span style = "background-color:#fdd">    return true;</span>
+  }
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::NavigationDataReferenceTransformFilter::ReinitFilter()
+<span style = "background-color:#fdd">{</span>
+
+  // clear this class source and target points
+<span style = "background-color:#fdd">  m_SourceLandmarksFromNavigationDatas-&gt;Clear();
+  m_TargetLandmarksFromNavigationDatas-&gt;Clear();</span>
+
+  //clear superclass source and target points
+<span style = "background-color:#fdd">  m_TargetPoints.clear();
+  m_SourcePoints.clear();</span>
+
+<span style = "background-color:#fdd">  this-&gt;Modified();
+}</span>
+
+
+mitk::PointSet::Pointer mitk::NavigationDataReferenceTransformFilter::CreateLandmarkPointsForSingleNavigationData(mitk::PointSet::Pointer landmarkContainer, const std::vector&lt;mitk::NavigationData::Pointer&gt;&amp; navigationDatas)
+<span style = "background-color:#fdd">{
+  if(m_QuaternionTransform.IsNull()) // if quaternion transform not available return
+    return landmarkContainer;</span>
+
+<span style = "background-color:#fdd">  for(unsigned int i=0; i &lt; navigationDatas.size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D pointA;
+    mitk::Point3D pointB;
+    mitk::Point3D pointC;</span>
+
+     //initializing three points with position(0|0|0)
+<span style = "background-color:#fdd">    pointA.Fill(0);
+    pointB.Fill(0);
+    pointC.Fill(0);</span>
+
+    // changing position off all points in order to make them orthogonal
+<span style = "background-color:#fdd">    pointA[0] = 1;
+    pointB[1] = 1;
+    pointC[2] = 1;</span>
+
+    // current NavigationData
+<span style = "background-color:#fdd">    mitk::NavigationData::Pointer nd = navigationDatas.at(i);</span>
+
+    // orientation of NavigationData from parameter
+<span style = "background-color:#fdd">    mitk::NavigationData::OrientationType quatIn = nd-&gt;GetOrientation();</span>
+
+    // set orientation to quaternion transform
+<span style = "background-color:#fdd">    vnl_quaternion&lt;double&gt; const vnlQuatIn(quatIn.x(), quatIn.y(), quatIn.z(), quatIn.r());</span>
+
+<span style = "background-color:#fdd">    m_QuaternionTransform-&gt;SetRotation(vnlQuatIn);</span>
+
+    // transform each point
+<span style = "background-color:#fdd">    pointA = m_QuaternionTransform-&gt;TransformPoint(pointA);
+    pointB = m_QuaternionTransform-&gt;TransformPoint(pointB);
+    pointC = m_QuaternionTransform-&gt;TransformPoint(pointC);</span>
+
+    // add position data from NavigationData parameter to each point
+<span style = "background-color:#fdd">    pointA[0] += nd-&gt;GetPosition()[0];
+    pointA[1] += nd-&gt;GetPosition()[1];
+    pointA[2] += nd-&gt;GetPosition()[2];</span>
+
+<span style = "background-color:#fdd">    pointB[0] += nd-&gt;GetPosition()[0];
+    pointB[1] += nd-&gt;GetPosition()[1];
+    pointB[2] += nd-&gt;GetPosition()[2];</span>
+
+<span style = "background-color:#fdd">    pointC[0] += nd-&gt;GetPosition()[0];
+    pointC[1] += nd-&gt;GetPosition()[1];
+    pointC[2] += nd-&gt;GetPosition()[2];</span>
+
+
+<span style = "background-color:#fdd">    int currSize = landmarkContainer-&gt;GetSize();</span>
+    // insert transformed points in landmark container
+<span style = "background-color:#fdd">    landmarkContainer-&gt;InsertPoint(currSize++,pointA);
+    landmarkContainer-&gt;InsertPoint(currSize++,pointB);
+    landmarkContainer-&gt;InsertPoint(currSize++,pointC);
+  }</span>
+
+<span style = "background-color:#fdd">  return landmarkContainer;
+}</span>
+
+const mitk::PointSet::Pointer mitk::NavigationDataReferenceTransformFilter::GetSourceLandmarks()
+<span style = "background-color:#fdd">{
+  return m_SourceLandmarksFromNavigationDatas;
+}</span>
+
+const mitk::PointSet::Pointer mitk::NavigationDataReferenceTransformFilter::GetTargetLandmarks()
+<span style = "background-color:#fdd">{
+  return m_TargetLandmarksFromNavigationDatas;
+}</span>
+</pre>
+	</body>
+</html>

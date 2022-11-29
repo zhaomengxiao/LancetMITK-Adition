@@ -1,0 +1,356 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usServiceInterface.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+
+#ifndef USSERVICEINTERFACE_H
+#define USSERVICEINTERFACE_H
+
+#include &lt;usGlobalConfig.h&gt;
+#include &lt;usServiceException.h&gt;
+
+#include &lt;map&gt;
+#include &lt;string&gt;
+#include &lt;typeinfo&gt;
+
+US_BEGIN_NAMESPACE
+std::string GetDemangledName(const std::type_info&amp; typeInfo);
+US_END_NAMESPACE
+
+/**
+ * \ingroup MicroServices
+ *
+ * Returns a unique id for a given type. By default, the
+ * demangled name of \c T is returned.
+ *
+ * This template method may be specialized directly or be
+ * using the macro #US_DECLARE_SERVICE_INTERFACE to return
+ * a custom id for each service interface.
+ *
+ * @tparam T The service interface type.
+ * @return A unique id for the service interface type T.
+ */
+template&lt;class T&gt; std::string us_service_interface_iid()
+<span style = "background-color:#dfd">{
+  return US_PREPEND_NAMESPACE(GetDemangledName)(typeid(T));
+}</span>
+
+/// \cond
+template&lt;&gt; inline std::string us_service_interface_iid&lt;void&gt;() { return std::string(); }
+/// \endcond
+
+
+/**
+ * \ingroup MicroServices
+ *
+ * \brief Declare a service interface id.
+ *
+ * This macro associates the given identifier \e _service_interface_id (a string literal) to the
+ * interface class called _service_interface_type. The Identifier must be unique. For example:
+ *
+ * \code
+ * #include &lt;usServiceInterface.h&gt;
+ *
+ * struct ISomeInterace { ... };
+ *
+ * US_DECLARE_SERVICE_INTERFACE(ISomeInterface, "com.mycompany.service.ISomeInterface/1.0")
+ * \endcode
+ *
+ * The usage of this macro is optional and the service interface id which is automatically
+ * associated with any type is usually good enough (the demangled type name). However, care must
+ * be taken if the default id is compared with a string literal hard-coding a service interface
+ * id. E.g. the default id for templated types in the STL may differ between platforms. For
+ * user-defined types and templates the ids are typically consistent, but platform specific
+ * default template arguments will lead to different ids.
+ *
+ * This macro is normally used right after the class definition for _service_interface_type,
+ * in a header file.
+ *
+ * If you want to use #US_DECLARE_SERVICE_INTERFACE with interface classes declared in a
+ * namespace then you have to make sure the #US_DECLARE_SERVICE_INTERFACE macro call is not
+ * inside a namespace though. For example:
+ *
+ * \code
+ * #include &lt;usServiceInterface.h&gt;
+ *
+ * namespace Foo
+ * {
+ *   struct ISomeInterface { ... };
+ * }
+ *
+ * US_DECLARE_SERVICE_INTERFACE(Foo::ISomeInterface, "com.mycompany.service.ISomeInterface/1.0")
+ * \endcode
+ *
+ * @param _service_interface_type The service interface type.
+ * @param _service_interface_id A string literal representing a globally unique identifier.
+ */
+#define US_DECLARE_SERVICE_INTERFACE(_service_interface_type, _service_interface_id)               \
+  template&lt;&gt; inline std::string us_service_interface_iid&lt;_service_interface_type&gt;()                \
+  { return _service_interface_id; }                                                                \
+
+
+US_BEGIN_NAMESPACE
+
+class ServiceFactory;
+
+/**
+ * @ingroup MicroServices
+ *
+ * A helper type used in several methods to get proper
+ * method overload resolutions.
+ */
+template&lt;class Interface&gt;
+struct InterfaceType {};
+
+/**
+ * @ingroup MicroServices
+ *
+ * A map containing interfaces ids and their corresponding service object
+ * pointers. InterfaceMap instances represent a complete service object
+ * which implementes one or more service interfaces. For each implemented
+ * service interface, there is an entry in the map with the key being
+ * the service interface id and the value a pointer to the service
+ * interface implementation.
+ *
+ * To create InterfaceMap instances, use the MakeInterfaceMap helper class.
+ *
+ * @note This is a low-level type and should only rarely be used.
+ *
+ * @see MakeInterfaceMap
+ */
+typedef std::map&lt;std::string, void*&gt; InterfaceMap;
+
+
+template&lt;class I&gt;
+bool InsertInterfaceType(InterfaceMap&amp; im, I* i)
+<span style = "background-color:#dfd">{
+  if (us_service_interface_iid&lt;I&gt;().empty())</span>
+  {
+<span style = "background-color:#fdd">    throw ServiceException(std::string("The interface class ") + typeid(I).name() +</span>
+                                " uses an invalid id in its US_DECLARE_SERVICE_INTERFACE macro call.");
+  }
+<span style = "background-color:#dfd">  im.insert(std::make_pair(std::string(us_service_interface_iid&lt;I&gt;()),</span>
+                           static_cast&lt;void*&gt;(static_cast&lt;I*&gt;(i))));
+<span style = "background-color:#dfd">  return true;
+}</span>
+
+template&lt;&gt;
+inline bool InsertInterfaceType&lt;void&gt;(InterfaceMap&amp;, void*)
+{
+  return false;
+}
+
+
+/**
+ * @ingroup MicroServices
+ *
+ * Helper class for constructing InterfaceMap instances based
+ * on service implementations or service factories.
+ *
+ * Example usage:
+ * \code
+ * MyService service; // implementes I1 and I2
+ * InterfaceMap im = MakeInterfaceMap&lt;I1,I2&gt;(&amp;service);
+ * \endcode
+ *
+ * The MakeInterfaceMap supports service implementations with
+ * up to three service interfaces.
+ *
+ * @see InterfaceMap
+ */
+template&lt;class I1, class I2 = void, class I3 = void&gt;
+struct MakeInterfaceMap
+{
+  ServiceFactory* m_factory;
+  I1* m_interface1;
+  I2* m_interface2;
+  I3* m_interface3;
+
+  /**
+   * Constructor taking a service implementation pointer.
+   *
+   * @param impl A service implementation pointer, which must
+   *        be castable to a all specified service interfaces.
+   */
+  template&lt;class Impl&gt;
+  MakeInterfaceMap(Impl* impl)
+    : m_factory(nullptr)
+    , m_interface1(static_cast&lt;I1*&gt;(impl))
+    , m_interface2(static_cast&lt;I2*&gt;(impl))
+    , m_interface3(static_cast&lt;I3*&gt;(impl))
+  {}
+
+  /**
+   * Constructor taking a service factory.
+   *
+   * @param factory A service factory.
+   */
+  MakeInterfaceMap(ServiceFactory* factory)
+    : m_factory(factory)
+    , m_interface1(nullptr)
+    , m_interface2(nullptr)
+    , m_interface3(nullptr)
+  {
+    if (factory == nullptr)
+    {
+      throw ServiceException("The service factory argument must not be nullptr.");
+    }
+  }
+
+  operator InterfaceMap ()
+  {
+    InterfaceMap sim;
+    InsertInterfaceType(sim, m_interface1);
+    InsertInterfaceType(sim, m_interface2);
+    InsertInterfaceType(sim, m_interface3);
+
+    if (m_factory)
+    {
+      sim.insert(std::make_pair(std::string("org.cppmicroservices.factory"),
+                                static_cast&lt;void*&gt;(m_factory)));
+    }
+
+    return sim;
+  }
+};
+
+/// \cond
+template&lt;class I1, class I2&gt;
+struct MakeInterfaceMap&lt;I1,I2,void&gt;
+{
+  ServiceFactory* m_factory;
+  I1* m_interface1;
+  I2* m_interface2;
+
+  template&lt;class Impl&gt;
+  MakeInterfaceMap(Impl* impl)
+    : m_factory(nullptr)
+    , m_interface1(static_cast&lt;I1*&gt;(impl))
+    , m_interface2(static_cast&lt;I2*&gt;(impl))
+  {}
+
+  MakeInterfaceMap(ServiceFactory* factory)
+    : m_factory(factory)
+    , m_interface1(nullptr)
+    , m_interface2(nullptr)
+  {
+    if (factory == nullptr)
+    {
+      throw ServiceException("The service factory argument must not be nullptr.");
+    }
+  }
+
+  operator InterfaceMap ()
+  {
+    InterfaceMap sim;
+    InsertInterfaceType(sim, m_interface1);
+    InsertInterfaceType(sim, m_interface2);
+
+    if (m_factory)
+    {
+      sim.insert(std::make_pair(std::string("org.cppmicroservices.factory"),
+                                static_cast&lt;void*&gt;(m_factory)));
+    }
+
+    return sim;
+  }
+};
+
+template&lt;class I1&gt;
+struct MakeInterfaceMap&lt;I1,void,void&gt;
+{
+  ServiceFactory* m_factory;
+  I1* m_interface1;
+
+  template&lt;class Impl&gt;
+  MakeInterfaceMap(Impl* impl)
+<span style = "background-color:#dfd">    : m_factory(nullptr)
+    , m_interface1(static_cast&lt;I1*&gt;(impl))
+  {}</span>
+
+  MakeInterfaceMap(ServiceFactory* factory)
+<span style = "background-color:#dfd">    : m_factory(factory)
+    , m_interface1(nullptr)
+  {
+    if (factory == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      throw ServiceException("The service factory argument must not be nullptr.");</span>
+    }
+<span style = "background-color:#dfd">  }</span>
+
+  operator InterfaceMap ()
+<span style = "background-color:#dfd">  {
+    InterfaceMap sim;
+    InsertInterfaceType(sim, m_interface1);</span>
+
+<span style = "background-color:#dfd">    if (m_factory)</span>
+    {
+<span style = "background-color:#dfd">      sim.insert(std::make_pair(std::string("org.cppmicroservices.factory"),</span>
+                                static_cast&lt;void*&gt;(m_factory)));
+    }
+
+<span style = "background-color:#dfd">    return sim;
+  }</span>
+};
+
+template&lt;&gt;
+struct MakeInterfaceMap&lt;void,void,void&gt;;
+/// \endcond
+
+/**
+ * @ingroup MicroServices
+ *
+ * Extract a service interface pointer from a given InterfaceMap instance.
+ *
+ * @param map a InterfaceMap instance.
+ * @return The service interface pointer for the service interface id of the
+ *         \c I1 interface type or nullptr if \c map does not contain an entry
+ *         for the given type.
+ *
+ * @see MakeInterfaceMap
+ */
+template&lt;class I1&gt;
+I1* ExtractInterface(const InterfaceMap&amp; map)
+<span style = "background-color:#fdd">{
+  InterfaceMap::const_iterator iter = map.find(us_service_interface_iid&lt;I1&gt;());
+  if (iter != map.end())</span>
+  {
+<span style = "background-color:#fdd">    return reinterpret_cast&lt;I1*&gt;(iter-&gt;second);</span>
+  }
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+US_END_NAMESPACE
+
+
+#endif // USSERVICEINTERFACE_H</pre>
+	</body>
+</html>

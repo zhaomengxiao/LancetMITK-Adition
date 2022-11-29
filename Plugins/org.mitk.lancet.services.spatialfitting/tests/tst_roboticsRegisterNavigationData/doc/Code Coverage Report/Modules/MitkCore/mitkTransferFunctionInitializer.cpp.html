@@ -1,0 +1,296 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTransferFunctionInitializer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTransferFunctionInitializer.h"
+
+static const char *presetNames[] = {"choose an internal transferfunction preset",
+                                    "CT Generic",
+                                    "CT Black &amp; White",
+                                    "CT Thorax large",
+                                    "CT Thorax small",
+                                    "CT Bone",
+                                    "CT Bone (with Gradient)",
+                                    "CT Cardiac",
+                                    "MR Generic"};
+
+static int numPresetNames = sizeof(presetNames) / sizeof(char *);
+
+namespace mitk
+{
+  TransferFunctionInitializer::TransferFunctionInitializer(mitk::TransferFunction::Pointer transferFunction)
+<span style = "background-color:#fdd">  {
+    if (transferFunction.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      m_transferFunction = transferFunction;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  TransferFunctionInitializer::~TransferFunctionInitializer() {}</span>
+  void TransferFunctionInitializer::GetPresetNames(std::vector&lt;std::string&gt; &amp;names)
+<span style = "background-color:#fdd">  {
+    for (int i = 0; i &lt; numPresetNames; ++i)</span>
+    {
+<span style = "background-color:#fdd">      names.push_back(presetNames[i]);
+    }
+  }</span>
+
+  void TransferFunctionInitializer::SetTransferFunction(mitk::TransferFunction::Pointer transferFunction)
+<span style = "background-color:#fdd">  {
+    m_transferFunction = transferFunction;
+  }</span>
+
+  void TransferFunctionInitializer::SetTransferFunctionMode(int mode)
+<span style = "background-color:#fdd">  {
+    if (m_transferFunction)</span>
+    {
+<span style = "background-color:#fdd">      m_Mode = mode;
+      this-&gt;InitTransferFunctionMode();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void TransferFunctionInitializer::RemoveAllPoints()
+<span style = "background-color:#fdd">  {
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;RemoveAllPoints();
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;RemoveAllPoints();
+    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;RemoveAllPoints();
+  }</span>
+
+  void TransferFunctionInitializer::SetModified()
+<span style = "background-color:#fdd">  {
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;Modified();
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;Modified();
+    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;Modified();
+  }</span>
+
+  void TransferFunctionInitializer::InitTransferFunctionMode()
+<span style = "background-color:#fdd">  {
+    if (m_transferFunction)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;RemoveAllPoints();
+      switch (this-&gt;m_Mode)</span>
+      {
+        case TF_CT_DEFAULT:
+<span style = "background-color:#fdd">          this-&gt;SetCtDefaultMode();
+          break;</span>
+
+        case TF_CT_BLACK_WHITE:
+<span style = "background-color:#fdd">          this-&gt;SetCtBlackWhiteMode();
+          break;</span>
+
+        case TF_CT_THORAX_LARGE:
+<span style = "background-color:#fdd">          this-&gt;SetCtThoraxLargeMode();
+          break;</span>
+
+        case TF_CT_THORAX_SMALL:
+<span style = "background-color:#fdd">          this-&gt;SetCtThoraxSmallMode();
+          break;</span>
+
+        case TF_CT_BONE:
+<span style = "background-color:#fdd">          this-&gt;SetCtBoneMode();
+          break;</span>
+
+        case TF_CT_BONE_GRADIENT:
+<span style = "background-color:#fdd">          this-&gt;SetCtBoneGradientMode();
+          break;</span>
+
+        case TF_CT_CARDIAC:
+<span style = "background-color:#fdd">          this-&gt;SetCtCardiacMode();
+          break;</span>
+
+        case TF_MR_GENERIC:
+<span style = "background-color:#fdd">          this-&gt;SetMrGenericMode();
+          break;</span>
+
+        default:
+<span style = "background-color:#fdd">          itkExceptionMacro(&lt;&lt; "No Mode set!");</span>
+          break;
+      }
+
+<span style = "background-color:#fdd">      this-&gt;SetModified();
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      itkExceptionMacro(&lt;&lt; "No Transferfunction set!");</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void TransferFunctionInitializer::SetCtDefaultMode()
+<span style = "background-color:#fdd">  {</span>
+    // grayvalue-&gt;opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(132.108911, 0.000000);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(197.063492, 0.041333);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(1087.917989, 0.700000);</span>
+
+    // gradient at grayvalue-&gt;opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;AddPoint(560.695000, 1.000000);</span>
+
+    // grayvalue-&gt;color
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(176.881890, 0.650980, 0.000000, 0.000000);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(239.427822, 0.933333, 0.000000, 0.000000);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(301.973753, 1.000000, 0.800000, 0.062745);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(495.866142, 1.000000, 0.905882, 0.666667);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(677.249344, 1.000000, 0.882353, 0.215686);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(808.595801, 1.000000, 1.000000, 1.000000);
+  }</span>
+
+  void TransferFunctionInitializer::SetCtBlackWhiteMode()
+<span style = "background-color:#fdd">  {</span>
+    // Set Opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(135.063521, 0.0);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(948.137931, 1.0);</span>
+
+    // Set Color
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(122.088929, 0.352941, 0.352941, 0.352941);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(372.931034, 1.000000, 1.000000, 1.000000);</span>
+
+    // Set Gradient
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;Initialize();
+    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;AddPoint(560.695000, 1);
+  }</span>
+
+  void TransferFunctionInitializer::SetCtThoraxLargeMode()
+<span style = "background-color:#fdd">  {</span>
+    // grayvalue-&gt;opacity
+
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(76.721239, 0.000000);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(139.524336, 0.000000);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(274.458333, 0.228650);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(638.420139, 0.721763);</span>
+
+    // gradient at grayvalue-&gt;opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;AddPoint(560.695000, 1.000000);</span>
+
+    // grayvalue-&gt;color
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(85.382743, 0.478431, 0.000000, 0.000000);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(198.201327, 0.933333, 0.000000, 0.000000);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(254.610619, 1.000000, 0.800000, 0.062745);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(336.0907085, 1.000000, 0.905882, 0.666667);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(630.672566, 1.000000, 1.000000, 1.000000);
+  }</span>
+
+  void TransferFunctionInitializer::SetCtThoraxSmallMode()
+<span style = "background-color:#fdd">  {</span>
+    // grayvalue-&gt;opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(147.216912, 0.000000);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(274.458333, 0.228650);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(430.330882, 0.675532);</span>
+
+    // gradient at grayvalue-&gt;opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;AddPoint(560.695000, 1.000000);</span>
+
+    // grayvalue-&gt;color
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(129.607774, 0.478431, 0.000000, 0.000000);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(213.812721, 0.933333, 0.000000, 0.000000);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(348.540636, 1.000000, 0.800000, 0.062745);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(500.419118, 1.000000, 0.898039, 0.776471);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(579.268382, 1.000000, 1.000000, 1.000000);
+  }</span>
+
+  void TransferFunctionInitializer::SetCtBoneMode()
+<span style = "background-color:#fdd">  {</span>
+    // grayvalue-&gt;opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(126.413793, 0.000000);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(178.312160, 0.014663);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(247.509982, 0.000000);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(1013.010889, 1.000000);</span>
+
+    // gradient at grayvalue-&gt;opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;AddPoint(485.377495, 1.000000);</span>
+
+    // grayvalue-&gt;color
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(312.382940, 1.000000, 0.564706, 0.274510);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(455.103448, 1.000000, 0.945098, 0.768627);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(623.773140, 1.000000, 0.800000, 0.333333);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(796.767695, 1.000000, 0.901961, 0.815686);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(930.838475, 1.000000, 1.000000, 1.000000);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(1073.558984, 1.000000, 0.839216, 0.423529);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(1220.604356, 1.000000, 0.772549, 0.490196);
+  }</span>
+
+  void TransferFunctionInitializer::SetCtBoneGradientMode()
+<span style = "background-color:#fdd">  {</span>
+    // grayvalue-&gt;opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(126.413793, 0.000000);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(186.961887, 0.146628);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(247.509982, 0.000000);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(1013.010889, 1.000000);</span>
+
+    // gradient at grayvalue-&gt;opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;AddPoint(22.617060, 0.000000);
+    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;AddPoint(65.865699, 1.000000);</span>
+
+    // grayvalue-&gt;color
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(312.382940, 1.000000, 0.564706, 0.274510);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(455.103448, 1.000000, 0.945098, 0.768627);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(623.773140, 1.000000, 0.800000, 0.333333);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(796.767695, 1.000000, 0.901961, 0.815686);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(930.838475, 1.000000, 1.000000, 1.000000);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(1073.558984, 1.000000, 0.839216, 0.423529);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(1220.604356, 1.000000, 0.772549, 0.490196);
+  }</span>
+
+  void TransferFunctionInitializer::SetCtCardiacMode()
+<span style = "background-color:#fdd">  {</span>
+    // Set Opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(150.246824, 0.000000);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(179.974592, 0.202346);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(276.589837, 0.000000);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(781.961887, 1.000000);</span>
+
+    // Set Color
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(395.500907, 1.000000, 0.000000, 0.000000);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(410.364791, 1.000000, 0.749020, 0.000000);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(484.684211, 1.000000, 0.878431, 0.662745);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(588.731397, 1.000000, 0.784314, 0.482353);</span>
+
+    // Set Gradient
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;AddPoint(246.862069, 0.215827);
+  }</span>
+
+  void TransferFunctionInitializer::SetMrGenericMode()
+<span style = "background-color:#fdd">  {</span>
+    // Set Opacity
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(0, 0);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(20, 0);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(40, 0.15);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(120, 0.3);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(220, 0.375);
+    m_transferFunction-&gt;GetScalarOpacityFunction()-&gt;AddPoint(1024, 0.5);</span>
+
+    // Set Color
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(0, 0, 0, 0);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(20, 0.168627, 0, 0);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(40, 0.403922, 0.145098, 0.0784314);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(120, 0.780392, 0.607843, 0.380392);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(220, 0.847059, 0.835294, 0.788235);
+    m_transferFunction-&gt;GetColorTransferFunction()-&gt;AddRGBPoint(1024, 1, 1, 1);</span>
+
+    // Set Gradient
+<span style = "background-color:#fdd">    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;AddPoint(0, 1);
+    m_transferFunction-&gt;GetGradientOpacityFunction()-&gt;AddPoint(255, 1);
+  }</span>
+
+<span style = "background-color:#fdd">  mitk::TransferFunction::Pointer TransferFunctionInitializer::GetTransferFunction() { return m_transferFunction; }</span>
+} // namespace</pre>
+	</body>
+</html>

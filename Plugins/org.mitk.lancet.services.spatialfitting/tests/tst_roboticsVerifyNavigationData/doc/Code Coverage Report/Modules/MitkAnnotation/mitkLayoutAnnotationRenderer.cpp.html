@@ -1,0 +1,355 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLayoutAnnotationRenderer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLayoutAnnotationRenderer.h"
+#include "mitkBaseRenderer.h"
+
+#include "mitkAnnotationUtils.h"
+#include "mitkEnumerationProperty.h"
+#include &lt;mitkVtkLayerController.h&gt;
+
+namespace mitk
+{
+<span style = "background-color:#dfd">  const std::string LayoutAnnotationRenderer::ANNOTATIONRENDERER_ID = "LayoutAnnotationRenderer";</span>
+
+<span style = "background-color:#dfd">  const std::string LayoutAnnotationRenderer::PROP_LAYOUT = "Layout";
+  const std::string LayoutAnnotationRenderer::PROP_LAYOUT_PRIORITY = PROP_LAYOUT + ".priority";
+  const std::string LayoutAnnotationRenderer::PROP_LAYOUT_ALIGNMENT = PROP_LAYOUT + ".alignment";
+  const std::string LayoutAnnotationRenderer::PROP_LAYOUT_MARGIN = PROP_LAYOUT + ".margin";</span>
+
+  void LayoutAnnotationRenderer::SetMargin2D(Annotation *Annotation, const Point2D &amp;OffsetVector)
+<span style = "background-color:#fdd">  {
+    mitk::Point2dProperty::Pointer OffsetVectorProperty = mitk::Point2dProperty::New(OffsetVector);
+    Annotation-&gt;SetProperty(PROP_LAYOUT_MARGIN, OffsetVectorProperty.GetPointer());
+  }</span>
+
+  Point2D LayoutAnnotationRenderer::GetMargin2D(Annotation *Annotation)
+<span style = "background-color:#fdd">  {
+    mitk::Point2D OffsetVector;
+    OffsetVector.Fill(0);
+    Annotation-&gt;GetPropertyValue&lt;mitk::Point2D&gt;(PROP_LAYOUT_MARGIN, OffsetVector);
+    return OffsetVector;
+  }</span>
+
+  LayoutAnnotationRenderer::LayoutAnnotationRenderer(const std::string &amp;rendererId)
+<span style = "background-color:#fdd">    : AbstractAnnotationRenderer(rendererId, LayoutAnnotationRenderer::ANNOTATIONRENDERER_ID)
+  {
+  }</span>
+
+  void LayoutAnnotationRenderer::AddAlignmentProperty(Annotation *Annotation,
+                                                      Alignment activeAlignment,
+                                                      Point2D margin,
+                                                      int priority)
+<span style = "background-color:#fdd">  {
+    EnumerationProperty::Pointer alignmentProperty(mitk::EnumerationProperty::New());
+    alignmentProperty-&gt;AddEnum("TopLeft", TopLeft);
+    alignmentProperty-&gt;AddEnum("Top", Top);
+    alignmentProperty-&gt;AddEnum("TopRight", TopRight);
+    alignmentProperty-&gt;AddEnum("BottomLeft ", BottomLeft);
+    alignmentProperty-&gt;AddEnum("Bottom", Bottom);
+    alignmentProperty-&gt;AddEnum("BottomRight", BottomRight);
+    alignmentProperty-&gt;AddEnum("Left", Left);
+    alignmentProperty-&gt;AddEnum("Right", Right);
+    alignmentProperty-&gt;SetValue(activeAlignment);
+    Annotation-&gt;AddProperty(PROP_LAYOUT_ALIGNMENT, alignmentProperty.GetPointer());
+    Annotation-&gt;SetIntProperty(PROP_LAYOUT_PRIORITY, priority);
+    SetMargin2D(Annotation, margin);
+  }</span>
+
+  void LayoutAnnotationRenderer::OnAnnotationRenderersChanged()
+<span style = "background-color:#fdd">  {
+    if (!this-&gt;GetCurrentBaseRenderer())
+      return;
+    m_AnnotationContainerMap.clear();
+    for (Annotation *annotation : this-&gt;GetServices())</span>
+    {
+<span style = "background-color:#fdd">      if (!annotation)
+        continue;
+      BaseProperty *prop = annotation-&gt;GetProperty(PROP_LAYOUT_ALIGNMENT);
+      auto *enumProb = dynamic_cast&lt;EnumerationProperty *&gt;(prop);
+      Alignment currentAlignment = TopLeft;
+      Point2D margin;
+      margin.Fill(5);
+      int priority = -1;
+      annotation-&gt;GetIntProperty(PROP_LAYOUT_PRIORITY, priority);
+      if (!enumProb)</span>
+      {
+<span style = "background-color:#fdd">        AddAlignmentProperty(annotation, currentAlignment, margin, priority);
+      }</span>
+      else
+      { // TODO19786 insert
+<span style = "background-color:#fdd">        currentAlignment = static_cast&lt;Alignment&gt;(enumProb-&gt;GetValueAsId());</span>
+      }
+<span style = "background-color:#fdd">      AnnotationRankedMap &amp;AnnotationVec = m_AnnotationContainerMap[currentAlignment];
+      if (!AnnotationVec.empty() &amp;&amp; priority &lt; 0)</span>
+      {
+<span style = "background-color:#fdd">        int max = AnnotationVec.rbegin()-&gt;first;
+        if (max &lt; 100)
+          priority = 100;</span>
+        else
+<span style = "background-color:#fdd">          priority = max + 1;</span>
+      }
+<span style = "background-color:#fdd">      AnnotationVec.insert(std::pair&lt;int, Annotation *&gt;(priority, annotation));
+    }
+    this-&gt;PrepareLayout();
+  }</span>
+
+<span style = "background-color:#fdd">  LayoutAnnotationRenderer::~LayoutAnnotationRenderer() {}
+  const std::string LayoutAnnotationRenderer::GetID() const { return ANNOTATIONRENDERER_ID; }</span>
+  LayoutAnnotationRenderer *LayoutAnnotationRenderer::GetAnnotationRenderer(const std::string &amp;rendererID)
+<span style = "background-color:#fdd">  {
+    LayoutAnnotationRenderer *result = nullptr;
+    AbstractAnnotationRenderer *registeredService =</span>
+      AnnotationUtils::GetAnnotationRenderer(ANNOTATIONRENDERER_ID, rendererID);
+<span style = "background-color:#fdd">    if (registeredService)
+      result = dynamic_cast&lt;LayoutAnnotationRenderer *&gt;(registeredService);
+    if (!result)</span>
+    {
+<span style = "background-color:#fdd">      result = new LayoutAnnotationRenderer(rendererID);
+      AnnotationUtils::RegisterAnnotationRenderer(result);</span>
+    }
+<span style = "background-color:#fdd">    return result;
+  }</span>
+
+<span style = "background-color:#fdd">  void LayoutAnnotationRenderer::OnRenderWindowModified() { PrepareLayout(); }</span>
+  void LayoutAnnotationRenderer::AddAnnotation(Annotation *Annotation,
+                                               const std::string &amp;rendererID,
+                                               Alignment alignment,
+                                               double marginX,
+                                               double marginY,
+                                               int priority)
+<span style = "background-color:#fdd">  {
+    GetAnnotationRenderer(rendererID);
+    us::ServiceProperties props;
+    props[Annotation::US_PROPKEY_AR_ID] = ANNOTATIONRENDERER_ID;
+    props[Annotation::US_PROPKEY_RENDERER_ID] = rendererID;
+    Annotation-&gt;RegisterAsMicroservice(props);
+    Point2D margin;
+    margin[0] = marginX;
+    margin[1] = marginY;
+    AddAlignmentProperty(Annotation, alignment, margin, priority);
+  }</span>
+
+  void LayoutAnnotationRenderer::AddAnnotation(
+    Annotation *Annotation, BaseRenderer *renderer, Alignment alignment, double marginX, double marginY, int priority)
+<span style = "background-color:#fdd">  {
+    AddAnnotation(Annotation, renderer-&gt;GetName(), alignment, marginX, marginY, priority);
+  }</span>
+
+  void LayoutAnnotationRenderer::PrepareLayout()
+<span style = "background-color:#fdd">  {
+    if (!this-&gt;GetCurrentBaseRenderer())
+      return;
+    int *size = this-&gt;GetCurrentBaseRenderer()-&gt;GetVtkRenderer()-&gt;GetSize();
+    PrepareTopLeftLayout(size);
+    PrepareTopLayout(size);
+    PrepareTopRightLayout(size);
+    PrepareBottomLeftLayout(size);
+    PrepareBottomLayout(size);
+    PrepareBottomRightLayout(size);
+    PrepareLeftLayout(size);
+    PrepareRightLayout(size);
+  }</span>
+  void LayoutAnnotationRenderer::PrepareTopLeftLayout(int *displaySize)
+<span style = "background-color:#fdd">  {</span>
+    double posX, posY;
+<span style = "background-color:#fdd">    Point2D margin;
+    posX = 0;
+    posY = displaySize[1];</span>
+    mitk::Annotation::Bounds bounds;
+<span style = "background-color:#fdd">    AnnotationRankedMap &amp;AnnotationMap = m_AnnotationContainerMap[TopLeft];
+    for (auto it = AnnotationMap.cbegin(); it != AnnotationMap.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      Annotation *Annotation = it-&gt;second;
+      margin = GetMargin2D(Annotation);
+      bounds = Annotation-&gt;GetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer());</span>
+
+<span style = "background-color:#fdd">      posY -= bounds.Size[1] + margin[1];
+      bounds.Position[0] = posX + margin[0];
+      bounds.Position[1] = posY;
+      Annotation-&gt;SetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer(), bounds);
+    }
+  }</span>
+  void LayoutAnnotationRenderer::PrepareTopLayout(int *displaySize)
+<span style = "background-color:#fdd">  {</span>
+    double posX, posY;
+<span style = "background-color:#fdd">    Point2D margin;
+    posX = 0;
+    posY = displaySize[1];</span>
+    mitk::Annotation::Bounds bounds;
+<span style = "background-color:#fdd">    AnnotationRankedMap &amp;AnnotationMap = m_AnnotationContainerMap[Top];
+    for (auto it = AnnotationMap.cbegin(); it != AnnotationMap.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      Annotation *Annotation = it-&gt;second;
+      margin = GetMargin2D(Annotation);
+      bounds = Annotation-&gt;GetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer());</span>
+
+<span style = "background-color:#fdd">      posX = displaySize[0] / 2 - bounds.Size[0] / 2;
+      posY -= bounds.Size[1] + margin[1];
+      bounds.Position[0] = posX;
+      bounds.Position[1] = posY;
+      Annotation-&gt;SetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer(), bounds);
+    }
+  }</span>
+  void LayoutAnnotationRenderer::PrepareTopRightLayout(int *displaySize)
+<span style = "background-color:#fdd">  {</span>
+    double posX, posY;
+<span style = "background-color:#fdd">    Point2D margin;
+    posX = 0;
+    posY = displaySize[1];</span>
+    mitk::Annotation::Bounds bounds;
+<span style = "background-color:#fdd">    AnnotationRankedMap &amp;AnnotationMap = m_AnnotationContainerMap[TopRight];
+    for (auto it = AnnotationMap.cbegin(); it != AnnotationMap.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      Annotation *Annotation = it-&gt;second;
+      margin = GetMargin2D(Annotation);
+      bounds = Annotation-&gt;GetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer());</span>
+
+<span style = "background-color:#fdd">      posX = displaySize[0] - (bounds.Size[0] + margin[0]);
+      posY -= bounds.Size[1] + margin[1];
+      bounds.Position[0] = posX;
+      bounds.Position[1] = posY;
+      Annotation-&gt;SetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer(), bounds);
+    }
+  }</span>
+
+  void LayoutAnnotationRenderer::PrepareRightLayout(int *displaySize)
+<span style = "background-color:#fdd">  {</span>
+    double posY;
+<span style = "background-color:#fdd">    Point2D margin;
+    double height = GetHeight(m_AnnotationContainerMap[Right], GetCurrentBaseRenderer());
+    posY = (height / 2.0 + displaySize[1]) / 2.0;</span>
+    mitk::Annotation::Bounds bounds;
+<span style = "background-color:#fdd">    AnnotationRankedMap &amp;AnnotationMap = m_AnnotationContainerMap[Right];
+    for (auto it = AnnotationMap.cbegin(); it != AnnotationMap.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      Annotation *Annotation = it-&gt;second;
+      margin = GetMargin2D(Annotation);
+      bounds = Annotation-&gt;GetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer());</span>
+
+<span style = "background-color:#fdd">      posY -= bounds.Size[1] + margin[1];
+      bounds.Position[0] = displaySize[0] - (bounds.Size[0] + margin[0]);
+      bounds.Position[1] = posY + margin[1];
+      Annotation-&gt;SetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer(), bounds);
+    }
+  }</span>
+
+  void LayoutAnnotationRenderer::PrepareLeftLayout(int *displaySize)
+<span style = "background-color:#fdd">  {</span>
+    double posY;
+<span style = "background-color:#fdd">    Point2D margin;
+    double height = GetHeight(m_AnnotationContainerMap[Left], GetCurrentBaseRenderer());
+    posY = (height / 2.0 + displaySize[1]) / 2.0;</span>
+    mitk::Annotation::Bounds bounds;
+<span style = "background-color:#fdd">    AnnotationRankedMap &amp;AnnotationMap = m_AnnotationContainerMap[Left];
+    for (auto it = AnnotationMap.cbegin(); it != AnnotationMap.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      Annotation *Annotation = it-&gt;second;
+      margin = GetMargin2D(Annotation);
+      bounds = Annotation-&gt;GetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer());</span>
+
+<span style = "background-color:#fdd">      posY -= bounds.Size[1] + margin[1];
+      bounds.Position[0] = margin[0];
+      bounds.Position[1] = posY;
+      Annotation-&gt;SetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer(), bounds);
+    }
+  }</span>
+
+  void LayoutAnnotationRenderer::PrepareBottomLeftLayout(int * /*displaySize*/)
+<span style = "background-color:#fdd">  {</span>
+    double posX, posY;
+<span style = "background-color:#fdd">    Point2D margin;
+    posX = 0;
+    posY = 0;</span>
+    mitk::Annotation::Bounds bounds;
+<span style = "background-color:#fdd">    AnnotationRankedMap &amp;AnnotationMap = m_AnnotationContainerMap[BottomLeft];
+    for (auto it = AnnotationMap.cbegin(); it != AnnotationMap.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      Annotation *Annotation = it-&gt;second;
+      margin = GetMargin2D(Annotation);
+      bounds = Annotation-&gt;GetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer());</span>
+
+<span style = "background-color:#fdd">      bounds.Position[0] = posX + margin[0];
+      bounds.Position[1] = posY + margin[1];
+      Annotation-&gt;SetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer(), bounds);
+      posY += bounds.Size[1] + margin[1];
+    }
+  }</span>
+  void LayoutAnnotationRenderer::PrepareBottomLayout(int *displaySize)
+<span style = "background-color:#fdd">  {</span>
+    double posX, posY;
+<span style = "background-color:#fdd">    Point2D margin;
+    posX = 0;
+    posY = 0;</span>
+    mitk::Annotation::Bounds bounds;
+<span style = "background-color:#fdd">    AnnotationRankedMap &amp;AnnotationMap = m_AnnotationContainerMap[Bottom];
+    for (auto it = AnnotationMap.cbegin(); it != AnnotationMap.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      Annotation *Annotation = it-&gt;second;
+      margin = GetMargin2D(Annotation);
+      bounds = Annotation-&gt;GetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer());</span>
+
+<span style = "background-color:#fdd">      posX = displaySize[0] / 2 - bounds.Size[0] / 2;
+      bounds.Position[0] = posX;
+      bounds.Position[1] = posY + margin[1];
+      Annotation-&gt;SetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer(), bounds);
+      posY += bounds.Size[1] + margin[1];
+    }
+  }</span>
+  void LayoutAnnotationRenderer::PrepareBottomRightLayout(int *displaySize)
+<span style = "background-color:#fdd">  {</span>
+    double posX, posY;
+<span style = "background-color:#fdd">    Point2D margin;
+    posX = 0;
+    posY = 0;</span>
+    mitk::Annotation::Bounds bounds;
+<span style = "background-color:#fdd">    AnnotationRankedMap &amp;AnnotationMap = m_AnnotationContainerMap[BottomRight];
+    for (auto it = AnnotationMap.cbegin(); it != AnnotationMap.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      Annotation *Annotation = it-&gt;second;
+      margin = GetMargin2D(Annotation);
+      bounds = Annotation-&gt;GetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer());</span>
+
+<span style = "background-color:#fdd">      posX = displaySize[0] - (bounds.Size[0] + margin[0]);
+      bounds.Position[0] = posX;
+      bounds.Position[1] = posY + margin[1];
+      Annotation-&gt;SetBoundsOnDisplay(this-&gt;GetCurrentBaseRenderer(), bounds);
+      posY += bounds.Size[1] + margin[1];
+    }
+  }</span>
+
+  double LayoutAnnotationRenderer::GetHeight(AnnotationRankedMap &amp;annotations, BaseRenderer *renderer)
+<span style = "background-color:#fdd">  {
+    double height = 0;
+    for (auto it = annotations.cbegin(); it != annotations.cend(); ++it)</span>
+    {
+<span style = "background-color:#fdd">      Annotation *annotation = it-&gt;second;
+      Annotation::Bounds bounds = annotation-&gt;GetBoundsOnDisplay(renderer);
+      height += bounds.Size[0];
+      height += GetMargin2D(annotation)[0];
+    }
+    return height;
+  }</span>
+}</pre>
+	</body>
+</html>

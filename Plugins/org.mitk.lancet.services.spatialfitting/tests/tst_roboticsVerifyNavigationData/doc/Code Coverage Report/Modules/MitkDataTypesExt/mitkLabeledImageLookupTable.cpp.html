@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabeledImageLookupTable.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLabeledImageLookupTable.h"
+#include &lt;cstdlib&gt;
+#include &lt;vtkLookupTable.h&gt;
+
+/**
+ * Default constructor. Protected to prevent "normal" creation
+ */
+<span style = "background-color:#fdd">mitk::LabeledImageLookupTable::LabeledImageLookupTable() : m_LevelWindow(128, 256)
+{
+  if (m_LookupTable == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(</span>
+      "LookupTable is nullptr, it should have been initialized by the default constructor of mitk::LookupTable");
+<span style = "background-color:#fdd">    m_LookupTable = vtkLookupTable::New();</span>
+  }
+<span style = "background-color:#fdd">  m_LookupTable-&gt;SetNumberOfTableValues(256);</span>
+
+  // set the background to black and fully transparent
+<span style = "background-color:#fdd">  m_LookupTable-&gt;SetTableValue(0, 0.0, 0.0, 0.0, 0.0);</span>
+
+  // initialize the remaining 255 colors with random values and
+  // an alpha value of 1.0
+  double r, g, b;
+
+  //
+  // Initialize the random number generator with an arbitrary seed.
+  // This way, the generated colors are random, but always the same...
+<span style = "background-color:#fdd">  std::srand(2);
+  for (vtkIdType index = 1; index &lt; 256; ++index)</span>
+  {
+<span style = "background-color:#fdd">    GenerateRandomColor(r, g, b);
+    m_LookupTable-&gt;SetTableValue(index, r, g, b);
+  }</span>
+
+  // initialize the default level/window settings,
+  // which can be accessed via GetLevelWindow();
+<span style = "background-color:#fdd">  m_LevelWindow.SetRangeMinMax(0, 255);
+  m_LevelWindow.SetWindowBounds(0, 255);
+  m_LevelWindow.SetFixed(true);
+}</span>
+
+mitk::LabeledImageLookupTable::LabeledImageLookupTable(const mitk::LabeledImageLookupTable &amp;other)
+<span style = "background-color:#fdd">  : LookupTable(other), m_LevelWindow(other.m_LevelWindow)
+{
+}</span>
+
+/**
+ * Virtual destructor
+ */
+mitk::LabeledImageLookupTable::~LabeledImageLookupTable()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::LabeledImageLookupTable &amp;mitk::LabeledImageLookupTable::operator=(const mitk::LookupTable &amp;other)
+<span style = "background-color:#fdd">{
+  LookupTable::operator=(other);
+  if (const auto *lut = dynamic_cast&lt;const LabeledImageLookupTable *&gt;(&amp;other))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_LevelWindow = lut-&gt;m_LevelWindow;</span>
+  }
+<span style = "background-color:#fdd">  return *this;
+}</span>
+
+/**
+ * Sets the color for a given label
+ * @param label The pixel value used as a label in the image
+ * @param r The red component of the rgba color value. Values sould be given in the range [0,1]
+ * @param g The green component of the rgba color value. Values sould be given in the range [0,1]
+ * @param b The blue component of the rgba color value. Values sould be given in the range [0,1]
+ * @param a The alpha component of the rgba color value. Values sould be given in the range [0,1]. Default is 1.
+ */
+void mitk::LabeledImageLookupTable::SetColorForLabel(const mitk::LabeledImageLookupTable::LabelType &amp;label,
+                                                     const double &amp;r,
+                                                     const double &amp;g,
+                                                     const double &amp;b,
+                                                     const double a)
+<span style = "background-color:#fdd">{
+  if (m_LookupTable == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro("LookupTable is nullptr, but it should have been initialized by the constructor");
+    return;</span>
+  }
+<span style = "background-color:#fdd">  m_LookupTable-&gt;SetTableValue(label, r, g, b, a);
+}</span>
+
+/**
+ * Determines the color which will be used for coloring a given label.
+ * @param label the label for which the color should be returned
+ * @returns an rgba array containing the color information for the given label
+ *          Color components are expressed as [0,1] double values.
+ */
+double *mitk::LabeledImageLookupTable::GetColorForLabel(const mitk::LabeledImageLookupTable::LabelType &amp;label)
+<span style = "background-color:#fdd">{
+  if (m_LookupTable == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro("LookupTable is nullptr, but it should have been initialized by the constructor");
+    return nullptr;</span>
+  }
+<span style = "background-color:#fdd">  return m_LookupTable-&gt;GetTableValue(label);
+}</span>
+
+/**
+ * Generates a random rgb color value. Values for rgb are in the range
+ * [0,1]
+ */
+void mitk::LabeledImageLookupTable::GenerateRandomColor(double &amp;r, double &amp;g, double &amp;b)
+<span style = "background-color:#fdd">{
+  r = GenerateRandomNumber();
+  g = GenerateRandomNumber();
+  b = GenerateRandomNumber();
+}</span>
+
+/**
+ * Generates a radnom number drawn from a uniform
+ * distribution in the range [0,1].
+ */
+double mitk::LabeledImageLookupTable::GenerateRandomNumber()
+<span style = "background-color:#fdd">{
+  return (((double)(std::rand())) / ((double)(RAND_MAX)));
+}</span>
+
+itk::LightObject::Pointer mitk::LabeledImageLookupTable::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result(new Self(*this));
+  result-&gt;UnRegister();
+  return result;
+}</span></pre>
+	</body>
+</html>

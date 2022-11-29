@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIsoDoseLevelSetProperty.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef _MITK_DOSE_ISO_LEVEL_SET_PROPERTY_H_
+#define _MITK_DOSE_ISO_LEVEL_SET_PROPERTY_H_
+
+#include "mitkBaseProperty.h"
+#include "mitkIsoDoseLevelCollections.h"
+#include "MitkRTExports.h"
+
+namespace mitk {
+
+/**
+\brief Property class for dose iso level sets.
+*/
+class MITKRT_EXPORT IsoDoseLevelSetProperty : public BaseProperty
+{
+
+protected:
+    IsoDoseLevelSet::Pointer m_IsoLevelSet;
+
+    IsoDoseLevelSetProperty();
+
+    explicit IsoDoseLevelSetProperty(const IsoDoseLevelSetProperty&amp; other);
+
+    explicit IsoDoseLevelSetProperty(IsoDoseLevelSet* levelSet);
+
+public:
+<span style = "background-color:#fdd">    mitkClassMacro(IsoDoseLevelSetProperty, BaseProperty);</span>
+
+<span style = "background-color:#fdd">    itkNewMacro(IsoDoseLevelSetProperty);
+    mitkNewMacro1Param(IsoDoseLevelSetProperty, IsoDoseLevelSet*);</span>
+
+    typedef IsoDoseLevelSet ValueType;
+
+    ~IsoDoseLevelSetProperty() override;
+
+    const IsoDoseLevelSet * GetIsoDoseLevelSet() const;
+    const IsoDoseLevelSet * GetValue() const;
+    IsoDoseLevelSet * GetIsoDoseLevelSet();
+    IsoDoseLevelSet * GetValue();
+
+
+    void SetIsoDoseLevelSet(IsoDoseLevelSet* levelSet);
+    void SetValue(IsoDoseLevelSet* levelSet);
+
+    std::string GetValueAsString() const override;
+
+    using BaseProperty::operator=;
+
+private:
+
+    itk::LightObject::Pointer InternalClone() const override;
+
+    bool IsEqual(const BaseProperty&amp; property) const override;
+    bool Assign(const BaseProperty&amp; property) override;
+
+};
+
+} // namespace mitk
+
+
+#endif /* _MITK_DOSE_ISO_LEVEL_SET_PROPERTY_H_ */</pre>
+	</body>
+</html>

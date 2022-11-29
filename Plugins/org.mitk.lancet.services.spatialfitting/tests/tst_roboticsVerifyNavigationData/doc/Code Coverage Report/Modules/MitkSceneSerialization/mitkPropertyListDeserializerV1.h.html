@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPropertyListDeserializerV1.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkPropertyListDeserializerV1_h_included
+#define mitkPropertyListDeserializerV1_h_included
+
+#include "mitkPropertyListDeserializer.h"
+
+namespace mitk
+{
+  /**
+    \brief Deserializes a mitk::PropertyList
+  */
+  class PropertyListDeserializerV1 : public PropertyListDeserializer
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(PropertyListDeserializerV1, PropertyListDeserializer);
+    itkFactorylessNewMacro(Self) // is this needed? should never be instantiated, only subclasses should</span>
+      itkCloneMacro(Self);
+
+      /**
+        \brief Reads a propertylist from file. Get result via GetOutput()
+        \return success of deserialization
+        */
+      bool Deserialize() override;
+
+  protected:
+    PropertyListDeserializerV1();
+    ~PropertyListDeserializerV1() override;
+  };
+
+} // namespace
+
+#endif</pre>
+	</body>
+</html>

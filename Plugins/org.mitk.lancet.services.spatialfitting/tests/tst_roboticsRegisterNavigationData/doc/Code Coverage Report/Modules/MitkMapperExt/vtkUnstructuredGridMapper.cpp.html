@@ -1,0 +1,231 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>vtkUnstructuredGridMapper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include "vtkUnstructuredGridMapper.h"
+
+#include "vtkExecutive.h"
+#include "vtkGarbageCollector.h"
+#include "vtkGeometryFilter.h"
+#include "vtkInformation.h"
+#include "vtkObjectFactory.h"
+#include "vtkPolyData.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkScalarsToColors.h"
+#include "vtkUnstructuredGrid.h"
+
+<span style = "background-color:#fdd">vtkStandardNewMacro(vtkUnstructuredGridMapper);</span>
+
+//----------------------------------------------------------------------------
+vtkUnstructuredGridMapper::vtkUnstructuredGridMapper()
+<span style = "background-color:#fdd">{
+  this-&gt;GeometryExtractor = nullptr;
+  this-&gt;PolyDataMapper = nullptr;
+}</span>
+
+//----------------------------------------------------------------------------
+vtkUnstructuredGridMapper::~vtkUnstructuredGridMapper()
+<span style = "background-color:#fdd">{</span>
+  // delete internally created objects.
+<span style = "background-color:#fdd">  if (this-&gt;GeometryExtractor)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;GeometryExtractor-&gt;Delete();</span>
+  }
+<span style = "background-color:#fdd">  if (this-&gt;PolyDataMapper)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;PolyDataMapper-&gt;Delete();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void vtkUnstructuredGridMapper::SetBoundingObject(mitk::BoundingObject *bo)
+<span style = "background-color:#fdd">{
+  m_BoundingObject = bo;
+}</span>
+
+//----------------------------------------------------------------------------
+void vtkUnstructuredGridMapper::SetInput(vtkUnstructuredGrid *input)
+<span style = "background-color:#fdd">{
+  this-&gt;SetInputDataObject(input);
+}</span>
+
+//----------------------------------------------------------------------------
+vtkUnstructuredGrid *vtkUnstructuredGridMapper::GetInput()
+<span style = "background-color:#fdd">{</span>
+  // return this-&gt;Superclass::GetInputAsDataSet();
+<span style = "background-color:#fdd">  return vtkUnstructuredGrid::SafeDownCast(this-&gt;GetExecutive()-&gt;GetInputData(0, 0));
+}</span>
+
+//----------------------------------------------------------------------------
+void vtkUnstructuredGridMapper::ReleaseGraphicsResources(vtkWindow *renWin)
+<span style = "background-color:#fdd">{
+  if (this-&gt;PolyDataMapper)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;PolyDataMapper-&gt;ReleaseGraphicsResources(renWin);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+//----------------------------------------------------------------------------
+void vtkUnstructuredGridMapper::ReleaseGraphicsResources(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  if (this-&gt;PolyDataMapper)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;PolyDataMapper-&gt;ReleaseGraphicsResources(renderer-&gt;GetVtkRenderer()-&gt;GetRenderWindow());</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+//----------------------------------------------------------------------------
+// Receives from Actor -&gt; maps data to primitives
+//
+void vtkUnstructuredGridMapper::Render(vtkRenderer *ren, vtkActor *act)
+<span style = "background-color:#fdd">{</span>
+  // make sure that we've been properly initialized
+  //
+<span style = "background-color:#fdd">  if (!this-&gt;GetInput())</span>
+  {
+<span style = "background-color:#fdd">    vtkErrorMacro(&lt;&lt; "No input!\n");
+    return;</span>
+  }
+
+  // Need a lookup table
+  //
+<span style = "background-color:#fdd">  if (this-&gt;LookupTable == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;CreateDefaultLookupTable();</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;LookupTable-&gt;Build();</span>
+
+  // Now can create appropriate mapper
+  //
+<span style = "background-color:#fdd">  if (this-&gt;PolyDataMapper == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    vtkGeometryFilter *gf = vtkGeometryFilter::New();
+    vtkPolyDataMapper *pm = vtkPolyDataMapper::New();
+    pm-&gt;SetInputConnection(gf-&gt;GetOutputPort());</span>
+
+<span style = "background-color:#fdd">    this-&gt;GeometryExtractor = gf;
+    this-&gt;PolyDataMapper = pm;</span>
+  }
+
+  // share clipping planes with the PolyDataMapper
+  //
+<span style = "background-color:#fdd">  if (this-&gt;ClippingPlanes != this-&gt;PolyDataMapper-&gt;GetClippingPlanes())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;PolyDataMapper-&gt;SetClippingPlanes(this-&gt;ClippingPlanes);</span>
+  }
+
+<span style = "background-color:#fdd">  if (this-&gt;m_BoundingObject)</span>
+  {
+<span style = "background-color:#fdd">    mitk::BoundingBox::BoundsArrayType bounds =</span>
+      this-&gt;m_BoundingObject-&gt;GetGeometry()-&gt;CalculateBoundingBoxRelativeToTransform(nullptr)-&gt;GetBounds();
+<span style = "background-color:#fdd">    this-&gt;GeometryExtractor-&gt;SetExtent(bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]);
+    this-&gt;GeometryExtractor-&gt;ExtentClippingOn();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;GeometryExtractor-&gt;ExtentClippingOff();</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;GeometryExtractor-&gt;SetInputData(this-&gt;GetInput());
+  this-&gt;PolyDataMapper-&gt;SetInputConnection(this-&gt;GeometryExtractor-&gt;GetOutputPort());</span>
+
+  // update ourselves in case something has changed
+<span style = "background-color:#fdd">  this-&gt;PolyDataMapper-&gt;SetLookupTable(this-&gt;GetLookupTable());
+  this-&gt;PolyDataMapper-&gt;SetScalarVisibility(this-&gt;GetScalarVisibility());
+  this-&gt;PolyDataMapper-&gt;SetUseLookupTableScalarRange(this-&gt;GetUseLookupTableScalarRange());
+  this-&gt;PolyDataMapper-&gt;SetScalarRange(this-&gt;GetScalarRange());
+  this-&gt;PolyDataMapper-&gt;SetColorMode(this-&gt;GetColorMode());
+  this-&gt;PolyDataMapper-&gt;SetInterpolateScalarsBeforeMapping(this-&gt;GetInterpolateScalarsBeforeMapping());</span>
+
+<span style = "background-color:#fdd">  this-&gt;PolyDataMapper-&gt;SetScalarMode(this-&gt;GetScalarMode());
+  if (this-&gt;ScalarMode == VTK_SCALAR_MODE_USE_POINT_FIELD_DATA ||</span>
+      this-&gt;ScalarMode == VTK_SCALAR_MODE_USE_CELL_FIELD_DATA)
+  {
+<span style = "background-color:#fdd">    if (this-&gt;ArrayAccessMode == VTK_GET_ARRAY_BY_ID)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;PolyDataMapper-&gt;ColorByArrayComponent(this-&gt;ArrayId, ArrayComponent);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      this-&gt;PolyDataMapper-&gt;ColorByArrayComponent(this-&gt;ArrayName, ArrayComponent);</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  this-&gt;PolyDataMapper-&gt;Render(ren, act);
+  this-&gt;TimeToDraw = this-&gt;PolyDataMapper-&gt;GetTimeToDraw();
+}</span>
+
+//----------------------------------------------------------------------------
+void vtkUnstructuredGridMapper::PrintSelf(ostream &amp;os, vtkIndent indent)
+<span style = "background-color:#fdd">{
+  this-&gt;Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;PolyDataMapper)</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Poly Mapper: (" &lt;&lt; this-&gt;PolyDataMapper &lt;&lt; ")\n";
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Poly Mapper: (none)\n";</span>
+  }
+
+<span style = "background-color:#fdd">  if (this-&gt;GeometryExtractor)</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Geometry Extractor: (" &lt;&lt; this-&gt;GeometryExtractor &lt;&lt; ")\n";
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Geometry Extractor: (none)\n";</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+//----------------------------------------------------------------------------
+vtkMTimeType vtkUnstructuredGridMapper::GetMTime()
+<span style = "background-color:#fdd">{
+  vtkMTimeType mTime = this-&gt;vtkMapper::GetMTime();</span>
+  vtkMTimeType time;
+
+<span style = "background-color:#fdd">  if (this-&gt;LookupTable != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    time = this-&gt;LookupTable-&gt;GetMTime();
+    mTime = (time &gt; mTime ? time : mTime);</span>
+  }
+
+<span style = "background-color:#fdd">  return mTime;
+}</span>
+
+//----------------------------------------------------------------------------
+int vtkUnstructuredGridMapper::FillInputPortInformation(int vtkNotUsed(port), vtkInformation *info)
+<span style = "background-color:#fdd">{
+  info-&gt;Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkUnstructuredGrid");
+  return 1;
+}</span>
+
+//----------------------------------------------------------------------------
+void vtkUnstructuredGridMapper::ReportReferences(vtkGarbageCollector *collector)
+<span style = "background-color:#fdd">{
+  this-&gt;Superclass::ReportReferences(collector);</span>
+  // These filters share our input and are therefore involved in a
+  // reference loop.
+<span style = "background-color:#fdd">  vtkGarbageCollectorReport(collector, this-&gt;GeometryExtractor, "GeometryExtractor");
+  vtkGarbageCollectorReport(collector, this-&gt;PolyDataMapper, "PolyDataMapper");
+}</span></pre>
+	</body>
+</html>

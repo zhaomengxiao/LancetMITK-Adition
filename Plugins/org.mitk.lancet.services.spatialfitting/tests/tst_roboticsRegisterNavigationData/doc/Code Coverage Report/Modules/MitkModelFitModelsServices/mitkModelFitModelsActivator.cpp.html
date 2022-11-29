@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModelFitModelsActivator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#include &lt;usModuleActivator.h&gt;
+#include &lt;usModuleContext.h&gt;
+
+#include &lt;mitkModelFitProviderBase.h&gt;
+
+//general models
+#include "mitkGenericParamModelFactory.h"
+#include "mitkLinearModelFactory.h"
+#include "mitkT2DecayModelFactory.h"
+#include "mitkExpDecayOffsetModelFactory.h"
+
+namespace mitk
+{
+
+/*
+ * This is the module activator for the IO aspects of the "ModelFit" module.
+ */
+class ModelFitModelsActivator : public us::ModuleActivator
+{
+public:
+
+  template &lt;class TProvider&gt; void RegisterProvider(us::ModuleContext* context)
+<span style = "background-color:#dfd">  {
+    auto provider = new TProvider();
+    provider-&gt;RegisterService(context);</span>
+
+<span style = "background-color:#dfd">    m_RegisteredProviders.push_back(std::unique_ptr&lt;IModelFitProvider&gt;(provider));
+  }</span>
+
+  void Load(us::ModuleContext* context) override
+<span style = "background-color:#dfd">  {
+    m_RegisteredProviders.clear();
+    RegisterProvider&lt;mitk::ModelFitProviderBase&lt;mitk::GenericParamModelFactory&gt; &gt;(context);
+    RegisterProvider&lt;mitk::ModelFitProviderBase&lt;mitk::LinearModelFactory&gt; &gt;(context);
+    RegisterProvider&lt;mitk::ModelFitProviderBase&lt;mitk::T2DecayModelFactory&gt; &gt;(context);
+    RegisterProvider&lt;mitk::ModelFitProviderBase&lt;mitk::ExpDecayOffsetModelFactory&gt; &gt;(context);
+  }</span>
+
+  void Unload(us::ModuleContext* ) override
+<span style = "background-color:#dfd">  {
+  }</span>
+
+private:
+  std::vector&lt;std::unique_ptr&lt;IModelFitProvider&gt; &gt; m_RegisteredProviders;
+};
+
+}
+
+<span style = "background-color:#dfd">US_EXPORT_MODULE_ACTIVATOR(mitk::ModelFitModelsActivator)</span></pre>
+	</body>
+</html>

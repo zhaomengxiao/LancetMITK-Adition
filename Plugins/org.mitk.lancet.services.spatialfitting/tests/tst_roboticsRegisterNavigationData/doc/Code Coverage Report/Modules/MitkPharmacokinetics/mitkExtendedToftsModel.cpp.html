@@ -1,0 +1,195 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkExtendedToftsModel.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkExtendedToftsModel.h"
+#include "mitkConvolutionHelper.h"
+#include &lt;vnl/algo/vnl_fft_1d.h&gt;
+#include &lt;fstream&gt;
+
+<span style = "background-color:#dfd">const std::string mitk::ExtendedToftsModel::MODEL_DISPLAY_NAME = "Extended Tofts Model";</span>
+
+<span style = "background-color:#dfd">const std::string mitk::ExtendedToftsModel::NAME_PARAMETER_Ktrans = "KTrans";
+const std::string mitk::ExtendedToftsModel::NAME_PARAMETER_ve = "ve";
+const std::string mitk::ExtendedToftsModel::NAME_PARAMETER_vp = "vp";</span>
+
+<span style = "background-color:#dfd">const std::string mitk::ExtendedToftsModel::UNIT_PARAMETER_Ktrans = "ml/min/100ml";
+const std::string mitk::ExtendedToftsModel::UNIT_PARAMETER_ve = "ml/ml";
+const std::string mitk::ExtendedToftsModel::UNIT_PARAMETER_vp = "ml/ml";</span>
+
+const unsigned int mitk::ExtendedToftsModel::POSITION_PARAMETER_Ktrans = 0;
+const unsigned int mitk::ExtendedToftsModel::POSITION_PARAMETER_ve = 1;
+const unsigned int mitk::ExtendedToftsModel::POSITION_PARAMETER_vp = 2;
+
+const unsigned int mitk::ExtendedToftsModel::NUMBER_OF_PARAMETERS = 3;
+
+std::string mitk::ExtendedToftsModel::GetModelDisplayName() const
+<span style = "background-color:#fdd">{
+  return MODEL_DISPLAY_NAME;
+};</span>
+
+std::string mitk::ExtendedToftsModel::GetModelType() const
+<span style = "background-color:#dfd">{
+  return "Perfusion.MR";
+};</span>
+
+mitk::ExtendedToftsModel::ExtendedToftsModel()
+<span style = "background-color:#dfd">{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+mitk::ExtendedToftsModel::~ExtendedToftsModel()
+<span style = "background-color:#dfd">{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+mitk::ExtendedToftsModel::ParameterNamesType mitk::ExtendedToftsModel::GetParameterNames() const
+<span style = "background-color:#fdd">{
+  ParameterNamesType result;</span>
+
+<span style = "background-color:#fdd">  result.push_back(NAME_PARAMETER_Ktrans);
+  result.push_back(NAME_PARAMETER_ve);
+  result.push_back(NAME_PARAMETER_vp);</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+mitk::ExtendedToftsModel::ParametersSizeType  mitk::ExtendedToftsModel::GetNumberOfParameters()
+const
+<span style = "background-color:#fdd">{
+  return NUMBER_OF_PARAMETERS;
+}</span>
+
+mitk::ExtendedToftsModel::ParamterUnitMapType
+mitk::ExtendedToftsModel::GetParameterUnits() const
+<span style = "background-color:#fdd">{
+  ParamterUnitMapType result;</span>
+
+<span style = "background-color:#fdd">  result.insert(std::make_pair(NAME_PARAMETER_Ktrans, UNIT_PARAMETER_Ktrans));
+  result.insert(std::make_pair(NAME_PARAMETER_vp, UNIT_PARAMETER_vp));
+  result.insert(std::make_pair(NAME_PARAMETER_ve, UNIT_PARAMETER_ve));</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+
+
+mitk::ExtendedToftsModel::ParameterNamesType
+mitk::ExtendedToftsModel::GetDerivedParameterNames() const
+<span style = "background-color:#fdd">{
+  ParameterNamesType result;
+  result.push_back("kep");
+  return result;
+};</span>
+
+mitk::ExtendedToftsModel::ParametersSizeType
+mitk::ExtendedToftsModel::GetNumberOfDerivedParameters() const
+<span style = "background-color:#fdd">{
+  return 1;
+};</span>
+
+mitk::ExtendedToftsModel::ParamterUnitMapType mitk::ExtendedToftsModel::GetDerivedParameterUnits() const
+<span style = "background-color:#fdd">{
+  ParamterUnitMapType result;</span>
+
+<span style = "background-color:#fdd">  result.insert(std::make_pair("kep", "1/min"));</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::ExtendedToftsModel::ModelResultType mitk::ExtendedToftsModel::ComputeModelfunction(
+  const ParametersType&amp; parameters) const
+<span style = "background-color:#fdd">{
+  if (this-&gt;m_TimeGrid.GetSize() == 0)</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("No Time Grid Set! Cannot Calculate Signal");</span>
+  }
+
+<span style = "background-color:#fdd">  AterialInputFunctionType aterialInputFunction;
+  aterialInputFunction = GetAterialInputFunction(this-&gt;m_TimeGrid);</span>
+
+
+
+<span style = "background-color:#fdd">  unsigned int timeSteps = this-&gt;m_TimeGrid.GetSize();</span>
+
+  //Model Parameters
+<span style = "background-color:#fdd">  double ktrans = parameters[POSITION_PARAMETER_Ktrans] / 6000.0;
+  double     ve = parameters[POSITION_PARAMETER_ve];
+  double     vp = parameters[POSITION_PARAMETER_vp];</span>
+
+
+<span style = "background-color:#fdd">  if (ve == 0.0)</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("ve is 0! Cannot calculate signal");</span>
+  }
+
+<span style = "background-color:#fdd">  double lambda =  ktrans / ve;</span>
+
+<span style = "background-color:#fdd">  mitk::ModelBase::ModelResultType convolution = mitk::convoluteAIFWithExponential(this-&gt;m_TimeGrid,</span>
+      aterialInputFunction, lambda);
+
+  //Signal that will be returned by ComputeModelFunction
+<span style = "background-color:#fdd">  mitk::ModelBase::ModelResultType signal(timeSteps);
+  signal.fill(0.0);</span>
+
+<span style = "background-color:#fdd">  mitk::ModelBase::ModelResultType::iterator signalPos = signal.begin();
+  mitk::ModelBase::ModelResultType::const_iterator res = convolution.begin();</span>
+
+
+<span style = "background-color:#fdd">  for (AterialInputFunctionType::iterator Cp = aterialInputFunction.begin();
+       Cp != aterialInputFunction.end(); ++res, ++signalPos, ++Cp)</span>
+  {
+<span style = "background-color:#fdd">    *signalPos = (*Cp) * vp + ktrans * (*res);
+  }</span>
+
+<span style = "background-color:#fdd">  return signal;</span>
+
+<span style = "background-color:#fdd">}</span>
+
+
+mitk::ModelBase::DerivedParameterMapType mitk::ExtendedToftsModel::ComputeDerivedParameters(
+  const mitk::ModelBase::ParametersType&amp; parameters) const
+<span style = "background-color:#fdd">{
+  DerivedParameterMapType result;
+  double kep = parameters[POSITION_PARAMETER_Ktrans] / parameters[POSITION_PARAMETER_ve];
+  result.insert(std::make_pair("kep", kep));
+  return result;
+};</span>
+
+itk::LightObject::Pointer mitk::ExtendedToftsModel::InternalClone() const
+<span style = "background-color:#fdd">{
+  ExtendedToftsModel::Pointer newClone = ExtendedToftsModel::New();</span>
+
+<span style = "background-color:#fdd">  newClone-&gt;SetTimeGrid(this-&gt;m_TimeGrid);</span>
+
+<span style = "background-color:#fdd">  return newClone.GetPointer();
+};</span>
+
+void mitk::ExtendedToftsModel::PrintSelf(std::ostream&amp; os, ::itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);</span>
+
+
+<span style = "background-color:#fdd">};</span>
+</pre>
+	</body>
+</html>

@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkInternalEvent.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkInternalEvent_h
+#define mitkInternalEvent_h
+
+#include "itkObject.h"
+#include "itkObjectFactory.h"
+#include "mitkBaseRenderer.h"
+#include "mitkCommon.h"
+#include "mitkInteractionEvent.h"
+#include "mitkInteractionEventConst.h"
+#include &lt;string&gt;
+
+#include &lt;MitkCoreExports.h&gt;
+
+namespace mitk
+{
+  /**
+   *\brief Class to create events from within the application to signal about internal events.
+   *
+   * These events can target a specific DataInteractor, if this DataInteractor is specified in the constructor;
+   * else this parameter is set to nullptr and the event is treated as a regular event.
+   */
+  class MITKCORE_EXPORT InternalEvent : public InteractionEvent
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(InternalEvent, InteractionEvent);
+    mitkNewMacro3Param(Self, BaseRenderer *, DataInteractor *, const std::string &amp;);</span>
+
+    std::string GetSignalName() const;
+    DataInteractor *GetTargetInteractor() const;
+
+    bool IsSuperClassOf(const InteractionEvent::Pointer &amp;baseClass) const override;
+
+  protected:
+    InternalEvent(BaseRenderer *, DataInteractor *destInteractor, const std::string &amp;signalName);
+    ~InternalEvent() override;
+
+    bool IsEqual(const InteractionEvent &amp;) const override;
+
+  private:
+    DataInteractor::Pointer m_DataInteractor;
+    std::string m_SignalName;
+  };
+}
+#endif /* mitkInternalEvent_h */</pre>
+	</body>
+</html>

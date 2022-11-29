@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTextAnnotation2D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTextAnnotation2D.h"
+#include "vtkUnicodeString.h"
+#include &lt;vtkPropAssembly.h&gt;
+#include &lt;vtkTextActor.h&gt;
+#include &lt;vtkTextProperty.h&gt;
+
+mitk::TextAnnotation2D::TextAnnotation2D()
+<span style = "background-color:#fdd">{
+  mitk::Point2D position;
+  position[0] = position[1] = 0;
+  this-&gt;SetPosition2D(position);
+  this-&gt;SetOffsetVector(position);
+  this-&gt;SetText("");
+  this-&gt;SetFontSize(20);
+  this-&gt;SetColor(1.0, 1.0, 1.0);
+  this-&gt;SetStringProperty("font.family", "Arial");
+  this-&gt;SetBoolProperty("font.bold", false);
+  this-&gt;SetBoolProperty("font.italic", false);
+  this-&gt;SetBoolProperty("drawShadow", false);
+}</span>
+
+mitk::TextAnnotation2D::~TextAnnotation2D()
+<span style = "background-color:#fdd">{
+  for (BaseRenderer *renderer : m_LSH.GetRegisteredBaseRenderer())</span>
+  {
+<span style = "background-color:#fdd">    if (renderer)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;RemoveFromBaseRenderer(renderer);
+    }
+  }
+}</span>
+
+mitk::Annotation::Bounds mitk::TextAnnotation2D::GetBoundsOnDisplay(mitk::BaseRenderer *renderer) const
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);</span>
+  mitk::Annotation::Bounds bounds;
+<span style = "background-color:#fdd">  bounds.Position = ls-&gt;m_TextActor-&gt;GetPosition();</span>
+
+  double size[2];
+<span style = "background-color:#fdd">  ls-&gt;m_TextActor-&gt;GetSize(renderer-&gt;GetVtkRenderer(), size);
+  bounds.Size[0] = size[0];
+  bounds.Size[1] = size[1];
+  return bounds;
+}</span>
+
+void mitk::TextAnnotation2D::SetBoundsOnDisplay(mitk::BaseRenderer *renderer, const mitk::Annotation::Bounds &amp;bounds)
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  mitk::Point2D posT, posS;
+  posT[0] = bounds.Position[0];
+  posT[1] = bounds.Position[1];
+  posS[0] = posT[0] + 1;
+  posS[1] = posT[1] - 1;</span>
+
+<span style = "background-color:#fdd">  ls-&gt;m_TextActor-&gt;SetDisplayPosition(posT[0], posT[1]);
+  ls-&gt;m_STextActor-&gt;SetDisplayPosition(posS[0], posS[1]);
+}</span>
+
+mitk::TextAnnotation2D::LocalStorage::~LocalStorage()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::TextAnnotation2D::LocalStorage::LocalStorage()
+<span style = "background-color:#fdd">{
+  m_TextActor = vtkSmartPointer&lt;vtkTextActor&gt;::New();
+  m_TextProp = vtkSmartPointer&lt;vtkTextProperty&gt;::New();
+  m_STextActor = vtkSmartPointer&lt;vtkTextActor&gt;::New();
+  m_STextProp = vtkSmartPointer&lt;vtkTextProperty&gt;::New();
+  m_TextActor-&gt;SetTextProperty(m_TextProp);
+  m_STextActor-&gt;SetTextProperty(m_STextProp);
+  m_Assembly = vtkSmartPointer&lt;vtkPropAssembly&gt;::New();
+  m_Assembly-&gt;AddPart(m_STextActor);
+  m_Assembly-&gt;AddPart(m_TextActor);
+}</span>
+
+void mitk::TextAnnotation2D::UpdateVtkAnnotation2D(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  if (ls-&gt;IsGenerateDataRequired(renderer, this))</span>
+  {
+<span style = "background-color:#fdd">    float color[3] = {0.0, 1.0, 0.0};
+    float opacity = 1.0;
+    GetColor(color);
+    GetOpacity(opacity);
+    ls-&gt;m_TextProp-&gt;SetColor(color[0], color[1], color[2]);
+    ls-&gt;m_STextProp-&gt;SetColor(0, 0, 0);
+    ls-&gt;m_TextProp-&gt;SetFontSize(GetFontSize());
+    ls-&gt;m_TextProp-&gt;SetOpacity(opacity);
+    ls-&gt;m_STextProp-&gt;SetFontSize(GetFontSize());
+    ls-&gt;m_STextProp-&gt;SetOpacity(opacity);</span>
+
+<span style = "background-color:#fdd">    std::string fontFamilyAsString;
+    if (GetStringProperty("font.family", fontFamilyAsString) == false)</span>
+    {
+<span style = "background-color:#fdd">      fontFamilyAsString = "Arial";</span>
+    }
+<span style = "background-color:#fdd">    ls-&gt;m_TextProp-&gt;SetFontFamilyAsString(fontFamilyAsString.c_str());
+    ls-&gt;m_STextProp-&gt;SetFontFamilyAsString(fontFamilyAsString.c_str());</span>
+
+<span style = "background-color:#fdd">    bool boldFont(false);
+    GetBoolProperty("font.bold", boldFont);
+    ls-&gt;m_TextProp-&gt;SetBold(boldFont);
+    ls-&gt;m_STextProp-&gt;SetBold(boldFont);</span>
+
+<span style = "background-color:#fdd">    bool italicFont(false);
+    GetBoolProperty("font.italic", italicFont);
+    ls-&gt;m_TextProp-&gt;SetBold(italicFont);
+    ls-&gt;m_STextProp-&gt;SetBold(italicFont);</span>
+
+    bool drawShadow;
+<span style = "background-color:#fdd">    GetBoolProperty("drawShadow", drawShadow);
+    ls-&gt;m_TextProp-&gt;SetShadow(false);
+    ls-&gt;m_STextProp-&gt;SetShadow(false);
+    ls-&gt;m_STextActor-&gt;SetVisibility(drawShadow);</span>
+
+<span style = "background-color:#fdd">    ls-&gt;m_TextActor-&gt;SetInput(GetText().c_str());
+    ls-&gt;m_STextActor-&gt;SetInput(GetText().c_str());</span>
+
+<span style = "background-color:#fdd">    mitk::Point2D posT, posS;
+    posT[0] = GetPosition2D()[0] + GetOffsetVector()[0];
+    posT[1] = GetPosition2D()[1] + GetOffsetVector()[1];
+    posS[0] = posT[0] + 1;
+    posS[1] = posT[1] - 1;</span>
+
+<span style = "background-color:#fdd">    ls-&gt;m_TextActor-&gt;SetDisplayPosition(posT[0], posT[1]);
+    ls-&gt;m_STextActor-&gt;SetDisplayPosition(posS[0], posS[1]);
+    ls-&gt;UpdateGenerateDataTime();
+  }
+}</span>
+
+vtkProp *mitk::TextAnnotation2D::GetVtkProp(mitk::BaseRenderer *renderer) const
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);
+  return ls-&gt;m_Assembly;
+}</span>
+
+vtkActor2D *mitk::TextAnnotation2D::GetVtkActor2D(BaseRenderer *renderer) const
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);
+  return ls-&gt;m_TextActor;
+}</span></pre>
+	</body>
+</html>

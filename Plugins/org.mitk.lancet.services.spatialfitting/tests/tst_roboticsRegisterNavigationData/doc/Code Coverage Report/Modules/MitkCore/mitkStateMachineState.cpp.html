@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkStateMachineState.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkStateMachineState.h"
+
+mitk::StateMachineState::StateMachineState(const std::string &amp;stateName, const std::string &amp;stateMode)
+<span style = "background-color:#fdd">  : m_Name(stateName), m_StateMode(stateMode)
+{
+}</span>
+
+std::string mitk::StateMachineState::GetMode() const
+<span style = "background-color:#fdd">{
+  return m_StateMode;
+}</span>
+
+mitk::StateMachineState::~StateMachineState()
+<span style = "background-color:#fdd">{
+  m_Transitions.clear();
+}</span>
+
+bool mitk::StateMachineState::AddTransition(StateMachineTransition::Pointer transition)
+<span style = "background-color:#fdd">{
+  for (auto it = m_Transitions.begin(); it != m_Transitions.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    if (transition.GetPointer() == (*it).GetPointer())
+      return false;
+  }
+  m_Transitions.push_back(transition);
+  return true;
+}</span>
+
+mitk::StateMachineTransition::Pointer mitk::StateMachineState::GetTransition(const std::string &amp;eventClass,
+                                                                             const std::string &amp;eventVariant)
+<span style = "background-color:#fdd">{
+  TransitionVector transitions = this-&gt;GetTransitionList(eventClass, eventVariant);</span>
+
+<span style = "background-color:#fdd">  if (transitions.size() &gt; 1)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Multiple transitions have been found for event. Use non-deprecated method "</span>
+                 "StateMachineState::GetTransitionList() instead!";
+  }
+
+<span style = "background-color:#fdd">  if (transitions.empty())</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return transitions.at(0);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::StateMachineState::TransitionVector mitk::StateMachineState::GetTransitionList(const std::string &amp;eventClass,
+                                                                                     const std::string &amp;eventVariant)
+<span style = "background-color:#fdd">{
+  TransitionVector transitions;
+  mitk::StateMachineTransition::Pointer t = mitk::StateMachineTransition::New("", eventClass, eventVariant);
+  for (auto it = m_Transitions.begin(); it != m_Transitions.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    if (**it == *t) // do not switch it and t, order matters, see  mitk::StateMachineTransition == operator
+      transitions.push_back(*it);
+  }
+  return transitions;
+}</span>
+
+std::string mitk::StateMachineState::GetName() const
+<span style = "background-color:#fdd">{
+  return m_Name;
+}</span>
+
+//##Documentation
+//## Post-processing step, when builing StateMachine from XML.
+//## Parse all transitions and find the State that matches the String-Name.
+
+bool mitk::StateMachineState::ConnectTransitions(StateMap *allStates)
+<span style = "background-color:#fdd">{
+  for (auto transIt = m_Transitions.begin(); transIt != m_Transitions.end(); ++transIt)</span>
+  {
+<span style = "background-color:#fdd">    bool found = false;
+    for (auto stateIt = allStates-&gt;begin(); stateIt != allStates-&gt;end(); ++stateIt)</span>
+    {
+<span style = "background-color:#fdd">      if ((*stateIt)-&gt;GetName() == (*transIt)-&gt;GetNextStateName())</span>
+      {
+<span style = "background-color:#fdd">        (*transIt)-&gt;SetNextState(*stateIt);
+        found = true;
+        break;
+      }
+    }
+    if (!found)</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Target State not found in StateMachine.";
+      return false; // only reached if no state matching the string is found
+    }
+  }
+  return true;
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRawImageFileReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkRawImageFileReader.h"
+#include "mitkIOConstants.h"
+#include "mitkIOMimeTypes.h"
+#include "mitkITKImageImport.h"
+#include "mitkImageCast.h"
+
+#include &lt;itkImage.h&gt;
+#include &lt;itkImageFileReader.h&gt;
+#include &lt;itkRawImageIO.h&gt;
+
+mitk::RawImageFileReaderService::RawImageFileReaderService()
+<span style = "background-color:#dfd">  : AbstractFileReader(CustomMimeType(IOMimeTypes::RAW_MIMETYPE()), "ITK raw image reader")
+{
+  Options defaultOptions;</span>
+
+<span style = "background-color:#dfd">  defaultOptions[IOConstants::PIXEL_TYPE()] = IOConstants::PIXEL_TYPE_USHORT();</span>
+
+<span style = "background-color:#dfd">  std::vector&lt;std::string&gt; pixelEnum;
+  pixelEnum.push_back(IOConstants::PIXEL_TYPE_UCHAR());
+  pixelEnum.push_back(IOConstants::PIXEL_TYPE_CHAR());
+  pixelEnum.push_back(IOConstants::PIXEL_TYPE_USHORT());
+  pixelEnum.push_back(IOConstants::PIXEL_TYPE_SHORT());
+  pixelEnum.push_back(IOConstants::PIXEL_TYPE_UINT());
+  pixelEnum.push_back(IOConstants::PIXEL_TYPE_INT());
+  pixelEnum.push_back(IOConstants::PIXEL_TYPE_FLOAT());
+  pixelEnum.push_back(IOConstants::PIXEL_TYPE_DOUBLE());
+  defaultOptions[IOConstants::PIXEL_TYPE_ENUM()] = pixelEnum;</span>
+
+<span style = "background-color:#dfd">  defaultOptions[IOConstants::DIMENSION()] = std::string("3");
+  std::vector&lt;std::string&gt; dimEnum;
+  dimEnum.push_back("2");
+  dimEnum.push_back("3");
+  defaultOptions[IOConstants::DIMENSION_ENUM()] = dimEnum;</span>
+
+<span style = "background-color:#dfd">  defaultOptions[IOConstants::ENDIANNESS()] = IOConstants::ENDIANNESS_LITTLE();
+  std::vector&lt;std::string&gt; endianEnum;
+  endianEnum.push_back(IOConstants::ENDIANNESS_LITTLE());
+  endianEnum.push_back(IOConstants::ENDIANNESS_BIG());
+  defaultOptions[IOConstants::ENDIANNESS_ENUM()] = endianEnum;</span>
+
+<span style = "background-color:#dfd">  defaultOptions[IOConstants::SIZE_X()] = 0;
+  defaultOptions[IOConstants::SIZE_Y()] = 0;
+  defaultOptions[IOConstants::SIZE_Z()] = 0;</span>
+  // defaultOptions[IOConstants::SIZE_T()] = 0;
+
+<span style = "background-color:#dfd">  this-&gt;SetDefaultOptions(defaultOptions);</span>
+
+<span style = "background-color:#dfd">  this-&gt;RegisterService();
+}</span>
+
+mitk::RawImageFileReaderService::RawImageFileReaderService(const mitk::RawImageFileReaderService &amp;other)
+<span style = "background-color:#fdd">  : AbstractFileReader(other)
+{
+}</span>
+
+std::vector&lt;itk::SmartPointer&lt;mitk::BaseData&gt;&gt; mitk::RawImageFileReaderService::DoRead()
+<span style = "background-color:#fdd">{
+  std::vector&lt;mitk::BaseData::Pointer&gt; result;</span>
+
+<span style = "background-color:#fdd">  const std::string path = this-&gt;GetLocalFileName();</span>
+
+<span style = "background-color:#fdd">  const Options options = this-&gt;GetOptions();</span>
+
+<span style = "background-color:#fdd">  const std::string dimensionality = options.find(IOConstants::DIMENSION())-&gt;second.ToString();
+  const std::string pixelType = options.find(IOConstants::PIXEL_TYPE())-&gt;second.ToString();</span>
+
+<span style = "background-color:#fdd">  EndianityType endianity =</span>
+    options.find(IOConstants::ENDIANNESS())-&gt;second.ToString() == IOConstants::ENDIANNESS_LITTLE() ? LITTLE : BIG;
+  int dimensions[4];
+<span style = "background-color:#fdd">  dimensions[0] = us::any_cast&lt;int&gt;(options.find(IOConstants::SIZE_X())-&gt;second);
+  dimensions[1] = us::any_cast&lt;int&gt;(options.find(IOConstants::SIZE_Y())-&gt;second);
+  dimensions[2] = us::any_cast&lt;int&gt;(options.find(IOConstants::SIZE_Z())-&gt;second);
+  dimensions[3] = 0; // us::any_cast&lt;int&gt;(options.find(IOConstants::SIZE_T())-&gt;second);</span>
+
+  // check file dimensionality and pixel type and perform reading according to it
+<span style = "background-color:#fdd">  if (dimensionality == "2")</span>
+  {
+<span style = "background-color:#fdd">    if (pixelType == IOConstants::PIXEL_TYPE_CHAR())
+      result.push_back(TypedRead&lt;signed char, 2&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_UCHAR())
+      result.push_back(TypedRead&lt;unsigned char, 2&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_SHORT())
+      result.push_back(TypedRead&lt;signed short int, 2&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_USHORT())
+      result.push_back(TypedRead&lt;unsigned short int, 2&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_UINT())
+      result.push_back(TypedRead&lt;unsigned int, 2&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_INT())
+      result.push_back(TypedRead&lt;signed int, 2&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_FLOAT())
+      result.push_back(TypedRead&lt;float, 2&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_DOUBLE())
+      result.push_back(TypedRead&lt;double, 2&gt;(path, endianity, dimensions));</span>
+    else
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "Error while reading raw file: Dimensionality or pixel type not supported or not properly set"</span>
+                &lt;&lt; std::endl;
+    }
+<span style = "background-color:#fdd">  }
+  else if (dimensionality == "3")</span>
+  {
+<span style = "background-color:#fdd">    if (pixelType == IOConstants::PIXEL_TYPE_CHAR())
+      result.push_back(TypedRead&lt;signed char, 3&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_UCHAR())
+      result.push_back(TypedRead&lt;unsigned char, 3&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_SHORT())
+      result.push_back(TypedRead&lt;signed short int, 3&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_USHORT())
+      result.push_back(TypedRead&lt;unsigned short int, 3&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_UINT())
+      result.push_back(TypedRead&lt;unsigned int, 3&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_INT())
+      result.push_back(TypedRead&lt;signed int, 3&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_FLOAT())
+      result.push_back(TypedRead&lt;float, 3&gt;(path, endianity, dimensions));
+    else if (pixelType == IOConstants::PIXEL_TYPE_DOUBLE())
+      result.push_back(TypedRead&lt;double, 3&gt;(path, endianity, dimensions));</span>
+    else
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "Error while reading raw file: Dimensionality or pixel type not supported or not properly set"</span>
+                &lt;&lt; std::endl;
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "Error while reading raw file: Dimensionality not supported" &lt;&lt; std::endl;</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+template &lt;typename TPixel, unsigned int VImageDimensions&gt;
+mitk::BaseData::Pointer mitk::RawImageFileReaderService::TypedRead(const std::string &amp;path,
+                                                                   EndianityType endianity,
+                                                                   int *size)
+<span style = "background-color:#fdd">{</span>
+  typedef itk::Image&lt;TPixel, VImageDimensions&gt; ImageType;
+  typedef itk::ImageFileReader&lt;ImageType&gt; ReaderType;
+  typedef itk::RawImageIO&lt;TPixel, VImageDimensions&gt; IOType;
+
+<span style = "background-color:#fdd">  typename ReaderType::Pointer reader = ReaderType::New();
+  typename IOType::Pointer io = IOType::New();</span>
+
+<span style = "background-color:#fdd">  io-&gt;SetFileDimensionality(VImageDimensions);</span>
+
+<span style = "background-color:#fdd">  for (unsigned short int dim = 0; dim &lt; VImageDimensions; ++dim)</span>
+  {
+<span style = "background-color:#fdd">    io-&gt;SetDimensions(dim, size[dim]);
+  }</span>
+
+<span style = "background-color:#fdd">  if (endianity == LITTLE)</span>
+  {
+<span style = "background-color:#fdd">    io-&gt;SetByteOrderToLittleEndian();
+  }
+  else if (endianity == BIG)</span>
+  {
+<span style = "background-color:#fdd">    io-&gt;SetByteOrderToBigEndian();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "Warning: endianity not properly set. Resulting image might be incorrect";</span>
+  }
+
+<span style = "background-color:#fdd">  reader-&gt;SetImageIO(io);
+  reader-&gt;SetFileName(path);</span>
+
+  try
+  {
+<span style = "background-color:#fdd">    reader-&gt;Update();</span>
+  }
+  catch ( const itk::ExceptionObject &amp;err )
+<span style = "background-color:#fdd">  {
+    MITK_ERROR &lt;&lt; "An error occurred during the raw image reading process: ";
+    MITK_INFO &lt;&lt; err.GetDescription() &lt;&lt; std::endl;
+  }</span>
+
+<span style = "background-color:#fdd">  mitk::Image::Pointer image = mitk::Image::New();
+  mitk::CastToMitkImage(reader-&gt;GetOutput(), image);
+  image-&gt;SetVolume(reader-&gt;GetOutput()-&gt;GetBufferPointer());
+  return image.GetPointer();
+}</span>
+
+mitk::RawImageFileReaderService *mitk::RawImageFileReaderService::Clone() const
+<span style = "background-color:#fdd">{
+  return new RawImageFileReaderService(*this);
+}</span></pre>
+	</body>
+</html>

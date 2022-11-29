@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkConcreteModelParameterizerBase.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __CONCRETE_MODEL_PARAMETERIZER_BASE_H
+#define __CONCRETE_MODEL_PARAMETERIZER_BASE_H
+
+#include "mitkModelParameterizerBase.h"
+
+namespace mitk
+{
+  template &lt;class TModel&gt;
+  class ConcreteModelParameterizerBase : public ModelParameterizerBase
+  {
+  public:
+    typedef ConcreteModelParameterizerBase&lt;TModel&gt; Self;
+    typedef ModelParameterizerBase Superclass;
+    typedef itk::SmartPointer&lt; Self &gt;                            Pointer;
+    typedef itk::SmartPointer&lt; const Self &gt;                      ConstPointer;
+
+<span style = "background-color:#fdd">    itkTypeMacro(ConcreteModelParameterizerBase, ModelParameterizerBase);
+    itkFactorylessNewMacro(Self);</span>
+
+    typedef typename Superclass::ModelBaseType ModelBaseType;
+    typedef typename Superclass::ModelBasePointer ModelBasePointer;
+
+    typedef TModel ModelType;
+    typedef typename ModelType::Pointer ModelPointer;
+
+    typedef typename Superclass::StaticParameterValueType StaticParameterValueType;
+    typedef typename Superclass::StaticParameterValuesType StaticParameterValuesType;
+    typedef typename Superclass::StaticParameterMapType StaticParameterMapType;
+
+    typedef Superclass::IndexType IndexType;
+
+    /* Returns the global static parameters for the model.
+     * @remark this default implementation assumes no global static parameters exist.
+     * Thus an empty map is returned.*/
+    StaticParameterMapType GetGlobalStaticParameters() const override
+<span style = "background-color:#fdd">    {
+      StaticParameterMapType result;
+      return result;
+    };</span>
+
+    /* Returns the local static parameters for the model at the given index.
+     * @remark this default implementation assumes no local static parameters exist.
+     * Thus an empty map is returned.*/
+    StaticParameterMapType GetLocalStaticParameters(const IndexType&amp; /*currentPosition*/) const override
+<span style = "background-color:#fdd">    {
+      StaticParameterMapType result;
+      return result;
+    };</span>
+
+    /* Returns an newly generated instance of the concrete model.
+     * It is parameterized by the static parameters (returns of GetGlobalParameter() and
+     * GetLocalParameter()).
+     */
+    ModelBasePointer GenerateParameterizedModel(const IndexType&amp; currentPosition) const override
+<span style = "background-color:#fdd">    {
+      ModelPointer newModel = ModelType::New();
+      StaticParameterMapType params = this-&gt;GetGlobalStaticParameters();
+      StaticParameterMapType locals = this-&gt;GetLocalStaticParameters(currentPosition);</span>
+
+<span style = "background-color:#fdd">      params.insert(locals.begin(), locals.end());
+      newModel-&gt;SetTimeGrid(m_DefaultTimeGrid);
+      newModel-&gt;SetStaticParameters(params);</span>
+
+<span style = "background-color:#fdd">      return newModel.GetPointer();
+    };</span>
+
+    ModelBasePointer GenerateParameterizedModel() const override
+<span style = "background-color:#fdd">    {
+      ModelPointer newModel = ModelType::New();
+      StaticParameterMapType params = this-&gt;GetGlobalStaticParameters();</span>
+
+<span style = "background-color:#fdd">      newModel-&gt;SetTimeGrid(m_DefaultTimeGrid);
+      newModel-&gt;SetStaticParameters(params, false);</span>
+
+<span style = "background-color:#fdd">      return newModel.GetPointer();
+    };</span>
+
+    /* Returns a parameterization filled with zeros.
+     * @remark this default implementation assumes no special initial parameterization is suggested.
+     * Thus an zero filled vector is returned.*/
+    ParametersType GetDefaultInitialParameterization() const override
+<span style = "background-color:#fdd">    {
+      ModelPointer newModel = ModelType::New();
+      ParametersType params;
+      params.SetSize(newModel-&gt;GetNumberOfParameters());
+      params.Fill(0.0);</span>
+
+<span style = "background-color:#fdd">      return params;
+    };</span>
+
+    ParameterNamesType GetParameterNames() const  override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetParameterNames();
+    };</span>
+
+    ParametersSizeType GetNumberOfParameters() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetNumberOfParameters();
+    };</span>
+
+    ParamterScaleMapType GetParameterScales() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetParameterScales();
+    };</span>
+
+    ParamterUnitMapType GetParameterUnits() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetParameterUnits();
+    };</span>
+
+    ParameterNamesType GetDerivedParameterNames() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetDerivedParameterNames();
+    };</span>
+
+    ParametersSizeType GetNumberOfDerivedParameters() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetNumberOfDerivedParameters();
+    };</span>
+
+    DerivedParamterScaleMapType GetDerivedParameterScales() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetDerivedParameterScales();
+    };</span>
+
+    DerivedParamterUnitMapType GetDerivedParameterUnits() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetDerivedParameterUnits();
+    };</span>
+
+    std::string GetModelDisplayName() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetModelDisplayName();
+    };</span>
+
+    std::string GetModelType() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetModelType();
+    };</span>
+
+    FunctionStringType GetFunctionString() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetFunctionString();
+    };</span>
+
+    ModellClassIDType GetClassID() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetClassID();
+    };</span>
+
+    std::string GetXName() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetXName();
+    };</span>
+
+    std::string GetXAxisName() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetXAxisName();
+    };</span>
+
+    std::string GetXAxisUnit() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetXAxisUnit();
+    };</span>
+
+    std::string GetYAxisName() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetYAxisName();
+    };</span>
+
+    std::string GetYAxisUnit() const override
+<span style = "background-color:#fdd">    {
+      return GenerateParameterizedModel()-&gt;GetYAxisUnit();
+    }</span>
+
+  protected:
+<span style = "background-color:#fdd">    ConcreteModelParameterizerBase()
+    {
+    };</span>
+
+    ~ConcreteModelParameterizerBase() override
+<span style = "background-color:#fdd">    {
+    };</span>
+
+  private:
+
+    //No copy constructor allowed
+    ConcreteModelParameterizerBase(const Self&amp; source);
+    void operator=(const Self&amp;);  //purposely not implemented
+  };
+}
+
+#endif // __CONCRETE_MODEL_PARAMETERIZER_BASE_H</pre>
+	</body>
+</html>

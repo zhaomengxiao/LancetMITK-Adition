@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCoreObjectFactoryBase.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkCoreObjectFactoryBase.h"
+
+void mitk::CoreObjectFactoryBase::CreateFileExtensions(MultimapType fileExtensionsMap, std::string &amp;fileExtensions)
+<span style = "background-color:#dfd">{
+  std::map&lt;std::string, std::string&gt; aMap;</span>
+
+  // group the extensions by extension-group
+  // e.g. aMap["DICOM files"] = "*.dcm *.DCM *.dc3 *.DC3 *.gdcm"
+<span style = "background-color:#dfd">  for (auto it = fileExtensionsMap.begin(); it != fileExtensionsMap.end(); ++it)</span>
+  {
+<span style = "background-color:#dfd">    std::string aValue = aMap[(*it).second];
+    if (aValue.compare("") != 0)</span>
+    {
+<span style = "background-color:#dfd">      aValue.append(" ");</span>
+    }
+<span style = "background-color:#dfd">    aValue.append((*it).first);
+    aMap[(*it).second] = aValue;
+  }</span>
+
+  // build the "all" entry (it contains all the extensions)
+  // and add it to the string in the first position
+  // e.g. "all (*.dcm *.DCM *.dc3 *.DC3 *.gdcm *.ima *.mhd ... *.vti *.hdr *.nrrd *.nhdr );;"
+<span style = "background-color:#dfd">  fileExtensions = "known extensions (";
+  std::string lastKey = "";
+  for (auto it = fileExtensionsMap.begin(); it != fileExtensionsMap.end(); ++it)</span>
+  {
+<span style = "background-color:#dfd">    std::string aKey = (*it).first;</span>
+
+<span style = "background-color:#dfd">    if (aKey.compare(lastKey) != 0)</span>
+    {
+<span style = "background-color:#dfd">      if (lastKey.compare("") != 0)</span>
+      {
+<span style = "background-color:#dfd">        fileExtensions.append(" ");</span>
+      }
+<span style = "background-color:#dfd">      fileExtensions.append(aKey);</span>
+    }
+<span style = "background-color:#dfd">    lastKey = aKey;
+  }
+  fileExtensions.append(");;all (*);;");</span>
+
+  // build the entry for each extension-group
+  // e.g. "Sets of 2D slices (*.bmp *.png *.dcm *.gdcm *.ima *.tiff);;"
+<span style = "background-color:#dfd">  for (auto it = aMap.begin(); it != aMap.end(); ++it)</span>
+  {
+    // cout &lt;&lt; "  [" &lt;&lt; (*it).first &lt;&lt; ", " &lt;&lt; (*it).second &lt;&lt; "]" &lt;&lt; endl;
+<span style = "background-color:#dfd">    std::string aKey = (*it).first;
+    if (aKey.compare("") != 0)</span>
+    {
+<span style = "background-color:#dfd">      fileExtensions.append((*it).first);
+      fileExtensions.append(" (");
+      fileExtensions.append((*it).second);
+      fileExtensions.append(");;");</span>
+    }
+<span style = "background-color:#dfd">  }
+}</span></pre>
+	</body>
+</html>

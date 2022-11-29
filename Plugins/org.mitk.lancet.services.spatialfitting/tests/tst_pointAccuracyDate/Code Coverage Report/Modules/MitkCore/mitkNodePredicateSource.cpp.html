@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNodePredicateSource.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNodePredicateSource.h"
+
+mitk::NodePredicateSource::NodePredicateSource(mitk::DataNode *n, bool allsources, mitk::DataStorage *ds)
+<span style = "background-color:#fdd">  : NodePredicateBase(), m_BaseNode(n), m_SearchAllSources(allsources), m_DataStorage(ds)
+{
+}</span>
+
+mitk::NodePredicateSource::~NodePredicateSource()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::NodePredicateSource::CheckNode(const mitk::DataNode *childNode) const
+<span style = "background-color:#fdd">{
+  if (m_DataStorage &amp;&amp; m_BaseNode)</span>
+  {
+<span style = "background-color:#fdd">    const mitk::DataStorage::SetOfObjects::STLContainerType sources =</span>
+      m_DataStorage.Lock()-&gt;GetSources(childNode, nullptr, !m_SearchAllSources)-&gt;CastToSTLConstContainer();
+
+<span style = "background-color:#fdd">    return std::find(sources.cbegin(), sources.cend(), m_BaseNode.Lock()) != sources.cend();</span>
+  }
+
+<span style = "background-color:#fdd">  return false;
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkAbstractAnnotationRenderer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkAbstractAnnotationRenderer.h"
+#include "mitkBaseRenderer.h"
+#include "mitkRenderingManager.h"
+#include "usGetModuleContext.h"
+#include &lt;memory&gt;
+
+namespace mitk
+{
+<span style = "background-color:#dfd">  const std::string AbstractAnnotationRenderer::US_INTERFACE_NAME = "org.mitk.services.AbstractAnnotationRenderer";
+  const std::string AbstractAnnotationRenderer::US_PROPKEY_ID = US_INTERFACE_NAME + ".id";
+  const std::string AbstractAnnotationRenderer::US_PROPKEY_RENDERER_ID = US_INTERFACE_NAME + ".rendererId";</span>
+
+  AbstractAnnotationRenderer::AbstractAnnotationRenderer(const std::string &amp;rendererID, const std::string &amp;arID)
+<span style = "background-color:#fdd">    : Superclass(us::GetModuleContext(),</span>
+                 us::LDAPFilter("(&amp;(" + Annotation::US_PROPKEY_RENDERER_ID + "=" + rendererID + ")(" +
+                                Annotation::US_PROPKEY_AR_ID + "=" + arID + "))")),
+<span style = "background-color:#fdd">      m_RendererID(rendererID),
+      m_ID(arID)
+  {
+    this-&gt;Open();
+  }</span>
+
+<span style = "background-color:#fdd">  AbstractAnnotationRenderer::~AbstractAnnotationRenderer() {}
+  const std::string AbstractAnnotationRenderer::GetRendererID() const { return m_RendererID; }</span>
+  void AbstractAnnotationRenderer::CurrentBaseRendererChanged()
+<span style = "background-color:#fdd">  {
+    BaseRenderer *renderer = GetCurrentBaseRenderer();
+    if (renderer)</span>
+    {
+<span style = "background-color:#fdd">      for (Annotation *o : this-&gt;GetServices())</span>
+      {
+<span style = "background-color:#fdd">        o-&gt;AddToBaseRenderer(renderer);
+      }</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void AbstractAnnotationRenderer::RemoveAllAnnotation()
+<span style = "background-color:#fdd">  {
+    BaseRenderer *renderer = GetCurrentBaseRenderer();
+    if (renderer)</span>
+    {
+<span style = "background-color:#fdd">      for (Annotation *o : this-&gt;GetServices())</span>
+      {
+<span style = "background-color:#fdd">        o-&gt;RemoveFromBaseRenderer(renderer);
+      }</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void AbstractAnnotationRenderer::Update()
+<span style = "background-color:#fdd">  {
+    BaseRenderer *renderer = GetCurrentBaseRenderer();
+    if (renderer)</span>
+    {
+<span style = "background-color:#fdd">      for (Annotation *o : this-&gt;GetServices())</span>
+      {
+<span style = "background-color:#fdd">        o-&gt;Update(renderer);
+      }</span>
+    }
+<span style = "background-color:#fdd">  }
+  const std::string AbstractAnnotationRenderer::GetID() const { return m_ID; }</span>
+  AbstractAnnotationRenderer::TrackedType AbstractAnnotationRenderer::AddingService(
+    const AbstractAnnotationRenderer::ServiceReferenceType &amp;reference)
+<span style = "background-color:#fdd">  {
+    Annotation *Annotation = Superclass::AddingService(reference);
+    BaseRenderer *renderer = GetCurrentBaseRenderer();
+    if (Annotation &amp;&amp; renderer)</span>
+    {
+<span style = "background-color:#fdd">      Annotation-&gt;AddToBaseRenderer(renderer);</span>
+    }
+    //    OnAnnotationRenderersChanged();
+<span style = "background-color:#fdd">    return Annotation;
+  }</span>
+
+  void AbstractAnnotationRenderer::ModifiedService(const AbstractAnnotationRenderer::ServiceReferenceType &amp;,
+                                                   AbstractAnnotationRenderer::TrackedType tracked)
+<span style = "background-color:#fdd">  {
+    BaseRenderer *renderer = GetCurrentBaseRenderer();
+    if (tracked &amp;&amp; renderer)</span>
+    {
+<span style = "background-color:#fdd">      tracked-&gt;Update(renderer);</span>
+    }
+<span style = "background-color:#fdd">    OnAnnotationRenderersChanged();
+  }</span>
+
+  void AbstractAnnotationRenderer::RemovedService(const AbstractAnnotationRenderer::ServiceReferenceType &amp;,
+                                                  AbstractAnnotationRenderer::TrackedType /*tracked*/)
+<span style = "background-color:#fdd">  {
+    OnAnnotationRenderersChanged();
+  }</span>
+
+  BaseRenderer *AbstractAnnotationRenderer::GetCurrentBaseRenderer()
+<span style = "background-color:#fdd">  {
+    return BaseRenderer::GetByName(this-&gt;GetRendererID());
+  }</span>
+}</pre>
+	</body>
+</html>

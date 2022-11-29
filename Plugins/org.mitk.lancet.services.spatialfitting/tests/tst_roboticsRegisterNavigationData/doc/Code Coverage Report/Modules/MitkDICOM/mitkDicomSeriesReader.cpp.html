@@ -1,0 +1,1873 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDicomSeriesReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+// uncomment for learning more about the internal sorting mechanisms
+//#define MBILOG_ENABLE_DEBUG
+
+#include &lt;legacy/mitkDicomSeriesReader.h&gt;
+#include &lt;mitkImage.h&gt;
+#include &lt;mitkImageCast.h&gt;
+#include &lt;mitkLocaleSwitch.h&gt;
+
+#include &lt;itkGDCMSeriesFileNames.h&gt;
+
+#include &lt;gdcmAttribute.h&gt;
+#include &lt;gdcmDirectory.h&gt;
+#include &lt;gdcmPixmapReader.h&gt;
+#include &lt;gdcmRAWCodec.h&gt;
+#include &lt;gdcmScanner.h&gt;
+#include &lt;gdcmSorter.h&gt;
+#include &lt;gdcmStringFilter.h&gt;
+#include &lt;gdcmUIDs.h&gt;
+
+#include "mitkProperties.h"
+
+namespace mitk
+{
+  std::string DicomSeriesReader::ReaderImplementationLevelToString(const ReaderImplementationLevel &amp;enumValue)
+<span style = "background-color:#fdd">  {
+    switch (enumValue)</span>
+    {
+      case ReaderImplementationLevel_Supported:
+<span style = "background-color:#fdd">        return "Supported";</span>
+      case ReaderImplementationLevel_PartlySupported:
+<span style = "background-color:#fdd">        return "PartlySupported";</span>
+      case ReaderImplementationLevel_Implemented:
+<span style = "background-color:#fdd">        return "Implemented";</span>
+      case ReaderImplementationLevel_Unsupported:
+<span style = "background-color:#fdd">        return "Unsupported";</span>
+      default:
+<span style = "background-color:#fdd">        return "&lt;unknown value of enum ReaderImplementationLevel&gt;";</span>
+    };
+<span style = "background-color:#fdd">  }</span>
+
+  std::string DicomSeriesReader::PixelSpacingInterpretationToString(const PixelSpacingInterpretation &amp;enumValue)
+<span style = "background-color:#fdd">  {
+    switch (enumValue)</span>
+    {
+      case PixelSpacingInterpretation_SpacingInPatient:
+<span style = "background-color:#fdd">        return "In Patient";</span>
+      case PixelSpacingInterpretation_SpacingAtDetector:
+<span style = "background-color:#fdd">        return "At Detector";</span>
+      case PixelSpacingInterpretation_SpacingUnknown:
+<span style = "background-color:#fdd">        return "Unknown spacing";</span>
+      default:
+<span style = "background-color:#fdd">        return "&lt;unknown value of enum PixelSpacingInterpretation&gt;";</span>
+    };
+<span style = "background-color:#fdd">  }</span>
+
+  const DicomSeriesReader::TagToPropertyMapType &amp;DicomSeriesReader::GetDICOMTagsToMITKPropertyMap()
+<span style = "background-color:#fdd">  {</span>
+    static bool initialized = false;
+<span style = "background-color:#fdd">    static TagToPropertyMapType dictionary;
+    if (!initialized)</span>
+    {
+      /*
+         Selection criteria:
+         - no sequences because we cannot represent that
+         - nothing animal related (specied, breed registration number), MITK focusses on human medical image processing.
+         - only general attributes so far
+
+         When extending this, we should make use of a real dictionary (GDCM/DCMTK and lookup the tag names there)
+      */
+
+      // Patient module
+<span style = "background-color:#fdd">      dictionary["0010|0010"] = "dicom.patient.PatientsName";
+      dictionary["0010|0020"] = "dicom.patient.PatientID";
+      dictionary["0010|0030"] = "dicom.patient.PatientsBirthDate";
+      dictionary["0010|0040"] = "dicom.patient.PatientsSex";
+      dictionary["0010|0032"] = "dicom.patient.PatientsBirthTime";
+      dictionary["0010|1000"] = "dicom.patient.OtherPatientIDs";
+      dictionary["0010|1001"] = "dicom.patient.OtherPatientNames";
+      dictionary["0010|2160"] = "dicom.patient.EthnicGroup";
+      dictionary["0010|4000"] = "dicom.patient.PatientComments";
+      dictionary["0012|0062"] = "dicom.patient.PatientIdentityRemoved";
+      dictionary["0012|0063"] = "dicom.patient.DeIdentificationMethod";</span>
+
+      // General Study module
+<span style = "background-color:#fdd">      dictionary["0020|000d"] = "dicom.study.StudyInstanceUID";
+      dictionary["0008|0020"] = "dicom.study.StudyDate";
+      dictionary["0008|0030"] = "dicom.study.StudyTime";
+      dictionary["0008|0090"] = "dicom.study.ReferringPhysiciansName";
+      dictionary["0020|0010"] = "dicom.study.StudyID";
+      dictionary["0008|0050"] = "dicom.study.AccessionNumber";
+      dictionary["0008|1030"] = "dicom.study.StudyDescription";
+      dictionary["0008|1048"] = "dicom.study.PhysiciansOfRecord";
+      dictionary["0008|1060"] = "dicom.study.NameOfPhysicianReadingStudy";</span>
+
+      // General Series module
+<span style = "background-color:#fdd">      dictionary["0008|0060"] = "dicom.series.Modality";
+      dictionary["0020|000e"] = "dicom.series.SeriesInstanceUID";
+      dictionary["0020|0011"] = "dicom.series.SeriesNumber";
+      dictionary["0020|0060"] = "dicom.series.Laterality";
+      dictionary["0008|0021"] = "dicom.series.SeriesDate";
+      dictionary["0008|0031"] = "dicom.series.SeriesTime";
+      dictionary["0008|1050"] = "dicom.series.PerformingPhysiciansName";
+      dictionary["0018|1030"] = "dicom.series.ProtocolName";
+      dictionary["0008|103e"] = "dicom.series.SeriesDescription";
+      dictionary["0008|1070"] = "dicom.series.OperatorsName";
+      dictionary["0018|0015"] = "dicom.series.BodyPartExamined";
+      dictionary["0018|5100"] = "dicom.series.PatientPosition";
+      dictionary["0028|0108"] = "dicom.series.SmallestPixelValueInSeries";
+      dictionary["0028|0109"] = "dicom.series.LargestPixelValueInSeries";</span>
+
+      // VOI LUT module
+<span style = "background-color:#fdd">      dictionary["0028|1050"] = "dicom.voilut.WindowCenter";
+      dictionary["0028|1051"] = "dicom.voilut.WindowWidth";
+      dictionary["0028|1055"] = "dicom.voilut.WindowCenterAndWidthExplanation";</span>
+
+      // Image Pixel module
+<span style = "background-color:#fdd">      dictionary["0028|0004"] = "dicom.pixel.PhotometricInterpretation";
+      dictionary["0028|0010"] = "dicom.pixel.Rows";
+      dictionary["0028|0011"] = "dicom.pixel.Columns";</span>
+
+      // Image Plane module
+<span style = "background-color:#fdd">      dictionary["0028|0030"] = "dicom.PixelSpacing";
+      dictionary["0018|1164"] = "dicom.ImagerPixelSpacing";</span>
+
+      // Misc
+<span style = "background-color:#fdd">      dictionary["0008|0005"] = "dicom.SpecificCharacterSet";</span>
+
+<span style = "background-color:#fdd">      initialized = true;</span>
+    }
+
+<span style = "background-color:#fdd">    return dictionary;
+  }</span>
+
+  DataNode::Pointer DicomSeriesReader::LoadDicomSeries(const StringContainer &amp;filenames,
+                                                       bool sort,
+                                                       bool check_4d,
+                                                       bool correctTilt,
+                                                       UpdateCallBackMethod callback,
+                                                       Image::Pointer preLoadedImageBlock)
+<span style = "background-color:#fdd">  {
+    DataNode::Pointer node = DataNode::New();</span>
+
+<span style = "background-color:#fdd">    if (DicomSeriesReader::LoadDicomSeries(</span>
+          filenames, *node, sort, check_4d, correctTilt, callback, preLoadedImageBlock))
+    {
+<span style = "background-color:#fdd">      if (filenames.empty())</span>
+      {
+<span style = "background-color:#fdd">        return nullptr;</span>
+      }
+
+<span style = "background-color:#fdd">      return node;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  bool DicomSeriesReader::LoadDicomSeries(const StringContainer &amp;filenames,
+                                          DataNode &amp;node,
+                                          bool sort,
+                                          bool check_4d,
+                                          bool correctTilt,
+                                          UpdateCallBackMethod callback,
+                                          itk::SmartPointer&lt;Image&gt; preLoadedImageBlock)
+<span style = "background-color:#fdd">  {
+    if (filenames.empty())</span>
+    {
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "Calling LoadDicomSeries with empty filename string container. Probably invalid application logic.";
+      node.SetData(nullptr);
+      return true; // this is not actually an error but the result is very simple</span>
+    }
+
+<span style = "background-color:#fdd">    DcmIoType::Pointer io = DcmIoType::New();</span>
+
+    try
+    {
+<span style = "background-color:#fdd">      if (io-&gt;CanReadFile(filenames.front().c_str()))</span>
+      {
+<span style = "background-color:#fdd">        io-&gt;SetFileName(filenames.front().c_str());
+        io-&gt;ReadImageInformation();</span>
+
+<span style = "background-color:#fdd">        if (io-&gt;GetPixelType() == itk::IOPixelEnum::SCALAR || io-&gt;GetPixelType() == itk::IOPixelEnum::RGB)</span>
+        {
+<span style = "background-color:#fdd">          LoadDicom(filenames, node, sort, check_4d, correctTilt, callback, preLoadedImageBlock);</span>
+        }
+
+<span style = "background-color:#fdd">        if (node.GetData())</span>
+        {
+<span style = "background-color:#fdd">          return true;</span>
+        }
+      }
+    }
+    catch ( const itk::MemoryAllocationError &amp;e )
+<span style = "background-color:#fdd">    {
+      MITK_ERROR &lt;&lt; "Out of memory. Cannot load DICOM series: " &lt;&lt; e.what();
+    }</span>
+    catch ( const std::exception &amp;e )
+<span style = "background-color:#fdd">    {
+      MITK_ERROR &lt;&lt; "Error encountered when loading DICOM series:" &lt;&lt; e.what();
+    }</span>
+    catch (...)
+<span style = "background-color:#fdd">    {
+      MITK_ERROR &lt;&lt; "Unspecified error encountered when loading DICOM series.";
+    }</span>
+
+<span style = "background-color:#fdd">    return false;
+  }</span>
+
+  bool DicomSeriesReader::IsDicom(const std::string &amp;filename)
+<span style = "background-color:#fdd">  {
+    DcmIoType::Pointer io = DcmIoType::New();</span>
+
+<span style = "background-color:#fdd">    return io-&gt;CanReadFile(filename.c_str());
+  }</span>
+
+  bool DicomSeriesReader::IsPhilips3DDicom(const std::string &amp;filename)
+<span style = "background-color:#fdd">  {
+    DcmIoType::Pointer io = DcmIoType::New();</span>
+
+<span style = "background-color:#fdd">    if (io-&gt;CanReadFile(filename.c_str()))</span>
+    {
+      // Look at header Tag 3001,0010 if it is "Philips3D"
+<span style = "background-color:#fdd">      gdcm::Reader reader;
+      reader.SetFileName(filename.c_str());
+      reader.Read();
+      gdcm::DataSet &amp;data_set = reader.GetFile().GetDataSet();
+      gdcm::StringFilter sf;
+      sf.SetFile(reader.GetFile());</span>
+
+<span style = "background-color:#fdd">      if (data_set.FindDataElement(gdcm::Tag(0x3001, 0x0010)) &amp;&amp;</span>
+          (sf.ToString(gdcm::Tag(0x3001, 0x0010)) == "Philips3D "))
+      {
+<span style = "background-color:#fdd">        return true;</span>
+      }
+<span style = "background-color:#fdd">    }
+    return false;
+  }</span>
+
+  bool DicomSeriesReader::ReadPhilips3DDicom(const std::string &amp;filename, itk::SmartPointer&lt;Image&gt; output_image)
+<span style = "background-color:#fdd">  {</span>
+    // Now get PhilipsSpecific Tags
+
+<span style = "background-color:#fdd">    gdcm::PixmapReader reader;
+    reader.SetFileName(filename.c_str());
+    reader.Read();
+    gdcm::DataSet &amp;data_set = reader.GetFile().GetDataSet();
+    gdcm::StringFilter sf;
+    sf.SetFile(reader.GetFile());</span>
+
+    gdcm::Attribute&lt;0x0028, 0x0011&gt; dimTagX; // coloumns || sagittal
+    gdcm::Attribute&lt;0x3001, 0x1001, gdcm::VR::UL, gdcm::VM::VM1&gt;
+      dimTagZ;                                 // I have no idea what is VM1. // (Philips specific) // axial
+    gdcm::Attribute&lt;0x0028, 0x0010&gt; dimTagY;   // rows || coronal
+    gdcm::Attribute&lt;0x0028, 0x0008&gt; dimTagT;   // how many frames
+    gdcm::Attribute&lt;0x0018, 0x602c&gt; spaceTagX; // Spacing in X , unit is "physicalTagx" (usually centimeter)
+    gdcm::Attribute&lt;0x0018, 0x602e&gt; spaceTagY;
+    gdcm::Attribute&lt;0x3001, 0x1003, gdcm::VR::FD, gdcm::VM::VM1&gt; spaceTagZ; // (Philips specific)
+    gdcm::Attribute&lt;0x0018, 0x6024&gt; physicalTagX;                           // if 3, then spacing params are centimeter
+    gdcm::Attribute&lt;0x0018, 0x6026&gt; physicalTagY;
+    gdcm::Attribute&lt;0x3001, 0x1002, gdcm::VR::US, gdcm::VM::VM1&gt; physicalTagZ; // (Philips specific)
+
+<span style = "background-color:#fdd">    dimTagX.Set(data_set);
+    dimTagY.Set(data_set);
+    dimTagZ.Set(data_set);
+    dimTagT.Set(data_set);
+    spaceTagX.Set(data_set);
+    spaceTagY.Set(data_set);
+    spaceTagZ.Set(data_set);
+    physicalTagX.Set(data_set);
+    physicalTagY.Set(data_set);
+    physicalTagZ.Set(data_set);</span>
+
+<span style = "background-color:#fdd">    unsigned int dimX = dimTagX.GetValue(), dimY = dimTagY.GetValue(), dimZ = dimTagZ.GetValue(),
+                 dimT = dimTagT.GetValue(), physicalX = physicalTagX.GetValue(), physicalY = physicalTagY.GetValue(),
+                 physicalZ = physicalTagZ.GetValue();</span>
+
+<span style = "background-color:#fdd">    float spaceX = spaceTagX.GetValue(), spaceY = spaceTagY.GetValue(), spaceZ = spaceTagZ.GetValue();</span>
+
+<span style = "background-color:#fdd">    if (physicalX == 3) // spacing parameter in cm, have to convert it to mm.
+      spaceX = spaceX * 10;</span>
+
+<span style = "background-color:#fdd">    if (physicalY == 3) // spacing parameter in cm, have to convert it to mm.
+      spaceY = spaceY * 10;</span>
+
+<span style = "background-color:#fdd">    if (physicalZ == 3) // spacing parameter in cm, have to convert it to mm.
+      spaceZ = spaceZ * 10;</span>
+
+    // Ok, got all necessary Tags!
+    // Now read Pixeldata (7fe0,0010) X x Y x Z x T Elements
+
+<span style = "background-color:#fdd">    const gdcm::Pixmap &amp;pixels = reader.GetPixmap();
+    gdcm::RAWCodec codec;</span>
+
+<span style = "background-color:#fdd">    codec.SetPhotometricInterpretation(gdcm::PhotometricInterpretation::MONOCHROME2);
+    codec.SetPixelFormat(pixels.GetPixelFormat());
+    codec.SetPlanarConfiguration(0);</span>
+
+<span style = "background-color:#fdd">    gdcm::DataElement out;
+    codec.Decode(data_set.GetDataElement(gdcm::Tag(0x7fe0, 0x0010)), out);</span>
+
+<span style = "background-color:#fdd">    const gdcm::ByteValue *bv = out.GetByteValue();
+    const char *new_pixels = bv-&gt;GetPointer();</span>
+
+    // Create MITK Image + Geometry
+    typedef itk::Image&lt;unsigned char, 4&gt;
+      ImageType; // Pixeltype might be different sometimes? Maybe read it out from header
+<span style = "background-color:#fdd">    ImageType::RegionType myRegion;</span>
+    ImageType::SizeType mySize;
+    ImageType::IndexType myIndex;
+    ImageType::SpacingType mySpacing;
+<span style = "background-color:#fdd">    ImageType::Pointer imageItk = ImageType::New();</span>
+
+<span style = "background-color:#fdd">    mySpacing[0] = spaceX;
+    mySpacing[1] = spaceY;
+    mySpacing[2] = spaceZ;
+    mySpacing[3] = 1;
+    myIndex[0] = 0;
+    myIndex[1] = 0;
+    myIndex[2] = 0;
+    myIndex[3] = 0;
+    mySize[0] = dimX;
+    mySize[1] = dimY;
+    mySize[2] = dimZ;
+    mySize[3] = dimT;
+    myRegion.SetSize(mySize);
+    myRegion.SetIndex(myIndex);
+    imageItk-&gt;SetSpacing(mySpacing);
+    imageItk-&gt;SetRegions(myRegion);
+    imageItk-&gt;Allocate();
+    imageItk-&gt;FillBuffer(0);</span>
+
+<span style = "background-color:#fdd">    itk::ImageRegionIterator&lt;ImageType&gt; iterator(imageItk, imageItk-&gt;GetLargestPossibleRegion());
+    iterator.GoToBegin();
+    unsigned long pixCount = 0;
+    unsigned long planeSize = dimX * dimY;
+    unsigned long planeCount = 0;
+    unsigned long timeCount = 0;
+    unsigned long numberOfSlices = dimZ;</span>
+
+<span style = "background-color:#fdd">    while (!iterator.IsAtEnd())</span>
+    {
+<span style = "background-color:#fdd">      unsigned long adressedPixel =</span>
+        pixCount +
+        (numberOfSlices - 1 - planeCount) * planeSize // add offset to adress the first pixel of current plane
+        + timeCount * numberOfSlices * planeSize;     // add time offset
+
+<span style = "background-color:#fdd">      iterator.Set(new_pixels[adressedPixel]);
+      pixCount++;
+      ++iterator;</span>
+
+<span style = "background-color:#fdd">      if (pixCount == planeSize)</span>
+      {
+<span style = "background-color:#fdd">        pixCount = 0;
+        planeCount++;</span>
+      }
+<span style = "background-color:#fdd">      if (planeCount == numberOfSlices)</span>
+      {
+<span style = "background-color:#fdd">        planeCount = 0;
+        timeCount++;</span>
+      }
+<span style = "background-color:#fdd">      if (timeCount == dimT)</span>
+      {
+<span style = "background-color:#fdd">        break;</span>
+      }
+<span style = "background-color:#fdd">    }
+    mitk::CastToMitkImage(imageItk, output_image);
+    return true; // actually never returns false yet.. but exception possible
+  }</span>
+
+<span style = "background-color:#fdd">  std::string DicomSeriesReader::ConstCharStarToString(const char *s) { return s ? std::string(s) : std::string(); }</span>
+  bool DicomSeriesReader::DICOMStringToSpacing(const std::string &amp;s, ScalarType &amp;spacingX, ScalarType &amp;spacingY)
+<span style = "background-color:#fdd">  {
+    bool successful = false;</span>
+
+<span style = "background-color:#fdd">    std::istringstream spacingReader(s);
+    std::string spacing;
+    if (std::getline(spacingReader, spacing, '\\'))</span>
+    {
+<span style = "background-color:#fdd">      spacingY = atof(spacing.c_str());</span>
+
+<span style = "background-color:#fdd">      if (std::getline(spacingReader, spacing, '\\'))</span>
+      {
+<span style = "background-color:#fdd">        spacingX = atof(spacing.c_str());</span>
+
+<span style = "background-color:#fdd">        successful = true;</span>
+      }
+    }
+
+<span style = "background-color:#fdd">    return successful;
+  }</span>
+
+  Point3D DicomSeriesReader::DICOMStringToPoint3D(const std::string &amp;s, bool &amp;successful)
+<span style = "background-color:#fdd">  {
+    Point3D p;
+    successful = true;</span>
+
+<span style = "background-color:#fdd">    std::istringstream originReader(s);
+    std::string coordinate;
+    unsigned int dim(0);
+    while (std::getline(originReader, coordinate, '\\') &amp;&amp; dim &lt; 3)</span>
+    {
+<span style = "background-color:#fdd">      p[dim++] = atof(coordinate.c_str());
+    }</span>
+
+<span style = "background-color:#fdd">    if (dim &amp;&amp; dim != 3)</span>
+    {
+<span style = "background-color:#fdd">      successful = false;
+      MITK_ERROR &lt;&lt; "Reader implementation made wrong assumption on tag (0020,0032). Found " &lt;&lt; dim</span>
+                 &lt;&lt; " instead of 3 values.";
+<span style = "background-color:#fdd">    }
+    else if (dim == 0)</span>
+    {
+<span style = "background-color:#fdd">      successful = false;
+      p.Fill(0.0); // assume default (0,0,0)</span>
+    }
+
+<span style = "background-color:#fdd">    return p;
+  }</span>
+
+  void DicomSeriesReader::DICOMStringToOrientationVectors(const std::string &amp;s,
+                                                          Vector3D &amp;right,
+                                                          Vector3D &amp;up,
+                                                          bool &amp;successful)
+<span style = "background-color:#fdd">  {
+    successful = true;</span>
+
+<span style = "background-color:#fdd">    std::istringstream orientationReader(s);
+    std::string coordinate;
+    unsigned int dim(0);
+    while (std::getline(orientationReader, coordinate, '\\') &amp;&amp; dim &lt; 6)</span>
+    {
+<span style = "background-color:#fdd">      if (dim &lt; 3)</span>
+      {
+<span style = "background-color:#fdd">        right[dim++] = atof(coordinate.c_str());
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        up[dim++ - 3] = atof(coordinate.c_str());</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    if (dim &amp;&amp; dim != 6)</span>
+    {
+<span style = "background-color:#fdd">      successful = false;
+      MITK_ERROR &lt;&lt; "Reader implementation made wrong assumption on tag (0020,0037). Found " &lt;&lt; dim</span>
+                 &lt;&lt; " instead of 6 values.";
+<span style = "background-color:#fdd">    }
+    else if (dim == 0)</span>
+    {
+      // fill with defaults
+<span style = "background-color:#fdd">      right.Fill(0.0);
+      right[0] = 1.0;</span>
+
+<span style = "background-color:#fdd">      up.Fill(0.0);
+      up[1] = 1.0;</span>
+
+<span style = "background-color:#fdd">      successful = false;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  DicomSeriesReader::SliceGroupingAnalysisResult DicomSeriesReader::AnalyzeFileForITKImageSeriesReaderSpacingAssumption(
+    const StringContainer &amp;files, bool groupImagesWithGantryTilt, const gdcm::Scanner::MappingType &amp;tagValueMappings_)
+<span style = "background-color:#fdd">  {</span>
+    // result.first = files that fit ITK's assumption
+    // result.second = files that do not fit, should be run through
+    // AnalyzeFileForITKImageSeriesReaderSpacingAssumption()
+    // again
+<span style = "background-color:#fdd">    SliceGroupingAnalysisResult result;</span>
+
+    // we const_cast here, because I could not use a map.at(), which would make the code much more readable
+<span style = "background-color:#fdd">    auto &amp;tagValueMappings = const_cast&lt;gdcm::Scanner::MappingType &amp;&gt;(tagValueMappings_);
+    const gdcm::Tag tagImagePositionPatient(0x0020, 0x0032); // Image Position (Patient)
+    const gdcm::Tag tagImageOrientation(0x0020, 0x0037);     // Image Orientation
+    const gdcm::Tag tagGantryTilt(0x0018, 0x1120);           // gantry tilt</span>
+
+<span style = "background-color:#fdd">    Vector3D fromFirstToSecondOrigin;
+    fromFirstToSecondOrigin.Fill(0.0);
+    bool fromFirstToSecondOriginInitialized(false);
+    Point3D thisOrigin;
+    thisOrigin.Fill(0.0f);
+    Point3D lastOrigin;
+    lastOrigin.Fill(0.0f);
+    Point3D lastDifferentOrigin;
+    lastDifferentOrigin.Fill(0.0f);</span>
+
+<span style = "background-color:#fdd">    bool lastOriginInitialized(false);</span>
+
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "--------------------------------------------------------------------------------";
+    MITK_DEBUG &lt;&lt; "Analyzing files for z-spacing assumption of ITK's ImageSeriesReader (group tilted: "</span>
+               &lt;&lt; groupImagesWithGantryTilt &lt;&lt; ")";
+<span style = "background-color:#fdd">    unsigned int fileIndex(0);
+    for (auto fileIter = files.begin(); fileIter != files.end(); ++fileIter, ++fileIndex)</span>
+    {
+<span style = "background-color:#fdd">      bool fileFitsIntoPattern(false);
+      std::string thisOriginString;</span>
+      // Read tag value into point3D. PLEASE replace this by appropriate GDCM code if you figure out how to do that
+<span style = "background-color:#fdd">      thisOriginString = ConstCharStarToString(tagValueMappings[fileIter-&gt;c_str()][tagImagePositionPatient]);</span>
+
+<span style = "background-color:#fdd">      if (thisOriginString.empty())</span>
+      {
+        // don't let such files be in a common group. Everything without position information will be loaded as a single
+        // slice:
+        // with standard DICOM files this can happen to: CR, DX, SC
+<span style = "background-color:#fdd">        MITK_DEBUG &lt;&lt; "    ==&gt; Sort away " &lt;&lt; *fileIter</span>
+                   &lt;&lt; " for later analysis (no position information)"; // we already have one occupying this position
+
+<span style = "background-color:#fdd">        if (result.GetBlockFilenames().empty()) // nothing WITH position information yet</span>
+        {
+          // ==&gt; this is a group of its own, stop processing, come back later
+<span style = "background-color:#fdd">          result.AddFileToSortedBlock(*fileIter);</span>
+
+<span style = "background-color:#fdd">          StringContainer remainingFiles;
+          remainingFiles.insert(remainingFiles.end(), fileIter + 1, files.end());
+          result.AddFilesToUnsortedBlock(remainingFiles);</span>
+
+<span style = "background-color:#fdd">          fileFitsIntoPattern = false;
+          break; // no files anymore
+        }</span>
+        else
+        {
+          // ==&gt; this does not match, consider later
+<span style = "background-color:#fdd">          result.AddFileToUnsortedBlock(*fileIter);
+          fileFitsIntoPattern = false;
+          continue; // next file</span>
+        }
+      }
+
+<span style = "background-color:#fdd">      bool ignoredConversionError(-42); // hard to get here, no graceful way to react
+      thisOrigin = DICOMStringToPoint3D(thisOriginString, ignoredConversionError);</span>
+
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "  " &lt;&lt; fileIndex &lt;&lt; " " &lt;&lt; *fileIter &lt;&lt; " at "</span>
+                 /* &lt;&lt; thisOriginString */
+                 &lt;&lt; "(" &lt;&lt; thisOrigin[0] &lt;&lt; "," &lt;&lt; thisOrigin[1] &lt;&lt; "," &lt;&lt; thisOrigin[2] &lt;&lt; ")";
+
+<span style = "background-color:#fdd">      if (lastOriginInitialized &amp;&amp; (thisOrigin == lastOrigin))</span>
+      {
+<span style = "background-color:#fdd">        MITK_DEBUG &lt;&lt; "    ==&gt; Sort away " &lt;&lt; *fileIter</span>
+                   &lt;&lt; " for separate time step"; // we already have one occupying this position
+<span style = "background-color:#fdd">        result.AddFileToUnsortedBlock(*fileIter);
+        fileFitsIntoPattern = false;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        if (!fromFirstToSecondOriginInitialized &amp;&amp;</span>
+            lastOriginInitialized) // calculate vector as soon as possible when we get a new position
+        {
+<span style = "background-color:#fdd">          fromFirstToSecondOrigin = thisOrigin - lastDifferentOrigin;
+          fromFirstToSecondOriginInitialized = true;</span>
+
+          // Here we calculate if this slice and the previous one are well aligned,
+          // i.e. we test if the previous origin is on a line through the current
+          // origin, directed into the normal direction of the current slice.
+
+          // If this is NOT the case, then we have a data set with a TILTED GANTRY geometry,
+          // which cannot be simply loaded into a single mitk::Image at the moment.
+          // For this case, we flag this finding in the result and DicomSeriesReader
+          // can correct for that later.
+
+<span style = "background-color:#fdd">          Vector3D right;
+          right.Fill(0.0);
+          Vector3D up;
+          right.Fill(0.0); // might be down as well, but it is just a name at this point
+          DICOMStringToOrientationVectors(</span>
+            tagValueMappings[fileIter-&gt;c_str()][tagImageOrientation], right, up, ignoredConversionError);
+
+<span style = "background-color:#fdd">          GantryTiltInformation tiltInfo(lastDifferentOrigin, thisOrigin, right, up, 1);</span>
+
+<span style = "background-color:#fdd">          if (tiltInfo.IsSheared()) // mitk::eps is too small; 1/1000 of a mm should be enough to detect tilt</span>
+          {
+            /* optimistic approach, accepting gantry tilt: save file for later, check all further files */
+
+            // at this point we have TWO slices analyzed! if they are the only two files, we still split, because there
+            // is
+            // no third to verify our tilting assumption.
+            // later with a third being available, we must check if the initial tilting vector is still valid. if yes,
+            // continue.
+            // if NO, we need to split the already sorted part (result.first) and the currently analyzed file
+            // (*fileIter)
+
+            // tell apart gantry tilt from overall skewedness
+            // sort out irregularly sheared slices, that IS NOT tilting
+
+<span style = "background-color:#fdd">            if (groupImagesWithGantryTilt &amp;&amp; tiltInfo.IsRegularGantryTilt())</span>
+            {
+              // check if this is at least roughly the same angle as recorded in DICOM tags
+<span style = "background-color:#fdd">              if (tagValueMappings[fileIter-&gt;c_str()].find(tagGantryTilt) != tagValueMappings[fileIter-&gt;c_str()].end())</span>
+              {
+                // read value, compare to calculated angle
+<span style = "background-color:#fdd">                std::string tiltStr = ConstCharStarToString(tagValueMappings[fileIter-&gt;c_str()][tagGantryTilt]);
+                double angle = atof(tiltStr.c_str());</span>
+
+<span style = "background-color:#fdd">                MITK_DEBUG &lt;&lt; "Comparing recorded tilt angle " &lt;&lt; angle &lt;&lt; " against calculated value "</span>
+                           &lt;&lt; tiltInfo.GetTiltAngleInDegrees();
+                // TODO we probably want the signs correct, too (that depends: this is just a rough check, nothing
+                // serious)
+                // TODO TODO TODO when angle -27 and tiltangle 63, this will never trigger the if-clause... useless
+                // check
+                // in this case! old bug..?!
+<span style = "background-color:#fdd">                if (fabs(angle) - tiltInfo.GetTiltAngleInDegrees() &gt; 0.25)</span>
+                {
+<span style = "background-color:#fdd">                  result.AddFileToUnsortedBlock(*fileIter); // sort away for further analysis
+                  fileFitsIntoPattern = false;
+                }</span>
+                else // tilt angle from header is less than 0.25 degrees different from what we calculated, assume this
+                     // is
+                     // fine
+                {
+<span style = "background-color:#fdd">                  result.FlagGantryTilt();
+                  result.AddFileToSortedBlock(*fileIter); // this file is good for current block
+                  fileFitsIntoPattern = true;</span>
+                }
+<span style = "background-color:#fdd">              }</span>
+              else // we cannot check the calculated tilt angle against the one from the dicom header (so we assume we
+                   // are
+                   // right)
+              {
+<span style = "background-color:#fdd">                result.FlagGantryTilt();
+                result.AddFileToSortedBlock(*fileIter); // this file is good for current block
+                fileFitsIntoPattern = true;</span>
+              }
+<span style = "background-color:#fdd">            }</span>
+            else // caller does not want tilt compensation OR shearing is more complicated than tilt
+            {
+<span style = "background-color:#fdd">              result.AddFileToUnsortedBlock(*fileIter); // sort away for further analysis
+              fileFitsIntoPattern = false;</span>
+            }
+<span style = "background-color:#fdd">          }</span>
+          else // not sheared
+          {
+<span style = "background-color:#fdd">            result.AddFileToSortedBlock(*fileIter); // this file is good for current block
+            fileFitsIntoPattern = true;</span>
+          }
+<span style = "background-color:#fdd">        }
+        else if (fromFirstToSecondOriginInitialized) // we already know the offset between slices</span>
+        {
+<span style = "background-color:#fdd">          Point3D assumedOrigin = lastDifferentOrigin + fromFirstToSecondOrigin;</span>
+
+<span style = "background-color:#fdd">          Vector3D originError = assumedOrigin - thisOrigin;
+          double norm = originError.GetNorm();
+          double toleratedError(0.005); // max. 1/10mm error when measurement crosses 20 slices in z direction</span>
+
+<span style = "background-color:#fdd">          if (norm &gt; toleratedError)</span>
+          {
+<span style = "background-color:#fdd">            MITK_DEBUG &lt;&lt; "  File does not fit into the inter-slice distance pattern (diff = " &lt;&lt; norm &lt;&lt; ", allowed "</span>
+                       &lt;&lt; toleratedError &lt;&lt; ").";
+<span style = "background-color:#fdd">            MITK_DEBUG &lt;&lt; "  Expected position (" &lt;&lt; assumedOrigin[0] &lt;&lt; "," &lt;&lt; assumedOrigin[1] &lt;&lt; ","</span>
+                       &lt;&lt; assumedOrigin[2] &lt;&lt; "), got position (" &lt;&lt; thisOrigin[0] &lt;&lt; "," &lt;&lt; thisOrigin[1] &lt;&lt; ","
+                       &lt;&lt; thisOrigin[2] &lt;&lt; ")";
+<span style = "background-color:#fdd">            MITK_DEBUG &lt;&lt; "    ==&gt; Sort away " &lt;&lt; *fileIter &lt;&lt; " for later analysis";</span>
+
+            // At this point we know we deviated from the expectation of ITK's ImageSeriesReader
+            // We split the input file list at this point, i.e. all files up to this one (excluding it)
+            // are returned as group 1, the remaining files (including the faulty one) are group 2
+
+            /* Optimistic approach: check if any of the remaining slices fits in */
+<span style = "background-color:#fdd">            result.AddFileToUnsortedBlock(*fileIter); // sort away for further analysis
+            fileFitsIntoPattern = false;
+          }</span>
+          else
+          {
+<span style = "background-color:#fdd">            result.AddFileToSortedBlock(*fileIter); // this file is good for current block
+            fileFitsIntoPattern = true;</span>
+          }
+<span style = "background-color:#fdd">        }</span>
+        else // this should be the very first slice
+        {
+<span style = "background-color:#fdd">          result.AddFileToSortedBlock(*fileIter); // this file is good for current block
+          fileFitsIntoPattern = true;</span>
+        }
+      }
+
+      // record current origin for reference in later iterations
+<span style = "background-color:#fdd">      if (!lastOriginInitialized || (fileFitsIntoPattern &amp;&amp; (thisOrigin != lastOrigin)))</span>
+      {
+<span style = "background-color:#fdd">        lastDifferentOrigin = thisOrigin;</span>
+      }
+
+<span style = "background-color:#fdd">      lastOrigin = thisOrigin;
+      lastOriginInitialized = true;
+    }</span>
+
+<span style = "background-color:#fdd">    if (result.ContainsGantryTilt())</span>
+    {
+      // check here how many files were grouped.
+      // IF it was only two files AND we assume tiltedness (e.g. save "distance")
+      // THEN we would want to also split the two previous files (simple) because
+      // we don't have any reason to assume they belong together
+
+<span style = "background-color:#fdd">      if (result.GetBlockFilenames().size() == 2)</span>
+      {
+<span style = "background-color:#fdd">        result.UndoPrematureGrouping();</span>
+      }
+    }
+
+<span style = "background-color:#fdd">    return result;
+  }</span>
+
+  DicomSeriesReader::FileNamesGrouping DicomSeriesReader::GetSeries(const StringContainer &amp;files,
+                                                                    bool groupImagesWithGantryTilt,
+                                                                    const StringContainer &amp;restrictions)
+<span style = "background-color:#fdd">  {
+    return GetSeries(files, true, groupImagesWithGantryTilt, restrictions);
+  }</span>
+
+  DicomSeriesReader::FileNamesGrouping DicomSeriesReader::GetSeries(const StringContainer &amp;files,
+                                                                    bool sortTo3DPlust,
+                                                                    bool groupImagesWithGantryTilt,
+                                                                    const StringContainer &amp; /*restrictions*/)
+<span style = "background-color:#fdd">  {</span>
+    /**
+      assumption about this method:
+        returns a map of uid-like-key --&gt; list(filename)
+        each entry should contain filenames that have images of same
+          - series instance uid (automatically done by GDCMSeriesFileNames
+          - 0020,0037 image orientation (patient)
+          - 0028,0030 pixel spacing (x,y)
+          - 0018,0050 slice thickness
+    */
+
+    // use GDCM directly, itk::GDCMSeriesFileNames does not work with GDCM 2
+
+    // PART I: scan files for sorting relevant DICOM tags,
+    //         separate images that differ in any of those
+    //         attributes (they cannot possibly form a 3D block)
+
+    // scan for relevant tags in dicom files
+<span style = "background-color:#fdd">    gdcm::Scanner scanner;
+    const gdcm::Tag tagSOPClassUID(0x0008, 0x0016); // SOP class UID
+    scanner.AddTag(tagSOPClassUID);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagSeriesInstanceUID(0x0020, 0x000e); // Series Instance UID
+    scanner.AddTag(tagSeriesInstanceUID);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagImageOrientation(0x0020, 0x0037); // image orientation
+    scanner.AddTag(tagImageOrientation);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagPixelSpacing(0x0028, 0x0030); // pixel spacing
+    scanner.AddTag(tagPixelSpacing);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagImagerPixelSpacing(0x0018, 0x1164); // imager pixel spacing
+    scanner.AddTag(tagImagerPixelSpacing);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagSliceThickness(0x0018, 0x0050); // slice thickness
+    scanner.AddTag(tagSliceThickness);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagNumberOfRows(0x0028, 0x0010); // number rows
+    scanner.AddTag(tagNumberOfRows);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagNumberOfColumns(0x0028, 0x0011); // number cols
+    scanner.AddTag(tagNumberOfColumns);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagGantryTilt(0x0018, 0x1120); // gantry tilt
+    scanner.AddTag(tagGantryTilt);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagModality(0x0008, 0x0060); // modality
+    scanner.AddTag(tagModality);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagNumberOfFrames(0x0028, 0x0008); // number of frames
+    scanner.AddTag(tagNumberOfFrames);</span>
+
+    // additional tags read in this scan to allow later analysis
+    // THESE tag are not used for initial separating of files
+<span style = "background-color:#fdd">    const gdcm::Tag tagImagePositionPatient(0x0020, 0x0032); // Image Position (Patient)
+    scanner.AddTag(tagImagePositionPatient);</span>
+
+    // TODO add further restrictions from arguments (when anybody asks for it)
+
+<span style = "background-color:#fdd">    FileNamesGrouping result;</span>
+
+    // let GDCM scan files
+<span style = "background-color:#fdd">    if (!scanner.Scan(files))</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "gdcm::Scanner failed when scanning " &lt;&lt; files.size() &lt;&lt; " input files.";
+      return result;</span>
+    }
+
+    // assign files IDs that will separate them for loading into image blocks
+<span style = "background-color:#fdd">    for (auto fileIter = scanner.Begin(); fileIter != scanner.End(); ++fileIter)</span>
+    {
+<span style = "background-color:#fdd">      if (std::string(fileIter-&gt;first).empty())
+        continue; // TODO understand why Scanner has empty string entries
+      if (std::string(fileIter-&gt;first) == std::string("DICOMDIR"))
+        continue;</span>
+
+      /* sort out multi-frame
+      if ( scanner.GetValue( fileIter-&gt;first , tagNumberOfFrames ) )
+      {
+        MITK_INFO &lt;&lt; "Ignoring " &lt;&lt; fileIter-&gt;first &lt;&lt; " because we cannot handle multi-frame images.";
+        continue;
+      }
+      */
+
+      // we const_cast here, because I could not use a map.at() function in CreateMoreUniqueSeriesIdentifier.
+      // doing the same thing with find would make the code less readable. Since we forget the Scanner results
+      // anyway after this function, we can simply tolerate empty map entries introduced by bad operator[] access
+<span style = "background-color:#fdd">      std::string moreUniqueSeriesId =</span>
+        CreateMoreUniqueSeriesIdentifier(const_cast&lt;gdcm::Scanner::TagToValue &amp;&gt;(fileIter-&gt;second));
+<span style = "background-color:#fdd">      result[moreUniqueSeriesId].AddFile(fileIter-&gt;first);
+    }</span>
+
+    // PART II: sort slices spatially (or at least consistently if this is NOT possible, see method)
+
+<span style = "background-color:#fdd">    for (FileNamesGrouping::const_iterator groupIter = result.begin(); groupIter != result.end(); ++groupIter)</span>
+    {
+      try
+      {
+<span style = "background-color:#fdd">        result[groupIter-&gt;first] =</span>
+          ImageBlockDescriptor(SortSeriesSlices(groupIter-&gt;second.GetFilenames())); // sort each slice group spatially
+      }
+      catch (...)
+<span style = "background-color:#fdd">      {
+        MITK_ERROR &lt;&lt; "Caught something.";
+      }
+    }</span>
+
+    // PART III: analyze pre-sorted images for valid blocks (i.e. blocks of equal z-spacing),
+    //          separate into multiple blocks if necessary.
+    //
+    //          Analysis performs the following steps:
+    //            * imitate itk::ImageSeriesReader: use the distance between the first two images as z-spacing
+    //            * check what images actually fulfill ITK's z-spacing assumption
+    //            * separate all images that fail the test into new blocks, re-iterate analysis for these blocks
+    //              * this includes images which DO NOT PROVIDE spatial information, i.e. all images w/o
+    //              ImagePositionPatient will be loaded separately
+
+<span style = "background-color:#fdd">    FileNamesGrouping groupsOf3DPlusTBlocks; // final result of this function
+    for (FileNamesGrouping::const_iterator groupIter = result.begin(); groupIter != result.end(); ++groupIter)</span>
+    {
+<span style = "background-color:#fdd">      FileNamesGrouping groupsOf3DBlocks; // intermediate result for only this group(!)
+      StringContainer filesStillToAnalyze = groupIter-&gt;second.GetFilenames();
+      std::string groupUID = groupIter-&gt;first;
+      unsigned int subgroup(0);
+      MITK_DEBUG &lt;&lt; "Analyze group " &lt;&lt; groupUID &lt;&lt; " of " &lt;&lt; groupIter-&gt;second.GetFilenames().size() &lt;&lt; " files";</span>
+
+<span style = "background-color:#fdd">      while (!filesStillToAnalyze.empty()) // repeat until all files are grouped somehow</span>
+      {
+<span style = "background-color:#fdd">        SliceGroupingAnalysisResult analysisResult = AnalyzeFileForITKImageSeriesReaderSpacingAssumption(</span>
+          filesStillToAnalyze, groupImagesWithGantryTilt, scanner.GetMappings());
+
+        // enhance the UID for additional groups
+<span style = "background-color:#fdd">        std::stringstream newGroupUID;
+        newGroupUID &lt;&lt; groupUID &lt;&lt; '.' &lt;&lt; subgroup;</span>
+
+<span style = "background-color:#fdd">        ImageBlockDescriptor thisBlock(analysisResult.GetBlockFilenames());</span>
+
+<span style = "background-color:#fdd">        std::string firstFileInBlock = thisBlock.GetFilenames().front();</span>
+
+<span style = "background-color:#fdd">        thisBlock.SetImageBlockUID(newGroupUID.str());
+        thisBlock.SetSeriesInstanceUID(</span>
+          DicomSeriesReader::ConstCharStarToString(scanner.GetValue(firstFileInBlock.c_str(), tagSeriesInstanceUID)));
+<span style = "background-color:#fdd">        thisBlock.SetHasGantryTiltCorrected(analysisResult.ContainsGantryTilt());
+        thisBlock.SetSOPClassUID(</span>
+          DicomSeriesReader::ConstCharStarToString(scanner.GetValue(firstFileInBlock.c_str(), tagSOPClassUID)));
+<span style = "background-color:#fdd">        thisBlock.SetNumberOfFrames(</span>
+          ConstCharStarToString(scanner.GetValue(firstFileInBlock.c_str(), tagNumberOfFrames)));
+<span style = "background-color:#fdd">        thisBlock.SetModality(</span>
+          DicomSeriesReader::ConstCharStarToString(scanner.GetValue(firstFileInBlock.c_str(), tagModality)));
+<span style = "background-color:#fdd">        thisBlock.SetPixelSpacingInformation(</span>
+          DicomSeriesReader::ConstCharStarToString(scanner.GetValue(firstFileInBlock.c_str(), tagPixelSpacing)),
+          DicomSeriesReader::ConstCharStarToString(scanner.GetValue(firstFileInBlock.c_str(), tagImagerPixelSpacing)));
+<span style = "background-color:#fdd">        thisBlock.SetHasMultipleTimePoints(false);</span>
+
+<span style = "background-color:#fdd">        groupsOf3DBlocks[newGroupUID.str()] = thisBlock;</span>
+
+        // MITK_DEBUG &lt;&lt; "Result: sorted 3D group " &lt;&lt; newGroupUID.str() &lt;&lt; " with " &lt;&lt; groupsOf3DBlocks[
+        // newGroupUID.str() ].GetFilenames().size() &lt;&lt; " files";
+<span style = "background-color:#fdd">        MITK_DEBUG &lt;&lt; "Result: sorted 3D group with " &lt;&lt; groupsOf3DBlocks[newGroupUID.str()].GetFilenames().size()</span>
+                   &lt;&lt; " files";
+<span style = "background-color:#fdd">        StringContainer debugOutputFiles = analysisResult.GetBlockFilenames();
+        for (StringContainer::const_iterator siter = debugOutputFiles.begin(); siter != debugOutputFiles.end(); ++siter)
+          MITK_DEBUG &lt;&lt; "  IN  " &lt;&lt; *siter;</span>
+
+<span style = "background-color:#fdd">        ++subgroup;</span>
+
+<span style = "background-color:#fdd">        filesStillToAnalyze = analysisResult.GetUnsortedFilenames(); // remember what needs further analysis
+        for (StringContainer::const_iterator siter = filesStillToAnalyze.begin(); siter != filesStillToAnalyze.end();
+             ++siter)
+          MITK_DEBUG &lt;&lt; " OUT  " &lt;&lt; *siter;
+      }</span>
+
+      // end of grouping, now post-process groups
+
+      // PART IV: attempt to group blocks to 3D+t blocks if requested
+      //           inspect entries of groupsOf3DBlocks
+      //            - if number of files is identical to previous entry, collect for 3D+t block
+      //            - as soon as number of files changes from previous entry, record collected blocks as 3D+t block,
+      //            start
+      //            a new one, continue
+
+      // decide whether or not to group 3D blocks into 3D+t blocks where possible
+<span style = "background-color:#fdd">      if (!sortTo3DPlust)</span>
+      {
+        // copy 3D blocks to output
+<span style = "background-color:#fdd">        groupsOf3DPlusTBlocks.insert(groupsOf3DBlocks.begin(), groupsOf3DBlocks.end());
+      }</span>
+      else
+      {
+        // sort 3D+t (as described in "PART IV")
+
+<span style = "background-color:#fdd">        MITK_DEBUG &lt;&lt; "================================================================================";
+        MITK_DEBUG &lt;&lt; "3D+t analysis:";</span>
+
+<span style = "background-color:#fdd">        unsigned int numberOfFilesInPreviousBlock(0);
+        std::string previousBlockKey;</span>
+
+<span style = "background-color:#fdd">        for (FileNamesGrouping::const_iterator block3DIter = groupsOf3DBlocks.begin();
+             block3DIter != groupsOf3DBlocks.end();
+             ++block3DIter)</span>
+        {
+<span style = "background-color:#fdd">          unsigned int numberOfFilesInThisBlock = block3DIter-&gt;second.GetFilenames().size();
+          std::string thisBlockKey = block3DIter-&gt;first;</span>
+
+<span style = "background-color:#fdd">          if (numberOfFilesInPreviousBlock == 0)</span>
+          {
+<span style = "background-color:#fdd">            numberOfFilesInPreviousBlock = numberOfFilesInThisBlock;
+            groupsOf3DPlusTBlocks[thisBlockKey] = block3DIter-&gt;second;
+            MITK_DEBUG &lt;&lt; "  3D+t group " &lt;&lt; thisBlockKey;
+            previousBlockKey = thisBlockKey;
+          }</span>
+          else
+          {
+            bool identicalOrigins;
+            try
+            {
+              // check whether this and the previous block share a comon origin
+              // TODO should be safe, but a little try/catch or other error handling wouldn't hurt
+
+<span style = "background-color:#fdd">              const char *origin_value = scanner.GetValue(groupsOf3DBlocks[thisBlockKey].GetFilenames().front().c_str(),</span>
+                                                          tagImagePositionPatient),
+<span style = "background-color:#fdd">                         *previous_origin_value = scanner.GetValue(</span>
+                           groupsOf3DBlocks[previousBlockKey].GetFilenames().front().c_str(), tagImagePositionPatient),
+<span style = "background-color:#fdd">                         *destination_value = scanner.GetValue(</span>
+                           groupsOf3DBlocks[thisBlockKey].GetFilenames().back().c_str(), tagImagePositionPatient),
+<span style = "background-color:#fdd">                         *previous_destination_value = scanner.GetValue(</span>
+                           groupsOf3DBlocks[previousBlockKey].GetFilenames().back().c_str(), tagImagePositionPatient);
+
+<span style = "background-color:#fdd">              if (!origin_value || !previous_origin_value || !destination_value || !previous_destination_value)</span>
+              {
+<span style = "background-color:#fdd">                identicalOrigins = false;
+              }</span>
+              else
+              {
+<span style = "background-color:#fdd">                std::string thisOriginString = ConstCharStarToString(origin_value);
+                std::string previousOriginString = ConstCharStarToString(previous_origin_value);</span>
+
+                // also compare last origin, because this might differ if z-spacing is different
+<span style = "background-color:#fdd">                std::string thisDestinationString = ConstCharStarToString(destination_value);
+                std::string previousDestinationString = ConstCharStarToString(previous_destination_value);</span>
+
+<span style = "background-color:#fdd">                identicalOrigins =</span>
+                  ((thisOriginString == previousOriginString) &amp;&amp; (thisDestinationString == previousDestinationString));
+<span style = "background-color:#fdd">              }</span>
+            }
+            catch (...)
+<span style = "background-color:#fdd">            {
+              identicalOrigins = false;
+            }</span>
+
+<span style = "background-color:#fdd">            if (identicalOrigins &amp;&amp; (numberOfFilesInPreviousBlock == numberOfFilesInThisBlock))</span>
+            {
+              // group with previous block
+<span style = "background-color:#fdd">              groupsOf3DPlusTBlocks[previousBlockKey].AddFiles(block3DIter-&gt;second.GetFilenames());
+              groupsOf3DPlusTBlocks[previousBlockKey].SetHasMultipleTimePoints(true);
+              MITK_DEBUG &lt;&lt; "  --&gt; group enhanced with another timestep";
+            }</span>
+            else
+            {
+              // start a new block
+<span style = "background-color:#fdd">              groupsOf3DPlusTBlocks[thisBlockKey] = block3DIter-&gt;second;
+              int numberOfTimeSteps =</span>
+                groupsOf3DPlusTBlocks[previousBlockKey].GetFilenames().size() / numberOfFilesInPreviousBlock;
+<span style = "background-color:#fdd">              MITK_DEBUG &lt;&lt; "  ==&gt; group closed with " &lt;&lt; numberOfTimeSteps &lt;&lt; " time steps";
+              previousBlockKey = thisBlockKey;
+              MITK_DEBUG &lt;&lt; "  3D+t group " &lt;&lt; thisBlockKey &lt;&lt; " started";</span>
+            }
+          }
+
+<span style = "background-color:#fdd">          numberOfFilesInPreviousBlock = numberOfFilesInThisBlock;
+        }
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "================================================================================";
+    MITK_DEBUG &lt;&lt; "Summary: ";
+    for (FileNamesGrouping::const_iterator groupIter = groupsOf3DPlusTBlocks.begin();
+         groupIter != groupsOf3DPlusTBlocks.end();
+         ++groupIter)</span>
+    {
+<span style = "background-color:#fdd">      ImageBlockDescriptor block = groupIter-&gt;second;
+      MITK_DEBUG &lt;&lt; "  " &lt;&lt; block.GetFilenames().size() &lt;&lt; " '" &lt;&lt; block.GetModality() &lt;&lt; "' images ("</span>
+                 &lt;&lt; block.GetSOPClassUIDAsString() &lt;&lt; ") in volume " &lt;&lt; block.GetImageBlockUID();
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "    (gantry tilt : " &lt;&lt; (block.HasGantryTiltCorrected() ? "Yes" : "No") &lt;&lt; "; "</span>
+                                                                                                "pixel spacing : "
+                 &lt;&lt; PixelSpacingInterpretationToString(block.GetPixelSpacingType()) &lt;&lt; "; "
+                                                                                       "3D+t: "
+                 &lt;&lt; (block.HasMultipleTimePoints() ? "Yes" : "No") &lt;&lt; "; "
+                                                                      "reader support: "
+                 &lt;&lt; ReaderImplementationLevelToString(block.GetReaderImplementationLevel()) &lt;&lt; ")";
+<span style = "background-color:#fdd">      StringContainer debugOutputFiles = block.GetFilenames();
+      for (StringContainer::const_iterator siter = debugOutputFiles.begin(); siter != debugOutputFiles.end(); ++siter)
+        MITK_DEBUG &lt;&lt; "  F " &lt;&lt; *siter;
+    }
+    MITK_DEBUG &lt;&lt; "================================================================================";</span>
+
+<span style = "background-color:#fdd">    return groupsOf3DPlusTBlocks;
+  }</span>
+
+  DicomSeriesReader::FileNamesGrouping DicomSeriesReader::GetSeries(const std::string &amp;dir,
+                                                                    bool groupImagesWithGantryTilt,
+                                                                    const StringContainer &amp;restrictions)
+<span style = "background-color:#fdd">  {
+    gdcm::Directory directoryLister;
+    directoryLister.Load(dir.c_str(), false); // non-recursive
+    return GetSeries(directoryLister.GetFilenames(), groupImagesWithGantryTilt, restrictions);
+  }</span>
+
+  std::string DicomSeriesReader::CreateSeriesIdentifierPart(gdcm::Scanner::TagToValue &amp;tagValueMap,
+                                                            const gdcm::Tag &amp;tag)
+<span style = "background-color:#fdd">  {
+    std::string result;</span>
+    try
+    {
+<span style = "background-color:#fdd">      result = IDifyTagValue(tagValueMap[tag] ? tagValueMap[tag] : std::string(""));</span>
+    }
+    catch ( const std::exception &amp; )
+<span style = "background-color:#fdd">    {</span>
+      // we are happy with even nothing, this will just group images of a series
+      // MITK_WARN &lt;&lt; "Could not access tag " &lt;&lt; tag &lt;&lt; ": " &lt;&lt; e.what();
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    return result;
+  }</span>
+
+  std::string DicomSeriesReader::CreateMoreUniqueSeriesIdentifier(gdcm::Scanner::TagToValue &amp;tagValueMap)
+<span style = "background-color:#fdd">  {
+    const gdcm::Tag tagSeriesInstanceUID(0x0020, 0x000e);  // Series Instance UID
+    const gdcm::Tag tagImageOrientation(0x0020, 0x0037);   // image orientation
+    const gdcm::Tag tagPixelSpacing(0x0028, 0x0030);       // pixel spacing
+    const gdcm::Tag tagImagerPixelSpacing(0x0018, 0x1164); // imager pixel spacing
+    const gdcm::Tag tagSliceThickness(0x0018, 0x0050);     // slice thickness
+    const gdcm::Tag tagNumberOfRows(0x0028, 0x0010);       // number rows
+    const gdcm::Tag tagNumberOfColumns(0x0028, 0x0011);    // number cols
+    const gdcm::Tag tagNumberOfFrames(0x0028, 0x0008);     // number of frames</span>
+
+<span style = "background-color:#fdd">    const char *tagSeriesInstanceUid = tagValueMap[tagSeriesInstanceUID];
+    if (!tagSeriesInstanceUid)</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "CreateMoreUniqueSeriesIdentifier() could not access series instance UID. Something is seriously "</span>
+                     "wrong with this image, so stopping here.";
+    }
+<span style = "background-color:#fdd">    std::string constructedID = tagSeriesInstanceUid;</span>
+
+<span style = "background-color:#fdd">    constructedID += CreateSeriesIdentifierPart(tagValueMap, tagNumberOfRows);
+    constructedID += CreateSeriesIdentifierPart(tagValueMap, tagNumberOfColumns);
+    constructedID += CreateSeriesIdentifierPart(tagValueMap, tagPixelSpacing);
+    constructedID += CreateSeriesIdentifierPart(tagValueMap, tagImagerPixelSpacing);
+    constructedID += CreateSeriesIdentifierPart(tagValueMap, tagSliceThickness);
+    constructedID += CreateSeriesIdentifierPart(tagValueMap, tagNumberOfFrames);</span>
+
+    // be a bit tolerant for orienatation, let only the first few digits matter
+    // (http://bugs.mitk.org/show_bug.cgi?id=12263)
+    // NOT constructedID += CreateSeriesIdentifierPart( tagValueMap, tagImageOrientation );
+<span style = "background-color:#fdd">    if (tagValueMap.find(tagImageOrientation) != tagValueMap.end())</span>
+    {
+<span style = "background-color:#fdd">      bool conversionError(false);
+      Vector3D right;
+      right.Fill(0.0);
+      Vector3D up;
+      right.Fill(0.0);
+      DICOMStringToOrientationVectors(tagValueMap[tagImageOrientation], right, up, conversionError);</span>
+      // string  newstring sprintf(simplifiedOrientationString, "%.3f\\%.3f\\%.3f\\%.3f\\%.3f\\%.3f", right[0],
+      // right[1],
+      // right[2], up[0], up[1], up[2]);
+<span style = "background-color:#fdd">      std::ostringstream ss;
+      ss.setf(std::ios::fixed, std::ios::floatfield);
+      ss.precision(5);
+      ss &lt;&lt; right[0] &lt;&lt; "\\" &lt;&lt; right[1] &lt;&lt; "\\" &lt;&lt; right[2] &lt;&lt; "\\" &lt;&lt; up[0] &lt;&lt; "\\" &lt;&lt; up[1] &lt;&lt; "\\" &lt;&lt; up[2];
+      std::string simplifiedOrientationString(ss.str());</span>
+
+<span style = "background-color:#fdd">      constructedID += IDifyTagValue(simplifiedOrientationString);
+    }</span>
+
+<span style = "background-color:#fdd">    constructedID.resize(constructedID.length() - 1); // cut of trailing '.'</span>
+
+<span style = "background-color:#fdd">    return constructedID;
+  }</span>
+
+  std::string DicomSeriesReader::IDifyTagValue(const std::string &amp;value)
+<span style = "background-color:#fdd">  {
+    std::string IDifiedValue(value);
+    if (value.empty())
+      throw std::logic_error("IDifyTagValue() illegaly called with empty tag value");</span>
+
+    // Eliminate non-alnum characters, including whitespace...
+    //   that may have been introduced by concats.
+<span style = "background-color:#fdd">    for (std::size_t i = 0; i &lt; IDifiedValue.size(); i++)</span>
+    {
+<span style = "background-color:#fdd">      while (i &lt; IDifiedValue.size() &amp;&amp;</span>
+             !(IDifiedValue[i] == '.' || (IDifiedValue[i] &gt;= 'a' &amp;&amp; IDifiedValue[i] &lt;= 'z') ||
+               (IDifiedValue[i] &gt;= '0' &amp;&amp; IDifiedValue[i] &lt;= '9') ||
+               (IDifiedValue[i] &gt;= 'A' &amp;&amp; IDifiedValue[i] &lt;= 'Z')))
+      {
+<span style = "background-color:#fdd">        IDifiedValue.erase(i, 1);
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    IDifiedValue += ".";
+    return IDifiedValue;
+  }</span>
+
+  DicomSeriesReader::StringContainer DicomSeriesReader::GetSeries(const std::string &amp;dir,
+                                                                  const std::string &amp;series_uid,
+                                                                  bool groupImagesWithGantryTilt,
+                                                                  const StringContainer &amp;restrictions)
+<span style = "background-color:#fdd">  {
+    FileNamesGrouping allSeries = GetSeries(dir, groupImagesWithGantryTilt, restrictions);
+    StringContainer resultingFileList;</span>
+
+<span style = "background-color:#fdd">    for (FileNamesGrouping::const_iterator idIter = allSeries.begin(); idIter != allSeries.end(); ++idIter)</span>
+    {
+<span style = "background-color:#fdd">      if (idIter-&gt;first.find(series_uid) == 0) // this ID starts with given series_uid</span>
+      {
+<span style = "background-color:#fdd">        return idIter-&gt;second.GetFilenames();
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    return resultingFileList;
+  }</span>
+
+  DicomSeriesReader::StringContainer DicomSeriesReader::SortSeriesSlices(const StringContainer &amp;unsortedFilenames)
+<span style = "background-color:#fdd">  {</span>
+    /* we CAN expect a group of equal
+       - series instance uid
+       - image orientation
+       - pixel spacing
+       - imager pixel spacing
+       - slice thickness
+       - number of rows/columns
+
+       (each piece of information except the rows/columns might be missing)
+
+       sorting with GdcmSortFunction tries its best by sorting by spatial position
+       and more hints (acquisition number, acquisition time, trigger time) but will
+       always produce a sorting by falling back to SOP Instance UID.
+    */
+<span style = "background-color:#fdd">    gdcm::Sorter sorter;</span>
+
+<span style = "background-color:#fdd">    sorter.SetSortFunction(DicomSeriesReader::GdcmSortFunction);</span>
+    try
+    {
+<span style = "background-color:#fdd">      if (sorter.Sort(unsortedFilenames))</span>
+      {
+<span style = "background-color:#fdd">        return sorter.GetFilenames();
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        MITK_WARN &lt;&lt; "Sorting error. Leaving series unsorted.";
+        return unsortedFilenames;</span>
+      }
+    }
+    catch ( const std::logic_error &amp; )
+<span style = "background-color:#fdd">    {
+      MITK_WARN &lt;&lt; "Sorting error. Leaving series unsorted.";
+      return unsortedFilenames;
+    }
+  }</span>
+
+  bool DicomSeriesReader::GdcmSortFunction(const gdcm::DataSet &amp;ds1, const gdcm::DataSet &amp;ds2)
+<span style = "background-color:#fdd">  {</span>
+    // This method MUST accept missing location and position information (and all else, too)
+    // because we cannot rely on anything
+    // (restriction on the sentence before: we have to provide consistent sorting, so we
+    // rely on the minimum information all DICOM files need to provide: SOP Instance UID)
+
+    /* we CAN expect a group of equal
+       - series instance uid
+       - image orientation
+       - pixel spacing
+       - imager pixel spacing
+       - slice thickness
+       - number of rows/columns
+    */
+<span style = "background-color:#fdd">    static const gdcm::Tag tagImagePositionPatient(0x0020, 0x0032); // Image Position (Patient)
+    static const gdcm::Tag tagImageOrientation(0x0020, 0x0037);     // Image Orientation</span>
+
+    // see if we have Image Position and Orientation
+    if (ds1.FindDataElement(tagImagePositionPatient) &amp;&amp; ds1.FindDataElement(tagImageOrientation) &amp;&amp;
+<span style = "background-color:#fdd">        ds2.FindDataElement(tagImagePositionPatient) &amp;&amp; ds2.FindDataElement(tagImageOrientation))</span>
+    {
+      gdcm::Attribute&lt;0x0020, 0x0032&gt; image_pos1;         // Image Position (Patient)
+      gdcm::Attribute&lt;0x0020, 0x0037&gt; image_orientation1; // Image Orientation (Patient)
+
+<span style = "background-color:#fdd">      image_pos1.Set(ds1);
+      image_orientation1.Set(ds1);</span>
+
+      gdcm::Attribute&lt;0x0020, 0x0032&gt; image_pos2;
+      gdcm::Attribute&lt;0x0020, 0x0037&gt; image_orientation2;
+
+<span style = "background-color:#fdd">      image_pos2.Set(ds2);
+      image_orientation2.Set(ds2);</span>
+
+      /*
+         we tolerate very small differences in image orientation, since we got to know about
+         acquisitions where these values change across a single series (7th decimal digit)
+         (http://bugs.mitk.org/show_bug.cgi?id=12263)
+
+         still, we want to check if our assumption of 'almost equal' orientations is valid
+       */
+<span style = "background-color:#fdd">      for (unsigned int dim = 0; dim &lt; 6; ++dim)</span>
+      {
+<span style = "background-color:#fdd">        if (fabs(image_orientation2[dim] - image_orientation1[dim]) &gt; 0.0001)</span>
+        {
+<span style = "background-color:#fdd">          MITK_ERROR &lt;&lt; "Dicom images have different orientations.";
+          throw std::logic_error(</span>
+            "Dicom images have different orientations. Call GetSeries() first to separate images.");
+        }
+<span style = "background-color:#fdd">      }</span>
+
+      double normal[3];
+
+<span style = "background-color:#fdd">      normal[0] = image_orientation1[1] * image_orientation1[5] - image_orientation1[2] * image_orientation1[4];
+      normal[1] = image_orientation1[2] * image_orientation1[3] - image_orientation1[0] * image_orientation1[5];
+      normal[2] = image_orientation1[0] * image_orientation1[4] - image_orientation1[1] * image_orientation1[3];</span>
+
+<span style = "background-color:#fdd">      double dist1 = 0.0, dist2 = 0.0;</span>
+
+      // this computes the distance from world origin (0,0,0) ALONG THE NORMAL of the image planes
+<span style = "background-color:#fdd">      for (unsigned char i = 0u; i &lt; 3u; ++i)</span>
+      {
+<span style = "background-color:#fdd">        dist1 += normal[i] * image_pos1[i];
+        dist2 += normal[i] * image_pos2[i];
+      }</span>
+
+      // if we can sort by just comparing the distance, we do exactly that
+<span style = "background-color:#fdd">      if (fabs(dist1 - dist2) &gt;= mitk::eps)</span>
+      {
+        // default: compare position
+<span style = "background-color:#fdd">        return dist1 &lt; dist2;
+      }</span>
+      else // we need to check more properties to distinguish slices
+      {
+        // try to sort by Acquisition Number
+<span style = "background-color:#fdd">        static const gdcm::Tag tagAcquisitionNumber(0x0020, 0x0012);
+        if (ds1.FindDataElement(tagAcquisitionNumber) &amp;&amp; ds2.FindDataElement(tagAcquisitionNumber))</span>
+        {
+          gdcm::Attribute&lt;0x0020, 0x0012&gt; acquisition_number1; // Acquisition number
+          gdcm::Attribute&lt;0x0020, 0x0012&gt; acquisition_number2;
+
+<span style = "background-color:#fdd">          acquisition_number1.Set(ds1);
+          acquisition_number2.Set(ds2);</span>
+
+<span style = "background-color:#fdd">          if (acquisition_number1 != acquisition_number2)</span>
+          {
+<span style = "background-color:#fdd">            return acquisition_number1 &lt; acquisition_number2;
+          }</span>
+          else // neither position nor acquisition number are good for sorting, so check more
+          {
+            // try to sort by Acquisition Time
+<span style = "background-color:#fdd">            static const gdcm::Tag tagAcquisitionTime(0x0008, 0x0032);
+            if (ds1.FindDataElement(tagAcquisitionTime) &amp;&amp; ds2.FindDataElement(tagAcquisitionTime))</span>
+            {
+<span style = "background-color:#fdd">              gdcm::Attribute&lt;0x0008, 0x0032&gt; acquisition_time1; // Acquisition time
+              gdcm::Attribute&lt;0x0008, 0x0032&gt; acquisition_time2;</span>
+
+<span style = "background-color:#fdd">              acquisition_time1.Set(ds1);
+              acquisition_time2.Set(ds2);</span>
+
+<span style = "background-color:#fdd">              if (acquisition_time1 != acquisition_time2)</span>
+              {
+<span style = "background-color:#fdd">                return acquisition_time1 &lt; acquisition_time2;
+              }</span>
+              else // we gave up on image position, acquisition number and acquisition time now
+              {
+                // let's try trigger time
+<span style = "background-color:#fdd">                static const gdcm::Tag tagTriggerTime(0x0018, 0x1060);
+                if (ds1.FindDataElement(tagTriggerTime) &amp;&amp; ds2.FindDataElement(tagTriggerTime))</span>
+                {
+                  gdcm::Attribute&lt;0x0018, 0x1060&gt; trigger_time1; // Trigger time
+                  gdcm::Attribute&lt;0x0018, 0x1060&gt; trigger_time2;
+
+<span style = "background-color:#fdd">                  trigger_time1.Set(ds1);
+                  trigger_time2.Set(ds2);</span>
+
+<span style = "background-color:#fdd">                  if (trigger_time1 != trigger_time2)</span>
+                  {
+<span style = "background-color:#fdd">                    return trigger_time1 &lt; trigger_time2;</span>
+                  }
+                  // ELSE!
+                  // for this and many previous ifs we fall through if nothing lets us sort
+                } // .
+              }   // .
+<span style = "background-color:#fdd">            }     // .</span>
+          }
+        }
+      }
+    } // .
+
+    // LAST RESORT: all valuable information for sorting is missing.
+    // Sort by some meaningless but unique identifiers to satisfy the sort function
+<span style = "background-color:#fdd">    static const gdcm::Tag tagSOPInstanceUID(0x0008, 0x0018);
+    if (ds1.FindDataElement(tagSOPInstanceUID) &amp;&amp; ds2.FindDataElement(tagSOPInstanceUID))</span>
+    {
+<span style = "background-color:#fdd">      MITK_DEBUG</span>
+        &lt;&lt; "Dicom images are missing attributes for a meaningful sorting, falling back to SOP instance UID comparison.";
+<span style = "background-color:#fdd">      gdcm::Attribute&lt;0x0008, 0x0018&gt; SOPInstanceUID1; // SOP instance UID is mandatory and unique
+      gdcm::Attribute&lt;0x0008, 0x0018&gt; SOPInstanceUID2;</span>
+
+<span style = "background-color:#fdd">      SOPInstanceUID1.Set(ds1);
+      SOPInstanceUID2.Set(ds2);</span>
+
+<span style = "background-color:#fdd">      return SOPInstanceUID1 &lt; SOPInstanceUID2;
+    }</span>
+    else
+    {
+      // no DICOM file should really come down here, this should only be reached with unskillful and unlucky
+      // manipulation
+      // of files
+<span style = "background-color:#fdd">      std::string error_message("Malformed DICOM images, which do not even contain a SOP Instance UID.");
+      MITK_ERROR &lt;&lt; error_message;
+      throw std::logic_error(error_message);
+    }
+  }</span>
+
+  std::string DicomSeriesReader::GetConfigurationString()
+<span style = "background-color:#fdd">  {
+    std::stringstream configuration;
+    configuration &lt;&lt; "MITK_USE_GDCMIO: ";
+    configuration &lt;&lt; "true";
+    configuration &lt;&lt; "\n";</span>
+
+<span style = "background-color:#fdd">    configuration &lt;&lt; "GDCM_VERSION: ";</span>
+#ifdef GDCM_MAJOR_VERSION
+<span style = "background-color:#fdd">    configuration &lt;&lt; GDCM_VERSION;</span>
+#endif
+    // configuration &lt;&lt; "\n";
+
+<span style = "background-color:#fdd">    return configuration.str();
+  }</span>
+
+  void DicomSeriesReader::CopyMetaDataToImageProperties(StringContainer filenames,
+                                                        const gdcm::Scanner::MappingType &amp;tagValueMappings_,
+                                                        DcmIoType *io,
+                                                        const ImageBlockDescriptor &amp;blockInfo,
+                                                        Image *image)
+<span style = "background-color:#fdd">  {
+    std::list&lt;StringContainer&gt; imageBlock;
+    imageBlock.push_back(filenames);
+    CopyMetaDataToImageProperties(imageBlock, tagValueMappings_, io, blockInfo, image);
+  }</span>
+
+  void DicomSeriesReader::CopyMetaDataToImageProperties(std::list&lt;StringContainer&gt; imageBlock,
+                                                        const gdcm::Scanner::MappingType &amp;tagValueMappings_,
+                                                        DcmIoType *io,
+                                                        const ImageBlockDescriptor &amp;blockInfo,
+                                                        Image *image)
+<span style = "background-color:#fdd">  {
+    if (!io || !image)
+      return;</span>
+
+<span style = "background-color:#fdd">    StringLookupTable filesForSlices;
+    StringLookupTable sliceLocationForSlices;
+    StringLookupTable instanceNumberForSlices;
+    StringLookupTable SOPInstanceNumberForSlices;</span>
+
+<span style = "background-color:#fdd">    auto &amp;tagValueMappings = const_cast&lt;gdcm::Scanner::MappingType &amp;&gt;(tagValueMappings_);</span>
+
+    // DICOM tags which should be added to the image properties
+<span style = "background-color:#fdd">    const gdcm::Tag tagSliceLocation(0x0020, 0x1041); // slice location</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagInstanceNumber(0x0020, 0x0013); // (image) instance number</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagSOPInstanceNumber(0x0008, 0x0018); // SOP instance number
+    unsigned int timeStep(0);</span>
+
+<span style = "background-color:#fdd">    std::string propertyKeySliceLocation = "dicom.image.0020.1041";
+    std::string propertyKeyInstanceNumber = "dicom.image.0020.0013";
+    std::string propertyKeySOPInstanceNumber = "dicom.image.0008.0018";</span>
+
+    // tags for each image
+<span style = "background-color:#fdd">    for (auto i = imageBlock.begin(); i != imageBlock.end(); i++, timeStep++)</span>
+    {
+<span style = "background-color:#fdd">      const StringContainer &amp;files = (*i);
+      unsigned int slice(0);
+      for (auto fIter = files.begin(); fIter != files.end(); ++fIter, ++slice)</span>
+      {
+<span style = "background-color:#fdd">        filesForSlices.SetTableValue(slice, *fIter);
+        gdcm::Scanner::TagToValue tagValueMapForFile = tagValueMappings[fIter-&gt;c_str()];
+        if (tagValueMapForFile.find(tagSliceLocation) != tagValueMapForFile.end())
+          sliceLocationForSlices.SetTableValue(slice, tagValueMapForFile[tagSliceLocation]);
+        if (tagValueMapForFile.find(tagInstanceNumber) != tagValueMapForFile.end())
+          instanceNumberForSlices.SetTableValue(slice, tagValueMapForFile[tagInstanceNumber]);
+        if (tagValueMapForFile.find(tagSOPInstanceNumber) != tagValueMapForFile.end())
+          SOPInstanceNumberForSlices.SetTableValue(slice, tagValueMapForFile[tagSOPInstanceNumber]);
+      }</span>
+
+<span style = "background-color:#fdd">      image-&gt;SetProperty("files", StringLookupTableProperty::New(filesForSlices));</span>
+
+      // If more than one time step add postfix ".t" + timestep
+<span style = "background-color:#fdd">      if (timeStep != 0)</span>
+      {
+<span style = "background-color:#fdd">        std::ostringstream postfix;
+        postfix &lt;&lt; ".t" &lt;&lt; timeStep;</span>
+
+<span style = "background-color:#fdd">        propertyKeySliceLocation.append(postfix.str());
+        propertyKeyInstanceNumber.append(postfix.str());
+        propertyKeySOPInstanceNumber.append(postfix.str());
+      }
+      image-&gt;SetProperty(propertyKeySliceLocation.c_str(), StringLookupTableProperty::New(sliceLocationForSlices));
+      image-&gt;SetProperty(propertyKeyInstanceNumber.c_str(), StringLookupTableProperty::New(instanceNumberForSlices));
+      image-&gt;SetProperty(propertyKeySOPInstanceNumber.c_str(),</span>
+                         StringLookupTableProperty::New(SOPInstanceNumberForSlices));
+<span style = "background-color:#fdd">    }</span>
+
+    // Copy tags for series, study, patient level (leave interpretation to application).
+    // These properties will be copied to the DataNode by DicomSeriesReader.
+
+    // tags for the series (we just use the one that ITK copied to its dictionary (proably that of the last slice)
+<span style = "background-color:#fdd">    const itk::MetaDataDictionary &amp;dict = io-&gt;GetMetaDataDictionary();
+    const TagToPropertyMapType &amp;propertyLookup = DicomSeriesReader::GetDICOMTagsToMITKPropertyMap();</span>
+
+<span style = "background-color:#fdd">    auto dictIter = dict.Begin();
+    while (dictIter != dict.End())</span>
+    {
+      // MITK_DEBUG &lt;&lt; "Key " &lt;&lt; dictIter-&gt;first;
+<span style = "background-color:#fdd">      std::string value;
+      if (itk::ExposeMetaData&lt;std::string&gt;(dict, dictIter-&gt;first, value))</span>
+      {
+        // MITK_DEBUG &lt;&lt; "Value " &lt;&lt; value;
+
+<span style = "background-color:#fdd">        auto valuePosition = propertyLookup.find(dictIter-&gt;first);
+        if (valuePosition != propertyLookup.end())</span>
+        {
+<span style = "background-color:#fdd">          std::string propertyKey = valuePosition-&gt;second;</span>
+          // MITK_DEBUG &lt;&lt; "--&gt; " &lt;&lt; propertyKey;
+
+<span style = "background-color:#fdd">          image-&gt;SetProperty(propertyKey.c_str(), StringProperty::New(value));
+        }
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        MITK_WARN &lt;&lt; "Tag " &lt;&lt; dictIter-&gt;first &lt;&lt; " not read as string as expected. Ignoring...";</span>
+      }
+<span style = "background-color:#fdd">      ++dictIter;
+    }</span>
+
+    // copy imageblockdescriptor as properties
+<span style = "background-color:#fdd">    image-&gt;SetProperty("dicomseriesreader.SOPClass", StringProperty::New(blockInfo.GetSOPClassUIDAsString()));
+    image-&gt;SetProperty(</span>
+      "dicomseriesreader.ReaderImplementationLevelString",
+      StringProperty::New(ReaderImplementationLevelToString(blockInfo.GetReaderImplementationLevel())));
+<span style = "background-color:#fdd">    image-&gt;SetProperty("dicomseriesreader.ReaderImplementationLevel",</span>
+                       GenericProperty&lt;ReaderImplementationLevel&gt;::New(blockInfo.GetReaderImplementationLevel()));
+<span style = "background-color:#fdd">    image-&gt;SetProperty("dicomseriesreader.PixelSpacingInterpretationString",</span>
+                       StringProperty::New(PixelSpacingInterpretationToString(blockInfo.GetPixelSpacingType())));
+<span style = "background-color:#fdd">    image-&gt;SetProperty("dicomseriesreader.PixelSpacingInterpretation",</span>
+                       GenericProperty&lt;PixelSpacingInterpretation&gt;::New(blockInfo.GetPixelSpacingType()));
+<span style = "background-color:#fdd">    image-&gt;SetProperty("dicomseriesreader.MultiFrameImage", BoolProperty::New(blockInfo.IsMultiFrameImage()));
+    image-&gt;SetProperty("dicomseriesreader.GantyTiltCorrected", BoolProperty::New(blockInfo.HasGantryTiltCorrected()));
+    image-&gt;SetProperty("dicomseriesreader.3D+t", BoolProperty::New(blockInfo.HasMultipleTimePoints()));
+  }</span>
+
+  void DicomSeriesReader::FixSpacingInformation(mitk::Image *image, const ImageBlockDescriptor &amp;imageBlockDescriptor)
+<span style = "background-color:#fdd">  {</span>
+    // spacing provided by ITK/GDCM
+<span style = "background-color:#fdd">    Vector3D imageSpacing = image-&gt;GetGeometry()-&gt;GetSpacing();
+    ScalarType imageSpacingX = imageSpacing[0];
+    ScalarType imageSpacingY = imageSpacing[1];</span>
+
+    // spacing as desired by MITK (preference for "in patient", else "on detector", or "1.0/1.0")
+<span style = "background-color:#fdd">    ScalarType desiredSpacingX = imageSpacingX;
+    ScalarType desiredSpacingY = imageSpacingY;
+    imageBlockDescriptor.GetDesiredMITKImagePixelSpacing(desiredSpacingX, desiredSpacingY);</span>
+
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Loaded spacing: " &lt;&lt; imageSpacingX &lt;&lt; "/" &lt;&lt; imageSpacingY;
+    MITK_DEBUG &lt;&lt; "Corrected spacing: " &lt;&lt; desiredSpacingX &lt;&lt; "/" &lt;&lt; desiredSpacingY;</span>
+
+<span style = "background-color:#fdd">    imageSpacing[0] = desiredSpacingX;
+    imageSpacing[1] = desiredSpacingY;
+    image-&gt;GetGeometry()-&gt;SetSpacing(imageSpacing);
+  }</span>
+
+  void DicomSeriesReader::LoadDicom(const StringContainer &amp;filenames,
+                                    DataNode &amp;node,
+                                    bool sort,
+                                    bool load4D,
+                                    bool correctTilt,
+                                    UpdateCallBackMethod callback,
+                                    Image::Pointer preLoadedImageBlock)
+<span style = "background-color:#fdd">  {
+    mitk::LocaleSwitch localeSwitch("C");
+    std::locale previousCppLocale(std::cin.getloc());
+    std::locale l("C");
+    std::cin.imbue(l);</span>
+
+<span style = "background-color:#fdd">    ImageBlockDescriptor imageBlockDescriptor;</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagImagePositionPatient(0x0020, 0x0032); // Image Position (Patient)
+    const gdcm::Tag tagImageOrientation(0x0020, 0x0037);     // Image Orientation
+    const gdcm::Tag tagSeriesInstanceUID(0x0020, 0x000e);    // Series Instance UID
+    const gdcm::Tag tagSOPClassUID(0x0008, 0x0016);          // SOP class UID
+    const gdcm::Tag tagModality(0x0008, 0x0060);             // modality
+    const gdcm::Tag tagPixelSpacing(0x0028, 0x0030);         // pixel spacing
+    const gdcm::Tag tagImagerPixelSpacing(0x0018, 0x1164);   // imager pixel spacing
+    const gdcm::Tag tagNumberOfFrames(0x0028, 0x0008);       // number of frames</span>
+
+    try
+    {
+<span style = "background-color:#fdd">      Image::Pointer image = preLoadedImageBlock.IsNull() ? Image::New() : preLoadedImageBlock;
+      CallbackCommand *command = callback ? new CallbackCommand(callback) : nullptr;
+      bool initialize_node = false;</span>
+
+      /* special case for Philips 3D+t ultrasound images */
+<span style = "background-color:#fdd">      if (DicomSeriesReader::IsPhilips3DDicom(filenames.front().c_str()))</span>
+      {
+        // TODO what about imageBlockDescriptor?
+        // TODO what about preLoadedImageBlock?
+<span style = "background-color:#fdd">        ReadPhilips3DDicom(filenames.front().c_str(), image);
+        initialize_node = true;
+      }</span>
+      else
+      {
+        /* default case: assume "normal" image blocks, possibly 3D+t */
+<span style = "background-color:#fdd">        bool canLoadAs4D(true);
+        gdcm::Scanner scanner;
+        ScanForSliceInformation(filenames, scanner);</span>
+
+        // need non-const access for map
+<span style = "background-color:#fdd">        auto &amp;tagValueMappings = const_cast&lt;gdcm::Scanner::MappingType &amp;&gt;(scanner.GetMappings());</span>
+
+<span style = "background-color:#fdd">        std::list&lt;StringContainer&gt; imageBlocks =</span>
+          SortIntoBlocksFor3DplusT(filenames, tagValueMappings, sort, canLoadAs4D);
+<span style = "background-color:#fdd">        unsigned int volume_count = imageBlocks.size();</span>
+
+<span style = "background-color:#fdd">        imageBlockDescriptor.SetSeriesInstanceUID(</span>
+          DicomSeriesReader::ConstCharStarToString(scanner.GetValue(filenames.front().c_str(), tagSeriesInstanceUID)));
+<span style = "background-color:#fdd">        imageBlockDescriptor.SetSOPClassUID(</span>
+          DicomSeriesReader::ConstCharStarToString(scanner.GetValue(filenames.front().c_str(), tagSOPClassUID)));
+<span style = "background-color:#fdd">        imageBlockDescriptor.SetModality(</span>
+          DicomSeriesReader::ConstCharStarToString(scanner.GetValue(filenames.front().c_str(), tagModality)));
+<span style = "background-color:#fdd">        imageBlockDescriptor.SetNumberOfFrames(</span>
+          ConstCharStarToString(scanner.GetValue(filenames.front().c_str(), tagNumberOfFrames)));
+<span style = "background-color:#fdd">        imageBlockDescriptor.SetPixelSpacingInformation(</span>
+          ConstCharStarToString(scanner.GetValue(filenames.front().c_str(), tagPixelSpacing)),
+          ConstCharStarToString(scanner.GetValue(filenames.front().c_str(), tagImagerPixelSpacing)));
+
+<span style = "background-color:#fdd">        GantryTiltInformation tiltInfo;</span>
+
+        // check possibility of a single slice with many timesteps. In this case, don't check for tilt, no second slice
+        // possible
+<span style = "background-color:#fdd">        if (!imageBlocks.empty() &amp;&amp; imageBlocks.front().size() &gt; 1 &amp;&amp; correctTilt)</span>
+        {
+          // check tiltedness here, potentially fixup ITK's loading result by shifting slice contents
+          // check first and last position slice from tags, make some calculations to detect tilt
+
+<span style = "background-color:#fdd">          std::string firstFilename(imageBlocks.front().front());</span>
+          // calculate from first and last slice to minimize rounding errors
+<span style = "background-color:#fdd">          std::string secondFilename(imageBlocks.front().back());</span>
+
+<span style = "background-color:#fdd">          std::string imagePosition1(</span>
+            ConstCharStarToString(tagValueMappings[firstFilename.c_str()][tagImagePositionPatient]));
+<span style = "background-color:#fdd">          std::string imageOrientation(</span>
+            ConstCharStarToString(tagValueMappings[firstFilename.c_str()][tagImageOrientation]));
+<span style = "background-color:#fdd">          std::string imagePosition2(</span>
+            ConstCharStarToString(tagValueMappings[secondFilename.c_str()][tagImagePositionPatient]));
+
+<span style = "background-color:#fdd">          bool ignoredConversionError(-42); // hard to get here, no graceful way to react
+          Point3D origin1(DICOMStringToPoint3D(imagePosition1, ignoredConversionError));
+          Point3D origin2(DICOMStringToPoint3D(imagePosition2, ignoredConversionError));</span>
+
+<span style = "background-color:#fdd">          Vector3D right;
+          right.Fill(0.0);
+          Vector3D up;
+          right.Fill(0.0); // might be down as well, but it is just a name at this point
+          DICOMStringToOrientationVectors(imageOrientation, right, up, ignoredConversionError);</span>
+
+<span style = "background-color:#fdd">          tiltInfo = GantryTiltInformation(origin1, origin2, right, up, filenames.size() - 1);
+          correctTilt = tiltInfo.IsSheared() &amp;&amp; tiltInfo.IsRegularGantryTilt();
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          correctTilt = false; // we CANNOT do that</span>
+        }
+
+<span style = "background-color:#fdd">        imageBlockDescriptor.SetHasGantryTiltCorrected(correctTilt);</span>
+
+<span style = "background-color:#fdd">        if (volume_count == 1 || !canLoadAs4D || !load4D)</span>
+        {
+<span style = "background-color:#fdd">          DcmIoType::Pointer io;
+          image = MultiplexLoadDICOMByITK(</span>
+            imageBlocks.front(), correctTilt, tiltInfo, io, command, preLoadedImageBlock); // load first 3D block
+
+<span style = "background-color:#fdd">          imageBlockDescriptor.AddFiles(imageBlocks.front()); // only the first part is loaded
+          imageBlockDescriptor.SetHasMultipleTimePoints(false);</span>
+
+<span style = "background-color:#fdd">          FixSpacingInformation(image, imageBlockDescriptor);
+          CopyMetaDataToImageProperties(imageBlocks.front(), scanner.GetMappings(), io, imageBlockDescriptor, image);</span>
+
+<span style = "background-color:#fdd">          initialize_node = true;
+        }
+        else if (volume_count &gt; 1)</span>
+        {
+<span style = "background-color:#fdd">          imageBlockDescriptor.AddFiles(filenames); // all is loaded
+          imageBlockDescriptor.SetHasMultipleTimePoints(true);</span>
+
+<span style = "background-color:#fdd">          DcmIoType::Pointer io;
+          image = MultiplexLoadDICOMByITK4D(</span>
+            imageBlocks, imageBlockDescriptor, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+
+<span style = "background-color:#fdd">          initialize_node = true;
+        }
+      }</span>
+
+<span style = "background-color:#fdd">      if (initialize_node)</span>
+      {
+        // forward some image properties to node
+<span style = "background-color:#fdd">        node.GetPropertyList()-&gt;ConcatenatePropertyList(image-&gt;GetPropertyList(), true);</span>
+
+<span style = "background-color:#fdd">        std::string patientName = "NoName";
+        if (node.GetProperty("dicom.patient.PatientsName"))
+          patientName = node.GetProperty("dicom.patient.PatientsName")-&gt;GetValueAsString();</span>
+
+<span style = "background-color:#fdd">        node.SetData(image);
+        node.SetName(patientName);
+        std::cin.imbue(previousCppLocale);
+      }</span>
+
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "--------------------------------------------------------------------------------";
+      MITK_DEBUG &lt;&lt; "DICOM files loaded (from series UID " &lt;&lt; imageBlockDescriptor.GetSeriesInstanceUID() &lt;&lt; "):";
+      MITK_DEBUG &lt;&lt; "  " &lt;&lt; imageBlockDescriptor.GetFilenames().size() &lt;&lt; " '" &lt;&lt; imageBlockDescriptor.GetModality()</span>
+                 &lt;&lt; "' files (" &lt;&lt; imageBlockDescriptor.GetSOPClassUIDAsString() &lt;&lt; ") loaded into 1 mitk::Image";
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "  multi-frame: " &lt;&lt; (imageBlockDescriptor.IsMultiFrameImage() ? "Yes" : "No");
+      MITK_DEBUG &lt;&lt; "  reader support: "</span>
+                 &lt;&lt; ReaderImplementationLevelToString(imageBlockDescriptor.GetReaderImplementationLevel());
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "  pixel spacing type: "</span>
+                 &lt;&lt; PixelSpacingInterpretationToString(imageBlockDescriptor.GetPixelSpacingType()) &lt;&lt; " "
+                 &lt;&lt; image-&gt;GetGeometry()-&gt;GetSpacing()[0] &lt;&lt; "/" &lt;&lt; image-&gt;GetGeometry()-&gt;GetSpacing()[0];
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "  gantry tilt corrected: " &lt;&lt; (imageBlockDescriptor.HasGantryTiltCorrected() ? "Yes" : "No");
+      MITK_DEBUG &lt;&lt; "  3D+t: " &lt;&lt; (imageBlockDescriptor.HasMultipleTimePoints() ? "Yes" : "No");
+      MITK_DEBUG &lt;&lt; "--------------------------------------------------------------------------------";
+    }</span>
+    catch ( const std::exception &amp;e )
+<span style = "background-color:#fdd">    {</span>
+      // reset locale then throw up
+<span style = "background-color:#fdd">      std::cin.imbue(previousCppLocale);</span>
+
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "Caught exception in DicomSeriesReader::LoadDicom";</span>
+
+<span style = "background-color:#fdd">      throw e;
+    }
+  }</span>
+
+  void DicomSeriesReader::ScanForSliceInformation(const StringContainer &amp;filenames, gdcm::Scanner &amp;scanner)
+<span style = "background-color:#fdd">  {
+    const gdcm::Tag tagImagePositionPatient(0x0020, 0x0032); // Image position (Patient)
+    scanner.AddTag(tagImagePositionPatient);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagSeriesInstanceUID(0x0020, 0x000e); // Series Instance UID
+    scanner.AddTag(tagSeriesInstanceUID);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagImageOrientation(0x0020, 0x0037); // Image orientation
+    scanner.AddTag(tagImageOrientation);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagSliceLocation(0x0020, 0x1041); // slice location
+    scanner.AddTag(tagSliceLocation);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagInstanceNumber(0x0020, 0x0013); // (image) instance number
+    scanner.AddTag(tagInstanceNumber);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagSOPInstanceNumber(0x0008, 0x0018); // SOP instance number
+    scanner.AddTag(tagSOPInstanceNumber);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagPixelSpacing(0x0028, 0x0030); // Pixel Spacing
+    scanner.AddTag(tagPixelSpacing);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagImagerPixelSpacing(0x0018, 0x1164); // Imager Pixel Spacing
+    scanner.AddTag(tagImagerPixelSpacing);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagModality(0x0008, 0x0060); // Modality
+    scanner.AddTag(tagModality);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagSOPClassUID(0x0008, 0x0016); // SOP Class UID
+    scanner.AddTag(tagSOPClassUID);</span>
+
+<span style = "background-color:#fdd">    const gdcm::Tag tagNumberOfFrames(0x0028, 0x0008); // number of frames
+    scanner.AddTag(tagNumberOfFrames);</span>
+
+<span style = "background-color:#fdd">    scanner.Scan(filenames); // make available image information for each file
+  }</span>
+
+  std::list&lt;DicomSeriesReader::StringContainer&gt; DicomSeriesReader::SortIntoBlocksFor3DplusT(
+    const StringContainer &amp;presortedFilenames,
+    const gdcm::Scanner::MappingType &amp;tagValueMappings,
+    bool /*sort*/,
+    bool &amp;canLoadAs4D)
+<span style = "background-color:#fdd">  {
+    std::list&lt;StringContainer&gt; imageBlocks;</span>
+
+    // ignore sort request, because most likely re-sorting is now needed due to changes in GetSeries(bug #8022)
+<span style = "background-color:#fdd">    StringContainer sorted_filenames = DicomSeriesReader::SortSeriesSlices(presortedFilenames);</span>
+
+<span style = "background-color:#fdd">    std::string firstPosition;
+    unsigned int numberOfBlocks(0); // number of 3D image blocks</span>
+
+<span style = "background-color:#fdd">    static const gdcm::Tag tagImagePositionPatient(0x0020, 0x0032); // Image position (Patient)
+    const gdcm::Tag tagModality(0x0008, 0x0060);</span>
+
+    // loop files to determine number of image blocks
+<span style = "background-color:#fdd">    for (StringContainer::const_iterator fileIter = sorted_filenames.begin(); fileIter != sorted_filenames.end();
+         ++fileIter)</span>
+    {
+<span style = "background-color:#fdd">      gdcm::Scanner::TagToValue tagToValueMap = tagValueMappings.find(fileIter-&gt;c_str())-&gt;second;</span>
+
+<span style = "background-color:#fdd">      if (tagToValueMap.find(tagImagePositionPatient) == tagToValueMap.end())</span>
+      {
+<span style = "background-color:#fdd">        const std::string &amp;modality = tagToValueMap.find(tagModality)-&gt;second;
+        if (modality.compare("RTIMAGE ") == 0 || modality.compare("RTIMAGE") == 0)</span>
+        {
+<span style = "background-color:#fdd">          MITK_WARN &lt;&lt; "Modality " &lt;&lt; modality &lt;&lt; " is not fully supported yet.";
+          numberOfBlocks = 1;
+          break;
+        }</span>
+        else
+        {
+          // we expect to get images w/ missing position information ONLY as separated blocks.
+<span style = "background-color:#fdd">          assert(presortedFilenames.size() == 1);
+          numberOfBlocks = 1;
+          break;</span>
+        }
+<span style = "background-color:#fdd">      }</span>
+
+<span style = "background-color:#fdd">      std::string position = tagToValueMap.find(tagImagePositionPatient)-&gt;second;
+      MITK_DEBUG &lt;&lt; "  " &lt;&lt; *fileIter &lt;&lt; " at " &lt;&lt; position;
+      if (firstPosition.empty())</span>
+      {
+<span style = "background-color:#fdd">        firstPosition = position;</span>
+      }
+
+<span style = "background-color:#fdd">      if (position == firstPosition)</span>
+      {
+<span style = "background-color:#fdd">        ++numberOfBlocks;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        break; // enough information to know the number of image blocks</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "  ==&gt; Assuming " &lt;&lt; numberOfBlocks &lt;&lt; " time steps";</span>
+
+<span style = "background-color:#fdd">    if (numberOfBlocks == 0)
+      return imageBlocks; // only possible if called with no files</span>
+
+    // loop files to sort them into image blocks
+<span style = "background-color:#fdd">    unsigned int numberOfExpectedSlices(0);
+    for (unsigned int block = 0; block &lt; numberOfBlocks; ++block)</span>
+    {
+<span style = "background-color:#fdd">      StringContainer filesOfCurrentBlock;</span>
+
+<span style = "background-color:#fdd">      for (StringContainer::const_iterator fileIter = sorted_filenames.begin() + block;
+           fileIter != sorted_filenames.end();</span>
+           // fileIter += numberOfBlocks) // TODO shouldn't this work? give invalid iterators on first attempts
+           )
+      {
+<span style = "background-color:#fdd">        filesOfCurrentBlock.push_back(*fileIter);
+        for (unsigned int b = 0; b &lt; numberOfBlocks; ++b)</span>
+        {
+<span style = "background-color:#fdd">          if (fileIter != sorted_filenames.end())
+            ++fileIter;
+        }
+      }</span>
+
+<span style = "background-color:#fdd">      imageBlocks.push_back(filesOfCurrentBlock);</span>
+
+<span style = "background-color:#fdd">      if (block == 0)</span>
+      {
+<span style = "background-color:#fdd">        numberOfExpectedSlices = filesOfCurrentBlock.size();
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        if (filesOfCurrentBlock.size() != numberOfExpectedSlices)</span>
+        {
+<span style = "background-color:#fdd">          MITK_WARN</span>
+            &lt;&lt; "DicomSeriesReader expected " &lt;&lt; numberOfBlocks &lt;&lt; " image blocks of " &lt;&lt; numberOfExpectedSlices
+            &lt;&lt; " images each. Block " &lt;&lt; block &lt;&lt; " got " &lt;&lt; filesOfCurrentBlock.size()
+            &lt;&lt; " instead. Cannot load this as 3D+t"; // TODO implement recovery (load as many slices 3D+t as much
+                                                     // as possible)
+<span style = "background-color:#fdd">          canLoadAs4D = false;</span>
+        }
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    return imageBlocks;
+  }</span>
+
+  Image::Pointer DicomSeriesReader::MultiplexLoadDICOMByITK(const StringContainer &amp;filenames,
+                                                            bool correctTilt,
+                                                            const GantryTiltInformation &amp;tiltInfo,
+                                                            DcmIoType::Pointer &amp;io,
+                                                            CallbackCommand *command,
+                                                            Image::Pointer preLoadedImageBlock)
+<span style = "background-color:#fdd">  {
+    io = DcmIoType::New();
+    io-&gt;SetFileName(filenames.front().c_str());
+    io-&gt;ReadImageInformation();</span>
+
+<span style = "background-color:#fdd">    if (io-&gt;GetPixelType() == itk::IOPixelEnum::SCALAR)</span>
+    {
+<span style = "background-color:#fdd">      return MultiplexLoadDICOMByITKScalar(filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+    }
+    else if (io-&gt;GetPixelType() == itk::IOPixelEnum::RGB)</span>
+    {
+<span style = "background-color:#fdd">      return MultiplexLoadDICOMByITKRGBPixel(filenames, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  Image::Pointer DicomSeriesReader::MultiplexLoadDICOMByITK4D(std::list&lt;StringContainer&gt; &amp;imageBlocks,
+                                                              ImageBlockDescriptor imageBlockDescriptor,
+                                                              bool correctTilt,
+                                                              const GantryTiltInformation &amp;tiltInfo,
+                                                              DcmIoType::Pointer &amp;io,
+                                                              CallbackCommand *command,
+                                                              Image::Pointer preLoadedImageBlock)
+<span style = "background-color:#fdd">  {
+    io = DcmIoType::New();
+    io-&gt;SetFileName(imageBlocks.front().front().c_str());
+    io-&gt;ReadImageInformation();</span>
+
+<span style = "background-color:#fdd">    if (io-&gt;GetPixelType() == itk::IOPixelEnum::SCALAR)</span>
+    {
+<span style = "background-color:#fdd">      return MultiplexLoadDICOMByITK4DScalar(</span>
+        imageBlocks, imageBlockDescriptor, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+<span style = "background-color:#fdd">    }
+    else if (io-&gt;GetPixelType() == itk::IOPixelEnum::RGB)</span>
+    {
+<span style = "background-color:#fdd">      return MultiplexLoadDICOMByITK4DRGBPixel(</span>
+        imageBlocks, imageBlockDescriptor, correctTilt, tiltInfo, io, command, preLoadedImageBlock);
+<span style = "background-color:#fdd">    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return nullptr;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+} // end namespace mitk</pre>
+	</body>
+</html>

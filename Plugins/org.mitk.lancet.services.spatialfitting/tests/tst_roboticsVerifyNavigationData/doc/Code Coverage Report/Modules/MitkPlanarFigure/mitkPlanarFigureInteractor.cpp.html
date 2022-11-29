@@ -1,0 +1,1142 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlanarFigureInteractor.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#define PLANARFIGUREINTERACTOR_DBG MITK_DEBUG("PlanarFigureInteractor") &lt;&lt; __LINE__ &lt;&lt; ": "
+
+#include "mitkPlanarFigureInteractor.h"
+#include "mitkPlanarBezierCurve.h"
+#include "mitkPlanarCircle.h"
+#include "mitkPlanarFigure.h"
+#include "mitkPlanarPolygon.h"
+
+#include "mitkInteractionPositionEvent.h"
+#include "mitkInternalEvent.h"
+
+#include "mitkBaseRenderer.h"
+#include "mitkRenderingManager.h"
+
+#include "mitkAbstractTransformGeometry.h"
+#include "mitkPlaneGeometry.h"
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  itkEventMacroDefinition(PlanarFigureEvent, itk::AnyEvent);
+  itkEventMacroDefinition(StartPlacementPlanarFigureEvent, PlanarFigureEvent);
+  itkEventMacroDefinition(EndPlacementPlanarFigureEvent, PlanarFigureEvent);
+  itkEventMacroDefinition(SelectPlanarFigureEvent, PlanarFigureEvent);
+  itkEventMacroDefinition(StartInteractionPlanarFigureEvent, PlanarFigureEvent);
+  itkEventMacroDefinition(EndInteractionPlanarFigureEvent, PlanarFigureEvent);
+  itkEventMacroDefinition(StartHoverPlanarFigureEvent, PlanarFigureEvent);
+  itkEventMacroDefinition(EndHoverPlanarFigureEvent, PlanarFigureEvent);
+  itkEventMacroDefinition(ContextMenuPlanarFigureEvent, PlanarFigureEvent);
+  itkEventMacroDefinition(PointMovedPlanarFigureEvent, PlanarFigureEvent);</span>
+}
+
+mitk::PlanarFigureInteractor::PlanarFigureInteractor()
+<span style = "background-color:#fdd">  : DataInteractor()
+  , m_Precision(6.5)
+  , m_MinimumPointDistance(25.0)
+  , m_IsHovering(false)
+{
+}</span>
+
+mitk::PlanarFigureInteractor::~PlanarFigureInteractor()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::PlanarFigureInteractor::ConnectActionsAndFunctions()
+<span style = "background-color:#fdd">{
+  CONNECT_CONDITION("figure_is_on_current_slice", CheckFigureOnRenderingGeometry);
+  CONNECT_CONDITION("figure_is_placed", CheckFigurePlaced);
+  CONNECT_CONDITION("minimal_figure_is_finished", CheckMinimalFigureFinished);
+  CONNECT_CONDITION("hovering_above_figure", CheckFigureHovering);
+  CONNECT_CONDITION("hovering_above_point", CheckControlPointHovering);
+  CONNECT_CONDITION("figure_is_selected", CheckSelection);
+  CONNECT_CONDITION("point_is_valid", CheckPointValidity);
+  CONNECT_CONDITION("figure_is_finished", CheckFigureFinished);
+  CONNECT_CONDITION("reset_on_point_select_needed", CheckResetOnPointSelect);
+  CONNECT_CONDITION("points_can_be_added_or_removed", CheckFigureIsExtendable);
+  CONNECT_CONDITION("figure_can_be_deleted", CheckFigureIsDeletable);
+  CONNECT_CONDITION("figure_is_editable", CheckFigureIsEditable);</span>
+
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("finalize_figure", FinalizeFigure);
+  CONNECT_FUNCTION("hide_preview_point", HidePreviewPoint)
+  CONNECT_FUNCTION("hide_control_points", HideControlPoints)
+  CONNECT_FUNCTION("set_preview_point_position", SetPreviewPointPosition)
+  CONNECT_FUNCTION("move_current_point", MoveCurrentPoint);
+  CONNECT_FUNCTION("deselect_point", DeselectPoint);
+  CONNECT_FUNCTION("add_new_point", AddPoint);
+  CONNECT_FUNCTION("add_initial_point", AddInitialPoint);
+  CONNECT_FUNCTION("remove_selected_point", RemoveSelectedPoint);
+  CONNECT_FUNCTION("request_context_menu", RequestContextMenu);
+  CONNECT_FUNCTION("select_figure", SelectFigure);
+  CONNECT_FUNCTION("select_point", SelectPoint);
+  CONNECT_FUNCTION("end_interaction", EndInteraction);
+  CONNECT_FUNCTION("start_hovering", StartHovering)
+  CONNECT_FUNCTION("end_hovering", EndHovering);
+  CONNECT_FUNCTION("delete_figure", DeleteFigure);
+  CONNECT_FUNCTION("reset_on_point_select", PerformPointResetOnSelect);
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckFigurePlaced(const InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  bool isFigureFinished = false;
+  planarFigure-&gt;GetPropertyList()-&gt;GetBoolProperty("initiallyplaced", isFigureFinished);</span>
+
+<span style = "background-color:#fdd">  return planarFigure-&gt;IsPlaced() &amp;&amp; isFigureFinished;
+}</span>
+
+void mitk::PlanarFigureInteractor::MoveCurrentPoint(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto positionEvent = dynamic_cast&lt;InteractionPositionEvent*&gt;(interactionEvent);
+  if (nullptr == positionEvent)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  bool isEditable = true;
+  GetDataNode()-&gt;GetBoolProperty("planarfigure.iseditable", isEditable);</span>
+
+<span style = "background-color:#fdd">  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigureGeometry = planarFigure-&gt;GetPlaneGeometry();
+  if (nullptr == planarFigureGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto abstractTransformGeometry = dynamic_cast&lt;AbstractTransformGeometry*&gt;(planarFigure-&gt;GetGeometry(0));
+  if (nullptr != abstractTransformGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // Extract point in 2D world coordinates (relative to PlaneGeometry of PlanarFigure)
+<span style = "background-color:#fdd">  Point2D point2D;
+  if (!this-&gt;TransformPositionEventToPoint2D(positionEvent, planarFigureGeometry, point2D) || !isEditable)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  planarFigure-&gt;InvokeEvent(StartInteractionPlanarFigureEvent());</span>
+
+  // check if the control points shall be hidden during interaction
+<span style = "background-color:#fdd">  bool hidecontrolpointsduringinteraction = false;
+  GetDataNode()-&gt;GetBoolProperty("planarfigure.hidecontrolpointsduringinteraction", hidecontrolpointsduringinteraction);</span>
+
+  // hide the control points if necessary
+  // interactionEvent-&gt;GetSender()-&gt;GetDataStorage()-&gt;BlockNodeModifiedEvents( true );
+<span style = "background-color:#fdd">  GetDataNode()-&gt;SetBoolProperty("planarfigure.drawcontrolpoints", !hidecontrolpointsduringinteraction);</span>
+  // interactionEvent-&gt;GetSender()-&gt;GetDataStorage()-&gt;BlockNodeModifiedEvents( false );
+
+  // Move current control point to this point
+<span style = "background-color:#fdd">  planarFigure-&gt;SetCurrentControlPoint(point2D);</span>
+
+  // Re-evaluate features
+<span style = "background-color:#fdd">  planarFigure-&gt;EvaluateFeatures();</span>
+
+  // Update rendered scene
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();</span>
+
+<span style = "background-color:#fdd">  planarFigure-&gt;InvokeEvent(PointMovedPlanarFigureEvent());
+}</span>
+
+void mitk::PlanarFigureInteractor::FinalizeFigure(StateMachineAction *, InteractionEvent *)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  planarFigure-&gt;Modified();
+  planarFigure-&gt;DeselectControlPoint();
+  planarFigure-&gt;RemoveLastControlPoint();
+  planarFigure-&gt;SetProperty("initiallyplaced", mitk::BoolProperty::New(true));
+  GetDataNode()-&gt;SetBoolProperty("planarfigure.drawcontrolpoints", true);
+  GetDataNode()-&gt;Modified();
+  planarFigure-&gt;InvokeEvent(EndPlacementPlanarFigureEvent());
+  planarFigure-&gt;InvokeEvent(EndInteractionPlanarFigureEvent());</span>
+
+  // Shape might change when figure is finalized, e.g., smoothing of subdivision polygon
+<span style = "background-color:#fdd">  planarFigure-&gt;EvaluateFeatures();</span>
+
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::PlanarFigureInteractor::EndInteraction(StateMachineAction *, InteractionEvent *)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  GetDataNode()-&gt;SetBoolProperty("planarfigure.drawcontrolpoints", true);
+  planarFigure-&gt;Modified();
+  planarFigure-&gt;InvokeEvent(EndInteractionPlanarFigureEvent());
+  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+bool mitk::PlanarFigureInteractor::FilterEvents(InteractionEvent *interactionEvent, mitk::DataNode * /*dataNode*/)
+<span style = "background-color:#fdd">{
+  if (interactionEvent-&gt;GetSender() == nullptr)
+    return false;
+  if (interactionEvent-&gt;GetSender()-&gt;GetMapperID() == BaseRenderer::Standard3D)
+    return false;</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+void mitk::PlanarFigureInteractor::EndHovering(StateMachineAction *, InteractionEvent *)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  planarFigure-&gt;ResetPreviewContolPoint();</span>
+
+  // Invoke end-hover event once the mouse is exiting the figure area
+<span style = "background-color:#fdd">  m_IsHovering = false;
+  planarFigure-&gt;InvokeEvent(EndHoverPlanarFigureEvent());</span>
+
+  // Set bool property to indicate that planar figure is no longer in "hovering" mode
+<span style = "background-color:#fdd">  GetDataNode()-&gt;SetBoolProperty("planarfigure.ishovering", false);</span>
+
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::PlanarFigureInteractor::DeleteFigure(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  planarFigure-&gt;RemoveAllObservers();
+  GetDataNode()-&gt;RemoveAllObservers();</span>
+
+<span style = "background-color:#fdd">  interactionEvent-&gt;GetSender()-&gt;GetDataStorage()-&gt;Remove(GetDataNode());
+  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::PlanarFigureInteractor::PerformPointResetOnSelect(StateMachineAction *, InteractionEvent *)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  planarFigure-&gt;ResetOnPointSelect();
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckMinimalFigureFinished(const InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  return planarFigure-&gt;GetNumberOfControlPoints() &gt;= planarFigure-&gt;GetMinimumNumberOfControlPoints();
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckFigureFinished(const InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  return planarFigure-&gt;GetNumberOfControlPoints() &gt;= planarFigure-&gt;GetMaximumNumberOfControlPoints();
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckFigureIsExtendable(const InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  bool isExtendable(false);
+  GetDataNode()-&gt;GetBoolProperty("planarfigure.isextendable", isExtendable);</span>
+
+<span style = "background-color:#fdd">  return isExtendable;
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckFigureIsDeletable(const InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  bool isDeletable(true);
+  GetDataNode()-&gt;GetBoolProperty("planarfigure.isdeletable", isDeletable);</span>
+
+<span style = "background-color:#fdd">  return isDeletable;
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckFigureIsEditable(const InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  bool isEditable(true);
+  GetDataNode()-&gt;GetBoolProperty("planarfigure.iseditable", isEditable);</span>
+
+<span style = "background-color:#fdd">  return isEditable;
+}</span>
+
+void mitk::PlanarFigureInteractor::DeselectPoint(StateMachineAction *, InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  const bool wasSelected = planarFigure-&gt;DeselectControlPoint();
+  if (wasSelected)</span>
+  {
+    // Issue event so that listeners may update themselves
+<span style = "background-color:#fdd">    planarFigure-&gt;Modified();
+    planarFigure-&gt;InvokeEvent(EndInteractionPlanarFigureEvent());</span>
+
+<span style = "background-color:#fdd">    GetDataNode()-&gt;SetBoolProperty("planarfigure.drawcontrolpoints", true);
+    GetDataNode()-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigureInteractor::AddPoint(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto positionEvent = dynamic_cast&lt;InteractionPositionEvent*&gt;(interactionEvent);
+  if (nullptr == positionEvent)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  /*
+  * Added check for "initiallyplaced" due to bug 13097:
+  *
+  * There are two possible cases in which a point can be inserted into a PlanarPolygon:
+  *
+  * 1. The figure is currently drawn -&gt; the point will be appended at the end of the figure
+  * 2. A point is inserted at a userdefined position after the initial placement of the figure is finished
+  *
+  * In the second case we need to determine the proper insertion index. In the first case the index always has
+  * to be -1 so that the point is appended to the end.
+  *
+  * These changes are necessary because of a macOS specific issue: If a users draws a PlanarPolygon then the
+  * next point to be added moves according to the mouse position. If then the user left clicks in order to add
+  * a point one would assume the last move position is identical to the left click position. This is actually the
+  * case for windows and linux but somehow NOT for mac. Because of the insertion logic of a new point in the
+  * PlanarFigure then for mac the wrong current selected point is determined.
+  *
+  * With this check here this problem can be avoided. However a redesign of the insertion logic should be considered
+  */
+
+<span style = "background-color:#fdd">  const DataNode::Pointer node = this-&gt;GetDataNode();
+  const BaseData::Pointer data = node-&gt;GetData();</span>
+
+<span style = "background-color:#fdd">  bool isFigureFinished = false;
+  data-&gt;GetPropertyList()-&gt;GetBoolProperty("initiallyplaced", isFigureFinished);</span>
+
+<span style = "background-color:#fdd">  bool selected = false;
+  bool isEditable = true;</span>
+
+<span style = "background-color:#fdd">  node-&gt;GetBoolProperty("selected", selected);
+  node-&gt;GetBoolProperty("planarfigure.iseditable", isEditable);</span>
+
+<span style = "background-color:#fdd">  if (!selected || !isEditable)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(data.GetPointer());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // We can't derive a new control point from a polyline of a Bezier curve
+  // as all control points contribute to each polyline point.
+<span style = "background-color:#fdd">  if (dynamic_cast&lt;PlanarBezierCurve *&gt;(planarFigure) != nullptr &amp;&amp; isFigureFinished)
+    return;</span>
+
+<span style = "background-color:#fdd">  auto planarFigureGeometry = planarFigure-&gt;GetPlaneGeometry();
+  if (nullptr == planarFigureGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto abstractTransformGeometry = dynamic_cast&lt;AbstractTransformGeometry*&gt;(planarFigure-&gt;GetGeometry(0));
+  if (nullptr != abstractTransformGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // If the planarFigure already has reached the maximum number
+<span style = "background-color:#fdd">  if (planarFigure-&gt;GetNumberOfControlPoints() &gt;= planarFigure-&gt;GetMaximumNumberOfControlPoints())</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // Extract point in 2D world coordinates (relative to PlaneGeometry of
+  // PlanarFigure)
+<span style = "background-color:#fdd">  Point2D point2D, projectedPoint;
+  if (!this-&gt;TransformPositionEventToPoint2D(positionEvent, planarFigureGeometry, point2D))</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // TODO: check segment of polyline we clicked in
+<span style = "background-color:#fdd">  int nextIndex = -1;</span>
+
+  // We only need to check which position to insert the control point
+  // when interacting with a PlanarPolygon. For all other types
+  // new control points will always be appended
+
+<span style = "background-color:#fdd">  const mitk::BaseRenderer *renderer = interactionEvent-&gt;GetSender();
+  const PlaneGeometry *projectionPlane = renderer-&gt;GetCurrentWorldPlaneGeometry();</span>
+
+<span style = "background-color:#fdd">  if (dynamic_cast&lt;mitk::PlanarPolygon *&gt;(planarFigure) &amp;&amp; isFigureFinished)</span>
+  {
+<span style = "background-color:#fdd">    nextIndex =</span>
+      this-&gt;IsPositionOverFigure(positionEvent, planarFigure, planarFigureGeometry, projectionPlane, projectedPoint);
+  }
+
+  // Add point as new control point
+
+<span style = "background-color:#fdd">  if (planarFigure-&gt;IsPreviewControlPointVisible())</span>
+  {
+<span style = "background-color:#fdd">    point2D = planarFigure-&gt;GetPreviewControlPoint();</span>
+  }
+
+<span style = "background-color:#fdd">  planarFigure-&gt;AddControlPoint(point2D, planarFigure-&gt;GetControlPointForPolylinePoint(nextIndex, 0));</span>
+
+<span style = "background-color:#fdd">  if (planarFigure-&gt;IsPreviewControlPointVisible())</span>
+  {
+<span style = "background-color:#fdd">    planarFigure-&gt;SelectControlPoint(nextIndex);
+    planarFigure-&gt;ResetPreviewContolPoint();</span>
+  }
+
+  // Re-evaluate features
+<span style = "background-color:#fdd">  planarFigure-&gt;EvaluateFeatures();</span>
+  // this-&gt;LogPrintPlanarFigureQuantities( planarFigure );
+
+  // Update rendered scene
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::PlanarFigureInteractor::AddInitialPoint(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto positionEvent = dynamic_cast&lt;InteractionPositionEvent*&gt;(interactionEvent);
+  if (nullptr == positionEvent)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::BaseRenderer *renderer = interactionEvent-&gt;GetSender();
+  auto abstractTransformGeometry = dynamic_cast&lt;AbstractTransformGeometry*&gt;(planarFigure-&gt;GetGeometry(0));</span>
+
+  // Invoke event to notify listeners that placement of this PF starts now
+<span style = "background-color:#fdd">  planarFigure-&gt;InvokeEvent(StartPlacementPlanarFigureEvent());</span>
+
+  // Use PlaneGeometry of the renderer clicked on for this PlanarFigure
+<span style = "background-color:#fdd">  auto *planeGeometry = const_cast&lt;mitk::PlaneGeometry *&gt;(</span>
+    dynamic_cast&lt;const mitk::PlaneGeometry *&gt;(renderer-&gt;GetSliceNavigationController()-&gt;GetCurrentPlaneGeometry()));
+<span style = "background-color:#fdd">  if (planeGeometry != nullptr &amp;&amp; abstractTransformGeometry == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    planarFigure-&gt;SetPlaneGeometry(planeGeometry);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // Extract point in 2D world coordinates (relative to PlaneGeometry of
+  // PlanarFigure)
+<span style = "background-color:#fdd">  Point2D point2D;
+  if (!this-&gt;TransformPositionEventToPoint2D(positionEvent, planeGeometry, point2D))</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // Place PlanarFigure at this point
+<span style = "background-color:#fdd">  planarFigure-&gt;PlaceFigure(point2D);</span>
+
+  // Re-evaluate features
+<span style = "background-color:#fdd">  planarFigure-&gt;EvaluateFeatures();</span>
+  // this-&gt;LogPrintPlanarFigureQuantities( planarFigure );
+
+  // Set a bool property indicating that the figure has been placed in
+  // the current RenderWindow. This is required so that the same render
+  // window can be re-aligned to the PlaneGeometry of the PlanarFigure later
+  // on in an application.
+<span style = "background-color:#fdd">  GetDataNode()-&gt;SetBoolProperty("PlanarFigureInitializedWindow", true, renderer);</span>
+
+  // Update rendered scene
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::PlanarFigureInteractor::StartHovering(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto positionEvent = dynamic_cast&lt;InteractionPositionEvent*&gt;(interactionEvent);
+  if (nullptr == positionEvent)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!m_IsHovering)</span>
+  {
+    // Invoke hover event once when the mouse is entering the figure area
+<span style = "background-color:#fdd">    m_IsHovering = true;
+    planarFigure-&gt;InvokeEvent(StartHoverPlanarFigureEvent());</span>
+
+    // Set bool property to indicate that planar figure is currently in "hovering" mode
+<span style = "background-color:#fdd">    GetDataNode()-&gt;SetBoolProperty("planarfigure.ishovering", true);</span>
+
+<span style = "background-color:#fdd">    RenderingManager::GetInstance()-&gt;RequestUpdateAll();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PlanarFigureInteractor::SetPreviewPointPosition(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto positionEvent = dynamic_cast&lt;InteractionPositionEvent*&gt;(interactionEvent);
+  if (nullptr == positionEvent)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  const mitk::BaseRenderer *renderer = interactionEvent-&gt;GetSender();</span>
+
+<span style = "background-color:#fdd">  planarFigure-&gt;DeselectControlPoint();</span>
+
+<span style = "background-color:#fdd">  mitk::Point2D pointProjectedOntoLine = positionEvent-&gt;GetPointerPositionOnScreen();</span>
+
+<span style = "background-color:#fdd">  bool selected(false);
+  bool isExtendable(false);
+  bool isEditable(true);
+  GetDataNode()-&gt;GetBoolProperty("selected", selected);
+  GetDataNode()-&gt;GetBoolProperty("planarfigure.isextendable", isExtendable);
+  GetDataNode()-&gt;GetBoolProperty("planarfigure.iseditable", isEditable);</span>
+
+<span style = "background-color:#fdd">  if (selected &amp;&amp; isExtendable &amp;&amp; isEditable)</span>
+  {
+<span style = "background-color:#fdd">    renderer-&gt;DisplayToPlane(pointProjectedOntoLine, pointProjectedOntoLine);
+    planarFigure-&gt;SetPreviewControlPoint(pointProjectedOntoLine);</span>
+  }
+
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::PlanarFigureInteractor::HideControlPoints(StateMachineAction *, InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  GetDataNode()-&gt;SetBoolProperty("planarfigure.drawcontrolpoints", false);
+}</span>
+
+void mitk::PlanarFigureInteractor::HidePreviewPoint(StateMachineAction *, InteractionEvent *)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  planarFigure-&gt;ResetPreviewContolPoint();
+  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckFigureHovering(const InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto positionEvent = dynamic_cast&lt;const InteractionPositionEvent*&gt;(interactionEvent);
+  if (nullptr == positionEvent)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigureGeometry = planarFigure-&gt;GetPlaneGeometry();
+  if (nullptr == planarFigureGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto abstractTransformGeometry = dynamic_cast&lt;AbstractTransformGeometry*&gt;(planarFigure-&gt;GetGeometry(0));
+  if (nullptr != abstractTransformGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  const mitk::BaseRenderer *renderer = interactionEvent-&gt;GetSender();
+  const PlaneGeometry *projectionPlane = renderer-&gt;GetCurrentWorldPlaneGeometry();</span>
+
+<span style = "background-color:#fdd">  mitk::Point2D pointProjectedOntoLine;
+  int previousControlPoint = this-&gt;IsPositionOverFigure(</span>
+    positionEvent, planarFigure, planarFigureGeometry, projectionPlane, pointProjectedOntoLine);
+
+<span style = "background-color:#fdd">  bool isHovering = (previousControlPoint != -1);
+  return isHovering;
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckControlPointHovering(const InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto positionEvent = dynamic_cast&lt;const InteractionPositionEvent*&gt;(interactionEvent);
+  if (nullptr == positionEvent)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigureGeometry = planarFigure-&gt;GetPlaneGeometry();
+  if (nullptr == planarFigureGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto abstractTransformGeometry = dynamic_cast&lt;AbstractTransformGeometry*&gt;(planarFigure-&gt;GetGeometry(0));
+  if (nullptr != abstractTransformGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  const mitk::BaseRenderer *renderer = interactionEvent-&gt;GetSender();
+  const PlaneGeometry *projectionPlane = renderer-&gt;GetCurrentWorldPlaneGeometry();</span>
+
+<span style = "background-color:#fdd">  int pointIndex = -1;
+  pointIndex = mitk::PlanarFigureInteractor::IsPositionInsideMarker(</span>
+    positionEvent, planarFigure, planarFigureGeometry, projectionPlane, renderer);
+
+<span style = "background-color:#fdd">  return pointIndex &gt;= 0;
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckSelection(const InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  bool selected = false;
+  GetDataNode()-&gt;GetBoolProperty("selected", selected);</span>
+
+<span style = "background-color:#fdd">  return selected;
+}</span>
+
+void mitk::PlanarFigureInteractor::SelectFigure(StateMachineAction *, InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  planarFigure-&gt;InvokeEvent(SelectPlanarFigureEvent());
+}</span>
+
+void mitk::PlanarFigureInteractor::SelectPoint(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto positionEvent = dynamic_cast&lt;InteractionPositionEvent*&gt;(interactionEvent);
+  if (nullptr == positionEvent)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigureGeometry = planarFigure-&gt;GetPlaneGeometry();
+  if (nullptr == planarFigureGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto abstractTransformGeometry = dynamic_cast&lt;AbstractTransformGeometry*&gt;(planarFigure-&gt;GetGeometry(0));
+  if (nullptr != abstractTransformGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  const mitk::BaseRenderer *renderer = interactionEvent-&gt;GetSender();
+  const PlaneGeometry *projectionPlane = renderer-&gt;GetCurrentWorldPlaneGeometry();</span>
+
+<span style = "background-color:#fdd">  const int pointIndex = mitk::PlanarFigureInteractor::IsPositionInsideMarker(</span>
+    positionEvent, planarFigure, planarFigureGeometry, projectionPlane, renderer);
+
+<span style = "background-color:#fdd">  if (pointIndex &gt;= 0)</span>
+  {
+    // If mouse is above control point, mark it as selected
+<span style = "background-color:#fdd">    planarFigure-&gt;SelectControlPoint(pointIndex);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    planarFigure-&gt;DeselectControlPoint();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::PlanarFigureInteractor::CheckPointValidity(const InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{</span>
+  // Check if the distance of the current point to the previously set point in display coordinates
+  // is sufficient (if a previous point exists)
+
+<span style = "background-color:#fdd">  auto positionEvent = dynamic_cast&lt;const InteractionPositionEvent*&gt;(interactionEvent);
+  if (nullptr == positionEvent)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  return IsMousePositionAcceptableAsNewControlPoint(positionEvent, planarFigure);
+}</span>
+
+void mitk::PlanarFigureInteractor::RemoveSelectedPoint(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  const int selectedControlPoint = planarFigure-&gt;GetSelectedControlPoint();
+  planarFigure-&gt;RemoveControlPoint(selectedControlPoint);</span>
+
+  // Re-evaluate features
+<span style = "background-color:#fdd">  planarFigure-&gt;EvaluateFeatures();
+  planarFigure-&gt;Modified();</span>
+
+<span style = "background-color:#fdd">  GetDataNode()-&gt;SetBoolProperty("planarfigure.drawcontrolpoints", true);
+  planarFigure-&gt;InvokeEvent(EndInteractionPlanarFigureEvent());
+  RenderingManager::GetInstance()-&gt;RequestUpdateAll();</span>
+
+<span style = "background-color:#fdd">  mitk::BaseRenderer *renderer = interactionEvent-&gt;GetSender();
+  HandleEvent(mitk::InternalEvent::New(renderer, this, "Dummy-Event"), GetDataNode());
+}</span>
+
+void mitk::PlanarFigureInteractor::RequestContextMenu(StateMachineAction *, InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  bool selected = false;
+  GetDataNode()-&gt;GetBoolProperty("selected", selected);</span>
+
+  // no need to invoke this if the figure is already selected
+<span style = "background-color:#fdd">  if (!selected)</span>
+  {
+<span style = "background-color:#fdd">    planarFigure-&gt;InvokeEvent(SelectPlanarFigureEvent());</span>
+  }
+
+<span style = "background-color:#fdd">  planarFigure-&gt;InvokeEvent(ContextMenuPlanarFigureEvent());
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckResetOnPointSelect(const InteractionEvent * /*interactionEvent*/)
+<span style = "background-color:#fdd">{
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  bool isEditable = true;
+  GetDataNode()-&gt;GetBoolProperty("planarfigure.iseditable", isEditable);</span>
+
+  // Reset the PlanarFigure if required
+<span style = "background-color:#fdd">  return isEditable &amp;&amp; planarFigure-&gt;ResetOnPointSelectNeeded();
+}</span>
+
+bool mitk::PlanarFigureInteractor::CheckFigureOnRenderingGeometry(const InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto positionEvent = dynamic_cast&lt;const InteractionPositionEvent*&gt;(interactionEvent);
+  if (nullptr == positionEvent)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  const mitk::Point3D worldPoint3D = positionEvent-&gt;GetPositionInWorld();
+  auto planarFigure = dynamic_cast&lt;PlanarFigure*&gt;(GetDataNode()-&gt;GetData());
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto planarFigureGeometry = planarFigure-&gt;GetPlaneGeometry();
+  if (nullptr == planarFigureGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto abstractTransformGeometry = dynamic_cast&lt;AbstractTransformGeometry*&gt;(planarFigure-&gt;GetGeometry(0));
+  if (nullptr != abstractTransformGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  const double planeThickness = planarFigureGeometry-&gt;GetExtentInMM(2);
+  return planarFigureGeometry-&gt;Distance(worldPoint3D) &lt;= planeThickness;
+}</span>
+
+void mitk::PlanarFigureInteractor::SetPrecision(mitk::ScalarType precision)
+<span style = "background-color:#fdd">{
+  m_Precision = precision;
+}</span>
+
+void mitk::PlanarFigureInteractor::SetMinimumPointDistance(ScalarType minimumDistance)
+<span style = "background-color:#fdd">{
+  m_MinimumPointDistance = minimumDistance;
+}</span>
+
+bool mitk::PlanarFigureInteractor::TransformPositionEventToPoint2D(const InteractionPositionEvent *positionEvent,
+                                                                   const PlaneGeometry *planarFigureGeometry,
+                                                                   Point2D &amp;point2D)
+<span style = "background-color:#fdd">{
+  if (nullptr == positionEvent || nullptr == planarFigureGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  const mitk::Point3D worldPoint3D = positionEvent-&gt;GetPositionInWorld();</span>
+
+  // TODO: proper handling of distance tolerance
+<span style = "background-color:#fdd">  if (planarFigureGeometry-&gt;Distance(worldPoint3D) &gt; 0.1)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+  // Project point onto plane of this PlanarFigure
+<span style = "background-color:#fdd">  planarFigureGeometry-&gt;Map(worldPoint3D, point2D);
+  return true;
+}</span>
+
+bool mitk::PlanarFigureInteractor::TransformObjectToDisplay(const mitk::Point2D &amp;point2D,
+                                                            mitk::Point2D &amp;displayPoint,
+                                                            const mitk::PlaneGeometry *objectGeometry,
+                                                            const mitk::PlaneGeometry *rendererGeometry,
+                                                            const mitk::BaseRenderer *renderer) const
+<span style = "background-color:#fdd">{
+  if (nullptr == objectGeometry || nullptr == rendererGeometry || nullptr == renderer)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::Point3D point3D;</span>
+
+  // Map circle point from local 2D geometry into 3D world space
+<span style = "background-color:#fdd">  objectGeometry-&gt;Map(point2D, point3D);</span>
+
+<span style = "background-color:#fdd">  const double planeThickness = objectGeometry-&gt;GetExtentInMM(2);</span>
+
+  // TODO: proper handling of distance tolerance
+<span style = "background-color:#fdd">  if (rendererGeometry-&gt;Distance(point3D) &lt; planeThickness / 3.0)</span>
+  {
+    // Project 3D world point onto display geometry
+<span style = "background-color:#fdd">    renderer-&gt;WorldToDisplay(point3D, displayPoint);
+    return true;</span>
+  }
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+bool mitk::PlanarFigureInteractor::IsPointNearLine(const mitk::Point2D &amp;point,
+                                                   const mitk::Point2D &amp;startPoint,
+                                                   const mitk::Point2D &amp;endPoint,
+                                                   mitk::Point2D &amp;projectedPoint) const
+<span style = "background-color:#fdd">{
+  mitk::Vector2D n1 = endPoint - startPoint;
+  n1.Normalize();</span>
+
+  // Determine dot products between line vector and startpoint-point / endpoint-point vectors
+<span style = "background-color:#fdd">  const double l1 = n1 * (point - startPoint);
+  const double l2 = -n1 * (point - endPoint);</span>
+
+  // Determine projection of specified point onto line defined by start / end point
+<span style = "background-color:#fdd">  const mitk::Point2D crossPoint = startPoint + n1 * l1;
+  projectedPoint = crossPoint;</span>
+
+<span style = "background-color:#fdd">  const float dist1 = crossPoint.SquaredEuclideanDistanceTo(point);
+  const float dist2 = endPoint.SquaredEuclideanDistanceTo(point);
+  const float dist3 = startPoint.SquaredEuclideanDistanceTo(point);</span>
+
+  // Point is inside encompassing rectangle IF
+  // - its distance to its projected point is small enough
+  // - it is not further outside of the line than the defined tolerance
+<span style = "background-color:#fdd">  if (((dist1 &lt; 20.0) &amp;&amp; (l1 &gt; 0.0) &amp;&amp; (l2 &gt; 0.0)) || dist2 &lt; 20.0 || dist3 &lt; 20.0)</span>
+  {
+<span style = "background-color:#fdd">    return true;</span>
+  }
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+int mitk::PlanarFigureInteractor::IsPositionOverFigure(const InteractionPositionEvent *positionEvent,
+                                                       PlanarFigure *planarFigure,
+                                                       const PlaneGeometry *planarFigureGeometry,
+                                                       const PlaneGeometry *rendererGeometry,
+                                                       Point2D &amp;pointProjectedOntoLine) const
+<span style = "background-color:#fdd">{</span>
+  if (nullptr == positionEvent || nullptr == planarFigure || nullptr == planarFigureGeometry
+<span style = "background-color:#fdd">    || nullptr == rendererGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return -1;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::Point2D displayPosition = positionEvent-&gt;GetPointerPositionOnScreen();</span>
+
+  // Iterate over all polylines of planar figure, and check if
+  // any one is close to the current display position
+  typedef mitk::PlanarFigure::PolyLineType VertexContainerType;
+
+<span style = "background-color:#fdd">  Point2D polyLinePoint;
+  Point2D firstPolyLinePoint;
+  Point2D previousPolyLinePoint;
+  for (unsigned short loop = 0; loop &lt; planarFigure-&gt;GetPolyLinesSize(); ++loop)</span>
+  {
+<span style = "background-color:#fdd">    const VertexContainerType polyLine = planarFigure-&gt;GetPolyLine(loop);</span>
+
+<span style = "background-color:#fdd">    bool firstPoint(true);
+    for (auto it = polyLine.begin(); it != polyLine.end(); ++it)</span>
+    {
+      // Get plane coordinates of this point of polyline (if possible)
+<span style = "background-color:#fdd">      if (!this-&gt;TransformObjectToDisplay(</span>
+            *it, polyLinePoint, planarFigureGeometry, rendererGeometry, positionEvent-&gt;GetSender()))
+      {
+<span style = "background-color:#fdd">        break; // Poly line invalid (not on current 2D plane) --&gt; skip it</span>
+      }
+
+<span style = "background-color:#fdd">      if (firstPoint)</span>
+      {
+<span style = "background-color:#fdd">        firstPolyLinePoint = polyLinePoint;
+        firstPoint = false;
+      }
+      else if (this-&gt;IsPointNearLine(displayPosition, previousPolyLinePoint, polyLinePoint, pointProjectedOntoLine))</span>
+      {
+        // Point is close enough to line segment --&gt; Return index of the segment
+<span style = "background-color:#fdd">        return std::distance(polyLine.begin(), it);</span>
+      }
+<span style = "background-color:#fdd">      previousPolyLinePoint = polyLinePoint;
+    }</span>
+
+    // For closed figures, also check last line segment
+<span style = "background-color:#fdd">    if (planarFigure-&gt;IsClosed() &amp;&amp;</span>
+        this-&gt;IsPointNearLine(displayPosition, polyLinePoint, firstPolyLinePoint, pointProjectedOntoLine))
+    {
+<span style = "background-color:#fdd">      return 0; // Return index of first control point</span>
+    }
+<span style = "background-color:#fdd">  }
+  return -1;
+}</span>
+
+int mitk::PlanarFigureInteractor::IsPositionInsideMarker(const InteractionPositionEvent *positionEvent,
+                                                         const PlanarFigure *planarFigure,
+                                                         const PlaneGeometry *planarFigureGeometry,
+                                                         const PlaneGeometry *rendererGeometry,
+                                                         const BaseRenderer *renderer) const
+<span style = "background-color:#fdd">{</span>
+  if (nullptr == positionEvent || nullptr == planarFigure || nullptr == planarFigureGeometry
+<span style = "background-color:#fdd">    || nullptr == rendererGeometry || nullptr == renderer)</span>
+  {
+<span style = "background-color:#fdd">    return -1;</span>
+  }
+
+<span style = "background-color:#fdd">  const mitk::Point2D displayPosition = positionEvent-&gt;GetPointerPositionOnScreen();</span>
+
+  // Iterate over all control points of planar figure, and check if
+  // any one is close to the current display position
+<span style = "background-color:#fdd">  mitk::Point2D displayControlPoint;</span>
+
+<span style = "background-color:#fdd">  const int numberOfControlPoints = planarFigure-&gt;GetNumberOfControlPoints();
+  for (int i = 0; i &lt; numberOfControlPoints; i++)</span>
+  {
+<span style = "background-color:#fdd">    if (this-&gt;TransformObjectToDisplay(</span>
+          planarFigure-&gt;GetControlPoint(i), displayControlPoint, planarFigureGeometry, rendererGeometry, renderer))
+    {
+      // TODO: variable size of markers
+<span style = "background-color:#fdd">      if (displayPosition.SquaredEuclideanDistanceTo(displayControlPoint) &lt; 20.0)</span>
+      {
+<span style = "background-color:#fdd">        return i;</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return -1;
+}</span>
+
+void mitk::PlanarFigureInteractor::LogPrintPlanarFigureQuantities(const PlanarFigure *planarFigure)
+<span style = "background-color:#fdd">{
+  if (nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "PlanarFigure invalid.";</span>
+  }
+
+<span style = "background-color:#fdd">  MITK_INFO &lt;&lt; "PlanarFigure: " &lt;&lt; planarFigure-&gt;GetNameOfClass();
+  for (unsigned int i = 0; i &lt; planarFigure-&gt;GetNumberOfFeatures(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "* " &lt;&lt; planarFigure-&gt;GetFeatureName(i) &lt;&lt; ": " &lt;&lt; planarFigure-&gt;GetQuantity(i) &lt;&lt; " "</span>
+              &lt;&lt; planarFigure-&gt;GetFeatureUnit(i);
+<span style = "background-color:#fdd">  }
+}</span>
+
+bool mitk::PlanarFigureInteractor::IsMousePositionAcceptableAsNewControlPoint(
+  const mitk::InteractionPositionEvent *positionEvent, const PlanarFigure *planarFigure)
+<span style = "background-color:#fdd">{
+  if (nullptr == positionEvent || nullptr == planarFigure)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+
+  }
+
+<span style = "background-color:#fdd">  const BaseRenderer *renderer = positionEvent-&gt;GetSender();
+  if (nullptr == renderer)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+  // Get the timestep to support 3D+t
+<span style = "background-color:#fdd">  const int timeStep(renderer-&gt;GetTimeStep(planarFigure));</span>
+
+<span style = "background-color:#fdd">  bool tooClose(false);</span>
+
+<span style = "background-color:#fdd">  auto planarFigureGeometry = dynamic_cast&lt;mitk::PlaneGeometry*&gt;(planarFigure-&gt;GetGeometry(timeStep));
+  if (nullptr == planarFigureGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto abstractTransformGeometry = dynamic_cast&lt;AbstractTransformGeometry*&gt;(planarFigure-&gt;GetGeometry(timeStep));
+  if (nullptr != abstractTransformGeometry)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  Point2D point2D;</span>
+  // Get the point2D from the positionEvent
+<span style = "background-color:#fdd">  if (!this-&gt;TransformPositionEventToPoint2D(positionEvent, planarFigureGeometry, point2D))</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+  // apply the controlPoint constraints of the planarFigure to get the
+  // coordinates that would actually be used.
+<span style = "background-color:#fdd">  const Point2D correctedPoint = const_cast&lt;PlanarFigure *&gt;(planarFigure)-&gt;ApplyControlPointConstraints(0, point2D);</span>
+
+  // map the 2D coordinates of the new point to world-coordinates
+  // and transform those to display-coordinates
+<span style = "background-color:#fdd">  mitk::Point3D newPoint3D;
+  planarFigureGeometry-&gt;Map(correctedPoint, newPoint3D);
+  mitk::Point2D newDisplayPosition;
+  renderer-&gt;WorldToDisplay(newPoint3D, newDisplayPosition);</span>
+
+<span style = "background-color:#fdd">  const int selectedControlPoint = planarFigure-&gt;GetSelectedControlPoint();
+  for (int i = 0; i &lt; (int)planarFigure-&gt;GetNumberOfControlPoints(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    if (i != selectedControlPoint)</span>
+    {
+      // Try to convert previous point to current display coordinates
+<span style = "background-color:#fdd">      mitk::Point3D previousPoint3D;</span>
+      // map the 2D coordinates of the control-point to world-coordinates
+<span style = "background-color:#fdd">      planarFigureGeometry-&gt;Map(planarFigure-&gt;GetControlPoint(i), previousPoint3D);</span>
+
+<span style = "background-color:#fdd">      if (renderer-&gt;GetCurrentWorldPlaneGeometry()-&gt;Distance(previousPoint3D) &lt; 0.1) // ugly, but assert makes this work</span>
+      {
+<span style = "background-color:#fdd">        mitk::Point2D previousDisplayPosition;</span>
+        // transform the world-coordinates into display-coordinates
+<span style = "background-color:#fdd">        renderer-&gt;WorldToDisplay(previousPoint3D, previousDisplayPosition);</span>
+
+        // Calculate the distance. We use display-coordinates here to make
+        // the check independent of the zoom-level of the rendering scene.
+<span style = "background-color:#fdd">        const double a = newDisplayPosition[0] - previousDisplayPosition[0];
+        const double b = newDisplayPosition[1] - previousDisplayPosition[1];</span>
+
+        // If point is to close, do not set a new point
+<span style = "background-color:#fdd">        tooClose = (a * a + b * b &lt; m_MinimumPointDistance);</span>
+      }
+<span style = "background-color:#fdd">      if (tooClose)
+        return false; // abort loop early</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return !tooClose; // default
+}</span>
+
+void mitk::PlanarFigureInteractor::ConfigurationChanged()
+<span style = "background-color:#fdd">{
+  const mitk::PropertyList::Pointer properties = GetAttributes();</span>
+
+<span style = "background-color:#fdd">  std::string precision = "";
+  if (properties-&gt;GetStringProperty("precision", precision))</span>
+  {
+<span style = "background-color:#fdd">    m_Precision = atof(precision.c_str());
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_Precision = (ScalarType)6.5;</span>
+  }
+
+<span style = "background-color:#fdd">  std::string minPointDistance = "";
+  if (properties-&gt;GetStringProperty("minPointDistance", minPointDistance))</span>
+  {
+<span style = "background-color:#fdd">    m_MinimumPointDistance = atof(minPointDistance.c_str());
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_MinimumPointDistance = (ScalarType)25.0;</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

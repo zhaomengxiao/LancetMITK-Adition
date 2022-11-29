@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabelSetImageToSurfaceThreadedFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLabelSetImageToSurfaceThreadedFilter.h"
+
+#include "mitkLabelSetImage.h"
+#include "mitkLabelSetImageToSurfaceFilter.h"
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  LabelSetImageToSurfaceThreadedFilter::LabelSetImageToSurfaceThreadedFilter() : m_RequestedLabel(1), m_Result(nullptr)
+  {
+  }</span>
+
+<span style = "background-color:#fdd">  LabelSetImageToSurfaceThreadedFilter::~LabelSetImageToSurfaceThreadedFilter() {}</span>
+  void LabelSetImageToSurfaceThreadedFilter::Initialize(const NonBlockingAlgorithm *other)
+<span style = "background-color:#fdd">  {
+    Superclass::Initialize(other);
+  }</span>
+
+  bool LabelSetImageToSurfaceThreadedFilter::ReadyToRun()
+<span style = "background-color:#fdd">  {
+    Image::Pointer image;
+    GetPointerParameter("Input", image);</span>
+
+<span style = "background-color:#fdd">    return image.IsNotNull() &amp;&amp; GetGroupNode();
+  }</span>
+
+  bool LabelSetImageToSurfaceThreadedFilter::ThreadedUpdateFunction()
+<span style = "background-color:#fdd">  {
+    LabelSetImage::Pointer image;
+    this-&gt;GetPointerParameter("Input", image);</span>
+
+    //  ProcessObserver::Pointer obsv;
+    /*
+      try
+      {
+        this-&gt;GetPointerParameter("Observer", obsv);
+      }
+      catch (std::invalid_argument&amp;)
+      {
+    //    MITK_WARN &lt;&lt; "None observer provided.";
+      }
+    */
+<span style = "background-color:#fdd">    bool useSmoothing(false);</span>
+    try
+    {
+<span style = "background-color:#fdd">      this-&gt;GetParameter("Smooth", useSmoothing);</span>
+    }
+    catch (std::invalid_argument &amp;)
+<span style = "background-color:#fdd">    {
+      MITK_WARN &lt;&lt; "\"Smooth\" parameter was not set: will use the default value (" &lt;&lt; useSmoothing &lt;&lt; ").";
+    }</span>
+
+    try
+    {
+<span style = "background-color:#fdd">      this-&gt;GetParameter("RequestedLabel", m_RequestedLabel);</span>
+    }
+    catch (std::invalid_argument &amp;)
+<span style = "background-color:#fdd">    {
+      MITK_WARN &lt;&lt; "\"RequestedLabel\" parameter was not set: will use the default value (" &lt;&lt; m_RequestedLabel &lt;&lt; ").";
+    }</span>
+
+<span style = "background-color:#fdd">    mitk::LabelSetImageToSurfaceFilter::Pointer filter = mitk::LabelSetImageToSurfaceFilter::New();
+    filter-&gt;SetInput(image);</span>
+    //  filter-&gt;SetObserver(obsv);
+<span style = "background-color:#fdd">    filter-&gt;SetGenerateAllLabels(false);
+    filter-&gt;SetRequestedLabel(m_RequestedLabel);
+    filter-&gt;SetUseSmoothing(useSmoothing);</span>
+
+    try
+    {
+<span style = "background-color:#fdd">      filter-&gt;Update();</span>
+    }
+    catch (itk::ExceptionObject &amp;e)
+<span style = "background-color:#fdd">    {
+      MITK_ERROR &lt;&lt; "Exception caught: " &lt;&lt; e.GetDescription();
+      return false;
+    }</span>
+    catch (std::exception &amp;e)
+<span style = "background-color:#fdd">    {
+      MITK_ERROR &lt;&lt; "Exception caught: " &lt;&lt; e.what();
+      return false;
+    }</span>
+    catch (...)
+<span style = "background-color:#fdd">    {
+      MITK_ERROR &lt;&lt; "Unknown exception caught";
+      return false;
+    }</span>
+
+<span style = "background-color:#fdd">    m_Result = filter-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">    if (m_Result.IsNull() || !m_Result-&gt;GetVtkPolyData())
+      return false;</span>
+
+<span style = "background-color:#fdd">    m_Result-&gt;DisconnectPipeline();</span>
+
+<span style = "background-color:#fdd">    return true;
+  }</span>
+
+  void LabelSetImageToSurfaceThreadedFilter::ThreadedUpdateSuccessful()
+<span style = "background-color:#fdd">  {
+    LabelSetImage::Pointer image;
+    this-&gt;GetPointerParameter("Input", image);</span>
+
+<span style = "background-color:#fdd">    std::string name = this-&gt;GetGroupNode()-&gt;GetName();
+    name.append("-surf");</span>
+
+<span style = "background-color:#fdd">    mitk::DataNode::Pointer node = mitk::DataNode::New();
+    node-&gt;SetData(m_Result);
+    node-&gt;SetName(name);</span>
+
+<span style = "background-color:#fdd">    mitk::Color color = image-&gt;GetLabel(m_RequestedLabel, image-&gt;GetActiveLayer())-&gt;GetColor();
+    node-&gt;SetColor(color);</span>
+
+<span style = "background-color:#fdd">    this-&gt;InsertBelowGroupNode(node);</span>
+
+<span style = "background-color:#fdd">    Superclass::ThreadedUpdateSuccessful();
+  }</span>
+
+} // namespace</pre>
+	</body>
+</html>

@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTrackingVolumeGenerator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTrackingVolumeGenerator.h"
+#include "mitkStandardFileLocations.h"
+#include "mitkConfig.h"
+#include &lt;vtkCubeSource.h&gt;
+#include &lt;mitkTrackingTypes.h&gt;
+#include &lt;mitkTrackingDevice.h&gt;
+#include &lt;mitkVirtualTrackingDevice.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+#include &lt;mitkSurface.h&gt;
+#include &lt;mitkIOMimeTypes.h&gt;
+#include &lt;mitkFileReaderRegistry.h&gt;
+
+#include &lt;usModuleContext.h&gt;
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModule.h&gt;
+#include &lt;usModuleResource.h&gt;
+#include &lt;usModuleResourceStream.h&gt;
+
+#include &lt;mitkCoreServices.h&gt;
+#include &lt;mitkIFileReader.h&gt;
+#include &lt;mitkIOUtil.h&gt;
+#include &lt;mitkIOMimeTypes.h&gt;
+#include &lt;mitkMimeType.h&gt;
+#include &lt;mitkIMimeTypeProvider.h&gt;
+
+#include "mitkUnspecifiedTrackingTypeInformation.h"
+#include "mitkTrackingDeviceTypeCollection.h"
+
+#include &lt;algorithm&gt;
+
+namespace {
+
+//! Workaround until IOUtil::Load will guarantee to load mitk::Surface
+//! even in presence of reader services that load STL as another type of
+//! BaseData (T19825).
+mitk::Surface::Pointer LoadCoreSurface(const us::ModuleResource&amp; usResource)
+<span style = "background-color:#fdd">{
+  us::ModuleResourceStream resStream(usResource, std::ios_base::in);</span>
+
+<span style = "background-color:#fdd">  mitk::CoreServicePointer&lt;mitk::IMimeTypeProvider&gt; mimeTypeProvider(mitk::CoreServices::GetMimeTypeProvider());</span>
+  // get mime types for file (extension) and for surfaces
+<span style = "background-color:#fdd">  std::vector&lt;mitk::MimeType&gt; mimetypesForFile = mimeTypeProvider-&gt;GetMimeTypesForFile(usResource.GetResourcePath());
+  std::vector&lt;mitk::MimeType&gt; mimetypesForSurface = mimeTypeProvider-&gt;GetMimeTypesForCategory(mitk::IOMimeTypes::CATEGORY_SURFACES());</span>
+
+  // construct our candidates as the intersection of both sets because we need something that
+  // handles the type type _and_ produces a surface out of it
+<span style = "background-color:#fdd">  std::vector&lt;mitk::MimeType&gt; mimetypes;</span>
+
+<span style = "background-color:#fdd">  std::sort(mimetypesForFile.begin(), mimetypesForFile.end());
+  std::sort(mimetypesForSurface.begin(), mimetypesForSurface.end());
+  std::set_intersection(mimetypesForFile.begin(), mimetypesForFile.end(),</span>
+                        mimetypesForSurface.begin(), mimetypesForSurface.end(),
+                        std::back_inserter(mimetypes));
+
+<span style = "background-color:#fdd">  mitk::Surface::Pointer surface;
+  if (mimetypes.empty())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "No mimetype for resource stream: " &lt;&lt; usResource.GetResourcePath();
+    return surface;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::FileReaderRegistry fileReaderRegistry;
+  std::vector&lt;us::ServiceReference&lt;mitk::IFileReader&gt;&gt; refs = fileReaderRegistry.GetReferences(mimetypes[0]);
+  if (refs.empty())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "No reader available for resource stream: " &lt;&lt; usResource.GetResourcePath();
+    return surface;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::IFileReader *reader = fileReaderRegistry.GetReader(refs[0]);
+  reader-&gt;SetInput(usResource.GetResourcePath(), &amp;resStream);
+  auto basedatas = reader-&gt;Read();
+  if (!basedatas.empty())</span>
+  {
+<span style = "background-color:#fdd">    surface = dynamic_cast&lt;mitk::Surface*&gt;(basedatas.front().GetPointer());</span>
+  }
+
+<span style = "background-color:#fdd">  return surface;
+}</span>
+
+} // unnamed namespace
+
+
+mitk::TrackingVolumeGenerator::TrackingVolumeGenerator()
+<span style = "background-color:#fdd">{
+  m_Data = mitk::UnspecifiedTrackingTypeInformation::GetDeviceDataUnspecified();
+}</span>
+
+void mitk::TrackingVolumeGenerator::SetTrackingDevice (mitk::TrackingDevice::Pointer tracker)
+<span style = "background-color:#fdd">{
+  std::vector&lt;us::ServiceReference&lt;mitk::TrackingDeviceTypeCollection&gt; &gt; refs = us::GetModuleContext()-&gt;GetServiceReferences&lt;mitk::TrackingDeviceTypeCollection&gt;();
+  if (refs.empty())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "No tracking device service found!";</span>
+  }
+<span style = "background-color:#fdd">  mitk::TrackingDeviceTypeCollection* deviceTypeCollection = us::GetModuleContext()-&gt;GetService&lt;mitk::TrackingDeviceTypeCollection&gt;(refs.front());</span>
+
+<span style = "background-color:#fdd">  this-&gt;m_Data = deviceTypeCollection-&gt;GetFirstCompatibleDeviceDataForLine(tracker-&gt;GetType());
+}</span>
+
+void mitk::TrackingVolumeGenerator::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::Surface::Pointer output = this-&gt;GetOutput();  //the surface wich represents the tracking volume</span>
+
+<span style = "background-color:#fdd">  std::string filename = this-&gt;m_Data.VolumeModelLocation; // Name of the file or possibly a magic String, e.g. "cube"</span>
+
+<span style = "background-color:#fdd">  MITK_INFO &lt;&lt; "volume: " &lt;&lt; filename;</span>
+
+  // See if filename matches a magic string.
+<span style = "background-color:#fdd">  if (filename.compare("cube") == 0){
+    vtkSmartPointer&lt;vtkCubeSource&gt; cubeSource = vtkSmartPointer&lt;vtkCubeSource&gt;::New();</span>
+    double bounds[6];
+<span style = "background-color:#fdd">    bounds[0] = bounds[2] = bounds[4] = -400.0;  // initialize bounds to -400 ... +400 cube. This is the default value of the
+    bounds[1] = bounds[3] = bounds[5] =  400.0;  // virtual tracking device, but it can be changed. In that case,</span>
+    // the tracking volume polydata has to be updated manually
+<span style = "background-color:#fdd">    cubeSource-&gt;SetBounds(bounds);
+    cubeSource-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    output-&gt;SetVtkPolyData(cubeSource-&gt;GetOutput()); //set the vtkCubeSource as polyData of the surface
+    return;</span>
+  }
+<span style = "background-color:#fdd">  if (filename.compare("") == 0) // empty String means no model, return empty output</span>
+  {
+    // initialize with empty poly data (otherwise old surfaces may be returned) =&gt; so an empty surface is returned
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPolyData&gt; emptyPolyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();
+    output-&gt;SetVtkPolyData(emptyPolyData);
+    return;</span>
+  }
+
+  // from here on, we assume that filename contains an actual filename and not a magic string
+
+<span style = "background-color:#fdd">  us::Module* module = us::GetModuleContext()-&gt;GetModule();
+  us::ModuleResource moduleResource = module-&gt;GetResource(filename);</span>
+
+  // TODO one would want to call mitk::IOUtils::Load(moduleResource) here.
+  //      However this function is not guaranteed to find a reader that loads
+  //      named resource as a Surface (given the presence of alternative readers
+  //      that produce another data type but has a higher ranking than the core
+  //      surface reader) - see bug T22608.
+<span style = "background-color:#fdd">  mitk::Surface::Pointer fileoutput = LoadCoreSurface(moduleResource);</span>
+
+<span style = "background-color:#fdd">  if (fileoutput == nullptr)</span>
+  {
+<span style = "background-color:#fdd">     MITK_ERROR &lt;&lt; "Exception while casting data loaded from file: " &lt;&lt; moduleResource.GetResourcePath();
+     output-&gt;SetVtkPolyData(vtkSmartPointer&lt;vtkPolyData&gt;(vtkPolyData::New()));
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">      output-&gt;SetVtkPolyData(fileoutput-&gt;GetVtkPolyData());</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::TrackingVolumeGenerator::SetTrackingDeviceType(mitk::TrackingDeviceType deviceType)
+<span style = "background-color:#fdd">{
+  std::vector&lt;us::ServiceReference&lt;mitk::TrackingDeviceTypeCollection&gt; &gt; refs = us::GetModuleContext()-&gt;GetServiceReferences&lt;mitk::TrackingDeviceTypeCollection&gt;();
+  if (refs.empty())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "No tracking device service found!";</span>
+  }
+<span style = "background-color:#fdd">  mitk::TrackingDeviceTypeCollection* deviceTypeCollection = us::GetModuleContext()-&gt;GetService&lt;mitk::TrackingDeviceTypeCollection&gt;(refs.front());</span>
+
+<span style = "background-color:#fdd">  m_Data = deviceTypeCollection-&gt;GetFirstCompatibleDeviceDataForLine(deviceType);
+}</span>
+
+mitk::TrackingDeviceType mitk::TrackingVolumeGenerator::GetTrackingDeviceType() const
+<span style = "background-color:#fdd">{
+  return m_Data.Line;
+}</span>
+
+void mitk::TrackingVolumeGenerator::SetTrackingDeviceData(mitk::TrackingDeviceData deviceData)
+<span style = "background-color:#fdd">{
+  m_Data= deviceData;
+}</span>
+
+mitk::TrackingDeviceData mitk::TrackingVolumeGenerator::GetTrackingDeviceData() const
+<span style = "background-color:#fdd">{
+  return m_Data;
+}</span></pre>
+	</body>
+</html>

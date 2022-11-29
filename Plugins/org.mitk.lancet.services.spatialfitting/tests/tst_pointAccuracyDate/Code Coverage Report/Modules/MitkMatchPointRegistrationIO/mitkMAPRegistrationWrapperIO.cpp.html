@@ -1,0 +1,292 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMAPRegistrationWrapperIO.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+
+#include &lt;clocale&gt;
+
+#include "mapRegistration.h"
+#include "mapRegistrationFileWriter.h"
+#include "mapRegistrationFileReader.h"
+#include "mapLazyFileFieldKernelLoader.h"
+
+#include &lt;mitkCustomMimeType.h&gt;
+#include &lt;mitkIOMimeTypes.h&gt;
+#include &lt;mitkLocaleSwitch.h&gt;
+
+#include "mitkMAPRegistrationWrapperIO.h"
+#include "mitkMAPRegistrationWrapper.h"
+
+namespace mitk
+{
+
+  /** Helper class that allows to use an functor in multiple combinations of
+  * moving and target dimensions on a passed MAPRegistrationWrapper instance.\n
+  * DimHelperSub is used DimHelper to iterate in a row of the dimension
+  * combination matrix.
+  */
+  template&lt; unsigned int i, unsigned int j, template &lt; unsigned int,  unsigned int&gt; class TFunctor&gt;
+  class DimHelperSub
+  {
+  public:
+    static bool Execute(const mitk::MAPRegistrationWrapper* obj, const map::core::String&amp; data)
+<span style = "background-color:#fdd">    {
+      if (TFunctor&lt;i,j&gt;::Execute(obj, data))</span>
+      {
+<span style = "background-color:#fdd">        return true;</span>
+      }
+<span style = "background-color:#fdd">      return DimHelperSub&lt;i,j-1,TFunctor&gt;::Execute(obj, data);
+    }</span>
+  };
+
+  /** Specialized template version of DimSubHelper that indicates the end
+  * of the row in the dimension combination matrix, thus does nothing.
+  */
+  template&lt; unsigned int i, template &lt; unsigned int,  unsigned int&gt; class TFunctor&gt;
+  class DimHelperSub&lt;i,1,TFunctor &gt;
+  {
+  public:
+    static bool Execute(const mitk::MAPRegistrationWrapper*, const map::core::String&amp;)
+<span style = "background-color:#fdd">    {</span>
+      //just unwind. Go to the next "row" with DimHelper
+<span style = "background-color:#fdd">      return false;
+    }</span>
+  };
+
+  /** Helper class that allows to use an functor in multiple combinations of
+  * moving and target dimensions on a passed MAPRegistrationWrapper instance.\n
+  * It is helpful if you want to ensure that all combinations are checked/touched
+  * (e.g. 3D 3D, 3D 2D, 2D 3D, 2D 2D) without generating a large switch yard.
+  * Think of n*m matrix (indicating the posible combinations). DimHelper walks from
+  * one row to the next and uses DimHelperSub to iterate in a row.\n
+  * For every element of the matrix the functor is executed on the passed object.
+  */
+  template&lt; unsigned int i,  unsigned int j, template &lt; unsigned int,  unsigned int&gt; class TFunctor&gt;
+  class DimHelper{
+  public:
+    static bool Execute(const mitk::MAPRegistrationWrapper* obj, const map::core::String&amp; data = "")
+<span style = "background-color:#fdd">    {
+      if (DimHelperSub&lt;i,j,TFunctor&gt;::Execute(obj, data))</span>
+      {
+<span style = "background-color:#fdd">        return true;</span>
+      }
+<span style = "background-color:#fdd">      return DimHelper&lt;i-1,j,TFunctor&gt;::Execute(obj, data);
+    }</span>
+  };
+
+  /** Specialized template version of DimHelper that indicates the end
+  * of the dimension combination matrix, thus does nothing.
+  */
+  template&lt; unsigned int j, template &lt; unsigned int,  unsigned int&gt; class TFunctor&gt;
+  class DimHelper&lt;1,j, TFunctor &gt;
+  {
+  public:
+    static bool Execute(const mitk::MAPRegistrationWrapper*, const map::core::String&amp;)
+<span style = "background-color:#fdd">    {</span>
+      //just unwind. We are done.
+<span style = "background-color:#fdd">      return false;
+    }</span>
+  };
+
+  /** Functor that checks of the dimension of the registration is supported and can
+  * be written.
+  */
+  template&lt;unsigned int i, unsigned int j&gt;
+  class CanWrite
+  {
+  public:
+    static bool Execute(const mitk::MAPRegistrationWrapper* obj, const map::core::String&amp; = "")
+<span style = "background-color:#fdd">    {
+      bool result = false;</span>
+
+<span style = "background-color:#fdd">      result = dynamic_cast&lt;const map::core::Registration&lt;i,j&gt; *&gt;(obj-&gt;GetRegistration()) != nullptr;</span>
+
+<span style = "background-color:#fdd">      return result;
+    }</span>
+  };
+
+  /** Functor that writes the registration to a file if it has the right dimensionality.
+  */
+  template&lt;unsigned int i, unsigned int j&gt;
+  class WriteReg
+  {
+  public:
+    static bool Execute(const mitk::MAPRegistrationWrapper* obj, const map::core::String&amp; data)
+<span style = "background-color:#fdd">    {
+      const map::core::Registration&lt;i,j&gt;* pReg = dynamic_cast&lt;const map::core::Registration&lt;i,j&gt;*&gt;(obj-&gt;GetRegistration());
+      if (pReg == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        return false;</span>
+      }
+
+      typedef map::io::RegistrationFileWriter&lt;i,j&gt; WriterType;
+<span style = "background-color:#fdd">      typename WriterType::Pointer writer = WriterType::New();</span>
+
+<span style = "background-color:#fdd">      writer-&gt;setExpandLazyKernels(false);</span>
+
+      try
+      {
+<span style = "background-color:#fdd">        writer-&gt;write(pReg,data);</span>
+      }
+      catch (const itk::ExceptionObject&amp; e)
+<span style = "background-color:#fdd">      {
+        std::cout &lt;&lt; e.what() &lt;&lt; std::endl;
+        throw;
+      }</span>
+
+<span style = "background-color:#fdd">      return true;
+    }</span>
+  };
+
+  MAPRegistrationWrapperIO::MAPRegistrationWrapperIO(const MAPRegistrationWrapperIO&amp; other)
+<span style = "background-color:#fdd">    : AbstractFileIO(other)
+  {
+  }</span>
+
+<span style = "background-color:#dfd">  MAPRegistrationWrapperIO::MAPRegistrationWrapperIO() : AbstractFileIO(mitk::MAPRegistrationWrapper::GetStaticNameOfClass())
+  {
+    std::string category = "MatchPoint Registration File";
+    CustomMimeType customMimeType;
+    customMimeType.SetCategory(category);
+    customMimeType.AddExtension("mapr");
+    this-&gt;AbstractFileIOWriter::SetMimeType(customMimeType);
+    this-&gt;AbstractFileIOWriter::SetDescription(category);</span>
+
+<span style = "background-color:#dfd">    customMimeType.AddExtension("mapr.xml");
+    customMimeType.AddExtension("MAPR");
+    customMimeType.AddExtension("MAPR.XML");
+    this-&gt;AbstractFileIOReader::SetMimeType(customMimeType);
+    this-&gt;AbstractFileIOReader::SetDescription(category);</span>
+
+<span style = "background-color:#dfd">    this-&gt;RegisterService();
+  }</span>
+
+
+  void MAPRegistrationWrapperIO::Write()
+<span style = "background-color:#fdd">  {
+    bool success = false;
+    const BaseData* input = this-&gt;GetInput();
+    if (input == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Cannot write data. Data pointer is nullptr.";</span>
+    }
+
+<span style = "background-color:#fdd">    const mitk::MAPRegistrationWrapper* wrapper = dynamic_cast&lt;const mitk::MAPRegistrationWrapper*&gt;(input);
+    if (wrapper == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Cannot write data. Data pointer is not a Registration wrapper.";</span>
+    }
+
+<span style = "background-color:#fdd">    std::ostream* writeStream = this-&gt;GetOutputStream();
+    std::string fileName = this-&gt;GetOutputLocation();
+    if (writeStream)</span>
+    {
+<span style = "background-color:#fdd">      fileName = this-&gt;GetLocalFileName();</span>
+    }
+
+    // Switch the current locale to "C"
+<span style = "background-color:#fdd">    LocaleSwitch localeSwitch("C");</span>
+
+    try
+    {
+<span style = "background-color:#fdd">      success = DimHelper&lt;3,3,WriteReg&gt;::Execute(wrapper, fileName);</span>
+    }
+    catch (const std::exception&amp; e)
+<span style = "background-color:#fdd">    {
+      mitkThrow() &lt;&lt; e.what();
+    }</span>
+
+<span style = "background-color:#fdd">    if (!success)</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Cannot write registration. Currently only registrations up to 4D are supported.";</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  AbstractFileIO::ConfidenceLevel MAPRegistrationWrapperIO::GetWriterConfidenceLevel() const
+<span style = "background-color:#fdd">  {
+    const mitk::MAPRegistrationWrapper* regWrapper =  dynamic_cast&lt;const mitk::MAPRegistrationWrapper*&gt;(this-&gt;GetInput());</span>
+
+<span style = "background-color:#fdd">    if (regWrapper == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      return IFileWriter::Unsupported;</span>
+    }
+
+    // Check if the registration dimension is supported
+<span style = "background-color:#fdd">    if (! DimHelper&lt;3,3,CanWrite&gt;::Execute(regWrapper))</span>
+    {
+<span style = "background-color:#fdd">      return IFileWriter::Unsupported;</span>
+    };
+
+<span style = "background-color:#fdd">    return IFileWriter::Supported;
+  }</span>
+
+  std::vector&lt;BaseData::Pointer &gt;  MAPRegistrationWrapperIO::DoRead()
+<span style = "background-color:#fdd">  {
+    std::vector&lt;BaseData::Pointer &gt; result;</span>
+
+<span style = "background-color:#fdd">    LocaleSwitch("C");</span>
+
+<span style = "background-color:#fdd">    std::string fileName = this-&gt;GetLocalFileName();
+    if ( fileName.empty() )</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Cannot read file. Filename has not been set!";</span>
+    }
+
+    /* Remove the following kernel loader provider because in MITK no lazy file loading should be used
+    due to conflicts with session loading (end there usage of temporary directories)*/
+<span style = "background-color:#fdd">    map::io::RegistrationFileReader::LoaderStackType::unregisterProvider(map::io::LazyFileFieldKernelLoader&lt;2,2&gt;::getStaticProviderName());
+    map::io::RegistrationFileReader::LoaderStackType::unregisterProvider(map::io::LazyFileFieldKernelLoader&lt;3,3&gt;::getStaticProviderName());</span>
+
+<span style = "background-color:#fdd">    map::io::RegistrationFileReader::Pointer spReader = map::io::RegistrationFileReader::New();
+    spReader-&gt;setPreferLazyLoading(true);
+    map::core::RegistrationBase::Pointer spReg = spReader-&gt;read(fileName);
+    auto spRegWrapper = mitk::MAPRegistrationWrapper::New(spReg);</span>
+
+<span style = "background-color:#fdd">    result.push_back(spRegWrapper.GetPointer());
+    return result;
+  }</span>
+
+  AbstractFileIO::ConfidenceLevel MAPRegistrationWrapperIO::GetReaderConfidenceLevel() const
+<span style = "background-color:#fdd">  {
+    AbstractFileIO::ConfidenceLevel result = IFileReader::Unsupported;</span>
+
+<span style = "background-color:#fdd">    std::string fileName = this-&gt;GetLocalFileName();
+    std::ifstream in( fileName.c_str() );
+    if ( in.good() )</span>
+    {
+<span style = "background-color:#fdd">      result = IFileReader::Supported;</span>
+    }
+
+<span style = "background-color:#fdd">    in.close();
+    return result;
+  }</span>
+
+  MAPRegistrationWrapperIO* MAPRegistrationWrapperIO::IOClone() const
+<span style = "background-color:#fdd">  {
+    return new MAPRegistrationWrapperIO(*this);
+  }</span>
+
+}</pre>
+	</body>
+</html>

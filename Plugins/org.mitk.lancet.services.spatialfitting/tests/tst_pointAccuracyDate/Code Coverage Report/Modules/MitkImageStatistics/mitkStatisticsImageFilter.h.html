@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkStatisticsImageFilter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+// This file is based on ITK's itkStatisticsImageFilter.h
+
+#ifndef mitkStatisticsImageFilter
+#define mitkStatisticsImageFilter
+
+#include &lt;mitkCommon.h&gt;
+
+#include &lt;itkArray.h&gt;
+#include &lt;itkCompensatedSummation.h&gt;
+#include &lt;itkHistogram.h&gt;
+#include &lt;itkImageSink.h&gt;
+#include &lt;itkNumericTraits.h&gt;
+#include &lt;itkSimpleDataObjectDecorator.h&gt;
+
+#include &lt;mutex&gt;
+
+namespace mitk
+{
+  template &lt;typename TInputImage&gt;
+  class StatisticsImageFilter : public itk::ImageSink&lt;TInputImage&gt;
+  {
+  public:
+    using Self = StatisticsImageFilter;
+    using Superclass = itk::ImageSink&lt;TInputImage&gt;;
+    using Pointer = itk::SmartPointer&lt;Self&gt;;
+    using ConstPointer = itk::SmartPointer&lt;const Self&gt;;
+
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkTypeMacro(StatisticsImageFilter, itk::ImageSink);</span>
+
+    using RegionType = typename TInputImage::RegionType;
+    using PixelType = typename TInputImage::PixelType;
+
+    using RealType = typename itk::NumericTraits&lt;PixelType&gt;::RealType;
+
+    using HistogramType = typename itk::Statistics::Histogram&lt;RealType&gt;;
+    using HistogramPointer = itk::SmartPointer&lt;HistogramType&gt;;
+    
+    using DataObjectPointer = typename itk::DataObject::Pointer;
+
+    template &lt;typename T&gt;
+    using SimpleDataObjectDecorator = itk::SimpleDataObjectDecorator&lt;T&gt;;
+
+    using RealObjectType = SimpleDataObjectDecorator&lt;RealType&gt;;
+    using PixelObjectType = SimpleDataObjectDecorator&lt;PixelType&gt;;
+    using ProcessObject = itk::ProcessObject;
+
+<span style = "background-color:#fdd">    itkGetDecoratedOutputMacro(Minimum, PixelType);
+    itkGetDecoratedOutputMacro(Maximum, PixelType);
+    itkGetDecoratedOutputMacro(Mean, RealType);
+    itkGetDecoratedOutputMacro(Sigma, RealType);
+    itkGetDecoratedOutputMacro(Variance, RealType);
+    itkGetDecoratedOutputMacro(Sum, RealType);
+    itkGetDecoratedOutputMacro(SumOfSquares, RealType);
+    itkGetDecoratedOutputMacro(SumOfCubes, RealType);
+    itkGetDecoratedOutputMacro(SumOfQuadruples, RealType);
+    itkGetDecoratedOutputMacro(Skewness, RealType);
+    itkGetDecoratedOutputMacro(Kurtosis, RealType);
+    itkGetDecoratedOutputMacro(MPP, RealType);
+    itkGetDecoratedOutputMacro(Histogram, HistogramPointer);
+    itkGetDecoratedOutputMacro(Entropy, RealType);
+    itkGetDecoratedOutputMacro(Uniformity, RealType);
+    itkGetDecoratedOutputMacro(UPP, RealType);
+    itkGetDecoratedOutputMacro(Median, RealType);</span>
+
+    void SetHistogramParameters(unsigned int size, RealType lowerBound, RealType upperBound);
+
+    using DataObjectIdentifierType = itk::ProcessObject::DataObjectIdentifierType;
+    using Superclass::MakeOutput;
+    
+    /** Make a DataObject of the correct type to be used as the specified output. */
+    DataObjectPointer MakeOutput(const DataObjectIdentifierType&amp; name) override;
+
+  protected:
+    StatisticsImageFilter();
+    ~StatisticsImageFilter();
+
+<span style = "background-color:#fdd">    itkSetDecoratedOutputMacro(Minimum, PixelType);
+    itkSetDecoratedOutputMacro(Maximum, PixelType);
+    itkSetDecoratedOutputMacro(Mean, RealType);
+    itkSetDecoratedOutputMacro(Sigma, RealType);
+    itkSetDecoratedOutputMacro(Variance, RealType);
+    itkSetDecoratedOutputMacro(Sum, RealType);
+    itkSetDecoratedOutputMacro(SumOfSquares, RealType);
+    itkSetDecoratedOutputMacro(SumOfCubes, RealType);
+    itkSetDecoratedOutputMacro(SumOfQuadruples, RealType);
+    itkSetDecoratedOutputMacro(Skewness, RealType);
+    itkSetDecoratedOutputMacro(Kurtosis, RealType);
+    itkSetDecoratedOutputMacro(MPP, RealType);
+    itkSetDecoratedOutputMacro(Histogram, HistogramPointer);
+    itkSetDecoratedOutputMacro(Entropy, RealType);
+    itkSetDecoratedOutputMacro(Uniformity, RealType);
+    itkSetDecoratedOutputMacro(UPP, RealType);
+    itkSetDecoratedOutputMacro(Median, RealType);</span>
+
+    void BeforeStreamedGenerateData() override;
+    void ThreadedStreamedGenerateData(const RegionType&amp;) override;
+    void AfterStreamedGenerateData() override;
+
+    void PrintSelf(std::ostream&amp; os, itk::Indent indent) const override;
+
+  private:
+    HistogramPointer CreateInitializedHistogram() const;
+
+    bool m_ComputeHistogram;
+    unsigned int m_HistogramSize;
+    RealType m_HistogramLowerBound;
+    RealType m_HistogramUpperBound;
+    HistogramPointer m_Histogram;
+
+    itk::CompensatedSummation&lt;RealType&gt; m_Sum;
+    itk::CompensatedSummation&lt;RealType&gt; m_SumOfPositivePixels;
+    itk::CompensatedSummation&lt;RealType&gt; m_SumOfSquares;
+    itk::CompensatedSummation&lt;RealType&gt; m_SumOfCubes;
+    itk::CompensatedSummation&lt;RealType&gt; m_SumOfQuadruples;
+
+    itk::SizeValueType m_Count;
+    itk::SizeValueType m_CountOfPositivePixels;
+    PixelType m_Min;
+    PixelType m_Max;
+
+    std::mutex m_Mutex;
+  };
+}
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#include &lt;mitkStatisticsImageFilter.hxx&gt;
+#endif
+
+#endif</pre>
+	</body>
+</html>

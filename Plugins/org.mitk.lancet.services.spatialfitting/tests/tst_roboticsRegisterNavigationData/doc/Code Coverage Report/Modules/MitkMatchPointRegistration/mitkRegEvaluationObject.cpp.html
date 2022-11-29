@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRegEvaluationObject.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;itkRescaleIntensityImageFilter.h&gt;
+#include &lt;itkCastImageFilter.h&gt;
+
+#include &lt;mitkImageAccessByItk.h&gt;
+#include &lt;mitkImageCast.h&gt;
+
+#include "mitkRegEvaluationObject.h"
+
+#include &lt;mapExceptionObjectMacros.h&gt;
+
+namespace mitk
+{
+
+  RegEvaluationObject::RegEvaluationObject()
+<span style = "background-color:#fdd">  {
+  }</span>
+
+  RegEvaluationObject::~RegEvaluationObject()
+<span style = "background-color:#fdd">  {
+  }</span>
+
+  void RegEvaluationObject::SetRequestedRegionToLargestPossibleRegion()
+<span style = "background-color:#fdd">  {</span>
+    //nothing to do
+<span style = "background-color:#fdd">  }</span>
+
+  bool RegEvaluationObject::RequestedRegionIsOutsideOfTheBufferedRegion()
+<span style = "background-color:#fdd">  {
+    return false;
+  }</span>
+
+  bool RegEvaluationObject::VerifyRequestedRegion()
+<span style = "background-color:#fdd">  {
+    return true;
+  }</span>
+
+  void RegEvaluationObject::SetRequestedRegion(const itk::DataObject*)
+<span style = "background-color:#fdd">  {</span>
+    //nothing to do
+<span style = "background-color:#fdd">  }</span>
+
+  void RegEvaluationObject::SetTargetNode(const DataNode* tNode)
+<span style = "background-color:#fdd">  {
+    itkDebugMacro("setting TargetNode to " &lt;&lt; tNode);</span>
+
+<span style = "background-color:#fdd">    m_TargetNode = tNode;</span>
+
+<span style = "background-color:#fdd">    if (tNode)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;m_TargetImage = dynamic_cast&lt;mitk::Image*&gt;(tNode-&gt;GetData());</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;Modified();
+  };</span>
+
+  void RegEvaluationObject::SetMovingNode(const DataNode* mNode)
+<span style = "background-color:#fdd">  {
+    itkDebugMacro("setting MovingNode to " &lt;&lt; mNode);</span>
+
+<span style = "background-color:#fdd">    m_MovingNode = mNode;</span>
+
+<span style = "background-color:#fdd">    if (mNode)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;m_MovingImage = dynamic_cast&lt;mitk::Image*&gt;(mNode-&gt;GetData());</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;Modified();
+  };</span>
+
+  void RegEvaluationObject::SetTargetImage(const mitk::Image* tImg)
+<span style = "background-color:#fdd">  {
+    itkDebugMacro("setting TargetImage to " &lt;&lt; tImg);</span>
+
+<span style = "background-color:#fdd">    AccessFixedDimensionByItk_n(tImg, doConversion, 3, (m_TargetImage));</span>
+
+<span style = "background-color:#fdd">    this-&gt;Modified();
+  };</span>
+
+  void RegEvaluationObject::SetMovingImage(const mitk::Image* mImg)
+<span style = "background-color:#fdd">  {
+    itkDebugMacro("setting MovingImage to " &lt;&lt; mImg);</span>
+
+<span style = "background-color:#fdd">    AccessFixedDimensionByItk_n(mImg, doConversion, 3, (m_MovingImage));</span>
+
+<span style = "background-color:#fdd">    this-&gt;Modified();
+  };</span>
+
+  template &lt;typename TPixelType, unsigned int VImageDimension &gt;
+  void RegEvaluationObject::doConversion(const ::itk::Image&lt;TPixelType,VImageDimension&gt;* input, mitk::Image::Pointer&amp; result) const
+<span style = "background-color:#fdd">  {</span>
+    typedef ::itk::Image&lt;TPixelType, VImageDimension&gt; InputImageType;
+    typedef itk::CastImageFilter&lt;InputImageType, InternalImageType&gt; CastFilterType;
+    typedef itk::RescaleIntensityImageFilter&lt;InputImageType, InputImageType&gt; RescaleFilterType;
+    typedef typename RescaleFilterType::OutputImagePixelType RescaleOutputPixelType;
+
+<span style = "background-color:#fdd">    typename CastFilterType::Pointer caster = CastFilterType::New();
+    typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();</span>
+
+<span style = "background-color:#fdd">    rescaler-&gt;SetInput(input);
+    rescaler-&gt;SetOutputMinimum(0);
+    rescaler-&gt;SetOutputMaximum(std::min(itk::NumericTraits&lt;RescaleOutputPixelType&gt;::max(), static_cast&lt;typename RescaleFilterType::OutputPixelType&gt;(255)));
+    caster-&gt;SetInput(rescaler-&gt;GetOutput());
+    caster-&gt;Update();
+    InternalImageType::Pointer internalImage = caster-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">    mitk::CastToMitkImage&lt;&gt;(internalImage,result);
+  }</span>
+
+
+  void RegEvaluationObject::PrintSelf (std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">  {
+    Superclass::PrintSelf(os,indent);
+    if (m_Registration.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      os&lt;&lt; "Error. Eval object points to invalid registration (nullptr).";
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      os&lt;&lt;std::endl&lt;&lt;indent&lt;&lt;"MatchPoint registration instance:";
+      m_Registration-&gt;Print(os,indent.GetNextIndent());</span>
+    }
+
+<span style = "background-color:#fdd">    if (m_TargetImage.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      os&lt;&lt; "Error. Eval object points to invalid target image (nullptr).";
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      os&lt;&lt;std::endl&lt;&lt;indent&lt;&lt;"Target image instance:";
+      m_TargetImage-&gt;Print(os,indent.GetNextIndent());</span>
+    }
+
+<span style = "background-color:#fdd">    if (m_MovingImage.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      os&lt;&lt; "Error. Eval object points to invalid moving image (nullptr).";
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      os&lt;&lt;std::endl&lt;&lt;indent&lt;&lt;"Moving image instance:";
+      m_MovingImage-&gt;Print(os,indent.GetNextIndent());</span>
+    }
+
+<span style = "background-color:#fdd">  }</span>
+
+}
+</pre>
+	</body>
+</html>

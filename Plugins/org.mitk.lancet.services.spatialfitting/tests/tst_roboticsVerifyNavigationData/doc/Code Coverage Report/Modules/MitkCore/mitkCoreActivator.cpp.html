@@ -1,0 +1,378 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCoreActivator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkCoreActivator.h"
+
+#include &lt;mitkCoreServices.h&gt;
+#include &lt;mitkPropertyPersistenceInfo.h&gt;
+
+// File IO
+#include &lt;mitkIOMetaInformationPropertyConstants.h&gt;
+#include &lt;mitkGeometryDataReaderService.h&gt;
+#include &lt;mitkGeometryDataWriterService.h&gt;
+#include &lt;mitkIOMimeTypes.h&gt;
+#include &lt;mitkIOUtil.h&gt;
+#include &lt;mitkImageVtkLegacyIO.h&gt;
+#include &lt;mitkImageVtkXmlIO.h&gt;
+#include &lt;mitkItkImageIO.h&gt;
+#include &lt;mitkMimeTypeProvider.h&gt;
+#include &lt;mitkPointSetReaderService.h&gt;
+#include &lt;mitkPointSetWriterService.h&gt;
+#include &lt;mitkRawImageFileReader.h&gt;
+#include &lt;mitkSurfaceStlIO.h&gt;
+#include &lt;mitkSurfaceVtkLegacyIO.h&gt;
+#include &lt;mitkSurfaceVtkXmlIO.h&gt;
+
+#include "mitkLegacyFileWriterService.h"
+#include &lt;mitkFileWriter.h&gt;
+
+#include &lt;itkGDCMImageIO.h&gt;
+#include &lt;itkNiftiImageIO.h&gt;
+
+// PropertyRelationRules
+#include &lt;mitkPropertyRelationRuleBase.h&gt;
+
+// Micro Services
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModule.h&gt;
+#include &lt;usModuleActivator.h&gt;
+#include &lt;usModuleContext.h&gt;
+#include &lt;usModuleEvent.h&gt;
+#include &lt;usModuleInitialization.h&gt;
+#include &lt;usModuleResource.h&gt;
+#include &lt;usModuleResourceStream.h&gt;
+#include &lt;usModuleSettings.h&gt;
+#include &lt;usServiceTracker.h&gt;
+
+// ITK "injects" static initialization code for IO factories
+// via the itkImageIOFactoryRegisterManager.h header (which
+// is generated in the application library build directory).
+// To ensure that the code is called *before* the CppMicroServices
+// static initialization code (which triggers the Activator::Start
+// method), we include the ITK header here.
+#include &lt;itkImageIOFactoryRegisterManager.h&gt;
+
+void HandleMicroServicesMessages(us::MsgType type, const char *msg)
+<span style = "background-color:#fdd">{
+  switch (type)</span>
+  {
+    case us::DebugMsg:
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; msg;
+      break;</span>
+    case us::InfoMsg:
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; msg;
+      break;</span>
+    case us::WarningMsg:
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; msg;
+      break;</span>
+    case us::ErrorMsg:
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; msg;</span>
+      break;
+  }
+<span style = "background-color:#fdd">}</span>
+
+void AddMitkAutoLoadPaths(const std::string &amp;programPath)
+<span style = "background-color:#dfd">{
+  us::ModuleSettings::AddAutoLoadPath(programPath);</span>
+#ifdef __APPLE__
+  // Walk up three directories since that is where the .dylib files are located
+  // for build trees.
+  std::string additionalPath = programPath;
+  bool addPath = true;
+  for (int i = 0; i &lt; 3; ++i)
+  {
+    std::size_t index = additionalPath.find_last_of('/');
+    if (index != std::string::npos)
+    {
+      additionalPath = additionalPath.substr(0, index);
+    }
+    else
+    {
+      addPath = false;
+      break;
+    }
+  }
+  if (addPath)
+  {
+    us::ModuleSettings::AddAutoLoadPath(additionalPath);
+  }
+#endif
+<span style = "background-color:#dfd">}</span>
+
+void AddPropertyPersistence(const mitk::PropertyKeyPath&amp; propPath)
+<span style = "background-color:#dfd">{
+  mitk::CoreServicePointer&lt;mitk::IPropertyPersistence&gt; persistenceService(mitk::CoreServices::GetPropertyPersistence());</span>
+
+<span style = "background-color:#dfd">  auto info = mitk::PropertyPersistenceInfo::New();
+  if (propPath.IsExplicit())</span>
+  {
+<span style = "background-color:#dfd">    std::string name = mitk::PropertyKeyPathToPropertyName(propPath);
+    std::string key = name;
+    std::replace(key.begin(), key.end(), '.', '_');
+    info-&gt;SetNameAndKey(name, key);
+  }</span>
+  else
+  {
+<span style = "background-color:#dfd">    std::string key = mitk::PropertyKeyPathToPersistenceKeyRegEx(propPath);
+    std::string keyTemplate = mitk::PropertyKeyPathToPersistenceKeyTemplate(propPath);
+    std::string propRegEx = mitk::PropertyKeyPathToPropertyRegEx(propPath);
+    std::string propTemplate = mitk::PropertyKeyPathToPersistenceNameTemplate(propPath);
+    info-&gt;UseRegEx(propRegEx, propTemplate, key, keyTemplate);
+  }</span>
+
+<span style = "background-color:#dfd">  persistenceService-&gt;AddInfo(info);
+}</span>
+
+class FixedNiftiImageIO : public itk::NiftiImageIO
+{
+public:
+  /** Standard class typedefs. */
+  typedef FixedNiftiImageIO Self;
+  typedef itk::NiftiImageIO Superclass;
+  typedef itk::SmartPointer&lt;Self&gt; Pointer;
+
+  /** Method for creation through the object factory. */
+<span style = "background-color:#dfd">  itkNewMacro(Self)</span>
+
+    /** Run-time type information (and related methods). */
+<span style = "background-color:#dfd">    itkTypeMacro(FixedNiftiImageIO, Superclass)</span>
+
+      bool SupportsDimension(unsigned long dim) override
+<span style = "background-color:#fdd">  {
+    return dim &gt; 1 &amp;&amp; dim &lt; 5;
+  }</span>
+};
+
+void MitkCoreActivator::Load(us::ModuleContext *context)
+<span style = "background-color:#dfd">{</span>
+  // Handle messages from CppMicroServices
+<span style = "background-color:#dfd">  us::installMsgHandler(HandleMicroServicesMessages);</span>
+
+<span style = "background-color:#dfd">  this-&gt;m_Context = context;</span>
+
+  // Add the current application directory to the auto-load paths.
+  // This is useful for third-party executables.
+<span style = "background-color:#dfd">  std::string programPath = mitk::IOUtil::GetProgramPath();
+  if (programPath.empty())</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Could not get the program path.";
+  }</span>
+  else
+  {
+<span style = "background-color:#dfd">    AddMitkAutoLoadPaths(programPath);</span>
+  }
+
+  // m_RenderingManager = mitk::RenderingManager::New();
+  // context-&gt;RegisterService&lt;mitk::RenderingManager&gt;(renderingManager.GetPointer());
+<span style = "background-color:#dfd">  m_PlanePositionManager.reset(new mitk::PlanePositionManagerService);
+  context-&gt;RegisterService&lt;mitk::PlanePositionManagerService&gt;(m_PlanePositionManager.get());</span>
+
+<span style = "background-color:#dfd">  m_PropertyAliases.reset(new mitk::PropertyAliases);
+  context-&gt;RegisterService&lt;mitk::IPropertyAliases&gt;(m_PropertyAliases.get());</span>
+
+<span style = "background-color:#dfd">  m_PropertyDescriptions.reset(new mitk::PropertyDescriptions);
+  context-&gt;RegisterService&lt;mitk::IPropertyDescriptions&gt;(m_PropertyDescriptions.get());</span>
+
+<span style = "background-color:#dfd">  m_PropertyExtensions.reset(new mitk::PropertyExtensions);
+  context-&gt;RegisterService&lt;mitk::IPropertyExtensions&gt;(m_PropertyExtensions.get());</span>
+
+<span style = "background-color:#dfd">  m_PropertyFilters.reset(new mitk::PropertyFilters);
+  context-&gt;RegisterService&lt;mitk::IPropertyFilters&gt;(m_PropertyFilters.get());</span>
+
+<span style = "background-color:#dfd">  m_PropertyPersistence.reset(new mitk::PropertyPersistence);
+  context-&gt;RegisterService&lt;mitk::IPropertyPersistence&gt;(m_PropertyPersistence.get());</span>
+
+<span style = "background-color:#dfd">  m_PropertyRelations.reset(new mitk::PropertyRelations);
+  context-&gt;RegisterService&lt;mitk::IPropertyRelations&gt;(m_PropertyRelations.get());</span>
+
+<span style = "background-color:#dfd">  m_MimeTypeProvider.reset(new mitk::MimeTypeProvider);
+  m_MimeTypeProvider-&gt;Start();
+  m_MimeTypeProviderReg = context-&gt;RegisterService&lt;mitk::IMimeTypeProvider&gt;(m_MimeTypeProvider.get());</span>
+
+<span style = "background-color:#dfd">  this-&gt;RegisterDefaultMimeTypes();
+  this-&gt;RegisterItkReaderWriter();
+  this-&gt;RegisterVtkReaderWriter();</span>
+
+  // Add custom Reader / Writer Services
+<span style = "background-color:#dfd">  m_FileReaders.push_back(new mitk::PointSetReaderService());
+  m_FileWriters.push_back(new mitk::PointSetWriterService());
+  m_FileReaders.push_back(new mitk::GeometryDataReaderService());
+  m_FileWriters.push_back(new mitk::GeometryDataWriterService());
+  m_FileReaders.push_back(new mitk::RawImageFileReaderService());</span>
+
+  //add properties that should be persistent (if possible/supported by the writer)
+<span style = "background-color:#dfd">  AddPropertyPersistence(mitk::IOMetaInformationPropertyConstants::READER_DESCRIPTION());
+  AddPropertyPersistence(mitk::IOMetaInformationPropertyConstants::READER_INPUTLOCATION());
+  AddPropertyPersistence(mitk::IOMetaInformationPropertyConstants::READER_MIME_CATEGORY());
+  AddPropertyPersistence(mitk::IOMetaInformationPropertyConstants::READER_MIME_NAME());
+  AddPropertyPersistence(mitk::IOMetaInformationPropertyConstants::READER_VERSION());
+  AddPropertyPersistence(mitk::IOMetaInformationPropertyConstants::READER_OPTIONS_ANY());</span>
+
+<span style = "background-color:#dfd">  AddPropertyPersistence(mitk::PropertyRelationRuleBase::GetRIIDestinationUIDPropertyKeyPath());
+  AddPropertyPersistence(mitk::PropertyRelationRuleBase::GetRIIRelationUIDPropertyKeyPath());
+  AddPropertyPersistence(mitk::PropertyRelationRuleBase::GetRIIRuleIDPropertyKeyPath());
+  AddPropertyPersistence(mitk::PropertyRelationRuleBase::GetRIIPropertyKeyPath("","").AddAnyElement());</span>
+
+  /*
+    There IS an option to exchange ALL vtkTexture instances against vtkNeverTranslucentTextureFactory.
+    This code is left here as a reminder, just in case we might need to do that some time.
+
+    vtkNeverTranslucentTextureFactory* textureFactory = vtkNeverTranslucentTextureFactory::New();
+    vtkObjectFactory::RegisterFactory( textureFactory );
+    textureFactory-&gt;Delete();
+    */
+
+<span style = "background-color:#dfd">  this-&gt;RegisterLegacyWriter();
+}</span>
+
+void MitkCoreActivator::Unload(us::ModuleContext *)
+<span style = "background-color:#dfd">{
+  for (auto &amp;elem : m_FileReaders)</span>
+  {
+<span style = "background-color:#dfd">    delete elem;
+  }</span>
+
+<span style = "background-color:#dfd">  for (auto &amp;elem : m_FileWriters)</span>
+  {
+<span style = "background-color:#dfd">    delete elem;
+  }</span>
+
+<span style = "background-color:#dfd">  for (auto &amp;elem : m_FileIOs)</span>
+  {
+<span style = "background-color:#dfd">    delete elem;
+  }</span>
+
+<span style = "background-color:#dfd">  for (auto &amp;elem : m_LegacyWriters)</span>
+  {
+<span style = "background-color:#fdd">    delete elem;
+  }</span>
+
+  // The mitk::ModuleContext* argument of the Unload() method
+  // will always be 0 for the Mitk library. It makes no sense
+  // to use it at this stage anyway, since all libraries which
+  // know about the module system have already been unloaded.
+
+  // we need to close the internal service tracker of the
+  // MimeTypeProvider class here. Otherwise it
+  // would hold on to the ModuleContext longer than it is
+  // actually valid.
+<span style = "background-color:#dfd">  m_MimeTypeProviderReg.Unregister();
+  m_MimeTypeProvider-&gt;Stop();</span>
+
+<span style = "background-color:#dfd">  for (std::vector&lt;mitk::CustomMimeType *&gt;::const_iterator mimeTypeIter = m_DefaultMimeTypes.begin(),
+                                                           iterEnd = m_DefaultMimeTypes.end();
+       mimeTypeIter != iterEnd;
+       ++mimeTypeIter)</span>
+  {
+<span style = "background-color:#dfd">    delete *mimeTypeIter;
+  }
+}</span>
+
+void MitkCoreActivator::RegisterDefaultMimeTypes()
+<span style = "background-color:#dfd">{</span>
+  // Register some default mime-types
+
+<span style = "background-color:#dfd">  std::vector&lt;mitk::CustomMimeType *&gt; mimeTypes = mitk::IOMimeTypes::Get();
+  for (std::vector&lt;mitk::CustomMimeType *&gt;::const_iterator mimeTypeIter = mimeTypes.begin(), iterEnd = mimeTypes.end();
+       mimeTypeIter != iterEnd;
+       ++mimeTypeIter)</span>
+  {
+<span style = "background-color:#dfd">    m_DefaultMimeTypes.push_back(*mimeTypeIter);
+    m_Context-&gt;RegisterService(m_DefaultMimeTypes.back());
+  }
+}</span>
+
+void MitkCoreActivator::RegisterItkReaderWriter()
+<span style = "background-color:#dfd">{
+  std::list&lt;itk::LightObject::Pointer&gt; allobjects = itk::ObjectFactoryBase::CreateAllInstance("itkImageIOBase");</span>
+
+<span style = "background-color:#dfd">  for (auto &amp;allobject : allobjects)</span>
+  {
+<span style = "background-color:#dfd">    auto *io = dynamic_cast&lt;itk::ImageIOBase *&gt;(allobject.GetPointer());</span>
+
+    // NiftiImageIO does not provide a correct "SupportsDimension()" methods
+    // and the supported read/write extensions are not ordered correctly
+<span style = "background-color:#dfd">    if (dynamic_cast&lt;itk::NiftiImageIO *&gt;(io))
+      continue;</span>
+
+    // Use a custom mime-type for GDCMImageIO below
+<span style = "background-color:#dfd">    if (dynamic_cast&lt;itk::GDCMImageIO *&gt;(allobject.GetPointer()))</span>
+    {
+      // MITK provides its own DICOM reader (which internally uses GDCMImageIO).
+<span style = "background-color:#dfd">      continue;</span>
+    }
+
+<span style = "background-color:#dfd">    if (io)</span>
+    {
+<span style = "background-color:#dfd">      m_FileIOs.push_back(new mitk::ItkImageIO(io));
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Error ImageIO factory did not return an ImageIOBase: " &lt;&lt; (allobject)-&gt;GetNameOfClass();</span>
+    }
+<span style = "background-color:#dfd">  }</span>
+
+<span style = "background-color:#dfd">  FixedNiftiImageIO::Pointer itkNiftiIO = FixedNiftiImageIO::New();
+  mitk::ItkImageIO *niftiIO = new mitk::ItkImageIO(mitk::IOMimeTypes::NIFTI_MIMETYPE(), itkNiftiIO.GetPointer(), 0);
+  m_FileIOs.push_back(niftiIO);
+}</span>
+
+void MitkCoreActivator::RegisterVtkReaderWriter()
+<span style = "background-color:#dfd">{
+  m_FileIOs.push_back(new mitk::SurfaceVtkXmlIO());
+  m_FileIOs.push_back(new mitk::SurfaceStlIO());
+  m_FileIOs.push_back(new mitk::SurfaceVtkLegacyIO());</span>
+
+<span style = "background-color:#dfd">  m_FileIOs.push_back(new mitk::ImageVtkXmlIO());
+  m_FileIOs.push_back(new mitk::ImageVtkLegacyIO());
+}</span>
+
+void MitkCoreActivator::RegisterLegacyWriter()
+<span style = "background-color:#dfd">{
+  std::list&lt;itk::LightObject::Pointer&gt; allobjects = itk::ObjectFactoryBase::CreateAllInstance("IOWriter");</span>
+
+<span style = "background-color:#dfd">  for (auto i = allobjects.begin(); i != allobjects.end(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    mitk::FileWriter::Pointer io = dynamic_cast&lt;mitk::FileWriter *&gt;(i-&gt;GetPointer());
+    if (io)</span>
+    {
+<span style = "background-color:#fdd">      std::string description = std::string("Legacy ") + io-&gt;GetNameOfClass() + " Writer";
+      mitk::IFileWriter *writer = new mitk::LegacyFileWriterService(io, description);
+      m_LegacyWriters.push_back(writer);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Error IOWriter override is not of type mitk::FileWriter: " &lt;&lt; (*i)-&gt;GetNameOfClass() &lt;&lt; std::endl;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+<span style = "background-color:#dfd">}</span>
+
+<span style = "background-color:#dfd">US_EXPORT_MODULE_ACTIVATOR(MitkCoreActivator)</span>
+
+// Call CppMicroservices initialization code at the end of the file.
+// This especially ensures that VTK object factories have already
+// been registered (VTK initialization code is injected by implicitly
+// include VTK header files at the top of this file).
+<span style = "background-color:#dfd">US_INITIALIZE_MODULE</span></pre>
+	</body>
+</html>

@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDisplayCoordinateOperation.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKDISPLAYCOORDINATEOPERATION_H_HEADER_INCLUDED_C10E33D0
+#define MITKDISPLAYCOORDINATEOPERATION_H_HEADER_INCLUDED_C10E33D0
+
+#include "mitkBaseRenderer.h"
+#include "mitkNumericTypes.h"
+#include "mitkOperation.h"
+#include &lt;MitkCoreExports.h&gt;
+#include &lt;mitkWeakPointer.h&gt;
+
+#define mitkGetMacro(name, type)                                                                                       \
+  virtual type Get##name() { return this-&gt;m_##name; }
+namespace mitk
+{
+  // TODO Legacy , no longer necessary when after migrating all DisplayInteractions to new Interactions.
+  // Coordinate supplier can probably also be removed then.
+
+  //##Documentation
+  //## @brief Operation with informations necessary for operations of DisplayVectorInteractor
+  //## @ingroup Undo
+  class MITKCORE_EXPORT DisplayCoordinateOperation : public Operation
+  {
+  public:
+    DisplayCoordinateOperation(mitk::OperationType operationType,
+                               mitk::BaseRenderer *renderer,
+                               const mitk::Point2D &amp;startDisplayCoordinate,
+                               const mitk::Point2D &amp;lastDisplayCoordinate,
+                               const mitk::Point2D &amp;currentDisplayCoordinate);
+
+    DisplayCoordinateOperation(mitk::OperationType operationType,
+                               mitk::BaseRenderer *renderer,
+                               const mitk::Point2D &amp;startDisplayCoordinate,
+                               const mitk::Point2D &amp;lastDisplayCoordinate,
+                               const mitk::Point2D &amp;currentDisplayCoordinate,
+                               const mitk::Point2D &amp;startCoordinateInMM);
+
+    ~DisplayCoordinateOperation() override;
+
+    mitk::BaseRenderer *GetRenderer();
+
+<span style = "background-color:#fdd">    mitkGetMacro(StartDisplayCoordinate, mitk::Point2D);
+    mitkGetMacro(LastDisplayCoordinate, mitk::Point2D);
+    mitkGetMacro(CurrentDisplayCoordinate, mitk::Point2D);
+    mitkGetMacro(StartCoordinateInMM, mitk::Point2D);</span>
+
+    mitk::Vector2D GetLastToCurrentDisplayVector();
+    mitk::Vector2D GetStartToCurrentDisplayVector();
+    mitk::Vector2D GetStartToLastDisplayVector();
+
+  private:
+    mitk::WeakPointer&lt;mitk::BaseRenderer&gt; m_Renderer;
+
+    const mitk::Point2D m_StartDisplayCoordinate;
+    const mitk::Point2D m_LastDisplayCoordinate;
+    const mitk::Point2D m_CurrentDisplayCoordinate;
+    const mitk::Point2D m_StartCoordinateInMM;
+  };
+}
+
+#endif /* MITKDISPLAYCOORDINATEOPERATION_H_HEADER_INCLUDED_C10E33D0 */</pre>
+	</body>
+</html>

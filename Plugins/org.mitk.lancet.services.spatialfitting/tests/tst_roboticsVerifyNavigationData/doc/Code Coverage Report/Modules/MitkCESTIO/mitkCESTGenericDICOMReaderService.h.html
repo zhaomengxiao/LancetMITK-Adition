@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCESTGenericDICOMReaderService.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKCESTGenericDICOMReaderService_H
+#define MITKCESTGenericDICOMReaderService_H
+
+#include &lt;mitkBaseDICOMReaderService.h&gt;
+
+namespace mitk {
+
+  /**
+  Service wrapper that auto selects (using the mitk::DICOMFileReaderSelector) the best DICOMFileReader from
+  the DICOM module and loads the CEST relevant meta data from a provided cest_meta.json file or
+  provided from the user as reader options.
+  */
+  class CESTDICOMManualReaderService : public BaseDICOMReaderService
+  {
+  public:
+    CESTDICOMManualReaderService(const CustomMimeType&amp; mimeType, const std::string&amp; description);
+
+    /** Uses the AbstractFileReader Read function and add extra steps for CEST meta data */
+    using AbstractFileReader::Read;
+    std::vector&lt;itk::SmartPointer&lt;BaseData&gt; &gt; Read() override;
+
+    Options GetOptions() const override;
+    us::Any GetOption(const std::string&amp; name) const override;
+
+  protected:
+<span style = "background-color:#fdd">    CESTDICOMManualReaderService(const CESTDICOMManualReaderService&amp;) = default;</span>
+    CESTDICOMManualReaderService&amp; operator=(const CESTDICOMManualReaderService&amp;) = delete;
+
+    std::string GetCESTMetaFilePath() const;
+    std::string GetTRECFilePath() const;
+    std::string GetLISTFilePath() const;
+
+    mitk::DICOMFileReader::Pointer GetReader(const mitk::StringList&amp; relevantFiles) const override;
+
+  private:
+    CESTDICOMManualReaderService* Clone() const override;
+  };
+
+  DICOMTagPath DICOM_IMAGING_FREQUENCY_PATH();
+}
+
+#endif // MITKCESTGenericDICOMReaderService_H</pre>
+	</body>
+</html>

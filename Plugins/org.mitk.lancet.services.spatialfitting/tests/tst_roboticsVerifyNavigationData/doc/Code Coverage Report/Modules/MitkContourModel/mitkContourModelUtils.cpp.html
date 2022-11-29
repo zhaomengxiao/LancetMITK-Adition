@@ -1,0 +1,251 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelUtils.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkContourModelUtils.h&gt;
+
+#include &lt;mitkContourModelToSurfaceFilter.h&gt;
+#include &lt;mitkLabelSetImage.h&gt;
+#include &lt;mitkSurface.h&gt;
+#include &lt;vtkImageStencil.h&gt;
+#include &lt;vtkPointData.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkPolyDataToImageStencil.h&gt;
+
+mitk::ContourModelUtils::ContourModelUtils()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::ContourModelUtils::~ContourModelUtils()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::ContourModel::Pointer mitk::ContourModelUtils::ProjectContourTo2DSlice(
+  const Image *slice, const ContourModel *contourIn3D)
+<span style = "background-color:#fdd">{
+  if (nullptr == slice || nullptr == contourIn3D)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  auto projectedContour = ContourModel::New();
+  projectedContour-&gt;Initialize(*contourIn3D);</span>
+
+<span style = "background-color:#fdd">  auto sliceGeometry = slice-&gt;GetGeometry();
+  const auto numberOfTimesteps = static_cast&lt;TimeStepType&gt;(contourIn3D-&gt;GetTimeSteps());</span>
+
+<span style = "background-color:#fdd">  for (std::remove_const_t&lt;decltype(numberOfTimesteps)&gt; t = 0; t &lt; numberOfTimesteps; ++t)</span>
+  {
+<span style = "background-color:#fdd">    auto iter = contourIn3D-&gt;Begin(t);
+    auto end = contourIn3D-&gt;End(t);</span>
+
+<span style = "background-color:#fdd">    while (iter != end)</span>
+    {
+<span style = "background-color:#fdd">      const auto &amp;currentPointIn3D = (*iter)-&gt;Coordinates;</span>
+
+<span style = "background-color:#fdd">      Point3D projectedPointIn2D;
+      projectedPointIn2D.Fill(0.0);</span>
+
+<span style = "background-color:#fdd">      sliceGeometry-&gt;WorldToIndex(currentPointIn3D, projectedPointIn2D);</span>
+
+<span style = "background-color:#fdd">      projectedContour-&gt;AddVertex(projectedPointIn2D, t);
+      ++iter;
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return projectedContour;
+}</span>
+
+mitk::ContourModel::Pointer mitk::ContourModelUtils::BackProjectContourFrom2DSlice(
+  const BaseGeometry *sliceGeometry, const ContourModel *contourIn2D)
+<span style = "background-color:#fdd">{
+  if (nullptr == sliceGeometry || nullptr == contourIn2D)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  auto worldContour = ContourModel::New();
+  worldContour-&gt;Initialize(*contourIn2D);</span>
+
+<span style = "background-color:#fdd">  const auto numberOfTimesteps = static_cast&lt;TimeStepType&gt;(contourIn2D-&gt;GetTimeSteps());</span>
+
+<span style = "background-color:#fdd">  for (std::remove_const_t&lt;decltype(numberOfTimesteps)&gt; t = 0; t &lt; numberOfTimesteps; ++t)</span>
+  {
+<span style = "background-color:#fdd">    auto iter = contourIn2D-&gt;Begin(t);
+    auto end = contourIn2D-&gt;End(t);</span>
+
+<span style = "background-color:#fdd">    while (iter != end)</span>
+    {
+<span style = "background-color:#fdd">      const auto &amp;currentPointIn2D = (*iter)-&gt;Coordinates;</span>
+
+<span style = "background-color:#fdd">      Point3D worldPointIn3D;
+      worldPointIn3D.Fill(0.0);</span>
+
+<span style = "background-color:#fdd">      sliceGeometry-&gt;IndexToWorld(currentPointIn2D, worldPointIn3D);</span>
+
+<span style = "background-color:#fdd">      worldContour-&gt;AddVertex(worldPointIn3D, t);
+      ++iter;
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return worldContour;
+}</span>
+
+void mitk::ContourModelUtils::FillContourInSlice(
+  const ContourModel *projectedContour, Image *sliceImage, const Image* workingImage, int paintingPixelValue)
+<span style = "background-color:#fdd">{
+  FillContourInSlice(projectedContour, 0, sliceImage, workingImage, paintingPixelValue);
+}</span>
+
+void mitk::ContourModelUtils::FillContourInSlice(
+  const ContourModel *projectedContour, TimeStepType contourTimeStep, Image *sliceImage, const Image* workingImage, int paintingPixelValue)
+<span style = "background-color:#fdd">{
+  if (nullptr == projectedContour)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot fill contour in slice. Passed contour is invalid";</span>
+  }
+
+<span style = "background-color:#fdd">  if (nullptr == sliceImage)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot fill contour in slice. Passed slice is invalid";</span>
+  }
+
+<span style = "background-color:#fdd">  auto contourModelFilter = mitk::ContourModelToSurfaceFilter::New();
+  contourModelFilter-&gt;SetInput(projectedContour);
+  contourModelFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  auto surface = mitk::Surface::New();
+  surface = contourModelFilter-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  if (nullptr == surface-&gt;GetVtkPolyData(contourTimeStep))</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Could not create surface from contour model.";
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto surface2D = vtkSmartPointer&lt;vtkPolyData&gt;::New();
+  surface2D-&gt;SetPoints(surface-&gt;GetVtkPolyData(contourTimeStep)-&gt;GetPoints());
+  surface2D-&gt;SetLines(surface-&gt;GetVtkPolyData(contourTimeStep)-&gt;GetLines());</span>
+
+<span style = "background-color:#fdd">  auto image = vtkSmartPointer&lt;vtkImageData&gt;::New();
+  image-&gt;DeepCopy(sliceImage-&gt;GetVtkImageData());</span>
+
+<span style = "background-color:#fdd">  const double FOREGROUND_VALUE = 255.0;
+  const double BACKGROUND_VALUE = 0.0;</span>
+
+<span style = "background-color:#fdd">  const vtkIdType count = image-&gt;GetNumberOfPoints();
+  for (std::remove_const_t&lt;decltype(count)&gt; i = 0; i &lt; count; ++i)
+    image-&gt;GetPointData()-&gt;GetScalars()-&gt;SetTuple1(i, FOREGROUND_VALUE);</span>
+
+<span style = "background-color:#fdd">  auto polyDataToImageStencil = vtkSmartPointer&lt;vtkPolyDataToImageStencil&gt;::New();</span>
+
+  // Set a minimal tolerance, so that clipped pixels will be added to contour as well.
+<span style = "background-color:#fdd">  polyDataToImageStencil-&gt;SetTolerance(mitk::eps);
+  polyDataToImageStencil-&gt;SetInputData(surface2D);
+  polyDataToImageStencil-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  auto imageStencil = vtkSmartPointer&lt;vtkImageStencil&gt;::New();</span>
+
+<span style = "background-color:#fdd">  imageStencil-&gt;SetInputData(image);
+  imageStencil-&gt;SetStencilConnection(polyDataToImageStencil-&gt;GetOutputPort());
+  imageStencil-&gt;ReverseStencilOff();
+  imageStencil-&gt;SetBackgroundValue(BACKGROUND_VALUE);
+  imageStencil-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkImageData&gt; filledImage = imageStencil-&gt;GetOutput();
+  vtkSmartPointer&lt;vtkImageData&gt; resultImage = sliceImage-&gt;GetVtkImageData();
+  FillSliceInSlice(filledImage, resultImage, workingImage, paintingPixelValue);</span>
+
+<span style = "background-color:#fdd">  sliceImage-&gt;SetVolume(resultImage-&gt;GetScalarPointer());
+}</span>
+
+void mitk::ContourModelUtils::FillSliceInSlice(
+  vtkSmartPointer&lt;vtkImageData&gt; filledImage, vtkSmartPointer&lt;vtkImageData&gt; resultImage, const Image* image, int paintingPixelValue, double fillForegroundThreshold)
+<span style = "background-color:#fdd">{
+  auto labelImage = dynamic_cast&lt;const LabelSetImage *&gt;(image);
+  const auto numberOfPoints = filledImage-&gt;GetNumberOfPoints();</span>
+
+<span style = "background-color:#fdd">  if (nullptr == labelImage)</span>
+  {
+<span style = "background-color:#fdd">    for (std::remove_const_t&lt;decltype(numberOfPoints)&gt; i = 0; i &lt; numberOfPoints; ++i)</span>
+    {
+<span style = "background-color:#fdd">      if (fillForegroundThreshold &lt;= filledImage-&gt;GetPointData()-&gt;GetScalars()-&gt;GetTuple1(i))
+        resultImage-&gt;GetPointData()-&gt;GetScalars()-&gt;SetTuple1(i, paintingPixelValue);
+    }
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    const auto backgroundValue = labelImage-&gt;GetExteriorLabel()-&gt;GetValue();</span>
+
+<span style = "background-color:#fdd">    if (paintingPixelValue != backgroundValue)</span>
+    {
+<span style = "background-color:#fdd">      for (std::remove_const_t&lt;decltype(numberOfPoints)&gt; i = 0; i &lt; numberOfPoints; ++i)</span>
+      {
+<span style = "background-color:#fdd">        const auto filledValue = filledImage-&gt;GetPointData()-&gt;GetScalars()-&gt;GetTuple1(i);
+        if (fillForegroundThreshold &lt;= filledValue)</span>
+        {
+<span style = "background-color:#fdd">          const auto existingValue = resultImage-&gt;GetPointData()-&gt;GetScalars()-&gt;GetTuple1(i);</span>
+
+<span style = "background-color:#fdd">          if (!labelImage-&gt;GetLabel(existingValue, labelImage-&gt;GetActiveLayer())-&gt;GetLocked())
+            resultImage-&gt;GetPointData()-&gt;GetScalars()-&gt;SetTuple1(i, paintingPixelValue);</span>
+        }
+<span style = "background-color:#fdd">      }
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      const auto activePixelValue = labelImage-&gt;GetActiveLabel(labelImage-&gt;GetActiveLayer())-&gt;GetValue();
+      for (std::remove_const_t&lt;decltype(numberOfPoints)&gt; i = 0; i &lt; numberOfPoints; ++i)</span>
+      {
+<span style = "background-color:#fdd">        if (fillForegroundThreshold &lt;= filledImage-&gt;GetPointData()-&gt;GetScalars()-&gt;GetTuple1(i))</span>
+        {
+<span style = "background-color:#fdd">          if (resultImage-&gt;GetPointData()-&gt;GetScalars()-&gt;GetTuple1(i) == activePixelValue)
+            resultImage-&gt;GetPointData()-&gt;GetScalars()-&gt;SetTuple1(i, paintingPixelValue);</span>
+        }
+<span style = "background-color:#fdd">      }</span>
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::ContourModel::Pointer mitk::ContourModelUtils::MoveZerothContourTimeStep(const ContourModel *contour, TimeStepType t)
+<span style = "background-color:#fdd">{
+  if (nullptr == contour)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  auto resultContour = ContourModel::New();
+  resultContour-&gt;Expand(t + 1);</span>
+
+<span style = "background-color:#fdd">  std::for_each(contour-&gt;Begin(), contour-&gt;End(), [&amp;resultContour, t](ContourElement::VertexType *vertex) {
+    resultContour-&gt;AddVertex(*vertex, t);
+  });</span>
+
+<span style = "background-color:#fdd">  return resultContour;
+}</span>
+
+int mitk::ContourModelUtils::GetActivePixelValue(const Image* workingImage)
+<span style = "background-color:#fdd">{
+  auto labelSetImage = dynamic_cast&lt;const LabelSetImage*&gt;(workingImage);
+  int activePixelValue = 1;
+  if (nullptr != labelSetImage)</span>
+  {
+<span style = "background-color:#fdd">    activePixelValue = labelSetImage-&gt;GetActiveLabel(labelSetImage-&gt;GetActiveLayer())-&gt;GetValue();</span>
+  }
+
+<span style = "background-color:#fdd">  return activePixelValue;
+}</span></pre>
+	</body>
+</html>

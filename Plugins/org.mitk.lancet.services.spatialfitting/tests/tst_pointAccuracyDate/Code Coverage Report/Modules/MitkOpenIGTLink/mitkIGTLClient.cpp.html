@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIGTLClient.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkIGTLClient.h"
+//#include "mitkIGTTimeStamp.h"
+//#include "mitkIGTHardwareException.h"
+#include "igtlTrackingDataMessage.h"
+#include &lt;cstdio&gt;
+
+#include &lt;itksys/SystemTools.hxx&gt;
+
+#include &lt;igtlClientSocket.h&gt;
+#include &lt;igtl_status.h&gt;
+
+mitk::IGTLClient::IGTLClient(bool ReadFully) :
+<span style = "background-color:#fdd">IGTLDevice(ReadFully)
+{
+}</span>
+
+mitk::IGTLClient::~IGTLClient()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::IGTLClient::OpenConnection()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetState() != Setup)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrowException(mitk::Exception) &lt;&lt;</span>
+      "Can only try to open the connection if in setup mode. State was " &lt;&lt; this-&gt;GetState();
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  std::string hostname = this-&gt;GetHostname();
+  int portNumber = this-&gt;GetPortNumber();</span>
+
+<span style = "background-color:#fdd">  if (portNumber == -1 || hostname.size() &lt;= 0)</span>
+  {
+    //port number or hostname was not correct
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Port number or hostname was not correct";
+    return false;</span>
+  }
+
+  //create a new client socket
+<span style = "background-color:#fdd">  m_Socket = igtl::ClientSocket::New();</span>
+
+  //try to connect to the igtl server
+<span style = "background-color:#fdd">  int response = dynamic_cast&lt;igtl::ClientSocket*&gt;(m_Socket.GetPointer())-&gt;</span>
+    ConnectToServer(hostname.c_str(), portNumber);
+
+  //check the response
+<span style = "background-color:#fdd">  if (response != 0)</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "The client could not connect to " &lt;&lt; hostname &lt;&lt; " port: " &lt;&lt; portNumber;
+    return false;</span>
+  }
+
+  // everything is initialized and connected so the communication can be started
+<span style = "background-color:#fdd">  this-&gt;SetState(Ready);</span>
+
+  //inform observers about this new client
+<span style = "background-color:#fdd">  this-&gt;InvokeEvent(NewClientConnectionEvent());</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+void mitk::IGTLClient::Receive()
+<span style = "background-color:#fdd">{</span>
+  //MITK_INFO &lt;&lt; "Trying to receive message";
+  //try to receive a message, if the socket is not present anymore stop the
+  //communication
+<span style = "background-color:#fdd">  unsigned int status = this-&gt;ReceivePrivate(this-&gt;m_Socket);
+  if (status == IGTL_STATUS_NOT_PRESENT)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;StopCommunicationWithSocket(this-&gt;m_Socket);</span>
+    //inform observers about loosing the connection to this socket
+<span style = "background-color:#fdd">    this-&gt;InvokeEvent(LostConnectionEvent());
+    MITK_WARN("IGTLClient") &lt;&lt; "Lost connection to server socket.";</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTLClient::Send()
+<span style = "background-color:#fdd">{
+  mitk::IGTLMessage::Pointer mitkMessage;</span>
+
+  //get the latest message from the queue
+<span style = "background-color:#fdd">  mitkMessage = this-&gt;m_MessageQueue-&gt;PullSendMessage();</span>
+
+  // there is no message =&gt; return
+<span style = "background-color:#fdd">  if (mitkMessage.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  if (!this-&gt;SendMessagePrivate(mitkMessage, this-&gt;m_Socket))</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN("IGTLDevice") &lt;&lt; "Could not send the message.";</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::IGTLClient::StopCommunicationWithSocket(igtl::Socket* /*socket*/)
+<span style = "background-color:#fdd">{
+  m_StopCommunicationMutex.lock();
+  m_StopCommunication = true;
+  m_StopCommunicationMutex.unlock();
+}</span>
+
+unsigned int mitk::IGTLClient::GetNumberOfConnections()
+<span style = "background-color:#fdd">{
+  return this-&gt;m_Socket-&gt;GetConnected();
+}</span></pre>
+	</body>
+</html>

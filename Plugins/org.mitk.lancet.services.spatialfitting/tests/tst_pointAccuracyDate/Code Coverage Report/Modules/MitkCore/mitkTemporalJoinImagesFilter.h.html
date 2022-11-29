@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTemporalJoinImagesFilter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef TEMPORALJOINIMAGESFILTER_H
+#define TEMPORALJOINIMAGESFILTER_H
+
+
+#include "mitkImageToImageFilter.h"
+#include "mitkCommon.h"
+
+#include "MitkCoreExports.h"
+
+namespace mitk
+{
+  /** Filter that takes n mitk images as inputs and fuse them to a new image (with n time points).
+  Preconditions of this filter are, that all input images have the same pixel type and geometry.
+  The sequence of frames in the output image is the same then the sequence of inputs.
+  It no time bounds are defined the dynamic image will start at 0 ms and each time step has a duration
+  of 1 ms.*/
+  class MITKCORE_EXPORT TemporalJoinImagesFilter : public ImageToImageFilter
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(TemporalJoinImagesFilter, ImageToImageFilter);
+    itkFactorylessNewMacro(TemporalJoinImagesFilter);</span>
+
+    typedef std::vector&lt;mitk::TimePointType&gt; TimeBoundsVectorType;
+
+<span style = "background-color:#fdd">    itkGetConstMacro(FirstMinTimeBound, mitk::TimePointType);</span>
+    /**Set custom min time bound for the first time step.*/
+<span style = "background-color:#fdd">    itkSetMacro(FirstMinTimeBound, mitk::TimePointType);</span>
+
+<span style = "background-color:#fdd">    itkGetConstMacro(MaxTimeBounds, TimeBoundsVectorType);</span>
+    /**Set custom max time bounds for all time steps.*/
+    void SetMaxTimeBounds(const TimeBoundsVectorType &amp;bounds);
+
+  protected:
+<span style = "background-color:#fdd">    TemporalJoinImagesFilter(){};
+    ~TemporalJoinImagesFilter() override{};</span>
+
+    void GenerateInputRequestedRegion() override;
+
+    void GenerateOutputInformation() override;
+
+    void GenerateData() override;
+
+  private:
+    TimeBoundsVectorType m_MaxTimeBounds;
+<span style = "background-color:#fdd">    mitk::TimePointType m_FirstMinTimeBound = 0.0;</span>
+  };
+}
+
+
+#endif // MODELSIGNALIMAGEGENERATOR_H</pre>
+	</body>
+</html>

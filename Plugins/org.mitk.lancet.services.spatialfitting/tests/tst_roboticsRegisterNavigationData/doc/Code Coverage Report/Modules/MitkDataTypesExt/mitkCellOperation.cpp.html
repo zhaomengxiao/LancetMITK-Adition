@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCellOperation.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkCellOperation.h"
+
+mitk::CellOperation::CellOperation(OperationType operationType, int cellId, Vector3D vector)
+<span style = "background-color:#fdd">  : mitk::Operation(operationType), m_CellId(cellId), m_Vector(vector)
+{
+}</span>
+
+mitk::CellOperation::CellOperation(OperationType operationType, int cellId)
+<span style = "background-color:#fdd">  : mitk::Operation(operationType), m_CellId(cellId)
+{
+  m_Vector.Fill(0);
+}</span></pre>
+	</body>
+</html>

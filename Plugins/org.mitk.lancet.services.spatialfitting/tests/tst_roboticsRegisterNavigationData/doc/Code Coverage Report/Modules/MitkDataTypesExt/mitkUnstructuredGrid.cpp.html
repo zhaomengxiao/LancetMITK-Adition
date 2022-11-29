@@ -1,0 +1,278 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkUnstructuredGrid.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkUnstructuredGrid.h"
+
+#include &lt;vtkUnstructuredGrid.h&gt;
+
+void mitk::UnstructuredGrid::SetVtkUnstructuredGrid(vtkUnstructuredGrid *grid, unsigned int t)
+<span style = "background-color:#fdd">{
+  this-&gt;Expand(t + 1);</span>
+
+<span style = "background-color:#fdd">  if (m_GridSeries[t] != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_GridSeries[t]-&gt;Delete();</span>
+  }
+
+<span style = "background-color:#fdd">  m_GridSeries[t] = grid;</span>
+
+  // call m_VtkPolyData-&gt;Register(nullptr) to tell the reference counting that we
+  // want to keep a reference on the object
+<span style = "background-color:#fdd">  if (m_GridSeries[t] != nullptr)
+    m_GridSeries[t]-&gt;Register(grid);</span>
+
+<span style = "background-color:#fdd">  this-&gt;Modified();
+  m_CalculateBoundingBox = true;
+}</span>
+
+void mitk::UnstructuredGrid::Expand(unsigned int timeSteps)
+<span style = "background-color:#fdd">{</span>
+  // check if the vector is long enough to contain the new element
+  // at the given position. If not, expand it with sufficient zero-filled elements.
+<span style = "background-color:#fdd">  if (timeSteps &gt; m_GridSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    Superclass::Expand(timeSteps);
+    vtkUnstructuredGrid *pdnull = nullptr;
+    m_GridSeries.resize(timeSteps, pdnull);
+    m_CalculateBoundingBox = true;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::UnstructuredGrid::ClearData()
+<span style = "background-color:#fdd">{
+  for (auto it = m_GridSeries.begin(); it != m_GridSeries.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    if ((*it) != nullptr)
+      (*it)-&gt;Delete();
+  }
+  m_GridSeries.clear();</span>
+
+<span style = "background-color:#fdd">  Superclass::ClearData();
+}</span>
+
+void mitk::UnstructuredGrid::InitializeEmpty()
+<span style = "background-color:#fdd">{
+  vtkUnstructuredGrid *pdnull = nullptr;
+  m_GridSeries.resize(1, pdnull);
+  Superclass::InitializeTimeGeometry(1);</span>
+
+<span style = "background-color:#fdd">  m_Initialized = true;
+}</span>
+
+vtkUnstructuredGrid *mitk::UnstructuredGrid::GetVtkUnstructuredGrid(unsigned int t)
+<span style = "background-color:#fdd">{
+  if (t &lt; m_GridSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    vtkUnstructuredGrid *grid = m_GridSeries[t];
+    if ((grid == nullptr) &amp;&amp; (GetSource().GetPointer() != nullptr))</span>
+    {
+<span style = "background-color:#fdd">      RegionType requestedregion;
+      requestedregion.SetIndex(3, t);
+      requestedregion.SetSize(3, 1);
+      SetRequestedRegion(&amp;requestedregion);
+      GetSource()-&gt;Update();
+    }
+    grid = m_GridSeries[t];
+    return grid;
+  }</span>
+  else
+<span style = "background-color:#fdd">    return nullptr;
+}</span>
+
+void mitk::UnstructuredGrid::Graft(const DataObject *data)
+<span style = "background-color:#fdd">{
+  const auto *grid = dynamic_cast&lt;const UnstructuredGrid *&gt;(data);</span>
+
+<span style = "background-color:#fdd">  if (grid == nullptr)
+    mitkThrow() &lt;&lt; "Data object used to graft surface is not a mitk::Surface.";</span>
+
+<span style = "background-color:#fdd">  this-&gt;CopyInformation(data);
+  m_GridSeries.clear();</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; grid-&gt;m_GridSeries.size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    m_GridSeries.push_back(vtkUnstructuredGrid::New());
+    m_GridSeries.back()-&gt;DeepCopy(const_cast&lt;mitk::UnstructuredGrid *&gt;(grid)-&gt;GetVtkUnstructuredGrid(i));
+  }
+}</span>
+
+<span style = "background-color:#fdd">mitk::UnstructuredGrid::UnstructuredGrid() : m_CalculateBoundingBox(false)
+{
+  this-&gt;InitializeEmpty();
+}</span>
+
+mitk::UnstructuredGrid::UnstructuredGrid(const mitk::UnstructuredGrid &amp;other)
+<span style = "background-color:#fdd">  : BaseData(other),
+    m_LargestPossibleRegion(other.m_LargestPossibleRegion),
+    m_CalculateBoundingBox(other.m_CalculateBoundingBox)
+{
+  if (!other.m_Initialized)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;InitializeEmpty();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_GridSeries = other.m_GridSeries;
+    m_Initialized = other.m_Initialized;</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;SetRequestedRegion(&amp;other);
+}</span>
+
+mitk::UnstructuredGrid::~UnstructuredGrid()
+<span style = "background-color:#fdd">{
+  this-&gt;ClearData();
+}</span>
+
+void mitk::UnstructuredGrid::UpdateOutputInformation()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetSource())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;GetSource()-&gt;UpdateOutputInformation();</span>
+  }
+<span style = "background-color:#fdd">  if ((m_CalculateBoundingBox) &amp;&amp; (m_GridSeries.size() &gt; 0))
+    CalculateBoundingBox();</span>
+  else
+<span style = "background-color:#fdd">    GetTimeGeometry()-&gt;Update();
+}</span>
+
+void mitk::UnstructuredGrid::CalculateBoundingBox()
+<span style = "background-color:#fdd">{</span>
+  //
+  // first make sure, that the associated time sliced geometry has
+  // the same number of geometry 3d's as vtkUnstructuredGrids are present
+  //
+<span style = "background-color:#fdd">  TimeGeometry *timeGeometry = GetTimeGeometry();
+  if (timeGeometry-&gt;CountTimeSteps() != m_GridSeries.size())</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt; "timeGeometry-&gt;CountTimeSteps() != m_GridSeries.size() -- use Initialize(timeSteps) with "</span>
+                         "correct number of timeSteps!");
+  }
+
+  //
+  // Iterate over the vtkUnstructuredGrids and update the Geometry
+  // information of each of the items.
+  //
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; m_GridSeries.size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    vtkUnstructuredGrid *grid = m_GridSeries[i];
+    double bounds[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    if ((grid != nullptr) &amp;&amp; (grid-&gt;GetNumberOfCells() &gt; 0))</span>
+    {
+      //      grid-&gt;Update(); //VTK6_TODO
+<span style = "background-color:#fdd">      grid-&gt;ComputeBounds();
+      grid-&gt;GetBounds(bounds);</span>
+    }
+<span style = "background-color:#fdd">    mitk::BaseGeometry::Pointer g3d = timeGeometry-&gt;GetGeometryForTimeStep(i);
+    assert(g3d.IsNotNull());
+    g3d-&gt;SetFloatBounds(bounds);
+  }
+  timeGeometry-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  mitk::BoundingBox::Pointer bb = timeGeometry-&gt;GetBoundingBoxInWorld();
+  itkDebugMacro(&lt;&lt; "boundingbox min: " &lt;&lt; bb-&gt;GetMinimum());
+  itkDebugMacro(&lt;&lt; "boundingbox max: " &lt;&lt; bb-&gt;GetMaximum());
+  m_CalculateBoundingBox = false;
+}</span>
+
+void mitk::UnstructuredGrid::SetRequestedRegionToLargestPossibleRegion()
+<span style = "background-color:#fdd">{
+  m_RequestedRegion = GetLargestPossibleRegion();
+}</span>
+
+bool mitk::UnstructuredGrid::RequestedRegionIsOutsideOfTheBufferedRegion()
+<span style = "background-color:#fdd">{
+  RegionType::IndexValueType end = m_RequestedRegion.GetIndex(3) + m_RequestedRegion.GetSize(3);</span>
+
+<span style = "background-color:#fdd">  if (((RegionType::IndexValueType)m_GridSeries.size()) &lt; end)
+    return true;</span>
+
+<span style = "background-color:#fdd">  for (RegionType::IndexValueType t = m_RequestedRegion.GetIndex(3); t &lt; end; ++t)
+    if (m_GridSeries[t] == nullptr)
+      return true;</span>
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+bool mitk::UnstructuredGrid::VerifyRequestedRegion()
+<span style = "background-color:#fdd">{
+  if ((m_RequestedRegion.GetIndex(3) &gt;= 0) &amp;&amp;</span>
+      (m_RequestedRegion.GetIndex(3) + m_RequestedRegion.GetSize(3) &lt;= m_GridSeries.size()))
+<span style = "background-color:#fdd">    return true;</span>
+
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::UnstructuredGrid::SetRequestedRegion(const itk::DataObject *data)
+<span style = "background-color:#fdd">{</span>
+  const mitk::UnstructuredGrid *gridData;
+
+<span style = "background-color:#fdd">  gridData = dynamic_cast&lt;const mitk::UnstructuredGrid *&gt;(data);</span>
+
+<span style = "background-color:#fdd">  if (gridData)</span>
+  {
+<span style = "background-color:#fdd">    m_RequestedRegion = gridData-&gt;GetRequestedRegion();
+  }</span>
+  else
+  {
+    // pointer could not be cast back down
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt; "mitk::UnstructuredGrid::SetRequestedRegion(DataObject*) cannot cast " &lt;&lt; typeid(data).name()</span>
+                      &lt;&lt; " to "
+                      &lt;&lt; typeid(UnstructuredGrid *).name());
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::UnstructuredGrid::SetRequestedRegion(UnstructuredGrid::RegionType *region) // by arin
+<span style = "background-color:#fdd">{
+  if (region != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_RequestedRegion = *region;
+  }</span>
+  else
+  {
+    // pointer could not be cast back down
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt; "mitk::UnstructuredGrid::SetRequestedRegion(UnstructuredGrid::RegionType*) cannot cast "</span>
+                      &lt;&lt; typeid(region).name()
+                      &lt;&lt; " to "
+                      &lt;&lt; typeid(UnstructuredGrid *).name());
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::UnstructuredGrid::CopyInformation(const itk::DataObject *data)
+<span style = "background-color:#fdd">{
+  Superclass::CopyInformation(data);
+}</span>
+
+void mitk::UnstructuredGrid::Update()
+<span style = "background-color:#fdd">{
+  if (GetSource().IsNull())</span>
+  {
+<span style = "background-color:#fdd">    for (auto it = m_GridSeries.begin(); it != m_GridSeries.end(); ++it)</span>
+    {
+      //      if ( ( *it ) != 0 )
+      //        ( *it )-&gt;Update(); //VTK6_TODO
+<span style = "background-color:#fdd">    }</span>
+  }
+<span style = "background-color:#fdd">  Superclass::Update();
+}</span></pre>
+	</body>
+</html>

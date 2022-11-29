@@ -1,0 +1,193 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMatrix.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKMATRIX_H_
+#define MITKMATRIX_H_
+
+#include &lt;itkMatrix.h&gt;
+
+#include "mitkArray.h"
+#include "mitkEqual.h"
+#include "mitkNumericConstants.h"
+
+namespace mitk
+{
+  template &lt;class T, unsigned int NRows = 3, unsigned int NColumns = 3&gt;
+  class Matrix : public itk::Matrix&lt;T, NRows, NColumns&gt;
+  {
+  public:
+    /** Standard class typedefs. */
+    typedef Matrix Self;
+
+    typedef typename itk::Matrix&lt;T, NRows, NColumns&gt;::InternalMatrixType InternalMatrixType;
+
+    /** Default constructor. */
+<span style = "background-color:#fdd">    explicit Matrix&lt;T, NRows, NColumns&gt;() : itk::Matrix&lt;T, NRows, NColumns&gt;() {}</span>
+    /** Copy constructor. */
+    explicit Matrix&lt;T, NRows, NColumns&gt;(const Matrix &amp;matrix) : itk::Matrix&lt;T, NRows, NColumns&gt;(matrix) {}
+    /** Copy constructor for itk compatibility */
+<span style = "background-color:#fdd">    Matrix&lt;T, NRows, NColumns&gt;(const itk::Matrix&lt;T, NRows, NColumns&gt; &amp;matrix) : itk::Matrix&lt;T, NRows, NColumns&gt;(matrix)
+    {
+    }</span>
+    /**For every operator=, there should be an equivalent copy constructor. */
+    inline Matrix&lt;T, NRows, NColumns&gt;(const vnl_matrix&lt;T&gt; &amp;matrix) : itk::Matrix&lt;T, NRows, NColumns&gt;(matrix) {}
+    /**For every operator=, there should be an equivalent copy constructor. */
+    inline explicit Matrix&lt;T, NRows, NColumns&gt;(InternalMatrixType &amp;matrix) : itk::Matrix&lt;T, NRows, NColumns&gt;(matrix) {}
+    /**
+     * Necessary because otherwise operator= is default operator= from Matrix.
+     */
+    using itk::Matrix&lt;T, NRows, NColumns&gt;::operator=;
+
+    /**
+     * Copies the elements from array array to this.
+     * Note that this method will assign doubles to floats without complaining!
+     *
+     * @param array the array whose values shall be copied. Must overload [] operator.
+     */
+    template &lt;typename ArrayType&gt;
+    void FillMatrix(const ArrayType &amp;array)
+    {
+      for (unsigned i = 0; i &lt; NRows; i++)
+      {
+        for (unsigned j = 0; j &lt; NColumns; j++)
+        {
+          (*this)[i][j] = array[i][j];
+        }
+      }
+    };
+
+    /**
+     * Warning: matrix must have same dimension as Matrix
+     */
+    template &lt;typename MatrixType&gt;
+    void ToArray(MatrixType matrix) const
+    {
+      for (unsigned i = 0; i &lt; NRows; i++)
+      {
+        for (unsigned j = 0; j &lt; NColumns; j++)
+        {
+          matrix[i][j] = (*this)[i][j];
+        }
+      }
+    }
+  };
+
+  typedef Matrix&lt;ScalarType, 2, 2&gt; Matrix2D;
+  typedef Matrix&lt;ScalarType, 3, 3&gt; Matrix3D;
+  typedef Matrix&lt;ScalarType, 4, 4&gt; Matrix4D;
+
+  /*!
+  \brief Check for matrix equality with a user defined accuracy. As an equality metric the root mean squared error (RMS)
+  of all elements is calculated.
+  \param matrix1 first vnl matrix
+  \param matrix2 second vnl matrix
+  \param epsilon user defined accuracy bounds
+  */
+  template &lt;typename TCoordRep, unsigned int NRows, unsigned int NCols&gt;
+  inline bool MatrixEqualRMS(const vnl_matrix_fixed&lt;TCoordRep, NRows, NCols&gt; &amp;matrix1,
+                             const vnl_matrix_fixed&lt;TCoordRep, NRows, NCols&gt; &amp;matrix2,
+                             mitk::ScalarType epsilon = mitk::eps)
+  {
+    if ((matrix1.rows() == matrix2.rows()) &amp;&amp; (matrix1.cols() == matrix2.cols()))
+    {
+      vnl_matrix_fixed&lt;TCoordRep, NRows, NCols&gt; differenceMatrix = matrix1 - matrix2;
+      if (differenceMatrix.rms() &lt; epsilon)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  /*!
+  \brief Check for matrix equality with a user defined accuracy. As an equality metric the root mean squared error (RMS)
+  of all elements is calculated.
+  \param matrix1 first itk matrix
+  \param matrix2 second itk matrix
+  \param epsilon user defined accuracy bounds
+  */
+  template &lt;typename TCoordRep, unsigned int NRows, unsigned int NCols&gt;
+  inline bool MatrixEqualRMS(const itk::Matrix&lt;TCoordRep, NRows, NCols&gt; &amp;matrix1,
+                             const itk::Matrix&lt;TCoordRep, NRows, NCols&gt; &amp;matrix2,
+                             mitk::ScalarType epsilon = mitk::eps)
+  {
+    return mitk::MatrixEqualRMS(matrix1.GetVnlMatrix(), matrix2.GetVnlMatrix(), epsilon);
+  }
+
+  /*!
+  \brief Check for element-wise matrix equality with a user defined accuracy.
+  \param matrix1 first vnl matrix
+  \param matrix2 second vnl matrix
+  \param epsilon user defined accuracy bounds
+  */
+  template &lt;typename TCoordRep, unsigned int NRows, unsigned int NCols&gt;
+  inline bool MatrixEqualElementWise(const vnl_matrix_fixed&lt;TCoordRep, NRows, NCols&gt; &amp;matrix1,
+                                     const vnl_matrix_fixed&lt;TCoordRep, NRows, NCols&gt; &amp;matrix2,
+                                     mitk::ScalarType epsilon = mitk::eps)
+<span style = "background-color:#fdd">  {
+    if ((matrix1.rows() == matrix2.rows()) &amp;&amp; (matrix1.cols() == matrix2.cols()))</span>
+    {
+<span style = "background-color:#fdd">      for (unsigned int r = 0; r &lt; NRows; r++)</span>
+      {
+<span style = "background-color:#fdd">        for (unsigned int c = 0; c &lt; NCols; c++)</span>
+        {
+<span style = "background-color:#fdd">          TCoordRep difference = matrix1(r, c) - matrix2(r, c);
+          if (DifferenceBiggerOrEqualEps(difference, epsilon))</span>
+          {
+<span style = "background-color:#fdd">            return false;</span>
+          }
+<span style = "background-color:#fdd">        }
+      }
+      return true;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  /*!
+  \brief Check for element-wise matrix equality with a user defined accuracy.
+  \param matrix1 first itk matrix
+  \param matrix2 second itk matrix
+  \param epsilon user defined accuracy bounds
+  */
+  template &lt;typename TCoordRep, unsigned int NRows, unsigned int NCols&gt;
+  inline bool MatrixEqualElementWise(const itk::Matrix&lt;TCoordRep, NRows, NCols&gt; &amp;matrix1,
+                                     const itk::Matrix&lt;TCoordRep, NRows, NCols&gt; &amp;matrix2,
+                                     mitk::ScalarType epsilon = mitk::eps)
+<span style = "background-color:#fdd">  {
+    return mitk::MatrixEqualElementWise(matrix1.GetVnlMatrix(), matrix2.GetVnlMatrix(), epsilon);
+  }</span>
+}
+
+#endif /* MITKMATRIX_H_ */</pre>
+	</body>
+</html>

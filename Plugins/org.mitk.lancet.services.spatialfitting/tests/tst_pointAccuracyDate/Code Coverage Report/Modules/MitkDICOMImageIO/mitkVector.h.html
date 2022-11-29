@@ -1,0 +1,252 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVector.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKVECTOR_H_
+#define MITKVECTOR_H_
+
+#include &lt;itkVector.h&gt;
+#include &lt;vnl/vnl_vector.h&gt;
+#include &lt;vnl/vnl_vector_fixed.h&gt;
+
+#include "mitkArray.h"
+#include "mitkEqual.h"
+#include "mitkExceptionMacro.h"
+#include "mitkNumericConstants.h"
+
+namespace mitk
+{
+  template &lt;class TCoordRep, unsigned int NVectorDimension = 3&gt;
+  class Vector : public itk::Vector&lt;TCoordRep, NVectorDimension&gt;
+  {
+  public:
+    /**
+     * @brief Default constructor has nothing to do.
+     */
+<span style = "background-color:#fdd">    explicit Vector&lt;TCoordRep, NVectorDimension&gt;() : itk::Vector&lt;TCoordRep, NVectorDimension&gt;() {}</span>
+    /**
+     * @brief Copy constructor.
+     */
+    explicit Vector&lt;TCoordRep, NVectorDimension&gt;(const mitk::Vector&lt;TCoordRep, NVectorDimension&gt; &amp;r)
+<span style = "background-color:#fdd">      : itk::Vector&lt;TCoordRep, NVectorDimension&gt;(r)
+    {
+    }</span>
+
+    /** Pass-through assignment operator for the Vector base class. */
+    Vector&lt;TCoordRep, NVectorDimension&gt; &amp; operator=(const Vector&lt;TCoordRep, NVectorDimension&gt; &amp; r)
+<span style = "background-color:#fdd">    {
+      itk::Vector&lt;TCoordRep, NVectorDimension&gt;::operator=(r);
+      return *this;
+    }</span>
+
+    /**
+     * @brief Constructor to convert from itk::Vector to mitk::Vector.
+     */
+    Vector&lt;TCoordRep, NVectorDimension&gt;(const itk::Vector&lt;TCoordRep, NVectorDimension&gt; &amp;r)
+<span style = "background-color:#fdd">      : itk::Vector&lt;TCoordRep, NVectorDimension&gt;(r)
+    {
+    }</span>
+
+    /**
+     * @brief Constructor to convert an array to mitk::Vector
+     * @param r the array.
+     * @attention must have NVectorDimension valid arguments!
+     */
+    Vector&lt;TCoordRep, NVectorDimension&gt;(const TCoordRep r[NVectorDimension])
+<span style = "background-color:#fdd">      : itk::Vector&lt;TCoordRep, NVectorDimension&gt;(r)
+    {
+    }</span>
+
+    /**
+     * Constructor to initialize entire vector to one value.
+     */
+<span style = "background-color:#fdd">    Vector&lt;TCoordRep, NVectorDimension&gt;(const TCoordRep &amp;v) : itk::Vector&lt;TCoordRep, NVectorDimension&gt;(v) {}</span>
+    /**
+     * @brief Constructor for vnl_vectors.
+     * @throws mitk::Exception if vnl_vector.size() != NVectorDimension.
+     */
+    Vector&lt;TCoordRep, NVectorDimension&gt;(const vnl_vector&lt;TCoordRep&gt; &amp;vnlVector)
+      : itk::Vector&lt;TCoordRep, NVectorDimension&gt;()
+    {
+      if (vnlVector.size() != NVectorDimension)
+        mitkThrow() &lt;&lt; "when constructing mitk::Vector from vnl_vector: sizes didn't match: mitk::Vector "
+                    &lt;&lt; NVectorDimension &lt;&lt; "; vnl_vector " &lt;&lt; vnlVector.size();
+
+      for (unsigned int var = 0; (var &lt; NVectorDimension) &amp;&amp; (var &lt; vnlVector.size()); ++var)
+      {
+        this-&gt;SetElement(var, vnlVector.get(var));
+      }
+    }
+
+    /**
+     * @brief Constructor for vnl_vector_fixed.
+     */
+    Vector&lt;TCoordRep, NVectorDimension&gt;(const vnl_vector_fixed&lt;TCoordRep, NVectorDimension&gt; &amp;vnlVectorFixed)
+<span style = "background-color:#fdd">      : itk::Vector&lt;TCoordRep, NVectorDimension&gt;()
+    {
+      for (unsigned int var = 0; var &lt; NVectorDimension; ++var)</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;SetElement(var, vnlVectorFixed[var]);
+      }
+    };</span>
+
+    /**
+     * Copies the elements from array array to this.
+     * Note that this method will assign doubles to floats without complaining!
+     *
+     * @param array the array whose values shall be copied. Must overload [] operator.
+     */
+    template &lt;typename ArrayType&gt;
+    void FillVector(const ArrayType &amp;array)
+    {
+      itk::FixedArray&lt;TCoordRep, NVectorDimension&gt; *thisP =
+        dynamic_cast&lt;itk::FixedArray&lt;TCoordRep, NVectorDimension&gt; *&gt;(this);
+      mitk::FillArray&lt;ArrayType, TCoordRep, NVectorDimension&gt;(*thisP, array);
+    }
+
+    /**
+     * Copies the values stored in this vector into the array array.d
+     *
+     * @param array the array which should store the values of this.
+     */
+    template &lt;typename ArrayType&gt;
+    void ToArray(ArrayType array) const
+    {
+      mitk::ToArray&lt;ArrayType, TCoordRep, NVectorDimension&gt;(array, *this);
+    }
+
+    /**
+     * @brief User defined conversion of mitk::Vector to vnl_vector.
+     * Note: the conversion to mitk::Vector to vnl_vector_fixed has not been implemented since this
+     * would collide with the conversion vnl_vector to vnl_vector_fixed provided by vnl.
+     */
+    operator vnl_vector&lt;TCoordRep&gt;() const { return this-&gt;GetVnlVector(); }
+  }; // end mitk::Vector
+
+  // convenience typedefs for often used mitk::Vector representations.
+
+  typedef Vector&lt;ScalarType, 2&gt; Vector2D;
+  typedef Vector&lt;ScalarType, 3&gt; Vector3D;
+  typedef Vector&lt;ScalarType, 4&gt; Vector4D;
+
+  // other vector types used in MITK
+  typedef vnl_vector&lt;ScalarType&gt; VnlVector;
+
+  // The equal methods to compare vectors for equality are below:
+
+  /**
+   * @ingroup MITKTestingAPI
+   *
+   * @param vector1 Vector to compare.
+   * @param vector2 Vector to compare.
+   * @param eps Tolerance for floating point comparison.
+   * @param verbose Flag indicating detailed console output.
+   * @return True if vectors are equal.
+   */
+  template &lt;typename TCoordRep, unsigned int NPointDimension&gt;
+  inline bool Equal(const itk::Vector&lt;TCoordRep, NPointDimension&gt; &amp;vector1,
+                    const itk::Vector&lt;TCoordRep, NPointDimension&gt; &amp;vector2,
+                    TCoordRep eps = mitk::eps,
+                    bool verbose = false)
+<span style = "background-color:#fdd">  {
+    bool isEqual = true;
+    typename itk::Vector&lt;TCoordRep, NPointDimension&gt;::VectorType diff = vector1 - vector2;
+    for (unsigned int i = 0; i &lt; NPointDimension; i++)</span>
+    {
+<span style = "background-color:#fdd">      if (DifferenceBiggerOrEqualEps(diff[i], eps))</span>
+      {
+<span style = "background-color:#fdd">        isEqual = false;
+        break;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    ConditionalOutputOfDifference(vector1, vector2, eps, verbose, isEqual);</span>
+
+<span style = "background-color:#fdd">    return isEqual;
+  }</span>
+
+  /**
+   * @ingroup MITKTestingAPI
+   *
+   * @param vector1 Vector to compare.
+   * @param vector2 Vector to compare.
+   * @param eps Tolerance for floating point comparison.
+   * @param verbose Flag indicating detailed console output.
+   * @return True if vectors are equal.
+   */
+  inline bool Equal(const mitk::VnlVector &amp;vector1,
+                    const mitk::VnlVector &amp;vector2,
+                    ScalarType eps = mitk::eps,
+                    bool verbose = false)
+  {
+    bool isEqual = true;
+    mitk::VnlVector diff = vector1 - vector2;
+    for (unsigned int i = 0; i &lt; diff.size(); i++)
+    {
+      if (DifferenceBiggerOrEqualEps(diff[i], eps))
+      {
+        isEqual = false;
+        break;
+      }
+    }
+
+    ConditionalOutputOfDifference(vector1, vector2, eps, verbose, isEqual);
+
+    return isEqual;
+  }
+
+  /**
+   * @ingroup MITKTestingAPI
+   *
+   * @param vector1 Vector to compare.
+   * @param vector2 Vector to compare.
+   * @param eps Tolerance for floating point comparison.
+   * @param verbose Flag indicating detailed console output.
+   * @return True if vectors are equal.
+   */
+  template &lt;typename TCoordRep, unsigned int NPointDimension&gt;
+  inline bool Equal(const vnl_vector_fixed&lt;TCoordRep, NPointDimension&gt; &amp;vector1,
+                    const vnl_vector_fixed&lt;TCoordRep, NPointDimension&gt; &amp;vector2,
+                    TCoordRep eps = mitk::eps,
+                    bool verbose = false)
+<span style = "background-color:#fdd">  {
+    vnl_vector_fixed&lt;TCoordRep, NPointDimension&gt; diff = vector1 - vector2;
+    bool isEqual = true;
+    for (unsigned int i = 0; i &lt; diff.size(); i++)</span>
+    {
+<span style = "background-color:#fdd">      if (DifferenceBiggerOrEqualEps(diff[i], eps))</span>
+      {
+<span style = "background-color:#fdd">        isEqual = false;
+        break;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    ConditionalOutputOfDifference(vector1, vector2, eps, verbose, isEqual);</span>
+
+<span style = "background-color:#fdd">    return isEqual;
+  }</span>
+
+} // end namespace mitk
+
+#endif /* MITKVECTOR_H_ */</pre>
+	</body>
+</html>

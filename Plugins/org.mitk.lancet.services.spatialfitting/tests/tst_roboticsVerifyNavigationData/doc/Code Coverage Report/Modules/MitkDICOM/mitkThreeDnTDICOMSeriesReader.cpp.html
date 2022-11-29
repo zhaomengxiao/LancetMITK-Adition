@@ -1,0 +1,277 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkThreeDnTDICOMSeriesReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkThreeDnTDICOMSeriesReader.h"
+#include "mitkITKDICOMSeriesReaderHelper.h"
+
+mitk::ThreeDnTDICOMSeriesReader
+::ThreeDnTDICOMSeriesReader(unsigned int decimalPlacesForOrientation)
+<span style = "background-color:#dfd">:DICOMITKSeriesGDCMReader(decimalPlacesForOrientation)
+,m_Group3DandT(m_DefaultGroup3DandT), m_OnlyCondenseSameSeries(m_DefaultOnlyCondenseSameSeries)
+{
+}</span>
+
+mitk::ThreeDnTDICOMSeriesReader
+::ThreeDnTDICOMSeriesReader(const ThreeDnTDICOMSeriesReader&amp; other )
+<span style = "background-color:#fdd">:DICOMITKSeriesGDCMReader(other)
+,m_Group3DandT(m_DefaultGroup3DandT), m_OnlyCondenseSameSeries(m_DefaultOnlyCondenseSameSeries)
+{
+}</span>
+
+mitk::ThreeDnTDICOMSeriesReader
+::~ThreeDnTDICOMSeriesReader()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::ThreeDnTDICOMSeriesReader&amp;
+mitk::ThreeDnTDICOMSeriesReader
+::operator=(const ThreeDnTDICOMSeriesReader&amp; other)
+<span style = "background-color:#fdd">{
+  if (this != &amp;other)</span>
+  {
+<span style = "background-color:#fdd">    DICOMITKSeriesGDCMReader::operator=(other);
+    this-&gt;m_Group3DandT = other.m_Group3DandT;</span>
+  }
+<span style = "background-color:#fdd">  return *this;
+}</span>
+
+bool
+mitk::ThreeDnTDICOMSeriesReader
+::operator==(const DICOMFileReader&amp; other) const
+<span style = "background-color:#fdd">{
+  if (const auto* otherSelf = dynamic_cast&lt;const Self*&gt;(&amp;other))</span>
+  {
+<span style = "background-color:#fdd">    return</span>
+       DICOMITKSeriesGDCMReader::operator==(other)
+    &amp;&amp; this-&gt;m_Group3DandT == otherSelf-&gt;m_Group3DandT;
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void
+mitk::ThreeDnTDICOMSeriesReader
+::SetGroup3DandT(bool on)
+<span style = "background-color:#dfd">{
+  m_Group3DandT = on;
+}</span>
+
+bool
+mitk::ThreeDnTDICOMSeriesReader
+::GetGroup3DandT() const
+<span style = "background-color:#fdd">{
+  return m_Group3DandT;
+}</span>
+
+mitk::DICOMITKSeriesGDCMReader::SortingBlockList
+mitk::ThreeDnTDICOMSeriesReader
+::Condense3DBlocks(SortingBlockList&amp; resultOf3DGrouping)
+<span style = "background-color:#fdd">{
+  if (!m_Group3DandT)</span>
+  {
+<span style = "background-color:#fdd">    return resultOf3DGrouping; // don't work if nobody asks us to</span>
+  }
+
+<span style = "background-color:#fdd">  SortingBlockList remainingBlocks = resultOf3DGrouping;</span>
+
+<span style = "background-color:#fdd">  SortingBlockList non3DnTBlocks;
+  SortingBlockList true3DnTBlocks;
+  std::vector&lt;unsigned int&gt; true3DnTBlocksTimeStepCount;</span>
+
+  // we should describe our need for this tag as needed via a function
+  // (however, we currently know that the superclass will always need this tag)
+<span style = "background-color:#fdd">  const DICOMTag tagImagePositionPatient(0x0020, 0x0032);
+  const DICOMTag tagSeriesInstaceUID(0x0020, 0x000e);</span>
+
+<span style = "background-color:#fdd">  while (!remainingBlocks.empty())</span>
+  {
+    // new block to fill up
+<span style = "background-color:#fdd">    const DICOMDatasetAccessingImageFrameList&amp; firstBlock = remainingBlocks.front();
+    DICOMDatasetAccessingImageFrameList current3DnTBlock = firstBlock;
+    int current3DnTBlockNumberOfTimeSteps = 1;</span>
+
+    // get block characteristics of first block
+<span style = "background-color:#fdd">    const unsigned int currentBlockNumberOfSlices = firstBlock.size();
+    const std::string currentBlockFirstOrigin = firstBlock.front()-&gt;GetTagValueAsString( tagImagePositionPatient ).value;
+    const std::string currentBlockLastOrigin  =  firstBlock.back()-&gt;GetTagValueAsString( tagImagePositionPatient ).value;
+    const auto currentBlockSeriesInstanceUID = firstBlock.back()-&gt;GetTagValueAsString(tagSeriesInstaceUID).value;</span>
+
+<span style = "background-color:#fdd">    remainingBlocks.erase( remainingBlocks.begin() );</span>
+
+    // compare all other blocks against the first one
+<span style = "background-color:#fdd">    for (auto otherBlockIter = remainingBlocks.begin();
+         otherBlockIter != remainingBlocks.cend();</span>
+         /*++otherBlockIter*/) // &lt;-- inside loop
+    {
+      // get block characteristics from first block
+<span style = "background-color:#fdd">      const DICOMDatasetAccessingImageFrameList otherBlock = *otherBlockIter;</span>
+
+<span style = "background-color:#fdd">      const unsigned int otherBlockNumberOfSlices = otherBlock.size();
+      const std::string otherBlockFirstOrigin = otherBlock.front()-&gt;GetTagValueAsString( tagImagePositionPatient ).value;
+      const std::string otherBlockLastOrigin  =  otherBlock.back()-&gt;GetTagValueAsString( tagImagePositionPatient ).value;
+      const auto otherBlockSeriesInstanceUID = otherBlock.back()-&gt;GetTagValueAsString(tagSeriesInstaceUID).value;</span>
+
+      // add matching blocks to current3DnTBlock
+      // keep other blocks for later
+      if (   otherBlockNumberOfSlices == currentBlockNumberOfSlices
+          &amp;&amp; (!m_OnlyCondenseSameSeries || otherBlockSeriesInstanceUID == currentBlockSeriesInstanceUID)
+          &amp;&amp; otherBlockFirstOrigin == currentBlockFirstOrigin
+<span style = "background-color:#fdd">          &amp;&amp; otherBlockLastOrigin == currentBlockLastOrigin</span>
+          )
+      { // matching block
+<span style = "background-color:#fdd">        ++current3DnTBlockNumberOfTimeSteps;
+        current3DnTBlock.insert( current3DnTBlock.end(), otherBlock.begin(), otherBlock.end() ); // append</span>
+        // remove this block from remainingBlocks
+<span style = "background-color:#fdd">        otherBlockIter = remainingBlocks.erase(otherBlockIter); // make sure iterator otherBlockIter is valid afterwards
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        ++otherBlockIter;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+    // in any case, we now now all about the first block of our list ...
+    // ... and we wither call it 3D o 3D+t
+<span style = "background-color:#fdd">    if (current3DnTBlockNumberOfTimeSteps &gt; 1)</span>
+    {
+<span style = "background-color:#fdd">      true3DnTBlocks.push_back(current3DnTBlock);
+      true3DnTBlocksTimeStepCount.push_back(current3DnTBlockNumberOfTimeSteps);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      non3DnTBlocks.push_back(current3DnTBlock);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // create output for real 3D+t blocks (other outputs will be created by superclass)
+  // set 3D+t flag on output block
+<span style = "background-color:#fdd">  this-&gt;SetNumberOfOutputs( true3DnTBlocks.size() );
+  unsigned int o = 0;
+  for (auto blockIter = true3DnTBlocks.cbegin();
+       blockIter != true3DnTBlocks.cend();
+       ++o, ++blockIter)</span>
+  {
+    // bad copy&amp;paste code from DICOMITKSeriesGDCMReader, should be handled in a better way
+<span style = "background-color:#fdd">    DICOMDatasetAccessingImageFrameList gdcmFrameInfoList = *blockIter;
+    assert(!gdcmFrameInfoList.empty());</span>
+
+    // reverse frames if necessary
+    // update tilt information from absolute last sorting
+<span style = "background-color:#fdd">    const DICOMDatasetList datasetList = ConvertToDICOMDatasetList( gdcmFrameInfoList );
+    m_NormalDirectionConsistencySorter-&gt;SetInput( datasetList );
+    m_NormalDirectionConsistencySorter-&gt;Sort();
+    const DICOMDatasetAccessingImageFrameList sortedGdcmInfoFrameList = ConvertToDICOMDatasetAccessingImageFrameList( m_NormalDirectionConsistencySorter-&gt;GetOutput(0) );
+    const GantryTiltInformation&amp; tiltInfo = m_NormalDirectionConsistencySorter-&gt;GetTiltInformation();</span>
+
+    // set frame list for current block
+<span style = "background-color:#fdd">    const DICOMImageFrameList frameList = ConvertToDICOMImageFrameList( sortedGdcmInfoFrameList );
+    assert(!frameList.empty());</span>
+
+<span style = "background-color:#fdd">    DICOMImageBlockDescriptor block;
+    block.SetTagCache( this-&gt;GetTagCache() ); // important: this must be before SetImageFrameList(), because SetImageFrameList will trigger reading of lots of interesting tags!
+    block.SetAdditionalTagsOfInterest(GetAdditionalTagsOfInterest());
+    block.SetTagLookupTableToPropertyFunctor(GetTagLookupTableToPropertyFunctor());
+    block.SetImageFrameList( frameList );
+    block.SetTiltInformation( tiltInfo );</span>
+
+<span style = "background-color:#fdd">    block.SetFlag("3D+t", true);
+    block.SetIntProperty("timesteps", true3DnTBlocksTimeStepCount[o]);
+    MITK_DEBUG &lt;&lt; "Found " &lt;&lt; true3DnTBlocksTimeStepCount[o] &lt;&lt; " timesteps";</span>
+
+<span style = "background-color:#fdd">    this-&gt;SetOutput( o, block );
+  }</span>
+
+<span style = "background-color:#fdd">  return non3DnTBlocks;
+}</span>
+
+bool
+mitk::ThreeDnTDICOMSeriesReader
+::LoadImages()
+<span style = "background-color:#fdd">{
+  bool success = true;</span>
+
+<span style = "background-color:#fdd">  unsigned int numberOfOutputs = this-&gt;GetNumberOfOutputs();
+  for (unsigned int o = 0; o &lt; numberOfOutputs; ++o)</span>
+  {
+<span style = "background-color:#fdd">    const DICOMImageBlockDescriptor&amp; block = this-&gt;InternalGetOutput(o);</span>
+
+<span style = "background-color:#fdd">    if (block.GetFlag("3D+t", false))</span>
+    {
+<span style = "background-color:#fdd">      success &amp;= this-&gt;LoadMitkImageForOutput(o);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      success &amp;= DICOMITKSeriesGDCMReader::LoadMitkImageForOutput(o); // let superclass handle non-3D+t</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return success;
+}</span>
+
+bool
+mitk::ThreeDnTDICOMSeriesReader
+::LoadMitkImageForImageBlockDescriptor(DICOMImageBlockDescriptor&amp; block) const
+<span style = "background-color:#fdd">{
+  PushLocale();
+  const DICOMImageFrameList&amp; frames = block.GetImageFrameList();
+  const GantryTiltInformation tiltInfo = block.GetTiltInformation();
+  const bool hasTilt = tiltInfo.IsRegularGantryTilt();</span>
+
+<span style = "background-color:#fdd">  const int numberOfTimesteps = block.GetNumberOfTimeSteps();</span>
+
+<span style = "background-color:#fdd">  if (numberOfTimesteps == 1)</span>
+  {
+<span style = "background-color:#fdd">    return DICOMITKSeriesGDCMReader::LoadMitkImageForImageBlockDescriptor(block);</span>
+  }
+
+<span style = "background-color:#fdd">  const int numberOfFramesPerTimestep = block.GetNumberOfFramesPerTimeStep();</span>
+
+<span style = "background-color:#fdd">  ITKDICOMSeriesReaderHelper::StringContainerList filenamesPerTimestep;
+  for (int timeStep = 0; timeStep&lt;numberOfTimesteps; ++timeStep)</span>
+  {
+    // use numberOfFramesPerTimestep frames for a new item in filenamesPerTimestep
+<span style = "background-color:#fdd">    ITKDICOMSeriesReaderHelper::StringContainer filenamesOfThisTimeStep;
+    auto timeStepStart = frames.cbegin() + timeStep * numberOfFramesPerTimestep;
+    auto timeStepEnd   = frames.cbegin() + (timeStep+1) * numberOfFramesPerTimestep;
+    for (auto frameIter = timeStepStart;
+        frameIter != timeStepEnd;
+        ++frameIter)</span>
+    {
+<span style = "background-color:#fdd">      filenamesOfThisTimeStep.push_back( (*frameIter)-&gt;Filename );
+    }
+    filenamesPerTimestep.push_back( filenamesOfThisTimeStep );
+  }</span>
+
+  mitk::ITKDICOMSeriesReaderHelper helper;
+<span style = "background-color:#fdd">  mitk::Image::Pointer mitkImage = helper.Load3DnT( filenamesPerTimestep, m_FixTiltByShearing &amp;&amp; hasTilt, tiltInfo );</span>
+
+<span style = "background-color:#fdd">  block.SetMitkImage( mitkImage );</span>
+
+<span style = "background-color:#fdd">  PopLocale();</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span></pre>
+	</body>
+</html>

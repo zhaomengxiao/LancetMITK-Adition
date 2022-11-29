@@ -1,0 +1,389 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMaterial.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkMaterial.h"
+#include "mitkBaseRenderer.h"
+#include "mitkDataNode.h"
+#include "mitkProperties.h"
+#include "mitkVtkInterpolationProperty.h"
+#include "mitkVtkRepresentationProperty.h"
+#include &lt;vtkProperty.h&gt;
+
+mitk::Material::Material(Color color, double opacity)
+<span style = "background-color:#fdd">{
+  InitializeStandardValues();
+  SetColor(color);
+  SetColorCoefficient(GetColorCoefficient());
+  SetSpecularColor(GetSpecularColor());
+  SetSpecularCoefficient(GetSpecularCoefficient());
+  SetSpecularPower(GetSpecularPower());
+  SetOpacity(opacity);
+  SetInterpolation(GetInterpolation());
+  SetRepresentation(GetRepresentation());
+  SetLineWidth(GetLineWidth());
+  m_Name = "";
+}</span>
+
+mitk::Material::Material(double red, double green, double blue, double opacity)
+<span style = "background-color:#fdd">{
+  InitializeStandardValues();
+  SetColor(red, green, blue);
+  SetColorCoefficient(GetColorCoefficient());
+  SetSpecularColor(GetSpecularColor());
+  SetSpecularCoefficient(GetSpecularCoefficient());
+  SetSpecularPower(GetSpecularPower());
+  SetOpacity(opacity);
+  SetInterpolation(GetInterpolation());
+  SetRepresentation(GetRepresentation());
+  SetLineWidth(GetLineWidth());
+  m_Name = "";
+}</span>
+
+mitk::Material::Material(double red,
+                         double green,
+                         double blue,
+                         double colorCoefficient,
+                         double specularCoefficient,
+                         double specularPower,
+                         double opacity)
+<span style = "background-color:#fdd">{
+  InitializeStandardValues();
+  SetColor(red, green, blue);
+  SetColorCoefficient(colorCoefficient);
+  SetSpecularColor(GetSpecularColor());
+  SetSpecularCoefficient(specularCoefficient);
+  SetSpecularPower(specularPower);
+  SetOpacity(opacity);
+  SetInterpolation(GetInterpolation());
+  SetRepresentation(GetRepresentation());
+  SetLineWidth(GetLineWidth());
+  m_Name = "";
+}</span>
+
+mitk::Material::Material(mitk::Material::Color color,
+                         double colorCoefficient,
+                         double specularCoefficient,
+                         double specularPower,
+                         double opacity)
+<span style = "background-color:#fdd">{
+  InitializeStandardValues();
+  SetColor(color);
+  SetColorCoefficient(colorCoefficient);
+  SetSpecularColor(GetSpecularColor());
+  SetSpecularCoefficient(specularCoefficient);
+  SetSpecularPower(specularPower);
+  SetOpacity(opacity);
+  SetInterpolation(GetInterpolation());
+  SetRepresentation(GetRepresentation());
+  SetLineWidth(GetLineWidth());
+}</span>
+
+mitk::Material::Material()
+<span style = "background-color:#fdd">{
+  InitializeStandardValues();
+  SetColor(GetColor());
+  SetColorCoefficient(GetColorCoefficient());
+  SetSpecularColor(GetSpecularColor());
+  SetSpecularCoefficient(GetSpecularCoefficient());
+  SetSpecularPower(GetSpecularPower());
+  SetOpacity(GetOpacity());
+  SetInterpolation(GetInterpolation());
+  SetRepresentation(GetRepresentation());
+  SetLineWidth(GetLineWidth());
+}</span>
+
+<span style = "background-color:#fdd">mitk::Material::Material(const Material &amp;property) : itk::Object()
+{
+  Initialize(property);
+}</span>
+
+mitk::Material::Material(
+  const Material &amp;property, double red, double green, double blue, double opacity, std::string name)
+<span style = "background-color:#fdd">{
+  Initialize(property);
+  SetColor(red, green, blue);
+  SetOpacity(opacity);
+  SetName(name);
+}</span>
+
+bool mitk::Material::Assignable(const Material &amp;other) const
+<span style = "background-color:#fdd">{</span>
+  try
+  {
+<span style = "background-color:#fdd">    const auto &amp;otherinstance =</span>
+      dynamic_cast&lt;const Self &amp;&gt;(other); // dear compiler, please don't optimize this away! Thanks.
+<span style = "background-color:#fdd">    otherinstance.GetOpacity();
+    return true;</span>
+  }
+  catch (const std::bad_cast &amp;)
+<span style = "background-color:#fdd">  {
+  }
+  return false;
+}</span>
+
+mitk::Material &amp;mitk::Material::operator=(const mitk::Material &amp;other)
+<span style = "background-color:#fdd">{</span>
+  try
+  {
+<span style = "background-color:#fdd">    const auto &amp;otherProp(dynamic_cast&lt;const Self &amp;&gt;(other));</span>
+
+<span style = "background-color:#fdd">    Initialize(otherProp);</span>
+  }
+  catch (const std::bad_cast &amp;)
+<span style = "background-color:#fdd">  {</span>
+    // nothing to do then
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return *this;
+}</span>
+
+void mitk::Material::SetColor(mitk::Material::Color color)
+<span style = "background-color:#fdd">{
+  m_Color = color;
+  Modified();
+}</span>
+
+void mitk::Material::SetColor(double red, double green, double blue)
+<span style = "background-color:#fdd">{
+  m_Color.Set(red, green, blue);
+  Modified();
+}</span>
+
+void mitk::Material::SetColorCoefficient(double coefficient)
+<span style = "background-color:#fdd">{
+  m_ColorCoefficient = coefficient;
+  Modified();
+}</span>
+
+void mitk::Material::SetSpecularColor(mitk::Material::Color specularColor)
+<span style = "background-color:#fdd">{
+  m_SpecularColor = specularColor;
+  Modified();
+}</span>
+
+void mitk::Material::SetSpecularColor(double red, double green, double blue)
+<span style = "background-color:#fdd">{
+  m_SpecularColor.Set(red, green, blue);
+  Modified();
+}</span>
+
+void mitk::Material::SetSpecularCoefficient(double specularCoefficient)
+<span style = "background-color:#fdd">{
+  m_SpecularCoefficient = specularCoefficient;
+  Modified();
+}</span>
+
+void mitk::Material::SetSpecularPower(double specularPower)
+<span style = "background-color:#fdd">{
+  m_SpecularPower = specularPower;
+  Modified();
+}</span>
+
+void mitk::Material::SetOpacity(double opacity)
+<span style = "background-color:#fdd">{
+  m_Opacity = opacity;
+  Modified();
+}</span>
+
+void mitk::Material::SetInterpolation(InterpolationType interpolation)
+<span style = "background-color:#fdd">{
+  m_Interpolation = interpolation;
+  Modified();
+}</span>
+
+void mitk::Material::SetRepresentation(RepresentationType representation)
+<span style = "background-color:#fdd">{
+  m_Representation = representation;
+  Modified();
+}</span>
+
+void mitk::Material::SetLineWidth(float lineWidth)
+<span style = "background-color:#fdd">{
+  m_LineWidth = lineWidth;
+  Modified();
+}</span>
+
+mitk::Material::Color mitk::Material::GetColor() const
+<span style = "background-color:#fdd">{
+  return m_Color;
+}</span>
+
+double mitk::Material::GetColorCoefficient() const
+<span style = "background-color:#fdd">{
+  return m_ColorCoefficient;
+}</span>
+
+mitk::Material::Color mitk::Material::GetSpecularColor() const
+<span style = "background-color:#fdd">{
+  return m_SpecularColor;
+}</span>
+
+double mitk::Material::GetSpecularCoefficient() const
+<span style = "background-color:#fdd">{
+  return m_SpecularCoefficient;
+}</span>
+
+double mitk::Material::GetSpecularPower() const
+<span style = "background-color:#fdd">{
+  return m_SpecularPower;
+}</span>
+
+double mitk::Material::GetOpacity() const
+<span style = "background-color:#fdd">{
+  return m_Opacity;
+}</span>
+
+mitk::Material::InterpolationType mitk::Material::GetInterpolation() const
+<span style = "background-color:#fdd">{
+  return m_Interpolation;
+}</span>
+
+mitk::Material::RepresentationType mitk::Material::GetRepresentation() const
+<span style = "background-color:#fdd">{
+  return m_Representation;
+}</span>
+
+int mitk::Material::GetVtkInterpolation() const
+<span style = "background-color:#fdd">{
+  switch (m_Interpolation)</span>
+  {
+    case (Flat):
+<span style = "background-color:#fdd">      return VTK_FLAT;</span>
+    case (Gouraud):
+<span style = "background-color:#fdd">      return VTK_GOURAUD;</span>
+    case (Phong):
+<span style = "background-color:#fdd">      return VTK_PHONG;</span>
+  }
+<span style = "background-color:#fdd">  return VTK_GOURAUD;
+}</span>
+
+int mitk::Material::GetVtkRepresentation() const
+<span style = "background-color:#fdd">{
+  switch (m_Representation)</span>
+  {
+    case (Points):
+<span style = "background-color:#fdd">      return VTK_POINTS;</span>
+    case (Wireframe):
+<span style = "background-color:#fdd">      return VTK_WIREFRAME;</span>
+    case (Surface):
+<span style = "background-color:#fdd">      return VTK_SURFACE;</span>
+  }
+<span style = "background-color:#fdd">  return VTK_SURFACE;
+}</span>
+
+float mitk::Material::GetLineWidth() const
+<span style = "background-color:#fdd">{
+  return m_LineWidth;
+}</span>
+
+void mitk::Material::Initialize(const Material &amp;property)
+<span style = "background-color:#fdd">{
+  this-&gt;SetColor(property.GetColor());
+  this-&gt;SetColorCoefficient(property.GetColorCoefficient());
+  this-&gt;SetSpecularColor(property.GetSpecularColor());
+  this-&gt;SetSpecularCoefficient(property.GetSpecularCoefficient());
+  this-&gt;SetSpecularPower(property.GetSpecularPower());
+  this-&gt;SetOpacity(property.GetOpacity());
+  this-&gt;SetInterpolation(property.GetInterpolation());
+  this-&gt;SetRepresentation(property.GetRepresentation());
+  this-&gt;SetLineWidth(property.GetLineWidth());
+  this-&gt;SetName(property.GetName());
+}</span>
+
+bool mitk::Material::operator==(const Material &amp;property) const
+<span style = "background-color:#fdd">{
+  const auto *other = dynamic_cast&lt;const Self *&gt;(&amp;property);</span>
+
+<span style = "background-color:#fdd">  if (other == nullptr)
+    return false;</span>
+  else
+<span style = "background-color:#fdd">    return (m_Color == other-&gt;GetColor() &amp;&amp; m_ColorCoefficient == other-&gt;GetColorCoefficient() &amp;&amp;</span>
+            m_SpecularColor == other-&gt;GetSpecularColor() &amp;&amp; m_SpecularCoefficient == other-&gt;GetSpecularCoefficient() &amp;&amp;
+            m_SpecularPower == other-&gt;GetSpecularPower() &amp;&amp; m_Opacity == other-&gt;GetOpacity() &amp;&amp;
+            m_Interpolation == other-&gt;GetInterpolation() &amp;&amp; m_Name == other-&gt;GetName() &amp;&amp;
+            m_Representation == other-&gt;GetRepresentation() &amp;&amp; m_LineWidth == other-&gt;GetLineWidth());
+<span style = "background-color:#fdd">}</span>
+
+void mitk::Material::InitializeStandardValues()
+<span style = "background-color:#fdd">{
+  m_Color.Set(0.5, 0.5, 0.0);
+  m_ColorCoefficient = 0.5;
+  m_SpecularColor.Set(1.0, 1.0, 1.0);
+  m_SpecularCoefficient = 0.5;
+  m_SpecularPower = 10.0;
+  m_Opacity = 1.0;
+  m_Interpolation = Gouraud;
+  m_Representation = Surface;
+  m_LineWidth = 1.0;
+  m_Name = "";
+}</span>
+
+void mitk::Material::Update()
+<span style = "background-color:#fdd">{
+  this-&gt;SetColor(this-&gt;GetColor());
+  this-&gt;SetColorCoefficient(this-&gt;GetColorCoefficient());
+  this-&gt;SetSpecularColor(this-&gt;GetSpecularColor());
+  this-&gt;SetSpecularCoefficient(this-&gt;GetSpecularCoefficient());
+  this-&gt;SetSpecularPower(this-&gt;GetSpecularPower());
+  this-&gt;SetOpacity(this-&gt;GetOpacity());
+  this-&gt;SetInterpolation(this-&gt;GetInterpolation());
+  this-&gt;SetRepresentation(this-&gt;GetRepresentation());
+}</span>
+
+void mitk::Material::PrintSelf(std::ostream &amp;os, itk::Indent /* unused */) const
+<span style = "background-color:#fdd">{
+  os &lt;&lt; "Name: " &lt;&lt; GetName() &lt;&lt; std::endl;
+  os &lt;&lt; "Color: " &lt;&lt; GetColor() &lt;&lt; std::endl;
+  os &lt;&lt; "ColorCoefficient" &lt;&lt; GetColorCoefficient() &lt;&lt; std::endl;
+  os &lt;&lt; "SpecularColor: " &lt;&lt; GetSpecularColor() &lt;&lt; std::endl;
+  os &lt;&lt; "SpecularCoefficient: " &lt;&lt; GetSpecularCoefficient() &lt;&lt; std::endl;
+  os &lt;&lt; "SpecularPower: " &lt;&lt; GetSpecularPower() &lt;&lt; std::endl;
+  os &lt;&lt; "Opacity: " &lt;&lt; GetOpacity() &lt;&lt; std::endl;
+  os &lt;&lt; "Line width: " &lt;&lt; GetLineWidth() &lt;&lt; std::endl;
+  switch (GetInterpolation())</span>
+  {
+    case (Flat):
+<span style = "background-color:#fdd">      os &lt;&lt; "Interpolation: Flat" &lt;&lt; std::endl;
+      break;</span>
+    case (Gouraud):
+<span style = "background-color:#fdd">      os &lt;&lt; "Interpolation: Gouraud" &lt;&lt; std::endl;
+      break;</span>
+    case (Phong):
+<span style = "background-color:#fdd">      os &lt;&lt; "Interpolation: Phong" &lt;&lt; std::endl;</span>
+      break;
+  }
+<span style = "background-color:#fdd">  switch (GetRepresentation())</span>
+  {
+    case (Points):
+<span style = "background-color:#fdd">      os &lt;&lt; "Representation: Points" &lt;&lt; std::endl;
+      break;</span>
+    case (Wireframe):
+<span style = "background-color:#fdd">      os &lt;&lt; "Representation: Wireframe" &lt;&lt; std::endl;
+      break;</span>
+    case (Surface):
+<span style = "background-color:#fdd">      os &lt;&lt; "Representation: Surface" &lt;&lt; std::endl;</span>
+      break;
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

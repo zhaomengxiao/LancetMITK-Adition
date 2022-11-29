@@ -1,0 +1,822 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usLDAPExpr.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+#include "usLDAPExpr_p.h"
+
+#include "usAny.h"
+#include "usServicePropertiesImpl_p.h"
+
+#include &lt;limits&gt;
+#include &lt;iterator&gt;
+#include &lt;cctype&gt;
+#include &lt;stdexcept&gt;
+
+#include &lt;cerrno&gt;
+#include &lt;cstdlib&gt;
+#include &lt;cmath&gt;
+
+US_BEGIN_NAMESPACE
+
+namespace LDAPExprConstants {
+
+static LDAPExpr::Byte WILDCARD()
+<span style = "background-color:#dfd">{</span>
+  static LDAPExpr::Byte b = std::numeric_limits&lt;LDAPExpr::Byte&gt;::max();
+<span style = "background-color:#dfd">  return b;
+}</span>
+
+static const std::string&amp; WILDCARD_STRING()
+<span style = "background-color:#dfd">{
+  static std::string s(1, WILDCARD());
+  return s;
+}</span>
+
+static const std::string&amp; nullptrQ()
+<span style = "background-color:#fdd">{
+  static std::string s = "Null query";
+  return s;
+}</span>
+
+static const std::string&amp; GARBAGE()
+<span style = "background-color:#fdd">{
+  static std::string s = "Trailing garbage";
+  return s;
+}</span>
+
+static const std::string&amp; EOS()
+<span style = "background-color:#fdd">{
+  static std::string s = "Unexpected end of query";
+  return s;
+}</span>
+
+static const std::string&amp; MALFORMED()
+<span style = "background-color:#fdd">{
+  static std::string s = "Malformed query";
+  return s;
+}</span>
+
+static const std::string&amp; OPERATOR()
+<span style = "background-color:#fdd">{
+  static std::string s = "Undefined operator";
+  return s;
+}</span>
+
+}
+
+bool stricomp(const std::string::value_type&amp; v1, const std::string::value_type&amp; v2)
+<span style = "background-color:#fdd">{
+  return ::tolower(v1) == ::tolower(v2);
+}</span>
+
+class LDAPExprData : public SharedData
+{
+public:
+
+  LDAPExprData( int op, const std::vector&lt;LDAPExpr&gt;&amp; args )
+<span style = "background-color:#dfd">    : m_operator(op), m_args(args), m_attrName(), m_attrValue()
+  {
+  }</span>
+
+  LDAPExprData( int op, std::string attrName, const std::string&amp; attrValue )
+<span style = "background-color:#dfd">    : m_operator(op), m_args(), m_attrName(attrName), m_attrValue(attrValue)
+  {
+  }</span>
+
+  LDAPExprData( const LDAPExprData&amp; other )
+    : SharedData(other), m_operator(other.m_operator),
+    m_args(other.m_args), m_attrName(other.m_attrName),
+    m_attrValue(other.m_attrValue)
+  {
+  }
+
+  int m_operator;
+  std::vector&lt;LDAPExpr&gt; m_args;
+  std::string m_attrName;
+  std::string m_attrValue;
+};
+
+<span style = "background-color:#dfd">LDAPExpr::LDAPExpr() : d()
+{
+}</span>
+
+<span style = "background-color:#dfd">LDAPExpr::LDAPExpr( const std::string &amp;filter ) : d()
+{
+  ParseState ps(filter);</span>
+  try
+  {
+<span style = "background-color:#dfd">    LDAPExpr expr = ParseExpr(ps);</span>
+
+<span style = "background-color:#dfd">    if (!Trim(ps.rest()).empty())</span>
+    {
+<span style = "background-color:#fdd">      ps.error(LDAPExprConstants::GARBAGE() + " '" + ps.rest() + "'");</span>
+    }
+
+<span style = "background-color:#dfd">    d = expr.d;
+  }</span>
+  catch (const std::out_of_range&amp;)
+<span style = "background-color:#fdd">  {
+    ps.error(LDAPExprConstants::EOS());
+  }</span>
+<span style = "background-color:#dfd">}</span>
+
+LDAPExpr::LDAPExpr( int op, const std::vector&lt;LDAPExpr&gt;&amp; args )
+<span style = "background-color:#dfd">  : d(new LDAPExprData(op, args))
+{
+}</span>
+
+LDAPExpr::LDAPExpr( int op, const std::string &amp;attrName, const std::string &amp;attrValue )
+<span style = "background-color:#dfd">  : d(new LDAPExprData(op, attrName, attrValue))
+{
+}</span>
+
+LDAPExpr::LDAPExpr( const LDAPExpr&amp; other )
+<span style = "background-color:#dfd">  : d(other.d)
+{
+}</span>
+
+LDAPExpr&amp; LDAPExpr::operator=(const LDAPExpr&amp; other)
+<span style = "background-color:#dfd">{
+  d = other.d;
+  return *this;
+}</span>
+
+LDAPExpr::~LDAPExpr()
+<span style = "background-color:#dfd">{
+}</span>
+
+std::string LDAPExpr::Trim(std::string str)
+<span style = "background-color:#dfd">{
+  str.erase(0, str.find_first_not_of(' '));
+  str.erase(str.find_last_not_of(' ')+1);
+  return str;
+}</span>
+
+bool LDAPExpr::GetMatchedObjectClasses(ObjectClassSet&amp; objClasses) const
+<span style = "background-color:#fdd">{
+  if (d-&gt;m_operator == EQ)</span>
+  {
+    if (d-&gt;m_attrName.length() == ServiceConstants::OBJECTCLASS().length() &amp;&amp;
+<span style = "background-color:#fdd">        std::equal(d-&gt;m_attrName.begin(), d-&gt;m_attrName.end(), ServiceConstants::OBJECTCLASS().begin(), stricomp) &amp;&amp;</span>
+        d-&gt;m_attrValue.find(LDAPExprConstants::WILDCARD()) == std::string::npos)
+    {
+<span style = "background-color:#fdd">      objClasses.insert( d-&gt;m_attrValue );
+      return true;</span>
+    }
+<span style = "background-color:#fdd">    return false;
+  }
+  else if (d-&gt;m_operator == AND)</span>
+  {
+<span style = "background-color:#fdd">    bool result = false;
+    for (std::size_t i = 0; i &lt; d-&gt;m_args.size( ); i++)</span>
+    {
+<span style = "background-color:#fdd">      LDAPExpr::ObjectClassSet r;
+      if (d-&gt;m_args[i].GetMatchedObjectClasses(r))</span>
+      {
+<span style = "background-color:#fdd">        result = true;
+        if (objClasses.empty())</span>
+        {
+<span style = "background-color:#fdd">          objClasses = r;
+        }</span>
+        else
+        {
+          // if AND op and classes in several operands,
+          // then only the intersection is possible.
+<span style = "background-color:#fdd">          LDAPExpr::ObjectClassSet::iterator it1 = objClasses.begin();
+          LDAPExpr::ObjectClassSet::iterator it2 = r.begin();
+          while ( (it1 != objClasses.end()) &amp;&amp; (it2 != r.end()) )</span>
+          {
+<span style = "background-color:#fdd">            if (*it1 &lt; *it2)</span>
+            {
+<span style = "background-color:#fdd">              objClasses.erase(it1++);
+            }
+            else if (*it2 &lt; *it1)</span>
+            {
+<span style = "background-color:#fdd">              ++it2;
+            }</span>
+            else
+            { // *it1 == *it2
+<span style = "background-color:#fdd">              ++it1;
+              ++it2;</span>
+            }
+<span style = "background-color:#fdd">          }</span>
+          // Anything left in set_1 from here on did not appear in set_2,
+          // so we remove it.
+<span style = "background-color:#fdd">          objClasses.erase(it1, objClasses.end());
+        }</span>
+      }
+<span style = "background-color:#fdd">    }
+    return result;
+  }
+  else if (d-&gt;m_operator == OR)</span>
+  {
+<span style = "background-color:#fdd">    for (std::size_t i = 0; i &lt; d-&gt;m_args.size( ); i++)</span>
+    {
+<span style = "background-color:#fdd">      LDAPExpr::ObjectClassSet r;
+      if (d-&gt;m_args[i].GetMatchedObjectClasses(r))</span>
+      {
+<span style = "background-color:#fdd">        std::copy(r.begin(), r.end(), std::inserter(objClasses, objClasses.begin()));
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        objClasses.clear();
+        return false;</span>
+      }
+<span style = "background-color:#fdd">    }
+    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+std::string LDAPExpr::ToLower(const std::string&amp; str)
+<span style = "background-color:#dfd">{
+  std::string lowerStr(str);
+  std::transform(str.begin(), str.end(), lowerStr.begin(), ::tolower);
+  return lowerStr;
+}</span>
+
+bool LDAPExpr::IsSimple(const StringList&amp; keywords, LocalCache&amp; cache,
+                        bool matchCase ) const
+<span style = "background-color:#dfd">{
+  if (cache.empty())</span>
+  {
+<span style = "background-color:#dfd">    cache.resize(keywords.size());</span>
+  }
+
+<span style = "background-color:#dfd">  if (d-&gt;m_operator == EQ)</span>
+  {
+<span style = "background-color:#dfd">    StringList::const_iterator index;
+    if ((index = std::find(keywords.begin(), keywords.end(), matchCase ? d-&gt;m_attrName : ToLower(d-&gt;m_attrName))) != keywords.end() &amp;&amp;</span>
+        d-&gt;m_attrValue.find_first_of(LDAPExprConstants::WILDCARD()) == std::string::npos)
+    {
+<span style = "background-color:#dfd">      cache[index - keywords.begin()] = StringList(1, d-&gt;m_attrValue);
+      return true;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+<span style = "background-color:#dfd">  else if (d-&gt;m_operator == OR)</span>
+  {
+<span style = "background-color:#fdd">    for (std::size_t i = 0; i &lt; d-&gt;m_args.size( ); i++)</span>
+    {
+<span style = "background-color:#fdd">      if (!d-&gt;m_args[i].IsSimple(keywords, cache, matchCase))
+        return false;
+    }
+    return true;</span>
+  }
+<span style = "background-color:#dfd">  return false;
+}</span>
+
+bool LDAPExpr::IsNull() const
+<span style = "background-color:#dfd">{
+  return !d;
+}</span>
+
+bool LDAPExpr::Query( const std::string&amp; filter, const ServicePropertiesImpl&amp; pd)
+<span style = "background-color:#fdd">{
+  return LDAPExpr(filter).Evaluate(pd, false);
+}</span>
+
+bool LDAPExpr::Evaluate( const ServicePropertiesImpl&amp; p, bool matchCase ) const
+<span style = "background-color:#dfd">{
+  if ((d-&gt;m_operator &amp; SIMPLE) != 0)</span>
+  {
+    // try case sensitive match first
+<span style = "background-color:#dfd">    int index = p.FindCaseSensitive(d-&gt;m_attrName);
+    if (index &lt; 0 &amp;&amp; !matchCase) index = p.Find(d-&gt;m_attrName);
+    return index &lt; 0 ? false : Compare(p.Value(index), d-&gt;m_operator, d-&gt;m_attrValue);</span>
+<span style = "background-color:#fdd">  }</span>
+  else
+  { // (d-&gt;m_operator &amp; COMPLEX) != 0
+<span style = "background-color:#dfd">    switch (d-&gt;m_operator)</span>
+    {
+    case AND:
+<span style = "background-color:#dfd">      for (std::size_t i = 0; i &lt; d-&gt;m_args.size(); i++)</span>
+      {
+<span style = "background-color:#dfd">        if (!d-&gt;m_args[i].Evaluate(p, matchCase))
+          return false;
+      }
+      return true;</span>
+    case OR:
+<span style = "background-color:#fdd">      for (std::size_t i = 0; i &lt; d-&gt;m_args.size(); i++)</span>
+      {
+<span style = "background-color:#fdd">        if (d-&gt;m_args[i].Evaluate(p, matchCase))
+          return true;
+      }
+      return false;</span>
+    case NOT:
+<span style = "background-color:#fdd">      return !d-&gt;m_args[0].Evaluate(p, matchCase);</span>
+    default:
+<span style = "background-color:#fdd">      return false; // Cannot happen</span>
+    }
+  }
+<span style = "background-color:#dfd">}</span>
+
+bool LDAPExpr::Compare( const Any&amp; obj, int op, const std::string&amp; s ) const
+<span style = "background-color:#dfd">{
+  if (obj.Empty())</span>
+<span style = "background-color:#fdd">    return false;</span>
+<span style = "background-color:#dfd">  if (op == EQ &amp;&amp; s == LDAPExprConstants::WILDCARD_STRING())</span>
+<span style = "background-color:#fdd">    return true;</span>
+
+  try
+  {
+<span style = "background-color:#dfd">    const std::type_info&amp; objType = obj.Type();
+    if (objType == typeid(std::string))</span>
+    {
+<span style = "background-color:#fdd">      return CompareString(ref_any_cast&lt;std::string&gt;(obj), op, s);
+    }</span>
+<span style = "background-color:#dfd">    else if (objType == typeid(std::vector&lt;std::string&gt;))</span>
+    {
+<span style = "background-color:#dfd">      const std::vector&lt;std::string&gt;&amp; list = ref_any_cast&lt;std::vector&lt;std::string&gt; &gt;(obj);
+      for (std::size_t it = 0; it != list.size(); it++)</span>
+      {
+<span style = "background-color:#dfd">         if (CompareString(list[it], op, s))
+           return true;
+      }
+    }</span>
+<span style = "background-color:#fdd">    else if (objType == typeid(std::list&lt;std::string&gt;))</span>
+    {
+<span style = "background-color:#fdd">      const std::list&lt;std::string&gt;&amp; list = ref_any_cast&lt;std::list&lt;std::string&gt; &gt;(obj);
+      for (std::list&lt;std::string&gt;::const_iterator it = list.begin();
+           it != list.end(); ++it)</span>
+      {
+<span style = "background-color:#fdd">         if (CompareString(*it, op, s))
+           return true;
+      }
+    }
+    else if (objType == typeid(char))</span>
+    {
+<span style = "background-color:#fdd">      return CompareString(std::string(1, ref_any_cast&lt;char&gt;(obj)), op, s);
+    }
+    else if (objType == typeid(bool))</span>
+    {
+<span style = "background-color:#fdd">      if (op==LE || op==GE)
+        return false;</span>
+
+<span style = "background-color:#fdd">      std::string boolVal = any_cast&lt;bool&gt;(obj) ? "true" : "false";
+      return std::equal(s.begin(), s.end(), boolVal.begin(), stricomp);
+    }
+    else if (objType == typeid(short))</span>
+    {
+<span style = "background-color:#fdd">      return CompareIntegralType&lt;short&gt;(obj, op, s);
+    }
+    else if (objType == typeid(int))</span>
+    {
+<span style = "background-color:#fdd">      return CompareIntegralType&lt;int&gt;(obj, op, s);
+    }
+    else if (objType == typeid(long int))</span>
+    {
+<span style = "background-color:#fdd">      return CompareIntegralType&lt;long int&gt;(obj, op, s);
+    }
+    else if (objType == typeid(long long int))</span>
+    {
+<span style = "background-color:#fdd">      return CompareIntegralType&lt;long long int&gt;(obj, op, s);
+    }
+    else if (objType == typeid(unsigned char))</span>
+    {
+<span style = "background-color:#fdd">      return CompareIntegralType&lt;unsigned char&gt;(obj, op, s);
+    }
+    else if (objType == typeid(unsigned short))</span>
+    {
+<span style = "background-color:#fdd">      return CompareIntegralType&lt;unsigned short&gt;(obj, op, s);
+    }
+    else if (objType == typeid(unsigned int))</span>
+    {
+<span style = "background-color:#fdd">      return CompareIntegralType&lt;unsigned int&gt;(obj, op, s);
+    }
+    else if (objType == typeid(unsigned long int))</span>
+    {
+<span style = "background-color:#fdd">      return CompareIntegralType&lt;unsigned long int&gt;(obj, op, s);
+    }
+    else if (objType == typeid(unsigned long long int))</span>
+    {
+<span style = "background-color:#fdd">      return CompareIntegralType&lt;unsigned long long int&gt;(obj, op, s);
+    }
+    else if (objType == typeid(float))</span>
+    {
+<span style = "background-color:#fdd">      errno = 0;
+      char* endptr = nullptr;
+      double sFloat = strtod(s.c_str(), &amp;endptr);</span>
+      if ((errno == ERANGE &amp;&amp; (sFloat == 0 || sFloat == HUGE_VAL || sFloat == -HUGE_VAL)) ||
+<span style = "background-color:#fdd">          (errno != 0 &amp;&amp; sFloat == 0) || endptr == s.c_str())</span>
+      {
+<span style = "background-color:#fdd">        return false;</span>
+      }
+
+<span style = "background-color:#fdd">      double floatVal = static_cast&lt;double&gt;(any_cast&lt;float&gt;(obj));</span>
+
+<span style = "background-color:#fdd">      switch(op)</span>
+      {
+      case LE:
+<span style = "background-color:#fdd">        return floatVal &lt;= sFloat;</span>
+      case GE:
+<span style = "background-color:#fdd">        return floatVal &gt;= sFloat;</span>
+      default: /*APPROX and EQ*/
+<span style = "background-color:#fdd">        double diff = floatVal - sFloat;
+        return (diff &lt; std::numeric_limits&lt;float&gt;::epsilon()) &amp;&amp; (diff &gt; -std::numeric_limits&lt;float&gt;::epsilon());</span>
+      }
+<span style = "background-color:#fdd">    }
+    else if (objType == typeid(double))</span>
+    {
+<span style = "background-color:#fdd">      errno = 0;
+      char* endptr = nullptr;
+      double sDouble = strtod(s.c_str(), &amp;endptr);</span>
+      if ((errno == ERANGE &amp;&amp; (sDouble == 0 || sDouble == HUGE_VAL || sDouble == -HUGE_VAL)) ||
+<span style = "background-color:#fdd">          (errno != 0 &amp;&amp; sDouble == 0) || endptr == s.c_str())</span>
+      {
+<span style = "background-color:#fdd">        return false;</span>
+      }
+
+<span style = "background-color:#fdd">      double doubleVal = any_cast&lt;double&gt;(obj);</span>
+
+<span style = "background-color:#fdd">      switch(op)</span>
+      {
+      case LE:
+<span style = "background-color:#fdd">        return doubleVal &lt;= sDouble;</span>
+      case GE:
+<span style = "background-color:#fdd">        return doubleVal &gt;= sDouble;</span>
+      default: /*APPROX and EQ*/
+<span style = "background-color:#fdd">        double diff = doubleVal - sDouble;
+        return (diff &lt; std::numeric_limits&lt;double&gt;::epsilon()) &amp;&amp; (diff &gt; -std::numeric_limits&lt;double&gt;::epsilon());</span>
+      }
+<span style = "background-color:#fdd">    }
+    else if (objType == typeid(std::vector&lt;Any&gt;))</span>
+    {
+<span style = "background-color:#fdd">      const std::vector&lt;Any&gt;&amp; list = ref_any_cast&lt;std::vector&lt;Any&gt; &gt;(obj);
+      for (std::size_t it = 0; it != list.size(); it++)</span>
+      {
+<span style = "background-color:#fdd">         if (Compare(list[it], op, s))
+           return true;
+      }</span>
+    }
+  }
+  catch (...)
+<span style = "background-color:#fdd">  {</span>
+    // This might happen if a std::string-to-datatype conversion fails
+    // Just consider it a false match and ignore the exception
+<span style = "background-color:#fdd">  }</span>
+<span style = "background-color:#dfd">  return false;
+}</span>
+
+template&lt;typename T&gt;
+bool LDAPExpr::CompareIntegralType(const Any&amp; obj, const int op, const std::string&amp; s) const
+<span style = "background-color:#fdd">{
+  errno = 0;
+  char* endptr = nullptr;
+  long longInt = strtol(s.c_str(), &amp;endptr, 10);</span>
+  if ((errno == ERANGE &amp;&amp; (longInt == std::numeric_limits&lt;long&gt;::max() || longInt == std::numeric_limits&lt;long&gt;::min())) ||
+<span style = "background-color:#fdd">       (errno != 0 &amp;&amp; longInt == 0) || endptr == s.c_str())</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  T sInt = static_cast&lt;T&gt;(longInt);
+  T intVal = any_cast&lt;T&gt;(obj);</span>
+
+<span style = "background-color:#fdd">  switch(op)</span>
+  {
+  case LE:
+<span style = "background-color:#fdd">    return intVal &lt;= sInt;</span>
+  case GE:
+<span style = "background-color:#fdd">    return intVal &gt;= sInt;</span>
+  default: /*APPROX and EQ*/
+<span style = "background-color:#fdd">    return intVal == sInt;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool LDAPExpr::CompareString( const std::string&amp; s1, int op, const std::string&amp; s2 )
+<span style = "background-color:#dfd">{
+  switch(op)</span>
+  {
+  case LE:
+<span style = "background-color:#fdd">    return s1.compare(s2) &lt;= 0;</span>
+  case GE:
+<span style = "background-color:#fdd">    return s1.compare(s2) &gt;= 0;</span>
+  case EQ:
+<span style = "background-color:#dfd">    return PatSubstr(s1,s2);</span>
+  case APPROX:
+<span style = "background-color:#fdd">    return FixupString(s2) == FixupString(s1);</span>
+  default:
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#dfd">}</span>
+
+std::string LDAPExpr::FixupString( const std::string&amp; s )
+<span style = "background-color:#fdd">{
+  std::string sb;
+  sb.reserve(s.size());
+  std::size_t len = s.length();
+  for(std::size_t i=0; i&lt;len; i++)</span>
+  {
+<span style = "background-color:#fdd">    char c = s.at(i);
+    if (!std::isspace(c))</span>
+    {
+<span style = "background-color:#fdd">      if (std::isupper(c))
+        c = std::tolower(c);
+      sb.append(1, c);</span>
+    }
+<span style = "background-color:#fdd">  }
+  return sb;
+}</span>
+
+bool LDAPExpr::PatSubstr( const std::string&amp; s, int si, const std::string&amp; pat, int pi )
+<span style = "background-color:#dfd">{
+  if (pat.size()-pi == 0)
+    return s.size()-si == 0;
+  if (pat[pi] == LDAPExprConstants::WILDCARD())</span>
+  {
+<span style = "background-color:#fdd">    pi++;</span>
+    for (;;)
+    {
+<span style = "background-color:#fdd">      if (PatSubstr(s, si, pat, pi))
+        return true;
+      if (s.size()-si == 0)
+        return false;
+      si++;
+    }
+  }</span>
+  else
+  {
+<span style = "background-color:#dfd">    if (s.size()-si == 0)</span>
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+<span style = "background-color:#dfd">    if(s[si] != pat[pi])</span>
+    {
+<span style = "background-color:#dfd">      return false;</span>
+    }
+<span style = "background-color:#dfd">    return PatSubstr(s, ++si, pat, ++pi);</span>
+  }
+<span style = "background-color:#dfd">}</span>
+
+bool LDAPExpr::PatSubstr( const std::string&amp; s, const std::string&amp; pat )
+<span style = "background-color:#dfd">{
+  return PatSubstr(s, 0, pat, 0);
+}</span>
+
+LDAPExpr LDAPExpr::ParseExpr( ParseState&amp; ps )
+<span style = "background-color:#dfd">{
+  ps.skipWhite();
+  if (!ps.prefix("("))</span>
+<span style = "background-color:#fdd">    ps.error(LDAPExprConstants::MALFORMED());</span>
+
+  int op;
+<span style = "background-color:#dfd">  ps.skipWhite();
+  Byte c = ps.peek();
+  if ( c == '&amp;')</span>
+  {
+<span style = "background-color:#dfd">    op = AND;
+  }
+  else if ( c == '|' )</span>
+  {
+<span style = "background-color:#fdd">    op = OR;
+  }</span>
+<span style = "background-color:#dfd">  else if ( c == '!' )</span>
+  {
+<span style = "background-color:#fdd">    op = NOT;
+  }</span>
+  else
+  {
+<span style = "background-color:#dfd">    return ParseSimple(ps);</span>
+  }
+<span style = "background-color:#dfd">  ps.skip(1); // Ignore the d-&gt;m_operator</span>
+
+<span style = "background-color:#dfd">  std::vector&lt;LDAPExpr&gt; v;</span>
+  do
+  {
+<span style = "background-color:#dfd">    v.push_back(ParseExpr(ps));
+    ps.skipWhite();
+  } while (ps.peek() == '(');</span>
+
+<span style = "background-color:#dfd">  std::size_t n = v.size();
+  if (!ps.prefix(")") || n == 0 || (op == NOT &amp;&amp; n &gt; 1))</span>
+<span style = "background-color:#fdd">    ps.error(LDAPExprConstants::MALFORMED());</span>
+
+<span style = "background-color:#dfd">  return LDAPExpr(op, v);
+}</span>
+
+LDAPExpr LDAPExpr::ParseSimple( ParseState &amp;ps )
+<span style = "background-color:#dfd">{
+  std::string attrName = ps.getAttributeName();
+  if (attrName.empty())</span>
+<span style = "background-color:#fdd">    ps.error(LDAPExprConstants::MALFORMED());</span>
+<span style = "background-color:#dfd">  int op = 0;
+  if (ps.prefix("="))
+    op = EQ;</span>
+<span style = "background-color:#fdd">  else if (ps.prefix("&lt;="))
+    op = LE;
+  else if(ps.prefix("&gt;="))
+    op = GE;
+  else if(ps.prefix("~="))
+    op = APPROX;</span>
+  else
+  {
+    //      System.out.println("undef op='" + ps.peek() + "'");
+<span style = "background-color:#fdd">    ps.error(LDAPExprConstants::OPERATOR()); // Does not return</span>
+  }
+<span style = "background-color:#dfd">  std::string attrValue = ps.getAttributeValue();
+  if (!ps.prefix(")"))</span>
+<span style = "background-color:#fdd">    ps.error(LDAPExprConstants::MALFORMED());</span>
+<span style = "background-color:#dfd">  return LDAPExpr(op, attrName, attrValue);
+}</span>
+
+const std::string LDAPExpr::ToString() const
+<span style = "background-color:#fdd">{
+  std::string res;
+  res.append("(");
+  if ((d-&gt;m_operator &amp; SIMPLE) != 0)</span>
+  {
+<span style = "background-color:#fdd">    res.append(d-&gt;m_attrName);
+    switch (d-&gt;m_operator)</span>
+    {
+    case EQ:
+<span style = "background-color:#fdd">      res.append("=");
+      break;</span>
+    case LE:
+<span style = "background-color:#fdd">      res.append("&lt;=");
+      break;</span>
+    case GE:
+<span style = "background-color:#fdd">      res.append("&gt;=");
+      break;</span>
+    case APPROX:
+<span style = "background-color:#fdd">      res.append("~=");</span>
+      break;
+    }
+
+<span style = "background-color:#fdd">    for (std::size_t i = 0; i &lt; d-&gt;m_attrValue.length(); i++)</span>
+    {
+<span style = "background-color:#fdd">      Byte c = d-&gt;m_attrValue.at(i);
+      if (c ==  '(' || c == ')' || c == '*' || c == '\\')</span>
+      {
+<span style = "background-color:#fdd">        res.append(1, '\\');
+      }
+      else if (c == LDAPExprConstants::WILDCARD())</span>
+      {
+<span style = "background-color:#fdd">        c = '*';</span>
+      }
+<span style = "background-color:#fdd">      res.append(1, c);
+    }
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    switch (d-&gt;m_operator)</span>
+    {
+    case AND:
+<span style = "background-color:#fdd">      res.append("&amp;");
+      break;</span>
+    case OR:
+<span style = "background-color:#fdd">      res.append("|");
+      break;</span>
+    case NOT:
+<span style = "background-color:#fdd">      res.append("!");</span>
+      break;
+    }
+<span style = "background-color:#fdd">    for (std::size_t i = 0; i &lt; d-&gt;m_args.size(); i++)</span>
+    {
+<span style = "background-color:#fdd">      res.append(d-&gt;m_args[i].ToString());
+    }</span>
+  }
+<span style = "background-color:#fdd">  res.append(")");
+  return res;
+}</span>
+
+LDAPExpr::ParseState::ParseState( const std::string&amp; str )
+<span style = "background-color:#dfd">  : m_pos(0), m_str()
+{
+  if (str.empty())</span>
+  {
+<span style = "background-color:#fdd">    error(LDAPExprConstants::nullptrQ());</span>
+  }
+
+<span style = "background-color:#dfd">  m_str = str;
+}</span>
+
+bool LDAPExpr::ParseState::prefix( const std::string&amp; pre )
+<span style = "background-color:#dfd">{
+  std::string::iterator startIter = m_str.begin() + m_pos;
+  if (!std::equal(pre.begin(), pre.end(), startIter))</span>
+<span style = "background-color:#fdd">    return false;</span>
+<span style = "background-color:#dfd">  m_pos += pre.size();
+  return true;
+}</span>
+
+char LDAPExpr::ParseState::peek()
+<span style = "background-color:#dfd">{
+  if ( m_pos &gt;= m_str.size() )</span>
+  {
+<span style = "background-color:#fdd">    throw std::out_of_range( "LDAPExpr" );</span>
+  }
+<span style = "background-color:#dfd">  return m_str.at(m_pos);
+}</span>
+
+void LDAPExpr::ParseState::skip( int n )
+<span style = "background-color:#dfd">{
+  m_pos += n;
+}</span>
+
+std::string LDAPExpr::ParseState::rest() const
+<span style = "background-color:#dfd">{
+  return m_str.substr(m_pos);
+}</span>
+
+void LDAPExpr::ParseState::skipWhite()
+<span style = "background-color:#dfd">{
+  while (std::isspace(peek()))</span>
+  {
+<span style = "background-color:#fdd">    m_pos++;
+  }</span>
+<span style = "background-color:#dfd">}</span>
+
+std::string LDAPExpr::ParseState::getAttributeName()
+<span style = "background-color:#dfd">{
+  std::size_t start = m_pos;
+  std::size_t n = 0;
+  bool nIsSet = false;
+  for(;; m_pos++)</span>
+  {
+<span style = "background-color:#dfd">    Byte c = peek();</span>
+    if (c == '(' || c == ')' ||
+        c == '&lt;' || c == '&gt;' ||
+<span style = "background-color:#dfd">        c == '=' || c == '~') {
+      break;</span>
+<span style = "background-color:#fdd">    }</span>
+<span style = "background-color:#dfd">    else if (!std::isspace(c))</span>
+    {
+<span style = "background-color:#dfd">      n = m_pos - start + 1;
+      nIsSet = true;</span>
+    }
+<span style = "background-color:#dfd">  }
+  if (!nIsSet)</span>
+  {
+<span style = "background-color:#fdd">    return std::string();</span>
+  }
+<span style = "background-color:#dfd">  return m_str.substr(start, n);
+}</span>
+
+std::string LDAPExpr::ParseState::getAttributeValue()
+<span style = "background-color:#dfd">{
+  std::string sb;
+  bool exit = false;
+  while( !exit ) {
+    Byte c = peek( );
+    switch(c)</span>
+    {
+    case '(':
+    case ')':
+<span style = "background-color:#dfd">      exit = true;
+      break;</span>
+    case '*':
+<span style = "background-color:#fdd">      sb.append(1, LDAPExprConstants::WILDCARD());
+      break;</span>
+    case '\\':
+<span style = "background-color:#fdd">      sb.append(1, m_str.at(++m_pos));
+      break;</span>
+    default:
+<span style = "background-color:#dfd">      sb.append(1, c);</span>
+      break;
+    }
+
+<span style = "background-color:#dfd">    if ( !exit )</span>
+    {
+<span style = "background-color:#dfd">      m_pos++;</span>
+    }
+<span style = "background-color:#dfd">  }
+  return sb;
+}</span>
+
+void LDAPExpr::ParseState::error( const std::string &amp;m ) const
+<span style = "background-color:#fdd">{
+  std::string errorStr = m + ": " + (m_str.empty() ? "" : m_str.substr(m_pos));
+  throw std::invalid_argument(errorStr);
+}</span>
+
+US_END_NAMESPACE</pre>
+	</body>
+</html>

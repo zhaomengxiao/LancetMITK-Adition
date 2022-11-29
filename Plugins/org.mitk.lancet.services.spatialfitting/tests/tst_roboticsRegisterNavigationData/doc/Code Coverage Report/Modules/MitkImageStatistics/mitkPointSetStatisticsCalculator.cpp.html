@@ -1,0 +1,307 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPointSetStatisticsCalculator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#include "mitkPointSetStatisticsCalculator.h"
+
+mitk::PointSetStatisticsCalculator::PointSetStatisticsCalculator()
+<span style = "background-color:#fdd">{
+  m_PointSet = mitk::PointSet::New();
+}</span>
+
+mitk::PointSetStatisticsCalculator::PointSetStatisticsCalculator(mitk::PointSet::Pointer pSet)
+<span style = "background-color:#fdd">{
+  m_PointSet = pSet;
+}</span>
+
+mitk::PointSetStatisticsCalculator::~PointSetStatisticsCalculator()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::PointSetStatisticsCalculator::SetPointSet(mitk::PointSet::Pointer pSet)
+<span style = "background-color:#fdd">{
+  if (pSet.IsNull()) return;
+  m_PointSet = pSet;
+}</span>
+
+std::vector&lt;mitk::Point3D&gt; mitk::PointSetStatisticsCalculator::PointSetToVector(mitk::PointSet::Pointer pSet)
+<span style = "background-color:#fdd">{
+  std::vector&lt;mitk::Point3D&gt; returnValue = std::vector&lt;mitk::Point3D&gt;();
+  for (int i=0; i&lt;pSet-&gt;GetSize(); i++) returnValue.push_back(pSet-&gt;GetPoint(i));
+  return returnValue;
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetMax(std::vector&lt;double&gt; list)
+<span style = "background-color:#fdd">{
+if (list.empty()) return 0;
+std::sort(list.begin(), list.end());
+return list.at(list.size()-1);
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetMin(std::vector&lt;double&gt; list)
+<span style = "background-color:#fdd">{
+if (list.empty()) return 0;
+std::sort(list.begin(), list.end());
+return list.at(0);
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetStabw(std::vector&lt;double&gt; list)
+<span style = "background-color:#fdd">{
+if (list.empty()) return 0;
+double returnValue = 0;
+double mean = GetMean(list);
+for(std::vector&lt;double&gt;::size_type i=0; i&lt;list.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">  returnValue += pow((list.at(i)-mean),2);
+  }</span>
+
+<span style = "background-color:#fdd">returnValue /= list.size();
+returnValue = sqrt(returnValue);
+return returnValue;
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetSampleStabw(std::vector&lt;double&gt; list)
+<span style = "background-color:#fdd">{
+if (list.empty()) return 0;
+double returnValue = 0;
+double mean = GetMean(list);
+for(std::vector&lt;double&gt;::size_type i=0; i&lt;list.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">  returnValue += pow((list.at(i)-mean),2);
+  }</span>
+
+<span style = "background-color:#fdd">returnValue /= (list.size()-1);
+returnValue = sqrt(returnValue);
+return returnValue;
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetMean(std::vector&lt;double&gt; list)
+<span style = "background-color:#fdd">{
+if (list.empty()) return 0;
+double mean = 0;
+for(std::vector&lt;double&gt;::size_type i=0; i&lt;list.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">  mean += list.at(i);
+  }
+mean /= list.size();
+return mean;
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetMedian(std::vector&lt;double&gt; list)
+<span style = "background-color:#fdd">{
+if (list.empty()) return 0;
+std::sort(list.begin(), list.end());
+if (list.size() % 2 == 0.) //even</span>
+  {
+<span style = "background-color:#fdd">  double element1 = list.at(list.size()/2);
+  double element2 = list.at(list.size()/2);
+  return ((element1+element2)/2.0);
+  }</span>
+else //odd
+  {
+<span style = "background-color:#fdd">  return list.at((list.size())/2);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::Point3D mitk::PointSetStatisticsCalculator::GetMean(std::vector&lt;mitk::Point3D&gt; list)
+<span style = "background-color:#fdd">{
+if (list.empty())</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D emptyPoint;
+    emptyPoint.Fill(0);
+    return emptyPoint;</span>
+  }
+
+//calculate mean
+<span style = "background-color:#fdd">mitk::Point3D mean;
+mean.Fill(0);</span>
+
+<span style = "background-color:#fdd">for (std::vector&lt;mitk::Point3D&gt;::size_type i=0; i&lt;list.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">  mean[0] += list.at(i)[0];
+  mean[1] += list.at(i)[1];
+  mean[2] += list.at(i)[2];
+  }</span>
+
+<span style = "background-color:#fdd">mean[0] /= list.size();
+mean[1] /= list.size();
+mean[2] /= list.size();</span>
+
+<span style = "background-color:#fdd">return mean;
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetPositionErrorMean()
+<span style = "background-color:#fdd">{
+double returnValue = 0.0;</span>
+
+<span style = "background-color:#fdd">if (CheckIfAllPositionsAreEqual()) return returnValue;</span>
+
+<span style = "background-color:#fdd">std::vector&lt;mitk::Point3D&gt; pSet = PointSetToVector(m_PointSet);</span>
+
+<span style = "background-color:#fdd">if (pSet.empty()) return 0;</span>
+
+<span style = "background-color:#fdd">mitk::Point3D mean = GetMean(pSet);</span>
+
+<span style = "background-color:#fdd">for(std::vector&lt;mitk::Point3D&gt;::size_type i=0; i&lt;pSet.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">  returnValue += mean.EuclideanDistanceTo(pSet.at(i));
+  }
+returnValue /= pSet.size();</span>
+
+<span style = "background-color:#fdd">return returnValue;
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetPositionErrorStandardDeviation()
+<span style = "background-color:#fdd">{
+return GetStabw(GetErrorList(PointSetToVector(m_PointSet)));
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetPositionErrorSampleStandardDeviation()
+<span style = "background-color:#fdd">{
+return GetSampleStabw(GetErrorList(PointSetToVector(m_PointSet)));
+}</span>
+
+
+double mitk::PointSetStatisticsCalculator::GetPositionErrorRMS()
+<span style = "background-color:#fdd">{
+double returnValue = 0.0;</span>
+
+<span style = "background-color:#fdd">if (CheckIfAllPositionsAreEqual()) return returnValue;</span>
+
+<span style = "background-color:#fdd">std::vector&lt;mitk::Point3D&gt; pSet = PointSetToVector(m_PointSet);</span>
+
+<span style = "background-color:#fdd">if(pSet.empty()) return 0;</span>
+
+<span style = "background-color:#fdd">mitk::Point3D mean = GetMean(pSet);</span>
+
+<span style = "background-color:#fdd">for(std::vector&lt;mitk::Point3D&gt;::size_type i=0; i&lt;pSet.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">  returnValue += pow(mean.EuclideanDistanceTo(pSet.at(i)),2);
+  }
+returnValue /= pSet.size();
+returnValue = sqrt(returnValue);</span>
+
+<span style = "background-color:#fdd">return returnValue;
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetPositionErrorMedian()
+<span style = "background-color:#fdd">{
+return GetMedian(GetErrorList(PointSetToVector(m_PointSet)));
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetPositionErrorMax()
+<span style = "background-color:#fdd">{
+return GetMax(GetErrorList(PointSetToVector(m_PointSet)));
+}</span>
+
+double mitk::PointSetStatisticsCalculator::GetPositionErrorMin()
+<span style = "background-color:#fdd">{
+return GetMin(GetErrorList(PointSetToVector(m_PointSet)));
+}</span>
+
+std::vector&lt;double&gt; mitk::PointSetStatisticsCalculator::GetErrorList(std::vector&lt;mitk::Point3D&gt; list)
+<span style = "background-color:#fdd">{
+std::vector&lt;double&gt; errorList = std::vector&lt;double&gt;();
+mitk::Point3D mean = GetMean(list);
+if (CheckIfAllPositionsAreEqual()) for(std::vector&lt;mitk::Point3D&gt;::size_type i=0; i&lt;list.size(); i++) {errorList.push_back(0.0);}
+else for(std::vector&lt;mitk::Point3D&gt;::size_type i=0; i&lt;list.size(); i++) {errorList.push_back(mean.EuclideanDistanceTo(list.at(i)));}
+return errorList;
+}</span>
+
+mitk::Vector3D mitk::PointSetStatisticsCalculator::GetPositionStandardDeviation()
+<span style = "background-color:#fdd">{
+mitk::Vector3D returnValue;</span>
+
+<span style = "background-color:#fdd">if (CheckIfAllPositionsAreEqual())</span>
+  {
+<span style = "background-color:#fdd">  returnValue[0]=0;
+  returnValue[1]=0;
+  returnValue[2]=0;
+  return returnValue;</span>
+  }
+
+<span style = "background-color:#fdd">std::vector&lt;mitk::Point3D&gt; pSet = PointSetToVector(m_PointSet);
+std::vector&lt;double&gt; listX = std::vector&lt;double&gt;();
+std::vector&lt;double&gt; listY = std::vector&lt;double&gt;();
+std::vector&lt;double&gt; listZ = std::vector&lt;double&gt;();
+for (std::vector&lt;mitk::Point3D&gt;::size_type i=0; i&lt;pSet.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">  listX.push_back(pSet.at(i)[0]);
+  listY.push_back(pSet.at(i)[1]);
+  listZ.push_back(pSet.at(i)[2]);
+  }
+returnValue[0] = GetStabw(listX);
+returnValue[1] = GetStabw(listY);
+returnValue[2] = GetStabw(listZ);
+return returnValue;
+}</span>
+
+mitk::Vector3D mitk::PointSetStatisticsCalculator::GetPositionSampleStandardDeviation()
+<span style = "background-color:#fdd">{
+mitk::Vector3D returnValue;</span>
+
+<span style = "background-color:#fdd">if (CheckIfAllPositionsAreEqual())</span>
+  {
+<span style = "background-color:#fdd">  returnValue[0]=0;
+  returnValue[1]=0;
+  returnValue[2]=0;
+  return returnValue;</span>
+  }
+
+<span style = "background-color:#fdd">std::vector&lt;mitk::Point3D&gt; pSet = PointSetToVector(m_PointSet);
+std::vector&lt;double&gt; listX = std::vector&lt;double&gt;();
+std::vector&lt;double&gt; listY = std::vector&lt;double&gt;();
+std::vector&lt;double&gt; listZ = std::vector&lt;double&gt;();
+for (std::vector&lt;mitk::Point3D&gt;::size_type i=0; i&lt;pSet.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">  listX.push_back(pSet.at(i)[0]);
+  listY.push_back(pSet.at(i)[1]);
+  listZ.push_back(pSet.at(i)[2]);
+  }
+returnValue[0] = GetSampleStabw(listX);
+returnValue[1] = GetSampleStabw(listY);
+returnValue[2] = GetSampleStabw(listZ);
+return returnValue;
+}</span>
+
+mitk::Point3D mitk::PointSetStatisticsCalculator::GetPositionMean()
+<span style = "background-color:#fdd">{
+return GetMean(PointSetToVector(m_PointSet));
+}</span>
+
+bool mitk::PointSetStatisticsCalculator::CheckIfAllPositionsAreEqual()
+<span style = "background-color:#fdd">{
+if (m_PointSet-&gt;GetSize()==0) return false;
+if (m_PointSet-&gt;GetSize()==1) return true;</span>
+
+<span style = "background-color:#fdd">mitk::Point3D lastPoint = m_PointSet-&gt;GetPoint(0);
+for(int i=1; i&lt;m_PointSet-&gt;GetSize(); i++)</span>
+  {
+<span style = "background-color:#fdd">  if((m_PointSet-&gt;GetPoint(i)[0]!=lastPoint[0])||(m_PointSet-&gt;GetPoint(i)[1]!=lastPoint[1])||(m_PointSet-&gt;GetPoint(i)[2]!=lastPoint[2])) return false;
+  lastPoint = m_PointSet-&gt;GetPoint(i);
+  }</span>
+
+<span style = "background-color:#fdd">return true;
+}</span></pre>
+	</body>
+</html>

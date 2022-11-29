@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMPMIOMimeTypes.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMPMIOMimeTypes.h"
+#include "mitkIOMimeTypes.h"
+
+#include &lt;mitkLogMacros.h&gt;
+
+#include &lt;itkGDCMImageIO.h&gt;
+#include &lt;itksys/SystemTools.hxx&gt;
+
+#include &lt;dcmtk/dcmdata/dcfilefo.h&gt;
+#include &lt;dcmtk/dcmdata/dcdeftag.h&gt;
+
+namespace mitk
+{
+  std::vector&lt;CustomMimeType *&gt; MitkDICOMPMIOMimeTypes::Get()
+<span style = "background-color:#dfd">  {
+    std::vector&lt;CustomMimeType *&gt; mimeTypes;</span>
+
+    // order matters here (descending rank for mime types)
+
+<span style = "background-color:#dfd">    mimeTypes.push_back(DICOMPM_MIMETYPE().Clone());
+    return mimeTypes;
+  }</span>
+
+<span style = "background-color:#dfd">  MitkDICOMPMIOMimeTypes::MitkDICOMPMMimeType::MitkDICOMPMMimeType() : CustomMimeType(DICOMPM_MIMETYPE_NAME())
+  {
+    this-&gt;AddExtension("dcm");
+    this-&gt;SetCategory(IOMimeTypes::CATEGORY_IMAGES());
+    this-&gt;SetComment("DICOM PM");
+  }</span>
+
+  bool MitkDICOMPMIOMimeTypes::MitkDICOMPMMimeType::AppliesTo(const std::string &amp;path) const
+<span style = "background-color:#fdd">  {
+    std::ifstream myfile;
+    myfile.open(path, std::ios::binary);</span>
+    //    myfile.seekg (128);
+<span style = "background-color:#fdd">    char *buffer = new char[128];
+    myfile.read(buffer, 128);
+    myfile.read(buffer, 4);
+    if (std::string(buffer).compare("DICM") != 0)</span>
+    {
+<span style = "background-color:#fdd">      delete[] buffer;
+      return false;</span>
+    }
+<span style = "background-color:#fdd">    delete[] buffer;</span>
+
+<span style = "background-color:#fdd">    bool canRead(CustomMimeType::AppliesTo(path));</span>
+
+    // fix for bug 18572
+    // Currently this function is called for writing as well as reading, in that case
+    // the image information can of course not be read
+    // This is a bug, this function should only be called for reading.
+<span style = "background-color:#fdd">    if (!itksys::SystemTools::FileExists(path.c_str()))</span>
+    {
+<span style = "background-color:#fdd">      return canRead;</span>
+    }
+    // end fix for bug 18572
+<span style = "background-color:#fdd">    DcmFileFormat dcmFileFormat;
+    OFCondition status = dcmFileFormat.loadFile(path.c_str());</span>
+
+<span style = "background-color:#fdd">    if (status.bad())</span>
+    {
+<span style = "background-color:#fdd">      canRead = false;</span>
+    }
+
+<span style = "background-color:#fdd">    if (!canRead)</span>
+    {
+<span style = "background-color:#fdd">      return canRead;</span>
+    }
+
+<span style = "background-color:#fdd">    OFString modality;
+    if (dcmFileFormat.getDataset()-&gt;findAndGetOFString(DCM_Modality, modality).good())</span>
+    {
+<span style = "background-color:#fdd">      if (modality.compare("RWV") == 0)</span>
+      {
+<span style = "background-color:#fdd">        canRead = true;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        canRead = false;</span>
+      }
+    }
+
+<span style = "background-color:#fdd">    return canRead;
+  }</span>
+
+    MitkDICOMPMIOMimeTypes::MitkDICOMPMMimeType *MitkDICOMPMIOMimeTypes::MitkDICOMPMMimeType::Clone() const
+<span style = "background-color:#dfd">  {
+    return new MitkDICOMPMMimeType(*this);
+  }</span>
+
+    MitkDICOMPMIOMimeTypes::MitkDICOMPMMimeType MitkDICOMPMIOMimeTypes::DICOMPM_MIMETYPE()
+<span style = "background-color:#dfd">  {
+    return MitkDICOMPMMimeType();
+  }</span>
+
+  // Names
+  std::string MitkDICOMPMIOMimeTypes::DICOMPM_MIMETYPE_NAME()
+<span style = "background-color:#dfd">  {</span>
+    // create a unique and sensible name for this mime type
+<span style = "background-color:#dfd">    static std::string name = IOMimeTypes::DEFAULT_BASE_NAME() + ".image.dicom.pm";
+    return name;
+  }</span>
+
+
+}</pre>
+	</body>
+</html>

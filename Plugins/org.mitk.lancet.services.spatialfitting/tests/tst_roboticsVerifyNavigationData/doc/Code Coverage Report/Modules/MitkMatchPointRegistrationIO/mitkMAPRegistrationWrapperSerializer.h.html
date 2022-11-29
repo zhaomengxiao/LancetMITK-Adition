@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMAPRegistrationWrapperSerializer.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef __mitkMAPRegistrationWrapperSerializer_h
+#define __mitkMAPRegistrationWrapperSerializer_h
+
+#include &lt;mitkBaseDataSerializer.h&gt;
+
+namespace mitk
+{
+/**
+  \brief Serializes mitk::MAPRegistrationWrapper for mitk::SceneIO
+*/
+class MAPRegistrationWrapperSerializer : public BaseDataSerializer
+{
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro( MAPRegistrationWrapperSerializer, BaseDataSerializer );
+    itkFactorylessNewMacro(Self);</span>
+    itkCloneMacro(Self);
+
+    std::string Serialize() override;
+
+  protected:
+    MAPRegistrationWrapperSerializer();
+    ~MAPRegistrationWrapperSerializer() override;
+};
+} // namespace
+#endif</pre>
+	</body>
+</html>

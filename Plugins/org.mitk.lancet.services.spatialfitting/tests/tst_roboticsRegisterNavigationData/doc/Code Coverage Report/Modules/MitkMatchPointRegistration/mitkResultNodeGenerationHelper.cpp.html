@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkResultNodeGenerationHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkResultNodeGenerationHelper.h"
+
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkMatchPointPropertyTags.h&gt;
+#include &lt;mitkImage.h&gt;
+
+mitk::DataNode::Pointer
+  mitk::generateRegistrationResultNode(const std::string&amp; nodeName, mitk::MAPRegistrationWrapper::Pointer resultReg, const std::string&amp; algorithmUID, const std::string&amp; movingDataUID, const std::string&amp; targetDataUID)
+<span style = "background-color:#fdd">{
+  if (resultReg.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot generate registration result node. Passed registration wrapper points to nullptr.";</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::DataNode::Pointer m_spRegNode = mitk::DataNode::New();
+  m_spRegNode-&gt;SetData(resultReg);
+  m_spRegNode-&gt;SetName(nodeName);
+  resultReg-&gt;SetProperty(mitk::Prop_RegAlgUsed, mitk::StringProperty::New(algorithmUID));
+  resultReg-&gt;SetProperty(mitk::Prop_RegAlgMovingData, mitk::StringProperty::New(movingDataUID));
+  resultReg-&gt;SetProperty(mitk::Prop_RegAlgTargetData, mitk::StringProperty::New(targetDataUID));
+  resultReg-&gt;SetProperty(mitk::Prop_RegUID, mitk::StringProperty::New(resultReg-&gt;GetRegistration()-&gt;getRegistrationUID()));</span>
+
+<span style = "background-color:#fdd">  return m_spRegNode;
+};</span>
+
+
+mitk::DataNode::Pointer
+  mitk::generateMappedResultNode(const std::string&amp; nodeName, mitk::BaseData::Pointer mappedData, const std::string&amp; regUID, const std::string&amp; inputDataUID, const bool refinedGeometry, const std::string&amp; interpolator)
+<span style = "background-color:#fdd">{
+  if (mappedData.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot generate mapping result node. Passed mapped data points to nullptr.";</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::DataNode::Pointer mappedDataNode = mitk::DataNode::New();</span>
+
+<span style = "background-color:#fdd">  mappedDataNode-&gt;SetData(mappedData);
+  mappedDataNode-&gt;SetName(nodeName);
+  if (!regUID.empty())</span>
+  {
+<span style = "background-color:#fdd">    mappedData-&gt;SetProperty(mitk::Prop_RegUID, mitk::StringProperty::New(regUID));</span>
+  }
+<span style = "background-color:#fdd">  mappedData-&gt;SetProperty(mitk::Prop_MappingInputData, mitk::StringProperty::New(inputDataUID));
+  if (refinedGeometry)</span>
+  {
+<span style = "background-color:#fdd">    mappedData-&gt;SetProperty(mitk::Prop_MappingInterpolator, mitk::StringProperty::New("None"));
+    mappedData-&gt;SetProperty(mitk::Prop_MappingRefinedGeometry, mitk::BoolProperty::New(true));
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    mitk::Image* image = dynamic_cast&lt;mitk::Image*&gt;(mappedData.GetPointer());</span>
+
+<span style = "background-color:#fdd">    if(image)</span>
+    {
+<span style = "background-color:#fdd">      mappedData-&gt;SetProperty(mitk::Prop_MappingInterpolator, mitk::StringProperty::New(interpolator));
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      mappedData-&gt;SetProperty(mitk::Prop_MappingInterpolator, mitk::StringProperty::New("None"));
+      mappedDataNode-&gt;SetColor(0.0, 0.0, 1.0);</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  return mappedDataNode;
+};</span></pre>
+	</body>
+</html>

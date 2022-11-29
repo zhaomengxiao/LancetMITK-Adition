@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>GbfFrame.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+//----------------------------------------------------------------------------
+//
+//  Copyright (C) 2017, Northern Digital Inc. All rights reserved.
+//
+//  All Northern Digital Inc. ("NDI") Media and/or Sample Code and/or Sample Code
+//  Documentation (collectively referred to as "Sample Code") is licensed and provided "as
+//  is" without warranty of any kind. The licensee, by use of the Sample Code, warrants to
+//  NDI that the Sample Code is fit for the use and purpose for which the licensee intends to
+//  use the Sample Code. NDI makes no warranties, express or implied, that the functions
+//  contained in the Sample Code will meet the licensee's requirements or that the operation
+//  of the programs contained therein will be error free. This warranty as expressed herein is
+//  exclusive and NDI expressly disclaims any and all express and/or implied, in fact or in
+//  law, warranties, representations, and conditions of every kind pertaining in any way to
+//  the Sample Code licensed and provided by NDI hereunder, including without limitation,
+//  each warranty and/or condition of quality, merchantability, description, operation,
+//  adequacy, suitability, fitness for particular purpose, title, interference with use or
+//  enjoyment, and/or non infringement, whether express or implied by statute, common law,
+//  usage of trade, course of dealing, custom, or otherwise. No NDI dealer, distributor, agent
+//  or employee is authorized to make any modification or addition to this warranty.
+//  In no event shall NDI nor any of its employees be liable for any direct, indirect,
+//  incidental, special, exemplary, or consequential damages, sundry damages or any
+//  damages whatsoever, including, but not limited to, procurement of substitute goods or
+//  services, loss of use, data or profits, or business interruption, however caused. In no
+//  event shall NDI's liability to the licensee exceed the amount paid by the licensee for the
+//  Sample Code or any NDI products that accompany the Sample Code. The said limitations
+//  and exclusions of liability shall apply whether or not any such damages are construed as
+//  arising from a breach of a representation, warranty, guarantee, covenant, obligation,
+//  condition or fundamental term or on any theory of liability, whether in contract, strict
+//  liability, or tort (including negligence or otherwise) arising in any way out of the use of
+//  the Sample Code even if advised of the possibility of such damage. In no event shall
+//  NDI be liable for any claims, losses, damages, judgments, costs, awards, expenses or
+//  liabilities of any kind whatsoever arising directly or indirectly from any injury to person
+//  or property, arising from the Sample Code or any use thereof
+//
+//----------------------------------------------------------------------------
+
+#include &lt;iomanip&gt;
+#include &lt;sstream&gt;
+
+#include "GbfButton1D.h"
+#include "GbfData3D.h"
+#include "GbfData6D.h"
+#include "GbfFrame.h"
+#include "GbfSystemAlert.h"
+
+GbfFrame::GbfFrame(BufferedReader&amp; reader, int dataItems)
+<span style = "background-color:#fdd">{
+	for (int i = 0; i &lt; dataItems; i++)</span>
+	{
+<span style = "background-color:#fdd">    GbfFrameDataItem *framedata = new GbfFrameDataItem(reader);
+		data.push_back(framedata);
+	}
+}</span>
+
+GbfFrame::~GbfFrame()
+<span style = "background-color:#fdd">{
+  for (int i = 0; i &lt; data.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">    delete data[i];
+  }
+}</span>
+
+std::vector&lt;ToolData&gt; GbfFrame::getToolData() const
+<span style = "background-color:#fdd">{</span>
+	// The end goal is to flatten the data into the ToolData structures for client-side manipulation.
+<span style = "background-color:#fdd">	std::vector&lt;ToolData&gt; tools;</span>
+
+	// System alerts are transmitted with each GbfFrameDataItem
+<span style = "background-color:#fdd">	std::vector&lt;SystemAlert&gt; gbfFrameDataItemAlerts;</span>
+
+	// Active, Active-Wireless, and Passive tools collect data in different ways.
+	// Thus, each frame of data must be divided into separate frames for each tool type.
+	// BX2 transmits the data as one or more GbfFrameDataItems on each GbfFrame.
+<span style = "background-color:#fdd">	for (int i = 0; i &lt; data.size(); i++)</span>
+	{
+		// Go through the GBF components on each GbfFrameDataItem
+<span style = "background-color:#fdd">		for (int c = 0; c &lt; data[i]-&gt;frameData-&gt;components.size(); c++)</span>
+		{
+<span style = "background-color:#fdd">			GbfComponent* component = data[i]-&gt;frameData-&gt;components[c];
+			if (component-&gt;componentType == GbfComponentType::Data6D)</span>
+			{
+				// Go through each 6D on this GBF component
+<span style = "background-color:#fdd">				GbfData6D* data6D = static_cast&lt;GbfData6D*&gt;(component);
+				for (int j = 0; j &lt; data6D-&gt;toolTransforms.size(); j++)</span>
+				{
+					// Append the 6D if the ToolData exists
+<span style = "background-color:#fdd">					bool toolExists = false;
+					for (int t =0; t &lt; tools.size(); t++)</span>
+					{
+<span style = "background-color:#fdd">						if (tools[t].transform.toolHandle == data6D-&gt;toolTransforms[j].toolHandle)</span>
+						{
+<span style = "background-color:#fdd">							toolExists = true;
+							tools[t].transform = data6D-&gt;toolTransforms[j];
+							break;</span>
+						}
+<span style = "background-color:#fdd">					}
+					if (!toolExists)</span>
+					{
+						// Create a ToolData object with the frame and transform information
+<span style = "background-color:#fdd">						tools.push_back(ToolData());
+						tools.back().dataIsNew = true;
+						tools.back().frameType = data[i]-&gt;frameType;
+						tools.back().frameSequenceIndex = data[i]-&gt;frameSequenceIndex;
+						tools.back().frameStatus = data[i]-&gt;frameStatus;
+						tools.back().frameNumber = data[i]-&gt;frameNumber;
+						tools.back().timespec_s = data[i]-&gt;timespec_s;
+						tools.back().timespec_ns = data[i]-&gt;timespec_ns;
+						tools.back().transform = data6D-&gt;toolTransforms[j];
+						tools.back().systemAlerts = gbfFrameDataItemAlerts;</span>
+					}
+<span style = "background-color:#fdd">				}
+			}
+			else if (component-&gt;componentType == GbfComponentType::Data3D)</span>
+			{
+				// Go through each 3D on this GBF component
+<span style = "background-color:#fdd">				GbfData3D* data3D = static_cast&lt;GbfData3D*&gt;(component);
+				for (int j = 0; j &lt; data3D-&gt;toolHandles.size(); j++)</span>
+				{
+					// Append the 3D information if the ToolData exists
+<span style = "background-color:#fdd">					bool toolExists = false;
+					for (int t = 0; t &lt; tools.size(); t++)</span>
+					{
+<span style = "background-color:#fdd">						if (tools[t].transform.toolHandle == data3D-&gt;toolHandles[j])</span>
+						{
+<span style = "background-color:#fdd">							toolExists = true;
+							tools[t].markers = data3D-&gt;markers[j];
+							break;</span>
+						}
+<span style = "background-color:#fdd">					}
+					if (!toolExists)</span>
+					{
+						// Create a ToolData object with the frame and marker information
+<span style = "background-color:#fdd">						tools.push_back(ToolData());
+						tools.back().transform.toolHandle = data3D-&gt;toolHandles[j]; // don't forget the handle
+						tools.back().dataIsNew = true;
+						tools.back().frameType = data[i]-&gt;frameType;
+						tools.back().frameSequenceIndex = data[i]-&gt;frameSequenceIndex;
+						tools.back().frameStatus = data[i]-&gt;frameStatus;
+						tools.back().frameNumber = data[i]-&gt;frameNumber;
+						tools.back().timespec_s = data[i]-&gt;timespec_s;
+						tools.back().timespec_ns = data[i]-&gt;timespec_ns;
+						tools.back().markers = data3D-&gt;markers[j];
+						tools.back().systemAlerts = gbfFrameDataItemAlerts;</span>
+					}
+<span style = "background-color:#fdd">				}
+			}
+			else if (component-&gt;componentType == GbfComponentType::Button1D)</span>
+			{
+<span style = "background-color:#fdd">				GbfButton1D* buttonData = static_cast&lt;GbfButton1D*&gt;(component);
+				if (buttonData-&gt;data.size() &gt; 0)</span>
+				{
+					// Append button data if the ToolData exists
+<span style = "background-color:#fdd">					bool toolExists = false;
+					for (int t = 0; t &lt; tools.size(); t++)</span>
+					{
+<span style = "background-color:#fdd">						if (tools[t].transform.toolHandle == buttonData-&gt;toolHandle)</span>
+						{
+<span style = "background-color:#fdd">							bool toolExists = false;
+							tools[t].buttons = buttonData-&gt;data;
+							break;</span>
+						}
+<span style = "background-color:#fdd">					}
+					if (!toolExists)</span>
+					{
+						// Create a ToolData object with the button data and frame information
+<span style = "background-color:#fdd">						tools.push_back(ToolData());
+						tools.back().transform.toolHandle = buttonData-&gt;toolHandle; // don't forget the handle
+						tools.back().dataIsNew = true;
+						tools.back().frameType = data[i]-&gt;frameType;
+						tools.back().frameSequenceIndex = data[i]-&gt;frameSequenceIndex;
+						tools.back().frameStatus = data[i]-&gt;frameStatus;
+						tools.back().frameNumber = data[i]-&gt;frameNumber;
+						tools.back().timespec_s = data[i]-&gt;timespec_s;
+						tools.back().timespec_ns = data[i]-&gt;timespec_ns;
+						tools.back().buttons = buttonData-&gt;data;
+						tools.back().systemAlerts = gbfFrameDataItemAlerts;</span>
+					}
+				}
+<span style = "background-color:#fdd">			}
+			else if (component-&gt;componentType == GbfComponentType::SystemAlert)</span>
+			{
+				// Store the alerts "globally" within this method so they are added to new ToolData
+<span style = "background-color:#fdd">				GbfSystemAlert* alert = static_cast&lt;GbfSystemAlert*&gt;(component);
+				gbfFrameDataItemAlerts = alert-&gt;data;</span>
+
+				// Append the alert information to all ToolData from this GbfFrameDataItem
+<span style = "background-color:#fdd">				bool toolExists = false;
+				for (int t = 0; t &lt; tools.size(); t++)</span>
+				{
+<span style = "background-color:#fdd">					if (tools[t].frameNumber == data[i]-&gt;frameNumber)</span>
+					{
+<span style = "background-color:#fdd">						tools[t].systemAlerts = gbfFrameDataItemAlerts;
+						break;</span>
+					}
+<span style = "background-color:#fdd">				}</span>
+			}
+<span style = "background-color:#fdd">		} // process the next GbfComponent with more tool information
+	} // process the next GbfFrameDataItem for a different tool type...
+	return tools;
+}</span>
+
+std::string GbfFrame::toString() const
+<span style = "background-color:#fdd">{
+	std::stringstream stream;
+	stream &lt;&lt; std::hex &lt;&lt; std::setfill('0');
+	stream &lt;&lt; "-----GbfFrame " &lt;&lt; std::endl &lt;&lt; GbfComponent::toString();
+	for (int i = 0; i &lt; data.size(); i++)</span>
+	{
+<span style = "background-color:#fdd">		stream &lt;&lt; data[i]-&gt;toString();
+	}</span>
+
+<span style = "background-color:#fdd">	return stream.str();
+}</span>
+
+std::string GbfFrameDataItem::toString() const
+<span style = "background-color:#fdd">{
+	std::stringstream stream;
+	stream &lt;&lt; std::hex &lt;&lt; std::setfill('0');
+	stream &lt;&lt; "-----GbfFrameDataItem " &lt;&lt; std::endl</span>
+		   &lt;&lt; "frameType=" &lt;&lt; std::setw(2) &lt;&lt; static_cast&lt;unsigned&gt;(frameType) &lt;&lt; "(" &lt;&lt; FrameType::toString(frameType) &lt;&lt; ")" &lt;&lt; std::endl
+		   &lt;&lt; "frameSequenceIndex=" &lt;&lt; std::setw(2) &lt;&lt; static_cast&lt;unsigned&gt;(frameSequenceIndex) &lt;&lt; std::endl
+		   &lt;&lt; "frameStatus=" &lt;&lt; std::setw(4) &lt;&lt; static_cast&lt;unsigned&gt;(frameStatus) &lt;&lt; std::endl
+		   &lt;&lt; "frameNumber=" &lt;&lt; std::setw(8) &lt;&lt; static_cast&lt;unsigned&gt;(frameNumber) &lt;&lt; std::endl
+		   &lt;&lt; "timestamp=" &lt;&lt; std::setw(8) &lt;&lt; static_cast&lt;unsigned&gt;(timespec_s) &lt;&lt; "," &lt;&lt; std::setw(8) &lt;&lt; static_cast&lt;unsigned&gt;(timespec_ns) &lt;&lt; std::endl
+		   &lt;&lt; frameData-&gt;toString() &lt;&lt; std::endl;
+<span style = "background-color:#fdd">	return stream.str();
+}</span>
+
+GbfFrameDataItem::GbfFrameDataItem(BufferedReader&amp; reader)
+<span style = "background-color:#fdd">{
+	frameType = reader.get_byte();
+	frameSequenceIndex = reader.get_byte();
+	frameStatus = reader.get_uint16();
+	frameNumber = reader.get_uint32();
+	timespec_s = reader.get_uint32();
+	timespec_ns = reader.get_uint32();
+	frameData = new GbfContainer(reader);
+}</span>
+
+GbfFrameDataItem::~GbfFrameDataItem()
+<span style = "background-color:#fdd">{
+	delete frameData;
+}</span>
+</pre>
+	</body>
+</html>

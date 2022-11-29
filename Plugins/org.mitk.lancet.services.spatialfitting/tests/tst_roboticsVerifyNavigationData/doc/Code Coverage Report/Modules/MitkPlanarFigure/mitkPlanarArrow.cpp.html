@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlanarArrow.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPlanarArrow.h"
+#include "mitkPlaneGeometry.h"
+
+<span style = "background-color:#fdd">mitk::PlanarArrow::PlanarArrow() : FEATURE_ID_LENGTH(this-&gt;AddFeature("Length", "mm"))
+{</span>
+  // Directed arrow has two control points
+<span style = "background-color:#fdd">  this-&gt;ResetNumberOfControlPoints(2);
+  m_ArrowTipScaleFactor = -1.0;</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetNumberOfPolyLines(1);
+  this-&gt;SetNumberOfHelperPolyLines(2);</span>
+
+  // Create helper polyline object (for drawing the orthogonal orientation line)
+<span style = "background-color:#fdd">  m_HelperPolyLinesToBePainted-&gt;InsertElement(0, false);
+  m_HelperPolyLinesToBePainted-&gt;InsertElement(1, false);
+}</span>
+
+void mitk::PlanarArrow::GeneratePolyLine()
+<span style = "background-color:#fdd">{
+  this-&gt;ClearPolyLines();</span>
+
+<span style = "background-color:#fdd">  this-&gt;AppendPointToPolyLine(0, this-&gt;GetControlPoint(0));
+  this-&gt;AppendPointToPolyLine(0, this-&gt;GetControlPoint(1));
+}</span>
+
+void mitk::PlanarArrow::GenerateHelperPolyLine(double mmPerDisplayUnit, unsigned int displayHeight)
+<span style = "background-color:#fdd">{</span>
+  // Generate helper polyline (orientation line orthogonal to first line)
+  // if the third control point is currently being set
+<span style = "background-color:#fdd">  if (this-&gt;GetNumberOfControlPoints() != 2)</span>
+  {
+<span style = "background-color:#fdd">    m_HelperPolyLinesToBePainted-&gt;SetElement(0, false);
+    m_HelperPolyLinesToBePainted-&gt;SetElement(1, false);</span>
+
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;ClearHelperPolyLines();</span>
+
+<span style = "background-color:#fdd">  m_HelperPolyLinesToBePainted-&gt;SetElement(0, true);
+  m_HelperPolyLinesToBePainted-&gt;SetElement(1, true);</span>
+
+  // Fixed size depending on screen size for the angle
+<span style = "background-color:#fdd">  float scaleFactor = 0.015;
+  if (m_ArrowTipScaleFactor &gt; 0.0)</span>
+  {
+<span style = "background-color:#fdd">    scaleFactor = m_ArrowTipScaleFactor;</span>
+  }
+<span style = "background-color:#fdd">  double nonScalingLength = displayHeight * mmPerDisplayUnit * scaleFactor;</span>
+
+  // Calculate arrow peak
+<span style = "background-color:#fdd">  const Point2D p1 = this-&gt;GetControlPoint(0);
+  const Point2D p2 = this-&gt;GetControlPoint(1);</span>
+
+<span style = "background-color:#fdd">  Vector2D n1 = p1 - p2;
+  n1.Normalize();</span>
+
+<span style = "background-color:#fdd">  double degrees = 100.0;
+  Vector2D temp;
+  temp[0] = n1[0] * cos(degrees) - n1[1] * sin(degrees);
+  temp[1] = n1[0] * sin(degrees) + n1[1] * cos(degrees);
+  Vector2D temp2;
+  temp2[0] = n1[0] * cos(-degrees) - n1[1] * sin(-degrees);
+  temp2[1] = n1[0] * sin(-degrees) + n1[1] * cos(-degrees);</span>
+
+<span style = "background-color:#fdd">  this-&gt;AppendPointToHelperPolyLine(0, p1);
+  this-&gt;AppendPointToHelperPolyLine(0, Point2D(p1 - temp * nonScalingLength));
+  this-&gt;AppendPointToHelperPolyLine(1, p1);
+  this-&gt;AppendPointToHelperPolyLine(1, Point2D(p1 - temp2 * nonScalingLength));
+}</span>
+
+void mitk::PlanarArrow::EvaluateFeaturesInternal()
+<span style = "background-color:#fdd">{</span>
+  // Calculate line length
+<span style = "background-color:#fdd">  const Point3D &amp;p0 = this-&gt;GetWorldControlPoint(0);
+  const Point3D &amp;p1 = this-&gt;GetWorldControlPoint(1);
+  double length = p0.EuclideanDistanceTo(p1);</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetQuantity(FEATURE_ID_LENGTH, length);
+}</span>
+
+void mitk::PlanarArrow::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);
+}</span>
+
+void mitk::PlanarArrow::SetArrowTipScaleFactor(float scale)
+<span style = "background-color:#fdd">{
+  m_ArrowTipScaleFactor = scale;
+}</span>
+
+bool mitk::PlanarArrow::Equals(const mitk::PlanarFigure &amp;other) const
+<span style = "background-color:#fdd">{
+  const auto *otherArrow = dynamic_cast&lt;const mitk::PlanarArrow *&gt;(&amp;other);
+  if (otherArrow)</span>
+  {
+<span style = "background-color:#fdd">    if (std::abs(this-&gt;m_ArrowTipScaleFactor - otherArrow-&gt;m_ArrowTipScaleFactor) &gt; mitk::eps)
+      return false;</span>
+
+<span style = "background-color:#fdd">    return Superclass::Equals(other);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDoseNodeHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#include "mitkDoseNodeHelper.h"
+
+#include &lt;mitkRTConstants.h&gt;
+#include &lt;mitkIsoDoseLevelCollections.h&gt;
+#include &lt;mitkIsoDoseLevelSetProperty.h&gt;
+#include &lt;mitkIsoDoseLevelVectorProperty.h&gt;
+#include &lt;mitkDoseImageVtkMapper2D.h&gt;
+#include &lt;mitkIsoLevelsGenerator.h&gt;
+
+#include &lt;vtkSmartPointer.h&gt;
+#include &lt;vtkMath.h&gt;
+#include &lt;mitkTransferFunction.h&gt;
+#include &lt;mitkTransferFunctionProperty.h&gt;
+#include &lt;mitkRenderingModeProperty.h&gt;
+
+
+void mitk::ConfigureNodeAsDoseNode(mitk::DataNode* doseNode, const mitk::IsoDoseLevelSet* colorPreset, mitk::DoseValueAbs referenceDose, bool showColorWashGlobal)
+<span style = "background-color:#fdd">{
+  if (!doseNode) return;</span>
+
+<span style = "background-color:#fdd">  mitk::Image::Pointer doseImage = dynamic_cast&lt;mitk::Image*&gt;(doseNode-&gt;GetData());</span>
+
+<span style = "background-color:#fdd">  if (doseImage != nullptr)</span>
+  {
+    //set some specific color wash and isoline properties
+<span style = "background-color:#fdd">    doseNode-&gt;SetBoolProperty(mitk::RTConstants::DOSE_SHOW_COLORWASH_PROPERTY_NAME.c_str(), showColorWashGlobal);</span>
+
+    //Set reference dose property
+<span style = "background-color:#fdd">    doseNode-&gt;SetFloatProperty(mitk::RTConstants::REFERENCE_DOSE_PROPERTY_NAME.c_str(), referenceDose);</span>
+
+<span style = "background-color:#fdd">    mitk::IsoDoseLevelSetProperty::Pointer levelSetProp = mitk::IsoDoseLevelSetProperty::New(dynamic_cast&lt;mitk::IsoDoseLevelSet*&gt;(colorPreset-&gt;Clone().GetPointer()));</span>
+
+<span style = "background-color:#fdd">    doseNode-&gt;SetProperty(mitk::RTConstants::DOSE_ISO_LEVELS_PROPERTY_NAME.c_str(), levelSetProp);</span>
+
+<span style = "background-color:#fdd">    mitk::RenderingModeProperty::Pointer renderingModeProp = mitk::RenderingModeProperty::New();</span>
+
+<span style = "background-color:#fdd">    if (showColorWashGlobal)</span>
+    {
+      //Generating the color wash
+<span style = "background-color:#fdd">      vtkSmartPointer&lt;vtkColorTransferFunction&gt; transferFunction = vtkSmartPointer&lt;vtkColorTransferFunction&gt;::New();</span>
+
+<span style = "background-color:#fdd">      for (mitk::IsoDoseLevelSet::ConstIterator itIsoDoseLevel = colorPreset-&gt;Begin(); itIsoDoseLevel != colorPreset-&gt;End(); ++itIsoDoseLevel)</span>
+      {
+<span style = "background-color:#fdd">        float *hsv = new float[3];</span>
+        //used for transfer rgb to hsv
+<span style = "background-color:#fdd">        vtkSmartPointer&lt;vtkMath&gt; cCalc = vtkSmartPointer&lt;vtkMath&gt;::New();
+        if (itIsoDoseLevel-&gt;GetVisibleColorWash()){
+          cCalc-&gt;RGBToHSV(itIsoDoseLevel-&gt;GetColor()[0], itIsoDoseLevel-&gt;GetColor()[1], itIsoDoseLevel-&gt;GetColor()[2], &amp;hsv[0], &amp;hsv[1], &amp;hsv[2]);
+          transferFunction-&gt;AddHSVPoint(itIsoDoseLevel-&gt;GetDoseValue()*referenceDose, hsv[0], hsv[1], hsv[2], 1.0, 1.0);</span>
+        }
+<span style = "background-color:#fdd">      }</span>
+
+<span style = "background-color:#fdd">      mitk::TransferFunction::Pointer mitkTransFunc = mitk::TransferFunction::New();
+      mitk::TransferFunctionProperty::Pointer mitkTransFuncProp = mitk::TransferFunctionProperty::New();
+      mitkTransFunc-&gt;SetColorTransferFunction(transferFunction);
+      mitkTransFuncProp-&gt;SetValue(mitkTransFunc);</span>
+
+<span style = "background-color:#fdd">      doseNode-&gt;SetProperty("Image Rendering.Transfer Function", mitkTransFuncProp);
+      renderingModeProp-&gt;SetValue(mitk::RenderingModeProperty::COLORTRANSFERFUNCTION_COLOR);
+    }</span>
+    else
+    {
+      //Set rendering mode to levelwindow color mode
+<span style = "background-color:#fdd">      renderingModeProp-&gt;SetValue(mitk::RenderingModeProperty::LOOKUPTABLE_LEVELWINDOW_COLOR);</span>
+    }
+
+<span style = "background-color:#fdd">    doseNode-&gt;SetProperty("Image Rendering.Mode", renderingModeProp);
+    doseNode-&gt;SetProperty("opacity", mitk::FloatProperty::New(0.5));
+  }
+};</span>
+
+
+void mitk::ConfigureNodeAsIsoLineNode(mitk::DataNode* doseOutlineNode, const mitk::IsoDoseLevelSet* colorPreset, mitk::DoseValueAbs referenceDose, bool showIsolinesGlobal)
+<span style = "background-color:#fdd">{
+  if (doseOutlineNode != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Image::Pointer doseImage = dynamic_cast&lt;mitk::Image*&gt;(doseOutlineNode-&gt;GetData());</span>
+
+<span style = "background-color:#fdd">    if (doseImage != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      mitk::IsoDoseLevelSetProperty::Pointer levelSetProp = mitk::IsoDoseLevelSetProperty::New(dynamic_cast&lt;mitk::IsoDoseLevelSet*&gt;(colorPreset-&gt;Clone().GetPointer()));</span>
+
+<span style = "background-color:#fdd">      mitk::IsoDoseLevelVector::Pointer levelVector = mitk::IsoDoseLevelVector::New();
+      mitk::IsoDoseLevelVectorProperty::Pointer levelVecProp = mitk::IsoDoseLevelVectorProperty::New(levelVector);</span>
+
+<span style = "background-color:#fdd">      doseOutlineNode-&gt;SetBoolProperty(mitk::RTConstants::DOSE_SHOW_ISOLINES_PROPERTY_NAME.c_str(), showIsolinesGlobal);
+      doseOutlineNode-&gt;SetFloatProperty(mitk::RTConstants::REFERENCE_DOSE_PROPERTY_NAME.c_str(), referenceDose);</span>
+
+<span style = "background-color:#fdd">      doseOutlineNode-&gt;SetProperty(mitk::RTConstants::DOSE_ISO_LEVELS_PROPERTY_NAME.c_str(), levelSetProp);</span>
+
+<span style = "background-color:#fdd">      doseOutlineNode-&gt;SetProperty(mitk::RTConstants::DOSE_FREE_ISO_VALUES_PROPERTY_NAME.c_str(), levelVecProp);</span>
+
+      //set the outline properties
+<span style = "background-color:#fdd">      doseOutlineNode-&gt;SetBoolProperty("outline binary", true);
+      doseOutlineNode-&gt;SetProperty("helper object", mitk::BoolProperty::New(true));
+      doseOutlineNode-&gt;SetProperty("includeInBoundingBox", mitk::BoolProperty::New(false));</span>
+
+      //set the dose mapper for outline drawing; the colorwash is realized by the imagevtkmapper2D
+<span style = "background-color:#fdd">      mitk::DoseImageVtkMapper2D::Pointer contourMapper = mitk::DoseImageVtkMapper2D::New();
+      doseOutlineNode-&gt;SetMapper(1, contourMapper);
+    }
+  }
+};</span></pre>
+	</body>
+</html>

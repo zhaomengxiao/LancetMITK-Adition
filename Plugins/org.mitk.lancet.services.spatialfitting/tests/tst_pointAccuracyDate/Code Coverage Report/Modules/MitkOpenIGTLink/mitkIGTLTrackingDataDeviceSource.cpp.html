@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIGTLTrackingDataDeviceSource.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkIGTLTrackingDataDeviceSource.h"
+
+#include "mitkIGTLMessage.h"
+
+//Microservices
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModule.h&gt;
+#include &lt;usServiceProperties.h&gt;
+#include &lt;usModuleContext.h&gt;
+
+//itk
+#include &lt;itkCommand.h&gt;
+
+mitk::IGTLTrackingDataDeviceSource::IGTLTrackingDataDeviceSource()
+<span style = "background-color:#fdd">  : mitk::IGTLDeviceSource() , m_trackingDataType(UNKNOWN)
+{
+  this-&gt;SetName("IGTLDeviceSource (tracking data)");
+}</span>
+
+mitk::IGTLTrackingDataDeviceSource::~IGTLTrackingDataDeviceSource()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::IGTLTrackingDataDeviceSource::GenerateData()
+<span style = "background-color:#fdd">{
+  if (m_IGTLDevice.IsNull())
+    return;</span>
+
+  /* update output with message from the device */
+<span style = "background-color:#fdd">  IGTLMessage* msgOut = this-&gt;GetOutput();
+  assert(msgOut);
+  igtl::MessageBase::Pointer msgIn;
+  switch (m_trackingDataType)</span>
+  {
+  case UNKNOWN:
+    {
+<span style = "background-color:#fdd">    igtl::MessageBase::Pointer msgInTDATA = dynamic_cast&lt;igtl::MessageBase*&gt;(m_IGTLDevice-&gt;GetNextTrackingDataMessage().GetPointer());
+    igtl::MessageBase::Pointer msgInTRANSFORM = dynamic_cast&lt;igtl::MessageBase*&gt;(m_IGTLDevice-&gt;GetNextTransformMessage().GetPointer());
+    if (msgInTDATA.IsNull() &amp;&amp; msgInTRANSFORM.IsNotNull()) { msgIn = msgInTRANSFORM; }
+    else if (msgInTDATA.IsNotNull() &amp;&amp; msgInTRANSFORM.IsNull()) { msgIn = msgInTDATA; }
+    else if (msgInTDATA.IsNotNull() &amp;&amp; msgInTRANSFORM.IsNotNull())</span>
+      {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "Found both: TDATA and TRANSFORM messages. Using TRANSFORM as default.";</span>
+      }
+<span style = "background-color:#fdd">    }
+    break;</span>
+  case TDATA:
+<span style = "background-color:#fdd">    msgIn = dynamic_cast&lt;igtl::MessageBase*&gt;(m_IGTLDevice-&gt;GetNextTrackingDataMessage().GetPointer());
+    break;</span>
+  case QTDATA:
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Receiving QTDATA is not implemented yet!";
+    break;</span>
+  case TRANSFORM:
+<span style = "background-color:#fdd">    msgIn = dynamic_cast&lt;igtl::MessageBase*&gt;(m_IGTLDevice-&gt;GetNextTransformMessage().GetPointer());</span>
+    break;
+  }
+
+<span style = "background-color:#fdd">  if (msgIn.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    assert(msgIn);
+    msgOut-&gt;SetMessage(msgIn);
+    msgOut-&gt;SetName(msgIn-&gt;GetDeviceName());</span>
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

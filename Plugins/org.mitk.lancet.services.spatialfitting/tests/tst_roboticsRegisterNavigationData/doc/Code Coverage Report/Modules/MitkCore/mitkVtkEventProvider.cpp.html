@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVtkEventProvider.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkVtkEventProvider.h"
+#include "mitkVtkEventAdapter.h"
+#include &lt;mbilog.h&gt;
+
+#include &lt;vtkCallbackCommand.h&gt;
+#include &lt;vtkInteractorStyle.h&gt;
+#include &lt;vtkObjectFactory.h&gt;
+#include &lt;vtkRenderWindowInteractor.h&gt;
+
+#include "mitkInteractionEvent.h"
+
+#define VTKEVENTPROVIDER_INFO MBI_INFO("mitk.core.vtkeventprovider")
+#define VTKEVENTPROVIDER_WARN MBI_WARN("mitk.core.vtkeventprovider")
+#define VTKEVENTPROVIDER_ERROR MBI_ERROR("mitk.core.vtkeventprovider")
+#define VTKEVENTPROVIDER_DEBUG MBI_DEBUG("mitk.core.vtkeventprovider")
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  vtkStandardNewMacro(vtkEventProvider);</span>
+}
+//----------------------------------------------------------------------------
+mitk::vtkEventProvider::vtkEventProvider()
+<span style = "background-color:#fdd">{</span>
+  // priority of the observer/command; we want MITK events processed in the very beginning
+<span style = "background-color:#fdd">  this-&gt;Priority = 99999.99;</span>
+
+  // take over the processing of delete and keypress events from the superclass
+<span style = "background-color:#fdd">  this-&gt;EventCallbackCommand-&gt;SetCallback(vtkEventProvider::ProcessEvents);</span>
+
+  // Set/Get the passive observer flag. If this is set to true, this
+  // indicates that this command does not change the state of the
+  // system in any way. Passive observers are processed first, and
+  // are not called even when another command has focus.
+<span style = "background-color:#fdd">  this-&gt;EventCallbackCommand-&gt;SetPassiveObserver(1); // get events first</span>
+
+  // mouse move
+<span style = "background-color:#fdd">  AddInteractionEvent(vtkCommand::MouseMoveEvent);</span>
+  // mouse press
+<span style = "background-color:#fdd">  AddInteractionEvent(vtkCommand::LeftButtonPressEvent);
+  AddInteractionEvent(vtkCommand::MiddleButtonPressEvent);
+  AddInteractionEvent(vtkCommand::RightButtonPressEvent);</span>
+  // mouse release
+<span style = "background-color:#fdd">  AddInteractionEvent(vtkCommand::LeftButtonReleaseEvent);
+  AddInteractionEvent(vtkCommand::MiddleButtonReleaseEvent);
+  AddInteractionEvent(vtkCommand::RightButtonReleaseEvent);</span>
+  // wheel event
+<span style = "background-color:#fdd">  AddInteractionEvent(vtkCommand::MouseWheelBackwardEvent);
+  AddInteractionEvent(vtkCommand::MouseWheelForwardEvent);</span>
+  // key press event
+<span style = "background-color:#fdd">  AddInteractionEvent(vtkCommand::KeyPressEvent);
+}</span>
+
+mitk::vtkEventProvider::~vtkEventProvider()
+<span style = "background-color:#fdd">{
+  this-&gt;SetInteractor(nullptr);
+}</span>
+
+void mitk::vtkEventProvider::SetMitkRenderWindow(mitk::RenderWindow *renWin)
+<span style = "background-color:#fdd">{
+  m_RenderWindow = renWin;
+}</span>
+
+mitk::RenderWindow *mitk::vtkEventProvider::GetRenderWindow()
+<span style = "background-color:#fdd">{
+  return m_RenderWindow;
+}</span>
+
+void mitk::vtkEventProvider::SetEnabled(int enabling)
+<span style = "background-color:#fdd">{
+  if (!this-&gt;Interactor)</span>
+  {
+<span style = "background-color:#fdd">    VTKEVENTPROVIDER_ERROR &lt;&lt; "The interactor must be set prior to enabling/disabling widget";
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  if (enabling) //----------------------------------------------------------</span>
+  {
+<span style = "background-color:#fdd">    VTKEVENTPROVIDER_DEBUG &lt;&lt; "Enabling widget";</span>
+
+<span style = "background-color:#fdd">    if (this-&gt;Enabled) // already enabled, just return</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;Enabled = 1;</span>
+
+    // listen to all event types specified in m_InteractionEventsVector
+<span style = "background-color:#fdd">    vtkRenderWindowInteractor *i = this-&gt;Interactor;</span>
+
+<span style = "background-color:#fdd">    InteractionEventsVectorType::iterator it;
+    for (it = m_InteractionEventsVector.begin(); it != m_InteractionEventsVector.end(); ++it)</span>
+    {
+      // add observer to interactorStyle
+<span style = "background-color:#fdd">      i-&gt;GetInteractorStyle()-&gt;AddObserver((vtkCommand::EventIds)(*it), this-&gt;EventCallbackCommand, this-&gt;Priority);
+    }</span>
+
+<span style = "background-color:#fdd">    this-&gt;InvokeEvent(vtkCommand::EnableEvent, nullptr);
+  }</span>
+
+  else // disabling-----------------------------------------------------------
+  {
+<span style = "background-color:#fdd">    VTKEVENTPROVIDER_DEBUG &lt;&lt; "Disabling widget";</span>
+
+<span style = "background-color:#fdd">    if (!this-&gt;Enabled) // already disabled, just return</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;Enabled = 0;</span>
+
+    // don't listen for events any more
+<span style = "background-color:#fdd">    this-&gt;Interactor-&gt;RemoveObserver(this-&gt;EventCallbackCommand);</span>
+    // this-&gt;Interactor-&gt;HandleEventLoop = 0;
+
+<span style = "background-color:#fdd">    this-&gt;InvokeEvent(vtkCommand::DisableEvent, nullptr);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+//----------------------------------------------------------------------------
+// This adds the keypress event observer and the delete event observer
+void mitk::vtkEventProvider::SetInteractor(vtkRenderWindowInteractor *i)
+<span style = "background-color:#fdd">{
+  if (i == this-&gt;Interactor)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+  // if we already have an Interactor then stop observing it
+<span style = "background-color:#fdd">  if (this-&gt;Interactor)
+    this-&gt;SetEnabled(0); // disable the old interactor</span>
+
+<span style = "background-color:#fdd">  this-&gt;Interactor = i;</span>
+
+<span style = "background-color:#fdd">  this-&gt;Modified();
+}</span>
+
+//----------------------------------------------------------------------------
+void mitk::vtkEventProvider::ProcessEvents(vtkObject *object,
+                                           unsigned long event,
+                                           void *clientData,
+                                           void *vtkNotUsed(callData))
+<span style = "background-color:#fdd">{
+  auto *self = reinterpret_cast&lt;vtkEventProvider *&gt;(clientData);
+  vtkRenderWindowInteractor *rwi = static_cast&lt;vtkInteractorStyle *&gt;(object)-&gt;GetInteractor();</span>
+
+  // base renderer
+<span style = "background-color:#fdd">  mitk::BaseRenderer *baseRenderer = mitk::BaseRenderer::GetInstance(self-&gt;GetRenderWindow()-&gt;GetVtkRenderWindow());
+  switch (event)</span>
+  {
+    // key press
+    case vtkCommand::KeyPressEvent:
+    {
+<span style = "background-color:#fdd">      VTKEVENTPROVIDER_DEBUG &lt;&lt; "key press event";
+      InteractionEvent::Pointer adaptedEvent =</span>
+        VtkEventAdapter::AdaptInteractionKeyEvent(baseRenderer, event, rwi).GetPointer();
+<span style = "background-color:#fdd">      self-&gt;GetRenderWindow()-&gt;HandleEvent(adaptedEvent.GetPointer());
+      break;
+    }</span>
+
+    // mouse events
+    case vtkCommand::MouseMoveEvent:
+    {
+<span style = "background-color:#fdd">      VTKEVENTPROVIDER_DEBUG &lt;&lt; "mouse move event";
+      InteractionEvent::Pointer adaptedEvent =</span>
+        VtkEventAdapter::AdaptMouseMoveEvent(baseRenderer, event, rwi).GetPointer();
+<span style = "background-color:#fdd">      self-&gt;GetRenderWindow()-&gt;HandleEvent(adaptedEvent.GetPointer());
+      break;
+    }</span>
+
+    case vtkCommand::LeftButtonPressEvent:
+    case vtkCommand::MiddleButtonPressEvent:
+    case vtkCommand::RightButtonPressEvent:
+    {
+<span style = "background-color:#fdd">      VTKEVENTPROVIDER_DEBUG &lt;&lt; "mouse press event";
+      InteractionEvent::Pointer adaptedEvent =</span>
+        VtkEventAdapter::AdaptMousePressEvent(baseRenderer, event, rwi).GetPointer();
+<span style = "background-color:#fdd">      self-&gt;GetRenderWindow()-&gt;HandleEvent(adaptedEvent.GetPointer());
+      break;
+    }</span>
+
+    case vtkCommand::LeftButtonReleaseEvent:
+    case vtkCommand::MiddleButtonReleaseEvent:
+    case vtkCommand::RightButtonReleaseEvent:
+    {
+<span style = "background-color:#fdd">      VTKEVENTPROVIDER_DEBUG &lt;&lt; "mouse release event";
+      InteractionEvent::Pointer adaptedEvent =</span>
+        VtkEventAdapter::AdaptMouseReleaseEvent(baseRenderer, event, rwi).GetPointer();
+<span style = "background-color:#fdd">      self-&gt;GetRenderWindow()-&gt;HandleEvent(adaptedEvent.GetPointer());
+      break;
+    }</span>
+
+    // mouse WHEEL
+    case vtkCommand::MouseWheelForwardEvent:
+    case vtkCommand::MouseWheelBackwardEvent:
+    {
+<span style = "background-color:#fdd">      VTKEVENTPROVIDER_DEBUG &lt;&lt; "mouse wheel event";
+      InteractionEvent::Pointer adaptedEvent =</span>
+        VtkEventAdapter::AdaptMouseWheelEvent(baseRenderer, event, rwi).GetPointer();
+<span style = "background-color:#fdd">      self-&gt;GetRenderWindow()-&gt;HandleEvent(adaptedEvent.GetPointer());
+      break;
+    }</span>
+
+    default:
+<span style = "background-color:#fdd">      VTKEVENTPROVIDER_INFO &lt;&lt; "VTK event not mapped properly.";</span>
+      break;
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::vtkEventProvider::RemoveInteractionEvent(unsigned long ievent)
+<span style = "background-color:#fdd">{
+  InteractionEventsVectorType::iterator it;
+  if (m_InteractionEventsVector.size() &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    it = std::find(m_InteractionEventsVector.begin(), m_InteractionEventsVector.end(), ievent);
+    if (it != m_InteractionEventsVector.end())</span>
+    {
+<span style = "background-color:#fdd">      m_InteractionEventsVector.erase(it);
+      return;</span>
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::vtkEventProvider::AddInteractionEvent(unsigned long ievent)
+<span style = "background-color:#fdd">{</span>
+  // Remove event if it already exists
+<span style = "background-color:#fdd">  RemoveInteractionEvent(ievent);</span>
+
+<span style = "background-color:#fdd">  m_InteractionEventsVector.push_back(ievent);
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,269 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkStandaloneDataStorage.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkStandaloneDataStorage.h"
+
+#include "mitkDataNode.h"
+#include "mitkGroupTagProperty.h"
+#include "mitkNodePredicateBase.h"
+#include "mitkNodePredicateProperty.h"
+#include "mitkProperties.h"
+
+<span style = "background-color:#fdd">mitk::StandaloneDataStorage::StandaloneDataStorage() : mitk::DataStorage()
+{
+}</span>
+
+mitk::StandaloneDataStorage::~StandaloneDataStorage()
+<span style = "background-color:#fdd">{
+  for (auto it = m_SourceNodes.begin(); it != m_SourceNodes.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;RemoveListeners(it-&gt;first);
+  }
+}</span>
+
+bool mitk::StandaloneDataStorage::IsInitialized() const
+<span style = "background-color:#fdd">{
+  return true;
+}</span>
+
+void mitk::StandaloneDataStorage::Add(mitk::DataNode *node, const mitk::DataStorage::SetOfObjects *parents)
+<span style = "background-color:#fdd">{</span>
+  {
+<span style = "background-color:#fdd">    std::lock_guard&lt;std::mutex&gt; locked(m_Mutex);
+    if (!IsInitialized())
+      throw std::logic_error("DataStorage not initialized");</span>
+    /* check if node is in its own list of sources */
+<span style = "background-color:#fdd">    if ((parents != nullptr) &amp;&amp; (std::find(parents-&gt;begin(), parents-&gt;end(), node) != parents-&gt;end()))
+      throw std::invalid_argument("Node is it's own parent");</span>
+    /* check if node already exists in StandaloneDataStorage */
+<span style = "background-color:#fdd">    if (m_SourceNodes.find(node) != m_SourceNodes.end())
+      throw std::invalid_argument("Node is already in DataStorage");</span>
+
+    /* create parent list if it does not exist */
+<span style = "background-color:#fdd">    mitk::DataStorage::SetOfObjects::ConstPointer sp;
+    if (parents != nullptr)
+      sp = parents;</span>
+    else
+<span style = "background-color:#fdd">      sp = mitk::DataStorage::SetOfObjects::New();</span>
+    /* Store node and parent list in sources adjacency list */
+<span style = "background-color:#fdd">    m_SourceNodes.insert(std::make_pair(node, sp));</span>
+
+    /* Store node and an empty children list in derivations adjacency list */
+<span style = "background-color:#fdd">    mitk::DataStorage::SetOfObjects::Pointer childrenPointer = mitk::DataStorage::SetOfObjects::New();
+    mitk::DataStorage::SetOfObjects::ConstPointer children = childrenPointer.GetPointer();
+    m_DerivedNodes.insert(std::make_pair(node, children));</span>
+
+    /* create entry in derivations adjacency list for each parent of the new node */
+<span style = "background-color:#fdd">    for (SetOfObjects::ConstIterator it = sp-&gt;Begin(); it != sp-&gt;End(); it++)</span>
+    {
+<span style = "background-color:#fdd">      mitk::DataNode::ConstPointer parent = it.Value().GetPointer();
+      mitk::DataStorage::SetOfObjects::ConstPointer derivedObjects =</span>
+        m_DerivedNodes[parent]; // get or create pointer to list of derived objects for that parent node
+<span style = "background-color:#fdd">      if (derivedObjects.IsNull())
+        m_DerivedNodes[parent] =</span>
+          mitk::DataStorage::SetOfObjects::New(); // Create a set of Objects, if it does not already exist
+<span style = "background-color:#fdd">      auto *deob = const_cast&lt;mitk::DataStorage::SetOfObjects *&gt;(</span>
+        m_DerivedNodes[parent].GetPointer()); // temporarily get rid of const pointer to insert new element
+<span style = "background-color:#fdd">      deob-&gt;InsertElement(deob-&gt;Size(),</span>
+                          node); // node is derived from parent. Insert it into the parents list of derived objects
+<span style = "background-color:#fdd">    }</span>
+
+    // register for ITK changed events
+<span style = "background-color:#fdd">    this-&gt;AddListeners(node);
+  }</span>
+
+  /* Notify observers */
+<span style = "background-color:#fdd">  EmitAddNodeEvent(node);
+}</span>
+
+void mitk::StandaloneDataStorage::Remove(const mitk::DataNode *node)
+<span style = "background-color:#fdd">{
+  if (!IsInitialized())
+    throw std::logic_error("DataStorage not initialized");
+  if (node == nullptr)
+    return;</span>
+
+  // remove ITK modified event listener
+<span style = "background-color:#fdd">  this-&gt;RemoveListeners(node);</span>
+
+  // muellerm, 22.9.10: add additional reference count to ensure
+  // that the node is not deleted when removed from the relation map
+  // while m_Mutex is locked. This would cause the an itk::DeleteEvent
+  // is thrown and a deadlock will occur when event receivers
+  // access the DataStorage again in their event processing function
+  //
+<span style = "background-color:#fdd">  mitk::DataNode::ConstPointer nodeGuard(node);</span>
+
+  /* Notify observers of imminent node removal */
+<span style = "background-color:#fdd">  EmitRemoveNodeEvent(node);</span>
+  {
+<span style = "background-color:#fdd">    std::lock_guard&lt;std::mutex&gt; locked(m_Mutex);</span>
+    /* remove node from both relation adjacency lists */
+<span style = "background-color:#fdd">    this-&gt;RemoveFromRelation(node, m_SourceNodes);
+    this-&gt;RemoveFromRelation(node, m_DerivedNodes);
+  }
+}</span>
+
+bool mitk::StandaloneDataStorage::Exists(const mitk::DataNode *node) const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; locked(m_Mutex);
+  return (m_SourceNodes.find(node) != m_SourceNodes.end());
+}</span>
+
+void mitk::StandaloneDataStorage::RemoveFromRelation(const mitk::DataNode *node, AdjacencyList &amp;relation)
+<span style = "background-color:#fdd">{
+  for (auto mapIter = relation.cbegin(); mapIter != relation.cend();
+       ++mapIter)                    // for each node in the relation
+    if (mapIter-&gt;second.IsNotNull()) // if node has a relation list</span>
+    {
+<span style = "background-color:#fdd">      SetOfObjects::Pointer s =</span>
+        const_cast&lt;SetOfObjects *&gt;(mapIter-&gt;second.GetPointer()); // search for node to be deleted in the relation list
+<span style = "background-color:#fdd">      auto relationListIter = std::find(</span>
+        s-&gt;begin(),
+        s-&gt;end(),
+        node); // this assumes, that the relation list does not contain duplicates (which should be safe to assume)
+<span style = "background-color:#fdd">      if (relationListIter != s-&gt;end()) // if node to be deleted is in relation list
+        s-&gt;erase(relationListIter);     // remove it from parentlist
+    }</span>
+  /* now remove node from the relation */
+<span style = "background-color:#fdd">  AdjacencyList::iterator adIt;
+  adIt = relation.find(node);
+  if (adIt != relation.end())
+    relation.erase(adIt);
+}</span>
+
+mitk::DataStorage::SetOfObjects::ConstPointer mitk::StandaloneDataStorage::GetAll() const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; locked(m_Mutex);
+  if (!IsInitialized())
+    throw std::logic_error("DataStorage not initialized");</span>
+
+<span style = "background-color:#fdd">  mitk::DataStorage::SetOfObjects::Pointer resultset = mitk::DataStorage::SetOfObjects::New();</span>
+  /* Fill resultset with all objects that are managed by the StandaloneDataStorage object */
+<span style = "background-color:#fdd">  unsigned int index = 0;
+  for (auto it = m_SourceNodes.cbegin(); it != m_SourceNodes.cend(); ++it)
+    if (it-&gt;first.IsNull())
+      continue;</span>
+    else
+<span style = "background-color:#fdd">      resultset-&gt;InsertElement(index++, const_cast&lt;mitk::DataNode *&gt;(it-&gt;first.GetPointer()));</span>
+
+<span style = "background-color:#fdd">  return SetOfObjects::ConstPointer(resultset);
+}</span>
+
+mitk::DataStorage::SetOfObjects::ConstPointer mitk::StandaloneDataStorage::GetRelations(
+  const mitk::DataNode *node,
+  const AdjacencyList &amp;relation,
+  const NodePredicateBase *condition,
+  bool onlyDirectlyRelated) const
+<span style = "background-color:#fdd">{
+  if (node == nullptr)
+    throw std::invalid_argument("invalid node");</span>
+
+  /* Either read direct relations directly from adjacency list */
+<span style = "background-color:#fdd">  if (onlyDirectlyRelated)</span>
+  {
+<span style = "background-color:#fdd">    auto it = relation.find(node); // get parents of current node
+    if ((it == relation.cend()) || (it-&gt;second.IsNull()))   // node not found in list or no set of parents
+      return SetOfObjects::ConstPointer(mitk::DataStorage::SetOfObjects::New()); // return an empty set</span>
+    else
+<span style = "background-color:#fdd">      return this-&gt;FilterSetOfObjects(it-&gt;second, condition);
+  }</span>
+
+  /* Or traverse adjacency list to collect all related nodes */
+<span style = "background-color:#fdd">  std::vector&lt;mitk::DataNode::ConstPointer&gt; resultset;
+  std::vector&lt;mitk::DataNode::ConstPointer&gt; openlist;</span>
+
+  /* Initialize openlist with node. this will add node to resultset,
+     but that is necessary to detect circular relations that would lead to endless recursion */
+<span style = "background-color:#fdd">  openlist.push_back(node);</span>
+
+<span style = "background-color:#fdd">  while (openlist.size() &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    mitk::DataNode::ConstPointer current = openlist.back();    // get element that needs to be processed
+    openlist.pop_back();                                       // remove last element, because it gets processed now
+    resultset.push_back(current);                              // add current element to resultset
+    auto it = relation.find(current); // get parents of current node</span>
+    if ((it == relation.cend())                                // if node not found in list
+        ||
+        (it-&gt;second.IsNull()) // or no set of parents available
+<span style = "background-color:#fdd">        ||</span>
+        (it-&gt;second-&gt;Size() == 0)) // or empty set of parents
+<span style = "background-color:#fdd">      continue;                    // then continue with next node in open list</span>
+    else
+<span style = "background-color:#fdd">      for (SetOfObjects::ConstIterator parentIt = it-&gt;second-&gt;Begin(); parentIt != it-&gt;second-&gt;End();
+           ++parentIt) // for each parent of current node</span>
+      {
+<span style = "background-color:#fdd">        mitk::DataNode::ConstPointer p = parentIt.Value().GetPointer();</span>
+        if (!(std::find(resultset.cbegin(), resultset.cend(), p) !=
+              resultset.end()) // if it is not already in resultset
+<span style = "background-color:#fdd">            &amp;&amp;</span>
+            !(std::find(openlist.cbegin(), openlist.cend(), p) != openlist.cend())) // and not already in openlist
+<span style = "background-color:#fdd">          openlist.push_back(p); // then add it to openlist, so that it can be processed
+      }
+  }</span>
+
+  /* now finally copy the results to a proper SetOfObjects variable exluding the initial node and checking the condition
+   * if any is given */
+<span style = "background-color:#fdd">  mitk::DataStorage::SetOfObjects::Pointer realResultset = mitk::DataStorage::SetOfObjects::New();
+  if (condition != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    for (auto resultIt = resultset.cbegin();
+         resultIt != resultset.cend();
+         ++resultIt)
+      if ((*resultIt != node) &amp;&amp; (condition-&gt;CheckNode(*resultIt) == true))
+        realResultset-&gt;InsertElement(realResultset-&gt;Size(),</span>
+                                     mitk::DataNode::Pointer(const_cast&lt;mitk::DataNode *&gt;((*resultIt).GetPointer())));
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    for (auto resultIt = resultset.cbegin();
+         resultIt != resultset.cend();
+         ++resultIt)
+      if (*resultIt != node)
+        realResultset-&gt;InsertElement(realResultset-&gt;Size(),</span>
+                                     mitk::DataNode::Pointer(const_cast&lt;mitk::DataNode *&gt;((*resultIt).GetPointer())));
+  }
+<span style = "background-color:#fdd">  return SetOfObjects::ConstPointer(realResultset);
+}</span>
+
+mitk::DataStorage::SetOfObjects::ConstPointer mitk::StandaloneDataStorage::GetSources(
+  const mitk::DataNode *node, const NodePredicateBase *condition, bool onlyDirectSources) const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; locked(m_Mutex);
+  return this-&gt;GetRelations(node, m_SourceNodes, condition, onlyDirectSources);
+}</span>
+
+mitk::DataStorage::SetOfObjects::ConstPointer mitk::StandaloneDataStorage::GetDerivations(
+  const mitk::DataNode *node, const NodePredicateBase *condition, bool onlyDirectDerivations) const
+<span style = "background-color:#fdd">{
+  std::lock_guard&lt;std::mutex&gt; locked(m_Mutex);
+  return this-&gt;GetRelations(node, m_DerivedNodes, condition, onlyDirectDerivations);
+}</span>
+
+void mitk::StandaloneDataStorage::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  os &lt;&lt; indent &lt;&lt; "StandaloneDataStorage:\n";
+  Superclass::PrintSelf(os, indent);
+}</span></pre>
+	</body>
+</html>

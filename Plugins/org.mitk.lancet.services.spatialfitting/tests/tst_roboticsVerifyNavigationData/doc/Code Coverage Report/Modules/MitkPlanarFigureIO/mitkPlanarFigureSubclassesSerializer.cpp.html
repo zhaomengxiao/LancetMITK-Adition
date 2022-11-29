@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlanarFigureSubclassesSerializer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkPlanarFiguresSubclassesSerializer_h_included
+#define mitkPlanarFiguresSubclassesSerializer_h_included
+
+#include "mitkPlanarFigureSerializer.h"
+
+#define MITK_REGISTER_PF_SUB_SERIALIZER(classname)                                                                     \
+                                                                                                                       \
+  namespace mitk                                                                                                       \
+  \
+{                                                                                                                 \
+    \
+class classname##Serializer : public PlanarFigureSerializer\
+{                                                        \
+      \
+public :                                                                                                               \
+                                                                                                                       \
+        mitkClassMacro(classname##Serializer, PlanarFigureSerializer) itkFactorylessNewMacro(Self) itkCloneMacro(Self) \
+      \
+protected :                                                                                                            \
+                                                                                                                       \
+        classname##Serializer(){} virtual ~classname##Serializer(){}                                                   \
+    \
+};                                                                                                                     \
+  \
+}                                                                                                                 \
+                                                                                                                       \
+  MITK_REGISTER_SERIALIZER(classname##Serializer);
+
+<span style = "background-color:#dfd">MITK_REGISTER_PF_SUB_SERIALIZER(PlanarAngle)
+MITK_REGISTER_PF_SUB_SERIALIZER(PlanarCircle)
+MITK_REGISTER_PF_SUB_SERIALIZER(PlanarCross)
+MITK_REGISTER_PF_SUB_SERIALIZER(PlanarFourPointAngle)
+MITK_REGISTER_PF_SUB_SERIALIZER(PlanarLine)
+MITK_REGISTER_PF_SUB_SERIALIZER(PlanarPolygon)
+MITK_REGISTER_PF_SUB_SERIALIZER(PlanarRectangle)
+MITK_REGISTER_PF_SUB_SERIALIZER(PlanarEllipse)
+MITK_REGISTER_PF_SUB_SERIALIZER(PlanarDoubleEllipse)
+MITK_REGISTER_PF_SUB_SERIALIZER(PlanarBezierCurve)
+MITK_REGISTER_PF_SUB_SERIALIZER(PlanarSubdivisionPolygon)</span>
+
+#endif</pre>
+	</body>
+</html>

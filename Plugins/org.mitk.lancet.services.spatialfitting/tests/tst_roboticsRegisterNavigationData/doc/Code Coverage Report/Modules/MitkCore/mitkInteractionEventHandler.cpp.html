@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkInteractionEventHandler.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkInteractionEventHandler.h"
+#include "mitkInteractionEvent.h"
+
+<span style = "background-color:#fdd">mitk::InteractionEventHandler::InteractionEventHandler() : m_EventConfig()
+{
+}</span>
+
+mitk::InteractionEventHandler::~InteractionEventHandler()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::InteractionEventHandler::SetEventConfig(const std::string &amp;filename, const us::Module *module)
+<span style = "background-color:#fdd">{
+  EventConfig newConfig(filename, module);
+  if (newConfig.IsValid())</span>
+  {
+<span style = "background-color:#fdd">    m_EventConfig = newConfig;</span>
+    // notify sub-classes that new config is set
+<span style = "background-color:#fdd">    ConfigurationChanged();
+    return true;</span>
+  }
+<span style = "background-color:#fdd">  MITK_ERROR &lt;&lt; "InteractionEventHandler: Failed to load EventConfiguration";
+  return false;
+}</span>
+
+bool mitk::InteractionEventHandler::SetEventConfig(const EventConfig &amp;config)
+<span style = "background-color:#fdd">{
+  if (config.IsValid())</span>
+  {
+<span style = "background-color:#fdd">    m_EventConfig = config;</span>
+    // notify sub-classes that new config is set
+<span style = "background-color:#fdd">    ConfigurationChanged();
+    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+mitk::EventConfig mitk::InteractionEventHandler::GetEventConfig() const
+<span style = "background-color:#fdd">{
+  return m_EventConfig;
+}</span>
+
+bool mitk::InteractionEventHandler::AddEventConfig(const std::string &amp;filename, const us::Module *module)
+<span style = "background-color:#fdd">{
+  if (filename.empty())</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!m_EventConfig.IsValid())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "SetEventConfig has to be called before AddEventConfig can be used.";
+    return false;</span>
+  }
+  // notify sub-classes that new config is set
+<span style = "background-color:#fdd">  bool success = m_EventConfig.AddConfig(filename, module);
+  if (success)</span>
+  {
+<span style = "background-color:#fdd">    ConfigurationChanged();</span>
+  }
+<span style = "background-color:#fdd">  return success;
+}</span>
+
+bool mitk::InteractionEventHandler::AddEventConfig(const EventConfig &amp;config)
+<span style = "background-color:#fdd">{
+  if (!m_EventConfig.IsValid())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "SetEventConfig has to be called before AddEventConfig can be used.";
+    return false;</span>
+  }
+  // notify sub-classes that new config is set
+<span style = "background-color:#fdd">  bool success = m_EventConfig.AddConfig(config);
+  if (success)</span>
+  {
+<span style = "background-color:#fdd">    ConfigurationChanged();</span>
+  }
+<span style = "background-color:#fdd">  return success;
+}</span>
+
+mitk::PropertyList::Pointer mitk::InteractionEventHandler::GetAttributes() const
+<span style = "background-color:#fdd">{
+  if (m_EventConfig.IsValid())</span>
+  {
+<span style = "background-color:#fdd">    return m_EventConfig.GetAttributes();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "InteractionEventHandler::GetAttributes() requested, but not configuration loaded.";
+    return nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+std::string mitk::InteractionEventHandler::MapToEventVariant(InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  if (m_EventConfig.IsValid())</span>
+  {
+<span style = "background-color:#fdd">    return m_EventConfig.GetMappedEvent(interactionEvent);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return "";</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::InteractionEventHandler::ConfigurationChanged()
+<span style = "background-color:#fdd">{
+}</span></pre>
+	</body>
+</html>

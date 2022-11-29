@@ -1,0 +1,275 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageToIGTLMessageFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkImageToIGTLMessageFilter.h"
+#include "mitkImageReadAccessor.h"
+#include "itkByteSwapper.h"
+#include "igtlImageMessage.h"
+
+mitk::ImageToIGTLMessageFilter::ImageToIGTLMessageFilter()
+<span style = "background-color:#fdd">{
+  mitk::IGTLMessage::Pointer output = mitk::IGTLMessage::New();
+  this-&gt;SetNumberOfRequiredOutputs(1);
+  this-&gt;SetNthOutput(0, output.GetPointer());
+  this-&gt;SetNumberOfRequiredInputs(1);
+}</span>
+
+void mitk::ImageToIGTLMessageFilter::GenerateData()
+<span style = "background-color:#fdd">{</span>
+  // MITK_INFO &lt;&lt; "ImageToIGTLMessageFilter.GenerateData()";
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; this-&gt;GetNumberOfIndexedOutputs(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    mitk::IGTLMessage* output = this-&gt;GetOutput(i);
+    assert(output);</span>
+
+<span style = "background-color:#fdd">    const mitk::Image* img = this-&gt;GetInput(i);</span>
+
+<span style = "background-color:#fdd">    int dims = img-&gt;GetDimension();
+    int chn = img-&gt;GetNumberOfChannels();</span>
+
+<span style = "background-color:#fdd">    if (dims &lt; 1)</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Can not handle dimensionless images";</span>
+    }
+<span style = "background-color:#fdd">    if (dims &gt; 3)</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Can not handle more than three dimensions";
+      continue;</span>
+    }
+
+<span style = "background-color:#fdd">    if (chn != 1)</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Can not handle anything but one channel. Image contained " &lt;&lt; chn;
+      continue;</span>
+    }
+
+<span style = "background-color:#fdd">    igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();</span>
+
+    // TODO: Which kind of coordinate system does MITK really use?
+<span style = "background-color:#fdd">    imgMsg-&gt;SetCoordinateSystem(igtl::ImageMessage::COORDINATE_RAS);</span>
+
+    // We could do this based on the host endiannes, but that's weird.
+    // We instead use little endian, as most modern systems are little endian,
+    // so there will probably not be an endian swap involved.
+<span style = "background-color:#fdd">    imgMsg-&gt;SetEndian(igtl::ImageMessage::ENDIAN_LITTLE);</span>
+
+    // Set number of components.
+<span style = "background-color:#fdd">    mitk::PixelType type = img-&gt;GetPixelType();
+    imgMsg-&gt;SetNumComponents(type.GetNumberOfComponents());</span>
+
+    // Set scalar type.
+<span style = "background-color:#fdd">    switch (type.GetComponentType())</span>
+    {
+    case itk::IOComponentEnum::CHAR:
+<span style = "background-color:#fdd">      imgMsg-&gt;SetScalarTypeToInt8();
+      break;</span>
+    case itk::IOComponentEnum::UCHAR:
+<span style = "background-color:#fdd">      imgMsg-&gt;SetScalarTypeToUint8();
+      break;</span>
+    case itk::IOComponentEnum::SHORT:
+<span style = "background-color:#fdd">      imgMsg-&gt;SetScalarTypeToInt16();
+      break;</span>
+    case itk::IOComponentEnum::USHORT:
+<span style = "background-color:#fdd">      imgMsg-&gt;SetScalarTypeToUint16();
+      break;</span>
+    case itk::IOComponentEnum::INT:
+<span style = "background-color:#fdd">      imgMsg-&gt;SetScalarTypeToInt32();
+      break;</span>
+    case itk::IOComponentEnum::UINT:
+<span style = "background-color:#fdd">      imgMsg-&gt;SetScalarTypeToUint32();
+      break;</span>
+    case itk::IOComponentEnum::LONG:
+      // OIGTL doesn't formally support 64bit int scalars, but if they are
+      // ever added,
+      // they will have the identifier 8 assigned.
+<span style = "background-color:#fdd">      imgMsg-&gt;SetScalarType(8);
+      break;</span>
+    case itk::IOComponentEnum::ULONG:
+      // OIGTL doesn't formally support 64bit uint scalars, but if they are
+      // ever added,
+      // they will have the identifier 9 assigned.
+<span style = "background-color:#fdd">      imgMsg-&gt;SetScalarType(9);
+      break;</span>
+    case itk::IOComponentEnum::FLOAT:
+      // The igtl library has no method for this. Correct type is 10.
+<span style = "background-color:#fdd">      imgMsg-&gt;SetScalarType(10);
+      break;</span>
+    case itk::IOComponentEnum::DOUBLE:
+      // The igtl library has no method for this. Correct type is 11.
+<span style = "background-color:#fdd">      imgMsg-&gt;SetScalarType(11);
+      break;</span>
+    default:
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Can not handle pixel component type "</span>
+        &lt;&lt; type.GetComponentType();
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+    // Set transformation matrix.
+<span style = "background-color:#fdd">    vtkMatrix4x4* matrix = img-&gt;GetGeometry()-&gt;GetVtkMatrix();</span>
+
+    float matF[4][4];
+<span style = "background-color:#fdd">    for (size_t i = 0; i &lt; 4; ++i)</span>
+    {
+<span style = "background-color:#fdd">      for (size_t j = 0; j &lt; 4; ++j)</span>
+      {
+<span style = "background-color:#fdd">        matF[i][j] = matrix-&gt;GetElement(i, j);
+      }
+    }
+    imgMsg-&gt;SetMatrix(matF);</span>
+
+    float spacing[3];
+<span style = "background-color:#fdd">    auto spacingImg = img-&gt;GetGeometry()-&gt;GetSpacing();</span>
+
+<span style = "background-color:#fdd">    for (int i = 0; i &lt; 3; ++i)
+      spacing[i] = spacingImg[i];</span>
+
+<span style = "background-color:#fdd">    imgMsg-&gt;SetSpacing(spacing);</span>
+
+    // Set dimensions.
+    int sizes[3];
+<span style = "background-color:#fdd">    for (size_t j = 0; j &lt; 3; ++j)</span>
+    {
+<span style = "background-color:#fdd">      sizes[j] = img-&gt;GetDimension(j);
+    }
+    imgMsg-&gt;SetDimensions(sizes);</span>
+
+    // Allocate and copy data.
+<span style = "background-color:#fdd">    imgMsg-&gt;AllocatePack();
+    imgMsg-&gt;AllocateScalars();</span>
+
+<span style = "background-color:#fdd">    size_t num_pixel = sizes[0] * sizes[1] * sizes[2];
+    void* out = imgMsg-&gt;GetScalarPointer();</span>
+    {
+      // Scoped, so that readAccess will be released ASAP.
+<span style = "background-color:#fdd">      mitk::ImageReadAccessor readAccess(img, img-&gt;GetChannelData(0));
+      const void* in = readAccess.GetData();</span>
+
+<span style = "background-color:#fdd">      memcpy(out, in, num_pixel * type.GetSize());
+    }</span>
+
+    // We want to byte swap to little endian. We would like to just
+    // swap by number of bytes for each component, but itk::ByteSwapper
+    // is templated over element type, not over element size. So we need to
+    // switch on the size and use types of the same size.
+<span style = "background-color:#fdd">    size_t num_scalars = num_pixel * type.GetNumberOfComponents();
+    switch (type.GetComponentType())</span>
+    {
+    case itk::IOComponentEnum::CHAR:
+    case itk::IOComponentEnum::UCHAR:
+      // No endian conversion necessary, because a char is exactly one byte!
+<span style = "background-color:#fdd">      break;</span>
+    case itk::IOComponentEnum::SHORT:
+    case itk::IOComponentEnum::USHORT:
+<span style = "background-color:#fdd">      itk::ByteSwapper&lt;short&gt;::SwapRangeFromSystemToLittleEndian((short*)out,</span>
+        num_scalars);
+<span style = "background-color:#fdd">      break;</span>
+    case itk::IOComponentEnum::INT:
+    case itk::IOComponentEnum::UINT:
+<span style = "background-color:#fdd">      itk::ByteSwapper&lt;int&gt;::SwapRangeFromSystemToLittleEndian((int*)out,</span>
+        num_scalars);
+<span style = "background-color:#fdd">      break;</span>
+    case itk::IOComponentEnum::LONG:
+    case itk::IOComponentEnum::ULONG:
+<span style = "background-color:#fdd">      itk::ByteSwapper&lt;long&gt;::SwapRangeFromSystemToLittleEndian((long*)out,</span>
+        num_scalars);
+<span style = "background-color:#fdd">      break;</span>
+    case itk::IOComponentEnum::FLOAT:
+<span style = "background-color:#fdd">      itk::ByteSwapper&lt;float&gt;::SwapRangeFromSystemToLittleEndian((float*)out,</span>
+        num_scalars);
+<span style = "background-color:#fdd">      break;</span>
+    case itk::IOComponentEnum::DOUBLE:
+<span style = "background-color:#fdd">      itk::ByteSwapper&lt;double&gt;::SwapRangeFromSystemToLittleEndian(</span>
+        (double*)out, num_scalars);
+<span style = "background-color:#fdd">      break;</span>
+    default:
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Can not handle pixel component type "</span>
+        &lt;&lt; type.GetComponentType();
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+    //copy timestamp of mitk image
+<span style = "background-color:#fdd">    igtl::TimeStamp::Pointer timestamp = igtl::TimeStamp::New();
+    timestamp-&gt;SetTime(img-&gt;GetMTime() / 1000, (int)(img-&gt;GetMTime()) % 1000);
+    imgMsg-&gt;SetTimeStamp(timestamp);</span>
+
+<span style = "background-color:#fdd">    imgMsg-&gt;Pack();</span>
+
+<span style = "background-color:#fdd">    output-&gt;SetMessage(imgMsg.GetPointer());
+  }
+}</span>
+
+void mitk::ImageToIGTLMessageFilter::SetInput(const mitk::Image* img)
+<span style = "background-color:#fdd">{
+  this-&gt;ProcessObject::SetNthInput(0, const_cast&lt;mitk::Image*&gt;(img));
+  this-&gt;CreateOutputsForAllInputs();
+}</span>
+
+void mitk::ImageToIGTLMessageFilter::SetInput(unsigned int idx,
+  const Image* img)
+<span style = "background-color:#fdd">{
+  this-&gt;ProcessObject::SetNthInput(idx, const_cast&lt;mitk::Image*&gt;(img));
+  this-&gt;CreateOutputsForAllInputs();
+}</span>
+
+const mitk::Image* mitk::ImageToIGTLMessageFilter::GetInput(void)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;
+  return static_cast&lt;const mitk::Image*&gt;(this-&gt;ProcessObject::GetInput(0));
+}</span>
+
+const mitk::Image* mitk::ImageToIGTLMessageFilter::GetInput(unsigned int idx)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; idx + 1)</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+<span style = "background-color:#fdd">  return static_cast&lt;const mitk::Image*&gt;(this-&gt;ProcessObject::GetInput(idx));
+}</span>
+
+void mitk::ImageToIGTLMessageFilter::ConnectTo(mitk::ImageSource* upstream)
+<span style = "background-color:#fdd">{
+  MITK_INFO &lt;&lt; "Image source for this (" &lt;&lt; this &lt;&lt; ") mitkImageToIGTLMessageFilter is " &lt;&lt; upstream;
+  for (DataObjectPointerArraySizeType i = 0; i &lt; upstream-&gt;GetNumberOfOutputs();
+    i++)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetInput(i, upstream-&gt;GetOutput(i));
+  }
+}</span>
+
+void mitk::ImageToIGTLMessageFilter::CreateOutputsForAllInputs()
+<span style = "background-color:#fdd">{</span>
+  // create one message output for all image inputs
+<span style = "background-color:#fdd">  this-&gt;SetNumberOfIndexedOutputs(this-&gt;GetNumberOfIndexedInputs());</span>
+
+<span style = "background-color:#fdd">  for (size_t idx = 0; idx &lt; this-&gt;GetNumberOfIndexedOutputs(); ++idx)</span>
+  {
+<span style = "background-color:#fdd">    if (this-&gt;GetOutput(idx) == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;SetNthOutput(idx, this-&gt;MakeOutput(idx));</span>
+    }
+<span style = "background-color:#fdd">    this-&gt;Modified();
+  }
+}</span></pre>
+	</body>
+</html>

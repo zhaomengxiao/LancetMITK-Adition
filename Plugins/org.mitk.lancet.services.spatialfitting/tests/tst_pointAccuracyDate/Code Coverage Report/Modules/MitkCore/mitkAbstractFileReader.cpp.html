@@ -1,0 +1,347 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkAbstractFileReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkAbstractFileReader.h&gt;
+
+#include &lt;mitkCustomMimeType.h&gt;
+#include &lt;mitkIOUtil.h&gt;
+#include &lt;mitkUtf8Util.h&gt;
+
+#include &lt;mitkFileReaderWriterBase.h&gt;
+#include &lt;mitkVersion.h&gt;
+#include &lt;mitkIOMetaInformationPropertyConstants.h&gt;
+
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModuleContext.h&gt;
+#include &lt;usPrototypeServiceFactory.h&gt;
+
+#include &lt;itksys/SystemTools.hxx&gt;
+
+#include &lt;fstream&gt;
+
+namespace mitk
+{
+  AbstractFileReader::InputStream::InputStream(IFileReader *reader, std::ios_base::openmode mode)
+<span style = "background-color:#fdd">    : std::istream(nullptr), m_Stream(nullptr)
+  {
+    std::istream *stream = reader-&gt;GetInputStream();
+    if (stream)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;init(stream-&gt;rdbuf());
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      m_Stream = new std::ifstream(reader-&gt;GetInputLocation().c_str(), mode);
+      this-&gt;init(m_Stream-&gt;rdbuf());</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  AbstractFileReader::InputStream::~InputStream() { delete m_Stream; }</span>
+  class AbstractFileReader::Impl : public FileReaderWriterBase
+  {
+  public:
+<span style = "background-color:#dfd">    Impl() : FileReaderWriterBase(), m_Stream(nullptr), m_PrototypeFactory(nullptr) {}</span>
+<span style = "background-color:#fdd">    Impl(const Impl &amp;other) : FileReaderWriterBase(other), m_Stream(nullptr), m_PrototypeFactory(nullptr) {}</span>
+    std::string m_Location;
+    std::string m_TmpFile;
+    std::istream *m_Stream;
+
+    us::PrototypeServiceFactory *m_PrototypeFactory;
+    us::ServiceRegistration&lt;IFileReader&gt; m_Reg;
+  };
+
+<span style = "background-color:#dfd">  AbstractFileReader::AbstractFileReader() : d(new Impl) {}</span>
+  AbstractFileReader::~AbstractFileReader()
+<span style = "background-color:#dfd">  {
+    UnregisterService();</span>
+
+<span style = "background-color:#dfd">    delete d-&gt;m_PrototypeFactory;</span>
+
+<span style = "background-color:#dfd">    if (!d-&gt;m_TmpFile.empty())</span>
+    {
+<span style = "background-color:#fdd">      std::remove(d-&gt;m_TmpFile.c_str());</span>
+    }
+<span style = "background-color:#dfd">  }</span>
+
+<span style = "background-color:#fdd">  AbstractFileReader::AbstractFileReader(const AbstractFileReader &amp;other) : IFileReader(), d(new Impl(*other.d.get()))
+  {
+  }</span>
+
+<span style = "background-color:#dfd">  AbstractFileReader::AbstractFileReader(const CustomMimeType &amp;mimeType, const std::string &amp;description) : d(new Impl)
+  {
+    d-&gt;SetMimeType(mimeType);
+    d-&gt;SetDescription(description);
+  }</span>
+
+  ////////////////////// Reading /////////////////////////
+
+  std::vector&lt;BaseData::Pointer&gt; AbstractFileReader::Read()
+<span style = "background-color:#fdd">  {
+    std::vector&lt;BaseData::Pointer&gt; result = this-&gt;DoRead();</span>
+
+<span style = "background-color:#fdd">    const auto options = this-&gt;GetOptions();</span>
+
+<span style = "background-color:#fdd">    for (auto&amp; data : result)</span>
+    {
+<span style = "background-color:#fdd">      data-&gt;SetProperty(PropertyKeyPathToPropertyName(IOMetaInformationPropertyConstants::READER_DESCRIPTION()), StringProperty::New(d-&gt;GetDescription()));
+      data-&gt;SetProperty(PropertyKeyPathToPropertyName(IOMetaInformationPropertyConstants::READER_VERSION()), StringProperty::New(MITK_VERSION_STRING));
+      data-&gt;SetProperty(PropertyKeyPathToPropertyName(IOMetaInformationPropertyConstants::READER_MIME_NAME()), StringProperty::New(d-&gt;GetMimeType()-&gt;GetName()));
+      data-&gt;SetProperty(PropertyKeyPathToPropertyName(IOMetaInformationPropertyConstants::READER_MIME_CATEGORY()), StringProperty::New(d-&gt;GetMimeType()-&gt;GetCategory()));
+      if (this-&gt;GetInputStream() == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        data-&gt;SetProperty(PropertyKeyPathToPropertyName(IOMetaInformationPropertyConstants::READER_INPUTLOCATION()), StringProperty::New(Utf8Util::Local8BitToUtf8(this-&gt;GetInputLocation())));</span>
+      }
+
+<span style = "background-color:#fdd">      for (const auto&amp; option : options)</span>
+      {
+<span style = "background-color:#fdd">        auto optionpath = IOMetaInformationPropertyConstants::READER_OPTION_ROOT().AddElement(option.first);
+        data-&gt;SetProperty(PropertyKeyPathToPropertyName(optionpath), StringProperty::New(option.second.ToString()));
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    return result;
+  }</span>
+
+  DataStorage::SetOfObjects::Pointer AbstractFileReader::Read(DataStorage &amp;ds)
+<span style = "background-color:#fdd">  {
+    DataStorage::SetOfObjects::Pointer result = DataStorage::SetOfObjects::New();
+    std::vector&lt;BaseData::Pointer&gt; data = this-&gt;Read();
+    for (auto iter = data.begin(); iter != data.end(); ++iter)</span>
+    {
+<span style = "background-color:#fdd">      mitk::DataNode::Pointer node = mitk::DataNode::New();
+      node-&gt;SetData(*iter);
+      this-&gt;SetDefaultDataNodeProperties(node, this-&gt;GetInputLocation());
+      ds.Add(node);
+      result-&gt;InsertElement(result-&gt;Size(), node);
+    }
+    return result;
+  }</span>
+
+  IFileReader::ConfidenceLevel AbstractFileReader::GetConfidenceLevel() const
+<span style = "background-color:#fdd">  {
+    if (d-&gt;m_Stream)</span>
+    {
+<span style = "background-color:#fdd">      if (*d-&gt;m_Stream)
+        return Supported;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      if (itksys::SystemTools::FileExists(Utf8Util::Local8BitToUtf8(this-&gt;GetInputLocation()).c_str(), true))</span>
+      {
+<span style = "background-color:#fdd">        return Supported;</span>
+      }
+    }
+<span style = "background-color:#fdd">    return Unsupported;
+  }</span>
+
+  //////////// ÂµS Registration &amp; Properties //////////////
+
+  us::ServiceRegistration&lt;IFileReader&gt; AbstractFileReader::RegisterService(us::ModuleContext *context)
+<span style = "background-color:#dfd">  {
+    if (d-&gt;m_PrototypeFactory)</span>
+<span style = "background-color:#fdd">      return us::ServiceRegistration&lt;IFileReader&gt;();</span>
+
+<span style = "background-color:#dfd">    if (context == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      context = us::GetModuleContext();</span>
+    }
+
+<span style = "background-color:#dfd">    d-&gt;RegisterMimeType(context);</span>
+
+<span style = "background-color:#dfd">    if (this-&gt;GetMimeType()-&gt;GetName().empty())</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Not registering reader due to empty MIME type.";
+      return us::ServiceRegistration&lt;IFileReader&gt;();</span>
+    }
+
+    struct PrototypeFactory : public us::PrototypeServiceFactory
+    {
+      AbstractFileReader *const m_Prototype;
+
+<span style = "background-color:#dfd">      PrototypeFactory(AbstractFileReader *prototype) : m_Prototype(prototype) {}</span>
+      us::InterfaceMap GetService(us::Module * /*module*/,
+                                  const us::ServiceRegistrationBase &amp; /*registration*/) override
+<span style = "background-color:#fdd">      {
+        return us::MakeInterfaceMap&lt;IFileReader&gt;(m_Prototype-&gt;Clone());
+      }</span>
+
+      void UngetService(us::Module * /*module*/,
+                        const us::ServiceRegistrationBase &amp; /*registration*/,
+                        const us::InterfaceMap &amp;service) override
+<span style = "background-color:#fdd">      {
+        delete us::ExtractInterface&lt;IFileReader&gt;(service);
+      }</span>
+    };
+
+<span style = "background-color:#dfd">    d-&gt;m_PrototypeFactory = new PrototypeFactory(this);
+    us::ServiceProperties props = this-&gt;GetServiceProperties();
+    d-&gt;m_Reg = context-&gt;RegisterService&lt;IFileReader&gt;(d-&gt;m_PrototypeFactory, props);
+    return d-&gt;m_Reg;
+  }</span>
+
+  void AbstractFileReader::UnregisterService()
+<span style = "background-color:#dfd">  {</span>
+    try
+    {
+<span style = "background-color:#dfd">      d-&gt;m_Reg.Unregister();</span>
+    }
+    catch (const std::exception &amp;)
+<span style = "background-color:#dfd">    {
+    }
+  }</span>
+
+  us::ServiceProperties AbstractFileReader::GetServiceProperties() const
+<span style = "background-color:#dfd">  {
+    us::ServiceProperties result;</span>
+
+<span style = "background-color:#dfd">    result[IFileReader::PROP_DESCRIPTION()] = this-&gt;GetDescription();
+    result[IFileReader::PROP_MIMETYPE()] = this-&gt;GetMimeType()-&gt;GetName();
+    result[us::ServiceConstants::SERVICE_RANKING()] = this-&gt;GetRanking();
+    return result;
+  }</span>
+
+  us::ServiceRegistration&lt;CustomMimeType&gt; AbstractFileReader::RegisterMimeType(us::ModuleContext *context)
+<span style = "background-color:#fdd">  {
+    return d-&gt;RegisterMimeType(context);
+  }</span>
+
+<span style = "background-color:#fdd">  std::vector&lt; std::string &gt; AbstractFileReader::GetReadFiles(){ return m_ReadFiles; }</span>
+
+<span style = "background-color:#dfd">  void AbstractFileReader::SetMimeType(const CustomMimeType &amp;mimeType) { d-&gt;SetMimeType(mimeType); }
+  void AbstractFileReader::SetDescription(const std::string &amp;description) { d-&gt;SetDescription(description); }
+  void AbstractFileReader::SetRanking(int ranking) { d-&gt;SetRanking(ranking); }
+  int AbstractFileReader::GetRanking() const { return d-&gt;GetRanking(); }</span>
+  std::string AbstractFileReader::GetLocalFileName() const
+<span style = "background-color:#fdd">  {
+    std::string localFileName;
+    if (d-&gt;m_Stream)</span>
+    {
+<span style = "background-color:#fdd">      if (d-&gt;m_TmpFile.empty())</span>
+      {
+        // write the stream contents to temporary file
+<span style = "background-color:#fdd">        std::string ext = Utf8Util::Utf8ToLocal8Bit(itksys::SystemTools::GetFilenameExtension(Utf8Util::Local8BitToUtf8(this-&gt;GetInputLocation())));
+        std::ofstream tmpStream;
+        localFileName = mitk::IOUtil::CreateTemporaryFile(</span>
+          tmpStream, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary, "XXXXXX" + ext);
+<span style = "background-color:#fdd">        tmpStream &lt;&lt; d-&gt;m_Stream-&gt;rdbuf();
+        d-&gt;m_TmpFile = localFileName;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        localFileName = d-&gt;m_TmpFile;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      localFileName = d-&gt;m_Location;</span>
+    }
+<span style = "background-color:#fdd">    return localFileName;
+  }</span>
+
+  //////////////////////// Options ///////////////////////
+
+  void AbstractFileReader::SetDefaultOptions(const IFileReader::Options &amp;defaultOptions)
+<span style = "background-color:#dfd">  {
+    d-&gt;SetDefaultOptions(defaultOptions);
+  }</span>
+
+<span style = "background-color:#fdd">  IFileReader::Options AbstractFileReader::GetDefaultOptions() const { return d-&gt;GetDefaultOptions(); }</span>
+  void AbstractFileReader::SetInput(const std::string &amp;location)
+<span style = "background-color:#fdd">  {
+    d-&gt;m_Location = location;
+    d-&gt;m_Stream = nullptr;
+  }</span>
+
+  void AbstractFileReader::SetInput(const std::string &amp;location, std::istream *is)
+<span style = "background-color:#fdd">  {
+    if (d-&gt;m_Stream != is &amp;&amp; !d-&gt;m_TmpFile.empty())</span>
+    {
+<span style = "background-color:#fdd">      std::remove(d-&gt;m_TmpFile.c_str());
+      d-&gt;m_TmpFile.clear();</span>
+    }
+<span style = "background-color:#fdd">    d-&gt;m_Location = location;
+    d-&gt;m_Stream = is;
+  }</span>
+
+<span style = "background-color:#fdd">  std::string AbstractFileReader::GetInputLocation() const { return d-&gt;m_Location; }
+  std::istream *AbstractFileReader::GetInputStream() const { return d-&gt;m_Stream; }</span>
+<span style = "background-color:#dfd">  MimeType AbstractFileReader::GetRegisteredMimeType() const { return d-&gt;GetRegisteredMimeType(); }</span>
+<span style = "background-color:#fdd">  IFileReader::Options AbstractFileReader::GetOptions() const { return d-&gt;GetOptions(); }
+  us::Any AbstractFileReader::GetOption(const std::string &amp;name) const { return d-&gt;GetOption(name); }
+  void AbstractFileReader::SetOptions(const Options &amp;options) { d-&gt;SetOptions(options); }
+  void AbstractFileReader::SetOption(const std::string &amp;name, const us::Any &amp;value) { d-&gt;SetOption(name, value); }</span>
+  ////////////////// MISC //////////////////
+
+<span style = "background-color:#fdd">  void AbstractFileReader::AddProgressCallback(const ProgressCallback &amp;callback) { d-&gt;AddProgressCallback(callback); }</span>
+  void AbstractFileReader::RemoveProgressCallback(const ProgressCallback &amp;callback)
+<span style = "background-color:#fdd">  {
+    d-&gt;RemoveProgressCallback(callback);
+  }</span>
+
+  ////////////////// ÂµS related Getters //////////////////
+
+<span style = "background-color:#dfd">  const CustomMimeType *AbstractFileReader::GetMimeType() const { return d-&gt;GetMimeType(); }
+  void AbstractFileReader::SetMimeTypePrefix(const std::string &amp;prefix) { d-&gt;SetMimeTypePrefix(prefix); }
+  std::string AbstractFileReader::GetMimeTypePrefix() const { return d-&gt;GetMimeTypePrefix(); }
+  std::string AbstractFileReader::GetDescription() const { return d-&gt;GetDescription(); }</span>
+  void AbstractFileReader::SetDefaultDataNodeProperties(DataNode *node, const std::string &amp;filePath)
+<span style = "background-color:#fdd">  {</span>
+    // path
+<span style = "background-color:#fdd">    if (!filePath.empty())</span>
+    {
+<span style = "background-color:#fdd">      auto path = itksys::SystemTools::GetFilenamePath(Utf8Util::Local8BitToUtf8(filePath));
+      node-&gt;SetProperty(StringProperty::PATH, mitk::StringProperty::New(path));
+    }</span>
+
+    // name already defined?
+<span style = "background-color:#fdd">    mitk::StringProperty::Pointer nameProp = dynamic_cast&lt;mitk::StringProperty *&gt;(node-&gt;GetProperty("name"));
+    if (nameProp.IsNull() || nameProp-&gt;GetValue() == DataNode::NO_NAME_VALUE())</span>
+    {
+      // name already defined in BaseData
+<span style = "background-color:#fdd">      mitk::StringProperty::Pointer baseDataNameProp =</span>
+        dynamic_cast&lt;mitk::StringProperty *&gt;(node-&gt;GetData()-&gt;GetProperty("name").GetPointer());
+<span style = "background-color:#fdd">      if (baseDataNameProp.IsNull() || baseDataNameProp-&gt;GetValue() == DataNode::NO_NAME_VALUE())</span>
+      {
+        // name neither defined in node, nor in BaseData -&gt; name = filebasename;
+<span style = "background-color:#fdd">        auto name = this-&gt;GetRegisteredMimeType().GetFilenameWithoutExtension(filePath);
+        name = Utf8Util::Local8BitToUtf8(name);
+        nameProp = mitk::StringProperty::New(name);
+        node-&gt;SetProperty("name", nameProp);
+      }</span>
+      else
+      {
+        // name defined in BaseData!
+<span style = "background-color:#fdd">        nameProp = mitk::StringProperty::New(baseDataNameProp-&gt;GetValue());
+        node-&gt;SetProperty("name", nameProp);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+    // visibility
+<span style = "background-color:#fdd">    if (!node-&gt;GetProperty("visible"))</span>
+    {
+<span style = "background-color:#fdd">      node-&gt;SetVisibility(true);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+}</pre>
+	</body>
+</html>

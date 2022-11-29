@@ -1,0 +1,523 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSerialCommunication.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkSerialCommunication.h"
+
+#ifdef WIN32
+//#include &lt;atlstr.h&gt;
+#include &lt;itksys/SystemTools.hxx&gt;
+#else // Posix
+#include &lt;sys/types.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;sys/time.h&gt;
+#include &lt;sys/ioctl.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;termios.h&gt;
+#include &lt;cerrno&gt;
+
+#define INVALID_HANDLE_VALUE -1
+#endif
+
+#define OK 1
+#define ERROR_VALUE 0
+
+<span style = "background-color:#fdd">mitk::SerialCommunication::SerialCommunication() : itk::Object(),
+  m_DeviceName(""), m_PortNumber(COM1), m_BaudRate(BaudRate9600),
+  m_DataBits(DataBits8), m_Parity(None), m_StopBits(StopBits1),
+  m_HardwareHandshake(HardwareHandshakeOff),
+  m_ReceiveTimeout(500), m_SendTimeout(500), m_Connected(false)
+{</span>
+#ifdef  WIN32 // Windows
+<span style = "background-color:#fdd">  m_ComPortHandle = INVALID_HANDLE_VALUE;</span>
+#else // Posix
+  m_FileDescriptor = INVALID_HANDLE_VALUE;
+#endif
+<span style = "background-color:#fdd">}</span>
+
+mitk::SerialCommunication::~SerialCommunication()
+<span style = "background-color:#fdd">{
+  CloseConnection();
+}</span>
+
+bool mitk::SerialCommunication::IsConnected()
+<span style = "background-color:#fdd">{
+  return m_Connected;
+}</span>
+
+int mitk::SerialCommunication::OpenConnection()
+<span style = "background-color:#fdd">{
+  if (m_Connected)
+    return ERROR_VALUE;</span>
+
+#ifdef WIN32
+<span style = "background-color:#fdd">  std::stringstream ss;
+  if (m_DeviceName.empty())
+    ss &lt;&lt; "\\\\.\\COM" &lt;&lt; static_cast&lt;unsigned int&gt;(m_PortNumber); // use m_PortNumber</span>
+  else
+<span style = "background-color:#fdd">    ss &lt;&lt; "\\\\.\\" &lt;&lt; m_DeviceName; // use m_DeviceName</span>
+
+<span style = "background-color:#fdd">  m_ComPortHandle = CreateFile(ss.str().c_str(), GENERIC_READ | GENERIC_WRITE,</span>
+    0,             // no sharing
+    0,             // no security flags
+    OPEN_EXISTING, // open com port, don't create it
+    0,             // no flags
+    0);            // no template
+<span style = "background-color:#fdd">  if (m_ComPortHandle == INVALID_HANDLE_VALUE)
+    return ERROR_VALUE;</span>
+
+<span style = "background-color:#fdd">  GetCommState(m_ComPortHandle, &amp;m_PreviousDeviceControlBlock);
+  GetCommTimeouts(m_ComPortHandle, &amp;m_PreviousTimeout);
+  GetCommMask(m_ComPortHandle, &amp;m_PreviousMask);</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;ApplyConfiguration() != OK)    // set interface parameters</span>
+  {
+<span style = "background-color:#fdd">    CloseHandle(m_ComPortHandle);
+    m_ComPortHandle = INVALID_HANDLE_VALUE;
+    return ERROR_VALUE;</span>
+  }
+<span style = "background-color:#fdd">  m_Connected = true;
+  return OK;</span>
+
+#else // Posix
+  std::stringstream ss;
+  if (m_DeviceName.empty())
+    ss &lt;&lt; "/dev/ttyS" &lt;&lt; static_cast&lt;unsigned int&gt;(m_PortNumber) - 1; // use m_PortNumber, COM1 = ttyS0
+  else
+    ss &lt;&lt; m_DeviceName; // use m_DeviceName
+
+  //m_FileDescriptor = open(ss.str().c_str(), O_RDWR | O_NONBLOCK | O_NDELAY | O_NOCTTY | O_EXCL); // open device file
+  m_FileDescriptor = open(ss.str().c_str(), O_RDWR|O_NONBLOCK|O_EXCL); // open device file
+  if (m_FileDescriptor &lt; 0)
+    return ERROR_VALUE;
+
+  fcntl(m_FileDescriptor, F_SETFL, 0);    // change to blocking mode
+  tcflush(m_FileDescriptor, TCIOFLUSH);   // flush buffers
+  if (this-&gt;ApplyConfiguration() != OK)    // set interface parameters
+  {
+    close(m_FileDescriptor);
+    m_FileDescriptor = INVALID_HANDLE_VALUE;
+    return ERROR_VALUE;
+  }
+  m_Connected = true;
+  return OK;
+#endif
+<span style = "background-color:#fdd">}</span>
+
+void mitk::SerialCommunication::CloseConnection()
+<span style = "background-color:#fdd">{</span>
+#ifdef WIN32
+<span style = "background-color:#fdd">  if (m_ComPortHandle == INVALID_HANDLE_VALUE)
+    return;
+  ClearReceiveBuffer();
+  ClearSendBuffer();
+  SetCommState(m_ComPortHandle, &amp;m_PreviousDeviceControlBlock); // restore previous settings
+  SetCommTimeouts(m_ComPortHandle, &amp;m_PreviousTimeout);         // restore previous timeout values
+  SetCommMask(m_ComPortHandle, m_PreviousMask);                 // restore previous mask value
+  PurgeComm(m_ComPortHandle, PURGE_TXCLEAR | PURGE_RXCLEAR);    // empty buffers
+  CloseHandle(m_ComPortHandle);                                 // close handle
+  m_ComPortHandle = INVALID_HANDLE_VALUE;
+  m_Connected = false;</span>
+  return;
+
+#else // Posix
+  if (m_FileDescriptor == INVALID_HANDLE_VALUE)
+    return;
+  ClearReceiveBuffer();
+  ClearSendBuffer();
+  close(m_FileDescriptor);
+  m_FileDescriptor = INVALID_HANDLE_VALUE;
+  m_Connected = false;
+  return;
+#endif
+<span style = "background-color:#fdd">}</span>
+
+int mitk::SerialCommunication::Receive(std::string&amp; answer, unsigned int numberOfBytes, const char *eol)
+<span style = "background-color:#fdd">{
+  if (numberOfBytes == 0)
+    return OK;
+  if (m_Connected == false)
+    return ERROR_VALUE;</span>
+
+#ifdef WIN32
+<span style = "background-color:#fdd">  if (m_ComPortHandle == INVALID_HANDLE_VALUE)
+    return ERROR_VALUE;</span>
+
+<span style = "background-color:#fdd">  DWORD numberOfBytesRead = 0;
+  char* buffer = new char[numberOfBytes];
+  if (ReadFile(m_ComPortHandle, buffer, numberOfBytes, &amp;numberOfBytesRead, nullptr) != 0)</span>
+  {
+<span style = "background-color:#fdd">    if (numberOfBytesRead &gt; 0) // data read</span>
+    {
+<span style = "background-color:#fdd">      answer.assign(buffer, numberOfBytesRead); // copy buffer to answer
+      delete buffer;
+      if (numberOfBytesRead == numberOfBytes)</span>
+      {
+<span style = "background-color:#fdd">        return OK;           // everything was received
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        return ERROR_VALUE;  // some data was received, but not as much as expected</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else // error
+    {
+<span style = "background-color:#fdd">      answer = "";
+      delete buffer;
+      return ERROR_VALUE;</span>
+    }
+  }
+<span style = "background-color:#fdd">  delete buffer;
+  return OK;</span>
+
+#else  // Posix
+  if (m_FileDescriptor == INVALID_HANDLE_VALUE)
+    return ERROR_VALUE;
+
+  unsigned long bytesRead = 0;
+  unsigned long bytesLeft = numberOfBytes;
+  auto  buffer = new char[numberOfBytes];
+
+  while ((bytesLeft &gt; 0) &amp;&amp; (bytesRead &lt; numberOfBytes))
+  {
+    int num = read(m_FileDescriptor, &amp;buffer[bytesRead], 1); // read one byte
+    if (num == -1) // ERROR_VALUE
+    {
+      if (errno == EAGAIN) // nonblocking, no byte there right now, but maybe next time
+        continue;
+      else
+        break; // ERROR_VALUE, stop trying to read
+    }
+    if (num == 0) // timeout or eof(?)
+      break;
+
+    bytesLeft -= num;  // n is number of chars left to read
+    bytesRead += num;  // i is the number of chars read
+
+    if (eol &amp;&amp; *eol == buffer[bytesRead-1]) // end of line char reached
+      break;
+  }
+  if (bytesRead &gt; 0)
+    answer.assign(buffer, bytesRead); // copy buffer to answer
+
+  delete[] buffer;
+
+  if ( bytesRead == numberOfBytes ||                            // everything was received
+       (eol &amp;&amp; answer.size() &gt; 0 &amp;&amp; *eol == answer.at(answer.size()-1)) )  // end of line char reached
+    return OK;
+  else
+    return ERROR_VALUE;  // some data was received, but not as much as expected
+#endif
+<span style = "background-color:#fdd">}</span>
+
+int mitk::SerialCommunication::Send(const std::string&amp; input, bool block)
+<span style = "background-color:#fdd">{</span>
+  //long retval = E2ERR_OPENFAILED;
+<span style = "background-color:#fdd">  if (input.empty())
+    return OK;
+  if (m_Connected == false)
+    return ERROR_VALUE;</span>
+
+#ifdef WIN32
+<span style = "background-color:#fdd">  if (m_ComPortHandle == INVALID_HANDLE_VALUE)
+    return ERROR_VALUE;</span>
+
+<span style = "background-color:#fdd">  DWORD bytesWritten = 0;
+  if (WriteFile(m_ComPortHandle, input.data(), static_cast&lt;DWORD&gt;(input.size()), &amp;bytesWritten, nullptr) == TRUE)
+    return OK;</span>
+  else
+<span style = "background-color:#fdd">    return ERROR_VALUE;</span>
+
+#else // Posix
+  if (m_FileDescriptor == INVALID_HANDLE_VALUE)
+    return ERROR_VALUE;
+
+  long bytesWritten = 0;
+  long bytesLeft = input.size();
+
+  while (bytesLeft &gt; 0)
+  {
+    bytesWritten = write(m_FileDescriptor, input.data() + bytesWritten, bytesLeft);
+    if (bytesWritten &lt;= 0)
+      return ERROR_VALUE; //return ERROR_VALUE
+    bytesLeft -= bytesWritten;
+  }
+  if (block)
+  {
+    // wait for output to be physically sent
+    if (tcdrain(m_FileDescriptor) == -1)
+      return ERROR_VALUE;
+  }
+  return OK;
+#endif
+<span style = "background-color:#fdd">}</span>
+
+int mitk::SerialCommunication::ApplyConfiguration()
+<span style = "background-color:#fdd">{</span>
+#ifdef WIN32 // Windows implementation
+<span style = "background-color:#fdd">  return ApplyConfigurationWin();</span>
+#else // Posix
+  return ApplyConfigurationUnix();
+#endif
+<span style = "background-color:#fdd">}</span>
+
+/**
+* The Code for Baud rates is highly platform specific and divided into separate subroutines for readability.
+*/
+
+#ifdef WIN32
+int mitk::SerialCommunication::ApplyConfigurationWin()
+<span style = "background-color:#fdd">{
+   if (m_ComPortHandle == INVALID_HANDLE_VALUE)
+    return ERROR_VALUE;</span>
+
+  DCB controlSettings;
+<span style = "background-color:#fdd">  if (GetCommState(m_ComPortHandle, &amp;controlSettings) == 0)</span>
+  {
+<span style = "background-color:#fdd">    return ERROR_VALUE;</span>
+  }
+
+<span style = "background-color:#fdd">  std::ostringstream o;
+  o &lt;&lt; "baud=" &lt;&lt; m_BaudRate &lt;&lt; " parity=" &lt;&lt; static_cast&lt;char&gt;(m_Parity) &lt;&lt; " data=" &lt;&lt; m_DataBits &lt;&lt; " stop=" &lt;&lt; m_StopBits;
+  if (BuildCommDCBA(o.str().c_str(), &amp;controlSettings)  == 0) // Build device-control block
+    return ERROR_VALUE;</span>
+
+<span style = "background-color:#fdd">  if (m_HardwareHandshake == HardwareHandshakeOn) // Modify hardware handshake values</span>
+  {
+<span style = "background-color:#fdd">    controlSettings.fDtrControl = DTR_CONTROL_ENABLE;
+    controlSettings.fRtsControl = RTS_CONTROL_ENABLE;
+    controlSettings.fOutxCtsFlow = TRUE;
+    controlSettings.fRtsControl = RTS_CONTROL_HANDSHAKE;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    controlSettings.fDtrControl = DTR_CONTROL_DISABLE;
+    controlSettings.fRtsControl = RTS_CONTROL_DISABLE;
+    controlSettings.fOutxCtsFlow = FALSE;
+    controlSettings.fRtsControl = RTS_CONTROL_DISABLE;</span>
+  }
+<span style = "background-color:#fdd">  if (SetCommState(m_ComPortHandle, &amp;controlSettings) == FALSE)    // Configure com port
+    return ERROR_VALUE;</span>
+
+  COMMTIMEOUTS timeouts;
+
+<span style = "background-color:#fdd">  timeouts.ReadIntervalTimeout = m_ReceiveTimeout;
+  timeouts.ReadTotalTimeoutMultiplier = 0;
+  timeouts.ReadTotalTimeoutConstant = m_ReceiveTimeout;
+  timeouts.WriteTotalTimeoutMultiplier = 0;
+  timeouts.WriteTotalTimeoutConstant = m_SendTimeout;
+  if (SetCommTimeouts(m_ComPortHandle, &amp;timeouts) == FALSE)  // set timeout values
+    return ERROR_VALUE;</span>
+
+<span style = "background-color:#fdd">  PurgeComm(m_ComPortHandle, PURGE_TXCLEAR | PURGE_RXCLEAR);  // clear read and write buffers
+  return OK;
+}</span>
+
+#else
+/**
+* \brief Applies the configuration for Linux
+*/
+int mitk::SerialCommunication::ApplyConfigurationUnix()
+{
+  if ( m_FileDescriptor == INVALID_HANDLE_VALUE )
+    return ERROR_VALUE;
+
+  struct termios termIOStructure;
+  if ( tcgetattr(m_FileDescriptor, &amp;termIOStructure) != 0 ) // retrieve parameters from com port
+    return ERROR_VALUE;
+
+  cfmakeraw(&amp;termIOStructure);        // set flags to raw mode
+  termIOStructure.c_cflag |= CLOCAL;
+  if (m_HardwareHandshake == HardwareHandshakeOn)
+  { // enable
+    termIOStructure.c_cflag |= CRTSCTS;
+    termIOStructure.c_iflag &amp;= ~(IXON|IXOFF);
+  }
+  else
+  { // disable
+    termIOStructure.c_cflag &amp;= ~CRTSCTS;
+    termIOStructure.c_iflag &amp;= ~(IXON|IXOFF);
+  }
+  termIOStructure.c_cflag &amp;= ~CSIZE;  // set number of data bits
+  switch (m_DataBits)
+  {
+  case DataBits7:
+    termIOStructure.c_cflag |= CS7;
+    break;
+  case DataBits8:
+  default:
+    termIOStructure.c_cflag |= CS8;
+  }
+  switch (m_StopBits)  // set number of stop bits
+  {
+  case StopBits2:
+    termIOStructure.c_cflag |= CSTOPB;
+    break;
+  case StopBits1:
+  default:
+    termIOStructure.c_cflag &amp;= ~CSTOPB;
+  }
+  switch (m_Parity)  // set parity
+  {
+  case Odd:
+    termIOStructure.c_cflag |= (PARENB|PARODD);
+    break;
+  case Even:
+    termIOStructure.c_cflag |= PARENB;
+    termIOStructure.c_cflag &amp;= ~PARODD;
+    // TODO: check if this is intended
+    // FALLTHRU
+  case None:
+    // FALLTHRU
+  default:
+    termIOStructure.c_cflag &amp;= ~PARENB;
+    break;
+  }
+  speed_t baudrate; // set baudrate
+  switch (m_BaudRate)
+  {
+  case BaudRate9600:
+    baudrate = B9600;
+    break;
+  case BaudRate14400:
+    baudrate = B9600;  //14400 is not defined for posix, use 9600 instead
+    break;
+  case BaudRate19200:
+    baudrate = B19200;
+    break;
+  case BaudRate38400:
+    baudrate = B38400;
+    break;
+  case BaudRate57600:
+    baudrate = B57600;
+    break;
+  case BaudRate115200:
+    baudrate = B115200;
+    break;
+  case BaudRate230400:
+    baudrate = B230400;
+    break;
+  // the following baud rates do not work for apple
+  #ifndef __APPLE__
+  case BaudRate460800:
+    baudrate = B460800;
+    break;
+  case BaudRate500000:
+    baudrate = B500000;
+    break;
+  case BaudRate576000:
+    baudrate = B576000;
+    break;
+  case BaudRate921600:
+    baudrate = B921600;
+    break;
+  case BaudRate1000000:
+    baudrate = B1000000;
+    break;
+  case BaudRate1152000:
+    baudrate = B1152000;
+    break;
+  //case BaudRate1228739:
+    //baudrate = B1228739;
+    //break;
+  case BaudRate1500000:
+    baudrate = B1500000;
+    break;
+  case BaudRate2000000:
+    baudrate = B2000000;
+    break;
+  case BaudRate2500000:
+    baudrate = B2500000;
+    break;
+  case BaudRate3000000:
+    baudrate = B3000000;
+    break;
+  case BaudRate3500000:
+    baudrate = B3500000;
+    break;
+  case BaudRate4000000:
+    baudrate = B4000000;
+    break;
+  #endif
+  default:
+    MITK_WARN("mitk::SerialCommunication") &lt;&lt; "Baud rate not recognized, using default of 9600 Baud.";
+    baudrate = B9600;
+    break;
+  }
+  cfsetispeed(&amp;termIOStructure, baudrate);
+  cfsetospeed(&amp;termIOStructure, baudrate);
+
+  termIOStructure.c_cc[VMIN] = 0;
+  termIOStructure.c_cc[VTIME] = m_ReceiveTimeout / 100; // timeout in 1/10 sec, not in ms. Rounded down.
+
+  if (tcsetattr(m_FileDescriptor, TCSANOW, &amp;termIOStructure) == 0)
+    return OK;
+  else
+    return ERROR_VALUE;
+}
+
+#endif
+
+
+void mitk::SerialCommunication::SendBreak(unsigned int ms)
+<span style = "background-color:#fdd">{</span>
+#ifdef WIN32
+<span style = "background-color:#fdd">  if (m_ComPortHandle == INVALID_HANDLE_VALUE)
+    return;
+  SetCommBreak(m_ComPortHandle);
+  itksys::SystemTools::Delay(ms);
+  ClearCommBreak(m_ComPortHandle);</span>
+  return;
+
+#else  // Posix
+
+  if (m_FileDescriptor == INVALID_HANDLE_VALUE)
+    return;
+  tcsendbreak(m_FileDescriptor, ms);
+  return;
+#endif
+<span style = "background-color:#fdd">}</span>
+
+void mitk::SerialCommunication::ClearReceiveBuffer()
+<span style = "background-color:#fdd">{</span>
+#ifdef WIN32
+<span style = "background-color:#fdd">  if (m_ComPortHandle != INVALID_HANDLE_VALUE)
+    PurgeComm(m_ComPortHandle, PURGE_RXCLEAR);</span>
+#else // Posix
+  if (m_FileDescriptor != INVALID_HANDLE_VALUE)
+    tcflush(m_FileDescriptor, TCIFLUSH);
+#endif
+<span style = "background-color:#fdd">}</span>
+
+void mitk::SerialCommunication::ClearSendBuffer()
+<span style = "background-color:#fdd">{</span>
+#ifdef WIN32
+<span style = "background-color:#fdd">  if ( m_ComPortHandle != INVALID_HANDLE_VALUE )
+    PurgeComm(m_ComPortHandle, PURGE_TXCLEAR);</span>
+#else // Posix
+  if ( m_FileDescriptor != INVALID_HANDLE_VALUE )
+    tcflush(m_FileDescriptor, TCOFLUSH);
+#endif
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

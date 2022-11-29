@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRealTimeClock.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkRealTimeClock.h"
+
+
+// check if MITK runs on a Windows-System
+#ifdef _WIN32
+  #include "mitkWindowsRealTimeClock.h"
+#else // should be Linux or macOS
+  #include "mitkLinuxRealTimeClock.h"
+#endif
+
+mitk::RealTimeClock::Pointer mitk::RealTimeClock::New()
+<span style = "background-color:#fdd">{
+  mitk::RealTimeClock::Pointer smartPtr;</span>
+
+#ifdef _WIN32
+<span style = "background-color:#fdd">  smartPtr = mitk::WindowsRealTimeClock::New();</span>
+#else
+  smartPtr = mitk::LinuxRealTimeClock::New();
+#endif
+
+<span style = "background-color:#fdd">  return smartPtr;
+}</span></pre>
+	</body>
+</html>

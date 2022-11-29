@@ -1,0 +1,957 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDisplayInteractor.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDisplayInteractor.h"
+
+#include "mitkBaseRenderer.h"
+#include "mitkCameraController.h"
+#include "mitkInteractionPositionEvent.h"
+#include "mitkPropertyList.h"
+#include &lt;mitkAbstractTransformGeometry.h&gt;
+#include &lt;mitkRotationOperation.h&gt;
+#include &lt;cstring&gt;
+// level window
+#include "mitkLevelWindow.h"
+#include "mitkLevelWindowProperty.h"
+#include "mitkLine.h"
+#include "mitkNodePredicateDataType.h"
+#include "mitkStandaloneDataStorage.h"
+#include "vtkRenderWindowInteractor.h"
+
+// Rotation
+#include "mitkInteractionConst.h"
+#include "rotate_cursor.xpm"
+#include &lt;mitkImagePixelReadAccessor.h&gt;
+#include &lt;mitkRotationOperation.h&gt;
+
+#include "mitkImage.h"
+#include "mitkImagePixelReadAccessor.h"
+#include "mitkPixelTypeMultiplex.h"
+#include "mitkStatusBar.h"
+
+#include &lt;mitkCompositePixelValueToString.h&gt;
+
+void mitk::DisplayInteractor::Notify(InteractionEvent *interactionEvent, bool isHandled)
+<span style = "background-color:#fdd">{</span>
+  // to use the state machine pattern,
+  // the event is passed to the state machine interface to be handled
+<span style = "background-color:#fdd">  if (!isHandled || m_AlwaysReact)</span>
+  {
+<span style = "background-color:#fdd">    HandleEvent(interactionEvent, nullptr);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::DisplayInteractor::DisplayInteractor()
+<span style = "background-color:#fdd">  : m_IndexToSliceModifier(4)
+  , m_AutoRepeat(false)
+  , m_InvertScrollDirection(false)
+  , m_InvertZoomDirection(false)
+  , m_InvertMoveDirection(false)
+  , m_InvertLevelWindowDirection(false)
+  , m_AlwaysReact(false)
+  , m_ZoomFactor(2)
+  , m_LinkPlanes(true)
+{
+  m_StartCoordinateInMM.Fill(0);
+  m_LastDisplayCoordinate.Fill(0);
+  m_LastCoordinateInMM.Fill(0);
+  m_CurrentDisplayCoordinate.Fill(0);
+}</span>
+
+mitk::DisplayInteractor::~DisplayInteractor()
+<span style = "background-color:#fdd">{</span>
+  // nothing here
+<span style = "background-color:#fdd">}</span>
+
+void mitk::DisplayInteractor::ConnectActionsAndFunctions()
+<span style = "background-color:#fdd">{
+  CONNECT_CONDITION("check_position_event", CheckPositionEvent);
+  CONNECT_CONDITION("check_can_rotate", CheckRotationPossible);
+  CONNECT_CONDITION("check_can_swivel", CheckSwivelPossible);</span>
+
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("init", Init);
+  CONNECT_FUNCTION("move", Move);
+  CONNECT_FUNCTION("zoom", Zoom);
+  CONNECT_FUNCTION("scroll", Scroll);
+  CONNECT_FUNCTION("ScrollOneDown", ScrollOneDown);
+  CONNECT_FUNCTION("ScrollOneUp", ScrollOneUp);
+  CONNECT_FUNCTION("levelWindow", AdjustLevelWindow);
+  CONNECT_FUNCTION("setCrosshair", SetCrosshair);</span>
+
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("updateStatusbar", UpdateStatusbar)</span>
+
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("startRotation", StartRotation);
+  CONNECT_FUNCTION("endRotation", EndRotation);
+  CONNECT_FUNCTION("rotate", Rotate);</span>
+
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("swivel", Swivel);</span>
+
+<span style = "background-color:#fdd">  CONNECT_FUNCTION("IncreaseTimeStep", IncreaseTimeStep);
+  CONNECT_FUNCTION("DecreaseTimeStep", DecreaseTimeStep);
+}</span>
+
+bool mitk::DisplayInteractor::CheckPositionEvent(const InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  const auto *positionEvent = dynamic_cast&lt;const InteractionPositionEvent *&gt;(interactionEvent);
+  if (positionEvent == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+bool mitk::DisplayInteractor::CheckRotationPossible(const mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{</span>
+  // Decide between moving and rotation slices.
+  /*
+  Detailed logic:
+
+  1. Find the SliceNavigationController that has sent the event: this one defines our rendering plane and will NOT be
+  rotated. Needs not even be counted or checked.
+  2. Inspect every other SliceNavigationController
+  - calculate the line intersection of this SliceNavigationController's plane with our rendering plane
+  - if there is NO interesection, ignore and continue
+  - IF there is an intersection
+  - check the mouse cursor's distance from that line.
+  0. if the line is NOT near the cursor, remember the plane as "one of the other planes" (which can be rotated in
+  "locked" mode)
+  1. on first line near the cursor,  just remember this intersection line as THE other plane that we want to rotate
+  2. on every consecutive line near the cursor, check if the line is geometrically identical to the line that we want to
+  rotate
+  - if yes, we just push this line to the "other" lines and rotate it along
+  - if no, then we have a situation where the mouse is near two other lines (e.g. crossing point) and don't want to
+  rotate
+  */
+<span style = "background-color:#fdd">  const auto *posEvent = dynamic_cast&lt;const InteractionPositionEvent *&gt;(interactionEvent);
+  if (posEvent == nullptr)
+    return false;</span>
+
+<span style = "background-color:#fdd">  BaseRenderer *clickedRenderer = posEvent-&gt;GetSender();
+  const PlaneGeometry *ourViewportGeometry = (clickedRenderer-&gt;GetCurrentWorldPlaneGeometry());</span>
+
+<span style = "background-color:#fdd">  if (!ourViewportGeometry)
+    return false;</span>
+
+<span style = "background-color:#fdd">  Point3D cursorPosition = posEvent-&gt;GetPositionInWorld();
+  const auto spacing = ourViewportGeometry-&gt;GetSpacing();
+  const PlaneGeometry *geometryToBeRotated = nullptr; // this one is under the mouse cursor
+  const PlaneGeometry *anyOtherGeometry = nullptr;    // this is also visible (for calculation of intersection ONLY)
+  Line3D intersectionLineWithGeometryToBeRotated;</span>
+
+<span style = "background-color:#fdd">  bool hitMultipleLines(false);
+  m_SNCsToBeRotated.clear();</span>
+
+<span style = "background-color:#fdd">  const double threshholdDistancePixels = 12.0;</span>
+
+<span style = "background-color:#fdd">  auto renWindows = RenderingManager::GetInstance()-&gt;GetAllRegisteredRenderWindows();</span>
+
+<span style = "background-color:#fdd">  for (auto renWin : renWindows)</span>
+  {
+<span style = "background-color:#fdd">    SliceNavigationController *snc = BaseRenderer::GetInstance(renWin)-&gt;GetSliceNavigationController();</span>
+
+    // If the mouse cursor is in 3D Renderwindow, do not check for intersecting planes.
+<span style = "background-color:#fdd">    if (BaseRenderer::GetInstance(renWin)-&gt;GetMapperID() == BaseRenderer::Standard3D)
+      continue;</span>
+
+<span style = "background-color:#fdd">    const PlaneGeometry *otherRenderersRenderPlane = snc-&gt;GetCurrentPlaneGeometry();
+    if (otherRenderersRenderPlane == nullptr)
+      continue; // ignore, we don't see a plane</span>
+
+    // check if there is an intersection
+<span style = "background-color:#fdd">    Line3D intersectionLine; // between rendered/clicked geometry and the one being analyzed
+    if (!ourViewportGeometry-&gt;IntersectionLine(otherRenderersRenderPlane, intersectionLine))</span>
+    {
+<span style = "background-color:#fdd">      continue; // we ignore this plane, it's parallel to our plane</span>
+    }
+
+    // check distance from intersection line
+<span style = "background-color:#fdd">    const double distanceFromIntersectionLine =</span>
+      intersectionLine.Distance(cursorPosition) / spacing[snc-&gt;GetDefaultViewDirection()];
+
+    // far away line, only remember for linked rotation if necessary
+<span style = "background-color:#fdd">    if (distanceFromIntersectionLine &gt; threshholdDistancePixels)</span>
+    {
+<span style = "background-color:#fdd">      anyOtherGeometry = otherRenderersRenderPlane; // we just take the last one, so overwrite each iteration (we just</span>
+                                                    // need some crossing point)
+      // TODO what about multiple crossings? NOW we have undefined behavior / random crossing point is used
+<span style = "background-color:#fdd">      if (m_LinkPlanes)</span>
+      {
+<span style = "background-color:#fdd">        m_SNCsToBeRotated.push_back(snc);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else // close to cursor
+    {
+<span style = "background-color:#fdd">      if (geometryToBeRotated == nullptr) // first one close to the cursor</span>
+      {
+<span style = "background-color:#fdd">        geometryToBeRotated = otherRenderersRenderPlane;
+        intersectionLineWithGeometryToBeRotated = intersectionLine;
+        m_SNCsToBeRotated.push_back(snc);
+      }</span>
+      else
+      {
+        // compare to the line defined by geometryToBeRotated: if identical, just rotate this otherRenderersRenderPlane
+        // together with the primary one
+        //                                                     if different, DON'T rotate
+<span style = "background-color:#fdd">        if (intersectionLine.IsParallel(intersectionLineWithGeometryToBeRotated) &amp;&amp;</span>
+            intersectionLine.Distance(intersectionLineWithGeometryToBeRotated.GetPoint1()) &lt; mitk::eps)
+        {
+<span style = "background-color:#fdd">          m_SNCsToBeRotated.push_back(snc);
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          hitMultipleLines = true;</span>
+        }
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  bool moveSlices(true);</span>
+
+<span style = "background-color:#fdd">  if (geometryToBeRotated &amp;&amp; anyOtherGeometry &amp;&amp; ourViewportGeometry &amp;&amp; !hitMultipleLines)</span>
+  {
+    // assure all three are valid, so calculation of center of rotation can be done
+<span style = "background-color:#fdd">    moveSlices = false;</span>
+  }
+  // question in state machine is: "rotate?"
+<span style = "background-color:#fdd">  if (moveSlices) // i.e. NOT rotate</span>
+  {
+<span style = "background-color:#fdd">    return false;
+  }</span>
+  else
+  { // we DO have enough information for rotation
+<span style = "background-color:#fdd">    m_LastCursorPosition = intersectionLineWithGeometryToBeRotated.Project(</span>
+      cursorPosition); // remember where the last cursor position ON THE LINE has been observed
+
+<span style = "background-color:#fdd">    if (anyOtherGeometry-&gt;IntersectionPoint(</span>
+          intersectionLineWithGeometryToBeRotated,
+          m_CenterOfRotation)) // find center of rotation by intersection with any of the OTHER lines
+    {
+<span style = "background-color:#fdd">      return true;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+bool mitk::DisplayInteractor::CheckSwivelPossible(const mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  const ScalarType ThresholdDistancePixels = 6.0;</span>
+
+  // Decide between moving and rotation: if we're close to the crossing
+  // point of the planes, moving mode is entered, otherwise
+  // rotation/swivel mode
+<span style = "background-color:#fdd">  const auto *posEvent = dynamic_cast&lt;const InteractionPositionEvent *&gt;(interactionEvent);</span>
+
+<span style = "background-color:#fdd">  BaseRenderer *renderer = interactionEvent-&gt;GetSender();</span>
+
+<span style = "background-color:#fdd">  if (!posEvent || !renderer)
+    return false;</span>
+
+<span style = "background-color:#fdd">  const Point3D &amp;cursor = posEvent-&gt;GetPositionInWorld();</span>
+
+<span style = "background-color:#fdd">  m_SNCsToBeRotated.clear();</span>
+
+<span style = "background-color:#fdd">  const PlaneGeometry *clickedGeometry(nullptr);
+  const PlaneGeometry *otherGeometry1(nullptr);
+  const PlaneGeometry *otherGeometry2(nullptr);</span>
+
+<span style = "background-color:#fdd">  auto renWindows = RenderingManager::GetInstance()-&gt;GetAllRegisteredRenderWindows();</span>
+
+<span style = "background-color:#fdd">  for (auto renWin : renWindows)</span>
+  {
+<span style = "background-color:#fdd">    SliceNavigationController *snc = BaseRenderer::GetInstance(renWin)-&gt;GetSliceNavigationController();</span>
+
+    // If the mouse cursor is in 3D Renderwindow, do not check for intersecting planes.
+<span style = "background-color:#fdd">    if (BaseRenderer::GetInstance(renWin)-&gt;GetMapperID() == BaseRenderer::Standard3D)
+      continue;</span>
+
+<span style = "background-color:#fdd">    const PlaneGeometry *planeGeometry = snc-&gt;GetCurrentPlaneGeometry();
+    if (!planeGeometry)
+      continue;</span>
+
+<span style = "background-color:#fdd">    if (snc == renderer-&gt;GetSliceNavigationController())</span>
+    {
+<span style = "background-color:#fdd">      clickedGeometry = planeGeometry;
+      m_SNCsToBeRotated.push_back(snc);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      if (otherGeometry1 == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        otherGeometry1 = planeGeometry;
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        otherGeometry2 = planeGeometry;</span>
+      }
+<span style = "background-color:#fdd">      if (m_LinkPlanes)</span>
+      {
+        // If planes are linked, apply rotation to all planes
+<span style = "background-color:#fdd">        m_SNCsToBeRotated.push_back(snc);</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  mitk::Line3D line;
+  mitk::Point3D point;</span>
+  if ((clickedGeometry != nullptr) &amp;&amp; (otherGeometry1 != nullptr) &amp;&amp; (otherGeometry2 != nullptr) &amp;&amp;
+<span style = "background-color:#fdd">      clickedGeometry-&gt;IntersectionLine(otherGeometry1, line) &amp;&amp; otherGeometry2-&gt;IntersectionPoint(line, point))</span>
+  {
+<span style = "background-color:#fdd">    m_CenterOfRotation = point;
+    if (m_CenterOfRotation.EuclideanDistanceTo(cursor) &lt; ThresholdDistancePixels)</span>
+    {
+<span style = "background-color:#fdd">      return false;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      m_ReferenceCursor = posEvent-&gt;GetPointerPositionOnScreen();</span>
+
+      // Get main axes of rotation plane and store it for rotation step
+<span style = "background-color:#fdd">      m_RotationPlaneNormal = clickedGeometry-&gt;GetNormal();</span>
+
+<span style = "background-color:#fdd">      ScalarType xVector[] = {1.0, 0.0, 0.0};
+      ScalarType yVector[] = {0.0, 1.0, 0.0};
+      clickedGeometry-&gt;BaseGeometry::IndexToWorld(Vector3D(xVector), m_RotationPlaneXVector);
+      clickedGeometry-&gt;BaseGeometry::IndexToWorld(Vector3D(yVector), m_RotationPlaneYVector);</span>
+
+<span style = "background-color:#fdd">      m_RotationPlaneNormal.Normalize();
+      m_RotationPlaneXVector.Normalize();
+      m_RotationPlaneYVector.Normalize();</span>
+
+<span style = "background-color:#fdd">      m_PreviousRotationAxis.Fill(0.0);
+      m_PreviousRotationAxis[2] = 1.0;
+      m_PreviousRotationAngle = 0.0;</span>
+
+<span style = "background-color:#fdd">      return true;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::DisplayInteractor::Init(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto *positionEvent = static_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);</span>
+
+<span style = "background-color:#fdd">  m_LastDisplayCoordinate = positionEvent-&gt;GetPointerPositionOnScreen();
+  m_CurrentDisplayCoordinate = m_LastDisplayCoordinate;
+  positionEvent-&gt;GetSender()-&gt;DisplayToPlane(m_LastDisplayCoordinate, m_StartCoordinateInMM);
+  m_LastCoordinateInMM = m_StartCoordinateInMM;
+}</span>
+
+void mitk::DisplayInteractor::Move(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  BaseRenderer *sender = interactionEvent-&gt;GetSender();
+  auto *positionEvent = static_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);</span>
+
+<span style = "background-color:#fdd">  float invertModifier = -1.0;
+  if (m_InvertMoveDirection)</span>
+  {
+<span style = "background-color:#fdd">    invertModifier = 1.0;</span>
+  }
+  // perform translation
+<span style = "background-color:#fdd">  Vector2D moveVector = (positionEvent-&gt;GetPointerPositionOnScreen() - m_LastDisplayCoordinate) * invertModifier;
+  moveVector *= sender-&gt;GetScaleFactorMMPerDisplayUnit();</span>
+
+<span style = "background-color:#fdd">  sender-&gt;GetCameraController()-&gt;MoveBy(moveVector);
+  RenderingManager::GetInstance()-&gt;RequestUpdate(sender-&gt;GetRenderWindow());
+  m_LastDisplayCoordinate = positionEvent-&gt;GetPointerPositionOnScreen();
+}</span>
+
+void mitk::DisplayInteractor::SetCrosshair(mitk::StateMachineAction *, mitk::InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto* positionEvent = static_cast&lt;InteractionPositionEvent*&gt;(interactionEvent);
+  Point3D pos = positionEvent-&gt;GetPositionInWorld();</span>
+
+<span style = "background-color:#fdd">  const BaseRenderer::Pointer sender = interactionEvent-&gt;GetSender();
+  auto renWindows = RenderingManager::GetInstance()-&gt;GetAllRegisteredRenderWindows();
+  for (auto renWin : renWindows)</span>
+  {
+<span style = "background-color:#fdd">    if (BaseRenderer::GetInstance(renWin)-&gt;GetMapperID() == BaseRenderer::Standard2D &amp;&amp; renWin != sender-&gt;GetRenderWindow())</span>
+    {
+<span style = "background-color:#fdd">      BaseRenderer::GetInstance(renWin)-&gt;GetSliceNavigationController()-&gt;SelectSliceByPoint(pos);</span>
+    }
+<span style = "background-color:#fdd">  }
+}</span>
+
+void mitk::DisplayInteractor::IncreaseTimeStep(StateMachineAction *, InteractionEvent *)
+<span style = "background-color:#fdd">{
+  auto sliceNaviController = RenderingManager::GetInstance()-&gt;GetTimeNavigationController();
+  auto stepper = sliceNaviController-&gt;GetTime();
+  stepper-&gt;SetAutoRepeat(true);
+  stepper-&gt;Next();
+}</span>
+
+void mitk::DisplayInteractor::DecreaseTimeStep(StateMachineAction *, InteractionEvent *)
+<span style = "background-color:#fdd">{
+  auto sliceNaviController = RenderingManager::GetInstance()-&gt;GetTimeNavigationController();
+  auto stepper = sliceNaviController-&gt;GetTime();
+  stepper-&gt;SetAutoRepeat(true);
+  stepper-&gt;Previous();
+}</span>
+
+void mitk::DisplayInteractor::Zoom(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  float factor = 1.0;
+  float distance = 0;</span>
+
+<span style = "background-color:#fdd">  if (m_ZoomDirection == "updown")</span>
+  {
+<span style = "background-color:#fdd">    distance = m_CurrentDisplayCoordinate[1] - m_LastDisplayCoordinate[1];
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    distance = m_CurrentDisplayCoordinate[0] - m_LastDisplayCoordinate[0];</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_InvertZoomDirection)</span>
+  {
+<span style = "background-color:#fdd">    distance *= -1.0;</span>
+  }
+
+  // set zooming speed
+<span style = "background-color:#fdd">  if (distance &lt; 0.0)</span>
+  {
+<span style = "background-color:#fdd">    factor = 1.0 / m_ZoomFactor;
+  }
+  else if (distance &gt; 0.0)</span>
+  {
+<span style = "background-color:#fdd">    factor = 1.0 * m_ZoomFactor;</span>
+  }
+
+<span style = "background-color:#fdd">  auto* positionEvent = static_cast&lt;InteractionPositionEvent*&gt;(interactionEvent);
+  m_LastDisplayCoordinate = m_CurrentDisplayCoordinate;
+  m_CurrentDisplayCoordinate = positionEvent-&gt;GetPointerPositionOnScreen();</span>
+
+<span style = "background-color:#fdd">  if (factor != 1.0)</span>
+  {
+<span style = "background-color:#fdd">    const BaseRenderer::Pointer sender = interactionEvent-&gt;GetSender();
+    sender-&gt;GetCameraController()-&gt;Zoom(factor, m_StartCoordinateInMM);
+    RenderingManager::GetInstance()-&gt;RequestUpdate(sender-&gt;GetRenderWindow());
+  }
+}</span>
+
+void mitk::DisplayInteractor::Scroll(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  auto* positionEvent = static_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);</span>
+
+<span style = "background-color:#fdd">  mitk::SliceNavigationController::Pointer sliceNaviController = interactionEvent-&gt;GetSender()-&gt;GetSliceNavigationController();
+  if (sliceNaviController)</span>
+  {
+<span style = "background-color:#fdd">    int delta = 0;</span>
+    // Scrolling direction
+<span style = "background-color:#fdd">    if (m_ScrollDirection == "updown")</span>
+    {
+<span style = "background-color:#fdd">      delta = static_cast&lt;int&gt;(m_LastDisplayCoordinate[1] - positionEvent-&gt;GetPointerPositionOnScreen()[1]);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      delta = static_cast&lt;int&gt;(m_LastDisplayCoordinate[0] - positionEvent-&gt;GetPointerPositionOnScreen()[0]);</span>
+    }
+
+<span style = "background-color:#fdd">    if (m_InvertScrollDirection)</span>
+    {
+<span style = "background-color:#fdd">      delta *= -1;</span>
+    }
+
+    // Set how many pixels the mouse has to be moved to scroll one slice
+    // if we moved less than 'm_IndexToSliceModifier' pixels slice ONE slice only
+<span style = "background-color:#fdd">    if (delta &gt; 0 &amp;&amp; delta &lt; m_IndexToSliceModifier)</span>
+    {
+<span style = "background-color:#fdd">      delta = m_IndexToSliceModifier;
+    }
+    else if (delta &lt; 0 &amp;&amp; delta &gt; -m_IndexToSliceModifier)</span>
+    {
+<span style = "background-color:#fdd">      delta = -m_IndexToSliceModifier;</span>
+    }
+<span style = "background-color:#fdd">    delta /= m_IndexToSliceModifier;</span>
+
+<span style = "background-color:#fdd">    int newPos = sliceNaviController-&gt;GetSlice()-&gt;GetPos() + delta;</span>
+
+    // if auto repeat is on, start at first slice if you reach the last slice and vice versa
+<span style = "background-color:#fdd">    int maxSlices = sliceNaviController-&gt;GetSlice()-&gt;GetSteps();
+    if (m_AutoRepeat)</span>
+    {
+<span style = "background-color:#fdd">      while (newPos &lt; 0)</span>
+      {
+<span style = "background-color:#fdd">        newPos += maxSlices;
+      }</span>
+
+<span style = "background-color:#fdd">      while (newPos &gt;= maxSlices)</span>
+      {
+<span style = "background-color:#fdd">        newPos -= maxSlices;
+      }
+    }</span>
+    else
+    {
+      // if the new slice is below 0 we still show slice 0
+      // due to the stepper using unsigned int we have to do this ourselves
+<span style = "background-color:#fdd">      if (newPos &lt; 1)</span>
+      {
+<span style = "background-color:#fdd">        newPos = 0;</span>
+      }
+    }
+
+<span style = "background-color:#fdd">    m_LastDisplayCoordinate = m_CurrentDisplayCoordinate;
+    m_CurrentDisplayCoordinate = positionEvent-&gt;GetPointerPositionOnScreen();</span>
+
+    // set the new position
+<span style = "background-color:#fdd">    sliceNaviController-&gt;GetSlice()-&gt;SetPos(newPos);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::DisplayInteractor::ScrollOneDown(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  mitk::SliceNavigationController::Pointer sliceNaviController =</span>
+    interactionEvent-&gt;GetSender()-&gt;GetSliceNavigationController();
+<span style = "background-color:#fdd">  if (!sliceNaviController-&gt;GetSliceLocked())</span>
+  {
+<span style = "background-color:#fdd">    mitk::Stepper *stepper = sliceNaviController-&gt;GetSlice();
+    if (stepper-&gt;GetSteps() &lt;= 1)</span>
+    {
+<span style = "background-color:#fdd">      stepper = sliceNaviController-&gt;GetTime();</span>
+    }
+<span style = "background-color:#fdd">    stepper-&gt;Next();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::DisplayInteractor::ScrollOneUp(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  mitk::SliceNavigationController::Pointer sliceNaviController =</span>
+    interactionEvent-&gt;GetSender()-&gt;GetSliceNavigationController();
+<span style = "background-color:#fdd">  if (!sliceNaviController-&gt;GetSliceLocked())</span>
+  {
+<span style = "background-color:#fdd">    mitk::Stepper *stepper = sliceNaviController-&gt;GetSlice();
+    if (stepper-&gt;GetSteps() &lt;= 1)</span>
+    {
+<span style = "background-color:#fdd">      stepper = sliceNaviController-&gt;GetTime();</span>
+    }
+<span style = "background-color:#fdd">    stepper-&gt;Previous();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::DisplayInteractor::AdjustLevelWindow(StateMachineAction *, InteractionEvent *interactionEvent)
+<span style = "background-color:#fdd">{
+  BaseRenderer::Pointer sender = interactionEvent-&gt;GetSender();
+  auto *positionEvent = static_cast&lt;InteractionPositionEvent *&gt;(interactionEvent);</span>
+
+<span style = "background-color:#fdd">  m_LastDisplayCoordinate = m_CurrentDisplayCoordinate;
+  m_CurrentDisplayCoordinate = positionEvent-&gt;GetPointerPositionOnScreen();</span>
+  // search for active image
+<span style = "background-color:#fdd">  mitk::DataStorage::Pointer storage = sender-&gt;GetDataStorage();
+  mitk::DataNode::Pointer node = nullptr;
+  mitk::DataStorage::SetOfObjects::ConstPointer allImageNodes = storage-&gt;GetSubset(mitk::NodePredicateDataType::New("Image"));
+  for (unsigned int i = 0; i &lt; allImageNodes-&gt;size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    bool isActiveImage = false;
+    bool propFound = allImageNodes-&gt;at(i)-&gt;GetBoolProperty("imageForLevelWindow", isActiveImage);</span>
+
+<span style = "background-color:#fdd">    if (propFound &amp;&amp; isActiveImage)</span>
+    {
+<span style = "background-color:#fdd">      node = allImageNodes-&gt;at(i);
+      continue;</span>
+    }
+<span style = "background-color:#fdd">  }
+  if (node.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    node = storage-&gt;GetNode(mitk::NodePredicateDataType::New("Image"));</span>
+  }
+<span style = "background-color:#fdd">  if (node.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::LevelWindow lv = mitk::LevelWindow();
+  node-&gt;GetLevelWindow(lv);
+  ScalarType level = lv.GetLevel();
+  ScalarType window = lv.GetWindow();</span>
+
+<span style = "background-color:#fdd">  int levelIndex = 0;
+  int windowIndex = 1;</span>
+
+<span style = "background-color:#fdd">  if (m_LevelDirection != "leftright")</span>
+  {
+<span style = "background-color:#fdd">    levelIndex = 1;
+    windowIndex = 0;</span>
+  }
+
+<span style = "background-color:#fdd">  int directionModifier = 1;
+  if (m_InvertLevelWindowDirection)</span>
+  {
+<span style = "background-color:#fdd">    directionModifier = -1;</span>
+  }
+
+  // calculate adjustments from mouse movements
+<span style = "background-color:#fdd">  level += (m_CurrentDisplayCoordinate[levelIndex] - m_LastDisplayCoordinate[levelIndex]) * static_cast&lt;ScalarType&gt;(2) *</span>
+           directionModifier;
+<span style = "background-color:#fdd">  window += (m_CurrentDisplayCoordinate[windowIndex] - m_LastDisplayCoordinate[windowIndex]) *</span>
+            static_cast&lt;ScalarType&gt;(2) * directionModifier;
+
+<span style = "background-color:#fdd">  lv.SetLevelWindow(level, window);
+  dynamic_cast&lt;mitk::LevelWindowProperty *&gt;(node-&gt;GetProperty("levelwindow"))-&gt;SetLevelWindow(lv);</span>
+
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::DisplayInteractor::StartRotation(mitk::StateMachineAction *, mitk::InteractionEvent *)
+<span style = "background-color:#fdd">{
+  this-&gt;SetMouseCursor(rotate_cursor_xpm, 0, 0);
+}</span>
+
+void mitk::DisplayInteractor::EndRotation(mitk::StateMachineAction *, mitk::InteractionEvent *)
+<span style = "background-color:#fdd">{
+  this-&gt;ResetMouseCursor();
+}</span>
+
+void mitk::DisplayInteractor::Rotate(mitk::StateMachineAction *, mitk::InteractionEvent *event)
+<span style = "background-color:#fdd">{
+  const auto *posEvent = dynamic_cast&lt;const InteractionPositionEvent *&gt;(event);
+  if (posEvent == nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  Point3D cursor = posEvent-&gt;GetPositionInWorld();</span>
+
+<span style = "background-color:#fdd">  Vector3D toProjected = m_LastCursorPosition - m_CenterOfRotation;
+  Vector3D toCursor = cursor - m_CenterOfRotation;</span>
+
+  // cross product: | A x B | = |A| * |B| * sin(angle)
+<span style = "background-color:#fdd">  Vector3D axisOfRotation;
+  vnl_vector_fixed&lt;ScalarType, 3&gt; vnlDirection = vnl_cross_3d(toCursor.GetVnlVector(), toProjected.GetVnlVector());
+  axisOfRotation.SetVnlVector(vnlDirection.as_ref());</span>
+
+  // scalar product: A * B = |A| * |B| * cos(angle)
+  // tan = sin / cos
+<span style = "background-color:#fdd">  ScalarType angle = -atan2((double)(axisOfRotation.GetNorm()), (double)(toCursor * toProjected));
+  angle *= 180.0 / vnl_math::pi;
+  m_LastCursorPosition = cursor;</span>
+
+  // create RotationOperation and apply to all SNCs that should be rotated
+<span style = "background-color:#fdd">  RotationOperation rotationOperation(OpROTATE, m_CenterOfRotation, axisOfRotation, angle);</span>
+
+  // iterate the OTHER slice navigation controllers: these are filled in DoDecideBetweenRotationAndSliceSelection
+<span style = "background-color:#fdd">  for (auto iter = m_SNCsToBeRotated.begin(); iter != m_SNCsToBeRotated.end(); ++iter)</span>
+  {
+<span style = "background-color:#fdd">    TimeGeometry *timeGeometry = (*iter)-&gt;GetCreatedWorldGeometry();
+    if (!timeGeometry)
+      continue;</span>
+
+<span style = "background-color:#fdd">    timeGeometry-&gt;ExecuteOperation(&amp;rotationOperation);</span>
+
+<span style = "background-color:#fdd">    (*iter)-&gt;SendCreatedWorldGeometryUpdate();
+  }</span>
+
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+}</span>
+
+void mitk::DisplayInteractor::Swivel(mitk::StateMachineAction *, mitk::InteractionEvent *event)
+<span style = "background-color:#fdd">{
+  const auto *posEvent = dynamic_cast&lt;const InteractionPositionEvent *&gt;(event);</span>
+
+<span style = "background-color:#fdd">  if (!posEvent)
+    return;</span>
+
+  // Determine relative mouse movement projected onto world space
+<span style = "background-color:#fdd">  Point2D cursor = posEvent-&gt;GetPointerPositionOnScreen();
+  Vector2D relativeCursor = cursor - m_ReferenceCursor;
+  Vector3D relativeCursorAxis = m_RotationPlaneXVector * relativeCursor[0] + m_RotationPlaneYVector * relativeCursor[1];</span>
+
+  // Determine rotation axis (perpendicular to rotation plane and cursor
+  // movement)
+<span style = "background-color:#fdd">  Vector3D rotationAxis = itk::CrossProduct(m_RotationPlaneNormal, relativeCursorAxis);</span>
+
+<span style = "background-color:#fdd">  ScalarType rotationAngle = relativeCursor.GetNorm() / 2.0;</span>
+
+  // Restore the initial plane pose by undoing the previous rotation
+  // operation
+<span style = "background-color:#fdd">  RotationOperation op(OpROTATE, m_CenterOfRotation, m_PreviousRotationAxis, -m_PreviousRotationAngle);</span>
+
+<span style = "background-color:#fdd">  SNCVector::iterator iter;
+  for (iter = m_SNCsToBeRotated.begin(); iter != m_SNCsToBeRotated.end(); ++iter)</span>
+  {
+<span style = "background-color:#fdd">    if (!(*iter)-&gt;GetSliceRotationLocked())</span>
+    {
+<span style = "background-color:#fdd">      TimeGeometry *timeGeometry = (*iter)-&gt;GetCreatedWorldGeometry();
+      if (!timeGeometry)
+        continue;</span>
+
+<span style = "background-color:#fdd">      timeGeometry-&gt;ExecuteOperation(&amp;op);
+      (*iter)-&gt;SendCreatedWorldGeometryUpdate();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // Apply new rotation operation to all relevant SNCs
+<span style = "background-color:#fdd">  RotationOperation op2(OpROTATE, m_CenterOfRotation, rotationAxis, rotationAngle);</span>
+
+<span style = "background-color:#fdd">  for (iter = m_SNCsToBeRotated.begin(); iter != m_SNCsToBeRotated.end(); ++iter)</span>
+  {
+<span style = "background-color:#fdd">    if (!(*iter)-&gt;GetSliceRotationLocked())</span>
+    {
+      // Retrieve the TimeGeometry of this SliceNavigationController
+<span style = "background-color:#fdd">      TimeGeometry *timeGeometry = (*iter)-&gt;GetCreatedWorldGeometry();
+      if (!timeGeometry)
+        continue;</span>
+
+      // Execute the new rotation
+<span style = "background-color:#fdd">      timeGeometry-&gt;ExecuteOperation(&amp;op2);</span>
+
+      // Notify listeners
+<span style = "background-color:#fdd">      (*iter)-&gt;SendCreatedWorldGeometryUpdate();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  m_PreviousRotationAxis = rotationAxis;
+  m_PreviousRotationAngle = rotationAngle;</span>
+
+<span style = "background-color:#fdd">  RenderingManager::GetInstance()-&gt;RequestUpdateAll();
+  return;
+}</span>
+
+void mitk::DisplayInteractor::UpdateStatusbar(mitk::StateMachineAction *, mitk::InteractionEvent *event)
+<span style = "background-color:#fdd">{
+  const auto* posEvent = dynamic_cast&lt;const InteractionPositionEvent *&gt;(event);
+  if (nullptr == posEvent)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  const mitk::BaseRenderer::Pointer baseRenderer = posEvent-&gt;GetSender();
+  TNodePredicateDataType&lt;mitk::Image&gt;::Pointer isImageData = TNodePredicateDataType&lt;mitk::Image&gt;::New();
+  auto globalCurrentTimePoint = baseRenderer-&gt;GetTime();
+  mitk::DataStorage::SetOfObjects::ConstPointer nodes = baseRenderer-&gt;GetDataStorage()-&gt;GetSubset(isImageData).GetPointer();
+  if (nodes.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // posEvent-&gt;GetPositionInWorld() would return the world position at the
+  // time of initiating the interaction. However, we need to update the
+  // status bar with the position after changing slice. Therefore, we
+  // translate the same display position with the renderer again to
+  // get the new world position.
+<span style = "background-color:#fdd">  Point3D worldposition;
+  baseRenderer-&gt;DisplayToWorld(posEvent-&gt;GetPointerPositionOnScreen(), worldposition);</span>
+
+<span style = "background-color:#fdd">  mitk::Image::Pointer image3D;
+  mitk::DataNode::Pointer node;
+  mitk::DataNode::Pointer topSourceNode;</span>
+
+<span style = "background-color:#fdd">  int component = 0;</span>
+
+<span style = "background-color:#fdd">  node = FindTopmostVisibleNode(nodes, worldposition, globalCurrentTimePoint, baseRenderer);
+  if (node.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  bool isBinary(false);
+  node-&gt;GetBoolProperty("binary", isBinary);
+  if (isBinary)</span>
+  {
+<span style = "background-color:#fdd">    mitk::DataStorage::SetOfObjects::ConstPointer sourcenodes = baseRenderer-&gt;GetDataStorage()-&gt;GetSources(node, nullptr, true);
+    if (!sourcenodes-&gt;empty())</span>
+    {
+<span style = "background-color:#fdd">      topSourceNode = mitk::FindTopmostVisibleNode(sourcenodes, worldposition, globalCurrentTimePoint, baseRenderer);</span>
+    }
+<span style = "background-color:#fdd">    if (topSourceNode.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      image3D = dynamic_cast&lt;mitk::Image *&gt;(topSourceNode-&gt;GetData());
+      topSourceNode-&gt;GetIntProperty("Image.Displayed Component", component);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      image3D = dynamic_cast&lt;mitk::Image *&gt;(node-&gt;GetData());
+      node-&gt;GetIntProperty("Image.Displayed Component", component);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    image3D = dynamic_cast&lt;mitk::Image *&gt;(node-&gt;GetData());
+    node-&gt;GetIntProperty("Image.Displayed Component", component);</span>
+  }
+
+  // get the position and gray value from the image and build up status bar text
+<span style = "background-color:#fdd">  auto statusBar = StatusBar::GetInstance();
+  if (image3D.IsNotNull() &amp;&amp; statusBar != nullptr)</span>
+  {
+    itk::Index&lt;3&gt; p;
+<span style = "background-color:#fdd">    image3D-&gt;GetGeometry()-&gt;WorldToIndex(worldposition, p);</span>
+
+<span style = "background-color:#fdd">    auto pixelType = image3D-&gt;GetChannelDescriptor().GetPixelType().GetPixelType();
+    if (pixelType == itk::IOPixelEnum::RGB || pixelType == itk::IOPixelEnum::RGBA)</span>
+    {
+<span style = "background-color:#fdd">      std::string pixelValue = "Pixel RGB(A) value: ";
+      pixelValue.append(ConvertCompositePixelValueToString(image3D, p));
+      statusBar-&gt;DisplayImageInfo(worldposition, p, globalCurrentTimePoint, pixelValue.c_str());
+    }
+    else if (pixelType == itk::IOPixelEnum::DIFFUSIONTENSOR3D || pixelType == itk::IOPixelEnum::SYMMETRICSECONDRANKTENSOR)</span>
+    {
+<span style = "background-color:#fdd">      std::string pixelValue = "See ODF Details view. ";
+      statusBar-&gt;DisplayImageInfo(worldposition, p, globalCurrentTimePoint, pixelValue.c_str());
+    }</span>
+    else
+    {
+      mitk::ScalarType pixelValue;
+<span style = "background-color:#fdd">      mitkPixelTypeMultiplex5(mitk::FastSinglePixelAccess,</span>
+        image3D-&gt;GetChannelDescriptor().GetPixelType(),
+        image3D,
+        image3D-&gt;GetVolumeData(image3D-&gt;GetTimeGeometry()-&gt;TimePointToTimeStep(globalCurrentTimePoint)),
+        p,
+        pixelValue,
+        component);
+<span style = "background-color:#fdd">      statusBar-&gt;DisplayImageInfo(worldposition, p, globalCurrentTimePoint, pixelValue);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    statusBar-&gt;DisplayImageInfoInvalid();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::DisplayInteractor::ConfigurationChanged()
+<span style = "background-color:#fdd">{
+  mitk::PropertyList::Pointer properties = GetAttributes();</span>
+  // auto repeat
+<span style = "background-color:#fdd">  std::string strAutoRepeat = "";
+  if (properties-&gt;GetStringProperty("autoRepeat", strAutoRepeat))</span>
+  {
+<span style = "background-color:#fdd">    if (strAutoRepeat == "true")</span>
+    {
+<span style = "background-color:#fdd">      m_AutoRepeat = true;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      m_AutoRepeat = false;</span>
+    }
+  }
+  // pixel movement for scrolling one slice
+<span style = "background-color:#fdd">  std::string strPixelPerSlice = "";
+  if (properties-&gt;GetStringProperty("pixelPerSlice", strPixelPerSlice))</span>
+  {
+<span style = "background-color:#fdd">    m_IndexToSliceModifier = atoi(strPixelPerSlice.c_str());
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_IndexToSliceModifier = 4;</span>
+  }
+  // scroll direction
+<span style = "background-color:#fdd">  if (!properties-&gt;GetStringProperty("scrollDirection", m_ScrollDirection))</span>
+  {
+<span style = "background-color:#fdd">    m_ScrollDirection = "updown";</span>
+  }
+
+<span style = "background-color:#fdd">  m_InvertScrollDirection = GetBoolProperty(properties, "invertScrollDirection", false);</span>
+
+  // zoom direction
+<span style = "background-color:#fdd">  if (!properties-&gt;GetStringProperty("zoomDirection", m_ZoomDirection))</span>
+  {
+<span style = "background-color:#fdd">    m_ZoomDirection = "updown";</span>
+  }
+
+<span style = "background-color:#fdd">  m_InvertZoomDirection = GetBoolProperty(properties, "invertZoomDirection", false);</span>
+
+<span style = "background-color:#fdd">  m_InvertMoveDirection = GetBoolProperty(properties, "invertMoveDirection", false);</span>
+
+<span style = "background-color:#fdd">  if (!properties-&gt;GetStringProperty("levelWindowDirection", m_LevelDirection))</span>
+  {
+<span style = "background-color:#fdd">    m_LevelDirection = "leftright";</span>
+  }
+
+<span style = "background-color:#fdd">  m_InvertLevelWindowDirection = GetBoolProperty(properties, "invertLevelWindowDirection", false);</span>
+
+  // coupled rotation
+<span style = "background-color:#fdd">  std::string strCoupled = "";
+  if (properties-&gt;GetStringProperty("coupled", strCoupled))</span>
+  {
+<span style = "background-color:#fdd">    if (strCoupled == "true")
+      m_LinkPlanes = true;</span>
+    else
+<span style = "background-color:#fdd">      m_LinkPlanes = false;</span>
+  }
+
+  // zoom factor
+<span style = "background-color:#fdd">  std::string strZoomFactor = "";
+  properties-&gt;GetStringProperty("zoomFactor", strZoomFactor);
+  m_ZoomFactor = .05;
+  if (atoi(strZoomFactor.c_str()) &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    m_ZoomFactor = 1.0 + (atoi(strZoomFactor.c_str()) / 100.0);</span>
+  }
+  // allwaysReact
+<span style = "background-color:#fdd">  std::string strAlwaysReact = "";
+  if (properties-&gt;GetStringProperty("alwaysReact", strAlwaysReact))</span>
+  {
+<span style = "background-color:#fdd">    if (strAlwaysReact == "true")</span>
+    {
+<span style = "background-color:#fdd">      m_AlwaysReact = true;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      m_AlwaysReact = false;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_AlwaysReact = false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::DisplayInteractor::FilterEvents(InteractionEvent *interactionEvent, DataNode * /*dataNode*/)
+<span style = "background-color:#fdd">{
+  if (interactionEvent-&gt;GetSender() == nullptr)
+    return false;
+  if (interactionEvent-&gt;GetSender()-&gt;GetMapperID() == BaseRenderer::Standard3D)
+    return false;</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+bool mitk::DisplayInteractor::GetBoolProperty(mitk::PropertyList::Pointer propertyList,
+                                              const char *propertyName,
+                                              bool defaultValue)
+<span style = "background-color:#fdd">{
+  std::string valueAsString;
+  if (!propertyList-&gt;GetStringProperty(propertyName, valueAsString))</span>
+  {
+<span style = "background-color:#fdd">    return defaultValue;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    if (valueAsString == "true")</span>
+    {
+<span style = "background-color:#fdd">      return true;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+  }
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

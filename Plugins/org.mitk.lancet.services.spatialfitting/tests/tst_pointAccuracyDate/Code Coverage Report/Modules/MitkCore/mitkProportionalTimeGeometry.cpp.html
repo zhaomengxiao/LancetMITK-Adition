@@ -1,0 +1,305 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkProportionalTimeGeometry.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include &lt;limits&gt;
+#include &lt;mitkProportionalTimeGeometry.h&gt;
+
+<span style = "background-color:#fdd">mitk::ProportionalTimeGeometry::ProportionalTimeGeometry() : m_FirstTimePoint(0.0), m_StepDuration(1.0)
+{
+}</span>
+
+mitk::ProportionalTimeGeometry::~ProportionalTimeGeometry()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ProportionalTimeGeometry::Initialize()
+<span style = "background-color:#fdd">{
+  m_FirstTimePoint = 0.0;
+  m_StepDuration = 1.0;
+  m_GeometryVector.resize(1);
+}</span>
+
+mitk::TimeStepType mitk::ProportionalTimeGeometry::CountTimeSteps() const
+<span style = "background-color:#fdd">{
+  return static_cast&lt;TimeStepType&gt;(m_GeometryVector.size());
+}</span>
+
+mitk::TimePointType mitk::ProportionalTimeGeometry::GetMinimumTimePoint() const
+<span style = "background-color:#fdd">{
+  return m_FirstTimePoint;
+}</span>
+
+mitk::TimePointType mitk::ProportionalTimeGeometry::GetMaximumTimePoint() const
+<span style = "background-color:#fdd">{
+  TimePointType timePoint = m_FirstTimePoint + m_StepDuration * CountTimeSteps();
+  if (timePoint &gt; std::numeric_limits&lt;TimePointType&gt;().max())
+    timePoint = std::numeric_limits&lt;TimePointType&gt;().max();
+  return timePoint;
+}</span>
+
+mitk::TimeBounds mitk::ProportionalTimeGeometry::GetTimeBounds() const
+<span style = "background-color:#fdd">{</span>
+  TimeBounds bounds;
+<span style = "background-color:#fdd">  bounds[0] = this-&gt;GetMinimumTimePoint();
+  bounds[1] = this-&gt;GetMaximumTimePoint();
+  return bounds;
+}</span>
+
+mitk::TimePointType mitk::ProportionalTimeGeometry::GetMinimumTimePoint(TimeStepType step) const
+<span style = "background-color:#fdd">{</span>
+  TimePointType timePoint;
+<span style = "background-color:#fdd">  if (step == 0)</span>
+  {
+<span style = "background-color:#fdd">    timePoint = m_FirstTimePoint;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    timePoint = m_FirstTimePoint + m_StepDuration * step;</span>
+  }
+<span style = "background-color:#fdd">  if (timePoint &gt; std::numeric_limits&lt;TimePointType&gt;().max())
+    timePoint = std::numeric_limits&lt;TimePointType&gt;().max();
+  return timePoint;
+}</span>
+
+mitk::TimePointType mitk::ProportionalTimeGeometry::GetMaximumTimePoint(TimeStepType step) const
+<span style = "background-color:#fdd">{
+  TimePointType timePoint = m_FirstTimePoint + m_StepDuration * (step + 1);
+  if (timePoint &gt; std::numeric_limits&lt;TimePointType&gt;().max())
+    timePoint = std::numeric_limits&lt;TimePointType&gt;().max();
+  return timePoint;
+}</span>
+
+mitk::TimeBounds mitk::ProportionalTimeGeometry::GetTimeBounds(TimeStepType step) const
+<span style = "background-color:#fdd">{</span>
+  TimeBounds bounds;
+<span style = "background-color:#fdd">  bounds[0] = this-&gt;GetMinimumTimePoint(step);
+  bounds[1] = this-&gt;GetMaximumTimePoint(step);
+  return bounds;
+}</span>
+
+bool mitk::ProportionalTimeGeometry::IsValidTimePoint(TimePointType timePoint) const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetMinimumTimePoint() &lt;= timePoint &amp;&amp; timePoint &lt; this-&gt;GetMaximumTimePoint();
+}</span>
+
+bool mitk::ProportionalTimeGeometry::IsValidTimeStep(TimeStepType timeStep) const
+<span style = "background-color:#fdd">{
+  return timeStep &lt; this-&gt;CountTimeSteps();
+}</span>
+
+mitk::TimePointType mitk::ProportionalTimeGeometry::TimeStepToTimePoint(TimeStepType timeStep) const
+<span style = "background-color:#fdd">{</span>
+  if (m_FirstTimePoint &lt;= itk::NumericTraits&lt;TimePointType&gt;::NonpositiveMin() ||
+      m_FirstTimePoint &gt;= itk::NumericTraits&lt;TimePointType&gt;::max() ||
+<span style = "background-color:#fdd">      m_StepDuration &lt;= itk::NumericTraits&lt;TimePointType&gt;::min() ||</span>
+      m_StepDuration &gt;= itk::NumericTraits&lt;TimePointType&gt;::max())
+  {
+<span style = "background-color:#fdd">    return static_cast&lt;TimePointType&gt;(timeStep);</span>
+  }
+
+<span style = "background-color:#fdd">  return m_FirstTimePoint + timeStep * m_StepDuration;
+}</span>
+
+mitk::TimeStepType mitk::ProportionalTimeGeometry::TimePointToTimeStep(TimePointType timePoint) const
+<span style = "background-color:#fdd">{
+  if (m_FirstTimePoint &lt;= timePoint)
+    return static_cast&lt;TimeStepType&gt;((timePoint - m_FirstTimePoint) / m_StepDuration);</span>
+  else
+<span style = "background-color:#fdd">    return 0;
+}</span>
+
+mitk::BaseGeometry::Pointer mitk::ProportionalTimeGeometry::GetGeometryForTimeStep(TimeStepType timeStep) const
+<span style = "background-color:#fdd">{
+  if (IsValidTimeStep(timeStep))</span>
+  {
+<span style = "background-color:#fdd">    return m_GeometryVector[timeStep];
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::BaseGeometry::Pointer mitk::ProportionalTimeGeometry::GetGeometryForTimePoint(TimePointType timePoint) const
+<span style = "background-color:#fdd">{
+  if (this-&gt;IsValidTimePoint(timePoint))</span>
+  {
+<span style = "background-color:#fdd">    TimeStepType timeStep = this-&gt;TimePointToTimeStep(timePoint);
+    return this-&gt;GetGeometryForTimeStep(timeStep);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::BaseGeometry::Pointer mitk::ProportionalTimeGeometry::GetGeometryCloneForTimeStep(TimeStepType timeStep) const
+<span style = "background-color:#fdd">{
+  if (timeStep &gt;= m_GeometryVector.size())
+    return nullptr;
+  return m_GeometryVector[timeStep]-&gt;Clone();
+}</span>
+
+bool mitk::ProportionalTimeGeometry::IsValid() const
+<span style = "background-color:#fdd">{
+  bool isValid = true;
+  isValid &amp;= m_GeometryVector.size() &gt; 0;
+  isValid &amp;= m_StepDuration &gt; 0;
+  return isValid;
+}</span>
+
+void mitk::ProportionalTimeGeometry::ClearAllGeometries()
+<span style = "background-color:#fdd">{
+  m_GeometryVector.clear();
+}</span>
+
+void mitk::ProportionalTimeGeometry::ReserveSpaceForGeometries(TimeStepType numberOfGeometries)
+<span style = "background-color:#fdd">{
+  m_GeometryVector.reserve(numberOfGeometries);
+}</span>
+
+void mitk::ProportionalTimeGeometry::Expand(mitk::TimeStepType size)
+<span style = "background-color:#fdd">{
+  m_GeometryVector.reserve(size);
+  if (m_GeometryVector.size() == 0)</span>
+  {
+<span style = "background-color:#fdd">    while (m_GeometryVector.size() &lt; size)</span>
+    {
+<span style = "background-color:#fdd">      Geometry3D::Pointer geo3D = Geometry3D::New();
+      m_GeometryVector.push_back(geo3D.GetPointer());
+    }
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    while (m_GeometryVector.size() &lt; size)</span>
+    {
+<span style = "background-color:#fdd">      BaseGeometry::Pointer clone = m_GeometryVector[0]-&gt;Clone();
+      m_GeometryVector.push_back(clone);
+    }</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ProportionalTimeGeometry::SetTimeStepGeometry(BaseGeometry *geometry, TimeStepType timeStep)
+<span style = "background-color:#fdd">{
+  assert(timeStep &lt;= m_GeometryVector.size());</span>
+
+<span style = "background-color:#fdd">  if (timeStep == m_GeometryVector.size())
+    m_GeometryVector.push_back(geometry);</span>
+
+<span style = "background-color:#fdd">  m_GeometryVector[timeStep] = geometry;
+}</span>
+
+itk::LightObject::Pointer mitk::ProportionalTimeGeometry::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer parent = Superclass::InternalClone();
+  ProportionalTimeGeometry::Pointer newTimeGeometry = dynamic_cast&lt;ProportionalTimeGeometry *&gt;(parent.GetPointer());</span>
+
+<span style = "background-color:#fdd">  newTimeGeometry-&gt;m_FirstTimePoint = this-&gt;m_FirstTimePoint;
+  newTimeGeometry-&gt;m_StepDuration = this-&gt;m_StepDuration;
+  newTimeGeometry-&gt;m_GeometryVector.clear();
+  newTimeGeometry-&gt;Expand(this-&gt;CountTimeSteps());
+  for (TimeStepType i = 0; i &lt; CountTimeSteps(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    BaseGeometry::Pointer tempGeometry = GetGeometryForTimeStep(i)-&gt;Clone();
+    newTimeGeometry-&gt;SetTimeStepGeometry(tempGeometry, i);
+  }
+  return parent;
+}</span>
+
+void mitk::ProportionalTimeGeometry::ReplaceTimeStepGeometries(const BaseGeometry *geometry)
+<span style = "background-color:#fdd">{
+  for (TimeStepType currentStep = 0; currentStep &lt; this-&gt;CountTimeSteps(); ++currentStep)</span>
+  {
+<span style = "background-color:#fdd">    BaseGeometry::Pointer clonedGeometry = geometry-&gt;Clone();
+    this-&gt;SetTimeStepGeometry(clonedGeometry.GetPointer(), currentStep);
+  }
+}</span>
+
+void mitk::ProportionalTimeGeometry::Initialize(const BaseGeometry *geometry, TimeStepType timeSteps)
+<span style = "background-color:#fdd">{
+  timeSteps = (timeSteps &gt; 0) ? timeSteps : 1;
+  m_FirstTimePoint = 0.0;
+  m_StepDuration = 1.0;
+  if (timeSteps &lt; 2)</span>
+  {
+<span style = "background-color:#fdd">    m_FirstTimePoint = -std::numeric_limits&lt;mitk::TimePointType&gt;::max();
+    m_StepDuration = std::numeric_limits&lt;mitk::TimePointType&gt;().infinity();</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;ReserveSpaceForGeometries(timeSteps);</span>
+  try
+  {
+<span style = "background-color:#fdd">    for (TimeStepType currentStep = 0; currentStep &lt; timeSteps; ++currentStep)</span>
+    {
+<span style = "background-color:#fdd">      BaseGeometry::Pointer clonedGeometry = geometry-&gt;Clone();
+      this-&gt;SetTimeStepGeometry(clonedGeometry, currentStep);
+    }</span>
+  }
+  catch (...)
+<span style = "background-color:#fdd">  {
+    MITK_INFO &lt;&lt; "Cloning of geometry produced an error!";
+  }
+  Update();
+}</span>
+
+void mitk::ProportionalTimeGeometry::Initialize(TimeStepType timeSteps)
+<span style = "background-color:#fdd">{
+  mitk::Geometry3D::Pointer geo3D = Geometry3D::New();
+  mitk::BaseGeometry::Pointer geometry = dynamic_cast&lt;BaseGeometry *&gt;(geo3D.GetPointer());
+  geometry-&gt;Initialize();</span>
+
+<span style = "background-color:#fdd">  this-&gt;Initialize(geometry.GetPointer(), timeSteps);
+}</span>
+
+void mitk::ProportionalTimeGeometry::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  os &lt;&lt; indent &lt;&lt; " TimeSteps: " &lt;&lt; this-&gt;CountTimeSteps() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " FirstTimePoint: " &lt;&lt; this-&gt;GetFirstTimePoint() &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " StepDuration: " &lt;&lt; this-&gt;GetStepDuration() &lt;&lt; " ms" &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " Time Bounds: " &lt;&lt; this-&gt;GetTimeBounds()[0] &lt;&lt; " - " &lt;&lt; this-&gt;GetTimeBounds()[1] &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " GetGeometryForTimeStep(0): ";
+  if (GetGeometryForTimeStep(0).IsNull())
+    os &lt;&lt; "nullptr" &lt;&lt; std::endl;</span>
+  else
+<span style = "background-color:#fdd">    GetGeometryForTimeStep(0)-&gt;Print(os, indent);
+}</span>
+
+bool mitk::Equal(const ProportionalTimeGeometry &amp;leftHandSide,
+                 const ProportionalTimeGeometry &amp;rightHandSide,
+                 ScalarType eps,
+                 bool verbose)
+<span style = "background-color:#fdd">{
+  bool result = mitk::Equal(</span>
+    static_cast&lt;const TimeGeometry &amp;&gt;(leftHandSide), static_cast&lt;const TimeGeometry &amp;&gt;(rightHandSide), eps, verbose);
+
+<span style = "background-color:#fdd">  if (!result) // early out if base class already is unhappy
+    return false;</span>
+
+  // base class test already covers all aspects that could differ
+  // no need to test anything more.
+
+<span style = "background-color:#fdd">  return result;
+}</span></pre>
+	</body>
+</html>

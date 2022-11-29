@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCropTimestepsImageFilter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkCropTimestepsImageFilter_h
+#define mitkCropTimestepsImageFilter_h
+
+#include "MitkAlgorithmsExtExports.h"
+
+#include &lt;mitkSubImageSelector.h&gt;
+
+namespace mitk
+{
+  /** \brief Crops timesteps at 2D+t and 3D+t images
+    * \details The filter is able to crop timesteps in front and/or at the end.
+    * Internally, a new image is created with the remaining volumes. The geometries and properties of
+    * the input image are transferred to the output image.
+   */
+  class MITKALGORITHMSEXT_EXPORT CropTimestepsImageFilter : public SubImageSelector
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(CropTimestepsImageFilter, SubImageSelector);
+    itkFactorylessNewMacro(Self);</span>
+
+    /*!
+    * \brief Sets the input image
+    * \pre the image has 4 Dimensions
+    * \pre the image has &gt;1 timestep
+    * \pre the image is valid (valid geometry and volume)
+    */
+    void SetInput(const InputImageType* image) override;
+    void SetInput(unsigned int index, const InputImageType* image) override;
+
+    /*!
+    * \brief The last timestep to retain
+    * \details Set to the maximum timestep of the input as default
+    * \note if the last timestep is larger than the maximum timestep of the input,
+    * it is corrected to the maximum timestep.
+    * \exception if (LowerBoundaryTimestep &gt; UpperBoundaryTimestep)
+    */
+<span style = "background-color:#fdd">    itkSetMacro(UpperBoundaryTimestep, unsigned int);
+    itkGetConstMacro(UpperBoundaryTimestep, unsigned int);</span>
+
+    /*!
+    * \brief The first timestep to retain
+    * \details Set to 0 as default
+    * \exception if (LowerBoundaryTimestep &gt; UpperBoundaryTimestep)
+    */
+<span style = "background-color:#fdd">    itkSetMacro(LowerBoundaryTimestep, unsigned int);
+    itkGetConstMacro(LowerBoundaryTimestep, unsigned int);</span>
+
+  private:
+    using Superclass::SetInput;
+
+<span style = "background-color:#fdd">    CropTimestepsImageFilter() = default;
+    ~CropTimestepsImageFilter() override = default;</span>
+
+    void GenerateData() override;
+    void VerifyInputInformation() const override;
+    void VerifyInputImage(const mitk::Image* inputImage) const;
+    void GenerateOutputInformation() override;
+    mitk::SlicedData::RegionType ComputeDesiredRegion() const;
+    mitk::TimeGeometry::Pointer AdaptTimeGeometry(mitk::TimeGeometry::ConstPointer sourceGeometry, unsigned int startTimestep, unsigned int endTimestep) const;
+
+<span style = "background-color:#fdd">    unsigned int m_UpperBoundaryTimestep = std::numeric_limits&lt;unsigned int&gt;::max();
+    unsigned int m_LowerBoundaryTimestep = 0;</span>
+
+    mitk::SlicedData::RegionType m_DesiredRegion;
+  };
+}
+
+#endif</pre>
+	</body>
+</html>

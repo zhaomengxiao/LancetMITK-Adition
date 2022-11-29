@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSortByImagePositionPatient.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkSortByImagePositionPatient.h"
+#include "mitkDICOMTag.h"
+
+mitk::SortByImagePositionPatient
+::SortByImagePositionPatient(DICOMSortCriterion::Pointer secondaryCriterion)
+<span style = "background-color:#dfd">:DICOMSortCriterion(secondaryCriterion)
+{
+}</span>
+
+mitk::SortByImagePositionPatient
+::~SortByImagePositionPatient()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::SortByImagePositionPatient
+::SortByImagePositionPatient(const SortByImagePositionPatient&amp; other )
+<span style = "background-color:#fdd">:DICOMSortCriterion(other)
+{
+}</span>
+
+mitk::SortByImagePositionPatient&amp;
+mitk::SortByImagePositionPatient
+::operator=(const SortByImagePositionPatient&amp; other)
+<span style = "background-color:#fdd">{
+  if (this != &amp;other)</span>
+  {
+<span style = "background-color:#fdd">    DICOMSortCriterion::operator=(other);</span>
+  }
+<span style = "background-color:#fdd">  return *this;
+}</span>
+
+bool
+mitk::SortByImagePositionPatient
+::operator==(const DICOMSortCriterion&amp; other) const
+<span style = "background-color:#fdd">{
+  return dynamic_cast&lt;const SortByImagePositionPatient*&gt;(&amp;other) != nullptr; // same class
+}</span>
+
+void
+mitk::SortByImagePositionPatient
+::Print(std::ostream&amp; os) const
+<span style = "background-color:#fdd">{
+  os &lt;&lt; "(0020,0032) Image Position (Patient) along normal of (0020,0037) Image Orientation (Patient)";
+}</span>
+
+mitk::DICOMTagList
+mitk::SortByImagePositionPatient
+::GetTagsOfInterest() const
+<span style = "background-color:#fdd">{
+  DICOMTagList tags;
+  tags.push_back( DICOMTag(0x0020, 0x0032) ); // ImagePositionPatient
+  tags.push_back( DICOMTag(0x0020, 0x0037) ); // ImageOrientationPatient</span>
+
+<span style = "background-color:#fdd">  return tags;
+}</span>
+
+bool
+mitk::SortByImagePositionPatient
+::IsLeftBeforeRight(const mitk::DICOMDatasetAccess* left, const mitk::DICOMDatasetAccess* right) const
+<span style = "background-color:#fdd">{
+  bool possible(false);
+  double distance = InternalNumericDistance(left, right, possible); // returns 0.0 if not possible
+  if (possible)</span>
+  {
+<span style = "background-color:#fdd">    return distance &gt; 0.0;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return this-&gt;NextLevelIsLeftBeforeRight(left, right);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+double
+mitk::SortByImagePositionPatient
+::InternalNumericDistance(const mitk::DICOMDatasetAccess* left, const mitk::DICOMDatasetAccess* right, bool&amp; possible) const
+<span style = "background-color:#fdd">{</span>
+  // sort by distance to world origin, assuming (almost) equal orientation
+<span style = "background-color:#fdd">  static const DICOMTag tagImagePositionPatient = DICOMTag(0x0020,0x0032); // Image Position (Patient)
+  static const DICOMTag    tagImageOrientation = DICOMTag(0x0020, 0x0037); // Image Orientation</span>
+
+<span style = "background-color:#fdd">  Vector3D leftRight; leftRight.Fill(0.0);
+  Vector3D leftUp; leftUp.Fill(0.0);
+  bool leftHasOrientation(false);
+  DICOMStringToOrientationVectors( left-&gt;GetTagValueAsString( tagImageOrientation ).value,</span>
+                                   leftRight, leftUp, leftHasOrientation );
+
+<span style = "background-color:#fdd">  Vector3D rightRight; rightRight.Fill(0.0);
+  Vector3D rightUp; rightUp.Fill(0.0);
+  bool rightHasOrientation(false);
+  DICOMStringToOrientationVectors(right-&gt;GetTagValueAsString(tagImageOrientation).value,</span>
+                                   rightRight, rightUp, rightHasOrientation );
+
+<span style = "background-color:#fdd">  Point3D leftOrigin; leftOrigin.Fill(0.0f);
+  bool leftHasOrigin(false);
+  leftOrigin = DICOMStringToPoint3D(left-&gt;GetTagValueAsString(tagImagePositionPatient).value, leftHasOrigin);</span>
+
+<span style = "background-color:#fdd">  Point3D rightOrigin; rightOrigin.Fill(0.0f);
+  bool rightHasOrigin(false);
+  rightOrigin = DICOMStringToPoint3D(right-&gt;GetTagValueAsString(tagImagePositionPatient).value, rightHasOrigin);</span>
+
+  //   we tolerate very small differences in image orientation, since we got to know about
+  //   acquisitions where these values change across a single series (7th decimal digit)
+  //   (http://bugs.mitk.org/show_bug.cgi?id=12263)
+  //   still, we want to check if our assumption of 'almost equal' orientations is valid
+<span style = "background-color:#fdd">  for (unsigned int dim = 0; dim &lt; 3; ++dim)</span>
+  {
+    if (   fabs(leftRight[dim] - rightRight[dim]) &gt; 0.0001
+<span style = "background-color:#fdd">        || fabs(leftUp[dim] - rightUp[dim]) &gt; 0.0001)</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Dicom images have different orientations.";
+      throw std::logic_error("Dicom images have different orientations. Call GetSeries() first to separate images.");</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  Vector3D normal;
+  normal[0] = leftRight[1] * leftUp[2] - leftRight[2] * leftUp[1];
+  normal[1] = leftRight[2] * leftUp[0] - leftRight[0] * leftUp[2];
+  normal[2] = leftRight[0] * leftUp[1] - leftRight[1] * leftUp[0];</span>
+
+<span style = "background-color:#fdd">  double leftDistance = 0.0;
+  double rightDistance = 0.0;</span>
+
+  // this computes the distance from world origin (0,0,0) ALONG THE NORMAL of the image planes
+<span style = "background-color:#fdd">  for (unsigned int dim = 0; dim &lt; 3; ++dim)</span>
+  {
+<span style = "background-color:#fdd">    leftDistance += normal[dim] * leftOrigin[dim];
+    rightDistance += normal[dim] * rightOrigin[dim];
+  }</span>
+
+  // if we can sort by just comparing the distance, we do exactly that
+<span style = "background-color:#fdd">  if ( fabs(leftDistance - rightDistance) &gt;= mitk::eps)</span>
+  {
+<span style = "background-color:#fdd">    possible = true;</span>
+    // default: compare position
+<span style = "background-color:#fdd">    return rightDistance - leftDistance; // if (left &lt; right&gt; ==&gt; diff &gt; 0
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    possible = false;
+    return 0.0;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+
+double
+mitk::SortByImagePositionPatient
+::NumericDistance(const mitk::DICOMDatasetAccess* from, const mitk::DICOMDatasetAccess* to) const
+<span style = "background-color:#fdd">{
+  bool possible(false);
+  double retVal = InternalNumericDistance(from, to, possible); // returns 0.0 if not possible
+  return possible ? retVal : 0.0;
+}</span></pre>
+	</body>
+</html>

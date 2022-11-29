@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabelSetImageHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkLabelSetImageHelper.h&gt;
+
+#include &lt;mitkLabelSetImage.h&gt;
+#include &lt;mitkExceptionMacro.h&gt;
+#include &lt;mitkProperties.h&gt;
+
+#include &lt;array&gt;
+#include &lt;regex&gt;
+#include &lt;vector&gt;
+
+namespace
+{
+  template &lt;typename T&gt;
+  std::array&lt;int, 3&gt; QuantizeColor(const T* color)
+<span style = "background-color:#fdd">  {
+    return {</span>
+      static_cast&lt;int&gt;(std::round(color[0] * 255)),
+      static_cast&lt;int&gt;(std::round(color[1] * 255)),
+      static_cast&lt;int&gt;(std::round(color[2] * 255)) };
+<span style = "background-color:#fdd">  }</span>
+
+  mitk::Color FromLookupTableColor(const double* lookupTableColor)
+<span style = "background-color:#fdd">  {
+    mitk::Color color;
+    color.Set(</span>
+      static_cast&lt;float&gt;(lookupTableColor[0]),
+      static_cast&lt;float&gt;(lookupTableColor[1]),
+      static_cast&lt;float&gt;(lookupTableColor[2]));
+<span style = "background-color:#fdd">    return color;
+  }</span>
+}
+
+mitk::DataNode::Pointer mitk::LabelSetImageHelper::CreateEmptySegmentationNode(const std::string&amp; segmentationName)
+<span style = "background-color:#fdd">{
+  auto newSegmentationNode = mitk::DataNode::New();
+  newSegmentationNode-&gt;SetName(segmentationName);</span>
+
+  // initialize "showVolume"-property to false to prevent recalculating the volume while working on the segmentation
+<span style = "background-color:#fdd">  newSegmentationNode-&gt;SetProperty("showVolume", mitk::BoolProperty::New(false));</span>
+
+<span style = "background-color:#fdd">  return newSegmentationNode;
+}</span>
+
+
+mitk::DataNode::Pointer mitk::LabelSetImageHelper::CreateNewSegmentationNode(const DataNode* referenceNode,
+  const Image* initialSegmentationImage, const std::string&amp; segmentationName)
+<span style = "background-color:#fdd">{
+  std::string newSegmentationName = segmentationName;
+  if (newSegmentationName.empty())</span>
+  {
+<span style = "background-color:#fdd">    newSegmentationName = referenceNode-&gt;GetName();
+    newSegmentationName.append("-labels");</span>
+  }
+
+<span style = "background-color:#fdd">  if (nullptr == initialSegmentationImage)</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  auto newLabelSetImage = mitk::LabelSetImage::New();</span>
+  try
+  {
+<span style = "background-color:#fdd">    newLabelSetImage-&gt;Initialize(initialSegmentationImage);</span>
+  }
+  catch (mitk::Exception &amp;e)
+<span style = "background-color:#fdd">  {
+    mitkReThrow(e) &lt;&lt; "Could not initialize new label set image.";
+    return nullptr;
+  }</span>
+
+  // set additional image information
+<span style = "background-color:#fdd">  newLabelSetImage-&gt;GetExteriorLabel()-&gt;SetProperty("name.parent", mitk::StringProperty::New(referenceNode-&gt;GetName()));
+  newLabelSetImage-&gt;GetExteriorLabel()-&gt;SetProperty("name.image", mitk::StringProperty::New(newSegmentationName));</span>
+
+<span style = "background-color:#fdd">  auto newSegmentationNode = CreateEmptySegmentationNode(newSegmentationName);
+  newSegmentationNode-&gt;SetData(newLabelSetImage);</span>
+
+<span style = "background-color:#fdd">  return newSegmentationNode;
+}</span>
+
+mitk::Label::Pointer mitk::LabelSetImageHelper::CreateNewLabel(const LabelSetImage* labelSetImage)
+<span style = "background-color:#fdd">{
+  if (nullptr == labelSetImage)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  const std::regex genericLabelNameRegEx("Label ([1-9][0-9]*)");
+  int maxGenericLabelNumber = 0;</span>
+
+<span style = "background-color:#fdd">  std::vector&lt;std::array&lt;int, 3&gt;&gt; colorsInUse;</span>
+
+<span style = "background-color:#fdd">  const auto numLabelSets = labelSetImage-&gt;GetNumberOfLayers();</span>
+
+<span style = "background-color:#fdd">  for (std::remove_const_t&lt;decltype(numLabelSets)&gt; i = 0; i &lt; numLabelSets; ++i)</span>
+  {
+<span style = "background-color:#fdd">    auto labelSet = labelSetImage-&gt;GetLabelSet(i);
+    auto labelEndIter = labelSet-&gt;IteratorConstEnd();</span>
+
+<span style = "background-color:#fdd">    for (auto labelIter = labelSet-&gt;IteratorConstBegin(); labelIter != labelEndIter; ++labelIter)</span>
+    {
+<span style = "background-color:#fdd">      auto label = labelIter-&gt;second;
+      auto labelName = label-&gt;GetName();
+      std::smatch match;</span>
+
+<span style = "background-color:#fdd">      if (std::regex_match(labelName, match, genericLabelNameRegEx))
+        maxGenericLabelNumber = std::max(maxGenericLabelNumber, std::stoi(match[1].str()));</span>
+
+<span style = "background-color:#fdd">      const auto quantizedLabelColor = QuantizeColor(label-&gt;GetColor().data());</span>
+
+<span style = "background-color:#fdd">      if (std::find(colorsInUse.begin(), colorsInUse.end(), quantizedLabelColor) == std::end(colorsInUse))
+        colorsInUse.push_back(quantizedLabelColor);
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  auto newLabel = mitk::Label::New();
+  newLabel-&gt;SetName("Label " + std::to_string(maxGenericLabelNumber + 1));</span>
+
+<span style = "background-color:#fdd">  auto lookupTable = mitk::LookupTable::New();
+  lookupTable-&gt;SetType(mitk::LookupTable::LookupTableType::MULTILABEL);</span>
+
+  std::array&lt;double, 3&gt; lookupTableColor;
+<span style = "background-color:#fdd">  const int maxTries = 25;
+  bool newColorFound = false;</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; maxTries; ++i)</span>
+  {
+<span style = "background-color:#fdd">    lookupTable-&gt;GetColor(i, lookupTableColor.data());</span>
+
+<span style = "background-color:#fdd">    auto quantizedLookupTableColor = QuantizeColor(lookupTableColor.data());</span>
+
+<span style = "background-color:#fdd">    if (std::find(colorsInUse.begin(), colorsInUse.end(), quantizedLookupTableColor) == std::end(colorsInUse))</span>
+    {
+<span style = "background-color:#fdd">      newLabel-&gt;SetColor(FromLookupTableColor(lookupTableColor.data()));
+      newColorFound = true;
+      break;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  if (!newColorFound)</span>
+  {
+<span style = "background-color:#fdd">    lookupTable-&gt;GetColor(labelSetImage-&gt;GetTotalNumberOfLabels(), lookupTableColor.data());
+    newLabel-&gt;SetColor(FromLookupTableColor(lookupTableColor.data()));</span>
+  }
+
+<span style = "background-color:#fdd">  return newLabel;
+}</span></pre>
+	</body>
+</html>

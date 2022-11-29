@@ -1,0 +1,178 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataSource.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationDataSource.h"
+#include "mitkUIDGenerator.h"
+
+
+//Microservices
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModule.h&gt;
+#include &lt;usServiceProperties.h&gt;
+#include &lt;usModuleContext.h&gt;
+
+<span style = "background-color:#dfd">const std::string mitk::NavigationDataSource::US_INTERFACE_NAME = "org.mitk.services.NavigationDataSource";
+const std::string mitk::NavigationDataSource::US_PROPKEY_DEVICENAME = US_INTERFACE_NAME + ".devicename";
+const std::string mitk::NavigationDataSource::US_PROPKEY_ID = US_INTERFACE_NAME + ".id";
+const std::string mitk::NavigationDataSource::US_PROPKEY_ISACTIVE = US_INTERFACE_NAME + ".isActive";</span>
+
+mitk::NavigationDataSource::NavigationDataSource()
+<span style = "background-color:#fdd">: itk::ProcessObject(), m_Name("NavigationDataSource (no defined type)"), m_IsFrozen(false), m_ToolMetaDataCollection(mitk::NavigationToolStorage::New())
+{
+}</span>
+
+mitk::NavigationDataSource::~NavigationDataSource()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::NavigationData* mitk::NavigationDataSource::GetOutput()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfIndexedOutputs() &lt; 1)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  return static_cast&lt;NavigationData*&gt;(this-&gt;ProcessObject::GetPrimaryOutput());
+}</span>
+
+mitk::NavigationData* mitk::NavigationDataSource::GetOutput(DataObjectPointerArraySizeType idx)
+<span style = "background-color:#fdd">{
+  NavigationData* out = dynamic_cast&lt;NavigationData*&gt;( this-&gt;ProcessObject::GetOutput(idx) );
+  if ( out == nullptr &amp;&amp; this-&gt;ProcessObject::GetOutput(idx) != nullptr )</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro (&lt;&lt; "Unable to convert output number " &lt;&lt; idx &lt;&lt; " to type " &lt;&lt;  typeid( NavigationData ).name () );</span>
+  }
+<span style = "background-color:#fdd">  return out;
+}</span>
+
+mitk::NavigationData* mitk::NavigationDataSource::GetOutput(const std::string&amp; navDataName)
+<span style = "background-color:#fdd">{
+  DataObjectPointerArray outputs = this-&gt;GetOutputs();
+  for (DataObjectPointerArray::iterator it = outputs.begin(); it != outputs.end(); ++it)
+    if (navDataName == (static_cast&lt;NavigationData*&gt;(it-&gt;GetPointer()))-&gt;GetName())
+      return static_cast&lt;NavigationData*&gt;(it-&gt;GetPointer());
+  return nullptr;
+}</span>
+
+itk::ProcessObject::DataObjectPointerArraySizeType mitk::NavigationDataSource::GetOutputIndex( std::string navDataName )
+<span style = "background-color:#fdd">{
+  DataObjectPointerArray outputs = this-&gt;GetOutputs();
+  for (DataObjectPointerArray::size_type i = 0; i &lt; outputs.size(); ++i)
+    if (navDataName == (static_cast&lt;NavigationData*&gt;(outputs.at(i).GetPointer()))-&gt;GetName())
+      return i;
+  throw std::invalid_argument("output name does not exist");
+}</span>
+
+<span style = "background-color:#fdd">void mitk::NavigationDataSource::RegisterAsMicroservice(){</span>
+  // Get Context
+<span style = "background-color:#fdd">  us::ModuleContext* context = us::GetModuleContext();</span>
+
+  // Define ServiceProps
+<span style = "background-color:#fdd">  us::ServiceProperties props;
+  mitk::UIDGenerator uidGen = mitk::UIDGenerator ("org.mitk.services.NavigationDataSource.id_");
+  props[ US_PROPKEY_ID ] = uidGen.GetUID();
+  props[ US_PROPKEY_DEVICENAME ] = m_Name;
+  m_ServiceRegistration = context-&gt;RegisterService(this, props);
+}</span>
+
+<span style = "background-color:#fdd">void mitk::NavigationDataSource::UnRegisterMicroservice(){
+  if (m_ServiceRegistration != nullptr) m_ServiceRegistration.Unregister();
+  m_ServiceRegistration = 0;
+}</span>
+
+<span style = "background-color:#fdd">std::string mitk::NavigationDataSource::GetMicroserviceID(){
+  return this-&gt;m_ServiceRegistration.GetReference().GetProperty(US_PROPKEY_ID).ToString();
+}</span>
+
+void mitk::NavigationDataSource::GraftOutput(itk::DataObject *graft)
+<span style = "background-color:#fdd">{
+  this-&gt;GraftNthOutput(0, graft);
+}</span>
+
+void mitk::NavigationDataSource::GraftNthOutput(unsigned int idx, itk::DataObject *graft)
+<span style = "background-color:#fdd">{
+  if ( idx &gt;= this-&gt;GetNumberOfIndexedOutputs() )</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt;"Requested to graft output " &lt;&lt; idx &lt;&lt;</span>
+      " but this filter only has " &lt;&lt; this-&gt;GetNumberOfIndexedOutputs() &lt;&lt; " Outputs.");
+  }
+
+<span style = "background-color:#fdd">  if ( !graft )</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt;"Requested to graft output with a nullptr pointer object" );</span>
+  }
+
+<span style = "background-color:#fdd">  itk::DataObject* output = this-&gt;GetOutput(idx);
+  if ( !output )</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt;"Requested to graft output that is a nullptr pointer" );</span>
+  }
+  // Call Graft on NavigationData to copy member data
+<span style = "background-color:#fdd">  output-&gt;Graft( graft );
+}</span>
+
+itk::DataObject::Pointer mitk::NavigationDataSource::MakeOutput ( DataObjectPointerArraySizeType /*idx*/ )
+<span style = "background-color:#fdd">{
+  return mitk::NavigationData::New().GetPointer();
+}</span>
+
+itk::DataObject::Pointer mitk::NavigationDataSource::MakeOutput( const DataObjectIdentifierType &amp; name )
+<span style = "background-color:#fdd">{
+  itkDebugMacro("MakeOutput(" &lt;&lt; name &lt;&lt; ")");
+  if( this-&gt;IsIndexedOutputName(name) )</span>
+  {
+<span style = "background-color:#fdd">    return this-&gt;MakeOutput( this-&gt;MakeIndexFromOutputName(name) );</span>
+  }
+<span style = "background-color:#fdd">  return static_cast&lt;itk::DataObject *&gt;(mitk::NavigationData::New().GetPointer());
+}</span>
+
+mitk::PropertyList::ConstPointer mitk::NavigationDataSource::GetParameters() const
+<span style = "background-color:#fdd">{
+  mitk::PropertyList::Pointer p = mitk::PropertyList::New();</span>
+  // add properties to p like this:
+  //p-&gt;SetProperty("MyFilter_MyParameter", mitk::PropertyDataType::New(m_MyParameter));
+<span style = "background-color:#fdd">  return mitk::PropertyList::ConstPointer(p);
+}</span>
+
+void mitk::NavigationDataSource::Freeze()
+<span style = "background-color:#fdd">{
+  m_IsFrozen = true;
+}</span>
+
+void mitk::NavigationDataSource::UnFreeze()
+<span style = "background-color:#fdd">{
+  m_IsFrozen = false;
+}</span>
+
+mitk::NavigationTool::Pointer mitk::NavigationDataSource::GetToolMetaData(DataObjectPointerArraySizeType idx)
+<span style = "background-color:#fdd">{
+  if (idx &gt;= this-&gt;GetNumberOfIndexedOutputs()) { return mitk::NavigationTool::New(); }
+  else { return GetToolMetaData(this-&gt;GetOutput(idx)-&gt;GetName()); }
+}</span>
+
+mitk::NavigationTool::Pointer mitk::NavigationDataSource::GetToolMetaData(const std::string&amp; navDataName)
+<span style = "background-color:#fdd">{
+  mitk::NavigationTool::Pointer returnValue = m_ToolMetaDataCollection-&gt;GetToolByName(navDataName);
+  if (returnValue == nullptr) { returnValue = mitk::NavigationTool::New(); }
+  return returnValue;
+}</span></pre>
+	</body>
+</html>

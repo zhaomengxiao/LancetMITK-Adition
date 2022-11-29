@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkProgressBar.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkProgressBar.h"
+#include "mitkCallbackFromGUIThread.h"
+#include "mitkProgressBarImplementation.h"
+#include &lt;itkCommand.h&gt;
+#include &lt;itkObjectFactory.h&gt;
+#include &lt;itkOutputWindow.h&gt;
+
+#include &lt;algorithm&gt;
+
+namespace mitk
+{
+  ProgressBar *ProgressBar::m_Instance = nullptr;
+
+  /**
+   * Sets the current amount of progress to current progress + steps.
+   * @param steps the number of steps done since last Progress(int steps) call.
+   */
+  void ProgressBar::Progress(unsigned int steps)
+<span style = "background-color:#fdd">  {
+    if (!m_Implementations.empty())</span>
+    {
+<span style = "background-color:#fdd">      ProgressBarImplementationsListIterator iter;
+      for (iter = m_Implementations.begin(); iter != m_Implementations.end(); iter++)</span>
+      {
+        // update progress for all ProgressBarImplementations
+<span style = "background-color:#fdd">        if ((*iter) != nullptr)</span>
+        {
+<span style = "background-color:#fdd">          (*iter)-&gt;Progress(steps);</span>
+        }
+<span style = "background-color:#fdd">      }
+    }
+  }</span>
+
+  /**
+   * Explicitely reset progress bar.
+   */
+  void ProgressBar::Reset()
+<span style = "background-color:#fdd">  {
+    if (!m_Implementations.empty())</span>
+    {
+<span style = "background-color:#fdd">      ProgressBarImplementationsListIterator iter;
+      for (iter = m_Implementations.begin(); iter != m_Implementations.end(); iter++)</span>
+      {
+        // set steps to do for all ProgressBarImplementations
+<span style = "background-color:#fdd">        if ((*iter) != nullptr)</span>
+        {
+<span style = "background-color:#fdd">          (*iter)-&gt;Reset();</span>
+        }
+<span style = "background-color:#fdd">      }
+    }
+  }</span>
+
+  /**
+   * Adds steps to totalSteps.
+   */
+  void ProgressBar::AddStepsToDo(unsigned int steps)
+<span style = "background-color:#fdd">  {
+    if (!m_Implementations.empty())</span>
+    {
+<span style = "background-color:#fdd">      ProgressBarImplementationsListIterator iter;
+      for (iter = m_Implementations.begin(); iter != m_Implementations.end(); iter++)</span>
+      {
+        // set steps to do for all ProgressBarImplementations
+<span style = "background-color:#fdd">        if ((*iter) != nullptr)</span>
+        {
+<span style = "background-color:#fdd">          (*iter)-&gt;AddStepsToDo(steps);</span>
+        }
+<span style = "background-color:#fdd">      }
+    }
+  }</span>
+
+  /**
+   * Sets whether the current progress value is displayed.
+   */
+  void ProgressBar::SetPercentageVisible(bool visible)
+<span style = "background-color:#fdd">  {
+    if (!m_Implementations.empty())</span>
+    {
+<span style = "background-color:#fdd">      ProgressBarImplementationsListIterator iter;
+      for (iter = m_Implementations.begin(); iter != m_Implementations.end(); iter++)</span>
+      {
+        // set percentage visible for all ProgressBarImplementations
+<span style = "background-color:#fdd">        if ((*iter) != nullptr)</span>
+        {
+<span style = "background-color:#fdd">          (*iter)-&gt;SetPercentageVisible(visible);</span>
+        }
+<span style = "background-color:#fdd">      }
+    }
+  }</span>
+
+  /**
+   * Get the instance of this ProgressBar
+   */
+  ProgressBar *ProgressBar::GetInstance()
+<span style = "background-color:#fdd">  {
+    if (m_Instance == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      m_Instance = new ProgressBar();</span>
+    }
+
+<span style = "background-color:#fdd">    return m_Instance;
+  }</span>
+
+  /**
+   * Set an instance of this; application must do this!See Header!
+   */
+  void ProgressBar::RegisterImplementationInstance(ProgressBarImplementation *implementation)
+<span style = "background-color:#fdd">  {
+    if (std::find(m_Implementations.begin(), m_Implementations.end(), implementation) == m_Implementations.end())</span>
+    {
+<span style = "background-color:#fdd">      m_Implementations.push_back(implementation);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  void ProgressBar::UnregisterImplementationInstance(ProgressBarImplementation *implementation)
+<span style = "background-color:#fdd">  {
+    auto iter = std::find(m_Implementations.begin(), m_Implementations.end(), implementation);
+    if (iter != m_Implementations.end())</span>
+    {
+<span style = "background-color:#fdd">      m_Implementations.erase(iter);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  ProgressBar::ProgressBar() {}
+  ProgressBar::~ProgressBar() {}</span>
+} // end namespace mitk</pre>
+	</body>
+</html>

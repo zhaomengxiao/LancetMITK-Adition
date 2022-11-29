@@ -1,0 +1,289 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVectorDeprecated.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKVECTORDEPRECATED_H_
+#define MITKVECTORDEPRECATED_H_
+
+#include &lt;itkIndex.h&gt;
+#include &lt;vnl/vnl_quaternion.h&gt;
+
+#include "mitkMatrix.h"
+#include "mitkNumericConstants.h"
+#include "mitkPoint.h"
+#include "mitkVector.h"
+
+template &lt;class T&gt;
+class VectorTraits
+{
+public:
+  typedef T ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;mitk::VnlVector&gt;
+{
+public:
+  typedef mitk::ScalarType ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;float[4]&gt;
+{
+public:
+  typedef float ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;itk::Index&lt;5&gt;&gt;
+{
+public:
+  typedef itk::Index&lt;5&gt;::IndexValueType ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;itk::Index&lt;3&gt;&gt;
+{
+public:
+  typedef itk::Index&lt;3&gt;::IndexValueType ValueType;
+};
+template &lt;&gt;
+class VectorTraits&lt;itk::SizeValueType[3]&gt;
+{
+public:
+	typedef itk::SizeValueType ValueType;
+};
+template &lt;&gt;
+class VectorTraits&lt;itk::IndexValueType[3]&gt;
+{
+public:
+	typedef itk::IndexValueType ValueType;
+};
+template &lt;&gt;
+class VectorTraits&lt;unsigned int[3]&gt;
+{
+public:
+	typedef unsigned int ValueType;
+};
+template &lt;&gt;
+class VectorTraits&lt;float[3]&gt;
+{
+public:
+  typedef float ValueType;
+};
+template &lt;&gt;
+class VectorTraits&lt;double[3]&gt;
+{
+public:
+  typedef double ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;vnl_vector_fixed&lt;mitk::ScalarType, 3&gt;&gt;
+{
+public:
+  typedef mitk::ScalarType ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;unsigned int *&gt;
+{
+public:
+  typedef unsigned int ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;double[4]&gt;
+{
+public:
+  typedef double ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;itk::Vector&lt;float, 3&gt;&gt;
+{
+public:
+  typedef float ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;itk::Vector&lt;double, 3&gt;&gt;
+{
+public:
+  typedef double ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;itk::Vector&lt;int, 3&gt;&gt;
+{
+public:
+  typedef int ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;mitk::Vector&lt;double, 3&gt;&gt;
+{
+public:
+  typedef double ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;mitk::Point&lt;float, 3&gt;&gt;
+{
+public:
+  typedef float ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;mitk::Point&lt;float, 4&gt;&gt;
+{
+public:
+  typedef float ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;itk::Point&lt;float, 3&gt;&gt;
+{
+public:
+  typedef float ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;itk::Point&lt;float, 4&gt;&gt;
+{
+public:
+  typedef float ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;mitk::Point&lt;double, 3&gt;&gt;
+{
+public:
+  typedef double ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;mitk::Point&lt;double, 4&gt;&gt;
+{
+public:
+  typedef double ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;itk::Point&lt;double, 3&gt;&gt;
+{
+public:
+  typedef double ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;itk::Point&lt;double, 4&gt;&gt;
+{
+public:
+  typedef double ValueType;
+};
+
+template &lt;&gt;
+class VectorTraits&lt;mitk::Point&lt;int, 3&gt;&gt;
+{
+public:
+  typedef int ValueType;
+};
+
+namespace mitk
+{
+  template &lt;class Tin, class Tout&gt;
+  inline void itk2vtk(const Tin &amp;in, Tout &amp;out)
+<span style = "background-color:#fdd">  {
+    out[0] = (typename VectorTraits&lt;Tout&gt;::ValueType)(in[0]);
+    out[1] = (typename VectorTraits&lt;Tout&gt;::ValueType)(in[1]);
+    out[2] = (typename VectorTraits&lt;Tout&gt;::ValueType)(in[2]);
+  }</span>
+
+  template &lt;class Tin, class Tout&gt;
+  inline void vtk2itk(const Tin &amp;in, Tout &amp;out)
+<span style = "background-color:#fdd">  {
+    out[0] = (typename VectorTraits&lt;Tout&gt;::ValueType)(in[0]);
+    out[1] = (typename VectorTraits&lt;Tout&gt;::ValueType)(in[1]);
+    out[2] = (typename VectorTraits&lt;Tout&gt;::ValueType)(in[2]);
+  }</span>
+
+  template &lt;class Tin, class Tout&gt;
+  inline void vnl2vtk(const vnl_vector&lt;Tin&gt; &amp;in, Tout *out)
+<span style = "background-color:#fdd">  {</span>
+    unsigned int i;
+<span style = "background-color:#fdd">    for (i = 0; i &lt; in.size(); ++i)
+      out[i] = (Tout)(in[i]);
+  }</span>
+
+  template &lt;class Tin, class Tout&gt;
+  inline void vtk2vnl(const Tin *in, vnl_vector&lt;Tout&gt; &amp;out)
+<span style = "background-color:#fdd">  {</span>
+    unsigned int i;
+<span style = "background-color:#fdd">    for (i = 0; i &lt; out.size(); ++i)
+      out[i] = (Tout)(in[i]);
+  }</span>
+
+  template &lt;class Tin, class Tout, unsigned int n&gt;
+  inline void vnl2vtk(const vnl_vector_fixed&lt;Tin, n&gt; &amp;in, Tout *out)
+<span style = "background-color:#fdd">  {</span>
+    unsigned int i;
+<span style = "background-color:#fdd">    for (i = 0; i &lt; in.size(); ++i)
+      out[i] = (Tout)(in[i]);
+  }</span>
+
+  template &lt;class Tin, class Tout, unsigned int n&gt;
+  inline void vtk2vnl(const Tin *in, vnl_vector_fixed&lt;Tout, n&gt; &amp;out)
+  {
+    unsigned int i;
+    for (i = 0; i &lt; out.size(); ++i)
+      out[i] = (Tout)(in[i]);
+  }
+
+  template &lt;typename U, typename V, unsigned int NRows, unsigned int NColumns&gt;
+  inline void TransferMatrix(const itk::Matrix&lt;U, NRows, NColumns&gt; &amp;in, itk::Matrix&lt;V, NRows, NColumns&gt; &amp;out)
+<span style = "background-color:#fdd">  {
+    for (unsigned int i = 0; i &lt; in.RowDimensions; ++i)
+      for (unsigned int j = 0; j &lt; in.ColumnDimensions; ++j)
+        out[i][j] = in[i][j];
+  }</span>
+
+#define mitkSetConstReferenceMacro(name, type)                                                                         \
+  virtual void Set##name(const type &amp;_arg)                                                                             \
+  {                                                                                                                    \
+    itkDebugMacro("setting " &lt;&lt; #name " to " &lt;&lt; _arg);                                                                 \
+    if (this-&gt;m_##name != _arg)                                                                                        \
+    {                                                                                                                  \
+      this-&gt;m_##name = _arg;                                                                                           \
+      this-&gt;Modified();                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define mitkSetVectorMacro(name, type) mitkSetConstReferenceMacro(name, type)
+
+#define mitkGetVectorMacro(name, type) itkGetConstReferenceMacro(name, type)
+
+} // namespace mitk
+
+#endif /* MITKVECTORDEPRECATED_H_ */</pre>
+	</body>
+</html>

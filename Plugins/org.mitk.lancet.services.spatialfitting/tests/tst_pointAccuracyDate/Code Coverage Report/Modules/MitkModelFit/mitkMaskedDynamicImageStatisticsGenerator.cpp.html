@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMaskedDynamicImageStatisticsGenerator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkMaskedDynamicImageStatisticsGenerator.h"
+
+#include "mitkImageTimeSelector.h"
+#include "mitkImageAccessByItk.h"
+#include "mitkImageCast.h"
+#include "itkMaskedNaryStatisticsImageFilter.h"
+
+mitk::MaskedDynamicImageStatisticsGenerator::MaskedDynamicImageStatisticsGenerator()
+<span style = "background-color:#fdd">{
+  m_Mask = nullptr;
+  m_DynamicImage = nullptr;
+};</span>
+
+<span style = "background-color:#fdd">mitk::MaskedDynamicImageStatisticsGenerator::~MaskedDynamicImageStatisticsGenerator(){};</span>
+
+const mitk::MaskedDynamicImageStatisticsGenerator::ResultType&amp; mitk::MaskedDynamicImageStatisticsGenerator::GetMaximum()
+<span style = "background-color:#fdd">{
+  if(this-&gt;HasOutdatedResults())</span>
+  {
+<span style = "background-color:#fdd">    CheckValidInputs();
+    Generate();</span>
+  }
+<span style = "background-color:#fdd">  return m_Maximum;
+};</span>
+
+const mitk::MaskedDynamicImageStatisticsGenerator::ResultType&amp; mitk::MaskedDynamicImageStatisticsGenerator::GetMinimum()
+<span style = "background-color:#fdd">{
+  if(this-&gt;HasOutdatedResults())</span>
+  {
+<span style = "background-color:#fdd">    CheckValidInputs();
+    Generate();</span>
+  }
+<span style = "background-color:#fdd">  return m_Minimum;
+};</span>
+
+const mitk::MaskedDynamicImageStatisticsGenerator::ResultType&amp; mitk::MaskedDynamicImageStatisticsGenerator::GetMean()
+<span style = "background-color:#fdd">{
+  if(this-&gt;HasOutdatedResults())</span>
+  {
+<span style = "background-color:#fdd">    CheckValidInputs();
+    Generate();</span>
+  }
+<span style = "background-color:#fdd">  return m_Mean;
+};</span>
+
+const mitk::MaskedDynamicImageStatisticsGenerator::ResultType&amp; mitk::MaskedDynamicImageStatisticsGenerator::GetSigma()
+<span style = "background-color:#fdd">{
+  if(this-&gt;HasOutdatedResults())</span>
+  {
+<span style = "background-color:#fdd">    CheckValidInputs();
+    Generate();</span>
+  }
+<span style = "background-color:#fdd">  return m_Sigma;
+};</span>
+
+const mitk::MaskedDynamicImageStatisticsGenerator::ResultType&amp; mitk::MaskedDynamicImageStatisticsGenerator::GetVariance()
+<span style = "background-color:#fdd">{
+  if(this-&gt;HasOutdatedResults())</span>
+  {
+<span style = "background-color:#fdd">    CheckValidInputs();
+    Generate();</span>
+  }
+<span style = "background-color:#fdd">  return m_Variance;
+};</span>
+
+const mitk::MaskedDynamicImageStatisticsGenerator::ResultType&amp; mitk::MaskedDynamicImageStatisticsGenerator::GetSum()
+<span style = "background-color:#fdd">{
+  if(this-&gt;HasOutdatedResults())</span>
+  {
+<span style = "background-color:#fdd">    CheckValidInputs();
+    Generate();</span>
+  }
+<span style = "background-color:#fdd">  return m_Sum;
+};</span>
+
+template &lt;typename TPixel, unsigned int VDim&gt;
+void mitk::MaskedDynamicImageStatisticsGenerator::DoCalculateStatistics(const itk::Image&lt;TPixel, VDim&gt;* /*image*/)
+<span style = "background-color:#fdd">{</span>
+  typedef itk::Image&lt;TPixel, VDim-1&gt; InputFrameImageType;
+  typedef itk::MaskedNaryStatisticsImageFilter&lt;InputFrameImageType, InternalMaskType&gt; FilterType;
+
+<span style = "background-color:#fdd">  typename FilterType::Pointer statFilter = FilterType::New();</span>
+
+  //add the time frames to the fit filter
+<span style = "background-color:#fdd">  unsigned int timeSteps = this-&gt;m_DynamicImage-&gt;GetTimeSteps();
+  std::vector&lt;Image::Pointer&gt; frameCache;
+  mitk::ImageTimeSelector::Pointer imageTimeSelector = mitk::ImageTimeSelector::New();
+  imageTimeSelector-&gt;SetInput(this-&gt;m_DynamicImage);
+  for (unsigned int i = 0; i &lt; timeSteps; ++i)</span>
+  {
+<span style = "background-color:#fdd">    typename InputFrameImageType::Pointer frameImage;
+    imageTimeSelector-&gt;SetTimeNr(i);
+    imageTimeSelector-&gt;UpdateLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">    Image::Pointer frameMITKImage = imageTimeSelector-&gt;GetOutput();
+    frameCache.push_back(frameMITKImage);
+    mitk::CastToItkImage(frameMITKImage, frameImage);
+    statFilter-&gt;SetInput(i,frameImage);
+  }</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;m_InternalMask.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    statFilter-&gt;SetMask(this-&gt;m_InternalMask);</span>
+  }
+
+<span style = "background-color:#fdd">  statFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  m_Maximum.SetSize(timeSteps);
+  m_Minimum.SetSize(timeSteps);
+  m_Mean.SetSize(timeSteps);
+  m_Sigma.SetSize(timeSteps);
+  m_Variance.SetSize(timeSteps);
+  m_Sum.SetSize(timeSteps);</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; timeSteps; ++i)</span>
+  {
+<span style = "background-color:#fdd">    m_Maximum.SetElement(i,statFilter-&gt;GetMaximum()[i]);
+    m_Minimum.SetElement(i,statFilter-&gt;GetMinimum()[i]);
+    m_Mean.SetElement(i,statFilter-&gt;GetMean()[i]);
+    m_Sigma.SetElement(i,statFilter-&gt;GetSigma()[i]);
+    m_Variance.SetElement(i,statFilter-&gt;GetVariance()[i]);
+    m_Sum.SetElement(i,statFilter-&gt;GetSum()[i]);
+  }</span>
+
+<span style = "background-color:#fdd">  this-&gt;m_GenerationTimeStamp.Modified();
+}</span>
+
+void mitk::MaskedDynamicImageStatisticsGenerator::Generate()
+<span style = "background-color:#fdd">{
+  if(this-&gt;m_Mask.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    InternalMaskType::Pointer castedMask;
+    CastToItkImage&lt;InternalMaskType&gt;(m_Mask, castedMask);
+    if (castedMask.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Dynamic cast of mask went wrong. Internal Mask is NULL. Image statistics cannot be generated.";</span>
+    }
+
+<span style = "background-color:#fdd">    this-&gt;m_InternalMask = castedMask;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;m_InternalMask = nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  AccessFixedDimensionByItk(m_DynamicImage, mitk::MaskedDynamicImageStatisticsGenerator::DoCalculateStatistics, 4);
+}</span>
+
+void
+  mitk::MaskedDynamicImageStatisticsGenerator::CheckValidInputs() const
+<span style = "background-color:#fdd">{</span>
+
+<span style = "background-color:#fdd">  if (m_DynamicImage.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot generate statistics. Input dynamic image is not set.";</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool
+  mitk::MaskedDynamicImageStatisticsGenerator::HasOutdatedResults() const
+<span style = "background-color:#fdd">{
+  bool result = this-&gt;GetMTime() &gt; this-&gt;m_GenerationTimeStamp;</span>
+
+<span style = "background-color:#fdd">  if (m_DynamicImage.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if (m_DynamicImage-&gt;GetMTime() &gt; this-&gt;m_GenerationTimeStamp)</span>
+    {
+<span style = "background-color:#fdd">      result = true;</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  if (m_Mask.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if (m_Mask-&gt;GetMTime() &gt; this-&gt;m_GenerationTimeStamp)</span>
+    {
+<span style = "background-color:#fdd">      result = true;</span>
+    }
+  }
+<span style = "background-color:#fdd">  return result;</span>
+
+<span style = "background-color:#fdd">};</span></pre>
+	</body>
+</html>

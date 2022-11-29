@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkXML2EventParser.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkXML2EventParser.h"
+
+#include "mitkEventFactory.h"
+#include "mitkInteractionEvent.h"
+#include "mitkInteractionEventConst.h"
+#include "mitkInteractionKeyEvent.h"
+#include "mitkInternalEvent.h"
+
+// VTK
+#include &lt;vtkXMLDataElement.h&gt;
+
+// us
+#include "usGetModuleContext.h"
+#include "usModule.h"
+#include "usModuleResource.h"
+#include "usModuleResourceStream.h"
+
+namespace mitk
+{
+  void mitk::XML2EventParser::StartElement(const char *elementName, const char **atts)
+<span style = "background-color:#fdd">  {
+    std::string name(elementName);</span>
+
+<span style = "background-color:#fdd">    if (name == InteractionEventConst::xmlTagConfigRoot())</span>
+    {
+      //
+<span style = "background-color:#fdd">    }
+    else if (name == InteractionEventConst::xmlTagEventVariant())</span>
+    {
+<span style = "background-color:#fdd">      std::string eventClass = ReadXMLStringAttribute(InteractionEventConst::xmlParameterEventClass(), atts);</span>
+      // New list in which all parameters are stored that are given within the &lt;input/&gt; tag
+<span style = "background-color:#fdd">      m_EventPropertyList = PropertyList::New();
+      m_EventPropertyList-&gt;SetStringProperty(InteractionEventConst::xmlParameterEventClass().c_str(),</span>
+                                             eventClass.c_str());
+      // MITK_INFO &lt;&lt; "event class " &lt;&lt; eventClass;
+<span style = "background-color:#fdd">    }
+    else if (name == InteractionEventConst::xmlTagAttribute())</span>
+    {
+      // Attributes that describe an Input Event, such as which MouseButton triggered the event,or which modifier keys
+      // are
+      // pressed
+<span style = "background-color:#fdd">      std::string name = ReadXMLStringAttribute(InteractionEventConst::xmlParameterName(), atts);
+      std::string value = ReadXMLStringAttribute(InteractionEventConst::xmlParameterValue(), atts);</span>
+      // MITK_INFO &lt;&lt; "tag attr " &lt;&lt; value;
+<span style = "background-color:#fdd">      m_EventPropertyList-&gt;SetStringProperty(name.c_str(), value.c_str());
+    }
+  }</span>
+
+  void mitk::XML2EventParser::EndElement(const char *elementName)
+<span style = "background-color:#fdd">  {
+    std::string name(elementName);</span>
+    // At end of input section, all necessary infos are collected to created an interaction event.
+<span style = "background-color:#fdd">    if (name == InteractionEventConst::xmlTagEventVariant())</span>
+    {
+<span style = "background-color:#fdd">      InteractionEvent::Pointer event = EventFactory::CreateEvent(m_EventPropertyList);
+      if (event.IsNotNull())</span>
+      {
+<span style = "background-color:#fdd">        m_InteractionList.push_back(event);
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        MITK_WARN &lt;&lt; "EventConfig: Unknown Event-Type in config. Entry skipped: " &lt;&lt; name;</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+
+  std::string mitk::XML2EventParser::ReadXMLStringAttribute(const std::string &amp;name, const char **atts)
+<span style = "background-color:#fdd">  {
+    if (atts)</span>
+    {
+<span style = "background-color:#fdd">      const char **attsIter = atts;</span>
+
+<span style = "background-color:#fdd">      while (*attsIter)</span>
+      {
+<span style = "background-color:#fdd">        if (name == *attsIter)</span>
+        {
+<span style = "background-color:#fdd">          attsIter++;
+          return *attsIter;</span>
+        }
+<span style = "background-color:#fdd">        attsIter += 2;
+      }</span>
+    }
+<span style = "background-color:#fdd">    return std::string();
+  }</span>
+
+  bool mitk::XML2EventParser::ReadXMLBooleanAttribute(const std::string &amp;name, const char **atts)
+<span style = "background-color:#fdd">  {
+    std::string s = ReadXMLStringAttribute(name, atts);
+    std::transform(s.begin(), s.end(), s.begin(), ::toupper);</span>
+
+<span style = "background-color:#fdd">    return s == "TRUE";
+  }</span>
+
+  mitk::XML2EventParser::XML2EventParser(const std::string &amp;filename, const us::Module *module)
+<span style = "background-color:#fdd">  {
+    if (module == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      module = us::GetModuleContext()-&gt;GetModule();</span>
+    }
+<span style = "background-color:#fdd">    us::ModuleResource resource = module-&gt;GetResource("Interactions/" + filename);
+    if (!resource.IsValid())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Resource not valid. State machine pattern in module " &lt;&lt; module-&gt;GetName()</span>
+                 &lt;&lt; " not found: /Interactions/" &lt;&lt; filename;
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    us::ModuleResourceStream stream(resource);
+    this-&gt;SetStream(&amp;stream);
+    bool success = this-&gt;Parse();
+    if (!success)
+      MITK_ERROR &lt;&lt; "Error occured during parsing of EventXML File.";
+  }</span>
+
+  mitk::XML2EventParser::XML2EventParser(std::istream &amp;inputStream)
+<span style = "background-color:#fdd">  {
+    this-&gt;SetStream(&amp;inputStream);
+    bool success = this-&gt;Parse();
+    if (!success)
+      MITK_ERROR &lt;&lt; "Error occured during parsing of EventXML File.";
+  }</span>
+}</pre>
+	</body>
+</html>

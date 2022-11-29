@@ -1,0 +1,472 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkWeightedPointTransform.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+// MITK
+#include "mitkWeightedPointTransform.h"
+#include "mitkAnisotropicRegistrationCommon.h"
+#include &lt;vtkLandmarkTransform.h&gt;
+#include &lt;vtkMatrix4x4.h&gt;
+#include &lt;vtkPoints.h&gt;
+
+typedef itk::Matrix&lt;double, 3, 3&gt; Matrix3x3;
+typedef std::vector&lt;Matrix3x3&gt; Matrix3x3List;
+
+///////////////////////////////////////////////
+// forward declarations of private functions
+///////////////////////////////////////////////
+
+static double ComputeWeightedFRE(vtkPoints *X,
+                                 vtkPoints *Y,
+                                 const Matrix3x3List &amp;CovarianceMatricesMoving,
+                                 const Matrix3x3List &amp;CovarianceMatricesFixed,
+                                 double FRENormalizationFactor,
+                                 Matrix3x3List &amp;WeightMatrices,
+                                 const Matrix3x3 &amp;rotation,
+                                 const itk::Vector&lt;double, 3&gt; &amp;translation);
+
+static void calculateWeightMatrices(const Matrix3x3List &amp;X,
+                                    const Matrix3x3List &amp;Y,
+                                    Matrix3x3List &amp;result,
+                                    const Matrix3x3 &amp;rotation);
+
+static void IsotropicRegistration(vtkPoints *X,
+                                  vtkPoints *Y,
+                                  vtkLandmarkTransform *landmarkTransform,
+                                  Matrix3x3 &amp;rotation,
+                                  itk::Vector&lt;double, 3&gt; &amp;translation);
+
+mitk::WeightedPointTransform::WeightedPointTransform()
+<span style = "background-color:#fdd">  : m_Threshold(1.0e-4),
+    m_MaxIterations(1000),
+    m_Iterations(-1),
+    m_FRE(-1.0),
+    m_FRENormalizationFactor(1.0),
+    m_LandmarkTransform(vtkSmartPointer&lt;vtkLandmarkTransform&gt;::New())
+{
+}</span>
+
+mitk::WeightedPointTransform::~WeightedPointTransform()
+<span style = "background-color:#fdd">{
+  m_FixedPointSet = nullptr;
+  m_MovingPointSet = nullptr;
+  m_LandmarkTransform = nullptr;
+}</span>
+
+void mitk::WeightedPointTransform::ComputeTransformation()
+<span style = "background-color:#fdd">{
+  WeightedPointRegister(m_MovingPointSet,</span>
+                        m_FixedPointSet,
+                        m_CovarianceMatricesMoving,
+                        m_CovarianceMatricesFixed,
+                        m_Threshold,
+                        m_MaxIterations,
+                        m_Rotation,
+                        m_Translation,
+                        m_FRE,
+                        m_Iterations);
+<span style = "background-color:#fdd">}</span>
+
+// computes the weightmatrix with 2 covariance matrices
+// and a given transformation
+void calculateWeightMatrices(const Matrix3x3List &amp;X,
+                             const Matrix3x3List &amp;Y,
+                             Matrix3x3List &amp;result,
+                             const Matrix3x3 &amp;rotation)
+<span style = "background-color:#fdd">{
+  const vnl_matrix_fixed&lt;double, 3, 3&gt; rotation_T = rotation.GetTranspose();</span>
+
+<span style = "background-color:#fdd">#pragma omp parallel for
+  for (int i = 0; i &lt; static_cast&lt;int&gt;(X.size()); ++i)</span>
+  {
+<span style = "background-color:#fdd">    const Matrix3x3 w = rotation * X[i] * rotation_T;
+    result[i] = mitk::AnisotropicRegistrationCommon::CalculateWeightMatrix(w, Y[i]);
+  }
+}</span>
+
+// computes the weighted fiducial registration error
+double ComputeWeightedFRE(vtkPoints *X,
+                          vtkPoints *Y,
+                          const Matrix3x3List &amp;CovarianceMatricesMoving,
+                          const Matrix3x3List &amp;CovarianceMatricesFixed,
+                          double FRENormalizationFactor,
+                          Matrix3x3List &amp;WeightMatrices,
+                          const Matrix3x3 &amp;rotation,
+                          const itk::Vector&lt;double, 3&gt; &amp;translation)
+<span style = "background-color:#fdd">{
+  double FRE = 0;</span>
+  // compute weighting matrices
+<span style = "background-color:#fdd">  calculateWeightMatrices(CovarianceMatricesMoving, CovarianceMatricesFixed, WeightMatrices, rotation);</span>
+
+<span style = "background-color:#fdd">#pragma omp parallel for
+  for (int i = 0; i &lt; static_cast&lt;int&gt;(WeightMatrices.size()); ++i)</span>
+  {
+    // convert to itk data types (nessecary since itk 4 migration)
+    itk::Vector&lt;double, 3&gt; converted_MovingPoint;
+    double point[3];
+<span style = "background-color:#fdd">    X-&gt;GetPoint(i, point);
+    converted_MovingPoint[0] = point[0];
+    converted_MovingPoint[1] = point[1];
+    converted_MovingPoint[2] = point[2];</span>
+
+    // transform point
+<span style = "background-color:#fdd">    itk::Vector&lt;double, 3&gt; p = rotation * converted_MovingPoint + translation;</span>
+
+<span style = "background-color:#fdd">    Y-&gt;GetPoint(i, point);
+    p[0] -= point[0];
+    p[1] -= point[1];
+    p[2] -= point[2];</span>
+
+    // do calculation
+<span style = "background-color:#fdd">    const itk::Vector&lt;double, 3&gt; D = WeightMatrices.at(i) * p;</span>
+#pragma omp critical
+<span style = "background-color:#fdd">    FRE += (D[0] * D[0] + D[1] * D[1] + D[2] * D[2]);
+  }</span>
+
+<span style = "background-color:#fdd">  FRE /= WeightMatrices.size();
+  FRE = FRENormalizationFactor * sqrt(FRE);</span>
+
+<span style = "background-color:#fdd">  return FRE;
+}</span>
+
+// registers two pointsets with an isotropic landmark transform
+void IsotropicRegistration(vtkPoints *X,
+                           vtkPoints *Y,
+                           vtkLandmarkTransform *landmarkTransform,
+                           Matrix3x3 &amp;rotation,
+                           itk::Vector&lt;double, 3&gt; &amp;translation)
+<span style = "background-color:#fdd">{
+  landmarkTransform-&gt;SetSourceLandmarks(X);
+  landmarkTransform-&gt;SetTargetLandmarks(Y);
+  landmarkTransform-&gt;SetModeToRigidBody();
+  landmarkTransform-&gt;Modified();
+  landmarkTransform-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  vtkMatrix4x4 *m = landmarkTransform-&gt;GetMatrix();</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 3; ++i)
+    for (int j = 0; j &lt; 3; ++j)
+      rotation[i][j] = m-&gt;GetElement(i, j);</span>
+
+<span style = "background-color:#fdd">  translation[0] = m-&gt;GetElement(0, 3);
+  translation[1] = m-&gt;GetElement(1, 3);
+  translation[2] = m-&gt;GetElement(2, 3);
+}</span>
+
+void mitk::WeightedPointTransform::C_maker(vtkPoints *X,
+                                           const WeightMatrixList &amp;W,
+                                           itk::VariableSizeMatrix&lt;double&gt; &amp;returnValue)
+<span style = "background-color:#fdd">{
+#pragma omp parallel for
+  for (int i = 0; i &lt; X-&gt;GetNumberOfPoints(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    unsigned int index = 3u * i;</span>
+    double point[3];
+<span style = "background-color:#fdd">    X-&gt;GetPoint(i, point);</span>
+
+<span style = "background-color:#fdd">    for (int j = 0; j &lt; 3; ++j)</span>
+    {
+<span style = "background-color:#fdd">      returnValue[index][0] = -W.at(i)[j][1] * point[2] + W.at(i)[j][2] * point[1];
+      returnValue[index][1] = W.at(i)[j][0] * point[2] - W.at(i)[j][2] * point[0];
+      returnValue[index][2] = -W.at(i)[j][0] * point[1] + W.at(i)[j][1] * point[0];
+      returnValue[index][3] = W.at(i)[j][0];
+      returnValue[index][4] = W.at(i)[j][1];
+      returnValue[index][5] = W.at(i)[j][2];
+      index += 1;
+    }
+  }
+}</span>
+
+void mitk::WeightedPointTransform::E_maker(vtkPoints *X,
+                                           vtkPoints *Y,
+                                           const WeightMatrixList &amp;W,
+                                           vnl_vector&lt;double&gt; &amp;returnValue)
+<span style = "background-color:#fdd">{
+#pragma omp parallel for
+  for (int i = 0; i &lt; X-&gt;GetNumberOfPoints(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    unsigned int index = 3u * i;</span>
+    double pX[3];
+    double pY[3];
+<span style = "background-color:#fdd">    Matrix3x3 M;</span>
+
+<span style = "background-color:#fdd">    X-&gt;GetPoint(i, pX);
+    Y-&gt;GetPoint(i, pY);</span>
+
+<span style = "background-color:#fdd">    M[0][0] = pY[0] - pX[0];
+    M[0][1] = pY[1] - pX[1];
+    M[0][2] = pY[2] - pX[2];
+    M[1][0] = M[0][0];
+    M[1][1] = M[0][1];
+    M[1][2] = M[0][2];
+    M[2][0] = M[0][0];
+    M[2][1] = M[0][1];
+    M[2][2] = M[0][2];</span>
+
+<span style = "background-color:#fdd">    for (unsigned int j = 0; j &lt; 3; ++j)</span>
+    {
+<span style = "background-color:#fdd">      returnValue[index + j] = W.at(i)[j][0] * M[j][0] + W.at(i)[j][1] * M[j][1] + W.at(i)[j][2] * M[j][2];
+    }
+  }
+}</span>
+
+void mitk::WeightedPointTransform::WeightedPointRegister(vtkPoints *X,
+                                                         vtkPoints *Y,
+                                                         const CovarianceMatrixList &amp;Sigma_X,
+                                                         const CovarianceMatrixList &amp;Sigma_Y,
+                                                         double Threshold,
+                                                         int MaxIterations,
+                                                         Rotation &amp;TransformationR,
+                                                         Translation &amp;TransformationT,
+                                                         double &amp;FRE,
+                                                         int &amp;n)
+<span style = "background-color:#fdd">{
+  double FRE_identity = 0.0;
+  double FRE_isotropic_weighted = 0.0;
+  double initialFRE = 0.0;</span>
+  // set config_change to infinite (max double) at start
+<span style = "background-color:#fdd">  double config_change = std::numeric_limits&lt;double&gt;::max();
+  Rotation initial_TransformationR;
+  initial_TransformationR.SetIdentity();</span>
+  Translation initial_TransformationT;
+<span style = "background-color:#fdd">  initial_TransformationT.Fill(0.0);</span>
+  // Weightmatrices
+<span style = "background-color:#fdd">  Matrix3x3List W;
+  vtkPoints *X_transformed = vtkPoints::New();
+  vtkPoints *X_transformedNew = vtkPoints::New();
+  vnl_vector&lt;double&gt; oldq;
+  itk::VariableSizeMatrix&lt;double&gt; iA;
+  vnl_vector&lt;double&gt; iB;</span>
+
+  // initialize memory
+<span style = "background-color:#fdd">  W.resize(X-&gt;GetNumberOfPoints());
+  X_transformed-&gt;SetNumberOfPoints(X-&gt;GetNumberOfPoints());
+  X_transformedNew-&gt;SetNumberOfPoints(X-&gt;GetNumberOfPoints());
+  iA.SetSize(3u * X-&gt;GetNumberOfPoints(), 6u);
+  iB.set_size(3u * X-&gt;GetNumberOfPoints());</span>
+
+  // calculate FRE_0 with identity transform
+<span style = "background-color:#fdd">  FRE_identity = ComputeWeightedFRE(</span>
+    X, Y, Sigma_X, Sigma_Y, m_FRENormalizationFactor, W, initial_TransformationR, initial_TransformationT);
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "FRE for identity transform: " &lt;&lt; FRE_identity;</span>
+
+  // compute isotropic transformation as initial estimate
+<span style = "background-color:#fdd">  IsotropicRegistration(X, Y, m_LandmarkTransform, initial_TransformationR, initial_TransformationT);</span>
+
+  // result of unweighted registration algorithm
+<span style = "background-color:#fdd">  TransformationR = initial_TransformationR;
+  TransformationT = initial_TransformationT;</span>
+
+  // calculate FRE_0 with isotropic transform
+<span style = "background-color:#fdd">  FRE_isotropic_weighted =</span>
+    ComputeWeightedFRE(X, Y, Sigma_X, Sigma_Y, m_FRENormalizationFactor, W, TransformationR, TransformationT);
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "FRE for transform obtained with unweighted registration: " &lt;&lt; FRE_isotropic_weighted;</span>
+
+  // if R,t is worse than the identity, use the identity as initial transform
+<span style = "background-color:#fdd">  if (FRE_isotropic_weighted &lt; FRE_identity)</span>
+  {
+<span style = "background-color:#fdd">    initialFRE = FRE_isotropic_weighted;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    initialFRE = FRE_identity;
+    TransformationR.SetIdentity(); // set rotation to identity element
+    TransformationT.Fill(0.0);     // set translation to identity element
+    initial_TransformationR.SetIdentity();
+    initial_TransformationT.Fill(0.0);</span>
+  }
+
+  // apply transform to moving set:
+<span style = "background-color:#fdd">  mitk::AnisotropicRegistrationCommon::TransformPoints(X, X_transformed, TransformationR, TransformationT);</span>
+
+  // start with iteration 0
+<span style = "background-color:#fdd">  n = 0;</span>
+
+  do
+  {
+<span style = "background-color:#fdd">    n++;</span>
+
+<span style = "background-color:#fdd">    calculateWeightMatrices(Sigma_X, Sigma_Y, W, TransformationR);</span>
+
+    //'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    // PROBLEM:  no square matrix but the backslash operator in matlab does solve the system anyway. How to convert this
+    // to C++?
+    //          good descriptons to the "backslash"-operator (in german):
+    //          http://www.tm-mathe.de/Themen/html/matlab__zauberstab__backslash-.html
+    //                                                                    http://www.tm-mathe.de/Themen/html/matlab__matrix-division__vorsi.html#HoheMatrixA
+    //
+    //          current method: treat the problem as a minimization problem, because this is what the
+    //          "backslash"-operator also does with "high" matrices.
+    //                          (and we will have those matrices in most cases)
+
+<span style = "background-color:#fdd">    C_maker(X_transformed, W, iA);
+    E_maker(X_transformed, Y, W, iB);</span>
+
+<span style = "background-color:#fdd">    vnl_matrix_inverse&lt;double&gt; myInverse(iA.GetVnlMatrix());
+    vnl_vector&lt;double&gt; q = myInverse.pinverse(iB.size()) * iB;</span>
+    //'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+<span style = "background-color:#fdd">    if (n &gt; 1)
+      q = (q + oldq) / 2;
+    oldq = q;</span>
+
+    itk::Vector&lt;double, 3&gt; delta_t;
+<span style = "background-color:#fdd">    delta_t[0] = q[3];
+    delta_t[1] = q[4];
+    delta_t[2] = q[5];</span>
+
+<span style = "background-color:#fdd">    Matrix3x3 delta_theta;
+    delta_theta[0][0] = 1;
+    delta_theta[0][1] = -q[2];
+    delta_theta[0][2] = q[1];
+    delta_theta[1][0] = q[2];
+    delta_theta[1][1] = 1;
+    delta_theta[1][2] = -q[0];
+    delta_theta[2][0] = -q[1];
+    delta_theta[2][1] = q[0];
+    delta_theta[2][2] = 1;</span>
+
+<span style = "background-color:#fdd">    vnl_svd&lt;double&gt; svd_delta_theta(delta_theta.GetVnlMatrix().as_ref());</span>
+
+    // convert vnl matrices to itk matrices...
+<span style = "background-color:#fdd">    Matrix3x3 U;
+    Matrix3x3 V;</span>
+
+<span style = "background-color:#fdd">    for (int i = 0; i &lt; 3; ++i)</span>
+    {
+<span style = "background-color:#fdd">      for (int j = 0; j &lt; 3; ++j)</span>
+      {
+<span style = "background-color:#fdd">        U[i][j] = svd_delta_theta.U()[i][j];
+        V[i][j] = svd_delta_theta.V()[i][j];
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    Matrix3x3 delta_R = U * V.GetTranspose();</span>
+
+    // update rotation
+<span style = "background-color:#fdd">    TransformationR = delta_R * TransformationR;</span>
+
+    // update translation
+<span style = "background-color:#fdd">    TransformationT = delta_R * TransformationT + delta_t;</span>
+
+    // update moving points
+<span style = "background-color:#fdd">    mitk::AnisotropicRegistrationCommon::TransformPoints(X, X_transformedNew, TransformationR, TransformationT);</span>
+    // calculate config change
+<span style = "background-color:#fdd">    config_change = CalculateConfigChange(X_transformed, X_transformedNew);</span>
+
+    // swap the pointers the old set for the next iteration is
+    // the new set of the last iteration
+<span style = "background-color:#fdd">    vtkPoints *tmp = X_transformed;
+    X_transformed = X_transformedNew;
+    X_transformedNew = tmp;</span>
+
+<span style = "background-color:#fdd">  } while (config_change &gt; Threshold &amp;&amp; n &lt; MaxIterations);</span>
+
+  // calculate FRE with current transform
+<span style = "background-color:#fdd">  FRE = ComputeWeightedFRE(X, Y, Sigma_X, Sigma_Y, m_FRENormalizationFactor, W, TransformationR, TransformationT);</span>
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "FRE after algorithm (prior to check with initial): " &lt;&lt; FRE;</span>
+
+  // compare with FRE_initial
+<span style = "background-color:#fdd">  if (initialFRE &lt; FRE)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "FRE did not improve in anisotropic point registration function";
+    TransformationR = initial_TransformationR;
+    TransformationT = initial_TransformationT;
+    FRE = initialFRE;</span>
+  }
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "FRE final: " &lt;&lt; FRE;</span>
+
+<span style = "background-color:#fdd">  X_transformed-&gt;Delete();
+  X_transformedNew-&gt;Delete();
+}</span>
+
+void mitk::WeightedPointTransform::SetMovingPointSet(vtkSmartPointer&lt;vtkPoints&gt; p)
+<span style = "background-color:#fdd">{
+  m_MovingPointSet = p;
+}</span>
+
+void mitk::WeightedPointTransform::SetCovarianceMatricesMoving(const CovarianceMatrixList &amp;matrices)
+<span style = "background-color:#fdd">{
+  m_CovarianceMatricesMoving = matrices;
+}</span>
+
+void mitk::WeightedPointTransform::SetFixedPointSet(vtkSmartPointer&lt;vtkPoints&gt; p)
+<span style = "background-color:#fdd">{
+  m_FixedPointSet = p;
+}</span>
+
+void mitk::WeightedPointTransform::SetCovarianceMatricesFixed(const CovarianceMatrixList &amp;matrices)
+<span style = "background-color:#fdd">{
+  m_CovarianceMatricesFixed = matrices;
+}</span>
+
+double mitk::WeightedPointTransform::CalculateConfigChange(vtkPoints *X, vtkPoints *X_new)
+<span style = "background-color:#fdd">{
+  double sum[3] = {0.0, 0.0, 0.0};
+  double mean[3] = {0.0, 0.0, 0.0};
+  double pX[3] = {0.0, 0.0, 0.0};
+  double pX_new[3] = {0.0, 0.0, 0.0};</span>
+
+  // compute mean of the old point set and the first sum
+<span style = "background-color:#fdd">  for (vtkIdType i = 0; i &lt; X-&gt;GetNumberOfPoints(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    X-&gt;GetPoint(i, pX);
+    X_new-&gt;GetPoint(i, pX_new);</span>
+
+    // first sum
+<span style = "background-color:#fdd">    sum[0] += (pX_new[0] - pX[0]) * (pX_new[0] - pX[0]);
+    sum[1] += (pX_new[1] - pX[1]) * (pX_new[1] - pX[1]);
+    sum[2] += (pX_new[2] - pX[2]) * (pX_new[2] - pX[2]);</span>
+
+    // mean
+<span style = "background-color:#fdd">    mean[0] += pX[0];
+    mean[1] += pX[1];
+    mean[2] += pX[2];
+  }</span>
+
+<span style = "background-color:#fdd">  mean[0] /= X-&gt;GetNumberOfPoints();
+  mean[1] /= X-&gt;GetNumberOfPoints();
+  mean[2] /= X-&gt;GetNumberOfPoints();</span>
+
+<span style = "background-color:#fdd">  const double us = sum[0] + sum[1] + sum[2];</span>
+
+  // reset sum
+<span style = "background-color:#fdd">  sum[0] = sum[1] = sum[2] = 0.0;</span>
+
+<span style = "background-color:#fdd">  for (vtkIdType i = 0; i &lt; X-&gt;GetNumberOfPoints(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    X-&gt;GetPoint(i, pX);</span>
+
+<span style = "background-color:#fdd">    sum[0] += (pX[0] - mean[0]) * (pX[0] - mean[0]);
+    sum[1] += (pX[1] - mean[1]) * (pX[1] - mean[1]);
+    sum[2] += (pX[2] - mean[2]) * (pX[2] - mean[2]);
+  }</span>
+
+<span style = "background-color:#fdd">  const double ls = sum[0] + sum[1] + sum[2];</span>
+
+<span style = "background-color:#fdd">  return sqrt(us / ls);
+}</span></pre>
+	</body>
+</html>

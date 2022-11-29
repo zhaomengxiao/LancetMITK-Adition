@@ -1,0 +1,635 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMITKSeriesGDCMReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+//#define MBILOG_ENABLE_DEBUG
+#define ENABLE_TIMING
+
+#include &lt;itkTimeProbesCollectorBase.h&gt;
+#include &lt;gdcmUIDs.h&gt;
+#include "mitkDICOMITKSeriesGDCMReader.h"
+#include "mitkITKDICOMSeriesReaderHelper.h"
+#include "mitkGantryTiltInformation.h"
+#include "mitkDICOMTagBasedSorter.h"
+#include "mitkDICOMGDCMTagScanner.h"
+
+<span style = "background-color:#dfd">std::mutex mitk::DICOMITKSeriesGDCMReader::s_LocaleMutex;</span>
+
+
+mitk::DICOMITKSeriesGDCMReader::DICOMITKSeriesGDCMReader( unsigned int decimalPlacesForOrientation, bool simpleVolumeImport )
+<span style = "background-color:#dfd">: DICOMFileReader()
+, m_FixTiltByShearing(m_DefaultFixTiltByShearing)
+, m_SimpleVolumeReading( simpleVolumeImport )
+, m_DecimalPlacesForOrientation( decimalPlacesForOrientation )
+, m_ExternalCache(false)
+{
+  this-&gt;EnsureMandatorySortersArePresent( decimalPlacesForOrientation, simpleVolumeImport );
+}</span>
+
+
+mitk::DICOMITKSeriesGDCMReader::DICOMITKSeriesGDCMReader( const DICOMITKSeriesGDCMReader&amp; other )
+<span style = "background-color:#fdd">: DICOMFileReader( other )
+, m_FixTiltByShearing( other.m_FixTiltByShearing)
+, m_SortingResultInProgress( other.m_SortingResultInProgress )
+, m_Sorter( other.m_Sorter )
+, m_EquiDistantBlocksSorter( other.m_EquiDistantBlocksSorter-&gt;Clone() )
+, m_NormalDirectionConsistencySorter( other.m_NormalDirectionConsistencySorter-&gt;Clone() )
+, m_ReplacedCLocales( other.m_ReplacedCLocales )
+, m_ReplacedCinLocales( other.m_ReplacedCinLocales )
+, m_DecimalPlacesForOrientation( other.m_DecimalPlacesForOrientation )
+, m_TagCache( other.m_TagCache )
+, m_ExternalCache(other.m_ExternalCache)
+{
+}</span>
+
+mitk::DICOMITKSeriesGDCMReader::~DICOMITKSeriesGDCMReader()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::DICOMITKSeriesGDCMReader&amp; mitk::DICOMITKSeriesGDCMReader::
+  operator=( const DICOMITKSeriesGDCMReader&amp; other )
+<span style = "background-color:#fdd">{
+  if ( this != &amp;other )</span>
+  {
+<span style = "background-color:#fdd">    DICOMFileReader::operator                =( other );
+    this-&gt;m_FixTiltByShearing                = other.m_FixTiltByShearing;
+    this-&gt;m_SortingResultInProgress          = other.m_SortingResultInProgress;
+    this-&gt;m_Sorter                           = other.m_Sorter; // TODO should clone the list items
+    this-&gt;m_EquiDistantBlocksSorter          = other.m_EquiDistantBlocksSorter-&gt;Clone();
+    this-&gt;m_NormalDirectionConsistencySorter = other.m_NormalDirectionConsistencySorter-&gt;Clone();
+    this-&gt;m_ReplacedCLocales                 = other.m_ReplacedCLocales;
+    this-&gt;m_ReplacedCinLocales               = other.m_ReplacedCinLocales;
+    this-&gt;m_DecimalPlacesForOrientation      = other.m_DecimalPlacesForOrientation;
+    this-&gt;m_TagCache                         = other.m_TagCache;</span>
+  }
+<span style = "background-color:#fdd">  return *this;
+}</span>
+
+bool mitk::DICOMITKSeriesGDCMReader::operator==( const DICOMFileReader&amp; other ) const
+<span style = "background-color:#fdd">{
+  if ( const auto* otherSelf = dynamic_cast&lt;const Self*&gt;( &amp;other ) )</span>
+  {
+    if ( this-&gt;m_FixTiltByShearing == otherSelf-&gt;m_FixTiltByShearing
+         &amp;&amp; *( this-&gt;m_EquiDistantBlocksSorter ) == *( otherSelf-&gt;m_EquiDistantBlocksSorter )
+<span style = "background-color:#fdd">         &amp;&amp; ( fabs( this-&gt;m_DecimalPlacesForOrientation - otherSelf-&gt;m_DecimalPlacesForOrientation ) &lt; eps ) )</span>
+    {
+      // test sorters for equality
+<span style = "background-color:#fdd">      if ( this-&gt;m_Sorter.size() != otherSelf-&gt;m_Sorter.size() )
+        return false;</span>
+
+<span style = "background-color:#fdd">      auto mySorterIter = this-&gt;m_Sorter.cbegin();
+      auto oSorterIter  = otherSelf-&gt;m_Sorter.cbegin();
+      for ( ; mySorterIter != this-&gt;m_Sorter.cend() &amp;&amp; oSorterIter != otherSelf-&gt;m_Sorter.cend();
+            ++mySorterIter, ++oSorterIter )</span>
+      {
+<span style = "background-color:#fdd">        if ( !( **mySorterIter == **oSorterIter ) )
+          return false; // this sorter differs
+      }</span>
+
+      // nothing differs ==&gt; all is equal
+<span style = "background-color:#fdd">      return true;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::DICOMITKSeriesGDCMReader::SetFixTiltByShearing( bool on )
+<span style = "background-color:#dfd">{
+  this-&gt;Modified();
+  m_FixTiltByShearing = on;
+}</span>
+
+bool mitk::DICOMITKSeriesGDCMReader::GetFixTiltByShearing() const
+<span style = "background-color:#fdd">{
+  return m_FixTiltByShearing;
+}</span>
+
+void mitk::DICOMITKSeriesGDCMReader::SetAcceptTwoSlicesGroups( bool accept ) const
+<span style = "background-color:#dfd">{
+  this-&gt;Modified();
+  m_EquiDistantBlocksSorter-&gt;SetAcceptTwoSlicesGroups( accept );
+}</span>
+
+bool mitk::DICOMITKSeriesGDCMReader::GetAcceptTwoSlicesGroups() const
+<span style = "background-color:#fdd">{
+  return m_EquiDistantBlocksSorter-&gt;GetAcceptTwoSlicesGroups();
+}</span>
+
+void mitk::DICOMITKSeriesGDCMReader::InternalPrintConfiguration( std::ostream&amp; os ) const
+<span style = "background-color:#fdd">{
+  unsigned int sortIndex( 1 );
+  for ( auto sorterIter = m_Sorter.cbegin(); sorterIter != m_Sorter.cend(); ++sortIndex, ++sorterIter )</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; "Sorting step " &lt;&lt; sortIndex &lt;&lt; ":" &lt;&lt; std::endl;
+    ( *sorterIter )-&gt;PrintConfiguration( os, "  " );
+  }</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; "Sorting step " &lt;&lt; sortIndex &lt;&lt; ":" &lt;&lt; std::endl;
+  m_EquiDistantBlocksSorter-&gt;PrintConfiguration( os, "  " );
+}</span>
+
+
+std::string mitk::DICOMITKSeriesGDCMReader::GetActiveLocale()
+<span style = "background-color:#fdd">{
+  return setlocale( LC_NUMERIC, nullptr );
+}</span>
+
+void mitk::DICOMITKSeriesGDCMReader::PushLocale() const
+<span style = "background-color:#fdd">{
+  s_LocaleMutex.lock();</span>
+
+<span style = "background-color:#fdd">  std::string currentCLocale = setlocale( LC_NUMERIC, nullptr );
+  m_ReplacedCLocales.push( currentCLocale );
+  setlocale( LC_NUMERIC, "C" );</span>
+
+<span style = "background-color:#fdd">  std::locale currentCinLocale( std::cin.getloc() );
+  m_ReplacedCinLocales.push( currentCinLocale );
+  std::locale l( "C" );
+  std::cin.imbue( l );</span>
+
+<span style = "background-color:#fdd">  s_LocaleMutex.unlock();
+}</span>
+
+void mitk::DICOMITKSeriesGDCMReader::PopLocale() const
+<span style = "background-color:#fdd">{
+  s_LocaleMutex.lock();</span>
+
+<span style = "background-color:#fdd">  if ( !m_ReplacedCLocales.empty() )</span>
+  {
+<span style = "background-color:#fdd">    setlocale( LC_NUMERIC, m_ReplacedCLocales.top().c_str() );
+    m_ReplacedCLocales.pop();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Mismatched PopLocale on DICOMITKSeriesGDCMReader.";</span>
+  }
+
+<span style = "background-color:#fdd">  if ( !m_ReplacedCinLocales.empty() )</span>
+  {
+<span style = "background-color:#fdd">    std::cin.imbue( m_ReplacedCinLocales.top() );
+    m_ReplacedCinLocales.pop();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Mismatched PopLocale on DICOMITKSeriesGDCMReader.";</span>
+  }
+
+<span style = "background-color:#fdd">  s_LocaleMutex.unlock();
+}</span>
+
+mitk::DICOMITKSeriesGDCMReader::SortingBlockList
+  mitk::DICOMITKSeriesGDCMReader::Condense3DBlocks( SortingBlockList&amp; input )
+<span style = "background-color:#fdd">{
+  return input; // to be implemented differently by sub-classes
+}</span>
+
+#if defined( MBILOG_ENABLE_DEBUG ) || defined( ENABLE_TIMING )
+#define timeStart( part ) timer.Start( part );
+#define timeStop( part ) timer.Stop( part );
+#else
+#define timeStart( part )
+#define timeStop( part )
+#endif
+
+void mitk::DICOMITKSeriesGDCMReader::AnalyzeInputFiles()
+<span style = "background-color:#fdd">{
+  itk::TimeProbesCollectorBase timer;</span>
+
+<span style = "background-color:#fdd">  timeStart( "Reset" );
+  this-&gt;ClearOutputs();
+  timeStop( "Reset" );</span>
+
+  // prepare initial sorting (== list of input files)
+<span style = "background-color:#fdd">  const StringList inputFilenames = this-&gt;GetInputFiles();
+  timeStart( "Check input for DCM" );</span>
+  if ( inputFilenames.empty() || !this-&gt;CanHandleFile( inputFilenames.front() ) // first
+       || !this-&gt;CanHandleFile( inputFilenames.back() )                         // last
+<span style = "background-color:#fdd">       || !this-&gt;CanHandleFile( inputFilenames[inputFilenames.size() / 2] )     // roughly central file</span>
+       )
+  {
+    // TODO a read-as-many-as-possible fallback could be implemented here
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Reader unable to process files..";
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  timeStop( "Check input for DCM" );</span>
+
+  // scan files for sorting-relevant tags
+<span style = "background-color:#fdd">  if ( m_TagCache.IsNull() || ( m_TagCache-&gt;GetMTime()&lt;this-&gt;GetMTime() &amp;&amp; !m_ExternalCache ))</span>
+  {
+<span style = "background-color:#fdd">    timeStart( "Tag scanning" );
+    DICOMGDCMTagScanner::Pointer filescanner = DICOMGDCMTagScanner::New();</span>
+
+<span style = "background-color:#fdd">    filescanner-&gt;SetInputFiles( inputFilenames );
+    filescanner-&gt;AddTagPaths( this-&gt;GetTagsOfInterest() );</span>
+
+<span style = "background-color:#fdd">    PushLocale();
+    filescanner-&gt;Scan();
+    PopLocale();</span>
+
+<span style = "background-color:#fdd">    m_TagCache = filescanner-&gt;GetScanCache(); // keep alive and make accessible to sub-classes</span>
+
+<span style = "background-color:#fdd">    timeStop("Tag scanning");
+  }</span>
+  else
+  {
+    // ensure that the tag cache contains our required tags AND files and has scanned!
+  }
+
+<span style = "background-color:#fdd">  m_SortingResultInProgress.clear();
+  m_SortingResultInProgress.push_back(m_TagCache-&gt;GetFrameInfoList());</span>
+
+  // sort and split blocks as configured
+
+<span style = "background-color:#fdd">  timeStart( "Sorting frames" );
+  unsigned int sorterIndex = 0;
+  for ( auto sorterIter = m_Sorter.cbegin(); sorterIter != m_Sorter.cend(); ++sorterIndex, ++sorterIter )</span>
+  {
+<span style = "background-color:#fdd">    std::stringstream ss;
+    ss &lt;&lt; "Sorting step " &lt;&lt; sorterIndex;
+    timeStart( ss.str().c_str() );
+    m_SortingResultInProgress =</span>
+      this-&gt;InternalExecuteSortingStep( sorterIndex, *sorterIter, m_SortingResultInProgress );
+<span style = "background-color:#fdd">    timeStop( ss.str().c_str() );
+  }</span>
+
+<span style = "background-color:#fdd">  if ( !m_SimpleVolumeReading )</span>
+  {
+    // a last extra-sorting step: ensure equidistant slices
+<span style = "background-color:#fdd">    timeStart( "EquiDistantBlocksSorter" );
+    m_SortingResultInProgress = this-&gt;InternalExecuteSortingStep(</span>
+      sorterIndex++, m_EquiDistantBlocksSorter.GetPointer(), m_SortingResultInProgress );
+<span style = "background-color:#fdd">    timeStop( "EquiDistantBlocksSorter" );</span>
+  }
+
+<span style = "background-color:#fdd">  timeStop( "Sorting frames" );</span>
+
+<span style = "background-color:#fdd">  timeStart( "Condensing 3D blocks" );
+  m_SortingResultInProgress = this-&gt;Condense3DBlocks( m_SortingResultInProgress );
+  timeStop( "Condensing 3D blocks" );</span>
+
+  // provide final result as output
+
+<span style = "background-color:#fdd">  timeStart( "Output" );
+  unsigned int o = this-&gt;GetNumberOfOutputs();
+  this-&gt;SetNumberOfOutputs(</span>
+    o + m_SortingResultInProgress.size() ); // Condense3DBlocks may already have added outputs!
+<span style = "background-color:#fdd">  for ( auto blockIter = m_SortingResultInProgress.cbegin(); blockIter != m_SortingResultInProgress.cend();
+        ++o, ++blockIter )</span>
+  {
+<span style = "background-color:#fdd">    const DICOMDatasetAccessingImageFrameList&amp; gdcmFrameInfoList = *blockIter;
+    assert( !gdcmFrameInfoList.empty() );</span>
+
+    // reverse frames if necessary
+    // update tilt information from absolute last sorting
+<span style = "background-color:#fdd">    const DICOMDatasetList datasetList = ConvertToDICOMDatasetList( gdcmFrameInfoList );
+    m_NormalDirectionConsistencySorter-&gt;SetInput( datasetList );
+    m_NormalDirectionConsistencySorter-&gt;Sort();
+    const DICOMDatasetAccessingImageFrameList sortedGdcmInfoFrameList =</span>
+      ConvertToDICOMDatasetAccessingImageFrameList( m_NormalDirectionConsistencySorter-&gt;GetOutput( 0 ) );
+<span style = "background-color:#fdd">    const GantryTiltInformation&amp; tiltInfo = m_NormalDirectionConsistencySorter-&gt;GetTiltInformation();</span>
+
+    // set frame list for current block
+<span style = "background-color:#fdd">    const DICOMImageFrameList frameList = ConvertToDICOMImageFrameList( sortedGdcmInfoFrameList );
+    assert( !frameList.empty() );</span>
+
+<span style = "background-color:#fdd">    DICOMImageBlockDescriptor block;
+    block.SetTagCache( this-&gt;GetTagCache() ); // important: this must be before SetImageFrameList(), because</span>
+                                              // SetImageFrameList will trigger reading of lots of interesting
+                                              // tags!
+<span style = "background-color:#fdd">    block.SetAdditionalTagsOfInterest( GetAdditionalTagsOfInterest() );
+    block.SetTagLookupTableToPropertyFunctor( GetTagLookupTableToPropertyFunctor() );
+    block.SetImageFrameList( frameList );
+    block.SetTiltInformation( tiltInfo );</span>
+
+<span style = "background-color:#fdd">    block.SetReaderImplementationLevel( this-&gt;GetReaderImplementationLevel( block.GetSOPClassUID() ) );</span>
+
+<span style = "background-color:#fdd">    this-&gt;SetOutput( o, block );
+  }
+  timeStop( "Output" );</span>
+
+#if defined( MBILOG_ENABLE_DEBUG ) || defined( ENABLE_TIMING )
+<span style = "background-color:#fdd">  std::cout &lt;&lt; "---------------------------------------------------------------" &lt;&lt; std::endl;
+  timer.Report( std::cout );
+  std::cout &lt;&lt; "---------------------------------------------------------------" &lt;&lt; std::endl;</span>
+#endif
+<span style = "background-color:#fdd">}</span>
+
+mitk::DICOMITKSeriesGDCMReader::SortingBlockList mitk::DICOMITKSeriesGDCMReader::InternalExecuteSortingStep(
+  unsigned int sortingStepIndex, const DICOMDatasetSorter::Pointer&amp; sorter, const SortingBlockList&amp; input )
+<span style = "background-color:#fdd">{
+  SortingBlockList nextStepSorting; // we should not modify our input list while processing it
+  std::stringstream ss;
+  ss &lt;&lt; "Sorting step " &lt;&lt; sortingStepIndex &lt;&lt; " '";</span>
+#if defined( MBILOG_ENABLE_DEBUG )
+<span style = "background-color:#fdd">  sorter-&gt;PrintConfiguration( ss );</span>
+#endif
+<span style = "background-color:#fdd">  ss &lt;&lt; "'";
+  nextStepSorting.clear();</span>
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "================================================================================";
+  MITK_DEBUG &lt;&lt; "DICOMITKSeriesGDCMReader: " &lt;&lt; ss.str() &lt;&lt; ": " &lt;&lt; input.size() &lt;&lt; " groups input";
+  unsigned int groupIndex = 0;</span>
+
+<span style = "background-color:#fdd">  for ( auto blockIter = input.cbegin(); blockIter != input.cend(); ++groupIndex, ++blockIter )</span>
+  {
+<span style = "background-color:#fdd">    const DICOMDatasetAccessingImageFrameList&amp; gdcmInfoFrameList = *blockIter;
+    const DICOMDatasetList datasetList               = ConvertToDICOMDatasetList( gdcmInfoFrameList );</span>
+
+#if defined( MBILOG_ENABLE_DEBUG )
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "--------------------------------------------------------------------------------";
+    MITK_DEBUG &lt;&lt; "DICOMITKSeriesGDCMReader: " &lt;&lt; ss.str() &lt;&lt; ", dataset group " &lt;&lt; groupIndex &lt;&lt; " ("</span>
+               &lt;&lt; datasetList.size() &lt;&lt; " datasets): ";
+<span style = "background-color:#fdd">    for ( auto oi = datasetList.cbegin(); oi != datasetList.cend(); ++oi )</span>
+    {
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "  INPUT     : " &lt;&lt; ( *oi )-&gt;GetFilenameIfAvailable();
+    }</span>
+#endif
+
+<span style = "background-color:#fdd">    sorter-&gt;SetInput( datasetList );
+    sorter-&gt;Sort();
+    unsigned int numberOfResultingBlocks = sorter-&gt;GetNumberOfOutputs();</span>
+
+<span style = "background-color:#fdd">    for ( unsigned int b = 0; b &lt; numberOfResultingBlocks; ++b )</span>
+    {
+<span style = "background-color:#fdd">      const DICOMDatasetList blockResult = sorter-&gt;GetOutput( b );</span>
+
+<span style = "background-color:#fdd">      for ( auto oi = blockResult.cbegin(); oi != blockResult.cend(); ++oi )</span>
+      {
+<span style = "background-color:#fdd">        MITK_DEBUG &lt;&lt; "  OUTPUT(" &lt;&lt; b &lt;&lt; ") :" &lt;&lt; ( *oi )-&gt;GetFilenameIfAvailable();
+      }</span>
+
+<span style = "background-color:#fdd">      DICOMDatasetAccessingImageFrameList sortedGdcmInfoFrameList = ConvertToDICOMDatasetAccessingImageFrameList( blockResult );
+      nextStepSorting.push_back( sortedGdcmInfoFrameList );
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return nextStepSorting;
+}</span>
+
+mitk::ReaderImplementationLevel
+  mitk::DICOMITKSeriesGDCMReader::GetReaderImplementationLevel( const std::string sopClassUID )
+<span style = "background-color:#fdd">{
+  if ( sopClassUID.empty() )</span>
+  {
+<span style = "background-color:#fdd">    return SOPClassUnknown;</span>
+  }
+
+  gdcm::UIDs uidKnowledge;
+<span style = "background-color:#fdd">  uidKnowledge.SetFromUID( sopClassUID.c_str() );</span>
+
+<span style = "background-color:#fdd">  gdcm::UIDs::TSName gdcmType = static_cast&lt;gdcm::UIDs::TSName&gt;((gdcm::UIDs::TSType)uidKnowledge);</span>
+
+<span style = "background-color:#fdd">  switch ( gdcmType )</span>
+  {
+    case gdcm::UIDs::CTImageStorage:
+    case gdcm::UIDs::MRImageStorage:
+    case gdcm::UIDs::PositronEmissionTomographyImageStorage:
+    case gdcm::UIDs::ComputedRadiographyImageStorage:
+    case gdcm::UIDs::DigitalXRayImageStorageForPresentation:
+    case gdcm::UIDs::DigitalXRayImageStorageForProcessing:
+<span style = "background-color:#fdd">      return SOPClassSupported;</span>
+
+    case gdcm::UIDs::NuclearMedicineImageStorage:
+<span style = "background-color:#fdd">      return SOPClassPartlySupported;</span>
+
+    case gdcm::UIDs::SecondaryCaptureImageStorage:
+<span style = "background-color:#fdd">      return SOPClassImplemented;</span>
+
+    default:
+<span style = "background-color:#fdd">      return SOPClassUnsupported;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+// void AllocateOutputImages();
+
+bool mitk::DICOMITKSeriesGDCMReader::LoadImages()
+<span style = "background-color:#fdd">{
+  bool success = true;</span>
+
+<span style = "background-color:#fdd">  unsigned int numberOfOutputs = this-&gt;GetNumberOfOutputs();
+  for ( unsigned int o = 0; o &lt; numberOfOutputs; ++o )</span>
+  {
+<span style = "background-color:#fdd">    success &amp;= this-&gt;LoadMitkImageForOutput( o );
+  }</span>
+
+<span style = "background-color:#fdd">  return success;
+}</span>
+
+bool mitk::DICOMITKSeriesGDCMReader::LoadMitkImageForImageBlockDescriptor(
+  DICOMImageBlockDescriptor&amp; block ) const
+<span style = "background-color:#fdd">{
+  PushLocale();
+  const DICOMImageFrameList&amp; frames    = block.GetImageFrameList();
+  const GantryTiltInformation tiltInfo = block.GetTiltInformation();
+  bool hasTilt                         = tiltInfo.IsRegularGantryTilt();</span>
+
+<span style = "background-color:#fdd">  ITKDICOMSeriesReaderHelper::StringContainer filenames;
+  filenames.reserve( frames.size() );
+  for ( auto frameIter = frames.cbegin(); frameIter != frames.cend(); ++frameIter )</span>
+  {
+<span style = "background-color:#fdd">    filenames.push_back( ( *frameIter )-&gt;Filename );
+  }</span>
+
+  mitk::ITKDICOMSeriesReaderHelper helper;
+<span style = "background-color:#fdd">  bool success( true );</span>
+  try
+  {
+<span style = "background-color:#fdd">    mitk::Image::Pointer mitkImage = helper.Load( filenames, m_FixTiltByShearing &amp;&amp; hasTilt, tiltInfo );
+    block.SetMitkImage( mitkImage );
+  }</span>
+  catch ( const std::exception&amp; e )
+<span style = "background-color:#fdd">  {
+    success = false;
+    MITK_ERROR &lt;&lt; "Exception during image loading: " &lt;&lt; e.what();
+  }</span>
+
+<span style = "background-color:#fdd">  PopLocale();</span>
+
+<span style = "background-color:#fdd">  return success;
+}</span>
+
+
+bool mitk::DICOMITKSeriesGDCMReader::LoadMitkImageForOutput( unsigned int o )
+<span style = "background-color:#fdd">{
+  DICOMImageBlockDescriptor&amp; block = this-&gt;InternalGetOutput( o );
+  return this-&gt;LoadMitkImageForImageBlockDescriptor( block );
+}</span>
+
+
+bool mitk::DICOMITKSeriesGDCMReader::CanHandleFile( const std::string&amp; filename )
+<span style = "background-color:#fdd">{
+  return ITKDICOMSeriesReaderHelper::CanHandleFile( filename );
+}</span>
+
+void mitk::DICOMITKSeriesGDCMReader::AddSortingElement( DICOMDatasetSorter* sorter, bool atFront )
+<span style = "background-color:#dfd">{
+  assert( sorter );</span>
+
+<span style = "background-color:#dfd">  if ( atFront )</span>
+  {
+<span style = "background-color:#dfd">    m_Sorter.push_front( sorter );
+  }</span>
+  else
+  {
+<span style = "background-color:#dfd">    m_Sorter.push_back( sorter );</span>
+  }
+<span style = "background-color:#dfd">  this-&gt;Modified();
+}</span>
+
+mitk::DICOMITKSeriesGDCMReader::ConstSorterList
+  mitk::DICOMITKSeriesGDCMReader::GetFreelyConfiguredSortingElements() const
+<span style = "background-color:#fdd">{
+  std::list&lt;DICOMDatasetSorter::ConstPointer&gt; result;</span>
+
+<span style = "background-color:#fdd">  unsigned int sortIndex( 0 );
+  for ( auto sorterIter = m_Sorter.begin(); sorterIter != m_Sorter.end(); ++sortIndex, ++sorterIter )</span>
+  {
+<span style = "background-color:#fdd">    if ( sortIndex &gt; 0 ) // ignore first element (see EnsureMandatorySortersArePresent)</span>
+    {
+<span style = "background-color:#fdd">      result.push_back( ( *sorterIter ).GetPointer() );
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+void mitk::DICOMITKSeriesGDCMReader::EnsureMandatorySortersArePresent(
+  unsigned int decimalPlacesForOrientation, bool simpleVolumeImport )
+<span style = "background-color:#dfd">{
+  DICOMTagBasedSorter::Pointer splitter = DICOMTagBasedSorter::New();
+  splitter-&gt;AddDistinguishingTag( DICOMTag(0x0028, 0x0010) ); // Number of Rows
+  splitter-&gt;AddDistinguishingTag( DICOMTag(0x0028, 0x0011) ); // Number of Columns
+  splitter-&gt;AddDistinguishingTag( DICOMTag(0x0028, 0x0030) ); // Pixel Spacing
+  splitter-&gt;AddDistinguishingTag( DICOMTag(0x0018, 0x1164) ); // Imager Pixel Spacing
+  splitter-&gt;AddDistinguishingTag( DICOMTag(0x0020, 0x0037), new mitk::DICOMTagBasedSorter::CutDecimalPlaces(decimalPlacesForOrientation) ); // Image Orientation (Patient)
+  splitter-&gt;AddDistinguishingTag( DICOMTag(0x0018, 0x0050) ); // Slice Thickness
+  if ( simpleVolumeImport )</span>
+  {
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Simple volume reading: ignoring number of frames";
+  }</span>
+  else
+  {
+<span style = "background-color:#dfd">    splitter-&gt;AddDistinguishingTag( DICOMTag(0x0028, 0x0008) ); // Number of Frames</span>
+  }
+
+<span style = "background-color:#dfd">  this-&gt;AddSortingElement( splitter, true ); // true = at front</span>
+
+<span style = "background-color:#dfd">  if ( m_EquiDistantBlocksSorter.IsNull() )</span>
+  {
+<span style = "background-color:#dfd">    m_EquiDistantBlocksSorter = mitk::EquiDistantBlocksSorter::New();</span>
+  }
+<span style = "background-color:#dfd">  m_EquiDistantBlocksSorter-&gt;SetAcceptTilt( m_FixTiltByShearing );</span>
+
+<span style = "background-color:#dfd">  if ( m_NormalDirectionConsistencySorter.IsNull() )</span>
+  {
+<span style = "background-color:#dfd">    m_NormalDirectionConsistencySorter = mitk::NormalDirectionConsistencySorter::New();</span>
+  }
+<span style = "background-color:#dfd">}</span>
+
+void mitk::DICOMITKSeriesGDCMReader::SetToleratedOriginOffsetToAdaptive( double fractionOfInterSliceDistance ) const
+<span style = "background-color:#fdd">{
+  assert( m_EquiDistantBlocksSorter.IsNotNull() );
+  m_EquiDistantBlocksSorter-&gt;SetToleratedOriginOffsetToAdaptive( fractionOfInterSliceDistance );
+  this-&gt;Modified();
+}</span>
+
+void mitk::DICOMITKSeriesGDCMReader::SetToleratedOriginOffset( double millimeters ) const
+<span style = "background-color:#dfd">{
+  assert( m_EquiDistantBlocksSorter.IsNotNull() );
+  m_EquiDistantBlocksSorter-&gt;SetToleratedOriginOffset( millimeters );
+  this-&gt;Modified();
+}</span>
+
+double mitk::DICOMITKSeriesGDCMReader::GetToleratedOriginError() const
+<span style = "background-color:#fdd">{
+  assert( m_EquiDistantBlocksSorter.IsNotNull() );
+  return m_EquiDistantBlocksSorter-&gt;GetToleratedOriginOffset();
+}</span>
+
+bool mitk::DICOMITKSeriesGDCMReader::IsToleratedOriginOffsetAbsolute() const
+<span style = "background-color:#fdd">{
+  assert( m_EquiDistantBlocksSorter.IsNotNull() );
+  return m_EquiDistantBlocksSorter-&gt;IsToleratedOriginOffsetAbsolute();
+}</span>
+
+double mitk::DICOMITKSeriesGDCMReader::GetDecimalPlacesForOrientation() const
+<span style = "background-color:#fdd">{
+  return m_DecimalPlacesForOrientation;
+}</span>
+
+mitk::DICOMTagCache::Pointer mitk::DICOMITKSeriesGDCMReader::GetTagCache() const
+<span style = "background-color:#fdd">{
+  return m_TagCache;
+}</span>
+
+void mitk::DICOMITKSeriesGDCMReader::SetTagCache( const DICOMTagCache::Pointer&amp; tagCache )
+<span style = "background-color:#fdd">{
+  m_TagCache = tagCache;
+  m_ExternalCache = tagCache.IsNotNull();
+}</span>
+
+mitk::DICOMTagPathList mitk::DICOMITKSeriesGDCMReader::GetTagsOfInterest() const
+<span style = "background-color:#fdd">{
+  DICOMTagPathList completeList;</span>
+
+  // check all configured sorters
+<span style = "background-color:#fdd">  for ( auto sorterIter = m_Sorter.cbegin(); sorterIter != m_Sorter.cend(); ++sorterIter )</span>
+  {
+<span style = "background-color:#fdd">    assert( sorterIter-&gt;IsNotNull() );</span>
+
+<span style = "background-color:#fdd">    const DICOMTagList tags = ( *sorterIter )-&gt;GetTagsOfInterest();
+    completeList.insert( completeList.end(), tags.cbegin(), tags.cend() );
+  }</span>
+
+  // check our own forced sorters
+<span style = "background-color:#fdd">  DICOMTagList tags = m_EquiDistantBlocksSorter-&gt;GetTagsOfInterest();
+  completeList.insert( completeList.end(), tags.cbegin(), tags.cend() );</span>
+
+<span style = "background-color:#fdd">  tags = m_NormalDirectionConsistencySorter-&gt;GetTagsOfInterest();
+  completeList.insert( completeList.end(), tags.cbegin(), tags.cend() );</span>
+
+  // add the tags for DICOMImageBlockDescriptor
+<span style = "background-color:#fdd">  tags = DICOMImageBlockDescriptor::GetTagsOfInterest();
+  completeList.insert( completeList.end(), tags.cbegin(), tags.cend() );</span>
+
+
+<span style = "background-color:#fdd">  const AdditionalTagsMapType tagList = GetAdditionalTagsOfInterest();
+  for ( auto iter = tagList.cbegin();
+        iter != tagList.cend();
+        ++iter</span>
+      )
+  {
+<span style = "background-color:#fdd">   completeList.push_back( iter-&gt;first ) ;
+  }</span>
+
+<span style = "background-color:#fdd">  return completeList;
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkBoundingObjectCutter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef BOUNDINGOBJECTCUTTER_H_HEADER_INCLUDED_C10B22CD
+#define BOUNDINGOBJECTCUTTER_H_HEADER_INCLUDED_C10B22CD
+
+#include "MitkAlgorithmsExtExports.h"
+#include "itkImage.h"
+#include "mitkBoundingObject.h"
+#include "mitkCommon.h"
+#include "mitkImageTimeSelector.h"
+#include "mitkImageToImageFilter.h"
+
+namespace mitk
+{
+  //##Documentation
+  //## @brief Cuts an Boundingobject out of an mitk Image
+  //##
+  //## Input Parameters are a mitk::BoundingObject and optionally an mitk::Image
+  //## if no mitk::Image is provided, the resulting image will have m_InsideValue as pixelvalue on inside pixel,
+  //## otherwise it will have the pixelvalue of the input image.
+  //## Pixel on the outside of the BoundingObject will have a pixelvalue of m_OutsideValue
+  //## \todo What Image resolution/spacing should be used, if no input image is given?
+  //## @ingroup Process
+  class MITKALGORITHMSEXT_EXPORT BoundingObjectCutter : public ImageToImageFilter
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(BoundingObjectCutter, ImageToImageFilter);
+    itkFactorylessNewMacro(Self);
+    itkCloneMacro(Self);</span>
+
+      void SetBoundingObject(const mitk::BoundingObject *boundingObject);
+    const mitk::BoundingObject *GetBoundingObject() const;
+    //##Description
+    //## @brief Set for inside pixels, used when m_UseInsideValue is @a true
+<span style = "background-color:#fdd">    itkSetMacro(InsideValue, ScalarType);
+    itkGetMacro(InsideValue, ScalarType);</span>
+    //##Description
+    //## @brief Set value for outside pixels, used when m_AutoOutsideValue is \a false
+<span style = "background-color:#fdd">    itkSetMacro(OutsideValue, ScalarType);
+    itkGetMacro(OutsideValue, ScalarType);
+    itkSetMacro(UseInsideValue, bool);
+    itkGetMacro(UseInsideValue, bool);
+    itkBooleanMacro(UseInsideValue);</span>
+    //##Description
+    //## @brief If set to \a true the minimum of the ouput pixel type is
+    //## used as outside value.
+<span style = "background-color:#fdd">    itkSetMacro(AutoOutsideValue, bool);
+    itkGetMacro(AutoOutsideValue, bool);
+    itkBooleanMacro(AutoOutsideValue);</span>
+
+<span style = "background-color:#fdd">    itkGetMacro(InsidePixelCount, unsigned int);
+    itkGetMacro(OutsidePixelCount, unsigned int);</span>
+
+<span style = "background-color:#fdd">    itkSetMacro(UseWholeInputRegion, bool);
+    itkGetMacro(UseWholeInputRegion, bool);</span>
+
+  protected:
+    BoundingObjectCutter();
+    ~BoundingObjectCutter() override;
+
+    virtual const PixelType GetOutputPixelType();
+
+    void GenerateInputRequestedRegion() override;
+    void GenerateOutputInformation() override;
+    void GenerateData() override;
+
+    template &lt;typename TPixel, unsigned int VImageDimension, typename TOutputPixel&gt;
+    friend void CutImageWithOutputTypeSelect(itk::Image&lt;TPixel, VImageDimension&gt; *inputItkImage,
+                                             mitk::BoundingObjectCutter *cutter,
+                                             int boTimeStep,
+                                             TOutputPixel *dummy);
+    template &lt;typename TPixel, unsigned int VImageDimension, typename TOutputPixel&gt;
+    friend void CutImageWithOutputTypeSelect(itk::VectorImage&lt;TPixel, VImageDimension&gt; *inputItkImage,
+                                             mitk::BoundingObjectCutter *cutter,
+                                             int boTimeStep,
+                                             TOutputPixel *dummy);
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    friend void CutImage(itk::Image&lt;TPixel, VImageDimension&gt; *itkImage,
+                         mitk::BoundingObjectCutter *cutter,
+                         int boTimeStep);
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    friend void CutImage(itk::VectorImage&lt;TPixel, VImageDimension&gt; *itkImage,
+                         mitk::BoundingObjectCutter *cutter,
+                         int boTimeStep);
+    virtual void ComputeData(mitk::Image *input3D, int boTimeStep);
+
+    //##Description
+    //## @brief BoundingObject that will be cut
+    mitk::BoundingObject::Pointer m_BoundingObject;
+    //##Description
+    //## @brief Value for inside pixels, used when m_UseInsideValue is @a true
+    //##
+    //## \sa m_UseInsideValue
+    ScalarType m_InsideValue;
+    //##Description
+    //## @brief Value for outside pixels (default: 0)
+    //##
+    //## Used only if m_AutoOutsideValue is \a false.
+    ScalarType m_OutsideValue;
+    //##Description
+    //## @brief If \a true the minimum of the ouput pixel type is
+    //## used as outside value (default: \a false)
+    bool m_AutoOutsideValue;
+    //##Description
+    //## @brief Use m_InsideValue for inside pixels (default: \a false)
+    //##
+    //## If @a true, pixels that are inside m_BoundingObject
+    //## will get m_InsideValue in the cutting process
+    //## If @a false, they keep their original value.
+    //## \sa m_InsideValue
+    bool m_UseInsideValue;
+
+    unsigned int m_OutsidePixelCount;
+    unsigned int m_InsidePixelCount;
+
+    //##Description
+    //## @brief Region of input needed for cutting
+    mitk::SlicedData::RegionType m_InputRequestedRegion;
+
+    //##Description
+    //## @brief Time when Header was last initialized
+    itk::TimeStamp m_TimeOfHeaderInitialization;
+
+    mitk::ImageTimeSelector::Pointer m_InputTimeSelector;
+    mitk::ImageTimeSelector::Pointer m_OutputTimeSelector;
+
+    bool m_UseWholeInputRegion;
+  };
+} // namespace mitk
+
+#endif /* BOUNDINGOBJECTCUTTER_H_HEADER_INCLUDED_C10B22CD */</pre>
+	</body>
+</html>

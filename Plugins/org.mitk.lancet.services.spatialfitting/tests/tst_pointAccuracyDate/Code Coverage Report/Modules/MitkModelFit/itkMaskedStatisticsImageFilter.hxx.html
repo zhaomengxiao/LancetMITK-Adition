@@ -1,0 +1,408 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>itkMaskedStatisticsImageFilter.hxx</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*=========================================================================
+*
+*  Copyright Insight Software Consortium
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*         http://www.apache.org/licenses/LICENSE-2.0.txt
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*
+*=========================================================================*/
+#ifndef __itkMaskedStatisticsImageFilter_hxx
+#define __itkMaskedStatisticsImageFilter_hxx
+#include "itkMaskedStatisticsImageFilter.h"
+
+
+#include "itkImageScanlineIterator.h"
+#include "itkProgressReporter.h"
+
+namespace itk
+{
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+<span style = "background-color:#fdd">    ::MaskedStatisticsImageFilter():m_ThreadSum(1), m_SumOfSquares(1), m_Count(1), m_ThreadMin(1), m_ThreadMax(1)
+  {
+    this-&gt;DynamicMultiThreadingOff();</span>
+
+    // first output is a copy of the image, DataObject created by
+    // superclass
+    //
+    // allocate the data objects for the outputs which are
+    // just decorators around pixel types
+<span style = "background-color:#fdd">    for ( int i = 1; i &lt; 3; ++i )</span>
+    {
+<span style = "background-color:#fdd">      typename PixelObjectType::Pointer output =</span>
+        static_cast&lt; PixelObjectType * &gt;( this-&gt;MakeOutput(i).GetPointer() );
+<span style = "background-color:#fdd">      this-&gt;ProcessObject::SetNthOutput( i, output.GetPointer() );
+    }</span>
+    // allocate the data objects for the outputs which are
+    // just decorators around real types
+<span style = "background-color:#fdd">    for ( int i = 3; i &lt; 7; ++i )</span>
+    {
+<span style = "background-color:#fdd">      typename RealObjectType::Pointer output =</span>
+        static_cast&lt; RealObjectType * &gt;( this-&gt;MakeOutput(i).GetPointer() );
+<span style = "background-color:#fdd">      this-&gt;ProcessObject::SetNthOutput( i, output.GetPointer() );
+    }</span>
+
+<span style = "background-color:#fdd">    this-&gt;GetMinimumOutput()-&gt;Set( NumericTraits&lt; PixelType &gt;::max() );
+    this-&gt;GetMaximumOutput()-&gt;Set( NumericTraits&lt; PixelType &gt;::NonpositiveMin() );
+    this-&gt;GetMeanOutput()-&gt;Set( NumericTraits&lt; RealType &gt;::max() );
+    this-&gt;GetSigmaOutput()-&gt;Set( NumericTraits&lt; RealType &gt;::max() );
+    this-&gt;GetVarianceOutput()-&gt;Set( NumericTraits&lt; RealType &gt;::max() );
+    this-&gt;GetSumOutput()-&gt;Set(NumericTraits&lt; RealType &gt;::Zero);
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  DataObject::Pointer
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::MakeOutput(DataObjectPointerArraySizeType output)
+<span style = "background-color:#fdd">  {
+    switch ( output )</span>
+    {
+    case 0:
+<span style = "background-color:#fdd">      return TInputImage::New().GetPointer();
+      break;</span>
+    case 1:
+<span style = "background-color:#fdd">      return PixelObjectType::New().GetPointer();
+      break;</span>
+    case 2:
+<span style = "background-color:#fdd">      return PixelObjectType::New().GetPointer();
+      break;</span>
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+<span style = "background-color:#fdd">      return RealObjectType::New().GetPointer();
+      break;</span>
+    default:
+      // might as well make an image
+<span style = "background-color:#fdd">      return TInputImage::New().GetPointer();</span>
+      break;
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::PixelObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetMinimumOutput()
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; PixelObjectType * &gt;( this-&gt;ProcessObject::GetOutput(1) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  const typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::PixelObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetMinimumOutput() const
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; const PixelObjectType * &gt;( this-&gt;ProcessObject::GetOutput(1) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::PixelObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetMaximumOutput()
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; PixelObjectType * &gt;( this-&gt;ProcessObject::GetOutput(2) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  const typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::PixelObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetMaximumOutput() const
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; const PixelObjectType * &gt;( this-&gt;ProcessObject::GetOutput(2) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::RealObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetMeanOutput()
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; RealObjectType * &gt;( this-&gt;ProcessObject::GetOutput(3) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  const typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::RealObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetMeanOutput() const
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; const RealObjectType * &gt;( this-&gt;ProcessObject::GetOutput(3) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::RealObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetSigmaOutput()
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; RealObjectType * &gt;( this-&gt;ProcessObject::GetOutput(4) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  const typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::RealObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetSigmaOutput() const
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; const RealObjectType * &gt;( this-&gt;ProcessObject::GetOutput(4) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::RealObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetVarianceOutput()
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; RealObjectType * &gt;( this-&gt;ProcessObject::GetOutput(5) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  const typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::RealObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetVarianceOutput() const
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; const RealObjectType * &gt;( this-&gt;ProcessObject::GetOutput(5) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::RealObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetSumOutput()
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; RealObjectType * &gt;( this-&gt;ProcessObject::GetOutput(6) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  const typename MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;::RealObjectType *
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GetSumOutput() const
+<span style = "background-color:#fdd">  {
+    return static_cast&lt; const RealObjectType * &gt;( this-&gt;ProcessObject::GetOutput(6) );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  void
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::GenerateInputRequestedRegion()
+<span style = "background-color:#fdd">  {
+    Superclass::GenerateInputRequestedRegion();
+    if ( this-&gt;GetInput() )</span>
+    {
+<span style = "background-color:#fdd">      InputImagePointer image =</span>
+        const_cast&lt; typename Superclass::InputImageType * &gt;( this-&gt;GetInput() );
+<span style = "background-color:#fdd">      image-&gt;SetRequestedRegionToLargestPossibleRegion();
+    }
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  void
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::EnlargeOutputRequestedRegion(DataObject *data)
+<span style = "background-color:#fdd">  {
+    Superclass::EnlargeOutputRequestedRegion(data);
+    data-&gt;SetRequestedRegionToLargestPossibleRegion();
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  void
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::AllocateOutputs()
+<span style = "background-color:#fdd">  {</span>
+    // Pass the input through as the output
+<span style = "background-color:#fdd">    InputImagePointer image =</span>
+      const_cast&lt; TInputImage * &gt;( this-&gt;GetInput() );
+
+<span style = "background-color:#fdd">    this-&gt;GraftOutput(image);</span>
+
+    // Nothing that needs to be allocated for the remaining outputs
+<span style = "background-color:#fdd">  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  void
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::BeforeThreadedGenerateData()
+<span style = "background-color:#fdd">  {
+    ThreadIdType numberOfThreads = this-&gt;GetNumberOfWorkUnits();</span>
+
+    // Resize the thread temporaries
+<span style = "background-color:#fdd">    m_Count.SetSize(numberOfThreads);
+    m_SumOfSquares.SetSize(numberOfThreads);
+    m_ThreadSum.SetSize(numberOfThreads);
+    m_ThreadMin.SetSize(numberOfThreads);
+    m_ThreadMax.SetSize(numberOfThreads);</span>
+
+    // Initialize the temporaries
+<span style = "background-color:#fdd">    m_Count.Fill(NumericTraits&lt; SizeValueType &gt;::Zero);
+    m_ThreadSum.Fill(NumericTraits&lt; RealType &gt;::Zero);
+    m_SumOfSquares.Fill(NumericTraits&lt; RealType &gt;::Zero);
+    m_ThreadMin.Fill( NumericTraits&lt; PixelType &gt;::max() );
+    m_ThreadMax.Fill( NumericTraits&lt; PixelType &gt;::NonpositiveMin() );
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  void
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::AfterThreadedGenerateData()
+<span style = "background-color:#fdd">  {</span>
+    ThreadIdType    i;
+    SizeValueType   count;
+    RealType        sumOfSquares;
+
+<span style = "background-color:#fdd">    ThreadIdType numberOfThreads = this-&gt;GetNumberOfWorkUnits();</span>
+
+    PixelType minimum;
+    PixelType maximum;
+    RealType  mean;
+    RealType  sigma;
+    RealType  variance;
+    RealType  sum;
+
+<span style = "background-color:#fdd">    sum = sumOfSquares = NumericTraits&lt; RealType &gt;::Zero;
+    count = 0;</span>
+
+    // Find the min/max over all threads and accumulate count, sum and
+    // sum of squares
+<span style = "background-color:#fdd">    minimum = NumericTraits&lt; PixelType &gt;::max();
+    maximum = NumericTraits&lt; PixelType &gt;::NonpositiveMin();
+    for ( i = 0; i &lt; numberOfThreads; i++ )</span>
+    {
+<span style = "background-color:#fdd">      count += m_Count[i];
+      sum += m_ThreadSum[i];
+      sumOfSquares += m_SumOfSquares[i];</span>
+
+<span style = "background-color:#fdd">      if ( m_ThreadMin[i] &lt; minimum )</span>
+      {
+<span style = "background-color:#fdd">        minimum = m_ThreadMin[i];</span>
+      }
+<span style = "background-color:#fdd">      if ( m_ThreadMax[i] &gt; maximum )</span>
+      {
+<span style = "background-color:#fdd">        maximum = m_ThreadMax[i];</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    // compute statistics
+<span style = "background-color:#fdd">    mean = sum / static_cast&lt; RealType &gt;( count );</span>
+
+    // unbiased estimate
+<span style = "background-color:#fdd">    variance = ( sumOfSquares - ( sum * sum / static_cast&lt; RealType &gt;( count ) ) )</span>
+      / ( static_cast&lt; RealType &gt;( count ) - 1 );
+<span style = "background-color:#fdd">    sigma = std::sqrt(variance);</span>
+
+    // Set the outputs
+<span style = "background-color:#fdd">    this-&gt;GetMinimumOutput()-&gt;Set(minimum);
+    this-&gt;GetMaximumOutput()-&gt;Set(maximum);
+    this-&gt;GetMeanOutput()-&gt;Set(mean);
+    this-&gt;GetSigmaOutput()-&gt;Set(sigma);
+    this-&gt;GetVarianceOutput()-&gt;Set(variance);
+    this-&gt;GetSumOutput()-&gt;Set(sum);
+  }</span>
+
+  template&lt; typename TInputImage, typename TMaskImage &gt;
+  void
+    MaskedStatisticsImageFilter&lt; TInputImage, TMaskImage &gt;
+    ::ThreadedGenerateData(const RegionType &amp; outputRegionForThread,
+    ThreadIdType threadId)
+<span style = "background-color:#fdd">  {
+    const SizeValueType size0 = outputRegionForThread.GetSize(0);
+    if( size0 == 0)</span>
+    {
+<span style = "background-color:#fdd">      return;</span>
+    }
+    RealType  realValue;
+    PixelType value;
+
+<span style = "background-color:#fdd">    RealType sum = NumericTraits&lt; RealType &gt;::Zero;
+    RealType sumOfSquares = NumericTraits&lt; RealType &gt;::Zero;
+    SizeValueType count = NumericTraits&lt; SizeValueType &gt;::Zero;
+    PixelType min = NumericTraits&lt; PixelType &gt;::max();
+    PixelType max = NumericTraits&lt; PixelType &gt;::NonpositiveMin();</span>
+
+<span style = "background-color:#fdd">    ImageScanlineConstIterator&lt; TInputImage &gt; it (this-&gt;GetInput(),  outputRegionForThread);</span>
+
+    // support progress methods/callbacks
+<span style = "background-color:#fdd">    const size_t numberOfLinesToProcess = outputRegionForThread.GetNumberOfPixels() / size0;
+    ProgressReporter progress( this, threadId, numberOfLinesToProcess );</span>
+
+    // do the work
+<span style = "background-color:#fdd">    while ( !it.IsAtEnd() )</span>
+    {
+<span style = "background-color:#fdd">      while ( !it.IsAtEndOfLine() )</span>
+      {
+<span style = "background-color:#fdd">        bool isValid = true;</span>
+
+<span style = "background-color:#fdd">        if(m_Mask.IsNotNull())</span>
+        {
+<span style = "background-color:#fdd">          typename InputImageType::IndexType index = it.GetIndex();</span>
+          typename InputImageType::PointType point;
+<span style = "background-color:#fdd">          this-&gt;GetInput()-&gt;TransformIndexToPhysicalPoint(index, point);
+          if (this-&gt;m_Mask-&gt;TransformPhysicalPointToIndex(point, index))</span>
+          {
+<span style = "background-color:#fdd">            isValid = this-&gt;m_Mask-&gt;GetPixel(index) &gt; 0.0;</span>
+          };
+        }
+
+<span style = "background-color:#fdd">        if (isValid)</span>
+        {
+<span style = "background-color:#fdd">          value = it.Get();
+          realValue = static_cast&lt; RealType &gt;( value );
+          if ( value &lt; min )</span>
+          {
+<span style = "background-color:#fdd">            min = value;</span>
+          }
+<span style = "background-color:#fdd">          if ( value &gt; max )</span>
+          {
+<span style = "background-color:#fdd">            max  = value;</span>
+          }
+
+<span style = "background-color:#fdd">          sum += realValue;
+          sumOfSquares += ( realValue * realValue );
+          ++count;</span>
+        }
+
+<span style = "background-color:#fdd">        ++it;
+      }
+      it.NextLine();
+      progress.CompletedPixel();
+    }</span>
+
+<span style = "background-color:#fdd">    m_ThreadSum[threadId] = sum;
+    m_SumOfSquares[threadId] = sumOfSquares;
+    m_Count[threadId] = count;
+    m_ThreadMin[threadId] = min;
+    m_ThreadMax[threadId] = max;
+  }</span>
+
+  template&lt; typename TImage, typename TMaskImage &gt;
+  void
+    MaskedStatisticsImageFilter&lt; TImage, TMaskImage &gt;
+    ::PrintSelf(std::ostream &amp; os, Indent indent) const
+<span style = "background-color:#fdd">  {
+    Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Minimum: "</span>
+      &lt;&lt; static_cast&lt; typename NumericTraits&lt; PixelType &gt;::PrintType &gt;( this-&gt;GetMinimum() ) &lt;&lt; std::endl;
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Maximum: "</span>
+      &lt;&lt; static_cast&lt; typename NumericTraits&lt; PixelType &gt;::PrintType &gt;( this-&gt;GetMaximum() ) &lt;&lt; std::endl;
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; "Sum: "      &lt;&lt; this-&gt;GetSum() &lt;&lt; std::endl;
+    os &lt;&lt; indent &lt;&lt; "Mean: "     &lt;&lt; this-&gt;GetMean() &lt;&lt; std::endl;
+    os &lt;&lt; indent &lt;&lt; "Sigma: "    &lt;&lt; this-&gt;GetSigma() &lt;&lt; std::endl;
+    os &lt;&lt; indent &lt;&lt; "Variance: " &lt;&lt; this-&gt;GetVariance() &lt;&lt; std::endl;
+  }</span>
+} // end namespace itk
+#endif</pre>
+	</body>
+</html>

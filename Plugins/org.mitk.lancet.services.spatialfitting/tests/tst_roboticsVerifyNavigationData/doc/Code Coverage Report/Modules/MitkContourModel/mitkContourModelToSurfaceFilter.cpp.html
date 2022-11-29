@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelToSurfaceFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include &lt;mitkContourModelToSurfaceFilter.h&gt;
+#include &lt;mitkSurface.h&gt;
+#include &lt;vtkCellArray.h&gt;
+#include &lt;vtkPoints.h&gt;
+#include &lt;vtkPolyData.h&gt;
+#include &lt;vtkPolygon.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+
+mitk::ContourModelToSurfaceFilter::ContourModelToSurfaceFilter()
+<span style = "background-color:#fdd">{
+  this-&gt;SetNthOutput(0, mitk::Surface::New().GetPointer());
+}</span>
+mitk::ContourModelToSurfaceFilter::~ContourModelToSurfaceFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ContourModelToSurfaceFilter::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ContourModelToSurfaceFilter::SetInput(const mitk::ContourModelToSurfaceFilter::InputType *input)
+<span style = "background-color:#fdd">{
+  this-&gt;SetInput(0, input);
+}</span>
+
+void mitk::ContourModelToSurfaceFilter::SetInput(unsigned int idx,
+                                                 const mitk::ContourModelToSurfaceFilter::InputType *input)
+<span style = "background-color:#fdd">{
+  if (idx + 1 &gt; this-&gt;GetNumberOfInputs())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetNumberOfRequiredInputs(idx + 1);</span>
+  }
+<span style = "background-color:#fdd">  if (input != static_cast&lt;InputType *&gt;(this-&gt;ProcessObject::GetInput(idx)))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ProcessObject::SetNthInput(idx, const_cast&lt;InputType *&gt;(input));
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const mitk::ContourModelToSurfaceFilter::InputType *mitk::ContourModelToSurfaceFilter::GetInput(void)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;
+  return static_cast&lt;const mitk::ContourModelToSurfaceFilter::InputType *&gt;(this-&gt;ProcessObject::GetInput(0));
+}</span>
+
+const mitk::ContourModelToSurfaceFilter::InputType *mitk::ContourModelToSurfaceFilter::GetInput(unsigned int idx)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)
+    return nullptr;
+  return static_cast&lt;const mitk::ContourModelToSurfaceFilter::InputType *&gt;(this-&gt;ProcessObject::GetInput(idx));
+}</span>
+
+void mitk::ContourModelToSurfaceFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::Surface *surface = this-&gt;GetOutput();
+  auto *inputContour = (mitk::ContourModel *)GetInput();</span>
+
+<span style = "background-color:#fdd">  unsigned int numberOfTimeSteps = inputContour-&gt;GetTimeSteps();
+  surface-&gt;Expand(numberOfTimeSteps);</span>
+
+<span style = "background-color:#fdd">  for (unsigned int currentTimeStep = 0; currentTimeStep &lt; numberOfTimeSteps; currentTimeStep++)</span>
+  {
+    /* First of all convert the control points of the contourModel to vtk points
+    * and add lines in between them
+    */
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPoints&gt; points = vtkSmartPointer&lt;vtkPoints&gt;::New(); // the points to draw
+    vtkSmartPointer&lt;vtkCellArray&gt; polygons = vtkSmartPointer&lt;vtkCellArray&gt;::New();
+    vtkSmartPointer&lt;vtkCellArray&gt; lines = vtkSmartPointer&lt;vtkCellArray&gt;::New(); // the lines to connect the points</span>
+
+    // if the contour has less than 3 points, set empty PolyData for current timestep
+    // polygon needs at least 3 points
+<span style = "background-color:#fdd">    if (inputContour-&gt;GetNumberOfVertices(currentTimeStep) &lt;= 2)</span>
+    {
+<span style = "background-color:#fdd">      vtkSmartPointer&lt;vtkPolyData&gt; emptyPolyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();
+      surface-&gt;SetVtkPolyData(emptyPolyData, currentTimeStep);
+      continue;
+    }</span>
+
+    // iterate over all control points
+<span style = "background-color:#fdd">    auto current = inputContour-&gt;IteratorBegin(currentTimeStep);</span>
+
+<span style = "background-color:#fdd">    auto end = inputContour-&gt;IteratorEnd(currentTimeStep);</span>
+
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPolygon&gt; polygon = vtkSmartPointer&lt;vtkPolygon&gt;::New();
+    polygon-&gt;GetPointIds()-&gt;SetNumberOfIds(inputContour-&gt;GetNumberOfVertices(currentTimeStep));</span>
+
+<span style = "background-color:#fdd">    int j(0);
+    while (current != end)</span>
+    {
+<span style = "background-color:#fdd">      mitk::ContourModel::VertexType *currentPoint = *current;</span>
+
+<span style = "background-color:#fdd">      vtkIdType id = points-&gt;InsertNextPoint(</span>
+        currentPoint-&gt;Coordinates[0], currentPoint-&gt;Coordinates[1], currentPoint-&gt;Coordinates[2]);
+
+<span style = "background-color:#fdd">      polygon-&gt;GetPointIds()-&gt;SetId(j, id);</span>
+
+      // create connections between the points
+      // no previous point for first point available (ingnore id=0)
+<span style = "background-color:#fdd">      if (id &gt; 0)</span>
+      {
+<span style = "background-color:#fdd">        lines-&gt;InsertNextCell(2);
+        lines-&gt;InsertCellPoint(id - 1);
+        lines-&gt;InsertCellPoint(id);</span>
+      }
+
+<span style = "background-color:#fdd">      current++;
+      j++;
+    }</span>
+
+    /*
+    * If the contour is closed an additional line has to be created between the first point
+    * and the last point
+    */
+<span style = "background-color:#fdd">    if (inputContour-&gt;IsClosed(currentTimeStep))</span>
+    {
+<span style = "background-color:#fdd">      lines-&gt;InsertNextCell(2);
+      lines-&gt;InsertCellPoint(0);
+      lines-&gt;InsertCellPoint((inputContour-&gt;GetNumberOfVertices(currentTimeStep) - 1));</span>
+    }
+
+<span style = "background-color:#fdd">    polygons-&gt;InsertNextCell(polygon);</span>
+
+    // Create a polydata to store everything in
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkPolyData&gt; polyData = vtkSmartPointer&lt;vtkPolyData&gt;::New();</span>
+    // Add the points to the dataset
+<span style = "background-color:#fdd">    polyData-&gt;SetPoints(points);
+    polyData-&gt;SetPolys(polygons);
+    polyData-&gt;SetLines(lines);
+    polyData-&gt;BuildLinks();</span>
+
+<span style = "background-color:#fdd">    surface-&gt;SetVtkPolyData(polyData, currentTimeStep);
+  }
+}</span></pre>
+	</body>
+</html>

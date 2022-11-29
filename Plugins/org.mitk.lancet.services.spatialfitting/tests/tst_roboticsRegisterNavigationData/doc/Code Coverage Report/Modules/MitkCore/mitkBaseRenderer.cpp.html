@@ -1,0 +1,802 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkBaseRenderer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkBaseRenderer.h"
+#include "mitkMapper.h"
+#include "mitkResliceMethodProperty.h"
+
+// Geometries
+#include "mitkPlaneGeometry.h"
+#include "mitkSlicedGeometry3D.h"
+
+// Controllers
+#include "mitkCameraController.h"
+#include "mitkCameraRotationController.h"
+#include "mitkSliceNavigationController.h"
+
+#include "mitkVtkLayerController.h"
+
+#include "mitkInteractionConst.h"
+#include "mitkProperties.h"
+#include "mitkWeakPointerProperty.h"
+
+// VTK
+#include &lt;vtkCamera.h&gt;
+#include &lt;vtkLinearTransform.h&gt;
+#include &lt;vtkRenderWindow.h&gt;
+#include &lt;vtkRenderer.h&gt;
+
+#include &lt;vtkActor.h&gt;
+#include &lt;vtkPolyDataMapper.h&gt;
+#include &lt;vtkProperty.h&gt;
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  itkEventMacroDefinition(RendererResetEvent, itk::AnyEvent);</span>
+}
+
+<span style = "background-color:#dfd">mitk::BaseRenderer::BaseRendererMapType mitk::BaseRenderer::baseRendererMap;</span>
+
+mitk::BaseRenderer *mitk::BaseRenderer::GetInstance(vtkRenderWindow *renWin)
+<span style = "background-color:#fdd">{
+  for (auto mapit = baseRendererMap.begin(); mapit != baseRendererMap.end(); ++mapit)</span>
+  {
+<span style = "background-color:#fdd">    if ((*mapit).first == renWin)
+      return (*mapit).second;
+  }
+  return nullptr;
+}</span>
+
+void mitk::BaseRenderer::AddInstance(vtkRenderWindow *renWin, BaseRenderer *baseRenderer)
+<span style = "background-color:#fdd">{
+  if (renWin == nullptr || baseRenderer == nullptr)
+    return;</span>
+
+  // ensure that no BaseRenderer is managed twice
+<span style = "background-color:#fdd">  mitk::BaseRenderer::RemoveInstance(renWin);</span>
+
+<span style = "background-color:#fdd">  baseRendererMap.insert(BaseRendererMapType::value_type(renWin, baseRenderer));
+}</span>
+
+void mitk::BaseRenderer::RemoveInstance(vtkRenderWindow *renWin)
+<span style = "background-color:#fdd">{
+  auto mapit = baseRendererMap.find(renWin);
+  if (mapit != baseRendererMap.end())
+    baseRendererMap.erase(mapit);
+}</span>
+
+mitk::BaseRenderer *mitk::BaseRenderer::GetByName(const std::string &amp;name)
+<span style = "background-color:#fdd">{
+  for (auto mapit = baseRendererMap.begin(); mapit != baseRendererMap.end(); ++mapit)</span>
+  {
+<span style = "background-color:#fdd">    if ((*mapit).second-&gt;m_Name == name)
+      return (*mapit).second;
+  }
+  return nullptr;
+}</span>
+
+vtkRenderWindow *mitk::BaseRenderer::GetRenderWindowByName(const std::string &amp;name)
+<span style = "background-color:#fdd">{
+  for (auto mapit = baseRendererMap.begin(); mapit != baseRendererMap.end(); ++mapit)</span>
+  {
+<span style = "background-color:#fdd">    if ((*mapit).second-&gt;m_Name == name)
+      return (*mapit).first;
+  }
+  return nullptr;
+}</span>
+
+mitk::BaseRenderer::BaseRenderer(const char *name,
+                                 vtkRenderWindow *renWin)
+<span style = "background-color:#fdd">  : m_RenderWindow(nullptr),
+    m_VtkRenderer(nullptr),
+    m_MapperID(defaultMapper),
+    m_DataStorage(nullptr),
+    m_LastUpdateTime(0),
+    m_CameraController(nullptr),
+    m_SliceNavigationController(nullptr),
+    m_CameraRotationController(nullptr),
+    m_WorldTimeGeometry(nullptr),
+    m_CurrentWorldGeometry(nullptr),
+    m_CurrentWorldPlaneGeometry(nullptr),
+    m_Slice(0),
+    m_TimeStep(),
+    m_CurrentWorldPlaneGeometryUpdateTime(),
+    m_TimeStepUpdateTime(),
+    m_KeepDisplayedRegion(true),
+    m_CurrentWorldPlaneGeometryData(nullptr),
+    m_CurrentWorldPlaneGeometryNode(nullptr),
+    m_CurrentWorldPlaneGeometryTransformTime(0),
+    m_Name(name),
+    m_EmptyWorldGeometry(true),
+    m_NumberOfVisibleLODEnabledMappers(0)
+{
+  m_Bounds[0] = 0;
+  m_Bounds[1] = 0;
+  m_Bounds[2] = 0;
+  m_Bounds[3] = 0;
+  m_Bounds[4] = 0;
+  m_Bounds[5] = 0;</span>
+
+<span style = "background-color:#fdd">  if (name != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_Name = name;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_Name = "unnamed renderer";
+    itkWarningMacro(&lt;&lt; "Created unnamed renderer. Bad for serialization. Please choose a name.");</span>
+  }
+
+<span style = "background-color:#fdd">  if (renWin != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_RenderWindow = renWin;
+    m_RenderWindow-&gt;Register(nullptr);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Created mitkBaseRenderer without vtkRenderWindow present.");</span>
+  }
+  // instances.insert( this );
+
+  // adding this BaseRenderer to the List of all BaseRenderer
+
+<span style = "background-color:#fdd">  m_BindDispatcherInteractor = new mitk::BindDispatcherInteractor(GetName());</span>
+
+<span style = "background-color:#fdd">  WeakPointerProperty::Pointer rendererProp = WeakPointerProperty::New((itk::Object *)this);</span>
+
+<span style = "background-color:#fdd">  m_CurrentWorldPlaneGeometry = mitk::PlaneGeometry::New();</span>
+
+<span style = "background-color:#fdd">  m_CurrentWorldPlaneGeometryData = mitk::PlaneGeometryData::New();
+  m_CurrentWorldPlaneGeometryData-&gt;SetPlaneGeometry(m_CurrentWorldPlaneGeometry);
+  m_CurrentWorldPlaneGeometryNode = mitk::DataNode::New();
+  m_CurrentWorldPlaneGeometryNode-&gt;SetData(m_CurrentWorldPlaneGeometryData);
+  m_CurrentWorldPlaneGeometryNode-&gt;GetPropertyList()-&gt;SetProperty("renderer", rendererProp);
+  m_CurrentWorldPlaneGeometryNode-&gt;GetPropertyList()-&gt;SetProperty("layer", IntProperty::New(1000));</span>
+
+<span style = "background-color:#fdd">  m_CurrentWorldPlaneGeometryNode-&gt;SetProperty("reslice.thickslices", mitk::ResliceMethodProperty::New());
+  m_CurrentWorldPlaneGeometryNode-&gt;SetProperty("reslice.thickslices.num", mitk::IntProperty::New(1));</span>
+
+<span style = "background-color:#fdd">  m_CurrentWorldPlaneGeometryTransformTime = m_CurrentWorldPlaneGeometryNode-&gt;GetVtkTransform()-&gt;GetMTime();</span>
+
+<span style = "background-color:#fdd">  mitk::SliceNavigationController::Pointer sliceNavigationController = mitk::SliceNavigationController::New();
+  sliceNavigationController-&gt;SetRenderer(this);
+  sliceNavigationController-&gt;ConnectGeometrySliceEvent(this);
+  sliceNavigationController-&gt;ConnectGeometryUpdateEvent(this);
+  sliceNavigationController-&gt;ConnectGeometryTimeEvent(this, false);
+  m_SliceNavigationController = sliceNavigationController;</span>
+
+<span style = "background-color:#fdd">  m_CameraRotationController = mitk::CameraRotationController::New();
+  m_CameraRotationController-&gt;SetRenderWindow(m_RenderWindow);
+  m_CameraRotationController-&gt;AcquireCamera();</span>
+
+<span style = "background-color:#fdd">  m_CameraController = mitk::CameraController::New();
+  m_CameraController-&gt;SetRenderer(this);</span>
+
+<span style = "background-color:#fdd">  m_VtkRenderer = vtkRenderer::New();
+  m_VtkRenderer-&gt;SetMaximumNumberOfPeels(16);</span>
+
+<span style = "background-color:#fdd">  if (AntiAliasing::FastApproximate == RenderingManager::GetInstance()-&gt;GetAntiAliasing())
+    m_VtkRenderer-&gt;UseFXAAOn();</span>
+
+<span style = "background-color:#fdd">  if (nullptr == mitk::VtkLayerController::GetInstance(m_RenderWindow))
+    mitk::VtkLayerController::AddInstance(m_RenderWindow, m_VtkRenderer);</span>
+
+<span style = "background-color:#fdd">  mitk::VtkLayerController::GetInstance(m_RenderWindow)-&gt;InsertSceneRenderer(m_VtkRenderer);
+}</span>
+
+mitk::BaseRenderer::~BaseRenderer()
+<span style = "background-color:#fdd">{
+  if (m_VtkRenderer != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_VtkRenderer-&gt;Delete();
+    m_VtkRenderer = nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_CameraController.IsNotNull())
+    m_CameraController-&gt;SetRenderer(nullptr);</span>
+
+<span style = "background-color:#fdd">  mitk::VtkLayerController::RemoveInstance(m_RenderWindow);</span>
+
+<span style = "background-color:#fdd">  RemoveAllLocalStorages();</span>
+
+<span style = "background-color:#fdd">  m_DataStorage = nullptr;</span>
+
+<span style = "background-color:#fdd">  if (m_BindDispatcherInteractor != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    delete m_BindDispatcherInteractor;</span>
+  }
+
+<span style = "background-color:#fdd">  if (m_RenderWindow != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_RenderWindow-&gt;Delete();
+    m_RenderWindow = nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::SetMapperID(MapperSlotId id)
+<span style = "background-color:#fdd">{
+  if (m_MapperID != id)</span>
+  {
+<span style = "background-color:#fdd">    bool useDepthPeeling = Standard3D == id;
+    m_VtkRenderer-&gt;SetUseDepthPeeling(useDepthPeeling);
+    m_VtkRenderer-&gt;SetUseDepthPeelingForVolumes(useDepthPeeling);</span>
+
+<span style = "background-color:#fdd">    m_MapperID = id;
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::RemoveAllLocalStorages()
+<span style = "background-color:#fdd">{
+  this-&gt;InvokeEvent(RendererResetEvent());</span>
+
+<span style = "background-color:#fdd">  std::list&lt;mitk::BaseLocalStorageHandler *&gt;::iterator it;
+  for (it = m_RegisteredLocalStorageHandlers.begin(); it != m_RegisteredLocalStorageHandlers.end(); ++it)
+    (*it)-&gt;ClearLocalStorage(this, false);
+  m_RegisteredLocalStorageHandlers.clear();
+}</span>
+
+void mitk::BaseRenderer::RegisterLocalStorageHandler(mitk::BaseLocalStorageHandler *lsh)
+<span style = "background-color:#fdd">{
+  m_RegisteredLocalStorageHandlers.push_back(lsh);
+}</span>
+
+mitk::Dispatcher::Pointer mitk::BaseRenderer::GetDispatcher() const
+<span style = "background-color:#fdd">{
+  return m_BindDispatcherInteractor-&gt;GetDispatcher();
+}</span>
+
+void mitk::BaseRenderer::UnregisterLocalStorageHandler(mitk::BaseLocalStorageHandler *lsh)
+<span style = "background-color:#fdd">{
+  m_RegisteredLocalStorageHandlers.remove(lsh);
+}</span>
+
+void mitk::BaseRenderer::SetDataStorage(DataStorage *storage)
+<span style = "background-color:#fdd">{
+  if (storage != m_DataStorage &amp;&amp; storage != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_DataStorage = storage;
+    m_BindDispatcherInteractor-&gt;SetDataStorage(m_DataStorage);
+    this-&gt;Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const mitk::BaseRenderer::MapperSlotId mitk::BaseRenderer::defaultMapper = 1;
+
+void mitk::BaseRenderer::Paint()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::BaseRenderer::Initialize()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::BaseRenderer::Resize(int w, int h)
+<span style = "background-color:#fdd">{
+  this-&gt;m_RenderWindow-&gt;SetSize(w, h);
+}</span>
+
+void mitk::BaseRenderer::InitRenderer(vtkRenderWindow *renderwindow)
+<span style = "background-color:#fdd">{
+  if (m_RenderWindow != renderwindow)</span>
+  {
+<span style = "background-color:#fdd">    if (m_RenderWindow != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      m_RenderWindow-&gt;Delete();</span>
+    }
+<span style = "background-color:#fdd">    m_RenderWindow = renderwindow;
+    if (m_RenderWindow != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      m_RenderWindow-&gt;Register(nullptr);</span>
+    }
+  }
+<span style = "background-color:#fdd">  RemoveAllLocalStorages();</span>
+
+<span style = "background-color:#fdd">  if (m_CameraController.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    m_CameraController-&gt;SetRenderer(this);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::InitSize(int w, int h)
+<span style = "background-color:#fdd">{
+  this-&gt;m_RenderWindow-&gt;SetSize(w, h);
+}</span>
+
+void mitk::BaseRenderer::SetSlice(unsigned int slice)
+<span style = "background-color:#fdd">{
+  if (m_Slice != slice)</span>
+  {
+<span style = "background-color:#fdd">    m_Slice = slice;
+    if (m_WorldTimeGeometry.IsNotNull())</span>
+    {
+      // get world geometry which may be rotated, for the current time step
+<span style = "background-color:#fdd">      SlicedGeometry3D *slicedWorldGeometry =</span>
+        dynamic_cast&lt;SlicedGeometry3D *&gt;(m_WorldTimeGeometry-&gt;GetGeometryForTimeStep(m_TimeStep).GetPointer());
+<span style = "background-color:#fdd">      if (slicedWorldGeometry != nullptr)</span>
+      {
+        // if slice position is part of the world geometry...
+<span style = "background-color:#fdd">        if (m_Slice &gt;= slicedWorldGeometry-&gt;GetSlices())</span>
+          // set the current worldplanegeomety as the selected 2D slice of the world geometry
+<span style = "background-color:#fdd">          m_Slice = slicedWorldGeometry-&gt;GetSlices() - 1;
+        SetCurrentWorldPlaneGeometry(slicedWorldGeometry-&gt;GetPlaneGeometry(m_Slice));
+        SetCurrentWorldGeometry(slicedWorldGeometry);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else
+<span style = "background-color:#fdd">      Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::SetTimeStep(unsigned int timeStep)
+<span style = "background-color:#fdd">{
+  if (m_TimeStep != timeStep)</span>
+  {
+<span style = "background-color:#fdd">    m_TimeStep = timeStep;
+    m_TimeStepUpdateTime.Modified();</span>
+
+<span style = "background-color:#fdd">    if (m_WorldTimeGeometry.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      if (m_TimeStep &gt;= m_WorldTimeGeometry-&gt;CountTimeSteps())
+        m_TimeStep = m_WorldTimeGeometry-&gt;CountTimeSteps() - 1;
+      SlicedGeometry3D *slicedWorldGeometry =</span>
+        dynamic_cast&lt;SlicedGeometry3D *&gt;(m_WorldTimeGeometry-&gt;GetGeometryForTimeStep(m_TimeStep).GetPointer());
+<span style = "background-color:#fdd">      if (slicedWorldGeometry != nullptr)</span>
+      {
+<span style = "background-color:#fdd">        SetCurrentWorldPlaneGeometry(slicedWorldGeometry-&gt;GetPlaneGeometry(m_Slice));
+        SetCurrentWorldGeometry(slicedWorldGeometry);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+    else
+<span style = "background-color:#fdd">      Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::TimeStepType mitk::BaseRenderer::GetTimeStep(const mitk::BaseData *data) const
+<span style = "background-color:#fdd">{
+  if ((data == nullptr) || (data-&gt;IsInitialized() == false))</span>
+  {
+<span style = "background-color:#fdd">    return -1;</span>
+  }
+<span style = "background-color:#fdd">  return data-&gt;GetTimeGeometry()-&gt;TimePointToTimeStep(GetTime());
+}</span>
+
+mitk::ScalarType mitk::BaseRenderer::GetTime() const
+<span style = "background-color:#fdd">{
+  if (m_WorldTimeGeometry.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    return 0;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    ScalarType timeInMS = m_WorldTimeGeometry-&gt;TimeStepToTimePoint(GetTimeStep());
+    if (timeInMS == itk::NumericTraits&lt;mitk::ScalarType&gt;::NonpositiveMin())
+      return 0;</span>
+    else
+<span style = "background-color:#fdd">      return timeInMS;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::SetWorldTimeGeometry(const mitk::TimeGeometry *geometry)
+<span style = "background-color:#fdd">{
+  assert(geometry != nullptr);</span>
+
+<span style = "background-color:#fdd">  itkDebugMacro("setting WorldTimeGeometry to " &lt;&lt; geometry);
+  if (m_WorldTimeGeometry != geometry)</span>
+  {
+<span style = "background-color:#fdd">    if (geometry-&gt;GetBoundingBoxInWorld()-&gt;GetDiagonalLength2() == 0)
+      return;</span>
+
+<span style = "background-color:#fdd">    m_WorldTimeGeometry = geometry;
+    itkDebugMacro("setting WorldTimeGeometry to " &lt;&lt; m_WorldTimeGeometry);</span>
+
+<span style = "background-color:#fdd">    if (m_TimeStep &gt;= m_WorldTimeGeometry-&gt;CountTimeSteps())
+      m_TimeStep = m_WorldTimeGeometry-&gt;CountTimeSteps() - 1;</span>
+
+    BaseGeometry *geometry3d;
+<span style = "background-color:#fdd">    geometry3d = m_WorldTimeGeometry-&gt;GetGeometryForTimeStep(m_TimeStep);
+    SetWorldGeometry3D(geometry3d);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::SetWorldGeometry3D(const mitk::BaseGeometry *geometry)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("setting WorldGeometry3D to " &lt;&lt; geometry);</span>
+
+<span style = "background-color:#fdd">  if (geometry-&gt;GetBoundingBox()-&gt;GetDiagonalLength2() == 0)
+    return;</span>
+  const SlicedGeometry3D *slicedWorldGeometry;
+<span style = "background-color:#fdd">  slicedWorldGeometry = dynamic_cast&lt;const SlicedGeometry3D *&gt;(geometry);</span>
+
+<span style = "background-color:#fdd">  PlaneGeometry::ConstPointer geometry2d;
+  if (slicedWorldGeometry != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    if (m_Slice &gt;= slicedWorldGeometry-&gt;GetSlices() &amp;&amp; (m_Slice != 0))
+      m_Slice = slicedWorldGeometry-&gt;GetSlices() - 1;
+    geometry2d = slicedWorldGeometry-&gt;GetPlaneGeometry(m_Slice);
+    if (geometry2d.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      PlaneGeometry::Pointer plane = mitk::PlaneGeometry::New();
+      plane-&gt;InitializeStandardPlane(slicedWorldGeometry);
+      geometry2d = plane;
+    }
+    SetCurrentWorldGeometry(slicedWorldGeometry);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    geometry2d = dynamic_cast&lt;const PlaneGeometry *&gt;(geometry);
+    if (geometry2d.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      PlaneGeometry::Pointer plane = PlaneGeometry::New();
+      plane-&gt;InitializeStandardPlane(geometry);
+      geometry2d = plane;
+    }
+    SetCurrentWorldGeometry(geometry);</span>
+  }
+<span style = "background-color:#fdd">  SetCurrentWorldPlaneGeometry(geometry2d); // calls Modified()</span>
+
+<span style = "background-color:#fdd">  if (m_CurrentWorldPlaneGeometry.IsNull())
+    itkWarningMacro("m_CurrentWorldPlaneGeometry is nullptr");
+}</span>
+
+void mitk::BaseRenderer::SetCurrentWorldPlaneGeometry(const mitk::PlaneGeometry *geometry2d)
+<span style = "background-color:#fdd">{
+  if (m_CurrentWorldPlaneGeometry != geometry2d)</span>
+  {
+<span style = "background-color:#fdd">    m_CurrentWorldPlaneGeometry = geometry2d-&gt;Clone();
+    m_CurrentWorldPlaneGeometryData-&gt;SetPlaneGeometry(m_CurrentWorldPlaneGeometry);
+    m_CurrentWorldPlaneGeometryUpdateTime.Modified();
+    Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::SendUpdateSlice()
+<span style = "background-color:#fdd">{
+  m_CurrentWorldPlaneGeometryUpdateTime.Modified();
+}</span>
+
+int *mitk::BaseRenderer::GetSize() const
+<span style = "background-color:#fdd">{
+  return this-&gt;m_RenderWindow-&gt;GetSize();
+}</span>
+
+int *mitk::BaseRenderer::GetViewportSize() const
+<span style = "background-color:#fdd">{
+  return this-&gt;m_VtkRenderer-&gt;GetSize();
+}</span>
+
+void mitk::BaseRenderer::SetCurrentWorldGeometry(const mitk::BaseGeometry *geometry)
+<span style = "background-color:#fdd">{
+  m_CurrentWorldGeometry = geometry;
+  if (geometry == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_Bounds[0] = 0;
+    m_Bounds[1] = 0;
+    m_Bounds[2] = 0;
+    m_Bounds[3] = 0;
+    m_Bounds[4] = 0;
+    m_Bounds[5] = 0;
+    m_EmptyWorldGeometry = true;
+    return;</span>
+  }
+<span style = "background-color:#fdd">  BoundingBox::Pointer boundingBox = m_CurrentWorldGeometry-&gt;CalculateBoundingBoxRelativeToTransform(nullptr);
+  const BoundingBox::BoundsArrayType &amp;worldBounds = boundingBox-&gt;GetBounds();
+  m_Bounds[0] = worldBounds[0];
+  m_Bounds[1] = worldBounds[1];
+  m_Bounds[2] = worldBounds[2];
+  m_Bounds[3] = worldBounds[3];
+  m_Bounds[4] = worldBounds[4];
+  m_Bounds[5] = worldBounds[5];
+  if (boundingBox-&gt;GetDiagonalLength2() &lt;= mitk::eps)
+    m_EmptyWorldGeometry = true;</span>
+  else
+<span style = "background-color:#fdd">    m_EmptyWorldGeometry = false;
+}</span>
+
+void mitk::BaseRenderer::SetGeometry(const itk::EventObject &amp;geometrySendEvent)
+<span style = "background-color:#fdd">{
+  const auto *sendEvent =</span>
+    dynamic_cast&lt;const SliceNavigationController::GeometrySendEvent *&gt;(&amp;geometrySendEvent);
+
+<span style = "background-color:#fdd">  assert(sendEvent != nullptr);
+  SetWorldTimeGeometry(sendEvent-&gt;GetTimeGeometry());
+}</span>
+
+void mitk::BaseRenderer::UpdateGeometry(const itk::EventObject &amp;geometryUpdateEvent)
+<span style = "background-color:#fdd">{
+  const auto *updateEvent =</span>
+    dynamic_cast&lt;const SliceNavigationController::GeometryUpdateEvent *&gt;(&amp;geometryUpdateEvent);
+
+<span style = "background-color:#fdd">  if (updateEvent == nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  if (m_CurrentWorldGeometry.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    auto *slicedWorldGeometry = dynamic_cast&lt;const SlicedGeometry3D *&gt;(m_CurrentWorldGeometry.GetPointer());
+    if (slicedWorldGeometry)</span>
+    {
+<span style = "background-color:#fdd">      PlaneGeometry *geometry2D = slicedWorldGeometry-&gt;GetPlaneGeometry(m_Slice);</span>
+
+<span style = "background-color:#fdd">      SetCurrentWorldPlaneGeometry(geometry2D); // calls Modified()</span>
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::SetGeometrySlice(const itk::EventObject &amp;geometrySliceEvent)
+<span style = "background-color:#fdd">{
+  const auto *sliceEvent =</span>
+    dynamic_cast&lt;const SliceNavigationController::GeometrySliceEvent *&gt;(&amp;geometrySliceEvent);
+
+<span style = "background-color:#fdd">  assert(sliceEvent != nullptr);
+  SetSlice(sliceEvent-&gt;GetPos());
+}</span>
+
+void mitk::BaseRenderer::SetGeometryTime(const itk::EventObject &amp;geometryTimeEvent)
+<span style = "background-color:#fdd">{
+  const auto *timeEvent =</span>
+    dynamic_cast&lt;const SliceNavigationController::GeometryTimeEvent *&gt;(&amp;geometryTimeEvent);
+
+<span style = "background-color:#fdd">  assert(timeEvent != nullptr);
+  SetTimeStep(timeEvent-&gt;GetPos());
+}</span>
+
+const double *mitk::BaseRenderer::GetBounds() const
+<span style = "background-color:#fdd">{
+  return m_Bounds;
+}</span>
+
+void mitk::BaseRenderer::DrawOverlayMouse(mitk::Point2D &amp;itkNotUsed(p2d))
+<span style = "background-color:#fdd">{
+  MITK_INFO &lt;&lt; "BaseRenderer::DrawOverlayMouse()- should be inconcret implementation OpenGLRenderer." &lt;&lt; std::endl;
+}</span>
+
+void mitk::BaseRenderer::RequestUpdate()
+<span style = "background-color:#fdd">{
+  SetConstrainZoomingAndPanning(true);
+  RenderingManager::GetInstance()-&gt;RequestUpdate(this-&gt;m_RenderWindow);
+}</span>
+
+void mitk::BaseRenderer::ForceImmediateUpdate()
+<span style = "background-color:#fdd">{
+  RenderingManager::GetInstance()-&gt;ForceImmediateUpdate(this-&gt;m_RenderWindow);
+}</span>
+
+unsigned int mitk::BaseRenderer::GetNumberOfVisibleLODEnabledMappers() const
+<span style = "background-color:#fdd">{
+  return m_NumberOfVisibleLODEnabledMappers;
+}</span>
+
+/*!
+ Sets the new Navigation controller
+ */
+void mitk::BaseRenderer::SetSliceNavigationController(mitk::SliceNavigationController *SlicenavigationController)
+<span style = "background-color:#fdd">{
+  if (SlicenavigationController == nullptr)
+    return;</span>
+
+  // copy worldgeometry
+<span style = "background-color:#fdd">  SlicenavigationController-&gt;SetInputWorldTimeGeometry(SlicenavigationController-&gt;GetCreatedWorldGeometry());
+  SlicenavigationController-&gt;Update();</span>
+
+  // set new
+<span style = "background-color:#fdd">  m_SliceNavigationController = SlicenavigationController;
+  m_SliceNavigationController-&gt;SetRenderer(this);</span>
+
+<span style = "background-color:#fdd">  if (m_SliceNavigationController.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    m_SliceNavigationController-&gt;ConnectGeometrySliceEvent(this);
+    m_SliceNavigationController-&gt;ConnectGeometryUpdateEvent(this);
+    m_SliceNavigationController-&gt;ConnectGeometryTimeEvent(this, false);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::DisplayToWorld(const Point2D &amp;displayPoint, Point3D &amp;worldIndex) const
+<span style = "background-color:#fdd">{
+  if (m_MapperID == BaseRenderer::Standard2D)</span>
+  {
+    double display[3], *world;
+
+    // For the rigth z-position in display coordinates, take the focal point, convert it to display and use it for
+    // correct depth.
+    double *displayCoord;
+    double cameraFP[4];
+    // Get camera focal point and position. Convert to display (screen)
+    // coordinates. We need a depth value for z-buffer.
+<span style = "background-color:#fdd">    this-&gt;GetVtkRenderer()-&gt;GetActiveCamera()-&gt;GetFocalPoint(cameraFP);
+    cameraFP[3] = 0.0;
+    this-&gt;GetVtkRenderer()-&gt;SetWorldPoint(cameraFP[0], cameraFP[1], cameraFP[2], cameraFP[3]);
+    this-&gt;GetVtkRenderer()-&gt;WorldToDisplay();
+    displayCoord = this-&gt;GetVtkRenderer()-&gt;GetDisplayPoint();</span>
+
+    // now convert the display point to world coordinates
+<span style = "background-color:#fdd">    display[0] = displayPoint[0];
+    display[1] = displayPoint[1];
+    display[2] = displayCoord[2];</span>
+
+<span style = "background-color:#fdd">    this-&gt;GetVtkRenderer()-&gt;SetDisplayPoint(display);
+    this-&gt;GetVtkRenderer()-&gt;DisplayToWorld();
+    world = this-&gt;GetVtkRenderer()-&gt;GetWorldPoint();</span>
+
+<span style = "background-color:#fdd">    for (int i = 0; i &lt; 3; i++)</span>
+    {
+<span style = "background-color:#fdd">      worldIndex[i] = world[i] / world[3];
+    }
+  }
+  else if (m_MapperID == BaseRenderer::Standard3D)</span>
+  {
+<span style = "background-color:#fdd">    PickWorldPoint(</span>
+      displayPoint,
+      worldIndex); // Seems to be the same code as above, but subclasses may contain different implementations.
+  }
+
+  return;
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::DisplayToPlane(const Point2D &amp;displayPoint, Point2D &amp;planePointInMM) const
+<span style = "background-color:#fdd">{
+  if (m_MapperID == BaseRenderer::Standard2D)</span>
+  {
+<span style = "background-color:#fdd">    Point3D worldPoint;
+    this-&gt;DisplayToWorld(displayPoint, worldPoint);
+    this-&gt;m_CurrentWorldPlaneGeometry-&gt;Map(worldPoint, planePointInMM);
+  }
+  else if (m_MapperID == BaseRenderer::Standard3D)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "No conversion possible with 3D mapper.";</span>
+    return;
+  }
+
+  return;
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::WorldToDisplay(const Point3D &amp;worldIndex, Point2D &amp;displayPoint) const
+<span style = "background-color:#fdd">{</span>
+  double world[4], *display;
+
+<span style = "background-color:#fdd">  world[0] = worldIndex[0];
+  world[1] = worldIndex[1];
+  world[2] = worldIndex[2];
+  world[3] = 1.0;</span>
+
+<span style = "background-color:#fdd">  this-&gt;GetVtkRenderer()-&gt;SetWorldPoint(world);
+  this-&gt;GetVtkRenderer()-&gt;WorldToDisplay();
+  display = this-&gt;GetVtkRenderer()-&gt;GetDisplayPoint();</span>
+
+<span style = "background-color:#fdd">  displayPoint[0] = display[0];
+  displayPoint[1] = display[1];</span>
+
+  return;
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::WorldToView(const mitk::Point3D &amp;worldIndex, mitk::Point2D &amp;viewPoint) const
+<span style = "background-color:#fdd">{</span>
+  double world[4], *view;
+
+<span style = "background-color:#fdd">  world[0] = worldIndex[0];
+  world[1] = worldIndex[1];
+  world[2] = worldIndex[2];
+  world[3] = 1.0;</span>
+
+<span style = "background-color:#fdd">  this-&gt;GetVtkRenderer()-&gt;SetWorldPoint(world);
+  this-&gt;GetVtkRenderer()-&gt;WorldToView();
+  view = this-&gt;GetVtkRenderer()-&gt;GetViewPoint();
+  this-&gt;GetVtkRenderer()-&gt;ViewToNormalizedViewport(view[0], view[1], view[2]);</span>
+
+<span style = "background-color:#fdd">  viewPoint[0] = view[0] * this-&gt;GetViewportSize()[0];
+  viewPoint[1] = view[1] * this-&gt;GetViewportSize()[1];</span>
+
+  return;
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::PlaneToDisplay(const Point2D &amp;planePointInMM, Point2D &amp;displayPoint) const
+<span style = "background-color:#fdd">{
+  Point3D worldPoint;
+  this-&gt;m_CurrentWorldPlaneGeometry-&gt;Map(planePointInMM, worldPoint);
+  this-&gt;WorldToDisplay(worldPoint, displayPoint);</span>
+
+  return;
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseRenderer::PlaneToView(const Point2D &amp;planePointInMM, Point2D &amp;viewPoint) const
+<span style = "background-color:#fdd">{
+  Point3D worldPoint;
+  this-&gt;m_CurrentWorldPlaneGeometry-&gt;Map(planePointInMM, worldPoint);
+  this-&gt;WorldToView(worldPoint,viewPoint);</span>
+
+  return;
+<span style = "background-color:#fdd">}</span>
+
+double mitk::BaseRenderer::GetScaleFactorMMPerDisplayUnit() const
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetMapperID() == BaseRenderer::Standard2D)</span>
+  {
+    // GetParallelScale returns half of the height of the render window in mm.
+    // Divided by the half size of the Display size in pixel givest the mm per pixel.
+<span style = "background-color:#fdd">    return this-&gt;GetVtkRenderer()-&gt;GetActiveCamera()-&gt;GetParallelScale() * 2.0 / GetViewportSize()[1];
+  }</span>
+  else
+<span style = "background-color:#fdd">    return 1.0;
+}</span>
+
+mitk::Point2D mitk::BaseRenderer::GetDisplaySizeInMM() const
+<span style = "background-color:#fdd">{
+  Point2D dispSizeInMM;
+  dispSizeInMM[0] = GetSizeX() * GetScaleFactorMMPerDisplayUnit();
+  dispSizeInMM[1] = GetSizeY() * GetScaleFactorMMPerDisplayUnit();
+  return dispSizeInMM;
+}</span>
+
+mitk::Point2D mitk::BaseRenderer::GetViewportSizeInMM() const
+<span style = "background-color:#fdd">{
+  Point2D dispSizeInMM;
+  dispSizeInMM[0] = GetViewportSize()[0] * GetScaleFactorMMPerDisplayUnit();
+  dispSizeInMM[1] = GetViewportSize()[1] * GetScaleFactorMMPerDisplayUnit();
+  return dispSizeInMM;
+}</span>
+
+mitk::Point2D mitk::BaseRenderer::GetOriginInMM() const
+<span style = "background-color:#fdd">{
+  Point2D originPx;
+  originPx[0] = m_VtkRenderer-&gt;GetOrigin()[0];
+  originPx[1] = m_VtkRenderer-&gt;GetOrigin()[1];
+  Point2D displayGeometryOriginInMM;
+  DisplayToPlane(originPx, displayGeometryOriginInMM); // top left of the render window (Origin)
+  return displayGeometryOriginInMM;
+}</span>
+
+void mitk::BaseRenderer::SetConstrainZoomingAndPanning(bool constrain)
+<span style = "background-color:#fdd">{
+  m_ConstrainZoomingAndPanning = constrain;
+  if (m_ConstrainZoomingAndPanning)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;GetCameraController()-&gt;AdjustCameraToPlane();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::Point3D mitk::BaseRenderer::Map2DRendererPositionTo3DWorldPosition(const Point2D &amp;mousePosition) const
+<span style = "background-color:#fdd">{</span>
+  // DEPRECATED: Map2DRendererPositionTo3DWorldPosition is deprecated. use DisplayToWorldInstead
+<span style = "background-color:#fdd">  Point3D position;
+  DisplayToWorld(mousePosition, position);
+  return position;
+}</span>
+
+void mitk::BaseRenderer::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  os &lt;&lt; indent &lt;&lt; " MapperID: " &lt;&lt; m_MapperID &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " Slice: " &lt;&lt; m_Slice &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " TimeStep: " &lt;&lt; m_TimeStep &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; " CurrentWorldPlaneGeometry: ";
+  if (m_CurrentWorldPlaneGeometry.IsNull())
+    os &lt;&lt; "nullptr" &lt;&lt; std::endl;</span>
+  else
+<span style = "background-color:#fdd">    m_CurrentWorldPlaneGeometry-&gt;Print(os, indent);</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; " CurrentWorldPlaneGeometryUpdateTime: " &lt;&lt; m_CurrentWorldPlaneGeometryUpdateTime &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " CurrentWorldPlaneGeometryTransformTime: " &lt;&lt; m_CurrentWorldPlaneGeometryTransformTime &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">  Superclass::PrintSelf(os, indent);
+}</span></pre>
+	</body>
+</html>

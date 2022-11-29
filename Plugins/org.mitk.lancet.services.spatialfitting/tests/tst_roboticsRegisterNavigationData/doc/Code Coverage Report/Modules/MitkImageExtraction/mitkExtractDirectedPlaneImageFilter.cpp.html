@@ -1,0 +1,490 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkExtractDirectedPlaneImageFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkExtractDirectedPlaneImageFilter.h"
+#include "mitkAbstractTransformGeometry.h"
+//#include "mitkImageMapperGL2D.h"
+
+#include "vtkMitkThickSlicesFilter.h"
+#include &lt;mitkDataNode.h&gt;
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkResliceMethodProperty.h&gt;
+
+#include &lt;vtkGeneralTransform.h&gt;
+#include &lt;vtkImageChangeInformation.h&gt;
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkPoints.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+#include &lt;vtkTransform.h&gt;
+#include &lt;vtkTransform.h&gt;
+
+<span style = "background-color:#fdd">mitk::ExtractDirectedPlaneImageFilter::ExtractDirectedPlaneImageFilter() : m_WorldGeometry(nullptr)
+{
+  MITK_WARN &lt;&lt; "Class ExtractDirectedPlaneImageFilter is deprecated! Use ExtractSliceFilter instead.";</span>
+
+<span style = "background-color:#fdd">  m_Reslicer = vtkImageReslice::New();</span>
+
+<span style = "background-color:#fdd">  m_TargetTimestep = 0;
+  m_InPlaneResampleExtentByGeometry = true;
+  m_ResliceInterpolationProperty = nullptr; // VtkResliceInterpolationProperty::New(); //TODO initial with value
+  m_ThickSlicesMode = 0;
+  m_ThickSlicesNum = 1;
+}</span>
+
+mitk::ExtractDirectedPlaneImageFilter::~ExtractDirectedPlaneImageFilter()
+<span style = "background-color:#fdd">{
+  if (m_ResliceInterpolationProperty != nullptr)
+    m_ResliceInterpolationProperty-&gt;Delete();
+  m_Reslicer-&gt;Delete();
+}</span>
+
+void mitk::ExtractDirectedPlaneImageFilter::GenerateData()
+<span style = "background-color:#fdd">{</span>
+  // A world geometry must be set...
+<span style = "background-color:#fdd">  if (m_WorldGeometry == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "No world geometry has been set. Returning.");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  auto *input = dynamic_cast&lt;ImageToImageFilter::InputImageType *&gt;(this-&gt;GetInput());
+  input-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  if (input == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "No input set.");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  const TimeGeometry *inputTimeGeometry = input-&gt;GetTimeGeometry();
+  if ((inputTimeGeometry == nullptr) || (inputTimeGeometry-&gt;CountTimeSteps() == 0))</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Error reading input image geometry.");
+    return;</span>
+  }
+
+  // Get the target timestep; if none is set, use the lowest given.
+<span style = "background-color:#fdd">  unsigned int timestep = m_TargetTimestep;</span>
+
+<span style = "background-color:#fdd">  if (inputTimeGeometry-&gt;IsValidTimeStep(timestep) == false)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "This is not a valid timestep: " &lt;&lt; timestep);
+    return;</span>
+  }
+
+  // check if there is something to display.
+<span style = "background-color:#fdd">  if (!input-&gt;IsVolumeSet(timestep))</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "No volume data existent at given timestep " &lt;&lt; timestep);
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  Image::RegionType requestedRegion = input-&gt;GetLargestPossibleRegion();
+  requestedRegion.SetIndex(3, timestep);
+  requestedRegion.SetSize(3, 1);
+  requestedRegion.SetSize(4, 1);
+  input-&gt;SetRequestedRegion(&amp;requestedRegion);
+  input-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  vtkImageData *inputData = input-&gt;GetVtkImageData(timestep);</span>
+
+<span style = "background-color:#fdd">  if (inputData == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Could not extract vtk image data for given timestep" &lt;&lt; timestep);
+    return;</span>
+  }
+
+  double spacing[3];
+<span style = "background-color:#fdd">  inputData-&gt;GetSpacing(spacing);</span>
+
+  // how big the area is in physical coordinates: widthInMM x heightInMM pixels
+  mitk::ScalarType widthInMM, heightInMM;
+
+  // where we want to sample
+<span style = "background-color:#fdd">  Point3D origin;
+  Vector3D right, bottom, normal;
+  Vector3D rightInIndex, bottomInIndex;</span>
+
+<span style = "background-color:#fdd">  assert(input-&gt;GetTimeGeometry() == inputTimeGeometry);</span>
+
+  // take transform of input image into account
+<span style = "background-color:#fdd">  BaseGeometry *inputGeometry = inputTimeGeometry-&gt;GetGeometryForTimeStep(timestep);
+  if (inputGeometry == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "There is no Geometry3D at given timestep " &lt;&lt; timestep);
+    return;</span>
+  }
+
+  ScalarType mmPerPixel[2];
+
+  // Bounds information for reslicing (only required if reference geometry
+  // is present)
+  double bounds[6];
+<span style = "background-color:#fdd">  bool boundsInitialized = false;</span>
+
+<span style = "background-color:#fdd">  for (auto &amp;bound : bounds)</span>
+  {
+<span style = "background-color:#fdd">    bound = 0.0;
+  }</span>
+
+<span style = "background-color:#fdd">  Vector2D extent;
+  extent.Fill(0.0);</span>
+
+  // Do we have a simple PlaneGeometry?
+<span style = "background-color:#fdd">  if (dynamic_cast&lt;const PlaneGeometry *&gt;(m_WorldGeometry) != nullptr &amp;&amp;</span>
+      dynamic_cast&lt;const AbstractTransformGeometry *&gt;(m_WorldGeometry) == nullptr)
+  {
+<span style = "background-color:#fdd">    const auto *planeGeometry = static_cast&lt;const PlaneGeometry *&gt;(m_WorldGeometry);
+    origin = planeGeometry-&gt;GetOrigin();
+    right = planeGeometry-&gt;GetAxisVector(0);
+    bottom = planeGeometry-&gt;GetAxisVector(1);
+    normal = planeGeometry-&gt;GetNormal();</span>
+
+<span style = "background-color:#fdd">    if (m_InPlaneResampleExtentByGeometry)</span>
+    {
+      // Resampling grid corresponds to the current world geometry. This
+      // means that the spacing of the output 2D image depends on the
+      // currently selected world geometry, and *not* on the image itself.
+
+<span style = "background-color:#fdd">      extent[0] = m_WorldGeometry-&gt;GetExtent(0);
+      extent[1] = m_WorldGeometry-&gt;GetExtent(1);
+    }</span>
+    else
+    {
+      // Resampling grid corresponds to the input geometry. This means that
+      // the spacing of the output 2D image is directly derived from the
+      // associated input image, regardless of the currently selected world
+      // geometry.
+<span style = "background-color:#fdd">      inputGeometry-&gt;WorldToIndex(right, rightInIndex);
+      inputGeometry-&gt;WorldToIndex(bottom, bottomInIndex);
+      extent[0] = rightInIndex.GetNorm();
+      extent[1] = bottomInIndex.GetNorm();</span>
+    }
+
+    // Get the extent of the current world geometry and calculate resampling
+    // spacing therefrom.
+<span style = "background-color:#fdd">    widthInMM = m_WorldGeometry-&gt;GetExtentInMM(0);
+    heightInMM = m_WorldGeometry-&gt;GetExtentInMM(1);</span>
+
+<span style = "background-color:#fdd">    mmPerPixel[0] = widthInMM / extent[0];
+    mmPerPixel[1] = heightInMM / extent[1];</span>
+
+<span style = "background-color:#fdd">    right.Normalize();
+    bottom.Normalize();
+    normal.Normalize();</span>
+
+    // origin += right * ( mmPerPixel[0] * 0.5 );
+    // origin += bottom * ( mmPerPixel[1] * 0.5 );
+
+    // widthInMM -= mmPerPixel[0];
+    // heightInMM -= mmPerPixel[1];
+
+    // Use inverse transform of the input geometry for reslicing the 3D image
+<span style = "background-color:#fdd">    m_Reslicer-&gt;SetResliceTransform(inputGeometry-&gt;GetVtkTransform()-&gt;GetLinearInverse());</span>
+
+    // Set background level to TRANSLUCENT (see PlaneGeometryDataVtkMapper3D)
+<span style = "background-color:#fdd">    m_Reslicer-&gt;SetBackgroundLevel(-32768);</span>
+
+    // Check if a reference geometry does exist (as would usually be the case for
+    // PlaneGeometry).
+    // Note: this is currently not strictly required, but could facilitate
+    // correct plane clipping.
+<span style = "background-color:#fdd">    if (m_WorldGeometry-&gt;GetReferenceGeometry())</span>
+    {
+      // Calculate the actual bounds of the transformed plane clipped by the
+      // dataset bounding box; this is required for drawing the texture at the
+      // correct position during 3D mapping.
+<span style = "background-color:#fdd">      boundsInitialized =</span>
+        this-&gt;CalculateClippedPlaneBounds(m_WorldGeometry-&gt;GetReferenceGeometry(), planeGeometry, bounds);
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // Do we have an AbstractTransformGeometry?
+<span style = "background-color:#fdd">  else if (dynamic_cast&lt;const AbstractTransformGeometry *&gt;(m_WorldGeometry))</span>
+  {
+<span style = "background-color:#fdd">    const auto *abstractGeometry =</span>
+      dynamic_cast&lt;const AbstractTransformGeometry *&gt;(m_WorldGeometry);
+
+<span style = "background-color:#fdd">    extent[0] = abstractGeometry-&gt;GetParametricExtent(0);
+    extent[1] = abstractGeometry-&gt;GetParametricExtent(1);</span>
+
+<span style = "background-color:#fdd">    widthInMM = abstractGeometry-&gt;GetParametricExtentInMM(0);
+    heightInMM = abstractGeometry-&gt;GetParametricExtentInMM(1);</span>
+
+<span style = "background-color:#fdd">    mmPerPixel[0] = widthInMM / extent[0];
+    mmPerPixel[1] = heightInMM / extent[1];</span>
+
+<span style = "background-color:#fdd">    origin = abstractGeometry-&gt;GetPlane()-&gt;GetOrigin();</span>
+
+<span style = "background-color:#fdd">    right = abstractGeometry-&gt;GetPlane()-&gt;GetAxisVector(0);
+    right.Normalize();</span>
+
+<span style = "background-color:#fdd">    bottom = abstractGeometry-&gt;GetPlane()-&gt;GetAxisVector(1);
+    bottom.Normalize();</span>
+
+<span style = "background-color:#fdd">    normal = abstractGeometry-&gt;GetPlane()-&gt;GetNormal();
+    normal.Normalize();</span>
+
+    // Use a combination of the InputGeometry *and* the possible non-rigid
+    // AbstractTransformGeometry for reslicing the 3D Image
+<span style = "background-color:#fdd">    vtkGeneralTransform *composedResliceTransform = vtkGeneralTransform::New();
+    composedResliceTransform-&gt;Identity();
+    composedResliceTransform-&gt;Concatenate(inputGeometry-&gt;GetVtkTransform()-&gt;GetLinearInverse());
+    composedResliceTransform-&gt;Concatenate(abstractGeometry-&gt;GetVtkAbstractTransform());</span>
+
+<span style = "background-color:#fdd">    m_Reslicer-&gt;SetResliceTransform(composedResliceTransform);</span>
+
+    // Set background level to BLACK instead of translucent, to avoid
+    // boundary artifacts (see PlaneGeometryDataVtkMapper3D)
+<span style = "background-color:#fdd">    m_Reslicer-&gt;SetBackgroundLevel(-1023);
+    composedResliceTransform-&gt;Delete();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "World Geometry has to be a PlaneGeometry or an AbstractTransformGeometry.");
+    return;</span>
+  }
+
+  // Make sure that the image to be resliced has a certain minimum size.
+<span style = "background-color:#fdd">  if ((extent[0] &lt;= 2) &amp;&amp; (extent[1] &lt;= 2))</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Image is too small to be resliced...");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkImageChangeInformation&gt; unitSpacingImageFilter = vtkImageChangeInformation::New();
+  unitSpacingImageFilter-&gt;SetOutputSpacing(1.0, 1.0, 1.0);
+  unitSpacingImageFilter-&gt;SetInputData(inputData);</span>
+
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetInputConnection(unitSpacingImageFilter-&gt;GetOutputPort());</span>
+
+  // m_Reslicer-&gt;SetInput( inputData );
+
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetOutputDimensionality(2);
+  m_Reslicer-&gt;SetOutputOrigin(0.0, 0.0, 0.0);</span>
+
+<span style = "background-color:#fdd">  Vector2D pixelsPerMM;
+  pixelsPerMM[0] = 1.0 / mmPerPixel[0];
+  pixelsPerMM[1] = 1.0 / mmPerPixel[1];</span>
+
+  // calulate the originArray and the orientations for the reslice-filter
+  double originArray[3];
+<span style = "background-color:#fdd">  itk2vtk(origin, originArray);</span>
+
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetResliceAxesOrigin(originArray);</span>
+
+  double cosines[9];
+
+  // direction of the X-axis of the sampled result
+<span style = "background-color:#fdd">  vnl2vtk(right.GetVnlVector(), cosines);</span>
+
+  // direction of the Y-axis of the sampled result
+<span style = "background-color:#fdd">  vnl2vtk(bottom.GetVnlVector(), cosines + 3);</span>
+
+  // normal of the plane
+<span style = "background-color:#fdd">  vnl2vtk(normal.GetVnlVector(), cosines + 6);</span>
+
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetResliceAxesDirectionCosines(cosines);</span>
+
+  int xMin, xMax, yMin, yMax;
+<span style = "background-color:#fdd">  if (boundsInitialized)</span>
+  {
+<span style = "background-color:#fdd">    xMin = static_cast&lt;int&gt;(bounds[0] / mmPerPixel[0]); //+ 0.5 );
+    xMax = static_cast&lt;int&gt;(bounds[1] / mmPerPixel[0]); //+ 0.5 );
+    yMin = static_cast&lt;int&gt;(bounds[2] / mmPerPixel[1]); //+ 0.5);
+    yMax = static_cast&lt;int&gt;(bounds[3] / mmPerPixel[1]); //+ 0.5 );
+  }</span>
+  else
+  {
+    // If no reference geometry is available, we also don't know about the
+    // maximum plane size; so the overlap is just ignored
+
+<span style = "background-color:#fdd">    xMin = yMin = 0;
+    xMax = static_cast&lt;int&gt;(extent[0] - pixelsPerMM[0]); //+ 0.5 );
+    yMax = static_cast&lt;int&gt;(extent[1] - pixelsPerMM[1]); //+ 0.5 );</span>
+  }
+
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetOutputSpacing(mmPerPixel[0], mmPerPixel[1], 1.0);</span>
+  // xMax and yMax are meant exclusive until now, whereas
+  // SetOutputExtent wants an inclusive bound. Thus, we need
+  // to subtract 1.
+<span style = "background-color:#fdd">  m_Reslicer-&gt;SetOutputExtent(xMin, xMax - 1, yMin, yMax - 1, 0, 1);</span>
+
+  // Do the reslicing. Modified() is called to make sure that the reslicer is
+  // executed even though the input geometry information did not change; this
+  // is necessary when the input /em data, but not the /em geometry changes.
+<span style = "background-color:#fdd">  m_Reslicer-&gt;Modified();
+  m_Reslicer-&gt;ReleaseDataFlagOn();</span>
+
+<span style = "background-color:#fdd">  m_Reslicer-&gt;Update();</span>
+
+  // 1. Check the result
+<span style = "background-color:#fdd">  vtkImageData *reslicedImage = m_Reslicer-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  if ((reslicedImage == nullptr) || (reslicedImage-&gt;GetDataDimension() &lt; 1))</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Reslicer returned empty image");
+    return;</span>
+  }
+
+  unsigned int dimensions[2];
+<span style = "background-color:#fdd">  dimensions[0] = (unsigned int)extent[0];
+  dimensions[1] = (unsigned int)extent[1];
+  Vector3D spacingVector;
+  FillVector3D(spacingVector, mmPerPixel[0], mmPerPixel[1], 1.0);</span>
+
+<span style = "background-color:#fdd">  mitk::Image::Pointer resultImage = this-&gt;GetOutput();
+  resultImage-&gt;Initialize(input-&gt;GetPixelType(), 2, dimensions);
+  resultImage-&gt;SetSpacing(spacingVector);
+}</span>
+
+void mitk::ExtractDirectedPlaneImageFilter::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+  Superclass::GenerateOutputInformation();
+}</span>
+
+bool mitk::ExtractDirectedPlaneImageFilter::CalculateClippedPlaneBounds(const BaseGeometry *boundingGeometry,
+                                                                        const PlaneGeometry *planeGeometry,
+                                                                        double *bounds)
+<span style = "background-color:#fdd">{</span>
+  // Clip the plane with the bounding geometry. To do so, the corner points
+  // of the bounding box are transformed by the inverse transformation
+  // matrix, and the transformed bounding box edges derived therefrom are
+  // clipped with the plane z=0. The resulting min/max values are taken as
+  // bounds for the image reslicer.
+<span style = "background-color:#fdd">  const BoundingBox *boundingBox = boundingGeometry-&gt;GetBoundingBox();</span>
+
+<span style = "background-color:#fdd">  BoundingBox::PointType bbMin = boundingBox-&gt;GetMinimum();
+  BoundingBox::PointType bbMax = boundingBox-&gt;GetMaximum();</span>
+
+<span style = "background-color:#fdd">  vtkPoints *points = vtkPoints::New();
+  if (boundingGeometry-&gt;GetImageGeometry())</span>
+  {
+<span style = "background-color:#fdd">    points-&gt;InsertPoint(0, bbMin[0] - 0.5, bbMin[1] - 0.5, bbMin[2] - 0.5);
+    points-&gt;InsertPoint(1, bbMin[0] - 0.5, bbMin[1] - 0.5, bbMax[2] - 0.5);
+    points-&gt;InsertPoint(2, bbMin[0] - 0.5, bbMax[1] - 0.5, bbMax[2] - 0.5);
+    points-&gt;InsertPoint(3, bbMin[0] - 0.5, bbMax[1] - 0.5, bbMin[2] - 0.5);
+    points-&gt;InsertPoint(4, bbMax[0] - 0.5, bbMin[1] - 0.5, bbMin[2] - 0.5);
+    points-&gt;InsertPoint(5, bbMax[0] - 0.5, bbMin[1] - 0.5, bbMax[2] - 0.5);
+    points-&gt;InsertPoint(6, bbMax[0] - 0.5, bbMax[1] - 0.5, bbMax[2] - 0.5);
+    points-&gt;InsertPoint(7, bbMax[0] - 0.5, bbMax[1] - 0.5, bbMin[2] - 0.5);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    points-&gt;InsertPoint(0, bbMin[0], bbMin[1], bbMin[2]);
+    points-&gt;InsertPoint(1, bbMin[0], bbMin[1], bbMax[2]);
+    points-&gt;InsertPoint(2, bbMin[0], bbMax[1], bbMax[2]);
+    points-&gt;InsertPoint(3, bbMin[0], bbMax[1], bbMin[2]);
+    points-&gt;InsertPoint(4, bbMax[0], bbMin[1], bbMin[2]);
+    points-&gt;InsertPoint(5, bbMax[0], bbMin[1], bbMax[2]);
+    points-&gt;InsertPoint(6, bbMax[0], bbMax[1], bbMax[2]);
+    points-&gt;InsertPoint(7, bbMax[0], bbMax[1], bbMin[2]);</span>
+  }
+
+<span style = "background-color:#fdd">  vtkPoints *newPoints = vtkPoints::New();</span>
+
+<span style = "background-color:#fdd">  vtkTransform *transform = vtkTransform::New();
+  transform-&gt;Identity();
+  transform-&gt;Concatenate(planeGeometry-&gt;GetVtkTransform()-&gt;GetLinearInverse());</span>
+
+<span style = "background-color:#fdd">  transform-&gt;Concatenate(boundingGeometry-&gt;GetVtkTransform());</span>
+
+<span style = "background-color:#fdd">  transform-&gt;TransformPoints(points, newPoints);
+  transform-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  bounds[0] = bounds[2] = 10000000.0;
+  bounds[1] = bounds[3] = -10000000.0;
+  bounds[4] = bounds[5] = 0.0;</span>
+
+<span style = "background-color:#fdd">  this-&gt;LineIntersectZero(newPoints, 0, 1, bounds);
+  this-&gt;LineIntersectZero(newPoints, 1, 2, bounds);
+  this-&gt;LineIntersectZero(newPoints, 2, 3, bounds);
+  this-&gt;LineIntersectZero(newPoints, 3, 0, bounds);
+  this-&gt;LineIntersectZero(newPoints, 0, 4, bounds);
+  this-&gt;LineIntersectZero(newPoints, 1, 5, bounds);
+  this-&gt;LineIntersectZero(newPoints, 2, 6, bounds);
+  this-&gt;LineIntersectZero(newPoints, 3, 7, bounds);
+  this-&gt;LineIntersectZero(newPoints, 4, 5, bounds);
+  this-&gt;LineIntersectZero(newPoints, 5, 6, bounds);
+  this-&gt;LineIntersectZero(newPoints, 6, 7, bounds);
+  this-&gt;LineIntersectZero(newPoints, 7, 4, bounds);</span>
+
+  // clean up vtk data
+<span style = "background-color:#fdd">  points-&gt;Delete();
+  newPoints-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  if ((bounds[0] &gt; 9999999.0) || (bounds[2] &gt; 9999999.0) || (bounds[1] &lt; -9999999.0) || (bounds[3] &lt; -9999999.0))</span>
+  {
+<span style = "background-color:#fdd">    return false;
+  }</span>
+  else
+  {
+    // The resulting bounds must be adjusted by the plane spacing, since we
+    // we have so far dealt with index coordinates
+<span style = "background-color:#fdd">    const mitk::Vector3D planeSpacing = planeGeometry-&gt;GetSpacing();
+    bounds[0] *= planeSpacing[0];
+    bounds[1] *= planeSpacing[0];
+    bounds[2] *= planeSpacing[1];
+    bounds[3] *= planeSpacing[1];
+    bounds[4] *= planeSpacing[2];
+    bounds[5] *= planeSpacing[2];
+    return true;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::ExtractDirectedPlaneImageFilter::LineIntersectZero(vtkPoints *points, int p1, int p2, double *bounds)
+<span style = "background-color:#fdd">{</span>
+  double point1[3];
+  double point2[3];
+<span style = "background-color:#fdd">  points-&gt;GetPoint(p1, point1);
+  points-&gt;GetPoint(p2, point2);</span>
+
+<span style = "background-color:#fdd">  if ((point1[2] * point2[2] &lt;= 0.0) &amp;&amp; (point1[2] != point2[2]))</span>
+  {
+    double x, y;
+<span style = "background-color:#fdd">    x = (point1[0] * point2[2] - point1[2] * point2[0]) / (point2[2] - point1[2]);
+    y = (point1[1] * point2[2] - point1[2] * point2[1]) / (point2[2] - point1[2]);</span>
+
+<span style = "background-color:#fdd">    if (x &lt; bounds[0])</span>
+    {
+<span style = "background-color:#fdd">      bounds[0] = x;</span>
+    }
+<span style = "background-color:#fdd">    if (x &gt; bounds[1])</span>
+    {
+<span style = "background-color:#fdd">      bounds[1] = x;</span>
+    }
+<span style = "background-color:#fdd">    if (y &lt; bounds[2])</span>
+    {
+<span style = "background-color:#fdd">      bounds[2] = y;</span>
+    }
+<span style = "background-color:#fdd">    if (y &gt; bounds[3])</span>
+    {
+<span style = "background-color:#fdd">      bounds[3] = y;</span>
+    }
+<span style = "background-color:#fdd">    bounds[4] = bounds[5] = 0.0;
+    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span></pre>
+	</body>
+</html>

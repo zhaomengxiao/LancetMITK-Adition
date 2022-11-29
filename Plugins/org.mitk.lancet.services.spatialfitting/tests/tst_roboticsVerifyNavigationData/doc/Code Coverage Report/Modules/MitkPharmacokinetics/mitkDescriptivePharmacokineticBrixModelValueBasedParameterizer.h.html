@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDescriptivePharmacokineticBrixModelValueBasedParameterizer.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __DESCRIPTIVEPHARMACOKINETICBRIXMODEL_VALUEBASED_PARAMETERIZER_H
+#define __DESCRIPTIVEPHARMACOKINETICBRIXMODEL_VALUEBASED_PARAMETERIZER_H
+
+#include "mitkConcreteModelParameterizerBase.h"
+
+namespace mitk
+{
+  /** Parameterizer for the DescriptivePharmacokineticBrixModel that don't use an image
+   for initializing the model but a single signal value. This parameterizer is amongst
+   others used for ROI based fiting strategies where no complete image is needed/used.
+   @sa DescriptivePharmacokineticBrixModelParameterizer*/
+  class MITKPHARMACOKINETICS_EXPORT DescriptivePharmacokineticBrixModelValueBasedParameterizer : public
+    ConcreteModelParameterizerBase&lt;mitk::DescriptivePharmacokineticBrixModel&gt;
+  {
+  public:
+    typedef DescriptivePharmacokineticBrixModelValueBasedParameterizer Self;
+    typedef ConcreteModelParameterizerBase&lt;mitk::DescriptivePharmacokineticBrixModel&gt; Superclass;
+    typedef itk::SmartPointer&lt; Self &gt;                            Pointer;
+    typedef itk::SmartPointer&lt; const Self &gt;                      ConstPointer;
+
+<span style = "background-color:#fdd">    itkTypeMacro(ConcreteModelParameterizerBase, ModelParameterizerBase);
+    itkNewMacro(Self);</span>
+
+    typedef Superclass::ModelBaseType ModelBaseType;
+    typedef Superclass::ModelBasePointer ModelBasePointer;
+
+    typedef Superclass::ModelType ModelType;
+    typedef Superclass::ModelPointer ModelPointer;
+
+    typedef Superclass::StaticParameterValueType StaticParameterValueType;
+    typedef Superclass::StaticParameterValuesType StaticParameterValuesType;
+    typedef Superclass::StaticParameterMapType StaticParameterMapType;
+
+    typedef itk::Image&lt;double, 3&gt; BaseImageType;
+
+    typedef Superclass::IndexType IndexType;
+
+<span style = "background-color:#fdd">    itkSetMacro(Tau, double);
+    itkGetConstReferenceMacro(Tau, double);</span>
+
+<span style = "background-color:#fdd">    itkSetMacro(BaseValue, double);
+    itkGetConstReferenceMacro(BaseValue, double);</span>
+
+    /* Returns the global static parameters for the model.
+     * @remark this default implementation assumes no global static parameters exist.
+     * Thus an empty map is returned.*/
+    StaticParameterMapType GetGlobalStaticParameters() const override;
+
+    /* Returns the local static parameters for the model at the given index.
+     * @remark this default implementation assumes no local static parameters exist.
+     * Thus an empty map is returned.*/
+    StaticParameterMapType GetLocalStaticParameters(const IndexType&amp; currentPosition) const override;
+
+    /** This function returns the default parameterization (e.g. initial parametrization for fitting)
+     defined by the model developer for  for the given model.*/
+    ParametersType GetDefaultInitialParameterization() const override;
+
+  protected:
+
+    DescriptivePharmacokineticBrixModelValueBasedParameterizer();
+
+    ~DescriptivePharmacokineticBrixModelValueBasedParameterizer() override;
+
+    /**injection time Tau in minutes [min]*/
+    double m_Tau;
+
+    /** Contains the base value that should be used by the model.*/
+    double m_BaseValue;
+
+  private:
+
+    //No copy constructor allowed
+    DescriptivePharmacokineticBrixModelValueBasedParameterizer(const Self&amp; source);
+    void operator=(const Self&amp;);  //purposely not implemented
+  };
+}
+
+#endif // __DESCRIPTIVEPHARMACOKINETICBRIXMODEL_VALUEBASED_PARAMETERIZER_H</pre>
+	</body>
+</html>

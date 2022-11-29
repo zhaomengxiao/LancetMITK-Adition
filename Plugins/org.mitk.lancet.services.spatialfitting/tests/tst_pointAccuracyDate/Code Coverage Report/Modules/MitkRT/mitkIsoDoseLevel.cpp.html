@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIsoDoseLevel.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#include "mitkIsoDoseLevel.h"
+
+mitk::IsoDoseLevel::IsoDoseLevel() :
+<span style = "background-color:#fdd">m_DoseValue (0.0),
+  m_VisibleIsoLine ( true ),
+  m_VisibleColorWash (true)
+{
+  m_Color.Fill(0);
+}</span>
+
+mitk::IsoDoseLevel::IsoDoseLevel( const IsoDoseLevel &amp; other )
+<span style = "background-color:#fdd">  : itk::Object()
+{
+  if (&amp;other != this)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_Color = other.m_Color;
+    this-&gt;m_DoseValue = other.m_DoseValue;
+    this-&gt;m_VisibleColorWash = other.m_VisibleColorWash;
+    this-&gt;m_VisibleIsoLine = other.m_VisibleIsoLine;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::IsoDoseLevel::IsoDoseLevel(const DoseValueType &amp; value, const ColorType&amp; color, bool visibleIsoLine, bool visibleColorWash):
+<span style = "background-color:#fdd">  m_DoseValue (value),
+  m_Color (color),
+  m_VisibleIsoLine ( visibleIsoLine ),
+  m_VisibleColorWash ( visibleColorWash )
+{
+};</span>
+
+mitk::IsoDoseLevel::~IsoDoseLevel()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::IsoDoseLevel::operator == ( const IsoDoseLevel&amp; right) const
+<span style = "background-color:#fdd">{
+  bool result = this-&gt;m_DoseValue == right.m_DoseValue;</span>
+
+<span style = "background-color:#fdd">  result = result &amp;&amp; (this-&gt;m_Color == right.m_Color);
+  result = result &amp;&amp; (this-&gt;m_VisibleColorWash == right.m_VisibleColorWash);
+  result = result &amp;&amp; (this-&gt;m_VisibleIsoLine == right.m_VisibleIsoLine);</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+bool mitk::IsoDoseLevel::operator &lt;( const IsoDoseLevel&amp; right) const
+<span style = "background-color:#fdd">{
+  return this-&gt;m_DoseValue &lt; right.m_DoseValue;
+}</span>
+
+bool mitk::IsoDoseLevel::operator &gt; ( const IsoDoseLevel&amp; right) const
+<span style = "background-color:#fdd">{
+  return this-&gt;m_DoseValue &gt; right.m_DoseValue;
+}</span>
+
+void mitk::IsoDoseLevel::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os,indent);
+  os&lt;&lt;indent&lt;&lt; "DoseValue: " &lt;&lt; m_DoseValue&lt;&lt; std::endl;
+  os&lt;&lt;indent&lt;&lt; "Color: " &lt;&lt; m_Color&lt;&lt; std::endl;
+  os&lt;&lt;indent&lt;&lt; "VisibleIsoLine: " &lt;&lt; m_VisibleIsoLine&lt;&lt; std::endl;
+  os&lt;&lt;indent&lt;&lt; "VisibleColorWash: " &lt;&lt; m_VisibleColorWash&lt;&lt; std::endl;
+};</span></pre>
+	</body>
+</html>

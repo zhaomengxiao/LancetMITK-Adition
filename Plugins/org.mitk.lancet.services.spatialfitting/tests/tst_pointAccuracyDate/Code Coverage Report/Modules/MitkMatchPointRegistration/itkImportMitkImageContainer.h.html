@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>itkImportMitkImageContainer.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __itkImportMitkImageContainer_h
+#define __itkImportMitkImageContainer_h
+
+#include &lt;itkImportImageContainer.h&gt;
+#include &lt;mitkImageAccessorBase.h&gt;
+#include &lt;mitkImageDataItem.h&gt;
+
+namespace itk
+{
+  /** \class ImportMitkImageContainer
+   * Defines an itk::Image front-end to an mitk::Image. This container
+   * conforms to the ImageContainerInterface. This is a full-fleged Object,
+   * so there is modification time, debug, and reference count information.
+   *
+   * Template parameters for ImportMitkImageContainer:
+   *
+   * TElementIdentifier =
+   *     An INTEGRAL type for use in indexing the imported buffer.
+   *
+   * TElement =
+   *    The element type stored in the container.
+   */
+
+  template &lt;typename TElementIdentifier, typename TElement&gt;
+  class ImportMitkImageContainer : public ImportImageContainer&lt;TElementIdentifier, TElement&gt;
+  {
+  public:
+    /** Standard class typedefs. */
+    typedef ImportMitkImageContainer Self;
+    typedef Object Superclass;
+    typedef SmartPointer&lt;Self&gt; Pointer;
+    typedef SmartPointer&lt;const Self&gt; ConstPointer;
+
+    /** Save the template parameters. */
+    typedef TElementIdentifier ElementIdentifier;
+    typedef TElement Element;
+
+    /** Method for creation through the object factory. */
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+    itkCloneMacro(Self);
+
+      /** Standard part of every itk Object. */
+<span style = "background-color:#fdd">      itkTypeMacro(ImportMitkImageContainer, ImportImageContainer);</span>
+
+    ///** Get the pointer from which the image data is imported. */
+    // TElement *GetImportPointer() {return m_ImportPointer;};
+
+    /** \brief Set the mitk::ImageDataItem to be imported  */
+    // void SetImageDataItem(mitk::ImageDataItem* imageDataItem);
+    void SetImageAccessor(mitk::ImageAccessorBase *imageAccess, size_t noBytes);
+
+  protected:
+    ImportMitkImageContainer();
+    ~ImportMitkImageContainer() override;
+
+    /** PrintSelf routine. Normally this is a protected internal method. It is
+     * made public here so that Image can call this method.  Users should not
+     * call this method but should call Print() instead. */
+    void PrintSelf(std::ostream &amp;os, Indent indent) const override;
+
+  private:
+    ImportMitkImageContainer(const Self &amp;); // purposely not implemented
+    void operator=(const Self &amp;);           // purposely not implemented
+
+    // mitk::ImageDataItem::Pointer m_ImageDataItem;
+    mitk::ImageAccessorBase *m_imageAccess;
+  };
+
+} // end namespace itk
+
+// Define instantiation macro for this template.
+#define ITK_TEMPLATE_ImportMitkImageContainer(_, EXPORT, x, y)                                                         \
+  namespace itk                                                                                                        \
+  {                                                                                                                    \
+    _(2(class EXPORT ImportMitkImageContainer&lt;ITK_TEMPLATE_2 x&gt;))                                                      \
+    namespace Templates                                                                                                \
+    {                                                                                                                  \
+      typedef ImportMitkImageContainer&lt;ITK_TEMPLATE_2 x&gt; ImportMitkImageContainer##y;                                  \
+    }                                                                                                                  \
+  }
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "itkImportMitkImageContainer.txx"
+#endif
+
+#endif</pre>
+	</body>
+</html>

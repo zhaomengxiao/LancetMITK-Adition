@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIgnorePixelMaskGenerator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkIgnorePixelMaskGenerator.h&gt;
+#include &lt;mitkImageTimeSelector.h&gt;
+#include &lt;mitkImageAccessByItk.h&gt;
+#include &lt;itkImageIterator.h&gt;
+#include &lt;itkImageConstIterator.h&gt;
+#include &lt;mitkITKImageImport.h&gt;
+
+namespace mitk
+{
+void IgnorePixelMaskGenerator::SetIgnoredPixelValue(RealType pixelValue)
+<span style = "background-color:#fdd">{
+    if (pixelValue != m_IgnoredPixelValue)</span>
+    {
+<span style = "background-color:#fdd">        m_IgnoredPixelValue = pixelValue;
+        this-&gt;Modified();</span>
+    }
+<span style = "background-color:#fdd">}</span>
+
+void IgnorePixelMaskGenerator::SetTimeStep(unsigned int timeStep)
+<span style = "background-color:#fdd">{
+    if (m_TimeStep != timeStep)</span>
+    {
+<span style = "background-color:#fdd">        m_TimeStep = timeStep;</span>
+    }
+<span style = "background-color:#fdd">}</span>
+
+mitk::Image::Pointer IgnorePixelMaskGenerator::GetMask()
+<span style = "background-color:#fdd">{
+    if (IsUpdateRequired())</span>
+    {
+<span style = "background-color:#fdd">        if (m_inputImage.IsNull())</span>
+        {
+<span style = "background-color:#fdd">            MITK_ERROR &lt;&lt; "Image not set!";</span>
+        }
+
+<span style = "background-color:#fdd">        if (m_IgnoredPixelValue == std::numeric_limits&lt;RealType&gt;::min())</span>
+        {
+<span style = "background-color:#fdd">            MITK_ERROR &lt;&lt; "IgnotePixelValue not set!";</span>
+        }
+
+<span style = "background-color:#fdd">        if (m_TimeStep &gt; (m_inputImage-&gt;GetTimeSteps() - 1))</span>
+        {
+<span style = "background-color:#fdd">            MITK_ERROR &lt;&lt; "Invalid time step: " &lt;&lt; m_TimeStep &lt;&lt; ". The image has " &lt;&lt; m_inputImage-&gt;GetTimeSteps() &lt;&lt; " timeSteps!";</span>
+        }
+
+        // extractimage time slice
+<span style = "background-color:#fdd">        ImageTimeSelector::Pointer imgTimeSel = ImageTimeSelector::New();
+        imgTimeSel-&gt;SetInput(m_inputImage);
+        imgTimeSel-&gt;SetTimeNr(m_TimeStep);
+        imgTimeSel-&gt;UpdateLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">        mitk::Image::Pointer timeSliceImage = imgTimeSel-&gt;GetOutput();</span>
+
+        // update m_InternalMask
+<span style = "background-color:#fdd">        AccessByItk(timeSliceImage, InternalCalculateMask);
+        m_InternalMask-&gt;SetGeometry(timeSliceImage-&gt;GetGeometry());</span>
+
+<span style = "background-color:#fdd">        this-&gt;Modified();
+    }
+    m_InternalMaskUpdateTime = m_InternalMask-&gt;GetMTime();
+    return m_InternalMask;
+}</span>
+
+template &lt;typename TPixel, unsigned int VImageDimension&gt;
+void IgnorePixelMaskGenerator::InternalCalculateMask(typename itk::Image&lt;TPixel, VImageDimension&gt;* image)
+<span style = "background-color:#fdd">{</span>
+    typedef itk::Image&lt;TPixel, VImageDimension&gt; ImageType;
+    typedef itk::Image&lt;unsigned short, VImageDimension&gt; MaskType;
+
+<span style = "background-color:#fdd">    typename MaskType::Pointer mask = MaskType::New();
+    mask-&gt;SetOrigin(image-&gt;GetOrigin());
+    mask-&gt;SetSpacing(image-&gt;GetSpacing());
+    mask-&gt;SetLargestPossibleRegion(image-&gt;GetLargestPossibleRegion());
+    mask-&gt;SetBufferedRegion(image-&gt;GetBufferedRegion());
+    mask-&gt;SetDirection(image-&gt;GetDirection());
+    mask-&gt;SetNumberOfComponentsPerPixel(image-&gt;GetNumberOfComponentsPerPixel());
+    mask-&gt;Allocate();
+    mask-&gt;FillBuffer(1);</span>
+
+    // iterate over image and mask and set mask=1 if image=m_IgnorePixelValue
+<span style = "background-color:#fdd">    itk::ImageRegionConstIterator&lt;ImageType&gt; imageIterator(image, image-&gt;GetLargestPossibleRegion());
+    itk::ImageRegionIterator&lt;MaskType&gt; maskIterator(mask, mask-&gt;GetLargestPossibleRegion());</span>
+
+
+<span style = "background-color:#fdd">    for (imageIterator.GoToBegin(); !imageIterator.IsAtEnd(); ++imageIterator, ++maskIterator)</span>
+    {
+<span style = "background-color:#fdd">        if (imageIterator.Value() == static_cast&lt;TPixel&gt;(m_IgnoredPixelValue))</span>
+        {
+<span style = "background-color:#fdd">            maskIterator.Set(0);</span>
+        }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    m_InternalMask = GrabItkImageMemory(mask);
+}</span>
+
+bool IgnorePixelMaskGenerator::IsUpdateRequired() const
+<span style = "background-color:#fdd">{
+    unsigned long thisClassTimeStamp = this-&gt;GetMTime();
+    unsigned long internalMaskTimeStamp = m_InternalMask-&gt;GetMTime();
+    unsigned long inputImageTimeStamp = m_inputImage-&gt;GetMTime();</span>
+
+<span style = "background-color:#fdd">    if (thisClassTimeStamp &gt; m_InternalMaskUpdateTime) // inputs have changed</span>
+    {
+<span style = "background-color:#fdd">        return true;</span>
+    }
+
+<span style = "background-color:#fdd">    if (m_InternalMaskUpdateTime &lt; inputImageTimeStamp) // mask image has changed outside of this class</span>
+    {
+<span style = "background-color:#fdd">        return true;</span>
+    }
+
+<span style = "background-color:#fdd">    if (internalMaskTimeStamp &gt; m_InternalMaskUpdateTime) // internal mask has been changed outside of this class</span>
+    {
+<span style = "background-color:#fdd">        return true;</span>
+    }
+
+<span style = "background-color:#fdd">    return false;
+}</span>
+
+} // end namespace</pre>
+	</body>
+</html>

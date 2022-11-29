@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkConcreteModelFactoryBase.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __CONCRETE_MODEL_FACTORY_BASE_H
+#define __CONCRETE_MODEL_FACTORY_BASE_H
+
+#include "mitkModelFactoryBase.h"
+
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+  template &lt;class TModel&gt;
+  class ConcreteModelFactoryBase : public ModelFactoryBase
+  {
+  public:
+/*    typedef ConcreteModelFactoryBase Self;
+    typedef ModelFactoryBase Superclass;
+    typedef itk::SmartPointer&lt; Self &gt;                            Pointer;
+    typedef itk::SmartPointer&lt; const Self &gt;                      ConstPointer;
+*/
+<span style = "background-color:#fdd">    mitkClassMacro(ConcreteModelFactoryBase, ModelFactoryBase);</span>
+
+    typedef ModelFactoryBase::ModelBaseType ModelBaseType;
+    typedef ModelFactoryBase::ModelBasePointer ModelBasePointer;
+
+    typedef TModel ModelType;
+    typedef typename ModelType::Pointer ModelPointer;
+
+    typedef ModelFactoryBase::ParameterNameType ParameterNameType;
+    typedef ModelFactoryBase::ParameterNamesType ParameterNamesType;
+    typedef ModelFactoryBase::ParametersSizeType ParametersSizeType;
+    typedef ModelFactoryBase::ParamterScaleMapType ParamterScaleMapType;
+    typedef ModelFactoryBase::ParamterUnitMapType ParamterUnitMapType;
+    typedef ModelFactoryBase::DerivedParameterNamesType DerivedParameterNamesType;
+    typedef ModelFactoryBase::DerivedParametersSizeType DerivedParametersSizeType;
+    typedef ModelFactoryBase::DerivedParamterScaleMapType DerivedParamterScaleMapType;
+    typedef ModelFactoryBase::DerivedParamterUnitMapType DerivedParamterUnitMapType;
+    typedef ModelFactoryBase::FunctionStringType FunctionStringType;
+    typedef ModelFactoryBase::ModellClassIDType ModellClassIDType;
+
+    static ModelPointer CreateConcreteModel()
+<span style = "background-color:#fdd">    {
+      return ModelType::New();
+    }</span>
+
+    ModelBasePointer CreateModel() const  override
+<span style = "background-color:#fdd">    {
+      return CreateConcreteModel().GetPointer();
+    };</span>
+
+    ConstraintCheckerBase::Pointer CreateDefaultConstraints() const override
+<span style = "background-color:#fdd">    {
+      ConstraintCheckerBase::Pointer noConstraints;
+      return noConstraints;
+    };</span>
+
+    ParameterNamesType GetParameterNames() const  override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetParameterNames();
+    };</span>
+
+    ParametersSizeType GetNumberOfParameters() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetNumberOfParameters();
+    };</span>
+
+    ParamterScaleMapType GetParameterScales() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetParameterScales();
+    };</span>
+
+    ParamterUnitMapType GetParameterUnits() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetParameterUnits();
+    };</span>
+
+    ParameterNamesType GetDerivedParameterNames() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetDerivedParameterNames();
+    };</span>
+
+    ParametersSizeType GetNumberOfDerivedParameters() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetNumberOfDerivedParameters();
+    };</span>
+
+    DerivedParamterScaleMapType GetDerivedParameterScales() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetDerivedParameterScales();
+    };</span>
+
+    DerivedParamterUnitMapType GetDerivedParameterUnits() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetDerivedParameterUnits();
+    };</span>
+
+    std::string GetModelDisplayName() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetModelDisplayName();
+    };</span>
+
+    std::string GetModelType() const override
+<span style = "background-color:#dfd">    {
+      return m_Reference-&gt;GetModelType();
+    };</span>
+
+    FunctionStringType GetFunctionString() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetFunctionString();
+    };</span>
+
+    ModellClassIDType GetClassID() const override
+<span style = "background-color:#dfd">    {
+      return m_Reference-&gt;GetClassID();
+    };</span>
+
+    std::string GetXName() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetXName();
+    };</span>
+
+    std::string GetXAxisName() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetXAxisName();
+    };</span>
+
+    std::string GetXAxisUnit() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetXAxisUnit();
+    };</span>
+
+    std::string GetYAxisName() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetYAxisName();
+    };</span>
+
+    std::string GetYAxisUnit() const override
+<span style = "background-color:#fdd">    {
+      return m_Reference-&gt;GetYAxisUnit();
+    }</span>
+
+  protected:
+<span style = "background-color:#dfd">    ConcreteModelFactoryBase()
+    {
+      m_Reference = ModelType::New();
+    };</span>
+
+    ~ConcreteModelFactoryBase() override
+<span style = "background-color:#dfd">    {
+    };</span>
+
+    ModelPointer m_Reference;
+
+  private:
+
+    //No copy constructor allowed
+    ConcreteModelFactoryBase(const Self&amp; source);
+    void operator=(const Self&amp;);  //purposely not implemented
+  };
+}
+
+#endif // __CONCRETE_MODEL_FACTORY_BASE_H</pre>
+	</body>
+</html>

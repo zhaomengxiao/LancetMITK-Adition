@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCurveParameterFunctor.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkCurveParameterFunctor.h"
+
+mitk::SimpleFunctorBase::OutputPixelVectorType
+mitk::CurveParameterFunctor::Compute(const mitk::SimpleFunctorBase::InputPixelVectorType&amp; value)
+const
+<span style = "background-color:#fdd">{
+  if (this-&gt;m_Grid.GetSize() == 0)</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("Error. Cannot compute Curve Description Parameters. No Curve Grid set!");</span>
+  }
+
+<span style = "background-color:#fdd">  if (this-&gt;m_DescriptorMap.size() == 0)</span>
+  {
+<span style = "background-color:#fdd">    itkGenericExceptionMacro( &lt;&lt;</span>
+                              "Error. Cannot compute Curve Description Parameters. No Parameters registered!");
+  }
+
+<span style = "background-color:#fdd">  CurveDescriptionParameterBase::CurveType sample(value.size());</span>
+
+<span style = "background-color:#fdd">  for (CurveDescriptionParameterBase::CurveType::SizeValueType i = 0; i &lt; sample.Size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    sample[i] = value [i];
+  }</span>
+
+<span style = "background-color:#fdd">  mitk::SimpleFunctorBase::OutputPixelVectorType result;
+  result.reserve(m_DescriptorMap.size()); //we will have at least this number of values</span>
+
+<span style = "background-color:#fdd">  unsigned int i = 0;</span>
+
+<span style = "background-color:#fdd">  for (DescriptionParameterMapType::const_iterator pos = m_DescriptorMap.begin();
+       pos != m_DescriptorMap.end(); ++pos, ++i)</span>
+  {
+<span style = "background-color:#fdd">    CurveDescriptionParameterBase* paramFct = const_cast&lt;CurveDescriptionParameterBase*&gt;</span>
+        (pos-&gt;second.GetPointer());
+
+<span style = "background-color:#fdd">    CurveDescriptionParameterBase::DescriptionParameterResultsType fctResults =</span>
+      paramFct-&gt;GetCurveDescriptionParameter(sample, this-&gt;m_Grid);
+<span style = "background-color:#fdd">    result.insert(result.end(), fctResults.begin(), fctResults.end());
+  }</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetDescriptionParameterNames().size() != result.size())</span>
+  {
+<span style = "background-color:#fdd">    itkGenericExceptionMacro( &lt;&lt;</span>
+                              "Error. Curve parameter functor has an invalid state. Number of parameter names and number of computed values does not match. Names count: "
+                              &lt;&lt; this-&gt;GetDescriptionParameterNames().size() &lt;&lt; "; value count: " &lt;&lt; result.size());
+  }
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+unsigned int
+mitk::CurveParameterFunctor::GetNumberOfOutputs() const
+<span style = "background-color:#fdd">{
+  return GetDescriptionParameterNames().size();
+};</span>
+
+mitk::CurveParameterFunctor::GridArrayType
+mitk::CurveParameterFunctor::GetGrid() const
+<span style = "background-color:#fdd">{
+  return m_Grid;
+};</span>
+
+void
+mitk::CurveParameterFunctor::ResetDescriptionParameters()
+<span style = "background-color:#fdd">{
+  m_DescriptorMap.clear();
+};</span>
+
+void
+mitk::CurveParameterFunctor::RegisterDescriptionParameter(const std::string&amp; parameterName,
+    CurveDescriptionParameterBase* parameterFunction)
+<span style = "background-color:#fdd">{
+  CurveDescriptionParameterBase::Pointer paramFunctPtr = parameterFunction;</span>
+
+<span style = "background-color:#fdd">  m_DescriptorMap.insert(std::make_pair(parameterName, paramFunctPtr));
+};</span>
+
+mitk::CurveParameterFunctor::ParameterNamesType
+mitk::CurveParameterFunctor::GetDescriptionParameterNames() const
+<span style = "background-color:#fdd">{
+  ParameterNamesType result;</span>
+
+<span style = "background-color:#fdd">  for (const auto &amp;descriptor : m_DescriptorMap)</span>
+  {
+<span style = "background-color:#fdd">    CurveDescriptionParameterBase::DescriptionParameterNamesType fctResults =</span>
+      descriptor.second-&gt;GetDescriptionParameterName();
+
+<span style = "background-color:#fdd">    if (fctResults.size() &gt; 1)</span>
+    {
+<span style = "background-color:#fdd">      for (const auto &amp;fctName : fctResults)</span>
+      {
+<span style = "background-color:#fdd">        result.push_back(descriptor.first + "_" + fctName);
+      }
+    }</span>
+    else
+    { //if the descriptor has only one parameter just use the registered descriptor name.
+<span style = "background-color:#fdd">      result.push_back(descriptor.first);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+const mitk::CurveDescriptionParameterBase*
+mitk::CurveParameterFunctor::GetDescriptionParameterFunction(const std::string&amp; parameterName) const
+<span style = "background-color:#fdd">{
+  const CurveDescriptionParameterBase* result = nullptr;</span>
+
+<span style = "background-color:#fdd">  DescriptionParameterMapType::const_iterator pos = m_DescriptorMap.find(parameterName);</span>
+
+<span style = "background-color:#fdd">  if (pos != m_DescriptorMap.end())</span>
+  {
+<span style = "background-color:#fdd">    result = (pos-&gt;second).GetPointer();</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+mitk::CurveParameterFunctor::
+CurveParameterFunctor()
+<span style = "background-color:#fdd">{};</span>
+
+mitk::CurveParameterFunctor::
+<span style = "background-color:#fdd">~CurveParameterFunctor() {};</span>
+</pre>
+	</body>
+</html>

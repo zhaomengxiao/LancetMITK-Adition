@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkOperationEvent.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkOperationEvent.h"
+#include &lt;itkCommand.h&gt;
+
+int mitk::UndoStackItem::m_CurrObjectEventId = 0;
+int mitk::UndoStackItem::m_CurrGroupEventId = 0;
+
+<span style = "background-color:#fdd">mitk::UndoStackItem::UndoStackItem(std::string description) : m_Reversed(false), m_Description(description)
+{
+  m_ObjectEventId = GetCurrObjectEventId();
+  m_GroupEventId = GetCurrGroupEventId();
+}</span>
+
+mitk::UndoStackItem::~UndoStackItem()
+<span style = "background-color:#fdd">{</span>
+  // nothing to do
+<span style = "background-color:#fdd">}</span>
+
+int mitk::UndoStackItem::GetCurrObjectEventId()
+<span style = "background-color:#fdd">{
+  return m_CurrObjectEventId;
+}</span>
+
+int mitk::UndoStackItem::GetCurrGroupEventId()
+<span style = "background-color:#fdd">{
+  return m_CurrGroupEventId;
+}</span>
+
+void mitk::UndoStackItem::IncCurrObjectEventId()
+<span style = "background-color:#fdd">{
+  ++m_CurrObjectEventId;
+}</span>
+
+void mitk::UndoStackItem::IncCurrGroupEventId()
+<span style = "background-color:#fdd">{
+  ++m_CurrGroupEventId;
+}</span>
+
+int mitk::UndoStackItem::GetObjectEventId()
+<span style = "background-color:#fdd">{
+  return m_ObjectEventId;
+}</span>
+
+int mitk::UndoStackItem::GetGroupEventId()
+<span style = "background-color:#fdd">{
+  return m_GroupEventId;
+}</span>
+
+std::string mitk::UndoStackItem::GetDescription()
+<span style = "background-color:#fdd">{
+  return m_Description;
+}</span>
+
+void mitk::UndoStackItem::ReverseOperations()
+<span style = "background-color:#fdd">{
+  m_Reversed = !m_Reversed;
+}</span>
+
+void mitk::UndoStackItem::ReverseAndExecute()
+<span style = "background-color:#fdd">{
+  ReverseOperations();
+}</span>
+
+// ******************** mitk::OperationEvent ********************
+
+mitk::Operation *mitk::OperationEvent::GetOperation()
+<span style = "background-color:#fdd">{
+  return m_Operation;
+}</span>
+
+mitk::OperationEvent::OperationEvent(OperationActor *destination,
+                                     Operation *operation,
+                                     Operation *undoOperation,
+                                     std::string description)
+<span style = "background-color:#fdd">  : UndoStackItem(description),
+    m_Destination(destination),
+    m_Operation(operation),
+    m_UndoOperation(undoOperation),
+    m_Invalid(false)
+{</span>
+  // connect to delete event
+<span style = "background-color:#fdd">  if (auto *object = dynamic_cast&lt;itk::Object *&gt;(m_Destination))</span>
+  {
+<span style = "background-color:#fdd">    itk::SimpleMemberCommand&lt;OperationEvent&gt;::Pointer command = itk::SimpleMemberCommand&lt;OperationEvent&gt;::New();
+    command-&gt;SetCallbackFunction(this, &amp;OperationEvent::OnObjectDeleted);
+    m_DeleteTag = object-&gt;AddObserver(itk::DeleteEvent(), command);
+  }
+}</span>
+
+mitk::OperationEvent::~OperationEvent()
+<span style = "background-color:#fdd">{</span>
+  // remove the observer if the data m_Destination still is present
+<span style = "background-color:#fdd">  if (!m_Invalid)</span>
+  {
+<span style = "background-color:#fdd">    if (auto *object = dynamic_cast&lt;itk::Object *&gt;(m_Destination))</span>
+    {
+<span style = "background-color:#fdd">      object-&gt;RemoveObserver(m_DeleteTag);</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  delete m_Operation;
+  delete m_UndoOperation;
+}</span>
+
+//##Documentation
+//##  swaps the Undo and Redo- operation and changes m_Reversed
+void mitk::OperationEvent::ReverseOperations()
+<span style = "background-color:#fdd">{
+  if (m_Operation == nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  Operation *tempOperation = m_Operation;
+  m_Operation = m_UndoOperation;
+  m_UndoOperation = tempOperation;</span>
+
+<span style = "background-color:#fdd">  UndoStackItem::ReverseOperations();
+}</span>
+
+void mitk::OperationEvent::ReverseAndExecute()
+<span style = "background-color:#fdd">{
+  ReverseOperations();
+  if (m_Destination &amp;&amp; m_Operation &amp;&amp; !m_Invalid)
+    m_Destination-&gt;ExecuteOperation(m_Operation);
+}</span>
+
+mitk::OperationActor *mitk::OperationEvent::GetDestination()
+<span style = "background-color:#fdd">{
+  return m_Destination;
+}</span>
+
+void mitk::OperationEvent::OnObjectDeleted()
+<span style = "background-color:#fdd">{
+  m_Invalid = true;
+}</span>
+
+bool mitk::OperationEvent::IsValid()
+<span style = "background-color:#fdd">{
+  return !m_Invalid;
+}</span></pre>
+	</body>
+</html>

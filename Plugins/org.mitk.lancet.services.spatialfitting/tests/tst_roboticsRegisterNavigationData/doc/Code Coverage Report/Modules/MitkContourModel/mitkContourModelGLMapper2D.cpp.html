@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelGLMapper2D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkContourModelGLMapper2D.h"
+#include "mitkBaseRenderer.h"
+#include "mitkColorProperty.h"
+#include "mitkContourModel.h"
+#include "mitkContourModelSubDivisionFilter.h"
+#include "mitkPlaneGeometry.h"
+#include "mitkProperties.h"
+#include &lt;vtkLinearTransform.h&gt;
+
+#include "mitkGL.h"
+
+mitk::ContourModelGLMapper2D::ContourModelGLMapper2D()
+<span style = "background-color:#fdd">  : m_SubdivisionContour(mitk::ContourModel::New()), m_InitSubdivisionCurve(true)
+{
+}</span>
+
+mitk::ContourModelGLMapper2D::~ContourModelGLMapper2D()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ContourModelGLMapper2D::MitkRender(mitk::BaseRenderer *renderer, mitk::VtkPropRenderer::RenderType /*type*/)
+<span style = "background-color:#fdd">{
+  BaseLocalStorage *ls = m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  mitk::DataNode *dataNode = this-&gt;GetDataNode();</span>
+
+<span style = "background-color:#fdd">  bool visible = true;
+  dataNode-&gt;GetVisibility(visible, renderer, "visible");</span>
+
+<span style = "background-color:#fdd">  if (!visible)
+    return;</span>
+
+<span style = "background-color:#fdd">  mitk::ContourModel *input = this-&gt;GetInput();</span>
+
+<span style = "background-color:#fdd">  mitk::ContourModel::Pointer renderingContour = input;</span>
+
+<span style = "background-color:#fdd">  bool subdivision = false;</span>
+
+<span style = "background-color:#fdd">  dataNode-&gt;GetBoolProperty("subdivision curve", subdivision, renderer);
+  if (subdivision)</span>
+  {
+<span style = "background-color:#fdd">    if (this-&gt;m_SubdivisionContour-&gt;GetMTime() &lt; renderingContour-&gt;GetMTime() || m_InitSubdivisionCurve)</span>
+    {
+      // mitk::ContourModel::Pointer subdivContour = mitk::ContourModel::New();
+
+<span style = "background-color:#fdd">      mitk::ContourModelSubDivisionFilter::Pointer subdivFilter = mitk::ContourModelSubDivisionFilter::New();</span>
+
+<span style = "background-color:#fdd">      subdivFilter-&gt;SetInput(input);
+      subdivFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">      this-&gt;m_SubdivisionContour = subdivFilter-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">      m_InitSubdivisionCurve = false;
+    }
+    renderingContour = this-&gt;m_SubdivisionContour;</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;DrawContour(renderingContour, renderer);</span>
+
+<span style = "background-color:#fdd">  ls-&gt;UpdateGenerateDataTime();
+}</span>
+
+mitk::ContourModel *mitk::ContourModelGLMapper2D::GetInput(void)
+<span style = "background-color:#fdd">{
+  return static_cast&lt;mitk::ContourModel *&gt;(GetDataNode()-&gt;GetData());
+}</span>
+
+void mitk::ContourModelGLMapper2D::SetDefaultProperties(mitk::DataNode *node,
+                                                        mitk::BaseRenderer *renderer,
+                                                        bool overwrite)
+<span style = "background-color:#fdd">{
+  node-&gt;AddProperty("contour.color", ColorProperty::New(0.9, 1.0, 0.1), renderer, overwrite);
+  node-&gt;AddProperty("contour.points.color", ColorProperty::New(1.0, 0.0, 0.1), renderer, overwrite);
+  node-&gt;AddProperty("contour.points.show", mitk::BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("contour.segments.show", mitk::BoolProperty::New(true), renderer, overwrite);
+  node-&gt;AddProperty("contour.controlpoints.show", mitk::BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("contour.width", mitk::FloatProperty::New(1.0), renderer, overwrite);
+  node-&gt;AddProperty("contour.hovering.width", mitk::FloatProperty::New(3.0), renderer, overwrite);
+  node-&gt;AddProperty("contour.hovering", mitk::BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("contour.points.text", mitk::BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("contour.controlpoints.text", mitk::BoolProperty::New(false), renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  node-&gt;AddProperty("subdivision curve", mitk::BoolProperty::New(false), renderer, overwrite);
+  node-&gt;AddProperty("contour.project-onto-plane", mitk::BoolProperty::New(false), renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  node-&gt;AddProperty("opacity", mitk::FloatProperty::New(1.0f), renderer, overwrite);</span>
+
+<span style = "background-color:#fdd">  Superclass::SetDefaultProperties(node, renderer, overwrite);
+}</span></pre>
+	</body>
+</html>

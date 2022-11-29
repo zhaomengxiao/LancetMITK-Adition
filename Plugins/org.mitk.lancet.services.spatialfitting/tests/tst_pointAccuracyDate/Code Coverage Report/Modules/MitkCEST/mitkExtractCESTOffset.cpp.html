@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkExtractCESTOffset.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkExtractCESTOffset.h"
+#include "mitkCESTPropertyHelper.h"
+
+#include &lt;iterator&gt;
+#include &lt;regex&gt;
+
+
+std::vector&lt;mitk::ScalarType&gt; mitk::ExtractCESTT1Time(const BaseData* image)
+<span style = "background-color:#fdd">{
+    std::vector&lt;ScalarType&gt; result;</span>
+
+<span style = "background-color:#fdd">    auto prop = image-&gt;GetProperty(CEST_PROPERTY_NAME_TREC().c_str());
+    if (prop.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">        auto valueStr = prop-&gt;GetValueAsString();</span>
+
+<span style = "background-color:#fdd">        std::istringstream iss;
+        iss.imbue(std::locale("C"));
+        iss.str(valueStr);</span>
+        double d;
+
+<span style = "background-color:#fdd">        while (iss &gt;&gt; d)</span>
+        {
+<span style = "background-color:#fdd">          if (!iss.fail())</span>
+          {
+<span style = "background-color:#fdd">            result.emplace_back(d);</span>
+          }
+<span style = "background-color:#fdd">        }</span>
+
+<span style = "background-color:#fdd">        if (result.size() != image-&gt;GetTimeSteps()) mitkThrow() &lt;&lt; "Cannot determine T1 times. Selected input has an property \"" &lt;&lt; CEST_PROPERTY_NAME_TREC() &lt;&lt; "\" that don't match the number of time steps of input.";</span>
+
+<span style = "background-color:#fdd">        for (auto&amp; value : result)</span>
+        {
+<span style = "background-color:#fdd">            value *= 0.001;
+        }
+    }
+    else mitkThrow() &lt;&lt; "Cannot determine T1 time grid (TREC). Selected input has no property \"" &lt;&lt; CEST_PROPERTY_NAME_TREC() &lt;&lt; "\"";</span>
+
+<span style = "background-color:#fdd">    return result;
+}</span>
+
+std::vector&lt;mitk::ScalarType&gt; mitk::ExtractCESTOffset(const BaseData* image)
+<span style = "background-color:#fdd">{
+  std::vector&lt;ScalarType&gt; result;</span>
+
+<span style = "background-color:#fdd">  auto prop = image-&gt;GetProperty(CEST_PROPERTY_NAME_OFFSETS().c_str());
+  if (prop.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    auto valueStr = prop-&gt;GetValueAsString();</span>
+
+<span style = "background-color:#fdd">    std::istringstream iss;
+    iss.imbue(std::locale("C"));
+    iss.str(valueStr);</span>
+    double d;
+
+<span style = "background-color:#fdd">    while (iss &gt;&gt; d)</span>
+    {
+<span style = "background-color:#fdd">      if (!iss.fail())</span>
+      {
+<span style = "background-color:#fdd">        result.emplace_back(d);</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+
+<span style = "background-color:#fdd">    if (result.size() != image-&gt;GetTimeSteps()) mitkThrow() &lt;&lt; "Cannot determine offset. Selected input has an property \"" &lt;&lt; CEST_PROPERTY_NAME_OFFSETS() &lt;&lt; "\" that don't match the number of time steps of input.";</span>
+
+<span style = "background-color:#fdd">  }
+  else mitkThrow() &lt;&lt; "Cannot determine frequency. Selected input has no property \"" &lt;&lt; CEST_PROPERTY_NAME_OFFSETS() &lt;&lt; "\"";</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span></pre>
+	</body>
+</html>

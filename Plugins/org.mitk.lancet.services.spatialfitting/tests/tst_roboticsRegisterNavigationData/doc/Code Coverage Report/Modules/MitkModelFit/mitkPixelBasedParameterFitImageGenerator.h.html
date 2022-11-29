@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPixelBasedParameterFitImageGenerator.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __MITK_PIXEL_BASED_PARAMETER_FIT_IMAGE_GENERATOR_H_
+#define __MITK_PIXEL_BASED_PARAMETER_FIT_IMAGE_GENERATOR_H_
+
+#include &lt;map&gt;
+
+#include &lt;mitkImage.h&gt;
+
+#include "mitkModelParameterizerBase.h"
+#include "mitkModelFitFunctorBase.h"
+#include "mitkParameterFitImageGeneratorBase.h"
+
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+
+  /** Class for generators for pixel based parameter fits of a given model based on a given 4D mitk image.
+   * The class uses a model fit functor (based on ModelFitFunctorBase) given by the use.
+   * @remark This generator fits every pixel on its own. If you want to fit the mean value of the given mask use
+   * ROIBasedParameterFitImageGenerator.
+   * The generator creates 4 types of images:
+   * - parameter images: The images that encode the results of each fitted parameter
+   * - derived parameter images: Images that encode the results of derived parameters defined by the model
+   * - criterion images: Images that encode the criterion value of the fitting strategy for the fitted parameters
+   * - evaluation parameter images: Images that encode measures of additional evaluation cost functions defined by the user. (These were not part of the fitting strategy)
+   * .
+   */
+class MITKMODELFIT_EXPORT PixelBasedParameterFitImageGenerator: public ParameterFitImageGeneratorBase
+{
+public:
+<span style = "background-color:#fdd">  mitkClassMacro(PixelBasedParameterFitImageGenerator, ParameterFitImageGeneratorBase);</span>
+
+<span style = "background-color:#fdd">  itkNewMacro(Self);</span>
+
+    typedef ScalarType ParameterImagePixelType;
+    typedef std::vector&lt;ParameterImagePixelType&gt; FunctorValueArrayType;
+
+    typedef ModelFitFunctorBase FitFunctorType;
+
+    typedef ModelParameterizerBase ParameterizerType;
+
+    typedef ParameterFitImageGeneratorBase::ModelBaseType ModelBaseType;
+    typedef ParameterFitImageGeneratorBase::ParameterNameType ParameterNameType;
+    typedef ParameterFitImageGeneratorBase::ParameterImageMapType ParameterImageMapType;
+
+<span style = "background-color:#fdd">    itkSetObjectMacro(DynamicImage, Image);
+    itkGetConstObjectMacro(DynamicImage, Image);</span>
+
+<span style = "background-color:#fdd">    itkSetObjectMacro(Mask, Image);
+    itkGetConstObjectMacro(Mask, Image);</span>
+
+<span style = "background-color:#fdd">    itkSetObjectMacro(FitFunctor, FitFunctorType);
+    itkGetObjectMacro(FitFunctor, FitFunctorType);</span>
+
+<span style = "background-color:#fdd">    itkSetObjectMacro(ModelParameterizer, ParameterizerType);
+    itkGetObjectMacro(ModelParameterizer, ParameterizerType);</span>
+
+<span style = "background-color:#fdd">    itkSetMacro(TimeGridByParameterizer, bool);
+    itkGetMacro(TimeGridByParameterizer, bool);
+    itkBooleanMacro(TimeGridByParameterizer);</span>
+
+    double GetProgress() const override;
+
+    ParameterNamesType GetParameterNames() const override;
+
+    ParameterNamesType GetDerivedParameterNames() const override;
+
+    ParameterNamesType GetCriterionNames() const override;
+
+    ParameterNamesType GetEvaluationParameterNames() const override;
+
+protected:
+<span style = "background-color:#fdd">  PixelBasedParameterFitImageGenerator() : m_Progress(0), m_TimeGridByParameterizer(false)
+  {
+    m_InternalMask = nullptr;
+    m_Mask = nullptr;
+    m_DynamicImage = nullptr;
+  };</span>
+
+<span style = "background-color:#fdd">  ~PixelBasedParameterFitImageGenerator() override = default;</span>
+
+    template &lt;typename TPixel, unsigned int VDim&gt;
+    void DoParameterFit(itk::Image&lt;TPixel, VDim&gt;* image);
+
+    template &lt;typename TPixel, unsigned int VDim&gt;
+    void DoPrepareMask(itk::Image&lt;TPixel, VDim&gt;* image);
+
+    void onFitProgressEvent(::itk::Object* caller, const ::itk::EventObject&amp; eventObject);
+
+    bool HasOutdatedResult() const override;
+    void CheckValidInputs() const override;
+    void DoFitAndGetResults(ParameterImageMapType&amp; parameterImages, ParameterImageMapType&amp; derivedParameterImages, ParameterImageMapType&amp; criterionImages, ParameterImageMapType&amp; evaluationParameterImages) override;
+
+private:
+    Image::Pointer m_DynamicImage;
+    Image::Pointer m_Mask;
+
+    typedef itk::Image&lt;unsigned char, 3&gt; InternalMaskType;
+    InternalMaskType::Pointer m_InternalMask;
+
+    FitFunctorType::Pointer m_FitFunctor;
+
+    ParameterizerType::Pointer m_ModelParameterizer;
+
+    ParameterImageMapType m_TempResultMap;
+    ParameterImageMapType m_TempDerivedResultMap;
+    ParameterImageMapType m_TempEvaluationResultMap;
+    ParameterImageMapType m_TempCriterionResultMap;
+
+    double m_Progress;
+    /**Indicates if the time grid defined in the parameterizer should be used (True)
+    or if the filter should extract the time grid from the input image (False).*/
+    bool m_TimeGridByParameterizer;
+};
+
+}
+
+#endif // __MITK_PARAMETER_FIT_IMAGE_GENERATOR_H_</pre>
+	</body>
+</html>

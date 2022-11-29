@@ -1,0 +1,238 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkBaseDICOMReaderService.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkBaseDICOMReaderService.h"
+
+#include &lt;mitkCustomMimeType.h&gt;
+#include &lt;mitkIOMimeTypes.h&gt;
+#include &lt;mitkDICOMFileReaderSelector.h&gt;
+#include &lt;mitkImage.h&gt;
+#include &lt;mitkDICOMFilesHelper.h&gt;
+#include &lt;mitkDICOMTagsOfInterestHelper.h&gt;
+#include &lt;mitkDICOMProperty.h&gt;
+#include "legacy/mitkDicomSeriesReader.h"
+#include &lt;mitkDICOMDCMTKTagScanner.h&gt;
+#include &lt;mitkLocaleSwitch.h&gt;
+#include "mitkIPropertyProvider.h"
+#include "mitkPropertyNameHelper.h"
+#include "mitkPropertyKeyPath.h"
+#include "mitkDICOMIOMetaInformationPropertyConstants.h"
+
+#include &lt;iostream&gt;
+
+
+#include &lt;itksys/SystemTools.hxx&gt;
+#include &lt;itksys/Directory.hxx&gt;
+
+namespace mitk
+{
+
+  BaseDICOMReaderService::BaseDICOMReaderService(const std::string&amp; description)
+<span style = "background-color:#dfd">    : AbstractFileReader(CustomMimeType(IOMimeTypes::DICOM_MIMETYPE()), description)
+{
+}</span>
+
+BaseDICOMReaderService::BaseDICOMReaderService(const mitk::CustomMimeType&amp; customType, const std::string&amp; description)
+<span style = "background-color:#dfd">  : AbstractFileReader(customType, description)
+{
+}</span>
+
+void BaseDICOMReaderService::SetOnlyRegardOwnSeries(bool regard)
+<span style = "background-color:#dfd">{
+  m_OnlyRegardOwnSeries = regard;
+}</span>
+
+bool BaseDICOMReaderService::GetOnlyRegardOwnSeries() const
+<span style = "background-color:#fdd">{
+  return m_OnlyRegardOwnSeries;
+}</span>
+
+
+std::vector&lt;itk::SmartPointer&lt;BaseData&gt; &gt; BaseDICOMReaderService::DoRead()
+<span style = "background-color:#fdd">{
+  std::vector&lt;BaseData::Pointer&gt; result;</span>
+
+
+<span style = "background-color:#fdd">  const std::string fileName = this-&gt;GetLocalFileName();</span>
+  //special handling of Philips 3D US DICOM.
+  //Copied from DICOMSeriesReaderService
+<span style = "background-color:#fdd">  if (DicomSeriesReader::IsPhilips3DDicom(fileName))</span>
+  {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "it is a Philips3D US Dicom file" &lt;&lt; std::endl;
+      mitk::LocaleSwitch localeSwitch("C");
+      std::locale previousCppLocale(std::cin.getloc());
+      std::locale l("C");
+      std::cin.imbue(l);</span>
+
+<span style = "background-color:#fdd">      DataNode::Pointer node = DataNode::New();
+      mitk::DicomSeriesReader::StringContainer stringvec;
+      stringvec.push_back(fileName);
+      if (DicomSeriesReader::LoadDicomSeries(stringvec, *node))</span>
+      {
+<span style = "background-color:#fdd">          BaseData::Pointer data = node-&gt;GetData();
+          StringProperty::Pointer nameProp = StringProperty::New(itksys::SystemTools::GetFilenameName(fileName));
+          data-&gt;GetPropertyList()-&gt;SetProperty("name", nameProp);
+          result.push_back(data);
+      }
+      std::cin.imbue(previousCppLocale);
+      return result;</span>
+  }
+
+  //Normal DICOM handling (It wasn't a Philips 3D US)
+<span style = "background-color:#fdd">  mitk::StringList relevantFiles = this-&gt;GetDICOMFilesInSameDirectory();</span>
+
+<span style = "background-color:#fdd">  if (relevantFiles.empty())</span>
+  {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "DICOMReader service found no relevant files in specified location. No data is loaded. Location: "&lt;&lt;fileName;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    bool pathIsDirectory = itksys::SystemTools::FileIsDirectory(fileName);</span>
+
+<span style = "background-color:#fdd">    if (!pathIsDirectory &amp;&amp; m_OnlyRegardOwnSeries)</span>
+    {
+<span style = "background-color:#fdd">      relevantFiles = mitk::FilterDICOMFilesForSameSeries(fileName, relevantFiles);</span>
+    }
+
+<span style = "background-color:#fdd">    mitk::DICOMFileReader::Pointer reader = this-&gt;GetReader(relevantFiles);</span>
+
+<span style = "background-color:#fdd">      if(reader.IsNull())</span>
+      {
+<span style = "background-color:#fdd">          MITK_INFO &lt;&lt; "DICOMReader service found no suitable reader configuration for relevant files.";
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        if (!pathIsDirectory)</span>
+        { //we ensure that we only load the relevant image block files
+<span style = "background-color:#fdd">          const auto nrOfOutputs = reader-&gt;GetNumberOfOutputs();
+          for (unsigned int outputIndex = 0; outputIndex &lt; nrOfOutputs; ++outputIndex)</span>
+          {
+<span style = "background-color:#fdd">            const auto frameList = reader-&gt;GetOutput(outputIndex).GetImageFrameList();</span>
+
+<span style = "background-color:#fdd">            auto finding = std::find_if(frameList.begin(), frameList.end(), [&amp;](const DICOMImageFrameInfo::Pointer&amp; frame) { return frame-&gt;Filename == fileName; });</span>
+
+<span style = "background-color:#fdd">            if (finding != frameList.end())</span>
+            { //we have the block containing the fileName -&gt; these are the realy relevant files.
+<span style = "background-color:#fdd">              relevantFiles.resize(frameList.size());
+              std::transform(frameList.begin(), frameList.end(), relevantFiles.begin(), [](const DICOMImageFrameInfo::Pointer&amp; frame) { return frame-&gt;Filename; });
+              break;</span>
+            }
+<span style = "background-color:#fdd">          }</span>
+        }
+<span style = "background-color:#fdd">          const unsigned int ntotalfiles = relevantFiles.size();</span>
+
+<span style = "background-color:#fdd">          for( unsigned int i=0; i&lt; ntotalfiles; i++)</span>
+          {
+<span style = "background-color:#fdd">            m_ReadFiles.push_back( relevantFiles.at(i) );
+          }</span>
+
+<span style = "background-color:#fdd">          reader-&gt;SetAdditionalTagsOfInterest(mitk::GetCurrentDICOMTagsOfInterest());
+          reader-&gt;SetTagLookupTableToPropertyFunctor(mitk::GetDICOMPropertyForDICOMValuesFunctor);
+          reader-&gt;SetInputFiles(relevantFiles);</span>
+
+<span style = "background-color:#fdd">          mitk::DICOMDCMTKTagScanner::Pointer scanner = mitk::DICOMDCMTKTagScanner::New();
+          scanner-&gt;AddTagPaths(reader-&gt;GetTagsOfInterest());
+          scanner-&gt;SetInputFiles(relevantFiles);
+          scanner-&gt;Scan();</span>
+
+<span style = "background-color:#fdd">          reader-&gt;SetTagCache(scanner-&gt;GetScanCache());
+          reader-&gt;AnalyzeInputFiles();
+          reader-&gt;LoadImages();</span>
+
+<span style = "background-color:#fdd">          for (unsigned int i = 0; i &lt; reader-&gt;GetNumberOfOutputs(); ++i)</span>
+          {
+<span style = "background-color:#fdd">            const mitk::DICOMImageBlockDescriptor&amp; desc = reader-&gt;GetOutput(i);
+            mitk::BaseData::Pointer data = desc.GetMitkImage().GetPointer();</span>
+
+<span style = "background-color:#fdd">            std::string nodeName = GenerateNameFromDICOMProperties(&amp;desc);</span>
+
+<span style = "background-color:#fdd">            StringProperty::Pointer nameProp = StringProperty::New(nodeName);
+            data-&gt;SetProperty("name", nameProp);</span>
+
+<span style = "background-color:#fdd">            data-&gt;SetProperty(PropertyKeyPathToPropertyName(DICOMIOMetaInformationPropertyConstants::READER_CONFIGURATION()), StringProperty::New(reader-&gt;GetConfigurationLabel()));</span>
+
+<span style = "background-color:#fdd">            result.push_back(data);
+          }
+      }
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+StringList BaseDICOMReaderService::GetDICOMFilesInSameDirectory() const
+<span style = "background-color:#fdd">{
+  std::string fileName = this-&gt;GetLocalFileName();</span>
+
+<span style = "background-color:#fdd">  mitk::StringList relevantFiles = mitk::GetDICOMFilesInSameDirectory(fileName);</span>
+
+<span style = "background-color:#fdd">  return relevantFiles;
+}</span>
+
+IFileReader::ConfidenceLevel BaseDICOMReaderService::GetConfidenceLevel() const
+<span style = "background-color:#fdd">{
+  IFileReader::ConfidenceLevel abstractConfidence = AbstractFileReader::GetConfidenceLevel();</span>
+
+<span style = "background-color:#fdd">  if (Unsupported == abstractConfidence)</span>
+  {
+<span style = "background-color:#fdd">    if (itksys::SystemTools::FileIsDirectory(this-&gt;GetInputLocation().c_str()))</span>
+    {
+      // In principle we support dicom directories
+<span style = "background-color:#fdd">      return Supported;</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  return abstractConfidence;
+}</span>
+
+std::string GenerateNameFromDICOMProperties(const mitk::IPropertyProvider* provider)
+<span style = "background-color:#fdd">{
+  std::string nodeName = mitk::DataNode::NO_NAME_VALUE();</span>
+
+<span style = "background-color:#fdd">  auto studyProp = provider-&gt;GetConstProperty(mitk::GeneratePropertyNameForDICOMTag(0x0008, 0x1030).c_str());
+  if (studyProp.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    nodeName = studyProp-&gt;GetValueAsString();</span>
+  }
+
+<span style = "background-color:#fdd">  auto seriesProp = provider-&gt;GetConstProperty(mitk::GeneratePropertyNameForDICOMTag(0x0008, 0x103E).c_str());</span>
+
+<span style = "background-color:#fdd">  if (seriesProp.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if (studyProp.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      nodeName += " / ";
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      nodeName = "";</span>
+
+    }
+<span style = "background-color:#fdd">    nodeName += seriesProp-&gt;GetValueAsString();</span>
+  }
+
+<span style = "background-color:#fdd">  return nodeName;
+};</span>
+
+}</pre>
+	</body>
+</html>

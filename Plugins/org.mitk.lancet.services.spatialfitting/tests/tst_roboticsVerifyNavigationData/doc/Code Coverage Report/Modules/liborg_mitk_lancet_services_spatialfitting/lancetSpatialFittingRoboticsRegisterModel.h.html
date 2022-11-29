@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>lancetSpatialFittingRoboticsRegisterModel.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/**
+ * \par Copyright (C)2022-2023 Hangzhou Lancet Robot Co., Ltd. All rights reserved.
+ *
+ * \brief This is the header file of the robot arm registration data filter manager
+ * \ingroup org_mitk_lancet_services_spatialfitting
+ * \version V1.0.0
+ * \date 2022-11-18 10:19:56
+ * 
+ * \par Modify History
+ *		-# Sun initialization the version for 2022-11-18 10:19:56.
+ *
+ * \author Sun
+ * \date 2022-11-18 10:19:56
+ * \remark Non
+ */
+#ifndef LancetSpatialFittingRoboticsRegisterModel_H
+#define LancetSpatialFittingRoboticsRegisterModel_H
+
+#include "lancetSpatialFittingGlobal.h"
+
+#include &lt;mitkNavigationDataSource.h&gt;
+
+class RobotRegistration;
+BEGIN_SPATIAL_FITTING_NAMESPACE
+class PipelineManager;
+
+class ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
+	RoboticsRegisterModel : public itk::Object
+{
+public:
+<span style = "background-color:#fdd">	mitkClassMacroItkParent(RoboticsRegisterModel, itk::Object)</span>
+
+<span style = "background-color:#fdd">	itkNewMacro(RoboticsRegisterModel)</span>
+
+	RoboticsRegisterModel();
+	virtual ~RoboticsRegisterModel();
+public:
+	RobotRegistration&amp; GetRegisterModel();
+
+	itk::SmartPointer&lt;PipelineManager&gt; GetRegisterNavigationPipeline() const;
+	void SetRegisterNavigationPipeline(itk::SmartPointer&lt;PipelineManager&gt; manager);
+
+	void SetAccutacyVerifyPipeline(itk::SmartPointer&lt;PipelineManager&gt; manager);
+	itk::SmartPointer&lt;PipelineManager&gt; GetAccutacyVerifyPipeline() const;
+
+	mitk::NavigationDataSource* GetNdiNavigationDataSource() const;
+	void SetNdiNavigationDataSource(mitk::NavigationDataSource* source);
+
+	mitk::NavigationDataSource* GetRoboticsNavigationDataSource() const;
+	void SetRoboticsNavigationDataSource(mitk::NavigationDataSource* source);
+private:
+	struct RoboticsRegisterModelPrivateImp;
+	std::shared_ptr&lt;RoboticsRegisterModelPrivateImp&gt; imp;
+};
+
+END_SPATIAL_FITTING_NAMESPACE
+
+#endif // !LancetSpatialFittingRoboticsRegisterModel_H</pre>
+	</body>
+</html>

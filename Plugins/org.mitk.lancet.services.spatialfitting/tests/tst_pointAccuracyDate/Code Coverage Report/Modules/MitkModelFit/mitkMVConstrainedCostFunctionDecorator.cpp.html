@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMVConstrainedCostFunctionDecorator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkMVConstrainedCostFunctionDecorator.h"
+
+#include &lt;iostream&gt;
+
+#include &lt;mitkExceptionMacro.h&gt;
+
+mitk::MVConstrainedCostFunctionDecorator::MeasureType
+  mitk::MVConstrainedCostFunctionDecorator::CalcMeasure(const ParametersType &amp;parameters, const SignalType &amp; /*signal*/) const
+<span style = "background-color:#fdd">{
+  if (m_ConstraintChecker.IsNull()) mitkThrow()&lt;&lt;"Error. Cannot calc measure. Constraint checker is not set";
+  if (m_WrappedCostFunction.IsNull()) mitkThrow()&lt;&lt;"Error. Cannot calc measure. Wrapped metric is not set";</span>
+
+<span style = "background-color:#fdd">  m_EvaluationCount++;</span>
+
+<span style = "background-color:#fdd">  PenaltyValueType penalty = m_ConstraintChecker-&gt;GetPenaltySum(parameters);</span>
+
+<span style = "background-color:#fdd">  MeasureType measure;
+  measure.SetSize(m_WrappedCostFunction-&gt;GetNumberOfValues());
+  measure.Fill(penalty);</span>
+
+<span style = "background-color:#fdd">  if (penalty&lt;m_FailureThreshold || !m_ActivateFailureThreshold)</span>
+  {
+<span style = "background-color:#fdd">    MeasureType wrappedMeasure = m_WrappedCostFunction-&gt;GetValue(parameters);
+    if (wrappedMeasure.Size() != measure.Size()) mitkThrow()&lt;&lt;"Error. Cannot calc measure. Penalty measure and wrapped measure have different size. Penalty size:"&lt;&lt;measure.Size()&lt;&lt;"; wrapped measure size: "&lt;&lt;wrappedMeasure.Size();</span>
+
+<span style = "background-color:#fdd">    for(unsigned int i=0; i&lt;measure.GetSize(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      measure[i] += wrappedMeasure[i];
+    }
+    if (penalty &gt; 0)</span>
+    {
+<span style = "background-color:#fdd">      ++m_PenaltyCount;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    auto penalties = m_ConstraintChecker-&gt;GetPenalties(parameters);
+    for (ParametersType::size_type pos = 0; pos &lt; penalties.size(); ++pos)</span>
+    {
+<span style = "background-color:#fdd">      if (penalties[pos] &gt;= m_FailureThreshold)</span>
+      {
+<span style = "background-color:#fdd">        m_LastFailedParameter = pos;
+        break;</span>
+      }
+<span style = "background-color:#fdd">    }
+    m_FailureCount++;
+  }</span>
+
+<span style = "background-color:#fdd">  return measure;
+}</span>
+
+double
+mitk::MVConstrainedCostFunctionDecorator::
+GetPenaltyRatio() const
+<span style = "background-color:#fdd">{
+  return m_PenaltyCount / (double)m_EvaluationCount;
+};</span>
+
+double
+mitk::MVConstrainedCostFunctionDecorator::
+GetFailureRatio() const
+<span style = "background-color:#fdd">{
+  return m_FailureCount / (double)m_EvaluationCount;
+};</span>
+
+mitk::MVConstrainedCostFunctionDecorator::ParametersType::size_type
+mitk::MVConstrainedCostFunctionDecorator::
+GetFailedParameter() const
+<span style = "background-color:#fdd">{
+  return m_LastFailedParameter;
+};</span></pre>
+	</body>
+</html>

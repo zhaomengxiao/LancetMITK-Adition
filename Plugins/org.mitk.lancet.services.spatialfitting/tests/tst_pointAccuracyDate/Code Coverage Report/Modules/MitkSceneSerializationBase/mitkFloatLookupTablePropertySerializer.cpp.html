@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkFloatLookupTablePropertySerializer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkFloatLookupTablePropertySerializer_h_included
+#define mitkFloatLookupTablePropertySerializer_h_included
+
+#include "mitkBasePropertySerializer.h"
+#include "mitkProperties.h"
+#include &lt;mitkLexicalCast.h&gt;
+#include &lt;mitkLocaleSwitch.h&gt;
+#include &lt;tinyxml2.h&gt;
+
+namespace mitk
+{
+  class FloatLookupTablePropertySerializer : public BasePropertySerializer
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(FloatLookupTablePropertySerializer, BasePropertySerializer)
+    itkFactorylessNewMacro(Self)</span>
+    itkCloneMacro(Self)
+
+    tinyxml2::XMLElement *Serialize(tinyxml2::XMLDocument &amp;doc) override
+<span style = "background-color:#fdd">    {
+      const FloatLookupTableProperty *prop = dynamic_cast&lt;const FloatLookupTableProperty *&gt;(m_Property.GetPointer());
+      if (prop == nullptr)
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">      FloatLookupTable lut = prop-&gt;GetValue();</span>
+      // if (lut.IsNull())
+      //  return nullptr; // really?
+<span style = "background-color:#fdd">      const FloatLookupTable::LookupTableType &amp;map = lut.GetLookupTable();</span>
+
+<span style = "background-color:#fdd">      auto *element = doc.NewElement("FloatLookupTableTable");
+      for (auto it = map.begin(); it != map.end(); ++it)</span>
+      {
+<span style = "background-color:#fdd">        auto *tableEntry = doc.NewElement("LUTValue");
+        tableEntry-&gt;SetAttribute("id", it-&gt;first);
+        tableEntry-&gt;SetAttribute("value", boost::lexical_cast&lt;std::string&gt;(it-&gt;second).c_str());
+        element-&gt;InsertEndChild(tableEntry);
+      }
+      return element;
+    }</span>
+
+    BaseProperty::Pointer Deserialize(const tinyxml2::XMLElement *element) override
+<span style = "background-color:#fdd">    {
+      if (!element)
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">      FloatLookupTable lut;
+      for (auto *child = element-&gt;FirstChildElement("LUTValue"); child != nullptr;
+           child = child-&gt;NextSiblingElement("LUTValue"))</span>
+      {
+        int tempID;
+<span style = "background-color:#fdd">        if (child-&gt;QueryIntAttribute("id", &amp;tempID) != tinyxml2::XML_SUCCESS)
+          return nullptr;
+        FloatLookupTable::IdentifierType id = static_cast&lt;FloatLookupTable::IdentifierType&gt;(tempID);
+        const char* value_string = child-&gt;Attribute("value");
+        if (nullptr == value_string)
+          return nullptr;</span>
+        try
+        {
+<span style = "background-color:#fdd">          lut.SetTableValue(id, boost::lexical_cast&lt;float&gt;(value_string));</span>
+        }
+        catch (boost::bad_lexical_cast &amp;e)
+<span style = "background-color:#fdd">        {
+          MITK_ERROR &lt;&lt; "Could not parse string as number: " &lt;&lt; e.what();
+          return nullptr;
+        }
+      }
+      return FloatLookupTableProperty::New(lut).GetPointer();
+    }</span>
+
+  protected:
+<span style = "background-color:#fdd">    FloatLookupTablePropertySerializer() {}
+    ~FloatLookupTablePropertySerializer() override {}</span>
+  };
+} // namespace
+// important to put this into the GLOBAL namespace (because it starts with 'namespace mitk')
+<span style = "background-color:#dfd">MITK_REGISTER_SERIALIZER(FloatLookupTablePropertySerializer);</span>
+#endif</pre>
+	</body>
+</html>

@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMaskedDynamicImageStatisticsGenerator.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __MITK_MASKED_DYMAMIC_IMAGE_STATISTICS_GENERATOR_H
+#define __MITK_MASKED_DYMAMIC_IMAGE_STATISTICS_GENERATOR_H
+
+#include &lt;mitkImage.h&gt;
+
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+/** Simple mitk based wrapper for the itk::MaskedNaryStatisticsImageFilter.
+ * takes an input image and a mask image (both mitk::Images) and calculates the statistic
+ * of the input image within the given mask (every pixel != 0).\n
+ * The class assumes that the mask image is 3D (only one time step), if this is not the case
+ * *only* the first time step will be used as mask.\n
+ * If the input image has multiple time steps, the statistics will be calculated for each time
+ * step. This the result arrays will always have as many values as the input image
+ * has time steps.*/
+class MITKMODELFIT_EXPORT MaskedDynamicImageStatisticsGenerator : public itk::Object
+{
+public:
+<span style = "background-color:#fdd">  mitkClassMacroItkParent(MaskedDynamicImageStatisticsGenerator, itk::Object);</span>
+
+<span style = "background-color:#fdd">  itkNewMacro(Self);</span>
+
+    typedef itk::Array&lt;double&gt; ResultType;
+
+<span style = "background-color:#fdd">    itkSetConstObjectMacro(DynamicImage,Image);
+    itkGetConstObjectMacro(DynamicImage,Image);</span>
+
+<span style = "background-color:#fdd">    itkSetConstObjectMacro(Mask, Image);
+    itkGetConstObjectMacro(Mask, Image);</span>
+
+    const ResultType&amp; GetMaximum();
+    const ResultType&amp; GetMinimum();
+    const ResultType&amp; GetMean();
+    const ResultType&amp; GetSigma();
+    const ResultType&amp; GetVariance();
+    const ResultType&amp; GetSum();
+
+    void Generate();
+
+protected:
+    MaskedDynamicImageStatisticsGenerator();
+    ~MaskedDynamicImageStatisticsGenerator() override;
+
+    template &lt;typename TPixel, unsigned int VDim&gt;
+    void DoCalculateStatistics(const itk::Image&lt;TPixel, VDim&gt;* image);
+
+    virtual void CheckValidInputs() const;
+
+    bool HasOutdatedResults() const;
+
+    itk::TimeStamp m_GenerationTimeStamp;
+
+private:
+    Image::ConstPointer m_DynamicImage;
+    Image::ConstPointer m_Mask;
+
+    typedef itk::Image&lt;unsigned short, 3&gt; InternalMaskType;
+    InternalMaskType::ConstPointer m_InternalMask;
+
+    ResultType m_Maximum;
+    ResultType m_Minimum;
+    ResultType m_Mean;
+    ResultType m_Sigma;
+    ResultType m_Variance;
+    ResultType m_Sum;
+};
+
+}
+
+#endif // ATERIALINPUTFUNCTIONGENERATOR_H</pre>
+	</body>
+</html>

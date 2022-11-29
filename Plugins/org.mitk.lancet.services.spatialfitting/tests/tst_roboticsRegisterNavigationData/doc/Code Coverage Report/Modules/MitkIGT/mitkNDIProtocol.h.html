@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNDIProtocol.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef MITKNDIPROTOCOL_H_HEADER_INCLUDED_
+#define MITKNDIPROTOCOL_H_HEADER_INCLUDED_
+
+#include &lt;itkObject.h&gt;
+#include &lt;itkObjectFactory.h&gt;
+
+#include &lt;MitkIGTExports.h&gt;
+#include "mitkSerialCommunication.h"
+#include "mitkNDIPassiveTool.h"
+
+namespace mitk
+{
+  class NDITrackingDevice;
+
+  /**Documentation
+   * \brief Error codes of NDI tracking devices
+   */
+  enum NDIErrorCode
+  {
+    NDIOKAY = 0,
+    NDIERROR = 1,
+    SERIALINTERFACENOTSET,
+    SERIALSENDERROR,
+    SERIALRECEIVEERROR,
+    SROMFILETOOLARGE,
+    SROMFILETOOSMALL,
+    NDICRCERROR,                          // reply has crc error, local computer detected the error
+    NDIINVALIDCOMMAND,
+    NDICOMMANDTOOLONG,
+    NDICOMMANDTOOSHORT,
+    NDICRCDOESNOTMATCH,                   // command had crc error, tracking device detected the error
+    NDITIMEOUT,
+    NDIUNABLETOSETNEWCOMMPARAMETERS,
+    NDIINCORRECTNUMBEROFPARAMETERS,
+    NDIINVALIDPORTHANDLE,
+    NDIINVALIDTRACKINGPRIORITY,
+    NDIINVALIDLED,
+    NDIINVALIDLEDSTATE,
+    NDICOMMANDINVALIDINCURRENTMODE,
+    NDINOTOOLFORPORT,
+    NDIPORTNOTINITIALIZED,
+    NDISYSTEMNOTINITIALIZED,
+    NDIUNABLETOSTOPTRACKING,
+    NDIUNABLETOSTARTTRACKING,
+    NDIINITIALIZATIONFAILED,
+    NDIINVALIDVOLUMEPARAMETERS,
+    NDICANTSTARTDIAGNOSTICMODE,
+    NDICANTINITIRDIAGNOSTICS,
+    NDIFAILURETOWRITESROM,
+    NDIENABLEDTOOLSNOTSUPPORTED,
+    NDICOMMANDPARAMETEROUTOFRANGE,
+    NDINOMEMORYAVAILABLE,
+    NDIPORTHANDLENOTALLOCATED,
+    NDIPORTHASBECOMEUNOCCUPIED,
+    NDIOUTOFHANDLES,
+    NDIINCOMPATIBLEFIRMWAREVERSIONS,
+    NDIINVALIDPORTDESCRIPTION,
+    NDIINVALIDOPERATIONFORDEVICE,
+    NDIWARNING,
+    NDIUNKNOWNERROR,
+    NDIUNEXPECTEDREPLY,
+    UNKNOWNHANDLERETURNED,
+    TRACKINGDEVICERESET,
+    TRACKINGDEVICENOTSET
+  };
+
+  /**Documentation
+  * \brief The NDI Protocol class provides building and parsing of
+  *  command strings and answers to and from a NDI tracking device.
+  *
+  * \ingroup IGT
+  */
+  class MITKIGT_EXPORT NDIProtocol : public itk::Object
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(NDIProtocol, itk::Object);
+    itkFactorylessNewMacro(Self);
+    itkCloneMacro(Self);
+    itkSetObjectMacro(TrackingDevice, NDITrackingDevice);</span>
+
+    typedef mitk::SerialCommunication::PortNumber PortNumber; ///&lt; Port number of the serial connection
+    typedef mitk::SerialCommunication::BaudRate BaudRate;     ///&lt; Baud rate of the serial connection
+    typedef mitk::SerialCommunication::DataBits DataBits;     ///&lt; Number of data bits used in the serial connection
+    typedef mitk::SerialCommunication::Parity Parity;         ///&lt; Parity mode used in the serial connection
+    typedef mitk::SerialCommunication::StopBits StopBits;     ///&lt; Number of stop bits used in the serial connection
+    typedef mitk::SerialCommunication::HardwareHandshake HardwareHandshake; ///&lt; Hardware handshake mode of the serial connection
+    typedef mitk::NDIPassiveTool::TrackingPriority TrackingPriority; ///&lt; Tracking priority used for tracking a tool
+    /**
+    * \brief Gives information about the tool which is assosiated with the port handle. Writes portInfo to the string.
+    */
+    NDIErrorCode APIREV(std::string* revision);
+    NDIErrorCode PHINF(std::string portHandle, std::string* portInfo);
+    NDIErrorCode PSOUT(std::string portHandle, std::string state); ///&lt; Set GPIO Output (Aurora)
+    NDIErrorCode COMM(mitk::SerialCommunication::BaudRate baudRate, mitk::SerialCommunication::DataBits dataBits, mitk::SerialCommunication::Parity parity, mitk::SerialCommunication::StopBits stopBits, mitk::SerialCommunication::HardwareHandshake hardwareHandshake); ///&lt; Change Serial Communication Parameters
+    NDIErrorCode INIT();    ///&lt; Initialize the Measurement System
+    NDIErrorCode DSTART();  ///&lt; Start the Diagnostic Mode
+    NDIErrorCode DSTOP();   ///&lt; Stop the Diagnostic Mode
+    NDIErrorCode IRINIT();  ///&lt; Initialize the System to Check for Infrared
+    NDIErrorCode IRCHK(bool* IRdetected);         ///&lt; This version of IRCHK uses only the simple "presence of infrared light" call, that returns a binary "IR detected/no IR detected" answer
+    NDIErrorCode PHSR(PHSRQueryType queryType, std::string* portHandles);    ///&lt; Port Handle Search. Will write returned port handles to the string portHandles
+    NDIErrorCode PHF(std::string* portHandle);    ///&lt; Port Handle Free. Frees the port handle.
+    NDIErrorCode PHRQ(std::string* portHandle);   ///&lt; Port Handle Request. Will request a Port Handle for a wireless tool and return it in the string portHandle
+    NDIErrorCode PVWR(std::string* portHandle, const unsigned char* sromData, unsigned int sromDataLength);    ///&lt; Port Virtual Write. Writes an SROM Image data to a tool
+    NDIErrorCode PINIT(std::string* portHandle);  ///&lt; Port Initialize. Will initialize a Port that has been acquired with PHRQ and has been assigned a SROM File with PVWR
+    NDIErrorCode PENA(std::string* portHandle, TrackingPriority prio); ///&lt; Port Enable. Will enable a port that has been initialized with PINIT.
+    NDIErrorCode PDIS(std::string* portHandle);   ///&lt; Port Disable. Will disable a port that has been enabled with PENA
+    NDIErrorCode IRATE(IlluminationActivationRate rate); ///&lt; Setting the illuminator rate. Will set the refresh rate for the illuminator for wireless tools
+    NDIErrorCode BEEP(unsigned char count);       ///&lt; Sounding the measurement system beeper. The tracking system will beep one to nine times
+    NDIErrorCode SFLIST(std::string* info);       ///&lt; Returns information about the supported feature of the tracking system
+    NDIErrorCode TSTART(bool resetFrameCounter = false);  ///&lt; Start Tracking Mode. The tracking system must be in setup mode and must be initialized.
+    NDIErrorCode TSTOP();                         ///&lt; Stop Tracking Mode. The tracking system must be in Tracking mode.
+    NDIErrorCode TX(bool trackIndividualMarkers = false, MarkerPointContainerType* markerPositions = nullptr); ///&lt; Report transformations in text mode. Optionally, individual markers can be tracked
+    NDIErrorCode BX();                            ///&lt; Report transformations in binary mode.
+    NDIErrorCode POS3D(MarkerPointContainerType* markerPositions); ///&lt; Report 3D Positions of single markers. can only be used in diagnostics mode
+    NDIErrorCode VER(mitk::TrackingDeviceType&amp; t);                 ///&lt; returns if the tracking device is a Polaris or an Aurora system
+    NDIErrorCode VSEL(mitk::TrackingDeviceData deviceData);                ///&lt; Sets the tracking volume to the given type. Check available tracking volumes with SFLIST first
+    NDIErrorCode TX1000(MarkerPointContainerType* markerPositions);    ///&lt; Report transformations in text mode.
+    unsigned int ByteToNbBitsOn(char&amp; c) const; ///&lt;
+<span style = "background-color:#fdd">    itkGetConstMacro(UseCRC, bool); ///&lt; Get whether to append a CRC16 checksum to each message
+    itkSetMacro(UseCRC, bool);      ///&lt; Set whether to append a CRC16 checksum to each message
+    itkBooleanMacro(UseCRC);        ///&lt; Set whether to append a CRC16 checksum to each message</span>
+  protected:
+    NDIProtocol();
+    ~NDIProtocol() override;
+
+    /**Documentation
+    * Reads the reply from the tracking device and checks if it is either "OKAY" or "ERROR##".
+    * if it reads an error, it returns the equivalent NDIErrorCode
+    * Replies other than OKAY or ERROR result in an NDIUNEXPECTEDREPLY
+    */
+    NDIErrorCode ParseOkayError();
+
+    /**Documentation
+    * Sends the command command to the tracking system and checks for OKAY and ERROR as replies
+    * This is used by commands like INIT, DSTART, DSTOP,... that do not need parameters
+    * or special parsing of replies
+    */
+    NDIErrorCode GenericCommand(const std::string command, const std::string* parameter = nullptr);
+
+    /**Documentation
+    * \brief returns the error code for an Error String returned from the NDI tracking device
+    */
+    NDIErrorCode GetErrorCode(const std::string* input);
+
+    NDITrackingDevice* m_TrackingDevice;  ///&lt; tracking device to which the commands will be send
+    bool m_UseCRC;  ///&lt; whether to append a CRC16 checksum to each message
+  };
+} // namespace mitk
+#endif /* MITKNDIPROTOCOL_H_HEADER_INCLUDED_ */</pre>
+	</body>
+</html>

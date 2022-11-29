@@ -1,0 +1,471 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageWriter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkImageWriter.h"
+
+#include "mitkImage.h"
+#include "mitkImageAccessByItk.h"
+#include "mitkImageReadAccessor.h"
+#include "mitkImageTimeSelector.h"
+#include "mitkItkPictureWrite.h"
+#include &lt;mitkLocaleSwitch.h&gt;
+
+#include &lt;itkImageIOBase.h&gt;
+#include &lt;itkImageIOFactory.h&gt;
+
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkXMLImageDataWriter.h&gt;
+
+<span style = "background-color:#fdd">mitk::ImageWriter::ImageWriter() : m_UseCompression(true)
+{
+  this-&gt;SetNumberOfRequiredInputs(1);
+  m_MimeType = "";
+  SetDefaultExtension();
+}</span>
+
+mitk::ImageWriter::~ImageWriter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::ImageWriter::SetFileName(const char *fileName)
+<span style = "background-color:#fdd">{
+  if (fileName &amp;&amp; (fileName == this-&gt;m_FileName))</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+<span style = "background-color:#fdd">  if (fileName)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_FileName = fileName;
+    this-&gt;m_FileNameWithoutExtension = this-&gt;m_FileName;
+    this-&gt;m_Extension.clear();
+    std::size_t pos = this-&gt;m_FileName.find_last_of("/\\");
+    if (pos != std::string::npos)</span>
+    {
+<span style = "background-color:#fdd">      std::size_t ppos = this-&gt;m_FileName.find_first_of('.', pos);
+      if (ppos != std::string::npos)</span>
+      {
+<span style = "background-color:#fdd">        this-&gt;m_FileNameWithoutExtension = this-&gt;m_FileName.substr(0, ppos);
+        this-&gt;m_Extension = this-&gt;m_FileName.substr(ppos);</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;m_FileName.clear();
+    this-&gt;m_FileNameWithoutExtension.clear();
+    this-&gt;m_Extension.clear();</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;Modified();
+}</span>
+
+void mitk::ImageWriter::SetFileName(const std::string &amp;fileName)
+<span style = "background-color:#fdd">{
+  this-&gt;SetFileName(fileName.c_str());
+}</span>
+
+void mitk::ImageWriter::SetExtension(const char *extension)
+<span style = "background-color:#fdd">{
+  if (extension &amp;&amp; (extension == this-&gt;m_Extension))</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+<span style = "background-color:#fdd">  if (extension)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_Extension = extension;
+    this-&gt;m_FileName = this-&gt;m_FileNameWithoutExtension + this-&gt;m_Extension;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;m_Extension.clear();
+    this-&gt;m_FileName = this-&gt;m_FileNameWithoutExtension;</span>
+  }
+<span style = "background-color:#fdd">  this-&gt;Modified();
+}</span>
+
+void mitk::ImageWriter::SetExtension(const std::string &amp;extension)
+<span style = "background-color:#fdd">{
+  this-&gt;SetFileName(extension.c_str());
+}</span>
+
+void mitk::ImageWriter::SetDefaultExtension()
+<span style = "background-color:#fdd">{
+  this-&gt;m_Extension = ".mhd";
+  this-&gt;m_FileName = this-&gt;m_FileNameWithoutExtension + this-&gt;m_Extension;
+  this-&gt;Modified();
+}</span>
+
+static void writeVti(const char *filename, mitk::Image *image, int t = 0)
+<span style = "background-color:#fdd">{
+  vtkXMLImageDataWriter *vtkwriter = vtkXMLImageDataWriter::New();
+  vtkwriter-&gt;SetFileName(filename);
+  vtkwriter-&gt;SetInputData(image-&gt;GetVtkImageData(t));
+  vtkwriter-&gt;Write();
+  vtkwriter-&gt;Delete();
+}</span>
+
+#include &lt;itkRGBAPixel.h&gt;
+
+void mitk::ImageWriter::WriteByITK(mitk::Image *image, const std::string &amp;fileName)
+<span style = "background-color:#fdd">{
+  MITK_INFO &lt;&lt; "Writing image: " &lt;&lt; fileName &lt;&lt; std::endl;</span>
+  // Pictures and picture series like .png are written via a different mechanism then volume images.
+  // So, they are still multiplexed and thus not support vector images.
+  if (fileName.find(".png") != std::string::npos || fileName.find(".tif") != std::string::npos ||
+<span style = "background-color:#fdd">      fileName.find(".jpg") != std::string::npos || fileName.find(".bmp") != std::string::npos)</span>
+  {
+    try
+    {
+      // switch processing of single/multi-component images
+<span style = "background-color:#fdd">      if (image-&gt;GetPixelType(0).GetNumberOfComponents() == 1)</span>
+      {
+<span style = "background-color:#fdd">        AccessByItk_1(image, _mitkItkPictureWrite, fileName);
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        AccessFixedPixelTypeByItk_1(image,</span>
+                                    _mitkItkPictureWriteComposite,
+                                    MITK_ACCESSBYITK_PIXEL_TYPES_SEQ MITK_ACCESSBYITK_COMPOSITE_PIXEL_TYPES_SEQ,
+                                    fileName);
+      }
+    }
+    catch (itk::ExceptionObject &amp;e)
+<span style = "background-color:#fdd">    {
+      std::cerr &lt;&lt; "Caught " &lt;&lt; e.what() &lt;&lt; std::endl;
+    }</span>
+    catch (std::exception &amp;e)
+<span style = "background-color:#fdd">    {
+      std::cerr &lt;&lt; "Caught std::exception " &lt;&lt; e.what() &lt;&lt; std::endl;
+    }</span>
+
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+  // Implementation of writer using itkImageIO directly. This skips the use
+  // of templated itkImageFileWriter, which saves the multiplexing on MITK side.
+
+<span style = "background-color:#fdd">  unsigned int dimension = image-&gt;GetDimension();
+  unsigned int *dimensions = image-&gt;GetDimensions();
+  mitk::PixelType pixelType = image-&gt;GetPixelType();
+  mitk::Vector3D mitkSpacing = image-&gt;GetGeometry()-&gt;GetSpacing();
+  mitk::Point3D mitkOrigin = image-&gt;GetGeometry()-&gt;GetOrigin();</span>
+
+  // Due to templating in itk, we are forced to save a 4D spacing and 4D Origin, though they are not supported in MITK
+  itk::Vector&lt;double, 4u&gt; spacing4D;
+<span style = "background-color:#fdd">  spacing4D[0] = mitkSpacing[0];
+  spacing4D[1] = mitkSpacing[1];
+  spacing4D[2] = mitkSpacing[2];
+  spacing4D[3] = 1; // There is no support for a 4D spacing. However, we should have an valid value here</span>
+
+  itk::Vector&lt;double, 4u&gt; origin4D;
+<span style = "background-color:#fdd">  origin4D[0] = mitkOrigin[0];
+  origin4D[1] = mitkOrigin[1];
+  origin4D[2] = mitkOrigin[2];
+  origin4D[3] = 0; // There is no support for a 4D origin. However, we should have an valid value here</span>
+
+<span style = "background-color:#fdd">  itk::ImageIOBase::Pointer imageIO =</span>
+    itk::ImageIOFactory::CreateImageIO(fileName.c_str(), itk::IOFileModeEnum::WriteMode);
+
+<span style = "background-color:#fdd">  if (imageIO.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt; "Error: Could not create itkImageIO via factory for file " &lt;&lt; fileName);</span>
+  }
+
+  // Set the necessary information for imageIO
+<span style = "background-color:#fdd">  imageIO-&gt;SetNumberOfDimensions(dimension);
+  imageIO-&gt;SetPixelType(pixelType.GetPixelType());
+  imageIO-&gt;SetComponentType(static_cast&lt;int&gt;(pixelType.GetComponentType()) &lt; PixelComponentUserType</span>
+                              ? pixelType.GetComponentType()
+                              : itk::IOComponentEnum::UNKNOWNCOMPONENTTYPE);
+<span style = "background-color:#fdd">  imageIO-&gt;SetNumberOfComponents(pixelType.GetNumberOfComponents());</span>
+
+<span style = "background-color:#fdd">  itk::ImageIORegion ioRegion(dimension);</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; dimension; i++)</span>
+  {
+<span style = "background-color:#fdd">    imageIO-&gt;SetDimensions(i, dimensions[i]);
+    imageIO-&gt;SetSpacing(i, spacing4D[i]);
+    imageIO-&gt;SetOrigin(i, origin4D[i]);</span>
+
+<span style = "background-color:#fdd">    mitk::Vector3D mitkDirection(0.0);
+    mitkDirection.SetVnlVector(</span>
+      image-&gt;GetGeometry()-&gt;GetIndexToWorldTransform()-&gt;GetMatrix().GetVnlMatrix().get_column(i).as_ref());
+    itk::Vector&lt;double, 4u&gt; direction4D;
+<span style = "background-color:#fdd">    direction4D[0] = mitkDirection[0];
+    direction4D[1] = mitkDirection[1];
+    direction4D[2] = mitkDirection[2];</span>
+
+    // MITK only supports a 3x3 direction matrix. Due to templating in itk, however, we must
+    // save a 4x4 matrix for 4D images. in this case, add an homogneous component to the matrix.
+<span style = "background-color:#fdd">    if (i == 3)
+      direction4D[3] = 1; // homogenous component</span>
+    else
+<span style = "background-color:#fdd">      direction4D[3] = 0;</span>
+
+<span style = "background-color:#fdd">    vnl_vector&lt;double&gt; axisDirection(dimension);
+    for (unsigned int j = 0; j &lt; dimension; j++)</span>
+    {
+<span style = "background-color:#fdd">      axisDirection[j] = direction4D[j] / spacing4D[i];
+    }
+    imageIO-&gt;SetDirection(i, axisDirection);</span>
+
+<span style = "background-color:#fdd">    ioRegion.SetSize(i, image-&gt;GetLargestPossibleRegion().GetSize(i));
+    ioRegion.SetIndex(i, image-&gt;GetLargestPossibleRegion().GetIndex(i));
+  }</span>
+
+  // use compression if available
+<span style = "background-color:#fdd">  imageIO-&gt;SetUseCompression(m_UseCompression);</span>
+
+<span style = "background-color:#fdd">  imageIO-&gt;SetIORegion(ioRegion);
+  imageIO-&gt;SetFileName(fileName);</span>
+
+<span style = "background-color:#fdd">  ImageReadAccessor imageAccess(image);
+  imageIO-&gt;Write(imageAccess.GetData());
+}</span>
+
+void mitk::ImageWriter::GenerateData()
+<span style = "background-color:#fdd">{
+  mitk::LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">  if (m_FileName == "")</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Sorry, filename has not been set!");
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  FILE *tempFile = fopen(m_FileName.c_str(), "w");
+  if (tempFile == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt; "File location not writeable");
+    return;</span>
+  }
+<span style = "background-color:#fdd">  fclose(tempFile);
+  remove(m_FileName.c_str());</span>
+
+  // Creating clone of input image, since i might change the geometry
+<span style = "background-color:#fdd">  mitk::Image::Pointer input = this-&gt;GetInput()-&gt;Clone();</span>
+
+  // Check if geometry information will be lost
+<span style = "background-color:#fdd">  if (input-&gt;GetDimension() == 2)</span>
+  {
+<span style = "background-color:#fdd">    if (!input-&gt;GetGeometry()-&gt;Is2DConvertable())</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Saving a 2D image with 3D geometry information. Geometry information will be lost! You might "</span>
+                   "consider using Convert2Dto3DImageFilter before saving.";
+
+      // set matrix to identity
+<span style = "background-color:#fdd">      mitk::AffineTransform3D::Pointer affTrans = mitk::AffineTransform3D::New();
+      affTrans-&gt;SetIdentity();
+      mitk::Vector3D spacing = input-&gt;GetGeometry()-&gt;GetSpacing();
+      mitk::Point3D origin = input-&gt;GetGeometry()-&gt;GetOrigin();
+      input-&gt;GetGeometry()-&gt;SetIndexToWorldTransform(affTrans);
+      input-&gt;GetGeometry()-&gt;SetSpacing(spacing);
+      input-&gt;GetGeometry()-&gt;SetOrigin(origin);
+    }</span>
+  }
+
+<span style = "background-color:#fdd">  bool vti = (m_Extension.find(".vti") != std::string::npos);</span>
+
+  // If the extension is NOT .nrrd and NOT .nii and NOT .nii.gz the following block is entered
+  if (m_Extension.find(".nrrd") == std::string::npos &amp;&amp;
+<span style = "background-color:#fdd">      m_Extension.find(".nii") == std::string::npos &amp;&amp;</span>
+      m_Extension.find(".nii.gz") == std::string::npos)
+  {
+<span style = "background-color:#fdd">    if (input-&gt;GetDimension() &gt; 3)</span>
+    {
+      int t, timesteps;
+
+<span style = "background-color:#fdd">      timesteps = input-&gt;GetDimension(3);
+      ImageTimeSelector::Pointer timeSelector = ImageTimeSelector::New();
+      timeSelector-&gt;SetInput(input);
+      mitk::Image::Pointer image = timeSelector-&gt;GetOutput();
+      for (t = 0; t &lt; timesteps; ++t)</span>
+      {
+<span style = "background-color:#fdd">        std::ostringstream filename;
+        timeSelector-&gt;SetTimeNr(t);
+        timeSelector-&gt;Update();
+        if (input-&gt;GetTimeGeometry()-&gt;IsValidTimeStep(t))</span>
+        {
+<span style = "background-color:#fdd">          const mitk::TimeBounds timebounds = input-&gt;GetTimeGeometry()-&gt;GetTimeBounds(t);
+          filename &lt;&lt; m_FileNameWithoutExtension &lt;&lt; "_S" &lt;&lt; std::setprecision(0) &lt;&lt; timebounds[0] &lt;&lt; "_E"</span>
+                   &lt;&lt; std::setprecision(0) &lt;&lt; timebounds[1] &lt;&lt; "_T" &lt;&lt; t &lt;&lt; m_Extension;
+<span style = "background-color:#fdd">        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          itkWarningMacro(&lt;&lt; "Error on write: TimeGeometry invalid of image " &lt;&lt; filename.str() &lt;&lt; ".");
+          filename &lt;&lt; m_FileNameWithoutExtension &lt;&lt; "_T" &lt;&lt; t &lt;&lt; m_Extension;</span>
+        }
+<span style = "background-color:#fdd">        if (vti)</span>
+        {
+<span style = "background-color:#fdd">          writeVti(filename.str().c_str(), input, t);
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          WriteByITK(image, filename.str());</span>
+        }
+<span style = "background-color:#fdd">      }
+    }
+    else if (vti)</span>
+    {
+<span style = "background-color:#fdd">      writeVti(m_FileName.c_str(), input);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      WriteByITK(input, m_FileName);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+    if (m_Extension.find(".nrrd") != std::string::npos ||
+<span style = "background-color:#fdd">        m_Extension.find(".nii") != std::string::npos ||</span>
+        m_Extension.find(".nii.gz") != std::string::npos)
+    {
+<span style = "background-color:#fdd">      WriteByITK(input, this-&gt;m_FileName);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      itkExceptionMacro(&lt;&lt; "File type not writeable");</span>
+    }
+  }
+<span style = "background-color:#fdd">  m_MimeType = "application/MITK.Pic";
+}</span>
+
+bool mitk::ImageWriter::CanWriteDataType(DataNode *input)
+<span style = "background-color:#fdd">{
+  if (input)</span>
+  {
+<span style = "background-color:#fdd">    return this-&gt;CanWriteBaseDataType(input-&gt;GetData());</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+void mitk::ImageWriter::SetInput(DataNode *input)
+<span style = "background-color:#fdd">{
+  if (input &amp;&amp; CanWriteDataType(input))
+    this-&gt;ProcessObject::SetNthInput(0, dynamic_cast&lt;mitk::Image *&gt;(input-&gt;GetData()));
+}</span>
+
+std::string mitk::ImageWriter::GetWritenMIMEType()
+<span style = "background-color:#fdd">{
+  return m_MimeType;
+}</span>
+
+std::vector&lt;std::string&gt; mitk::ImageWriter::GetPossibleFileExtensions()
+<span style = "background-color:#fdd">{
+  std::vector&lt;std::string&gt; possibleFileExtensions;
+  possibleFileExtensions.push_back(".bmp");
+  possibleFileExtensions.push_back(".dcm");
+  possibleFileExtensions.push_back(".DCM");
+  possibleFileExtensions.push_back(".dicom");
+  possibleFileExtensions.push_back(".DICOM");
+  possibleFileExtensions.push_back(".gipl");
+  possibleFileExtensions.push_back(".gipl.gz");
+  possibleFileExtensions.push_back(".mha");
+  possibleFileExtensions.push_back(".nii");
+  possibleFileExtensions.push_back(".nii.gz");
+  possibleFileExtensions.push_back(".nrrd");
+  possibleFileExtensions.push_back(".nhdr");
+  possibleFileExtensions.push_back(".png");
+  possibleFileExtensions.push_back(".PNG");
+  possibleFileExtensions.push_back(".spr");
+  possibleFileExtensions.push_back(".mhd");
+  possibleFileExtensions.push_back(".vtk");
+  possibleFileExtensions.push_back(".vti");
+  possibleFileExtensions.push_back(".hdr");
+  possibleFileExtensions.push_back(".img");
+  possibleFileExtensions.push_back(".img.gz");
+  possibleFileExtensions.push_back(".png");
+  possibleFileExtensions.push_back(".tif");
+  possibleFileExtensions.push_back(".jpg");
+  return possibleFileExtensions;
+}</span>
+
+std::string mitk::ImageWriter::GetSupportedBaseData() const
+<span style = "background-color:#fdd">{
+  return Image::GetStaticNameOfClass();
+}</span>
+
+std::string mitk::ImageWriter::GetFileExtension()
+<span style = "background-color:#fdd">{
+  return m_Extension;
+}</span>
+
+void mitk::ImageWriter::SetInput(mitk::Image *image)
+<span style = "background-color:#fdd">{
+  this-&gt;ProcessObject::SetNthInput(0, image);
+}</span>
+
+const mitk::Image *mitk::ImageWriter::GetInput()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return static_cast&lt;const mitk::Image *&gt;(this-&gt;ProcessObject::GetInput(0));</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const char *mitk::ImageWriter::GetDefaultFilename()
+<span style = "background-color:#fdd">{
+  return "Image.nrrd";
+}</span>
+
+const char *mitk::ImageWriter::GetFileDialogPattern()
+<span style = "background-color:#fdd">{
+  return "Nearly Raw Raster Data (*.nrrd);;"</span>
+         "NIfTI format (*.nii *.nii.gz);;"
+         "VTK Image Data Files (*.vti);;"
+         "NRRD with detached header (*.nhdr);;"
+         "Analyze Format (*.hdr);;"
+         "MetaImage (*.mhd);;"
+         "Sets of 2D slices (*.png *.tiff *.jpg *.jpeg *.bmp);;"
+         "DICOM (*.dcm *.DCM *.dicom *.DICOM);;"
+         "UMDS GIPL Format Files (*.gipl *.gipl.gz)";
+<span style = "background-color:#fdd">}</span>
+
+const char *mitk::ImageWriter::GetDefaultExtension()
+<span style = "background-color:#fdd">{
+  return ".nrrd";
+}</span>
+
+bool mitk::ImageWriter::CanWriteBaseDataType(BaseData::Pointer data)
+<span style = "background-color:#fdd">{
+  return dynamic_cast&lt;mitk::Image *&gt;(data.GetPointer());
+}</span>
+
+void mitk::ImageWriter::DoWrite(BaseData::Pointer data)
+<span style = "background-color:#fdd">{
+  if (this-&gt;CanWriteBaseDataType(data))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetInput(dynamic_cast&lt;mitk::Image *&gt;(data.GetPointer()));
+    this-&gt;Update();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::ImageWriter::SetUseCompression(bool useCompression)
+<span style = "background-color:#fdd">{
+  m_UseCompression = useCompression;
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMFileReaderSelector.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMFileReaderSelector.h"
+#include "mitkDICOMReaderConfigurator.h"
+#include "mitkDICOMGDCMTagScanner.h"
+
+#include &lt;usModuleContext.h&gt;
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModuleResource.h&gt;
+#include &lt;usModuleResourceStream.h&gt;
+#include &lt;usModule.h&gt;
+
+mitk::DICOMFileReaderSelector
+::DICOMFileReaderSelector()
+<span style = "background-color:#dfd">{
+}</span>
+
+mitk::DICOMFileReaderSelector
+::~DICOMFileReaderSelector()
+<span style = "background-color:#dfd">{
+}</span>
+
+std::list&lt;mitk::DICOMFileReader::Pointer&gt;
+mitk::DICOMFileReaderSelector
+::GetAllConfiguredReaders() const
+<span style = "background-color:#dfd">{
+  return m_Readers;
+}</span>
+
+void
+mitk::DICOMFileReaderSelector
+::AddConfigsFromResources(const std::string&amp; path)
+<span style = "background-color:#dfd">{
+  if (nullptr == us::GetModuleContext()) return;</span>
+
+<span style = "background-color:#dfd">  const std::vector&lt;us::ModuleResource&gt; configs =</span>
+    us::GetModuleContext()-&gt;GetModule()-&gt;FindResources( path, "*.xml", false );
+
+<span style = "background-color:#dfd">  for ( auto iter = configs.cbegin(); iter != configs.cend(); ++iter )</span>
+  {
+<span style = "background-color:#dfd">    us::ModuleResource resource = *iter;
+    if (resource.IsValid())</span>
+    {
+<span style = "background-color:#dfd">      us::ModuleResourceStream stream(resource);</span>
+
+      // read all into string s
+<span style = "background-color:#dfd">      std::string s;</span>
+
+<span style = "background-color:#dfd">      stream.seekg(0, std::ios::end);
+      s.reserve(stream.tellg());
+      stream.seekg(0, std::ios::beg);</span>
+
+<span style = "background-color:#dfd">      s.assign((std::istreambuf_iterator&lt;char&gt;(stream)),</span>
+                std::istreambuf_iterator&lt;char&gt;());
+
+<span style = "background-color:#dfd">      this-&gt;AddConfig(s);
+    }
+  }
+}</span>
+
+void
+mitk::DICOMFileReaderSelector
+::AddConfigFromResource(us::ModuleResource&amp; resource)
+<span style = "background-color:#dfd">{
+  if (resource.IsValid())</span>
+  {
+<span style = "background-color:#dfd">    us::ModuleResourceStream stream(resource);</span>
+
+    // read all into string s
+<span style = "background-color:#dfd">    std::string s;</span>
+
+<span style = "background-color:#dfd">    stream.seekg(0, std::ios::end);
+    s.reserve(stream.tellg());
+    stream.seekg(0, std::ios::beg);</span>
+
+<span style = "background-color:#dfd">    s.assign((std::istreambuf_iterator&lt;char&gt;(stream)),</span>
+              std::istreambuf_iterator&lt;char&gt;());
+
+<span style = "background-color:#dfd">    this-&gt;AddConfig(s);
+  }
+}</span>
+
+void
+mitk::DICOMFileReaderSelector
+::AddConfigFromResource(const std::string&amp; resourcename)
+<span style = "background-color:#dfd">{
+  if (nullptr == us::GetModuleContext()) return;</span>
+
+<span style = "background-color:#dfd">  us::ModuleResource r = us::GetModuleContext()-&gt;GetModule()-&gt;GetResource(resourcename);
+  this-&gt;AddConfigFromResource(r);
+}</span>
+
+void
+mitk::DICOMFileReaderSelector
+::AddFileReaderCanditate(DICOMFileReader::Pointer reader)
+<span style = "background-color:#fdd">{
+  if (reader.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    m_Readers.push_back( reader );</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void
+mitk::DICOMFileReaderSelector
+::LoadBuiltIn3DConfigs()
+<span style = "background-color:#dfd">{</span>
+  //this-&gt;AddConfigsFromResources("configurations/3D");
+  // in this order of preference...
+<span style = "background-color:#dfd">  this-&gt;AddConfigFromResource("configurations/3D/instancenumber.xml");
+  this-&gt;AddConfigFromResource("configurations/3D/instancenumber_soft.xml");
+  this-&gt;AddConfigFromResource("configurations/3D/slicelocation.xml");
+  this-&gt;AddConfigFromResource("configurations/3D/imageposition.xml");
+  this-&gt;AddConfigFromResource("configurations/3D/imageposition_byacquisition.xml");</span>
+  //this-&gt;AddConfigFromResource("configurations/3D/classicreader.xml"); // not the best choice in ANY of the images I came across
+<span style = "background-color:#dfd">}</span>
+
+void
+mitk::DICOMFileReaderSelector
+::LoadBuiltIn3DnTConfigs()
+<span style = "background-color:#dfd">{
+  this-&gt;AddConfigsFromResources("configurations/3DnT");
+}</span>
+
+void
+mitk::DICOMFileReaderSelector
+::AddConfig(const std::string&amp; xmlDescription)
+<span style = "background-color:#dfd">{
+  DICOMReaderConfigurator::Pointer configurator = DICOMReaderConfigurator::New();
+  DICOMFileReader::Pointer reader = configurator-&gt;CreateFromUTF8ConfigString(xmlDescription);</span>
+
+<span style = "background-color:#dfd">  if (reader.IsNotNull())</span>
+  {
+<span style = "background-color:#dfd">    m_Readers.push_back( reader );
+    m_PossibleConfigurations.push_back(xmlDescription);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    std::stringstream ss;
+    ss &lt;&lt; "Could not parse reader configuration. Ignoring it.";
+    throw std::invalid_argument( ss.str() );
+  }</span>
+<span style = "background-color:#dfd">}</span>
+
+void
+mitk::DICOMFileReaderSelector
+::AddConfigFile(const std::string&amp; filename)
+<span style = "background-color:#fdd">{
+  std::ifstream file(filename.c_str());
+  std::string s;</span>
+
+<span style = "background-color:#fdd">  file.seekg(0, std::ios::end);
+  s.reserve(file.tellg());
+  file.seekg(0, std::ios::beg);</span>
+
+<span style = "background-color:#fdd">  s.assign((std::istreambuf_iterator&lt;char&gt;(file)),</span>
+              std::istreambuf_iterator&lt;char&gt;());
+
+<span style = "background-color:#fdd">  this-&gt;AddConfig(s);
+}</span>
+
+void
+mitk::DICOMFileReaderSelector
+::SetInputFiles(StringList filenames)
+<span style = "background-color:#fdd">{
+  m_InputFilenames = filenames;
+}</span>
+
+const mitk::StringList&amp;
+mitk::DICOMFileReaderSelector
+::GetInputFiles() const
+<span style = "background-color:#fdd">{
+  return m_InputFilenames;
+}</span>
+
+mitk::DICOMFileReader::Pointer
+mitk::DICOMFileReaderSelector
+::GetFirstReaderWithMinimumNumberOfOutputImages()
+<span style = "background-color:#fdd">{
+  ReaderList workingCandidates;</span>
+
+  // do the tag scanning externally and just ONCE
+<span style = "background-color:#fdd">  DICOMGDCMTagScanner::Pointer gdcmScanner = DICOMGDCMTagScanner::New();
+  gdcmScanner-&gt;SetInputFiles( m_InputFilenames );</span>
+
+  // let all readers analyze the file set
+<span style = "background-color:#fdd">  for ( auto rIter = m_Readers.cbegin(); rIter != m_Readers.cend(); ++rIter )</span>
+  {
+<span style = "background-color:#fdd">    gdcmScanner-&gt;AddTagPaths((*rIter)-&gt;GetTagsOfInterest());
+  }</span>
+
+<span style = "background-color:#fdd">  gdcmScanner-&gt;Scan();</span>
+
+  // let all readers analyze the file set
+<span style = "background-color:#fdd">  unsigned int readerIndex(0);
+  for ( auto rIter = m_Readers.cbegin(); rIter != m_Readers.cend(); ++readerIndex, ++rIter )</span>
+  {
+<span style = "background-color:#fdd">    (*rIter)-&gt;SetInputFiles( m_InputFilenames );
+    (*rIter)-&gt;SetTagCache( gdcmScanner-&gt;GetScanCache() );</span>
+    try
+    {
+<span style = "background-color:#fdd">      (*rIter)-&gt;AnalyzeInputFiles();
+      workingCandidates.push_back( *rIter );
+      MITK_INFO &lt;&lt; "Reader " &lt;&lt; readerIndex &lt;&lt; " (" &lt;&lt; (*rIter)-&gt;GetConfigurationLabel() &lt;&lt; ") suggests " &lt;&lt; (*rIter)-&gt;GetNumberOfOutputs() &lt;&lt; " 3D blocks";
+      if ((*rIter)-&gt;GetNumberOfOutputs() == 1)</span>
+      {
+<span style = "background-color:#fdd">        MITK_DEBUG &lt;&lt; "Early out with reader #" &lt;&lt; readerIndex &lt;&lt; " (" &lt;&lt; (*rIter)-&gt;GetConfigurationLabel() &lt;&lt; "), less than 1 block is not possible";
+        return *rIter;</span>
+      }
+    }
+    catch ( const std::exception&amp; e )
+<span style = "background-color:#fdd">    {
+      MITK_ERROR &lt;&lt; "Reader " &lt;&lt; readerIndex &lt;&lt; " (" &lt;&lt; (*rIter)-&gt;GetConfigurationLabel() &lt;&lt; ") threw exception during file analysis, ignoring this reader. Exception: " &lt;&lt; e.what();
+    }</span>
+    catch (...)
+<span style = "background-color:#fdd">    {
+      MITK_ERROR &lt;&lt; "Reader " &lt;&lt; readerIndex &lt;&lt; " (" &lt;&lt; (*rIter)-&gt;GetConfigurationLabel() &lt;&lt; ") threw unknown exception during file analysis, ignoring this reader.";
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  DICOMFileReader::Pointer bestReader;</span>
+
+<span style = "background-color:#fdd">  unsigned int minimumNumberOfOutputs = std::numeric_limits&lt;unsigned int&gt;::max();
+  readerIndex = 0;
+  unsigned int bestReaderIndex(0);</span>
+  // select the reader with the minimum number of mitk::Images as output
+<span style = "background-color:#fdd">  for ( auto rIter = workingCandidates.cbegin(); rIter != workingCandidates.cend(); ++readerIndex, ++rIter )</span>
+  {
+<span style = "background-color:#fdd">    const unsigned int thisReadersNumberOfOutputs = (*rIter)-&gt;GetNumberOfOutputs();</span>
+    if (   thisReadersNumberOfOutputs &gt; 0  // we don't count readers that don't actually produce output
+<span style = "background-color:#fdd">        &amp;&amp; thisReadersNumberOfOutputs &lt; minimumNumberOfOutputs )</span>
+    {
+<span style = "background-color:#fdd">      minimumNumberOfOutputs = (*rIter)-&gt;GetNumberOfOutputs();
+      bestReader = *rIter;
+      bestReaderIndex = readerIndex;
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "Decided for reader #" &lt;&lt; bestReaderIndex &lt;&lt; " (" &lt;&lt; bestReader-&gt;GetConfigurationLabel() &lt;&lt; ")";
+  MITK_DEBUG &lt;&lt; m_PossibleConfigurations[bestReaderIndex];</span>
+
+<span style = "background-color:#fdd">  return bestReader;
+}</span></pre>
+	</body>
+</html>

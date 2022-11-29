@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataPassThroughFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationDataPassThroughFilter.h"
+
+mitk::NavigationDataPassThroughFilter::NavigationDataPassThroughFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::NavigationDataPassThroughFilter::~NavigationDataPassThroughFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::NavigationDataPassThroughFilter::GenerateData()
+<span style = "background-color:#fdd">{</span>
+  // get each input and transfer the data
+<span style = "background-color:#fdd">  DataObjectPointerArray inputs = this-&gt;GetInputs(); //get all inputs
+  for ( unsigned int index = 0; index &lt; inputs.size(); ++index )</span>
+  {
+    // get the needed variables (input and output)
+<span style = "background-color:#fdd">    const mitk::NavigationData* nd = this-&gt;GetInput(index);
+    mitk::NavigationData* output = this-&gt;GetOutput(index);</span>
+
+<span style = "background-color:#fdd">    if ( ! nd || ! output )</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR("NavigationDataToNavigationDataFilter")("NavigationDataPassThroughFilter")</span>
+          &lt;&lt; "Input and output must not be null.";
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "Input and output must not be null.";</span>
+    }
+
+<span style = "background-color:#fdd">    output-&gt;Graft(nd); // copy all information from input to output
+    output-&gt;SetDataValid(nd-&gt;IsDataValid());
+  }
+}</span></pre>
+	</body>
+</html>

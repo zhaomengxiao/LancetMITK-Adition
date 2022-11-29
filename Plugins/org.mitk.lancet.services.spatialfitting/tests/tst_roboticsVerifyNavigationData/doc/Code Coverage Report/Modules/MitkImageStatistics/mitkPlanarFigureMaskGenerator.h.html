@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlanarFigureMaskGenerator.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKPLANARFIGUREMASKGENERATOR
+#define MITKPLANARFIGUREMASKGENERATOR
+
+#include &lt;MitkImageStatisticsExports.h&gt;
+#include &lt;itkImage.h&gt;
+#include &lt;mitkImage.h&gt;
+#include &lt;mitkMaskGenerator.h&gt;
+#include &lt;mitkPlanarFigure.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+
+namespace mitk
+{
+  /**
+   * \class PlanarFigureMaskGenerator
+   * \brief Derived from MaskGenerator. This class is used to convert a mitk::PlanarFigure into a binary image mask
+   */
+  class MITKIMAGESTATISTICS_EXPORT PlanarFigureMaskGenerator : public MaskGenerator
+  {
+  public:
+    /** Standard Self typedef */
+    typedef PlanarFigureMaskGenerator Self;
+    typedef MaskGenerator Superclass;
+    typedef itk::SmartPointer&lt;Self&gt; Pointer;
+    typedef itk::SmartPointer&lt;const Self&gt; ConstPointer;
+
+    /** Method for creation through the object factory. */
+<span style = "background-color:#fdd">    itkNewMacro(Self); /** Runtime information support. */
+      itkTypeMacro(PlanarFigureMaskGenerator, MaskGenerator);</span>
+
+      /**
+       * @brief GetMask Computes and returns the mask
+       * @return mitk::Image::Pointer of the generated mask
+       */
+      mitk::Image::Pointer GetMask() override;
+
+    void SetPlanarFigure(mitk::PlanarFigure::Pointer planarFigure);
+
+    mitk::Image::ConstPointer GetReferenceImage() override;
+
+    /**
+     * @brief SetTimeStep is used to set the time step for which the mask is to be generated
+     * @param timeStep
+     */
+    void SetTimeStep(unsigned int timeStep) override;
+
+<span style = "background-color:#fdd">    itkGetConstMacro(PlanarFigureAxis, unsigned int);
+    itkGetConstMacro(PlanarFigureSlice, unsigned int);</span>
+
+    /** Helper function that indicates if a passed planar geometry is tilted regarding a given geometry and its main axis.
+     *@pre If either planarGeometry or geometry is nullptr it will return false.*/
+    static bool CheckPlanarFigureIsNotTilted(const PlaneGeometry* planarGeometry, const BaseGeometry *geometry);
+
+  protected:
+    PlanarFigureMaskGenerator()
+<span style = "background-color:#fdd">      : Superclass(),
+        m_ReferenceImage(nullptr),
+        m_PlanarFigureAxis(0),
+        m_InternalMaskUpdateTime(0),
+        m_PlanarFigureSlice(0)
+    {
+      m_InternalMask = mitk::Image::New();
+    }</span>
+
+  private:
+    void CalculateMask();
+
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    void InternalCalculateMaskFromPlanarFigure(const itk::Image&lt;TPixel, VImageDimension&gt; *image, unsigned int axis);
+
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    void InternalCalculateMaskFromOpenPlanarFigure(const itk::Image&lt;TPixel, VImageDimension&gt; *image, unsigned int axis);
+
+    mitk::Image::ConstPointer extract2DImageSlice(unsigned int axis, unsigned int slice);
+
+    /** Helper function that deduces if the passed vector is equal to one of the primary axis of the geometry.*/
+    static bool GetPrincipalAxis(const BaseGeometry *geometry, Vector3D vector, unsigned int &amp;axis);
+
+    /** Connection from ITK to VTK */
+    template &lt;typename ITK_Exporter, typename VTK_Importer&gt;
+    void ConnectPipelines(ITK_Exporter exporter, vtkSmartPointer&lt;VTK_Importer&gt; importer)
+<span style = "background-color:#fdd">    {
+      importer-&gt;SetUpdateInformationCallback(exporter-&gt;GetUpdateInformationCallback());</span>
+
+<span style = "background-color:#fdd">      importer-&gt;SetPipelineModifiedCallback(exporter-&gt;GetPipelineModifiedCallback());
+      importer-&gt;SetWholeExtentCallback(exporter-&gt;GetWholeExtentCallback());
+      importer-&gt;SetSpacingCallback(exporter-&gt;GetSpacingCallback());
+      importer-&gt;SetOriginCallback(exporter-&gt;GetOriginCallback());
+      importer-&gt;SetScalarTypeCallback(exporter-&gt;GetScalarTypeCallback());</span>
+
+<span style = "background-color:#fdd">      importer-&gt;SetNumberOfComponentsCallback(exporter-&gt;GetNumberOfComponentsCallback());</span>
+
+<span style = "background-color:#fdd">      importer-&gt;SetPropagateUpdateExtentCallback(exporter-&gt;GetPropagateUpdateExtentCallback());
+      importer-&gt;SetUpdateDataCallback(exporter-&gt;GetUpdateDataCallback());
+      importer-&gt;SetDataExtentCallback(exporter-&gt;GetDataExtentCallback());
+      importer-&gt;SetBufferPointerCallback(exporter-&gt;GetBufferPointerCallback());
+      importer-&gt;SetCallbackUserData(exporter-&gt;GetCallbackUserData());
+    }</span>
+
+    /** Connection from VTK to ITK */
+    template &lt;typename VTK_Exporter, typename ITK_Importer&gt;
+    void ConnectPipelines(vtkSmartPointer&lt;VTK_Exporter&gt; exporter, ITK_Importer importer)
+<span style = "background-color:#fdd">    {
+      importer-&gt;SetUpdateInformationCallback(exporter-&gt;GetUpdateInformationCallback());</span>
+
+<span style = "background-color:#fdd">      importer-&gt;SetPipelineModifiedCallback(exporter-&gt;GetPipelineModifiedCallback());
+      importer-&gt;SetWholeExtentCallback(exporter-&gt;GetWholeExtentCallback());
+      importer-&gt;SetSpacingCallback(exporter-&gt;GetSpacingCallback());
+      importer-&gt;SetOriginCallback(exporter-&gt;GetOriginCallback());
+      importer-&gt;SetScalarTypeCallback(exporter-&gt;GetScalarTypeCallback());</span>
+
+<span style = "background-color:#fdd">      importer-&gt;SetNumberOfComponentsCallback(exporter-&gt;GetNumberOfComponentsCallback());</span>
+
+<span style = "background-color:#fdd">      importer-&gt;SetPropagateUpdateExtentCallback(exporter-&gt;GetPropagateUpdateExtentCallback());
+      importer-&gt;SetUpdateDataCallback(exporter-&gt;GetUpdateDataCallback());
+      importer-&gt;SetDataExtentCallback(exporter-&gt;GetDataExtentCallback());
+      importer-&gt;SetBufferPointerCallback(exporter-&gt;GetBufferPointerCallback());
+      importer-&gt;SetCallbackUserData(exporter-&gt;GetCallbackUserData());
+    }</span>
+
+    bool IsUpdateRequired() const;
+
+    mitk::PlanarFigure::Pointer m_PlanarFigure;
+    itk::Image&lt;unsigned short, 2&gt;::Pointer m_InternalITKImageMask2D;
+    mitk::Image::ConstPointer m_InternalTimeSliceImage;
+    mitk::Image::ConstPointer m_ReferenceImage;
+    unsigned int m_PlanarFigureAxis;
+    unsigned long m_InternalMaskUpdateTime;
+    unsigned int m_PlanarFigureSlice;
+  };
+
+} // namespace mitk
+
+#endif // MITKPLANARFIGUREMASKGENERATOR</pre>
+	</body>
+</html>

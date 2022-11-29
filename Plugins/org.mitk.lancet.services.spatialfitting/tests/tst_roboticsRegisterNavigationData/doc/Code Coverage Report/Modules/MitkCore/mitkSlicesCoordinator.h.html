@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSlicesCoordinator.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef SLICESCOORDINATOR_H_HEADER_INCLUDED_C1C55A2F
+#define SLICESCOORDINATOR_H_HEADER_INCLUDED_C1C55A2F
+
+#include &lt;MitkCoreExports.h&gt;
+#include &lt;itkObject.h&gt;
+#include &lt;mitkCommon.h&gt;
+#include &lt;vector&gt;
+
+namespace mitk
+{
+  class SliceNavigationController;
+  class Action;
+  class StateEvent;
+
+#pragma GCC visibility push(default)
+<span style = "background-color:#fdd">  itkEventMacroDeclaration(SliceRotationEvent, itk::AnyEvent);</span>
+#pragma GCC visibility pop
+
+  /**
+   * \brief Coordinates a list of SliceNavigationControllers.
+   *
+   * Each SliceNavigationController can select one slice from a
+   * TimeGeometry. This class (SlicesCoordinator) coordinates several
+   * SliceNavigationControllers to facilitate e.g. rotation of slices. A new
+   * class is needed, because for rotation one has to know an axis of rotation.
+   * Such an axis is most easily determined from the "other slices", which are
+   * not known by a SliceNavigationController.
+   */
+  class MITKCORE_EXPORT SlicesCoordinator : public itk::Object
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(SlicesCoordinator, itk::Object);
+    itkFactorylessNewMacro(Self);</span>
+
+      typedef std::vector&lt;SliceNavigationController *&gt; SNCVector;
+    /** Add to list of managed slices. Check if CreatedWorldGeometry of SNC is
+     * managable (i.e. there is basically only one planegeometry) */
+    void AddSliceController(SliceNavigationController *snc);
+
+    /** Remove one controller from the internal list */
+    void RemoveSliceController(SliceNavigationController *snc);
+
+    /* Reset all Slices to central slice, no rotation */
+    // void ResetAllSlices();
+
+    /** Set/Get whether planes should stay linked to each other (by fixing
+     * their relative angle) */
+<span style = "background-color:#fdd">    itkSetMacro(LinkPlanes, bool);
+    itkGetMacro(LinkPlanes, bool);
+    itkBooleanMacro(LinkPlanes);</span>
+
+    /** \brief Resets the mouse cursor (if modified by the SlicesCoordinator)
+     * to its original state.
+     *
+     * Should be used by subclasses and from external application instead
+     * of using QmitkApplicationCursor directly to avoid conflicts. */
+    void ResetMouseCursor();
+
+  protected:
+    /** \brief Default Constructor */
+    SlicesCoordinator();
+
+    /** clear list of controllers */
+    ~SlicesCoordinator() override;
+
+    /** \brief Sets the specified mouse cursor.
+     *
+     * Use this in subclasses instead of using QmitkApplicationCursor directly.
+     */
+    void SetMouseCursor(const char *xpm[], int hotspotX, int hotspotY);
+
+    /** for implementation in subclasses */
+    virtual void OnSliceControllerAdded(SliceNavigationController *snc);
+
+    /** for implementation in subclasses */
+    virtual void OnSliceControllerRemoved(SliceNavigationController *snc);
+
+    SNCVector m_SliceNavigationControllers;
+
+    bool m_LinkPlanes;
+
+    bool m_MouseCursorSet;
+  };
+
+} // namespace
+
+#endif</pre>
+	</body>
+</html>

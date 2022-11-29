@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkFileWriterRegistry.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkFileWriterRegistry.h"
+
+// MITK
+#include "mitkBaseData.h"
+#include "mitkCoreServices.h"
+#include "mitkIMimeTypeProvider.h"
+
+// Microservices
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usLDAPProp.h&gt;
+#include &lt;usModuleContext.h&gt;
+#include &lt;usServiceProperties.h&gt;
+
+mitk::FileWriterRegistry::FileWriterRegistry()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::FileWriterRegistry::~FileWriterRegistry()
+<span style = "background-color:#fdd">{
+  for (auto &amp;elem : m_ServiceObjects)</span>
+  {
+<span style = "background-color:#fdd">    elem.second.UngetService(elem.first);
+  }
+}</span>
+
+std::vector&lt;mitk::FileWriterRegistry::WriterReference&gt; mitk::FileWriterRegistry::GetReferences(
+  const mitk::BaseData *baseData, us::ModuleContext *context)
+<span style = "background-color:#fdd">{
+  return GetReferences(baseData, std::string(), context);
+}</span>
+
+std::vector&lt;mitk::FileWriterRegistry::WriterReference&gt; mitk::FileWriterRegistry::GetReferences(
+  const mitk::BaseData *baseData, const std::string &amp;mimeType, us::ModuleContext *context)
+<span style = "background-color:#fdd">{
+  if (baseData == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "FileWriterRegistry::GetReferences was called with null basedata.";
+    std::vector&lt;mitk::FileWriterRegistry::WriterReference&gt; emptyResult;
+    return emptyResult;</span>
+  }
+
+<span style = "background-color:#fdd">  if (context == nullptr)
+    context = us::GetModuleContext();</span>
+
+<span style = "background-color:#fdd">  std::vector&lt;WriterReference&gt; result;</span>
+
+  // loop over the class hierarchy of baseData and get all writers
+  // claiming to support the actual baseData class or any of its super classes
+<span style = "background-color:#fdd">  std::vector&lt;std::string&gt; classHierarchy = baseData-&gt;GetClassHierarchy();
+  for (std::vector&lt;std::string&gt;::const_iterator clIter = classHierarchy.begin(), clIterEnd = classHierarchy.end();
+       clIter != clIterEnd;
+       ++clIter)</span>
+  {
+<span style = "background-color:#fdd">    std::string filter =</span>
+      us::LDAPProp(us::ServiceConstants::OBJECTCLASS()) == us_service_interface_iid&lt;IFileWriter&gt;() &amp;&amp;
+      us::LDAPProp(IFileWriter::PROP_BASEDATA_TYPE()) == *clIter &amp;&amp;
+      (mimeType.empty() ? us::LDAPPropExpr(std::string()) : us::LDAPProp(IFileWriter::PROP_MIMETYPE()) == mimeType);
+<span style = "background-color:#fdd">    std::vector&lt;WriterReference&gt; refs = context-&gt;GetServiceReferences&lt;IFileWriter&gt;(filter);
+    result.insert(result.end(), refs.begin(), refs.end());
+  }
+  return result;
+}</span>
+
+mitk::IFileWriter *mitk::FileWriterRegistry::GetWriter(const mitk::FileWriterRegistry::WriterReference &amp;ref,
+                                                       us::ModuleContext *context)
+<span style = "background-color:#fdd">{
+  if (!ref)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  if (context == nullptr)
+    context = us::GetModuleContext();</span>
+
+<span style = "background-color:#fdd">  us::ServiceObjects&lt;mitk::IFileWriter&gt; serviceObjects = context-&gt;GetServiceObjects(ref);
+  mitk::IFileWriter *writer = serviceObjects.GetService();
+  m_ServiceObjects.insert(std::make_pair(writer, serviceObjects));
+  return writer;
+}</span>
+
+std::vector&lt;mitk::IFileWriter *&gt; mitk::FileWriterRegistry::GetWriters(const mitk::BaseData *baseData,
+                                                                      const std::string &amp;mimeType,
+                                                                      us::ModuleContext *context)
+<span style = "background-color:#fdd">{
+  if (baseData == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "FileWriterRegistry::GetReferences was called with null basedata.";
+    std::vector&lt;mitk::IFileWriter *&gt; emptyResult;
+    return emptyResult;</span>
+  }
+
+<span style = "background-color:#fdd">  if (context == nullptr)
+    context = us::GetModuleContext();</span>
+
+<span style = "background-color:#fdd">  std::vector&lt;mitk::IFileWriter *&gt; result;</span>
+
+<span style = "background-color:#fdd">  std::vector&lt;us::ServiceReference&lt;IFileWriter&gt;&gt; refs;
+  if (mimeType.empty())</span>
+  {
+<span style = "background-color:#fdd">    refs = GetReferences(baseData, context);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    refs = GetReferences(baseData, mimeType, context);</span>
+  }
+<span style = "background-color:#fdd">  std::sort(refs.begin(), refs.end());</span>
+
+<span style = "background-color:#fdd">  result.reserve(refs.size());</span>
+
+  // Translate List of ServiceRefs to List of Pointers
+<span style = "background-color:#fdd">  for (std::vector&lt;us::ServiceReference&lt;IFileWriter&gt;&gt;::const_reverse_iterator iter = refs.rbegin(), end = refs.rend();
+       iter != end;
+       ++iter)</span>
+  {
+<span style = "background-color:#fdd">    us::ServiceObjects&lt;mitk::IFileWriter&gt; serviceObjects = context-&gt;GetServiceObjects(*iter);
+    mitk::IFileWriter *writer = serviceObjects.GetService();
+    m_ServiceObjects.insert(std::make_pair(writer, serviceObjects));
+    result.push_back(writer);
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+void mitk::FileWriterRegistry::UngetWriter(mitk::IFileWriter *writer)
+<span style = "background-color:#fdd">{
+  auto writerIter =</span>
+    m_ServiceObjects.find(writer);
+<span style = "background-color:#fdd">  if (writerIter != m_ServiceObjects.end())</span>
+  {
+<span style = "background-color:#fdd">    writerIter-&gt;second.UngetService(writer);
+    m_ServiceObjects.erase(writerIter);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::FileWriterRegistry::UngetWriters(const std::vector&lt;mitk::IFileWriter *&gt; &amp;writers)
+<span style = "background-color:#fdd">{
+  for (const auto &amp;writer : writers)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;UngetWriter(writer);
+  }
+}</span></pre>
+	</body>
+</html>

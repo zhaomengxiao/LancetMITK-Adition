@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkColorBarAnnotation.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkColorBarAnnotation.h"
+#include "mitkLookupTable.h"
+#include "mitkLookupTableProperty.h"
+#include &lt;vtkScalarBarActor.h&gt;
+
+mitk::ColorBarAnnotation::ColorBarAnnotation()
+<span style = "background-color:#fdd">{
+  SetDrawAnnotations(true);</span>
+
+<span style = "background-color:#fdd">  SetDrawTickLabels(true);</span>
+
+<span style = "background-color:#fdd">  SetOrientationToVertical();</span>
+
+<span style = "background-color:#fdd">  SetMaxNumberOfColors(100);
+  SetNumberOfLabels(4);</span>
+
+<span style = "background-color:#fdd">  SetAnnotationTextScaling(false);</span>
+
+<span style = "background-color:#fdd">  SetLookupTable(nullptr);
+}</span>
+
+mitk::ColorBarAnnotation::~ColorBarAnnotation()
+<span style = "background-color:#fdd">{
+  for (BaseRenderer *renderer : m_LSH.GetRegisteredBaseRenderer())</span>
+  {
+<span style = "background-color:#fdd">    if (renderer)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;RemoveFromBaseRenderer(renderer);
+    }
+  }
+}</span>
+
+mitk::ColorBarAnnotation::LocalStorage::~LocalStorage()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::ColorBarAnnotation::LocalStorage::LocalStorage()
+<span style = "background-color:#fdd">{
+  m_ScalarBarActor = vtkSmartPointer&lt;vtkScalarBarActor&gt;::New();
+}</span>
+
+void mitk::ColorBarAnnotation::UpdateVtkAnnotation(mitk::BaseRenderer *renderer)
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);</span>
+
+<span style = "background-color:#fdd">  if (ls-&gt;IsGenerateDataRequired(renderer, this))</span>
+  {
+<span style = "background-color:#fdd">    ls-&gt;m_ScalarBarActor-&gt;SetDrawAnnotations(this-&gt;GetDrawAnnotations());
+    ls-&gt;m_ScalarBarActor-&gt;SetLookupTable(this-&gt;GetLookupTable());
+    ls-&gt;m_ScalarBarActor-&gt;SetOrientation(this-&gt;GetOrientation());
+    ls-&gt;m_ScalarBarActor-&gt;SetDrawTickLabels(this-&gt;GetDrawTickLabels());
+    ls-&gt;m_ScalarBarActor-&gt;SetMaximumNumberOfColors(this-&gt;GetMaxNumberOfColors());
+    ls-&gt;m_ScalarBarActor-&gt;SetNumberOfLabels(this-&gt;GetNumberOfLabels());
+    ls-&gt;m_ScalarBarActor-&gt;SetAnnotationTextScaling(this-&gt;GetAnnotationTextScaling());</span>
+    // manually set position so there is no overlap with mitk logo in 3d renderwindow
+<span style = "background-color:#fdd">    if (this-&gt;GetOrientation() == 1)</span>
+    {
+<span style = "background-color:#fdd">      ls-&gt;m_ScalarBarActor-&gt;SetPosition(0.80, 0.10);
+      ls-&gt;m_ScalarBarActor-&gt;SetWidth(0.15);
+      ls-&gt;m_ScalarBarActor-&gt;SetHeight(0.85);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      ls-&gt;m_ScalarBarActor-&gt;SetPosition(0.03, 0.03);
+      ls-&gt;m_ScalarBarActor-&gt;SetWidth(0.8);
+      ls-&gt;m_ScalarBarActor-&gt;SetHeight(0.15);</span>
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+vtkProp *mitk::ColorBarAnnotation::GetVtkProp(BaseRenderer *renderer) const
+<span style = "background-color:#fdd">{
+  LocalStorage *ls = this-&gt;m_LSH.GetLocalStorage(renderer);
+  return ls-&gt;m_ScalarBarActor;
+}</span>
+
+void mitk::ColorBarAnnotation::SetDrawAnnotations(bool annotations)
+<span style = "background-color:#fdd">{
+  SetBoolProperty("ColorBarAnnotation.DrawAnnotations", annotations);
+}</span>
+
+bool mitk::ColorBarAnnotation::GetDrawAnnotations() const
+<span style = "background-color:#fdd">{</span>
+  bool annotations;
+<span style = "background-color:#fdd">  GetPropertyList()-&gt;GetBoolProperty("ColorBarAnnotation.DrawAnnotations", annotations);
+  return annotations;
+}</span>
+
+void mitk::ColorBarAnnotation::SetLookupTable(vtkSmartPointer&lt;vtkLookupTable&gt; table)
+<span style = "background-color:#fdd">{
+  mitk::LookupTable::Pointer lut = mitk::LookupTable::New();
+  mitk::LookupTableProperty::Pointer prop = mitk::LookupTableProperty::New(lut);
+  lut-&gt;SetVtkLookupTable(table);
+  prop-&gt;SetLookupTable(lut);
+  SetProperty("ColorBarAnnotation.LookupTable", prop.GetPointer());
+}</span>
+
+vtkSmartPointer&lt;vtkLookupTable&gt; mitk::ColorBarAnnotation::GetLookupTable() const
+<span style = "background-color:#fdd">{
+  mitk::LookupTable::Pointer lut = mitk::LookupTable::New();
+  lut = dynamic_cast&lt;mitk::LookupTableProperty *&gt;(GetPropertyList()-&gt;GetProperty("ColorBarAnnotation.LookupTable"))</span>
+          -&gt;GetLookupTable();
+<span style = "background-color:#fdd">  return lut-&gt;GetVtkLookupTable();
+}</span>
+
+void mitk::ColorBarAnnotation::SetOrientation(int orientation)
+<span style = "background-color:#fdd">{
+  SetIntProperty("ColorBarAnnotation.Orientation", orientation);
+}</span>
+
+int mitk::ColorBarAnnotation::GetOrientation() const
+<span style = "background-color:#fdd">{</span>
+  int orientation;
+<span style = "background-color:#fdd">  GetPropertyList()-&gt;GetIntProperty("ColorBarAnnotation.Orientation", orientation);
+  return orientation;
+}</span>
+
+void mitk::ColorBarAnnotation::SetDrawTickLabels(bool ticks)
+<span style = "background-color:#fdd">{
+  SetBoolProperty("ColorBarAnnotation.DrawTicks", ticks);
+}</span>
+
+bool mitk::ColorBarAnnotation::GetDrawTickLabels() const
+<span style = "background-color:#fdd">{</span>
+  bool ticks;
+<span style = "background-color:#fdd">  GetPropertyList()-&gt;GetBoolProperty("ColorBarAnnotation.DrawTicks", ticks);
+  return ticks;
+}</span>
+
+void mitk::ColorBarAnnotation::SetOrientationToHorizontal()
+<span style = "background-color:#fdd">{
+  SetOrientation(0);
+}</span>
+
+void mitk::ColorBarAnnotation::SetOrientationToVertical()
+<span style = "background-color:#fdd">{
+  SetOrientation(1);
+}</span>
+
+void mitk::ColorBarAnnotation::SetMaxNumberOfColors(int numberOfColors)
+<span style = "background-color:#fdd">{
+  SetIntProperty("ColorBarAnnotation.MaximumNumberOfColors", numberOfColors);
+}</span>
+
+int mitk::ColorBarAnnotation::GetMaxNumberOfColors() const
+<span style = "background-color:#fdd">{</span>
+  int numberOfColors;
+<span style = "background-color:#fdd">  GetPropertyList()-&gt;GetIntProperty("ColorBarAnnotation.MaximumNumberOfColors", numberOfColors);
+  return numberOfColors;
+}</span>
+
+void mitk::ColorBarAnnotation::SetNumberOfLabels(int numberOfLabels)
+<span style = "background-color:#fdd">{
+  SetIntProperty("ColorBarAnnotation.NumberOfLabels", numberOfLabels);
+}</span>
+
+int mitk::ColorBarAnnotation::GetNumberOfLabels() const
+<span style = "background-color:#fdd">{</span>
+  int numberOfLabels;
+<span style = "background-color:#fdd">  GetPropertyList()-&gt;GetIntProperty("ColorBarAnnotation.NumberOfLabels", numberOfLabels);
+  return numberOfLabels;
+}</span>
+
+void mitk::ColorBarAnnotation::SetAnnotationTextScaling(bool scale)
+<span style = "background-color:#fdd">{
+  SetBoolProperty("ColorBarAnnotation.ScaleAnnotationText", scale);
+}</span>
+
+bool mitk::ColorBarAnnotation::GetAnnotationTextScaling() const
+<span style = "background-color:#fdd">{</span>
+  bool scale;
+<span style = "background-color:#fdd">  GetPropertyList()-&gt;GetBoolProperty("ColorBarAnnotation.ScaleAnnotationText", scale);
+  return scale;
+}</span></pre>
+	</body>
+</html>

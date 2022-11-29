@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkThinPlateSplineCurvedGeometry.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKTHINPLATESPLINECURVEDGEOMETRY_H_HEADER_INCLUDED_C1C68A2C
+#define MITKTHINPLATESPLINECURVEDGEOMETRY_H_HEADER_INCLUDED_C1C68A2C
+
+#include "mitkLandmarkProjectorBasedCurvedGeometry.h"
+
+class vtkPoints;
+class vtkThinPlateSplineTransform;
+
+namespace mitk
+{
+  //##Documentation
+  //## @brief Thin-plate-spline-based landmark-based curved geometry
+  //##
+  //## @ingroup Geometry
+  class MITKCORE_EXPORT ThinPlateSplineCurvedGeometry : public LandmarkProjectorBasedCurvedGeometry
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(ThinPlateSplineCurvedGeometry, LandmarkProjectorBasedCurvedGeometry);</span>
+
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+      void ComputeGeometry() override;
+
+    itk::LightObject::Pointer InternalClone() const override;
+
+<span style = "background-color:#fdd">    vtkThinPlateSplineTransform *GetThinPlateSplineTransform() const { return m_ThinPlateSplineTransform; }</span>
+    virtual void SetSigma(double sigma);
+    virtual double GetSigma() const;
+
+    bool IsValid() const override;
+
+  protected:
+    ThinPlateSplineCurvedGeometry();
+    ThinPlateSplineCurvedGeometry(const ThinPlateSplineCurvedGeometry &amp;other);
+
+    ~ThinPlateSplineCurvedGeometry() override;
+
+    vtkThinPlateSplineTransform *m_ThinPlateSplineTransform;
+
+    vtkPoints *m_VtkTargetLandmarks;
+    vtkPoints *m_VtkProjectedLandmarks;
+
+    //##Documentation
+    //## @brief PreSetSpacing
+    //##
+    //## These virtual function allows a different beahiour in subclasses.
+    //## Do implement them in every subclass of BaseGeometry. If not needed, use
+    //## {Superclass::PreSetSpacing();};
+<span style = "background-color:#fdd">    void PreSetSpacing(const mitk::Vector3D &amp;aSpacing) override { Superclass::PreSetSpacing(aSpacing); };</span>
+  };
+} // namespace mitk
+
+#endif /* MITKTHINPLATESPLINECURVEDGEOMETRY_H_HEADER_INCLUDED_C1C68A2C */</pre>
+	</body>
+</html>

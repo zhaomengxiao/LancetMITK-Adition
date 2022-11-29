@@ -1,0 +1,449 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataLandmarkTransformFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationDataLandmarkTransformFilter.h"
+#include "itkIndent.h"
+#include "itkEuler3DTransform.h"
+#include "itkVersorRigid3DTransform.h"
+#include "itkEuclideanDistancePointMetric.h"
+#include "itkLevenbergMarquardtOptimizer.h"
+#include "itkPointSet.h"
+#include "itkPointSetToPointSetRegistrationMethod.h"
+#include &lt;algorithm&gt;
+
+
+<span style = "background-color:#fdd">mitk::NavigationDataLandmarkTransformFilter::NavigationDataLandmarkTransformFilter() : mitk::NavigationDataToNavigationDataFilter(),
+m_ErrorMean(-1.0), m_ErrorStdDev(-1.0), m_ErrorRMS(-1.0), m_ErrorMin(-1.0), m_ErrorMax(-1.0), m_ErrorAbsMax(-1.0),
+m_SourcePoints(), m_TargetPoints(), m_LandmarkTransformInitializer(nullptr), m_LandmarkTransform(nullptr),
+m_QuatLandmarkTransform(nullptr), m_QuatTransform(nullptr), m_Errors(), m_UseICPInitialization(false)
+{
+  m_LandmarkTransform = LandmarkTransformType::New();</span>
+
+<span style = "background-color:#fdd">  m_LandmarkTransformInitializer = TransformInitializerType::New();
+  m_LandmarkTransformInitializer-&gt;SetTransform(m_LandmarkTransform);</span>
+
+  //transform to rotate orientation
+<span style = "background-color:#fdd">  m_QuatLandmarkTransform = QuaternionTransformType::New();
+  m_QuatTransform = QuaternionTransformType::New();
+}</span>
+
+
+mitk::NavigationDataLandmarkTransformFilter::~NavigationDataLandmarkTransformFilter()
+<span style = "background-color:#fdd">{
+  m_LandmarkTransform = nullptr;
+  m_LandmarkTransformInitializer = nullptr;
+  m_QuatLandmarkTransform = nullptr;
+  m_QuatTransform = nullptr;
+}</span>
+
+
+void mitk::NavigationDataLandmarkTransformFilter::InitializeLandmarkTransform(LandmarkPointContainer&amp; sources, const LandmarkPointContainer&amp; targets)
+<span style = "background-color:#fdd">{
+  if (m_UseICPInitialization == true)</span>
+  {
+<span style = "background-color:#fdd">    if (this-&gt;FindCorrespondentLandmarks(sources, targets) == false) // determine landmark correspondences with iterative closest point optimization, sort sort landmarks accordingly</span>
+    {
+<span style = "background-color:#fdd">      itkExceptionMacro("Landmark correspondence finding failed.");</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  if(m_SourcePoints.size() != m_TargetPoints.size())// check whether target and source points size are equal itk registration won't work otherways</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("Cannot initialize Filter, number of input datas does not equal number of output datas.");</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;UpdateLandmarkTransform(sources, targets); // if size of source and target points is equal
+}</span>
+
+
+void mitk::NavigationDataLandmarkTransformFilter::SetSourceLandmarks(mitk::PointSet::Pointer mitkSourcePointSet)
+<span style = "background-color:#fdd">{
+  m_SourcePoints.clear();
+  mitk::PointSet::PointType mitkSourcePoint;</span>
+  TransformInitializerType::LandmarkPointType lPoint;
+
+<span style = "background-color:#fdd">  for (mitk::PointSet::PointsContainer::ConstIterator it = mitkSourcePointSet-&gt;GetPointSet()-&gt;GetPoints()-&gt;Begin();
+    it != mitkSourcePointSet-&gt;GetPointSet()-&gt;GetPoints()-&gt;End(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    mitk::FillVector3D(lPoint, it-&gt;Value().GetElement(0), it-&gt;Value().GetElement(1), it-&gt;Value().GetElement(2));
+    m_SourcePoints.push_back(lPoint);
+  }</span>
+
+<span style = "background-color:#fdd">  if (m_SourcePoints.size() &lt; 3)</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("SourcePointSet must contain at least 3 points");</span>
+  }
+
+<span style = "background-color:#fdd">  if (this-&gt;IsInitialized())
+    this-&gt;InitializeLandmarkTransform(m_SourcePoints, m_TargetPoints);
+}</span>
+
+
+void mitk::NavigationDataLandmarkTransformFilter::SetTargetLandmarks(mitk::PointSet::Pointer mitkTargetPointSet)
+<span style = "background-color:#fdd">{
+  m_TargetPoints.clear();</span>
+  TransformInitializerType::LandmarkPointType lPoint;
+<span style = "background-color:#fdd">  for (mitk::PointSet::PointsContainer::ConstIterator it = mitkTargetPointSet-&gt;GetPointSet()-&gt;GetPoints()-&gt;Begin();
+    it != mitkTargetPointSet-&gt;GetPointSet()-&gt;GetPoints()-&gt;End(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    mitk::FillVector3D(lPoint, it-&gt;Value().GetElement(0), it-&gt;Value().GetElement(1), it-&gt;Value().GetElement(2));
+    m_TargetPoints.push_back(lPoint);
+  }</span>
+
+<span style = "background-color:#fdd">  if (m_TargetPoints.size() &lt; 3)</span>
+  {
+<span style = "background-color:#fdd">    itkExceptionMacro("TargetPointSet must contain at least 3 points");</span>
+  }
+
+<span style = "background-color:#fdd">  if (this-&gt;IsInitialized())
+    this-&gt;InitializeLandmarkTransform(m_SourcePoints, m_TargetPoints);
+}</span>
+
+
+mitk::ScalarType mitk::NavigationDataLandmarkTransformFilter::GetFRE() const
+<span style = "background-color:#fdd">{
+  return m_ErrorMean;
+}</span>
+
+
+mitk::ScalarType mitk::NavigationDataLandmarkTransformFilter::GetFREStdDev() const
+<span style = "background-color:#fdd">{
+  return m_ErrorStdDev;
+}</span>
+
+
+mitk::ScalarType mitk::NavigationDataLandmarkTransformFilter::GetRMSError() const
+<span style = "background-color:#fdd">{
+  return m_ErrorRMS;
+}</span>
+
+
+mitk::ScalarType mitk::NavigationDataLandmarkTransformFilter::GetMinError() const
+<span style = "background-color:#fdd">{
+  return m_ErrorMin;
+}</span>
+
+
+mitk::ScalarType mitk::NavigationDataLandmarkTransformFilter::GetMaxError() const
+<span style = "background-color:#fdd">{
+  return m_ErrorMax;
+}</span>
+
+
+mitk::ScalarType mitk::NavigationDataLandmarkTransformFilter::GetAbsMaxError() const
+<span style = "background-color:#fdd">{
+  return m_ErrorAbsMax;
+}</span>
+
+
+void mitk::NavigationDataLandmarkTransformFilter::AccumulateStatistics(std::vector&lt;mitk::ScalarType&gt;&amp; vector)
+<span style = "background-color:#fdd">{</span>
+  //mean, min, max
+<span style = "background-color:#fdd">  m_ErrorMean = 0.0;
+  m_ErrorMin = itk::NumericTraits&lt;mitk::ScalarType&gt;::max();
+  m_ErrorMax = itk::NumericTraits&lt;mitk::ScalarType&gt;::min();
+  m_ErrorAbsMax = 0.0;
+  m_ErrorRMS = 0.0;
+  for (std::vector&lt;mitk::ScalarType&gt;::size_type i = 0; i &lt; vector.size(); i++)</span>
+  {
+<span style = "background-color:#fdd">    m_ErrorMean += vector[i];       // mean
+    m_ErrorRMS += pow(vector[i],2); // RMS
+    if(vector[i] &lt; m_ErrorMin)      // min
+      m_ErrorMin = vector[i];
+    if(vector[i] &gt; m_ErrorMax)      // max
+      m_ErrorMax = vector[i];
+    if(fabs(vector[i]) &gt; fabs(m_ErrorAbsMax)) // abs_max
+      m_ErrorAbsMax = vector[i];
+  }
+  m_ErrorMean /= vector.size();
+  m_ErrorRMS = sqrt(m_ErrorRMS/vector.size());</span>
+
+  //standard deviation
+<span style = "background-color:#fdd">  m_ErrorStdDev = 0.0;
+  for (std::vector&lt;mitk::ScalarType&gt;::size_type i = 0; i &lt; vector.size(); i++)
+    m_ErrorStdDev += pow(vector[i] - m_ErrorMean, 2);</span>
+
+<span style = "background-color:#fdd">  if(vector.size() &gt; 1)
+    m_ErrorStdDev = sqrt(m_ErrorStdDev / (vector.size() - 1.0));
+  this-&gt;Modified();
+}</span>
+
+
+void mitk::NavigationDataLandmarkTransformFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  this-&gt;CreateOutputsForAllInputs(); // make sure that we have the same number of outputs as inputs</span>
+
+  TransformInitializerType::LandmarkPointType lPointIn, lPointOut;
+
+  /* update outputs with tracking data from tools */
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; this-&gt;GetNumberOfOutputs() ; ++i)</span>
+  {
+<span style = "background-color:#fdd">    mitk::NavigationData* output = this-&gt;GetOutput(i);
+    assert(output);
+    const mitk::NavigationData* input = this-&gt;GetInput(i);
+    assert(input);</span>
+
+<span style = "background-color:#fdd">    if (input-&gt;IsDataValid() == false)</span>
+    {
+<span style = "background-color:#fdd">      output-&gt;SetDataValid(false);
+      continue;</span>
+    }
+<span style = "background-color:#fdd">    output-&gt;Graft(input); // First, copy all information from input to output</span>
+
+<span style = "background-color:#fdd">    if (this-&gt;IsInitialized() == false) // as long as there is no valid transformation matrix, only graft the outputs
+      continue;</span>
+
+<span style = "background-color:#fdd">    mitk::NavigationData::PositionType tempCoordinate;
+    tempCoordinate = input-&gt;GetPosition();
+    lPointIn[0] = tempCoordinate[0]; // convert navigation data position to transform point
+    lPointIn[1] = tempCoordinate[1];
+    lPointIn[2] = tempCoordinate[2];</span>
+
+    /* transform position */
+<span style = "background-color:#fdd">    lPointOut = m_LandmarkTransform-&gt;TransformPoint(lPointIn); // transform position
+    tempCoordinate[0] = lPointOut[0];  // convert back into navigation data position
+    tempCoordinate[1] = lPointOut[1];
+    tempCoordinate[2] = lPointOut[2];
+    output-&gt;SetPosition(tempCoordinate); // update output navigation data with new position</span>
+
+    /* transform orientation */
+<span style = "background-color:#fdd">    NavigationData::OrientationType  quatIn = input-&gt;GetOrientation();
+    vnl_quaternion&lt;double&gt; const vnlQuatIn(quatIn.x(), quatIn.y(), quatIn.z(), quatIn.r());  // convert orientation into vnl quaternion
+    m_QuatTransform-&gt;SetRotation(vnlQuatIn);  // convert orientation into transform</span>
+
+<span style = "background-color:#fdd">    m_QuatLandmarkTransform-&gt;SetMatrix(m_LandmarkTransform-&gt;GetMatrix());</span>
+
+<span style = "background-color:#fdd">    m_QuatLandmarkTransform-&gt;Compose(m_QuatTransform, true); // compose navigation data transform and landmark transform</span>
+
+<span style = "background-color:#fdd">    vnl_quaternion&lt;double&gt; vnlQuatOut = m_QuatLandmarkTransform-&gt;GetRotation();  // convert composed transform back into a quaternion
+    NavigationData::OrientationType quatOut(vnlQuatOut[0], vnlQuatOut[1], vnlQuatOut[2], vnlQuatOut[3]); // convert back into navigation data orientation
+    output-&gt;SetOrientation(quatOut); // update output navigation data with new orientation
+    output-&gt;SetDataValid(true); // operation was successful, therefore data of output is valid.
+  }
+}</span>
+
+
+bool mitk::NavigationDataLandmarkTransformFilter::IsInitialized() const
+<span style = "background-color:#fdd">{
+  return (m_SourcePoints.size() &gt;= 3) &amp;&amp; (m_TargetPoints.size() &gt;= 3);
+}</span>
+
+
+void mitk::NavigationDataLandmarkTransformFilter::PrintSelf( std::ostream&amp; os, itk::Indent indent ) const
+<span style = "background-color:#fdd">{
+  Superclass::PrintSelf(os, indent);</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; this-&gt;GetNameOfClass() &lt;&lt; ":\n";
+  os &lt;&lt; indent &lt;&lt; m_SourcePoints.size() &lt;&lt; " SourcePoints exist: \n";
+  itk::Indent nextIndent = indent.GetNextIndent();
+  unsigned int i = 0;
+  for (LandmarkPointContainer::const_iterator it = m_SourcePoints.begin(); it != m_SourcePoints.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; nextIndent &lt;&lt; "Point " &lt;&lt; i++ &lt;&lt; ": [";
+    os &lt;&lt; it-&gt;GetElement(0);
+    for (unsigned int i = 1; i &lt; TransformInitializerType::LandmarkPointType::GetPointDimension(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; ", " &lt;&lt; it-&gt;GetElement(i);
+    }
+    os &lt;&lt; "]\n";
+  }</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; indent &lt;&lt; m_TargetPoints.size() &lt;&lt; " TargetPoints exist: \n";
+  i = 0;
+  for (LandmarkPointContainer::const_iterator it = m_TargetPoints.begin(); it != m_TargetPoints.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; nextIndent &lt;&lt; "Point " &lt;&lt; i++ &lt;&lt; ": [";
+    os &lt;&lt; it-&gt;GetElement(0);
+    for (unsigned int i = 1; i &lt; TransformInitializerType::LandmarkPointType::GetPointDimension(); ++i)</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; ", " &lt;&lt; it-&gt;GetElement(i);
+    }
+    os &lt;&lt; "]\n";
+  }
+  os &lt;&lt; indent &lt;&lt; "Landmarktransform initialized: " &lt;&lt; this-&gt;IsInitialized() &lt;&lt; "\n";
+  if (this-&gt;IsInitialized() == true)
+    m_LandmarkTransform-&gt;Print(os, nextIndent);
+  os &lt;&lt; indent &lt;&lt; "Registration error statistics:\n";
+  os &lt;&lt; nextIndent &lt;&lt; "FRE: " &lt;&lt; this-&gt;GetFRE() &lt;&lt; "\n";
+  os &lt;&lt; nextIndent &lt;&lt; "FRE std.dev.: " &lt;&lt; this-&gt;GetFREStdDev() &lt;&lt; "\n";
+  os &lt;&lt; nextIndent &lt;&lt; "FRE RMS: " &lt;&lt; this-&gt;GetRMSError() &lt;&lt; "\n";
+  os &lt;&lt; nextIndent &lt;&lt; "Minimum registration error: " &lt;&lt; this-&gt;GetMinError() &lt;&lt; "\n";
+  os &lt;&lt; nextIndent &lt;&lt; "Maximum registration error: " &lt;&lt; this-&gt;GetMaxError() &lt;&lt; "\n";
+  os &lt;&lt; nextIndent &lt;&lt; "Absolute Maximum registration error: " &lt;&lt; this-&gt;GetAbsMaxError() &lt;&lt; "\n";
+}</span>
+
+
+const mitk::NavigationDataLandmarkTransformFilter::ErrorVector&amp; mitk::NavigationDataLandmarkTransformFilter::GetErrorVector() const
+<span style = "background-color:#fdd">{
+  return m_Errors;
+}</span>
+
+
+bool mitk::NavigationDataLandmarkTransformFilter::FindCorrespondentLandmarks(LandmarkPointContainer&amp; sources, const LandmarkPointContainer&amp; targets) const
+<span style = "background-color:#fdd">{
+  if (sources.size() &lt; 6 || targets.size() &lt; 6)
+    return false;</span>
+  //throw std::invalid_argument("ICP correspondence finding needs at least 6 landmarks");
+
+  /* lots of type definitions */
+  typedef itk::PointSet&lt;mitk::ScalarType, 3&gt; PointSetType;
+
+  typedef itk::EuclideanDistancePointMetric&lt; PointSetType, PointSetType&gt; MetricType;
+  typedef itk::VersorRigid3DTransform&lt; double &gt; TransformType;
+  typedef itk::PointSetToPointSetRegistrationMethod&lt; PointSetType, PointSetType &gt; RegistrationType;
+
+  /* copy landmarks to itk pointsets for registration */
+<span style = "background-color:#fdd">  PointSetType::Pointer sourcePointSet = PointSetType::New();
+  unsigned int i = 0;
+  for (LandmarkPointContainer::const_iterator it = sources.begin(); it != sources.end(); ++it)</span>
+  {
+    PointSetType::PointType doublePoint;
+<span style = "background-color:#fdd">    mitk::itk2vtk(*it, doublePoint); // copy mitk::ScalarType point into double point as workaround to ITK 3.10 bug
+    sourcePointSet-&gt;SetPoint(i++, doublePoint /**it*/);
+  }</span>
+
+<span style = "background-color:#fdd">  i = 0;
+  PointSetType::Pointer targetPointSet = PointSetType::New();
+  for (LandmarkPointContainer::const_iterator it = targets.begin(); it != targets.end(); ++it)</span>
+  {
+    PointSetType::PointType doublePoint;
+<span style = "background-color:#fdd">    mitk::itk2vtk(*it, doublePoint); // copy mitk::ScalarType point into double point as workaround to ITK 3.10 bug
+    targetPointSet-&gt;SetPoint(i++, doublePoint /**it*/);
+  }</span>
+
+<span style = "background-color:#fdd">  TransformType::Pointer transform = TransformType::New();
+  transform-&gt;SetIdentity();</span>
+
+<span style = "background-color:#fdd">  itk::LevenbergMarquardtOptimizer::Pointer optimizer = itk::LevenbergMarquardtOptimizer::New();
+  optimizer-&gt;SetUseCostFunctionGradient(false);</span>
+
+<span style = "background-color:#fdd">  RegistrationType::Pointer registration = RegistrationType::New();</span>
+
+  // Scale the translation components of the Transform in the Optimizer
+<span style = "background-color:#fdd">  itk::LevenbergMarquardtOptimizer::ScalesType scales(transform-&gt;GetNumberOfParameters());
+  const double translationScale = 5000; //sqrtf(targetBoundingBox-&gt;GetDiagonalLength2())  * 1000; // dynamic range of translations
+  const double rotationScale = 1.0; // dynamic range of rotations
+  scales[0] = 1.0 / rotationScale;
+  scales[1] = 1.0 / rotationScale;
+  scales[2] = 1.0 / rotationScale;
+  scales[3] = 1.0 / translationScale;
+  scales[4] = 1.0 / translationScale;
+  scales[5] = 1.0 / translationScale;</span>
+
+<span style = "background-color:#fdd">  unsigned long numberOfIterations = 80000;
+  double gradientTolerance = 1e-10; // convergence criterion
+  double valueTolerance = 1e-10; // convergence criterion
+  double epsilonFunction = 1e-10; // convergence criterion
+  optimizer-&gt;SetScales( scales );
+  optimizer-&gt;SetNumberOfIterations( numberOfIterations );
+  optimizer-&gt;SetValueTolerance( valueTolerance );
+  optimizer-&gt;SetGradientTolerance( gradientTolerance );
+  optimizer-&gt;SetEpsilonFunction( epsilonFunction );</span>
+
+
+<span style = "background-color:#fdd">  registration-&gt;SetInitialTransformParameters( transform-&gt;GetParameters() );</span>
+  //------------------------------------------------------
+  // Connect all the components required for Registration
+  //------------------------------------------------------
+<span style = "background-color:#fdd">  MetricType::Pointer metric = MetricType::New();</span>
+
+<span style = "background-color:#fdd">  registration-&gt;SetMetric( metric );
+  registration-&gt;SetOptimizer( optimizer );
+  registration-&gt;SetTransform( transform );
+  registration-&gt;SetFixedPointSet( targetPointSet );
+  registration-&gt;SetMovingPointSet( sourcePointSet );</span>
+
+  try
+  {
+    //registration-&gt;StartRegistration();
+<span style = "background-color:#fdd">    registration-&gt;Update();</span>
+  }
+  catch( itk::ExceptionObject &amp; e )
+<span style = "background-color:#fdd">  {
+    MITK_INFO &lt;&lt; "Exception caught during ICP optimization: " &lt;&lt; e;
+    return false;</span>
+    //throw e;
+<span style = "background-color:#fdd">  }
+  MITK_INFO &lt;&lt; "ICP successful: Solution = " &lt;&lt; transform-&gt;GetParameters() &lt;&lt; std::endl;
+  MITK_INFO &lt;&lt; "Metric value: " &lt;&lt; metric-&gt;GetValue(transform-&gt;GetParameters());</span>
+
+  /* find point correspondences */
+
+<span style = "background-color:#fdd">  LandmarkPointContainer sortedSources;
+  for (LandmarkPointContainer::const_iterator targetsIt = targets.begin(); targetsIt != targets.end(); ++targetsIt)</span>
+  {
+<span style = "background-color:#fdd">    double minDistance = itk::NumericTraits&lt;double&gt;::max();
+    LandmarkPointContainer::iterator minDistanceIterator = sources.end();
+    for (LandmarkPointContainer::iterator sourcesIt = sources.begin(); sourcesIt != sources.end(); ++sourcesIt)</span>
+    {
+<span style = "background-color:#fdd">      TransformInitializerType::LandmarkPointType transformedSource = transform-&gt;TransformPoint(*sourcesIt);
+      double dist = targetsIt-&gt;EuclideanDistanceTo(transformedSource);
+      MITK_INFO &lt;&lt; "target: " &lt;&lt; *targetsIt &lt;&lt; ", source: " &lt;&lt; *sourcesIt &lt;&lt; ", transformed source: " &lt;&lt; transformedSource &lt;&lt; ", dist: " &lt;&lt; dist;
+      if (dist &lt; minDistance )</span>
+      {
+<span style = "background-color:#fdd">        minDistanceIterator = sourcesIt;
+        minDistance = dist;
+      }
+    }
+    if (minDistanceIterator == sources.end())
+      return false;
+    MITK_INFO &lt;&lt; "minimum distance point is: " &lt;&lt; *minDistanceIterator &lt;&lt; " (dist: " &lt;&lt; targetsIt-&gt;EuclideanDistanceTo(transform-&gt;TransformPoint(*minDistanceIterator)) &lt;&lt; ", minDist: " &lt;&lt; minDistance &lt;&lt; ")";
+    sortedSources.push_back(*minDistanceIterator); // this point is assigned
+    sources.erase(minDistanceIterator); // erase it from sources to avoid duplicate assigns
+  }</span>
+  //for (LandmarkPointContainer::const_iterator sortedSourcesIt = sortedSources.begin(); targetsIt != sortedSources.end(); ++targetsIt)
+<span style = "background-color:#fdd">  sources = sortedSources;
+  return true;
+}</span>
+
+
+void mitk::NavigationDataLandmarkTransformFilter::UpdateLandmarkTransform(const LandmarkPointContainer &amp;sources,  const LandmarkPointContainer &amp;targets)
+<span style = "background-color:#fdd">{</span>
+  try
+  {
+    /* calculate transform from landmarks */
+<span style = "background-color:#fdd">    m_LandmarkTransformInitializer-&gt;SetMovingLandmarks(targets);
+    m_LandmarkTransformInitializer-&gt;SetFixedLandmarks(sources);    // itk registration always maps from fixed object space to moving object space
+    m_LandmarkTransform-&gt;SetIdentity();
+    m_LandmarkTransformInitializer-&gt;InitializeTransform();</span>
+
+    /* Calculate error statistics for the transform */
+    TransformInitializerType::LandmarkPointType curData;
+<span style = "background-color:#fdd">    m_Errors.clear();
+    for (LandmarkPointContainer::size_type index = 0; index &lt; sources.size(); index++)</span>
+    {
+<span style = "background-color:#fdd">      curData = m_LandmarkTransform-&gt;TransformPoint(sources.at(index));
+      m_Errors.push_back(curData.EuclideanDistanceTo(targets.at(index)));
+    }
+    this-&gt;AccumulateStatistics(m_Errors);
+    this-&gt;Modified();</span>
+  }
+  catch (std::exception&amp; e)
+<span style = "background-color:#fdd">  {
+    m_Errors.clear();
+    m_LandmarkTransform-&gt;SetIdentity();
+    itkExceptionMacro("Initializing landmark-transform failed\n. " &lt;&lt; e.what());
+  }
+}</span></pre>
+	</body>
+</html>

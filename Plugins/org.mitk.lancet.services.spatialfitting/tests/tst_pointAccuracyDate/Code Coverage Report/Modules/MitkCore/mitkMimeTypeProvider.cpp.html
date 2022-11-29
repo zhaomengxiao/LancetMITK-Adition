@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkMimeTypeProvider.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkMimeTypeProvider.h"
+
+#include "mitkLogMacros.h"
+
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModuleContext.h&gt;
+
+#include &lt;itksys/SystemTools.hxx&gt;
+
+#ifdef _MSC_VER
+#pragma warning(disable : 4503) // decorated name length exceeded, name was truncated
+#pragma warning(disable : 4355)
+#endif
+
+namespace mitk
+{
+<span style = "background-color:#dfd">  MimeTypeProvider::MimeTypeProvider() : m_Tracker(nullptr) {}
+  MimeTypeProvider::~MimeTypeProvider() { delete m_Tracker; }</span>
+  void MimeTypeProvider::Start()
+<span style = "background-color:#dfd">  {
+    if (m_Tracker == nullptr)</span>
+    {
+<span style = "background-color:#dfd">      m_Tracker = new us::ServiceTracker&lt;CustomMimeType, MimeTypeTrackerTypeTraits&gt;(us::GetModuleContext(), this);</span>
+    }
+<span style = "background-color:#dfd">    m_Tracker-&gt;Open();
+  }</span>
+
+<span style = "background-color:#dfd">  void MimeTypeProvider::Stop() { m_Tracker-&gt;Close(); }</span>
+  std::vector&lt;MimeType&gt; MimeTypeProvider::GetMimeTypes() const
+<span style = "background-color:#fdd">  {
+    std::vector&lt;MimeType&gt; result;
+    for (const auto &amp;elem : m_NameToMimeType)</span>
+    {
+<span style = "background-color:#fdd">      result.push_back(elem.second);
+    }
+    return result;
+  }</span>
+
+  std::vector&lt;MimeType&gt; MimeTypeProvider::GetMimeTypesForFile(const std::string &amp;filePath) const
+<span style = "background-color:#fdd">  {
+    std::vector&lt;MimeType&gt; result;
+    for (const auto &amp;elem : m_NameToMimeType)</span>
+    {
+<span style = "background-color:#fdd">      if (elem.second.AppliesTo(filePath))</span>
+      {
+<span style = "background-color:#fdd">        result.push_back(elem.second);</span>
+      }
+<span style = "background-color:#fdd">    }
+    std::sort(result.begin(), result.end());
+    std::reverse(result.begin(), result.end());
+    return result;
+  }</span>
+
+  std::vector&lt;MimeType&gt; MimeTypeProvider::GetMimeTypesForCategory(const std::string &amp;category) const
+<span style = "background-color:#fdd">  {
+    std::vector&lt;MimeType&gt; result;
+    for (const auto &amp;elem : m_NameToMimeType)</span>
+    {
+<span style = "background-color:#fdd">      if (elem.second.GetCategory() == category)</span>
+      {
+<span style = "background-color:#fdd">        result.push_back(elem.second);</span>
+      }
+<span style = "background-color:#fdd">    }
+    return result;
+  }</span>
+
+  MimeType MimeTypeProvider::GetMimeTypeForName(const std::string &amp;name) const
+<span style = "background-color:#dfd">  {
+    auto iter = m_NameToMimeType.find(name);
+    if (iter != m_NameToMimeType.end())
+      return iter-&gt;second;</span>
+<span style = "background-color:#fdd">    return MimeType();</span>
+<span style = "background-color:#dfd">  }</span>
+
+  std::vector&lt;std::string&gt; MimeTypeProvider::GetCategories() const
+<span style = "background-color:#fdd">  {
+    std::vector&lt;std::string&gt; result;
+    for (const auto &amp;elem : m_NameToMimeType)</span>
+    {
+<span style = "background-color:#fdd">      std::string category = elem.second.GetCategory();
+      if (!category.empty())</span>
+      {
+<span style = "background-color:#fdd">        result.push_back(category);</span>
+      }
+<span style = "background-color:#fdd">    }
+    std::sort(result.begin(), result.end());
+    result.erase(std::unique(result.begin(), result.end()), result.end());
+    return result;
+  }</span>
+
+  MimeTypeProvider::TrackedType MimeTypeProvider::AddingService(const ServiceReferenceType &amp;reference)
+<span style = "background-color:#dfd">  {
+    MimeType result = this-&gt;GetMimeType(reference);
+    if (result.IsValid())</span>
+    {
+<span style = "background-color:#dfd">      std::string name = result.GetName();
+      m_NameToMimeTypes[name].insert(result);</span>
+
+      // get the highest ranked mime-type
+<span style = "background-color:#dfd">      m_NameToMimeType[name] = *(m_NameToMimeTypes[name].rbegin());
+    }
+    return result;
+  }</span>
+
+  void MimeTypeProvider::ModifiedService(const ServiceReferenceType &amp; /*reference*/, TrackedType /*mimetype*/)
+<span style = "background-color:#fdd">  {</span>
+    // should we track changes in the ranking property?
+<span style = "background-color:#fdd">  }</span>
+
+  void MimeTypeProvider::RemovedService(const ServiceReferenceType &amp; /*reference*/, TrackedType mimeType)
+<span style = "background-color:#dfd">  {
+    std::string name = mimeType.GetName();
+    std::set&lt;MimeType&gt; &amp;mimeTypes = m_NameToMimeTypes[name];
+    mimeTypes.erase(mimeType);
+    if (mimeTypes.empty())</span>
+    {
+<span style = "background-color:#dfd">      m_NameToMimeTypes.erase(name);
+      m_NameToMimeType.erase(name);
+    }</span>
+    else
+    {
+      // get the highest ranked mime-type
+<span style = "background-color:#dfd">      m_NameToMimeType[name] = *(mimeTypes.rbegin());</span>
+    }
+<span style = "background-color:#dfd">  }</span>
+
+  MimeType MimeTypeProvider::GetMimeType(const ServiceReferenceType &amp;reference) const
+<span style = "background-color:#dfd">  {
+    MimeType result;
+    if (!reference)</span>
+<span style = "background-color:#fdd">      return result;</span>
+
+<span style = "background-color:#dfd">    CustomMimeType *mimeType = us::GetModuleContext()-&gt;GetService(reference);
+    if (mimeType != nullptr)</span>
+    {
+      try
+      {
+<span style = "background-color:#dfd">        int rank = 0;
+        us::Any rankProp = reference.GetProperty(us::ServiceConstants::SERVICE_RANKING());
+        if (!rankProp.Empty())</span>
+        {
+<span style = "background-color:#dfd">          rank = us::any_cast&lt;int&gt;(rankProp);</span>
+        }
+<span style = "background-color:#dfd">        auto id = us::any_cast&lt;long&gt;(reference.GetProperty(us::ServiceConstants::SERVICE_ID()));
+        result = MimeType(*mimeType, rank, id);
+      }</span>
+      catch (const us::BadAnyCastException &amp;e)
+<span style = "background-color:#fdd">      {
+        MITK_WARN &lt;&lt; "Unexpected exception: " &lt;&lt; e.what();
+      }</span>
+<span style = "background-color:#dfd">      us::GetModuleContext()-&gt;UngetService(reference);</span>
+    }
+<span style = "background-color:#dfd">    return result;
+  }</span>
+}</pre>
+	</body>
+</html>

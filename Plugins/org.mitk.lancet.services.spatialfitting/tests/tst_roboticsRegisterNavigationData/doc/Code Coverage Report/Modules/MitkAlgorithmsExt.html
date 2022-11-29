@@ -1,0 +1,2047 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="utf-8"/>
+        <title>MitkAlgorithmsExt.dll</title>
+        <link rel="stylesheet" type="text/css" href="../third-party/css/style.css"/>
+        <script src="../third-party/RGraph/libraries/RGraph.common.core.js" type="text/javascript"></script>
+        <script src="../third-party/RGraph/libraries/RGraph.common.dynamic.js" type="text/javascript"></script>
+        <script src="../third-party/RGraph/libraries/RGraph.common.tooltips.js" type="text/javascript"></script>
+        <script src="../third-party/RGraph/libraries/RGraph.pie.js" type="text/javascript"></script>
+        <script src="../third-party/JQuery/jquery-1.11.1.min.js"></script>
+    </head>
+    <body>
+    <script type="text/javascript">
+        $(document).ready(function ()
+        {
+            
+            new RGraph.Pie('pi_4bc5510e-a2da-4955-a9c5-024a53eb9125', [120, 4108])
+                .set('labels', ['Cover 2%','Uncover 98%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 120 lines (2%)', 'uncover 4108 lines (98%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_bf77ffc2-7a18-4a0d-8929-edc98d4f3899', [0, 19])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 19 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_4a091815-810f-4706-a74f-f11589d636de', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_655cee77-eca7-4f1f-9424-1a82552e7d04', [0, 8])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 8 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_d3ccbd21-bc35-49c5-a5ef-c8dc5af8e0b5', [0, 17])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 17 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_1a7e94a1-0364-4f01-956b-81b3676daddb', [0, 111])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 111 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_0e2e1889-d72b-4e70-9fe1-550eb5bdc347', [0, 3])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 3 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_7213f2f6-3ce8-44ed-8739-66724d7d798d', [0, 3])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 3 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_233af1e0-1b35-4091-8a92-8d8e61174e35', [0, 10])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 10 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_ab5c3cbb-20de-4788-88bc-c11a2c83e799', [0, 20])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 20 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_0f52f9aa-2b5d-44e8-a1b2-3ed3a19477a5', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_743d86d6-e7b8-463f-b090-d26e0d05fcbf', [0, 11])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 11 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_ac7bc78e-f246-482c-a4fe-4e6916195f37', [0, 4])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 4 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_40414b95-70cb-4b50-bd6d-1615c0ecaf62', [0, 12])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 12 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_8f09a145-a310-4c98-858f-3e87987774c7', [0, 5])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 5 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_7ae1efe8-4072-48fb-a172-ab4d9f1d7813', [0, 12])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 12 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_c2245ff8-43a9-4dd1-af0d-1ffbd2f0fed6', [0, 4])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 4 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_111ad0ee-5b87-48a5-af89-85bbe569157c', [0, 3])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 3 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_10d5ae79-0f6f-4496-91ee-014ef9ff024c', [0, 33])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 33 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_8b424836-5d4a-4966-aa5b-b483b6152614', [0, 9])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 9 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_142d453e-f7d6-4c2b-a2b5-8b58cd2091d3', [0, 7])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 7 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_011492d0-628e-4a27-b8e5-6142211fc64f', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_0fa6679b-5268-4b4e-9299-8efbbd5996fc', [0, 5])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 5 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_62fefff4-521d-45d2-9c17-d9f6f54f8c44', [0, 3])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 3 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_d65e9fbc-713d-46be-895a-a513bc0e67db', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_657659a7-0ab4-4189-833f-e5b13f50eb92', [0, 27])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 27 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_f6a8e291-caa5-43ed-9b54-000fee26f7cb', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_5c8c426a-bb34-4bd3-b78e-49e93f9f2fc8', [0, 8])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 8 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_1e0b5795-368d-478d-9816-a1d7c24c146e', [0, 3])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 3 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_091a2ad3-6a2d-483c-8022-4d143d5f93b2', [0, 11])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 11 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_11cda772-31b4-4daf-8806-525e731cadea', [0, 150])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 150 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_7ecfdfd6-9f98-4b42-8e30-d74deeefd3e4', [0, 45])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 45 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_7c87ff72-6f2f-4bb5-997c-e19f221b8eec', [0, 181])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 181 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_1d7f5e5e-6f53-4207-96f3-6593494b16e7', [0, 117])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 117 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_ad4d0b31-3714-4d64-81d0-b08e676556d0', [0, 64])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 64 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_c754fb99-7392-450e-b019-0f7f4795226b', [0, 206])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 206 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_642ba03d-71f9-479a-80d2-cd73f6187ae5', [0, 93])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 93 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_9e82b516-ba33-4a7d-ad38-f506177914f0', [0, 139])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 139 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_f777571d-ef40-422f-86e0-2b2b97e9c5c7', [0, 17])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 17 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_827aae3c-2395-43f2-ba49-e0df52a00dd7', [0, 204])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 204 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_6be345c5-0eba-42db-beb5-1a980de45d0b', [0, 71])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 71 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_9328ac89-c507-47dc-b1e7-2e75d6f11bc7', [0, 193])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 193 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_c56e19b4-6596-4526-a6f1-cc275c1385dd', [0, 49])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 49 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_fefa032a-c8c9-47ef-8a15-1cfa9cda0d59', [0, 127])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 127 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_c7fd7b5d-805f-474a-8bff-f25849e866ed', [0, 70])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 70 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_7d3326d1-4365-4ef7-ae03-a42c44790d30', [0, 108])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 108 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_79daab7f-b06e-4a23-a728-88581977ec6e', [0, 96])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 96 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_85f8c8e9-6449-426d-bc3e-d5e026a0245a', [0, 46])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 46 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_d2491d01-658e-4091-96ec-ba0fdf345a1c', [0, 99])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 99 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_819682cc-c217-400d-8d19-860d66d73188', [0, 25])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 25 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_77bbbc43-664e-43fa-809f-3dd648cac14f', [0, 164])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 164 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_c64337ed-bdd8-4c49-8cb2-1576af6e4ce9', [0, 41])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 41 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_4d143dbe-f92d-4b56-bc42-9930646b1d86', [0, 160])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 160 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_5248f38c-81a0-42f4-b2aa-ea2c01d6cc88', [0, 73])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 73 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_efd8869b-5478-4672-8dce-5dd994d5607c', [0, 38])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 38 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_16834284-7e3a-4ee6-9969-8519e99bb65f', [0, 41])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 41 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_3423e512-310f-492a-8437-51f34b949c27', [0, 224])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 224 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_b57a3a3d-53ba-463b-aae4-d78c9bd533be', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_0dade0cd-ec06-4ecd-9499-0e7c1def412f', [0, 17])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 17 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_494ae26a-6aec-4d1c-96eb-663eaec99872', [0, 5])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 5 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_5e0aaa46-3dba-45bf-afe9-5111f12e08ea', [0, 41])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 41 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_a6b78576-41f8-4939-863d-adcde251b4b9', [0, 6])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 6 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_2e48e68d-a74b-4056-998a-9d74a6f85201', [0, 49])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 49 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_3e7408aa-d207-4dd6-8013-f0d9855f3f8f', [0, 23])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 23 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_7690269c-9a2d-4779-8394-166afdf11b01', [0, 23])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 23 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_5c6e5d6c-bd65-4c7d-a687-4db5d3325ef1', [0, 14])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 14 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_8370c69d-aba6-404c-95b2-0a534cc58022', [0, 2])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 2 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_7cb08af2-813f-42eb-9281-5c0a833c0d57', [0, 9])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 9 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_c1b83c29-0a8c-4d96-9bb2-dd4ed9ef20c2', [0, 22])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 22 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_b85dc006-b997-4146-8609-6b0d2d378424', [0, 116])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 116 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_5651261b-ba91-4b20-aa3d-1061786d039f', [0, 20])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 20 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_4b795bf2-819a-42bb-a828-6b36d04d46f7', [0, 20])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 20 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_8f6e9a86-77f5-4794-b90a-7772c3be905e', [0, 30])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 30 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_a5ff9a54-3ae5-48ce-b11d-5322a4d25010', [0, 24])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 24 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_4a53e56a-66a4-4ecb-b630-251d5b564989', [0, 27])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 27 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_98a970ca-e089-4d5d-85a5-69fac00f09ed', [0, 43])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 43 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_a2922778-f458-462a-aeda-4fcabff9e2b5', [0, 27])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 27 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_d808ff38-7db1-4b35-9dd8-e240e5d32993', [0, 75])
+                .set('labels', ['Cover 0%','Uncover 100%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 0 lines (0%)', 'uncover 75 lines (100%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_211b66d4-7ee3-477f-8d32-f4c20b543e72', [1, 82])
+                .set('labels', ['Cover 1%','Uncover 99%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 1 lines (1%)', 'uncover 82 lines (99%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_c76c2e67-c0cf-4edc-96da-e667b272603c', [6, 148])
+                .set('labels', ['Cover 3%','Uncover 97%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 6 lines (3%)', 'uncover 148 lines (97%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_33ef95c8-d2c1-490a-9abb-e867eb176727', [1, 22])
+                .set('labels', ['Cover 4%','Uncover 96%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 1 lines (4%)', 'uncover 22 lines (96%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_432572a9-8763-464f-8aa0-39480fcf21cc', [1, 10])
+                .set('labels', ['Cover 9%','Uncover 91%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 1 lines (9%)', 'uncover 10 lines (91%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_38216d60-1d3b-4bd9-aebb-880c5abf0d60', [20, 38])
+                .set('labels', ['Cover 34%','Uncover 66%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 20 lines (34%)', 'uncover 38 lines (66%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_69093e9e-1bd1-4682-b5d3-90402f6b5b3d', [39, 14])
+                .set('labels', ['Cover 73%','Uncover 27%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 39 lines (73%)', 'uncover 14 lines (27%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_43a88ed1-72f7-4175-bce5-1b3bddcfb82e', [11, 0])
+                .set('labels', ['Cover 100%','Uncover 0%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 11 lines (100%)', 'uncover 0 lines (0%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_5cc4e953-2872-4b6b-8a0b-c81aa6cd8c8a', [40, 0])
+                .set('labels', ['Cover 100%','Uncover 0%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 40 lines (100%)', 'uncover 0 lines (0%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+            new RGraph.Pie('pi_a5c87878-6ef0-4079-97d4-59611cafa6f0', [1, 0])
+                .set('labels', ['Cover 100%','Uncover 0%'])
+                .set('colors', ['rgb(0,255,0)','rgb(255,0,0)'])
+                .set('linewidth', 1)
+                .set('shadow', true)
+                .set('tooltips', ['cover 1 lines (100%)', 'uncover 0 lines (0%)'])
+                .set('tooltips.event', 'onmousemove')
+                .set('labels.sticks', true)
+                .set('labels.sticks.length', 10)
+                .draw();
+            
+
+      })
+    </script>    
+        <h1>
+        MitkAlgorithmsExt.dll
+        </h1>
+        <h4>
+        
+        </h4>
+        <table id="rounded-corner">
+            <thead>
+                <tr>
+                    <th scope="col" class="rounded-left">Coverage</th>
+                    <th scope="col">Total lines</th>
+                    <th scope="col" class="rounded-right">Items</th>
+                </tr>
+            </thead> 
+            <tbody>
+                
+                <tr>
+                    <td>
+            <canvas id="pi_4bc5510e-a2da-4955-a9c5-024a53eb9125" width="280" height="100">Cover 2%</canvas>
+                    </td>            
+                    <td>4228</td>
+                    <td>            
+                      
+                      Y:\LancetMitk_SBD\MITK-build\bin\Debug\MitkAlgorithmsExt.dll
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_bf77ffc2-7a18-4a0d-8929-edc98d4f3899" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>19</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkAnisotropicIterativeClosestPointRegistration.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkAnisotropicIterativeClosestPointRegistration.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_4a091815-810f-4706-a74f-f11589d636de" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkAnisotropicRegistrationCommon.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkAnisotropicRegistrationCommon.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_655cee77-eca7-4f1f-9424-1a82552e7d04" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>8</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkAutoCropImageFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkAutoCropImageFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_d3ccbd21-bc35-49c5-a5ef-c8dc5af8e0b5" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>17</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkBoundingObjectCutter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkBoundingObjectCutter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_1a7e94a1-0364-4f01-956b-81b3676daddb" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>111</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkBoundingObjectCutter.txx.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkBoundingObjectCutter.txx</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_0e2e1889-d72b-4e70-9fe1-550eb5bdc347" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>3</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkBoundingObjectToSegmentationFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkBoundingObjectToSegmentationFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_7213f2f6-3ce8-44ed-8739-66724d7d798d" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>3</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkCovarianceMatrixCalculator.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkCovarianceMatrixCalculator.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_233af1e0-1b35-4091-8a92-8d8e61174e35" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>10</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkCropTimestepsImageFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkCropTimestepsImageFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_ab5c3cbb-20de-4788-88bc-c11a2c83e799" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>20</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkGeometryClipImageFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkGeometryClipImageFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_0f52f9aa-2b5d-44e8-a1b2-3ed3a19477a5" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkGeometryDataSource.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkGeometryDataSource.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_743d86d6-e7b8-463f-b090-d26e0d05fcbf" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>11</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkHeightFieldSurfaceClipImageFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkHeightFieldSurfaceClipImageFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_ac7bc78e-f246-482c-a4fe-4e6916195f37" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>4</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkImageToUnstructuredGridFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkImageToUnstructuredGridFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_40414b95-70cb-4b50-bd6d-1615c0ecaf62" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>12</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkLabeledImageToSurfaceFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkLabeledImageToSurfaceFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_8f09a145-a310-4c98-858f-3e87987774c7" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>5</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkMaskAndCutRoiImageFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkMaskAndCutRoiImageFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_7ae1efe8-4072-48fb-a172-ab4d9f1d7813" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>12</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkMaskImageFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkMaskImageFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_c2245ff8-43a9-4dd1-af0d-1ffbd2f0fed6" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>4</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkMovieGenerator.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkMovieGenerator.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_111ad0ee-5b87-48a5-af89-85bbe569157c" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>3</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkMovieGeneratorWin32.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkMovieGeneratorWin32.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_10d5ae79-0f6f-4496-91ee-014ef9ff024c" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>33</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkNonBlockingAlgorithm.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkNonBlockingAlgorithm.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_8b424836-5d4a-4966-aa5b-b483b6152614" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>9</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkNonBlockingAlgorithmEvents.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkNonBlockingAlgorithmEvents.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_142d453e-f7d6-4c2b-a2b5-8b58cd2091d3" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>7</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPadImageFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkPadImageFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_011492d0-628e-4a27-b8e5-6142211fc64f" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPlaneFit.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkPlaneFit.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_0fa6679b-5268-4b4e-9299-8efbbd5996fc" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>5</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPlaneLandmarkProjector.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkPlaneLandmarkProjector.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_62fefff4-521d-45d2-9c17-d9f6f54f8c44" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>3</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPointLocator.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkPointLocator.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_d65e9fbc-713d-46be-895a-a513bc0e67db" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkSegmentationSink.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkSegmentationSink.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_657659a7-0ab4-4189-833f-e5b13f50eb92" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>27</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkSimpleHistogram.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkSimpleHistogram.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_f6a8e291-caa5-43ed-9b54-000fee26f7cb" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkSurfaceToPointSetFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkSurfaceToPointSetFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_5c8c426a-bb34-4bd3-b78e-49e93f9f2fc8" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>8</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkUnstructuredGridClusteringFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkUnstructuredGridClusteringFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_1e0b5795-368d-478d-9816-a1d7c24c146e" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>3</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkUnstructuredGridToUnstructuredGridFilter.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkUnstructuredGridToUnstructuredGridFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_091a2ad3-6a2d-483c-8022-4d143d5f93b2" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>11</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkWeightedPointTransform.h.html">E:\LancetMITK\Modules\AlgorithmsExt\include\mitkWeightedPointTransform.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_11cda772-31b4-4daf-8806-525e731cadea" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>150</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkAnisotropicIterativeClosestPointRegistration.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkAnisotropicIterativeClosestPointRegistration.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_7ecfdfd6-9f98-4b42-8e30-d74deeefd3e4" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>45</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkAnisotropicRegistrationCommon.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkAnisotropicRegistrationCommon.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_7c87ff72-6f2f-4bb5-997c-e19f221b8eec" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>181</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkAutoCropImageFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkAutoCropImageFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_1d7f5e5e-6f53-4207-96f3-6593494b16e7" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>117</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkBoundingObjectCutter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkBoundingObjectCutter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_ad4d0b31-3714-4d64-81d0-b08e676556d0" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>64</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkBoundingObjectToSegmentationFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkBoundingObjectToSegmentationFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_c754fb99-7392-450e-b019-0f7f4795226b" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>206</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkCovarianceMatrixCalculator.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkCovarianceMatrixCalculator.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_642ba03d-71f9-479a-80d2-cd73f6187ae5" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>93</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkCropTimestepsImageFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkCropTimestepsImageFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_9e82b516-ba33-4a7d-ad38-f506177914f0" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>139</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkGeometryClipImageFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkGeometryClipImageFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_f777571d-ef40-422f-86e0-2b2b97e9c5c7" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>17</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkGeometryDataSource.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkGeometryDataSource.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_827aae3c-2395-43f2-ba49-e0df52a00dd7" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>204</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkHeightFieldSurfaceClipImageFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkHeightFieldSurfaceClipImageFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_6be345c5-0eba-42db-beb5-1a980de45d0b" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>71</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkImageToUnstructuredGridFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkImageToUnstructuredGridFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_9328ac89-c507-47dc-b1e7-2e75d6f11bc7" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>193</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkLabeledImageToSurfaceFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkLabeledImageToSurfaceFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_c56e19b4-6596-4526-a6f1-cc275c1385dd" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>49</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkMaskAndCutRoiImageFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkMaskAndCutRoiImageFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_fefa032a-c8c9-47ef-8a15-1cfa9cda0d59" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>127</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkMaskImageFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkMaskImageFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_c7fd7b5d-805f-474a-8bff-f25849e866ed" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>70</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkMovieGenerator.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkMovieGenerator.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_7d3326d1-4365-4ef7-ae03-a42c44790d30" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>108</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkMovieGeneratorWin32.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkMovieGeneratorWin32.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_79daab7f-b06e-4a23-a728-88581977ec6e" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>96</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkNonBlockingAlgorithm.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkNonBlockingAlgorithm.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_85f8c8e9-6449-426d-bc3e-d5e026a0245a" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>46</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPadImageFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkPadImageFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_d2491d01-658e-4091-96ec-ba0fdf345a1c" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>99</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPlaneFit.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkPlaneFit.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_819682cc-c217-400d-8d19-860d66d73188" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>25</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPlaneLandmarkProjector.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkPlaneLandmarkProjector.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_77bbbc43-664e-43fa-809f-3dd648cac14f" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>164</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPointLocator.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkPointLocator.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_c64337ed-bdd8-4c49-8cb2-1576af6e4ce9" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>41</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkSegmentationSink.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkSegmentationSink.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_4d143dbe-f92d-4b56-bc42-9930646b1d86" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>160</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkSimpleHistogram.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkSimpleHistogram.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_5248f38c-81a0-42f4-b2aa-ea2c01d6cc88" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>73</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkSimpleUnstructuredGridHistogram.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkSimpleUnstructuredGridHistogram.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_efd8869b-5478-4672-8dce-5dd994d5607c" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>38</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkSurfaceToPointSetFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkSurfaceToPointSetFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_16834284-7e3a-4ee6-9969-8519e99bb65f" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>41</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkUnstructuredGridToUnstructuredGridFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkUnstructuredGridToUnstructuredGridFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_3423e512-310f-492a-8437-51f34b949c27" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>224</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkWeightedPointTransform.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkWeightedPointTransform.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_b57a3a3d-53ba-463b-aae4-d78c9bd533be" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/itkImportMitkImageContainer.h.html">E:\LancetMITK\Modules\Core\include\itkImportMitkImageContainer.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_0dade0cd-ec06-4ecd-9499-0e7c1def412f" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>17</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/itkImportMitkImageContainer.txx.html">E:\LancetMITK\Modules\Core\include\itkImportMitkImageContainer.txx</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_494ae26a-6aec-4d1c-96eb-663eaec99872" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>5</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkArray.h.html">E:\LancetMITK\Modules\Core\include\mitkArray.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_5e0aaa46-3dba-45bf-afe9-5111f12e08ea" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>41</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkBaseRenderer.h.html">E:\LancetMITK\Modules\Core\include\mitkBaseRenderer.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_a6b78576-41f8-4939-863d-adcde251b4b9" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>6</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkDataInteractor.h.html">E:\LancetMITK\Modules\Core\include\mitkDataInteractor.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_2e48e68d-a74b-4056-998a-9d74a6f85201" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>49</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkDataNode.h.html">E:\LancetMITK\Modules\Core\include\mitkDataNode.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_3e7408aa-d207-4dd6-8013-f0d9855f3f8f" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>23</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkException.h.html">E:\LancetMITK\Modules\Core\include\mitkException.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_7690269c-9a2d-4779-8394-166afdf11b01" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>23</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkGenericProperty.h.html">E:\LancetMITK\Modules\Core\include\mitkGenericProperty.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_5c6e5d6c-bd65-4c7d-a687-4db5d3325ef1" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>14</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkGetClassHierarchy.h.html">E:\LancetMITK\Modules\Core\include\mitkGetClassHierarchy.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_8370c69d-aba6-404c-95b2-0a534cc58022" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>2</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkImageAccessByItk.h.html">E:\LancetMITK\Modules\Core\include\mitkImageAccessByItk.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_7cb08af2-813f-42eb-9281-5c0a833c0d57" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>9</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkImageCast.h.html">E:\LancetMITK\Modules\Core\include\mitkImageCast.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_c1b83c29-0a8c-4d96-9bb2-dd4ed9ef20c2" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>22</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkImageToItk.h.html">E:\LancetMITK\Modules\Core\include\mitkImageToItk.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_b85dc006-b997-4146-8609-6b0d2d378424" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>116</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkImageToItk.txx.html">E:\LancetMITK\Modules\Core\include\mitkImageToItk.txx</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_5651261b-ba91-4b20-aa3d-1061786d039f" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>20</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkImageToSurfaceFilter.h.html">E:\LancetMITK\Modules\Core\include\mitkImageToSurfaceFilter.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_4b795bf2-819a-42bb-a828-6b36d04d46f7" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>20</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkMatrix.h.html">E:\LancetMITK\Modules\Core\include\mitkMatrix.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_8f6e9a86-77f5-4794-b90a-7772c3be905e" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>30</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPixelType.h.html">E:\LancetMITK\Modules\Core\include\mitkPixelType.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_a5ff9a54-3ae5-48ce-b11d-5322a4d25010" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>24</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkRenderingManager.h.html">E:\LancetMITK\Modules\Core\include\mitkRenderingManager.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_4a53e56a-66a4-4ecb-b630-251d5b564989" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>27</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkTimeHelper.h.html">E:\LancetMITK\Modules\Core\include\mitkTimeHelper.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_98a970ca-e089-4d5d-85a5-69fac00f09ed" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>43</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkVector.h.html">E:\LancetMITK\Modules\Core\include\mitkVector.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_a2922778-f458-462a-aeda-4fcabff9e2b5" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>27</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkVectorDeprecated.h.html">E:\LancetMITK\Modules\Core\include\mitkVectorDeprecated.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_d808ff38-7db1-4b35-9dd8-e240e5d32993" width="280" height="100">Cover 0%</canvas>
+                    </td>            
+                    <td>75</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkWeakPointer.h.html">E:\LancetMITK\Modules\Core\include\mitkWeakPointer.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_211b66d4-7ee3-477f-8d32-f4c20b543e72" width="280" height="100">Cover 1%</canvas>
+                    </td>            
+                    <td>83</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkImage.h.html">E:\LancetMITK\Modules\Core\include\mitkImage.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_c76c2e67-c0cf-4edc-96da-e667b272603c" width="280" height="100">Cover 3%</canvas>
+                    </td>            
+                    <td>154</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkUnstructuredGridClusteringFilter.cpp.html">E:\LancetMITK\Modules\AlgorithmsExt\src\mitkUnstructuredGridClusteringFilter.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_33ef95c8-d2c1-490a-9abb-e867eb176727" width="280" height="100">Cover 4%</canvas>
+                    </td>            
+                    <td>23</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPoint.h.html">E:\LancetMITK\Modules\Core\include\mitkPoint.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_432572a9-8763-464f-8aa0-39480fcf21cc" width="280" height="100">Cover 9%</canvas>
+                    </td>            
+                    <td>11</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mitkPointSet.h.html">E:\LancetMITK\Modules\Core\include\mitkPointSet.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_38216d60-1d3b-4bd9-aebb-880c5abf0d60" width="280" height="100">Cover 34%</canvas>
+                    </td>            
+                    <td>58</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/usWaitCondition_p.h.html">E:\LancetMITK\Modules\CppMicroServices\core\src\util\usWaitCondition_p.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_69093e9e-1bd1-4682-b5d3-90402f6b5b3d" width="280" height="100">Cover 73%</canvas>
+                    </td>            
+                    <td>53</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/mbilog.h.html">E:\LancetMITK\Utilities\mbilog\mbilog.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_43a88ed1-72f7-4175-bce5-1b3bddcfb82e" width="280" height="100">Cover 100%</canvas>
+                    </td>            
+                    <td>11</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/usStaticInit_p.h.html">E:\LancetMITK\Modules\CppMicroServices\core\src\util\usStaticInit_p.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_5cc4e953-2872-4b6b-8a0b-c81aa6cd8c8a" width="280" height="100">Cover 100%</canvas>
+                    </td>            
+                    <td>40</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/usThreads_p.h.html">E:\LancetMITK\Modules\CppMicroServices\core\src\util\usThreads_p.h</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+                <tr>
+                    <td>
+            <canvas id="pi_a5c87878-6ef0-4079-97d4-59611cafa6f0" width="280" height="100">Cover 100%</canvas>
+                    </td>            
+                    <td>1</td>
+                    <td>            
+                       <a href="MitkAlgorithmsExt/us_init.cpp.html">Y:\LancetMitk_SBD\MITK-build\Modules\AlgorithmsExt\us_init.cpp</a> 
+                      
+                      
+                    </td>
+                </tr>        
+                
+            </tbody>
+            <tfoot>
+                <tr>
+                <td colspan="2" class="rounded-foot-left"></td>
+                <td class="rounded-foot-right"></td>
+                </tr>
+            </tfoot>            
+        </table>
+    </body>
+</html>

@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIgnorePixelMaskGenerator.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKIGNOREPIXELMASKGEN_
+#define MITKIGNOREPIXELMASKGEN_
+
+#include &lt;mitkImage.h&gt;
+#include &lt;MitkImageStatisticsExports.h&gt;
+#include &lt;mitkMaskGenerator.h&gt;
+#include &lt;limits&gt;
+#include &lt;itkImage.h&gt;
+
+
+namespace mitk
+{
+/**
+ * @brief The IgnorePixelMaskGenerator class is used to generate a mask that is zero for specific pixel values in the input image. This class requires an input image.
+ */
+class MITKIMAGESTATISTICS_EXPORT IgnorePixelMaskGenerator: public MaskGenerator
+{
+public:
+    /** Standard Self typedef */
+    typedef IgnorePixelMaskGenerator            Self;
+    typedef MaskGenerator                       Superclass;
+    typedef itk::SmartPointer&lt; Self &gt;           Pointer;
+    typedef itk::SmartPointer&lt; const Self &gt;     ConstPointer;
+    typedef double RealType;
+
+    /** Method for creation through the object factory. */
+<span style = "background-color:#fdd">    itkNewMacro(Self); /** Runtime information support. */
+    itkTypeMacro(IgnorePixelMaskGenerator, MaskGenerator);</span>
+
+    /**
+     * @brief The mask will be 0 there inputImage==pixelValue and 1 otherwise
+     */
+    void SetIgnoredPixelValue(RealType pixelValue);
+
+    /**
+     * @brief Computes and returns the mask
+     */
+    mitk::Image::Pointer GetMask() override;
+
+    /**
+     * @brief SetTimeStep is used to set the time step for which the mask is to be generated
+     * @param timeStep
+     */
+    void SetTimeStep(unsigned int timeStep) override;
+
+protected:
+    IgnorePixelMaskGenerator():
+<span style = "background-color:#fdd">       m_IgnoredPixelValue(std::numeric_limits&lt;RealType&gt;::min())
+    {
+        m_TimeStep = 0;
+        m_InternalMaskUpdateTime = 0;
+        m_InternalMask = mitk::Image::New();
+    }</span>
+
+<span style = "background-color:#fdd">    ~IgnorePixelMaskGenerator() override{}</span>
+
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    void InternalCalculateMask(typename itk::Image&lt;TPixel, VImageDimension&gt;* image);
+
+private:
+    bool IsUpdateRequired() const;
+
+    RealType m_IgnoredPixelValue;
+    unsigned long m_InternalMaskUpdateTime;
+
+
+};
+
+}
+
+#endif</pre>
+	</body>
+</html>

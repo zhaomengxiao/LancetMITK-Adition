@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTemporoSpatialStringPropertySerializer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkTemporoSpatialStringPropertySerializer_h_included
+#define mitkTemporoSpatialStringPropertySerializer_h_included
+
+#include "mitkBasePropertySerializer.h"
+#include "mitkTemporoSpatialStringProperty.h"
+#include &lt;tinyxml2.h&gt;
+
+namespace mitk
+{
+  class TemporoSpatialStringPropertySerializer : public BasePropertySerializer
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(TemporoSpatialStringPropertySerializer, BasePropertySerializer)
+    itkFactorylessNewMacro(Self)</span>
+    itkCloneMacro(Self)
+
+    tinyxml2::XMLElement* Serialize(tinyxml2::XMLDocument&amp; doc) override
+<span style = "background-color:#fdd">    {
+      if (const TemporoSpatialStringProperty *prop =</span>
+            dynamic_cast&lt;const TemporoSpatialStringProperty *&gt;(m_Property.GetPointer()))
+      {
+<span style = "background-color:#fdd">        auto *element = doc.NewElement("temporo_spatial_string");
+        std::string content = PropertyPersistenceSerialization::serializeTemporoSpatialStringPropertyToJSON(prop);
+        auto* text = doc.NewText(content.c_str());
+        element-&gt;InsertEndChild(text);
+        return element;
+      }</span>
+      else
+<span style = "background-color:#fdd">        return nullptr;
+    }</span>
+
+    BaseProperty::Pointer Deserialize(const tinyxml2::XMLElement *element) override
+<span style = "background-color:#fdd">    {
+      if (!element)
+        return nullptr;
+      const char *s(element-&gt;GetText());
+      std::string content = s ? s : "";
+      return PropertyPersistenceDeserialization::deserializeJSONToTemporoSpatialStringProperty(content);
+    }</span>
+
+  protected:
+<span style = "background-color:#fdd">    TemporoSpatialStringPropertySerializer() {}
+    ~TemporoSpatialStringPropertySerializer() override {}</span>
+  };
+
+} // namespace
+
+// important to put this into the GLOBAL namespace (because it starts with 'namespace mitk')
+<span style = "background-color:#dfd">MITK_REGISTER_SERIALIZER(TemporoSpatialStringPropertySerializer);</span>
+
+#endif</pre>
+	</body>
+</html>

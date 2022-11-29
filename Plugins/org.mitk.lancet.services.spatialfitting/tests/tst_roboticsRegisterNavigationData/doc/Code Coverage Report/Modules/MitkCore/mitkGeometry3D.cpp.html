@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkGeometry3D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;iomanip&gt;
+#include &lt;sstream&gt;
+
+#include "mitkGeometry3D.h"
+
+#include "mitkApplyTransformMatrixOperation.h"
+#include "mitkInteractionConst.h"
+#include "mitkMatrixConvert.h"
+#include "mitkPointOperation.h"
+#include "mitkRestorePlanePositionOperation.h"
+#include "mitkRotationOperation.h"
+#include &lt;vtkMatrix4x4.h&gt;
+#include &lt;vtkMatrixToLinearTransform.h&gt;
+
+// Standard constructor for the New() macro. Sets the geometry to 3 dimensions
+<span style = "background-color:#fdd">mitk::Geometry3D::Geometry3D() : BaseGeometry()
+{
+}
+mitk::Geometry3D::Geometry3D(const Geometry3D &amp;other) : BaseGeometry(other)
+{
+}</span>
+
+mitk::Geometry3D::~Geometry3D()
+<span style = "background-color:#fdd">{
+}</span>
+
+itk::LightObject::Pointer mitk::Geometry3D::InternalClone() const
+<span style = "background-color:#fdd">{
+  Self::Pointer newGeometry = new Self(*this);
+  newGeometry-&gt;UnRegister();
+  return newGeometry.GetPointer();
+}</span></pre>
+	</body>
+</html>

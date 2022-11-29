@@ -1,0 +1,348 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelWriter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkContourModelWriter.h"
+#include "mitkIOMimeTypes.h"
+#include "mitkTimeGeometry.h"
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+#include &lt;locale&gt;
+
+/*
+ * The xml file will look like:
+ *
+ *   &lt;?xml version="1.0" encoding="utf-8"?&gt;
+ *   &lt;contourModel&gt;
+ *      &lt;head&gt;
+ *        &lt;geometryInfo&gt;
+ *        &lt;/geometryInfo&gt;
+ *      &lt;/head&gt;
+ *      &lt;data&gt;
+ *        &lt;timestep n="0"&gt;
+ *          &lt;controlPoints&gt;
+ *            &lt;point&gt;
+ *              &lt;x&gt;&lt;/x&gt;
+ *              &lt;y&gt;&lt;/y&gt;
+ *              &lt;z&gt;&lt;/z&gt;
+ *            &lt;/point&gt;
+ *          &lt;/controlPoint&gt;
+ *        &lt;/timestep&gt;
+ *      &lt;/data&gt;
+ *    &lt;/contourModel&gt;
+ */
+
+//
+// Initialization of the xml tags.
+//
+
+const char *mitk::ContourModelWriter::XML_CONTOURMODEL = "contourModel";
+
+const char *mitk::ContourModelWriter::XML_HEAD = "head";
+
+const char *mitk::ContourModelWriter::XML_GEOMETRY_INFO = "geometryInfo";
+
+const char *mitk::ContourModelWriter::XML_DATA = "data";
+
+const char *mitk::ContourModelWriter::XML_TIME_STEP = "timestep";
+
+const char *mitk::ContourModelWriter::XML_CONTROL_POINTS = "controlPoints";
+
+const char *mitk::ContourModelWriter::XML_POINT = "point";
+
+const char *mitk::ContourModelWriter::XML_X = "x";
+
+const char *mitk::ContourModelWriter::XML_Y = "y";
+
+const char *mitk::ContourModelWriter::XML_Z = "z";
+
+mitk::ContourModelWriter::ContourModelWriter(bool writeXMLHeader)
+<span style = "background-color:#dfd">  : AbstractFileWriter(ContourModel::GetStaticNameOfClass()), m_WriteXMLHeader(writeXMLHeader), m_IndentDepth(0), m_Indent(2)
+{
+  std::string category = "Contour File";
+  mitk::CustomMimeType customMimeType;
+  customMimeType.SetCategory(category);
+  customMimeType.AddExtension("cnt");</span>
+
+<span style = "background-color:#dfd">  this-&gt;SetDescription(category);
+  this-&gt;SetMimeType(customMimeType);</span>
+
+<span style = "background-color:#dfd">  RegisterService();
+}</span>
+
+mitk::ContourModelWriter::ContourModelWriter(const mitk::ContourModelWriter &amp;other)
+<span style = "background-color:#fdd">  : AbstractFileWriter(other), m_IndentDepth(other.m_IndentDepth), m_Indent(other.m_Indent)
+{
+}</span>
+
+mitk::ContourModelWriter::~ContourModelWriter()
+<span style = "background-color:#dfd">{
+}</span>
+
+void mitk::ContourModelWriter::Write()
+<span style = "background-color:#fdd">{</span>
+  std::ostream *out;
+<span style = "background-color:#fdd">  std::ofstream outStream;</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetOutputStream())</span>
+  {
+<span style = "background-color:#fdd">    out = this-&gt;GetOutputStream();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    outStream.open(this-&gt;GetOutputLocation().c_str());
+    out = &amp;outStream;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!out-&gt;good())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Stream not good.";</span>
+  }
+
+<span style = "background-color:#fdd">  std::locale previousLocale(out-&gt;getloc());
+  out-&gt;imbue(std::locale::classic());</span>
+
+  /*+++++++++++ Here the actual xml writing begins +++++++++*/
+
+  /*++++ &lt;?xml version="1.0" encoding="utf-8"?&gt; ++++*/
+<span style = "background-color:#fdd">  if (m_WriteXMLHeader)
+    WriteXMLHeader(*out);</span>
+
+  //
+  // for each input object write its xml representation to
+  // the stream
+  //
+<span style = "background-color:#fdd">  mitk::ContourModel::ConstPointer contourModel = dynamic_cast&lt;const mitk::ContourModel *&gt;(this-&gt;GetInput());
+  assert(contourModel.IsNotNull());
+  WriteXML(contourModel.GetPointer(), *out);</span>
+
+<span style = "background-color:#fdd">  out-&gt;imbue(previousLocale);</span>
+
+<span style = "background-color:#fdd">  if (!out-&gt;good()) // some error during output</span>
+  {
+<span style = "background-color:#fdd">    throw std::ios_base::failure("Some error during contour writing.");</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::ContourModelWriter *mitk::ContourModelWriter::Clone() const
+<span style = "background-color:#fdd">{
+  return new ContourModelWriter(*this);
+}</span>
+
+void mitk::ContourModelWriter::WriteXML(const mitk::ContourModel *contourModel, std::ostream &amp;out)
+<span style = "background-color:#fdd">{</span>
+  /*++++ &lt;contourModel&gt; ++++*/
+<span style = "background-color:#fdd">  WriteStartElement(XML_CONTOURMODEL, out);</span>
+
+  /*++++ &lt;head&gt; ++++*/
+<span style = "background-color:#fdd">  WriteStartElement(XML_HEAD, out);</span>
+
+  /*++++ &lt;geometryInfo&gt; ++++*/
+<span style = "background-color:#fdd">  WriteStartElement(XML_GEOMETRY_INFO, out);</span>
+
+<span style = "background-color:#fdd">  WriteGeometryInformation(contourModel-&gt;GetTimeGeometry(), out);</span>
+
+  /*++++ &lt;/geometryInfo&gt; ++++*/
+<span style = "background-color:#fdd">  WriteEndElement(XML_GEOMETRY_INFO, out);</span>
+
+  /*++++ &lt;/head&gt; ++++*/
+<span style = "background-color:#fdd">  WriteEndElement(XML_HEAD, out);</span>
+
+  /*++++ &lt;data&gt; ++++*/
+<span style = "background-color:#fdd">  WriteStartElement(XML_DATA, out);</span>
+
+<span style = "background-color:#fdd">  unsigned int timecount = contourModel-&gt;GetTimeSteps();</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; timecount; i++)</span>
+  {
+    /*++++ &lt;timestep&gt; ++++*/
+<span style = "background-color:#fdd">    std::vector&lt;std::string&gt; at;
+    at.push_back("n");
+    std::vector&lt;std::string&gt; val;
+    val.push_back(ConvertToString(i));</span>
+
+<span style = "background-color:#fdd">    at.push_back("isClosed");
+    val.push_back(ConvertToString(contourModel-&gt;IsClosed()));</span>
+
+<span style = "background-color:#fdd">    WriteStartElementWithAttribut(XML_TIME_STEP, at, val, out);</span>
+
+    /*++++ &lt;controlPoints&gt; ++++*/
+<span style = "background-color:#fdd">    WriteStartElement(XML_CONTROL_POINTS, out);</span>
+
+<span style = "background-color:#fdd">    auto it = contourModel-&gt;IteratorBegin();
+    auto end = contourModel-&gt;IteratorEnd();</span>
+
+<span style = "background-color:#fdd">    while (it != end)</span>
+    {
+<span style = "background-color:#fdd">      mitk::ContourModel::VertexType *v = *it;</span>
+
+      /*++++ &lt;point&gt; ++++*/
+<span style = "background-color:#fdd">      std::vector&lt;std::string&gt; attr;
+      attr.push_back("IsControlPoint");
+      std::vector&lt;std::string&gt; value;
+      value.push_back(ConvertToString(v-&gt;IsControlPoint));
+      WriteStartElementWithAttribut(XML_POINT, attr, value, out);</span>
+
+      /*++++ &lt;x&gt; ++++*/
+<span style = "background-color:#fdd">      WriteStartElement(XML_X, out);
+      WriteCharacterData(ConvertToString(v-&gt;Coordinates[0]).c_str(), out);</span>
+      /*++++ &lt;/x&gt; ++++*/
+<span style = "background-color:#fdd">      WriteEndElement(XML_X, out, false);</span>
+
+      /*++++ &lt;y&gt; ++++*/
+<span style = "background-color:#fdd">      WriteStartElement(XML_Y, out);
+      WriteCharacterData(ConvertToString(v-&gt;Coordinates[1]).c_str(), out);</span>
+      /*++++ &lt;/y&gt; ++++*/
+<span style = "background-color:#fdd">      WriteEndElement(XML_Y, out, false);</span>
+
+      /*++++ &lt;z&gt; ++++*/
+<span style = "background-color:#fdd">      WriteStartElement(XML_Z, out);
+      WriteCharacterData(ConvertToString(v-&gt;Coordinates[2]).c_str(), out);</span>
+      /*++++ &lt;/z&gt; ++++*/
+<span style = "background-color:#fdd">      WriteEndElement(XML_Z, out, false);</span>
+
+      /*++++ &lt;/point&gt; ++++*/
+<span style = "background-color:#fdd">      WriteEndElement(XML_POINT, out);</span>
+
+<span style = "background-color:#fdd">      it++;
+    }</span>
+
+    /*++++ &lt;/controlPoints&gt; ++++*/
+<span style = "background-color:#fdd">    WriteEndElement(XML_CONTROL_POINTS, out);</span>
+
+    /*++++ &lt;/timestep&gt; ++++*/
+<span style = "background-color:#fdd">    WriteEndElement(XML_TIME_STEP, out);
+  }</span>
+
+  /*++++ &lt;/data&gt; ++++*/
+<span style = "background-color:#fdd">  WriteEndElement(XML_DATA, out);</span>
+
+  /*++++ &lt;/contourModel&gt; ++++*/
+<span style = "background-color:#fdd">  WriteEndElement(XML_CONTOURMODEL, out);
+}</span>
+
+void mitk::ContourModelWriter::WriteGeometryInformation(const mitk::TimeGeometry * /*geometry*/, std::ostream &amp;out)
+<span style = "background-color:#fdd">{
+  WriteCharacterData("&lt;!-- geometry information --&gt;", out);
+}</span>
+
+template &lt;typename T&gt;
+std::string mitk::ContourModelWriter::ConvertToString(T value)
+<span style = "background-color:#fdd">{
+  std::ostringstream o;
+  std::locale I("C");
+  o.imbue(I);</span>
+
+<span style = "background-color:#fdd">  if (o &lt;&lt; value)</span>
+  {
+<span style = "background-color:#fdd">    return o.str();
+  }</span>
+  else
+<span style = "background-color:#fdd">    return "conversion error";
+}</span>
+
+void mitk::ContourModelWriter::WriteXMLHeader(std::ostream &amp;file)
+<span style = "background-color:#fdd">{
+  file &lt;&lt; "&lt;?xml version=\"1.0\" encoding=\"utf-8\"?&gt;";
+}</span>
+
+void mitk::ContourModelWriter::WriteStartElement(const char *const tag, std::ostream &amp;file)
+<span style = "background-color:#fdd">{
+  file &lt;&lt; std::endl;
+  WriteIndent(file);
+  file &lt;&lt; '&lt;' &lt;&lt; tag &lt;&lt; '&gt;';
+  m_IndentDepth++;
+}</span>
+
+void mitk::ContourModelWriter::WriteStartElementWithAttribut(const char *const tag,
+                                                             std::vector&lt;std::string&gt; attributes,
+                                                             std::vector&lt;std::string&gt; values,
+                                                             std::ostream &amp;file)
+<span style = "background-color:#fdd">{
+  file &lt;&lt; std::endl;
+  WriteIndent(file);
+  file &lt;&lt; '&lt;' &lt;&lt; tag;</span>
+
+<span style = "background-color:#fdd">  unsigned int attributesSize = attributes.size();
+  unsigned int valuesSize = values.size();</span>
+
+<span style = "background-color:#fdd">  if (attributesSize == valuesSize)</span>
+  {
+<span style = "background-color:#fdd">    auto attributesIt = attributes.begin();
+    auto end = attributes.end();</span>
+
+<span style = "background-color:#fdd">    auto valuesIt = values.begin();</span>
+
+<span style = "background-color:#fdd">    while (attributesIt != end)</span>
+    {
+<span style = "background-color:#fdd">      file &lt;&lt; ' ';
+      WriteCharacterData(*attributesIt, file);
+      file &lt;&lt; '=' &lt;&lt; '"';
+      WriteCharacterData(*valuesIt, file);
+      file &lt;&lt; '"';
+      attributesIt++;
+      valuesIt++;
+    }
+  }</span>
+
+<span style = "background-color:#fdd">  file &lt;&lt; '&gt;';
+  m_IndentDepth++;
+}</span>
+
+void mitk::ContourModelWriter::WriteEndElement(const char *const tag, std::ostream &amp;file, const bool &amp;indent)
+<span style = "background-color:#fdd">{
+  m_IndentDepth--;
+  if (indent)</span>
+  {
+<span style = "background-color:#fdd">    file &lt;&lt; std::endl;
+    WriteIndent(file);</span>
+  }
+<span style = "background-color:#fdd">  file &lt;&lt; '&lt;' &lt;&lt; '/' &lt;&lt; tag &lt;&lt; '&gt;';
+}</span>
+
+void mitk::ContourModelWriter::WriteCharacterData(const char *const data, std::ostream &amp;file)
+<span style = "background-color:#fdd">{
+  file &lt;&lt; data;
+}</span>
+
+void mitk::ContourModelWriter::WriteStartElement(std::string &amp;tag, std::ostream &amp;file)
+<span style = "background-color:#fdd">{
+  WriteStartElement(tag.c_str(), file);
+}</span>
+
+void mitk::ContourModelWriter::WriteEndElement(std::string &amp;tag, std::ostream &amp;file, const bool &amp;indent)
+<span style = "background-color:#fdd">{
+  WriteEndElement(tag.c_str(), file, indent);
+}</span>
+
+void mitk::ContourModelWriter::WriteCharacterData(std::string &amp;data, std::ostream &amp;file)
+<span style = "background-color:#fdd">{
+  WriteCharacterData(data.c_str(), file);
+}</span>
+
+void mitk::ContourModelWriter::WriteIndent(std::ostream &amp;file)
+<span style = "background-color:#fdd">{
+  std::string spaces(m_IndentDepth * m_Indent, ' ');
+  file &lt;&lt; spaces.c_str();
+}</span></pre>
+	</body>
+</html>

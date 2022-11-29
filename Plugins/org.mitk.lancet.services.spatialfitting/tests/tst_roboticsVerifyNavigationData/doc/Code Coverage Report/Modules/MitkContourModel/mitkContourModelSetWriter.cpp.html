@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkContourModelSetWriter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkContourModelSetWriter.h"
+#include "mitkContourModelWriter.h"
+#include &lt;fstream&gt;
+#include &lt;iostream&gt;
+#include &lt;mitkCustomMimeType.h&gt;
+
+<span style = "background-color:#dfd">mitk::ContourModelSetWriter::ContourModelSetWriter() : AbstractFileWriter(ContourModelSet::GetStaticNameOfClass())
+{
+  std::string category = "ContourModelSet File";
+  mitk::CustomMimeType customMimeType;
+  customMimeType.SetCategory(category);
+  customMimeType.AddExtension("cnt_set");</span>
+
+<span style = "background-color:#dfd">  this-&gt;SetDescription(category);
+  this-&gt;SetMimeType(customMimeType);</span>
+
+<span style = "background-color:#dfd">  RegisterService();
+}</span>
+
+<span style = "background-color:#fdd">mitk::ContourModelSetWriter::ContourModelSetWriter(const mitk::ContourModelSetWriter &amp;other) : AbstractFileWriter(other)
+{
+}</span>
+
+mitk::ContourModelSetWriter::~ContourModelSetWriter()
+<span style = "background-color:#dfd">{
+}</span>
+
+void mitk::ContourModelSetWriter::Write()
+<span style = "background-color:#fdd">{</span>
+  std::ostream *out;
+<span style = "background-color:#fdd">  std::ofstream outStream;</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetOutputStream())</span>
+  {
+<span style = "background-color:#fdd">    out = this-&gt;GetOutputStream();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    outStream.open(this-&gt;GetOutputLocation().c_str());
+    out = &amp;outStream;</span>
+  }
+
+<span style = "background-color:#fdd">  if (!out-&gt;good())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Stream not good.";</span>
+  }
+
+<span style = "background-color:#fdd">  *out &lt;&lt; "&lt;?xml version=\"1.0\" encoding=\"utf-8\"?&gt;\n";</span>
+
+  // Use regular ContourModel writer to write each contour of the set to a single file.
+  // Just use a different file extension .cnt_set
+
+<span style = "background-color:#fdd">  bool writeXMLHeader = false;
+  mitk::ContourModelWriter writer(writeXMLHeader);</span>
+
+<span style = "background-color:#fdd">  mitk::ContourModelSet::ConstPointer contourModelSet = dynamic_cast&lt;const mitk::ContourModelSet *&gt;(this-&gt;GetInput());</span>
+
+  //
+  // for each contour object set input of writer
+  //
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; contourModelSet-&gt;GetSize(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    const mitk::ContourModel *contour = contourModelSet-&gt;GetContourModelAt(i);
+    writer.SetInput(contour);
+    writer.SetOutputStream(this-&gt;GetOutputLocation(), out);
+    writer.Write();
+  }
+}</span>
+
+mitk::ContourModelSetWriter *mitk::ContourModelSetWriter::Clone() const
+<span style = "background-color:#fdd">{
+  return new ContourModelSetWriter(*this);
+}</span></pre>
+	</body>
+</html>

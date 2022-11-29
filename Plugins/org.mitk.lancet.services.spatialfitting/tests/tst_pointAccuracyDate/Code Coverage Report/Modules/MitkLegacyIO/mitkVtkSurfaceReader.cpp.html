@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVtkSurfaceReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+#include "mitkVtkSurfaceReader.h"
+#include &lt;itksys/SystemTools.hxx&gt;
+#include &lt;mitkSurface.h&gt;
+#include &lt;vtkDataReader.h&gt;
+#include &lt;vtkPolyDataReader.h&gt;
+#include &lt;vtkXMLPolyDataReader.h&gt;
+
+<span style = "background-color:#fdd">mitk::VtkSurfaceReader::VtkSurfaceReader() : m_FileName("")
+{
+}</span>
+
+mitk::VtkSurfaceReader::~VtkSurfaceReader()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::VtkSurfaceReader::GenerateData()
+<span style = "background-color:#fdd">{
+  if (m_FileName != "")</span>
+  {
+<span style = "background-color:#fdd">    bool success = false;
+    MITK_INFO &lt;&lt; "Loading " &lt;&lt; m_FileName &lt;&lt; " as vtk" &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">    std::string ext = itksys::SystemTools::GetFilenameLastExtension(m_FileName);
+    ext = itksys::SystemTools::LowerCase(ext);
+    if (ext == ".vtk")</span>
+    {
+      /// We create a Generic Reader to test de .vtk/
+<span style = "background-color:#fdd">      vtkDataReader *chooser = vtkDataReader::New();
+      chooser-&gt;SetFileName(m_FileName.c_str());
+      if (chooser-&gt;IsFilePolyData())</span>
+      {
+        /// PolyData/
+<span style = "background-color:#fdd">        itkDebugMacro(&lt;&lt; "PolyData");
+        vtkPolyDataReader *reader = vtkPolyDataReader::New();
+        reader-&gt;SetFileName(m_FileName.c_str());
+        reader-&gt;Update();</span>
+
+<span style = "background-color:#fdd">        if (reader-&gt;GetOutput() != nullptr)</span>
+        {
+<span style = "background-color:#fdd">          mitk::Surface::Pointer output = this-&gt;GetOutput();
+          output-&gt;SetVtkPolyData(reader-&gt;GetOutput());
+          success = true;
+        }
+        reader-&gt;Delete();</span>
+      }
+<span style = "background-color:#fdd">      chooser-&gt;Delete();
+    }
+    else if (ext == ".vtp")</span>
+    {
+<span style = "background-color:#fdd">      vtkXMLPolyDataReader *reader = vtkXMLPolyDataReader::New();
+      if (reader-&gt;CanReadFile(m_FileName.c_str()))</span>
+      {
+        /// PolyData/
+<span style = "background-color:#fdd">        itkDebugMacro(&lt;&lt; "XMLPolyData");
+        reader-&gt;SetFileName(m_FileName.c_str());
+        reader-&gt;Update();</span>
+
+<span style = "background-color:#fdd">        if (reader-&gt;GetOutput() != nullptr)</span>
+        {
+<span style = "background-color:#fdd">          mitk::Surface::Pointer output = this-&gt;GetOutput();
+          output-&gt;SetVtkPolyData(reader-&gt;GetOutput());
+          success = true;
+        }
+        reader-&gt;Delete();</span>
+      }
+    }
+<span style = "background-color:#fdd">    if (!success)</span>
+    {
+<span style = "background-color:#fdd">      itkWarningMacro(&lt;&lt; " ... sorry, this .vtk format is not supported yet.");</span>
+    }
+<span style = "background-color:#fdd">  }
+}</span>
+
+bool mitk::VtkSurfaceReader::CanReadFile(const std::string filename,
+                                         const std::string /*filePrefix*/,
+                                         const std::string /*filePattern*/)
+<span style = "background-color:#fdd">{</span>
+  // First check the extension
+<span style = "background-color:#fdd">  if (filename == "")
+    return false;</span>
+
+<span style = "background-color:#fdd">  std::string ext = itksys::SystemTools::GetFilenameLastExtension(filename);
+  ext = itksys::SystemTools::LowerCase(ext);
+  if (ext == ".vtk")</span>
+  {
+<span style = "background-color:#fdd">    vtkDataReader *chooser = vtkDataReader::New();
+    chooser-&gt;SetFileName(filename.c_str());
+    if (!chooser-&gt;IsFilePolyData())</span>
+    {
+<span style = "background-color:#fdd">      chooser-&gt;Delete();
+      return false;</span>
+    }
+<span style = "background-color:#fdd">    chooser-&gt;Delete();
+  }
+  else if (ext == ".vtp")</span>
+  {
+<span style = "background-color:#fdd">    vtkXMLPolyDataReader *chooser = vtkXMLPolyDataReader::New();
+    if (!chooser-&gt;CanReadFile(filename.c_str()))</span>
+    {
+<span style = "background-color:#fdd">      chooser-&gt;Delete();
+      return false;</span>
+    }
+<span style = "background-color:#fdd">    chooser-&gt;Delete();
+  }</span>
+  else
+<span style = "background-color:#fdd">    return false;</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span></pre>
+	</body>
+</html>

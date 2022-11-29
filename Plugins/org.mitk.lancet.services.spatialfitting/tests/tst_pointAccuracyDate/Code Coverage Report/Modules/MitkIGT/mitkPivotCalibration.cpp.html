@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPivotCalibration.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPivotCalibration.h"
+#include "vnl/algo/vnl_svd.h"
+#include "vnl/vnl_matrix.h"
+#include "vnl/vnl_vector.h"
+#include &lt;vtkMatrix4x4.h&gt;
+
+<span style = "background-color:#fdd">mitk::PivotCalibration::PivotCalibration() : m_NavigationDatas(std::vector&lt;mitk::NavigationData::Pointer&gt;()), m_ResultPivotPoint(mitk::Point3D(0.0))
+{</span>
+
+
+<span style = "background-color:#fdd">}</span>
+
+mitk::PivotCalibration::~PivotCalibration()
+<span style = "background-color:#fdd">{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+void mitk::PivotCalibration::AddNavigationData(mitk::NavigationData::Pointer data)
+<span style = "background-color:#fdd">{
+  m_NavigationDatas.push_back(data);
+}</span>
+
+bool mitk::PivotCalibration::ComputePivotResult()
+<span style = "background-color:#fdd">{
+  return ComputePivotPoint();
+}</span>
+
+bool mitk::PivotCalibration::ComputePivotPoint()
+<span style = "background-color:#fdd">{
+  double defaultThreshold = 1e-1;</span>
+
+<span style = "background-color:#fdd">  std::vector&lt;mitk::NavigationData::Pointer&gt; _CheckedTransforms;
+  for (size_t i = 0; i &lt; m_NavigationDatas.size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    if (!m_NavigationDatas.at(i)-&gt;IsDataValid())</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Skipping invalid transform " &lt;&lt; i &lt;&lt; ".";
+      continue;</span>
+    }
+<span style = "background-color:#fdd">    _CheckedTransforms.push_back(m_NavigationDatas.at(i));
+  }</span>
+
+<span style = "background-color:#fdd">  if (_CheckedTransforms.empty())</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Checked Transforms are empty";
+    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  unsigned int rows = 3 * _CheckedTransforms.size();
+  unsigned int columns = 6;</span>
+
+<span style = "background-color:#fdd">  vnl_matrix&lt; double &gt; A(rows, columns), minusI(3, 3, 0), R(3, 3);
+  vnl_vector&lt; double &gt; b(rows), x(columns), t(3);</span>
+
+<span style = "background-color:#fdd">  minusI(0, 0) = -1;
+  minusI(1, 1) = -1;
+  minusI(2, 2) = -1;</span>
+
+  //do the computation and set the internal variables
+<span style = "background-color:#fdd">  unsigned int currentRow = 0;</span>
+
+
+<span style = "background-color:#fdd">  for (size_t i = 0; i &lt; _CheckedTransforms.size(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    t = _CheckedTransforms.at(i)-&gt;GetPosition().GetVnlVector();// t = the current position of the tracked sensor
+    t *= -1;
+    b.update(t, currentRow); //b = combines the position for each collected transform in one column vector
+    R = _CheckedTransforms.at(i)-&gt;GetOrientation().rotation_matrix_transpose().transpose().as_ref(); // R = the current rotation of the tracked sensor, *rotation_matrix_transpose().transpose() is used to obtain original matrix
+    A.update(R, currentRow, 0); //A = the matrix which stores the rotations for each collected transform and -I
+    A.update(minusI, currentRow, 3);
+    currentRow += 3;
+  }
+  vnl_svd&lt;double&gt; svdA(A); //The singular value decomposition of matrix A
+  svdA.zero_out_absolute(defaultThreshold);</span>
+
+  //there is a solution only if rank(A)=6 (columns are linearly
+  //independent)
+<span style = "background-color:#fdd">  if (svdA.rank() &lt; 6)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "svdA.rank() &lt; 6";
+    return false;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    x = svdA.solve(b); //x = the resulting pivot point</span>
+
+<span style = "background-color:#fdd">    m_ResultRMSError = (A * x - b).rms();  //the root mean sqaure error of the computation</span>
+
+    //sets the Pivot Point
+<span style = "background-color:#fdd">    m_ResultPivotPoint[0] = x[0];
+    m_ResultPivotPoint[1] = x[1];
+    m_ResultPivotPoint[2] = x[2];</span>
+
+
+  }
+<span style = "background-color:#fdd">  return true;</span>
+
+<span style = "background-color:#fdd">}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,275 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTrackingDeviceSource.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTrackingDeviceSource.h"
+
+#include "mitkTrackingDevice.h"
+#include "mitkTrackingTool.h"
+
+#include "mitkIGTTimeStamp.h"
+#include "mitkIGTException.h"
+#include "mitkIGTHardwareException.h"
+
+mitk::TrackingDeviceSource::TrackingDeviceSource()
+<span style = "background-color:#fdd">  : mitk::NavigationDataSource(), m_TrackingDevice(nullptr)
+{
+}</span>
+
+mitk::TrackingDeviceSource::~TrackingDeviceSource()
+<span style = "background-color:#fdd">{
+  if (m_TrackingDevice.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if (m_TrackingDevice-&gt;GetState() == mitk::TrackingDevice::Tracking)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;StopTracking();</span>
+    }
+<span style = "background-color:#fdd">    if (m_TrackingDevice-&gt;GetState() == mitk::TrackingDevice::Ready)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;Disconnect();</span>
+    }
+<span style = "background-color:#fdd">    m_TrackingDevice = nullptr;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::TrackingDeviceSource::GenerateData()
+<span style = "background-color:#fdd">{
+  if (m_IsFrozen) {return;} //no update at all if device is frozen
+  else if (m_TrackingDevice.IsNull()) {return;}</span>
+
+<span style = "background-color:#fdd">  if (m_TrackingDevice-&gt;GetToolCount() &lt; 1)
+    return;</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetNumberOfIndexedOutputs() != m_TrackingDevice-&gt;GetToolCount()) // mismatch between tools and outputs. What should we do? Were tools added to the tracking device after SetTrackingDevice() was called?</span>
+  {
+    //check this: TODO:
+    ////this might happen if a tool is plugged into an aurora during tracking.
+    //this-&gt;CreateOutputs();
+
+<span style = "background-color:#fdd">    std::stringstream ss;
+    ss &lt;&lt; "mitk::TrackingDeviceSource: not enough outputs available for all tools. "</span>
+      &lt;&lt; this-&gt;GetNumberOfOutputs() &lt;&lt; " outputs available, but "
+      &lt;&lt; m_TrackingDevice-&gt;GetToolCount() &lt;&lt; " tools available in the tracking device.";
+<span style = "background-color:#fdd">    throw std::out_of_range(ss.str());
+  }</span>
+  /* update outputs with tracking data from tools */
+<span style = "background-color:#fdd">  unsigned int toolCount = m_TrackingDevice-&gt;GetToolCount();
+  for (unsigned int i = 0; i &lt; toolCount; ++i)</span>
+  {
+<span style = "background-color:#fdd">    mitk::NavigationData* nd = this-&gt;GetOutput(i);
+    assert(nd);
+    mitk::TrackingTool* t = m_TrackingDevice-&gt;GetTool(i);
+    assert(t);</span>
+
+<span style = "background-color:#fdd">    if ((t-&gt;IsEnabled() == false) || (t-&gt;IsDataValid() == false))</span>
+    {
+<span style = "background-color:#fdd">      nd-&gt;SetDataValid(false);
+      continue;</span>
+    }
+<span style = "background-color:#fdd">    nd-&gt;SetDataValid(true);
+    mitk::NavigationData::PositionType p;
+    t-&gt;GetPosition(p);
+    nd-&gt;SetPosition(p);</span>
+
+    mitk::NavigationData::OrientationType o;
+<span style = "background-color:#fdd">    t-&gt;GetOrientation(o);
+    nd-&gt;SetOrientation(o);
+    nd-&gt;SetOrientationAccuracy(t-&gt;GetTrackingError());
+    nd-&gt;SetPositionAccuracy(t-&gt;GetTrackingError());
+    nd-&gt;SetIGTTimeStamp(t-&gt;GetIGTTimeStamp());</span>
+
+    //for backward compatibility: check if the timestamp was set, if not create a default timestamp
+<span style = "background-color:#fdd">    if (nd-&gt;GetIGTTimeStamp()==0) nd-&gt;SetIGTTimeStamp(mitk::IGTTimeStamp::GetInstance()-&gt;GetElapsed());
+  }
+}</span>
+
+void mitk::TrackingDeviceSource::SetTrackingDevice( mitk::TrackingDevice* td )
+<span style = "background-color:#fdd">{
+  MITK_DEBUG &lt;&lt; "Setting TrackingDevice to " &lt;&lt; td;
+  if (this-&gt;m_TrackingDevice.GetPointer() != td)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_TrackingDevice = td;
+    this-&gt;CreateOutputs();
+    std::stringstream name; // create a human readable name for the source
+    name &lt;&lt; td-&gt;GetData().Model &lt;&lt; " Tracking Source";
+    this-&gt;SetName(name.str());
+  }
+}</span>
+
+mitk::TrackingDevice::Pointer mitk::TrackingDeviceSource::GetTrackingDevice()
+<span style = "background-color:#fdd">{
+  return m_TrackingDevice;
+}</span>
+
+<span style = "background-color:#fdd">void mitk::TrackingDeviceSource::CreateOutputs(){</span>
+  //if outputs are set then delete them
+<span style = "background-color:#fdd">  if (this-&gt;GetNumberOfOutputs() &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    for (int numOP = this-&gt;GetNumberOfOutputs() -1; numOP &gt;= 0; numOP--)
+      this-&gt;RemoveOutput(numOP);
+    this-&gt;Modified();</span>
+  }
+
+  //fill the outputs if a valid tracking device is set
+<span style = "background-color:#fdd">  if (m_TrackingDevice.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  this-&gt;SetNumberOfIndexedOutputs(m_TrackingDevice-&gt;GetToolCount());  // create outputs for all tools
+  unsigned int numberOfOutputs = this-&gt;GetNumberOfIndexedOutputs();
+  MITK_DEBUG &lt;&lt; "Number of tools at start of method CreateOutputs(): " &lt;&lt; m_TrackingDevice-&gt;GetToolCount();
+  MITK_DEBUG &lt;&lt; "Number of outputs at start of method CreateOutputs(): " &lt;&lt; numberOfOutputs;
+  for (unsigned int idx = 0; idx &lt; m_TrackingDevice-&gt;GetToolCount(); ++idx)</span>
+  {
+<span style = "background-color:#fdd">    if (this-&gt;GetOutput(idx) == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      DataObjectPointer newOutput = this-&gt;MakeOutput(idx);
+      static_cast&lt;mitk::NavigationData*&gt;(newOutput.GetPointer())-&gt;SetName(m_TrackingDevice-&gt;GetTool(idx)-&gt;GetToolName()); // set NavigationData name to ToolName
+      this-&gt;SetNthOutput(idx, newOutput);
+      this-&gt;Modified();
+    }
+  }
+}</span>
+
+void mitk::TrackingDeviceSource::Connect()
+<span style = "background-color:#fdd">{
+  if (m_TrackingDevice.IsNull())
+    throw std::invalid_argument("mitk::TrackingDeviceSource: No tracking device set");
+  if (this-&gt;IsConnected())
+    return;</span>
+  try
+  {
+    //Try to open the connection. If it didn't work (fals is returned from OpenConnection by the tracking device), throw an exception.
+<span style = "background-color:#fdd">    if (!m_TrackingDevice-&gt;OpenConnection())</span>
+    {
+<span style = "background-color:#fdd">      mitkThrowException(mitk::IGTHardwareException) &lt;&lt; "Could not open connection.";</span>
+    }
+  }
+  catch (mitk::IGTException &amp;e)
+<span style = "background-color:#fdd">  {
+    throw std::runtime_error(std::string("mitk::TrackingDeviceSource: Could not open connection to tracking device. Error: ") + e.GetDescription());
+  }
+}</span>
+
+void mitk::TrackingDeviceSource::StartTracking()
+<span style = "background-color:#fdd">{
+  if (m_TrackingDevice.IsNull())
+    throw std::invalid_argument("mitk::TrackingDeviceSource: No tracking device set");
+  if (m_TrackingDevice-&gt;GetState() == mitk::TrackingDevice::Tracking)
+    return;
+  if (m_TrackingDevice-&gt;StartTracking() == false)
+    throw std::runtime_error("mitk::TrackingDeviceSource: Could not start tracking");
+}</span>
+
+void mitk::TrackingDeviceSource::Disconnect()
+<span style = "background-color:#fdd">{
+  if (m_TrackingDevice.IsNull())
+    throw std::invalid_argument("mitk::TrackingDeviceSource: No tracking device set");
+  if (m_TrackingDevice-&gt;CloseConnection() == false)
+    throw std::runtime_error("mitk::TrackingDeviceSource: Could not close connection to tracking device");
+}</span>
+
+void mitk::TrackingDeviceSource::StopTracking()
+<span style = "background-color:#fdd">{
+  if (m_TrackingDevice.IsNull())
+    throw std::invalid_argument("mitk::TrackingDeviceSource: No tracking device set");
+  if (m_TrackingDevice-&gt;StopTracking() == false)
+    throw std::runtime_error("mitk::TrackingDeviceSource: Could not stop tracking");
+}</span>
+
+void mitk::TrackingDeviceSource::UpdateOutputInformation()
+<span style = "background-color:#fdd">{
+  if(this-&gt;GetTrackingDevice()-&gt;GetToolCount() != this-&gt;GetNumberOfIndexedOutputs())
+    this-&gt;CreateOutputs();</span>
+
+<span style = "background-color:#fdd">  this-&gt;Modified();  // make sure that we need to be updated
+  Superclass::UpdateOutputInformation();
+}</span>
+
+void mitk::TrackingDeviceSource::TransferCoordsFromTrackedObjectToTrackingDevice(std::string referenceToolName,
+  AffineTransform3D::Pointer coordsInTrackedObject,
+  AffineTransform3D::Pointer&amp; coordsInTrackingDevice)
+<span style = "background-color:#fdd">{
+  AffineTransform3D::Pointer toolRegistrationMatrix = GetToolMetaData(referenceToolName)-&gt;GetToolRegistrationMatrix();</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetOutput(referenceToolName)==nullptr)</span>
+  {
+<span style = "background-color:#fdd">    throw std::invalid_argument("can not get named output");
+    return;</span>
+  }
+<span style = "background-color:#fdd">  mitk::AffineTransform3D::Pointer T_trackingdevice_2_rf = this-&gt;GetOutput(referenceToolName)-&gt;GetAffineTransform3D();</span>
+
+  //if there is no named tool,this will return a identity matrix
+<span style = "background-color:#fdd">  mitk::AffineTransform3D::Pointer T_rf_2_trackedobj = GetToolMetaData(referenceToolName)-&gt;GetToolRegistrationMatrix();</span>
+
+  // T_trackingDevice = T_trackingdevice_2_rf * T_rf_2_trackedobj * T_trackedobj
+<span style = "background-color:#fdd">  coordsInTrackingDevice = coordsInTrackedObject-&gt;Clone();
+  coordsInTrackingDevice-&gt;Compose(T_rf_2_trackedobj);
+  coordsInTrackingDevice-&gt;Compose(T_trackingdevice_2_rf);
+}</span>
+
+void mitk::TrackingDeviceSource::TransferCoordsFromTrackingDeviceToTrackedObject(std::string referenceToolName,
+  AffineTransform3D::Pointer coordsInTrackingDevice,
+  AffineTransform3D::Pointer&amp; coordsInTrackedObject)
+<span style = "background-color:#fdd">{
+  AffineTransform3D::Pointer toolRegistrationMatrix = GetToolMetaData(referenceToolName)-&gt;GetToolRegistrationMatrix();</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetOutput(referenceToolName) == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    throw std::invalid_argument("can not get named output");
+    return;</span>
+  }
+<span style = "background-color:#fdd">  mitk::AffineTransform3D::Pointer T_trackingdevice_2_rf = this-&gt;GetOutput(referenceToolName)-&gt;GetAffineTransform3D();
+  T_trackingdevice_2_rf-&gt;GetInverse(T_trackingdevice_2_rf);</span>
+  // if there is no named tool,this will return a identity matrix
+<span style = "background-color:#fdd">  mitk::AffineTransform3D::Pointer T_rf_2_trackedobj = GetToolMetaData(referenceToolName)-&gt;GetToolRegistrationMatrix()-&gt;Clone();</span>
+
+<span style = "background-color:#fdd">  T_rf_2_trackedobj-&gt;GetInverse(T_rf_2_trackedobj);</span>
+  // T_trackedobj = T_trackedobj_2_rf * T_rf_2_trackingdevice * T_trackingDevice
+<span style = "background-color:#fdd">  coordsInTrackedObject = coordsInTrackingDevice-&gt;Clone();
+  coordsInTrackedObject-&gt;Compose(T_trackingdevice_2_rf);
+  coordsInTrackedObject-&gt;Compose(T_rf_2_trackedobj);
+}</span>
+
+//unsigned int mitk::TrackingDeviceSource::GetToolCount()
+//{
+//  if (m_TrackingDevice)
+//    return m_TrackingDevice-&gt;GetToolCount();
+//  return 0;
+//}
+
+bool mitk::TrackingDeviceSource::IsConnected()
+<span style = "background-color:#fdd">{
+  if (m_TrackingDevice.IsNull())
+    return false;</span>
+
+<span style = "background-color:#fdd">  return (m_TrackingDevice-&gt;GetState() == mitk::TrackingDevice::Ready) || (m_TrackingDevice-&gt;GetState() == mitk::TrackingDevice::Tracking);
+}</span>
+
+bool mitk::TrackingDeviceSource::IsTracking()
+<span style = "background-color:#fdd">{
+  if (m_TrackingDevice.IsNull())
+    return false;</span>
+
+<span style = "background-color:#fdd">  return m_TrackingDevice-&gt;GetState() == mitk::TrackingDevice::Tracking;
+}</span></pre>
+	</body>
+</html>

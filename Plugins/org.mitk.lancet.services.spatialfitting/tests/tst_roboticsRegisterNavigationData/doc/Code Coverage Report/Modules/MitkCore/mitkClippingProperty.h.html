@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkClippingProperty.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKCLIPPINGPROPERTY_H_HEADER_INCLUDED
+#define MITKCLIPPINGPROPERTY_H_HEADER_INCLUDED
+
+#include "mitkBaseProperty.h"
+#include "mitkNumericTypes.h"
+#include &lt;MitkCoreExports.h&gt;
+
+#include &lt;itkConfigure.h&gt;
+
+#include &lt;string&gt;
+
+namespace mitk
+{
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4522)
+#endif
+
+  /**
+   * \brief Property for clipping datasets; currently only
+   * clipping planes are possible
+   * \ingroup DataManagement
+   */
+  class MITKCORE_EXPORT ClippingProperty : public BaseProperty
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(ClippingProperty, BaseProperty);</span>
+
+    typedef std::string ValueType;
+
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self)
+      mitkNewMacro2Param(ClippingProperty, const Point3D &amp;, const Vector3D &amp;);</span>
+
+    bool GetClippingEnabled() const;
+    void SetClippingEnabled(bool enabled);
+
+    const Point3D &amp;GetOrigin() const;
+    void SetOrigin(const Point3D &amp;origin);
+
+    const Vector3D &amp;GetNormal() const;
+    void SetNormal(const Vector3D &amp;normal);
+
+    std::string GetValueAsString() const override;
+
+    using BaseProperty::operator=;
+
+  protected:
+    bool m_ClippingEnabled;
+
+    Point3D m_Origin;
+    Vector3D m_Normal;
+
+    ClippingProperty();
+    ClippingProperty(const ClippingProperty &amp;other);
+    ClippingProperty(const Point3D &amp;origin, const Vector3D &amp;normal);
+
+  private:
+    // purposely not implemented
+    ClippingProperty &amp;operator=(const ClippingProperty &amp;);
+
+    bool IsEqual(const BaseProperty &amp;property) const override;
+    bool Assign(const BaseProperty &amp;property) override;
+
+    itk::LightObject::Pointer InternalClone() const override;
+  };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+} // namespace mitk
+
+#endif /* MITKCLIPPINGPROPERTY_H_HEADER_INCLUDED */</pre>
+	</body>
+</html>

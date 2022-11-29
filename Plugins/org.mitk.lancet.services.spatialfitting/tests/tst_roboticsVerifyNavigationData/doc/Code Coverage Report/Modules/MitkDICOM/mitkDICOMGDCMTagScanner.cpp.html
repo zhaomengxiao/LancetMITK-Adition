@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMGDCMTagScanner.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMGDCMTagScanner.h"
+#include "mitkDICOMGDCMTagCache.h"
+#include "mitkDICOMGDCMImageFrameInfo.h"
+
+#include &lt;gdcmScanner.h&gt;
+
+mitk::DICOMGDCMTagScanner::DICOMGDCMTagScanner()
+<span style = "background-color:#fdd">{
+  m_GDCMScanner = std::make_shared&lt;gdcm::Scanner&gt;();
+}</span>
+
+mitk::DICOMGDCMTagScanner::~DICOMGDCMTagScanner()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::DICOMDatasetFinding mitk::DICOMGDCMTagScanner::GetTagValue( DICOMImageFrameInfo* frame, const DICOMTag&amp; tag ) const
+<span style = "background-color:#fdd">{
+  assert( frame );
+  assert(m_Cache.IsNotNull());</span>
+
+<span style = "background-color:#fdd">  if (m_Cache.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Wrong usage of DICOMGDCMScanner- Called GetTagValue() before scanned at least once. No scanner cache available.";</span>
+  }
+
+<span style = "background-color:#fdd">  return m_Cache-&gt;GetTagValue(frame, tag);
+}</span>
+
+void mitk::DICOMGDCMTagScanner::AddTag( const DICOMTag&amp; tag )
+<span style = "background-color:#fdd">{
+  m_ScannedTags.insert( tag );
+  m_GDCMScanner-&gt;AddTag(</span>
+    gdcm::Tag( tag.GetGroup(), tag.GetElement() ) ); // also a set, duplicate calls to AddTag don't hurt
+<span style = "background-color:#fdd">}</span>
+
+void mitk::DICOMGDCMTagScanner::AddTags( const DICOMTagList&amp; tags )
+<span style = "background-color:#fdd">{
+  for ( auto tagIter = tags.cbegin(); tagIter != tags.cend(); ++tagIter )</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;AddTag( *tagIter );
+  }
+}</span>
+
+void mitk::DICOMGDCMTagScanner::AddTagPath(const DICOMTagPath&amp; path)
+<span style = "background-color:#fdd">{
+  if (path.Size() != 1 || !path.IsExplicit())</span>
+  {
+<span style = "background-color:#fdd">    std::stringstream errorstring;
+    errorstring &lt;&lt; "Invalid call to DICOMGDCMTagScanner::AddTagPath(). "</span>
+      &lt;&lt; "Scanner does only support pathes that are explicitly specify one tag. "
+      &lt;&lt; "Invalid path: "&lt;&lt;path.ToStr();
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; errorstring.str();
+    throw std::invalid_argument(errorstring.str());
+  }
+  this-&gt;AddTag(path.GetFirstNode().tag);
+}</span>
+
+void mitk::DICOMGDCMTagScanner::AddTagPaths(const DICOMTagPathList&amp; paths)
+<span style = "background-color:#fdd">{
+  for (const auto&amp; path : paths)</span>
+  {
+<span style = "background-color:#fdd">    if (path.Size() != 1 || !path.IsExplicit())</span>
+    {
+<span style = "background-color:#fdd">      std::stringstream errorstring;
+      errorstring &lt;&lt; "Invalid call to DICOMGDCMTagScanner::AddTagPaths(). "</span>
+        &lt;&lt; "Scanner does only support pathes that are explicitly specify one tag. "
+        &lt;&lt; "Invalid path: " &lt;&lt; path.ToStr();
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; errorstring.str();
+      throw std::invalid_argument(errorstring.str());
+    }
+    this-&gt;AddTag(path.GetFirstNode().tag);
+  }
+}</span>
+
+void mitk::DICOMGDCMTagScanner::SetInputFiles( const StringList&amp; filenames )
+<span style = "background-color:#fdd">{
+  m_InputFilenames = filenames;
+}</span>
+
+
+void mitk::DICOMGDCMTagScanner::Scan()
+<span style = "background-color:#fdd">{</span>
+  // TODO integrate push/pop locale??
+<span style = "background-color:#fdd">  m_GDCMScanner-&gt;Scan( m_InputFilenames );</span>
+
+<span style = "background-color:#fdd">  DICOMGDCMTagCache::Pointer newCache = DICOMGDCMTagCache::New();
+  newCache-&gt;InitCache(m_ScannedTags, m_GDCMScanner, m_InputFilenames);</span>
+
+<span style = "background-color:#fdd">  m_Cache = newCache;
+}</span>
+
+mitk::DICOMTagCache::Pointer
+mitk::DICOMGDCMTagScanner::GetScanCache() const
+<span style = "background-color:#fdd">{
+  return m_Cache.GetPointer();
+}</span>
+
+mitk::DICOMDatasetAccessingImageFrameList mitk::DICOMGDCMTagScanner::GetFrameInfoList() const
+<span style = "background-color:#fdd">{
+  mitk::DICOMDatasetAccessingImageFrameList result;
+  if (m_Cache.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    result = m_Cache-&gt;GetFrameInfoList();</span>
+  }
+<span style = "background-color:#fdd">  return result;
+}</span></pre>
+	</body>
+</html>

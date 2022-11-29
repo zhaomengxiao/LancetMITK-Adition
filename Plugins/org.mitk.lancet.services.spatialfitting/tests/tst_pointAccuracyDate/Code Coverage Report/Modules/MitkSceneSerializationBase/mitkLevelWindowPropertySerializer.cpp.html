@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLevelWindowPropertySerializer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkLevelWindowPropertySerializer_h_included
+#define mitkLevelWindowPropertySerializer_h_included
+
+#include "mitkBasePropertySerializer.h"
+#include "mitkLevelWindowProperty.h"
+#include &lt;mitkLexicalCast.h&gt;
+#include &lt;mitkLocaleSwitch.h&gt;
+#include &lt;tinyxml2.h&gt;
+
+namespace mitk
+{
+  class LevelWindowPropertySerializer : public BasePropertySerializer
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(LevelWindowPropertySerializer, BasePropertySerializer)
+    itkFactorylessNewMacro(Self)</span>
+    itkCloneMacro(Self)
+
+    tinyxml2::XMLElement *Serialize(tinyxml2::XMLDocument &amp;doc) override
+<span style = "background-color:#fdd">    {
+      if (const LevelWindowProperty *prop = dynamic_cast&lt;const LevelWindowProperty *&gt;(m_Property.GetPointer()))</span>
+      {
+<span style = "background-color:#fdd">        LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">        auto *element = doc.NewElement("LevelWindow");</span>
+
+<span style = "background-color:#fdd">        LevelWindow lw = prop-&gt;GetLevelWindow();
+        element-&gt;SetAttribute("fixed", lw.IsFixed());
+        element-&gt;SetAttribute("isFloatingImage", lw.IsFloatingValues());</span>
+
+<span style = "background-color:#fdd">        auto *child = doc.NewElement("CurrentSettings");
+        element-&gt;InsertEndChild(child);
+        child-&gt;SetAttribute("level", boost::lexical_cast&lt;std::string&gt;(lw.GetLevel()).c_str());
+        child-&gt;SetAttribute("window", boost::lexical_cast&lt;std::string&gt;(lw.GetWindow()).c_str());</span>
+
+<span style = "background-color:#fdd">        child = doc.NewElement("DefaultSettings");
+        element-&gt;InsertEndChild(child);
+        child-&gt;SetAttribute("level", boost::lexical_cast&lt;std::string&gt;(lw.GetDefaultLevel()).c_str());
+        child-&gt;SetAttribute("window", boost::lexical_cast&lt;std::string&gt;(lw.GetDefaultWindow()).c_str());</span>
+
+<span style = "background-color:#fdd">        child = doc.NewElement("CurrentRange");
+        element-&gt;InsertEndChild(child);
+        child-&gt;SetAttribute("min", boost::lexical_cast&lt;std::string&gt;(lw.GetRangeMin()).c_str());
+        child-&gt;SetAttribute("max", boost::lexical_cast&lt;std::string&gt;(lw.GetRangeMax()).c_str());</span>
+
+<span style = "background-color:#fdd">        return element;
+      }</span>
+      else
+<span style = "background-color:#fdd">        return nullptr;
+    }</span>
+
+    BaseProperty::Pointer Deserialize(const tinyxml2::XMLElement *element) override
+<span style = "background-color:#fdd">    {
+      if (!element)
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      LocaleSwitch localeSwitch("C");</span>
+
+<span style = "background-color:#fdd">      bool isFixed(false);
+      if (element-&gt;Attribute("fixed"))
+        isFixed = std::string(element-&gt;Attribute("fixed")) == "true";
+      bool isFloatingImage(false);
+      if (element-&gt;Attribute("isFloatingImage"))
+        isFloatingImage = std::string(element-&gt;Attribute("isFloatingImage")) == "true";</span>
+
+<span style = "background-color:#fdd">      auto *child = element-&gt;FirstChildElement("CurrentSettings");
+      const char* level_string = child-&gt;Attribute("level");
+      const char* window_string = child-&gt;Attribute("window");
+      if (nullptr == level_string || nullptr == window_string)
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      child = element-&gt;FirstChildElement("DefaultSettings");
+      const char* defaultLevel_string = child-&gt;Attribute("level");
+      const char* defaultWindow_string = child-&gt;Attribute("window");
+      if (nullptr == defaultLevel_string || nullptr == defaultWindow_string)
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      child = element-&gt;FirstChildElement("CurrentRange");
+      const char* minRange_string = child-&gt;Attribute("min");
+      const char* maxRange_string = child-&gt;Attribute("max");
+      if (nullptr == minRange_string || nullptr == maxRange_string)
+        return nullptr;</span>
+
+<span style = "background-color:#fdd">      LevelWindow lw;</span>
+      try
+      {
+<span style = "background-color:#fdd">        lw.SetRangeMinMax(boost::lexical_cast&lt;double&gt;(minRange_string), boost::lexical_cast&lt;double&gt;(maxRange_string));
+        lw.SetDefaultLevelWindow(boost::lexical_cast&lt;double&gt;(defaultLevel_string),</span>
+                                 boost::lexical_cast&lt;double&gt;(defaultWindow_string));
+<span style = "background-color:#fdd">        lw.SetLevelWindow(boost::lexical_cast&lt;double&gt;(level_string), boost::lexical_cast&lt;double&gt;(window_string));
+        lw.SetFixed(isFixed);
+        lw.SetFloatingValues(isFloatingImage);</span>
+      }
+      catch (boost::bad_lexical_cast &amp;e)
+<span style = "background-color:#fdd">      {
+        MITK_ERROR &lt;&lt; "Could not parse string as number: " &lt;&lt; e.what();
+        return nullptr;
+      }
+      return LevelWindowProperty::New(lw).GetPointer();
+    }</span>
+
+  protected:
+<span style = "background-color:#fdd">    LevelWindowPropertySerializer() {}
+    ~LevelWindowPropertySerializer() override {}</span>
+  };
+
+} // namespace
+
+// important to put this into the GLOBAL namespace (because it starts with 'namespace mitk')
+<span style = "background-color:#dfd">MITK_REGISTER_SERIALIZER(LevelWindowPropertySerializer);</span>
+
+#endif</pre>
+	</body>
+</html>

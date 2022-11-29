@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationToolWriter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+//Poco headers
+#include &lt;Poco/Zip/Compress.h&gt;
+#include &lt;Poco/Path.h&gt;
+
+//mitk headers
+#include "mitkNavigationToolWriter.h"
+#include &lt;mitkStandaloneDataStorage.h&gt;
+#include &lt;mitkProperties.h&gt;
+#include &lt;mitkSceneIO.h&gt;
+#include &lt;mitkPointSet.h&gt;
+#include &lt;mitkIOUtil.h&gt;
+#include &lt;mitkMatrixConvert.h&gt;
+
+//std headers
+#include &lt;cstdio&gt;
+
+mitk::NavigationToolWriter::NavigationToolWriter()
+<span style = "background-color:#fdd">  {</span>
+
+<span style = "background-color:#fdd">  }</span>
+
+mitk::NavigationToolWriter::~NavigationToolWriter()
+<span style = "background-color:#fdd">  {</span>
+
+<span style = "background-color:#fdd">  }</span>
+
+bool mitk::NavigationToolWriter::DoWrite(std::string FileName,mitk::NavigationTool::Pointer Tool)
+<span style = "background-color:#fdd">  {</span>
+  //some initial validation checks...
+<span style = "background-color:#fdd">  if ( Tool.IsNull())</span>
+    {
+<span style = "background-color:#fdd">    m_ErrorMessage = "Cannot write a navigation tool containing invalid tool data, aborting!";
+    MITK_ERROR &lt;&lt; m_ErrorMessage;
+    return false;</span>
+    }
+
+
+  // Workaround for a problem: the geometry might be modified if the tool is tracked. If this
+  // modified geometry is saved the surface representation is moved by this offset. To avoid
+  // this bug, the geometry is set to identity for the saving progress and restored later.
+<span style = "background-color:#fdd">  mitk::BaseGeometry::Pointer geometryBackup;</span>
+  if (  Tool-&gt;GetDataNode().IsNotNull()
+        &amp;&amp; (Tool-&gt;GetDataNode()-&gt;GetData()!=nullptr)
+<span style = "background-color:#fdd">        &amp;&amp; (Tool-&gt;GetDataNode()-&gt;GetData()-&gt;GetGeometry()!=nullptr)</span>
+        )
+      {
+<span style = "background-color:#fdd">      geometryBackup = Tool-&gt;GetDataNode()-&gt;GetData()-&gt;GetGeometry()-&gt;Clone();
+      Tool-&gt;GetDataNode()-&gt;GetData()-&gt;GetGeometry()-&gt;SetIdentity();
+      }
+  else {MITK_WARN &lt;&lt; "Saving a tool with invalid data node, proceeding but errors might occure!";}</span>
+
+  //convert whole data to a mitk::DataStorage
+<span style = "background-color:#fdd">  mitk::StandaloneDataStorage::Pointer saveStorage = mitk::StandaloneDataStorage::New();
+  mitk::DataNode::Pointer thisTool = ConvertToDataNode(Tool);
+  saveStorage-&gt;Add(thisTool);</span>
+
+  //use SceneSerialization to save the DataStorage
+<span style = "background-color:#fdd">  std::string DataStorageFileName = mitk::IOUtil::CreateTemporaryDirectory() + Poco::Path::separator() + GetFileWithoutPath(FileName) + ".storage";
+  mitk::SceneIO::Pointer mySceneIO = mitk::SceneIO::New();
+  mySceneIO-&gt;SaveScene(saveStorage-&gt;GetAll(),saveStorage,DataStorageFileName);</span>
+
+  //now put the DataStorage and the Toolfile in a ZIP-file
+<span style = "background-color:#fdd">  std::ofstream file( FileName.c_str(), std::ios::binary | std::ios::out);
+  if (!file.good())</span>
+    {
+<span style = "background-color:#fdd">    m_ErrorMessage = "Could not open a zip file for writing: '" + FileName + "'";
+    MITK_ERROR &lt;&lt; m_ErrorMessage;
+    return false;
+    }</span>
+  else
+    {
+<span style = "background-color:#fdd">    Poco::Zip::Compress zipper( file, true );
+    zipper.addFile(DataStorageFileName,GetFileWithoutPath(DataStorageFileName));
+    if (Tool-&gt;GetCalibrationFile()!="none") zipper.addFile(Tool-&gt;GetCalibrationFile(),GetFileWithoutPath(Tool-&gt;GetCalibrationFile()));
+    zipper.close();
+    }</span>
+
+  //delete the data storage
+<span style = "background-color:#fdd">  std::remove(DataStorageFileName.c_str());</span>
+
+  //restore original geometry
+<span style = "background-color:#fdd">  if (geometryBackup.IsNotNull()) {Tool-&gt;GetDataNode()-&gt;GetData()-&gt;SetGeometry(geometryBackup);}</span>
+
+<span style = "background-color:#fdd">  return true;
+  }</span>
+
+mitk::DataNode::Pointer mitk::NavigationToolWriter::ConvertToDataNode(mitk::NavigationTool::Pointer Tool)
+<span style = "background-color:#fdd">  {
+    mitk::DataNode::Pointer thisTool = Tool-&gt;GetDataNode();</span>
+  //Name
+<span style = "background-color:#fdd">    if (Tool-&gt;GetDataNode().IsNull())</span>
+    {
+<span style = "background-color:#fdd">      thisTool = mitk::DataNode::New();
+      thisTool-&gt;SetName("none");</span>
+    }
+
+  //Identifier
+<span style = "background-color:#fdd">    thisTool-&gt;AddProperty("identifier",mitk::StringProperty::New(Tool-&gt;GetIdentifier().c_str()), nullptr, true);</span>
+  //Serial Number
+<span style = "background-color:#fdd">    thisTool-&gt;AddProperty("serial number",mitk::StringProperty::New(Tool-&gt;GetSerialNumber().c_str()), nullptr, true);</span>
+  //Tracking Device
+<span style = "background-color:#fdd">    thisTool-&gt;AddProperty("tracking device type",mitk::StringProperty::New(Tool-&gt;GetTrackingDeviceType()), nullptr, true);</span>
+  //Tool Type
+<span style = "background-color:#fdd">    thisTool-&gt;AddProperty("tracking tool type",mitk::IntProperty::New(Tool-&gt;GetType()), nullptr, true);</span>
+  //Calibration File Name
+<span style = "background-color:#fdd">    thisTool-&gt;AddProperty("toolfileName",mitk::StringProperty::New(GetFileWithoutPath(Tool-&gt;GetCalibrationFile())), nullptr, true);</span>
+  //Tool Landmarks
+<span style = "background-color:#fdd">    thisTool-&gt;AddProperty("ToolRegistrationLandmarks",mitk::StringProperty::New(ConvertPointSetToString(Tool-&gt;GetToolLandmarks())), nullptr, true);
+    thisTool-&gt;AddProperty("ToolCalibrationLandmarks",mitk::StringProperty::New(ConvertPointSetToString(Tool-&gt;GetToolControlPoints())), nullptr, true);</span>
+  //Tool Registration Matrix
+<span style = "background-color:#fdd">    thisTool-&gt;AddProperty("ToolRegistrationMatrix",</span>
+                          mitk::StringProperty::New(ConvertAffineTransformToString(Tool-&gt;GetToolRegistrationMatrix())),
+                          nullptr,
+                          true);
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "affine to string";
+    MITK_INFO &lt;&lt; ConvertAffineTransformToString(Tool-&gt;GetToolRegistrationMatrix());</span>
+  //Tool Tip
+<span style = "background-color:#fdd">    if (Tool-&gt;IsToolTipSet())</span>
+    {
+<span style = "background-color:#fdd">      thisTool-&gt;AddProperty("ToolTipPosition",mitk::StringProperty::New(ConvertPointToString(Tool-&gt;GetToolTipPosition())), nullptr, true);
+      thisTool-&gt;AddProperty("ToolAxisOrientation",mitk::StringProperty::New(ConvertQuaternionToString(Tool-&gt;GetToolAxisOrientation())), nullptr, true);</span>
+    }
+
+  //Material is not needed, to avoid errors in scene serialization we have to do this:
+<span style = "background-color:#fdd">    thisTool-&gt;RemoveProperty("material");</span>
+
+<span style = "background-color:#fdd">  return thisTool;
+  }</span>
+
+std::string mitk::NavigationToolWriter::GetFileWithoutPath(std::string FileWithPath)
+<span style = "background-color:#fdd">  {
+  Poco::Path myFile(FileWithPath.c_str());
+  return myFile.getFileName();
+  }</span>
+
+std::string mitk::NavigationToolWriter::ConvertPointSetToString(mitk::PointSet::Pointer pointSet)
+<span style = "background-color:#fdd">  {
+  std::stringstream returnValue;
+  mitk::PointSet::PointDataIterator it;
+  for ( it = pointSet-&gt;GetPointSet()-&gt;GetPointData()-&gt;Begin();it != pointSet-&gt;GetPointSet()-&gt;GetPointData()-&gt;End();it++ )</span>
+    {
+<span style = "background-color:#fdd">    mitk::Point3D thisPoint = pointSet-&gt;GetPoint(it-&gt;Index());
+    returnValue &lt;&lt; it-&gt;Index() &lt;&lt; ";" &lt;&lt; ConvertPointToString(thisPoint) &lt;&lt; "|";
+    }
+  return returnValue.str();
+  }</span>
+
+std::string mitk::NavigationToolWriter::ConvertPointToString(mitk::Point3D point)
+<span style = "background-color:#fdd">{
+std::stringstream returnValue;
+returnValue &lt;&lt; point[0] &lt;&lt; ";" &lt;&lt; point[1] &lt;&lt; ";" &lt;&lt; point[2];
+return returnValue.str();
+}</span>
+
+std::string mitk::NavigationToolWriter::ConvertQuaternionToString(mitk::Quaternion quat)
+<span style = "background-color:#fdd">{
+std::stringstream returnValue;
+returnValue &lt;&lt; quat.x() &lt;&lt; ";" &lt;&lt; quat.y() &lt;&lt; ";" &lt;&lt; quat.z() &lt;&lt; ";" &lt;&lt; quat.r();
+return returnValue.str();
+}</span>
+
+std::string mitk::NavigationToolWriter::ConvertAffineTransformToString(mitk::AffineTransform3D::Pointer affine)
+<span style = "background-color:#fdd">{
+  std::stringstream returnValue;
+  auto mat = affine-&gt;GetMatrix();
+  for (int i = 0; i &lt; 3; ++i)
+    for (int j = 0; j &lt; 3; ++j)
+      returnValue &lt;&lt; mat[i][j] &lt;&lt; ";";
+  auto offset = affine-&gt;GetOffset();
+  returnValue &lt;&lt; offset[0] &lt;&lt; ";" &lt;&lt; offset[1] &lt;&lt; ";" &lt;&lt; offset[2] ;
+  return returnValue.str();
+}</span></pre>
+	</body>
+</html>

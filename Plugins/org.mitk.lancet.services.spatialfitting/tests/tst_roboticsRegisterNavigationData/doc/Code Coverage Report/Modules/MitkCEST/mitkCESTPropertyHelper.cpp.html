@@ -1,0 +1,159 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkCESTPropertyHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkCESTPropertyHelper.h"
+
+#include "mitkDICOMProperty.h"
+#include "mitkStringProperty.h"
+
+const std::string mitk::CEST_PROPERTY_NAME_PREPERATIONTYPE()
+<span style = "background-color:#fdd">{
+  return "CEST.PreparationType";
+}</span>
+
+const std::string mitk::CEST_PROPERTY_NAME_RECOVERYMODE()
+<span style = "background-color:#fdd">{
+  return "CEST.RecoveryMode";
+}</span>
+
+const std::string mitk::CEST_PROPERTY_NAME_SPOILINGTYPE()
+<span style = "background-color:#fdd">{
+  return "CEST.SpoilingType";
+}</span>
+
+const std::string mitk::CEST_PROPERTY_NAME_OFFSETS()
+<span style = "background-color:#fdd">{
+  return "CEST.Offsets";
+}</span>
+
+const std::string mitk::CEST_PROPERTY_NAME_TREC()
+<span style = "background-color:#fdd">{
+  return std::string("CEST.TREC");
+}</span>
+
+const std::string mitk::CEST_PROPERTY_NAME_FREQ()
+<span style = "background-color:#fdd">{
+  return std::string("CEST.FREQ");
+}</span>
+
+const std::string mitk::CEST_PROPERTY_NAME_PULSEDURATION()
+<span style = "background-color:#fdd">{
+  return std::string("CEST.PulseDuration");
+}</span>
+
+const std::string mitk::CEST_PROPERTY_NAME_B1Amplitude()
+<span style = "background-color:#fdd">{
+  return std::string("CEST.B1Amplitude");
+}</span>
+
+const std::string mitk::CEST_PROPERTY_NAME_DutyCycle()
+<span style = "background-color:#fdd">{
+  return std::string("CEST.DutyCycle");
+}</span>
+
+
+double mitk::GetCESTB1Amplitude(const IPropertyProvider* provider)
+<span style = "background-color:#fdd">{
+  if (!provider)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot determine B! amplitude. Passed property provider is invalid.";</span>
+  }
+
+<span style = "background-color:#fdd">  double result = 0.0;</span>
+
+<span style = "background-color:#fdd">  auto prop = provider-&gt;GetConstProperty(CEST_PROPERTY_NAME_B1Amplitude().c_str());
+  if (prop.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    result = mitk::ConvertDICOMStrToValue&lt;double&gt;(prop-&gt;GetValueAsString());
+  }
+  else mitkThrow() &lt;&lt; "Cannot determine B! amplitude. Selected input has no property \"" &lt;&lt; CEST_PROPERTY_NAME_B1Amplitude() &lt;&lt; "\"";</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+double mitk::GetCESTFrequency(const IPropertyProvider* provider)
+<span style = "background-color:#fdd">{
+  if (!provider)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot determine frequency. Passed property provider is invalid.";</span>
+  }
+
+<span style = "background-color:#fdd">  double result = 0.0;</span>
+
+<span style = "background-color:#fdd">  auto prop = provider-&gt;GetConstProperty(CEST_PROPERTY_NAME_FREQ().c_str());
+  if (prop.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    result = mitk::ConvertDICOMStrToValue&lt;double&gt;(prop-&gt;GetValueAsString()) * 0.000001;
+  }
+  else mitkThrow() &lt;&lt; "Cannot determine frequency. Selected input has no property \"" &lt;&lt; CEST_PROPERTY_NAME_FREQ() &lt;&lt; "\"";</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+void mitk::SetCESTFrequencyMHz(IPropertyOwner* owner, double freqInMHz)
+<span style = "background-color:#fdd">{
+  if (nullptr != owner)</span>
+  {
+<span style = "background-color:#fdd">    owner-&gt;SetProperty(CEST_PROPERTY_NAME_FREQ().c_str(), mitk::StringProperty::New(ConvertValueToDICOMStr(freqInMHz * 1000000)));</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+double mitk::GetCESTPulseDuration(const IPropertyProvider* provider)
+<span style = "background-color:#fdd">{
+  if (!provider)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot determine pulse duration. Passed property provider is invalid.";</span>
+  }
+
+<span style = "background-color:#fdd">  double result = 0.0;</span>
+
+<span style = "background-color:#fdd">  auto prop = provider-&gt;GetConstProperty(CEST_PROPERTY_NAME_PULSEDURATION().c_str());
+  if (prop.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    result = mitk::ConvertDICOMStrToValue&lt;double&gt;(prop-&gt;GetValueAsString()) * 0.000001;
+  }
+  else mitkThrow() &lt;&lt; "Cannot determine pulse duration. Selected input has no property \"" &lt;&lt; CEST_PROPERTY_NAME_PULSEDURATION() &lt;&lt; "\"";</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+double mitk::GetCESTDutyCycle(const IPropertyProvider* provider)
+<span style = "background-color:#fdd">{
+  if (!provider)</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot determine duty cycle. Passed property provider is invalid.";</span>
+  }
+
+<span style = "background-color:#fdd">  double result = 0.0;</span>
+
+<span style = "background-color:#fdd">  auto prop = provider-&gt;GetConstProperty(CEST_PROPERTY_NAME_DutyCycle().c_str());
+  if (prop.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    result = mitk::ConvertDICOMStrToValue&lt;double&gt;(prop-&gt;GetValueAsString()) * 0.01;
+  }
+  else mitkThrow() &lt;&lt; "Cannot determine duty cycle. Selected input has no property \"" &lt;&lt; CEST_PROPERTY_NAME_DutyCycle() &lt;&lt; "\"";</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span></pre>
+	</body>
+</html>

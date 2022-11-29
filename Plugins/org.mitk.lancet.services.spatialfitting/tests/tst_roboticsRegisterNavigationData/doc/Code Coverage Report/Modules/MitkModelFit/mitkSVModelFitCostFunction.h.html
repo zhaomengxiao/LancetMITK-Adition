@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSVModelFitCostFunction.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef SV_MODELFITCOSTFUNCTION_H
+#define SV_MODELFITCOSTFUNCTION_H
+
+#include &lt;itkSingleValuedCostFunction.h&gt;
+#include &lt;itkMacro.h&gt;
+
+#include "mitkModelFitCostFunctionInterface.h"
+
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+
+/** Base class for all model fit cost function that return a singel cost value*/
+class MITKMODELFIT_EXPORT SVModelFitCostFunction : public itk::SingleValuedCostFunction, public ModelFitCostFunctionInterface
+{
+public:
+
+    typedef SVModelFitCostFunction Self;
+    typedef itk::SingleValuedCostFunction Superclass;
+    typedef itk::SmartPointer&lt; Self &gt;                            Pointer;
+    typedef itk::SmartPointer&lt; const Self &gt;                      ConstPointer;
+
+    typedef ModelFitCostFunctionInterface::SignalType SignalType;
+    typedef Superclass::MeasureType MeasureType;
+    typedef Superclass::DerivativeType DerivativeType;
+
+    void SetSample(const SignalType &amp;sampleSet) override;
+
+    MeasureType GetValue(const ParametersType&amp; parameter) const override;
+    void GetDerivative (const ParametersType &amp;parameters, DerivativeType &amp;derivative) const override;
+
+    unsigned int GetNumberOfParameters (void) const override;
+
+<span style = "background-color:#fdd">    itkSetConstObjectMacro(Model, ModelBase);
+    itkGetConstObjectMacro(Model, ModelBase);</span>
+
+<span style = "background-color:#fdd">    itkSetMacro(DerivativeStepLength, double);
+    itkGetConstMacro(DerivativeStepLength, double);</span>
+
+protected:
+
+    virtual MeasureType CalcMeasure(const ParametersType &amp;parameters, const SignalType&amp; signal) const = 0;
+
+<span style = "background-color:#fdd">    SVModelFitCostFunction(): m_DerivativeStepLength(1e-5)
+	{
+    }</span>
+
+<span style = "background-color:#fdd">    ~SVModelFitCostFunction() override{}</span>
+
+    SignalType m_Sample;
+
+private:
+    ModelBase::ConstPointer m_Model;
+
+    /**value (delta of parameters) used to compute the derivatives numerically*/
+    double m_DerivativeStepLength;
+};
+
+}
+
+#endif // SV_MODELFITCOSTFUNCTION_H</pre>
+	</body>
+</html>

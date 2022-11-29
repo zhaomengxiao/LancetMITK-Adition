@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlaneGeometryDataMapper2D.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkPlaneGeometryDataMapper2D_h
+#define mitkPlaneGeometryDataMapper2D_h
+
+#include "mitkBaseRenderer.h"
+#include "mitkVtkMapper.h"
+#include &lt;MitkCoreExports.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+
+class vtkActor2D;
+class vtkPropAssembly;
+class vtkFloatArray;
+class vtkCellArray;
+class vtkPolyDataMapper2D;
+
+namespace mitk
+{
+  /**
+    * @brief Vtk-based 2D mapper for rendering a crosshair with the plane geometry.
+    *
+    * This mapper uses the mitkPlaneGeometryData from the three helper objects in
+    * the StdMultiWidget to render a crosshair in all 2D render windows. The crosshair
+    * is assembled as lines and rendered with a vtkPolyDataMapper. The mapper
+    * requires multiple plane geometry to compute the correct crosshair position.
+    * The plane bounds are computed using either ReferenceGeometry if it is present or
+    * the plane geometry itself otherwise.
+    * The mapper offers the following properties:
+    * \b Crosshair.Line width: The thickness of the crosshair.
+    * \b Crosshair.Gap Size: The gap between the lines in pixels.
+    * \b Crosshair.Orientation Decoration: Adds a PlaneOrientationProperty, which
+    * indicates the direction of the plane normal. See mitkPlaneOrientationProperty.
+    *
+    * @ingroup Mapper
+    */
+  class MITKCORE_EXPORT PlaneGeometryDataMapper2D : public VtkMapper
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(PlaneGeometryDataMapper2D, VtkMapper);</span>
+
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+      virtual const mitk::PlaneGeometryData *GetInput() const;
+
+    /** \brief returns the a prop assembly */
+    vtkProp *GetVtkProp(mitk::BaseRenderer *renderer) override;
+
+    /** Applies properties specific to this mapper */
+    virtual void ApplyAllProperties(BaseRenderer *renderer);
+
+    void UpdateVtkTransform(mitk::BaseRenderer *renderer) override;
+
+    /** \brief set the default properties for this mapper */
+    static void SetDefaultProperties(mitk::DataNode *node, mitk::BaseRenderer *renderer = nullptr, bool overwrite = false);
+
+    /** \brief Internal class holding the mapper, actor, etc. for each of the 3 2D render windows */
+    class LocalStorage : public mitk::Mapper::BaseLocalStorage
+    {
+    public:
+      /* constructor */
+      LocalStorage();
+
+      /* destructor */
+      ~LocalStorage() override;
+
+      // actor
+      vtkSmartPointer&lt;vtkActor2D&gt; m_CrosshairActor;
+      vtkSmartPointer&lt;vtkActor2D&gt; m_CrosshairHelperLineActor;
+      vtkSmartPointer&lt;vtkActor2D&gt; m_ArrowActor;
+      vtkSmartPointer&lt;vtkPolyDataMapper2D&gt; m_HelperLinesmapper;
+      vtkSmartPointer&lt;vtkPolyDataMapper2D&gt; m_Arrowmapper;
+      vtkSmartPointer&lt;vtkPolyDataMapper2D&gt; m_Mapper;
+      vtkSmartPointer&lt;vtkPropAssembly&gt; m_CrosshairAssembly;
+    };
+
+    /** \brief The LocalStorageHandler holds all (three) LocalStorages for the three 2D render windows. */
+    mitk::LocalStorageHandler&lt;LocalStorage&gt; m_LSH;
+
+  protected:
+    /* constructor */
+    PlaneGeometryDataMapper2D();
+
+    /* destructor */
+    ~PlaneGeometryDataMapper2D() override;
+
+    /* \brief Applies the color and opacity properties and calls CreateVTKRenderObjects */
+    void GenerateDataForRenderer(mitk::BaseRenderer *renderer) override;
+
+    void CreateVtkCrosshair(BaseRenderer *renderer);
+
+    static bool TestPointInPlaneGeometry(const PlaneGeometry *planeGeometry, const Point3D &amp;point);
+    static bool TestPointInReferenceGeometry(const BaseGeometry *referenceGeometry, const Point3D &amp;point);
+
+    static bool CutCrossLineWithPlaneGeometry(const PlaneGeometry *planeGeometry, Line3D &amp;crossLine);
+    static bool CutCrossLineWithReferenceGeometry(const BaseGeometry *referenceGeometry, Line3D &amp;crossLine);
+
+    /**
+      * \brief Returns the thick slice mode for the given datanode.
+      *
+      * This method returns the value of the 'reslice.thickslices' property for
+      * the given datanode.
+      *   '0': thick slice mode disabled
+      *   '1': thick slice mode enabled
+      *
+      * The variable 'thickSlicesNum' contains the value of the 'reslice.thickslices.num'
+      * property that defines how many slices are shown at once.
+      */
+    int DetermineThickSliceMode(DataNode *dn, int &amp;thickSlicesNum);
+
+    void DrawLine(Point3D p0, Point3D p1, vtkCellArray *lines, vtkPoints *points);
+
+    // member variables holding the current value of the properties used in this mapper
+    typedef std::vector&lt;DataNode *&gt; NodesVectorType;
+    NodesVectorType m_OtherPlaneGeometries;
+
+    typedef std::set&lt;Self *&gt; AllInstancesContainer;
+    static AllInstancesContainer s_AllInstances;
+
+    bool m_RenderOrientationArrows;
+    bool m_ArrowOrientationPositive;
+    mitk::ScalarType m_DepthValue;
+
+    void ApplyColorAndOpacityProperties2D(BaseRenderer *renderer, vtkActor2D *actor);
+    void DrawOrientationArrow(vtkSmartPointer&lt;vtkCellArray&gt; triangles,
+                              vtkSmartPointer&lt;vtkPoints&gt; triPoints,
+                              double triangleSizeMM,
+                              Vector3D &amp;orthogonalVector,
+                              Point3D &amp;point1,
+                              Point3D &amp;point2);
+  };
+} // namespace mitk
+#endif /* mitkPlaneGeometryDataMapper2D_h */</pre>
+	</body>
+</html>

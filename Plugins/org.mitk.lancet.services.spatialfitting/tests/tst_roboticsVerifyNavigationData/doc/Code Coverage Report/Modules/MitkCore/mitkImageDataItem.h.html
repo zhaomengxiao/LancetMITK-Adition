@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageDataItem.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef IMAGEDATAITEM_H
+#define IMAGEDATAITEM_H
+
+#include "mitkCommon.h"
+#include &lt;MitkCoreExports.h&gt;
+#include "mitkImageDescriptor.h"
+
+class vtkImageData;
+
+namespace mitk
+{
+  class PixelType;
+  class ImageVtkReadAccessor;
+  class ImageVtkWriteAccessor;
+
+  class Image;
+
+  //##Documentation
+  //## @brief Internal class for managing references on sub-images
+  //##
+  //## ImageDataItem is a container for image data which is used internal in
+  //## mitk::Image to handle the communication between the different data types for images
+  //## used in MITK (mitk::Image, vtkImageData). Common for these image data
+  //## types is the actual image data, but they differ in representation of pixel type etc.
+  //##
+  //## The class is mainly used to extract sub-images inside of mitk::Image, like single slices etc.
+  //## It should not be used outside of this.
+  //##
+  //## @param manageMemory Determines if image data is removed while destruction of ImageDataItem or not.
+  //## @ingroup Data
+  class MITKCORE_EXPORT ImageDataItem : public itk::LightObject
+  {
+    friend class ImageAccessorBase;
+    friend class ImageWriteAccessor;
+    friend class ImageReadAccessor;
+
+    template &lt;class TPixel, unsigned int VDimension&gt;
+    friend class ImagePixelAccessor;
+
+    friend class Image;
+
+    //  template&lt;class TOutputImage&gt;
+    //  friend class ImageToItk;
+
+  public:
+    typedef itk::SmartPointer&lt;mitk::Image&gt; ImagePointer;
+    typedef itk::SmartPointer&lt;const mitk::Image&gt; ImageConstPointer;
+
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(ImageDataItem, itk::LightObject);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(ImageDataItem);</span>
+    itk::LightObject::Pointer InternalClone() const override;
+
+    ImageDataItem(const ImageDataItem &amp;aParent,
+                  const mitk::ImageDescriptor::Pointer desc,
+                  int timestep,
+                  unsigned int dimension,
+                  void *data = nullptr,
+                  bool manageMemory = false,
+                  size_t offset = 0);
+
+    ~ImageDataItem() override;
+
+    ImageDataItem(const mitk::ImageDescriptor::Pointer desc, int timestep, void *data, bool manageMemory);
+
+    ImageDataItem(const mitk::PixelType &amp;type,
+                  int timestep,
+                  unsigned int dimension,
+                  unsigned int *dimensions,
+                  void *data,
+                  bool manageMemory);
+
+    ImageDataItem(const ImageDataItem &amp;other);
+
+<span style = "background-color:#fdd">    bool IsComplete() const { return m_IsComplete; }
+    void SetComplete(bool complete) { m_IsComplete = complete; }
+    int GetOffset() const { return m_Offset; }
+    PixelType GetPixelType() const { return *m_PixelType; }
+    void SetTimestep(int t) { m_Timestep = t; }
+    void SetManageMemory(bool b) { m_ManageMemory = b; }
+    int GetDimension() const { return m_Dimension; }</span>
+    int GetDimension(int i) const
+<span style = "background-color:#fdd">    {
+      int returnValue = 0;</span>
+
+      // return the true size if dimension available
+<span style = "background-color:#fdd">      if (i &lt; (int)m_Dimension)
+        returnValue = m_Dimensions[i];</span>
+
+<span style = "background-color:#fdd">      return returnValue;
+    }</span>
+
+<span style = "background-color:#fdd">    ImageDataItem::ConstPointer GetParent() const { return m_Parent; }</span>
+    /**
+     * @brief GetVtkImageAccessor Returns a vtkImageDataItem, if none is present, a new one is constructed by the
+     * ConstructVtkImageData method.
+     *                            Due to historical development of MITK and VTK, the vtkImage origin is explicitly set
+     * to
+     * (0, 0, 0) for 3D images.
+     *                            See bug 5050 for detailed information.
+     * @return Pointer of type ImageVtkReadAccessor
+     */
+    ImageVtkReadAccessor *GetVtkImageAccessor(ImageConstPointer) const;
+    ImageVtkWriteAccessor *GetVtkImageAccessor(ImagePointer);
+
+    // Returns if image data should be deleted on destruction of ImageDataItem.
+<span style = "background-color:#fdd">    bool GetManageMemory() const { return m_ManageMemory; }</span>
+    virtual void ConstructVtkImageData(ImageConstPointer) const;
+
+<span style = "background-color:#fdd">    size_t GetSize() const { return m_Size; }</span>
+    virtual void Modified() const;
+
+  protected:
+
+    /**Helper function to allow friend classes to access m_Data without changing their code.
+    * Moved to protected visibility because only friends are allowed to access m_Data directly.
+    * Other classes should used ImageWriteAccessor::GetData() or ImageReadAccessor::GetData()
+    * to get access.*/
+<span style = "background-color:#fdd">    void* GetData() const { return m_Data; }</span>
+
+    unsigned char *m_Data;
+
+    PixelType *m_PixelType;
+
+    bool m_ManageMemory;
+
+    mutable vtkImageData *m_VtkImageData;
+    mutable ImageVtkReadAccessor *m_VtkImageReadAccessor;
+    ImageVtkWriteAccessor *m_VtkImageWriteAccessor;
+    int m_Offset;
+
+    bool m_IsComplete;
+
+    size_t m_Size;
+
+  private:
+    void ComputeItemSize(const unsigned int *dimensions, unsigned int dimension);
+
+    ImageDataItem::ConstPointer m_Parent;
+
+    unsigned int m_Dimension;
+
+    unsigned int m_Dimensions[MAX_IMAGE_DIMENSIONS];
+
+    int m_Timestep;
+  };
+
+} // namespace mitk
+
+#endif /* IMAGEDATAITEM_H */</pre>
+	</body>
+</html>

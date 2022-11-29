@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>lancetSpatialFittingRoboticsVerifyDirector.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+#include "lancetSpatialFittingRoboticsVerifyDirector.h"
+#include "lancetSpatialFittingPipelineBuilder.h"
+#include "lancetSpatialFittingPipelineManager.h"
+
+BEGIN_SPATIAL_FITTING_NAMESPACE
+
+
+<span style = "background-color:#fdd">RoboticsVerifyDirector::RoboticsVerifyDirector() :RoboticsRegisterDirector()
+{
+	PipelineBuilder::Pointer pipelineBuilder = PipelineBuilder::New();
+	this-&gt;SetBuilder(pipelineBuilder);
+}</span>
+
+RoboticsVerifyDirector::~RoboticsVerifyDirector()
+<span style = "background-color:#fdd">{</span>
+	
+<span style = "background-color:#fdd">}</span>
+
+bool RoboticsVerifyDirector::Builder()
+<span style = "background-color:#fdd">{
+	PipelineBuilder::Pointer pipelineBuilder = dynamic_cast&lt;PipelineBuilder*&gt;(this-&gt;GetBuilder().GetPointer());</span>
+
+<span style = "background-color:#fdd">	if (pipelineBuilder.IsNull())</span>
+	{
+<span style = "background-color:#fdd">		return false;</span>
+	}
+
+<span style = "background-color:#fdd">	pipelineBuilder-&gt;BuilderNavigationToolToSpaceFilter(0, nullptr);
+	pipelineBuilder-&gt;BuilderNavigationToolToSpaceFilter(1, nullptr);</span>
+
+<span style = "background-color:#fdd">	pipelineBuilder-&gt;BuilderNavigationToolToNavigationToolFilter(2, nullptr);
+	pipelineBuilder-&gt;GetOutput()-&gt;FindFilter(0)-&gt;SetName("Verify-01");
+	pipelineBuilder-&gt;GetOutput()-&gt;FindFilter(1)-&gt;SetName("Verify-02");
+	return true;
+}</span>
+
+END_SPATIAL_FITTING_NAMESPACE</pre>
+	</body>
+</html>

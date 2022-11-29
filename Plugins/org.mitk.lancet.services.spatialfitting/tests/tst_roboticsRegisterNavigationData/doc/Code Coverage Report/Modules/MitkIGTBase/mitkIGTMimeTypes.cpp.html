@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIGTMimeTypes.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+// MITK
+#include "mitkIGTMimeTypes.h"
+
+mitk::CustomMimeType mitk::IGTMimeTypes::NAVIGATIONDATASETXML_MIMETYPE()
+<span style = "background-color:#dfd">{
+  mitk::CustomMimeType mimeType(IOMimeTypes::DEFAULT_BASE_NAME() + ".NavigationDataSet.xml");
+  std::string category = "NavigationDataSet";
+  mimeType.SetComment("NavigationDataSet (XML)");
+  mimeType.SetCategory(category);
+  mimeType.AddExtension("xml");
+  return mimeType;
+}</span>
+
+mitk::CustomMimeType mitk::IGTMimeTypes::NAVIGATIONDATASETCSV_MIMETYPE()
+<span style = "background-color:#dfd">{
+  mitk::CustomMimeType mimeType(IOMimeTypes::DEFAULT_BASE_NAME() + ".NavigationDataSet.csv");
+  std::string category = "NavigationDataSet";
+  mimeType.SetComment("NavigationDataSet (csv)");
+  mimeType.SetCategory(category);
+  mimeType.AddExtension("csv");
+  return mimeType;
+}</span>
+
+mitk::CustomMimeType mitk::IGTMimeTypes::USDEVICEINFORMATIONXML_MIMETYPE()
+<span style = "background-color:#fdd">{
+  mitk::CustomMimeType mimeType(IOMimeTypes::DEFAULT_BASE_NAME() + ".USDeviceInformation.xml");
+  std::string category = "USDeviceInformation";
+  mimeType.SetComment("USDeviceInformation (XML)");
+  mimeType.SetCategory(category);
+  mimeType.AddExtension("xml");
+  return mimeType;
+}</span></pre>
+	</body>
+</html>

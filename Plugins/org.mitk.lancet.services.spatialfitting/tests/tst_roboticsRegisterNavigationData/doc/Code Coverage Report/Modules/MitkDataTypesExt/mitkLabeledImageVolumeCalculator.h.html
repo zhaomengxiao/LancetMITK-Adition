@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabeledImageVolumeCalculator.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef _MITK_LABELEDIMAGEVOLUMECALCULATOR_H
+#define _MITK_LABELEDIMAGEVOLUMECALCULATOR_H
+
+#include "MitkDataTypesExtExports.h"
+#include &lt;itkObject.h&gt;
+
+#include "mitkImage.h"
+#include "mitkImageTimeSelector.h"
+
+#include &lt;itkImage.h&gt;
+
+namespace mitk
+{
+  /**
+   * \brief Class for calculating the volume (or area) for each label in a
+   * labeled image.
+   *
+   * Labels are expected to be of an unsigned integer type.
+   *
+   * TODO: Extend class for time resolved images
+   */
+  class MITKDATATYPESEXT_EXPORT LabeledImageVolumeCalculator : public itk::Object
+  {
+  public:
+    typedef std::vector&lt;double&gt; VolumeVector;
+    typedef std::vector&lt;Point3D&gt; PointVector;
+
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(LabeledImageVolumeCalculator, itk::Object);
+    itkFactorylessNewMacro(Self);
+    itkCloneMacro(Self);
+    itkSetConstObjectMacro(Image, mitk::Image);</span>
+
+    virtual void Calculate();
+
+    double GetVolume(unsigned int label) const;
+
+    const Point3D &amp;GetCentroid(unsigned int label) const;
+
+    const VolumeVector &amp;GetVolumes() const;
+
+    const PointVector &amp;GetCentroids() const;
+
+  protected:
+    LabeledImageVolumeCalculator();
+
+    ~LabeledImageVolumeCalculator() override;
+
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    void _InternalCalculateVolumes(itk::Image&lt;TPixel, VImageDimension&gt; *image,
+                                   LabeledImageVolumeCalculator *volumeCalculator,
+                                   BaseGeometry *geometry);
+
+    ImageTimeSelector::Pointer m_InputTimeSelector;
+
+    Image::ConstPointer m_Image;
+
+    VolumeVector m_VolumeVector;
+    PointVector m_CentroidVector;
+
+    Point3D m_DummyPoint;
+  };
+}
+
+#endif // #define _MITK_LABELEDIMAGEVOLUMECALCULATOR_H</pre>
+	</body>
+</html>

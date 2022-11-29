@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkProperties.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKPROPERTIES_H_HEADER_INCLUDED
+#define MITKPROPERTIES_H_HEADER_INCLUDED
+
+#include "mitkGenericProperty.h"
+#include "mitkLookupTables.h"
+#include "mitkNumericTypes.h"
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(BoolProperty, bool, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(IntProperty, int, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(UIntProperty, unsigned int, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(UShortProperty, unsigned short, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(FloatProperty, float, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(DoubleProperty, double, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(Vector3DProperty, Vector3D, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(Point2dProperty, Point2D, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(Point3dProperty, Point3D, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(Point4dProperty, Point4D, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(Point3iProperty, Point3I, MITKCORE_EXPORT);</span>
+
+<span style = "background-color:#fdd">  mitkDeclareGenericProperty(FloatLookupTableProperty, FloatLookupTable, MITKCORE_EXPORT);
+  mitkDeclareGenericProperty(BoolLookupTableProperty, BoolLookupTable, MITKCORE_EXPORT);
+  mitkDeclareGenericProperty(IntLookupTableProperty, IntLookupTable, MITKCORE_EXPORT);
+  mitkDeclareGenericProperty(StringLookupTableProperty, StringLookupTable, MITKCORE_EXPORT);</span>
+  /**
+  * \warning If you add more specialization of GenericProperty, you must also add these to the
+  * templated GetPropertyValue() method in mitkPropertyList.cpp!
+  */
+} // namespace mitk
+#endif /* MITKPROPERTIES_H_HEADER_INCLUDED */</pre>
+	</body>
+</html>

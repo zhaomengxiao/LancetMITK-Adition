@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVtkAnnotation3D.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkVtkAnnotation3D.h"
+
+mitk::VtkAnnotation3D::VtkAnnotation3D()
+<span style = "background-color:#fdd">{
+  mitk::Point3D offsetVector;
+  offsetVector.Fill(0);
+  SetOffsetVector(offsetVector);
+}</span>
+
+mitk::VtkAnnotation3D::~VtkAnnotation3D()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::VtkAnnotation3D::SetPosition3D(const Point3D &amp;position3D)
+<span style = "background-color:#fdd">{
+  mitk::Point3dProperty::Pointer position3dProperty = mitk::Point3dProperty::New(position3D);
+  SetProperty("VtkAnnotation3D.Position3D", position3dProperty.GetPointer());
+}</span>
+
+mitk::Point3D mitk::VtkAnnotation3D::GetPosition3D() const
+<span style = "background-color:#fdd">{
+  mitk::Point3D position3D;
+  position3D.Fill(0);
+  GetPropertyValue&lt;mitk::Point3D&gt;("VtkAnnotation3D.Position3D", position3D);
+  return position3D;
+}</span>
+
+void mitk::VtkAnnotation3D::SetOffsetVector(const Point3D &amp;OffsetVector)
+<span style = "background-color:#fdd">{
+  mitk::Point3dProperty::Pointer OffsetVectorProperty = mitk::Point3dProperty::New(OffsetVector);
+  SetProperty("VtkAnnotation3D.OffsetVector", OffsetVectorProperty.GetPointer());
+}</span>
+
+mitk::Point3D mitk::VtkAnnotation3D::GetOffsetVector() const
+<span style = "background-color:#fdd">{
+  mitk::Point3D OffsetVector;
+  OffsetVector.Fill(0);
+  GetPropertyValue&lt;mitk::Point3D&gt;("VtkAnnotation3D.OffsetVector", OffsetVector);
+  return OffsetVector;
+}</span></pre>
+	</body>
+</html>

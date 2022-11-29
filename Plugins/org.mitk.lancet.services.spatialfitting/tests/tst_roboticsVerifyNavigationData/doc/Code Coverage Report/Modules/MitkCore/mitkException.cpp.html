@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkException.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkException.h"
+
+void mitk::Exception::AddRethrowData(const char *file, unsigned int lineNumber, const char *message)
+<span style = "background-color:#fdd">{
+  mitk::Exception::ReThrowData data = {file, lineNumber, message};
+  this-&gt;m_RethrowData.push_back(data);
+}</span>
+
+int mitk::Exception::GetNumberOfRethrows()
+<span style = "background-color:#fdd">{
+  return (int)m_RethrowData.size();
+}</span>
+
+void mitk::Exception::GetRethrowData(int rethrowNumber, std::string &amp;file, int &amp;line, std::string &amp;message)
+<span style = "background-color:#fdd">{
+  if ((rethrowNumber &gt;= (int)m_RethrowData.size()) || (rethrowNumber &lt; 0))</span>
+  {
+<span style = "background-color:#fdd">    file = "";
+    line = 0;
+    message = "";
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  file = m_RethrowData.at(rethrowNumber).RethrowClassname;
+  line = m_RethrowData.at(rethrowNumber).RethrowLine;
+  message = m_RethrowData.at(rethrowNumber).RethrowMessage;
+}</span>
+
+std::ostream &amp;mitk::operator&lt;&lt;(std::ostream &amp;os, const mitk::Exception &amp;e)
+<span style = "background-color:#fdd">{
+  os &lt;&lt; e.GetDescription();
+  return os;
+}</span></pre>
+	</body>
+</html>

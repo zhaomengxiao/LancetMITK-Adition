@@ -1,0 +1,361 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkBaseData.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkBaseData.h"
+
+#include &lt;itkObjectFactoryBase.h&gt;
+#include &lt;mitkException.h&gt;
+#include &lt;mitkGeometry3D.h&gt;
+#include &lt;mitkProportionalTimeGeometry.h&gt;
+#include &lt;mitkStringProperty.h&gt;
+
+mitk::BaseData::BaseData()
+<span style = "background-color:#fdd">  : m_SourceOutputIndexDuplicate(0),
+    m_Initialized(true),
+    m_PropertyList(PropertyList::New()),
+    m_TimeGeometry(ProportionalTimeGeometry::New())
+{
+}</span>
+
+mitk::BaseData::BaseData(const BaseData &amp;other)
+<span style = "background-color:#fdd">  : itk::DataObject(),
+    OperationActor(),
+    Identifiable(),
+    m_SourceOutputIndexDuplicate(other.m_SourceOutputIndexDuplicate),
+    m_Initialized(other.m_Initialized),
+    m_PropertyList(other.m_PropertyList-&gt;Clone()),
+    m_TimeGeometry(other.m_TimeGeometry-&gt;Clone())
+{
+}</span>
+
+mitk::BaseData::~BaseData()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::BaseData::InitializeTimeGeometry(unsigned int timeSteps)
+<span style = "background-color:#fdd">{
+  mitk::Geometry3D::Pointer geo3D = mitk::Geometry3D::New();
+  mitk::BaseGeometry::Pointer baseGeo = dynamic_cast&lt;BaseGeometry *&gt;(geo3D.GetPointer());
+  baseGeo-&gt;Initialize();</span>
+
+  // The geometry is propagated automatically to the other items,
+  // if EvenlyTimed is true...
+  // Old timeGeometry-&gt;InitializeEvenlyTimed( g3d.GetPointer(), timeSteps );
+
+<span style = "background-color:#fdd">  TimeGeometry::Pointer timeGeometry = this-&gt;GetTimeGeometry();
+  timeGeometry-&gt;Initialize();
+  timeGeometry-&gt;Expand(timeSteps);
+  for (TimeStepType step = 0; step &lt; timeSteps; ++step)</span>
+  {
+<span style = "background-color:#fdd">    timeGeometry-&gt;SetTimeStepGeometry(baseGeo.GetPointer(), step);
+  }
+}</span>
+
+void mitk::BaseData::UpdateOutputInformation()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetSource())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;GetSource()-&gt;UpdateOutputInformation();</span>
+  }
+<span style = "background-color:#fdd">  if (m_TimeGeometry.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    m_TimeGeometry-&gt;UpdateBoundingBox();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const mitk::TimeGeometry *mitk::BaseData::GetUpdatedTimeGeometry()
+<span style = "background-color:#fdd">{
+  SetRequestedRegionToLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">  UpdateOutputInformation();</span>
+
+<span style = "background-color:#fdd">  return GetTimeGeometry();
+}</span>
+
+void mitk::BaseData::Expand(unsigned int timeSteps)
+<span style = "background-color:#fdd">{
+  if (m_TimeGeometry.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    m_TimeGeometry-&gt;Expand(timeSteps);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;InitializeTimeGeometry(timeSteps);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+const mitk::BaseGeometry *mitk::BaseData::GetUpdatedGeometry(int t)
+<span style = "background-color:#fdd">{
+  SetRequestedRegionToLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">  UpdateOutputInformation();</span>
+
+<span style = "background-color:#fdd">  return GetGeometry(t);
+}</span>
+
+void mitk::BaseData::SetGeometry(BaseGeometry *geometry)
+<span style = "background-color:#fdd">{
+  ProportionalTimeGeometry::Pointer timeGeometry = ProportionalTimeGeometry::New();
+  if (geometry != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    timeGeometry-&gt;Initialize(geometry, 1);</span>
+  }
+<span style = "background-color:#fdd">  SetTimeGeometry(timeGeometry);
+  return;
+}</span>
+
+void mitk::BaseData::SetTimeGeometry(TimeGeometry *geometry)
+<span style = "background-color:#fdd">{
+  m_TimeGeometry = geometry;
+  this-&gt;Modified();
+}</span>
+
+void mitk::BaseData::SetClonedGeometry(const BaseGeometry *aGeometry3D)
+<span style = "background-color:#fdd">{
+  SetGeometry(static_cast&lt;mitk::BaseGeometry *&gt;(aGeometry3D-&gt;Clone().GetPointer()));
+}</span>
+
+void mitk::BaseData::SetClonedTimeGeometry(const TimeGeometry *geometry)
+<span style = "background-color:#fdd">{
+  TimeGeometry::Pointer clonedGeometry = geometry-&gt;Clone();
+  SetTimeGeometry(clonedGeometry.GetPointer());
+}</span>
+
+void mitk::BaseData::SetClonedGeometry(const BaseGeometry *aGeometry3D, unsigned int time)
+<span style = "background-color:#fdd">{
+  if (m_TimeGeometry)</span>
+  {
+<span style = "background-color:#fdd">    m_TimeGeometry-&gt;SetTimeStepGeometry(static_cast&lt;mitk::BaseGeometry *&gt;(aGeometry3D-&gt;Clone().GetPointer()), time);</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::BaseData::IsEmptyTimeStep(unsigned int) const
+<span style = "background-color:#fdd">{
+  return IsInitialized() == false;
+}</span>
+
+bool mitk::BaseData::IsEmpty() const
+<span style = "background-color:#fdd">{
+  if (IsInitialized() == false)
+    return true;
+  const TimeGeometry *timeGeometry = const_cast&lt;BaseData *&gt;(this)-&gt;GetUpdatedTimeGeometry();
+  if (timeGeometry == nullptr)
+    return true;
+  unsigned int timeSteps = timeGeometry-&gt;CountTimeSteps();
+  for (unsigned int t = 0; t &lt; timeSteps; ++t)</span>
+  {
+<span style = "background-color:#fdd">    if (IsEmptyTimeStep(t) == false)
+      return false;
+  }
+  return true;
+}</span>
+
+itk::SmartPointer&lt;mitk::BaseDataSource&gt; mitk::BaseData::GetSource() const
+<span style = "background-color:#fdd">{
+  return static_cast&lt;mitk::BaseDataSource *&gt;(Superclass::GetSource().GetPointer());
+}</span>
+
+mitk::PropertyList::Pointer mitk::BaseData::GetPropertyList() const
+<span style = "background-color:#fdd">{
+  return m_PropertyList;
+}</span>
+
+mitk::BaseProperty::Pointer mitk::BaseData::GetProperty(const char *propertyKey) const
+<span style = "background-color:#fdd">{
+  return m_PropertyList-&gt;GetProperty(propertyKey);
+}</span>
+
+void mitk::BaseData::SetProperty(const char *propertyKey, BaseProperty *propertyValue)
+<span style = "background-color:#fdd">{
+  m_PropertyList-&gt;SetProperty(propertyKey, propertyValue);
+}</span>
+
+void mitk::BaseData::SetPropertyList(PropertyList *pList)
+<span style = "background-color:#fdd">{
+  m_PropertyList = pList;
+}</span>
+
+void mitk::BaseData::SetOrigin(const mitk::Point3D &amp;origin)
+<span style = "background-color:#fdd">{
+  TimeGeometry *timeGeom = GetTimeGeometry();</span>
+
+<span style = "background-color:#fdd">  assert(timeGeom != nullptr);</span>
+
+<span style = "background-color:#fdd">  TimeStepType steps = timeGeom-&gt;CountTimeSteps();
+  for (TimeStepType timestep = 0; timestep &lt; steps; ++timestep)</span>
+  {
+<span style = "background-color:#fdd">    auto geometry = GetGeometry(timestep);
+    if (geometry != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      geometry-&gt;SetOrigin(origin);</span>
+    }
+<span style = "background-color:#fdd">  }
+}</span>
+
+itk::ModifiedTimeType mitk::BaseData::GetMTime() const
+<span style = "background-color:#fdd">{
+  auto time = Superclass::GetMTime();
+  if (m_TimeGeometry.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if ((time &lt; m_TimeGeometry-&gt;GetMTime()))</span>
+    {
+<span style = "background-color:#fdd">      return m_TimeGeometry-&gt;GetMTime();</span>
+    }
+  }
+<span style = "background-color:#fdd">  return time;
+}</span>
+
+void mitk::BaseData::Graft(const itk::DataObject *)
+<span style = "background-color:#fdd">{
+  itkExceptionMacro(&lt;&lt; "Graft not implemented for mitk::BaseData subclass " &lt;&lt; this-&gt;GetNameOfClass())
+}</span>
+
+void mitk::BaseData::CopyInformation(const itk::DataObject *data)
+<span style = "background-color:#fdd">{
+  const auto *bd = dynamic_cast&lt;const Self *&gt;(data);
+  if (bd != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_PropertyList = bd-&gt;GetPropertyList()-&gt;Clone();
+    if (bd-&gt;GetTimeGeometry() != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      m_TimeGeometry = bd-&gt;GetTimeGeometry()-&gt;Clone();</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+    // pointer could not be cast back down; this can be the case if your filters input
+    // and output objects differ in type; then you have to write your own GenerateOutputInformation method
+<span style = "background-color:#fdd">    itkExceptionMacro(&lt;&lt; "mitk::BaseData::CopyInformation() cannot cast " &lt;&lt; typeid(data).name() &lt;&lt; " to "</span>
+                      &lt;&lt; typeid(Self *).name());
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::BaseData::IsInitialized() const
+<span style = "background-color:#fdd">{
+  return m_Initialized;
+}</span>
+
+void mitk::BaseData::Clear()
+<span style = "background-color:#fdd">{
+  this-&gt;ClearData();
+  this-&gt;InitializeEmpty();
+}</span>
+
+void mitk::BaseData::ClearData()
+<span style = "background-color:#fdd">{
+  if (m_Initialized)</span>
+  {
+<span style = "background-color:#fdd">    ReleaseData();
+    m_Initialized = false;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseData::ExecuteOperation(mitk::Operation * /*operation*/)
+<span style = "background-color:#fdd">{</span>
+  // empty by default. override if needed!
+<span style = "background-color:#fdd">}</span>
+
+void mitk::BaseData::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  os &lt;&lt; std::endl;
+  os &lt;&lt; indent &lt;&lt; " TimeGeometry: ";
+  if (GetTimeGeometry() == nullptr)
+    os &lt;&lt; "nullptr" &lt;&lt; std::endl;</span>
+  else
+<span style = "background-color:#fdd">    GetTimeGeometry()-&gt;Print(os, indent);</span>
+  // print out all properties
+<span style = "background-color:#fdd">  PropertyList::Pointer propertyList = this-&gt;GetPropertyList();
+  if (propertyList.IsNotNull() &amp;&amp; !propertyList-&gt;IsEmpty())</span>
+  {
+    // general headline
+<span style = "background-color:#fdd">    os &lt;&lt; "Properties of BaseData:" &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">    const PropertyList::PropertyMap *map = propertyList-&gt;GetMap();
+    for (auto iter = map-&gt;begin(); iter != map-&gt;end(); ++iter)</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; "  " &lt;&lt; (*iter).first &lt;&lt; "   " &lt;&lt; (*iter).second-&gt;GetValueAsString() &lt;&lt; std::endl;
+    }</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::BaseProperty::ConstPointer mitk::BaseData::GetConstProperty(const std::string &amp;propertyKey, const std::string &amp;contextName, bool fallBackOnDefaultContext) const
+<span style = "background-color:#fdd">{
+  if (propertyKey.empty())
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  if (contextName.empty() || fallBackOnDefaultContext)
+    return m_PropertyList-&gt;GetProperty(propertyKey);</span>
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+mitk::BaseProperty * mitk::BaseData::GetNonConstProperty(const std::string &amp;propertyKey, const std::string &amp;contextName, bool fallBackOnDefaultContext)
+<span style = "background-color:#fdd">{
+  if (propertyKey.empty())
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  if (contextName.empty() || fallBackOnDefaultContext)
+    return m_PropertyList-&gt;GetProperty(propertyKey);</span>
+
+<span style = "background-color:#fdd">  return nullptr;
+}</span>
+
+void mitk::BaseData::SetProperty(const std::string &amp;propertyKey, BaseProperty *property, const std::string &amp;contextName, bool fallBackOnDefaultContext)
+<span style = "background-color:#fdd">{
+  if (propertyKey.empty())
+    mitkThrow() &lt;&lt; "Property key is empty.";</span>
+
+<span style = "background-color:#fdd">  if (contextName.empty() || fallBackOnDefaultContext)</span>
+  {
+<span style = "background-color:#fdd">    m_PropertyList-&gt;SetProperty(propertyKey, property);
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  mitkThrow() &lt;&lt; "Unknown or unsupported non-default property context.";
+}</span>
+
+void mitk::BaseData::RemoveProperty(const std::string &amp;propertyKey, const std::string &amp;contextName, bool fallBackOnDefaultContext)
+<span style = "background-color:#fdd">{
+  if (propertyKey.empty())
+    mitkThrow() &lt;&lt; "Property key is empty.";</span>
+
+<span style = "background-color:#fdd">  if (contextName.empty() || fallBackOnDefaultContext)</span>
+  {
+<span style = "background-color:#fdd">    m_PropertyList-&gt;RemoveProperty(propertyKey);
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  mitkThrow() &lt;&lt; "Unknown or unsupported non-default property context.";
+}</span>
+
+std::vector&lt;std::string&gt; mitk::BaseData::GetPropertyKeys(const std::string &amp;/*contextName*/, bool /*includeDefaultContext*/) const
+<span style = "background-color:#fdd">{
+  return m_PropertyList-&gt;GetPropertyKeys();
+}</span>
+
+std::vector&lt;std::string&gt; mitk::BaseData::GetPropertyContextNames() const
+<span style = "background-color:#fdd">{
+  return std::vector&lt;std::string&gt;();
+}</span></pre>
+	</body>
+</html>

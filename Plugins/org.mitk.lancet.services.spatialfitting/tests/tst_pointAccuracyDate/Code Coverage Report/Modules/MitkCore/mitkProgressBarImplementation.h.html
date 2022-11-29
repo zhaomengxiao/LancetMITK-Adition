@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkProgressBarImplementation.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKPROGRESSBARIMPLEMENTATION_H
+#define MITKPROGRESSBARIMPLEMENTATION_H
+#include &lt;MitkCoreExports.h&gt;
+
+namespace mitk
+{
+  //##Documentation
+  //## @brief GUI indepentent Interface for all Gui depentent implementations of a ProgressBar.
+  class MITKCORE_EXPORT ProgressBarImplementation
+  {
+  public:
+    //##Documentation
+    //## @brief Constructor
+<span style = "background-color:#fdd">    ProgressBarImplementation(){};</span>
+
+    //##Documentation
+    //## @brief Destructor
+<span style = "background-color:#fdd">    virtual ~ProgressBarImplementation(){};</span>
+
+    //##Documentation
+    //## @brief Sets whether the current progress value is displayed.
+    virtual void SetPercentageVisible(bool visible) = 0;
+
+    //##Documentation
+    //## @brief Explicitly reset progress bar.
+    virtual void Reset() = 0;
+
+    //##Documentation
+    //## @brief Adds steps to totalSteps.
+    virtual void AddStepsToDo(unsigned int steps) = 0;
+
+    //##Documentation
+    //## @brief Sets the current amount of progress to current progress + steps.
+    //## @param steps the number of steps done since last Progress(int steps) call.
+    virtual void Progress(unsigned int steps) = 0;
+  };
+
+} // end namespace mitk
+
+#endif /* define MITKPROGRESSBARIMPLEMENTATION_H */</pre>
+	</body>
+</html>

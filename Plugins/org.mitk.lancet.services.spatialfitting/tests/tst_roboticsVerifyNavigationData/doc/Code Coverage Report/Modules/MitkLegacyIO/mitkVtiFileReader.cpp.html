@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVtiFileReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkVtiFileReader.h"
+
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkXMLImageDataReader.h&gt;
+
+<span style = "background-color:#fdd">mitk::VtiFileReader::VtiFileReader() : m_FileName(""), m_FilePrefix(""), m_FilePattern("")
+{
+}</span>
+
+mitk::VtiFileReader::~VtiFileReader()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::VtiFileReader::GenerateData()
+<span style = "background-color:#fdd">{
+  if (m_FileName != "")</span>
+  {
+<span style = "background-color:#fdd">    vtkXMLImageDataReader *vtkReader = vtkXMLImageDataReader::New();
+    vtkReader-&gt;SetFileName(m_FileName.c_str());
+    vtkReader-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    if (vtkReader-&gt;GetOutput() != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      mitk::Image::Pointer output = this-&gt;GetOutput();
+      output-&gt;Initialize(vtkReader-&gt;GetOutput());
+      output-&gt;SetVolume(vtkReader-&gt;GetOutput()-&gt;GetScalarPointer());
+    }
+    vtkReader-&gt;Delete();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::VtiFileReader::CanReadFile(const std::string filename,
+                                      const std::string /*filePrefix*/,
+                                      const std::string /*filePattern*/)
+<span style = "background-color:#fdd">{</span>
+  // First check the extension
+<span style = "background-color:#fdd">  if (filename == "")
+    return false;</span>
+
+<span style = "background-color:#fdd">  bool extensionFound = false;
+  std::string::size_type VTIPos = filename.rfind(".vti");
+  if ((VTIPos != std::string::npos) &amp;&amp; (VTIPos == filename.length() - 4))
+    extensionFound = true;</span>
+
+<span style = "background-color:#fdd">  VTIPos = filename.rfind(".VTI");
+  if ((VTIPos != std::string::npos) &amp;&amp; (VTIPos == filename.length() - 4))
+    extensionFound = true;</span>
+
+<span style = "background-color:#fdd">  if (!extensionFound)
+    return false;</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span></pre>
+	</body>
+</html>

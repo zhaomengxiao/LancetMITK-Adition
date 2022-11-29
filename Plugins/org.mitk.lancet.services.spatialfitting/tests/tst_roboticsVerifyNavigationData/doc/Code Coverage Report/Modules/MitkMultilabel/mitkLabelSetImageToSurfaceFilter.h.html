@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabelSetImageToSurfaceFilter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef _mitkLabelSetImageToSurfaceFilter_H_
+#define _mitkLabelSetImageToSurfaceFilter_H_
+
+#include "MitkMultilabelExports.h"
+#include "mitkLabelSetImage.h"
+#include "mitkSurface.h"
+#include &lt;mitkSurfaceSource.h&gt;
+
+#include &lt;vtkMatrix4x4.h&gt;
+
+#include &lt;itkImage.h&gt;
+
+#include &lt;map&gt;
+
+namespace mitk
+{
+  /**
+   * Generates surface meshes from a labelset image.
+   * If you want to calculate a surface representation for all available labels,
+   * you may call GenerateAllLabelsOn().
+   */
+  class MITKMULTILABEL_EXPORT LabelSetImageToSurfaceFilter : public SurfaceSource
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(LabelSetImageToSurfaceFilter, SurfaceSource);</span>
+
+<span style = "background-color:#fdd">    itkNewMacro(Self);</span>
+
+    typedef LabelSetImage::PixelType LabelType;
+
+    typedef std::map&lt;LabelType, unsigned long&gt; LabelMapType;
+
+    typedef std::map&lt;unsigned int, LabelType&gt; IndexToLabelMapType;
+
+    /**
+    * Returns a const pointer to the labelset image set as input
+    */
+    const mitk::Image *GetInput(void);
+
+    /**
+    * Set the labelset image to create a surface from.
+    */
+    using ProcessObject::SetInput;
+    virtual void SetInput(const mitk::Image *image);
+
+    //   virtual void SetObserver(mitk::ProcessObserver::Pointer observer);
+
+    /**
+     * Set whether you want to extract all labesl (true) or a single one.
+     */
+<span style = "background-color:#fdd">    itkSetMacro(GenerateAllLabels, bool);</span>
+
+    /**
+     * @returns if all labels or only a specific label should be
+     * extracted.
+     */
+<span style = "background-color:#fdd">    itkGetMacro(GenerateAllLabels, bool);
+    itkBooleanMacro(GenerateAllLabels);</span>
+
+    /**
+     * Set the label you want to extract. This method only has an effect,
+     * if GenerateAllLabels() is set to false
+     * @param _arg the label to extract, by default 1
+     */
+<span style = "background-color:#fdd">    itkSetMacro(RequestedLabel, int);</span>
+
+    /**
+     * Returns the label you want to extract. This method only has an effect,
+     * if GenerateAllLabels() is set to false
+     * @return the label to extract, by default 1
+     */
+<span style = "background-color:#fdd">    itkGetMacro(RequestedLabel, int);</span>
+
+    /**
+     * Sets the label value of the background. No surface will be generated for this label.
+     * @param _arg the label of the background, by default 0
+     */
+<span style = "background-color:#fdd">    itkSetMacro(BackgroundLabel, int);</span>
+
+    /**
+     * Gets the label value of the background. No surface will be generated for this label.
+     * @return the label of the background, by default 0
+     */
+<span style = "background-color:#fdd">    itkGetMacro(BackgroundLabel, int);</span>
+
+    /**
+     * Sets whether to provide a smoothed surface
+     */
+<span style = "background-color:#fdd">    itkSetMacro(UseSmoothing, int);</span>
+
+    /**
+     * Sets the Sigma used in the gaussian smoothing
+     */
+<span style = "background-color:#fdd">    itkSetMacro(Sigma, float);</span>
+
+  protected:
+    LabelSetImageToSurfaceFilter();
+
+    ~LabelSetImageToSurfaceFilter() override;
+
+    /**
+    * Transforms a point by a 4x4 matrix
+    */
+    template &lt;class T1, class T2, class T3&gt;
+    inline void mitkVtkLinearTransformPoint(T1 matrix[4][4], T2 in[3], T3 out[3])
+<span style = "background-color:#fdd">    {
+      T3 x = matrix[0][0] * in[0] + matrix[0][1] * in[1] + matrix[0][2] * in[2] + matrix[0][3];
+      T3 y = matrix[1][0] * in[0] + matrix[1][1] * in[1] + matrix[1][2] * in[2] + matrix[1][3];
+      T3 z = matrix[2][0] * in[0] + matrix[2][1] * in[1] + matrix[2][2] * in[2] + matrix[2][3];
+      out[0] = x;
+      out[1] = y;
+      out[2] = z;
+    }</span>
+
+    mitk::Image::Pointer m_ResultImage;
+
+    template &lt;typename TPixel, unsigned int VImageDimension&gt;
+    void InternalProcessing(const itk::Image&lt;TPixel, VImageDimension&gt; *input, mitk::Surface *surface);
+
+    bool m_GenerateAllLabels;
+
+    int m_RequestedLabel;
+
+    int m_BackgroundLabel;
+
+    int m_UseSmoothing;
+
+    float m_Sigma;
+
+    LabelMapType m_AvailableLabels;
+
+    IndexToLabelMapType m_IndexToLabels;
+
+    mitk::Vector3D m_InputImageSpacing;
+
+    void GenerateData() override;
+
+    void GenerateOutputInformation() override;
+
+    //  mitk::ProcessObserver::Pointer m_Observer;
+  };
+
+} // end of namespace mitk
+
+#endif //_mitkLabelSetImageToSurfaceFilter_H_</pre>
+	</body>
+</html>

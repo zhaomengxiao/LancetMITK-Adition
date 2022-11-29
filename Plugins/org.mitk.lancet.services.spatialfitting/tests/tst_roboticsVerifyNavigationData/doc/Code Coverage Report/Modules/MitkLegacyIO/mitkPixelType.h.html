@@ -1,0 +1,312 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPixelType.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkPixelType_h
+#define mitkPixelType_h
+
+#include "mitkCommon.h"
+#include "mitkPixelTypeTraits.h"
+#include &lt;MitkCoreExports.h&gt;
+
+#include &lt;string&gt;
+#include &lt;typeinfo&gt;
+
+#include &lt;itkImage.h&gt;
+#include &lt;itkImageIOBase.h&gt;
+#include &lt;vtkImageData.h&gt;
+
+namespace mitk
+{
+  template &lt;typename T&gt;
+  std::string PixelComponentTypeToString()
+<span style = "background-color:#fdd">  {
+    return itk::ImageIOBase::GetComponentTypeAsString(itk::ImageIOBase::MapPixelType&lt;T&gt;::CType);
+  }</span>
+
+  template &lt;typename PixelT&gt;
+  std::string PixelTypeToString()
+<span style = "background-color:#fdd">  {
+    return std::string();
+  }</span>
+
+  /**
+   * @brief Class for defining the data type of pixels
+   *
+   * To obtain additional type information not provided by this class
+   * itk::ImageIOBase can be used by passing the return value of
+   * PixelType::GetItkTypeId() to itk::ImageIOBase::SetPixelTypeInfo
+   * and using the itk::ImageIOBase methods GetComponentType,
+   * GetComponentTypeAsString, GetPixelType, GetPixelTypeAsString.
+   * @ingroup Data
+   */
+  class MITKCORE_EXPORT PixelType
+  {
+  public:
+    typedef itk::IOPixelEnum ItkIOPixelType;
+    typedef itk::IOComponentEnum ItkIOComponentType;
+
+    PixelType(const mitk::PixelType &amp;aPixelType);
+    PixelType &amp;operator=(const PixelType &amp;other);
+
+    ItkIOPixelType GetPixelType() const;
+
+    /**
+     * \brief Get the \a component type (the scalar (!) type). Each element
+     * may contain m_NumberOfComponents (more than one) of these scalars.
+     *
+     */
+    ItkIOComponentType GetComponentType() const;
+
+    /**
+     * \brief Returns a string containing the ITK pixel type name.
+     */
+    std::string GetPixelTypeAsString() const;
+
+    /**
+     * \brief Returns a string containing the name of the component.
+     */
+    std::string GetComponentTypeAsString() const;
+
+    /**
+     * \brief Returns a string representing the pixel type and pixel components.
+     */
+    std::string GetTypeAsString() const;
+
+    /**
+     * \brief Get size of the PixelType in bytes
+     *
+     * A RGBA PixelType of floats will return 4 * sizeof(float)
+     */
+    size_t GetSize() const;
+
+    /**
+     * \brief Get the number of bits per element (of an
+     * element)
+     *
+     * A vector of double with three components will return
+     * 8*sizeof(double)*3.
+     * \sa GetBitsPerComponent
+     * \sa GetItkTypeId
+     * \sa GetTypeId
+     */
+    size_t GetBpe() const;
+
+    /**
+     * \brief Get the number of components of which each element consists
+     *
+     * Each pixel can consist of multiple components, e.g. RGB.
+     */
+    size_t GetNumberOfComponents() const;
+
+    /**
+     * \brief Get the number of bits per components
+     * \sa GetBitsPerComponent
+     */
+    size_t GetBitsPerComponent() const;
+
+    bool operator==(const PixelType &amp;rhs) const;
+    bool operator!=(const PixelType &amp;rhs) const;
+
+    ~PixelType();
+
+  private:
+    friend PixelType MakePixelType(const itk::ImageIOBase *imageIO);
+
+    template &lt;typename ComponentT, typename PixelT&gt;
+    friend PixelType MakePixelType(std::size_t numOfComponents);
+
+    template &lt;typename ItkImageType&gt;
+    friend PixelType MakePixelType();
+
+    template &lt;typename ItkImageType&gt;
+    friend PixelType MakePixelType(size_t);
+
+    PixelType(ItkIOComponentType componentType,
+              ItkIOPixelType pixelType,
+              std::size_t bytesPerComponent,
+              std::size_t numOfComponents,
+              const std::string &amp;componentTypeName,
+              const std::string &amp;pixelTypeName);
+
+    // default constructor is disabled on purpose
+    PixelType(void);
+
+    /** \brief the \a type_info of the scalar (!) component type. Each element
+      may contain m_NumberOfComponents (more than one) of these scalars.
+    */
+    ItkIOComponentType m_ComponentType;
+
+    ItkIOPixelType m_PixelType;
+
+    std::string m_ComponentTypeName;
+
+    std::string m_PixelTypeName;
+
+    std::size_t m_NumberOfComponents;
+
+    std::size_t m_BytesPerComponent;
+  };
+
+  /**
+   * @brief deduct the PixelType for a given vtk image
+   *
+   * @param vtkimagedata the image the PixelType shall be deducted from
+   * @return the mitk::PixelType
+   */
+  MITKCORE_EXPORT mitk::PixelType MakePixelType(vtkImageData *vtkimagedata);
+
+  /**
+   * \brief A template method for creating a pixel type.
+   */
+  template &lt;typename ComponentT, typename PixelT&gt;
+  PixelType MakePixelType(std::size_t numOfComponents)
+<span style = "background-color:#fdd">  {
+    return PixelType(MapPixelType&lt;PixelT, isPrimitiveType&lt;PixelT&gt;::value&gt;::IOComponentType,</span>
+                     MapPixelType&lt;PixelT, isPrimitiveType&lt;PixelT&gt;::value&gt;::IOPixelType,
+                     sizeof(ComponentT),
+                     numOfComponents,
+                     PixelComponentTypeToString&lt;ComponentT&gt;(),
+                     PixelTypeToString&lt;PixelT&gt;());
+<span style = "background-color:#fdd">  }</span>
+
+  /**
+   * \brief A template method for creating a pixel type.
+   *
+   * @deprecated, use version with one numOfComponents as function argument instead.
+   */
+  template &lt;typename ComponentT, typename PixelT, std::size_t numOfComponents&gt;
+  PixelType MakePixelType()
+<span style = "background-color:#fdd">  {
+    return MakePixelType&lt;ComponentT, PixelT&gt;(numOfComponents);
+  }</span>
+
+  /**
+   * \brief A helper template for compile-time checking of supported ITK image types.
+   *
+   * Unsupported image types will be marked by template specializations with
+   * missing definitions;
+   */
+  template &lt;typename ItkImageType&gt;
+  struct AssertImageTypeIsValid
+  {
+  };
+
+  // The itk::VariableLengthVector pixel type is not supported in MITK if it is
+  // used with an itk::Image (it cannot be represented as a mitk::Image object).
+  // Use a itk::VectorImage instead.
+  template &lt;typename TPixelType, unsigned int VImageDimension&gt;
+  struct AssertImageTypeIsValid&lt;itk::Image&lt;itk::VariableLengthVector&lt;TPixelType&gt;, VImageDimension&gt;&gt;;
+
+  /** \brief A template method for creating a MITK pixel type na ITK image type
+   *
+   * \param numOfComponents The number of components for the pixel type of the ITK image
+   */
+  template &lt;typename ItkImageType&gt;
+  PixelType MakePixelType(std::size_t numOfComponents)
+<span style = "background-color:#fdd">  {</span>
+    AssertImageTypeIsValid&lt;ItkImageType&gt;();
+
+    // define new type, since the ::PixelType is used to distinguish between simple and compound types
+    typedef typename ItkImageType::PixelType ImportPixelType;
+
+    // get the component type ( is either directly ImportPixelType or ImportPixelType::ValueType for compound types )
+    typedef typename GetComponentType&lt;ImportPixelType&gt;::ComponentType ComponentT;
+
+    // The PixelType is the same as the ComponentT for simple types
+    typedef typename ItkImageType::PixelType PixelT;
+
+    // call the constructor
+<span style = "background-color:#fdd">    return PixelType(MapPixelType&lt;PixelT, isPrimitiveType&lt;PixelT&gt;::value&gt;::IOComponentType,</span>
+                     MapPixelType&lt;PixelT, isPrimitiveType&lt;PixelT&gt;::value&gt;::IOPixelType,
+                     sizeof(ComponentT),
+                     numOfComponents,
+                     PixelComponentTypeToString&lt;ComponentT&gt;(),
+                     PixelTypeToString&lt;PixelT&gt;());
+<span style = "background-color:#fdd">  }</span>
+
+  /** \brief A template method for creating a MITK pixel type from an ITK image
+   *         pixel type and dimension
+   *
+   * \param numOfComponents The number of components for the pixel type \c TPixelType
+   */
+  template &lt;typename TPixelType, unsigned int VImageDimension&gt;
+  PixelType MakePixelType(std::size_t numOfComponents)
+<span style = "background-color:#fdd">  {</span>
+    typedef typename ImageTypeTrait&lt;TPixelType, VImageDimension&gt;::ImageType ItkImageType;
+<span style = "background-color:#fdd">    return MakePixelType&lt;ItkImageType&gt;(numOfComponents);
+  }</span>
+
+  /** \brief A template method for creating a MITK pixel type from an ITK image
+   *         pixel type and dimension
+   *
+   * For images where the number of components of the pixel type is determined at
+   * runtime (e.g. pixel types like itk::VariableLengthVector&lt;short&gt;) the
+   * MakePixelType(std::size_t) function must be used.
+   */
+  template &lt;typename ItkImageType&gt;
+  PixelType MakePixelType()
+<span style = "background-color:#fdd">  {
+    if (ImageTypeTrait&lt;ItkImageType&gt;::IsVectorImage)</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; " Variable pixel type given but the length is not specified. Use the parametric MakePixelType( "</span>
+                     "size_t ) method instead.";
+    }
+
+    // Use the InternalPixelType to get "1" for the number of components in case of
+    // a itk::VectorImage
+    typedef typename ItkImageType::InternalPixelType PixelT;
+
+<span style = "background-color:#fdd">    const std::size_t numComp = ComponentsTrait&lt;isPrimitiveType&lt;PixelT&gt;::value, ItkImageType&gt;::Size;</span>
+
+    // call the constructor
+<span style = "background-color:#fdd">    return MakePixelType&lt;ItkImageType&gt;(numComp);
+  }</span>
+
+  /**
+   * \brief Create a MITK pixel type based on a itk::ImageIOBase object
+   */
+  inline PixelType MakePixelType(const itk::ImageIOBase *imageIO)
+<span style = "background-color:#fdd">  {
+    return mitk::PixelType(imageIO-&gt;GetComponentType(),</span>
+                           imageIO-&gt;GetPixelType(),
+                           imageIO-&gt;GetComponentSize(),
+                           imageIO-&gt;GetNumberOfComponents(),
+                           imageIO-&gt;GetComponentTypeAsString(imageIO-&gt;GetComponentType()),
+                           imageIO-&gt;GetPixelTypeAsString(imageIO-&gt;GetPixelType()));
+<span style = "background-color:#fdd">  }</span>
+
+  /** \brief An interface to the MakePixelType method for creating scalar pixel types.
+    *
+    * Usage: for example MakeScalarPixelType&lt;short&gt;() for a scalar short image
+    */
+  template &lt;typename T&gt;
+  PixelType MakeScalarPixelType()
+<span style = "background-color:#fdd">  {
+    return MakePixelType&lt;T, T, 1&gt;();
+  }</span>
+
+} // namespace mitk
+
+#endif /* mitkPixelType_h */</pre>
+	</body>
+</html>

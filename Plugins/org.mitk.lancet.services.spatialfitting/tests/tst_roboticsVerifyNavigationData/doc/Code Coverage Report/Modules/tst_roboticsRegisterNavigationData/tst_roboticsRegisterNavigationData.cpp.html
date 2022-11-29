@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>tst_roboticsRegisterNavigationData.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+#include &lt;QTest&gt;
+
+// Import memory test function module.
+#if defined(VLD_INSTALL_X64) || defined(VLD_INSTALL_X32)
+#include &lt;vld.h&gt;
+#endif // !defined(VLD_INSTALL_X64) || defined(VLD_INSTALL_X32)
+
+#include &lt;lancetSpatialFittingAbstractPipelineBuilder.h&gt;
+#include &lt;core/lancetSpatialFittingRoboticsRegisterDirector.h&gt;
+#include &lt;core/lancetSpatialFittingPipelineManager.h&gt;
+
+class tst_roboticsRegisterNavigationData
+	: public QObject
+{
+	Q_OBJECT
+public:
+
+private slots:
+	void initTestCase()
+<span style = "background-color:#dfd">	{</span>
+
+<span style = "background-color:#dfd">	}</span>
+
+	void tst_MemoryLeak_case()
+<span style = "background-color:#dfd">	{</span>
+		using RoboticsRegisterDirector = lancet::spatial_fitting::RoboticsRegisterDirector;
+
+<span style = "background-color:#dfd">		for (auto index = 0; index &lt; 100; ++index)</span>
+		{
+<span style = "background-color:#dfd">			RoboticsRegisterDirector obj1 = RoboticsRegisterDirector();
+			std::shared_ptr&lt;RoboticsRegisterDirector&gt; obj2 = </span>
+				std::make_shared&lt;RoboticsRegisterDirector&gt;();
+<span style = "background-color:#dfd">			RoboticsRegisterDirector::Pointer obj3 = RoboticsRegisterDirector::New();
+			RoboticsRegisterDirector::Pointer obj4(new RoboticsRegisterDirector);
+		}
+	}</span>
+
+	void tst_BuilderRoboticsRegisterDirector_case()
+<span style = "background-color:#dfd">	{</span>
+		lancet::spatial_fitting::RoboticsRegisterDirector::Pointer roboticsRegisterDirector 
+<span style = "background-color:#dfd">			= lancet::spatial_fitting::RoboticsRegisterDirector::New();</span>
+
+<span style = "background-color:#dfd">		QCOMPARE(true, roboticsRegisterDirector.IsNotNull());
+		QCOMPARE(true, roboticsRegisterDirector-&gt;Builder());
+		QCOMPARE(true, roboticsRegisterDirector-&gt;GetBuilder()-&gt;GetOutput().IsNotNull());</span>
+
+<span style = "background-color:#dfd">		auto pipelineManage = roboticsRegisterDirector-&gt;GetBuilder()-&gt;GetOutput();</span>
+
+<span style = "background-color:#dfd">		QCOMPARE(true, pipelineManage.IsNotNull());
+		QCOMPARE(false, pipelineManage-&gt;IsEmpty());</span>
+
+<span style = "background-color:#dfd">		roboticsRegisterDirector-&gt;SetBuilder(nullptr);
+		QCOMPARE(true, roboticsRegisterDirector-&gt;GetBuilder().IsNull());
+		QCOMPARE(false, roboticsRegisterDirector-&gt;Builder());
+	}</span>
+};
+
+
+<span style = "background-color:#dfd">QTEST_MAIN(tst_roboticsRegisterNavigationData)</span>
+#include "tst_roboticsRegisterNavigationData.moc"</pre>
+	</body>
+</html>

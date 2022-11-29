@@ -1,0 +1,205 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlaneFit.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPlaneFit.h"
+
+#include "mitkGeometryData.h"
+#include "mitkPlaneGeometry.h"
+#include &lt;mitkProportionalTimeGeometry.h&gt;
+
+#include &lt;vnl/algo/vnl_svd.h&gt;
+
+<span style = "background-color:#fdd">mitk::PlaneFit::PlaneFit() : m_PointSet(nullptr)
+{
+  m_TimeGeometry = mitk::ProportionalTimeGeometry::New();
+}</span>
+
+mitk::PlaneFit::~PlaneFit()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::PlaneFit::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+  mitk::PointSet::ConstPointer input = this-&gt;GetInput();
+  mitk::GeometryData::Pointer output = this-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  itkDebugMacro(&lt;&lt; "GenerateOutputInformation()");</span>
+
+<span style = "background-color:#fdd">  if (input.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  if (m_PointSet == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  bool update = false;
+  if (output-&gt;GetGeometry() == nullptr || output-&gt;GetTimeGeometry() == nullptr)
+    update = true;
+  if ((!update) &amp;&amp; (output-&gt;GetTimeGeometry()-&gt;CountTimeSteps() != input-&gt;GetTimeGeometry()-&gt;CountTimeSteps()))
+    update = true;
+  if (update)</span>
+  {
+<span style = "background-color:#fdd">    mitk::PlaneGeometry::Pointer planeGeometry = mitk::PlaneGeometry::New();</span>
+
+<span style = "background-color:#fdd">    ProportionalTimeGeometry::Pointer timeGeometry =</span>
+      dynamic_cast&lt;ProportionalTimeGeometry *&gt;(m_TimeGeometry.GetPointer());
+<span style = "background-color:#fdd">    timeGeometry-&gt;Initialize(planeGeometry, m_PointSet-&gt;GetPointSetSeriesSize());</span>
+    // m_TimeGeometry-&gt;InitializeEvenlyTimed(
+    //  planeGeometry, m_PointSet-&gt;GetPointSetSeriesSize() );
+
+    TimeStepType timeStep;
+<span style = "background-color:#fdd">    for (timeStep = 0; (timeStep &lt; m_PointSet-&gt;GetPointSetSeriesSize()) &amp;&amp; (timeStep &lt; m_Planes.size()); ++timeStep)</span>
+    {
+<span style = "background-color:#fdd">      timeGeometry-&gt;SetTimeStepGeometry(m_Planes[timeStep], timeStep);
+    }</span>
+
+<span style = "background-color:#fdd">    output-&gt;SetTimeGeometry(m_TimeGeometry);
+  }
+}</span>
+
+void mitk::PlaneFit::GenerateData()
+<span style = "background-color:#fdd">{</span>
+  unsigned int t;
+<span style = "background-color:#fdd">  for (t = 0; t &lt; m_PointSet-&gt;GetPointSetSeriesSize(); ++t)</span>
+  {
+    // check number of data points - less then 3points isn't enough
+<span style = "background-color:#fdd">    if (m_PointSet-&gt;GetSize(t) &gt;= 3)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;CalculateCentroid(t);</span>
+
+<span style = "background-color:#fdd">      this-&gt;ProcessPointSet(t);</span>
+
+<span style = "background-color:#fdd">      this-&gt;InitializePlane(t);</span>
+    }
+<span style = "background-color:#fdd">  }
+}</span>
+
+void mitk::PlaneFit::SetInput(const mitk::PointSet *pointSet)
+<span style = "background-color:#fdd">{</span>
+  // Process object is not const-correct so the const_cast is required here
+<span style = "background-color:#fdd">  this-&gt;ProcessObject::SetNthInput(0, const_cast&lt;mitk::PointSet *&gt;(pointSet));</span>
+
+<span style = "background-color:#fdd">  m_PointSet = pointSet;
+  unsigned int pointSetSize = pointSet-&gt;GetPointSetSeriesSize();</span>
+
+<span style = "background-color:#fdd">  m_Planes.resize(pointSetSize);
+  m_Centroids.resize(pointSetSize);
+  m_PlaneVectors.resize(pointSetSize);</span>
+
+  unsigned int t;
+<span style = "background-color:#fdd">  for (t = 0; t &lt; pointSetSize; ++t)</span>
+  {
+<span style = "background-color:#fdd">    m_Planes[t] = mitk::PlaneGeometry::New();
+  }
+}</span>
+
+const mitk::PointSet *mitk::PlaneFit::GetInput()
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  return static_cast&lt;const mitk::PointSet *&gt;(this-&gt;ProcessObject::GetInput(0));
+}</span>
+
+void mitk::PlaneFit::CalculateCentroid(int t)
+<span style = "background-color:#fdd">{
+  if (m_PointSet == nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  int ps_total = m_PointSet-&gt;GetSize(t);</span>
+
+<span style = "background-color:#fdd">  m_Centroids[t][0] = m_Centroids[t][1] = m_Centroids[t][2] = 0.0;</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; ps_total; i++)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D p3d = m_PointSet-&gt;GetPoint(i, t);
+    m_Centroids[t][0] += p3d[0];
+    m_Centroids[t][1] += p3d[1];
+    m_Centroids[t][2] += p3d[2];
+  }</span>
+
+  // calculation of centroid
+<span style = "background-color:#fdd">  m_Centroids[t][0] /= ps_total;
+  m_Centroids[t][1] /= ps_total;
+  m_Centroids[t][2] /= ps_total;
+}</span>
+
+void mitk::PlaneFit::ProcessPointSet(int t)
+<span style = "background-color:#fdd">{
+  if (m_PointSet == nullptr)
+    return;</span>
+
+  // int matrix with POINTS x (X,Y,Z)
+<span style = "background-color:#fdd">  vnl_matrix&lt;mitk::ScalarType&gt; dataM(m_PointSet-&gt;GetSize(t), 3);</span>
+
+<span style = "background-color:#fdd">  int ps_total = m_PointSet-&gt;GetSize(t);
+  for (int i = 0; i &lt; ps_total; i++)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Point3D p3d = m_PointSet-&gt;GetPoint(i, t);
+    dataM[i][0] = p3d[0] - m_Centroids[t][0];
+    dataM[i][1] = p3d[1] - m_Centroids[t][1];
+    dataM[i][2] = p3d[2] - m_Centroids[t][2];
+  }</span>
+  // process the SVD (singular value decomposition) from ITK
+  // the vector will be orderd   descending
+<span style = "background-color:#fdd">  vnl_svd&lt;mitk::ScalarType&gt; svd(dataM, 0.0);</span>
+
+  // calculate the SVD of A
+<span style = "background-color:#fdd">  vnl_vector&lt;mitk::ScalarType&gt; v = svd.nullvector();</span>
+
+  // Avoid erratic normal sign switching when the plane changes minimally
+  // by negating the vector for negative x values.
+<span style = "background-color:#fdd">  if (v[0] &lt; 0)</span>
+  {
+<span style = "background-color:#fdd">    v = -v;</span>
+  }
+
+<span style = "background-color:#fdd">  m_PlaneVectors[t][0] = v[0];
+  m_PlaneVectors[t][1] = v[1];
+  m_PlaneVectors[t][2] = v[2];
+}</span>
+
+mitk::PlaneGeometry::Pointer mitk::PlaneFit::GetPlaneGeometry(int t)
+<span style = "background-color:#fdd">{
+  return m_Planes[t];
+}</span>
+
+const mitk::Vector3D &amp;mitk::PlaneFit::GetPlaneNormal(int t) const
+<span style = "background-color:#fdd">{
+  return m_PlaneVectors[t];
+}</span>
+
+const mitk::Point3D &amp;mitk::PlaneFit::GetCentroid(int t) const
+<span style = "background-color:#fdd">{
+  return m_Centroids[t];
+}</span>
+
+void mitk::PlaneFit::InitializePlane(int t)
+<span style = "background-color:#fdd">{
+  m_Planes[t]-&gt;InitializePlane(m_Centroids[t], m_PlaneVectors[t]);
+}</span></pre>
+	</body>
+</html>

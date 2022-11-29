@@ -1,0 +1,252 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkStandardFileLocations.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkStandardFileLocations.h&gt;
+
+#include &lt;itkMacro.h&gt;
+#include &lt;itkObject.h&gt;
+#include &lt;itksys/SystemTools.hxx&gt;
+#include &lt;mitkConfig.h&gt;
+#include &lt;mitkUtf8Util.h&gt;
+
+#include &lt;algorithm&gt;
+
+mitk::StandardFileLocations::StandardFileLocations()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::StandardFileLocations::~StandardFileLocations()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::StandardFileLocations *mitk::StandardFileLocations::GetInstance()
+<span style = "background-color:#fdd">{
+  static StandardFileLocations::Pointer m_Instance = nullptr;</span>
+
+<span style = "background-color:#fdd">  if (m_Instance.IsNull())
+    m_Instance = StandardFileLocations::New();
+  return m_Instance;
+}</span>
+
+void mitk::StandardFileLocations::AddDirectoryForSearch(const char *dir, bool insertInFrontOfSearchList)
+<span style = "background-color:#fdd">{</span>
+  // Do nothing if directory is already included into search list (TODO more clever: search only once!)
+<span style = "background-color:#fdd">  FileSearchVectorType::iterator iter;
+  if (m_SearchDirectories.size() &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    iter = std::find(m_SearchDirectories.begin(), m_SearchDirectories.end(), std::string(dir));
+    if (iter != m_SearchDirectories.end())
+      return;</span>
+  }
+  // insert dir into queue
+<span style = "background-color:#fdd">  if (insertInFrontOfSearchList)</span>
+  {
+<span style = "background-color:#fdd">    auto it = m_SearchDirectories.begin();
+    m_SearchDirectories.insert(it, std::string(dir));
+  }</span>
+  else
+<span style = "background-color:#fdd">    m_SearchDirectories.push_back(std::string(dir));
+}</span>
+
+void mitk::StandardFileLocations::RemoveDirectoryForSearch(const char *dir)
+<span style = "background-color:#fdd">{
+  FileSearchVectorType::iterator it;</span>
+  // background layers
+<span style = "background-color:#fdd">  if (m_SearchDirectories.size() &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    it = std::find(m_SearchDirectories.begin(), m_SearchDirectories.end(), std::string(dir));
+    if (it != m_SearchDirectories.end())</span>
+    {
+<span style = "background-color:#fdd">      m_SearchDirectories.erase(it);
+      return;</span>
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+std::string mitk::StandardFileLocations::SearchDirectoriesForFile(const char *filename)
+<span style = "background-color:#fdd">{
+  FileSearchVectorType::iterator it;</span>
+
+<span style = "background-color:#fdd">  for (it = m_SearchDirectories.begin(); it != m_SearchDirectories.end(); ++it)</span>
+  {
+<span style = "background-color:#fdd">    std::string currDir = (*it);</span>
+
+    // Perhaps append "/" before appending filename
+<span style = "background-color:#fdd">    if (currDir.find_last_of("\\") + 1 != currDir.size() || currDir.find_last_of("/") + 1 != currDir.size())
+      currDir += "/";</span>
+
+    // Append filename
+<span style = "background-color:#fdd">    currDir += filename;</span>
+
+    // Perhaps remove "/" after filename
+<span style = "background-color:#fdd">    if (currDir.find_last_of("\\") + 1 == currDir.size() || currDir.find_last_of("/") + 1 == currDir.size())
+      currDir.erase(currDir.size() - 1, currDir.size());</span>
+
+    // convert to OS dependent path schema
+<span style = "background-color:#fdd">    currDir = Utf8Util::Utf8ToLocal8Bit(itksys::SystemTools::ConvertToOutputPath(Utf8Util::Local8BitToUtf8(currDir).c_str()));</span>
+
+    // On windows systems, the ConvertToOutputPath method quotes pathes that contain empty spaces.
+    // These quotes are not expected by the FileExists method and therefore removed, if existing.
+<span style = "background-color:#fdd">    if (currDir.find_last_of("\"") + 1 == currDir.size())
+      currDir.erase(currDir.size() - 1, currDir.size());
+    if (currDir.find_last_of("\"") == 0)
+      currDir.erase(0, 1);</span>
+
+    // Return first found path
+<span style = "background-color:#fdd">    if (itksys::SystemTools::FileExists(Utf8Util::Local8BitToUtf8(currDir).c_str()))
+      return currDir;
+  }
+  return std::string("");
+}</span>
+
+std::string mitk::StandardFileLocations::FindFile(const char *filename, const char *pathInSourceDir)
+<span style = "background-color:#fdd">{
+  std::string directoryPath;</span>
+
+  // 1. look for MITKCONF environment variable
+<span style = "background-color:#fdd">  const char *mitkConf = itksys::SystemTools::GetEnv("MITKCONF");
+  if (mitkConf != nullptr)
+    AddDirectoryForSearch(mitkConf, false);</span>
+
+// 2. use .mitk-subdirectory in home directory of the user
+#if defined(_WIN32) &amp;&amp; !defined(__CYGWIN__)
+<span style = "background-color:#fdd">  const char *homeDrive = itksys::SystemTools::GetEnv("HOMEDRIVE");
+  const char *homePath = itksys::SystemTools::GetEnv("HOMEPATH");</span>
+
+<span style = "background-color:#fdd">  if ((homeDrive != nullptr) || (homePath != nullptr))</span>
+  {
+<span style = "background-color:#fdd">    directoryPath = homeDrive;
+    directoryPath += homePath;
+    directoryPath += "/.mitk/";
+    AddDirectoryForSearch(directoryPath.c_str(), false);</span>
+  }
+
+#else
+  const char *homeDirectory = itksys::SystemTools::GetEnv("HOME");
+  if (homeDirectory != nullptr)
+  {
+    directoryPath = homeDirectory;
+    directoryPath += "/.mitk/";
+    AddDirectoryForSearch(directoryPath.c_str(), false);
+  }
+
+#endif // defined(_WIN32) &amp;&amp; !defined(__CYGWIN__)
+
+  // 3. look in the current working directory
+<span style = "background-color:#fdd">  directoryPath = "";
+  AddDirectoryForSearch(directoryPath.c_str());</span>
+
+<span style = "background-color:#fdd">  directoryPath = Utf8Util::Utf8ToLocal8Bit(itksys::SystemTools::GetCurrentWorkingDirectory());
+  AddDirectoryForSearch(directoryPath.c_str(), false);</span>
+
+<span style = "background-color:#fdd">  std::string directoryBinPath = directoryPath + "/bin";
+  AddDirectoryForSearch(directoryBinPath.c_str(), false);</span>
+  // 4. use a source tree location from compile time
+<span style = "background-color:#fdd">  directoryPath = MITK_ROOT;
+  if (pathInSourceDir)</span>
+  {
+<span style = "background-color:#fdd">    directoryPath += pathInSourceDir;</span>
+  }
+<span style = "background-color:#fdd">  directoryPath += '/';
+  AddDirectoryForSearch(directoryPath.c_str(), false);</span>
+
+<span style = "background-color:#fdd">  return SearchDirectoriesForFile(filename);
+}</span>
+
+std::string mitk::StandardFileLocations::GetOptionDirectory()
+<span style = "background-color:#fdd">{
+  const char *mitkoptions = itksys::SystemTools::GetEnv("MITKOPTIONS");
+  std::string optionsDirectory;</span>
+
+<span style = "background-color:#fdd">  if (mitkoptions != nullptr)</span>
+  {
+    // 1. look for MITKOPTIONS environment variable
+<span style = "background-color:#fdd">    optionsDirectory = mitkoptions;
+    optionsDirectory += "/";
+  }</span>
+  else
+  {
+    // 2. use .mitk-subdirectory in home directory of the user
+<span style = "background-color:#fdd">    std::string homeDirectory;</span>
+#if defined(_WIN32) &amp;&amp; !defined(__CYGWIN__)
+<span style = "background-color:#fdd">    const char *homeDrive = itksys::SystemTools::GetEnv("HOMEDRIVE");
+    const char *homePath = itksys::SystemTools::GetEnv("HOMEPATH");
+    if ((homeDrive == nullptr) || (homePath == nullptr))</span>
+    {
+<span style = "background-color:#fdd">      itkGenericOutputMacro(&lt;&lt; "Environment variables HOMEDRIVE and/or HOMEPATH not set"</span>
+                            &lt;&lt; ". Using current working directory as home directory: "
+                            &lt;&lt; Utf8Util::Utf8ToLocal8Bit(itksys::SystemTools::GetCurrentWorkingDirectory()));
+<span style = "background-color:#fdd">      homeDirectory = Utf8Util::Utf8ToLocal8Bit(itksys::SystemTools::GetCurrentWorkingDirectory());
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      homeDirectory = homeDrive;
+      homeDirectory += homePath;</span>
+    }
+<span style = "background-color:#fdd">    if (itksys::SystemTools::FileExists(Utf8Util::Local8BitToUtf8(homeDirectory).c_str()) == false)</span>
+    {
+<span style = "background-color:#fdd">      itkGenericOutputMacro(&lt;&lt; "Could not find home directory at " &lt;&lt; homeDirectory</span>
+                            &lt;&lt; ". Using current working directory as home directory: "
+                            &lt;&lt; Utf8Util::Utf8ToLocal8Bit(itksys::SystemTools::GetCurrentWorkingDirectory()));
+<span style = "background-color:#fdd">      homeDirectory = Utf8Util::Utf8ToLocal8Bit(itksys::SystemTools::GetCurrentWorkingDirectory());</span>
+    }
+#else
+    const char *home = itksys::SystemTools::GetEnv("HOME");
+    if (home == nullptr)
+    {
+      itkGenericOutputMacro(&lt;&lt; "Environment variable HOME not set"
+                            &lt;&lt; ". Using current working directory as home directory: "
+                            &lt;&lt; itksys::SystemTools::GetCurrentWorkingDirectory());
+      homeDirectory = itksys::SystemTools::GetCurrentWorkingDirectory();
+    }
+    else
+      homeDirectory = home;
+    if (itksys::SystemTools::FileExists(homeDirectory.c_str()) == false)
+    {
+      itkGenericOutputMacro(&lt;&lt; "Could not find home directory at " &lt;&lt; homeDirectory
+                            &lt;&lt; ". Using current working directory as home directory: "
+                            &lt;&lt; itksys::SystemTools::GetCurrentWorkingDirectory());
+      homeDirectory = itksys::SystemTools::GetCurrentWorkingDirectory();
+    }
+#endif // defined(_WIN32) &amp;&amp; !defined(__CYGWIN__)
+
+<span style = "background-color:#fdd">    optionsDirectory = homeDirectory;
+    optionsDirectory += "/.mitk";
+  }</span>
+
+<span style = "background-color:#fdd">  optionsDirectory = itksys::SystemTools::ConvertToOutputPath(Utf8Util::Local8BitToUtf8(optionsDirectory).c_str());
+  if (itksys::SystemTools::CountChar(optionsDirectory.c_str(), '"') &gt; 0)</span>
+  {
+<span style = "background-color:#fdd">    char *unquoted = itksys::SystemTools::RemoveChars(optionsDirectory.c_str(), "\"");
+    optionsDirectory = unquoted;
+    delete[] unquoted;</span>
+  }
+
+<span style = "background-color:#fdd">  if (itksys::SystemTools::MakeDirectory(optionsDirectory.c_str()) == false)</span>
+  {
+<span style = "background-color:#fdd">    itkGenericExceptionMacro(&lt;&lt; "Could not create .mitk directory at " &lt;&lt; Utf8Util::Utf8ToLocal8Bit(optionsDirectory));</span>
+  }
+<span style = "background-color:#fdd">  return Utf8Util::Utf8ToLocal8Bit(optionsDirectory);
+}</span></pre>
+	</body>
+</html>

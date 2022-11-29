@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkModelFitParameter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#include "mitkModelFitParameter.h"
+#include "mitkModelFitConstants.h"
+
+mitk::modelFit::Parameter::Parameter() :
+<span style = "background-color:#fdd">  name (""), type(Parameter::ParameterType), unit(""), scale(1.0f)
+{
+}</span>
+
+mitk::modelFit::Parameter::Pointer mitk::modelFit::ExtractParameterFromData(const mitk::BaseData* data)
+<span style = "background-color:#fdd">{
+  if (!data)</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::modelFit::Parameter::Pointer param = mitk::modelFit::Parameter::New();</span>
+
+<span style = "background-color:#fdd">  if (!data-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::PARAMETER_NAME_PROPERTY_NAME().c_str(), param-&gt;name))</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  };
+
+<span style = "background-color:#fdd">  param-&gt;image = dynamic_cast&lt;const mitk::Image*&gt;(data);</span>
+
+<span style = "background-color:#fdd">  if(!(param-&gt;image))</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  std::string typeString;
+  data-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::PARAMETER_TYPE_PROPERTY_NAME().c_str(), typeString);</span>
+
+<span style = "background-color:#fdd">  if(typeString == mitk::ModelFitConstants::PARAMETER_TYPE_VALUE_DERIVED_PARAMETER())</span>
+  {
+<span style = "background-color:#fdd">    param-&gt;type = Parameter::DerivedType;
+  }
+  else if(typeString == mitk::ModelFitConstants::PARAMETER_TYPE_VALUE_CRITERION())</span>
+  {
+<span style = "background-color:#fdd">    param-&gt;type = Parameter::CriterionType;
+  }
+  else if(typeString == mitk::ModelFitConstants::PARAMETER_TYPE_VALUE_EVALUATION_PARAMETER())</span>
+  {
+<span style = "background-color:#fdd">    param-&gt;type = Parameter::EvaluationType;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    param-&gt;type = Parameter::ParameterType;</span>
+  }
+
+<span style = "background-color:#fdd">  data-&gt;GetPropertyList()-&gt;GetStringProperty(mitk::ModelFitConstants::PARAMETER_UNIT_PROPERTY_NAME().c_str(),</span>
+    param-&gt;unit);
+<span style = "background-color:#fdd">  data-&gt;GetPropertyList()-&gt;GetFloatProperty(mitk::ModelFitConstants::PARAMETER_SCALE_PROPERTY_NAME().c_str(),</span>
+    param-&gt;scale);
+
+<span style = "background-color:#fdd">  return param;
+}</span>
+</pre>
+	</body>
+</html>

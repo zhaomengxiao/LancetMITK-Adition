@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLegacyFileWriterService.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLegacyFileWriterService.h"
+
+#include &lt;mitkCustomMimeType.h&gt;
+#include &lt;mitkDataNode.h&gt;
+#include &lt;mitkIOMimeTypes.h&gt;
+
+mitk::LegacyFileWriterService::LegacyFileWriterService(mitk::FileWriter::Pointer legacyWriter,
+                                                       const std::string &amp;description)
+<span style = "background-color:#dfd">  : AbstractFileWriter(legacyWriter-&gt;GetSupportedBaseData()), m_LegacyWriter(legacyWriter)
+{
+  this-&gt;SetMimeTypePrefix(IOMimeTypes::DEFAULT_BASE_NAME() + ".legacy.");
+  this-&gt;SetDescription(description);</span>
+
+<span style = "background-color:#dfd">  CustomMimeType customMimeType;
+  std::vector&lt;std::string&gt; extensions = legacyWriter-&gt;GetPossibleFileExtensions();
+  for (auto ext = extensions.begin(); ext != extensions.end(); ++ext)</span>
+  {
+<span style = "background-color:#dfd">    if (ext-&gt;empty())</span>
+<span style = "background-color:#fdd">      continue;</span>
+
+<span style = "background-color:#dfd">    std::string extension = *ext;
+    if (extension.size() &gt; 1 &amp;&amp; extension[0] == '*')</span>
+    {
+      // remove "*"
+<span style = "background-color:#fdd">      extension = extension.substr(1);</span>
+    }
+<span style = "background-color:#dfd">    if (extension.size() &gt; 1 &amp;&amp; extension[0] == '.')</span>
+    {
+      // remove "."
+<span style = "background-color:#dfd">      extension = extension.substr(1);</span>
+    }
+<span style = "background-color:#dfd">    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+    customMimeType.AddExtension(extension);
+  }
+  this-&gt;SetMimeType(customMimeType);</span>
+
+<span style = "background-color:#dfd">  m_ServiceRegistration = RegisterService();
+}</span>
+
+mitk::LegacyFileWriterService::~LegacyFileWriterService()
+<span style = "background-color:#dfd">{
+}</span>
+
+////////////////////// Writing /////////////////////////
+
+void mitk::LegacyFileWriterService::Write()
+<span style = "background-color:#fdd">{
+  if (m_LegacyWriter.IsNull())
+    mitkThrow() &lt;&lt; "LegacyFileWriterService was incorrectly initialized: Has no LegacyFileWriter.";</span>
+
+<span style = "background-color:#fdd">  ValidateOutputLocation();</span>
+
+<span style = "background-color:#fdd">  LocalFile localFile(this);</span>
+
+<span style = "background-color:#fdd">  m_LegacyWriter-&gt;SetFileName(localFile.GetFileName().c_str());
+  m_LegacyWriter-&gt;SetInput(const_cast&lt;BaseData *&gt;(this-&gt;GetInput()));
+  m_LegacyWriter-&gt;Write();
+}</span>
+
+mitk::IFileWriter::ConfidenceLevel mitk::LegacyFileWriterService::GetConfidenceLevel() const
+<span style = "background-color:#fdd">{
+  if (mitk::AbstractFileWriter::GetConfidenceLevel() == Unsupported)
+    return Unsupported;
+  DataNode::Pointer node = DataNode::New();
+  node-&gt;SetData(const_cast&lt;BaseData *&gt;(this-&gt;GetInput()));
+  return m_LegacyWriter-&gt;CanWriteDataType(node) ? Supported : Unsupported;
+}</span>
+
+mitk::LegacyFileWriterService *mitk::LegacyFileWriterService::Clone() const
+<span style = "background-color:#fdd">{
+  return new LegacyFileWriterService(*this);
+}</span></pre>
+	</body>
+</html>

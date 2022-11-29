@@ -1,0 +1,1368 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImage.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+// MITK
+#include "mitkImage.h"
+#include "mitkCompareImageDataFilter.h"
+#include "mitkImageStatisticsHolder.h"
+#include "mitkImageVtkReadAccessor.h"
+#include "mitkImageVtkWriteAccessor.h"
+#include "mitkPixelTypeMultiplex.h"
+#include &lt;mitkProportionalTimeGeometry.h&gt;
+
+// VTK
+#include &lt;vtkImageData.h&gt;
+
+// Other
+#include &lt;cmath&gt;
+
+#define FILL_C_ARRAY(_arr, _size, _value)                                                                              \
+  for (unsigned int i = 0u; i &lt; _size; i++)                                                                            \
+                                                                                                                       \
+  {                                                                                                                    \
+    _arr[i] = _value;                                                                                                  \
+  }
+
+mitk::Image::Image()
+<span style = "background-color:#fdd">  : m_Dimension(0),
+    m_Dimensions(nullptr),
+    m_ImageDescriptor(nullptr),
+    m_OffsetTable(nullptr),
+    m_CompleteData(nullptr),
+    m_ImageStatistics(nullptr)
+{
+  m_Dimensions = new unsigned int[MAX_IMAGE_DIMENSIONS];
+  FILL_C_ARRAY(m_Dimensions, MAX_IMAGE_DIMENSIONS, 0u);</span>
+
+<span style = "background-color:#fdd">  m_Initialized = false;
+}</span>
+
+mitk::Image::Image(const Image &amp;other)
+<span style = "background-color:#fdd">  : SlicedData(other),
+    m_Dimension(0),
+    m_Dimensions(nullptr),
+    m_ImageDescriptor(nullptr),
+    m_OffsetTable(nullptr),
+    m_CompleteData(nullptr),
+    m_ImageStatistics(nullptr)
+{
+  m_Dimensions = new unsigned int[MAX_IMAGE_DIMENSIONS];
+  FILL_C_ARRAY(m_Dimensions, MAX_IMAGE_DIMENSIONS, 0u);</span>
+
+<span style = "background-color:#fdd">  this-&gt;Initialize(other.GetPixelType(), other.GetDimension(), other.GetDimensions());</span>
+
+  // Since the above called "Initialize" method doesn't take the geometry into account we need to set it
+  // here manually
+<span style = "background-color:#fdd">  TimeGeometry::Pointer cloned = other.GetTimeGeometry()-&gt;Clone();
+  this-&gt;SetTimeGeometry(cloned.GetPointer());</span>
+
+<span style = "background-color:#fdd">  if (this-&gt;GetDimension() &gt; 3)</span>
+  {
+<span style = "background-color:#fdd">    const unsigned int time_steps = this-&gt;GetDimension(3);</span>
+
+<span style = "background-color:#fdd">    for (unsigned int i = 0u; i &lt; time_steps; ++i)</span>
+    {
+<span style = "background-color:#fdd">      ImageDataItemPointer volume = other.GetVolumeData(i);</span>
+
+<span style = "background-color:#fdd">      this-&gt;SetVolume(volume-&gt;GetData(), i);
+    }
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    ImageDataItemPointer volume = other.GetVolumeData(0);</span>
+
+<span style = "background-color:#fdd">    this-&gt;SetVolume(volume-&gt;GetData(), 0);
+  }
+}</span>
+
+mitk::Image::~Image()
+<span style = "background-color:#fdd">{
+  this-&gt;Clear();</span>
+
+<span style = "background-color:#fdd">  m_ReferenceCount = 3;
+  m_ReferenceCount = 0;</span>
+
+<span style = "background-color:#fdd">  delete[] m_OffsetTable;
+  delete m_ImageStatistics;
+}</span>
+
+const mitk::PixelType mitk::Image::GetPixelType(int n) const
+<span style = "background-color:#fdd">{
+  return this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n);
+}</span>
+
+unsigned int mitk::Image::GetDimension() const
+<span style = "background-color:#fdd">{
+  return m_Dimension;
+}</span>
+
+unsigned int mitk::Image::GetDimension(int i) const
+<span style = "background-color:#fdd">{
+  if ((i &gt;= 0) &amp;&amp; (i &lt; (int)m_Dimension))
+    return m_Dimensions[i];
+  return 1;
+}</span>
+
+template &lt;class T&gt;
+void AccessPixel(const mitk::PixelType ptype, void *data, const unsigned int offset, double &amp;value)
+{
+  value = 0.0;
+  if (data == nullptr)
+    return;
+
+  if (ptype.GetBpe() != 24)
+  {
+    value = (double)(((T *)data)[offset]);
+  }
+  else
+  {
+    const unsigned int rgboffset = offset;
+
+    double returnvalue = (((T *)data)[rgboffset]);
+    returnvalue += (((T *)data)[rgboffset + 1]);
+    returnvalue += (((T *)data)[rgboffset + 2]);
+    value = returnvalue;
+  }
+}
+
+vtkImageData *mitk::Image::GetVtkImageData(int t, int n)
+<span style = "background-color:#fdd">{
+  if (m_Initialized == false)</span>
+  {
+<span style = "background-color:#fdd">    if (GetSource().IsNull())
+      return nullptr;
+    if (GetSource()-&gt;Updating() == false)
+      GetSource()-&gt;UpdateOutputInformation();</span>
+  }
+<span style = "background-color:#fdd">  ImageDataItemPointer volume = GetVolumeData(t, n);
+  return volume.GetPointer() == nullptr ? nullptr : volume-&gt;GetVtkImageAccessor(this)-&gt;GetVtkImageData();
+}</span>
+
+const vtkImageData *mitk::Image::GetVtkImageData(int t, int n) const
+<span style = "background-color:#fdd">{
+  if (m_Initialized == false)</span>
+  {
+<span style = "background-color:#fdd">    if (GetSource().IsNull())
+      return nullptr;
+    if (GetSource()-&gt;Updating() == false)
+      GetSource()-&gt;UpdateOutputInformation();</span>
+  }
+<span style = "background-color:#fdd">  ImageDataItemPointer volume = GetVolumeData(t, n);
+  return volume.GetPointer() == nullptr ? nullptr : volume-&gt;GetVtkImageAccessor(this)-&gt;GetVtkImageData();
+}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::GetSliceData(
+  int s, int t, int n, void *data, ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_ImageDataArraysLock);
+  return GetSliceData_unlocked(s, t, n, data, importMemoryManagement);
+}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::GetSliceData_unlocked(
+  int s, int t, int n, void *data, ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{
+  if (IsValidSlice(s, t, n) == false)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  const size_t ptypeSize = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n).GetSize();</span>
+
+  // slice directly available?
+<span style = "background-color:#fdd">  int pos = GetSliceIndex(s, t, n);
+  if (m_Slices[pos].GetPointer() != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    return m_Slices[pos];</span>
+  }
+
+  // is slice available as part of a volume that is available?
+<span style = "background-color:#fdd">  ImageDataItemPointer sl, ch, vol;
+  vol = m_Volumes[GetVolumeIndex(t, n)];
+  if ((vol.GetPointer() != nullptr) &amp;&amp; (vol-&gt;IsComplete()))</span>
+  {
+<span style = "background-color:#fdd">    sl = new ImageDataItem(*vol,</span>
+                           m_ImageDescriptor,
+                           t,
+                           2,
+                           data,
+                           importMemoryManagement == ManageMemory,
+                           ((size_t)s) * m_OffsetTable[2] * (ptypeSize));
+<span style = "background-color:#fdd">    sl-&gt;SetComplete(true);
+    return m_Slices[pos] = sl;</span>
+  }
+
+  // is slice available as part of a channel that is available?
+<span style = "background-color:#fdd">  ch = m_Channels[n];
+  if ((ch.GetPointer() != nullptr) &amp;&amp; (ch-&gt;IsComplete()))</span>
+  {
+<span style = "background-color:#fdd">    sl = new ImageDataItem(*ch,</span>
+                           m_ImageDescriptor,
+                           t,
+                           2,
+                           data,
+                           importMemoryManagement == ManageMemory,
+                           (((size_t)s) * m_OffsetTable[2] + ((size_t)t) * m_OffsetTable[3]) * (ptypeSize));
+<span style = "background-color:#fdd">    sl-&gt;SetComplete(true);
+    return m_Slices[pos] = sl;</span>
+  }
+
+  // slice is unavailable. Can we calculate it?
+<span style = "background-color:#fdd">  if ((GetSource().IsNotNull()) &amp;&amp; (GetSource()-&gt;Updating() == false))</span>
+  {
+    // ... wir mussen rechnen!!! ....
+<span style = "background-color:#fdd">    m_RequestedRegion.SetIndex(0, 0);
+    m_RequestedRegion.SetIndex(1, 0);
+    m_RequestedRegion.SetIndex(2, s);
+    m_RequestedRegion.SetIndex(3, t);
+    m_RequestedRegion.SetIndex(4, n);
+    m_RequestedRegion.SetSize(0, m_Dimensions[0]);
+    m_RequestedRegion.SetSize(1, m_Dimensions[1]);
+    m_RequestedRegion.SetSize(2, 1);
+    m_RequestedRegion.SetSize(3, 1);
+    m_RequestedRegion.SetSize(4, 1);
+    m_RequestedRegionInitialized = true;
+    GetSource()-&gt;Update();
+    if (IsSliceSet_unlocked(s, t, n))</span>
+      // yes: now we can call ourselves without the risk of a endless loop (see "if" above)
+<span style = "background-color:#fdd">      return GetSliceData_unlocked(s, t, n, data, importMemoryManagement);</span>
+    else
+<span style = "background-color:#fdd">      return nullptr;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    ImageDataItemPointer item = AllocateSliceData_unlocked(s, t, n, data, importMemoryManagement);
+    item-&gt;SetComplete(true);
+    return item;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::GetVolumeData(int t,
+                                                             int n,
+                                                             void *data,
+                                                             ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_ImageDataArraysLock);
+  return GetVolumeData_unlocked(t, n, data, importMemoryManagement);
+}</span>
+mitk::Image::ImageDataItemPointer mitk::Image::GetVolumeData_unlocked(
+  int t, int n, void *data, ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{
+  if (IsValidVolume(t, n) == false)
+    return nullptr;</span>
+
+<span style = "background-color:#fdd">  ImageDataItemPointer ch, vol;</span>
+
+  // volume directly available?
+<span style = "background-color:#fdd">  int pos = GetVolumeIndex(t, n);
+  vol = m_Volumes[pos];
+  if ((vol.GetPointer() != nullptr) &amp;&amp; (vol-&gt;IsComplete()))
+    return vol;</span>
+
+<span style = "background-color:#fdd">  const size_t ptypeSize = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n).GetSize();</span>
+
+  // is volume available as part of a channel that is available?
+<span style = "background-color:#fdd">  ch = m_Channels[n];
+  if ((ch.GetPointer() != nullptr) &amp;&amp; (ch-&gt;IsComplete()))</span>
+  {
+<span style = "background-color:#fdd">    vol = new ImageDataItem(*ch,</span>
+                            m_ImageDescriptor,
+                            t,
+                            3,
+                            data,
+                            importMemoryManagement == ManageMemory,
+                            (((size_t)t) * m_OffsetTable[3]) * (ptypeSize));
+<span style = "background-color:#fdd">    vol-&gt;SetComplete(true);
+    return m_Volumes[pos] = vol;</span>
+  }
+
+  // let's see if all slices of the volume are set, so that we can (could) combine them to a volume
+<span style = "background-color:#fdd">  bool complete = true;</span>
+  unsigned int s;
+<span style = "background-color:#fdd">  for (s = 0; s &lt; m_Dimensions[2]; ++s)</span>
+  {
+<span style = "background-color:#fdd">    if (m_Slices[GetSliceIndex(s, t, n)].GetPointer() == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      complete = false;
+      break;</span>
+    }
+<span style = "background-color:#fdd">  }
+  if (complete)</span>
+  {
+    // if there is only single slice we do not need to combine anything
+<span style = "background-color:#fdd">    if (m_Dimensions[2] &lt;= 1)</span>
+    {
+<span style = "background-color:#fdd">      ImageDataItemPointer sl;
+      sl = GetSliceData_unlocked(0, t, n, data, importMemoryManagement);
+      vol = new ImageDataItem(*sl, m_ImageDescriptor, t, 3, data, importMemoryManagement == ManageMemory);
+      vol-&gt;SetComplete(true);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      mitk::PixelType chPixelType = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n);</span>
+
+<span style = "background-color:#fdd">      vol = m_Volumes[pos];</span>
+      // ok, let's combine the slices!
+<span style = "background-color:#fdd">      if (vol.GetPointer() == nullptr)</span>
+      {
+<span style = "background-color:#fdd">        vol = new ImageDataItem(chPixelType, t, 3, m_Dimensions, nullptr, true);</span>
+      }
+<span style = "background-color:#fdd">      vol-&gt;SetComplete(true);
+      size_t size = m_OffsetTable[2] * (ptypeSize);
+      for (s = 0; s &lt; m_Dimensions[2]; ++s)</span>
+      {
+        int posSl;
+<span style = "background-color:#fdd">        ImageDataItemPointer sl;
+        posSl = GetSliceIndex(s, t, n);</span>
+
+<span style = "background-color:#fdd">        sl = m_Slices[posSl];
+        if (sl-&gt;GetParent() != vol)</span>
+        {
+          // copy data of slices in volume
+<span style = "background-color:#fdd">          size_t offset = ((size_t)s) * size;
+          std::memcpy(static_cast&lt;char *&gt;(vol-&gt;GetData()) + offset, sl-&gt;GetData(), size);</span>
+
+          // replace old slice with reference to volume
+<span style = "background-color:#fdd">          sl = new ImageDataItem(</span>
+            *vol, m_ImageDescriptor, t, 2, data, importMemoryManagement == ManageMemory, ((size_t)s) * size);
+<span style = "background-color:#fdd">          sl-&gt;SetComplete(true);
+          m_Slices[posSl] = sl;</span>
+        }
+<span style = "background-color:#fdd">      }
+    }
+    return m_Volumes[pos] = vol;</span>
+  }
+
+  // volume is unavailable. Can we calculate it?
+<span style = "background-color:#fdd">  if ((GetSource().IsNotNull()) &amp;&amp; (GetSource()-&gt;Updating() == false))</span>
+  {
+    // ... wir muessen rechnen!!! ....
+<span style = "background-color:#fdd">    m_RequestedRegion.SetIndex(0, 0);
+    m_RequestedRegion.SetIndex(1, 0);
+    m_RequestedRegion.SetIndex(2, 0);
+    m_RequestedRegion.SetIndex(3, t);
+    m_RequestedRegion.SetIndex(4, n);
+    m_RequestedRegion.SetSize(0, m_Dimensions[0]);
+    m_RequestedRegion.SetSize(1, m_Dimensions[1]);
+    m_RequestedRegion.SetSize(2, m_Dimensions[2]);
+    m_RequestedRegion.SetSize(3, 1);
+    m_RequestedRegion.SetSize(4, 1);
+    m_RequestedRegionInitialized = true;
+    GetSource()-&gt;Update();
+    if (IsVolumeSet_unlocked(t, n))</span>
+      // yes: now we can call ourselves without the risk of a endless loop (see "if" above)
+<span style = "background-color:#fdd">      return GetVolumeData_unlocked(t, n, data, importMemoryManagement);</span>
+    else
+<span style = "background-color:#fdd">      return nullptr;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    ImageDataItemPointer item = AllocateVolumeData_unlocked(t, n, data, importMemoryManagement);
+    item-&gt;SetComplete(true);
+    return item;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::GetChannelData(int n,
+                                                              void *data,
+                                                              ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_ImageDataArraysLock);
+  return GetChannelData_unlocked(n, data, importMemoryManagement);
+}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::GetChannelData_unlocked(
+  int n, void *data, ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{
+  if (IsValidChannel(n) == false)
+    return nullptr;
+  ImageDataItemPointer ch, vol;
+  ch = m_Channels[n];
+  if ((ch.GetPointer() != nullptr) &amp;&amp; (ch-&gt;IsComplete()))
+    return ch;</span>
+
+  // let's see if all volumes are set, so that we can (could) combine them to a channel
+<span style = "background-color:#fdd">  if (IsChannelSet_unlocked(n))</span>
+  {
+    // if there is only one time frame we do not need to combine anything
+<span style = "background-color:#fdd">    if (m_Dimensions[3] &lt;= 1)</span>
+    {
+<span style = "background-color:#fdd">      vol = GetVolumeData_unlocked(0, n, data, importMemoryManagement);
+      ch = new ImageDataItem(*vol,</span>
+                             m_ImageDescriptor,
+                             0,
+                             m_ImageDescriptor-&gt;GetNumberOfDimensions(),
+                             data,
+                             importMemoryManagement == ManageMemory);
+<span style = "background-color:#fdd">      ch-&gt;SetComplete(true);
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      const size_t ptypeSize = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n).GetSize();</span>
+
+<span style = "background-color:#fdd">      ch = m_Channels[n];</span>
+      // ok, let's combine the volumes!
+<span style = "background-color:#fdd">      if (ch.GetPointer() == nullptr)
+        ch = new ImageDataItem(this-&gt;m_ImageDescriptor, -1, nullptr, true);
+      ch-&gt;SetComplete(true);
+      size_t size = m_OffsetTable[m_Dimension - 1] * (ptypeSize);</span>
+      unsigned int t;
+<span style = "background-color:#fdd">      auto slicesIt = m_Slices.begin() + n * m_Dimensions[2] * m_Dimensions[3];
+      for (t = 0; t &lt; m_Dimensions[3]; ++t)</span>
+      {
+        int posVol;
+<span style = "background-color:#fdd">        ImageDataItemPointer vol;</span>
+
+<span style = "background-color:#fdd">        posVol = GetVolumeIndex(t, n);
+        vol = GetVolumeData_unlocked(t, n, data, importMemoryManagement);</span>
+
+<span style = "background-color:#fdd">        if (vol-&gt;GetParent() != ch)</span>
+        {
+          // copy data of volume in channel
+<span style = "background-color:#fdd">          size_t offset = ((size_t)t) * m_OffsetTable[3] * (ptypeSize);
+          std::memcpy(static_cast&lt;char *&gt;(ch-&gt;GetData()) + offset, vol-&gt;GetData(), size);</span>
+
+          // replace old volume with reference to channel
+<span style = "background-color:#fdd">          vol = new ImageDataItem(*ch, m_ImageDescriptor, t, 3, data, importMemoryManagement == ManageMemory, offset);
+          vol-&gt;SetComplete(true);</span>
+
+<span style = "background-color:#fdd">          m_Volumes[posVol] = vol;</span>
+
+          // get rid of slices - they may point to old volume
+<span style = "background-color:#fdd">          ImageDataItemPointer dnull = nullptr;
+          for (unsigned int i = 0; i &lt; m_Dimensions[2]; ++i, ++slicesIt)</span>
+          {
+<span style = "background-color:#fdd">            assert(slicesIt != m_Slices.end());
+            *slicesIt = dnull;
+          }
+        }
+      }
+    }
+    return m_Channels[n] = ch;</span>
+  }
+
+  // channel is unavailable. Can we calculate it?
+<span style = "background-color:#fdd">  if ((GetSource().IsNotNull()) &amp;&amp; (GetSource()-&gt;Updating() == false))</span>
+  {
+    // ... wir muessen rechnen!!! ....
+<span style = "background-color:#fdd">    m_RequestedRegion.SetIndex(0, 0);
+    m_RequestedRegion.SetIndex(1, 0);
+    m_RequestedRegion.SetIndex(2, 0);
+    m_RequestedRegion.SetIndex(3, 0);
+    m_RequestedRegion.SetIndex(4, n);
+    m_RequestedRegion.SetSize(0, m_Dimensions[0]);
+    m_RequestedRegion.SetSize(1, m_Dimensions[1]);
+    m_RequestedRegion.SetSize(2, m_Dimensions[2]);
+    m_RequestedRegion.SetSize(3, m_Dimensions[3]);
+    m_RequestedRegion.SetSize(4, 1);
+    m_RequestedRegionInitialized = true;
+    GetSource()-&gt;Update();</span>
+    // did it work?
+<span style = "background-color:#fdd">    if (IsChannelSet_unlocked(n))</span>
+      // yes: now we can call ourselves without the risk of a endless loop (see "if" above)
+<span style = "background-color:#fdd">      return GetChannelData_unlocked(n, data, importMemoryManagement);</span>
+    else
+<span style = "background-color:#fdd">      return nullptr;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    ImageDataItemPointer item = AllocateChannelData_unlocked(n, data, importMemoryManagement);
+    item-&gt;SetComplete(true);
+    return item;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+bool mitk::Image::IsSliceSet(int s, int t, int n) const
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_ImageDataArraysLock);
+  return IsSliceSet_unlocked(s, t, n);
+}</span>
+
+bool mitk::Image::IsSliceSet_unlocked(int s, int t, int n) const
+<span style = "background-color:#fdd">{
+  if (IsValidSlice(s, t, n) == false)
+    return false;</span>
+
+<span style = "background-color:#fdd">  if (m_Slices[GetSliceIndex(s, t, n)].GetPointer() != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    return true;</span>
+  }
+
+<span style = "background-color:#fdd">  ImageDataItemPointer ch, vol;
+  vol = m_Volumes[GetVolumeIndex(t, n)];
+  if ((vol.GetPointer() != nullptr) &amp;&amp; (vol-&gt;IsComplete()))</span>
+  {
+<span style = "background-color:#fdd">    return true;</span>
+  }
+<span style = "background-color:#fdd">  ch = m_Channels[n];
+  if ((ch.GetPointer() != nullptr) &amp;&amp; (ch-&gt;IsComplete()))</span>
+  {
+<span style = "background-color:#fdd">    return true;</span>
+  }
+<span style = "background-color:#fdd">  return false;
+}</span>
+
+bool mitk::Image::IsVolumeSet(int t, int n) const
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_ImageDataArraysLock);
+  return IsVolumeSet_unlocked(t, n);
+}</span>
+
+bool mitk::Image::IsVolumeSet_unlocked(int t, int n) const
+<span style = "background-color:#fdd">{
+  if (IsValidVolume(t, n) == false)
+    return false;
+  ImageDataItemPointer ch, vol;</span>
+
+  // volume directly available?
+<span style = "background-color:#fdd">  vol = m_Volumes[GetVolumeIndex(t, n)];
+  if ((vol.GetPointer() != nullptr) &amp;&amp; (vol-&gt;IsComplete()))
+    return true;</span>
+
+  // is volume available as part of a channel that is available?
+<span style = "background-color:#fdd">  ch = m_Channels[n];
+  if ((ch.GetPointer() != nullptr) &amp;&amp; (ch-&gt;IsComplete()))
+    return true;</span>
+
+  // let's see if all slices of the volume are set, so that we can (could) combine them to a volume
+  unsigned int s;
+<span style = "background-color:#fdd">  for (s = 0; s &lt; m_Dimensions[2]; ++s)</span>
+  {
+<span style = "background-color:#fdd">    if (m_Slices[GetSliceIndex(s, t, n)].GetPointer() == nullptr)</span>
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+<span style = "background-color:#fdd">  }
+  return true;
+}</span>
+
+bool mitk::Image::IsChannelSet(int n) const
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_ImageDataArraysLock);
+  return IsChannelSet_unlocked(n);
+}</span>
+
+bool mitk::Image::IsChannelSet_unlocked(int n) const
+<span style = "background-color:#fdd">{
+  if (IsValidChannel(n) == false)
+    return false;
+  ImageDataItemPointer ch, vol;
+  ch = m_Channels[n];
+  if ((ch.GetPointer() != nullptr) &amp;&amp; (ch-&gt;IsComplete()))</span>
+
+<span style = "background-color:#fdd">    return true;</span>
+  // let's see if all volumes are set, so that we can (could) combine them to a channel
+  unsigned int t;
+<span style = "background-color:#fdd">  for (t = 0; t &lt; m_Dimensions[3]; ++t)</span>
+  {
+<span style = "background-color:#fdd">    if (IsVolumeSet_unlocked(t, n) == false)</span>
+    {
+<span style = "background-color:#fdd">      return false;</span>
+    }
+<span style = "background-color:#fdd">  }
+  return true;
+}</span>
+
+bool mitk::Image::SetSlice(const void *data, int s, int t, int n)
+<span style = "background-color:#fdd">{</span>
+  // const_cast is no risk for ImportMemoryManagementType == CopyMemory
+<span style = "background-color:#fdd">  return SetImportSlice(const_cast&lt;void *&gt;(data), s, t, n, CopyMemory);
+}</span>
+
+bool mitk::Image::SetVolume(const void *data, int t, int n)
+<span style = "background-color:#fdd">{</span>
+  // const_cast is no risk for ImportMemoryManagementType == CopyMemory
+<span style = "background-color:#fdd">  return SetImportVolume(const_cast&lt;void *&gt;(data), t, n, CopyMemory);
+}</span>
+
+bool mitk::Image::SetChannel(const void *data, int n)
+<span style = "background-color:#fdd">{</span>
+  // const_cast is no risk for ImportMemoryManagementType == CopyMemory
+<span style = "background-color:#fdd">  return SetImportChannel(const_cast&lt;void *&gt;(data), n, CopyMemory);
+}</span>
+
+bool mitk::Image::SetImportSlice(void *data, int s, int t, int n, ImportMemoryManagementType importMemoryManagement)
+<span style = "background-color:#fdd">{
+  if (IsValidSlice(s, t, n) == false)
+    return false;
+  ImageDataItemPointer sl;
+  const size_t ptypeSize = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n).GetSize();</span>
+
+<span style = "background-color:#fdd">  if (IsSliceSet(s, t, n))</span>
+  {
+<span style = "background-color:#fdd">    sl = GetSliceData(s, t, n, data, importMemoryManagement);
+    if (sl-&gt;GetManageMemory() == false)</span>
+    {
+<span style = "background-color:#fdd">      sl = AllocateSliceData(s, t, n, data, importMemoryManagement);
+      if (sl.GetPointer() == nullptr)
+        return false;</span>
+    }
+<span style = "background-color:#fdd">    if (sl-&gt;GetData() != data)
+      std::memcpy(sl-&gt;GetData(), data, m_OffsetTable[2] * (ptypeSize));
+    sl-&gt;Modified();</span>
+    // we have changed the data: call Modified()!
+<span style = "background-color:#fdd">    Modified();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    sl = AllocateSliceData(s, t, n, data, importMemoryManagement);
+    if (sl.GetPointer() == nullptr)
+      return false;
+    if (sl-&gt;GetData() != data)
+      std::memcpy(sl-&gt;GetData(), data, m_OffsetTable[2] * (ptypeSize));</span>
+    // we just added a missing slice, which is not regarded as modification.
+    // Therefore, we do not call Modified()!
+  }
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+bool mitk::Image::SetImportVolume(void *data, int t, int n, ImportMemoryManagementType importMemoryManagement)
+<span style = "background-color:#fdd">{
+  if (IsValidVolume(t, n) == false)
+    return false;</span>
+
+<span style = "background-color:#fdd">  const size_t ptypeSize = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n).GetSize();
+  ImageDataItemPointer vol;
+  if (IsVolumeSet(t, n))</span>
+  {
+<span style = "background-color:#fdd">    vol = GetVolumeData(t, n, data, importMemoryManagement);
+    if (vol-&gt;GetManageMemory() == false)</span>
+    {
+<span style = "background-color:#fdd">      vol = AllocateVolumeData(t, n, data, importMemoryManagement);
+      if (vol.GetPointer() == nullptr)
+        return false;</span>
+    }
+<span style = "background-color:#fdd">    if (vol-&gt;GetData() != data)
+      std::memcpy(vol-&gt;GetData(), data, m_OffsetTable[3] * (ptypeSize));
+    vol-&gt;Modified();
+    vol-&gt;SetComplete(true);</span>
+    // we have changed the data: call Modified()!
+<span style = "background-color:#fdd">    Modified();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    vol = AllocateVolumeData(t, n, data, importMemoryManagement);
+    if (vol.GetPointer() == nullptr)
+      return false;
+    if (vol-&gt;GetData() != data)</span>
+    {
+<span style = "background-color:#fdd">      std::memcpy(vol-&gt;GetData(), data, m_OffsetTable[3] * (ptypeSize));</span>
+    }
+<span style = "background-color:#fdd">    vol-&gt;SetComplete(true);
+    this-&gt;m_ImageDescriptor-&gt;GetChannelDescriptor(n).SetData(vol-&gt;GetData());</span>
+    // we just added a missing Volume, which is not regarded as modification.
+    // Therefore, we do not call Modified()!
+  }
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+bool mitk::Image::SetImportVolume(const void *const_data, int t, int n)
+<span style = "background-color:#fdd">{
+  return this-&gt;SetImportVolume(const_cast&lt;void*&gt;(const_data), t, n, CopyMemory);
+}</span>
+
+bool mitk::Image::SetImportChannel(void *data, int n, ImportMemoryManagementType importMemoryManagement)
+<span style = "background-color:#fdd">{
+  if (IsValidChannel(n) == false)
+    return false;</span>
+
+  // channel descriptor
+
+<span style = "background-color:#fdd">  const size_t ptypeSize = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n).GetSize();</span>
+
+<span style = "background-color:#fdd">  ImageDataItemPointer ch;
+  if (IsChannelSet(n))</span>
+  {
+<span style = "background-color:#fdd">    ch = GetChannelData(n, data, importMemoryManagement);
+    if (ch-&gt;GetManageMemory() == false)</span>
+    {
+<span style = "background-color:#fdd">      ch = AllocateChannelData(n, data, importMemoryManagement);
+      if (ch.GetPointer() == nullptr)
+        return false;</span>
+    }
+<span style = "background-color:#fdd">    if (ch-&gt;GetData() != data)
+      std::memcpy(ch-&gt;GetData(), data, m_OffsetTable[4] * (ptypeSize));
+    ch-&gt;Modified();
+    ch-&gt;SetComplete(true);</span>
+    // we have changed the data: call Modified()!
+<span style = "background-color:#fdd">    Modified();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    ch = AllocateChannelData(n, data, importMemoryManagement);
+    if (ch.GetPointer() == nullptr)
+      return false;
+    if (ch-&gt;GetData() != data)
+      std::memcpy(ch-&gt;GetData(), data, m_OffsetTable[4] * (ptypeSize));
+    ch-&gt;SetComplete(true);</span>
+
+<span style = "background-color:#fdd">    this-&gt;m_ImageDescriptor-&gt;GetChannelDescriptor(n).SetData(ch-&gt;GetData());</span>
+    // we just added a missing Channel, which is not regarded as modification.
+    // Therefore, we do not call Modified()!
+  }
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+void mitk::Image::Initialize()
+<span style = "background-color:#fdd">{
+  ImageDataItemPointerArray::iterator it, end;
+  for (it = m_Slices.begin(), end = m_Slices.end(); it != end; ++it)</span>
+  {
+<span style = "background-color:#fdd">    (*it) = nullptr;
+  }
+  for (it = m_Volumes.begin(), end = m_Volumes.end(); it != end; ++it)</span>
+  {
+<span style = "background-color:#fdd">    (*it) = nullptr;
+  }
+  for (it = m_Channels.begin(), end = m_Channels.end(); it != end; ++it)</span>
+  {
+<span style = "background-color:#fdd">    (*it) = nullptr;
+  }
+  m_CompleteData = nullptr;</span>
+
+<span style = "background-color:#fdd">  if (m_ImageStatistics == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    m_ImageStatistics = new mitk::ImageStatisticsHolder(this);</span>
+  }
+
+<span style = "background-color:#fdd">  SetRequestedRegionToLargestPossibleRegion();
+}</span>
+
+void mitk::Image::Initialize(const mitk::ImageDescriptor::Pointer inDesc)
+<span style = "background-color:#fdd">{</span>
+  // store the descriptor
+<span style = "background-color:#fdd">  this-&gt;m_ImageDescriptor = inDesc;</span>
+
+  // initialize image
+<span style = "background-color:#fdd">  this-&gt;Initialize(</span>
+    inDesc-&gt;GetChannelDescriptor(0).GetPixelType(), inDesc-&gt;GetNumberOfDimensions(), inDesc-&gt;GetDimensions(), 1);
+<span style = "background-color:#fdd">}</span>
+
+void mitk::Image::Initialize(const mitk::PixelType &amp;type,
+                             unsigned int dimension,
+                             const unsigned int *dimensions,
+                             unsigned int channels)
+<span style = "background-color:#fdd">{
+  Clear();</span>
+
+<span style = "background-color:#fdd">  m_Dimension = dimension;</span>
+
+<span style = "background-color:#fdd">  if (!dimensions)
+    itkExceptionMacro(&lt;&lt; "invalid zero dimension image");</span>
+
+  unsigned int i;
+<span style = "background-color:#fdd">  for (i = 0; i &lt; dimension; ++i)</span>
+  {
+<span style = "background-color:#fdd">    if (dimensions[i] &lt; 1)
+      itkExceptionMacro(&lt;&lt; "invalid dimension[" &lt;&lt; i &lt;&lt; "]: " &lt;&lt; dimensions[i]);
+  }</span>
+
+  // create new array since the old was deleted
+<span style = "background-color:#fdd">  m_Dimensions = new unsigned int[MAX_IMAGE_DIMENSIONS];</span>
+
+  // initialize the first four dimensions to 1, the remaining 4 to 0
+<span style = "background-color:#fdd">  FILL_C_ARRAY(m_Dimensions, 4, 1u);
+  FILL_C_ARRAY((m_Dimensions + 4), 4, 0u);</span>
+
+  // copy in the passed dimension information
+<span style = "background-color:#fdd">  std::memcpy(m_Dimensions, dimensions, sizeof(unsigned int) * m_Dimension);</span>
+
+<span style = "background-color:#fdd">  this-&gt;m_ImageDescriptor = mitk::ImageDescriptor::New();
+  this-&gt;m_ImageDescriptor-&gt;Initialize(this-&gt;m_Dimensions, this-&gt;m_Dimension);</span>
+
+<span style = "background-color:#fdd">  for (i = 0; i &lt; 4; ++i)</span>
+  {
+<span style = "background-color:#fdd">    m_LargestPossibleRegion.SetIndex(i, 0);
+    m_LargestPossibleRegion.SetSize(i, m_Dimensions[i]);
+  }
+  m_LargestPossibleRegion.SetIndex(i, 0);
+  m_LargestPossibleRegion.SetSize(i, channels);</span>
+
+<span style = "background-color:#fdd">  if (m_LargestPossibleRegion.GetNumberOfPixels() == 0)</span>
+  {
+<span style = "background-color:#fdd">    delete[] m_Dimensions;
+    m_Dimensions = nullptr;
+    return;</span>
+  }
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0u; i &lt; channels; i++)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_ImageDescriptor-&gt;AddNewChannel(type);
+  }</span>
+
+<span style = "background-color:#fdd">  PlaneGeometry::Pointer planegeometry = PlaneGeometry::New();
+  planegeometry-&gt;InitializeStandardPlane(m_Dimensions[0], m_Dimensions[1]);</span>
+
+<span style = "background-color:#fdd">  SlicedGeometry3D::Pointer slicedGeometry = SlicedGeometry3D::New();
+  slicedGeometry-&gt;InitializeEvenlySpaced(planegeometry, m_Dimensions[2]);</span>
+
+<span style = "background-color:#fdd">  ProportionalTimeGeometry::Pointer timeGeometry = ProportionalTimeGeometry::New();
+  timeGeometry-&gt;Initialize(slicedGeometry, m_Dimensions[3]);
+  for (TimeStepType step = 0; step &lt; timeGeometry-&gt;CountTimeSteps(); ++step)</span>
+  {
+<span style = "background-color:#fdd">    timeGeometry-&gt;GetGeometryForTimeStep(step)-&gt;ImageGeometryOn();
+  }
+  SetTimeGeometry(timeGeometry);</span>
+
+<span style = "background-color:#fdd">  ImageDataItemPointer dnull = nullptr;</span>
+
+<span style = "background-color:#fdd">  m_Channels.assign(GetNumberOfChannels(), dnull);</span>
+
+<span style = "background-color:#fdd">  m_Volumes.assign(GetNumberOfChannels() * m_Dimensions[3], dnull);</span>
+
+<span style = "background-color:#fdd">  m_Slices.assign(GetNumberOfChannels() * m_Dimensions[3] * m_Dimensions[2], dnull);</span>
+
+<span style = "background-color:#fdd">  ComputeOffsetTable();</span>
+
+<span style = "background-color:#fdd">  Initialize();</span>
+
+<span style = "background-color:#fdd">  m_Initialized = true;
+}</span>
+
+void mitk::Image::Initialize(const mitk::PixelType &amp;type,
+                             const mitk::BaseGeometry &amp;geometry,
+                             unsigned int channels,
+                             int tDim)
+<span style = "background-color:#fdd">{
+  mitk::ProportionalTimeGeometry::Pointer timeGeometry = ProportionalTimeGeometry::New();
+  timeGeometry-&gt;Initialize(geometry.Clone(), tDim);
+  this-&gt;Initialize(type, *timeGeometry, channels, tDim);
+}</span>
+
+void mitk::Image::Initialize(const mitk::PixelType &amp;type,
+                             const mitk::TimeGeometry &amp;geometry,
+                             unsigned int channels,
+                             int tDim)
+<span style = "background-color:#fdd">{</span>
+  unsigned int dimensions[5];
+<span style = "background-color:#fdd">  dimensions[0] = (unsigned int)(geometry.GetGeometryForTimeStep(0)-&gt;GetExtent(0) + 0.5);
+  dimensions[1] = (unsigned int)(geometry.GetGeometryForTimeStep(0)-&gt;GetExtent(1) + 0.5);
+  dimensions[2] = (unsigned int)(geometry.GetGeometryForTimeStep(0)-&gt;GetExtent(2) + 0.5);
+  dimensions[3] = (tDim &gt; 0) ? tDim : geometry.CountTimeSteps();
+  dimensions[4] = 0;</span>
+
+<span style = "background-color:#fdd">  unsigned int dimension = 2;
+  if (dimensions[2] &gt; 1)
+    dimension = 3;
+  if (dimensions[3] &gt; 1)
+    dimension = 4;</span>
+
+<span style = "background-color:#fdd">  Initialize(type, dimension, dimensions, channels);
+  if (geometry.CountTimeSteps() &gt; 1)</span>
+  {
+<span style = "background-color:#fdd">    TimeGeometry::Pointer cloned = geometry.Clone();
+    SetTimeGeometry(cloned.GetPointer());</span>
+
+    // make sure the image geometry flag is properly set for all time steps
+<span style = "background-color:#fdd">    for (TimeStepType step = 0; step &lt; cloned-&gt;CountTimeSteps(); ++step)</span>
+    {
+<span style = "background-color:#fdd">      if (!cloned-&gt;GetGeometryCloneForTimeStep(step)-&gt;GetImageGeometry())</span>
+      {
+<span style = "background-color:#fdd">        MITK_WARN("Image.3DnT.Initialize") &lt;&lt; " Attempt to initialize an image with a non-image geometry. "</span>
+                                              "Re-interpretting the initialization geometry for timestep "
+                                           &lt;&lt; step &lt;&lt; " as image geometry, the original geometry remains unchanged.";
+<span style = "background-color:#fdd">        cloned-&gt;GetGeometryForTimeStep(step)-&gt;ImageGeometryOn();</span>
+      }
+<span style = "background-color:#fdd">    }
+  }</span>
+  else
+  {
+    // make sure the image geometry coming from outside has proper value of the image geometry flag
+<span style = "background-color:#fdd">    BaseGeometry::Pointer cloned = geometry.GetGeometryCloneForTimeStep(0)-&gt;Clone();
+    if (!cloned-&gt;GetImageGeometry())</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN("Image.Initialize") &lt;&lt; " Attempt to initialize an image with a non-image geometry. Re-interpretting "</span>
+                                       "the initialization geometry as image geometry, the original geometry remains "
+                                       "unchanged.";
+<span style = "background-color:#fdd">      cloned-&gt;ImageGeometryOn();</span>
+    }
+
+<span style = "background-color:#fdd">    Superclass::SetGeometry(cloned);
+  }
+}</span>
+
+void mitk::Image::Initialize(const mitk::PixelType &amp;type,
+                             int sDim,
+                             const mitk::PlaneGeometry &amp;geometry2d,
+                             unsigned int channels,
+                             int tDim)
+<span style = "background-color:#fdd">{
+  SlicedGeometry3D::Pointer slicedGeometry = SlicedGeometry3D::New();
+  slicedGeometry-&gt;InitializeEvenlySpaced(geometry2d.Clone(), sDim);
+  Initialize(type, *slicedGeometry, channels, tDim);
+}</span>
+
+void mitk::Image::Initialize(const mitk::Image *image)
+<span style = "background-color:#fdd">{
+  Initialize(image-&gt;GetPixelType(), *image-&gt;GetTimeGeometry());
+}</span>
+
+void mitk::Image::Initialize(vtkImageData *vtkimagedata, int channels, int tDim, int sDim, int pDim)
+<span style = "background-color:#fdd">{
+  if (vtkimagedata == nullptr)
+    return;</span>
+
+<span style = "background-color:#fdd">  m_Dimension = vtkimagedata-&gt;GetDataDimension();
+  unsigned int i, *tmpDimensions = new unsigned int[m_Dimension &gt; 4 ? m_Dimension : 4];
+  for (i = 0; i &lt; m_Dimension; ++i)
+    tmpDimensions[i] = vtkimagedata-&gt;GetDimensions()[i];
+  if (m_Dimension &lt; 4)</span>
+  {
+    unsigned int *p;
+<span style = "background-color:#fdd">    for (i = 0, p = tmpDimensions + m_Dimension; i &lt; 4 - m_Dimension; ++i, ++p)
+      *p = 1;</span>
+  }
+
+<span style = "background-color:#fdd">  if (pDim &gt;= 0)</span>
+  {
+<span style = "background-color:#fdd">    tmpDimensions[1] = pDim;
+    if (m_Dimension &lt; 2)
+      m_Dimension = 2;</span>
+  }
+<span style = "background-color:#fdd">  if (sDim &gt;= 0)</span>
+  {
+<span style = "background-color:#fdd">    tmpDimensions[2] = sDim;
+    if (m_Dimension &lt; 3)
+      m_Dimension = 3;</span>
+  }
+<span style = "background-color:#fdd">  if (tDim &gt;= 0)</span>
+  {
+<span style = "background-color:#fdd">    tmpDimensions[3] = tDim;
+    if (m_Dimension &lt; 4)
+      m_Dimension = 4;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::PixelType pixelType(MakePixelType(vtkimagedata));
+  Initialize(pixelType, m_Dimension, tmpDimensions, channels);</span>
+
+<span style = "background-color:#fdd">  const double *spacinglist = vtkimagedata-&gt;GetSpacing();
+  Vector3D spacing;
+  FillVector3D(spacing, spacinglist[0], 1.0, 1.0);
+  if (m_Dimension &gt;= 2)
+    spacing[1] = spacinglist[1];
+  if (m_Dimension &gt;= 3)
+    spacing[2] = spacinglist[2];</span>
+
+  // access origin of vtkImage
+<span style = "background-color:#fdd">  Point3D origin;</span>
+  double vtkorigin[3];
+<span style = "background-color:#fdd">  vtkimagedata-&gt;GetOrigin(vtkorigin);
+  FillVector3D(origin, vtkorigin[0], 0.0, 0.0);
+  if (m_Dimension &gt;= 2)
+    origin[1] = vtkorigin[1];
+  if (m_Dimension &gt;= 3)
+    origin[2] = vtkorigin[2];</span>
+
+<span style = "background-color:#fdd">  SlicedGeometry3D *slicedGeometry = GetSlicedGeometry(0);</span>
+
+  // re-initialize PlaneGeometry with origin and direction
+<span style = "background-color:#fdd">  auto *planeGeometry = static_cast&lt;PlaneGeometry *&gt;(slicedGeometry-&gt;GetPlaneGeometry(0));
+  planeGeometry-&gt;SetOrigin(origin);</span>
+
+  // re-initialize SlicedGeometry3D
+<span style = "background-color:#fdd">  slicedGeometry-&gt;SetOrigin(origin);
+  slicedGeometry-&gt;SetSpacing(spacing);</span>
+
+<span style = "background-color:#fdd">  ProportionalTimeGeometry::Pointer timeGeometry = ProportionalTimeGeometry::New();
+  timeGeometry-&gt;Initialize(slicedGeometry, m_Dimensions[3]);
+  SetTimeGeometry(timeGeometry);</span>
+
+<span style = "background-color:#fdd">  delete[] tmpDimensions;
+}</span>
+
+bool mitk::Image::IsValidSlice(int s, int t, int n) const
+<span style = "background-color:#fdd">{
+  if (m_Initialized)
+    return ((s &gt;= 0) &amp;&amp; (s &lt; (int)m_Dimensions[2]) &amp;&amp; (t &gt;= 0) &amp;&amp; (t &lt; (int)m_Dimensions[3]) &amp;&amp; (n &gt;= 0) &amp;&amp;</span>
+            (n &lt; (int)GetNumberOfChannels()));
+  else
+<span style = "background-color:#fdd">    return false;
+}</span>
+
+bool mitk::Image::IsValidVolume(int t, int n) const
+<span style = "background-color:#fdd">{
+  if (m_Initialized)
+    return IsValidSlice(0, t, n);</span>
+  else
+<span style = "background-color:#fdd">    return false;
+}</span>
+
+bool mitk::Image::IsValidChannel(int n) const
+<span style = "background-color:#fdd">{
+  if (m_Initialized)
+    return IsValidSlice(0, 0, n);</span>
+  else
+<span style = "background-color:#fdd">    return false;
+}</span>
+
+void mitk::Image::ComputeOffsetTable()
+<span style = "background-color:#fdd">{
+  if (m_OffsetTable != nullptr)
+    delete[] m_OffsetTable;</span>
+
+<span style = "background-color:#fdd">  m_OffsetTable = new size_t[m_Dimension &gt; 4 ? m_Dimension + 1 : 4 + 1];</span>
+
+  unsigned int i;
+<span style = "background-color:#fdd">  size_t num = 1;
+  m_OffsetTable[0] = 1;
+  for (i = 0; i &lt; m_Dimension; ++i)</span>
+  {
+<span style = "background-color:#fdd">    num *= m_Dimensions[i];
+    m_OffsetTable[i + 1] = num;
+  }
+  for (; i &lt; 4; ++i)
+    m_OffsetTable[i + 1] = num;
+}</span>
+
+bool mitk::Image::IsValidTimeStep(int t) const
+<span style = "background-color:#fdd">{
+  return ((m_Dimension &gt;= 4 &amp;&amp; t &lt;= (int)m_Dimensions[3] &amp;&amp; t &gt; 0) || (t == 0));
+}</span>
+
+void mitk::Image::Expand(unsigned int timeSteps)
+<span style = "background-color:#fdd">{
+  if (timeSteps &lt; 1)
+    itkExceptionMacro(&lt;&lt; "Invalid timestep in Image!");
+  Superclass::Expand(timeSteps);
+}</span>
+
+int mitk::Image::GetSliceIndex(int s, int t, int n) const
+<span style = "background-color:#fdd">{
+  if (IsValidSlice(s, t, n) == false)
+    return false;
+  return ((size_t)s) + ((size_t)t) * m_Dimensions[2] + ((size_t)n) * m_Dimensions[3] * m_Dimensions[2]; //??
+}</span>
+
+int mitk::Image::GetVolumeIndex(int t, int n) const
+<span style = "background-color:#fdd">{
+  if (IsValidVolume(t, n) == false)
+    return false;
+  return ((size_t)t) + ((size_t)n) * m_Dimensions[3]; //??
+}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::AllocateSliceData(
+  int s, int t, int n, void *data, ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_ImageDataArraysLock);
+  return AllocateSliceData_unlocked(s, t, n, data, importMemoryManagement);
+}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::AllocateSliceData_unlocked(
+  int s, int t, int n, void *data, ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{</span>
+  int pos;
+<span style = "background-color:#fdd">  pos = GetSliceIndex(s, t, n);</span>
+
+<span style = "background-color:#fdd">  const size_t ptypeSize = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n).GetSize();</span>
+
+  // is slice available as part of a volume that is available?
+<span style = "background-color:#fdd">  ImageDataItemPointer sl, ch, vol;
+  vol = m_Volumes[GetVolumeIndex(t, n)];
+  if (vol.GetPointer() != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    sl = new ImageDataItem(*vol,</span>
+                           m_ImageDescriptor,
+                           t,
+                           2,
+                           data,
+                           importMemoryManagement == ManageMemory,
+                           ((size_t)s) * m_OffsetTable[2] * (ptypeSize));
+<span style = "background-color:#fdd">    sl-&gt;SetComplete(true);
+    return m_Slices[pos] = sl;</span>
+  }
+
+  // is slice available as part of a channel that is available?
+<span style = "background-color:#fdd">  ch = m_Channels[n];
+  if (ch.GetPointer() != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    sl = new ImageDataItem(*ch,</span>
+                           m_ImageDescriptor,
+                           t,
+                           2,
+                           data,
+                           importMemoryManagement == ManageMemory,
+                           (((size_t)s) * m_OffsetTable[2] + ((size_t)t) * m_OffsetTable[3]) * (ptypeSize));
+<span style = "background-color:#fdd">    sl-&gt;SetComplete(true);
+    return m_Slices[pos] = sl;</span>
+  }
+
+  // allocate new volume (instead of a single slice to keep data together!)
+<span style = "background-color:#fdd">  m_Volumes[GetVolumeIndex(t, n)] = vol = AllocateVolumeData_unlocked(t, n, nullptr, importMemoryManagement);
+  sl = new ImageDataItem(*vol,</span>
+                         m_ImageDescriptor,
+                         t,
+                         2,
+                         data,
+                         importMemoryManagement == ManageMemory,
+                         ((size_t)s) * m_OffsetTable[2] * (ptypeSize));
+<span style = "background-color:#fdd">  sl-&gt;SetComplete(true);
+  return m_Slices[pos] = sl;</span>
+
+  ////ALTERNATIVE:
+  //// allocate new slice
+  // sl=new ImageDataItem(*m_PixelType, 2, m_Dimensions);
+  // m_Slices[pos]=sl;
+  // return vol;
+<span style = "background-color:#fdd">}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::AllocateVolumeData(
+  int t, int n, void *data, ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_ImageDataArraysLock);
+  return AllocateVolumeData_unlocked(t, n, data, importMemoryManagement);
+}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::AllocateVolumeData_unlocked(
+  int t, int n, void *data, ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{</span>
+  int pos;
+<span style = "background-color:#fdd">  pos = GetVolumeIndex(t, n);</span>
+
+<span style = "background-color:#fdd">  const size_t ptypeSize = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n).GetSize();</span>
+
+  // is volume available as part of a channel that is available?
+<span style = "background-color:#fdd">  ImageDataItemPointer ch, vol;
+  ch = m_Channels[n];
+  if (ch.GetPointer() != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    vol = new ImageDataItem(*ch,</span>
+                            m_ImageDescriptor,
+                            t,
+                            3,
+                            data,
+                            importMemoryManagement == ManageMemory,
+                            (((size_t)t) * m_OffsetTable[3]) * (ptypeSize));
+<span style = "background-color:#fdd">    return m_Volumes[pos] = vol;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::PixelType chPixelType = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n);</span>
+
+  // allocate new volume
+<span style = "background-color:#fdd">  if (importMemoryManagement == CopyMemory)</span>
+  {
+<span style = "background-color:#fdd">    vol = new ImageDataItem(chPixelType, t, 3, m_Dimensions, nullptr, true);
+    if (data != nullptr)
+      std::memcpy(vol-&gt;GetData(), data, m_OffsetTable[3] * (ptypeSize));
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    vol = new ImageDataItem(chPixelType, t, 3, m_Dimensions, data, importMemoryManagement == ManageMemory);</span>
+  }
+<span style = "background-color:#fdd">  m_Volumes[pos] = vol;
+  return vol;
+}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::AllocateChannelData(
+  int n, void *data, ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{
+  MutexHolder lock(m_ImageDataArraysLock);
+  return AllocateChannelData_unlocked(n, data, importMemoryManagement);
+}</span>
+
+mitk::Image::ImageDataItemPointer mitk::Image::AllocateChannelData_unlocked(
+  int n, void *data, ImportMemoryManagementType importMemoryManagement) const
+<span style = "background-color:#fdd">{
+  ImageDataItemPointer ch;</span>
+  // allocate new channel
+<span style = "background-color:#fdd">  if (importMemoryManagement == CopyMemory)</span>
+  {
+<span style = "background-color:#fdd">    const size_t ptypeSize = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(n).GetSize();</span>
+
+<span style = "background-color:#fdd">    ch = new ImageDataItem(this-&gt;m_ImageDescriptor, -1, nullptr, true);
+    if (data != nullptr)
+      std::memcpy(ch-&gt;GetData(), data, m_OffsetTable[4] * (ptypeSize));
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    ch = new ImageDataItem(this-&gt;m_ImageDescriptor, -1, data, importMemoryManagement == ManageMemory);</span>
+  }
+<span style = "background-color:#fdd">  m_Channels[n] = ch;
+  return ch;
+}</span>
+
+unsigned int *mitk::Image::GetDimensions() const
+<span style = "background-color:#fdd">{
+  return m_Dimensions;
+}</span>
+
+void mitk::Image::Clear()
+<span style = "background-color:#fdd">{
+  Superclass::Clear();
+  delete[] m_Dimensions;
+  m_Dimensions = nullptr;
+}</span>
+
+void mitk::Image::SetGeometry(BaseGeometry *aGeometry3D)
+<span style = "background-color:#fdd">{</span>
+  // Please be aware of the 0.5 offset/pixel-center issue! See Geometry documentation for further information
+
+<span style = "background-color:#fdd">  if (aGeometry3D-&gt;GetImageGeometry() == false)</span>
+  {
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "WARNING: Applied a non-image geometry onto an image. Please be SURE that this geometry is "</span>
+                 "pixel-center-based! If it is not, you need to call "
+                 "Geometry3D-&gt;ChangeImageGeometryConsideringOriginOffset(true) before calling image-&gt;setGeometry(..)\n";
+  }
+<span style = "background-color:#fdd">  Superclass::SetGeometry(aGeometry3D);
+  for (TimeStepType step = 0; step &lt; GetTimeGeometry()-&gt;CountTimeSteps(); ++step)
+    GetTimeGeometry()-&gt;GetGeometryForTimeStep(step)-&gt;ImageGeometryOn();
+}</span>
+
+void mitk::Image::PrintSelf(std::ostream &amp;os, itk::Indent indent) const
+<span style = "background-color:#fdd">{
+  if (m_Initialized)</span>
+  {
+    unsigned char i;
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; " Dimension: " &lt;&lt; m_Dimension &lt;&lt; std::endl;
+    os &lt;&lt; indent &lt;&lt; " Dimensions: ";
+    for (i = 0; i &lt; m_Dimension; ++i)
+      os &lt;&lt; GetDimension(i) &lt;&lt; " ";
+    os &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">    for (unsigned int ch = 0; ch &lt; this-&gt;m_ImageDescriptor-&gt;GetNumberOfChannels(); ch++)</span>
+    {
+<span style = "background-color:#fdd">      mitk::PixelType chPixelType = this-&gt;m_ImageDescriptor-&gt;GetChannelTypeById(ch);</span>
+
+<span style = "background-color:#fdd">      os &lt;&lt; indent &lt;&lt; " Channel: " &lt;&lt; this-&gt;m_ImageDescriptor-&gt;GetChannelName(ch) &lt;&lt; std::endl;
+      os &lt;&lt; indent &lt;&lt; " PixelType: " &lt;&lt; chPixelType.GetPixelTypeAsString() &lt;&lt; std::endl;
+      os &lt;&lt; indent &lt;&lt; " BytesPerElement: " &lt;&lt; chPixelType.GetSize() &lt;&lt; std::endl;
+      os &lt;&lt; indent &lt;&lt; " ComponentType: " &lt;&lt; chPixelType.GetComponentTypeAsString() &lt;&lt; std::endl;
+      os &lt;&lt; indent &lt;&lt; " NumberOfComponents: " &lt;&lt; chPixelType.GetNumberOfComponents() &lt;&lt; std::endl;
+      os &lt;&lt; indent &lt;&lt; " BitsPerComponent: " &lt;&lt; chPixelType.GetBitsPerComponent() &lt;&lt; std::endl;
+    }
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; indent &lt;&lt; " Image not initialized: m_Initialized: false" &lt;&lt; std::endl;</span>
+  }
+
+<span style = "background-color:#fdd">  Superclass::PrintSelf(os, indent);
+}</span>
+
+bool mitk::Image::IsRotated() const
+<span style = "background-color:#fdd">{
+  const mitk::BaseGeometry *geo = this-&gt;GetGeometry();
+  bool ret = false;</span>
+
+<span style = "background-color:#fdd">  if (geo)</span>
+  {
+<span style = "background-color:#fdd">    const vnl_matrix_fixed&lt;ScalarType, 3, 3&gt; &amp;mx = geo-&gt;GetIndexToWorldTransform()-&gt;GetMatrix().GetVnlMatrix();
+    mitk::ScalarType ref = 0;
+    for (short k = 0; k &lt; 3; ++k)
+      ref += mx[k][k];
+    ref /= 1000; // Arbitrary value; if a non-diagonal (nd) element is bigger then this, matrix is considered nd.</span>
+
+<span style = "background-color:#fdd">    for (short i = 0; i &lt; 3; ++i)</span>
+    {
+<span style = "background-color:#fdd">      for (short j = 0; j &lt; 3; ++j)</span>
+      {
+<span style = "background-color:#fdd">        if (i != j)</span>
+        {
+<span style = "background-color:#fdd">          if (std::abs(mx[i][j]) &gt; ref) // matrix is nd
+            ret = true;</span>
+        }
+<span style = "background-color:#fdd">      }
+    }</span>
+  }
+<span style = "background-color:#fdd">  return ret;
+}</span>
+
+
+bool mitk::Equal(const mitk::Image &amp;leftHandSide, const mitk::Image &amp;rightHandSide, ScalarType eps, bool verbose)
+<span style = "background-color:#fdd">{
+  bool returnValue = true;</span>
+
+  // Dimensionality
+<span style = "background-color:#fdd">  if (rightHandSide.GetDimension() != leftHandSide.GetDimension())</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Image )] Dimensionality differs.";
+      MITK_INFO &lt;&lt; "leftHandSide is " &lt;&lt; leftHandSide.GetDimension() &lt;&lt; "rightHandSide is "</span>
+                &lt;&lt; rightHandSide.GetDimension();
+    }
+<span style = "background-color:#fdd">    returnValue = false;</span>
+  }
+
+  // Pair-wise dimension (size) comparison
+<span style = "background-color:#fdd">  unsigned int minDimensionality = std::min(rightHandSide.GetDimension(), leftHandSide.GetDimension());
+  for (unsigned int i = 0; i &lt; minDimensionality; ++i)</span>
+  {
+<span style = "background-color:#fdd">    if (rightHandSide.GetDimension(i) != leftHandSide.GetDimension(i))</span>
+    {
+<span style = "background-color:#fdd">      returnValue = false;
+      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[( Image )] dimension differs.";
+        MITK_INFO &lt;&lt; "leftHandSide-&gt;GetDimension(" &lt;&lt; i &lt;&lt; ") is " &lt;&lt; leftHandSide.GetDimension(i)</span>
+                  &lt;&lt; "rightHandSide-&gt;GetDimension(" &lt;&lt; i &lt;&lt; ") is " &lt;&lt; rightHandSide.GetDimension(i);
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  // Pixeltype
+<span style = "background-color:#fdd">  mitk::PixelType pixelTypeRightHandSide = rightHandSide.GetPixelType();
+  mitk::PixelType pixelTypeLeftHandSide = leftHandSide.GetPixelType();
+  if (!(pixelTypeRightHandSide == pixelTypeLeftHandSide))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Image )] PixelType differs.";
+      MITK_INFO &lt;&lt; "leftHandSide is " &lt;&lt; pixelTypeLeftHandSide.GetTypeAsString() &lt;&lt; "rightHandSide is "</span>
+                &lt;&lt; pixelTypeRightHandSide.GetTypeAsString();
+    }
+<span style = "background-color:#fdd">    returnValue = false;</span>
+  }
+
+  // Geometries
+<span style = "background-color:#fdd">  if (!mitk::Equal(*leftHandSide.GetGeometry(), *rightHandSide.GetGeometry(), eps, verbose))</span>
+  {
+<span style = "background-color:#fdd">    if (verbose)</span>
+    {
+<span style = "background-color:#fdd">      MITK_INFO &lt;&lt; "[( Image )] Geometries differ.";</span>
+    }
+<span style = "background-color:#fdd">    returnValue = false;</span>
+  }
+
+  // Pixel values - default mode [ 0 threshold in difference ]
+  // compare only if all previous checks were successfull, otherwise the ITK filter will throw an exception
+<span style = "background-color:#fdd">  if (returnValue)</span>
+  {
+<span style = "background-color:#fdd">    mitk::CompareImageDataFilter::Pointer compareFilter = mitk::CompareImageDataFilter::New();</span>
+
+<span style = "background-color:#fdd">    compareFilter-&gt;SetInput(0, &amp;rightHandSide);
+    compareFilter-&gt;SetInput(1, &amp;leftHandSide);
+    compareFilter-&gt;SetTolerance(eps);
+    compareFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    if ((!compareFilter-&gt;GetResult()))</span>
+    {
+<span style = "background-color:#fdd">      returnValue = false;
+      if (verbose)</span>
+      {
+<span style = "background-color:#fdd">        MITK_INFO &lt;&lt; "[(Image)] Pixel values differ: ";
+        compareFilter-&gt;GetCompareResults().PrintSelf();</span>
+      }
+    }
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  return returnValue;
+}</span></pre>
+	</body>
+</html>

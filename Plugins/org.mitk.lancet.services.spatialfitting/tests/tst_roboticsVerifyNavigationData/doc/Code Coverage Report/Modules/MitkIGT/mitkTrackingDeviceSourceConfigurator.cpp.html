@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTrackingDeviceSourceConfigurator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTrackingDeviceSourceConfigurator.h"
+
+#include "mitkNDITrackingDevice.h"
+#include "mitkClaronTrackingDevice.h"
+#include "mitkOptitrackTrackingDevice.h"
+#include "mitkOpenIGTLinkTrackingDevice.h"
+#include "mitkVirtualTrackingDevice.h"
+
+#include &lt;mitkIGTException.h&gt;
+#include &lt;mitkIGTHardwareException.h&gt;
+
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModule.h&gt;
+#include &lt;usServiceProperties.h&gt;
+#include &lt;usModuleContext.h&gt;
+#include &lt;mitkTrackingDeviceTypeCollection.h&gt;
+
+
+mitk::TrackingDeviceSourceConfigurator::TrackingDeviceSourceConfigurator(mitk::NavigationToolStorage::Pointer NavigationTools, mitk::TrackingDevice::Pointer TrackingDevice)
+<span style = "background-color:#fdd">{</span>
+//make a copy of the navigation tool storage because we will modify the storage
+<span style = "background-color:#fdd">if (NavigationTools.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">  m_NavigationTools = mitk::NavigationToolStorage::New();
+  for (unsigned int i=0; i&lt;NavigationTools-&gt;GetToolCount(); i++)</span>
+      {
+<span style = "background-color:#fdd">      m_NavigationTools-&gt;AddTool(NavigationTools-&gt;GetTool(i));
+      }</span>
+  }
+
+<span style = "background-color:#fdd">m_TrackingDevice = TrackingDevice;
+m_ToolCorrespondencesInToolStorage = std::vector&lt;int&gt;();
+m_ErrorMessage = "";
+}</span>
+
+mitk::NavigationToolStorage::Pointer mitk::TrackingDeviceSourceConfigurator::GetUpdatedNavigationToolStorage()
+<span style = "background-color:#fdd">{
+return m_NavigationTools;
+}</span>
+
+
+mitk::TrackingDeviceSourceConfigurator::~TrackingDeviceSourceConfigurator()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::TrackingDeviceSourceConfigurator::IsCreateTrackingDeviceSourcePossible()
+<span style = "background-color:#fdd">{
+if (m_NavigationTools.IsNull())</span>
+  {
+<span style = "background-color:#fdd">  m_ErrorMessage = "NavigationToolStorage is nullptr!";
+  return false;
+  }
+else if (m_TrackingDevice.IsNull())</span>
+  {
+<span style = "background-color:#fdd">  m_ErrorMessage = "TrackingDevice is nullptr!";
+  return false;
+  }</span>
+else
+  {
+<span style = "background-color:#fdd">  for (unsigned int i=0; i&lt;m_NavigationTools-&gt;GetToolCount(); i++)</span>
+    {
+<span style = "background-color:#fdd">    if (m_NavigationTools-&gt;GetTool(i)-&gt;GetTrackingDeviceType() != m_TrackingDevice-&gt;GetType())</span>
+      {
+<span style = "background-color:#fdd">      m_ErrorMessage = "At least one tool is not of the same type like the tracking device.";
+      return false;</span>
+      }
+<span style = "background-color:#fdd">    }</span>
+  //TODO in case of Aurora: check if the tools are automatically detected by comparing the serial number
+<span style = "background-color:#fdd">  return true;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::TrackingDeviceSource::Pointer mitk::TrackingDeviceSourceConfigurator::CreateTrackingDeviceSource()
+<span style = "background-color:#fdd">{
+mitk::NavigationDataObjectVisualizationFilter::Pointer dummy; //this dummy is lost directly after creating the device
+return this-&gt;CreateTrackingDeviceSource(dummy);
+}</span>
+
+mitk::TrackingDeviceSource::Pointer mitk::TrackingDeviceSourceConfigurator::CreateTrackingDeviceSource(mitk::NavigationDataObjectVisualizationFilter::Pointer &amp;visualizationFilter)
+<span style = "background-color:#fdd">{
+  if (!this-&gt;IsCreateTrackingDeviceSourcePossible()) {MITK_WARN &lt;&lt; "Cannot create tracking decive: " &lt;&lt; m_ErrorMessage; return nullptr;}</span>
+
+<span style = "background-color:#fdd">  mitk::TrackingDeviceSource::Pointer returnValue;</span>
+
+<span style = "background-color:#fdd">  us::ModuleContext* context = us::GetModuleContext();</span>
+
+<span style = "background-color:#fdd">  std::vector&lt;us::ServiceReference&lt;mitk::TrackingDeviceTypeCollection&gt; &gt; refs = context-&gt;GetServiceReferences&lt;mitk::TrackingDeviceTypeCollection&gt;();</span>
+
+<span style = "background-color:#fdd">  if (refs.empty())</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "No tracking device service found!";</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::TrackingDeviceTypeCollection* deviceTypeCollection = context-&gt;GetService&lt;mitk::TrackingDeviceTypeCollection&gt;(refs.front());</span>
+
+  //create tracking device source
+<span style = "background-color:#fdd">  returnValue = deviceTypeCollection-&gt;GetTrackingDeviceTypeInformation(m_TrackingDevice-&gt;GetType())-&gt;</span>
+      CreateTrackingDeviceSource(m_TrackingDevice,m_NavigationTools, &amp;m_ErrorMessage, &amp;m_ToolCorrespondencesInToolStorage);
+
+  //TODO: insert other tracking systems?
+<span style = "background-color:#fdd">  if (returnValue.IsNull()) {MITK_WARN &lt;&lt; "Cannot create tracking decive: " &lt;&lt; m_ErrorMessage; return nullptr;}</span>
+
+  //create visualization filter
+<span style = "background-color:#fdd">  visualizationFilter = CreateNavigationDataObjectVisualizationFilter(returnValue,m_NavigationTools);
+  if (visualizationFilter.IsNull()) {MITK_WARN &lt;&lt; "Cannot create tracking decive: " &lt;&lt; m_ErrorMessage; return nullptr;}</span>
+
+<span style = "background-color:#fdd">  return returnValue;
+}</span>
+
+std::string mitk::TrackingDeviceSourceConfigurator::GetErrorMessage()
+<span style = "background-color:#fdd">{
+  return this-&gt;m_ErrorMessage;
+}</span>
+
+//############################ internal help methods ########################################
+
+mitk::NavigationDataObjectVisualizationFilter::Pointer
+  mitk::TrackingDeviceSourceConfigurator::CreateNavigationDataObjectVisualizationFilter(
+    mitk::NavigationDataSource::Pointer navigationDataSource, mitk::NavigationToolStorage::Pointer navigationTools)
+<span style = "background-color:#fdd">  {
+  mitk::NavigationDataObjectVisualizationFilter::Pointer returnValue = mitk::NavigationDataObjectVisualizationFilter::New();
+    for (unsigned int i = 0; i &lt; navigationDataSource-&gt;GetNumberOfIndexedOutputs(); i++)</span>
+    {
+    // Note: If all tools have the same name only the first tool will always be returned and
+    //       the others won't be updated during rendering.This could potentially lead to inconstencies
+<span style = "background-color:#fdd">      mitk::NavigationTool::Pointer currentTool =</span>
+        navigationTools-&gt;GetToolByName(navigationDataSource-&gt;GetOutput(i)-&gt;GetName());
+<span style = "background-color:#fdd">    if (currentTool.IsNull())</span>
+      {
+<span style = "background-color:#fdd">      this-&gt;m_ErrorMessage = "Error: did not find corresponding tool in tracking device after initialization.";
+      return nullptr;</span>
+      }
+<span style = "background-color:#fdd">      returnValue-&gt;SetInput(i, navigationDataSource-&gt;GetOutput(i));
+    returnValue-&gt;SetRepresentationObject(i,currentTool-&gt;GetDataNode()-&gt;GetData());
+      returnValue-&gt;SetOffset(i, currentTool-&gt;GetToolRegistrationMatrix());
+    }
+  return returnValue;
+  }</span>
+
+int mitk::TrackingDeviceSourceConfigurator::GetToolNumberInToolStorage(unsigned int outputID)
+<span style = "background-color:#fdd">  {
+  if (outputID &lt; m_ToolCorrespondencesInToolStorage.size()) return m_ToolCorrespondencesInToolStorage.at(outputID);
+  else return -1;
+  }</span>
+
+std::string mitk::TrackingDeviceSourceConfigurator::GetToolIdentifierInToolStorage(unsigned int outputID)
+<span style = "background-color:#fdd">  {
+  if (outputID &lt; m_ToolCorrespondencesInToolStorage.size()) return m_NavigationTools-&gt;GetTool(m_ToolCorrespondencesInToolStorage.at(outputID))-&gt;GetIdentifier();
+  else return "";
+  }</span>
+
+std::vector&lt;int&gt; mitk::TrackingDeviceSourceConfigurator::GetToolNumbersInToolStorage()
+<span style = "background-color:#fdd">  {
+  return m_ToolCorrespondencesInToolStorage;
+  }</span>
+
+std::vector&lt;std::string&gt; mitk::TrackingDeviceSourceConfigurator::GetToolIdentifiersInToolStorage()
+<span style = "background-color:#fdd">  {
+  std::vector&lt;std::string&gt; returnValue = std::vector&lt;std::string&gt;();
+  for (unsigned int i=0; i&lt;m_ToolCorrespondencesInToolStorage.size(); i++)
+    {returnValue.push_back(m_NavigationTools-&gt;GetTool(m_ToolCorrespondencesInToolStorage.at(i))-&gt;GetIdentifier());}
+  return returnValue;
+  }</span></pre>
+	</body>
+</html>

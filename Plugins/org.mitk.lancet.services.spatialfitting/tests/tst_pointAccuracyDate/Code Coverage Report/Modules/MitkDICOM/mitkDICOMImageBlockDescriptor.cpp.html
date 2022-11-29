@@ -1,0 +1,926 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDICOMImageBlockDescriptor.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDICOMImageBlockDescriptor.h"
+#include "mitkStringProperty.h"
+#include "mitkLevelWindowProperty.h"
+#include "mitkPropertyKeyPath.h"
+#include "mitkDICOMIOMetaInformationPropertyConstants.h"
+#include &lt;gdcmUIDs.h&gt;
+#include &lt;vector&gt;
+#include &lt;gdcmVersion.h&gt;
+#include &lt;dcmtk/config/osconfig.h&gt;
+
+mitk::DICOMImageBlockDescriptor::DICOMImageBlockDescriptor()
+<span style = "background-color:#fdd">: m_ReaderImplementationLevel( SOPClassUnknown )
+, m_PropertyList( PropertyList::New() )
+, m_TagCache( nullptr )
+, m_PropertiesOutOfDate( true )
+{
+  m_PropertyFunctor = &amp;mitk::DICOMImageBlockDescriptor::GetPropertyForDICOMValues;
+}</span>
+
+mitk::DICOMImageBlockDescriptor::~DICOMImageBlockDescriptor()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::DICOMImageBlockDescriptor::DICOMImageBlockDescriptor( const DICOMImageBlockDescriptor&amp; other )
+<span style = "background-color:#fdd">: m_ImageFrameList( other.m_ImageFrameList )
+, m_MitkImage( other.m_MitkImage )
+, m_SliceIsLoaded( other.m_SliceIsLoaded )
+, m_ReaderImplementationLevel( other.m_ReaderImplementationLevel )
+, m_TiltInformation( other.m_TiltInformation )
+, m_PropertyList( other.m_PropertyList-&gt;Clone() )
+, m_TagCache( other.m_TagCache )
+, m_PropertiesOutOfDate( other.m_PropertiesOutOfDate )
+, m_AdditionalTagMap(other.m_AdditionalTagMap)
+, m_FoundAdditionalTags(other.m_FoundAdditionalTags)
+, m_PropertyFunctor(other.m_PropertyFunctor)
+{
+  if ( m_MitkImage )</span>
+  {
+<span style = "background-color:#fdd">    m_MitkImage = m_MitkImage-&gt;Clone();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::DICOMImageBlockDescriptor&amp; mitk::DICOMImageBlockDescriptor::
+  operator=( const DICOMImageBlockDescriptor&amp; other )
+<span style = "background-color:#fdd">{
+  if ( this != &amp;other )</span>
+  {
+<span style = "background-color:#fdd">    m_ImageFrameList            = other.m_ImageFrameList;
+    m_MitkImage                 = other.m_MitkImage;
+    m_SliceIsLoaded             = other.m_SliceIsLoaded;
+    m_ReaderImplementationLevel = other.m_ReaderImplementationLevel;
+    m_TiltInformation           = other.m_TiltInformation;</span>
+
+<span style = "background-color:#fdd">    m_AdditionalTagMap = other.m_AdditionalTagMap;
+    m_FoundAdditionalTags = other.m_FoundAdditionalTags;
+    m_PropertyFunctor = other.m_PropertyFunctor;</span>
+
+<span style = "background-color:#fdd">    if ( other.m_PropertyList )</span>
+    {
+<span style = "background-color:#fdd">      m_PropertyList = other.m_PropertyList-&gt;Clone();</span>
+    }
+
+<span style = "background-color:#fdd">    if ( other.m_MitkImage )</span>
+    {
+<span style = "background-color:#fdd">      m_MitkImage = other.m_MitkImage-&gt;Clone();</span>
+    }
+
+<span style = "background-color:#fdd">    m_TagCache            = other.m_TagCache;
+    m_PropertiesOutOfDate = other.m_PropertiesOutOfDate;</span>
+  }
+<span style = "background-color:#fdd">  return *this;
+}</span>
+
+mitk::DICOMTagList mitk::DICOMImageBlockDescriptor::GetTagsOfInterest()
+<span style = "background-color:#fdd">{
+  DICOMTagList completeList;</span>
+
+<span style = "background-color:#fdd">  completeList.push_back( DICOMTag( 0x0018, 0x1164 ) ); // pixel spacing
+  completeList.push_back( DICOMTag( 0x0028, 0x0030 ) ); // imager pixel spacing</span>
+
+<span style = "background-color:#fdd">  completeList.push_back( DICOMTag( 0x0008, 0x0018 ) ); // sop instance UID
+  completeList.push_back( DICOMTag( 0x0008, 0x0016 ) ); // sop class UID</span>
+
+<span style = "background-color:#fdd">  completeList.push_back( DICOMTag( 0x0020, 0x0011 ) ); // series number
+  completeList.push_back( DICOMTag( 0x0008, 0x1030 ) ); // study description
+  completeList.push_back( DICOMTag( 0x0008, 0x103e ) ); // series description
+  completeList.push_back( DICOMTag( 0x0008, 0x0060 ) ); // modality
+  completeList.push_back( DICOMTag( 0x0018, 0x0024 ) ); // sequence name
+  completeList.push_back( DICOMTag( 0x0020, 0x0037 ) ); // image orientation</span>
+
+<span style = "background-color:#fdd">  completeList.push_back( DICOMTag( 0x0020, 0x1041 ) ); // slice location
+  completeList.push_back( DICOMTag( 0x0020, 0x0012 ) ); // acquisition number
+  completeList.push_back( DICOMTag( 0x0020, 0x0013 ) ); // instance number
+  completeList.push_back( DICOMTag( 0x0020, 0x0032 ) ); // image position patient</span>
+
+<span style = "background-color:#fdd">  completeList.push_back( DICOMTag( 0x0028, 0x1050 ) ); // window center
+  completeList.push_back( DICOMTag( 0x0028, 0x1051 ) ); // window width
+  completeList.push_back( DICOMTag( 0x0008, 0x0008 ) ); // image type
+  completeList.push_back( DICOMTag( 0x0028, 0x0004 ) ); // photometric interpretation</span>
+
+<span style = "background-color:#fdd">  return completeList;
+}</span>
+
+
+void mitk::DICOMImageBlockDescriptor::SetAdditionalTagsOfInterest(
+  const AdditionalTagsMapType&amp; tagMap)
+<span style = "background-color:#fdd">{
+  m_AdditionalTagMap = tagMap;
+}</span>
+
+
+void mitk::DICOMImageBlockDescriptor::SetTiltInformation( const GantryTiltInformation&amp; info )
+<span style = "background-color:#fdd">{
+  m_TiltInformation = info;
+}</span>
+
+const mitk::GantryTiltInformation mitk::DICOMImageBlockDescriptor::GetTiltInformation() const
+<span style = "background-color:#fdd">{
+  return m_TiltInformation;
+}</span>
+
+void mitk::DICOMImageBlockDescriptor::SetImageFrameList( const DICOMImageFrameList&amp; framelist )
+<span style = "background-color:#fdd">{
+  m_ImageFrameList = framelist;
+  m_SliceIsLoaded.resize( framelist.size() );
+  m_SliceIsLoaded.assign( framelist.size(), false );</span>
+
+<span style = "background-color:#fdd">  m_PropertiesOutOfDate = true;
+}</span>
+
+const mitk::DICOMImageFrameList&amp; mitk::DICOMImageBlockDescriptor::GetImageFrameList() const
+<span style = "background-color:#fdd">{
+  return m_ImageFrameList;
+}</span>
+
+void mitk::DICOMImageBlockDescriptor::SetMitkImage( Image::Pointer image )
+<span style = "background-color:#fdd">{
+  if ( m_MitkImage != image )</span>
+  {
+<span style = "background-color:#fdd">    if ( m_TagCache.IsExpired() )</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Unable to describe MITK image with properties without a tag-cache object!";
+      m_MitkImage = nullptr;
+      return;</span>
+    }
+
+<span style = "background-color:#fdd">    if ( m_ImageFrameList.empty() )</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Unable to describe MITK image with properties without a frame list!";
+      m_MitkImage = nullptr;
+      return;</span>
+    }
+
+    // Should verify that the image matches m_ImageFrameList and m_TagCache
+    // however, this is hard to do without re-analyzing all
+    // TODO we should at least make sure that the number of frames is identical (plus rows/columns,
+    // orientation)
+    //      without gantry tilt correction, we can also check image origin
+
+<span style = "background-color:#fdd">    m_MitkImage = this-&gt;DescribeImageWithProperties( this-&gt;FixupSpacing( image ) );</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::Image::Pointer mitk::DICOMImageBlockDescriptor::GetMitkImage() const
+<span style = "background-color:#fdd">{
+  return m_MitkImage;
+}</span>
+
+mitk::Image::Pointer mitk::DICOMImageBlockDescriptor::FixupSpacing( Image* mitkImage )
+<span style = "background-color:#fdd">{
+  if ( mitkImage )</span>
+  {
+<span style = "background-color:#fdd">    Vector3D imageSpacing = mitkImage-&gt;GetGeometry()-&gt;GetSpacing();</span>
+
+<span style = "background-color:#fdd">    ScalarType desiredSpacingX = imageSpacing[0];
+    ScalarType desiredSpacingY = imageSpacing[1];
+    this-&gt;GetDesiredMITKImagePixelSpacing(</span>
+      desiredSpacingX, desiredSpacingY ); // prefer pixel spacing over imager pixel spacing
+
+<span style = "background-color:#fdd">    if ( desiredSpacingX &lt;= 0 || desiredSpacingY &lt;= 0 )</span>
+    {
+<span style = "background-color:#fdd">      return mitkImage;</span>
+    }
+
+<span style = "background-color:#fdd">    MITK_DEBUG &lt;&lt; "Loaded image with spacing " &lt;&lt; imageSpacing[0] &lt;&lt; ", " &lt;&lt; imageSpacing[1];
+    MITK_DEBUG &lt;&lt; "Found correct spacing info " &lt;&lt; desiredSpacingX &lt;&lt; ", " &lt;&lt; desiredSpacingY;</span>
+
+<span style = "background-color:#fdd">    imageSpacing[0] = desiredSpacingX;
+    imageSpacing[1] = desiredSpacingY;
+    mitkImage-&gt;GetGeometry()-&gt;SetSpacing( imageSpacing );</span>
+  }
+
+<span style = "background-color:#fdd">  return mitkImage;
+}</span>
+void mitk::DICOMImageBlockDescriptor::SetSliceIsLoaded( unsigned int index, bool isLoaded )
+<span style = "background-color:#fdd">{
+  if ( index &lt; m_SliceIsLoaded.size() )</span>
+  {
+<span style = "background-color:#fdd">    m_SliceIsLoaded[index] = isLoaded;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    std::stringstream ss;
+    ss &lt;&lt; "Index " &lt;&lt; index &lt;&lt; " out of range (" &lt;&lt; m_SliceIsLoaded.size() &lt;&lt; " indices reserved)";
+    throw std::invalid_argument( ss.str() );
+  }
+}</span>
+
+bool mitk::DICOMImageBlockDescriptor::IsSliceLoaded( unsigned int index ) const
+<span style = "background-color:#fdd">{
+  if ( index &lt; m_SliceIsLoaded.size() )</span>
+  {
+<span style = "background-color:#fdd">    return m_SliceIsLoaded[index];
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    std::stringstream ss;
+    ss &lt;&lt; "Index " &lt;&lt; index &lt;&lt; " out of range (" &lt;&lt; m_SliceIsLoaded.size() &lt;&lt; " indices reserved)";
+    throw std::invalid_argument( ss.str() );
+  }
+}</span>
+
+bool mitk::DICOMImageBlockDescriptor::AllSlicesAreLoaded() const
+<span style = "background-color:#fdd">{
+  bool allLoaded = true;
+  for ( auto iter = m_SliceIsLoaded.cbegin(); iter != m_SliceIsLoaded.cend(); ++iter )</span>
+  {
+<span style = "background-color:#fdd">    allLoaded &amp;= *iter;
+  }</span>
+
+<span style = "background-color:#fdd">  return allLoaded;
+}</span>
+
+/*
+   PS defined      IPS defined     PS==IPS
+        0               0                     --&gt; UNKNOWN spacing, loader will invent
+        0               1                     --&gt; spacing as at detector surface
+        1               0                     --&gt; spacing as in patient
+        1               1             0       --&gt; detector surface spacing CORRECTED for geometrical
+   magnifications: spacing as in patient
+        1               1             1       --&gt; detector surface spacing NOT corrected for geometrical
+   magnifications: spacing as at detector
+*/
+mitk::PixelSpacingInterpretation mitk::DICOMImageBlockDescriptor::GetPixelSpacingInterpretation() const
+<span style = "background-color:#fdd">{
+  if ( m_ImageFrameList.empty() || m_TagCache.IsExpired() )</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Invalid call to GetPixelSpacingInterpretation. Need to have initialized tag-cache!";
+    return SpacingUnknown;</span>
+  }
+
+<span style = "background-color:#fdd">  const std::string pixelSpacing       = this-&gt;GetPixelSpacing();
+  const std::string imagerPixelSpacing = this-&gt;GetImagerPixelSpacing();</span>
+
+<span style = "background-color:#fdd">  if ( pixelSpacing.empty() )</span>
+  {
+<span style = "background-color:#fdd">    if ( imagerPixelSpacing.empty() )</span>
+    {
+<span style = "background-color:#fdd">      return SpacingUnknown;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return SpacingAtDetector;</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else // Pixel Spacing defined
+  {
+<span style = "background-color:#fdd">    if ( imagerPixelSpacing.empty() )</span>
+    {
+<span style = "background-color:#fdd">      return SpacingInPatient;
+    }
+    else if ( pixelSpacing != imagerPixelSpacing )</span>
+    {
+<span style = "background-color:#fdd">      return SpacingInPatient;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return SpacingAtDetector;</span>
+    }
+  }
+<span style = "background-color:#fdd">}</span>
+
+std::string mitk::DICOMImageBlockDescriptor::GetPixelSpacing() const
+<span style = "background-color:#fdd">{
+  if ( m_ImageFrameList.empty() || m_TagCache.IsExpired() )</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Invalid call to GetPixelSpacing. Need to have initialized tag-cache!";
+    return std::string( "" );</span>
+  }
+
+<span style = "background-color:#fdd">  static const DICOMTag tagPixelSpacing( 0x0028, 0x0030 );
+  return m_TagCache.Lock()-&gt;GetTagValue( m_ImageFrameList.front(), tagPixelSpacing ).value;
+}</span>
+
+std::string mitk::DICOMImageBlockDescriptor::GetImagerPixelSpacing() const
+<span style = "background-color:#fdd">{
+  if ( m_ImageFrameList.empty() || m_TagCache.IsExpired() )</span>
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Invalid call to GetImagerPixelSpacing. Need to have initialized tag-cache!";
+    return std::string( "" );</span>
+  }
+
+<span style = "background-color:#fdd">  static const DICOMTag tagImagerPixelSpacing( 0x0018, 0x1164 );
+  return m_TagCache.Lock()-&gt;GetTagValue( m_ImageFrameList.front(), tagImagerPixelSpacing ).value;
+}</span>
+
+void mitk::DICOMImageBlockDescriptor::GetDesiredMITKImagePixelSpacing( ScalarType&amp; spacingX,
+                                                                       ScalarType&amp; spacingY ) const
+<span style = "background-color:#fdd">{
+  const std::string pixelSpacing = this-&gt;GetPixelSpacing();</span>
+  // preference for "in patient" pixel spacing
+<span style = "background-color:#fdd">  if ( !DICOMStringToSpacing( pixelSpacing, spacingX, spacingY ) )</span>
+  {
+<span style = "background-color:#fdd">    const std::string imagerPixelSpacing = this-&gt;GetImagerPixelSpacing();</span>
+    // fallback to "on detector" spacing
+<span style = "background-color:#fdd">    if ( !DICOMStringToSpacing( imagerPixelSpacing, spacingX, spacingY ) )</span>
+    {
+      // at this point we have no hints whether the spacing is correct
+      // do a quick sanity check and either trust in the input or set both to 1
+      // We assume neither spacing to be negative, zero or unexpectedly large for
+      // medical images
+<span style = "background-color:#fdd">      if (spacingX &lt; mitk::eps || spacingX &gt; 1000 || spacingY &lt; mitk::eps || spacingY &gt; 1000)</span>
+      {
+<span style = "background-color:#fdd">        spacingX = spacingY = 1.0;</span>
+      }
+    }
+<span style = "background-color:#fdd">  }
+}</span>
+
+void mitk::DICOMImageBlockDescriptor::SetProperty( const std::string&amp; key, BaseProperty* value )
+<span style = "background-color:#fdd">{
+  m_PropertyList-&gt;SetProperty( key, value );
+}</span>
+
+mitk::BaseProperty* mitk::DICOMImageBlockDescriptor::GetProperty( const std::string&amp; key ) const
+<span style = "background-color:#fdd">{
+  this-&gt;UpdateImageDescribingProperties();
+  return m_PropertyList-&gt;GetProperty( key );
+}</span>
+
+std::string mitk::DICOMImageBlockDescriptor::GetPropertyAsString( const std::string&amp; key ) const
+<span style = "background-color:#fdd">{
+  this-&gt;UpdateImageDescribingProperties();
+  const mitk::BaseProperty::Pointer property = m_PropertyList-&gt;GetProperty( key );
+  if ( property.IsNotNull() )</span>
+  {
+<span style = "background-color:#fdd">    return property-&gt;GetValueAsString();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return std::string( "" );</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::DICOMImageBlockDescriptor::SetFlag( const std::string&amp; key, bool value )
+<span style = "background-color:#fdd">{
+  m_PropertyList-&gt;ReplaceProperty( key, BoolProperty::New( value ) );
+}</span>
+
+bool mitk::DICOMImageBlockDescriptor::GetFlag( const std::string&amp; key, bool defaultValue ) const
+<span style = "background-color:#fdd">{
+  this-&gt;UpdateImageDescribingProperties();
+  BoolProperty::ConstPointer boolProp = dynamic_cast&lt;BoolProperty*&gt;( this-&gt;GetProperty( key ) );
+  if ( boolProp.IsNotNull() )</span>
+  {
+<span style = "background-color:#fdd">    return boolProp-&gt;GetValue();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return defaultValue;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::DICOMImageBlockDescriptor::SetIntProperty( const std::string&amp; key, int value )
+<span style = "background-color:#fdd">{
+  m_PropertyList-&gt;ReplaceProperty( key, IntProperty::New( value ) );
+}</span>
+
+int mitk::DICOMImageBlockDescriptor::GetIntProperty( const std::string&amp; key, int defaultValue ) const
+<span style = "background-color:#fdd">{
+  this-&gt;UpdateImageDescribingProperties();
+  IntProperty::ConstPointer intProp = dynamic_cast&lt;IntProperty*&gt;( this-&gt;GetProperty( key ) );
+  if ( intProp.IsNotNull() )</span>
+  {
+<span style = "background-color:#fdd">    return intProp-&gt;GetValue();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    return defaultValue;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+double mitk::DICOMImageBlockDescriptor::stringtodouble( const std::string&amp; str ) const
+<span style = "background-color:#fdd">{</span>
+  double d;
+<span style = "background-color:#fdd">  std::string trimmedstring( str );</span>
+  try
+  {
+<span style = "background-color:#fdd">    trimmedstring = trimmedstring.erase( trimmedstring.find_last_not_of( " \n\r\t" ) + 1 );</span>
+  }
+  catch ( ... )
+<span style = "background-color:#fdd">  {</span>
+    // no last not of
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  std::string firstcomponent( trimmedstring );</span>
+  try
+  {
+<span style = "background-color:#fdd">    firstcomponent = trimmedstring.erase( trimmedstring.find_first_of( "\\" ) );</span>
+  }
+  catch ( ... )
+<span style = "background-color:#fdd">  {</span>
+    // no last not of
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  std::istringstream converter( firstcomponent );
+  if ( !firstcomponent.empty() &amp;&amp; ( converter &gt;&gt; d ) &amp;&amp; converter.eof() )</span>
+  {
+<span style = "background-color:#fdd">    return d;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    throw std::invalid_argument( "Argument is not a convertable number" );</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::Image::Pointer mitk::DICOMImageBlockDescriptor::DescribeImageWithProperties( Image* mitkImage )
+<span style = "background-color:#fdd">{</span>
+  // TODO: this is a collection of properties that have been provided by the
+  // legacy DicomSeriesReader.
+  // We should at some point clean up this collection and name them in a more
+  // consistent way!
+
+<span style = "background-color:#fdd">  if ( !mitkImage )
+    return mitkImage;</span>
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty(PropertyKeyPathToPropertyName(DICOMIOMetaInformationPropertyConstants::READER_FILES()), this-&gt;GetProperty("filenamesForSlices"));
+  mitkImage-&gt;SetProperty(PropertyKeyPathToPropertyName(DICOMIOMetaInformationPropertyConstants::READER_PIXEL_SPACING_INTERPRETATION_STRING()),</span>
+    StringProperty::New(PixelSpacingInterpretationToString(this-&gt;GetPixelSpacingInterpretation())));
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty(PropertyKeyPathToPropertyName(DICOMIOMetaInformationPropertyConstants::READER_PIXEL_SPACING_INTERPRETATION()),</span>
+    GenericProperty&lt;PixelSpacingInterpretation&gt;::New(this-&gt;GetPixelSpacingInterpretation()));
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty(PropertyKeyPathToPropertyName(DICOMIOMetaInformationPropertyConstants::READER_IMPLEMENTATION_LEVEL_STRING()),</span>
+    StringProperty::New(ReaderImplementationLevelToString(m_ReaderImplementationLevel)));
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty(PropertyKeyPathToPropertyName(DICOMIOMetaInformationPropertyConstants::READER_IMPLEMENTATION_LEVEL()),</span>
+    GenericProperty&lt;ReaderImplementationLevel&gt;::New(m_ReaderImplementationLevel));
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty(PropertyKeyPathToPropertyName(DICOMIOMetaInformationPropertyConstants::READER_GANTRY_TILT_CORRECTED()),</span>
+    BoolProperty::New(this-&gt;GetTiltInformation().IsRegularGantryTilt()));
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty(PropertyKeyPathToPropertyName(DICOMIOMetaInformationPropertyConstants::READER_3D_plus_t()), BoolProperty::New(this-&gt;GetFlag("3D+t", false)));
+  mitkImage-&gt;SetProperty(PropertyKeyPathToPropertyName(DICOMIOMetaInformationPropertyConstants::READER_GDCM()), StringProperty::New(gdcm::Version::GetVersion()));
+  mitkImage-&gt;SetProperty(PropertyKeyPathToPropertyName(DICOMIOMetaInformationPropertyConstants::READER_DCMTK()), StringProperty::New(PACKAGE_VERSION));</span>
+
+  // get all found additional tags of interest
+
+<span style = "background-color:#fdd">  for (const auto &amp;tag : m_FoundAdditionalTags)</span>
+  {
+<span style = "background-color:#fdd">    BaseProperty* prop = this-&gt;GetProperty(tag);
+    if (prop)</span>
+    {
+<span style = "background-color:#fdd">      mitkImage-&gt;SetProperty(tag.c_str(), prop);</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  //// Deprecated properties should be removed sooner then later (see above)
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  // first part: add some tags that describe individual slices
+  // these propeties are defined at analysis time (see UpdateImageDescribingProperties())
+
+<span style = "background-color:#fdd">  const char* propertyKeySliceLocation  = "dicom.image.0020.1041";
+  const char* propertyKeyInstanceNumber = "dicom.image.0020.0013";
+  const char* propertyKeySOPInstanceUID = "dicom.image.0008.0018";</span>
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty( propertyKeySliceLocation, this-&gt;GetProperty( "sliceLocationForSlices" ) );
+  mitkImage-&gt;SetProperty( propertyKeyInstanceNumber, this-&gt;GetProperty( "instanceNumberForSlices" ) );
+  mitkImage-&gt;SetProperty( propertyKeySOPInstanceUID, this-&gt;GetProperty( "SOPInstanceUIDForSlices" ) );
+  mitkImage-&gt;SetProperty( "files", this-&gt;GetProperty( "filenamesForSlices_deprecated" ) );</span>
+
+  // second part: add properties that describe the whole image block
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty( "dicomseriesreader.SOPClassUID", StringProperty::New( this-&gt;GetSOPClassUID() ) );</span>
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty( "dicomseriesreader.SOPClass", StringProperty::New( this-&gt;GetSOPClassUIDAsName() ) );</span>
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty(</span>
+    "dicomseriesreader.PixelSpacingInterpretationString",
+    StringProperty::New( PixelSpacingInterpretationToString( this-&gt;GetPixelSpacingInterpretation() ) ) );
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty(</span>
+    "dicomseriesreader.PixelSpacingInterpretation",
+    GenericProperty&lt;PixelSpacingInterpretation&gt;::New( this-&gt;GetPixelSpacingInterpretation() ) );
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty(</span>
+    "dicomseriesreader.ReaderImplementationLevelString",
+    StringProperty::New( ReaderImplementationLevelToString( m_ReaderImplementationLevel ) ) );
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty( "dicomseriesreader.ReaderImplementationLevel",</span>
+                          GenericProperty&lt;ReaderImplementationLevel&gt;::New( m_ReaderImplementationLevel ) );
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty( "dicomseriesreader.GantyTiltCorrected",</span>
+                          BoolProperty::New( this-&gt;GetTiltInformation().IsRegularGantryTilt() ) );
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty( "dicomseriesreader.3D+t", BoolProperty::New( this-&gt;GetFlag( "3D+t", false ) ) );</span>
+
+  // level window
+<span style = "background-color:#fdd">  const std::string windowCenter = this-&gt;GetPropertyAsString( "windowCenter" );
+  const std::string windowWidth  = this-&gt;GetPropertyAsString( "windowWidth" );</span>
+  try
+  {
+<span style = "background-color:#fdd">    const double level  = stringtodouble( windowCenter );
+    const double window = stringtodouble( windowWidth );
+    mitkImage-&gt;SetProperty( "levelwindow", LevelWindowProperty::New( LevelWindow( level, window ) ) );</span>
+  }
+  catch ( ... )
+<span style = "background-color:#fdd">  {</span>
+    // nothing, no levelwindow to be predicted...
+<span style = "background-color:#fdd">  }</span>
+
+<span style = "background-color:#fdd">  const std::string modality = this-&gt;GetPropertyAsString( "modality" );
+  mitkImage-&gt;SetProperty( "modality", StringProperty::New( modality ) );</span>
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty( "dicom.pixel.PhotometricInterpretation",</span>
+                          this-&gt;GetProperty( "photometricInterpretation" ) );
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty( "dicom.image.imagetype", this-&gt;GetProperty( "imagetype" ) );</span>
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty( "dicom.study.StudyDescription", this-&gt;GetProperty( "studyDescription" ) );
+  mitkImage-&gt;SetProperty( "dicom.series.SeriesDescription", this-&gt;GetProperty( "seriesDescription" ) );</span>
+
+<span style = "background-color:#fdd">  mitkImage-&gt;SetProperty( "dicom.pixel.Rows", this-&gt;GetProperty( "rows" ) );
+  mitkImage-&gt;SetProperty( "dicom.pixel.Columns", this-&gt;GetProperty( "columns" ) );</span>
+
+  // fourth part: get something from ImageIO. BUT this needs to be created elsewhere. or not at all!
+
+<span style = "background-color:#fdd">  return mitkImage;
+}</span>
+
+void mitk::DICOMImageBlockDescriptor::SetReaderImplementationLevel( const ReaderImplementationLevel&amp; level )
+<span style = "background-color:#fdd">{
+  m_ReaderImplementationLevel = level;
+}</span>
+
+mitk::ReaderImplementationLevel mitk::DICOMImageBlockDescriptor::GetReaderImplementationLevel() const
+<span style = "background-color:#fdd">{
+  return m_ReaderImplementationLevel;
+}</span>
+
+std::string mitk::DICOMImageBlockDescriptor::GetSOPClassUID() const
+<span style = "background-color:#fdd">{
+  if ( !m_ImageFrameList.empty() &amp;&amp; !m_TagCache.IsExpired() )</span>
+  {
+<span style = "background-color:#fdd">    static const DICOMTag tagSOPClassUID( 0x0008, 0x0016 );
+    return m_TagCache.Lock()-&gt;GetTagValue( m_ImageFrameList.front(), tagSOPClassUID ).value;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_ERROR</span>
+      &lt;&lt; "Invalid call to DICOMImageBlockDescriptor::GetSOPClassUID(). Need to have initialized tag-cache!";
+<span style = "background-color:#fdd">    return std::string( "" );</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+std::string mitk::DICOMImageBlockDescriptor::GetSOPClassUIDAsName() const
+<span style = "background-color:#fdd">{
+  if ( !m_ImageFrameList.empty() &amp;&amp; !m_TagCache.IsExpired() )</span>
+  {
+    gdcm::UIDs uidKnowledge;
+<span style = "background-color:#fdd">    uidKnowledge.SetFromUID( this-&gt;GetSOPClassUID().c_str() );</span>
+
+<span style = "background-color:#fdd">    const char* name = uidKnowledge.GetName();
+    if ( name )</span>
+    {
+<span style = "background-color:#fdd">      return std::string( name );
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      return std::string( "" );</span>
+    }
+<span style = "background-color:#fdd">  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    MITK_ERROR &lt;&lt; "Invalid call to DICOMImageBlockDescriptor::GetSOPClassUIDAsName(). Need to have "</span>
+                  "initialized tag-cache!";
+<span style = "background-color:#fdd">    return std::string( "" );</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+int mitk::DICOMImageBlockDescriptor::GetNumberOfTimeSteps() const
+<span style = "background-color:#fdd">{
+  int result = 1;
+  this-&gt;m_PropertyList-&gt;GetIntProperty("timesteps", result);</span>
+
+<span style = "background-color:#fdd">  return result;
+};</span>
+
+int mitk::DICOMImageBlockDescriptor::GetNumberOfFramesPerTimeStep() const
+<span style = "background-color:#fdd">{
+  const int numberOfTimesteps = this-&gt;GetNumberOfTimeSteps();
+  int numberOfFramesPerTimestep = this-&gt;m_ImageFrameList.size() / numberOfTimesteps;
+  assert(int(double((double)this-&gt;m_ImageFrameList.size() / (double)numberOfTimesteps))</span>
+    == numberOfFramesPerTimestep); // this should hold
+
+<span style = "background-color:#fdd">  return numberOfFramesPerTimestep;
+};</span>
+
+
+void mitk::DICOMImageBlockDescriptor::SetTagCache( DICOMTagCache* privateCache )
+<span style = "background-color:#fdd">{</span>
+  // this must only be used during loading and never afterwards
+<span style = "background-color:#fdd">  m_TagCache = privateCache;
+}</span>
+
+#define printPropertyRange( label, property_name )                                 \
+  \
+{                                                                             \
+    const std::string first = this-&gt;GetPropertyAsString( #property_name "First" ); \
+    const std::string last  = this-&gt;GetPropertyAsString( #property_name "Last" );  \
+    if ( !first.empty() || !last.empty() )                                         \
+    {                                                                              \
+      if ( first == last )                                                         \
+      {                                                                            \
+        os &lt;&lt; "  " label ": '" &lt;&lt; first &lt;&lt; "'" &lt;&lt; std::endl;                       \
+      }                                                                            \
+      else                                                                         \
+      {                                                                            \
+        os &lt;&lt; "  " label ": '" &lt;&lt; first &lt;&lt; "' - '" &lt;&lt; last &lt;&lt; "'" &lt;&lt; std::endl;    \
+      }                                                                            \
+    }                                                                              \
+  \
+}
+
+#define printProperty( label, property_name )                              \
+  \
+{                                                                     \
+    const std::string first = this-&gt;GetPropertyAsString( #property_name ); \
+    if ( !first.empty() )                                                  \
+    {                                                                      \
+      os &lt;&lt; "  " label ": '" &lt;&lt; first &lt;&lt; "'" &lt;&lt; std::endl;                 \
+    }                                                                      \
+  \
+}
+
+#define printBool( label, commands )                                           \
+  \
+{                                                                         \
+    os &lt;&lt; "  " label ": '" &lt;&lt; ( commands ? "yes" : "no" ) &lt;&lt; "'" &lt;&lt; std::endl; \
+  \
+}
+
+
+
+
+void mitk::DICOMImageBlockDescriptor::Print(std::ostream&amp; os, bool filenameDetails) const
+<span style = "background-color:#fdd">{
+  os &lt;&lt; "  Number of Frames: '" &lt;&lt; m_ImageFrameList.size() &lt;&lt; "'" &lt;&lt; std::endl;
+  os &lt;&lt; "  SOP class: '" &lt;&lt; this-&gt;GetSOPClassUIDAsName() &lt;&lt; "'" &lt;&lt; std::endl;</span>
+
+<span style = "background-color:#fdd">  printProperty( "Series Number", seriesNumber );
+  printProperty( "Study Description", studyDescription );
+  printProperty( "Series Description", seriesDescription );
+  printProperty( "Modality", modality );
+  printProperty( "Sequence Name", sequenceName );</span>
+
+<span style = "background-color:#fdd">  printPropertyRange( "Slice Location", sliceLocation );
+  printPropertyRange( "Acquisition Number", acquisitionNumber );
+  printPropertyRange( "Instance Number", instanceNumber );
+  printPropertyRange( "Image Position", imagePositionPatient );
+  printProperty( "Image Orientation", orientation );</span>
+
+<span style = "background-color:#fdd">  os &lt;&lt; "  Pixel spacing interpretation: '"</span>
+     &lt;&lt; PixelSpacingInterpretationToString( this-&gt;GetPixelSpacingInterpretation() ) &lt;&lt; "'" &lt;&lt; std::endl;
+<span style = "background-color:#fdd">  printBool( "Gantry Tilt", this-&gt;GetTiltInformation().IsRegularGantryTilt() )</span>
+    // printBool("3D+t", this-&gt;GetFlag("3D+t",false))
+
+    // os &lt;&lt; "  MITK image loaded: '" &lt;&lt; (this-&gt;GetMitkImage().IsNotNull() ? "yes" : "no") &lt;&lt; "'" &lt;&lt;
+    // std::endl;
+<span style = "background-color:#fdd">    if ( filenameDetails )</span>
+  {
+<span style = "background-color:#fdd">    os &lt;&lt; "  Files in this image block:" &lt;&lt; std::endl;
+    for ( auto frameIter = m_ImageFrameList.begin(); frameIter != m_ImageFrameList.end(); ++frameIter )</span>
+    {
+<span style = "background-color:#fdd">      os &lt;&lt; "    " &lt;&lt; ( *frameIter )-&gt;Filename;
+      if ( ( *frameIter )-&gt;FrameNo &gt; 0 )</span>
+      {
+<span style = "background-color:#fdd">        os &lt;&lt; ", " &lt;&lt; ( *frameIter )-&gt;FrameNo;</span>
+      }
+<span style = "background-color:#fdd">      os &lt;&lt; std::endl;
+    }</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+#define storeTagValueToProperty( tag_name, tag_g, tag_e )                  \
+  \
+{                                                                     \
+    const DICOMTag t( tag_g, tag_e );                                      \
+    const std::string tagValue = tagCache-&gt;GetTagValue( firstFrame, t ).value; \
+    const_cast&lt;DICOMImageBlockDescriptor*&gt;( this )                         \
+      -&gt;SetProperty( #tag_name, StringProperty::New( tagValue ) );         \
+  \
+}
+
+#define storeTagValueRangeToProperty( tag_name, tag_g, tag_e )                  \
+  \
+{                                                                          \
+    const DICOMTag t( tag_g, tag_e );                                           \
+    const std::string tagValueFirst = tagCache-&gt;GetTagValue( firstFrame, t ).value; \
+    const std::string tagValueLast  = tagCache-&gt;GetTagValue( lastFrame, t ).value;  \
+    const_cast&lt;DICOMImageBlockDescriptor*&gt;( this )                              \
+      -&gt;SetProperty( #tag_name "First", StringProperty::New( tagValueFirst ) ); \
+    const_cast&lt;DICOMImageBlockDescriptor*&gt;( this )                              \
+      -&gt;SetProperty( #tag_name "Last", StringProperty::New( tagValueLast ) );   \
+  \
+}
+
+
+void mitk::DICOMImageBlockDescriptor::UpdateImageDescribingProperties() const
+<span style = "background-color:#fdd">{
+  if ( !m_PropertiesOutOfDate )
+    return;</span>
+
+<span style = "background-color:#fdd">  if ( !m_ImageFrameList.empty() )</span>
+  {
+<span style = "background-color:#fdd">    if ( m_TagCache.IsExpired() )</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Invalid call to DICOMImageBlockDescriptor::UpdateImageDescribingProperties(). Need to "</span>
+                    "have initialized tag-cache!";
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+<span style = "background-color:#fdd">    auto tagCache = m_TagCache.Lock();</span>
+
+<span style = "background-color:#fdd">    if (tagCache.IsNull())</span>
+    {
+<span style = "background-color:#fdd">      MITK_ERROR &lt;&lt; "Invalid call to DICOMImageBlockDescriptor::UpdateImageDescribingProperties(). Need to "</span>
+        "have initialized tag-cache!";
+<span style = "background-color:#fdd">      return;</span>
+    }
+
+
+<span style = "background-color:#fdd">    const DICOMImageFrameInfo::Pointer firstFrame = m_ImageFrameList.front();
+    const DICOMImageFrameInfo::Pointer lastFrame  = m_ImageFrameList.back();</span>
+
+    // see macros above
+<span style = "background-color:#fdd">    storeTagValueToProperty( seriesNumber, 0x0020, 0x0011 );
+    storeTagValueToProperty( studyDescription, 0x0008, 0x1030 );
+    storeTagValueToProperty( seriesDescription, 0x0008, 0x103e );
+    storeTagValueToProperty( modality, 0x0008, 0x0060 );
+    storeTagValueToProperty( sequenceName, 0x0018, 0x0024 );
+    storeTagValueToProperty( orientation, 0x0020, 0x0037 );
+    storeTagValueToProperty( rows, 0x0028, 0x0010 );
+    storeTagValueToProperty( columns, 0x0028, 0x0011 );</span>
+
+<span style = "background-color:#fdd">    storeTagValueRangeToProperty( sliceLocation, 0x0020, 0x1041 );
+    storeTagValueRangeToProperty( acquisitionNumber, 0x0020, 0x0012 );
+    storeTagValueRangeToProperty( instanceNumber, 0x0020, 0x0013 );
+    storeTagValueRangeToProperty( imagePositionPatient, 0x0020, 0x0032 );</span>
+
+<span style = "background-color:#fdd">    storeTagValueToProperty( windowCenter, 0x0028, 0x1050 );
+    storeTagValueToProperty( windowWidth, 0x0028, 0x1051 );
+    storeTagValueToProperty( imageType, 0x0008, 0x0008 );
+    storeTagValueToProperty( photometricInterpretation, 0x0028, 0x0004 );</span>
+
+    // some per-image attributes
+    // frames are just numbered starting from 0. timestep 1 (the second time-step) has frames starting at
+    // (number-of-frames-per-timestep)
+    //     std::string propertyKeySliceLocation = "dicom.image.0020.1041";
+    //     std::string propertyKeyInstanceNumber = "dicom.image.0020.0013";
+    //     std::string propertyKeySOPInstanceNumber = "dicom.image.0008.0018";
+
+<span style = "background-color:#fdd">    StringLookupTable sliceLocationForSlices;
+    StringLookupTable instanceNumberForSlices;
+    StringLookupTable SOPInstanceUIDForSlices;
+    StringLookupTable filenamesForSlices_deprecated;
+    DICOMCachedValueLookupTable filenamesForSlices;</span>
+
+<span style = "background-color:#fdd">    const DICOMTag tagSliceLocation( 0x0020, 0x1041 );
+    const DICOMTag tagInstanceNumber( 0x0020, 0x0013 );
+    const DICOMTag tagSOPInstanceNumber( 0x0008, 0x0018 );</span>
+
+<span style = "background-color:#fdd">    std::unordered_map&lt;std::string, DICOMCachedValueLookupTable&gt; additionalTagResultList;</span>
+
+<span style = "background-color:#fdd">    unsigned int slice(0);
+    int timePoint(-1);
+    const int framesPerTimeStep = this-&gt;GetNumberOfFramesPerTimeStep();
+    for ( auto frameIter = m_ImageFrameList.begin(); frameIter != m_ImageFrameList.end();
+          ++slice, ++frameIter )</span>
+    {
+<span style = "background-color:#fdd">      unsigned int zSlice = slice%framesPerTimeStep;
+      if ( zSlice == 0)</span>
+      {
+<span style = "background-color:#fdd">        timePoint++;</span>
+      }
+
+<span style = "background-color:#fdd">      const std::string sliceLocation = tagCache-&gt;GetTagValue( *frameIter, tagSliceLocation ).value;
+      sliceLocationForSlices.SetTableValue( slice, sliceLocation );</span>
+
+<span style = "background-color:#fdd">      const std::string instanceNumber = tagCache-&gt;GetTagValue( *frameIter, tagInstanceNumber ).value;
+      instanceNumberForSlices.SetTableValue( slice, instanceNumber );</span>
+
+<span style = "background-color:#fdd">      const std::string sopInstanceUID = tagCache-&gt;GetTagValue( *frameIter, tagSOPInstanceNumber ).value;
+      SOPInstanceUIDForSlices.SetTableValue( slice, sopInstanceUID );</span>
+
+<span style = "background-color:#fdd">      const std::string filename = ( *frameIter )-&gt;Filename;
+      filenamesForSlices_deprecated.SetTableValue( slice, filename );
+      filenamesForSlices.SetTableValue(slice, { static_cast&lt;unsigned int&gt;(timePoint), zSlice, filename });</span>
+
+<span style = "background-color:#fdd">      MITK_DEBUG &lt;&lt; "Tag info for slice " &lt;&lt; slice &lt;&lt; ": SL '" &lt;&lt; sliceLocation &lt;&lt; "' IN '" &lt;&lt; instanceNumber</span>
+                 &lt;&lt; "' SOP instance UID '" &lt;&lt; sopInstanceUID &lt;&lt; "'";
+
+<span style = "background-color:#fdd">      for (const auto&amp; tag : m_AdditionalTagMap)</span>
+      {
+<span style = "background-color:#fdd">        const DICOMTagCache::FindingsListType findings = tagCache-&gt;GetTagValue( *frameIter, tag.first );
+        for (const auto&amp; finding : findings)</span>
+        {
+<span style = "background-color:#fdd">          if (finding.isValid)</span>
+          {
+<span style = "background-color:#fdd">            std::string propKey = (tag.second.empty()) ? DICOMTagPathToPropertyName(finding.path) : tag.second;
+          DICOMCachedValueInfo info{ static_cast&lt;unsigned int&gt;(timePoint), zSlice, finding.value };
+            additionalTagResultList[propKey].SetTableValue(slice, info);
+          }
+        }
+      }
+    }</span>
+
+    // add property or properties with proper names
+<span style = "background-color:#fdd">    auto* thisInstance = const_cast&lt;DICOMImageBlockDescriptor*&gt;( this );
+    thisInstance-&gt;SetProperty( "sliceLocationForSlices",</span>
+                               StringLookupTableProperty::New( sliceLocationForSlices ) );
+
+<span style = "background-color:#fdd">    thisInstance-&gt;SetProperty( "instanceNumberForSlices",</span>
+                               StringLookupTableProperty::New( instanceNumberForSlices ) );
+
+<span style = "background-color:#fdd">    thisInstance-&gt;SetProperty( "SOPInstanceUIDForSlices",</span>
+                               StringLookupTableProperty::New( SOPInstanceUIDForSlices ) );
+
+<span style = "background-color:#fdd">    thisInstance-&gt;SetProperty( "filenamesForSlices_deprecated", StringLookupTableProperty::New( filenamesForSlices_deprecated ) );
+    thisInstance-&gt;SetProperty("filenamesForSlices", m_PropertyFunctor(filenamesForSlices));</span>
+
+    //add properties for additional tags of interest
+
+<span style = "background-color:#fdd">    for ( auto iter = additionalTagResultList.cbegin(); iter != additionalTagResultList.cend(); ++iter )</span>
+    {
+<span style = "background-color:#fdd">      thisInstance-&gt;SetProperty( iter-&gt;first, m_PropertyFunctor( iter-&gt;second ) );
+      thisInstance-&gt;m_FoundAdditionalTags.insert(m_FoundAdditionalTags.cend(),iter-&gt;first);
+    }</span>
+
+<span style = "background-color:#fdd">    m_PropertiesOutOfDate = false;
+  }
+}</span>
+
+
+mitk::BaseProperty::Pointer
+mitk::DICOMImageBlockDescriptor::GetPropertyForDICOMValues(const DICOMCachedValueLookupTable&amp; cacheLookupTable)
+<span style = "background-color:#fdd">{
+  const auto&amp; lookupTable = cacheLookupTable.GetLookupTable();</span>
+  typedef std::pair&lt;int, DICOMCachedValueInfo&gt; PairType;
+  if ( std::adjacent_find(
+         lookupTable.cbegin(),
+         lookupTable.cend(),
+<span style = "background-color:#fdd">         []( const PairType&amp; lhs, const PairType&amp; rhs ) { return lhs.second.Value != rhs.second.Value; } )
+       == lookupTable.cend() )</span>
+  {
+<span style = "background-color:#fdd">    return static_cast&lt;mitk::BaseProperty::Pointer&gt;(</span>
+      mitk::StringProperty::New(cacheLookupTable.GetTableValue(0).Value).GetPointer());
+  }
+
+<span style = "background-color:#fdd">  StringLookupTable stringTable;
+  for (const auto &amp;element : lookupTable)</span>
+  {
+<span style = "background-color:#fdd">    stringTable.SetTableValue(element.first, element.second.Value);
+  }</span>
+
+<span style = "background-color:#fdd">  return static_cast&lt;mitk::BaseProperty::Pointer&gt;(</span>
+    mitk::StringLookupTableProperty::New(stringTable).GetPointer());
+<span style = "background-color:#fdd">}</span>
+
+
+void mitk::DICOMImageBlockDescriptor::SetTagLookupTableToPropertyFunctor( TagLookupTableToPropertyFunctor functor )
+<span style = "background-color:#fdd">{
+  if ( functor != nullptr )</span>
+  {
+<span style = "background-color:#fdd">    m_PropertyFunctor = functor;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::BaseProperty::ConstPointer mitk::DICOMImageBlockDescriptor::GetConstProperty(const std::string &amp;propertyKey,
+  const std::string &amp;/*contextName*/,  bool /*fallBackOnDefaultContext*/) const
+<span style = "background-color:#fdd">{
+  this-&gt;UpdateImageDescribingProperties();
+  return m_PropertyList-&gt;GetConstProperty(propertyKey);
+};</span>
+
+std::vector&lt;std::string&gt; mitk::DICOMImageBlockDescriptor::GetPropertyKeys(const std::string &amp;/*contextName*/,  bool /*includeDefaultContext*/) const
+<span style = "background-color:#fdd">{
+  this-&gt;UpdateImageDescribingProperties();
+  return m_PropertyList-&gt;GetPropertyKeys();
+};</span>
+
+std::vector&lt;std::string&gt; mitk::DICOMImageBlockDescriptor::GetPropertyContextNames() const
+<span style = "background-color:#fdd">{
+  return std::vector&lt;std::string&gt;();
+};</span></pre>
+	</body>
+</html>

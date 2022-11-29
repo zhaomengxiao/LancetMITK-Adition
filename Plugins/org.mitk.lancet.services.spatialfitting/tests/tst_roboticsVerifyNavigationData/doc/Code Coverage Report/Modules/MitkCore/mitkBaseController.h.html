@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkBaseController.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef BASECONTROLLER_H_HEADER_INCLUDED_C1E745A3
+#define BASECONTROLLER_H_HEADER_INCLUDED_C1E745A3
+
+#include "mitkEventStateMachine.h"
+#include "mitkOperationActor.h"
+#include "mitkStepper.h"
+#include &lt;MitkCoreExports.h&gt;
+#include &lt;itkObjectFactory.h&gt;
+
+namespace mitk
+{
+  class BaseRenderer;
+
+  //##Documentation
+  //## @brief Baseclass for renderer slice-/camera-control
+  //##
+  //## Tells the render (subclass of BaseRenderer) which slice (subclass
+  //## SliceNavigationController) or from which direction (subclass
+  //## CameraController) it has to render. Contains two Stepper for stepping
+  //## through the slices or through different camera views (e.g., for the
+  //## creation of a movie around the data), respectively, and through time, if
+  //## there is 3D+t data.
+  //## @note not yet implemented
+  //## @ingroup NavigationControl
+  class MITKCORE_EXPORT BaseController : public OperationActor, public itk::Object
+  {
+  public:
+    /** Standard class typedefs. */
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(BaseController, OperationActor);
+    itkFactorylessNewMacro(Self);</span>
+
+    //##Documentation
+    //## @brief Get the Stepper through the slices
+    Stepper *GetSlice();
+    const Stepper* GetSlice() const;
+
+    //##Documentation
+    //## @brief Get the Stepper through the time
+    Stepper *GetTime();
+    const Stepper* GetTime() const;
+
+  protected:
+    /**
+    * @brief Default Constructor
+    **/
+    BaseController();
+
+    /**
+    * @brief Default Destructor
+    **/
+    ~BaseController() override;
+
+    void ExecuteOperation(Operation *) override;
+
+    //## @brief Stepper through the time
+    Stepper::Pointer m_Time;
+    //## @brief Stepper through the slices
+    Stepper::Pointer m_Slice;
+
+    unsigned long m_LastUpdateTime;
+  };
+
+} // namespace mitk
+
+#endif /* BASECONTROLLER_H_HEADER_INCLUDED_C1E745A3 */</pre>
+	</body>
+</html>

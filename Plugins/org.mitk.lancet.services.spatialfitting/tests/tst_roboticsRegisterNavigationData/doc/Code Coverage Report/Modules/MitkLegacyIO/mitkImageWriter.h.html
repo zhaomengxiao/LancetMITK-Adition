@@ -1,0 +1,184 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageWriter.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef _MITK_IMAGE_WRITER__H_
+#define _MITK_IMAGE_WRITER__H_
+
+#include &lt;MitkLegacyIOExports.h&gt;
+#include &lt;mitkFileWriterWithInformation.h&gt;
+
+namespace mitk
+{
+  class Image;
+  /**
+   * @brief Writer for mitk::Image
+   *
+   * Uses the given extension (SetExtension) to decide the format to write
+   * (.mhd is default, .tif, .png, .jpg supported yet).
+   * @ingroup MitkLegacyIOModule
+   * @deprecatedSince{2014_10} Use mitk::IOUtils or mitk::FileWriterRegistry instead.
+   */
+  class MITKLEGACYIO_EXPORT ImageWriter : public mitk::FileWriterWithInformation
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(ImageWriter, mitk::FileWriter);</span>
+
+<span style = "background-color:#fdd">    itkFactorylessNewMacro(Self);</span>
+
+<span style = "background-color:#fdd">    itkCloneMacro(Self);</span>
+
+<span style = "background-color:#fdd">      mitkWriterMacro;</span>
+
+    /**
+     * Sets the filename of the file to write.
+     * @param fileName the name of the file to write.
+     */
+    void SetFileName(const char *fileName) override;
+    virtual void SetFileName(const std::string &amp;fileName);
+
+    /**
+     * @returns the name of the file to be written to disk.
+     */
+<span style = "background-color:#fdd">    itkGetStringMacro(FileName);</span>
+
+    /**
+     * \brief Explicitly set the extension to be added to the filename.
+     * @param extension Extension to be added to the filename, including a "."
+     * (e.g., ".mhd").
+     */
+    virtual void SetExtension(const char *extension);
+    virtual void SetExtension(const std::string &amp;extension);
+
+    /**
+     * \brief Get the extension to be added to the filename.
+     * @returns the extension to be added to the filename (e.g.,
+     * ".mhd").
+     */
+<span style = "background-color:#fdd">    itkGetStringMacro(Extension);</span>
+
+    /**
+     * \brief Set the extension to be added to the filename to the default
+     */
+    void SetDefaultExtension();
+
+    /**
+     * @warning multiple write not (yet) supported
+     */
+<span style = "background-color:#fdd">    itkSetStringMacro(FilePrefix);</span>
+
+    /**
+     * @warning multiple write not (yet) supported
+     */
+<span style = "background-color:#fdd">    itkGetStringMacro(FilePrefix);</span>
+
+    /**
+     * @warning multiple write not (yet) supported
+     */
+<span style = "background-color:#fdd">    itkSetStringMacro(FilePattern);</span>
+
+    /**
+     * @warning multiple write not (yet) supported
+     */
+<span style = "background-color:#fdd">    itkGetStringMacro(FilePattern);</span>
+
+    /**
+     * Sets the 0'th input object for the filter.
+     * @param input the first input for the filter.
+     */
+    void SetInput(mitk::Image *input);
+
+    //##Documentation
+    //## @brief Return the possible file extensions for the data type associated with the writer
+    std::vector&lt;std::string&gt; GetPossibleFileExtensions() override;
+
+    std::string GetSupportedBaseData() const override;
+
+    /**
+    * @brief Return the extension to be added to the filename.
+    */
+    std::string GetFileExtension() override;
+
+    /**
+    * @brief Check if the Writer can write the Content of the
+    */
+    bool CanWriteDataType(DataNode *) override;
+
+    /**
+    * @brief Return the MimeType of the saved File.
+    */
+    std::string GetWritenMIMEType() override;
+
+    using Superclass::SetInput;
+    /**
+    * @brief Set the DataTreenode as Input. Important: The Writer always have a SetInput-Function.
+    */
+    virtual void SetInput(DataNode *);
+
+    /**
+     * @returns the 0'th input object of the filter.
+     */
+    const mitk::Image *GetInput();
+
+    // FileWriterWithInformation methods
+    const char *GetDefaultFilename() override;
+    const char *GetFileDialogPattern() override;
+    const char *GetDefaultExtension() override;
+    bool CanWriteBaseDataType(BaseData::Pointer data) override;
+    void DoWrite(BaseData::Pointer data) override;
+
+    void SetUseCompression(bool useCompression);
+
+  protected:
+    /**
+     * Constructor.
+     */
+    ImageWriter();
+
+    /**
+     * Virtual destructor.
+     */
+    ~ImageWriter() override;
+
+    void GenerateData() override;
+
+    virtual void WriteByITK(mitk::Image *image, const std::string &amp;fileName);
+
+    std::string m_FileName;
+
+    std::string m_FileNameWithoutExtension;
+
+    std::string m_FilePrefix;
+
+    std::string m_FilePattern;
+
+    std::string m_Extension;
+
+    std::string m_MimeType;
+
+    bool m_UseCompression;
+  };
+}
+
+#endif //_MITK_IMAGE_WRITER__H_</pre>
+	</body>
+</html>

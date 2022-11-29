@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLevelWindowProperty.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLevelWindowProperty.h"
+
+mitk::LevelWindowProperty::LevelWindowProperty()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::LevelWindowProperty::LevelWindowProperty(const mitk::LevelWindowProperty &amp;other)
+<span style = "background-color:#fdd">  : BaseProperty(other), m_LevWin(other.m_LevWin)
+{
+}</span>
+
+mitk::LevelWindowProperty::LevelWindowProperty(const mitk::LevelWindow &amp;levWin)
+<span style = "background-color:#fdd">{
+  SetLevelWindow(levWin);
+}</span>
+
+mitk::LevelWindowProperty::~LevelWindowProperty()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::LevelWindowProperty::IsEqual(const BaseProperty &amp;property) const
+<span style = "background-color:#fdd">{
+  return this-&gt;m_LevWin == static_cast&lt;const Self &amp;&gt;(property).m_LevWin;
+}</span>
+
+bool mitk::LevelWindowProperty::Assign(const BaseProperty &amp;property)
+<span style = "background-color:#fdd">{
+  this-&gt;m_LevWin = static_cast&lt;const Self &amp;&gt;(property).m_LevWin;
+  return true;
+}</span>
+
+const mitk::LevelWindow &amp;mitk::LevelWindowProperty::GetLevelWindow() const
+<span style = "background-color:#fdd">{
+  return m_LevWin;
+}</span>
+
+const mitk::LevelWindow &amp;mitk::LevelWindowProperty::GetValue() const
+<span style = "background-color:#fdd">{
+  return GetLevelWindow();
+}</span>
+
+void mitk::LevelWindowProperty::SetLevelWindow(const mitk::LevelWindow &amp;levWin)
+<span style = "background-color:#fdd">{
+  if (m_LevWin != levWin)</span>
+  {
+<span style = "background-color:#fdd">    m_LevWin = levWin;
+    Modified();</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+void mitk::LevelWindowProperty::SetValue(const ValueType &amp;levWin)
+<span style = "background-color:#fdd">{
+  SetLevelWindow(levWin);
+}</span>
+
+std::string mitk::LevelWindowProperty::GetValueAsString() const
+<span style = "background-color:#fdd">{
+  std::stringstream myStr;
+  myStr &lt;&lt; "L:" &lt;&lt; m_LevWin.GetLevel() &lt;&lt; " W:" &lt;&lt; m_LevWin.GetWindow();
+  return myStr.str();
+}</span>
+
+itk::LightObject::Pointer mitk::LevelWindowProperty::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result(new Self(*this));
+  result-&gt;UnRegister();
+  return result;
+}</span></pre>
+	</body>
+</html>

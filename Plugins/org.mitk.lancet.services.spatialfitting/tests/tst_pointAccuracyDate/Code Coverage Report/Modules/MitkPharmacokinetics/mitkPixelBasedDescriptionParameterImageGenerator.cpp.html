@@ -1,0 +1,204 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPixelBasedDescriptionParameterImageGenerator.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "itkCommand.h"
+#include "itkMultiOutputNaryFunctorImageFilter.h"
+
+#include "mitkPixelBasedDescriptionParameterImageGenerator.h"
+#include "mitkImageTimeSelector.h"
+#include "mitkImageAccessByItk.h"
+#include "mitkImageCast.h"
+#include "mitkSimpleFunctorPolicy.h"
+#include "mitkModelBase.h"
+
+void
+  mitk::PixelBasedDescriptionParameterImageGenerator::
+  onFitProgressEvent(::itk::Object* caller, const ::itk::EventObject&amp; /*eventObject*/)
+<span style = "background-color:#fdd">{
+  this-&gt;InvokeEvent(::itk::ProgressEvent());</span>
+
+<span style = "background-color:#fdd">  itk::ProcessObject* process = dynamic_cast&lt;itk::ProcessObject*&gt;(caller);
+  if (process)</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;m_Progress = process-&gt;GetProgress();</span>
+  }
+<span style = "background-color:#fdd">};</span>
+
+template &lt;typename TPixel, unsigned int VDim&gt;
+void
+  mitk::PixelBasedDescriptionParameterImageGenerator::DoPrepareMask(itk::Image&lt;TPixel, VDim&gt;* image)
+<span style = "background-color:#fdd">{
+  m_InternalMask = dynamic_cast&lt;InternalMaskType*&gt;(image);</span>
+
+<span style = "background-color:#fdd">  if (m_InternalMask.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    MITK_INFO &lt;&lt; "Parameter Fit Generator. Need to cast mask for parameter fit.";</span>
+    typedef itk::Image&lt;TPixel, VDim&gt; InputImageType;
+    typedef itk::CastImageFilter&lt; InputImageType, InternalMaskType &gt; CastFilterType;
+<span style = "background-color:#fdd">    typename CastFilterType::Pointer  spImageCaster =  CastFilterType::New();</span>
+
+<span style = "background-color:#fdd">    spImageCaster-&gt;SetInput(image);</span>
+
+<span style = "background-color:#fdd">    m_InternalMask = spImageCaster-&gt;GetOutput();
+    spImageCaster-&gt;Update();
+  }
+}</span>
+
+template&lt;typename TImage&gt;
+mitk::PixelBasedDescriptionParameterImageGenerator::ParameterImageMapType StoreResultImages(const mitk::CurveParameterFunctor::ParameterNamesType &amp;paramNames, itk::ImageSource&lt;TImage&gt;* source)
+<span style = "background-color:#fdd">{
+  if (source-&gt;GetNumberOfOutputs() != paramNames.size())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error while generating fitted parameter images. Number of sources does not match expected parameter number. Output size: " &lt;&lt; source-&gt;GetNumberOfOutputs() &lt;&lt; "; number of param names: " &lt;&lt; paramNames.size();</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::PixelBasedDescriptionParameterImageGenerator::ParameterImageMapType result;
+  for (mitk::CurveParameterFunctor::ParameterNamesType::size_type j = 0; j &lt; paramNames.size(); ++j)</span>
+  {
+<span style = "background-color:#fdd">    mitk::Image::Pointer paramImage = mitk::Image::New();
+    typename TImage::ConstPointer outputImg = source-&gt;GetOutput(j);
+    mitk::CastToMitkImage(outputImg, paramImage);</span>
+
+<span style = "background-color:#fdd">    result.insert(std::make_pair(paramNames[j],paramImage));
+  }</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+template &lt;typename TPixel, unsigned int VDim&gt;
+void
+  mitk::PixelBasedDescriptionParameterImageGenerator::DoParameterCalculation(itk::Image&lt;TPixel, VDim&gt;* /*image*/)
+<span style = "background-color:#fdd">{</span>
+  typedef itk::Image&lt;TPixel, VDim-1&gt; InputFrameImageType;
+  typedef itk::Image&lt;ScalarType, VDim-1&gt; ParameterImageType;
+
+  typedef itk::MultiOutputNaryFunctorImageFilter&lt;InputFrameImageType, ParameterImageType, SimpleFunctorPolicy, InternalMaskType&gt; DescriptorFilterType;
+
+<span style = "background-color:#fdd">  typename DescriptorFilterType::Pointer descFilter = DescriptorFilterType::New();</span>
+
+<span style = "background-color:#fdd">  typename ::itk::MemberCommand&lt;Self&gt;::Pointer spProgressCommand = ::itk::MemberCommand&lt;Self&gt;::New();
+  spProgressCommand-&gt;SetCallbackFunction(this, &amp;Self::onFitProgressEvent);
+  descFilter-&gt;AddObserver(::itk::ProgressEvent(), spProgressCommand);</span>
+
+  //add the time frames to the descriptor filter
+<span style = "background-color:#fdd">  std::vector&lt;Image::Pointer&gt; frameCache;
+  for (unsigned int i = 0; i &lt; this-&gt;m_DynamicImage-&gt;GetTimeSteps(); ++i)</span>
+  {
+<span style = "background-color:#fdd">    typename InputFrameImageType::Pointer frameImage;
+    mitk::ImageTimeSelector::Pointer imageTimeSelector =	mitk::ImageTimeSelector::New();
+    imageTimeSelector-&gt;SetInput(this-&gt;m_DynamicImage);
+    imageTimeSelector-&gt;SetTimeNr(i);
+    imageTimeSelector-&gt;UpdateLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">    Image::Pointer frameMITKImage = imageTimeSelector-&gt;GetOutput();
+    frameCache.push_back(frameMITKImage);
+    mitk::CastToItkImage(frameMITKImage, frameImage);
+    descFilter-&gt;SetInput(i,frameImage);
+  }</span>
+
+
+<span style = "background-color:#fdd">  SimpleFunctorPolicy functor;</span>
+
+<span style = "background-color:#fdd">  functor.SetFunctor(this-&gt;m_Functor);
+  descFilter-&gt;SetFunctor(functor);
+  if (this-&gt;m_InternalMask.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    descFilter-&gt;SetMask(this-&gt;m_InternalMask);</span>
+  }
+
+  //generate the fits
+<span style = "background-color:#fdd">  descFilter-&gt;Update();</span>
+
+  //convert the outputs into mitk images and fill the parameter image map
+<span style = "background-color:#fdd">  CurveParameterFunctor::ParameterNamesType paramNames = this-&gt;m_Functor-&gt;GetDescriptionParameterNames();</span>
+
+<span style = "background-color:#fdd">  if (descFilter-&gt;GetNumberOfOutputs() != (paramNames.size()))</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Error while generating fitted parameter images. Fit filter output size does not match expected parameter number. Output size: "&lt;&lt; descFilter-&gt;GetNumberOfOutputs();</span>
+  }
+
+<span style = "background-color:#fdd">  this-&gt;m_TempResultMap = StoreResultImages&lt;ParameterImageType&gt;(paramNames,descFilter);
+}</span>
+
+bool
+  mitk::PixelBasedDescriptionParameterImageGenerator::HasOutdatedResult() const
+<span style = "background-color:#fdd">{
+  bool result = Superclass::HasOutdatedResult();</span>
+
+<span style = "background-color:#fdd">  if (m_DynamicImage.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if (m_DynamicImage-&gt;GetMTime() &gt; this-&gt;m_GenerationTimeStamp)</span>
+    {
+<span style = "background-color:#fdd">      result = true;</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  if (m_Mask.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    if (m_Mask-&gt;GetMTime() &gt; this-&gt;m_GenerationTimeStamp)</span>
+    {
+<span style = "background-color:#fdd">      result = true;</span>
+    }
+  }
+
+<span style = "background-color:#fdd">  return result;</span>
+
+<span style = "background-color:#fdd">};</span>
+
+void
+  mitk::PixelBasedDescriptionParameterImageGenerator::CheckValidInputs() const
+<span style = "background-color:#fdd">{
+  Superclass::CheckValidInputs();</span>
+
+<span style = "background-color:#fdd">  if (m_DynamicImage.IsNull())</span>
+  {
+<span style = "background-color:#fdd">    mitkThrow() &lt;&lt; "Cannot generate fitted parameter images. Input dynamic image is not set.";</span>
+  }
+
+<span style = "background-color:#fdd">};</span>
+
+void mitk::PixelBasedDescriptionParameterImageGenerator::DoParameterCalculationAndGetResults(ParameterImageMapType&amp; parameterImages)
+<span style = "background-color:#fdd">{
+  this-&gt;m_Progress = 0;</span>
+
+<span style = "background-color:#fdd">  if(this-&gt;m_Mask.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    AccessFixedDimensionByItk(m_Mask, mitk::PixelBasedDescriptionParameterImageGenerator::DoPrepareMask, 3);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;m_InternalMask = nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  AccessFixedDimensionByItk(m_DynamicImage, mitk::PixelBasedDescriptionParameterImageGenerator::DoParameterCalculation, 4);</span>
+
+<span style = "background-color:#fdd">  parameterImages = this-&gt;m_TempResultMap;
+ };</span>
+
+double
+  mitk::PixelBasedDescriptionParameterImageGenerator::GetProgress() const
+<span style = "background-color:#fdd">{
+  return m_Progress;
+};</span></pre>
+	</body>
+</html>

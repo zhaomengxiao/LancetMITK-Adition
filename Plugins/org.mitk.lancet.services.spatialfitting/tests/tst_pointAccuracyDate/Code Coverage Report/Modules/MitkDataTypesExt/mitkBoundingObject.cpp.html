@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkBoundingObject.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkBoundingObject.h"
+#include "mitkBaseProcess.h"
+
+<span style = "background-color:#fdd">mitk::BoundingObject::BoundingObject() : Surface(), m_Positive(true)
+{</span>
+  //  Initialize(1);
+
+  /* bounding box around the unscaled bounding object */
+<span style = "background-color:#fdd">  ScalarType bounds[6] = {-1, 1, -1, 1, -1, 1}; //{xmin,x_max, ymin,y_max,zmin,z_max}
+  GetGeometry()-&gt;SetBounds(bounds);
+  GetTimeGeometry()-&gt;Update();
+}</span>
+
+mitk::BoundingObject::~BoundingObject()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::ScalarType mitk::BoundingObject::GetVolume()
+<span style = "background-color:#fdd">{
+  return 0.0;
+}</span>
+
+void mitk::BoundingObject::FitGeometry(mitk::BaseGeometry *aGeometry3D)
+<span style = "background-color:#fdd">{</span>
+  // Adjusted this function to fix
+  // BUG 6951 - Image Cropper - Bounding Box is strange
+  // Still, the behavior of the BoundingObject is really strange.
+  // One would think that writing "setGeometry(aGeometry3D)" here would do the job.
+  // But apparently the boundingObject can only be handled correctly, when it's
+  // indexBounds are from -1 to 1 in all axis (so it is only 2x2x2 Pixels big) and the spacing
+  // specifies it's actual bounds. This behavior needs to be analyzed and maybe changed.
+  // Check also BUG 11406
+
+<span style = "background-color:#fdd">  GetGeometry()-&gt;SetIdentity();
+  GetGeometry()-&gt;Compose(aGeometry3D-&gt;GetIndexToWorldTransform());
+  GetGeometry()-&gt;SetOrigin(aGeometry3D-&gt;GetCenter());</span>
+
+<span style = "background-color:#fdd">  mitk::Vector3D size;
+  for (unsigned int i = 0; i &lt; 3; ++i)
+    size[i] = (aGeometry3D-&gt;GetExtentInMM(i) / 2.0);
+  GetGeometry()-&gt;SetSpacing(size);
+  GetTimeGeometry()-&gt;Update();
+}</span></pre>
+	</body>
+</html>

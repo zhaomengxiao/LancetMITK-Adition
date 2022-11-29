@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageWriteAccessor.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKIMAGEWRITEACCESSOR_H
+#define MITKIMAGEWRITEACCESSOR_H
+
+#include "mitkImage.h"
+#include "mitkImageAccessorBase.h"
+
+namespace mitk
+{
+  /**
+   * @brief ImageWriteAccessor class to get locked write-access for a particular image part.
+   * @ingroup Data
+   */
+  class MITKCORE_EXPORT ImageWriteAccessor : public ImageAccessorBase
+  {
+    template &lt;class TPixel, unsigned int VDimension&gt;
+    friend class ImagePixelReadAccessor;
+
+  public:
+    typedef Image::Pointer ImagePointer;
+
+    /** \brief Orders write access for a slice, volume or 4D-Image
+     *  \param image specifies the associated Image
+     *  \param iDI specifies the allocated image part
+     *  \param OptionFlags properties from mitk::ImageAccessorBase::Options can be chosen and assembled with bitwise
+     * unification.
+     *  \throws mitk::Exception if the Constructor was created inappropriately
+     *  \throws mitk::MemoryIsLockedException if requested image area is exclusively locked and
+     * mitk::ImageAccessorBase::ExceptionIfLocked is set in OptionFlags
+     */
+    ImageWriteAccessor(ImagePointer image,
+                       const ImageDataItem *iDI = nullptr,
+                       int OptionFlags = ImageAccessorBase::DefaultBehavior);
+
+    /** \brief Gives full data access. */
+<span style = "background-color:#fdd">    inline void *GetData() { return m_AddressBegin; }</span>
+    /** \brief informs Image to unlock the represented image part */
+    ~ImageWriteAccessor() override;
+
+  protected:
+    const Image *GetImage() const override;
+
+  private:
+    /** \brief manages a consistent write access and locks the ordered image part */
+    void OrganizeWriteAccess();
+
+    ImageWriteAccessor &amp;operator=(const ImageWriteAccessor &amp;); // Not implemented on purpose.
+    ImageWriteAccessor(const ImageWriteAccessor &amp;);
+
+    ImagePointer m_Image;
+  };
+}
+#endif // MITKIMAGEWRITEACCESSOR_H</pre>
+	</body>
+</html>

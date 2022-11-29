@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationToolStorage.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationToolStorage.h"
+
+//Microservices
+#include &lt;usGetModuleContext.h&gt;
+#include &lt;usModule.h&gt;
+#include &lt;usModuleContext.h&gt;
+
+<span style = "background-color:#dfd">const std::string  mitk::NavigationToolStorage::US_INTERFACE_NAME = "org.mitk.services.NavigationToolStorage"; // Name of the interface
+const std::string  mitk::NavigationToolStorage::US_PROPKEY_SOURCE_ID = US_INTERFACE_NAME + ".sourceID";
+const std::string  mitk::NavigationToolStorage::US_PROPKEY_STORAGE_NAME = US_INTERFACE_NAME + ".name";</span>
+
+mitk::NavigationToolStorage::NavigationToolStorage()
+<span style = "background-color:#fdd">  : m_ToolCollection(std::vector&lt;mitk::NavigationTool::Pointer&gt;()),
+    m_DataStorage(nullptr),
+  m_storageLocked(false)
+{
+  this-&gt;SetName("ToolStorage (no name given)");
+}</span>
+
+mitk::NavigationToolStorage::NavigationToolStorage(mitk::DataStorage::Pointer ds)
+<span style = "background-color:#fdd">  : m_storageLocked(false)
+{
+  m_ToolCollection = std::vector&lt;mitk::NavigationTool::Pointer&gt;();
+  this-&gt;m_DataStorage = ds;
+  this-&gt;SetName("Tool Storage (no name given)");
+}</span>
+
+void mitk::NavigationToolStorage::SetName(std::string n)
+<span style = "background-color:#fdd">{
+  m_Name = n;
+  m_props[US_PROPKEY_STORAGE_NAME] = m_Name;
+}</span>
+
+std::string mitk::NavigationToolStorage::GetName() const
+<span style = "background-color:#fdd">{
+  return m_Name;
+}</span>
+
+void mitk::NavigationToolStorage::UpdateMicroservice()
+<span style = "background-color:#fdd">{
+  if (m_ServiceRegistration) { m_ServiceRegistration.SetProperties(m_props); }
+}</span>
+
+mitk::NavigationToolStorage::~NavigationToolStorage()
+<span style = "background-color:#fdd">{
+  if (m_DataStorage.IsNotNull()) //remove all nodes from the data storage</span>
+  {
+<span style = "background-color:#fdd">    for (std::vector&lt;mitk::NavigationTool::Pointer&gt;::iterator it = m_ToolCollection.begin(); it != m_ToolCollection.end(); it++)
+      m_DataStorage-&gt;Remove((*it)-&gt;GetDataNode());</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+<span style = "background-color:#fdd">void mitk::NavigationToolStorage::RegisterAsMicroservice(){</span>
+  // Get Context
+<span style = "background-color:#fdd">  us::ModuleContext* context = us::GetModuleContext();</span>
+
+  // Define ServiceProps
+<span style = "background-color:#fdd">  m_ServiceRegistration = context-&gt;RegisterService(this, m_props);</span>
+  //Tell all widgets, that there is a new toolStorage registered, e.g. the old one might have changed.
+<span style = "background-color:#fdd">  UpdateMicroservice();
+}</span>
+
+<span style = "background-color:#fdd">void mitk::NavigationToolStorage::UnRegisterMicroservice(){
+  if (!m_ServiceRegistration)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN("NavigationToolStorage")</span>
+      &lt;&lt; "Cannot unregister microservice as it wasn't registered before.";
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#fdd">  m_ServiceRegistration.Unregister();
+  m_ServiceRegistration = 0;
+}</span>
+
+bool mitk::NavigationToolStorage::DeleteTool(int number)
+<span style = "background-color:#fdd">{
+  if (m_storageLocked)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Storage is locked, cannot modify it!";
+    return false;
+  }</span>
+
+<span style = "background-color:#fdd">  else if ((unsigned int)number &gt; m_ToolCollection.size())</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Tool no " &lt;&lt; number &lt;&lt; "doesn't exist, can't delete it!";
+    return false;</span>
+  }
+<span style = "background-color:#fdd">  std::vector&lt;mitk::NavigationTool::Pointer&gt;::iterator it = m_ToolCollection.begin() + number;
+  if (m_DataStorage.IsNotNull())
+    m_DataStorage-&gt;Remove((*it)-&gt;GetDataNode());
+  m_ToolCollection.erase(it);</span>
+
+  //This line is important so that other widgets can get a notice that the toolStorage has changed!
+<span style = "background-color:#fdd">  this-&gt;UpdateMicroservice();
+  return true;
+}</span>
+
+bool mitk::NavigationToolStorage::DeleteAllTools()
+<span style = "background-color:#fdd">{
+  if (m_storageLocked)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Storage is locked, cannot modify it!";
+    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  while (m_ToolCollection.size() &gt; 0) if (!DeleteTool(0)) return false;
+  return true;
+}</span>
+
+bool mitk::NavigationToolStorage::AddTool(mitk::NavigationTool::Pointer tool)
+<span style = "background-color:#fdd">{
+  if (m_storageLocked)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Storage is locked, cannot modify it!";
+    return false;
+  }
+  else if (GetTool(tool-&gt;GetIdentifier()).IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Tool ID already exists in storage, can't add!";
+    return false;
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    m_ToolCollection.push_back(tool);
+    if (m_DataStorage.IsNotNull())</span>
+    {
+<span style = "background-color:#fdd">      if (!m_DataStorage-&gt;Exists(tool-&gt;GetDataNode()))
+        m_DataStorage-&gt;Add(tool-&gt;GetDataNode());</span>
+    }
+    //This line is important so that other widgets can get a notice that the toolStorage has changed!
+<span style = "background-color:#fdd">    this-&gt;UpdateMicroservice();
+    return true;</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::NavigationTool::Pointer mitk::NavigationToolStorage::GetTool(int number)
+<span style = "background-color:#fdd">{</span>
+  //todo check if number &gt; toolCount
+<span style = "background-color:#fdd">  return m_ToolCollection.at(number);
+}</span>
+
+mitk::NavigationTool::Pointer mitk::NavigationToolStorage::GetTool(std::string identifier)
+<span style = "background-color:#fdd">{
+  for (unsigned int i = 0; i &lt; GetToolCount(); i++) if ((GetTool(i)-&gt;GetIdentifier()) == identifier) return GetTool(i);
+  return nullptr;
+}</span>
+
+mitk::NavigationTool::Pointer mitk::NavigationToolStorage::GetToolByName(std::string name)
+<span style = "background-color:#fdd">{
+  for (unsigned int i = 0; i &lt; GetToolCount(); i++) if ((GetTool(i)-&gt;GetToolName()) == name) return GetTool(i);
+  return nullptr;
+}</span>
+
+int mitk::NavigationToolStorage::GetToolIndexByName(std::string name)
+<span style = "background-color:#fdd">{
+  for (unsigned int i = 0; i &lt; GetToolCount(); i++)
+    if ((GetTool(i)-&gt;GetToolName()) == name)
+      return i;
+  return -1;
+}</span>
+
+unsigned int mitk::NavigationToolStorage::GetToolCount()
+<span style = "background-color:#fdd">{
+  return m_ToolCollection.size();
+}</span>
+
+bool mitk::NavigationToolStorage::isEmpty()
+<span style = "background-color:#fdd">{
+  return m_ToolCollection.empty();
+}</span>
+
+void mitk::NavigationToolStorage::LockStorage()
+<span style = "background-color:#fdd">{
+  m_storageLocked = true;
+}</span>
+
+void mitk::NavigationToolStorage::UnLockStorage()
+<span style = "background-color:#fdd">{
+  m_storageLocked = false;
+}</span>
+
+bool mitk::NavigationToolStorage::isLocked()
+<span style = "background-color:#fdd">{
+  return m_storageLocked;
+}</span>
+
+bool mitk::NavigationToolStorage::AssignToolNumber(std::string identifier1, int number2)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetTool(identifier1).IsNull())</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Identifier does not exist, cannot assign new number";
+    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  if ((number2 &gt;= static_cast&lt;int&gt;(m_ToolCollection.size())) || (number2 &lt; 0))</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Invalid number, cannot assign new number";
+    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  mitk::NavigationTool::Pointer tool2 = m_ToolCollection.at(number2);</span>
+
+<span style = "background-color:#fdd">  int number1 = -1;</span>
+
+<span style = "background-color:#fdd">  for(int i = 0; i&lt;static_cast&lt;int&gt;(m_ToolCollection.size()); i++)</span>
+  {
+<span style = "background-color:#fdd">    if (m_ToolCollection.at(i)-&gt;GetIdentifier() == identifier1) { number1 = i; }
+  }</span>
+
+<span style = "background-color:#fdd">  m_ToolCollection[number2] = m_ToolCollection.at(number1);</span>
+
+<span style = "background-color:#fdd">  m_ToolCollection[number1] = tool2;</span>
+
+<span style = "background-color:#fdd">  MITK_DEBUG &lt;&lt; "Swapped tool " &lt;&lt; number2 &lt;&lt; " with tool " &lt;&lt; number1;</span>
+
+  //This line is important so that other widgets can get a notice that the toolStorage has changed!
+<span style = "background-color:#fdd">  this-&gt;UpdateMicroservice();</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+void mitk::NavigationToolStorage::SetSourceID(std::string _id)
+<span style = "background-color:#fdd">{
+  m_SourceID = _id;
+  m_props[US_PROPKEY_SOURCE_ID] = m_SourceID;
+}</span>
+
+/** @return Returns the name of this storage. */
+std::string mitk::NavigationToolStorage::GetSourceID() const
+<span style = "background-color:#fdd">{
+  return m_SourceID;
+}</span></pre>
+	</body>
+</html>

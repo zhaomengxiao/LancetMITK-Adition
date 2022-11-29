@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVerboseLimitedLinearUndo.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkVerboseLimitedLinearUndo.h"
+#include "mitkOperationEvent.h"
+
+mitk::VerboseLimitedLinearUndo::VerboseLimitedLinearUndo()
+<span style = "background-color:#fdd">{
+}</span>
+
+mitk::VerboseLimitedLinearUndo::~VerboseLimitedLinearUndo()
+<span style = "background-color:#fdd">{
+}</span>
+
+bool mitk::VerboseLimitedLinearUndo::SetOperationEvent(UndoStackItem *undoStackItem)
+<span style = "background-color:#fdd">{
+  if (!undoStackItem)
+    return false;</span>
+
+  // clear the redolist, if a new operation is saved
+<span style = "background-color:#fdd">  if (!m_RedoList.empty())</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;ClearList(&amp;m_RedoList);
+    InvokeEvent(RedoEmptyEvent());</span>
+  }
+
+<span style = "background-color:#fdd">  std::size_t undoLimit = this-&gt;GetUndoLimit();
+  if (0 != undoLimit &amp;&amp; m_UndoList.size() == undoLimit)</span>
+  {
+<span style = "background-color:#fdd">    auto item = m_UndoList.front();
+    m_UndoList.pop_front();
+    delete item;</span>
+  }
+<span style = "background-color:#fdd">  m_UndoList.push_back(undoStackItem);</span>
+
+<span style = "background-color:#fdd">  InvokeEvent(UndoNotEmptyEvent());</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+mitk::VerboseLimitedLinearUndo::StackDescription mitk::VerboseLimitedLinearUndo::GetUndoDescriptions()
+<span style = "background-color:#fdd">{
+  mitk::VerboseLimitedLinearUndo::StackDescription descriptions;</span>
+
+<span style = "background-color:#fdd">  if (m_UndoList.empty())
+    return descriptions;</span>
+
+<span style = "background-color:#fdd">  int oeid = m_UndoList.back()-&gt;GetObjectEventId(); // ObjectEventID of current group
+  std::string currentDescription;                   // description of current group
+  int currentDescriptionCount(0);                   // counter, how many items of the current group gave descriptions
+  bool niceDescriptionFound(false);                 // have we yet seen a plain descriptive entry (not OperationEvent)?
+  std::string lastDescription; // stores the last description to inhibit entries like "name AND name AND name..." if</span>
+                               // name is always the same
+
+<span style = "background-color:#fdd">  for (auto iter = m_UndoList.rbegin(); iter != m_UndoList.rend(); ++iter)</span>
+  {
+<span style = "background-color:#fdd">    if (oeid != (*iter)-&gt;GetObjectEventId())</span>
+    {
+      // current description complete, append to list
+<span style = "background-color:#fdd">      if (currentDescription.empty())
+        currentDescription = "Some unnamed action"; // set a default description</span>
+
+<span style = "background-color:#fdd">      descriptions.push_back(StackDescriptionItem(oeid, currentDescription));</span>
+
+<span style = "background-color:#fdd">      currentDescription = ""; // prepare for next group
+      currentDescriptionCount = 0;
+      niceDescriptionFound = false;
+      oeid = (*iter)-&gt;GetObjectEventId();</span>
+    }
+
+<span style = "background-color:#fdd">    if (!(*iter)-&gt;GetDescription().empty()) // if there is a description</span>
+    {
+<span style = "background-color:#fdd">      if (!dynamic_cast&lt;OperationEvent *&gt;(*iter))</span>
+      {
+        // anything but an OperationEvent overrides the collected descriptions
+<span style = "background-color:#fdd">        currentDescription = (*iter)-&gt;GetDescription();
+        niceDescriptionFound = true;
+      }
+      else if (!niceDescriptionFound) // mere descriptive items override OperationEvents' descriptions</span>
+      {
+<span style = "background-color:#fdd">        if (currentDescriptionCount) // if we have already seen another description</span>
+        {
+<span style = "background-color:#fdd">          if (lastDescription != (*iter)-&gt;GetDescription())</span>
+          {
+            // currentDescription += '\n';           // concatenate descriptions with newline
+<span style = "background-color:#fdd">            currentDescription += " AND "; // this has to wait until the popup can process multiline items
+            currentDescription += (*iter)-&gt;GetDescription();</span>
+          }
+<span style = "background-color:#fdd">        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          currentDescription += (*iter)-&gt;GetDescription();</span>
+        }
+      }
+<span style = "background-color:#fdd">      lastDescription = (*iter)-&gt;GetDescription();
+      ++currentDescriptionCount;
+    }</span>
+
+<span style = "background-color:#fdd">  } // for</span>
+
+  // add last description to list
+<span style = "background-color:#fdd">  if (currentDescription.empty())
+    currentDescription = "Some unnamed action";
+  descriptions.push_back(StackDescriptionItem(oeid, currentDescription));</span>
+
+<span style = "background-color:#fdd">  return descriptions; // list ready
+}</span>
+
+mitk::VerboseLimitedLinearUndo::StackDescription mitk::VerboseLimitedLinearUndo::GetRedoDescriptions()
+<span style = "background-color:#fdd">{
+  mitk::VerboseLimitedLinearUndo::StackDescription descriptions;</span>
+
+<span style = "background-color:#fdd">  if (m_RedoList.empty())
+    return descriptions;</span>
+
+<span style = "background-color:#fdd">  int oeid = m_RedoList.back()-&gt;GetObjectEventId(); // ObjectEventID of current group
+  std::string currentDescription;                   // description of current group
+  int currentDescriptionCount(0);                   // counter, how many items of the current group gave descriptions
+  bool niceDescriptionFound(false);                 // have we yet seen a plain descriptive entry (not OperationEvent)?
+  std::string lastDescription; // stores the last description to inhibit entries like "name AND name AND name..." if</span>
+                               // name is always the same
+
+<span style = "background-color:#fdd">  for (auto iter = m_RedoList.rbegin(); iter != m_RedoList.rend(); ++iter)</span>
+  {
+<span style = "background-color:#fdd">    if (oeid != (*iter)-&gt;GetObjectEventId())</span>
+    {
+      // current description complete, append to list
+<span style = "background-color:#fdd">      if (currentDescription.empty())
+        currentDescription = "Some unnamed action"; // set a default description</span>
+
+<span style = "background-color:#fdd">      descriptions.push_back(StackDescriptionItem(oeid, currentDescription));</span>
+
+<span style = "background-color:#fdd">      currentDescription = ""; // prepare for next group
+      currentDescriptionCount = 0;
+      niceDescriptionFound = false;
+      oeid = (*iter)-&gt;GetObjectEventId();</span>
+    }
+
+<span style = "background-color:#fdd">    if (!(*iter)-&gt;GetDescription().empty()) // if there is a description</span>
+    {
+<span style = "background-color:#fdd">      if (!dynamic_cast&lt;OperationEvent *&gt;(*iter))</span>
+      {
+        // anything but an OperationEvent overrides the collected descriptions
+<span style = "background-color:#fdd">        currentDescription = (*iter)-&gt;GetDescription();
+        niceDescriptionFound = true;
+      }
+      else if (!niceDescriptionFound) // mere descriptive items override OperationEvents' descriptions</span>
+      {
+<span style = "background-color:#fdd">        if (currentDescriptionCount) // if we have already seen another description</span>
+        {
+<span style = "background-color:#fdd">          if (lastDescription != (*iter)-&gt;GetDescription())</span>
+          {
+            // currentDescription += '\n';           // concatenate descriptions with newline
+<span style = "background-color:#fdd">            currentDescription += " AND "; // this has to wait until the popup can process multiline items
+            currentDescription += (*iter)-&gt;GetDescription();</span>
+          }
+<span style = "background-color:#fdd">        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          currentDescription += (*iter)-&gt;GetDescription();</span>
+        }
+      }
+<span style = "background-color:#fdd">      lastDescription = (*iter)-&gt;GetDescription();
+      ++currentDescriptionCount;
+    }</span>
+
+<span style = "background-color:#fdd">  } // for</span>
+
+  // add last description to list
+<span style = "background-color:#fdd">  if (currentDescription.empty())
+    currentDescription = "Some unnamed action";
+  descriptions.push_back(StackDescriptionItem(oeid, currentDescription));</span>
+
+<span style = "background-color:#fdd">  return descriptions; // list ready
+}</span></pre>
+	</body>
+</html>

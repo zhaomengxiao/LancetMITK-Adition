@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usTrackedService.tpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+US_BEGIN_NAMESPACE
+
+template&lt;class S, class TTT&gt;
+TrackedService&lt;S,TTT&gt;::TrackedService(ServiceTracker&lt;S,TTT&gt;* serviceTracker,
+                  ServiceTrackerCustomizer&lt;S,T&gt;* customizer)
+<span style = "background-color:#dfd">  : serviceTracker(serviceTracker), customizer(customizer)
+{</span>
+
+<span style = "background-color:#dfd">}</span>
+
+template&lt;class S, class TTT&gt;
+void TrackedService&lt;S,TTT&gt;::ServiceChanged(const ServiceEvent event)
+<span style = "background-color:#dfd">{</span>
+  /*
+   * Check if we had a delayed call (which could happen when we
+   * close).
+   */
+<span style = "background-color:#dfd">  if (this-&gt;closed)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#dfd">  ServiceReference&lt;S&gt; reference = event.GetServiceReference(InterfaceType&lt;S&gt;());
+  US_DEBUG(serviceTracker-&gt;d-&gt;DEBUG_OUTPUT) &lt;&lt; "TrackedService::ServiceChanged["</span>
+                                            &lt;&lt; event.GetType() &lt;&lt; "]: " &lt;&lt; reference;
+<span style = "background-color:#dfd">  if (!reference)</span>
+  {
+<span style = "background-color:#fdd">    return;</span>
+  }
+
+<span style = "background-color:#dfd">  switch (event.GetType())</span>
+  {
+  case ServiceEvent::REGISTERED :
+  case ServiceEvent::MODIFIED :
+    {
+<span style = "background-color:#dfd">      if (!serviceTracker-&gt;d-&gt;listenerFilter.empty())</span>
+      { // service listener added with filter
+<span style = "background-color:#dfd">        this-&gt;Track(reference, event);</span>
+        /*
+       * If the customizer throws an unchecked exception, it
+       * is safe to let it propagate
+       */
+<span style = "background-color:#dfd">      }</span>
+      else
+      { // service listener added without filter
+<span style = "background-color:#fdd">        if (serviceTracker-&gt;d-&gt;filter.Match(reference))</span>
+        {
+<span style = "background-color:#fdd">          this-&gt;Track(reference, event);</span>
+          /*
+         * If the customizer throws an unchecked exception,
+         * it is safe to let it propagate
+         */
+<span style = "background-color:#fdd">        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          this-&gt;Untrack(reference, event);</span>
+          /*
+         * If the customizer throws an unchecked exception,
+         * it is safe to let it propagate
+         */
+        }
+      }
+<span style = "background-color:#dfd">      break;</span>
+    }
+  case ServiceEvent::MODIFIED_ENDMATCH :
+  case ServiceEvent::UNREGISTERING :
+<span style = "background-color:#dfd">    this-&gt;Untrack(reference, event);</span>
+    /*
+     * If the customizer throws an unchecked exception, it is
+     * safe to let it propagate
+     */
+    break;
+  }
+<span style = "background-color:#dfd">}</span>
+
+template&lt;class S, class TTT&gt;
+void TrackedService&lt;S,TTT&gt;::Modified()
+<span style = "background-color:#dfd">{
+  Superclass::Modified(); /* increment the modification count */
+  serviceTracker-&gt;d-&gt;Modified();
+}</span>
+
+template&lt;class S, class TTT&gt;
+typename TrackedService&lt;S,TTT&gt;::T
+TrackedService&lt;S,TTT&gt;::CustomizerAdding(ServiceReference&lt;S&gt; item,
+                                        const ServiceEvent&amp; /*related*/)
+<span style = "background-color:#dfd">{
+  return customizer-&gt;AddingService(item);
+}</span>
+
+template&lt;class S, class TTT&gt;
+void TrackedService&lt;S,TTT&gt;::CustomizerModified(ServiceReference&lt;S&gt; item,
+                                               const ServiceEvent&amp; /*related*/,
+                                               T object)
+<span style = "background-color:#fdd">{
+  customizer-&gt;ModifiedService(item, object);
+}</span>
+
+template&lt;class S, class TTT&gt;
+void TrackedService&lt;S,TTT&gt;::CustomizerRemoved(ServiceReference&lt;S&gt; item,
+                                              const ServiceEvent&amp; /*related*/,
+                                              T object)
+<span style = "background-color:#dfd">{
+  customizer-&gt;RemovedService(item, object);
+}</span>
+
+US_END_NAMESPACE</pre>
+	</body>
+</html>

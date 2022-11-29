@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usModuleResource.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+
+#include "usModuleResource.h"
+
+#include "usAtomicInt_p.h"
+#include "usModuleResourceContainer_p.h"
+#include "usModuleInfo.h"
+
+#include &lt;string&gt;
+
+US_BEGIN_NAMESPACE
+
+class ModuleResourcePrivate
+{
+
+public:
+
+  ModuleResourcePrivate(const ModuleResourceContainer* rc)
+<span style = "background-color:#dfd">    : resourceContainer(rc)
+    , ref(1)
+  {}</span>
+
+  void InitFilePath(const std::string&amp; file);
+
+  const ModuleResourceContainer* const resourceContainer;
+
+  ModuleResourceContainer::Stat stat;
+
+  std::string fileName;
+  std::string path;
+
+  mutable std::vector&lt;std::string&gt; children;
+  mutable std::vector&lt;uint32_t&gt; childNodes;
+
+  /**
+   * Reference count for implicitly shared private implementation.
+   */
+  AtomicInt ref;
+};
+
+void ModuleResourcePrivate::InitFilePath(const std::string&amp; file)
+<span style = "background-color:#dfd">{
+  std::string normalizedFile = file;
+  if (normalizedFile.empty() || normalizedFile[0] != '/')</span>
+  {
+<span style = "background-color:#dfd">    normalizedFile = '/' + normalizedFile;</span>
+  }
+
+<span style = "background-color:#dfd">  std::string rawPath;
+  std::size_t index = normalizedFile.find_last_of('/');
+  if (index == std::string::npos)</span>
+  {
+<span style = "background-color:#fdd">    fileName = normalizedFile;
+  }</span>
+<span style = "background-color:#dfd">  else if (index &lt; normalizedFile.size()-1)</span>
+  {
+<span style = "background-color:#dfd">    fileName = normalizedFile.substr(index+1);
+    rawPath = normalizedFile.substr(0,index+1);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    rawPath = normalizedFile;</span>
+  }
+
+  // remove duplicate /
+<span style = "background-color:#dfd">  std::string::value_type lastChar = 0;
+  for (std::size_t i = 0; i &lt; rawPath.size(); ++i)</span>
+  {
+<span style = "background-color:#dfd">    if (rawPath[i] == '/' &amp;&amp; lastChar == '/')</span>
+    {
+<span style = "background-color:#fdd">      continue;</span>
+    }
+<span style = "background-color:#dfd">    lastChar = rawPath[i];
+    path.push_back(lastChar);
+  }
+  if (path.empty())</span>
+  {
+<span style = "background-color:#fdd">    path.push_back('/');</span>
+  }
+<span style = "background-color:#dfd">}</span>
+
+ModuleResource::ModuleResource()
+<span style = "background-color:#fdd">  : d(new ModuleResourcePrivate(nullptr))
+{
+}</span>
+
+ModuleResource::ModuleResource(const ModuleResource &amp;resource)
+<span style = "background-color:#dfd">  : d(resource.d)
+{
+  d-&gt;ref.Ref();
+}</span>
+
+ModuleResource::ModuleResource(const std::string&amp; file, const ModuleResourceContainer&amp; resourceContainer)
+<span style = "background-color:#dfd">  : d(new ModuleResourcePrivate(&amp;resourceContainer))
+{
+  d-&gt;InitFilePath(file);</span>
+
+<span style = "background-color:#dfd">  d-&gt;stat.filePath = d-&gt;resourceContainer-&gt;GetModuleInfo()-&gt;name + d-&gt;path + d-&gt;fileName;</span>
+
+<span style = "background-color:#dfd">  d-&gt;resourceContainer-&gt;GetStat(d-&gt;stat);
+}</span>
+
+ModuleResource::ModuleResource(int index, const ModuleResourceContainer&amp; resourceContainer)
+<span style = "background-color:#dfd">  : d(new ModuleResourcePrivate(&amp;resourceContainer))
+{
+  d-&gt;resourceContainer-&gt;GetStat(index, d-&gt;stat);
+  d-&gt;InitFilePath(d-&gt;stat.filePath.substr(d-&gt;resourceContainer-&gt;GetModuleInfo()-&gt;name.size()));
+}</span>
+
+ModuleResource::~ModuleResource()
+<span style = "background-color:#dfd">{
+  if (!d-&gt;ref.Deref())
+    delete d;
+}</span>
+
+ModuleResource&amp; ModuleResource::operator =(const ModuleResource&amp; resource)
+<span style = "background-color:#fdd">{
+  ModuleResourcePrivate* curr_d = d;
+  d = resource.d;
+  d-&gt;ref.Ref();</span>
+
+<span style = "background-color:#fdd">  if (!curr_d-&gt;ref.Deref())
+    delete curr_d;</span>
+
+<span style = "background-color:#fdd">  return *this;
+}</span>
+
+bool ModuleResource::operator &lt;(const ModuleResource&amp; resource) const
+<span style = "background-color:#fdd">{
+  return this-&gt;GetResourcePath() &lt; resource.GetResourcePath();
+}</span>
+
+bool ModuleResource::operator ==(const ModuleResource&amp; resource) const
+<span style = "background-color:#fdd">{
+  return d-&gt;resourceContainer == resource.d-&gt;resourceContainer &amp;&amp;</span>
+      this-&gt;GetResourcePath() == resource.GetResourcePath();
+<span style = "background-color:#fdd">}</span>
+
+bool ModuleResource::operator !=(const ModuleResource &amp;resource) const
+<span style = "background-color:#fdd">{
+  return !(*this == resource);
+}</span>
+
+bool ModuleResource::IsValid() const
+<span style = "background-color:#dfd">{
+  return d-&gt;resourceContainer &amp;&amp; d-&gt;resourceContainer-&gt;IsValid() &amp;&amp; d-&gt;stat.index &gt; -1;
+}</span>
+
+ModuleResource::operator bool_type() const
+<span style = "background-color:#dfd">{
+  return IsValid() ? &amp;ModuleResource::d : nullptr;
+}</span>
+
+std::string ModuleResource::GetName() const
+<span style = "background-color:#fdd">{
+  return d-&gt;fileName;
+}</span>
+
+std::string ModuleResource::GetPath() const
+<span style = "background-color:#fdd">{
+  return d-&gt;path;
+}</span>
+
+std::string ModuleResource::GetResourcePath() const
+<span style = "background-color:#fdd">{
+  return d-&gt;path + d-&gt;fileName;
+}</span>
+
+std::string ModuleResource::GetBaseName() const
+<span style = "background-color:#fdd">{
+  return d-&gt;fileName.substr(0, d-&gt;fileName.find_first_of('.'));
+}</span>
+
+std::string ModuleResource::GetCompleteBaseName() const
+<span style = "background-color:#fdd">{
+  return d-&gt;fileName.substr(0, d-&gt;fileName.find_last_of('.'));
+}</span>
+
+std::string ModuleResource::GetSuffix() const
+<span style = "background-color:#fdd">{
+  std::size_t index = d-&gt;fileName.find_last_of('.');
+  return index &lt; d-&gt;fileName.size()-1 ? d-&gt;fileName.substr(index+1) : std::string("");
+}</span>
+
+std::string ModuleResource::GetCompleteSuffix() const
+<span style = "background-color:#fdd">{
+  std::size_t index = d-&gt;fileName.find_first_of('.');
+  return index &lt; d-&gt;fileName.size()-1 ? d-&gt;fileName.substr(index+1) : std::string("");
+}</span>
+
+bool ModuleResource::IsDir() const
+<span style = "background-color:#fdd">{
+  return d-&gt;stat.isDir;
+}</span>
+
+bool ModuleResource::IsFile() const
+<span style = "background-color:#fdd">{
+  return !d-&gt;stat.isDir;
+}</span>
+
+std::vector&lt;std::string&gt; ModuleResource::GetChildren() const
+<span style = "background-color:#fdd">{
+  if (!IsValid() || !IsDir()) return d-&gt;children;</span>
+
+<span style = "background-color:#fdd">  if (d-&gt;children.empty())</span>
+  {
+<span style = "background-color:#fdd">    d-&gt;resourceContainer-&gt;GetChildren(d-&gt;stat.filePath, true,</span>
+                                      d-&gt;children, d-&gt;childNodes);
+  }
+<span style = "background-color:#fdd">  return d-&gt;children;
+}</span>
+
+std::vector&lt;ModuleResource&gt; ModuleResource::GetChildResources() const
+<span style = "background-color:#fdd">{
+  std::vector&lt;ModuleResource&gt; childResources;</span>
+
+<span style = "background-color:#fdd">  if (!IsValid() || !IsDir()) return childResources;</span>
+
+<span style = "background-color:#fdd">  if (d-&gt;childNodes.empty())</span>
+  {
+<span style = "background-color:#fdd">    d-&gt;resourceContainer-&gt;GetChildren(this-&gt;GetResourcePath(), true,</span>
+                                      d-&gt;children, d-&gt;childNodes);
+  }
+
+<span style = "background-color:#fdd">  for (std::vector&lt;uint32_t&gt;::const_iterator iter = d-&gt;childNodes.begin(),
+       iterEnd = d-&gt;childNodes.end(); iter != iterEnd; ++iter)</span>
+  {
+<span style = "background-color:#fdd">    childResources.push_back(ModuleResource(static_cast&lt;int&gt;(*iter), *d-&gt;resourceContainer));
+  }
+  return childResources;
+}</span>
+
+int ModuleResource::GetSize() const
+<span style = "background-color:#dfd">{
+  return d-&gt;stat.uncompressedSize;
+}</span>
+
+time_t ModuleResource::GetLastModified() const
+<span style = "background-color:#fdd">{
+  return d-&gt;stat.modifiedTime;
+}</span>
+
+std::size_t ModuleResource::Hash() const
+<span style = "background-color:#fdd">{</span>
+  using namespace US_HASH_FUNCTION_NAMESPACE;
+<span style = "background-color:#fdd">  return US_HASH_FUNCTION(std::string, d-&gt;resourceContainer-&gt;GetModuleInfo()-&gt;name + this-&gt;GetResourcePath());
+}</span>
+
+void* ModuleResource::GetData() const
+<span style = "background-color:#dfd">{
+  if (!IsValid()) return nullptr;</span>
+
+<span style = "background-color:#dfd">  void* data = d-&gt;resourceContainer-&gt;GetData(d-&gt;stat.index);
+  if (data == nullptr)</span>
+  {
+<span style = "background-color:#fdd">    US_WARN &lt;&lt; "Error uncompressing resource data for " &lt;&lt; this-&gt;GetResourcePath() &lt;&lt; " from "</span>
+            &lt;&lt; d-&gt;resourceContainer-&gt;GetModuleInfo()-&gt;location;
+  }
+<span style = "background-color:#dfd">  return data;
+}</span>
+
+US_END_NAMESPACE
+
+US_USE_NAMESPACE
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const ModuleResource&amp; resource)
+<span style = "background-color:#fdd">{
+  return os &lt;&lt; resource.GetResourcePath();
+}</span></pre>
+	</body>
+</html>

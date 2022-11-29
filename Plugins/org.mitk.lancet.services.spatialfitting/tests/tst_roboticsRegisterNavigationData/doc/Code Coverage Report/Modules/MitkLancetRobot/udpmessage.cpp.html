@@ -1,0 +1,281 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>udpmessage.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+ï»¿#include "udpmessage.h"
+
+#include &lt;QList&gt;
+
+struct RobotUDPMessage::RobotUDPMessagePrivateImp
+{
+    long time;
+    int frames;
+    int validFrames;
+    int errorCode;
+
+    bool isConnectedUDP;
+    bool isApplicationReadyToStart;
+    bool isApplicationError;
+    bool isLowerMachineSignalError;
+
+    ApplicationState applicationState;
+
+    bool isApplicationStart;
+    bool isApplicationEnable;
+};
+
+RobotUDPMessage::RobotUDPMessage()
+<span style = "background-color:#fdd">    : m_imp(std::make_shared&lt;RobotUDPMessagePrivateImp&gt;())
+{</span>
+
+<span style = "background-color:#fdd">}</span>
+
+RobotUDPMessage::RobotUDPMessage(const QByteArray&amp; stream)
+<span style = "background-color:#fdd">    : m_imp(std::make_shared&lt;RobotUDPMessagePrivateImp&gt;())
+{
+    *this = stream;
+}</span>
+
+RobotUDPMessage::RobotUDPMessage(const RobotUDPMessage&amp; msg)
+<span style = "background-color:#fdd">    : m_imp(std::make_shared&lt;RobotUDPMessagePrivateImp&gt;())
+{
+    *this = msg;
+}</span>
+
+void RobotUDPMessage::operator=(const QByteArray&amp; stream)
+<span style = "background-color:#fdd">{
+    *this = translateRobotUDPMessage(stream.data(), stream.length());
+}</span>
+
+void RobotUDPMessage::operator=(const RobotUDPMessage&amp; msg)
+<span style = "background-color:#fdd">{
+    *this-&gt;m_imp = *msg.m_imp;
+}</span>
+
+long RobotUDPMessage::time() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;time;
+}</span>
+
+void RobotUDPMessage::setTime(long tm)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;time = tm;
+}</span>
+
+int RobotUDPMessage::frames() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;frames;
+}</span>
+
+void RobotUDPMessage::setFrames(int f)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;frames = f;
+}</span>
+
+int RobotUDPMessage::validFrames() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;validFrames;
+}</span>
+
+void RobotUDPMessage::setValidFrames(int f)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;validFrames = f;
+}</span>
+
+int RobotUDPMessage::errorCode() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;errorCode;
+}</span>
+
+void RobotUDPMessage::setErrorCode(int e)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;errorCode = e;
+}</span>
+
+bool RobotUDPMessage::isConnectedUDP() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;isConnectedUDP;
+}</span>
+
+void RobotUDPMessage::setConnectedUDP(bool c)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;isConnectedUDP = c;
+}</span>
+
+bool RobotUDPMessage::isApplicationReadyToStart() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;isApplicationReadyToStart;
+}</span>
+
+void RobotUDPMessage::setApplicationReadyToStart(bool b)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;isApplicationReadyToStart = b;
+}</span>
+
+bool RobotUDPMessage::isApplicationError() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;isApplicationError;
+}</span>
+
+void RobotUDPMessage::setApplicationError(bool b)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;isApplicationError = b;
+}</span>
+
+bool RobotUDPMessage::isLowerMachineSignalError() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;isLowerMachineSignalError;
+}</span>
+
+void RobotUDPMessage::setLowerMachineSignalError(bool b)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;isLowerMachineSignalError = b;
+}</span>
+
+RobotUDPMessage::ApplicationState RobotUDPMessage::applicationState() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;applicationState;
+}</span>
+
+void RobotUDPMessage::setApplicationState(const QString&amp; state)
+<span style = "background-color:#fdd">{
+    this-&gt;setApplicationState(applicationStateToKey(state));
+}</span>
+
+void RobotUDPMessage::setApplicationState(const RobotUDPMessage::ApplicationState&amp; as)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;applicationState = as;
+}</span>
+
+bool RobotUDPMessage::isApplicationStart() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;isApplicationStart;
+}</span>
+
+void RobotUDPMessage::setApplicationStart(bool b)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;isApplicationStart = b;
+}</span>
+
+bool RobotUDPMessage::isApplicationEnable() const
+<span style = "background-color:#fdd">{
+    return this-&gt;m_imp-&gt;isApplicationEnable;
+}</span>
+
+void RobotUDPMessage::setApplicationEnable(bool b)
+<span style = "background-color:#fdd">{
+    this-&gt;m_imp-&gt;isApplicationEnable = b;
+}</span>
+
+RobotUDPMessage RobotUDPMessage::translateRobotUDPMessage(const char* stream, int lenght)
+<span style = "background-color:#fdd">{
+    RobotUDPMessage tmpMessage;</span>
+
+<span style = "background-color:#fdd">    QByteArray qstream = QByteArray(stream, lenght);</span>
+
+<span style = "background-color:#fdd">    auto results = qstream.split(';');</span>
+
+<span style = "background-color:#fdd">    if(results.size() &gt;= 11)</span>
+    {
+<span style = "background-color:#fdd">        tmpMessage.setTime(results[0].toLong());
+        tmpMessage.setFrames(results[1].toInt());
+        tmpMessage.setValidFrames(results[2].toInt());
+        tmpMessage.setErrorCode(results[3].toInt());
+        tmpMessage.setConnectedUDP(results[4].toLower() == "true" ? true : false);
+        tmpMessage.setApplicationReadyToStart(results[5].toLower() == "true" ? true : false);
+        tmpMessage.setApplicationError(results[6].toLower() == "true" ? true : false);
+        tmpMessage.setLowerMachineSignalError(results[7].toLower() == "true" ? true : false);
+        tmpMessage.setApplicationState(applicationStateToKey(results[8]));
+        tmpMessage.setApplicationStart(results[9].toLower() == "true" ? true : false);
+        tmpMessage.setApplicationEnable(results[10].toLower() == "true" ? true : false);</span>
+    }
+
+<span style = "background-color:#fdd">    return tmpMessage;
+}</span>
+
+QByteArray RobotUDPMessage::toUDPStream(const RobotUDPMessage&amp; msg)
+<span style = "background-color:#fdd">{
+    QByteArray qstream;
+    qstream += QString("%1;").arg(QString::asprintf("%ld", msg.time()));
+    qstream += QString("%1;").arg(QString::number(msg.frames()));
+    qstream += QString("%1;").arg(QString::number(msg.validFrames()));
+    qstream += QString("%1;").arg(QString::number(msg.errorCode()));</span>
+
+<span style = "background-color:#fdd">    qstream += QString("%1;").arg(msg.isConnectedUDP() ? "true" : "false");
+    qstream += QString("%1;").arg(msg.isApplicationReadyToStart() ? "true" : "false");
+    qstream += QString("%1;").arg(msg.isApplicationError() ? "true" : "false");
+    qstream += QString("%1;").arg(msg.isLowerMachineSignalError() ? "true" : "false");
+    qstream += QString("%1;").arg(applicationStateToValue(msg.applicationState()));
+    qstream += QString("%1;").arg(msg.isApplicationStart() ? "true" : "false");
+    qstream += QString("%1").arg(msg.isApplicationEnable() ? "true" : "false");
+    return qstream;
+}</span>
+
+// TODO: Post optimization.
+#define EM_ApplicationStateToKey(x) #x
+RobotUDPMessage::ApplicationState RobotUDPMessage::applicationStateToKey(const QString&amp; state)
+<span style = "background-color:#fdd">{
+    if(EM_ApplicationStateToKey(IDLE) == state.toUpper())</span>
+    {
+<span style = "background-color:#fdd">        return IDLE;
+    }
+    else if(EM_ApplicationStateToKey(RUNNING) == state.toUpper())</span>
+    {
+<span style = "background-color:#fdd">        return RUNNING;
+    }
+    else if(EM_ApplicationStateToKey(MOTIONPAUSED) == state.toUpper())</span>
+    {
+<span style = "background-color:#fdd">        return MOTIONPAUSED;
+    }
+    else if(EM_ApplicationStateToKey(REPOSITIONING) == state.toUpper())</span>
+    {
+<span style = "background-color:#fdd">        return REPOSITIONING;
+    }
+    else if(EM_ApplicationStateToKey(ERROR) == state.toUpper())</span>
+    {
+<span style = "background-color:#fdd">        return ERROR;
+    }
+    else if(EM_ApplicationStateToKey(STARTING) == state.toUpper())</span>
+    {
+<span style = "background-color:#fdd">        return STARTING;
+    }
+    else if(EM_ApplicationStateToKey(STOPPING) == state.toUpper())</span>
+    {
+<span style = "background-color:#fdd">        return STOPPING;</span>
+    }
+
+<span style = "background-color:#fdd">    return UNKNOWN;
+}</span>
+
+QString RobotUDPMessage::applicationStateToValue(const RobotUDPMessage::ApplicationState&amp; state)
+<span style = "background-color:#fdd">{
+    switch (state)</span>
+    {
+        case ApplicationState::UNKNOWN:
+<span style = "background-color:#fdd">            return "UNKNOWN";</span>
+        case ApplicationState::IDLE:
+<span style = "background-color:#fdd">            return "IDLE";</span>
+        case ApplicationState::RUNNING:
+<span style = "background-color:#fdd">            return "RUNNING";</span>
+        case ApplicationState::MOTIONPAUSED:
+<span style = "background-color:#fdd">            return "MOTIONPAUSED";</span>
+        case ApplicationState::REPOSITIONING:
+<span style = "background-color:#fdd">            return "REPOSITIONING";</span>
+        case ApplicationState::ERROR:
+<span style = "background-color:#fdd">            return "ERROR";</span>
+        case ApplicationState::STARTING:
+<span style = "background-color:#fdd">            return "STARTING";</span>
+        case ApplicationState::STOPPING:
+<span style = "background-color:#fdd">            return "STOPPING";</span>
+    }
+<span style = "background-color:#fdd">    return "UNKNOWN";
+}</span></pre>
+	</body>
+</html>

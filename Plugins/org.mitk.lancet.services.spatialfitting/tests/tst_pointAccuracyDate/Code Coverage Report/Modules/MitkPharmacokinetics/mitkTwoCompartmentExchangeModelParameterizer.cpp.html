@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTwoCompartmentExchangeModelParameterizer.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkTwoCompartmentExchangeModelParameterizer.h"
+
+mitk::TwoCompartmentExchangeModelParameterizer::ParametersType
+mitk::TwoCompartmentExchangeModelParameterizer::GetDefaultInitialParameterization() const
+<span style = "background-color:#fdd">{
+  ParametersType initialParameters;
+  initialParameters.SetSize(4);
+  initialParameters[mitk::TwoCompartmentExchangeModel::POSITION_PARAMETER_PS] = 5.0;
+  initialParameters[mitk::TwoCompartmentExchangeModel::POSITION_PARAMETER_F] = 20.0;
+  initialParameters[mitk::TwoCompartmentExchangeModel::POSITION_PARAMETER_ve] = 0.1;
+  initialParameters[mitk::TwoCompartmentExchangeModel::POSITION_PARAMETER_vp] = 0.04;</span>
+
+<span style = "background-color:#fdd">  return initialParameters;
+};</span>
+
+mitk::TwoCompartmentExchangeModelParameterizer::TwoCompartmentExchangeModelParameterizer()
+<span style = "background-color:#fdd">{
+};</span>
+
+mitk::TwoCompartmentExchangeModelParameterizer::~TwoCompartmentExchangeModelParameterizer()
+<span style = "background-color:#fdd">{
+};</span></pre>
+	</body>
+</html>

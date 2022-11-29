@@ -1,0 +1,237 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabelSetImageToSurfaceFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include &lt;mitkLabelSetImageToSurfaceFilter.h&gt;
+
+#include &lt;mitkImageAccessByItk.h&gt;
+#include &lt;mitkImageCast.h&gt;
+
+// itk
+#include &lt;itkAntiAliasBinaryImageFilter.h&gt;
+#include &lt;itkAutoCropLabelMapFilter.h&gt;
+#include &lt;itkBinaryThresholdImageFilter.h&gt;
+#include &lt;itkLabelImageToLabelMapFilter.h&gt;
+#include &lt;itkLabelMap.h&gt;
+#include &lt;itkLabelMapToLabelImageFilter.h&gt;
+#include &lt;itkLabelObject.h&gt;
+#include &lt;itkNumericTraits.h&gt;
+#include &lt;itkSmoothingRecursiveGaussianImageFilter.h&gt;
+
+// vtk
+#include &lt;vtkCleanPolyData.h&gt;
+#include &lt;vtkImageChangeInformation.h&gt;
+#include &lt;vtkImageData.h&gt;
+#include &lt;vtkLinearTransform.h&gt;
+#include &lt;vtkMarchingCubes.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+
+mitk::LabelSetImageToSurfaceFilter::LabelSetImageToSurfaceFilter()
+<span style = "background-color:#fdd">  : m_GenerateAllLabels(false), m_RequestedLabel(1), m_BackgroundLabel(0), m_UseSmoothing(0), m_Sigma(0.1)
+{
+}</span>
+
+mitk::LabelSetImageToSurfaceFilter::~LabelSetImageToSurfaceFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::LabelSetImageToSurfaceFilter::SetInput(const mitk::Image *image)
+<span style = "background-color:#fdd">{</span>
+  // Process object is not const-correct so the const_cast is required here
+<span style = "background-color:#fdd">  this-&gt;ProcessObject::SetNthInput(0, const_cast&lt;mitk::Image *&gt;(image));
+}</span>
+/*
+void mitk::LabelSetImageToSurfaceFilter::SetObserver(mitk::ProcessObserver::Pointer observer)
+{
+   m_Observer = observer;
+}
+*/
+const mitk::Image *mitk::LabelSetImageToSurfaceFilter::GetInput(void)
+<span style = "background-color:#fdd">{
+  if (this-&gt;GetNumberOfInputs() &lt; 1)</span>
+  {
+<span style = "background-color:#fdd">    return nullptr;</span>
+  }
+
+<span style = "background-color:#fdd">  return static_cast&lt;const mitk::Image *&gt;(this-&gt;ProcessObject::GetInput(0));
+}</span>
+
+void mitk::LabelSetImageToSurfaceFilter::GenerateOutputInformation()
+<span style = "background-color:#fdd">{
+  itkDebugMacro(&lt;&lt; "GenerateOutputInformation()");
+}</span>
+
+void mitk::LabelSetImageToSurfaceFilter::GenerateData()
+<span style = "background-color:#fdd">{
+  Image::ConstPointer inputImage = this-&gt;GetInput();
+  if (inputImage.IsNull())
+    return;</span>
+
+<span style = "background-color:#fdd">  mitk::Surface *outputSurface = this-&gt;GetOutput();
+  if (!outputSurface)
+    return;</span>
+
+<span style = "background-color:#fdd">  AccessFixedDimensionByItk_1(inputImage, InternalProcessing, 3, outputSurface);
+}</span>
+
+template &lt;typename TPixel, unsigned int VDimension&gt;
+void mitk::LabelSetImageToSurfaceFilter::InternalProcessing(const itk::Image&lt;TPixel, VDimension&gt; *input,
+                                                            mitk::Surface * /*surface*/)
+<span style = "background-color:#fdd">{</span>
+  typedef itk::Image&lt;TPixel, VDimension&gt; ImageType;
+
+  typedef itk::BinaryThresholdImageFilter&lt;ImageType, ImageType&gt; BinaryThresholdFilterType;
+  typedef itk::LabelObject&lt;TPixel, VDimension&gt; LabelObjectType;
+  typedef itk::LabelMap&lt;LabelObjectType&gt; LabelMapType;
+  typedef itk::LabelImageToLabelMapFilter&lt;ImageType, LabelMapType&gt; Image2LabelMapType;
+  typedef itk::AutoCropLabelMapFilter&lt;LabelMapType&gt; AutoCropType;
+  typedef itk::LabelMapToLabelImageFilter&lt;LabelMapType, ImageType&gt; LabelMap2ImageType;
+
+  typedef itk::Image&lt;float, VDimension&gt; RealImageType;
+
+  typedef itk::AntiAliasBinaryImageFilter&lt;ImageType, RealImageType&gt; AntiAliasFilterType;
+  typedef itk::SmoothingRecursiveGaussianImageFilter&lt;RealImageType, RealImageType&gt; GaussianFilterType;
+
+<span style = "background-color:#fdd">  typename BinaryThresholdFilterType::Pointer thresholdFilter = BinaryThresholdFilterType::New();
+  thresholdFilter-&gt;SetInput(input);
+  thresholdFilter-&gt;SetLowerThreshold(m_RequestedLabel);
+  thresholdFilter-&gt;SetUpperThreshold(m_RequestedLabel);
+  thresholdFilter-&gt;SetOutsideValue(0);
+  thresholdFilter-&gt;SetInsideValue(1);</span>
+  //  thresholdFilter-&gt;ReleaseDataFlagOn();
+<span style = "background-color:#fdd">  thresholdFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  typename Image2LabelMapType::Pointer image2label = Image2LabelMapType::New();
+  image2label-&gt;SetInput(thresholdFilter-&gt;GetOutput());</span>
+
+  typename AutoCropType::SizeType border;
+<span style = "background-color:#fdd">  border[0] = 3;
+  border[1] = 3;
+  border[2] = 3;</span>
+
+<span style = "background-color:#fdd">  typename AutoCropType::Pointer autoCropFilter = AutoCropType::New();
+  autoCropFilter-&gt;SetInput(image2label-&gt;GetOutput());
+  autoCropFilter-&gt;SetCropBorder(border);
+  autoCropFilter-&gt;InPlaceOn();</span>
+
+<span style = "background-color:#fdd">  typename LabelMap2ImageType::Pointer label2image = LabelMap2ImageType::New();
+  label2image-&gt;SetInput(autoCropFilter-&gt;GetOutput());</span>
+
+<span style = "background-color:#fdd">  label2image-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  typename AntiAliasFilterType::Pointer antiAliasFilter = AntiAliasFilterType::New();
+  antiAliasFilter-&gt;SetInput(label2image-&gt;GetOutput());
+  antiAliasFilter-&gt;SetMaximumRMSError(0.001);
+  antiAliasFilter-&gt;SetNumberOfLayers(3);
+  antiAliasFilter-&gt;SetUseImageSpacing(false);
+  antiAliasFilter-&gt;SetNumberOfIterations(40);</span>
+
+<span style = "background-color:#fdd">  antiAliasFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  typename RealImageType::Pointer result;</span>
+
+<span style = "background-color:#fdd">  if (m_UseSmoothing)</span>
+  {
+<span style = "background-color:#fdd">    typename GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
+    gaussianFilter-&gt;SetSigma(m_Sigma);
+    gaussianFilter-&gt;SetInput(antiAliasFilter-&gt;GetOutput());
+    gaussianFilter-&gt;Update();
+    result = gaussianFilter-&gt;GetOutput();
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    result = antiAliasFilter-&gt;GetOutput();</span>
+  }
+
+<span style = "background-color:#fdd">  result-&gt;DisconnectPipeline();</span>
+
+<span style = "background-color:#fdd">  typename ImageType::RegionType cropRegion;
+  cropRegion = autoCropFilter-&gt;GetOutput()-&gt;GetLargestPossibleRegion();</span>
+
+<span style = "background-color:#fdd">  const typename ImageType::IndexType &amp;cropIndex = cropRegion.GetIndex();</span>
+
+<span style = "background-color:#fdd">  m_ResultImage = mitk::Image::New();
+  mitk::CastToMitkImage(result, m_ResultImage);</span>
+
+<span style = "background-color:#fdd">  mitk::BaseGeometry *newGeometry = m_ResultImage-&gt;GetSlicedGeometry();
+  mitk::Point3D origin;
+  vtk2itk(cropIndex, origin);
+  this-&gt;GetInput()-&gt;GetGeometry()-&gt;IndexToWorld(origin, origin);
+  newGeometry-&gt;SetOrigin(origin);</span>
+
+<span style = "background-color:#fdd">  auto *vtkimage = m_ResultImage-&gt;GetVtkImageData(0);</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkImageChangeInformation&gt; indexCoordinatesImageFilter =</span>
+    vtkSmartPointer&lt;vtkImageChangeInformation&gt;::New();
+<span style = "background-color:#fdd">  indexCoordinatesImageFilter-&gt;SetInputData(vtkimage);
+  indexCoordinatesImageFilter-&gt;SetOutputOrigin(0.0, 0.0, 0.0);</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkMarchingCubes&gt; marching = vtkSmartPointer&lt;vtkMarchingCubes&gt;::New();
+  marching-&gt;ComputeScalarsOff();
+  marching-&gt;ComputeNormalsOn();
+  marching-&gt;ComputeGradientsOn();
+  marching-&gt;SetInputConnection(indexCoordinatesImageFilter-&gt;GetOutputPort());
+  marching-&gt;SetValue(0, 0.0);</span>
+
+<span style = "background-color:#fdd">  marching-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  vtkPolyData *polydata = marching-&gt;GetOutput();</span>
+
+<span style = "background-color:#fdd">  if ((!polydata) || (!polydata-&gt;GetNumberOfPoints()))
+    throw itk::ExceptionObject(__FILE__, __LINE__, "marching cubes has failed.");</span>
+
+<span style = "background-color:#fdd">  mitk::Vector3D spacing = newGeometry-&gt;GetSpacing();</span>
+
+<span style = "background-color:#fdd">  vtkPoints *points = polydata-&gt;GetPoints();
+  vtkMatrix4x4 *vtkmatrix = vtkMatrix4x4::New();
+  newGeometry-&gt;GetVtkTransform()-&gt;GetMatrix(vtkmatrix);
+  double(*matrix)[4] = vtkmatrix-&gt;Element;</span>
+
+<span style = "background-color:#fdd">  for (int i = 0; i &lt; 3; ++i)
+    for (int j = 0; j &lt; 3; ++j)
+      matrix[i][j] /= spacing[j];</span>
+
+<span style = "background-color:#fdd">  unsigned int n = points-&gt;GetNumberOfPoints();</span>
+  double point[3];
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; n; i++)</span>
+  {
+<span style = "background-color:#fdd">    points-&gt;GetPoint(i, point);
+    mitkVtkLinearTransformPoint(matrix, point, point);
+    points-&gt;SetPoint(i, point);
+  }
+  vtkmatrix-&gt;Delete();</span>
+
+<span style = "background-color:#fdd">  vtkSmartPointer&lt;vtkCleanPolyData&gt; cleanPolyDataFilter = vtkSmartPointer&lt;vtkCleanPolyData&gt;::New();
+  cleanPolyDataFilter-&gt;SetInputData(polydata);
+  cleanPolyDataFilter-&gt;PieceInvariantOff();
+  cleanPolyDataFilter-&gt;ConvertLinesToPointsOff();
+  cleanPolyDataFilter-&gt;ConvertPolysToLinesOff();
+  cleanPolyDataFilter-&gt;ConvertStripsToPolysOff();
+  cleanPolyDataFilter-&gt;PointMergingOn();
+  cleanPolyDataFilter-&gt;Update();</span>
+
+<span style = "background-color:#fdd">  mitk::Surface::Pointer output = this-&gt;GetOutput(0);
+  output-&gt;SetVtkPolyData(cleanPolyDataFilter-&gt;GetOutput(), 0);
+}</span></pre>
+	</body>
+</html>

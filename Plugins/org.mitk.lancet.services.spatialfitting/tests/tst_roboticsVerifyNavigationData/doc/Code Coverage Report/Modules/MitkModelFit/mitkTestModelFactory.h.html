@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTestModelFactory.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef __TEST_MODEL_FACTORY_H
+#define __TEST_MODEL_FACTORY_H
+
+#include &lt;mitkCommon.h&gt;
+
+#include "mitkConcreteModelFactoryBase.h"
+#include "mitkTestModel.h"
+
+#include "MitkModelFitExports.h"
+
+namespace mitk
+{
+
+  class MITKMODELFIT_EXPORT TestModelFactory : public ConcreteModelFactoryBase&lt;TestModel&gt;
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacro(TestModelFactory, ConcreteModelFactoryBase&lt;TestModel&gt;);
+    itkFactorylessNewMacro(Self);</span>
+
+    ParametersType GetDefaultInitialParameterization() const override;
+
+  protected:
+    ModelParameterizerBase::Pointer DoCreateParameterizer(const modelFit::ModelFitInfo* fit)
+    const override;
+
+    TestModelFactory();
+
+    ~TestModelFactory() override;
+
+  private:
+
+    //No copy constructor allowed
+    TestModelFactory(const Self&amp; source);
+    void operator=(const Self&amp;);  //purposely not implemented
+  };
+}
+
+
+#endif //__LINEAR_TEST_MODEL_FACTORY_H</pre>
+	</body>
+</html>

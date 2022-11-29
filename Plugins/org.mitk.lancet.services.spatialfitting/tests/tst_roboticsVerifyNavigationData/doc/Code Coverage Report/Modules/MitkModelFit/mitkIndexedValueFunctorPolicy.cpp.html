@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkIndexedValueFunctorPolicy.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#include "mitkIndexedValueFunctorPolicy.h"
+
+mitk::IndexedValueFunctorPolicy::IndexedValueFunctorPolicy()
+<span style = "background-color:#fdd">{};</span>
+
+mitk::IndexedValueFunctorPolicy::~IndexedValueFunctorPolicy()
+<span style = "background-color:#fdd">{};</span>
+
+unsigned int mitk::IndexedValueFunctorPolicy::GetNumberOfOutputs() const
+<span style = "background-color:#fdd">{
+  unsigned int result = 0;</span>
+
+<span style = "background-color:#fdd">  if (m_Functor.IsNotNull())</span>
+  {
+<span style = "background-color:#fdd">    result = m_Functor-&gt;GetNumberOfOutputs();</span>
+  }
+
+<span style = "background-color:#fdd">  return result;
+}</span>
+
+void mitk::IndexedValueFunctorPolicy::SetFunctor(const FunctorType *functor)
+<span style = "background-color:#fdd">{
+  if (!functor)</span>
+  {
+<span style = "background-color:#fdd">    itkGenericExceptionMacro(&lt;&lt; "Error. Functor is Null.");</span>
+  }
+
+<span style = "background-color:#fdd">  m_Functor = functor;
+}</span>
+
+
+bool mitk::IndexedValueFunctorPolicy::operator!=(const IndexedValueFunctorPolicy &amp; other) const
+<span style = "background-color:#fdd">{
+  return !(*this == other);
+}</span>
+
+bool mitk::IndexedValueFunctorPolicy::operator==(const IndexedValueFunctorPolicy &amp; other) const
+<span style = "background-color:#fdd">{
+  return (this-&gt;m_Functor == other.m_Functor);
+}</span>
+
+mitk::IndexedValueFunctorPolicy::OutputPixelVectorType mitk::IndexedValueFunctorPolicy::operator()(const InputPixelVectorType &amp; value, const IndexType&amp; currentIndex) const
+<span style = "background-color:#fdd">{
+  if (!m_Functor)</span>
+  {
+<span style = "background-color:#fdd">    itkGenericExceptionMacro(&lt;&lt; "Error. Cannot process operator(). Functor is Null.");</span>
+  }
+
+<span style = "background-color:#fdd">  OutputPixelVectorType result = m_Functor-&gt;Compute(value, currentIndex);</span>
+
+<span style = "background-color:#fdd">  return result;
+}</span></pre>
+	</body>
+</html>

@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkDataNodeSource.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkDataNodeSource.h"
+
+mitk::DataNodeSource::DataNodeSource()
+<span style = "background-color:#fdd">{</span>
+  // Create the output.
+<span style = "background-color:#fdd">  OutputType::Pointer output = static_cast&lt;OutputType *&gt;(this-&gt;MakeOutput(0).GetPointer());
+  this-&gt;SetNthOutput(0, output.GetPointer());
+}</span>
+
+mitk::DataNodeSource::~DataNodeSource()
+<span style = "background-color:#fdd">{
+}</span>
+
+itk::ProcessObject::DataObjectPointer mitk::DataNodeSource::MakeOutput(DataObjectPointerArraySizeType /*idx*/)
+<span style = "background-color:#fdd">{
+  return OutputType::New().GetPointer();
+}</span>
+
+itk::ProcessObject::DataObjectPointer mitk::DataNodeSource::MakeOutput(const DataObjectIdentifierType &amp;name)
+<span style = "background-color:#fdd">{
+  itkDebugMacro("MakeOutput(" &lt;&lt; name &lt;&lt; ")");
+  if (this-&gt;IsIndexedOutputName(name))</span>
+  {
+<span style = "background-color:#fdd">    return this-&gt;MakeOutput(this-&gt;MakeIndexFromOutputName(name));</span>
+  }
+<span style = "background-color:#fdd">  return static_cast&lt;itk::DataObject *&gt;(OutputType::New().GetPointer());
+}</span>
+
+mitk::DataNodeSource::OutputType *mitk::DataNodeSource::GetOutput()
+<span style = "background-color:#fdd">{
+  return itkDynamicCastInDebugMode&lt;OutputType *&gt;(this-&gt;GetPrimaryOutput());
+}</span>
+
+const mitk::DataNodeSource::OutputType *mitk::DataNodeSource::GetOutput() const
+<span style = "background-color:#fdd">{
+  return itkDynamicCastInDebugMode&lt;const OutputType *&gt;(this-&gt;GetPrimaryOutput());
+}</span>
+
+mitk::DataNodeSource::OutputType *mitk::DataNodeSource::GetOutput(DataObjectPointerArraySizeType idx)
+<span style = "background-color:#fdd">{
+  return static_cast&lt;OutputType *&gt;(Superclass::GetOutput(idx));
+}</span>
+
+const mitk::DataNodeSource::OutputType *mitk::DataNodeSource::GetOutput(DataObjectPointerArraySizeType idx) const
+<span style = "background-color:#fdd">{
+  const auto *out = dynamic_cast&lt;const OutputType *&gt;(this-&gt;ProcessObject::GetOutput(idx));</span>
+
+<span style = "background-color:#fdd">  if (out == nullptr &amp;&amp; this-&gt;ProcessObject::GetOutput(idx) != nullptr)</span>
+  {
+<span style = "background-color:#fdd">    itkWarningMacro(&lt;&lt; "Unable to convert output number " &lt;&lt; idx &lt;&lt; " to type " &lt;&lt; typeid(OutputType).name());</span>
+  }
+<span style = "background-color:#fdd">  return out;
+}</span></pre>
+	</body>
+</html>

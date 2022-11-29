@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkImageVtkLegacyIO.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkImageVtkLegacyIO.h"
+
+#include "mitkIOMimeTypes.h"
+#include "mitkImage.h"
+#include "mitkImageVtkReadAccessor.h"
+
+#include &lt;vtkErrorCode.h&gt;
+#include &lt;vtkSmartPointer.h&gt;
+#include &lt;vtkStructuredPoints.h&gt;
+#include &lt;vtkStructuredPointsReader.h&gt;
+#include &lt;vtkStructuredPointsWriter.h&gt;
+
+namespace mitk
+{
+  ImageVtkLegacyIO::ImageVtkLegacyIO()
+<span style = "background-color:#dfd">    : AbstractFileIO(Image::GetStaticNameOfClass(), IOMimeTypes::VTK_IMAGE_LEGACY_MIMETYPE(), "VTK Legacy Image")
+  {
+    Options defaultOptions;
+    defaultOptions["Save as binary file"] = false;
+    this-&gt;SetDefaultWriterOptions(defaultOptions);
+    this-&gt;RegisterService();
+  }</span>
+
+  std::vector&lt;BaseData::Pointer&gt; ImageVtkLegacyIO::DoRead()
+<span style = "background-color:#fdd">  {</span>
+    // The legay vtk reader cannot work with input streams
+<span style = "background-color:#fdd">    const std::string fileName = this-&gt;GetLocalFileName();
+    vtkSmartPointer&lt;vtkStructuredPointsReader&gt; reader = vtkSmartPointer&lt;vtkStructuredPointsReader&gt;::New();
+    reader-&gt;SetFileName(fileName.c_str());
+    reader-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    if (reader-&gt;GetOutput() != nullptr)</span>
+    {
+<span style = "background-color:#fdd">      mitk::Image::Pointer output = mitk::Image::New();
+      output-&gt;Initialize(reader-&gt;GetOutput());
+      output-&gt;SetVolume(reader-&gt;GetOutput()-&gt;GetScalarPointer());
+      std::vector&lt;BaseData::Pointer&gt; result;
+      result.push_back(output.GetPointer());
+      return result;
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "vtkStructuredPointsReader error: "</span>
+                  &lt;&lt; vtkErrorCode::GetStringFromErrorCode(reader-&gt;GetErrorCode());
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  IFileIO::ConfidenceLevel ImageVtkLegacyIO::GetReaderConfidenceLevel() const
+<span style = "background-color:#fdd">  {
+    if (AbstractFileIO::GetReaderConfidenceLevel() == Unsupported)
+      return Unsupported;
+    vtkSmartPointer&lt;vtkStructuredPointsReader&gt; reader = vtkSmartPointer&lt;vtkStructuredPointsReader&gt;::New();
+    reader-&gt;SetFileName(this-&gt;GetLocalFileName().c_str());
+    if (reader-&gt;IsFileStructuredPoints())</span>
+    {
+<span style = "background-color:#fdd">      return Supported;</span>
+    }
+<span style = "background-color:#fdd">    return Unsupported;
+  }</span>
+
+  void ImageVtkLegacyIO::Write()
+<span style = "background-color:#fdd">  {
+    ValidateOutputLocation();</span>
+
+<span style = "background-color:#fdd">    const auto *input = dynamic_cast&lt;const Image *&gt;(this-&gt;GetInput());</span>
+
+<span style = "background-color:#fdd">    vtkSmartPointer&lt;vtkStructuredPointsWriter&gt; writer = vtkSmartPointer&lt;vtkStructuredPointsWriter&gt;::New();</span>
+
+    // The legacy vtk image writer cannot write to streams
+<span style = "background-color:#fdd">    LocalFile localFile(this);
+    writer-&gt;SetFileName(localFile.GetFileName().c_str());</span>
+
+<span style = "background-color:#fdd">    if (us::any_cast&lt;bool&gt;(GetWriterOption("Save as binary file")))</span>
+    {
+<span style = "background-color:#fdd">      writer-&gt;SetFileTypeToBinary();</span>
+    }
+
+<span style = "background-color:#fdd">    ImageVtkReadAccessor vtkReadAccessor(Image::ConstPointer(input), nullptr, input-&gt;GetVtkImageData());
+    writer-&gt;SetInputData(const_cast&lt;vtkImageData *&gt;(vtkReadAccessor.GetVtkImageData()));</span>
+
+<span style = "background-color:#fdd">    if (writer-&gt;Write() == 0 || writer-&gt;GetErrorCode() != 0)</span>
+    {
+<span style = "background-color:#fdd">      mitkThrow() &lt;&lt; "vtkStructuredPointesWriter error: "</span>
+                  &lt;&lt; vtkErrorCode::GetStringFromErrorCode(writer-&gt;GetErrorCode());
+    }
+<span style = "background-color:#fdd">  }</span>
+
+  IFileIO::ConfidenceLevel ImageVtkLegacyIO::GetWriterConfidenceLevel() const
+<span style = "background-color:#fdd">  {
+    if (AbstractFileIO::GetWriterConfidenceLevel() == Unsupported)
+      return Unsupported;
+    const auto *input = static_cast&lt;const Image *&gt;(this-&gt;GetInput());
+    if (input-&gt;GetDimension() == 3)
+      return Supported;
+    else if (input-&gt;GetDimension() &lt; 3)
+      return PartiallySupported;
+    return Unsupported;
+  }</span>
+
+<span style = "background-color:#fdd">  ImageVtkLegacyIO *ImageVtkLegacyIO::IOClone() const { return new ImageVtkLegacyIO(*this); }</span>
+}</pre>
+	</body>
+</html>

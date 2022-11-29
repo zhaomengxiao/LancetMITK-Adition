@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkEventRecorder.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef mitkEventRecorder_h
+#define mitkEventRecorder_h
+
+#include "iostream"
+#include "mitkInteractionEventObserver.h"
+#include &lt;MitkCoreExports.h&gt;
+
+namespace mitk
+{
+  /**
+     *\class EventRecorder
+     *@brief Observer that enables recoding of all user interaction with the render windows and storing it in an XML
+     *file.
+     *
+     * @ingroup Interaction
+     *
+     * XML file will look like:
+     *
+     * \code{.unparsed}
+     * &lt;?xml version="1.0"?&gt;
+     * &lt;interactions&gt;
+     *   &lt;config&gt;
+     *     &lt;renderer RendererName="stdmulti.widget0" ViewDirection="0"/&gt;
+     *     &lt;renderer RendererName="stdmulti.widget1" ViewDirection="1"/&gt;
+     *     &lt;renderer RendererName="stdmulti.widget2" ViewDirection="2"/&gt;
+     *   &lt;/config&gt;
+     *   &lt;events&gt;
+     *     &lt;event_variant class="MOUSEMOVEEVENT" &gt;
+     *       &lt;attribute name="PositionOnScreen" value="491,388"/&gt;
+     *       &lt;attribute name="PositionInWorld" value="128,235.771,124.816"/&gt;
+     *       &lt;attribute name="RendererName" value="stdmulti.widget1"/&gt;
+     *     &lt;/event_variant&gt;
+     *   &lt;/events&gt;
+     * &lt;/interactions&gt;
+     * \endcode
+     **/
+  class MITKCORE_EXPORT EventRecorder : public InteractionEventObserver
+  {
+  public:
+    EventRecorder();
+    ~EventRecorder() override;
+
+    /**
+       * By this function the Observer gets notified about new events.
+       */
+    void Notify(InteractionEvent *interactionEvent, bool) override;
+
+    /**
+       * @brief SetEventIgnoreList Optional. Provide a list of strings that describe which events are to be ignored
+       */
+    void SetEventIgnoreList(std::vector&lt;std::string&gt; list);
+
+    void StartRecording();
+    void StopRecording();
+
+<span style = "background-color:#fdd">    bool IsActive() { return m_Active; }
+    void SetOutputFile(std::string filename) { m_FileName = filename; }</span>
+  private:
+    /**
+     * @brief m_IgnoreList lists the names of events that are dropped
+     */
+    std::vector&lt;std::string&gt; m_IgnoreList;
+
+    /**
+     * @brief m_Active determindes if events are caught and written to file
+     */
+    bool m_Active;
+    std::string m_FileName;
+
+    std::ofstream m_FileStream;
+  };
+}
+#endif</pre>
+	</body>
+</html>

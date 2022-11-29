@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkNavigationDataDelayFilter.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkNavigationDataDelayFilter.h"
+
+<span style = "background-color:#fdd">mitk::NavigationDataDelayFilter::NavigationDataDelayFilter(unsigned int delay) : m_Delay(delay)
+{
+  m_Tolerance = 0;
+}</span>
+mitk::NavigationDataDelayFilter::~NavigationDataDelayFilter()
+<span style = "background-color:#fdd">{
+}</span>
+
+void mitk::NavigationDataDelayFilter::GenerateData()
+<span style = "background-color:#fdd">{</span>
+  // Check if number of outputs has changed since the previous call. If yes, reset buffer.
+  // This actually compares the number of Navigation Datas in each step and compares it to the current number of inputs.
+  // If these values differ, the number of inputrs have changed.
+<span style = "background-color:#fdd">  if ((!m_Buffer.empty()) &amp;&amp; (this-&gt;GetNumberOfInputs() != m_Buffer.front().second.size()))</span>
+  {
+<span style = "background-color:#fdd">    decltype(m_Buffer) tmp;
+    m_Buffer.swap(tmp); // Clear queue with copy-and-swap idiom
+  }</span>
+
+  // Put current navigationdatas from input into buffer
+<span style = "background-color:#fdd">  itk::TimeStamp now;
+  now.Modified();</span>
+
+<span style = "background-color:#fdd">  std::vector&lt;mitk::NavigationData::Pointer&gt; ndList;
+  for (unsigned int i = 0; i &lt; this-&gt;GetNumberOfInputs() ; ++i)</span>
+  {
+<span style = "background-color:#fdd">    mitk::NavigationData::Pointer nd = mitk::NavigationData::New();
+    nd-&gt;Graft(this-&gt;GetInput(i));
+    ndList.push_back(nd);
+  }</span>
+
+<span style = "background-color:#fdd">  m_Buffer.push( std::make_pair(now.GetMTime(), ndList) );</span>
+
+  // Find most recent member from buffer that is old enough to output, considering the Delay
+  // remove all sets that are too old already in the process
+<span style = "background-color:#fdd">  BufferType current;
+  bool foundCurrent = false;</span>
+
+<span style = "background-color:#fdd">  while ( (m_Buffer.size() &gt; 0) &amp;&amp; (m_Buffer.front().first + m_Delay &lt;= now.GetMTime() + m_Tolerance ) )</span>
+  {
+<span style = "background-color:#fdd">    foundCurrent = true;
+    current = m_Buffer.front();
+    m_Buffer.pop();
+  }</span>
+
+  // update outputs with tracking data from previous step, or none if empty
+<span style = "background-color:#fdd">  if ( !foundCurrent) return;</span>
+
+<span style = "background-color:#fdd">  for (unsigned int i = 0; i &lt; this-&gt;GetNumberOfOutputs() ; ++i)</span>
+  {
+<span style = "background-color:#fdd">    mitk::NavigationData* output = this-&gt;GetOutput(i);
+    assert(output);
+    const mitk::NavigationData* input = current.second[i];
+    assert(input);</span>
+
+<span style = "background-color:#fdd">    if (input-&gt;IsDataValid() == false)</span>
+    {
+<span style = "background-color:#fdd">      output-&gt;SetDataValid(false);
+      continue;</span>
+    }
+<span style = "background-color:#fdd">    output-&gt;Graft(input); // First, copy all information from input to output
+    output-&gt;SetDataValid(true); // operation was successful, therefore data of output is valid.
+  }
+}</span></pre>
+	</body>
+</html>

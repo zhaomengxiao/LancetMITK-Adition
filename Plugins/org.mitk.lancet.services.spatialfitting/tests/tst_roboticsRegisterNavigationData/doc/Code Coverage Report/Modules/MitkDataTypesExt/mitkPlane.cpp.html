@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkPlane.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkPlane.h"
+#include "mitkNumericTypes.h"
+
+#include &lt;vtkDoubleArray.h&gt;
+#include &lt;vtkLinearTransform.h&gt;
+#include &lt;vtkPlaneSource.h&gt;
+#include &lt;vtkPointData.h&gt;
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  Plane::Plane() : BoundingObject()
+  {</span>
+    // Set up Plane Surface.
+<span style = "background-color:#fdd">    m_PlaneSource = vtkPlaneSource::New();
+    m_PlaneSource-&gt;SetOrigin(-32.0, -32.0, 0.0);
+    m_PlaneSource-&gt;SetPoint1(32.0, -32.0, 0.0);
+    m_PlaneSource-&gt;SetPoint2(-32.0, 32.0, 0.0);
+    m_PlaneSource-&gt;SetResolution(128, 128);
+    m_PlaneSource-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    m_PlaneNormal = vtkDoubleArray::New();
+    m_PlaneNormal-&gt;SetNumberOfComponents(3);
+    m_PlaneNormal-&gt;SetNumberOfTuples(m_PlaneSource-&gt;GetOutput()-&gt;GetNumberOfPoints());
+    m_PlaneNormal-&gt;SetTuple3(0, 0.0, 0.0, 1.0);
+    m_PlaneNormal-&gt;SetName("planeNormal");</span>
+
+<span style = "background-color:#fdd">    m_Plane = vtkPolyData::New();
+    m_Plane-&gt;DeepCopy(m_PlaneSource-&gt;GetOutput());
+    m_Plane-&gt;GetPointData()-&gt;SetVectors(m_PlaneNormal);</span>
+
+<span style = "background-color:#fdd">    this-&gt;SetVtkPolyData(m_Plane);
+  }</span>
+
+  Plane::~Plane()
+<span style = "background-color:#fdd">  {
+    m_PlaneSource-&gt;Delete();
+    m_Plane-&gt;Delete();
+    m_PlaneNormal-&gt;Delete();
+  }</span>
+
+  void Plane::SetExtent(const double x, const double y)
+<span style = "background-color:#fdd">  {
+    m_PlaneSource-&gt;SetOrigin(-x / 2.0, -y / 2.0, 0.0);
+    m_PlaneSource-&gt;SetPoint1(x / 2.0, -y / 2.0, 0.0);
+    m_PlaneSource-&gt;SetPoint2(-x / 2.0, y / 2.0, 0.0);
+    m_PlaneSource-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    m_Plane-&gt;DeepCopy(m_PlaneSource-&gt;GetOutput());
+    m_Plane-&gt;GetPointData()-&gt;SetVectors(m_PlaneNormal);</span>
+
+<span style = "background-color:#fdd">    this-&gt;Modified();
+  }</span>
+
+  void Plane::GetExtent(double &amp;x, double &amp;y) const
+<span style = "background-color:#fdd">  {
+    x = m_PlaneSource-&gt;GetPoint1()[0] - m_PlaneSource-&gt;GetOrigin()[0];
+    y = m_PlaneSource-&gt;GetPoint2()[1] - m_PlaneSource-&gt;GetOrigin()[1];
+  }</span>
+
+  void Plane::SetResolution(const int xR, const int yR)
+<span style = "background-color:#fdd">  {
+    m_PlaneSource-&gt;SetResolution(xR, yR);
+    m_PlaneSource-&gt;Update();</span>
+
+<span style = "background-color:#fdd">    m_Plane-&gt;DeepCopy(m_PlaneSource-&gt;GetOutput());
+    m_Plane-&gt;GetPointData()-&gt;SetVectors(m_PlaneNormal);</span>
+
+<span style = "background-color:#fdd">    this-&gt;Modified();
+  }</span>
+
+<span style = "background-color:#fdd">  void Plane::GetResolution(int &amp;xR, int &amp;yR) const { m_PlaneSource-&gt;GetResolution(xR, yR); }</span>
+  bool Plane::IsInside(const Point3D &amp; /*worldPoint*/) const
+<span style = "background-color:#fdd">  {</span>
+    // Plane does not have a volume
+<span style = "background-color:#fdd">    return false;
+  }</span>
+
+  ScalarType Plane::GetVolume()
+<span style = "background-color:#fdd">  {</span>
+    // Plane does not have a volume
+<span style = "background-color:#fdd">    return 0.0;
+  }</span>
+}</pre>
+	</body>
+</html>

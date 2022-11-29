@@ -1,0 +1,293 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLabelSetIOHelper.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkLabelSetIOHelper.h"
+
+#include "mitkLabelSetImage.h"
+#include &lt;mitkBasePropertySerializer.h&gt;
+
+#include &lt;tinyxml2.h&gt;
+
+namespace
+{
+  std::string EnsureExtension(const std::string&amp; filename)
+<span style = "background-color:#fdd">  {
+    const std::string extension = ".lsetp";</span>
+
+<span style = "background-color:#fdd">    if (filename.size() &lt; extension.size() || std::string::npos == filename.find(extension, filename.size() - extension.size()))
+      return filename + extension;</span>
+
+<span style = "background-color:#fdd">    return filename;
+  }</span>
+}
+
+bool mitk::LabelSetIOHelper::SaveLabelSetImagePreset(const std::string &amp;presetFilename,
+                                                     const mitk::LabelSetImage *inputImage)
+<span style = "background-color:#fdd">{
+  const auto filename = EnsureExtension(presetFilename);</span>
+
+<span style = "background-color:#fdd">  tinyxml2::XMLDocument xmlDocument;
+  xmlDocument.InsertEndChild(xmlDocument.NewDeclaration());</span>
+
+<span style = "background-color:#fdd">  auto *rootElement = xmlDocument.NewElement("LabelSetImagePreset");
+  rootElement-&gt;SetAttribute("layers", inputImage-&gt;GetNumberOfLayers());
+  xmlDocument.InsertEndChild(rootElement);</span>
+
+<span style = "background-color:#fdd">  for (unsigned int layerIndex = 0; layerIndex &lt; inputImage-&gt;GetNumberOfLayers(); layerIndex++)</span>
+  {
+<span style = "background-color:#fdd">    auto *layerElement = xmlDocument.NewElement("Layer");
+    layerElement-&gt;SetAttribute("index", layerIndex);
+    layerElement-&gt;SetAttribute("labels", inputImage-&gt;GetNumberOfLabels(layerIndex));
+    rootElement-&gt;InsertEndChild(layerElement);</span>
+
+<span style = "background-color:#fdd">    for (unsigned int labelIndex = 0; labelIndex &lt; inputImage-&gt;GetNumberOfLabels(layerIndex); labelIndex++)
+      layerElement-&gt;InsertEndChild(LabelSetIOHelper::GetLabelAsXMLElement(xmlDocument, inputImage-&gt;GetLabel(labelIndex, layerIndex)));
+  }</span>
+
+<span style = "background-color:#fdd">  return tinyxml2::XML_SUCCESS == xmlDocument.SaveFile(filename.c_str());
+}</span>
+
+bool mitk::LabelSetIOHelper::LoadLabelSetImagePreset(const std::string &amp;presetFilename,
+                                                     mitk::LabelSetImage *inputImage)
+<span style = "background-color:#fdd">{
+  if (nullptr == inputImage)
+    return false;</span>
+
+<span style = "background-color:#fdd">  const auto filename = EnsureExtension(presetFilename);</span>
+
+<span style = "background-color:#fdd">  tinyxml2::XMLDocument xmlDocument;</span>
+
+<span style = "background-color:#fdd">  if (tinyxml2::XML_SUCCESS != xmlDocument.LoadFile(filename.c_str()))</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Label set preset file \"" &lt;&lt; filename &lt;&lt; "\" does not exist or cannot be opened";
+    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto *rootElement = xmlDocument.FirstChildElement("LabelSetImagePreset");</span>
+
+<span style = "background-color:#fdd">  if (nullptr == rootElement)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Not a valid Label set preset";
+    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  auto activeLayerBackup = inputImage-&gt;GetActiveLayer();</span>
+
+<span style = "background-color:#fdd">  int numberOfLayers = 0;
+  rootElement-&gt;QueryIntAttribute("layers", &amp;numberOfLayers);</span>
+
+<span style = "background-color:#fdd">  auto* layerElement = rootElement-&gt;FirstChildElement("Layer");</span>
+
+<span style = "background-color:#fdd">  if (nullptr == layerElement)</span>
+  {
+<span style = "background-color:#fdd">    MITK_WARN &lt;&lt; "Label set preset does not contain any layers";
+    return false;</span>
+  }
+
+<span style = "background-color:#fdd">  for (int layerIndex = 0; layerIndex &lt; numberOfLayers; layerIndex++)</span>
+  {
+<span style = "background-color:#fdd">    int numberOfLabels = 0;
+    layerElement-&gt;QueryIntAttribute("labels", &amp;numberOfLabels);</span>
+
+<span style = "background-color:#fdd">    if (nullptr == inputImage-&gt;GetLabelSet(layerIndex))</span>
+    {
+<span style = "background-color:#fdd">      inputImage-&gt;AddLayer();
+    }</span>
+    else
+    {
+<span style = "background-color:#fdd">      inputImage-&gt;SetActiveLayer(layerIndex);</span>
+    }
+
+<span style = "background-color:#fdd">    auto *labelElement = layerElement-&gt;FirstChildElement("Label");</span>
+
+<span style = "background-color:#fdd">    if (nullptr == labelElement)
+      continue;</span>
+
+<span style = "background-color:#fdd">    for (int labelIndex = 0; labelIndex &lt; numberOfLabels; labelIndex++)</span>
+    {
+<span style = "background-color:#fdd">      auto label = mitk::LabelSetIOHelper::LoadLabelFromXMLDocument(labelElement);
+      const auto labelValue = label-&gt;GetValue();</span>
+
+<span style = "background-color:#fdd">      if (0 != labelValue)</span>
+      {
+<span style = "background-color:#fdd">        auto* labelSet = inputImage-&gt;GetLabelSet(layerIndex);
+        auto* alreadyExistingLabel = labelSet-&gt;GetLabel(labelValue);</span>
+
+<span style = "background-color:#fdd">        if (nullptr != alreadyExistingLabel)</span>
+        {
+          // Override existing label with label from preset
+<span style = "background-color:#fdd">          alreadyExistingLabel-&gt;ConcatenatePropertyList(label);
+          labelSet-&gt;UpdateLookupTable(labelValue);
+        }</span>
+        else
+        {
+<span style = "background-color:#fdd">          labelSet-&gt;AddLabel(label);</span>
+        }
+      }
+
+<span style = "background-color:#fdd">      labelElement = labelElement-&gt;NextSiblingElement("Label");</span>
+
+<span style = "background-color:#fdd">      if (nullptr == labelElement)
+        continue;
+    }</span>
+
+<span style = "background-color:#fdd">    layerElement = layerElement-&gt;NextSiblingElement("Layer");</span>
+
+<span style = "background-color:#fdd">    if (nullptr == layerElement)
+      continue;
+  }</span>
+
+<span style = "background-color:#fdd">  inputImage-&gt;SetActiveLayer(activeLayerBackup);</span>
+
+<span style = "background-color:#fdd">  return true;
+}</span>
+
+tinyxml2::XMLElement *mitk::LabelSetIOHelper::GetLabelAsXMLElement(tinyxml2::XMLDocument &amp;doc, Label *label)
+<span style = "background-color:#fdd">{
+  auto *labelElem = doc.NewElement("Label");</span>
+
+<span style = "background-color:#fdd">  if (nullptr != label)</span>
+  {
+    // add XML contents
+<span style = "background-color:#fdd">    const PropertyList::PropertyMap* propmap = label-&gt;GetMap();
+    for (auto iter = propmap-&gt;begin(); iter != propmap-&gt;end(); ++iter)</span>
+    {
+<span style = "background-color:#fdd">      std::string key = iter-&gt;first;
+      const BaseProperty* property = iter-&gt;second;
+      auto* element = PropertyToXMLElement(doc, key, property);
+      if (element)
+        labelElem-&gt;InsertEndChild(element);
+    }</span>
+  }
+
+<span style = "background-color:#fdd">  return labelElem;
+}</span>
+
+mitk::Label::Pointer mitk::LabelSetIOHelper::LoadLabelFromXMLDocument(const tinyxml2::XMLElement *labelElem)
+<span style = "background-color:#fdd">{</span>
+  // reread
+<span style = "background-color:#fdd">  auto *propElem = labelElem-&gt;FirstChildElement("property");</span>
+
+<span style = "background-color:#fdd">  std::string name;
+  mitk::BaseProperty::Pointer prop;</span>
+
+<span style = "background-color:#fdd">  mitk::Label::Pointer label = mitk::Label::New();
+  while (propElem)</span>
+  {
+<span style = "background-color:#fdd">    LabelSetIOHelper::PropertyFromXMLElement(name, prop, propElem);
+    label-&gt;SetProperty(name, prop);
+    propElem = propElem-&gt;NextSiblingElement("property");
+  }</span>
+
+<span style = "background-color:#fdd">  return label.GetPointer();
+}</span>
+
+tinyxml2::XMLElement *mitk::LabelSetIOHelper::PropertyToXMLElement(tinyxml2::XMLDocument &amp;doc, const std::string &amp;key, const BaseProperty *property)
+<span style = "background-color:#fdd">{
+  auto *keyelement = doc.NewElement("property");
+  keyelement-&gt;SetAttribute("key", key.c_str());
+  keyelement-&gt;SetAttribute("type", property-&gt;GetNameOfClass());</span>
+
+  // construct name of serializer class
+<span style = "background-color:#fdd">  std::string serializername(property-&gt;GetNameOfClass());
+  serializername += "Serializer";</span>
+
+<span style = "background-color:#fdd">  std::list&lt;itk::LightObject::Pointer&gt; allSerializers =</span>
+    itk::ObjectFactoryBase::CreateAllInstance(serializername.c_str());
+<span style = "background-color:#fdd">  if (allSerializers.size() &lt; 1)
+    MITK_ERROR &lt;&lt; "No serializer found for " &lt;&lt; property-&gt;GetNameOfClass() &lt;&lt; ". Skipping object";</span>
+
+<span style = "background-color:#fdd">  if (allSerializers.size() &gt; 1)
+    MITK_WARN &lt;&lt; "Multiple serializers found for " &lt;&lt; property-&gt;GetNameOfClass() &lt;&lt; "Using arbitrarily the first one.";</span>
+
+<span style = "background-color:#fdd">  for (auto iter = allSerializers.begin(); iter != allSerializers.end();
+       ++iter)</span>
+  {
+<span style = "background-color:#fdd">    if (auto *serializer = dynamic_cast&lt;BasePropertySerializer *&gt;(iter-&gt;GetPointer()))</span>
+    {
+<span style = "background-color:#fdd">      serializer-&gt;SetProperty(property);</span>
+      try
+      {
+<span style = "background-color:#fdd">        auto *valueelement = serializer-&gt;Serialize(doc);
+        if (valueelement)
+          keyelement-&gt;InsertEndChild(valueelement);</span>
+      }
+      catch (std::exception &amp;e)
+<span style = "background-color:#fdd">      {
+        MITK_ERROR &lt;&lt; "Serializer " &lt;&lt; serializer-&gt;GetNameOfClass() &lt;&lt; " failed: " &lt;&lt; e.what();
+      }
+      break;
+    }
+  }
+  return keyelement;
+}</span>
+
+bool mitk::LabelSetIOHelper::PropertyFromXMLElement(std::string &amp;key,
+                                                    mitk::BaseProperty::Pointer &amp;prop,
+                                                    const tinyxml2::XMLElement *elem)
+<span style = "background-color:#fdd">{
+  const char* typeC = elem-&gt;Attribute("type");
+  std::string type = nullptr != typeC</span>
+    ? typeC
+    : "";
+
+<span style = "background-color:#fdd">  const char* keyC = elem-&gt;Attribute("key");
+  key = nullptr != keyC</span>
+    ? keyC
+    : "";
+
+  // construct name of serializer class
+<span style = "background-color:#fdd">  std::string serializername(type);
+  serializername += "Serializer";</span>
+
+<span style = "background-color:#fdd">  std::list&lt;itk::LightObject::Pointer&gt; allSerializers =</span>
+    itk::ObjectFactoryBase::CreateAllInstance(serializername.c_str());
+<span style = "background-color:#fdd">  if (allSerializers.size() &lt; 1)
+    MITK_ERROR &lt;&lt; "No serializer found for " &lt;&lt; type &lt;&lt; ". Skipping object";</span>
+
+<span style = "background-color:#fdd">  if (allSerializers.size() &gt; 1)
+    MITK_WARN &lt;&lt; "Multiple deserializers found for " &lt;&lt; type &lt;&lt; "Using arbitrarily the first one.";</span>
+
+<span style = "background-color:#fdd">  for (auto iter = allSerializers.begin(); iter != allSerializers.end();
+       ++iter)</span>
+  {
+<span style = "background-color:#fdd">    if (auto *serializer = dynamic_cast&lt;BasePropertySerializer *&gt;(iter-&gt;GetPointer()))</span>
+    {
+      try
+      {
+<span style = "background-color:#fdd">        prop = serializer-&gt;Deserialize(elem-&gt;FirstChildElement());</span>
+      }
+      catch (std::exception &amp;e)
+<span style = "background-color:#fdd">      {
+        MITK_ERROR &lt;&lt; "Deserializer " &lt;&lt; serializer-&gt;GetNameOfClass() &lt;&lt; " failed: " &lt;&lt; e.what();
+        return false;
+      }
+      break;
+    }
+  }
+  if (prop.IsNull())
+    return false;
+  return true;
+}</span></pre>
+	</body>
+</html>

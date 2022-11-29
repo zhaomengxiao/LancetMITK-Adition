@@ -1,0 +1,426 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkLine.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKLINE_H_HEADER_INCLUDED_C19C01E2
+#define MITKLINE_H_HEADER_INCLUDED_C19C01E2
+
+#include "mitkNumericTypes.h"
+#include &lt;itkMatrix.h&gt;
+#include &lt;itkTransform.h&gt;
+#include &lt;vnl/vnl_cross.h&gt;
+#include &lt;vnl/vnl_vector.h&gt;
+
+namespace mitk
+{
+  //##Documentation
+  //## @brief Descibes a line
+  //## @ingroup Geometry
+  template &lt;class TCoordRep, unsigned int NPointDimension = 3&gt;
+  class Line
+  {
+  public:
+<span style = "background-color:#fdd">    Line()</span>
+    {
+<span style = "background-color:#fdd">      m_Point.Fill(0);
+      m_Direction.Fill(0);
+    }</span>
+
+    //##Documentation
+    //## @brief Define line by point and direction
+    //##
+    //## Length of direction defines the the length of the line
+<span style = "background-color:#fdd">    Line(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point, const itk::Vector&lt;TCoordRep, NPointDimension&gt; &amp;direction)</span>
+    {
+<span style = "background-color:#fdd">      this-&gt;m_Point = point;
+      this-&gt;m_Direction = direction;
+    }</span>
+
+    //##Documentation
+    //## @brief Get start point of the line
+<span style = "background-color:#fdd">    const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;GetPoint() const { return m_Point; }</span>
+    //##Documentation
+    //## @brief Get start point of the line
+<span style = "background-color:#fdd">    itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;GetPoint() { return m_Point; }</span>
+    //##Documentation
+    //## @brief Get point on the line with parameter @a t
+    //##
+    //## @return m_Point+t*m_Direction
+<span style = "background-color:#fdd">    const itk::Point&lt;TCoordRep, NPointDimension&gt; GetPoint(TCoordRep t) const { return m_Point + m_Direction * t; }</span>
+    //##Documentation
+    //## @brief Set/change start point of the line
+    void SetPoint(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point1)
+    {
+      itk::Point&lt;TCoordRep, NPointDimension&gt; point2;
+      point2 = m_Point + m_Direction;
+      m_Point = point1;
+      m_Direction = point2.GetVectorFromOrigin() - point1.GetVectorFromOrigin();
+    }
+
+    //##Documentation
+    //## @brief Get the direction vector of the line
+<span style = "background-color:#fdd">    const itk::Vector&lt;TCoordRep, NPointDimension&gt; &amp;GetDirection() const { return m_Direction; }</span>
+    //##Documentation
+    //## @brief Get the direction vector of the line
+<span style = "background-color:#fdd">    itk::Vector&lt;TCoordRep, NPointDimension&gt; &amp;GetDirection() { return m_Direction; }</span>
+    //##Documentation
+    //## @brief Set the direction vector of the line
+<span style = "background-color:#fdd">    void SetDirection(const itk::Vector&lt;TCoordRep, NPointDimension&gt; &amp;direction) { m_Direction = direction; }</span>
+    //##Documentation
+    //## @brief Define line by point and direction
+    //##
+    //## Length of direction defines the the length of the line
+    void Set(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point,
+             const itk::Vector&lt;TCoordRep, NPointDimension&gt; &amp;direction)
+    {
+      this-&gt;m_Point = point;
+      this-&gt;m_Direction = direction;
+    }
+
+    //##Documentation
+    //## @brief Define line by two points
+    void SetPoints(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point1,
+                   const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point2)
+<span style = "background-color:#fdd">    {
+      this-&gt;m_Point = point1;</span>
+      // this-&gt;m_Direction.sub( point2, point1 );
+<span style = "background-color:#fdd">      m_Direction = point2 - point1;
+    }</span>
+
+    //##Documentation
+    //## @brief Set/change start point of the line
+    void SetPoint1(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point1)
+    {
+      itk::Vector&lt;TCoordRep, NPointDimension&gt; point2;
+      point2 = m_Point.GetVectorFromOrigin() + m_Direction;
+
+      m_Point = point1;
+      m_Direction = point2 - point1.GetVectorFromOrigin();
+    }
+
+    //##Documentation
+    //## @brief Get start point of the line
+<span style = "background-color:#fdd">    const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;GetPoint1() const { return m_Point; }</span>
+    //##Documentation
+    //## @brief Set/change end point of the line
+    void SetPoint2(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point2) { m_Direction = point2 - m_Point; }
+    //##Documentation
+    //## @brief Get end point of the line
+    itk::Point&lt;TCoordRep, NPointDimension&gt; GetPoint2() const
+<span style = "background-color:#fdd">    {</span>
+      itk::Point&lt;TCoordRep, NPointDimension&gt; point2;
+<span style = "background-color:#fdd">      point2 = m_Point + m_Direction;
+      return point2;
+    }</span>
+
+    //##Documentation
+    //## @brief Transform the line with a Transform
+    void Transform(itk::Transform&lt;TCoordRep, NPointDimension, NPointDimension&gt; &amp;transform)
+    {
+      m_Direction = transform.TransformVector(m_Direction);
+      m_Point = transform.TransformPoint(m_Point);
+    }
+
+    //##Documentation
+    //## @brief Transform the line with a matrix
+    //##
+    //## Only the direction will be changed, not the start point.
+    void Transform(const itk::Matrix&lt;TCoordRep, NPointDimension, NPointDimension&gt; &amp;matrix)
+    {
+      m_Direction = matrix * m_Direction;
+    }
+
+    //##Documentation
+    //## @brief Distance of a point from the line
+    double Distance(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point) const
+<span style = "background-color:#fdd">    {</span>
+      itk::Vector&lt;TCoordRep, NPointDimension&gt; diff;
+<span style = "background-color:#fdd">      diff = Project(point) - point;
+      return diff.GetNorm();
+    }</span>
+
+    //##Documentation
+    //## @brief Project a point on the line
+    itk::Point&lt;TCoordRep, NPointDimension&gt; Project(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point) const
+<span style = "background-color:#fdd">    {
+      if (m_Direction.GetNorm() == 0)
+        return this-&gt;m_Point;</span>
+
+      itk::Vector&lt;TCoordRep, NPointDimension&gt; diff;
+<span style = "background-color:#fdd">      diff = point - this-&gt;m_Point;</span>
+
+<span style = "background-color:#fdd">      itk::Vector&lt;TCoordRep, NPointDimension&gt; normalizedDirection = m_Direction;
+      normalizedDirection.Normalize();</span>
+
+<span style = "background-color:#fdd">      normalizedDirection *= dot_product(diff.GetVnlVector(), normalizedDirection.GetVnlVector());</span>
+
+<span style = "background-color:#fdd">      return this-&gt;m_Point + normalizedDirection;
+    }</span>
+
+    //##Documentation
+    //## @brief Test if a point is part of the line
+    //##
+    //## Length of the direction vector defines the length of the line
+    bool IsPartOfStraightLine(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point) const
+    {
+      if (Distance(point) &gt; eps)
+        return false;
+
+      itk::Vector&lt;TCoordRep, NPointDimension&gt; diff;
+      diff = point - this-&gt;m_Point;
+
+      if (diff * m_Direction &lt; 0)
+        return false;
+
+      if (diff.GetSquaredNorm() &lt;= m_Direction.GetSquaredNorm())
+        return true;
+
+      return false;
+    }
+
+    //##Documentation
+    //## @brief Test if a point is part of the line (line having infinite length)
+    bool IsPartOfLine(const itk::Point&lt;TCoordRep, NPointDimension&gt; &amp;point) const
+    {
+      if (Distance(point) &lt; eps)
+        return true;
+
+      return false;
+    }
+
+    //##Documentation
+    //## @brief Test if a lines is parallel to this line
+    bool IsParallel(const Line&lt;TCoordRep, NPointDimension&gt; &amp;line) const
+<span style = "background-color:#fdd">    {
+      vnl_vector&lt;TCoordRep&gt; normal;</span>
+
+<span style = "background-color:#fdd">      normal = vnl_cross_3d(m_Direction.GetVnlVector(), line.GetDirection().GetVnlVector());</span>
+
+<span style = "background-color:#fdd">      if (normal.squared_magnitude() &lt; eps)
+        return true;</span>
+
+<span style = "background-color:#fdd">      return false;
+    }</span>
+
+    //##Documentation
+    //## @brief Test if a line is part of the line (line having infinite length)
+    bool IsPartOfLine(const Line&lt;TCoordRep, NPointDimension&gt; &amp;line) const
+    {
+      return (Distance(line.GetPoint()) &lt; 0) &amp;&amp; (IsParallel(line));
+    }
+
+    //##Documentation
+    //## @brief Test if the two lines are identical
+    //##
+    //## Start point and direction and length of direction vector must be
+    //## equal for identical lines.
+    bool operator==(const Line&lt;TCoordRep, NPointDimension&gt; &amp;line) const
+    {
+      itk::Vector&lt;TCoordRep, NPointDimension&gt; diff;
+      diff = GetPoint1() - line.GetPoint1();
+      if (diff.GetSquaredNorm() &gt; eps)
+        return false;
+      diff = GetPoint2() - line.GetPoint2();
+      if (diff.GetSquaredNorm() &gt; eps)
+        return false;
+      return true;
+    }
+
+    //##Documentation
+    //## @brief Set the line by another line
+    inline const Line&lt;TCoordRep, NPointDimension&gt; &amp;operator=(const Line&lt;TCoordRep, NPointDimension&gt; &amp;line)
+<span style = "background-color:#fdd">    {
+      m_Point = line.GetPoint();
+      m_Direction = line.GetDirection();
+      return *this;
+    }</span>
+
+    //##Documentation
+    //## @brief Test if two lines are not identical
+    //##
+    //## \sa operator==
+    bool operator!=(const Line&lt;TCoordRep, NPointDimension&gt; &amp;line) const { return !((*this) == line); }
+    //##Documentation
+    //## @brief Calculates the intersection points of a straight line in 2D
+    //## with a rectangle
+    //##
+    //## @param x1,y1,x2,y2   rectangle
+    //## @param p,d           straight line: p point on it, d direction of line
+    //## @param s1            first intersection point (valid only if s_num&gt;0)
+    //## @param s2            second intersection point (valid only if s_num==2)
+    //## @return              number of intersection points (0&lt;=s_num&lt;=2)
+    static int RectangleLineIntersection(TCoordRep x1,
+                                         TCoordRep y1,
+                                         TCoordRep x2,
+                                         TCoordRep y2,
+                                         itk::Point&lt;TCoordRep, 2&gt; p,
+                                         itk::Vector&lt;TCoordRep, 2&gt; d,
+                                         itk::Point&lt;TCoordRep, 2&gt; &amp;s1,
+                                         itk::Point&lt;TCoordRep, 2&gt; &amp;s2)
+<span style = "background-color:#fdd">    {</span>
+      int s_num;
+      TCoordRep t;
+<span style = "background-color:#fdd">      s_num = 0;</span>
+
+      /*test if intersecting with the horizontal axis*/
+<span style = "background-color:#fdd">      if (fabs(d[0]) &gt; eps)</span>
+      {
+<span style = "background-color:#fdd">        t = (x1 - p[0]) / d[0];
+        itk::Point&lt;TCoordRep, 2&gt; l = p + d * t;
+        if ((l[1] &gt;= y1) &amp;&amp; (l[1] &lt; y2))</span>
+        { // yes, intersection point within the bounds of the border-line
+<span style = "background-color:#fdd">          if (s_num)
+            s2 = l;</span>
+          else
+<span style = "background-color:#fdd">            s1 = l;
+          ++s_num;</span>
+        }
+      }
+
+<span style = "background-color:#fdd">      if (fabs(d[0]) &gt; eps)</span>
+      {
+<span style = "background-color:#fdd">        t = (x2 - p[0]) / d[0];
+        itk::Point&lt;TCoordRep, 2&gt; l = p + d * t;</span>
+
+<span style = "background-color:#fdd">        if ((l[1] &gt;= y1) &amp;&amp; (l[1] &lt; y2))</span>
+        { // yes, intersection point within the bounds of the border-line
+<span style = "background-color:#fdd">          if (s_num)
+            s2 = l;</span>
+          else
+<span style = "background-color:#fdd">            s1 = l;
+          ++s_num;</span>
+        }
+      }
+
+      /*test if intersecting with the vertical axis*/
+<span style = "background-color:#fdd">      if (fabs(d[1]) &gt; eps)</span>
+      {
+<span style = "background-color:#fdd">        t = (y1 - p[1]) / d[1];
+        itk::Point&lt;TCoordRep, 2&gt; l = p + d * t;</span>
+
+<span style = "background-color:#fdd">        if ((l[0] &gt;= x1) &amp;&amp; (l[0] &lt; x2))</span>
+        { // yes, intersection point within the bounds of the border-line
+<span style = "background-color:#fdd">          if (s_num)
+            s2 = l;</span>
+          else
+<span style = "background-color:#fdd">            s1 = l;
+          ++s_num;</span>
+        }
+      }
+
+<span style = "background-color:#fdd">      if (fabs(d[1]) &gt; eps)</span>
+      {
+<span style = "background-color:#fdd">        t = (y2 - p[1]) / d[1];
+        itk::Point&lt;TCoordRep, 2&gt; l = p + d * t;
+        if ((l[0] &gt;= x1) &amp;&amp; (l[0] &lt; x2))</span>
+        { // yes, intersection point within the bounds of the border-line
+<span style = "background-color:#fdd">          if (s_num)
+            s2 = l;</span>
+          else
+<span style = "background-color:#fdd">            s1 = l;
+          ++s_num;</span>
+        }
+      }
+<span style = "background-color:#fdd">      return s_num;
+    }</span>
+
+    /**
+     * \brief Calculates the intersection points of a straight line in 3D with
+     * a box.
+     *
+     * \param x1,y1,z1  first corner of the box
+     * \param x2,y2,z2  second corner of the box
+     * \param p,d       straight line: p point on it, d direction of line
+     * \param s1        first intersection point (valid only if s_num&gt;0)
+     * \param s2        second intersection point (valid only if s_num==2)
+     * \return          number of intersection points (0&lt;=s_num&lt;=2)
+     */
+    static int BoxLineIntersection(TCoordRep x1,
+                                   TCoordRep y1,
+                                   TCoordRep z1,
+                                   TCoordRep x2,
+                                   TCoordRep y2,
+                                   TCoordRep z2,
+                                   itk::Point&lt;TCoordRep, 3&gt; p,
+                                   itk::Vector&lt;TCoordRep, 3&gt; d,
+                                   itk::Point&lt;TCoordRep, 3&gt; &amp;s1,
+                                   itk::Point&lt;TCoordRep, 3&gt; &amp;s2)
+<span style = "background-color:#fdd">    {
+      int num = 0;</span>
+
+      ScalarType box[6];
+<span style = "background-color:#fdd">      box[0] = x1;
+      box[1] = x2;
+      box[2] = y1;
+      box[3] = y2;
+      box[4] = z1;
+      box[5] = z2;</span>
+
+      itk::Point&lt;TCoordRep, 3&gt; point;
+
+      int i, j;
+<span style = "background-color:#fdd">      for (i = 0; i &lt; 6; ++i)</span>
+      {
+<span style = "background-color:#fdd">        j = i / 2;
+        if (fabs(d[j]) &gt; eps)</span>
+        {
+<span style = "background-color:#fdd">          ScalarType lambda = (box[i] - p[j]) / d[j];</span>
+
+<span style = "background-color:#fdd">          point = p + d * lambda;</span>
+
+<span style = "background-color:#fdd">          int k = (j + 1) % 3;
+          int l = (j + 2) % 3;</span>
+
+          if ((((point[k] &gt;= box[k * 2]) &amp;&amp; (point[k] &lt;= box[k * 2 + 1])) ||
+<span style = "background-color:#fdd">               ((point[k] &lt;= box[k * 2]) &amp;&amp; (point[k] &gt;= box[k * 2 + 1]))) &amp;&amp;</span>
+              (((point[l] &gt;= box[l * 2]) &amp;&amp; (point[l] &lt;= box[l * 2 + 1])) ||
+               ((point[l] &lt;= box[l * 2]) &amp;&amp; (point[l] &gt;= box[l * 2 + 1])))
+
+                )
+          {
+<span style = "background-color:#fdd">            if (num == 0)</span>
+            {
+<span style = "background-color:#fdd">              s1 = point;
+            }</span>
+            else
+            {
+<span style = "background-color:#fdd">              s2 = point;</span>
+            }
+<span style = "background-color:#fdd">            ++num;</span>
+          }
+        }
+<span style = "background-color:#fdd">      }
+      return num;
+    }</span>
+
+  protected:
+    itk::Point&lt;TCoordRep, NPointDimension&gt; m_Point;
+    itk::Vector&lt;TCoordRep, NPointDimension&gt; m_Direction;
+  };
+
+  typedef Line&lt;ScalarType, 3&gt; Line3D;
+
+} // namespace mitk
+
+#endif /* MITKLINE_H_HEADER_INCLUDED_C19C01E2 */</pre>
+	</body>
+</html>

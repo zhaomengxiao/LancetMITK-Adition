@@ -1,0 +1,342 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>usThreads_p.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+  Library: CppMicroServices
+
+  Copyright (c) German Cancer Research Center (DKFZ)
+  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+============================================================================*/
+
+
+#ifndef USTHREADINGMODEL_H
+#define USTHREADINGMODEL_H
+
+#include &lt;usCoreConfig.h&gt;
+
+#ifdef US_ENABLE_THREADING_SUPPORT
+
+  // Atomic compiler intrinsics
+
+  #if defined(US_PLATFORM_APPLE)
+    // OSAtomic.h optimizations only used in 10.5 and later, deprecated in 10.12
+    #include &lt;AvailabilityMacros.h&gt;
+    #if MAC_OS_X_VERSION_MAX_ALLOWED &gt;= 1050 &amp;&amp; MAC_OS_X_VERSION_MAX_ALLOWED &lt; 101200
+      #include &lt;libkern/OSAtomic.h&gt;
+      #define US_ATOMIC_OPTIMIZATION_APPLE
+    #endif
+
+  #elif defined(__GLIBCPP__) || defined(__GLIBCXX__)
+
+    #if (__GNUC__ &gt; 4) || ((__GNUC__ == 4) &amp;&amp; (__GNUC_MINOR__ &gt;= 2))
+      # include &lt;ext/atomicity.h&gt;
+    #else
+      # include &lt;bits/atomicity.h&gt;
+    #endif
+    #define US_ATOMIC_OPTIMIZATION_GNUC
+
+  #endif
+
+  // Mutex support
+
+  #ifdef US_PLATFORM_WINDOWS
+    #ifndef WIN32_LEAN_AND_MEAN
+      #define WIN32_LEAN_AND_MEAN
+    #endif
+    #ifndef NOMINMAX
+      #define NOMINMAX
+    #endif
+    #include &lt;windows.h&gt;
+
+    #define US_THREADS_MUTEX(x)           HANDLE (x);
+    #define US_THREADS_MUTEX_INIT(x)
+    #define US_THREADS_MUTEX_CTOR(x)      : x(::CreateMutex(nullptr, FALSE, nullptr))
+    #define US_THREADS_MUTEX_DELETE(x)    ::CloseHandle (x)
+    #define US_THREADS_MUTEX_LOCK(x)      ::WaitForSingleObject (x, INFINITE)
+    #define US_THREADS_MUTEX_UNLOCK(x)    ::ReleaseMutex (x)
+    #define US_THREADS_LONG               LONG
+
+    #define US_ATOMIC_OPTIMIZATION
+    #define US_ATOMIC_INCREMENT(x)        IntType n = InterlockedIncrement(x)
+    #define US_ATOMIC_DECREMENT(x)        IntType n = InterlockedDecrement(x)
+    #define US_ATOMIC_ASSIGN(l, r)        InterlockedExchange(l, r)
+
+  #elif defined(US_PLATFORM_POSIX)
+
+    #include &lt;pthread.h&gt;
+
+    #define US_THREADS_MUTEX(x)           pthread_mutex_t x;
+    #define US_THREADS_MUTEX_INIT(x)      ::pthread_mutex_init(&amp;x, 0)
+    #define US_THREADS_MUTEX_CTOR(x)      : x()
+    #define US_THREADS_MUTEX_DELETE(x)    ::pthread_mutex_destroy (&amp;x)
+    #define US_THREADS_MUTEX_LOCK(x)      ::pthread_mutex_lock (&amp;x)
+    #define US_THREADS_MUTEX_UNLOCK(x)    ::pthread_mutex_unlock (&amp;x)
+
+    #define US_ATOMIC_OPTIMIZATION
+    #if defined(US_ATOMIC_OPTIMIZATION_APPLE)
+      #if defined (__LP64__) &amp;&amp; __LP64__
+        #define US_THREADS_LONG           volatile int64_t
+        #define US_ATOMIC_INCREMENT(x)    IntType n = OSAtomicIncrement64Barrier(x)
+        #define US_ATOMIC_DECREMENT(x)    IntType n = OSAtomicDecrement64Barrier(x)
+        #define US_ATOMIC_ASSIGN(l, v)    OSAtomicCompareAndSwap64Barrier(*l, v, l)
+      #else
+        #define US_THREADS_LONG           volatile int32_t
+        #define US_ATOMIC_INCREMENT(x)    IntType n = OSAtomicIncrement32Barrier(x)
+        #define US_ATOMIC_DECREMENT(x)    IntType n = OSAtomicDecrement32Barrier(x)
+        #define US_ATOMIC_ASSIGN(l, v)    OSAtomicCompareAndSwap32Barrier(*l, v, l)
+      #endif
+    #elif defined(US_ATOMIC_OPTIMIZATION_GNUC)
+      #define US_THREADS_LONG             _Atomic_word
+      #define US_ATOMIC_INCREMENT(x)      IntType n = __sync_add_and_fetch(x, 1)
+      #define US_ATOMIC_DECREMENT(x)      IntType n = __sync_add_and_fetch(x, -1)
+      #define US_ATOMIC_ASSIGN(l, v)      __sync_val_compare_and_swap(l, *l, v)
+    #else
+      #define US_THREADS_LONG             long
+      #undef US_ATOMIC_OPTIMIZATION
+      #define US_ATOMIC_INCREMENT(x)      m_AtomicMtx.Lock();  \
+                                          IntType n = ++(*x);  \
+                                          m_AtomicMtx.Unlock()
+      #define US_ATOMIC_DECREMENT(x)      m_AtomicMtx.Lock();  \
+                                          IntType n = --(*x);  \
+                                          m_AtomicMtx.Unlock()
+      #define US_ATOMIC_ASSIGN(l, v)      m_AtomicMtx.Lock();  \
+                                          *l = v;              \
+                                          m_AtomicMtx.Unlock()
+    #endif
+
+  #endif
+
+#else
+
+  // single threaded
+  #define US_THREADS_MUTEX(x)
+  #define US_THREADS_MUTEX_INIT(x)
+  #define US_THREADS_MUTEX_CTOR(x)
+  #define US_THREADS_MUTEX_DELETE(x)
+  #define US_THREADS_MUTEX_LOCK(x)
+  #define US_THREADS_MUTEX_UNLOCK(x)
+  #define US_THREADS_LONG int
+
+  #define US_ATOMIC_INCREMENT(x)        IntType n = ++(*x);
+  #define US_ATOMIC_DECREMENT(x)        IntType n = --(*x);
+  #define US_ATOMIC_ASSIGN(l, r)        *l = r;
+
+#endif
+
+
+US_BEGIN_NAMESPACE
+
+class Mutex
+{
+public:
+
+<span style = "background-color:#dfd">  Mutex() US_THREADS_MUTEX_CTOR(m_Mtx)
+  {</span>
+    US_THREADS_MUTEX_INIT(m_Mtx);
+<span style = "background-color:#dfd">  }</span>
+
+  ~Mutex()
+<span style = "background-color:#dfd">  {
+    US_THREADS_MUTEX_DELETE(m_Mtx);
+  }</span>
+
+  void Lock()
+<span style = "background-color:#dfd">  {
+    US_THREADS_MUTEX_LOCK(m_Mtx);
+  }</span>
+  void Unlock()
+<span style = "background-color:#dfd">  {
+    US_THREADS_MUTEX_UNLOCK(m_Mtx);
+  }</span>
+
+private:
+
+  template&lt;class Host&gt; friend class WaitCondition;
+
+  // Copy-constructor not implemented.
+  Mutex(const Mutex &amp;);
+  // Copy-assignement operator not implemented.
+  Mutex &amp; operator = (const Mutex &amp;);
+
+  US_THREADS_MUTEX(m_Mtx)
+};
+
+class MutexLock
+{
+public:
+  typedef Mutex MutexType;
+
+<span style = "background-color:#dfd">  MutexLock(MutexType&amp; mtx) : m_Mtx(&amp;mtx) { m_Mtx-&gt;Lock(); }
+  ~MutexLock() { m_Mtx-&gt;Unlock(); }</span>
+
+private:
+  MutexType* m_Mtx;
+
+  // purposely not implemented
+  MutexLock(const MutexLock&amp;);
+  MutexLock&amp; operator=(const MutexLock&amp;);
+};
+
+class AtomicCounter
+{
+public:
+
+  typedef US_THREADS_LONG IntType;
+
+  AtomicCounter(int value = 0)
+<span style = "background-color:#dfd">    : m_Counter(value)
+  {}</span>
+
+  IntType AtomicIncrement() const
+<span style = "background-color:#dfd">  {
+    US_ATOMIC_INCREMENT(&amp;m_Counter);
+    return n;
+  }</span>
+
+  IntType AtomicIncrement(volatile IntType&amp; lval) const
+  {
+    US_ATOMIC_INCREMENT(&amp;lval);
+    return n;
+  }
+
+  IntType AtomicDecrement() const
+<span style = "background-color:#dfd">  {
+    US_ATOMIC_DECREMENT(&amp;m_Counter);
+    return n;
+  }</span>
+
+  IntType AtomicDecrement(volatile IntType&amp; lval) const
+  {
+    US_ATOMIC_DECREMENT(&amp;lval);
+    return n;
+  }
+
+  void AtomicAssign(volatile IntType&amp; lval) const
+<span style = "background-color:#dfd">  {
+    US_ATOMIC_ASSIGN(&amp;lval, m_Counter);
+  }</span>
+
+  void AtomicAssign(volatile IntType&amp; lval, const IntType val) const
+  {
+    US_ATOMIC_ASSIGN(&amp;lval, val);
+  }
+
+  mutable IntType m_Counter;
+
+private:
+
+#if !defined(US_ATOMIC_OPTIMIZATION)
+  mutable Mutex m_AtomicMtx;
+#endif
+};
+
+class MutexLockingStrategy
+{
+public:
+
+  MutexLockingStrategy()
+#ifdef US_ENABLE_THREADING_SUPPORT
+<span style = "background-color:#dfd">    : m_Mtx()</span>
+#endif
+<span style = "background-color:#dfd">  {}</span>
+
+  MutexLockingStrategy(const MutexLockingStrategy&amp;)
+#ifdef US_ENABLE_THREADING_SUPPORT
+    : m_Mtx()
+#endif
+  {}
+
+  class Lock;
+  friend class Lock;
+
+  class Lock
+  {
+  public:
+
+#ifdef US_ENABLE_THREADING_SUPPORT
+    // Lock object
+<span style = "background-color:#dfd">    explicit Lock(const MutexLockingStrategy&amp; host) : m_Host(host)
+    {
+      m_Host.m_Mtx.Lock();
+    }</span>
+
+    // Lock object
+<span style = "background-color:#dfd">    explicit Lock(const MutexLockingStrategy* host) : m_Host(*host)
+    {
+      m_Host.m_Mtx.Lock();
+    }</span>
+
+    // Unlock object
+    ~Lock()
+<span style = "background-color:#dfd">    {
+      m_Host.m_Mtx.Unlock();
+    }</span>
+#else
+    explicit Lock(const MutexLockingStrategy&amp;) {}
+    explicit Lock(const MutexLockingStrategy*) {}
+#endif
+
+  private:
+
+    // private by design
+    Lock();
+    Lock(const Lock&amp;);
+    Lock&amp; operator=(const Lock&amp;);
+#ifdef US_ENABLE_THREADING_SUPPORT
+    const MutexLockingStrategy&amp; m_Host;
+#endif
+  };
+
+protected:
+
+#ifdef US_ENABLE_THREADING_SUPPORT
+  mutable Mutex m_Mtx;
+#endif
+};
+
+class NoLockingStrategy
+{
+};
+
+US_END_NAMESPACE
+
+#include &lt;usWaitCondition_p.h&gt;
+
+US_BEGIN_NAMESPACE
+
+template&lt;class LockingStrategy = MutexLockingStrategy,
+         template&lt;class Host&gt; class WaitConditionStrategy = NoWaitCondition
+        &gt;
+class MultiThreaded : public LockingStrategy,
+                      public WaitConditionStrategy&lt;MultiThreaded&lt;LockingStrategy, WaitConditionStrategy&gt; &gt;
+{
+  friend class WaitConditionStrategy&lt;MultiThreaded&lt;LockingStrategy, WaitConditionStrategy&gt; &gt;;
+};
+
+US_END_NAMESPACE
+
+#endif // USTHREADINGMODEL_H</pre>
+	</body>
+</html>

@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkTwoStepLinearModelParameterizer.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKTWOSTEPLINEARMODELPARAMETERIZER_H
+#define MITKTWOSTEPLINEARMODELPARAMETERIZER_H
+
+#include "mitkConcreteModelParameterizerBase.h"
+#include "mitkTwoStepLinearModel.h"
+
+namespace mitk
+{
+
+class MITKPHARMACOKINETICS_EXPORT TwoStepLinearModelParameterizer : public
+  mitk::ConcreteModelParameterizerBase&lt;mitk::TwoStepLinearModel&gt;
+{
+public:
+  typedef TwoStepLinearModelParameterizer Self;
+  typedef mitk::ConcreteModelParameterizerBase&lt;mitk::TwoStepLinearModel&gt; Superclass;
+  typedef itk::SmartPointer&lt; Self &gt;                            Pointer;
+  typedef itk::SmartPointer&lt; const Self &gt;                      ConstPointer;
+
+<span style = "background-color:#fdd">  itkTypeMacro(TwoStepLinearModelParameterizer, ConcreteModelParameterizerBase);
+  itkFactorylessNewMacro(Self);</span>
+
+  typedef typename Superclass::ModelBaseType ModelBaseType;
+  typedef typename Superclass::ModelBasePointer ModelBasePointer;
+
+  typedef typename Superclass::ModelType ModelType;
+  typedef typename Superclass::ModelPointer ModelPointer;
+
+  typedef typename Superclass::StaticParameterValueType StaticParameterValueType;
+  typedef typename Superclass::StaticParameterValuesType StaticParameterValuesType;
+  typedef typename Superclass::StaticParameterMapType StaticParameterMapType;
+
+  typedef typename Superclass::IndexType IndexType;
+
+  /** This function returns the default parameterization (e.g. initial parametrization for fitting)
+   defined by the model developer for  for the given model.*/
+  virtual ParametersType GetDefaultInitialParameterization() const;
+
+protected:
+<span style = "background-color:#fdd">  TwoStepLinearModelParameterizer(){};</span>
+
+<span style = "background-color:#fdd">  virtual ~TwoStepLinearModelParameterizer(){};</span>
+
+private:
+
+  //No copy constructor allowed
+  TwoStepLinearModelParameterizer(const Self&amp; source);
+  void operator=(const Self&amp;);  //purposely not implemented
+};}
+
+
+#endif // MITKTWOSTEPLINEARMODELPARAMETERIZER_H</pre>
+	</body>
+</html>

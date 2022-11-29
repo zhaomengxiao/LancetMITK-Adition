@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkVtkResliceInterpolationProperty.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkVtkResliceInterpolationProperty.h"
+#include &lt;vtkProperty.h&gt;
+
+mitk::VtkResliceInterpolationProperty::VtkResliceInterpolationProperty()
+<span style = "background-color:#fdd">{
+  this-&gt;AddInterpolationTypes();
+  this-&gt;SetValue(static_cast&lt;IdType&gt;(VTK_RESLICE_NEAREST));
+}</span>
+
+mitk::VtkResliceInterpolationProperty::VtkResliceInterpolationProperty(const IdType &amp;value)
+<span style = "background-color:#fdd">{
+  this-&gt;AddInterpolationTypes();
+  if (IsValidEnumerationValue(value))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetValue(value);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;SetValue(static_cast&lt;IdType&gt;(VTK_RESLICE_NEAREST));</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+mitk::VtkResliceInterpolationProperty::VtkResliceInterpolationProperty(const std::string &amp;value)
+<span style = "background-color:#fdd">{
+  this-&gt;AddInterpolationTypes();
+  if (IsValidEnumerationValue(value))</span>
+  {
+<span style = "background-color:#fdd">    this-&gt;SetValue(value);
+  }</span>
+  else
+  {
+<span style = "background-color:#fdd">    this-&gt;SetValue(static_cast&lt;IdType&gt;(VTK_RESLICE_NEAREST));</span>
+  }
+<span style = "background-color:#fdd">}</span>
+
+int mitk::VtkResliceInterpolationProperty::GetInterpolation()
+<span style = "background-color:#fdd">{
+  return static_cast&lt;int&gt;(this-&gt;GetValueAsId());
+}</span>
+
+void mitk::VtkResliceInterpolationProperty::SetInterpolationToNearest()
+<span style = "background-color:#fdd">{
+  this-&gt;SetValue(static_cast&lt;IdType&gt;(VTK_RESLICE_NEAREST));
+}</span>
+
+void mitk::VtkResliceInterpolationProperty::SetInterpolationToLinear()
+<span style = "background-color:#fdd">{
+  this-&gt;SetValue(static_cast&lt;IdType&gt;(VTK_RESLICE_LINEAR));
+}</span>
+
+void mitk::VtkResliceInterpolationProperty::SetInterpolationToCubic()
+<span style = "background-color:#fdd">{
+  this-&gt;SetValue(static_cast&lt;IdType&gt;(VTK_RESLICE_CUBIC));
+}</span>
+
+void mitk::VtkResliceInterpolationProperty::AddInterpolationTypes()
+<span style = "background-color:#fdd">{
+  AddEnum("Nearest", static_cast&lt;IdType&gt;(VTK_RESLICE_NEAREST));
+  AddEnum("Linear", static_cast&lt;IdType&gt;(VTK_RESLICE_LINEAR));
+  AddEnum("Cubic", static_cast&lt;IdType&gt;(VTK_RESLICE_CUBIC));
+}</span>
+
+bool mitk::VtkResliceInterpolationProperty::AddEnum(const std::string &amp;name, const IdType &amp;id)
+<span style = "background-color:#fdd">{
+  return Superclass::AddEnum(name, id);
+}</span>
+
+itk::LightObject::Pointer mitk::VtkResliceInterpolationProperty::InternalClone() const
+<span style = "background-color:#fdd">{
+  itk::LightObject::Pointer result(new Self(*this));
+  result-&gt;UnRegister();
+  return result;
+}</span></pre>
+	</body>
+</html>

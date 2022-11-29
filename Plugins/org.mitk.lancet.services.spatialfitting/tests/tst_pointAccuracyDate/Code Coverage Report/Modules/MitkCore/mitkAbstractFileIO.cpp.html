@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkAbstractFileIO.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkAbstractFileIO.h"
+
+#include "mitkCustomMimeType.h"
+
+namespace mitk
+{
+<span style = "background-color:#fdd">  AbstractFileIO::Options AbstractFileIO::GetReaderOptions() const { return AbstractFileReader::GetOptions(); }
+  us::Any AbstractFileIO::GetReaderOption(const std::string &amp;name) const { return AbstractFileReader::GetOption(name); }</span>
+  void AbstractFileIO::SetReaderOptions(const AbstractFileIO::Options &amp;options)
+<span style = "background-color:#fdd">  {
+    AbstractFileReader::SetOptions(options);
+  }</span>
+
+  void AbstractFileIO::SetReaderOption(const std::string &amp;name, const us::Any &amp;value)
+<span style = "background-color:#fdd">  {
+    AbstractFileReader::SetOption(name, value);
+  }</span>
+
+<span style = "background-color:#fdd">  AbstractFileIO::Options AbstractFileIO::GetWriterOptions() const { return AbstractFileWriter::GetOptions(); }
+  us::Any AbstractFileIO::GetWriterOption(const std::string &amp;name) const { return AbstractFileWriter::GetOption(name); }</span>
+  void AbstractFileIO::SetWriterOptions(const AbstractFileIO::Options &amp;options)
+<span style = "background-color:#fdd">  {
+    AbstractFileWriter::SetOptions(options);
+  }</span>
+
+  void AbstractFileIO::SetWriterOption(const std::string &amp;name, const us::Any &amp;value)
+<span style = "background-color:#fdd">  {
+    AbstractFileWriter::SetOption(name, value);
+  }</span>
+
+  IFileIO::ConfidenceLevel AbstractFileIO::GetReaderConfidenceLevel() const
+<span style = "background-color:#fdd">  {
+    return AbstractFileIOReader::GetReaderConfidenceLevel();
+  }</span>
+
+  IFileIO::ConfidenceLevel AbstractFileIO::GetWriterConfidenceLevel() const
+<span style = "background-color:#fdd">  {
+    return AbstractFileIOWriter::GetWriterConfidenceLevel();
+  }</span>
+
+  std::pair&lt;us::ServiceRegistration&lt;IFileReader&gt;, us::ServiceRegistration&lt;IFileWriter&gt;&gt; AbstractFileIO::RegisterService(
+    us::ModuleContext *context)
+<span style = "background-color:#dfd">  {
+    std::pair&lt;us::ServiceRegistration&lt;IFileReader&gt;, us::ServiceRegistration&lt;IFileWriter&gt;&gt; result;
+    result.first = this-&gt;AbstractFileReader::RegisterService(context);
+    const CustomMimeType *writerMimeType = this-&gt;AbstractFileWriter::GetMimeType();
+    if (writerMimeType == nullptr || (writerMimeType-&gt;GetName().empty() &amp;&amp; writerMimeType-&gt;GetExtensions().empty()))</span>
+    {
+<span style = "background-color:#dfd">      this-&gt;AbstractFileWriter::SetMimeType(</span>
+        CustomMimeType(this-&gt;AbstractFileReader::GetRegisteredMimeType().GetName()));
+    }
+<span style = "background-color:#dfd">    result.second = this-&gt;AbstractFileWriter::RegisterService(context);
+    return result;
+  }</span>
+
+<span style = "background-color:#fdd">  AbstractFileIO::AbstractFileIO(const AbstractFileIO &amp;other) : AbstractFileIOReader(other), AbstractFileIOWriter(other)
+  {
+  }</span>
+
+  AbstractFileIO::AbstractFileIO(const std::string &amp;baseDataType)
+<span style = "background-color:#dfd">    : AbstractFileIOReader(), AbstractFileIOWriter(baseDataType)
+  {
+  }</span>
+
+  AbstractFileIO::AbstractFileIO(const std::string &amp;baseDataType,
+                                 const CustomMimeType &amp;mimeType,
+                                 const std::string &amp;description)
+<span style = "background-color:#dfd">    : AbstractFileIOReader(mimeType, description),
+      AbstractFileIOWriter(baseDataType, CustomMimeType(mimeType.GetName()), description)
+  {
+  }</span>
+
+  void AbstractFileIO::SetMimeType(const CustomMimeType &amp;mimeType)
+<span style = "background-color:#fdd">  {
+    this-&gt;AbstractFileReader::SetMimeType(mimeType);
+    this-&gt;AbstractFileWriter::SetMimeType(CustomMimeType(mimeType.GetName()));
+  }</span>
+
+  const CustomMimeType *AbstractFileIO::GetMimeType() const
+<span style = "background-color:#fdd">  {
+    const CustomMimeType *mimeType = this-&gt;AbstractFileReader::GetMimeType();
+    if (mimeType-&gt;GetName() != this-&gt;AbstractFileWriter::GetMimeType()-&gt;GetName())</span>
+    {
+<span style = "background-color:#fdd">      MITK_WARN &lt;&lt; "Reader and writer mime-tpyes are different, using the mime-type from IFileReader";</span>
+    }
+<span style = "background-color:#fdd">    return mimeType;
+  }</span>
+
+  void AbstractFileIO::SetReaderDescription(const std::string &amp;description)
+<span style = "background-color:#dfd">  {
+    this-&gt;AbstractFileReader::SetDescription(description);
+  }</span>
+
+<span style = "background-color:#fdd">  std::string AbstractFileIO::GetReaderDescription() const { return this-&gt;AbstractFileReader::GetDescription(); }</span>
+  void AbstractFileIO::SetWriterDescription(const std::string &amp;description)
+<span style = "background-color:#dfd">  {
+    this-&gt;AbstractFileWriter::SetDescription(description);
+  }</span>
+
+<span style = "background-color:#fdd">  std::string AbstractFileIO::GetWriterDescription() const { return this-&gt;AbstractFileWriter::GetDescription(); }</span>
+  void AbstractFileIO::SetDefaultReaderOptions(const AbstractFileIO::Options &amp;defaultOptions)
+<span style = "background-color:#dfd">  {
+    this-&gt;AbstractFileReader::SetDefaultOptions(defaultOptions);
+  }</span>
+
+  AbstractFileIO::Options AbstractFileIO::GetDefaultReaderOptions() const
+<span style = "background-color:#fdd">  {
+    return this-&gt;AbstractFileReader::GetDefaultOptions();
+  }</span>
+
+  void AbstractFileIO::SetDefaultWriterOptions(const AbstractFileIO::Options &amp;defaultOptions)
+<span style = "background-color:#dfd">  {
+    this-&gt;AbstractFileWriter::SetDefaultOptions(defaultOptions);
+  }</span>
+
+  AbstractFileIO::Options AbstractFileIO::GetDefaultWriterOptions() const
+<span style = "background-color:#fdd">  {
+    return this-&gt;AbstractFileWriter::GetDefaultOptions();
+  }</span>
+
+<span style = "background-color:#fdd">  void AbstractFileIO::SetReaderRanking(int ranking) { this-&gt;AbstractFileReader::SetRanking(ranking); }
+  int AbstractFileIO::GetReaderRanking() const { return this-&gt;AbstractFileReader::GetRanking(); }
+  void AbstractFileIO::SetWriterRanking(int ranking) { this-&gt;AbstractFileWriter::SetRanking(ranking); }
+  int AbstractFileIO::GetWriterRanking() const { return this-&gt;AbstractFileWriter::GetRanking(); }
+  IFileReader *AbstractFileIO::ReaderClone() const { return this-&gt;IOClone(); }
+  IFileWriter *AbstractFileIO::WriterClone() const { return this-&gt;IOClone(); }</span>
+}</pre>
+	</body>
+</html>

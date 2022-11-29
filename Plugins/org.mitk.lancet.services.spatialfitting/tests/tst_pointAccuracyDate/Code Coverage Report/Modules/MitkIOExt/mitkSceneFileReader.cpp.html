@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkSceneFileReader.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#include "mitkSceneFileReader.h"
+
+#include &lt;mitkCustomMimeType.h&gt;
+#include &lt;mitkIOMimeTypes.h&gt;
+#include &lt;mitkSceneIO.h&gt;
+#include &lt;mitkStandaloneDataStorage.h&gt;
+
+namespace mitk
+{
+<span style = "background-color:#dfd">  SceneFileReader::SceneFileReader() : AbstractFileReader()
+  {
+    CustomMimeType mimeType(IOMimeTypes::DEFAULT_BASE_NAME() + ".scene");
+    mimeType.SetComment("MITK Scene Files");
+    mimeType.SetCategory("MITK Scenes");
+    mimeType.AddExtension("mitk");</span>
+
+<span style = "background-color:#dfd">    this-&gt;SetDescription("MITK Scene Reader");
+    this-&gt;SetMimeType(mimeType);</span>
+
+<span style = "background-color:#dfd">    this-&gt;RegisterService();
+  }</span>
+
+  DataStorage::SetOfObjects::Pointer SceneFileReader::Read(DataStorage &amp;ds)
+<span style = "background-color:#fdd">  {</span>
+    // const DataStorage::SetOfObjects::STLContainerType&amp; oldNodes = ds.GetAll()-&gt;CastToSTLConstContainer();
+<span style = "background-color:#fdd">    DataStorage::SetOfObjects::ConstPointer oldNodes = ds.GetAll();
+    SceneIO::Pointer sceneIO = SceneIO::New();
+    sceneIO-&gt;LoadScene(this-&gt;GetLocalFileName(), &amp;ds, false);
+    DataStorage::SetOfObjects::ConstPointer newNodes = ds.GetAll();</span>
+
+    // Compute the difference
+<span style = "background-color:#fdd">    DataStorage::SetOfObjects::Pointer result = DataStorage::SetOfObjects::New();</span>
+
+<span style = "background-color:#fdd">    unsigned int index = 0;
+    for (DataStorage::SetOfObjects::ConstIterator iter = newNodes-&gt;Begin(), iterEnd = newNodes-&gt;End(); iter != iterEnd;
+         ++iter)</span>
+    {
+<span style = "background-color:#fdd">      if (!oldNodes-&gt;empty())</span>
+      {
+<span style = "background-color:#fdd">        if (std::find(oldNodes-&gt;begin(), oldNodes-&gt;end(), iter.Value()) == oldNodes-&gt;end())
+          result-&gt;InsertElement(index++, iter.Value());
+      }</span>
+      else
+      {
+<span style = "background-color:#fdd">        result-&gt;InsertElement(index++, iter.Value());
+      }
+    }</span>
+
+<span style = "background-color:#fdd">    return result;
+  }</span>
+
+  std::vector&lt;BaseData::Pointer&gt; SceneFileReader::DoRead()
+<span style = "background-color:#fdd">  {
+    std::vector&lt;BaseData::Pointer&gt; result;</span>
+
+<span style = "background-color:#fdd">    DataStorage::Pointer ds = StandaloneDataStorage::New().GetPointer();
+    this-&gt;Read(*ds);
+    DataStorage::SetOfObjects::ConstPointer dataNodes = ds-&gt;GetAll();
+    for (DataStorage::SetOfObjects::ConstIterator iter = dataNodes-&gt;Begin(), iterEnd = dataNodes-&gt;End();
+      iter != iterEnd;
+      ++iter)</span>
+    {
+<span style = "background-color:#fdd">      result.push_back(iter.Value()-&gt;GetData());
+    }
+    return result;
+  }</span>
+
+<span style = "background-color:#fdd">  SceneFileReader *SceneFileReader::Clone() const { return new SceneFileReader(*this); }</span>
+}</pre>
+	</body>
+</html>

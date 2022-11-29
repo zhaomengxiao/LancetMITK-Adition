@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>mitkRealTimeClock.h</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+	<body onload="prettyPrint()">
+        <h4></h4>
+		<pre class="prettyprint lang-cpp linenums">
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+#ifndef MITKWREALTIMECLOCK_H_HEADER_INCLUDED_
+#define MITKWREALTIMECLOCK_H_HEADER_INCLUDED_
+
+
+#include &lt;itkObject.h&gt;
+#include &lt;itkObjectFactory.h&gt;
+#include "MitkIGTBaseExports.h"
+#include "mitkCommon.h"
+
+namespace mitk {
+
+  /**Documentation
+  * \brief RealTimeClock is a superclass to WindowsRealTimeClock, LinuxRealTimeClock, etc.
+  *
+  * When mitk::RealTimeClock::New() is called, a new instance of a RealTimeClock will be
+  * instantiated. WindowsRealTimeClock on a Windows-system and a LinuxRealTimeClock on a
+  * Linux-system
+  *
+  * \ingroup IGT
+  */
+
+  class MITKIGTBASE_EXPORT RealTimeClock : public itk::Object
+  {
+  public:
+<span style = "background-color:#fdd">    mitkClassMacroItkParent(RealTimeClock, itk::Object);</span>
+
+    /**
+    *\brief instanciates a new, operating-system dependant, instance of mitk::RealTimeClock.
+    */
+    static Pointer New(void);
+
+    virtual double GetCurrentStamp() = 0;
+  };
+} //namespace
+#endif /* MITKWREALTIMECLOCK_H_HEADER_INCLUDED_ */</pre>
+	</body>
+</html>
