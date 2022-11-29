@@ -137,6 +137,16 @@ public:
 
 	int GetSize() const;
 
+	/**
+	 * \brief Update pipeline data.
+	 * 
+	 * The calculation of the entire pipeline will be re executed based on the 
+	 * input data of the pipeline source filter (manager).
+	 * 
+	 * \warning The try catch syntax must be used when calling this interface, or 
+	 *          memory errors may occur. When this error is a null input parameter, 
+	 *          it is triggered by the itk exception mechanism.
+	 */
 	void UpdateFilter();
 
 protected:

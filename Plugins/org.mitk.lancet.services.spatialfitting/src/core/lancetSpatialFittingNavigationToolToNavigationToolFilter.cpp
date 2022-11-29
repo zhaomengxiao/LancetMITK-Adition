@@ -24,6 +24,8 @@ NavigationToolToNavigationToolFilter::~NavigationToolToNavigationToolFilter()
 
 void NavigationToolToNavigationToolFilter::GenerateData()
 {
+	MITK_DEBUG << __FUNCTION__ << ": log";
+
 	if (m_UCSNavigationData.IsNull())
 	{
 		itkExceptionMacro("Invalid parameter: m_UCSNavigationData NULL.");

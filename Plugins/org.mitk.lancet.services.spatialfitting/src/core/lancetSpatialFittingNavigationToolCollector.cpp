@@ -39,24 +39,27 @@ long NavigationToolCollector::GetInterval() const
 
 void NavigationToolCollector::SetInterval(long interval)
 {
+	this->imp->qtClockTrigger.setInterval(interval);
 }
 
 unsigned int NavigationToolCollector::GetNumberForMean() const
 {
-	return 0;
+	return this->imp->numberForMean;
 }
 
 void NavigationToolCollector::SetNumberForMean(unsigned int number)
 {
+	this->imp->numberForMean = number;
 }
 
 double NavigationToolCollector::GetAccuracyRange() const
 {
-	return 0.0;
+	return this->imp->accuracyRange;
 }
 
 void NavigationToolCollector::SetAccuracyRange(double accuracy)
 {
+	this->imp->accuracyRange = accuracy;
 }
 
 NavigationToolCollector::WorkStatus NavigationToolCollector::GetWorkState() const
@@ -116,7 +119,22 @@ void NavigationToolCollector::on_QtTimerTrigger_timeout()
 	if (this->imp->vecCollectorNavigationData.size() >= this->GetNumberForMean())
 	{
 		this->Stop();
-		emit this->Complete(nullptr);
+		mitk::NavigationData::Pointer data = mitk::NavigationData::New();
+
+		mitk::Point3D point;
+		for (auto& item : this->imp->vecCollectorNavigationData)
+		{
+			point.SetElement(0, point.GetElement(0) + item->GetPosition().GetElement(0));
+			point.SetElement(1, point.GetElement(1) + item->GetPosition().GetElement(1));
+			point.SetElement(2, point.GetElement(2) + item->GetPosition().GetElement(2));
+		}
+		int vecSize = this->imp->vecCollectorNavigationData.size();
+		point.SetElement(0, point.GetElement(0) / vecSize);
+		point.SetElement(1, point.GetElement(1) / vecSize);
+		point.SetElement(2, point.GetElement(2) / vecSize);
+		data->SetPosition(point);
+
+		emit this->Complete(data);
 	}
 }
 
