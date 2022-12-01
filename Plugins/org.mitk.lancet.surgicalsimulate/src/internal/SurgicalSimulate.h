@@ -227,6 +227,7 @@ protected:
 
   bool ResetRobotTcp();
   bool SetPrecisionTestTcp();
+  bool SetPlanePrecisionTestTcp();
 
 
 	// Move Kuka robot

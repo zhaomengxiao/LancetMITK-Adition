@@ -345,14 +345,65 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
 	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
 	m_KukaVisualizeTimer->start();
 
+	// // set TCP for precision test
+	// // For Test Use, regard ball 2 as the TCP, the pose can be seen on
+ //    // https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
+	// //--------------------------------------------------
+	// Eigen::Vector3d x_tcp;
+	// x_tcp[0] = 51.82;
+	// x_tcp[1] = -55.49;
+	// x_tcp[2] = 0.21;
+	// x_tcp.normalize();
+ //
+	// Eigen::Vector3d z_flange;
+	// z_flange[0] = 0.0;
+	// z_flange[1] = 0.0;
+	// z_flange[2] = 1;
+ //
+	// Eigen::Vector3d y_tcp;
+	// y_tcp = z_flange.cross(x_tcp);
+	// y_tcp.normalize();
+ //
+	// Eigen::Vector3d z_tcp;
+	// z_tcp = x_tcp.cross(y_tcp);
+ //
+	// Eigen::Matrix3d Re;
+ //
+	// Re << x_tcp[0], y_tcp[0], z_tcp[0],
+	// 	x_tcp[1], y_tcp[1], z_tcp[1],
+	// 	x_tcp[2], y_tcp[2], z_tcp[2];
+ //
+ //
+	// Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
+ //
+	// //------------------------------------------------
+	// double tcp[6];
+	// tcp[0] = 0.05; // tx
+	// tcp[1] = 100.37; // ty
+	// tcp[2] = 137.85; // tz
+	// tcp[3] = eulerAngle(0);//-0.81;// -0.813428203; // rz
+	// tcp[4] = eulerAngle(1); // ry
+	// tcp[5] = eulerAngle(2); // rx
+	// MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	// //set tcp to robot
+	//   //set tcp
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+ //
+	// return true;
+
 	// set TCP for precision test
-	// For Test Use, regard ball 2 as the TCP, the pose can be seen on
-    // https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
+	// For plane Test Use, regard ball 1 as the TCP, the pose can be seen on
+	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
 	//--------------------------------------------------
 	Eigen::Vector3d x_tcp;
-	x_tcp[0] = 51.82;
-	x_tcp[1] = -55.49;
-	x_tcp[2] = 0.21;
+	x_tcp[0] = 90.33;
+	x_tcp[1] = -0.16;
+	x_tcp[2] = 0.03;
 	x_tcp.normalize();
 
 	Eigen::Vector3d z_flange;
@@ -373,15 +424,14 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
 		x_tcp[1], y_tcp[1], z_tcp[1],
 		x_tcp[2], y_tcp[2], z_tcp[2];
 
-
 	Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
 
 	//------------------------------------------------
 	double tcp[6];
-	tcp[0] = 0.05; // tx
-	tcp[1] = 100.37; // ty
-	tcp[2] = 137.85; // tz
-	tcp[3] = eulerAngle(0);//-0.81;// -0.813428203; // rz
+	tcp[0] = -37.93; // tx
+	tcp[1] = 45.31; // ty
+	tcp[2] = 137.99; // tz
+	tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
 	tcp[4] = eulerAngle(1); // ry
 	tcp[5] = eulerAngle(2); // rx
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
@@ -393,7 +443,6 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
 	QThread::msleep(1000);
 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
-
 	return true;
 }
 
@@ -428,14 +477,62 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
 	m_KukaVisualizeTimer->start();
 
+	// // set TCP for precision test
+	// // For Test Use, regard ball 2 as the TCP, the pose can be seen on
+	// // https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
+	// //--------------------------------------------------
+	// Eigen::Vector3d x_tcp;
+	// x_tcp[0] = 51.82;
+	// x_tcp[1] = -55.49;
+	// x_tcp[2] = 0.21;
+	// x_tcp.normalize();
+	//
+	// Eigen::Vector3d z_flange;
+	// z_flange[0] = 0.0;
+	// z_flange[1] = 0.0;
+	// z_flange[2] = 1;
+	//
+	// Eigen::Vector3d y_tcp;
+	// y_tcp = z_flange.cross(x_tcp);
+	// y_tcp.normalize();
+	//
+	// Eigen::Vector3d z_tcp;
+	// z_tcp = x_tcp.cross(y_tcp);
+	//
+	// Eigen::Matrix3d Re;
+	//
+	// Re << x_tcp[0], y_tcp[0], z_tcp[0],
+	// 	x_tcp[1], y_tcp[1], z_tcp[1],
+	// 	x_tcp[2], y_tcp[2], z_tcp[2];
+	//
+	// Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
+	//
+	// //------------------------------------------------
+	// double tcp[6];
+	// tcp[0] = 0.05; // tx
+	// tcp[1] = 100.37; // ty
+	// tcp[2] = 137.85; // tz
+	// tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
+	// tcp[4] = eulerAngle(1); // ry
+	// tcp[5] = eulerAngle(2); // rx
+	// MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	// //set tcp to robot
+	//   //set tcp
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
 	// set TCP for precision test
-	// For Test Use, regard ball 2 as the TCP, the pose can be seen on
+	// For plane Test Use, regard ball 1 as the TCP, the pose can be seen on
 	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
 	//--------------------------------------------------
 	Eigen::Vector3d x_tcp;
-	x_tcp[0] = 51.82;
-	x_tcp[1] = -55.49;
-	x_tcp[2] = 0.21;
+	x_tcp[0] = 90.33;
+	x_tcp[1] = -0.16;
+	x_tcp[2] = 0.03;
 	x_tcp.normalize();
 
 	Eigen::Vector3d z_flange;
@@ -457,12 +554,12 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 		x_tcp[2], y_tcp[2], z_tcp[2];
 
 	Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
-	
+
 	//------------------------------------------------
 	double tcp[6];
-	tcp[0] = 0.05; // tx
-	tcp[1] = 100.37; // ty
-	tcp[2] = 137.85; // tz
+	tcp[0] = -37.93; // tx
+	tcp[1] = 45.31; // ty
+	tcp[2] = 137.99; // tz
 	tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
 	tcp[4] = eulerAngle(1); // ry
 	tcp[5] = eulerAngle(2); // rx
@@ -475,8 +572,6 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
 	QThread::msleep(1000);
 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
-
-
 	return true;
 }
 

@@ -118,6 +118,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_roboRegisManual, &QPushButton::clicked, this, &SurgicalSimulate::ManuallySetRobotRegistration);
   connect(m_Controls.pushButton_InitializeTcp, &QPushButton::clicked, this, &SurgicalSimulate::ResetRobotTcp);
   connect(m_Controls.pushButton_setTcpPrecisionTest, &QPushButton::clicked, this, &SurgicalSimulate::SetPrecisionTestTcp);
+  connect(m_Controls.pushButton_setPlanePrecisionTestTcp, &QPushButton::clicked, this, &SurgicalSimulate::SetPlanePrecisionTestTcp);
   connect(m_Controls.pushButton_recordInitial, &QPushButton::clicked, this, &SurgicalSimulate::RecordInitial);
   connect(m_Controls.pushButton_goToInitial, &QPushButton::clicked, this, &SurgicalSimulate::GoToInitial);
 
@@ -1316,7 +1317,7 @@ bool SurgicalSimulate::InterpretImageLine()
 
 bool SurgicalSimulate::InterpretImagePlane()
 {
-	auto targetPlanePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetLine->GetSelectedNode()->GetData());
+	auto targetPlanePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPlane->GetSelectedNode()->GetData());
 	auto targetPoint_0 = targetPlanePoints->GetPoint(0); // TCP frame origin should move to this point
 	auto targetPoint_1 = targetPlanePoints->GetPoint(1);
 	auto targetPoint_2 = targetPlanePoints->GetPoint(2);
@@ -1340,8 +1341,8 @@ bool SurgicalSimulate::InterpretImagePlane()
 	double array_ndiToObjectRF[16];
 	double array_ndiToBaseRF[16];
 
-	AverageNavigationData(nd_ndiToObjectRF, 30, 20, array_ndiToObjectRF);
-	AverageNavigationData(nd_ndiToBaseRF, 30, 20, array_ndiToBaseRF);
+	AverageNavigationData(nd_ndiToObjectRF, 10, 5, array_ndiToObjectRF);
+	AverageNavigationData(nd_ndiToBaseRF, 10, 5, array_ndiToBaseRF);
 
 	vtkNew<vtkMatrix4x4> vtkNdiToObjectRF;
 	vtkNdiToObjectRF->DeepCopy(array_ndiToObjectRF);
@@ -1370,9 +1371,9 @@ bool SurgicalSimulate::InterpretImagePlane()
 	x_surfaceToPlane.normalize();
 
 	Eigen::Vector3d tmp_y;
-	tmp_y << targetPoint_1[0] - targetPoint_0[0],
-		targetPoint_1[1] - targetPoint_0[1],
-		targetPoint_1[2] - targetPoint_0[2];
+	tmp_y << targetPoint_0[0] - targetPoint_1[0],
+		targetPoint_0[1] - targetPoint_1[1],
+		targetPoint_0[2] - targetPoint_1[2];
 	tmp_y.normalize();
 
 	Eigen::Vector3d z_surfaceToPlane = x_surfaceToPlane.cross(tmp_y);
@@ -1848,6 +1849,58 @@ bool SurgicalSimulate::SetPrecisionTestTcp()
 	QThread::msleep(1000);
 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 
+	return true;
+}
+
+bool SurgicalSimulate::SetPlanePrecisionTestTcp()
+{
+	// set TCP for precision test
+	// For plane Test Use, regard ball 1 as the TCP, the pose can be seen on
+	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
+	//--------------------------------------------------
+	Eigen::Vector3d x_tcp;
+	x_tcp[0] = 90.33;
+	x_tcp[1] = -0.16;
+	x_tcp[2] = 0.03;
+	x_tcp.normalize();
+
+	Eigen::Vector3d z_flange;
+	z_flange[0] = 0.0;
+	z_flange[1] = 0.0;
+	z_flange[2] = 1;
+
+	Eigen::Vector3d y_tcp;
+	y_tcp = z_flange.cross(x_tcp);
+	y_tcp.normalize();
+
+	Eigen::Vector3d z_tcp;
+	z_tcp = x_tcp.cross(y_tcp);
+
+	Eigen::Matrix3d Re;
+
+	Re << x_tcp[0], y_tcp[0], z_tcp[0],
+		x_tcp[1], y_tcp[1], z_tcp[1],
+		x_tcp[2], y_tcp[2], z_tcp[2];
+
+	Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
+
+	//------------------------------------------------
+	double tcp[6];
+	tcp[0] = -37.93; // tx
+	tcp[1] = 45.31; // ty
+	tcp[2] = 137.99; // tz
+	tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
+	tcp[4] = eulerAngle(1); // ry
+	tcp[5] = eulerAngle(2); // rx
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 	return true;
 }
 

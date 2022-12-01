@@ -913,14 +913,14 @@
       <widget class="QPushButton" name="pushButton_setTcpPrecisionTest">
        <property name="geometry">
         <rect>
-         <x>200</x>
-         <y>20</y>
+         <x>210</x>
+         <y>0</y>
          <width>201</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
-        <string>Set precision test TCP</string>
+        <string>Set line precision test TCP</string>
        </property>
       </widget>
       <widget class="QWidget" name="layoutWidget_4">
@@ -946,11 +946,24 @@
         <item>
          <widget class="QPushButton" name="pushButton_confirmImageTargetPlane">
           <property name="text">
-           <string>Confirm image target line</string>
+           <string>Confirm image target plane</string>
           </property>
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QPushButton" name="pushButton_setPlanePrecisionTestTcp">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>20</y>
+         <width>201</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Set plane precision test TCP</string>
+       </property>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_4">
