@@ -19,28 +19,32 @@ found in the LICENSE file.
 #include "SurgicalSimulate.h"
 
 // Qt
-#include <QMessageBox>
-
+#include <QObject>
 // mitk image
-#include <mitkImage.h>
 #include <mitkAffineTransform3D.h>
+#include <mitkImage.h>
 #include <mitkMatrixConvert.h>
 
 //igt
-#include <lancetVegaTrackingDevice.h>
 #include <kukaRobotDevice.h>
 #include <lancetApplyDeviceRegistratioinFilter.h>
-#include <mitkNavigationDataToPointSetFilter.h>
 #include <lancetPathPoint.h>
+#include <lancetVegaTrackingDevice.h>
+#include <mitkNavigationDataToPointSetFilter.h>
 
+#include <QtWidgets\qfiledialog.h>
 #include "lancetTrackingDeviceSourceConfigurator.h"
 #include "mitkNavigationToolStorageDeserializer.h"
-#include <QtWidgets\qfiledialog.h>
 
+#include "lancetTreeCoords.h"
 #include "mitkIGTIOException.h"
 #include "mitkNavigationToolStorageSerializer.h"
 #include "QmitkIGTCommonHelper.h"
-#include "lancetTreeCoords.h"
+
+//udp
+#include <QTimer>
+#include <Poco/Net/DatagramSocket.h>
+#include <Poco/Net/SocketAddress.h>
 const std::string SurgicalSimulate::VIEW_ID = "org.mitk.views.surgicalsimulate";
 
 void SurgicalSimulate::SetFocus()
@@ -256,16 +260,18 @@ void SurgicalSimulate::UseKuka()
   //KukaRobotDevice and make some settings which are necessary for a proper connection to the device.
   MITK_INFO << "Kuka tracking";
   //QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
-  m_KukaTrackingDevice = lancet::KukaRobotDevice::New(); //instantiate
+  m_KukaTrackingDevice = lancet::KukaRobotDevice_New::New(); //instantiate
 
   //Create Navigation Data Source with the factory class, and the visualize filter.
   lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
     lancet::TrackingDeviceSourceConfiguratorLancet::New(m_KukaToolStorage, m_KukaTrackingDevice);
 
   m_KukaSource = kukaSourceFactory->CreateTrackingDeviceSource(m_KukaVisualizer);
-  // m_KukaSource->RegisterAsMicroservice(); 
-
-  m_KukaSource->Connect();
+  // m_KukaSource->RegisterAsMicroservice();
+  if (m_KukaSource.IsNotNull())
+  {
+    m_KukaSource->Connect();
+  }
 }
 
 void SurgicalSimulate::StartTracking()
@@ -310,7 +316,7 @@ void SurgicalSimulate::OnSelfCheck()
 {
   // if (m_KukaTrackingDevice.IsNotNull() && m_KukaTrackingDevice->GetState()!=0)
   // {
-  m_KukaTrackingDevice->RequestExecOperate(/*"Robot",*/ "setio", {"20", "20"});
+  //m_KukaTrackingDevice->RequestExecOperate(/*"Robot",*/ "setio", {"20", "20"});
   // }
   // else
   // {
@@ -415,12 +421,12 @@ void SurgicalSimulate::OnRobotCapture()
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
 	//set tcp to robot
 	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{QString::number( tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{QString::number( tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
   }
 
 }
@@ -612,12 +618,12 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
 
 	//set tcp to robot
 	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	// QThread::msleep(1000);
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 
   m_KukaVisualizeTimer->stop();
   m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
@@ -641,20 +647,29 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
   //set tcp to robot
 	//set tcp
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+  // QThread::msleep(1000);
+  // m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+  // QThread::msleep(1000);
+  // m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+  // QThread::msleep(1000);
+  // m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 }
 
 void SurgicalSimulate::OnSetTCP()
 {
-	QString tcpNum = m_Controls.lineEdit_tcp->text();
+	// QString tcpNum = m_Controls.lineEdit_tcp->text();
+	//
+	// m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", tcpNum });
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
+  const char* ipaddr = "127.0.0.1";
+  Poco::Net::SocketAddress sa(ipaddr, 5004);
+  Poco::Net::DatagramSocket dgs(Poco::Net::IPAddress::IPv4);
+  dgs.connect(sa);
 
-	m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", tcpNum });
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
+  std::string msg("hello");
+  //Poco::Timestamp now;
+  //msg = Poco::DateTimeFormatter::format(now,)
+  dgs.sendBytes(msg.data(), msg.size());
 }
 
 void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
