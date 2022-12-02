@@ -65,6 +65,8 @@ protected:
 private:
   void UpdateWidgetOfService();
 
+	void UpdateUiForService();
+
   lancet::spatial_fitting::RoboticsRegisterModelPtr GetServiceRoboticsModel() const;
 private slots:
   void on_pushButtonRobotVerify_clicked();

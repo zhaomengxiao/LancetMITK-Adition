@@ -85,6 +85,7 @@ void QRoboticsRegistrations::CreateQtPartControl(QWidget *parent)
   qss.close();
 
   this->ConnectToQtWidget();
+	this->UpdateUiForService();
 }
 
 void QRoboticsRegistrations::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -112,7 +113,8 @@ void QRoboticsRegistrations::ConnectToQtWidget()
 	PipelineManager::Pointer pipelineManager =
 		this->GetServiceRoboticsModel()->GetRegisterNavigationPipeline();
 	NavigationToolCollector::Pointer toolCollector =
-		dynamic_cast<NavigationToolCollector*>(pipelineManager->FindFilter("NRT2NRRCollector").GetPointer());
+		dynamic_cast<NavigationToolCollector*>(pipelineManager->
+			FindFilter("NRT2NRRCollector").GetPointer());
 
 	if (toolCollector.IsNotNull())
 	{
@@ -142,6 +144,47 @@ void QRoboticsRegistrations::UpdateWidgetOfService()
     int step = this->GetServiceRoboticsModel()->GetRegisterModel().PoseCount();
     this->m_Controls.rioProgressBar->setValue(step);
   }
+}
+
+void QRoboticsRegistrations::UpdateUiForService()
+{
+	if (this->GetServiceRoboticsModel().IsNull())
+	{
+		MITK_INFO << "Failed to request service resources, ignoring this processing";
+		return;
+	}
+	bool isTrackingNDIDevice = false;
+	bool isTrackingRoboticsDevice = false;
+
+	QString notTrackingDeviceTips = "";
+
+	if (!isTrackingNDIDevice || !isTrackingRoboticsDevice)
+	{
+		if (false == isTrackingNDIDevice)
+		{
+			notTrackingDeviceTips += "NDI";
+		}
+		if (false == isTrackingRoboticsDevice)
+		{
+			if (false == notTrackingDeviceTips.isEmpty())
+			{
+				notTrackingDeviceTips += ", ";
+			}
+			notTrackingDeviceTips += "Robot";
+		}
+		this->m_Controls.labelTips->setText(QString("Device [%1] not tracking!")
+			.arg(notTrackingDeviceTips));
+	}
+	RobotRegistration& roboticsModel = 
+		this->GetServiceRoboticsModel()->GetRegisterModel();
+
+	this->m_Controls.rioProgressBar->setValue(roboticsModel.PoseCount());
+
+	// 20: Number of space registration units required.
+	bool btnEnabled = roboticsModel.PoseCount() >= 20;
+
+	// Update the activation status of the [Calculate Registration Result] button.
+	this->m_Controls.pushButtonCalResult->setEnabled(btnEnabled);
 }
 
 lancet::spatial_fitting::RoboticsRegisterModelPtr 
