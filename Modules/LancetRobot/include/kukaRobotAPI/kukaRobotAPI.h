@@ -69,6 +69,8 @@ namespace lancet
 
     /**
      * \brief disconnect all net connection and stop threads.
+     *
+     * \details IsConnect Flag set to false if disconnect.
      */
     void DisConnect();
 
@@ -86,7 +88,7 @@ namespace lancet
      * With every command send, robot will execute and return a result massage.
      * GetCommandResult() will read the front and pop it from the massage queue.
      * \return the first(front) result massage in MsgQueue
-     * \see RobotInformationProtocol
+     * \see ResultProtocol
      */
     ResultProtocol GetCommandResult();
 
@@ -129,11 +131,11 @@ namespace lancet
      */
     bool RunBrakeTest() const;
 
-	/**
-	 * \brief Stop Move
-	 * \return true, if send success.Execution success is not guaranteed, which should check the result massage.
-	 */
-	bool MoveStop();
+    /**
+     * \brief Stop Move
+     * \return true, if send success.Execution success is not guaranteed, which should check the result massage.
+     */
+    bool MoveStop();
     /**
      * \brief Move default Motion Frame to target position in PTP mode.
      * \param target transform from robot base to target
@@ -141,12 +143,12 @@ namespace lancet
      */
     bool MovePTP(vtkMatrix4x4* target);
 
-	/**
-	 * \brief Move default Motion Frame to target position in PTP mode.
-	 * \param target transform from robot base to target
-	 * \return true, if send success.Execution success is not guaranteed, which should check the result massage.
-	 */
-	bool MovePTP(std::array<double, 6> xyzabc);
+    /**
+     * \brief Move default Motion Frame to target position in PTP mode.
+     * \param target transform from robot base to target
+     * \return true, if send success.Execution success is not guaranteed, which should check the result massage.
+     */
+    bool MovePTP(std::array<double, 6> xyzabc);
     /**
      * \brief Active hand guiding mode.[block]
      * \details Activate the hand guiding switch to start hand guiding and close the switch to exit the mode.When exit a result massage will receive.
