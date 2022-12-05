@@ -19,6 +19,24 @@ found in the LICENSE file.
 #include <QmitkAbstractView.h>
 
 #include "ui_QLinkingHardwareControls.h"
+#include "kukaRobotDevice.h"
+#include "mitkVirtualTrackingDevice.h"
+#include "mitkVirtualTrackingTool.h"
+#include "lancetNavigationObjectVisualizationFilter.h"
+#include "lancetApplyDeviceRegistratioinFilter.h"
+#include "lancetApplySurfaceRegistratioinFilter.h"
+#include "lancetTrackingDeviceSourceConfigurator.h"
+#include "lancetPathPoint.h"
+#include "mitkTrackingDeviceSource.h"
+#include "lancetVegaTrackingDevice.h"
+#include <mitkNavigationDataToPointSetFilter.h>
+#include "mitkNavigationToolStorageDeserializer.h"
+#include <QtWidgets\qfiledialog.h>
+#include "mitkIGTIOException.h"
+#include "mitkNavigationToolStorageSerializer.h"
+//#include "QmitkIGTCommonHelper.h"
+
+#include <internal/lancetTrackingDeviceManage.h>
 
 /**
   \brief QLinkingHardware
@@ -28,6 +46,10 @@ found in the LICENSE file.
   \sa QmitkAbstractView
   \ingroup ${plugin_target}_internal
 */
+namespace lancet
+{
+	class IDevicesAdministrationService;
+}
 class QLinkingHardware : public QmitkAbstractView
 {
   // this is needed for all Qt objects that should have a Qt meta-object
@@ -35,34 +57,29 @@ class QLinkingHardware : public QmitkAbstractView
   Q_OBJECT
 
 public:
-  static const std::string VIEW_ID;
-  ~QLinkingHardware() override;
-  void setStartHardware(int staubli, int ndi);
-
+	static const std::string VIEW_ID;
+	~QLinkingHardware() override;
 
 	virtual void CreateQtPartControl(QWidget* parent) override;
 	virtual void SetFocus() override;
-	//void setStartHardware(int staubli, int ndi);
 
-Q_SIGNALS:
-	void signalHardWareFinished();
-	void signalStatus(int, int);
-
-private slots:
-	void on_pushButton_auto_clicked();
-	void on_pushButton_success_clicked();
-
-public Q_SLOTS:
-	void RobotStatus(int i);
-	void NDIStatus(int i);
-private:
-	QMetaObject::Connection RobotStatusConnect;
-	QMetaObject::Connection NDIStatusConnect;
-	QTimer* MyConnect;
-	bool isauto;
-	int staubliStatus;
-	int ndiStatus;
 protected:
+	void ConnectToService();
+	bool isauto;
+	void ReadFileName();
+	lancet::IDevicesAdministrationService* GetService() const;
+	void setStartHardware(std::string, bool);
+	mitk::NavigationToolStorage::Pointer m_ToolStorage;
+	QString filename; 
+	QTimer m_updateTimer;
+protected Q_SLOTS:
+	void on_pb_auto_clicked();
+	void on_pb_success_clicked();
+	void startCheckRobotMove();
+	void Slot_IDevicesGetStatus(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
+
+private:
+	mitk::Point3D m_RobotStartPosition;
 	Ui::QLinkingHardwareControls m_Controls;
 };
 

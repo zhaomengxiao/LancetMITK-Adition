@@ -34,5 +34,6 @@
     <file>icon_default.xpm</file>
     <file>img.png</file>
     <file>linkinghardware.qss</file>
+    <file>config.json</file>
   </qresource>
 </RCC>

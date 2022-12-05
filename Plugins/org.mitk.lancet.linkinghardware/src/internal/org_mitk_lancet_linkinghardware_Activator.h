@@ -25,10 +25,17 @@ namespace mitk
     Q_INTERFACES(ctkPluginActivator)
 
   public:
+    org_mitk_lancet_linkinghardware_Activator();
     void start(ctkPluginContext *context);
     void stop(ctkPluginContext *context);
-
+    static ctkPluginContext* GetPluginContext();
+  private:
+      struct PluginActivatorPrivateImp;
+      std::shared_ptr<PluginActivatorPrivateImp> imp; 
   }; // org_mitk_lancet_linkinghardware_Activator
+
+  typedef org_mitk_lancet_linkinghardware_Activator PluginActivator;
+ 
 }
 
 #endif // org_mitk_lancet_linkinghardware_Activator_h

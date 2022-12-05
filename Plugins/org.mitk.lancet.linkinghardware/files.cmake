@@ -33,6 +33,13 @@ set(QRC_FILES
 
 set(CPP_FILES )
 
+#! Copy runtime dependent resource files.
+set(resources_dir ${CMAKE_CURRENT_SOURCE_DIR}/resources/IGTToolStorage)
+set(resources_target_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources/IGTToolStorage)
+message("QLinkingHardware: resources_dir >> ${resources_dir}")
+message("QLinkingHardware: resources_target_dir >> ${resources_target_dir}")
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${resources_dir} ${resources_target_dir})
+
 foreach(file ${SRC_CPP_FILES})
   set(CPP_FILES ${CPP_FILES} src/${file})
 endforeach(file ${SRC_CPP_FILES})

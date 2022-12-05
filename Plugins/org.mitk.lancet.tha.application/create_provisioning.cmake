@@ -7,6 +7,7 @@ set(arg_start_plugins_dll
   org.mitk.lancet.statemachine.services
   org.mitk.lancet.services.medicalrecords
   org.mitk.lancet.services.spatialfitting
+  org.mitk.lancet.services.devicesadministration
   org.mitk.lancet.tha.application
   org.mitk.lancet.medicalrecordmanagement
   org.mitk.lancet.medicalrecordmanagement.editor
