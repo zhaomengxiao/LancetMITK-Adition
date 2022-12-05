@@ -16,7 +16,7 @@ set(H_FILES
   TrackingDevices/lancetRobotTrackingTool.h
   TrackingDevices/lancetKukaTrackingDeviceTypeInformation.h
   TrackingDevices/kukaRobotDevice.h
-
+  TrackingDevices/lancetKukaRobotDevice.h
   #UI/QmitkLancetKukaWidget.cpp
 )
 
@@ -38,7 +38,7 @@ set(CPP_FILES
   TrackingDevices/lancetRobotTrackingTool.cpp
   TrackingDevices/lancetKukaTrackingDeviceTypeInformation.cpp
   TrackingDevices/kukaRobotDevice.cpp
-
+  TrackingDevices/lancetKukaRobotDevice.cpp
   #UI/QmitkLancetKukaWidget.cpp
 )
 
