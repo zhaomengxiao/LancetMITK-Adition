@@ -18,7 +18,7 @@
 
 #include "lancetSpatialFittingGlobal.h"
 
-#include <mitkNavigationDataSource.h>
+#include <mitkTrackingDeviceSource.h>
 
 class RobotRegistration;
 BEGIN_SPATIAL_FITTING_NAMESPACE
@@ -43,11 +43,15 @@ public:
 	void SetAccutacyVerifyPipeline(itk::SmartPointer<PipelineManager> manager);
 	itk::SmartPointer<PipelineManager> GetAccutacyVerifyPipeline() const;
 
-	mitk::NavigationDataSource* GetNdiNavigationDataSource() const;
-	void SetNdiNavigationDataSource(mitk::NavigationDataSource* source);
+	mitk::NavigationDataSource::Pointer GetNdiNavigationDataSource() const;
+	void SetNdiNavigationDataSource(mitk::NavigationDataSource::Pointer source);
 
-	mitk::NavigationDataSource* GetRoboticsNavigationDataSource() const;
-	void SetRoboticsNavigationDataSource(mitk::NavigationDataSource* source);
+	mitk::NavigationDataSource::Pointer GetRoboticsNavigationDataSource() const;
+	void SetRoboticsNavigationDataSource(mitk::NavigationDataSource::Pointer source);
+
+	void ConfigureRegisterPipeline();
+	void ConfigureVerifyPipeline();
+
 private:
 	struct RoboticsRegisterModelPrivateImp;
 	std::shared_ptr<RoboticsRegisterModelPrivateImp> imp;

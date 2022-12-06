@@ -5,6 +5,7 @@
 #include <usModule.h>
 #include <usModuleContext.h>
 
+#include <internal/lancetSpatialFittingService.h>
 namespace lancet
 {
   const std::string org_mitk_lancet_services_SpatialFitting::PLUGIN_ID = "org.mitk.lancet.services.spatialfitting";
@@ -12,7 +13,7 @@ namespace lancet
   struct org_mitk_lancet_services_SpatialFitting::PrivateImp
   {
     static ctkPluginContext* pluginContext;
-    //berry::SmartPointer<IMedicalRecordsService> medicalRecordsAdministrationService;
+    berry::SmartPointer<SpatialFittingAbstractService> SpatialFittingService;
   };
   ctkPluginContext* PluginActivator::PrivateImp::pluginContext = nullptr;
 
@@ -28,24 +29,21 @@ namespace lancet
 
 	void org_mitk_lancet_services_SpatialFitting::start(ctkPluginContext* context)
 	{
-    // this->imp->pluginContext = context;
+        this->imp->pluginContext = context;
 
-    // // warning
-    // // The service object does not intentionally run naked.
-    // // Fortunately, it does not affect the function logically.
-    // IMedicalRecordsService* streakingServicePointer 
-      // = new MedicalRecordsService();
+        // warning
+        // The service object does not intentionally run naked.
+        // Fortunately, it does not affect the function logically.
+        SpatialFittingAbstractService* streakingServicePointer = new SpatialFittingService();
     
-    // // register service to mitk
-    // this->imp->medicalRecordsAdministrationService = 
-      // berry::SmartPointer(streakingServicePointer);
-    // this->imp->pluginContext->registerService<
-      // lancet::IMedicalRecordsService>(streakingServicePointer);
+        // register service to mitk
+        this->imp->SpatialFittingService =berry::SmartPointer(streakingServicePointer);
+        this->imp->pluginContext->registerService<SpatialFittingAbstractService>(streakingServicePointer);
 	}
 
 	void org_mitk_lancet_services_SpatialFitting::stop(ctkPluginContext* context)
 	{
-    //this->imp->pluginContext->ungetService(this->imp->pluginContext->getServiceReference<lancet::IMedicalRecordsService>());
+    this->imp->pluginContext->ungetService(this->imp->pluginContext->getServiceReference<SpatialFittingAbstractService>());
     this->imp->pluginContext = nullptr;
 	}
 
