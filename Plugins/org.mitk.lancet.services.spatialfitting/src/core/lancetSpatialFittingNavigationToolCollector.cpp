@@ -111,11 +111,24 @@ void NavigationToolCollector::on_QtTimerTrigger_timeout()
 {
 	if (this->GetOutput())
 	{
-		this->imp->vecCollectorNavigationData.push_back(this->GetOutput()->Clone());
+		mitk::NavigationData::Pointer temp = mitk::NavigationData::New();
+		temp->Graft(this->GetOutput());
+		this->imp->vecCollectorNavigationData.push_back(temp);
+
+		// Fail ?
+		if (false == this->imp->vecCollectorNavigationData.back()->IsDataValid())
+		{
+			this->Stop();
+			emit this->Fail(this->imp->vecCollectorNavigationData.size());
+		}
+
+		// Step ?
 		emit this->Step(this->imp->vecCollectorNavigationData.size(),
 			this->imp->vecCollectorNavigationData.back().GetPointer());
 	}
 
+
+	// Complete ?
 	if (this->imp->vecCollectorNavigationData.size() >= this->GetNumberForMean())
 	{
 		this->Stop();

@@ -114,7 +114,7 @@ void QRoboticsRegistrations::ConnectToQtWidget()
 		this->GetServiceRoboticsModel()->GetRegisterNavigationPipeline();
 	NavigationToolCollector::Pointer toolCollector =
 		dynamic_cast<NavigationToolCollector*>(pipelineManager->
-			FindFilter("NRT2NRRCollector").GetPointer());
+			FindFilter("RobotEndRF2RobotBaseRF_ToolCollector").GetPointer());
 
 	if (toolCollector.IsNotNull())
 	{
@@ -129,12 +129,12 @@ void QRoboticsRegistrations::ConnectToQtWidget()
 
 void QRoboticsRegistrations::DisConnectToQtWidget()
 {
-	disconnect(this->m_Controls.pushButtonAddPoint, &QPushButton::clicked,
-		this, &QRoboticsRegistrations::on_pushButtonAddPoint_clicked);
-  disconnect(this->m_Controls.pushButtonCalResult, &QPushButton::clicked,
-		this, &QRoboticsRegistrations::on_pushButtonCalResult_clicked);
-  disconnect(this->m_Controls.pushButtonRobotVerify, &QPushButton::clicked,
-		this, &QRoboticsRegistrations::on_pushButtonRobotVerify_clicked);
+	//disconnect(this->m_Controls.pushButtonAddPoint, &QPushButton::clicked,
+	//	this, &QRoboticsRegistrations::on_pushButtonAddPoint_clicked);
+ // disconnect(this->m_Controls.pushButtonCalResult, &QPushButton::clicked,
+	//	this, &QRoboticsRegistrations::on_pushButtonCalResult_clicked);
+ // disconnect(this->m_Controls.pushButtonRobotVerify, &QPushButton::clicked,
+	//	this, &QRoboticsRegistrations::on_pushButtonRobotVerify_clicked);
 }
 
 void QRoboticsRegistrations::UpdateWidgetOfService()
@@ -144,6 +144,8 @@ void QRoboticsRegistrations::UpdateWidgetOfService()
     int step = this->GetServiceRoboticsModel()->GetRegisterModel().PoseCount();
     this->m_Controls.rioProgressBar->setValue(step);
   }
+
+	return this->UpdateUiForService();
 }
 
 void QRoboticsRegistrations::UpdateUiForService()
@@ -261,7 +263,8 @@ void QRoboticsRegistrations::on_pushButtonAddPoint_clicked()
   PipelineManager::Pointer pipelineManager = 
     this->GetServiceRoboticsModel()->GetRegisterNavigationPipeline();
   NavigationToolCollector::Pointer toolCollector = 
-    dynamic_cast<NavigationToolCollector*>(pipelineManager->FindFilter("NRT2NRRCollector").GetPointer());
+    dynamic_cast<NavigationToolCollector*>(pipelineManager->
+			FindFilter("RobotEndRF2RobotBaseRF_ToolCollector").GetPointer());
 
   if (toolCollector.IsNull())
   {

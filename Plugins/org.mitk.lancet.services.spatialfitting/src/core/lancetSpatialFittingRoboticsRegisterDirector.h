@@ -20,15 +20,22 @@
 #include "lancetSpatialFittingGlobal.h"
 #include "lancetSpatialFittingAbstractDirector.h"
 
+#include <mitkNavigationDataSource.h>
 
+#include <mitkTrackingDeviceSource.h>
 BEGIN_SPATIAL_FITTING_NAMESPACE
 
 /**
- * \ingroup GroupName
+ * \ingroup org_mitk_lancet_services_spatialfitting
  * \brief This is the decision-maker class of robot arm registration construction.
  *
  * This will determine the processing manager object for the robot arm to register 
  * navigation data.
+ * 
+ * The registration pipeline of the mechanical arm is input by the NDI device, 
+ * transferred to the filter data processing under the NDI trolley tool coordinate 
+ * system through the NDI mechanical arm end tool, and output to the registered 
+ * model of the mechanical arm for registration and fitting.
  * 
  * <b>Data stream:</b><br>
  * \image html RoboticsRegisterDataStream.svg
@@ -63,7 +70,15 @@ public:
 	RoboticsRegisterDirector();
 	virtual ~RoboticsRegisterDirector();
 
+	virtual mitk::NavigationDataSource::Pointer GetNdiNavigationDataSource() const;
+	virtual void SetNdiNavigationDataSource(mitk::NavigationDataSource::Pointer navigationDataSource);
+
 	virtual bool Builder() override;
+
+
+private:
+	mitk::NavigationDataSource::Pointer ndiNavigationDataSource;
+	mitk::NavigationDataSource::Pointer roboticsNavigationDataSource;
 };
 
 END_SPATIAL_FITTING_NAMESPACE

@@ -63,7 +63,12 @@ public:
 	RoboticsVerifyDirector();
 	virtual ~RoboticsVerifyDirector();
 
+	virtual mitk::NavigationDataSource::Pointer GetNdiNavigationDataSource() const;
+	virtual void SetNdiNavigationDataSource(mitk::NavigationDataSource::Pointer navigationDataSource);
 	virtual bool Builder() override;
+private:
+	mitk::NavigationDataSource::Pointer ndiNavigationDataSource;
+	mitk::NavigationDataSource::Pointer roboticsNavigationDataSource;
 };
 
 END_SPATIAL_FITTING_NAMESPACE
