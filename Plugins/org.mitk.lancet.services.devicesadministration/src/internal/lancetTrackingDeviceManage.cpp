@@ -8,6 +8,13 @@
 #include "kukaRobotDevice.h"
 #include "mitkVirtualTrackingDevice.h"
 #include "mitkVirtualTrackingTool.h"
+
+// TODO: Bug
+// It is very likely that the Kuka mechanical arm header file has been included before, and this class has been adjusted in December 2022. Therefore, the Kuka mechanical arm header file macro is released here to add its adjustment code to the compiler's preprocessing
+#ifdef KUKAROBOTDEVICE_H
+#undef KUKAROBOTDEVICE_H
+#endif
+#include "lancetKukaRobotDevice.h"
 #include "lancetNavigationObjectVisualizationFilter.h"
 #include "lancetApplyDeviceRegistratioinFilter.h"
 #include "lancetApplySurfaceRegistratioinFilter.h"
@@ -102,6 +109,11 @@ namespace lancet
 		properties.navigationToolStorage = ToolStorage;
 		properties.trackingDeviceSource = trackingDeviceSource;
 		this->imp->mapTrackingDerviceProperties[name] = properties;
+
+		if (Visualizer.IsNull() || trackingDeviceSource.IsNull())
+		{
+			return false;
+		}
 		return true;
 	}
 
@@ -114,12 +126,12 @@ namespace lancet
 	{
 		if (name == "Vega")
 		{
-			return lancet::NDIVegaTrackingDevice::New();
+			return NDIVegaTrackingDevice::New();
 			//return mitk::VirtualTrackingDevice::New();
 		}
-		if (name == "Robot")
+		if (name == "Kuka")
 		{
-			return lancet::KukaRobotDevice::New();
+			return KukaRobotDevice_New::New();
 			//return mitk::VirtualTrackingDevice::New();
 		}
 

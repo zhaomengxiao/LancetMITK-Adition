@@ -105,14 +105,14 @@ void QLinkingHardware::setStartHardware(std::string name, bool isConnected)
     {
         m_Controls.checkBox_startNDI->setChecked(isConnected);
     }
-    if (name == "Robot")
+    if (name == "Kuka")
     {
         m_Controls.checkBox_startRobot->setChecked(isConnected);
         if (true == isConnected)
         {
             auto connector = this->GetService()->GetConnector();
-            auto robot = connector->GetTrackingDevice("Robot");
-            mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Robot")->GetOutput(0);
+            auto robot = connector->GetTrackingDevice("Kuka");
+            mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Kuka")->GetOutput(0);
             m_RobotStartPosition = rob_move->GetPosition();
             m_updateTimer.start();
             connect(&this->m_updateTimer, &QTimer::timeout, this, &QLinkingHardware::startCheckRobotMove);
@@ -182,17 +182,26 @@ void QLinkingHardware::ReadFileName()
                 {
                     filename = childObj.value("robfilename").toString();
                     MITK_INFO  << filename; 
-                    if (false == connector->IsInstallTrackingDevice("Robot"))
+                    if (false == connector->IsInstallTrackingDevice("Kuka"))
                     {
-                        if (false == connector->InstallTrackingDevice("Robot", filename.toStdString(), this->GetDataStorage()))
+                        if (false == connector->InstallTrackingDevice("Kuka", filename.toStdString(), this->GetDataStorage()))
                         {
                             std::cout << "install robot tracking device faild! error: " << connector->GetErrorString();
                         }
                         else
                         {
                             MITK_INFO << "Connecting to the Robot";
-                            connector->GetTrackingDevice("Robot")->OpenConnection();
-                            connector->GetTrackingDevice("Robot")->StartTracking();
+                            connector->GetTrackingDevice("Kuka")->OpenConnection();
+							clock_t clock_timeout = clock();
+							while ((clock() - clock_timeout) < 10000)
+							{
+								if (connector->GetTrackingDevice("Kuka")->GetState() != 0)
+								{
+									connector->GetTrackingDevice("Kuka")->StartTracking();
+									break;
+								}
+								QThread::msleep(100);
+							}
                         }
                     }
                 }
@@ -228,14 +237,14 @@ void QLinkingHardware::startCheckRobotMove()
 {
     MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
     auto connector = this->GetService()->GetConnector();
-    auto robot = connector->GetTrackingDevice("Robot");
+    auto robot = connector->GetTrackingDevice("Kuka");
     bool isRobotValid = false;
     if (robot)
     {
-        if (connector->IsInstallTrackingDevice("Robot"))
+        if (connector->IsInstallTrackingDevice("Kuka"))
         {
             isRobotValid = true;
-            mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Robot")->GetOutput(0);
+            mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Kuka")->GetOutput(0);
             if (false == rob_move->IsDataValid()) 
             {
                 return;
