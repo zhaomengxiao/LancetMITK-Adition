@@ -1,9 +1,12 @@
 set(MOC_H_FILES
+  src/lancetSpatialFittingAbstractService.h
   src/internal/lancetPluginActivator.h
+  src/internal/lancetSpatialFittingService.h
   src/core/lancetSpatialFittingNavigationToolCollector.h
 )
 
 set(SRC_CPP_FILES
+  lancetSpatialFittingAbstractService.cpp
   lancetSpatialFittingAbstractDirector.cpp
   lancetSpatialFittingAbstractPipelineBuilder.cpp
   core/lancetSpatialFittingNavigationToolCollector.cpp
@@ -18,6 +21,7 @@ set(SRC_CPP_FILES
 
 set(INTERNAL_CPP_FILES
   lancetPluginActivator.cpp
+  lancetSpatialFittingService.cpp
   lancetSpatialFittingRoboticsRegisterModel.cpp
 )
 

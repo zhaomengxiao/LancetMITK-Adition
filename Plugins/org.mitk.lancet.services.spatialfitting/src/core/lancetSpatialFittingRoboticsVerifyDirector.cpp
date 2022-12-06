@@ -15,7 +15,16 @@ RoboticsVerifyDirector::~RoboticsVerifyDirector()
 {
 	
 }
+mitk::NavigationDataSource::Pointer RoboticsVerifyDirector::GetNdiNavigationDataSource() const
+{
+	return this->ndiNavigationDataSource;
+}
 
+void RoboticsVerifyDirector::SetNdiNavigationDataSource(mitk::NavigationDataSource::Pointer navigationDataSource)
+{
+
+	this->ndiNavigationDataSource = navigationDataSource;
+}
 bool RoboticsVerifyDirector::Builder()
 {
 	PipelineBuilder::Pointer pipelineBuilder = dynamic_cast<PipelineBuilder*>(this->GetBuilder().GetPointer());

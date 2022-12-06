@@ -16,21 +16,32 @@ RoboticsRegisterDirector::~RoboticsRegisterDirector()
 	
 }
 
+mitk::NavigationDataSource::Pointer RoboticsRegisterDirector::GetNdiNavigationDataSource() const
+{
+	return this->ndiNavigationDataSource;
+}
+
+void RoboticsRegisterDirector::SetNdiNavigationDataSource(mitk::NavigationDataSource::Pointer navigationDataSource)
+{
+
+	this->ndiNavigationDataSource = navigationDataSource;
+}
+
 bool RoboticsRegisterDirector::Builder()
 {
 	PipelineBuilder::Pointer pipelineBuilder = dynamic_cast<PipelineBuilder*>(this->GetBuilder().GetPointer());
 
-	if (pipelineBuilder.IsNull())
+	if (pipelineBuilder.IsNull() || this->GetNdiNavigationDataSource().IsNull())
 	{
 		return false;
 	}
-	pipelineBuilder->BuilderNavigationToolToNavigationToolFilter(0, nullptr);
+	//GetOutputIndex
+	int robotMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("");
+	pipelineBuilder->BuilderNavigationToolToNavigationToolFilter(0, 
+		this->GetNdiNavigationDataSource()->GetOutput(robotMarkerIndex));
 	pipelineBuilder->BuilderNavigationToolToSpaceFilter(1, nullptr);
-	pipelineBuilder->BuilderNavigationToolCollector(2, 10);
-
 	pipelineBuilder->GetOutput()->FindFilter(0)->SetName("name-01");
 	pipelineBuilder->GetOutput()->FindFilter(1)->SetName("name-02");
-	pipelineBuilder->GetOutput()->FindFilter(2)->SetName("NRT2NRRCollector");
 	return true;
 }
 

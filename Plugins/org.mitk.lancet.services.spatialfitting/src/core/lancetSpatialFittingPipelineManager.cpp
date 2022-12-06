@@ -41,7 +41,7 @@ bool PipelineManager::RemoveFilter(int index)
 	{
 		return false;
 	}
-	this->imp->vecFilterManage.erase(std::begin(this->imp->vecFilterManage) + index);
+	this->imp->vecFilterManage.erase(this->imp->vecFilterManage.begin() + index);
 	this->UpdateConntedToFilter();
 	return true;
 }
