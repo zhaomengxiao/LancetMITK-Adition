@@ -5,6 +5,7 @@ set(MITK_MODULES
   LancetGeoUtil
   LancetRegistration
   LancetDRR
+  LancetKukaFRI
   LancetRobot
   LancetNCC
   LancetIGT
