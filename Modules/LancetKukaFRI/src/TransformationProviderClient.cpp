@@ -40,39 +40,41 @@ void lancet::TransformationProviderClient::provide()
          getTimestampNanoSec());
 }
 
-lancet::LancetKukaFriManager::LancetKukaFriManager()
+lancet::FriManager::FriManager()
 {
   m_ClientApp = new KUKA::FRI::ClientApplication{ m_Connection,m_LbrClient,m_TrafoClient };
+  m_Port = 30200;
+  m_HostName = "172.31.1.147";
 }
 
-lancet::LancetKukaFriManager::~LancetKukaFriManager()
+lancet::FriManager::~FriManager()
 {
 }
 
-bool lancet::LancetKukaFriManager::Connect()
+bool lancet::FriManager::Connect()
 {
   // connect client application to KUKA Sunrise controller
   return m_ClientApp->connect(m_Port, m_HostName.c_str());
 }
 
-void lancet::LancetKukaFriManager::StartFriControl()
+void lancet::FriManager::StartFriControl()
 {
-  m_stepThread = std::thread(&LancetKukaFriManager::stepThreadWorker, this);
+  m_stepThread = std::thread(&FriManager::stepThreadWorker, this);
 }
 
-void lancet::LancetKukaFriManager::SetFriDynamicFrameTransform(mitk::AffineTransform3D::Pointer transform)
+void lancet::FriManager::SetFriDynamicFrameTransform(mitk::AffineTransform3D::Pointer transform)
 {
   m_TransformMatrix = transform;
 }
 
-void lancet::LancetKukaFriManager::DisConnect()
+void lancet::FriManager::DisConnect()
 {
   m_ClientApp->disconnect();
 
   printf("\nExit TransformationProvider Client Application");
 }
 
-void lancet::LancetKukaFriManager::stepThreadWorker()
+void lancet::FriManager::stepThreadWorker()
 {
   // repeatedly call the step routine to receive and process FRI packets
   while (m_StepSuccess)

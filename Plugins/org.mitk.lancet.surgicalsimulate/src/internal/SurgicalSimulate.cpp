@@ -67,6 +67,17 @@ void SurgicalSimulate::OnVirtualDevice2VisualizeTimer()
   }
 }
 
+void SurgicalSimulate::threadUpdateFriTransform()
+{
+  while (m_KeepUpdateFriTransform)
+  {
+    auto offset = m_ProbeRealTimePose->GetOffset() - m_ProbeInitPose->GetOffset();
+    mitk::AffineTransform3D::Pointer friMatrix = mitk::AffineTransform3D::New();
+    friMatrix->SetOffset(offset);
+    m_FriManager.SetFriDynamicFrameTransform(friMatrix);
+  }
+}
+
 void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
@@ -108,7 +119,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 	connect(m_Controls.pushButton_saveNdiTools, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
 
 
-  connect(m_Controls.pushButton_setTCP, &QPushButton::clicked, this, &SurgicalSimulate::OnSetTCP);
+  connect(m_Controls.pushButton_sendCommand, &QPushButton::clicked, this, &SurgicalSimulate::SendCommand);
   connect(m_Controls.pushButton_confirmImageTargetLine, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImageLine);
   connect(m_Controls.pushButton_probeCheckPoint, &QPushButton::clicked, this, &SurgicalSimulate::ProbeImageCheckPoint);
 
@@ -117,7 +128,9 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_touchP3, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint3);
 
   connect(m_Controls.pushButton_probeSurfaceDistance, &QPushButton::clicked, this, &SurgicalSimulate::ProbeSurface);
-
+  connect(m_Controls.pushButton_startServo, &QPushButton::clicked, this, &SurgicalSimulate::StartServo);
+  connect(m_Controls.pushButton_stopServo, &QPushButton::clicked, this, &SurgicalSimulate::StopServo);
+  connect(m_Controls.pushButton_initProbe, &QPushButton::clicked, this, &SurgicalSimulate::InitProbe);
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -335,6 +348,16 @@ void SurgicalSimulate::OnVegaVisualizeTimer()
     // auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
     // mitk::RenderingManager::GetInstance()->InitializeViews(geo);
     this->RequestRenderWindowUpdate();
+
+    //update probe pose
+    auto  probe = m_VegaSource->GetOutput("Probe")->GetAffineTransform3D();
+    // m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
+    // m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", probe, m_ProbeRealTimePose);
+      //mitk::AffineTransform3D::Pointer byhand = mitk::AffineTransform3D::New();
+    auto registrationMatrix = m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix();
+    probe->Compose(m_VegaSource->GetOutput("RobotBaseRF")->GetInverse()->GetAffineTransform3D());
+    probe->Compose(mitk::NavigationData::New(registrationMatrix)->GetInverse()->GetAffineTransform3D());
+    m_ProbeRealTimePose = probe;
   }
 }
 
@@ -1028,6 +1051,31 @@ void SurgicalSimulate::UpdateToolStatusWidget()
 {
   m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
   m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
+}
+
+void SurgicalSimulate::SendCommand()
+{
+  bool res = m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara(m_Controls.lineEdit_command->text().toStdString());
+}
+
+void SurgicalSimulate::StartServo()
+{
+  bool res = m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StartServo");
+  m_FriManager.Connect();
+  m_FriManager.StartFriControl();
+
+  m_friThread = std::thread(&SurgicalSimulate::threadUpdateFriTransform, this);
+}
+
+void SurgicalSimulate::StopServo()
+{
+  m_FriManager.DisConnect();
+  m_KeepUpdateFriTransform = false;
+}
+
+void SurgicalSimulate::InitProbe()
+{
+  m_ProbeInitPose = m_ProbeRealTimePose;
 }
 
 void SurgicalSimulate::ShowToolStatus_Vega()

@@ -50,22 +50,22 @@ namespace lancet
     std::string m_TransformID;
   };
 
-  class MITKLANCETKUKAFRI_EXPORT LancetKukaFriManager : public itk::Object
+  class MITKLANCETKUKAFRI_EXPORT FriManager : public itk::Object
   {
   public:
-    mitkClassMacroItkParent(LancetKukaFriManager, itk::Object);
+    mitkClassMacroItkParent(FriManager, itk::Object);
     itkFactorylessNewMacro(Self);
 
     /**
      * \brief Constructor.
      *
      */
-    LancetKukaFriManager();
+    FriManager();
 
     /**
      * \brief Destructor.
      */
-    ~LancetKukaFriManager() override;
+    ~FriManager() override;
 
     bool Connect();
 
@@ -81,7 +81,7 @@ namespace lancet
     
     int m_Port;
     std::string m_HostName;
-    bool m_StepSuccess;
+    bool m_StepSuccess{true};
     std::thread m_stepThread;
     mitk::AffineTransform3D::Pointer m_TransformMatrix;
     //std::string m_TransformID;

@@ -29,6 +29,8 @@ found in the LICENSE file.
 #include "robotRegistration.h"
 #include "ui_SurgicalSimulateControls.h"
 
+#include "TransformationProviderClient.h"
+
 /**
   \brief SurgicalSimulate
 
@@ -84,7 +86,16 @@ public slots:
   void ShowToolStatus_Vega();
   void ShowToolStatus_Kuka();
   void UpdateToolStatusWidget();
+
+  //RobotControl
+  void SendCommand();
+
+  void StartServo();
+  void StopServo();
+  void InitProbe();
 protected:
+  void threadUpdateFriTransform();
+
   virtual void CreateQtPartControl(QWidget* parent) override;
 
   virtual void SetFocus() override;
@@ -104,6 +115,7 @@ protected:
 
   //*********Helper Function****************
   RobotRegistration m_RobotRegistration;
+  
   mitk::NavigationData::Pointer GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
                                                        mitk::NavigationData::Pointer nd_ref);
 public:
@@ -151,8 +163,12 @@ protected:
   std::vector<mitk::NavigationData::Pointer> m_VegaNavigationData;
   std::vector<mitk::NavigationData::Pointer> m_KukaNavigationData;
 
-
-
+  //fri test
+  lancet::FriManager m_FriManager;
+  std::thread m_friThread;
+  mitk::AffineTransform3D::Pointer m_ProbeRealTimePose;
+  mitk::AffineTransform3D::Pointer m_ProbeInitPose;
+  bool m_KeepUpdateFriTransform{true};
   // Image registration using NavigationObject structure
  
 	// Assemble a navigationObject with a Parent node;
