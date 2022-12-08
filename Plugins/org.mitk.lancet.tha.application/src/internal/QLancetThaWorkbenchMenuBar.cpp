@@ -260,7 +260,7 @@ void QLancetThaWorkbenchMenuBar::onActionClicked(bool)
 			MITK_WARN << "get pointer is nullptr.";
 			return;
 		}
-		MITK_INFO << "switch state start";
+
 		lancet::IScxmlStateMachineState::Pointer state(
 			variant.value<lancet::IScxmlStateMachineState*>());
 

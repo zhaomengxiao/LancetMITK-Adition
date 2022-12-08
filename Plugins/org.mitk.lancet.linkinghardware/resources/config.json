@@ -1,9 +1,9 @@
 {
 	 "Device":
 	 {
-	      "IGTToolStorage":[
-		       {  "ndifilename" : "../../bin/resources/IGTToolStorage/ndiDeviceTool.IGTToolStorage" },
-			   {  "robfilename" : "../../bin/resources/IGTToolStorage/robotDeviceTool.IGTToolStorage"}
-		  ]
+    "IGTToolStorage": [
+      { "ndifilename": "../../bin/resources/IGTToolStorage/ndiDeviceTool.IGTToolStorage" },
+      { "robfilename": "../../bin/resources/IGTToolStorage/robotDeviceTool.IGTToolStorage" }
+    ]
 	 }
 }

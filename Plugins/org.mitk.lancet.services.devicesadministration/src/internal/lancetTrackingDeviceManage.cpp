@@ -8,6 +8,13 @@
 #include "kukaRobotDevice.h"
 #include "mitkVirtualTrackingDevice.h"
 #include "mitkVirtualTrackingTool.h"
+
+// TODO: Bug
+// It is very likely that the Kuka mechanical arm header file has been included before, and this class has been adjusted in December 2022. Therefore, the Kuka mechanical arm header file macro is released here to add its adjustment code to the compiler's preprocessing
+#ifdef KUKAROBOTDEVICE_H
+#undef KUKAROBOTDEVICE_H
+#endif
+#include "lancetKukaRobotDevice.h"
 #include "lancetNavigationObjectVisualizationFilter.h"
 #include "lancetApplyDeviceRegistratioinFilter.h"
 #include "lancetApplySurfaceRegistratioinFilter.h"
@@ -47,7 +54,6 @@ namespace lancet
 	TrackingDeviceManage::TrackingDeviceManage()
 		: imp(std::make_shared<TrackingDeviceManagePrivateImp>())
 	{
-		this->SetNavigationDataFilterInterval(500);
 		this->imp->tmScanfTrackingDeviceConnected.setInterval(1000);
 		connect(&this->imp->tmScanfTrackingDeviceConnected, &QTimer::timeout, this, [=]() {
 			for (auto& item = this->imp->mapTrackingDerviceProperties.begin();
@@ -68,9 +74,31 @@ namespace lancet
 			}
 		});
 		this->imp->tmScanfTrackingDeviceConnected.start();
+
+		connect(&this->imp->tm, SIGNAL(timeout()), this, SLOT(onPipelineUpdateTimeout()));
+		this->SetNavigationDataFilterInterval(20);
 	}
 	TrackingDeviceManage::~TrackingDeviceManage()
 	{
+		MITK_WARN << "log";
+		while (this->GetInstallTrackingDeviceSize())
+		{
+			MITK_WARN << "Automatically recycle remote device resources! try recycle " 
+				<< this->imp->mapTrackingDerviceProperties.begin()->first;
+			this->UnInstallTrackingDevice(this->imp->mapTrackingDerviceProperties.begin()->first,
+				this->imp->mapTrackingDerviceProperties.begin()->second.dataStorage);
+		}
+	}
+
+	void TrackingDeviceManage::onPipelineUpdateTimeout()
+	{
+		for (auto& device : this->imp->mapTrackingDerviceProperties)
+		{
+			if (device.second.trackingDeviceSource.IsNotNull())
+			{
+				device.second.trackingDeviceSource->Update();
+			}
+		}
 	}
 
 	bool TrackingDeviceManage::InstallTrackingDevice(const std::string& name, const std::string& filename, itk::SmartPointer<mitk::DataStorage> dataStorage)
@@ -96,31 +124,44 @@ namespace lancet
 			lancet::TrackingDeviceSourceConfiguratorLancet::New(ToolStorage, vegaTrackingDevice);
 		lancet::NavigationObjectVisualizationFilter::Pointer Visualizer;
 		mitk::TrackingDeviceSource::Pointer trackingDeviceSource = SourceFactory->CreateTrackingDeviceSource(Visualizer);
+		trackingDeviceSource->SetToolMetaDataCollection(ToolStorage);
+
 
 		properties.dataStorage = dataStorage;
 		properties.navigationObjectVisualizationFilter = Visualizer;
 		properties.navigationToolStorage = ToolStorage;
 		properties.trackingDeviceSource = trackingDeviceSource;
 		this->imp->mapTrackingDerviceProperties[name] = properties;
+
+		if (Visualizer.IsNull() || trackingDeviceSource.IsNull())
+		{
+			return false;
+		}
 		return true;
 	}
 
 	bool TrackingDeviceManage::UnInstallTrackingDevice(const std::string& name, itk::SmartPointer<mitk::DataStorage> dataStorage)
 	{
-		this->imp->mapTrackingDerviceProperties.erase(name);
+		if (this->IsInstallTrackingDevice(name))
+		{
+			this->GetTrackingDevice(name)->StopTracking();
+			this->GetTrackingDevice(name)->CloseConnection();
+			this->imp->mapTrackingDerviceProperties.erase(name);
+			return true;
+		}
 		return false;
 	}
 	itk::SmartPointer<mitk::TrackingDevice> TrackingDeviceManage::CreateTrackingDevice(const std::string& name)
 	{
 		if (name == "Vega")
 		{
-			return lancet::NDIVegaTrackingDevice::New();
-			//return mitk::VirtualTrackingDevice::New();
+			//return NDIVegaTrackingDevice::New();
+			return mitk::VirtualTrackingDevice::New();
 		}
-		if (name == "Robot")
+		if (name == "Kuka")
 		{
-			return lancet::KukaRobotDevice::New();
-			//return mitk::VirtualTrackingDevice::New();
+			//return KukaRobotDevice_New::New();
+			return mitk::VirtualTrackingDevice::New();
 		}
 
 		return itk::SmartPointer<mitk::TrackingDevice>();
@@ -163,17 +204,19 @@ namespace lancet
 
 	void TrackingDeviceManage::SetNavigationDataFilterInterval(long time)
 	{
+		this->imp->tm.stop();
 		this->imp->tm.setInterval(time);
+		this->imp->tm.start();
 	}
 
 	long TrackingDeviceManage::GetNavigationDataFilterInterval() const
 	{
-		return 0;
+		return this->imp->tm.interval();
 	}
 
 	int TrackingDeviceManage::GetInstallTrackingDeviceSize() const
 	{
-		return 0;
+		return this->imp->mapTrackingDerviceProperties.size();
 	}
 
 	int TrackingDeviceManage::GetErrorCode() const

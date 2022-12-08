@@ -28,7 +28,11 @@ namespace mitk
     void start(ctkPluginContext *context);
     void stop(ctkPluginContext *context);
 
+	static ctkPluginContext* GetPluginContext();
+
   }; // org_mitk_lancet_roboticsregistrations_Activator
 }
+
+using PluginActivator = mitk::org_mitk_lancet_roboticsregistrations_Activator;
 
 #endif // org_mitk_lancet_roboticsregistrations_Activator_h

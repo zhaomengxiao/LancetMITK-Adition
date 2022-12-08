@@ -194,12 +194,12 @@ void QLinkingHardWareEditor::ConnectToService()
 }
 void QLinkingHardWareEditor::on_HardWareWidget(std::string name, bool isConnected)
 {
-	MITK_INFO << "QLinkingHardware:" << __func__ << ": log"; 
+	MITK_INFO << "QLinkingHardware:" << __func__ << ": log.name " << name << "; log.isConnected " << isConnected;
 	if (name == "Vega")
 	{
 		this->m_stateTrackingDeviceOfNDI = isConnected;
 	}
-	if (name == "Robot")
+	if (name == "Kuka")
 	{
 		this->m_stateTrackingDeviceOfRobot = isConnected;
 	}
