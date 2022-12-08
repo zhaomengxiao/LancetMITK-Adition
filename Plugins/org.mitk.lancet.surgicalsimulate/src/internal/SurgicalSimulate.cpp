@@ -1075,7 +1075,17 @@ void SurgicalSimulate::StopServo()
 
 void SurgicalSimulate::InitProbe()
 {
-  m_ProbeInitPose = m_ProbeRealTimePose;
+  // m_ProbeInitPose = m_ProbeRealTimePose;
+  // vtkMatrix4x4* dest = vtkMatrix4x4::New();
+  // double trans[3]{ 0, 0, 50 };
+  // m_ProbeInitPose->Translate(trans);
+  // mitk::TransferItkTransformToVtkMatrix(m_ProbeInitPose.GetPointer(), dest);
+  //
+  // m_KukaTrackingDevice->m_RobotApi.MovePTP(dest);
+  double v[3]{ 0,0,20 };
+  mitk::AffineTransform3D::Pointer friMatrix = mitk::AffineTransform3D::New();
+  friMatrix->SetOffset(v);
+  m_FriManager.SetFriDynamicFrameTransform(friMatrix);
 }
 
 void SurgicalSimulate::ShowToolStatus_Vega()
