@@ -99,6 +99,8 @@ namespace lancet
       * \endcode
       */
       void TrackingDeviceStateChange(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
+  protected slots:
+	  void onPipelineUpdateTimeout();
   public:
     /**
      * \brief Install target device.

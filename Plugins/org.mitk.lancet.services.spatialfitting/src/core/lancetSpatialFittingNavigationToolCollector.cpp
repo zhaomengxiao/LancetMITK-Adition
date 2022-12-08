@@ -2,7 +2,7 @@
 
 // Qt
 #include <QTimer>
-
+#include<core/lancetSpatialFittingPointAccuracyDate.h>
 
 BEGIN_SPATIAL_FITTING_NAMESPACE
 
@@ -122,6 +122,19 @@ void NavigationToolCollector::on_QtTimerTrigger_timeout()
 			emit this->Fail(this->imp->vecCollectorNavigationData.size());
 		}
 
+		// TODO: Tool is invaild
+		//for (int index = 0; index < this->imp->vecCollectorNavigationData.size(); ++index)
+		//{
+		//	PointAccuracyDate pt(temp->GetPosition(), 
+		//		this->imp->vecCollectorNavigationData[index]->GetPosition());
+		//	if (pt.Compute() > this->GetAccuracyRange())
+		//	{
+		//		this->Stop();
+		//		emit this->Fail(this->imp->vecCollectorNavigationData.size());
+		//		break;
+		//	}
+		//}
+
 		// Step ?
 		emit this->Step(this->imp->vecCollectorNavigationData.size(),
 			this->imp->vecCollectorNavigationData.back().GetPointer());
@@ -153,7 +166,7 @@ void NavigationToolCollector::on_QtTimerTrigger_timeout()
 
 void NavigationToolCollector::GenerateData()
 {
-	std::cout << __FUNCTION__ << "log" << std::endl;
+	MITK_DEBUG << "log";
 	this->CreateOutputsForAllInputs();
 
 	for (size_t index = 0; index < this->GetNumberOfInputs(); ++index)

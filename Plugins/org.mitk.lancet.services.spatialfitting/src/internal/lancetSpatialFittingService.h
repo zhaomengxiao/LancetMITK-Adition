@@ -2,6 +2,7 @@
 #define LancetlancetDevicesAdministrationService_H
 
 #include <lancetSpatialFittingAbstractService.h>
+#include <internal/lancetTrackingDeviceManage.h>
 #include "org_mitk_lancet_services_spatialfitting_Export.h"
 
 namespace lancet
@@ -13,8 +14,13 @@ class ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
 	Q_OBJECT
 	Q_INTERFACES(lancet::SpatialFittingAbstractService)
 public:
-	berryObjectMacro(lancet::spatial_fitting::RoboticsRegisterModel);
+	berryObjectMacro(lancet::SpatialFittingService);
 	SpatialFittingService();
+
+	virtual void Initialize() override;
+
+protected slots:
+	void onDeviceConnectState_change(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
 };
 }
 

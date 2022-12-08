@@ -114,7 +114,7 @@ void QLinkingHardware::setStartHardware(std::string name, bool isConnected)
             auto robot = connector->GetTrackingDevice("Kuka");
             mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Kuka")->GetOutput(0);
             m_RobotStartPosition = rob_move->GetPosition();
-            m_updateTimer.start();
+            m_updateTimer.start(18);
             connect(&this->m_updateTimer, &QTimer::timeout, this, &QLinkingHardware::startCheckRobotMove);
         }
     }

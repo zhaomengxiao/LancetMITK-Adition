@@ -45,10 +45,13 @@ namespace lancet
       berry::SmartPointer(streakingServicePointer);
     this->imp->pluginContext->registerService<
       lancet::IDevicesAdministrationService>(streakingServicePointer);
+
+	streakingServicePointer->Start();
 	}
 
 	void org_mitk_lancet_services_DevicesAdministration::stop(ctkPluginContext* context)
 	{
+	this->imp->DevicesAdministrationService->Stop();
     this->imp->pluginContext->ungetService(this->imp->pluginContext->getServiceReference<lancet::IDevicesAdministrationService>());
     this->imp->pluginContext = nullptr;
 	}

@@ -47,7 +47,6 @@ public:
 
   virtual ~QRoboticsRegistrations();
 
-  void TestInitService();
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -78,6 +77,8 @@ private slots:
   void on_toolCollector_fail(int);
 
 	void on_toolCollector_complete(mitk::NavigationData*);
+
+	void on_toolCollector_step(int, mitk::NavigationData*);
 private:
   Ui::QRoboticsRegistrationsControls m_Controls;
 };

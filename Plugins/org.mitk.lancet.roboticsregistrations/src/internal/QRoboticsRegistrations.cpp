@@ -30,10 +30,15 @@ found in the LICENSE file.
 #include <core/lancetSpatialFittingNavigationToolCollector.h>
 #include <internal/lancetSpatialFittingRoboticsRegisterModel.h>
 
+#include <internal/lancetSpatialFittingService.h>
 #include <core/lancetSpatialFittingPipelineBuilder.h>
 #include <core/lancetSpatialFittingPointAccuracyDate.h>
 #include <core/lancetSpatialFittingRoboticsRegisterDirector.h>
 #include <core/lancetSpatialFittingRoboticsVerifyDirector.h>
+
+#include "lancetIDevicesAdministrationService.h"
+
+#include "org_mitk_lancet_roboticsregistrations_Activator.h"
 
 const std::string QRoboticsRegistrations::VIEW_ID = "org.mitk.views.qroboticsregistrations";
 
@@ -44,6 +49,15 @@ using NavigationToolCollector = lancet::spatial_fitting::NavigationToolCollector
 using RoboticsVerifyDirector = lancet::spatial_fitting::RoboticsVerifyDirector;
 using RoboticsRegisterDirector = lancet::spatial_fitting::RoboticsRegisterDirector;
 
+lancet::IDevicesAdministrationService* GetDeviceService()
+{
+	auto context = PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::IDevicesAdministrationService>();
+	auto service = context->getService<lancet::IDevicesAdministrationService>(serviceRef);
+
+	return service;
+}
+
 void QRoboticsRegistrations::SetFocus()
 {
 }
@@ -53,22 +67,8 @@ QRoboticsRegistrations::~QRoboticsRegistrations()
   this->DisConnectToQtWidget();
 }
 
-void QRoboticsRegistrations::TestInitService()
-{
-  RoboticsRegisterDirector director;
-  director.Builder();
-
-  RoboticsVerifyDirector directorV;
-  directorV.Builder();
-
-	this->GetServiceRoboticsModel()->SetRegisterNavigationPipeline(director.GetBuilder()->GetOutput());
-	this->GetServiceRoboticsModel()->SetAccutacyVerifyPipeline(directorV.GetBuilder()->GetOutput());
-}
-
 void QRoboticsRegistrations::CreateQtPartControl(QWidget *parent)
 {
-  this->TestInitService();
-
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
   auto test_dir = QDir(":/org.mitk.lancet.roboticsregistrations/");
@@ -85,7 +85,7 @@ void QRoboticsRegistrations::CreateQtPartControl(QWidget *parent)
   qss.close();
 
   this->ConnectToQtWidget();
-	this->UpdateUiForService();
+  this->UpdateWidgetOfService();
 }
 
 void QRoboticsRegistrations::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -108,8 +108,12 @@ void QRoboticsRegistrations::ConnectToQtWidget()
 	connect(this->m_Controls.pushButtonRobotVerify, &QPushButton::clicked,
 		this, &QRoboticsRegistrations::on_pushButtonRobotVerify_clicked);
 
+  if(this->GetServiceRoboticsModel().IsNull())
+  {
+	  return;
+  }
   // Collector
-		// Pull the server's data resources.
+  // Pull the server's data resources.
 	PipelineManager::Pointer pipelineManager =
 		this->GetServiceRoboticsModel()->GetRegisterNavigationPipeline();
 	NavigationToolCollector::Pointer toolCollector =
@@ -120,8 +124,8 @@ void QRoboticsRegistrations::ConnectToQtWidget()
 	{
 		connect(toolCollector.GetPointer(), &NavigationToolCollector::Fail,
 			this, &QRoboticsRegistrations::on_toolCollector_fail);
-		//connect(toolCollector.GetPointer(), &NavigationToolCollector::Step,
-		//	this, &QRoboticsRegistrations::on_toolCollector_step);
+		connect(toolCollector.GetPointer(), &NavigationToolCollector::Step,
+			this, &QRoboticsRegistrations::on_toolCollector_step);
 		connect(toolCollector.GetPointer(), &NavigationToolCollector::Complete,
 			this, &QRoboticsRegistrations::on_toolCollector_complete);
 	}
@@ -152,11 +156,19 @@ void QRoboticsRegistrations::UpdateUiForService()
 {
 	if (this->GetServiceRoboticsModel().IsNull())
 	{
-		MITK_INFO << "Failed to request service resources, ignoring this processing";
+		MITK_INFO << "Failed to request service resources spatial fitting, ignoring this processing";
 		return;
 	}
-	bool isTrackingNDIDevice = false;
-	bool isTrackingRoboticsDevice = false;
+
+	if (nullptr == GetDeviceService())
+	{
+		MITK_WARN << "Failed to request service resources of device, ignoring this processing";
+		return;
+	}
+
+	
+	bool isTrackingNDIDevice = GetDeviceService()->GetConnector()->IsTrackingDeviceConnected("Vega");
+	bool isTrackingRoboticsDevice = GetDeviceService()->GetConnector()->IsTrackingDeviceConnected("Kuka");
 
 	QString notTrackingDeviceTips = "";
 
@@ -164,7 +176,7 @@ void QRoboticsRegistrations::UpdateUiForService()
 	{
 		if (false == isTrackingNDIDevice)
 		{
-			notTrackingDeviceTips += "NDI";
+			notTrackingDeviceTips += "Vega";
 		}
 		if (false == isTrackingRoboticsDevice)
 		{
@@ -172,7 +184,7 @@ void QRoboticsRegistrations::UpdateUiForService()
 			{
 				notTrackingDeviceTips += ", ";
 			}
-			notTrackingDeviceTips += "Robot";
+			notTrackingDeviceTips += "Kuka";
 		}
 		this->m_Controls.labelTips->setText(QString("Device [%1] not tracking!")
 			.arg(notTrackingDeviceTips));
@@ -192,46 +204,56 @@ void QRoboticsRegistrations::UpdateUiForService()
 lancet::spatial_fitting::RoboticsRegisterModelPtr 
 QRoboticsRegistrations::GetServiceRoboticsModel() const
 {
-  static lancet::spatial_fitting::RoboticsRegisterModelPtr robot =
-    lancet::spatial_fitting::RoboticsRegisterModel::New();
-  return robot;
+  auto context = PluginActivator::GetPluginContext();
+  auto serviceRef = context->getServiceReference<lancet::SpatialFittingAbstractService>();
+  auto service = context->getService<lancet::SpatialFittingAbstractService>(serviceRef);
+  
+  if (service)
+  {
+	  return service->GetRoboticsRegisterModel();
+  }
+
+  return lancet::spatial_fitting::RoboticsRegisterModelPtr(nullptr);
 }
 
 void QRoboticsRegistrations::on_pushButtonRobotVerify_clicked()
 {
   MITK_DEBUG << __FUNCTION__ << "log.pushButtonRobotVerify.clicked";
-	if (this->GetServiceRoboticsModel().IsNull())
-	{
-		MITK_WARN << "Input RoboticsRegisterModel is nullptr, Ignore this request!";
-		return;
-	}
+  if (this->GetServiceRoboticsModel().IsNull() 
+		|| this->GetServiceRoboticsModel()->GetAccutacyVerifyPipeline().IsNull())
+  {
+  	MITK_WARN << "Input RoboticsRegisterModel is nullptr, Ignore this request!";
+  	return;
+  }
+  
+  // Pull the server's data resources.
+  PipelineManager::Pointer pipelineManager =
+  	this->GetServiceRoboticsModel()->GetAccutacyVerifyPipeline();
+  NavigationToolCollector::Pointer toolCollector =
+  	dynamic_cast<NavigationToolCollector*>(pipelineManager->FindFilter("RobotEndRF2RobotBaseRF_ToolCollector").GetPointer());
+  
+	pipelineManager->UpdateFilter();
 
-	// Pull the server's data resources.
-	PipelineManager::Pointer pipelineManager =
-		this->GetServiceRoboticsModel()->GetAccutacyVerifyPipeline();
-	NavigationToolCollector::Pointer toolCollector =
-		dynamic_cast<NavigationToolCollector*>(pipelineManager->FindFilter("NRT2NRRCollector").GetPointer());
-
-	if (toolCollector.IsNull())
-	{
-		MITK_WARN << "Failed to pull the tool collector, Ignore this request!";
-		return;
-	}
-
-	// When the tool collector is working, force the current request as the 
-	// highest level of permission.
-	if (toolCollector->IsRunning())
-	{
-		toolCollector->Stop();
-	}
-
-	toolCollector->SetPermissionIdentificationArea(__func__);
-	toolCollector->Start();
+  if (toolCollector.IsNull())
+  {
+  	MITK_WARN << "Failed to pull the tool collector, Ignore this request!";
+  	return;
+  }
+  
+  // When the tool collector is working, force the current request as the 
+  // highest level of permission.
+  if (toolCollector->IsRunning())
+  {
+  	toolCollector->Stop();
+  }
+  
+  toolCollector->SetPermissionIdentificationArea(__func__);
+  toolCollector->Start();
 }
 
 void QRoboticsRegistrations::on_pushButtonCalResult_clicked()
 {
-	MITK_DEBUG << __FUNCTION__ << "log.pushButtonCalResult.clicked";
+	MITK_DEBUG << "log.pushButtonCalResult.clicked";
 
 	if (this->GetServiceRoboticsModel().IsNull())
 	{
@@ -242,16 +264,20 @@ void QRoboticsRegistrations::on_pushButtonCalResult_clicked()
 	if (this->GetServiceRoboticsModel()->GetRegisterModel().Regist())
 	{
 		// The calculation is successful and the output is obtained.
+		vtkNew<vtkMatrix4x4> registerMatrix4x4;
+		this->GetServiceRoboticsModel()->GetRegisterModel().GetRegistraionMatrix(registerMatrix4x4);
+		registerMatrix4x4->Print(std::cout);
 	}
 	else
 	{
 		// At least four translation only pose needed to regist.
+		MITK_ERROR << "At least four translation only pose needed to regist.";
 	}
 }
 
 void QRoboticsRegistrations::on_pushButtonAddPoint_clicked()
 {
-	MITK_DEBUG << __FUNCTION__ << "log.pushButtonAddPoint.clicked";
+	MITK_DEBUG << "log.pushButtonAddPoint.clicked";
 
   if (this->GetServiceRoboticsModel().IsNull())
   {
@@ -262,6 +288,9 @@ void QRoboticsRegistrations::on_pushButtonAddPoint_clicked()
   // Pull the server's data resources.
   PipelineManager::Pointer pipelineManager = 
     this->GetServiceRoboticsModel()->GetRegisterNavigationPipeline();
+
+  pipelineManager->UpdateFilter();
+
   NavigationToolCollector::Pointer toolCollector = 
     dynamic_cast<NavigationToolCollector*>(pipelineManager->
 			FindFilter("RobotEndRF2RobotBaseRF_ToolCollector").GetPointer());
@@ -285,11 +314,12 @@ void QRoboticsRegistrations::on_pushButtonAddPoint_clicked()
 
 void QRoboticsRegistrations::on_toolCollector_fail(int step)
 {
-	MITK_DEBUG << "log.parame.isNull ";
+	MITK_DEBUG << "log.parame.step " << step;
 }
 
 void QRoboticsRegistrations::on_toolCollector_complete(mitk::NavigationData* data)
 {
+	MITK_DEBUG << "log.parame.data " << data;
 	NavigationToolCollector* toolCollector
 		= dynamic_cast<NavigationToolCollector*>(sender());
 
@@ -311,7 +341,7 @@ void QRoboticsRegistrations::on_toolCollector_complete(mitk::NavigationData* dat
 
 		mitk::NavigationDataSource* roboticsNavigationSource =
 			this->GetServiceRoboticsModel()->GetRoboticsNavigationDataSource();
-		int roboticsNavigationToolIndex = roboticsNavigationSource->GetOutputIndex("");
+		int roboticsNavigationToolIndex = roboticsNavigationSource->GetOutputIndex("VirtualTool1");
 		mitk::NavigationData::Pointer roboticsPose =
 			roboticsNavigationSource->GetOutput(roboticsNavigationToolIndex);
 
@@ -344,5 +374,28 @@ void QRoboticsRegistrations::on_toolCollector_complete(mitk::NavigationData* dat
 			roboticsAccuracyPoint.SetTargetPoint(roboticsAccuracyTool->GetPosition());
 			this->m_Controls.lcdNumber_RIO->display(roboticsAccuracyPoint.Compute());
 		}
+	}
+}
+
+void QRoboticsRegistrations::on_toolCollector_step(int step, mitk::NavigationData* data)
+{
+	MITK_WARN << "log.step " << step 
+		<< "; log.data " << data->GetPosition() 
+		<< "; log.name " << data->GetName();
+
+
+	if (this->GetServiceRoboticsModel().IsNull())
+	{
+		MITK_WARN << "Input RoboticsRegisterModel is nullptr, Ignore this request!";
+		return;
+	}
+
+	// Pull the server's data resources.
+	PipelineManager::Pointer pipelineManager =
+		this->GetServiceRoboticsModel()->GetRegisterNavigationPipeline();
+
+	if (pipelineManager.IsNotNull())
+	{
+		pipelineManager->UpdateFilter();
 	}
 }

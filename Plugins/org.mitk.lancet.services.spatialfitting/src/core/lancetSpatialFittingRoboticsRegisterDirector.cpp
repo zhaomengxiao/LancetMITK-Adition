@@ -35,15 +35,35 @@ bool RoboticsRegisterDirector::Builder()
 	{
 		return false;
 	}
-    int robotMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("");
-	pipelineBuilder->BuilderNavigationToolToNavigationToolFilter(0,  
-		this->GetNdiNavigationDataSource()->GetOutput(robotMarkerIndex));
-	//pipelineBuilder->BuilderNavigationToolToSpaceFilter(1, nullptr);
-	pipelineBuilder->BuilderNavigationToolCollector(1, 10);
 
-	pipelineBuilder->GetOutput()->FindFilter(0)->SetName("name-01");
-	//pipelineBuilder->GetOutput()->FindFilter(0)->SetName("name-02");
-	pipelineBuilder->GetOutput()->FindFilter(1)->SetName("RobotEndRF2RobotBaseRF_ToolCollector");
+	try
+	{
+		// RobotBaseRF
+		// RobotEndRF
+		int robotMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("VirtualTool1");
+		int robotEndMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("VirtualTool2");
+		if (robotMarkerIndex == -1) 
+		{
+			throw std::exception("No mechanical arm trolley marker tool found.");
+		}
+
+		pipelineBuilder->BuilderNavigationToolToNavigationToolFilter(0,
+			this->GetNdiNavigationDataSource()->GetOutput(robotMarkerIndex));
+		pipelineBuilder->BuilderNavigationToolCollector(1, 10, 20);
+
+		pipelineBuilder->GetOutput()->FindFilter(0)->SetName("name-01");
+		pipelineBuilder->GetOutput()->FindFilter(1)->SetName("RobotEndRF2RobotBaseRF_ToolCollector");
+
+		// connect to device pipeline resourec filter.
+		//this->GetNdiNavigationDataSource()->GetOutput(robotEndMarkerIndex);
+		pipelineBuilder->GetOutput()->ConnectTo(this->GetNdiNavigationDataSource());
+		pipelineBuilder->GetOutput()->SetInput(this->GetNdiNavigationDataSource()->GetOutput(robotEndMarkerIndex));
+	}
+	catch (...)
+	{
+		return false;
+	}
+
 	return true;
 }
 

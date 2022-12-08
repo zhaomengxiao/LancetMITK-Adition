@@ -141,7 +141,7 @@ void PipelineManager::UpdateDisConntedToFilter()
 
 void PipelineManager::GenerateData()
 {
-	std::cout << __FUNCTION__ << "log" << std::endl;
+	MITK_INFO << "log";
 
 	this->CreateOutputsForAllInputs();
 

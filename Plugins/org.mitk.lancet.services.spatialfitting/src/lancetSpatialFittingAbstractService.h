@@ -26,7 +26,7 @@ class ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
 {
 	Q_OBJECT
 public:
-	berryObjectMacro(lancet::spatial_fitting::RoboticsRegisterModel);
+	berryObjectMacro(lancet::SpatialFittingAbstractService);
 	SpatialFittingAbstractService();
 
 	static berry::SmartPointer<SpatialFittingAbstractService> GetService();
@@ -36,6 +36,7 @@ public:
 	virtual void SetRoboticsRegisterModel(itk::SmartPointer<lancet::spatial_fitting::RoboticsRegisterModel>);
 	virtual itk::SmartPointer<lancet::spatial_fitting::RoboticsRegisterModel> GetRoboticsRegisterModel() const;
 
+	virtual void Initialize() = 0;
 private:struct SpatialFittingAbstractServicePrivateImp;
 	std::shared_ptr<SpatialFittingAbstractServicePrivateImp> imp;
 };

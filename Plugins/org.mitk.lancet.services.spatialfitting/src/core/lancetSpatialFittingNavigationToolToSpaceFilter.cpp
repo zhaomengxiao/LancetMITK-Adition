@@ -1,16 +1,6 @@
 #include "lancetSpatialFittingNavigationToolToSpaceFilter.h"
 BEGIN_SPATIAL_FITTING_NAMESPACE
 
-// struct NavigationToolToSpaceFilter::NavigationToolToSpaceFilterPrivateImp
-// {
-// };
-//
-// NavigationToolToSpaceFilter::NavigationToolToSpaceFilter()
-// 	: imp(std::make_shared<NavigationToolToSpaceFilterPrivateImp>())
-// {
-// 	
-// }
-
 NavigationToolToSpaceFilter::NavigationToolToSpaceFilter():mitk::NavigationDataToNavigationDataFilter()
 {
 	m_RegistrationMatrix = mitk::AffineTransform3D::New();
@@ -24,6 +14,7 @@ NavigationToolToSpaceFilter::~NavigationToolToSpaceFilter()
 
 void NavigationToolToSpaceFilter::GenerateData()
 {
+	MITK_DEBUG << __FUNCTION__ << ": log";
 	if (m_RegistrationMatrix.IsNull())
 	{
 		itkExceptionMacro("Invalid parameter: m_RegistrationMatrix NULL.")

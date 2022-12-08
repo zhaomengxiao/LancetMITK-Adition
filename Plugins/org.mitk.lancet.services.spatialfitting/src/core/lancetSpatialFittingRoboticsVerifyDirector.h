@@ -65,8 +65,14 @@ public:
 
 	virtual mitk::NavigationDataSource::Pointer GetNdiNavigationDataSource() const;
 	virtual void SetNdiNavigationDataSource(mitk::NavigationDataSource::Pointer navigationDataSource);
+	virtual mitk::NavigationDataSource::Pointer GetRobotNavigationDataSource() const;
+	virtual void SetRobotNavigationDataSource(mitk::NavigationDataSource::Pointer navigationDataSource);
 	virtual bool Builder() override;
+
+	virtual void SetRoboticsMatrix(mitk::AffineTransform3D::Pointer);
+	virtual mitk::AffineTransform3D::Pointer GetRoboticsMatrix() const;
 private:
+	mitk::AffineTransform3D::Pointer robotMatrix;
 	mitk::NavigationDataSource::Pointer ndiNavigationDataSource;
 	mitk::NavigationDataSource::Pointer roboticsNavigationDataSource;
 };

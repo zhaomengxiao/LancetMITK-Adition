@@ -1,8 +1,10 @@
 #include "lancetSpatialFittingRoboticsRegisterModel.h"
+#include "lancetSpatialFittingAbstractPipelineBuilder.h"
 #include "core/lancetSpatialFittingPipelineManager.h"
 #include "core/lancetSpatialFittingRoboticsRegisterDirector.h"
 #include "core/lancetSpatialFittingRoboticsVerifyDirector.h"
 #include <robotRegistration.h>
+#include <mitkMatrixConvert.h>
 
 BEGIN_SPATIAL_FITTING_NAMESPACE
 
@@ -77,14 +79,23 @@ void RoboticsRegisterModel::ConfigureRegisterPipeline()
 		= lancet::spatial_fitting::RoboticsRegisterDirector::New();
 	roboticsRegisterDirector->SetNdiNavigationDataSource(this->GetNdiNavigationDataSource());
 	roboticsRegisterDirector->Builder();
+
+	this->SetRegisterNavigationPipeline(roboticsRegisterDirector->GetBuilder()->GetOutput());
 }
 
 void RoboticsRegisterModel::ConfigureVerifyPipeline()
 {
 	lancet::spatial_fitting::RoboticsVerifyDirector::Pointer roboticsVerifyDirector
 		= lancet::spatial_fitting::RoboticsVerifyDirector::New();
-	roboticsVerifyDirector->SetNdiNavigationDataSource(this->GetNdiNavigationDataSource());
-	roboticsVerifyDirector->Builder();
 
+	vtkNew<vtkMatrix4x4> registerMatrix;
+	mitk::AffineTransform3D::Pointer mitkTransform3D = mitk::AffineTransform3D::New();
+	this->GetRegisterModel().GetRegistraionMatrix(registerMatrix);
+
+	roboticsVerifyDirector->SetNdiNavigationDataSource(this->GetNdiNavigationDataSource());
+	mitk::TransferVtkMatrixToItkTransform(registerMatrix, mitkTransform3D.GetPointer());
+	roboticsVerifyDirector->SetRoboticsMatrix(mitkTransform3D);
+	roboticsVerifyDirector->Builder();
+	this->SetAccutacyVerifyPipeline(roboticsVerifyDirector->GetBuilder()->GetOutput());
 }
 END_SPATIAL_FITTING_NAMESPACE

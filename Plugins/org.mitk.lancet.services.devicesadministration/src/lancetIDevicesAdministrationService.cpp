@@ -4,11 +4,9 @@ namespace lancet
 {
   struct IDevicesAdministrationService::IDevicesAdministrationServicePrivateImp
   {
-		
 		static berry::SmartPointer<IDevicesAdministrationService> staticInstance;
 
 		berry::SmartPointer<TrackingDeviceManage> TrackingDeviceManage;
-
   };
 	berry::SmartPointer<IDevicesAdministrationService>
 		IDevicesAdministrationService::IDevicesAdministrationServicePrivateImp::
