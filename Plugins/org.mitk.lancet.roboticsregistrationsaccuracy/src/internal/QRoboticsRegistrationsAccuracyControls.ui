@@ -42,8 +42,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>300</width>
-     <height>1014</height>
+     <width>272</width>
+     <height>985</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -137,6 +137,9 @@ background-color: rgb(0, 0, 0);
         </property>
         <property name="styleSheet">
          <string notr="true"/>
+        </property>
+        <property name="maximum">
+         <number>10</number>
         </property>
         <property name="value">
          <number>0</number>
@@ -394,25 +397,21 @@ background-color: rgb(0, 0, 0);
       <property name="styleSheet">
        <string notr="true"/>
       </property>
-      <widget class="QLabel" name="label">
-       <property name="geometry">
-        <rect>
-         <x>2</x>
-         <y>2</y>
-         <width>54</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>黑体</family>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="labelTips">
+         <property name="font">
+          <font>
+           <family>黑体</family>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
     <item>

@@ -14,19 +14,28 @@ found in the LICENSE file.
 #ifndef QRoboticsRegistrationsAccuracy_h
 #define QRoboticsRegistrationsAccuracy_h
 
+// berry
 #include <berryISelectionListener.h>
 
+// mitk
+#include <mitkNavigationData.h>
 #include <QmitkAbstractView.h>
 
+// ui
 #include "ui_QRoboticsRegistrationsAccuracyControls.h"
 
 /**
   \brief QRoboticsRegistrationsAccuracy
 
-  \warning  This class is not yet documented. Use "git blame" and ask the author to provide basic documentation.
+  The probe accuracy detection function is used to check the accuracy deviation of 
+  the probe under the fixed tooling. This function plug-in is mainly for interface 
+  interaction.
+
+  This class is driven by the mitk plug-in framework, and external input parameters 
+  are provided by the mitk microservice.
 
   \sa QmitkAbstractView
-  \ingroup ${plugin_target}_internal
+  \ingroup org_mitk_lancet_roboticsregistrationsaccuracy
 */
 class QRoboticsRegistrationsAccuracy : public QmitkAbstractView
 {
@@ -49,6 +58,18 @@ protected:
   /// \brief Called when the user clicks the GUI button
   void DoImageProcessing();
 
+  void ConnectToQtWidget();
+
+  void UpdateUiForService();
+protected slots:
+  void on_pushButtonProbeCheckPoint_clicked();
+
+  void on_toolCollector_fail(int);
+
+	void on_toolCollector_complete(mitk::NavigationData*);
+
+	void on_toolCollector_step(int, mitk::NavigationData*);
+private:
   Ui::QRoboticsRegistrationsAccuracyControls m_Controls;
 };
 
