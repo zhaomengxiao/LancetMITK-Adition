@@ -169,6 +169,7 @@ protected:
   mitk::AffineTransform3D::Pointer m_ProbeRealTimePose;
   mitk::AffineTransform3D::Pointer m_ProbeInitPose;
   bool m_KeepUpdateFriTransform{true};
+  double m_offset[3]{ 0,0,0 };
   // Image registration using NavigationObject structure
  
 	// Assemble a navigationObject with a Parent node;

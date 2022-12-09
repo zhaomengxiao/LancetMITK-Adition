@@ -19,14 +19,14 @@ namespace lancet
   class MITKLANCETKUKAFRI_EXPORT TransformationProviderClient : public KUKA::FRI::TransformationClient, public itk::Object
   {
   public:
-    mitkClassMacroItkParent(TransformationProviderClient, itk::Object);
+    /*mitkClassMacroItkParent(TransformationProviderClient, itk::Object);
     itkFactorylessNewMacro(Self);
-    itkCloneMacro(Self);
+    itkCloneMacro(Self);*/
 
     
 
-    itkGetConstMacro(TransformID, std::string);
-    itkSetMacro(TransformID, std::string);
+    /*itkGetConstMacro(TransformID, std::string);
+    itkSetMacro(TransformID, std::string);*/
     /**
      * \brief Constructor.
      *

@@ -1064,11 +1064,12 @@ void SurgicalSimulate::StartServo()
   m_FriManager.Connect();
   m_FriManager.StartFriControl();
 
-  m_friThread = std::thread(&SurgicalSimulate::threadUpdateFriTransform, this);
+  //m_friThread = std::thread(&SurgicalSimulate::threadUpdateFriTransform, this);
 }
 
 void SurgicalSimulate::StopServo()
 {
+	m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StopServo");
   m_FriManager.DisConnect();
   m_KeepUpdateFriTransform = false;
 }
@@ -1082,9 +1083,9 @@ void SurgicalSimulate::InitProbe()
   // mitk::TransferItkTransformToVtkMatrix(m_ProbeInitPose.GetPointer(), dest);
   //
   // m_KukaTrackingDevice->m_RobotApi.MovePTP(dest);
-  double v[3]{ 0,0,20 };
+  m_offset[2] += 10;
   mitk::AffineTransform3D::Pointer friMatrix = mitk::AffineTransform3D::New();
-  friMatrix->SetOffset(v);
+  friMatrix->SetOffset(m_offset);
   m_FriManager.SetFriDynamicFrameTransform(friMatrix);
 }
 
