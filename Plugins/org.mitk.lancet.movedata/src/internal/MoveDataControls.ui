@@ -20,24 +20,6 @@
    <string>QmitkTemplate</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
-   <item row="0" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <italic>true</italic>
-       <bold>true</bold>
-       <underline>true</underline>
-      </font>
-     </property>
-     <property name="text">
-      <string>Note: All the movement will be applied to both the parent and child nodes </string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_12">
      <property name="font">
@@ -56,6 +38,36 @@
      </property>
     </widget>
    </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <italic>true</italic>
+       <bold>true</bold>
+       <underline>true</underline>
+      </font>
+     </property>
+     <property name="text">
+      <string>Note: All the movement will be applied to both the parent and child nodes </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Output:</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0">
+       <widget class="QTextBrowser" name="textBrowser_moveData"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="2" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
@@ -66,133 +78,23 @@
        <string>Intuitive</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_8">
-       <item row="2" column="0">
-        <widget class="QGroupBox" name="groupBox_4">
-         <property name="title">
-          <string>Movement along the given direction</string>
+       <item row="0" column="0" colspan="2">
+        <widget class="QLabel" name="label_15">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
          </property>
-         <layout class="QGridLayout" name="gridLayout_10">
-          <item row="0" column="1">
-           <layout class="QVBoxLayout" name="verticalLayout">
-            <item>
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>2-element poinset as the translation direction / rotation axis: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkSelectWidget_directionPointSet" native="true">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>30</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Translate or rotate by </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_intuitiveValue_2">
-              <property name="text">
-               <string>2</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>(mm or degrees)</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="2" column="0">
-           <spacer name="horizontalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="2" column="1">
-           <layout class="QGridLayout" name="gridLayout_9">
-            <item row="0" column="0">
-             <widget class="QPushButton" name="pushButton_translatePlus">
-              <property name="text">
-               <string>Translate+</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QPushButton" name="pushButton_RotatePlus">
-              <property name="text">
-               <string>Rotate +</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QPushButton" name="pushButton_translateMinus">
-              <property name="text">
-               <string>Translate-</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QPushButton" name="pushButton_RotateMinus">
-              <property name="text">
-               <string>Rotate -</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="2" column="2">
-           <spacer name="horizontalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
+         <property name="text">
+          <string>Please select a DataNode by clicking in the Data Manager</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="0">
+       <item row="1" column="0" colspan="2">
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
           <string>Movement by λ mm or degrees: (extrinsic rotation along X/Y/Z around object center)</string>
@@ -339,21 +241,179 @@
          </layout>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_15">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
+       <item row="3" column="0" rowspan="5" colspan="2">
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Robot registration</string>
          </property>
-         <property name="text">
-          <string>Please select a DataNode by clicking in the Data Manager</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
+         <layout class="QGridLayout" name="gridLayout_15">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="pushButton_trueRoboValues">
+            <property name="text">
+             <string>Collect true values</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="pushButton_captureRoboPose">
+            <property name="text">
+             <string>Capture pose</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QLineEdit" name="lineEdit_collectedRoboPoses">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_17">
+              <property name="text">
+               <string>/10 collected</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="3">
+           <widget class="QPushButton" name="pushButton_resetRoboRegis">
+            <property name="text">
+             <string>Reset registrator</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Movement along the given direction</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_10">
+          <item row="0" column="1">
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>2-element poinset as the translation direction / rotation axis: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkSelectWidget_directionPointSet" native="true">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>30</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Translate or rotate by </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_intuitiveValue_2">
+              <property name="text">
+               <string>2</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>(mm or degrees)</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <spacer name="horizontalSpacer_6">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="2" column="1">
+           <layout class="QGridLayout" name="gridLayout_9">
+            <item row="0" column="0">
+             <widget class="QPushButton" name="pushButton_translatePlus">
+              <property name="text">
+               <string>Translate+</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="pushButton_RotatePlus">
+              <property name="text">
+               <string>Rotate +</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="pushButton_translateMinus">
+              <property name="text">
+               <string>Translate-</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QPushButton" name="pushButton_RotateMinus">
+              <property name="text">
+               <string>Rotate -</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="2">
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -608,20 +668,6 @@
           <string>Landmark registration</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_12">
-          <item row="0" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Target points:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LandmarkTargetPointset" native="true"/>
-            </item>
-           </layout>
-          </item>
           <item row="0" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
@@ -640,6 +686,27 @@
            <widget class="QPushButton" name="pushButton_Landmark">
             <property name="text">
              <string>Landmark Registration</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="label_8">
+              <property name="text">
+               <string>Target points:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_LandmarkTargetPointset" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="3">
+           <widget class="QPushButton" name="pushButton_pointwiseCmp">
+            <property name="text">
+             <string>Point-wise compare</string>
             </property>
            </widget>
           </item>
@@ -974,18 +1041,12 @@
        <string>Apply quaternion</string>
       </attribute>
      </widget>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Output:</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="0">
-       <widget class="QTextBrowser" name="textBrowser_moveData"/>
-      </item>
-     </layout>
+     <widget class="QWidget" name="tab_5">
+      <attribute name="title">
+       <string>Algorithm test</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_17"/>
+     </widget>
     </widget>
    </item>
   </layout>

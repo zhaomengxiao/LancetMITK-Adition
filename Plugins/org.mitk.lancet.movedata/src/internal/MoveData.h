@@ -21,7 +21,7 @@ found in the LICENSE file.
 #include "QmitkDataStorageTreeModel.h"
 #include "QmitkSingleNodeSelectionWidget.h"
 #include "ui_MoveDataControls.h"
-
+#include "robotRegistration.h"
 
 /**
   \brief MoveData
@@ -119,6 +119,31 @@ protected:
   void AppendRegistrationMatrix();
 
   void SurfaceToSurfaceIcp();
+
+
+    // Test robot registration algorithm
+    RobotRegistration m_RobotRegistration;
+
+	bool ResetRoboRegistration();
+
+	int m_IndexOfRobotCapture{ 0 };
+
+	bool CheckRobotModelAvailability();
+
+	vtkMatrix4x4* GetCameraToBaseRFMatrix();
+	vtkMatrix4x4* GetCameraToEndRFMatrix();
+	vtkMatrix4x4* GetBaseRFtoEndRFMatrix();
+	vtkMatrix4x4* GetBaseToFlangeMatrix();
+
+	bool CollectTrueRoboValues();
+	vtkMatrix4x4* m_baseRFtoBase_matrix;
+	vtkMatrix4x4* m_endRFtoFlange_matrix;
+
+	void PrintVtkMatrix(vtkMatrix4x4* vtkMatrix);
+
+	void CaptureRobotData();
+
+	void PointwiseCompare();
 };
 
 #endif // MoveData_h

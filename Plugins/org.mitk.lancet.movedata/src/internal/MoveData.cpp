@@ -90,12 +90,16 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_RotateMinus, &QPushButton::clicked, this, &MoveData::RotateMinus);
   connect(m_Controls.pushButton_RealignImage, &QPushButton::clicked, this, &MoveData::RealignImage);
   connect(m_Controls.pushButton_Landmark, &QPushButton::clicked, this, &MoveData::LandmarkRegistration);
+  connect(m_Controls.pushButton_pointwiseCmp, &QPushButton::clicked, this, &MoveData::PointwiseCompare);
   connect(m_Controls.pushButton_ApplyRegistrationMatrix, &QPushButton::clicked, this, &MoveData::AppendRegistrationMatrix);
   connect(m_Controls.pushButton_Icp, &QPushButton::clicked, this, &MoveData::IcpRegistration);
   connect(m_Controls.pushButton_getgeometryWithSpacing, &QPushButton::clicked, this, &MoveData::GetObjectGeometryWithSpacing);
   connect(m_Controls.pushButton_getgeometryWithoutSpacing, &QPushButton::clicked, this, &MoveData::GetObjectGeometryWithoutSpacing);
   connect(m_Controls.pushButton_Icp_surfaceToSurface, &QPushButton::clicked, this, &MoveData::SurfaceToSurfaceIcp);
 
+  connect(m_Controls.pushButton_trueRoboValues, &QPushButton::clicked, this, &MoveData::CollectTrueRoboValues);
+  connect(m_Controls.pushButton_resetRoboRegis, &QPushButton::clicked, this, &MoveData::ResetRoboRegistration);
+  connect(m_Controls.pushButton_captureRoboPose, &QPushButton::clicked, this, &MoveData::CaptureRobotData);
 
 }
 
@@ -345,6 +349,7 @@ void MoveData::TranslatePlusX()
 
 		Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
 	}
+	
 }
 void MoveData::TranslatePlusY()
 {
@@ -1044,7 +1049,47 @@ void MoveData::LandmarkRegistration()
 	m_Controls.textBrowser_moveData->append("Maximal landmark registration error: " + QString::number(landmarkRegistrator->GetmaxLandmarkError()));
 	m_Controls.textBrowser_moveData->append("Average landmark registration error: " + QString::number(landmarkRegistrator->GetavgLandmarkError()));
 	m_Controls.textBrowser_moveData->append("-------------Landmark registration succeeded----------");
+
+	
 }
+
+void MoveData::PointwiseCompare()
+{
+	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
+	m_LandmarkSourcePointset = m_Controls.mitkNodeSelectWidget_LandmarkSrcPointset->GetSelectedNode();
+	m_LandmarkTargetPointset = m_Controls.mitkNodeSelectWidget_LandmarkTargetPointset->GetSelectedNode();
+
+	if (m_LandmarkSourcePointset != nullptr && m_LandmarkTargetPointset != nullptr)
+	{
+		auto sourcePointset = dynamic_cast<mitk::PointSet*>(m_LandmarkSourcePointset->GetData());
+		auto targetPointset = dynamic_cast<mitk::PointSet*>(m_LandmarkTargetPointset->GetData());
+
+		if (sourcePointset->GetSize() == targetPointset->GetSize())
+		{
+			for(int i{0}; i < sourcePointset->GetSize(); i++)
+			{
+				auto p1 = sourcePointset->GetPoint(i);
+				auto p2 = targetPointset->GetPoint(i);
+
+				double d = sqrt(pow(p1[0] - p2[0], 2) + pow(p1[1] - p2[1], 2) + pow(p1[2] - p2[2], 2));
+
+				m_Controls.textBrowser_moveData->append("Distance between pair "+ QString::number(i+1)+": "+QString::number(d));
+			}
+
+		}else
+		{
+			m_Controls.textBrowser_moveData->append("Point set sizes do not match.");
+		}
+
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("Point set are  not ready");
+	}
+
+
+}
+
 
 vtkMatrix4x4* MoveData::ObtainVtkMatrixFromRegistrationUi()
 {
@@ -1287,6 +1332,286 @@ void MoveData::GetObjectGeometryWithoutSpacing()
 
 
 }
+
+
+
+// Robot registration algorithm test
+bool MoveData::ResetRoboRegistration()
+{
+	m_RobotRegistration.RemoveAllPose();
+	m_IndexOfRobotCapture = 0;
+	m_Controls.lineEdit_collectedRoboPoses->setText(QString::number(0));
+	return true;
+}
+
+bool MoveData::CheckRobotModelAvailability()
+{
+	auto baseRF_model = (GetDataStorage()->GetNamedNode("baseRF"));
+	auto base_model = (GetDataStorage()->GetNamedNode("base"));
+
+	auto flange_model = (GetDataStorage()->GetNamedNode("flange"));
+	auto endRF_model = (GetDataStorage()->GetNamedNode("endRF"));
+
+	auto camera_model = (GetDataStorage()->GetNamedNode("camera"));
+
+	if (baseRF_model == nullptr || base_model == nullptr || flange_model == nullptr || endRF_model == nullptr
+		|| camera_model == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Warning: baseRF, base, flange, endRF or camera model is not ready");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool MoveData::CollectTrueRoboValues()
+{
+	if (CheckRobotModelAvailability() == false)
+	{
+		return false;
+	}
+
+	auto worldToBaseRF_matrix =	GetDataStorage()->GetNamedNode("baseRF")->GetData()->GetGeometry()->GetVtkMatrix();
+	vtkNew<vtkMatrix4x4> baseRFtoWorld_matrix;
+	baseRFtoWorld_matrix->DeepCopy(worldToBaseRF_matrix);
+	baseRFtoWorld_matrix->Invert();
+
+	auto worldToBase_matrix = GetDataStorage()->GetNamedNode("base")->GetData()->GetGeometry()->GetVtkMatrix();
+
+	vtkNew<vtkTransform> baseRFtoBaseTransform;
+	baseRFtoBaseTransform->PostMultiply();
+	baseRFtoBaseTransform->SetMatrix(worldToBase_matrix);
+	baseRFtoBaseTransform->Concatenate(baseRFtoWorld_matrix);
+	baseRFtoBaseTransform->Update();
+
+	m_baseRFtoBase_matrix = vtkMatrix4x4::New();
+
+	m_baseRFtoBase_matrix->DeepCopy(baseRFtoBaseTransform->GetMatrix());
+
+
+	auto worldToEndRF_matrix = GetDataStorage()->GetNamedNode("endRF")->GetData()->GetGeometry()->GetVtkMatrix();
+	vtkNew<vtkMatrix4x4> endRFtoWorld_matrix;
+	endRFtoWorld_matrix->DeepCopy(worldToEndRF_matrix);
+	endRFtoWorld_matrix->Invert();
+
+	auto worldToFlange_matrix = GetDataStorage()->GetNamedNode("flange")->GetData()->GetGeometry()->GetVtkMatrix();
+
+	vtkNew<vtkTransform> endRFtoFlangeTransform;
+	endRFtoFlangeTransform->PostMultiply();
+	endRFtoFlangeTransform->SetMatrix(worldToFlange_matrix);
+	endRFtoFlangeTransform->Concatenate(endRFtoWorld_matrix);
+	endRFtoFlangeTransform->Update();
+
+	m_endRFtoFlange_matrix = vtkMatrix4x4::New();
+	m_endRFtoFlange_matrix->DeepCopy(endRFtoFlangeTransform->GetMatrix());
+
+	m_Controls.textBrowser_moveData->append("True value of baseRF-to-Base matrix:");
+	PrintVtkMatrix(m_baseRFtoBase_matrix);
+
+	m_Controls.textBrowser_moveData->append("True value of endRF-to-Flange matrix:");
+	PrintVtkMatrix(m_endRFtoFlange_matrix);
+
+	return true;
+}
+
+void MoveData::PrintVtkMatrix(vtkMatrix4x4* vtkMatrix)
+{
+	// Eigen::Matrix4d tmpEigenMatrix;
+	// tmpEigenMatrix << vtkMatrix->GetElement(0, 0), vtkMatrix->GetElement(0, 1), vtkMatrix->GetElement(0, 2), vtkMatrix->GetElement(0, 3),
+	// 	vtkMatrix->GetElement(1, 0), vtkMatrix->GetElement(1, 1), vtkMatrix->GetElement(1, 2), vtkMatrix->GetElement(1, 3),
+	// 	vtkMatrix->GetElement(2, 0), vtkMatrix->GetElement(2, 1), vtkMatrix->GetElement(2, 2), vtkMatrix->GetElement(2, 3),
+	// 	vtkMatrix->GetElement(3, 0), vtkMatrix->GetElement(3, 1), vtkMatrix->GetElement(3, 2), vtkMatrix->GetElement(3, 3);
+
+	m_Controls.textBrowser_moveData->append(QString::number(vtkMatrix->GetElement(0, 0)) + ","+
+		QString::number(vtkMatrix->GetElement(0, 1)) + ","+
+		QString::number(vtkMatrix->GetElement(0, 2)) + "," + 
+		QString::number(vtkMatrix->GetElement(0, 3)) + "," "\n" + 
+		QString::number(vtkMatrix->GetElement(1, 0)) + "," +
+		QString::number(vtkMatrix->GetElement(1, 1)) + "," +
+		QString::number(vtkMatrix->GetElement(1, 2)) + "," +
+		QString::number(vtkMatrix->GetElement(1, 3)) + "," "\n" + 
+		QString::number(vtkMatrix->GetElement(2, 0)) + "," +
+		QString::number(vtkMatrix->GetElement(2, 1)) + "," +
+		QString::number(vtkMatrix->GetElement(2, 2)) + "," +
+		QString::number(vtkMatrix->GetElement(2, 3)) + "," "\n" + 
+		QString::number(vtkMatrix->GetElement(3, 0)) + "," +
+		QString::number(vtkMatrix->GetElement(3, 1)) + "," +
+		QString::number(vtkMatrix->GetElement(3, 2)) + "," +
+		QString::number(vtkMatrix->GetElement(3, 3)) + "\n");
+}
+
+
+vtkMatrix4x4* MoveData::GetCameraToBaseRFMatrix()
+{
+	auto worldToCamera_matrix = GetDataStorage()->GetNamedNode("camera")->GetData()->GetGeometry()->GetVtkMatrix();
+	vtkNew<vtkMatrix4x4> cameratoWorld_matrix;
+	cameratoWorld_matrix->DeepCopy(worldToCamera_matrix);
+	cameratoWorld_matrix->Invert();
+
+	auto worldToBaseRF_matrix = GetDataStorage()->GetNamedNode("baseRF")->GetData()->GetGeometry()->GetVtkMatrix();
+
+	vtkNew<vtkTransform> cameraToBaseRFTransform;
+	cameraToBaseRFTransform->PostMultiply();
+	cameraToBaseRFTransform->SetMatrix(worldToBaseRF_matrix);
+	cameraToBaseRFTransform->Concatenate(cameratoWorld_matrix);
+	cameraToBaseRFTransform->Update();
+
+	vtkNew<vtkMatrix4x4> cameraToBaseRF_matrix;
+	cameraToBaseRF_matrix->DeepCopy(cameraToBaseRFTransform->GetMatrix());
+
+	m_Controls.textBrowser_moveData->append("Captured camera-to-baseRF matrix:");
+	PrintVtkMatrix(cameraToBaseRF_matrix);
+
+	return cameraToBaseRF_matrix;
+}
+
+vtkMatrix4x4* MoveData::GetCameraToEndRFMatrix()
+{
+	auto worldToCamera_matrix = GetDataStorage()->GetNamedNode("camera")->GetData()->GetGeometry()->GetVtkMatrix();
+	vtkNew<vtkMatrix4x4> cameratoWorld_matrix;
+	cameratoWorld_matrix->DeepCopy(worldToCamera_matrix);
+	cameratoWorld_matrix->Invert();
+
+	auto worldToEndRF_matrix = GetDataStorage()->GetNamedNode("endRF")->GetData()->GetGeometry()->GetVtkMatrix();
+
+	vtkNew<vtkTransform> cameraToEndRFTransform;
+	cameraToEndRFTransform->PostMultiply();
+	cameraToEndRFTransform->SetMatrix(worldToEndRF_matrix);
+	cameraToEndRFTransform->Concatenate(cameratoWorld_matrix);
+	cameraToEndRFTransform->Update();
+
+	vtkNew<vtkMatrix4x4> cameraToEndRF_matrix;
+	cameraToEndRF_matrix->DeepCopy(cameraToEndRFTransform->GetMatrix());
+
+	m_Controls.textBrowser_moveData->append("Captured camera-to-endRF matrix:");
+	PrintVtkMatrix(cameraToEndRF_matrix);
+
+	return cameraToEndRF_matrix;
+}
+
+vtkMatrix4x4* MoveData::GetBaseRFtoEndRFMatrix()
+{
+	vtkNew<vtkMatrix4x4> baseRFtoCameraMatrix;
+	baseRFtoCameraMatrix->DeepCopy(GetCameraToBaseRFMatrix());
+	baseRFtoCameraMatrix->Invert();
+
+	vtkNew<vtkMatrix4x4> cameraToEndRFMatrix;
+	cameraToEndRFMatrix->DeepCopy(GetCameraToEndRFMatrix());
+
+	vtkNew<vtkTransform> baseRFtoEndRFtransform;
+	baseRFtoEndRFtransform->PostMultiply();
+	baseRFtoEndRFtransform->SetMatrix(cameraToEndRFMatrix);
+	baseRFtoEndRFtransform->Concatenate(baseRFtoCameraMatrix);
+	baseRFtoEndRFtransform->Update();
+
+	vtkNew<vtkMatrix4x4> baseRFtoEndRFmatrix;
+	baseRFtoEndRFmatrix->DeepCopy(baseRFtoEndRFtransform->GetMatrix());
+
+	// m_Controls.textBrowser_moveData->append("Calculated baseRF-to-endRF matrix:");
+	// PrintVtkMatrix(baseRFtoEndRFmatrix);
+
+	return baseRFtoEndRFmatrix;
+}
+
+vtkMatrix4x4* MoveData::GetBaseToFlangeMatrix()
+{
+	auto worldToBase_matrix = GetDataStorage()->GetNamedNode("base")->GetData()->GetGeometry()->GetVtkMatrix();
+	vtkNew<vtkMatrix4x4> basetoWorld_matrix;
+	basetoWorld_matrix->DeepCopy(worldToBase_matrix);
+	basetoWorld_matrix->Invert();
+
+	auto worldToFlange_matrix = GetDataStorage()->GetNamedNode("flange")->GetData()->GetGeometry()->GetVtkMatrix();
+
+	vtkNew<vtkTransform> baseToFlangeTransform;
+	baseToFlangeTransform->PostMultiply();
+	baseToFlangeTransform->SetMatrix(worldToFlange_matrix);
+	baseToFlangeTransform->Concatenate(basetoWorld_matrix);
+	baseToFlangeTransform->Update();
+
+	vtkNew<vtkMatrix4x4> baseToFlange_matrix;
+	baseToFlange_matrix->DeepCopy(baseToFlangeTransform->GetMatrix());
+
+	// m_Controls.textBrowser_moveData->append("Captured base-to-flange matrix:");
+	// PrintVtkMatrix(baseToFlange_matrix);
+
+	return baseToFlange_matrix;
+}
+
+
+void MoveData::CaptureRobotData()
+{
+	if (CheckRobotModelAvailability() == false)
+	{
+		return;
+	}
+
+	if (m_IndexOfRobotCapture < 5) //The first five translations, 
+	{
+		
+		vtkNew<vtkMatrix4x4> baseRFtoEndRFmatrix;
+		baseRFtoEndRFmatrix->DeepCopy(GetBaseRFtoEndRFMatrix());
+		vtkNew<vtkMatrix4x4> baseToFlange_matrix;
+		baseToFlange_matrix->DeepCopy(GetBaseToFlangeMatrix());
+
+		m_RobotRegistration.AddPoseWithVtkMatrix(baseToFlange_matrix, baseRFtoEndRFmatrix, true);
+		// m_Controls.textBrowser_moveData->append("Calculated baseRF-to-endRF matrix:");
+	    // PrintVtkMatrix(baseRFtoEndRFmatrix);
+		m_Controls.textBrowser_moveData->append("Captured base-to-flange matrix:");
+	    PrintVtkMatrix(baseToFlange_matrix);
+		
+		//Increase the count each time you click the button
+		m_IndexOfRobotCapture++;
+		m_Controls.lineEdit_collectedRoboPoses->setText(QString::number(m_IndexOfRobotCapture));
+
+		m_Controls.textBrowser_moveData->append("----------- End of "+QString::number(m_IndexOfRobotCapture) +" collection ----------");
+
+
+	}
+	else if (m_IndexOfRobotCapture < 10) //the last five rotations
+	{
+		vtkNew<vtkMatrix4x4> baseRFtoEndRFmatrix;
+		baseRFtoEndRFmatrix->DeepCopy(GetBaseRFtoEndRFMatrix());
+		vtkNew<vtkMatrix4x4> baseToFlange_matrix;
+		baseToFlange_matrix->DeepCopy(GetBaseToFlangeMatrix());
+
+		m_RobotRegistration.AddPoseWithVtkMatrix(baseToFlange_matrix, baseRFtoEndRFmatrix, false);
+		// m_Controls.textBrowser_moveData->append("Calculated baseRF-to-endRF matrix:");
+		// PrintVtkMatrix(baseRFtoEndRFmatrix);
+		m_Controls.textBrowser_moveData->append("Captured base-to-flange matrix:");
+		PrintVtkMatrix(baseToFlange_matrix);
+
+		//Increase the count each time you click the button
+		m_IndexOfRobotCapture++;
+		m_Controls.lineEdit_collectedRoboPoses->setText(QString::number(m_IndexOfRobotCapture));
+
+		m_Controls.textBrowser_moveData->append("----------- End of " + QString::number(m_IndexOfRobotCapture) + " collection ----------");
+
+	}
+	else
+	{
+		// MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
+		vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
+		m_RobotRegistration.GetRegistraionMatrix(matrix4x4);
+
+		m_Controls.textBrowser_moveData->append("Calculated baseRF-to-base matrix:");
+		PrintVtkMatrix(matrix4x4);
+
+		vtkNew<vtkMatrix4x4> endRFToFlangeMatrix;
+		m_RobotRegistration.GetTCPmatrix(endRFToFlangeMatrix);
+		endRFToFlangeMatrix->Invert();
+
+		// m_Controls.textBrowser_moveData->append("Calculated endRF-to-flange matrix:");
+		// PrintVtkMatrix(endRFToFlangeMatrix);
+
+		m_Controls.textBrowser_moveData->append("Robot registration RMS: " + QString::number(m_RobotRegistration.RMS()));
+	}
+}
+
+
+
+
+
 
 
 
