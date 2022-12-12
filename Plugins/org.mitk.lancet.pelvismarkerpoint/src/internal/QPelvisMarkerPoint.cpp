@@ -47,6 +47,9 @@ void QPelvisMarkerPoint::CreateQtPartControl(QWidget *parent)
   qInfo() << "log.file.pos " << qss.pos();
   m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
   qss.close();
+
+  this->ConnectQtWidgets();
+  this->UpdateUiForService();
 }
 
 void QPelvisMarkerPoint::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -58,4 +61,83 @@ void QPelvisMarkerPoint::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*sou
 void QPelvisMarkerPoint::DoImageProcessing()
 {
  
+}
+
+void QPelvisMarkerPoint::ConnectQtWidgets()
+{
+}
+
+void QPelvisMarkerPoint::UpdateUiForService()
+{
+  // if (this->GetServiceRoboticsModel().IsNull())
+	// {
+	// 	MITK_WARN << "Failed to request service resources spatial fitting, ignoring this processing";
+	// 	return;
+	// }
+
+	// if (nullptr == GetDeviceService())
+	// {
+	// 	MITK_WARN << "Failed to request service resources of device, ignoring this processing";
+	// 	return;
+	// }
+	
+	//bool isTrackingNDIDevice = GetDeviceService()->GetConnector()->IsTrackingDeviceConnected("Vega");
+	//bool isTrackingRoboticsDevice = GetDeviceService()->GetConnector()->IsTrackingDeviceConnected("Kuka");
+
+  bool isTrackingNDIDevice = false;
+  bool isTrackingRoboticsDevice = false;
+
+	QString notTrackingDeviceTips = "";
+
+	if (!isTrackingNDIDevice || !isTrackingRoboticsDevice)
+	{
+		if (false == isTrackingNDIDevice)
+		{
+			notTrackingDeviceTips += "Vega";
+		}
+		if (false == isTrackingRoboticsDevice)
+		{
+			if (false == notTrackingDeviceTips.isEmpty())
+			{
+				notTrackingDeviceTips += ", ";
+			}
+			notTrackingDeviceTips += "Kuka";
+		}
+		this->m_Controls.labelTips->setText(QString("Device [%1] not tracking!")
+			.arg(notTrackingDeviceTips));
+	}
+
+	// Update the activation status of the [Pelvis check point] button.
+	this->m_Controls.pushButtonPelvisCheckpoint->setEnabled(notTrackingDeviceTips.isEmpty());
+}
+
+void QPelvisMarkerPoint::on_toolCollector_fail(int)
+{
+  this->m_Controls.progressBarPelvisCheckpoint->setValue(0);
+}
+
+void QPelvisMarkerPoint::on_toolCollector_complete(mitk::NavigationData* data)
+{
+  if(nullptr == data || false == data->IsDataVaild())
+  {
+    MITK_ERROR << "Collected data error. Input data is nullptr or invaild!";
+    this->m_Controls.checkBoxPelvisCheckpoint->setChecked(data->IsDataVaild());
+    return;
+  }
+
+  // update ui for widget
+  this->m_Controls.checkBoxPelvisCheckpoint->setChecked(data->IsDataVaild());
+
+  // Upload service.
+
+}
+
+void QPelvisMarkerPoint::on_toolCollector_step(int step, mitk::NavigationData*)
+{
+  this->m_Controls.progressBarPelvisCheckpoint->setValue(step);
+}
+
+void QPelvisMarkerPoint::on_pushButtonPelvisCheckpoint_clicked()
+{
+  MITK_INFO << "log";
 }
