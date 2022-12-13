@@ -28,7 +28,12 @@ namespace mitk
     void start(ctkPluginContext *context);
     void stop(ctkPluginContext *context);
 
+		static ctkPluginContext* GetPluginContext();
+	private:
+		ctkPluginContext* staticPluginContext;
   }; // org_mitk_lancet_roboticsregistrationsaccuracy_Activator
 }
+
+using PluginActivator = mitk::org_mitk_lancet_roboticsregistrationsaccuracy_Activator;
 
 #endif // org_mitk_lancet_roboticsregistrationsaccuracy_Activator_h

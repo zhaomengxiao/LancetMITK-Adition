@@ -15,7 +15,9 @@
 #include "org_mitk_lancet_services_spatialfitting_Export.h"
 
 BEGIN_SPATIAL_FITTING_NAMESPACE
+class ProbeCheckPointModel;
 class RoboticsRegisterModel;
+class PelvisCheckPointModel;
 END_SPATIAL_FITTING_NAMESPACE
 
 namespace lancet
@@ -35,6 +37,15 @@ public:
 	IDevicesAdministrationService* GetDeviceService() const;
 	virtual void SetRoboticsRegisterModel(itk::SmartPointer<lancet::spatial_fitting::RoboticsRegisterModel>);
 	virtual itk::SmartPointer<lancet::spatial_fitting::RoboticsRegisterModel> GetRoboticsRegisterModel() const;
+
+	virtual itk::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> 
+		GetProbeCheckPointModel() const;
+	virtual void SetProbeCheckPointModel(itk::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel>);
+
+	virtual itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> 
+		GetPelvisCheckPointModel() const;
+	virtual void SetPelvisCheckPointModel(itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel>);
+
 
 	virtual void Initialize() = 0;
 private:struct SpatialFittingAbstractServicePrivateImp;

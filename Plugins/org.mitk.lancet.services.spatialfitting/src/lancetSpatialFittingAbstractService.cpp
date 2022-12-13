@@ -1,5 +1,7 @@
 #include <robotRegistration.h>
 #include "lancetSpatialFittingAbstractService.h"
+#include "internal/lancetSpatialFittingProbeCheckPointModel.h"
+#include "internal/lancetSpatialFittingPelvisCheckPointModel.h"
 #include "internal/lancetSpatialFittingRoboticsRegisterModel.h"
 #include <lancetIDevicesAdministrationService.h>
 
@@ -11,6 +13,10 @@ namespace lancet
 	  static berry::SmartPointer<SpatialFittingAbstractService> staticInstance;
 
 	  itk::SmartPointer<lancet::spatial_fitting::RoboticsRegisterModel> RoboticsRegisterModel;
+
+		lancet::spatial_fitting::ProbeCheckPointModel::Pointer probeCheckPointModel;
+
+		lancet::spatial_fitting::PelvisCheckPointModel::Pointer pelvisCheckPointModel;
   };
 	berry::SmartPointer<SpatialFittingAbstractService>
 		SpatialFittingAbstractService::SpatialFittingAbstractServicePrivateImp::
@@ -42,5 +48,25 @@ namespace lancet
 		SpatialFittingAbstractService::GetRoboticsRegisterModel() const
 	{
 		return this->imp->RoboticsRegisterModel;
+	}
+	itk::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> 
+		SpatialFittingAbstractService::GetProbeCheckPointModel() const
+	{
+		return this->imp->probeCheckPointModel;
+	}
+	void SpatialFittingAbstractService::SetProbeCheckPointModel(
+		itk::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> model)
+	{
+		this->imp->probeCheckPointModel = model;
+	}
+	itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> 
+		SpatialFittingAbstractService::GetPelvisCheckPointModel() const
+	{
+		return this->imp->pelvisCheckPointModel;
+	}
+	void SpatialFittingAbstractService::SetPelvisCheckPointModel(
+		itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> model)
+	{
+		this->imp->pelvisCheckPointModel = model;
 	}
 }

@@ -20,6 +20,15 @@ found in the LICENSE file.
 
 #include "ui_QPelvisMarkerPointControls.h"
 
+namespace mitk
+{
+	class NavigationData;
+}
+namespace lancet::spatial_fitting
+{
+	class PelvisCheckPointModel;
+}
+
 /**
   \brief QPelvisMarkerPoint
 
@@ -49,6 +58,21 @@ protected:
   /// \brief Called when the user clicks the GUI button
   void DoImageProcessing();
 
+  void ConnectQtWidgets();
+
+  void UpdateUiForService();
+
+	itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> GetServiceModel() const;
+protected slots:
+
+  void on_pushButtonPelvisCheckpoint_clicked();
+  
+  void on_toolCollector_fail(int);
+
+	void on_toolCollector_complete(mitk::NavigationData*);
+
+	void on_toolCollector_step(int, mitk::NavigationData*);
+private:
   Ui::QPelvisMarkerPointControls m_Controls;
 };
 

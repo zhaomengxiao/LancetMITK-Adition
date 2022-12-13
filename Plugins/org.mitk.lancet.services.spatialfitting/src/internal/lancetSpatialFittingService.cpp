@@ -2,6 +2,8 @@
 #include "lancetSpatialFittingGlobal.h"
 #include "core/lancetSpatialFittingPipelineManager.h"
 #include "internal/lancetSpatialFittingRoboticsRegisterModel.h"
+#include "internal/lancetSpatialFittingProbeCheckPointModel.h"
+#include "internal/lancetSpatialFittingPelvisCheckPointModel.h"
 #include <lancetIDevicesAdministrationService.h>
 #include <internal/lancetTrackingDeviceManage.h>
 namespace lancet
@@ -17,6 +19,13 @@ namespace lancet
 	}
 
 	void SpatialFittingService::Initialize()
+	{
+		this->InitializeRoboticsRegisterModel();
+		this->InitializeProbeCheckPointModel();
+		this->InitializePelvisCheckPointModel();
+	}
+
+	void SpatialFittingService::InitializeRoboticsRegisterModel()
 	{
 		MITK_DEBUG << "log";
 		if (this->GetRoboticsRegisterModel().IsNull())
@@ -44,15 +53,91 @@ namespace lancet
 				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage2->GetTool(index)->GetToolName();
 			}
 		}
-			auto ndidatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Vega");
-			this->GetRoboticsRegisterModel()->SetNdiNavigationDataSource(ndidatasource);
+		auto ndidatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Vega");
+		this->GetRoboticsRegisterModel()->SetNdiNavigationDataSource(ndidatasource);
 
-			auto robotdatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Kuka");
-			this->GetRoboticsRegisterModel()->SetRoboticsNavigationDataSource(robotdatasource);
+		auto robotdatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Kuka");
+		this->GetRoboticsRegisterModel()->SetRoboticsNavigationDataSource(robotdatasource);
 
-			this->GetRoboticsRegisterModel()->ConfigureRegisterPipeline();
+		this->GetRoboticsRegisterModel()->ConfigureRegisterPipeline();
 
-			this->GetRoboticsRegisterModel()->ConfigureVerifyPipeline();
+		this->GetRoboticsRegisterModel()->ConfigureVerifyPipeline();
+	}
+
+	void SpatialFittingService::InitializeProbeCheckPointModel()
+	{
+		MITK_DEBUG << "log";
+		if (this->GetProbeCheckPointModel().IsNull())
+		{
+			using ProbeCheckPointModel = lancet::spatial_fitting::ProbeCheckPointModel;
+			ProbeCheckPointModel::Pointer model = ProbeCheckPointModel::Pointer(
+			new ProbeCheckPointModel);
+
+			this->SetProbeCheckPointModel(model);
+		}
+
+		auto toolDataStorage = this->GetDeviceService()->GetConnector()->GetNavigationToolStorage("Vega");
+		if (toolDataStorage.IsNotNull())
+		{
+			for (int index = 0; index < toolDataStorage->GetToolCount(); ++index)
+			{
+				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage->GetTool(index)->GetToolName();
+			}
+		}
+
+		auto toolDataStorage2 = this->GetDeviceService()->GetConnector()->GetNavigationToolStorage("Kuka");
+		if (toolDataStorage2.IsNotNull())
+		{
+			for (int index = 0; index < toolDataStorage2->GetToolCount(); ++index)
+			{
+				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage2->GetTool(index)->GetToolName();
+			}
+		}
+		auto ndidatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Vega");
+		this->GetProbeCheckPointModel()->SetNdiNavigationDataSource(ndidatasource);
+
+		auto robotdatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Kuka");
+		this->GetProbeCheckPointModel()->SetRoboticsNavigationDataSource(robotdatasource);
+
+		this->GetProbeCheckPointModel()->ConfigureVerifyPipeline();
+	}
+
+	void SpatialFittingService::InitializePelvisCheckPointModel()
+	{
+		MITK_DEBUG << "log";
+		if (this->GetPelvisCheckPointModel().IsNull())
+		{
+			using PelvisCheckPointModel = lancet::spatial_fitting::PelvisCheckPointModel;
+			PelvisCheckPointModel::Pointer model = PelvisCheckPointModel::Pointer(
+				new PelvisCheckPointModel);
+
+			this->SetPelvisCheckPointModel(model);
+		}
+
+		auto toolDataStorage = this->GetDeviceService()->GetConnector()->GetNavigationToolStorage("Vega");
+		if (toolDataStorage.IsNotNull())
+		{
+			for (int index = 0; index < toolDataStorage->GetToolCount(); ++index)
+			{
+				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage->GetTool(index)->GetToolName();
+			}
+		}
+
+		auto toolDataStorage2 = this->GetDeviceService()->GetConnector()->GetNavigationToolStorage("Kuka");
+		if (toolDataStorage2.IsNotNull())
+		{
+			for (int index = 0; index < toolDataStorage2->GetToolCount(); ++index)
+			{
+				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage2->GetTool(index)->GetToolName();
+			}
+		}
+		auto ndidatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Vega");
+		this->GetPelvisCheckPointModel()->SetNdiNavigationDataSource(ndidatasource);
+
+		auto robotdatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Kuka");
+		this->GetPelvisCheckPointModel()->SetRoboticsNavigationDataSource(robotdatasource);
+
+		this->GetPelvisCheckPointModel()->ConfigureGetCheckPointPipeline();
 	}
 
 	void SpatialFittingService::onDeviceConnectState_change(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState state)

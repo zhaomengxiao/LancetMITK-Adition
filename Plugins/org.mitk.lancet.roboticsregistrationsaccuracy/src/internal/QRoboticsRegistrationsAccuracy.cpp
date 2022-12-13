@@ -16,16 +16,36 @@ found in the LICENSE file.
 #include <berryIWorkbenchWindow.h>
 
 // Qmitk
+#include <mitkImage.h>
 #include "QRoboticsRegistrationsAccuracy.h"
 
 // Qt
 #include <QDir>
 #include <QMessageBox>
 
-// mitk image
-#include <mitkImage.h>
+#include <lancetSpatialFittingAbstractService.h>
+
+#include <core/lancetSpatialFittingPipelineManager.h>
+#include <core/lancetSpatialFittingPointAccuracyDate.h>
+#include <core/lancetSpatialFittingNavigationToolCollector.h>
+#include <internal/lancetSpatialFittingProbeCheckPointModel.h>
+
+#include <lancetIDevicesAdministrationService.h>
+
+#include "org_mitk_lancet_roboticsregistrationsaccuracy_Activator.h"
 
 const std::string QRoboticsRegistrationsAccuracy::VIEW_ID = "org.mitk.views.qroboticsregistrationsaccuracy";
+
+using NavigationToolCollector = lancet::spatial_fitting::NavigationToolCollector;
+
+lancet::IDevicesAdministrationService* GetDeviceService()
+{
+	auto context = PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::IDevicesAdministrationService>();
+	auto service = context->getService<lancet::IDevicesAdministrationService>(serviceRef);
+
+	return service;
+}
 
 void QRoboticsRegistrationsAccuracy::SetFocus()
 {
@@ -47,6 +67,9 @@ void QRoboticsRegistrationsAccuracy::CreateQtPartControl(QWidget *parent)
   qInfo() << "log.file.pos " << qss.pos();
   m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
   qss.close();
+
+  this->ConnectToQtWidget();
+  this->UpdateUiForService();
 }
 
 void QRoboticsRegistrationsAccuracy::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -58,4 +81,176 @@ void QRoboticsRegistrationsAccuracy::OnSelectionChanged(berry::IWorkbenchPart::P
 void QRoboticsRegistrationsAccuracy::DoImageProcessing()
 {
   
+}
+
+void QRoboticsRegistrationsAccuracy::ConnectToQtWidget()
+{
+  connect(this->m_Controls.pushButtonProbeCheckPoint, SIGNAL(clicked()),
+   this, SLOT(on_pushButtonProbeCheckPoint_clicked()));
+
+	using namespace lancet::spatial_fitting;
+	if (this->GetServiceModel().IsNull())
+	{
+		MITK_WARN << "Input ProbeCheckPointModel is nullptr, Ignore this request!";
+		return;
+	}
+	// Collector
+  // Pull the server's data resources.
+	PipelineManager::Pointer pipelineManager =
+		this->GetServiceModel()->GetVerifyPipeline();
+	NavigationToolCollector::Pointer toolCollector =
+		dynamic_cast<NavigationToolCollector*>(pipelineManager->
+			FindFilter("ProbeRF2RobotEndRF_ToolCollector").GetPointer());
+  if (toolCollector.IsNotNull())
+	{
+		connect(toolCollector.GetPointer(), &NavigationToolCollector::Fail,
+			this, &QRoboticsRegistrationsAccuracy::on_toolCollector_fail);
+		connect(toolCollector.GetPointer(), &NavigationToolCollector::Step,
+			this, &QRoboticsRegistrationsAccuracy::on_toolCollector_step);
+		connect(toolCollector.GetPointer(), &NavigationToolCollector::Complete,
+			this, &QRoboticsRegistrationsAccuracy::on_toolCollector_complete);
+	}
+}
+
+void QRoboticsRegistrationsAccuracy::UpdateUiForService()
+{
+   if (this->GetServiceModel().IsNull())
+	 {
+	 	MITK_INFO << "Failed to request service resources spatial fitting, ignoring this processing";
+	 	return;
+	 }
+
+	 if (nullptr == GetDeviceService())
+	 {
+	 	MITK_WARN << "Failed to request service resources of device, ignoring this processing";
+	 	return;
+	 }
+	
+	bool isTrackingNDIDevice = GetDeviceService()->GetConnector()->IsTrackingDeviceConnected("Vega");
+	bool isTrackingRoboticsDevice = GetDeviceService()->GetConnector()->IsTrackingDeviceConnected("Kuka");
+
+	QString notTrackingDeviceTips = "";
+
+	if (!isTrackingNDIDevice || !isTrackingRoboticsDevice)
+	{
+		if (false == isTrackingNDIDevice)
+		{
+			notTrackingDeviceTips += "Vega";
+		}
+		if (false == isTrackingRoboticsDevice)
+		{
+			if (false == notTrackingDeviceTips.isEmpty())
+			{
+				notTrackingDeviceTips += ", ";
+			}
+			notTrackingDeviceTips += "Kuka";
+		}
+		this->m_Controls.labelTips->setText(QString("Device [%1] not tracking!")
+			.arg(notTrackingDeviceTips));
+	}
+
+	// Update the activation status of the [Probe check point] button.
+	this->m_Controls.pushButtonProbeCheckPoint->setEnabled(notTrackingDeviceTips.isEmpty());
+}
+
+itk::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> 
+QRoboticsRegistrationsAccuracy::GetServiceModel() const
+{
+	auto context = PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::SpatialFittingAbstractService>();
+	auto service = context->getService<lancet::SpatialFittingAbstractService>(serviceRef);
+
+	if (service)
+	{
+		return service->GetProbeCheckPointModel();
+	}
+
+	return lancet::spatial_fitting::ProbeCheckPointModel::Pointer(nullptr);
+}
+
+void QRoboticsRegistrationsAccuracy::on_toolCollector_fail(int step)
+{
+  this->m_Controls.progressBarProbeCheckpoint->setValue(0);
+}
+
+void QRoboticsRegistrationsAccuracy::on_toolCollector_complete(mitk::NavigationData* data)
+{
+	MITK_DEBUG << "log.parame.data " << data;
+	NavigationToolCollector* toolCollector
+		= dynamic_cast<NavigationToolCollector*>(sender());
+
+	if (nullptr == toolCollector || nullptr == data)
+	{
+		// network security: The data flow is abnormal and may be attacked by intruders.
+		MITK_WARN << "The data transmitter is abnormal. This request will be discarded!";
+		return;
+	}
+	if (this->GetServiceModel().IsNull())
+	{
+		MITK_WARN << "Input ProbeCheckPointModel is nullptr, Ignore this request!";
+		return;
+	}
+
+	if (toolCollector->GetPermissionIdentificationArea() == "on_pushButtonProbeCheckPoint_clicked")
+	{
+		mitk::NavigationData* verifyEndMarker = this->GetServiceModel()->GetVerifyEndMarkerData();
+		if (nullptr == verifyEndMarker)
+		{
+			MITK_WARN << "Not found verify marker data for ndi device.";
+			return;
+		}
+
+		lancet::spatial_fitting::PointAccuracyDate ptAccuracy;
+		ptAccuracy.SetSourcePoint(data->GetPosition());
+		ptAccuracy.SetTargetPoint(verifyEndMarker->GetPosition());
+		this->m_Controls.lcdNumberProbeCheckPoint->display(ptAccuracy.Compute());
+
+		// update check box state.
+		this->m_Controls.checkBoxProbeCheckPoint->setChecked(data->IsDataValid());
+
+		// Upload service.
+		this->GetServiceModel()->SetCheckPoint(data);
+	}
+}
+
+void QRoboticsRegistrationsAccuracy::on_toolCollector_step(int step, mitk::NavigationData*)
+{
+  this->m_Controls.progressBarProbeCheckpoint->setValue(step);
+}
+
+void QRoboticsRegistrationsAccuracy::on_pushButtonProbeCheckPoint_clicked()
+{
+	MITK_DEBUG << "log.pushButtonProbeCheckPoint.clicked";
+
+	if (this->GetServiceModel().IsNull())
+	{
+		MITK_WARN << "Input RoboticsRegisterModel is nullptr, Ignore this request!";
+		return;
+	}
+	using namespace lancet::spatial_fitting;
+	
+	// Pull the server's data resources.
+	PipelineManager::Pointer pipelineManager = this->GetServiceModel()->GetVerifyPipeline();
+
+	pipelineManager->UpdateFilter();
+
+	NavigationToolCollector::Pointer toolCollector =
+		dynamic_cast<NavigationToolCollector*>(pipelineManager->
+			FindFilter("ProbeRF2RobotEndRF_ToolCollector").GetPointer());
+
+	if (toolCollector.IsNull())
+	{
+		MITK_WARN << "Failed to pull the tool collector, Ignore this request!";
+		return;
+	}
+
+	// When the tool collector is working, force the current request as the 
+	// highest level of permission.
+	if (toolCollector->IsRunning())
+	{
+		toolCollector->Stop();
+	}
+
+	toolCollector->SetPermissionIdentificationArea(__func__);
+	toolCollector->Start();
 }

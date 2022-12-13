@@ -126,7 +126,6 @@ namespace lancet
 		mitk::TrackingDeviceSource::Pointer trackingDeviceSource = SourceFactory->CreateTrackingDeviceSource(Visualizer);
 		trackingDeviceSource->SetToolMetaDataCollection(ToolStorage);
 
-
 		properties.dataStorage = dataStorage;
 		properties.navigationObjectVisualizationFilter = Visualizer;
 		properties.navigationToolStorage = ToolStorage;
