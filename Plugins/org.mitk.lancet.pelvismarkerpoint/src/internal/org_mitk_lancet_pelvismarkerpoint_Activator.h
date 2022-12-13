@@ -28,7 +28,10 @@ namespace mitk
     void start(ctkPluginContext *context);
     void stop(ctkPluginContext *context);
 
+		static ctkPluginContext* GetPluginContext();
   }; // org_mitk_lancet_pelvismarkerpoint_Activator
 }
+
+using PluginActivator = mitk::org_mitk_lancet_pelvismarkerpoint_Activator;
 
 #endif // org_mitk_lancet_pelvismarkerpoint_Activator_h

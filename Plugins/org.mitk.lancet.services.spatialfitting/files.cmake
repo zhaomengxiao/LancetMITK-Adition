@@ -17,12 +17,19 @@ set(SRC_CPP_FILES
   core/lancetSpatialFittingPointAccuracyDate.cpp
   core/lancetSpatialFittingRoboticsRegisterDirector.cpp
   core/lancetSpatialFittingRoboticsVerifyDirector.cpp
+  core/lancetSpatialFittingProbeCheckPointDirector.cpp
+  core/lancetSpatialFittingPelvicCheckPointDirector.cpp
+  core/lancetSpatialFittingPelvicCheckPointVerifyDirector.cpp
+  
+  
 )
 
 set(INTERNAL_CPP_FILES
   lancetPluginActivator.cpp
   lancetSpatialFittingService.cpp
   lancetSpatialFittingRoboticsRegisterModel.cpp
+  lancetSpatialFittingProbeCheckPointModel.cpp
+  lancetSpatialFittingPelvisCheckPointModel.cpp
 )
 
 set(CPP_FILES )

@@ -19,6 +19,12 @@ public:
 
 	virtual void Initialize() override;
 
+private:
+	virtual void InitializeRoboticsRegisterModel();
+
+	virtual void InitializeProbeCheckPointModel();
+
+	virtual void InitializePelvisCheckPointModel();
 protected slots:
 	void onDeviceConnectState_change(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
 };

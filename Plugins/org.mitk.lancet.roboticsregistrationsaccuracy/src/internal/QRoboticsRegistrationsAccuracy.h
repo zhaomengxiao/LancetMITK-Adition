@@ -24,6 +24,12 @@ found in the LICENSE file.
 // ui
 #include "ui_QRoboticsRegistrationsAccuracyControls.h"
 
+namespace lancet::spatial_fitting
+{
+	class ProbeCheckPointModel;
+}
+
+
 /**
   \brief QRoboticsRegistrationsAccuracy
 
@@ -61,6 +67,8 @@ protected:
   void ConnectToQtWidget();
 
   void UpdateUiForService();
+
+  itk::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> GetServiceModel() const;
 protected slots:
   void on_pushButtonProbeCheckPoint_clicked();
 

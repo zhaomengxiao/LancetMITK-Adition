@@ -146,6 +146,7 @@ void NavigationToolCollector::on_QtTimerTrigger_timeout()
 	{
 		this->Stop();
 		mitk::NavigationData::Pointer data = mitk::NavigationData::New();
+		data->Graft(this->GetOutput());
 
 		mitk::Point3D point;
 		for (auto& item : this->imp->vecCollectorNavigationData)
