@@ -55,7 +55,8 @@ lancet::FriManager::~FriManager()
 bool lancet::FriManager::Connect()
 {
   // connect client application to KUKA Sunrise controller
-  return m_ClientApp->connect(m_Port, m_HostName.c_str());
+  m_IsConnected = m_ClientApp->connect(m_Port, m_HostName.c_str());
+  return m_IsConnected;
 }
 
 void lancet::FriManager::StartFriControl()
@@ -70,6 +71,8 @@ void lancet::FriManager::SetFriDynamicFrameTransform(mitk::AffineTransform3D::Po
 
 void lancet::FriManager::DisConnect()
 {
+  m_IsConnected = false;
+  m_stepThread.join();
   m_ClientApp->disconnect();
 
   printf("\nExit TransformationProvider Client Application");
@@ -78,7 +81,7 @@ void lancet::FriManager::DisConnect()
 void lancet::FriManager::stepThreadWorker()
 {
   // repeatedly call the step routine to receive and process FRI packets
-  while (m_StepSuccess)
+  while (m_StepSuccess && m_IsConnected)
   {
     m_TrafoClient.SetTransformation("FriDynamicFrame", m_TransformMatrix);
     m_StepSuccess = m_ClientApp->step();

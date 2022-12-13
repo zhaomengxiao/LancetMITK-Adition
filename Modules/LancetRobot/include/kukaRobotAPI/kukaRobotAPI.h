@@ -79,7 +79,7 @@ namespace lancet
      * \param cmd operateType to be send
      * \return true, if send success
      */
-    bool SendCommandNoPara(std::string cmd) const;
+    bool SendCommandNoPara(std::string cmd);
 
     /**
      * \brief Get result massage returned from the robot.
@@ -114,7 +114,7 @@ namespace lancet
      * \param xyzabc transform from Flange to tool tcp
      * \return true, if send success.Execution success is not guaranteed, which should check the result massage using GetCommandResult().
      */
-    bool AddFrame(std::string name, std::array<double, 6> xyzabc) const;
+    bool AddFrame(std::string name, std::array<double, 6> xyzabc);
 
     /**
      * \brief Set the default motion frame of the tool.
@@ -129,7 +129,7 @@ namespace lancet
      * A brake test must run after rebooting the robot,Otherwise the robot won't perform any action.
      * \return true, if send success.Execution success is not guaranteed, which should check the result massage.
      */
-    bool RunBrakeTest() const;
+    bool RunBrakeTest();
 
     /**
      * \brief Stop Move
@@ -154,7 +154,7 @@ namespace lancet
      * \details Activate the hand guiding switch to start hand guiding and close the switch to exit the mode.When exit a result massage will receive.
      * \return true, if send success.Execution success is not guaranteed, which should check the result massage.
      */
-    bool HandGuiding() const;
+    bool HandGuiding();
 
     //void Nothing();
     ~KukaRobotAPI() override;
@@ -163,7 +163,7 @@ namespace lancet
      * \brief Send heartbeat command through TCP to maintain connection with kuka robot application;
      * \details heartbeat command send every second,if robot can not receive it timeout>5000ms,robot TCP client will close and try reconnect.
      */
-    void sendTcpHeartBeat() const;
+    void sendTcpHeartBeat();
 
     /**
      * \brief continues receive TCP massage and push it into massage queue

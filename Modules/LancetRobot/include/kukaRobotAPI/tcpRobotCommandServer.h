@@ -45,7 +45,7 @@ namespace lancet
      * \param msg string send to robot
      * \return true if write success
      */
-    bool write(std::string msg) const;
+    bool write(std::string msg);
 
     /**
      * @brief gets the Client IP address as string

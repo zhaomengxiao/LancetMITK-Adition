@@ -82,6 +82,7 @@ namespace lancet
     int m_Port;
     std::string m_HostName;
     bool m_StepSuccess{true};
+	bool m_IsConnected{ false };
     std::thread m_stepThread;
     mitk::AffineTransform3D::Pointer m_TransformMatrix;
     //std::string m_TransformID;

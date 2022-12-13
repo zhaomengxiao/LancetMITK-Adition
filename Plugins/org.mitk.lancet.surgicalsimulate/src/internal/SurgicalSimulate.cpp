@@ -1070,7 +1070,7 @@ void SurgicalSimulate::StartServo()
 void SurgicalSimulate::StopServo()
 {
 	m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StopServo");
-  m_FriManager.DisConnect();
+  //m_FriManager.DisConnect();
   m_KeepUpdateFriTransform = false;
 }
 

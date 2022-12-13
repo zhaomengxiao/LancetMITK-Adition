@@ -38,7 +38,7 @@ void lancet::KukaRobotAPI::DisConnect()
   m_UdpConnection.disconnect();
 }
 
-bool lancet::KukaRobotAPI::SendCommandNoPara(std::string cmd) const
+bool lancet::KukaRobotAPI::SendCommandNoPara(std::string cmd)
 {
   DefaultProtocol protocol;
   protocol.operateType = cmd;
@@ -102,7 +102,7 @@ RobotInformationProtocol lancet::KukaRobotAPI::GetRobotInfo()
   return info;
 }
 
-bool lancet::KukaRobotAPI::AddFrame(std::string name, std::array<double, 6> xyzabc) const
+bool lancet::KukaRobotAPI::AddFrame(std::string name, std::array<double, 6> xyzabc)
 {
   DefaultProtocol protocol;
   protocol.operateType = "AddFrame";
@@ -134,7 +134,7 @@ bool lancet::KukaRobotAPI::SetMotionFrame(std::string name)
   return m_TcpConnection.write(jsnString.str());
 }
 
-bool lancet::KukaRobotAPI::RunBrakeTest() const
+bool lancet::KukaRobotAPI::RunBrakeTest()
 {
   return SendCommandNoPara("RunBrakeTest");
 }
@@ -174,7 +174,7 @@ bool lancet::KukaRobotAPI::MovePTP(std::array<double, 6> xyzabc)
 	return m_TcpConnection.write(jsnString.str());
 }
 
-bool lancet::KukaRobotAPI::HandGuiding() const
+bool lancet::KukaRobotAPI::HandGuiding()
 {
   return SendCommandNoPara("HandGuiding");
 }
@@ -184,9 +184,9 @@ lancet::KukaRobotAPI::~KukaRobotAPI()
   this->DisConnect();
 }
 
-void lancet::KukaRobotAPI::sendTcpHeartBeat() const
+void lancet::KukaRobotAPI::sendTcpHeartBeat()
 {
-  while (m_IsConnected)
+  while (m_IsConnected && m_TcpConnection.isConnected())
   {
     auto res = m_TcpConnection.write("heartBeat");
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
