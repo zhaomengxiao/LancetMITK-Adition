@@ -29,8 +29,6 @@ found in the LICENSE file.
 #include "robotRegistration.h"
 #include "ui_SurgicalSimulateControls.h"
 
-#include "TransformationProviderClient.h"
-
 /**
   \brief SurgicalSimulate
 
@@ -164,11 +162,11 @@ protected:
   std::vector<mitk::NavigationData::Pointer> m_KukaNavigationData;
 
   //fri test
-  lancet::FriManager m_FriManager;
-  std::thread m_friThread;
+  // lancet::FriManager m_FriManager;
+  // std::thread m_friThread;
   mitk::AffineTransform3D::Pointer m_ProbeRealTimePose;
   mitk::AffineTransform3D::Pointer m_ProbeInitPose;
-  bool m_KeepUpdateFriTransform{true};
+  // bool m_KeepUpdateFriTransform{true};
   double m_offset[3]{ 0,0,0 };
   // Image registration using NavigationObject structure
  

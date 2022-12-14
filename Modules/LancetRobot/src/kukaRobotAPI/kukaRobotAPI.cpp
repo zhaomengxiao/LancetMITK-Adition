@@ -14,19 +14,27 @@ std::string lancet::KukaRobotAPI::GetApiRevision()
 
 bool lancet::KukaRobotAPI::Connect(int tcpPort, std::string robotIP, int udpPort)
 {
+  m_IsConnected = false;
   //connect tcp to send robot command and receive result
-  if (m_TcpConnection.connect(tcpPort))
+  if (!m_TcpConnection.connect(tcpPort))
   {
-    m_IsConnected = true;
-    //Send heartbeat packets through TCP to maintain connection with kuka robot application;
-    m_TcpHeartBeatThread = std::thread(&KukaRobotAPI::sendTcpHeartBeat, this);
-    m_ReadRobotResultThread = std::thread(&KukaRobotAPI::threadReadRobotResult, this);
+    return false;
   }
-
-  //connect udp to receive robot info
-  m_UdpConnection.connect(robotIP, udpPort);
-
-  return true;
+  //Send heartbeat packets through TCP to maintain connection with kuka robot application;
+  m_TcpHeartBeatThread = std::thread(&KukaRobotAPI::sendTcpHeartBeat, this);
+  m_ReadRobotResultThread = std::thread(&KukaRobotAPI::threadReadRobotResult, this);
+  //connect udp to receive robot info  , connect FRI
+  if (!m_UdpConnection.connect(robotIP, udpPort) )
+  {
+    return false;
+  }
+  if (!m_FriManager.Connect())
+  {
+    return false;
+  }
+  m_FriManager.StartFriControl();
+  m_IsConnected = true;
+  return m_IsConnected;
 }
 
 void lancet::KukaRobotAPI::DisConnect()
@@ -36,6 +44,7 @@ void lancet::KukaRobotAPI::DisConnect()
   m_ReadRobotResultThread.join();
   m_TcpConnection.disconnect();
   m_UdpConnection.disconnect();
+  m_FriManager.DisConnect();
 }
 
 bool lancet::KukaRobotAPI::SendCommandNoPara(std::string cmd)
@@ -177,6 +186,11 @@ bool lancet::KukaRobotAPI::MovePTP(std::array<double, 6> xyzabc)
 bool lancet::KukaRobotAPI::HandGuiding()
 {
   return SendCommandNoPara("HandGuiding");
+}
+
+void lancet::KukaRobotAPI::SetFriDynamicFrameTransform(mitk::AffineTransform3D::Pointer matrix)
+{
+   m_FriManager.SetFriDynamicFrameTransform(matrix);
 }
 
 lancet::KukaRobotAPI::~KukaRobotAPI()

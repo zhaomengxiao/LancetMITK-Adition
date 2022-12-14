@@ -59,6 +59,11 @@ bool lancet::FriManager::Connect()
   return m_IsConnected;
 }
 
+bool lancet::FriManager::IsConnected()
+{
+  return m_IsConnected;
+}
+
 void lancet::FriManager::StartFriControl()
 {
   m_stepThread = std::thread(&FriManager::stepThreadWorker, this);
@@ -91,6 +96,7 @@ void lancet::FriManager::stepThreadWorker()
     {
       // In this demo application we simply quit.
       // Waiting for a new FRI session would be another possibility.
+      m_IsConnected = false;
       break;
     }
   }

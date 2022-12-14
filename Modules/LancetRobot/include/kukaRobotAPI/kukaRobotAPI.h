@@ -13,7 +13,7 @@
 #include "MitkLancetRobotExports.h"
 #include "tcpRobotCommandServer.h"
 #include "udpRobotInfoClient.h"
-
+#include "TransformationProviderClient.h"
 /**
  * @brief This class encapsulates communication with kuka iiwa med devices.
  * @details This class encapsulates binary and string parsing required to send/receive commands.
@@ -57,6 +57,7 @@ namespace lancet
      * - send heartbeat command through TCP to maintain connection with kuka robot application (every second)
      * - continues receive TCP massage and push it into massage queue
      * - establish a udp connection to receive robot information,like joint position,tool position,force&torque...
+     * - establish a FRI connection to do real-time operations
      * - IsConnect Flag set to true if connect success.
      *
      * The following port numbers (client or server socket) can be used in a robot application: 30, 000 to 30, 010
@@ -156,6 +157,8 @@ namespace lancet
      */
     bool HandGuiding();
 
+    void SetFriDynamicFrameTransform(mitk::AffineTransform3D::Pointer matrix);
+
     //void Nothing();
     ~KukaRobotAPI() override;
   protected:
@@ -186,6 +189,8 @@ namespace lancet
 
     TcpRobotCommandServer m_TcpConnection;
     UdpRobotInfoClient m_UdpConnection;
+
+    FriManager m_FriManager;
     std::thread m_TcpHeartBeatThread;
     std::thread m_ReadRobotResultThread;
     bool m_IsConnected{false};

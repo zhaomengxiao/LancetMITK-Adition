@@ -69,13 +69,13 @@ void SurgicalSimulate::OnVirtualDevice2VisualizeTimer()
 
 void SurgicalSimulate::threadUpdateFriTransform()
 {
-  while (m_KeepUpdateFriTransform)
-  {
-    auto offset = m_ProbeRealTimePose->GetOffset() - m_ProbeInitPose->GetOffset();
-    mitk::AffineTransform3D::Pointer friMatrix = mitk::AffineTransform3D::New();
-    friMatrix->SetOffset(offset);
-    m_FriManager.SetFriDynamicFrameTransform(friMatrix);
-  }
+  // while (m_KeepUpdateFriTransform)
+  // {
+  //   auto offset = m_ProbeRealTimePose->GetOffset() - m_ProbeInitPose->GetOffset();
+  //   mitk::AffineTransform3D::Pointer friMatrix = mitk::AffineTransform3D::New();
+  //   friMatrix->SetOffset(offset);
+  //   m_FriManager.SetFriDynamicFrameTransform(friMatrix);
+  // }
 }
 
 void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
@@ -1061,8 +1061,8 @@ void SurgicalSimulate::SendCommand()
 void SurgicalSimulate::StartServo()
 {
   bool res = m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StartServo");
-  m_FriManager.Connect();
-  m_FriManager.StartFriControl();
+  // m_FriManager.Connect();
+  // m_FriManager.StartFriControl();
 
   //m_friThread = std::thread(&SurgicalSimulate::threadUpdateFriTransform, this);
 }
@@ -1071,7 +1071,7 @@ void SurgicalSimulate::StopServo()
 {
 	m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StopServo");
   //m_FriManager.DisConnect();
-  m_KeepUpdateFriTransform = false;
+  //m_KeepUpdateFriTransform = false;
 }
 
 void SurgicalSimulate::InitProbe()
@@ -1086,7 +1086,7 @@ void SurgicalSimulate::InitProbe()
   m_offset[2] += 10;
   mitk::AffineTransform3D::Pointer friMatrix = mitk::AffineTransform3D::New();
   friMatrix->SetOffset(m_offset);
-  m_FriManager.SetFriDynamicFrameTransform(friMatrix);
+  m_KukaTrackingDevice->m_RobotApi.SetFriDynamicFrameTransform(friMatrix);
 }
 
 void SurgicalSimulate::ShowToolStatus_Vega()
