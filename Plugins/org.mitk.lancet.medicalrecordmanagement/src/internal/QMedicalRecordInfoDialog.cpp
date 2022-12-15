@@ -57,7 +57,7 @@ QMedicalRecordInfoDialog::QMedicalRecordInfoDialog(QWidget* parent)
 	QFile qss(test_dir.absoluteFilePath("medicalrecordinfodialog.qss"));
 	if (!qss.open(QIODevice::ReadOnly))
 	{
-		qWarning() << __func__ << __LINE__ << ":" << "error load file "
+		MITK_WARN << "error load file "
 			<< test_dir.absoluteFilePath("medicalrecordinfodialog.qss") << "\n"
 			<< "error: " << qss.errorString();
 	}

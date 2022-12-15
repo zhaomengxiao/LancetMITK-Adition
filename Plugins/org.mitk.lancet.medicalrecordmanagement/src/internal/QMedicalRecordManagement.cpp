@@ -24,6 +24,10 @@ found in the LICENSE file.
 
 // mitk image
 #include <mitkImage.h>
+#include <mitkIOUtil.h>
+#include <mitkProgressBar.h>
+#include <mitkIDataStorageService.h>
+#include <mitkProgressBarImplementation.h>
 
 #include <lancetIMedicalRecordsScanner.h>
 #include <lancetIMedicalRecordsProperty.h>
@@ -34,7 +38,16 @@ found in the LICENSE file.
 // THA
 #include "QMedicalRecordInfoDialog.h"
 #include "QMedicalRecordManagement.h"
+#include "QMedicalRecordLoaderDialog.h"
 const std::string QMedicalRecordManagement::VIEW_ID = "org.mitk.views.qmedicalrecordmanagement";
+
+
+mitk::IDataStorageService* GetDataStorageService()
+{
+	auto context = mitk::PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<mitk::IDataStorageService>();
+	return context->getService<mitk::IDataStorageService>(serviceRef);
+}
 
 void QMedicalRecordManagement::SetFocus()
 {
@@ -110,8 +123,6 @@ void QMedicalRecordManagement::DisConnectToService()
 
 void QMedicalRecordManagement::Slot_MedicalRecordsPropertySelect(lancet::IMedicalRecordsProperty* data)
 {
-  qDebug() << __FUNCTION__ << "\n"
-           << "data " << data->ToString();
 	if (data)
 	{
 		data->ResetPropertyOfModify();
@@ -147,12 +158,45 @@ void QMedicalRecordManagement::ModifMedicalRecordInfoDialog()
 	{
 		return;
 	}
-	
 }
 void QMedicalRecordManagement::OpenMedicalRecord()
 {
 	MITK_INFO << "QMedicalRecordManagement:" << __func__ << ": log";
 	this->setCaseOpened(false);
+
+	auto service = this->GetService();
+	auto dataStorageService = GetDataStorageService();
+
+	if (service && false == service->GetSelect().isNull())
+	{
+		MITK_ERROR << "log.debug.println " << service->GetSelect()->ToString().toStdString();
+	}
+
+	if (dataStorageService)
+	{
+		mitk::IDataStorageReference::Pointer dataStorage;
+		for (auto& dataStorageItem : dataStorageService->GetDataStorageReferences())
+		{
+			if (dataStorageItem.IsNotNull() && dataStorageItem->GetLabel() == "THA-DataStorage")
+			{
+				dataStorage = dataStorageItem;
+				break;
+			}
+		}
+
+		if (dataStorage.IsNotNull())
+		{
+			dataStorageService->RemoveDataStorageReference(dataStorage);
+		}
+
+		dataStorage = dataStorageService->CreateDataStorage("THA-DataStorage");
+		dataStorageService->SetActiveDataStorage(dataStorage);
+
+		QMedicalRecordLoaderDialog loader;
+		loader.SetMedicalRecordProperty(service->GetSelect());
+		loader.SetDataStorage(dataStorage->GetDataStorage());
+		loader.exec();
+	}
 }
 void QMedicalRecordManagement::CloseMedicalRecord()
 {

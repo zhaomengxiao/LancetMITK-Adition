@@ -63,7 +63,7 @@ QMedicalRecordManagementEditor::QMedicalRecordManagementEditor()
 {
   // nothing here
 	m_PrefServiceTracker.open();
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
+	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
 QMedicalRecordManagementEditor::~QMedicalRecordManagementEditor()
@@ -74,7 +74,7 @@ QMedicalRecordManagementEditor::~QMedicalRecordManagementEditor()
 		this->GetService()->Stop();
 		this->DisConnectToService();
 	}
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
+	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
 void QMedicalRecordManagementEditor::CreatePartControl(QWidget* parent)
@@ -102,7 +102,7 @@ void QMedicalRecordManagementEditor::CreatePartControl(QWidget* parent)
 }
 void QMedicalRecordManagementEditor::SetFocus()
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
+	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	if (widgetInstace.isNull() == false)
 	{
 		widgetInstace->setFocus();
@@ -111,12 +111,12 @@ void QMedicalRecordManagementEditor::SetFocus()
 
 void QMedicalRecordManagementEditor::DoSave()
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
+	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
 void QMedicalRecordManagementEditor::DoSaveAs()
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
+	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
 bool QMedicalRecordManagementEditor::IsSaveOnCloseNeeded() const
@@ -126,13 +126,13 @@ bool QMedicalRecordManagementEditor::IsSaveOnCloseNeeded() const
 
 bool QMedicalRecordManagementEditor::IsDirty() const
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
+	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	return true;
 }
 
 bool QMedicalRecordManagementEditor::IsSaveAsAllowed() const
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
+	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	return true;
 }
 
@@ -150,7 +150,7 @@ void QMedicalRecordManagementEditor::Init(berry::IEditorSite::Pointer site, berr
 {
 	//editorSite = site;
 	//editorInput = input;
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
+	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	if (input.Cast<mitk::DataStorageEditorInput>().IsNull())
 		throw berry::PartInitException("Invalid Input: Must be mitk::DataStorageEditorInput");
 
@@ -176,7 +176,7 @@ void QMedicalRecordManagementEditor::Init(berry::IEditorSite::Pointer site, berr
 			workDir.cd("bin");
 			workDir.cd("planning");
 
-			qDebug() << "scanner dir " << workDir.absolutePath();
+			//qDebug() << "scanner dir " << workDir.absolutePath();
 
 			scanner->SetInterval(200);
 			scanner->SetDirectory(workDir);
@@ -187,7 +187,7 @@ void QMedicalRecordManagementEditor::Init(berry::IEditorSite::Pointer site, berr
 
 berry::IPartListener::Events::Types QMedicalRecordManagementEditor::GetPartEventTypes() const
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
+	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	return Events::CLOSED | Events::OPENED | Events::HIDDEN | Events::VISIBLE;
 }
 
@@ -323,10 +323,10 @@ void QMedicalRecordManagementEditor::ModifyTableItem(int row,
 void QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyTrace(
 	int index, lancet::IMedicalRecordsProperty* data, bool valid)
 {
-	qDebug() << __FUNCTION__ << "\n"
-		<< "index: " << index << "\n"
-		<< "valid: " << valid << "\n"
-		<< "data: " << data->ToString();
+	//qDebug() << __FUNCTION__ << "\n"
+		//<< "index: " << index << "\n"
+		//<< "valid: " << valid << "\n"
+		//<< "data: " << data->ToString();
 	if (data && valid)
 	{
 		if (data->GetKeyValue(QPropertyKeys::Valid).toBool())
@@ -341,10 +341,10 @@ void QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyTrace(
 void QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyModify(
 	int index, lancet::IMedicalRecordsProperty* data, bool valid)
 {
-	qDebug() << __FUNCTION__ << "\n"
-		<< "index: " << index << "\n"
-		<< "valid: " << valid << "\n"
-		<< "data: " << data->ToString();
+	//qDebug() << __FUNCTION__ << "\n"
+	//	<< "index: " << index << "\n"
+	//	<< "valid: " << valid << "\n"
+	//	<< "data: " << data->ToString();
 	if (data && valid)
 	{
 		this->ModifyTableItem(index, data);
@@ -355,10 +355,10 @@ void QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyModify(
 void QMedicalRecordManagementEditor::Slot_MedicalRecordsPropertyDelete(
 	int index, lancet::IMedicalRecordsProperty* data, bool valid)
 {
-	qDebug() << __FUNCTION__ << "\n"
-		<< "index: " << index << "\n"
-		<< "valid: " << valid << "\n"
-		<< "data: " << data->ToString();
+	//qDebug() << __FUNCTION__ << "\n"
+	//	<< "index: " << index << "\n"
+	//	<< "valid: " << valid << "\n"
+	//	<< "data: " << data->ToString();
 	if (data && valid)
 	{
 		this->ModifyTableItem(index, data);
