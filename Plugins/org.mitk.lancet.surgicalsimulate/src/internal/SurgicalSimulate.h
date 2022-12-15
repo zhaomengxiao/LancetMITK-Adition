@@ -91,6 +91,8 @@ public slots:
   void StartServo();
   void StopServo();
   void InitProbe();
+
+  void BindRobotToProbe();
 protected:
   void threadUpdateFriTransform();
 
@@ -139,7 +141,7 @@ protected:
   //robot registration
   unsigned int m_IndexOfRobotCapture{0};
   std::array<vtkMatrix4x4*, 10> m_AutoPoses{};
-  mitk::AffineTransform3D::Pointer m_RobotRegistrationMatrix;
+  mitk::AffineTransform3D::Pointer m_RobotRegistrationMatrix;//
 
   //surgical plane
   lancet::PointPath::Pointer m_SurgicalPlan;
@@ -163,10 +165,11 @@ protected:
 
   //fri test
   // lancet::FriManager m_FriManager;
-  // std::thread m_friThread;
+  std::thread m_friThread;
   mitk::AffineTransform3D::Pointer m_ProbeRealTimePose;
   mitk::AffineTransform3D::Pointer m_ProbeInitPose;
-  // bool m_KeepUpdateFriTransform{true};
+  mitk::AffineTransform3D::Pointer T_probe2robotEndRF;
+  bool m_KeepUpdateFriTransform{true};
   double m_offset[3]{ 0,0,0 };
   // Image registration using NavigationObject structure
  

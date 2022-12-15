@@ -69,13 +69,15 @@ void SurgicalSimulate::OnVirtualDevice2VisualizeTimer()
 
 void SurgicalSimulate::threadUpdateFriTransform()
 {
-  // while (m_KeepUpdateFriTransform)
-  // {
-  //   auto offset = m_ProbeRealTimePose->GetOffset() - m_ProbeInitPose->GetOffset();
-  //   mitk::AffineTransform3D::Pointer friMatrix = mitk::AffineTransform3D::New();
-  //   friMatrix->SetOffset(offset);
-  //   m_FriManager.SetFriDynamicFrameTransform(friMatrix);
-  // }
+  while (m_KeepUpdateFriTransform)
+  {
+    //calculate matrix
+    auto robotEndRFDestInNDI = m_VegaSource->GetOutput("Probe")->GetAffineTransform3D();
+    robotEndRFDestInNDI->Compose(T_probe2robotEndRF,true);
+    mitk::AffineTransform3D::Pointer robotDest = mitk::AffineTransform3D::New();
+    m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", robotEndRFDestInNDI, robotDest);
+    m_KukaTrackingDevice->m_RobotApi.SetFriDynamicFrameTransform(robotDest);
+  }
 }
 
 void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
@@ -173,10 +175,10 @@ void SurgicalSimulate::UseVega()
   lancet::NDIVegaTrackingDevice::Pointer vegaTrackingDevice = lancet::NDIVegaTrackingDevice::New(); //instantiate
 
   //Create Navigation Data Source with the factory class, and the visualize filter.
-  lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
+  lancet::TrackingDeviceSourceConfiguratorLancet::Pointer vegaSourceFactory =
     lancet::TrackingDeviceSourceConfiguratorLancet::New(m_VegaToolStorage, vegaTrackingDevice);
 
-  m_VegaSource = kukaSourceFactory->CreateTrackingDeviceSource(m_VegaVisualizer);
+  m_VegaSource = vegaSourceFactory->CreateTrackingDeviceSource(m_VegaVisualizer);
   m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
   m_VegaSource->Connect();
 
@@ -1061,21 +1063,21 @@ void SurgicalSimulate::SendCommand()
 void SurgicalSimulate::StartServo()
 {
   bool res = m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StartServo");
-  // m_FriManager.Connect();
-  // m_FriManager.StartFriControl();
+  
 
-  //m_friThread = std::thread(&SurgicalSimulate::threadUpdateFriTransform, this);
+  m_friThread = std::thread(&SurgicalSimulate::threadUpdateFriTransform, this);
 }
 
 void SurgicalSimulate::StopServo()
 {
 	m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StopServo");
   //m_FriManager.DisConnect();
-  //m_KeepUpdateFriTransform = false;
+  m_KeepUpdateFriTransform = false;
 }
 
 void SurgicalSimulate::InitProbe()
 {
+  //1
   // m_ProbeInitPose = m_ProbeRealTimePose;
   // vtkMatrix4x4* dest = vtkMatrix4x4::New();
   // double trans[3]{ 0, 0, 50 };
@@ -1083,10 +1085,25 @@ void SurgicalSimulate::InitProbe()
   // mitk::TransferItkTransformToVtkMatrix(m_ProbeInitPose.GetPointer(), dest);
   //
   // m_KukaTrackingDevice->m_RobotApi.MovePTP(dest);
-  m_offset[2] += 10;
-  mitk::AffineTransform3D::Pointer friMatrix = mitk::AffineTransform3D::New();
-  friMatrix->SetOffset(m_offset);
-  m_KukaTrackingDevice->m_RobotApi.SetFriDynamicFrameTransform(friMatrix);
+
+  //2
+  // m_offset[2] += 10;
+  // mitk::AffineTransform3D::Pointer friMatrix = mitk::AffineTransform3D::New();
+  // friMatrix->SetOffset(m_offset);
+  // m_KukaTrackingDevice->m_RobotApi.SetFriDynamicFrameTransform(friMatrix);
+  BindRobotToProbe();
+}
+
+void SurgicalSimulate::BindRobotToProbe()
+{
+  //bind robotEndRF to Probe
+  auto T_ndi2probe = m_VegaSource->GetOutput("Probe")->GetAffineTransform3D();
+  auto T_ndi2robotEndRF = m_KukaApplyRegistrationFilter->GetOutput("RobotEndRF")->GetAffineTransform3D();
+
+  T_probe2robotEndRF = mitk::AffineTransform3D::New();
+  T_ndi2probe->GetInverse(T_probe2robotEndRF);
+ 
+  T_probe2robotEndRF->Compose(T_ndi2robotEndRF,true);
 }
 
 void SurgicalSimulate::ShowToolStatus_Vega()
