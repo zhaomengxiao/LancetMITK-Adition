@@ -17,6 +17,39 @@ found in the LICENSE file.
 // MITK includes
 #include "lancetTreeCoords.h"
 
+//
+#include <chrono>
+
+class Timer
+{
+public:
+  Timer()
+  {
+    m_StartTimePoint = std::chrono::high_resolution_clock::now();
+  }
+
+  ~Timer()
+  {
+    Stop();
+  }
+
+  void Stop()
+  {
+    auto endTimePoint = std::chrono::high_resolution_clock::now();
+
+    auto start = std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimePoint).time_since_epoch().count();
+    auto end = std::chrono::time_point_cast<std::chrono::microseconds>(endTimePoint).time_since_epoch().count();
+
+    auto duration = end - start;
+    auto ms = duration * 0.001;
+
+    std::cout << duration << "us (" << ms << "ms)\n";
+  }
+
+private:
+  std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTimePoint;
+};
+
 class lancetTreeCoordTestSuite : public mitk::TestFixture
 {
   CPPUNIT_TEST_SUITE(lancetTreeCoordTestSuite);
@@ -28,6 +61,7 @@ class lancetTreeCoordTestSuite : public mitk::TestFixture
     MITK_TEST(GetNavigationData_SameBranch);
     MITK_TEST(GetNavigationData_DiffBranch);
     MITK_TEST(GetNavigationData_FromRootToChild);
+    MITK_TEST(GetNavigationData_PerformanceTest);
   CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -222,6 +256,45 @@ public:
     mitk::NavigationData::Pointer correct = m_ndInput->Clone();
     correct->Compose(m_ndC->GetInverse());
     correct->Compose(m_ndD->GetInverse());
+    CPPUNIT_ASSERT_MESSAGE("Orientation not equal", mitk::Equal(res->GetOrientation(), correct->GetOrientation()));
+    CPPUNIT_ASSERT_MESSAGE("Position not equal", mitk::Equal(res->GetPosition(), correct->GetPosition()));
+
+    MITK_TEST_OUTPUT(<< res);
+    MITK_TEST_OUTPUT(<< correct);
+  }
+
+  void GetNavigationData_PerformanceTest()
+  {
+    MITK_TEST_OUTPUT(<< "---- Testing method GetNavigationData() Performance ----");
+    //by hand:
+    int repeat = 10000;
+   
+    mitk::NavigationData::Pointer res = mitk::NavigationData::New();
+    mitk::NavigationData::Pointer correct = mitk::NavigationData::New();
+    {
+      MITK_TEST_OUTPUT(<< "---- run GetNavigationData----");
+      Timer timer;
+      for (int i = 0; i < repeat; i++)
+      {
+        res = m_NavigationTree->GetNavigationData(m_ndInput, "B", "D");
+      }
+    }
+
+    {
+      MITK_TEST_OUTPUT(<< "---- Direct matrix operation----");
+      Timer timer;
+      for (int i = 0; i < repeat; i++)
+      {
+        //by hand:
+        //Td2e = Td2c*Tc2a*Ta2b*Tb2e
+        //  = Tc2d^-1 * Ta2c^-1 *Ta2b*Tb2e
+        //  = m_ndD^-1 * m_ndC^-1 *m_ndB*m_ndInput
+        correct = m_ndInput->Clone();
+        correct->Compose(m_ndB);
+        correct->Compose(m_ndC->GetInverse());
+        correct->Compose(m_ndD->GetInverse());
+      }
+    }
     CPPUNIT_ASSERT_MESSAGE("Orientation not equal", mitk::Equal(res->GetOrientation(), correct->GetOrientation()));
     CPPUNIT_ASSERT_MESSAGE("Position not equal", mitk::Equal(res->GetPosition(), correct->GetPosition()));
 

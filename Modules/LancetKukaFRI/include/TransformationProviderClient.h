@@ -69,6 +69,8 @@ namespace lancet
 
     bool Connect();
 
+    bool IsConnected();
+
     void StartFriControl();
 
     void SetFriDynamicFrameTransform(mitk::AffineTransform3D::Pointer transform);
