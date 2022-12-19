@@ -15,5 +15,9 @@ set(UI_FILES
 )
 
 set(RESOURCE_FILES
-
+  robotEndRFWidget.png
+  robotBaseRFWidget.png
+  pelvisRFWidget.png
+  femurRFWidget.png
+  probeRFWidget.png
 )
