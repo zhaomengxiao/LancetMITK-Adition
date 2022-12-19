@@ -93,6 +93,8 @@ namespace lancet
      */
     ResultProtocol GetCommandResult();
 
+	unsigned int GetNumberOfCommandResult();
+
     /**
      * \brief receive robot information,like joint position,tool position,force&torque...
      * \return robot information
@@ -184,6 +186,7 @@ namespace lancet
     std::array<double, 6> kukaTransformMatrix2xyzabc(vtkMatrix4x4* matrix4x4);
 
     std::queue<std::string> m_MsgQueue{};
+	unsigned int m_MsgQueueSize{0};
     mutable std::mutex m_MsgQueueMutex;
     ///<Use mutex for safety access of MsgQueue, MsgQueue will be push and poll in different thread.
 

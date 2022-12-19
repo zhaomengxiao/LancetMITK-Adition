@@ -73,6 +73,9 @@ ResultProtocol lancet::KukaRobotAPI::GetCommandResult()
   m_MsgQueue.pop();
   m_MsgQueueMutex.unlock();
 
+  m_MsgQueueSize = m_MsgQueue.size();
+  MITK_INFO << "processed, MsgQueue Size: " << m_MsgQueueSize;
+  //MITK_INFO << msg;
   Poco::JSON::Parser parser;
   parser.reset();
 
@@ -85,6 +88,11 @@ ResultProtocol lancet::KukaRobotAPI::GetCommandResult()
 
   result.FromJsonObj(*pObj);
   return result;
+}
+
+unsigned int lancet::KukaRobotAPI::GetNumberOfCommandResult()
+{
+	return m_MsgQueueSize;
 }
 
 RobotInformationProtocol lancet::KukaRobotAPI::GetRobotInfo()
@@ -218,7 +226,8 @@ void lancet::KukaRobotAPI::threadReadRobotResult()
       m_MsgQueueMutex.lock();
       m_MsgQueue.push(msg);
       m_MsgQueueMutex.unlock();
-      MITK_INFO << "MsgQueue Size: " << m_MsgQueue.size();
+	  m_MsgQueueSize = m_MsgQueue.size();
+      MITK_INFO << "MsgQueue Size: " << m_MsgQueueSize;
     }
   }
 }

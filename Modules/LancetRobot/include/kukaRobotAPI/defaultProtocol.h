@@ -106,5 +106,24 @@ public:
     
     return true;
   }
+
+  Poco::JSON::Object ToJsonObj()
+  {
+	  Poco::JSON::Object res;
+	  res.set("operateType", this->operateType);
+	  res.set("param", this->param.ToJsonObj());
+	  res.set("resultMsg", this->resultMsg);
+	  res.set("resultCode", this->resultCode);
+
+	  return res;
+  }
+
+  std::string ToString() 
+  {
+	  auto jsonObj = this->ToJsonObj();
+	  std::stringstream strStream;
+	  jsonObj.stringify(strStream);
+	  return strStream.str();
+  }
 };
 #endif // DEFAULTPROTOCOL_H

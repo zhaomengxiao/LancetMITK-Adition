@@ -21,6 +21,7 @@ lancet::TransformationProviderClient::~TransformationProviderClient()
 
 void lancet::TransformationProviderClient::SetTransformation(std::string id, mitk::AffineTransform3D::Pointer transform)
 {
+  std::lock_guard<std::mutex>lock(m_TransformMatrixMutex);
   m_TransformID = id;
   m_TransformMatrix = transform;
 }
@@ -28,16 +29,21 @@ void lancet::TransformationProviderClient::SetTransformation(std::string id, mit
 //******************************************************************************
 void lancet::TransformationProviderClient::provide()
 {
+  m_TransformMatrixMutex.lock();
+  auto matrix = m_TransformMatrix->GetMatrix();
+  m_TransformMatrixMutex.unlock();
+  // << "111111";
   double transformationMatrix[3][4];
-  transformationMatrix[0][0] = m_TransformMatrix->GetMatrix()[0][0]; transformationMatrix[0][1] = m_TransformMatrix->GetMatrix()[0][1]; transformationMatrix[0][2] = m_TransformMatrix->GetMatrix()[0][2]; transformationMatrix[0][3] = m_TransformMatrix->GetOffset()[0];
-  transformationMatrix[1][0] = m_TransformMatrix->GetMatrix()[1][0]; transformationMatrix[1][1] = m_TransformMatrix->GetMatrix()[1][1]; transformationMatrix[1][2] = m_TransformMatrix->GetMatrix()[1][2]; transformationMatrix[1][3] = m_TransformMatrix->GetOffset()[1];
-  transformationMatrix[2][0] = m_TransformMatrix->GetMatrix()[2][0]; transformationMatrix[2][1] = m_TransformMatrix->GetMatrix()[2][1]; transformationMatrix[2][2] = m_TransformMatrix->GetMatrix()[2][2]; transformationMatrix[2][3] = m_TransformMatrix->GetOffset()[2];
-
-  printf("X:%f, Y:%f, Z:%f\n", transformationMatrix[0][3], transformationMatrix[1][3], transformationMatrix[2][3]);
+  transformationMatrix[0][0] = matrix[0][0]; transformationMatrix[0][1] = matrix[0][1]; transformationMatrix[0][2] = matrix[0][2]; transformationMatrix[0][3] = m_TransformMatrix->GetOffset()[0];
+  transformationMatrix[1][0] = matrix[1][0]; transformationMatrix[1][1] = matrix[1][1]; transformationMatrix[1][2] = matrix[1][2]; transformationMatrix[1][3] = m_TransformMatrix->GetOffset()[1];
+  transformationMatrix[2][0] = matrix[2][0]; transformationMatrix[2][1] = matrix[2][1]; transformationMatrix[2][2] = matrix[2][2]; transformationMatrix[2][3] = m_TransformMatrix->GetOffset()[2];
+  //MITK_INFO << "222222";
+  //printf("X:%f, Y:%f, Z:%f\n", transformationMatrix[0][3], transformationMatrix[1][3], transformationMatrix[2][3]);
 
   // Set new transformation matrix for frame with identifier"m_TransformID"
   setTransformation(m_TransformID.c_str(), transformationMatrix, getTimestampSec(),
          getTimestampNanoSec());
+  //MITK_INFO << "33333";
 }
 
 lancet::FriManager::FriManager()

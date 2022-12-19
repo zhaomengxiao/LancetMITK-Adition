@@ -28,6 +28,7 @@ found in the LICENSE file.
 #include "mitkVirtualTrackingDevice.h"
 #include "robotRegistration.h"
 #include "ui_SurgicalSimulateControls.h"
+#include <mutex>
 
 /**
   \brief SurgicalSimulate

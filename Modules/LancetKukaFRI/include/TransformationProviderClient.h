@@ -10,7 +10,7 @@
 #include "mitkAffineTransform3D.h"
 #include "itkObject.h"
 #include "mitkCommon.h"
-
+#include <mutex>
 namespace lancet
 {
   /**
@@ -47,6 +47,7 @@ namespace lancet
 
   protected:
     mitk::AffineTransform3D::Pointer m_TransformMatrix;
+	std::mutex m_TransformMatrixMutex;
     std::string m_TransformID;
   };
 
@@ -87,6 +88,7 @@ namespace lancet
 	bool m_IsConnected{ false };
     std::thread m_stepThread;
     mitk::AffineTransform3D::Pointer m_TransformMatrix;
+	
     //std::string m_TransformID;
     KUKA::FRI::UdpConnection m_Connection;
     KUKA::FRI::ClientApplication* m_ClientApp;
