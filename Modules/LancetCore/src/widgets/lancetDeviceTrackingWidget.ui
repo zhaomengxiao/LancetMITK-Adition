@@ -6,14 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>605</width>
-    <height>111</height>
+    <width>360</width>
+    <height>82</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QWidget" name="widget" native="true">
+  <property name="styleSheet">
+   <string notr="true">
+  background-color: black;
+  border-radius: 10px;
+</string>
+  </property>
+  <widget class="QWidget" name="robotEndRFWidget" native="true">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -27,6 +33,137 @@
      <width>60</width>
      <height>60</height>
     </size>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget:disabled {
+  border-color: green;
+}
+
+QWidget {
+  image: url(:/robotEndRFWidget.png);
+  border-radius: 3px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: red;
+}</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="robotBaseRFWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>10</y>
+     <width>60</width>
+     <height>60</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>60</width>
+     <height>60</height>
+    </size>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget:disabled {
+  border-color: green;
+}
+
+QWidget {
+  image: url(:/robotBaseRFWidget.png);
+  border-radius: 3px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: red;
+}</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="pelvisRFWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>10</y>
+     <width>60</width>
+     <height>60</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>60</width>
+     <height>60</height>
+    </size>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget:disabled {
+  border-color: green;
+}
+
+QWidget {
+  image: url(:/pelvisRFWidget.png);
+  border-radius: 3px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: red;
+}</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="femurRFWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>10</y>
+     <width>60</width>
+     <height>60</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>60</width>
+     <height>60</height>
+    </size>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget:disabled {
+  border-color: green;
+}
+
+QWidget {
+  image: url(:/femurRFWidget.png);
+  border-radius: 3px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: red;
+}</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="probeRFWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>10</y>
+     <width>60</width>
+     <height>60</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>60</width>
+     <height>60</height>
+    </size>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QWidget:disabled 
+{
+  border-color: green;
+}
+
+QWidget 
+{
+  image: url(:/probeRFWidget.png);
+  border-radius: 3px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: red;
+}</string>
    </property>
   </widget>
  </widget>
