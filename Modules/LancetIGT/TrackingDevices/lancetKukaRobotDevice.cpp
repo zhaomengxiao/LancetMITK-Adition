@@ -31,7 +31,9 @@ namespace lancet
       {
         // add tool tcp to robot as a frame in Flange coords
         std::array<double, 6> tcp{};
-        robotTool->GetTCP().ToArray(tcp);
+        robotTool->GetTCP().ToArray(tcp); //MITK Point toArray has bug,&
+		/*MITK_INFO << "tcp:" << robotTool->GetTCP();
+		MITK_INFO << "-tcp:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3];*/
         if (!m_RobotApi.AddFrame(robotTool->GetToolName(), tcp))
         {
           mitkThrowException(mitk::IGTHardwareException) << "Add Frame to Robot Failed";
