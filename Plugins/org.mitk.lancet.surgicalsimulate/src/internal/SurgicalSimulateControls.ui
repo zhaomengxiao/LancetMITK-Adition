@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>701</width>
-    <height>738</height>
+    <height>749</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -49,7 +49,7 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>50</height>
+                <height>16777215</height>
                </size>
               </property>
              </widget>
@@ -74,7 +74,7 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>50</height>
+                <height>16777215</height>
                </size>
               </property>
              </widget>
@@ -176,20 +176,65 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
+     <widget class="QWidget" name="tab_6">
+      <attribute name="title">
+       <string>RobotControl</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_12">
+       <item row="0" column="0">
+        <widget class="QLineEdit" name="lineEdit_command"/>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="pushButton_sendCommand">
+         <property name="text">
+          <string>Send</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="pushButton_handGuiding">
+         <property name="text">
+          <string>HandGuiding</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="pushButton_motionStop">
+         <property name="text">
+          <string>MotionStop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="pushButton_startServo">
+         <property name="text">
+          <string>StartServo</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="pushButton_stopServo">
+         <property name="text">
+          <string>StopServo</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="pushButton_initProbe">
+         <property name="text">
+          <string>init probe</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tab">
       <attribute name="title">
        <string>Robot registration</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_11">
-       <item row="0" column="1">
-        <widget class="QPushButton" name="pushButton_captureRobot">
-         <property name="text">
-          <string>Capture</string>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="2">
         <widget class="QPushButton" name="pushButton_automove">
          <property name="text">
@@ -204,13 +249,6 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="5">
-        <widget class="QPushButton" name="pushButton_usePreRobotRegit">
-         <property name="text">
-          <string>Use Previous (movable image)</string>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="4">
         <widget class="QPushButton" name="pushButton_saveRobotRegist">
          <property name="text">
@@ -218,13 +256,17 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEdit_tcp"/>
-       </item>
-       <item row="1" column="2">
-        <widget class="QPushButton" name="pushButton_setTCP">
+       <item row="0" column="1">
+        <widget class="QPushButton" name="pushButton_captureRobot">
          <property name="text">
-          <string>SetTCP</string>
+          <string>Capture</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="5">
+        <widget class="QPushButton" name="pushButton_usePreRobotRegit">
+         <property name="text">
+          <string>Use Previous (movable image)</string>
          </property>
         </widget>
        </item>

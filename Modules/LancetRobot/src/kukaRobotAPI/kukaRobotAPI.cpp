@@ -14,19 +14,27 @@ std::string lancet::KukaRobotAPI::GetApiRevision()
 
 bool lancet::KukaRobotAPI::Connect(int tcpPort, std::string robotIP, int udpPort)
 {
+  m_IsConnected = false;
   //connect tcp to send robot command and receive result
-  if (m_TcpConnection.connect(tcpPort))
+  if (!m_TcpConnection.connect(tcpPort))
   {
-    m_IsConnected = true;
-    //Send heartbeat packets through TCP to maintain connection with kuka robot application;
-    m_TcpHeartBeatThread = std::thread(&KukaRobotAPI::sendTcpHeartBeat, this);
-    m_ReadRobotResultThread = std::thread(&KukaRobotAPI::threadReadRobotResult, this);
+    return false;
   }
-
-  //connect udp to receive robot info
-  m_UdpConnection.connect(robotIP, udpPort);
-
-  return true;
+  //Send heartbeat packets through TCP to maintain connection with kuka robot application;
+  m_TcpHeartBeatThread = std::thread(&KukaRobotAPI::sendTcpHeartBeat, this);
+  m_ReadRobotResultThread = std::thread(&KukaRobotAPI::threadReadRobotResult, this);
+  //connect udp to receive robot info  , connect FRI
+  if (!m_UdpConnection.connect(robotIP, udpPort) )
+  {
+    return false;
+  }
+  if (!m_FriManager.Connect())
+  {
+    return false;
+  }
+  m_FriManager.StartFriControl();
+  m_IsConnected = true;
+  return m_IsConnected;
 }
 
 void lancet::KukaRobotAPI::DisConnect()
@@ -36,9 +44,10 @@ void lancet::KukaRobotAPI::DisConnect()
   m_ReadRobotResultThread.join();
   m_TcpConnection.disconnect();
   m_UdpConnection.disconnect();
+  m_FriManager.DisConnect();
 }
 
-bool lancet::KukaRobotAPI::SendCommandNoPara(std::string cmd) const
+bool lancet::KukaRobotAPI::SendCommandNoPara(std::string cmd)
 {
   DefaultProtocol protocol;
   protocol.operateType = cmd;
@@ -64,6 +73,9 @@ ResultProtocol lancet::KukaRobotAPI::GetCommandResult()
   m_MsgQueue.pop();
   m_MsgQueueMutex.unlock();
 
+  m_MsgQueueSize = m_MsgQueue.size();
+  MITK_INFO << "processed, MsgQueue Size: " << m_MsgQueueSize;
+  //MITK_INFO << msg;
   Poco::JSON::Parser parser;
   parser.reset();
 
@@ -76,6 +88,11 @@ ResultProtocol lancet::KukaRobotAPI::GetCommandResult()
 
   result.FromJsonObj(*pObj);
   return result;
+}
+
+unsigned int lancet::KukaRobotAPI::GetNumberOfCommandResult()
+{
+	return m_MsgQueueSize;
 }
 
 RobotInformationProtocol lancet::KukaRobotAPI::GetRobotInfo()
@@ -102,7 +119,7 @@ RobotInformationProtocol lancet::KukaRobotAPI::GetRobotInfo()
   return info;
 }
 
-bool lancet::KukaRobotAPI::AddFrame(std::string name, std::array<double, 6> xyzabc) const
+bool lancet::KukaRobotAPI::AddFrame(std::string name, std::array<double, 6> xyzabc)
 {
   DefaultProtocol protocol;
   protocol.operateType = "AddFrame";
@@ -134,7 +151,7 @@ bool lancet::KukaRobotAPI::SetMotionFrame(std::string name)
   return m_TcpConnection.write(jsnString.str());
 }
 
-bool lancet::KukaRobotAPI::RunBrakeTest() const
+bool lancet::KukaRobotAPI::RunBrakeTest()
 {
   return SendCommandNoPara("RunBrakeTest");
 }
@@ -174,9 +191,14 @@ bool lancet::KukaRobotAPI::MovePTP(std::array<double, 6> xyzabc)
 	return m_TcpConnection.write(jsnString.str());
 }
 
-bool lancet::KukaRobotAPI::HandGuiding() const
+bool lancet::KukaRobotAPI::HandGuiding()
 {
   return SendCommandNoPara("HandGuiding");
+}
+
+void lancet::KukaRobotAPI::SetFriDynamicFrameTransform(mitk::AffineTransform3D::Pointer matrix)
+{
+   m_FriManager.SetFriDynamicFrameTransform(matrix);
 }
 
 lancet::KukaRobotAPI::~KukaRobotAPI()
@@ -184,9 +206,9 @@ lancet::KukaRobotAPI::~KukaRobotAPI()
   this->DisConnect();
 }
 
-void lancet::KukaRobotAPI::sendTcpHeartBeat() const
+void lancet::KukaRobotAPI::sendTcpHeartBeat()
 {
-  while (m_IsConnected)
+  while (m_IsConnected && m_TcpConnection.isConnected())
   {
     auto res = m_TcpConnection.write("heartBeat");
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -204,7 +226,8 @@ void lancet::KukaRobotAPI::threadReadRobotResult()
       m_MsgQueueMutex.lock();
       m_MsgQueue.push(msg);
       m_MsgQueueMutex.unlock();
-      MITK_INFO << "MsgQueue Size: " << m_MsgQueue.size();
+	  m_MsgQueueSize = m_MsgQueue.size();
+      MITK_INFO << "MsgQueue Size: " << m_MsgQueueSize;
     }
   }
 }

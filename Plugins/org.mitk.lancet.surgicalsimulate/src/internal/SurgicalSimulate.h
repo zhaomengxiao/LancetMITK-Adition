@@ -28,6 +28,7 @@ found in the LICENSE file.
 #include "mitkVirtualTrackingDevice.h"
 #include "robotRegistration.h"
 #include "ui_SurgicalSimulateControls.h"
+#include <mutex>
 
 /**
   \brief SurgicalSimulate
@@ -84,7 +85,18 @@ public slots:
   void ShowToolStatus_Vega();
   void ShowToolStatus_Kuka();
   void UpdateToolStatusWidget();
+
+  //RobotControl
+  void SendCommand();
+
+  void StartServo();
+  void StopServo();
+  void InitProbe();
+
+  void BindRobotToProbe();
 protected:
+  void threadUpdateFriTransform();
+
   virtual void CreateQtPartControl(QWidget* parent) override;
 
   virtual void SetFocus() override;
@@ -104,6 +116,7 @@ protected:
 
   //*********Helper Function****************
   RobotRegistration m_RobotRegistration;
+  
   mitk::NavigationData::Pointer GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
                                                        mitk::NavigationData::Pointer nd_ref);
 public:
@@ -129,7 +142,7 @@ protected:
   //robot registration
   unsigned int m_IndexOfRobotCapture{0};
   std::array<vtkMatrix4x4*, 10> m_AutoPoses{};
-  mitk::AffineTransform3D::Pointer m_RobotRegistrationMatrix;
+  mitk::AffineTransform3D::Pointer m_RobotRegistrationMatrix;//
 
   //surgical plane
   lancet::PointPath::Pointer m_SurgicalPlan;
@@ -151,8 +164,14 @@ protected:
   std::vector<mitk::NavigationData::Pointer> m_VegaNavigationData;
   std::vector<mitk::NavigationData::Pointer> m_KukaNavigationData;
 
-
-
+  //fri test
+  // lancet::FriManager m_FriManager;
+  std::thread m_friThread;
+  mitk::AffineTransform3D::Pointer m_ProbeRealTimePose;
+  mitk::AffineTransform3D::Pointer m_ProbeInitPose;
+  mitk::AffineTransform3D::Pointer T_probe2robotEndRF;
+  bool m_KeepUpdateFriTransform{true};
+  double m_offset[3]{ 0,0,0 };
   // Image registration using NavigationObject structure
  
 	// Assemble a navigationObject with a Parent node;

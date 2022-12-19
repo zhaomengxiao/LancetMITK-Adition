@@ -50,17 +50,19 @@ bool lancet::TcpRobotCommandServer::read(std::string& msg)
   }
   catch (Poco::Net::NetException& e)
   {
+	m_IsConnected = false;
     MITK_ERROR << "TcpRobotCommandServer Read ERROR: " << e.message();
     return false;
   }
   catch (Poco::IOException& e)
   {
+	m_IsConnected = false;
     MITK_ERROR << "TcpRobotCommandServer Read ERROR: " << e.message();
     return false;
   }
 }
 
-bool lancet::TcpRobotCommandServer::write(std::string msg) const
+bool lancet::TcpRobotCommandServer::write(std::string msg)
 {
   try
   {
@@ -70,11 +72,13 @@ bool lancet::TcpRobotCommandServer::write(std::string msg) const
   }
   catch (Poco::Net::NetException& e)
   {
+	m_IsConnected = false;
     MITK_ERROR << e.message();
     return false;
   }
   catch (Poco::IOException& e)
   {
+	m_IsConnected = false;
     MITK_ERROR << "TcpRobotCommandServer Read ERROR: " << e.message();
     return false;
   }
