@@ -20,9 +20,7 @@ set(SRC_CPP_FILES
   core/lancetSpatialFittingProbeCheckPointDirector.cpp
   core/lancetSpatialFittingPelvicCheckPointDirector.cpp
   core/lancetSpatialFittingPelvicCheckPointVerifyDirector.cpp
-  core/lancetSpatialFittingPelvicMarkPointDirector.cpp
-  core/lancetSpatialFittingPelvicRegisterDirector.cpp
-  core/lancetSpatialFittingPelvicVerifyDirector.cpp
+  
   
 )
 
@@ -32,8 +30,6 @@ set(INTERNAL_CPP_FILES
   lancetSpatialFittingRoboticsRegisterModel.cpp
   lancetSpatialFittingProbeCheckPointModel.cpp
   lancetSpatialFittingPelvisCheckPointModel.cpp
-  lancetSpatialFittingPelvisMarkPointModel.cpp
-  lancetSpatialFittingPelvisRegisterModel.cpp
 )
 
 set(CPP_FILES )

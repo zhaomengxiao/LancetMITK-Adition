@@ -25,11 +25,6 @@ private:
 	virtual void InitializeProbeCheckPointModel();
 
 	virtual void InitializePelvisCheckPointModel();
-
-	virtual void InitializePelvisRegisterModel();
-
-	virtual void InitializePelvisMarkPointModel();
-
 protected slots:
 	void onDeviceConnectState_change(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
 };

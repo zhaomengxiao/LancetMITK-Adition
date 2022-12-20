@@ -20,7 +20,7 @@ public:
 	PelvisCheckPointModel();
 public:
 	itk::SmartPointer<PipelineManager> GetCheckPointPipeline() const;
-	void SetCheckPointPipeline(const itk::SmartPointer<PipelineManager>&);
+	void SetCheckPointPipelinePipeline(const itk::SmartPointer<PipelineManager>&);
 
 	mitk::NavigationDataSource::Pointer GetNdiNavigationDataSource() const;
 	void SetNdiNavigationDataSource(mitk::NavigationDataSource::Pointer source);
