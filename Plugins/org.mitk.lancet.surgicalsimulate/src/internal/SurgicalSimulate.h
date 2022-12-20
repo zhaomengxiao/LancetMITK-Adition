@@ -51,12 +51,14 @@ public:
 public slots:
   //Step1:Use a kuka Tracking Device
   void UseKuka();
+  void DisConnectKuka();
   //
   void StartTracking();
   void OnKukaVisualizeTimer();
   void OnSelfCheck();
   //Step1:Use a NDI Vega Tracking Device
   void UseVega();
+  void DisConnectVega();
   void OnVegaVisualizeTimer();
 
   //Step2:Robot Registration;

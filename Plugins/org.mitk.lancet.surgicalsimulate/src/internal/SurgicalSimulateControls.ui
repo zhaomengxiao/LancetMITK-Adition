@@ -108,6 +108,13 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="pushButton_disConnectVega">
+             <property name="text">
+              <string>DisConnect</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -146,9 +153,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_selfcheck">
+            <widget class="QPushButton" name="pushButton_disConnectKuka">
              <property name="text">
-              <string>Self check</string>
+              <string>DisConnect</string>
              </property>
             </widget>
            </item>

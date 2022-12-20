@@ -77,11 +77,11 @@ void SurgicalSimulate::threadUpdateFriTransform()
     //calculate matrix
     auto robotEndRFDestInNDI = m_VegaSource->GetOutput("Probe")->GetAffineTransform3D();
     robotEndRFDestInNDI->Compose(T_probe2robotEndRF,true);
-	//MITK_WARN << "robotEndRFDestInNDI" << robotEndRFDestInNDI;
+	  //MITK_WARN << "robotEndRFDestInNDI" << robotEndRFDestInNDI;
     mitk::AffineTransform3D::Pointer robotDest = mitk::AffineTransform3D::New();
     m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", robotEndRFDestInNDI, robotDest);
     m_KukaTrackingDevice->m_RobotApi.SetFriDynamicFrameTransform(robotDest);
-	std::this_thread::sleep_for(std::chrono::milliseconds(20));
+	  std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 }
 
@@ -138,6 +138,9 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_startServo, &QPushButton::clicked, this, &SurgicalSimulate::StartServo);
   connect(m_Controls.pushButton_stopServo, &QPushButton::clicked, this, &SurgicalSimulate::StopServo);
   connect(m_Controls.pushButton_initProbe, &QPushButton::clicked, this, &SurgicalSimulate::InitProbe);
+
+  connect(m_Controls.pushButton_disConnectKuka, &QPushButton::clicked, this, &SurgicalSimulate::DisConnectKuka);
+  connect(m_Controls.pushButton_disConnectVega, &QPushButton::clicked, this, &SurgicalSimulate::DisConnectVega);
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -203,6 +206,11 @@ void SurgicalSimulate::UseVega()
 
   auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
   mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+}
+
+void SurgicalSimulate::DisConnectVega()
+{
+  m_VegaSource->Disconnect();
 }
 
 void SurgicalSimulate::GeneratePoses()
@@ -292,6 +300,11 @@ void SurgicalSimulate::UseKuka()
   {
     m_KukaSource->Connect();
   }
+}
+
+void SurgicalSimulate::DisConnectKuka()
+{
+  m_KukaSource->Disconnect();
 }
 
 void SurgicalSimulate::StartTracking()
