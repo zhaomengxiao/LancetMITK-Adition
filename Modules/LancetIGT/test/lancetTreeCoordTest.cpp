@@ -295,6 +295,7 @@ public:
         correct->Compose(m_ndD->GetInverse());
       }
     }
+
     CPPUNIT_ASSERT_MESSAGE("Orientation not equal", mitk::Equal(res->GetOrientation(), correct->GetOrientation()));
     CPPUNIT_ASSERT_MESSAGE("Position not equal", mitk::Equal(res->GetPosition(), correct->GetPosition()));
 

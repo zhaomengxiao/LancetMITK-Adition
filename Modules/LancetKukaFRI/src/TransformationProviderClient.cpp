@@ -5,6 +5,8 @@
 #include <thread>
 #include <TransformationProviderClient.h>
 
+#include "lancetMatrixConvert.h"
+
 using namespace KUKA::FRI;
 //******************************************************************************
 lancet::TransformationProviderClient::TransformationProviderClient()
@@ -30,20 +32,17 @@ void lancet::TransformationProviderClient::SetTransformation(std::string id, mit
 void lancet::TransformationProviderClient::provide()
 {
   m_TransformMatrixMutex.lock();
-  auto matrix = m_TransformMatrix->GetMatrix();
+  auto tmpTransform = m_TransformMatrix->Clone();
   m_TransformMatrixMutex.unlock();
-  // << "111111";
-  double transformationMatrix[3][4];
-  transformationMatrix[0][0] = matrix[0][0]; transformationMatrix[0][1] = matrix[0][1]; transformationMatrix[0][2] = matrix[0][2]; transformationMatrix[0][3] = m_TransformMatrix->GetOffset()[0];
-  transformationMatrix[1][0] = matrix[1][0]; transformationMatrix[1][1] = matrix[1][1]; transformationMatrix[1][2] = matrix[1][2]; transformationMatrix[1][3] = m_TransformMatrix->GetOffset()[1];
-  transformationMatrix[2][0] = matrix[2][0]; transformationMatrix[2][1] = matrix[2][1]; transformationMatrix[2][2] = matrix[2][2]; transformationMatrix[2][3] = m_TransformMatrix->GetOffset()[2];
-  //MITK_INFO << "222222";
+
+  double transformMatrix[3][4];
+  lancet::ConvertMitkAffineTransform3DTo3x4Array(tmpTransform, transformMatrix);
+
   //printf("X:%f, Y:%f, Z:%f\n", transformationMatrix[0][3], transformationMatrix[1][3], transformationMatrix[2][3]);
 
   // Set new transformation matrix for frame with identifier"m_TransformID"
-  setTransformation(m_TransformID.c_str(), transformationMatrix, getTimestampSec(),
+  setTransformation(m_TransformID.c_str(), transformMatrix, getTimestampSec(),
          getTimestampNanoSec());
-  //MITK_INFO << "33333";
 }
 
 lancet::FriManager::FriManager()
@@ -56,6 +55,7 @@ lancet::FriManager::FriManager()
 
 lancet::FriManager::~FriManager()
 {
+  this->DisConnect();
 }
 
 bool lancet::FriManager::Connect()
