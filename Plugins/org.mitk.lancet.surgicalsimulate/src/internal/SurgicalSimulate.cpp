@@ -81,7 +81,7 @@ void SurgicalSimulate::threadUpdateFriTransform()
     mitk::AffineTransform3D::Pointer robotDest = mitk::AffineTransform3D::New();
     m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", robotEndRFDestInNDI, robotDest);
     m_KukaTrackingDevice->m_RobotApi.SetFriDynamicFrameTransform(robotDest);
-	std::this_thread::sleep_for(std::chrono::milliseconds(33));
+	std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 }
 
@@ -1002,7 +1002,7 @@ void SurgicalSimulate::SendCommand()
 void SurgicalSimulate::StartServo()
 {
   bool res = m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StartServo");
-  
+  m_KeepUpdateFriTransform = true;
 
   m_friThread = std::thread(&SurgicalSimulate::threadUpdateFriTransform, this);
 }
@@ -1012,6 +1012,7 @@ void SurgicalSimulate::StopServo()
 	m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StopServo");
   //m_FriManager.DisConnect();
   m_KeepUpdateFriTransform = false;
+  m_friThread.join();
 }
 
 void SurgicalSimulate::InitProbe()
