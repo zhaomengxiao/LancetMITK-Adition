@@ -133,9 +133,9 @@ void THAPlanning::ConstructTHAmodel()
 	THA_MODEL.Delete();
 }
 
-mitk::Point3D THAPlanning::GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const unsigned pointIndex)
+mitk::Point3D THAPlanning::GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const int pointIndex)
 {
-	unsigned size = inputPointSet->GetSize();
+	int size = inputPointSet->GetSize();
 	mitk::Point3D outputPoint;
 	outputPoint[0] = 0;
 	outputPoint[1] = 0;
@@ -146,13 +146,13 @@ mitk::Point3D THAPlanning::GetPointWithGeometryMatrix(const mitk::PointSet::Poin
 		return outputPoint;
 	}
 
-	outputPoint = inputPointSet->GetPoint(pointIndex);
+	auto tmpPoint = inputPointSet->GetPoint(pointIndex);
 
 	vtkNew<vtkMatrix4x4> initPointMatrix;
 	initPointMatrix->Identity();
-	initPointMatrix->SetElement(0, 3, outputPoint[0]);
-	initPointMatrix->SetElement(1, 3, outputPoint[1]);
-	initPointMatrix->SetElement(2, 3, outputPoint[2]);
+	initPointMatrix->SetElement(0, 3, tmpPoint[0]);
+	initPointMatrix->SetElement(1, 3, tmpPoint[1]);
+	initPointMatrix->SetElement(2, 3, tmpPoint[2]);
 
 	auto geometryMatrix = inputPointSet->GetGeometry()->GetVtkMatrix();
 
@@ -168,7 +168,7 @@ mitk::Point3D THAPlanning::GetPointWithGeometryMatrix(const mitk::PointSet::Poin
 	outputPoint[0] = resultMatrix->GetElement(0, 3);
 	outputPoint[1] = resultMatrix->GetElement(1, 3);
 	outputPoint[2] = resultMatrix->GetElement(2, 3);
-
+	// MITK_INFO << "The current point is: " << outputPoint[0] << "/" << outputPoint[1] << "/" << outputPoint[2];
 	return outputPoint;
 
 }
@@ -212,7 +212,7 @@ void THAPlanning::CollectTHAdata()
 }
 
 
-double THAPlanning::CalculateNativeFemoralVersions()
+double THAPlanning::CalculateNativeFemoralVersion()
 {
 	// The native femoral version is the angle between the neck axis and epicondylar axis when
 	// these 2 axes are projected on a plane perpendicular to the femur canal
@@ -225,32 +225,34 @@ double THAPlanning::CalculateNativeFemoralVersions()
 	Eigen::Vector3d neckAxis;
 	Eigen::Vector3d epicondylarAxis;
 	Eigen::Vector3d canalAxis;
-	if(m_operationSide == 0)
+	if (m_operationSide == 0)
 	{
-		neckAxis[0] = m_pset_femurCOR_R->GetPoint(0)[0] - m_pset_neckCenter_R->GetPoint(0)[0];
-		neckAxis[1] = m_pset_femurCOR_R->GetPoint(0)[1] - m_pset_neckCenter_R->GetPoint(0)[1];
-		neckAxis[2] = m_pset_femurCOR_R->GetPoint(0)[2] - m_pset_neckCenter_R->GetPoint(0)[2];
+		neckAxis[0] = GetPointWithGeometryMatrix(m_pset_femurCOR_R, 0)[0] - GetPointWithGeometryMatrix(m_pset_neckCenter_R, 0)[0];
+		neckAxis[1] = GetPointWithGeometryMatrix(m_pset_femurCOR_R, 0)[1] - GetPointWithGeometryMatrix(m_pset_neckCenter_R, 0)[1];
+		neckAxis[2] = GetPointWithGeometryMatrix(m_pset_femurCOR_R, 0)[2] - GetPointWithGeometryMatrix(m_pset_neckCenter_R, 0)[2];
 
-		epicondylarAxis[0] = m_pset_epicondyles_R->GetPoint(0)[0] - m_pset_epicondyles_R->GetPoint(1)[0];
-		epicondylarAxis[1] = m_pset_epicondyles_R->GetPoint(0)[1] - m_pset_epicondyles_R->GetPoint(1)[1];
-		epicondylarAxis[2] = m_pset_epicondyles_R->GetPoint(0)[2] - m_pset_epicondyles_R->GetPoint(1)[2];
+		epicondylarAxis[0] = GetPointWithGeometryMatrix(m_pset_epicondyles_R, 0)[0] - GetPointWithGeometryMatrix(m_pset_epicondyles_R, 1)[0];
+		epicondylarAxis[1] = GetPointWithGeometryMatrix(m_pset_epicondyles_R, 0)[1] - GetPointWithGeometryMatrix(m_pset_epicondyles_R, 1)[1];
+		epicondylarAxis[2] = GetPointWithGeometryMatrix(m_pset_epicondyles_R, 0)[2] - GetPointWithGeometryMatrix(m_pset_epicondyles_R, 1)[2];
 
-		canalAxis[0] = m_pset_femurCanal_R->GetPoint(0)[0] - m_pset_femurCanal_R->GetPoint(1)[0];
-		canalAxis[1] = m_pset_femurCanal_R->GetPoint(0)[1] - m_pset_femurCanal_R->GetPoint(1)[1];
-		canalAxis[2] = m_pset_femurCanal_R->GetPoint(0)[2] - m_pset_femurCanal_R->GetPoint(1)[2];
-	}else
+		canalAxis[0] = GetPointWithGeometryMatrix(m_pset_femurCanal_R, 0)[0] - GetPointWithGeometryMatrix(m_pset_femurCanal_R, 1)[0];
+		canalAxis[1] = GetPointWithGeometryMatrix(m_pset_femurCanal_R, 0)[1] - GetPointWithGeometryMatrix(m_pset_femurCanal_R, 1)[1];
+		canalAxis[2] = GetPointWithGeometryMatrix(m_pset_femurCanal_R, 0)[2] - GetPointWithGeometryMatrix(m_pset_femurCanal_R, 1)[2];
+	}
+	else
 	{
-		neckAxis[0] = m_pset_femurCOR_L->GetPoint(0)[0] - m_pset_neckCenter_L->GetPoint(0)[0];
-		neckAxis[1] = m_pset_femurCOR_L->GetPoint(0)[1] - m_pset_neckCenter_L->GetPoint(0)[1];
-		neckAxis[2] = m_pset_femurCOR_L->GetPoint(0)[2] - m_pset_neckCenter_L->GetPoint(0)[2];
+		neckAxis[0] = GetPointWithGeometryMatrix(m_pset_femurCOR_L, 0)[0] - GetPointWithGeometryMatrix(m_pset_neckCenter_L, 0)[0];
+		neckAxis[1] = GetPointWithGeometryMatrix(m_pset_femurCOR_L, 0)[1] - GetPointWithGeometryMatrix(m_pset_neckCenter_L, 0)[1];
+		neckAxis[2] = GetPointWithGeometryMatrix(m_pset_femurCOR_L, 0)[2] - GetPointWithGeometryMatrix(m_pset_neckCenter_L, 0)[2];
 
-		epicondylarAxis[0] = m_pset_epicondyles_L->GetPoint(0)[0] - m_pset_epicondyles_L->GetPoint(1)[0];
-		epicondylarAxis[1] = m_pset_epicondyles_L->GetPoint(0)[1] - m_pset_epicondyles_L->GetPoint(1)[1];
-		epicondylarAxis[2] = m_pset_epicondyles_L->GetPoint(0)[2] - m_pset_epicondyles_L->GetPoint(1)[2];
+		epicondylarAxis[0] = GetPointWithGeometryMatrix(m_pset_epicondyles_L, 0)[0] - GetPointWithGeometryMatrix(m_pset_epicondyles_L, 1)[0];
+		epicondylarAxis[1] = GetPointWithGeometryMatrix(m_pset_epicondyles_L, 0)[1] - GetPointWithGeometryMatrix(m_pset_epicondyles_L, 1)[1];
+		epicondylarAxis[2] = GetPointWithGeometryMatrix(m_pset_epicondyles_L, 0)[2] - GetPointWithGeometryMatrix(m_pset_epicondyles_L, 1)[2];
 
-		canalAxis[0] = m_pset_femurCanal_L->GetPoint(0)[0] - m_pset_femurCanal_L->GetPoint(1)[0];
-		canalAxis[1] = m_pset_femurCanal_L->GetPoint(0)[1] - m_pset_femurCanal_L->GetPoint(1)[1];
-		canalAxis[2] = m_pset_femurCanal_L->GetPoint(0)[2] - m_pset_femurCanal_L->GetPoint(1)[2];
+		canalAxis[0] = GetPointWithGeometryMatrix(m_pset_femurCanal_L, 0)[0] - GetPointWithGeometryMatrix(m_pset_femurCanal_L, 1)[0];
+		canalAxis[1] = GetPointWithGeometryMatrix(m_pset_femurCanal_L, 0)[1] - GetPointWithGeometryMatrix(m_pset_femurCanal_L, 1)[1];
+		canalAxis[2] = GetPointWithGeometryMatrix(m_pset_femurCanal_L, 0)[2] - GetPointWithGeometryMatrix(m_pset_femurCanal_L, 1)[2];
+
 	}
 	canalAxis.normalize();
 
@@ -271,15 +273,16 @@ double THAPlanning::CalculateNativeFemoralVersions()
 
 	// Determine anteversion or retroversion; if ante, assign femoralVersion as (+); if retro, assign as (-)
 	double tmpValue = epicondylarAxis_ontoPlane.cross(neckAxis_ontoPlane).dot(canalAxis);
-	if(m_operationSide == 1)
+	if (m_operationSide == 1)
 	{
-		if(tmpValue < 0)
+		if (tmpValue < 0)
 		{
 			femoralVersion = -femoralVersion;
 		}
-	}else
+	}
+	else
 	{
-		if(tmpValue > 0)
+		if (tmpValue > 0)
 		{
 			femoralVersion = -femoralVersion;
 		}
@@ -288,6 +291,7 @@ double THAPlanning::CalculateNativeFemoralVersions()
 
 	return femoralVersion;
 }
+
 
 void THAPlanning::On_pushButton_femoralVersion_clicked()
 {
@@ -298,9 +302,10 @@ void THAPlanning::On_pushButton_femoralVersion_clicked()
 	}
 
 	CollectTHAdata();
-	double nativeFemoralVersion = CalculateNativeFemoralVersions();
+	double nativeFemoralVersion = CalculateNativeFemoralVersion();
 
 	m_Controls.textBrowser->append("Native femoral anteversion is: "+ QString::number(nativeFemoralVersion));
+
 }
 
 

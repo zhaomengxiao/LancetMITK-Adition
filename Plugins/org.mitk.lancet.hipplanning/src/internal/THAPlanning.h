@@ -99,11 +99,13 @@ protected:
   void CollectTHAdata();
 
     // Femoral version
-  double CalculateNativeFemoralVersions();
+  double CalculateNativeFemoralVersion();
   void On_pushButton_femoralVersion_clicked();
 
+	//
+
 	// Append the geometry matrix to the point
-  mitk::Point3D GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const unsigned pointIndex);
+  mitk::Point3D GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const int pointIndex);
 
   // Append the geometry matrix to the pointSet
   mitk::PointSet::Pointer GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet);
