@@ -20,7 +20,6 @@ set(MITK_PLUGINS
   org.mitk.lancet.medicalrecordmanagement.editor:ON
   org.mitk.lancet.qctmark:ON
   org.mitk.lancet.disclaimeragreement:ON
-  org.mitk.lancet.implantplanning:ON
   org.mitk.lancet.multirenderwidget.editor:ON
   org.mitk.lancet.linkinghardware:ON
   org.mitk.lancet.linkinghardware.editor:ON
@@ -53,6 +52,7 @@ set(MITK_PLUGINS
   org.mitk.lancet.putfemurprosthesisaccuracy:ON
   org.mitk.lancet.putfemurprosthesisaccuracy.editor:ON
   org.mitk.lancet.postoperativeoutcome:ON
+  org.mitk.lancet.hipplanning:ON
   ##################    END(THA)   #######################
   org.mitk.lancet.htotest:ON
   org.mitk.lancet.surgicalsimulate:ON
