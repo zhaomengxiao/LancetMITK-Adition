@@ -95,19 +95,34 @@ protected:
     // Operation side
   int m_operationSide{ 0 }; // right femur: 0   left femur: 1
 
-	//coarse Data collection
-  void CollectTHAdata();
+	//coarse Data collection and initialization
+  void CollectTHAdata(); 
 
     // Femoral version
   double CalculateNativeFemoralVersion();
   void On_pushButton_femoralVersion_clicked();
 
-	//
+    // ---------- Virtual correction ---------------
 
-	// Append the geometry matrix to the point
+  vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_pelvicCorrection_supine; // conversion from initial identity matrix to the corrected pose 
+  vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_femurCorrection_R_hiplength; // conversion from initial identity matrix to the corrected pose 
+  vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_femurCorrection_L_hiplength; // conversion from initial identity matrix to the corrected pose 
+  vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_femurCorrection_R_offset; // conversion from initial identity matrix to the corrected pose 
+  vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_femurCorrection_L_offset; // conversion from initial identity matrix to the corrected pose 
+
+  void CalculatePelvicCorrection_supine(); // update m_vtkMatrix_pelvicCorrection_supine
+  void CalculateRightFemurCorrection_hipLength(); // update m_vtkMatrix_femurCorrection_R_hiplength, call CalculatePelvicCorrection_supine() internally
+  void CalculateLeftFemurCorrection_hipLength(); // update m_vtkMatrix_femurCorrection_L_hiplength, call CalculatePelvicCorrection_supine() internally
+  void CalculateRightFemurCorrection_offset(); // update m_vtkMatrix_femurCorrection_R_offset, call CalculatePelvicCorrection_supine() internally
+  void CalculateLeftFemurCorrection_offset(); // update m_vtkMatrix_femurCorrection_L_offset, call CalculatePelvicCorrection_supine() internally
+
+
+
+	//---------- Tool functions --------------
+	// Append the geometry matrix to the chosen point
   mitk::Point3D GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const int pointIndex);
 
-  // Append the geometry matrix to the pointSet
+    // Append the geometry matrix to the pointSet
   mitk::PointSet::Pointer GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet);
 
   

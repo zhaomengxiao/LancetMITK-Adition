@@ -192,6 +192,12 @@ mitk::PointSet::Pointer THAPlanning::GetPointSetWithGeometryMatrix(const mitk::P
 
 void THAPlanning::CollectTHAdata()
 {
+	m_vtkMatrix_femurCorrection_L_hiplength = vtkMatrix4x4::New();
+	m_vtkMatrix_femurCorrection_R_hiplength = vtkMatrix4x4::New();
+	m_vtkMatrix_femurCorrection_L_offset = vtkMatrix4x4::New();
+	m_vtkMatrix_femurCorrection_R_offset = vtkMatrix4x4::New();
+	m_vtkMatrix_pelvicCorrection_supine = vtkMatrix4x4::New();
+
 	//------ Left femur --------
 	m_pset_lesserTrochanter_L = GetDataStorage()->GetNamedObject<mitk::PointSet>("lesserTrochanter_L");
 	m_pset_femurCOR_L = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCOR_L");
@@ -291,6 +297,21 @@ double THAPlanning::CalculateNativeFemoralVersion()
 
 	return femoralVersion;
 }
+
+
+void THAPlanning::CalculatePelvicCorrection_supine()
+{
+	// the rotation axis passes through the midline point
+	// the direction of the rotation axis is the cross product of the ASIS axis and the medial-lateral direction
+
+	// 
+
+
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->PostMultiply();
+
+}
+
 
 
 void THAPlanning::On_pushButton_femoralVersion_clicked()
