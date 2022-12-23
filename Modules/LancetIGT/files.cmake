@@ -3,6 +3,7 @@ set(H_FILES
   DataManagement/lancetTrackingDeviceSourceConfigurator.h
   DataManagement/lancetPathPoint.h
   DataManagement/lancetThaPelvisObject.h
+  DataManagement/lancetThaFemurObject.h
   
   IO/lancetNavigationObjectWriter.h
 
@@ -26,6 +27,7 @@ set(CPP_FILES
   DataManagement/lancetTrackingDeviceSourceConfigurator.cpp
   DataManagement/lancetPathPoint.cpp
   DataManagement/lancetThaPelvisObject.cpp
+  DataManagement/lancetThaFemurObject.cpp
   
   IO/lancetNavigationObjectWriter.cpp
   

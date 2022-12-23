@@ -10,8 +10,8 @@ found in the LICENSE file.
 
 ============================================================================*/
 
-#ifndef TrackingObject_h
-#define TrackingObject_h
+#ifndef THAPELVISOBJECT_H
+#define THAPELVISOBJECT_H
 
 #include <mitkImageToImageFilter.h>
 
@@ -74,7 +74,7 @@ namespace lancet
 		 */
 		bool AlignPelvicObjectWithWorldFrame();
 
-		// Check if all the data is ready 
+		// Check if all the necessary data are ready 
 		bool CheckDataAvailability();
 
 	protected:
@@ -85,11 +85,10 @@ namespace lancet
 
 		// Append the geometry matrix to the chosen point
 		mitk::Point3D GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const int pointIndex);
-
 		// Append the geometry matrix to the pointSet
 		void RewritePointSetWithGeometryMatrix( mitk::PointSet::Pointer inputPointSet);
-
 		mitk::PointSet::Pointer GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet);
+
 		/*
 		 * Establish a pelvis coordinate with the midline as the origin O,
 		 * ASIS[0] --> ASIS[1] as the x direction
@@ -108,7 +107,7 @@ namespace lancet
 		 */
 		void CalculateSupinePelvicTilt();
 
-		// Create m_surface_pelvis
+		// Create an internal frame
 		void CreateInternalFrame();
 
 		// the geometry matrix of the pelvis group object
