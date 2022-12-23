@@ -22,6 +22,8 @@ found in the LICENSE file.
 
 #include "mitkPointSet.h"
 
+#include "lancetThaPelvisObject.h"
+
 /**
   \brief THAPlanning
 
@@ -116,7 +118,10 @@ protected:
   void CalculateRightFemurCorrection_offset(); // update m_vtkMatrix_femurCorrection_R_offset, call CalculatePelvicCorrection_supine() internally
   void CalculateLeftFemurCorrection_offset(); // update m_vtkMatrix_femurCorrection_L_offset, call CalculatePelvicCorrection_supine() internally
 
-
+  // ---------------- Test pelvisObject -----------------
+  void On_pushButton_initializePelvisObject_clicked();
+  void On_pushButton_movePelvisObject_clicked();
+  lancet::ThaPelvisObject::Pointer m_pelvisObject;
 
 	//---------- Tool functions --------------
 	// Append the geometry matrix to the chosen point

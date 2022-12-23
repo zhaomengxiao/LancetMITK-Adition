@@ -34,6 +34,11 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   // New THA model
   connect(m_Controls.pushButton_femoralVersion, &QPushButton::clicked, this, &THAPlanning::On_pushButton_femoralVersion_clicked);
 
+  // PelvisObject
+  connect(m_Controls.pushButton_initializePelvisObject, &QPushButton::clicked, this, &THAPlanning::On_pushButton_initializePelvisObject_clicked);
+  connect(m_Controls.pushButton_movePelvisObject, &QPushButton::clicked, this, &THAPlanning::On_pushButton_movePelvisObject_clicked);
+
+
 }
 
 void THAPlanning::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -331,3 +336,49 @@ void THAPlanning::On_pushButton_femoralVersion_clicked()
 
 
 
+void THAPlanning::On_pushButton_initializePelvisObject_clicked()
+{
+	auto pelvisSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("pelvis");
+	auto asisPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("ASIS");
+	auto pelvisCORpset = GetDataStorage()->GetNamedObject<mitk::PointSet>("pelvisCOR");
+	auto midlinePset = GetDataStorage()->GetNamedObject<mitk::PointSet>("midline");
+
+	m_pelvisObject = lancet::ThaPelvisObject::New();
+
+	m_pelvisObject->Setsurface_pelvis(pelvisSurface);
+	m_pelvisObject->Setpset_ASIS(asisPset);
+	m_pelvisObject->Setpset_pelvisCOR(pelvisCORpset);
+	m_pelvisObject->Setpset_midline(midlinePset);
+
+	m_pelvisObject->AlignPelvicObjectWithWorldFrame();
+
+	auto pelvisFrameSurface = m_pelvisObject->Getsurface_pelvisFrame();
+
+	auto dataNode_pelvisFrame = mitk::DataNode::New();
+
+	dataNode_pelvisFrame->SetData(pelvisFrameSurface);
+	dataNode_pelvisFrame->SetName("pelvisFrame");
+
+	GetDataStorage()->Add(dataNode_pelvisFrame, GetDataStorage()->GetNamedNode("pelvis"));
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	m_Controls.textBrowser->append("A pelvicObject has been initialized");
+
+	m_Controls.textBrowser->append("Supine pelvic tilt is: " + QString::number(m_pelvisObject->GetpelvicTilt_supine()));
+
+}
+
+void THAPlanning::On_pushButton_movePelvisObject_clicked()
+{
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+	tmpMatrix->Identity();
+
+	tmpMatrix->SetElement(0, 3, 60);
+	tmpMatrix->SetElement(1, 3, 70);
+	tmpMatrix->SetElement(2, 3, 80);
+
+	m_pelvisObject->SetGroupGeometry(tmpMatrix);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}

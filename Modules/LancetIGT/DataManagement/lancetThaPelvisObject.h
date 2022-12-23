@@ -41,7 +41,7 @@ namespace lancet
 		itkGetMacro(pelvicTilt_supine, double)
 		itkSetMacro(pelvicTilt_supine,double)
 
-		itkSetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
+		// itkSetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 		itkGetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 
 		itkSetMacro(surface_pelvis, mitk::Surface::Pointer)
@@ -87,8 +87,9 @@ namespace lancet
 		mitk::Point3D GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const int pointIndex);
 
 		// Append the geometry matrix to the pointSet
-		mitk::PointSet::Pointer GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet);
+		void RewritePointSetWithGeometryMatrix( mitk::PointSet::Pointer inputPointSet);
 
+		mitk::PointSet::Pointer GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet);
 		/*
 		 * Establish a pelvis coordinate with the midline as the origin O,
 		 * ASIS[0] --> ASIS[1] as the x direction

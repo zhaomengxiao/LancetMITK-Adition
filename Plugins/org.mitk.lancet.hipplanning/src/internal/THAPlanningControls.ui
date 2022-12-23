@@ -178,47 +178,87 @@
       <attribute name="title">
        <string>New model</string>
       </attribute>
-      <widget class="QPushButton" name="pushButton_femoralVersion">
+      <widget class="QGroupBox" name="groupBox">
        <property name="geometry">
         <rect>
-         <x>120</x>
-         <y>80</y>
-         <width>121</width>
-         <height>23</height>
+         <x>50</x>
+         <y>10</y>
+         <width>161</width>
+         <height>91</height>
         </rect>
        </property>
-       <property name="text">
-        <string>Femoral version</string>
+       <property name="title">
+        <string>Femoral version test</string>
        </property>
-      </widget>
-      <widget class="QWidget" name="">
-       <property name="geometry">
-        <rect>
-         <x>140</x>
-         <y>30</y>
-         <width>108</width>
-         <height>18</height>
-        </rect>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QRadioButton" name="radioButton_right_new">
-          <property name="text">
-           <string>Right</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QRadioButton" name="radioButton_right_new">
+            <property name="text">
+             <string>Right</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_left_new">
+            <property name="text">
+             <string>Left</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
-        <item>
-         <widget class="QRadioButton" name="radioButton_left_new">
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_femoralVersion">
           <property name="text">
-           <string>Left</string>
+           <string>Femoral version</string>
           </property>
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>140</y>
+         <width>191</width>
+         <height>101</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>PelvisObject</string>
+       </property>
+       <widget class="QPushButton" name="pushButton_initializePelvisObject">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>20</y>
+          <width>151</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Initialize PelvisObject</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_movePelvisObject">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>50</y>
+          <width>161</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>set pelvisObject matrix</string>
+        </property>
+       </widget>
       </widget>
      </widget>
     </widget>

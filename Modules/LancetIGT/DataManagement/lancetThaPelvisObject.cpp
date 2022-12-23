@@ -208,6 +208,7 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaPelvisObject::CalculateWorldToPelvisTra
 		worldToPelvisMatrix->SetElement(i, 0, x_vector[i]);
 		worldToPelvisMatrix->SetElement(i, 1, y_vector[i]);
 		worldToPelvisMatrix->SetElement(i, 2, z_vector[i]);
+		worldToPelvisMatrix->SetElement(i, 3, origin[i]);
 	}
 
 	return worldToPelvisMatrix;
@@ -281,16 +282,19 @@ bool lancet::ThaPelvisObject::CheckDataAvailability()
 	if (m_pset_ASIS->GetSize() == 0)
 	{
 		MITK_ERROR << "m_pset_ASIS is not ready";
+		return false;
 	}
 
 	if (m_pset_pelvisCOR->GetSize() == 0)
 	{
 		MITK_ERROR << "m_pset_pelvisCOR is not ready";
+		return false;
 	}
 
 	if (m_pset_midline->GetSize() == 0)
 	{
 		MITK_ERROR << "m_pset_midline is not ready";
+		return false;
 	}
 
 	return true;
@@ -322,23 +326,16 @@ bool lancet::ThaPelvisObject::AlignPelvicObjectWithWorldFrame()
 	tmpFilter->Update();
 
 	m_surface_pelvis->SetVtkPolyData(tmpFilter->GetOutput());
-
-	vtkNew<vtkTransformPolyDataFilter> tmpFilter2;
-	tmpFilter2->SetTransform(tmpTransform);
-	tmpFilter2->SetInputData(m_surface_pelvisFrame->GetVtkPolyData());
-	tmpFilter2->Update();
-
-	m_surface_pelvisFrame->SetVtkPolyData(tmpFilter2->GetOutput());
-
-	//Todo: Rewrite the inside points of m_pset_ASIS, m_pset_pelvisCOR and m_pset_midline
+	
+	// Rewrite the inside points of m_pset_ASIS, m_pset_pelvisCOR and m_pset_midline
 	m_pset_ASIS->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
 	m_pset_pelvisCOR->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
 	m_pset_midline->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
 
-	m_pset_ASIS = GetPointSetWithGeometryMatrix(m_pset_ASIS);
-	m_pset_pelvisCOR = GetPointSetWithGeometryMatrix(m_pset_pelvisCOR);
-	m_pset_midline = GetPointSetWithGeometryMatrix(m_pset_midline);
-
+	RewritePointSetWithGeometryMatrix(m_pset_ASIS);
+	RewritePointSetWithGeometryMatrix(m_pset_pelvisCOR);
+	RewritePointSetWithGeometryMatrix(m_pset_midline);
+	
 	return true;
 
 }
@@ -384,6 +381,22 @@ mitk::Point3D lancet::ThaPelvisObject::GetPointWithGeometryMatrix(const mitk::Po
 
 }
 
+void lancet::ThaPelvisObject::RewritePointSetWithGeometryMatrix( mitk::PointSet::Pointer inputPointSet)
+{
+	unsigned size = inputPointSet->GetSize();
+
+	for (int i{ 0 }; i < size; i++)
+	{
+		inputPointSet->SetPoint(i,GetPointWithGeometryMatrix(inputPointSet, i));
+	}
+
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+	tmpMatrix->Identity();
+
+	inputPointSet->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+
+}
+
 mitk::PointSet::Pointer lancet::ThaPelvisObject::GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet)
 {
 	auto outputPointSet = mitk::PointSet::New();
@@ -397,3 +410,4 @@ mitk::PointSet::Pointer lancet::ThaPelvisObject::GetPointSetWithGeometryMatrix(c
 
 	return outputPointSet;
 }
+
