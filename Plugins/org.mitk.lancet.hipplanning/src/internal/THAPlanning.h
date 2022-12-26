@@ -18,6 +18,7 @@ found in the LICENSE file.
 
 #include <QmitkAbstractView.h>
 
+#include "lancetThaFemurObject.h"
 #include "ui_THAPlanningControls.h"
 
 #include "mitkPointSet.h"
@@ -122,6 +123,14 @@ protected:
   void On_pushButton_initializePelvisObject_clicked();
   void On_pushButton_movePelvisObject_clicked();
   lancet::ThaPelvisObject::Pointer m_pelvisObject;
+
+  // ---------------- Test femurObject -----------------
+  void On_pushButton_initializeLfemurObject_clicked();
+  void On_pushButton_moveLfemurObject_clicked();
+  void On_pushButton_initializeRfemurObject_clicked();
+  void On_pushButton_moveRfemurObject_clicked();
+  lancet::ThaFemurObject::Pointer m_LfemurObject;
+  lancet::ThaFemurObject::Pointer m_RfemurObject;
 
 	//---------- Tool functions --------------
 	// Append the geometry matrix to the chosen point

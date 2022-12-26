@@ -38,6 +38,11 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_initializePelvisObject, &QPushButton::clicked, this, &THAPlanning::On_pushButton_initializePelvisObject_clicked);
   connect(m_Controls.pushButton_movePelvisObject, &QPushButton::clicked, this, &THAPlanning::On_pushButton_movePelvisObject_clicked);
 
+	// Right femurObject
+  connect(m_Controls.pushButton_initializeRfemurObject, &QPushButton::clicked, this, &THAPlanning::On_pushButton_initializeRfemurObject_clicked);
+
+	// Left femurObject
+  connect(m_Controls.pushButton_initializeLfemurObject, &QPushButton::clicked, this, &THAPlanning::On_pushButton_initializeLfemurObject_clicked);
 
 }
 
@@ -219,7 +224,8 @@ void THAPlanning::CollectTHAdata()
 
 	//------- Pelvis -----------
 	 m_pset_ASIS = GetDataStorage()->GetNamedObject<mitk::PointSet>("ASIS");;
-	 m_pset_midline = GetDataStorage()->GetNamedObject<mitk::PointSet>("midline");;
+	 m_pset_midline = GetDataStorage()->GetNamedObject<mitk::PointSet>("midline");
+
 }
 
 
@@ -382,3 +388,84 @@ void THAPlanning::On_pushButton_movePelvisObject_clicked()
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
+
+void THAPlanning::On_pushButton_initializeRfemurObject_clicked()
+{
+	m_RfemurObject = lancet::ThaFemurObject::New();
+
+	auto femurSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("femur_R");
+	auto lesserTrochanterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("lesserTrochanter_R");
+	auto femurCORpSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCOR_R");
+	auto neckCenterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("neckCenter_R");
+	auto femurCanalPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCanal_R");
+	auto epicondylesPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("epicondyles_R");
+
+	m_RfemurObject->SetfemurSide(0);
+	m_RfemurObject->SetisOperationSide(1);
+	m_RfemurObject->Setsurface_femur(femurSurface);
+	m_RfemurObject->Setpset_lesserTrochanter(lesserTrochanterPset);
+	m_RfemurObject->Setpset_femurCOR(femurCORpSet);
+	m_RfemurObject->Setpset_neckCenter(neckCenterPset);
+	m_RfemurObject->Setpset_femurCanal(femurCanalPset);
+	m_RfemurObject->Setpset_epicondyles(epicondylesPset);
+
+	m_RfemurObject->AlignFemurObjectWithWorldFrame();
+
+
+	auto femurFrameSurface = m_RfemurObject->Getsurface_femurFrame();
+
+	auto dataNode_femurFrame = mitk::DataNode::New();
+
+	dataNode_femurFrame->SetData(femurFrameSurface);
+	dataNode_femurFrame->SetName("femurFrame_R");
+
+	GetDataStorage()->Add(dataNode_femurFrame, GetDataStorage()->GetNamedNode("femur_R"));
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	m_Controls.textBrowser->append("A right femurObject has been initialized");
+
+	m_Controls.textBrowser->append("Right femur version is: " + QString::number(m_RfemurObject->GetfemurVersion()));
+
+}
+
+void THAPlanning::On_pushButton_initializeLfemurObject_clicked()
+{
+	m_LfemurObject = lancet::ThaFemurObject::New();
+
+	auto femurSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("femur_L");
+	auto lesserTrochanterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("lesserTrochanter_L");
+	auto femurCORpSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCOR_L");
+	auto neckCenterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("neckCenter_L");
+	auto femurCanalPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCanal_L");
+	auto epicondylesPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("epicondyles_L");
+
+	m_LfemurObject->SetfemurSide(1);
+	m_LfemurObject->SetisOperationSide(0);
+	m_LfemurObject->Setsurface_femur(femurSurface);
+	m_LfemurObject->Setpset_lesserTrochanter(lesserTrochanterPset);
+	m_LfemurObject->Setpset_femurCOR(femurCORpSet);
+	m_LfemurObject->Setpset_neckCenter(neckCenterPset);
+	m_LfemurObject->Setpset_femurCanal(femurCanalPset);
+	m_LfemurObject->Setpset_epicondyles(epicondylesPset);
+
+	m_LfemurObject->AlignFemurObjectWithWorldFrame();
+
+
+	auto femurFrameSurface = m_LfemurObject->Getsurface_femurFrame();
+
+	auto dataNode_femurFrame = mitk::DataNode::New();
+
+	dataNode_femurFrame->SetData(femurFrameSurface);
+	dataNode_femurFrame->SetName("femurFrame_L");
+
+	GetDataStorage()->Add(dataNode_femurFrame, GetDataStorage()->GetNamedNode("femur_L"));
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	m_Controls.textBrowser->append("A left femurObject has been initialized");
+
+	m_Controls.textBrowser->append("Left femur version is: " + QString::number(m_LfemurObject->GetfemurVersion()));
+
+}
+

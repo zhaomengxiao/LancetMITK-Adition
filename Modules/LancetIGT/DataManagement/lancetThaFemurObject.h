@@ -85,7 +85,9 @@ namespace lancet
 		 */
 		bool AlignFemurObjectWithWorldFrame();
 
-		// Check if all the necessary data are ready 
+		// Check if all the necessary data are ready
+		// should consider m_isOperationSide
+		// if m_isOperationSide == 1, more data are needed
 		bool CheckDataAvailability();
 
 	protected:
@@ -106,7 +108,8 @@ namespace lancet
 		/*
 		 * Establish a femur coordinate with the proximal femurCanal point as the origin O,
 		 * femurCanal[1] --> femurCanal[0] as the z direction
-		 * z X (O --> femurCOR) as the y direction
+		 * z X (O --> femurCOR) as the y direction for right femur
+		 * (O --> femurCOR) X z as the y direction for left femur
 		 * return the transform matrix from the world frame to the femur frame
 		 */
 		vtkSmartPointer<vtkMatrix4x4> CalculateWorldToFemurTransform();

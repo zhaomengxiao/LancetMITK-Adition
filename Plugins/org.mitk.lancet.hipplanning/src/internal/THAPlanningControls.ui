@@ -181,7 +181,7 @@
       <widget class="QGroupBox" name="groupBox">
        <property name="geometry">
         <rect>
-         <x>50</x>
+         <x>20</x>
          <y>10</y>
          <width>161</width>
          <height>91</height>
@@ -224,41 +224,74 @@
       <widget class="QGroupBox" name="groupBox_2">
        <property name="geometry">
         <rect>
-         <x>40</x>
-         <y>140</y>
-         <width>191</width>
-         <height>101</height>
+         <x>200</x>
+         <y>10</y>
+         <width>166</width>
+         <height>84</height>
         </rect>
        </property>
        <property name="title">
-        <string>PelvisObject</string>
+        <string>pelvisObject</string>
        </property>
-       <widget class="QPushButton" name="pushButton_initializePelvisObject">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>20</y>
-          <width>151</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Initialize PelvisObject</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_movePelvisObject">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>50</y>
-          <width>161</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>set pelvisObject matrix</string>
-        </property>
-       </widget>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton_initializePelvisObject">
+          <property name="text">
+           <string>Initialize PelvisObject</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_movePelvisObject">
+          <property name="text">
+           <string>set pelvisObject matrix</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>130</y>
+         <width>186</width>
+         <height>113</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>femurObject</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_5">
+        <item row="0" column="0" colspan="2">
+         <widget class="QPushButton" name="pushButton_initializeLfemurObject">
+          <property name="text">
+           <string>Initialize L femurObject</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QPushButton" name="pushButton_initializeRfemurObject">
+          <property name="text">
+           <string>Initialize R femurObject</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_moveLfemurObject">
+          <property name="text">
+           <string>set L matrix</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QPushButton" name="pushButton_moveRfemurObject">
+          <property name="text">
+           <string>set R matrix</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </widget>
