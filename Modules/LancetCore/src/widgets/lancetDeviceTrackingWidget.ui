@@ -6,29 +6,171 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>605</width>
-    <height>111</height>
+    <width>355</width>
+    <height>103</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QWidget" name="widget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>60</width>
-     <height>60</height>
-    </rect>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>60</width>
-     <height>60</height>
-    </size>
-   </property>
-  </widget>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QWidget" name="widget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QWidget" name="robotEndRFWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget:disabled {
+  border-color: green;
+}
+
+QWidget {
+  image: url(:/robotEndRFWidget.png);
+  border-radius: 3px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: red;
+}</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="robotBaseRFWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget:disabled {
+  border-color: green;
+}
+
+QWidget {
+  image: url(:/robotBaseRFWidget.png);
+  border-radius: 3px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: red;
+}</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="pelvisRFWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget:disabled {
+  border-color: green;
+}
+
+QWidget {
+  image: url(:/pelvisRFWidget.png);
+  border-radius: 3px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: red;
+}</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="femurRFWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget:disabled {
+  border-color: green;
+}
+
+QWidget {
+  image: url(:/femurRFWidget.png);
+  border-radius: 3px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: red;
+}</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="probeRFWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget:disabled 
+{
+  border-color: green;
+}
+
+QWidget 
+{
+  image: url(:/probeRFWidget.png);
+  border-radius: 3px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: red;
+}</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

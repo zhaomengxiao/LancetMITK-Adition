@@ -69,6 +69,7 @@ protected:
 	void ReadFileName();
 	lancet::IDevicesAdministrationService* GetService() const;
 	void setStartHardware(std::string, bool);
+	void ShowToolStatus();
 	mitk::NavigationToolStorage::Pointer m_ToolStorage;
 	QString filename; 
 	QTimer m_updateTimer;

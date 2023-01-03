@@ -174,6 +174,7 @@ void QLinkingHardware::ReadFileName()
                             MITK_INFO << "Connecting to the Vega";
                             connector->GetTrackingDevice("Vega")->OpenConnection();
                             connector->GetTrackingDevice("Vega")->StartTracking();
+                            ShowToolStatus();
                         }
                     }
                 }
@@ -262,4 +263,17 @@ void QLinkingHardware::startCheckRobotMove()
             }
         }
     }  
+}
+void QLinkingHardware::ShowToolStatus()
+{
+    auto connector = this->GetService()->GetConnector(); 
+    mitk::NavigationDataSource::Pointer rob_tool = connector->GetTrackingDeviceSource("Kuka");
+    mitk::NavigationDataSource::Pointer ndi_tool = connector->GetTrackingDeviceSource("Vega");
+    m_Controls.m_StatusWidgetToolToShow->SetTrackingToolSource(rob_tool);
+    m_Controls.m_StatusWidgetToolToShow->SetTrackingToolSource(ndi_tool);
+    m_Controls.m_StatusWidgetToolToShow->SetToolVisible("robotEndRFWidget", true);
+    m_Controls.m_StatusWidgetToolToShow->SetToolVisible("robotBaseRFWidget", true);
+    m_Controls.m_StatusWidgetToolToShow->SetToolVisible("pelvieRFWidget", true);
+    m_Controls.m_StatusWidgetToolToShow->SetToolVisible("femurRFWidget", true);
+    m_Controls.m_StatusWidgetToolToShow->SetToolVisible("probeWidget", true);
 }

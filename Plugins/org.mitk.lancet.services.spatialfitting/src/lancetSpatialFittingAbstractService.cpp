@@ -3,6 +3,8 @@
 #include "internal/lancetSpatialFittingProbeCheckPointModel.h"
 #include "internal/lancetSpatialFittingPelvisCheckPointModel.h"
 #include "internal/lancetSpatialFittingRoboticsRegisterModel.h"
+#include "internal/lancetSpatialFittingPelvisRegisterModel.h"
+#include "internal/lancetSpatialFittingPelvisMarkPointModel.h"
 #include <lancetIDevicesAdministrationService.h>
 
 #include "internal/lancetPluginActivator.h"
@@ -10,13 +12,18 @@ namespace lancet
 {
   struct SpatialFittingAbstractService::SpatialFittingAbstractServicePrivateImp
   {
-	  static berry::SmartPointer<SpatialFittingAbstractService> staticInstance;
+	  static berry::SmartPointer<SpatialFittingAbstractService> staticInstance; 
+	  
+	  lancet::spatial_fitting::RoboticsRegisterModel::Pointer RoboticsRegisterModel;
 
-	  itk::SmartPointer<lancet::spatial_fitting::RoboticsRegisterModel> RoboticsRegisterModel;
+	  lancet::spatial_fitting::ProbeCheckPointModel::Pointer probeCheckPointModel;
 
-		lancet::spatial_fitting::ProbeCheckPointModel::Pointer probeCheckPointModel;
+	  lancet::spatial_fitting::PelvisCheckPointModel::Pointer pelvisCheckPointModel;
 
-		lancet::spatial_fitting::PelvisCheckPointModel::Pointer pelvisCheckPointModel;
+	  lancet::spatial_fitting::PelvisRegisterModel::Pointer pelvisRegisterModel;
+
+	  lancet::spatial_fitting::PelvisMarkPointModel::Pointer pelvisMarkPointModel;
+	    
   };
 	berry::SmartPointer<SpatialFittingAbstractService>
 		SpatialFittingAbstractService::SpatialFittingAbstractServicePrivateImp::
@@ -68,5 +75,25 @@ namespace lancet
 		itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> model)
 	{
 		this->imp->pelvisCheckPointModel = model;
+	}
+	itk::SmartPointer<lancet::spatial_fitting::PelvisRegisterModel>
+		SpatialFittingAbstractService::GetPelvisRegisterModel() const
+	{
+		return this->imp->pelvisRegisterModel;
+	}
+	void SpatialFittingAbstractService::SetPelvisRegisterModel(
+		itk::SmartPointer<lancet::spatial_fitting::PelvisRegisterModel> model)
+	{
+		this->imp->pelvisRegisterModel = model;
+	}
+	itk::SmartPointer<lancet::spatial_fitting::PelvisMarkPointModel>
+		SpatialFittingAbstractService::GetPelvisMarkPointModel() const
+	{
+		return this->imp->pelvisMarkPointModel;
+	}
+	void SpatialFittingAbstractService::SetPelvisMarkPointModel(
+		itk::SmartPointer<lancet::spatial_fitting::PelvisMarkPointModel> model)
+	{
+		this->imp->pelvisMarkPointModel = model;
 	}
 }

@@ -15,6 +15,8 @@ set(UI_FILES
   src/widgets/lancetDeviceTrackingWidget.ui
 )
 
-set(RESOURCE_FILES
-
+# list of Qt .qrc files which contain additional resources
+# specific to this plugin
+set(QRC_FILES
+  resource/resources.qrc
 )
