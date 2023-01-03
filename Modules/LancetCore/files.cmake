@@ -14,10 +14,8 @@ set(UI_FILES
   src/widgets/lancetDeviceTrackingWidget.ui
 )
 
-set(RESOURCE_FILES
-  robotEndRFWidget.png
-  robotBaseRFWidget.png
-  pelvisRFWidget.png
-  femurRFWidget.png
-  probeRFWidget.png
+# list of Qt .qrc files which contain additional resources
+# specific to this plugin
+set(QRC_FILES
+  resource/resources.qrc
 )

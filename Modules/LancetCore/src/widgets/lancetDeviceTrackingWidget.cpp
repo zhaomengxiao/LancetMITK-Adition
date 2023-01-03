@@ -2,6 +2,9 @@
 #include "ui_lancetDeviceTrackingWidget.h"
 // Qt
 #include <QTimer>
+#include <QDir>
+#include <QFile>
+#include <QDebug>
 
 // mitk
 #include <mitkNavigationDataSource.h>
@@ -20,7 +23,21 @@ DeviceTrackingWidget::DeviceTrackingWidget(QWidget* parent)
   : QWidget(parent)
   , imp(std::make_shared<DeviceTrackingWidgetPrivateImp>())
 {
+    Q_INIT_RESOURCE(resources);
 	this->imp->ui.setupUi(this);
+
+    auto test_dir = QDir("qrc:/LancetCore/");
+    // ret 
+    QFile qss(":/LancetCore/toolstate.qss");
+    qDebug() << qss.fileName();
+    if (!qss.open(QIODevice::ReadOnly))
+    {
+        qWarning() << __func__ << __LINE__ << ":" << "error load file "
+            << qss.fileName() << "\n"
+            << "error: " << qss.errorString();
+    }
+    this->imp->ui.widget->setStyleSheet(QLatin1String(qss.readAll()));
+    qss.close();
 
 	connect(&this->imp->tm, &QTimer::timeout, this, [=]()
 	{

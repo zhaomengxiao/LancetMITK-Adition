@@ -6,36 +6,36 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>360</width>
-    <height>82</height>
+    <width>355</width>
+    <height>103</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">
-  background-color: black;
-  border-radius: 10px;
-</string>
+   <string notr="true"/>
   </property>
-  <widget class="QWidget" name="robotEndRFWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>60</width>
-     <height>60</height>
-    </rect>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>60</width>
-     <height>60</height>
-    </size>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QWidget:disabled {
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QWidget" name="widget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QWidget" name="robotEndRFWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget:disabled {
   border-color: green;
 }
 
@@ -46,25 +46,25 @@ QWidget {
   border-style: solid;
   border-color: red;
 }</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="robotBaseRFWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>80</x>
-     <y>10</y>
-     <width>60</width>
-     <height>60</height>
-    </rect>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>60</width>
-     <height>60</height>
-    </size>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QWidget:disabled {
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="robotBaseRFWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget:disabled {
   border-color: green;
 }
 
@@ -75,25 +75,25 @@ QWidget {
   border-style: solid;
   border-color: red;
 }</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="pelvisRFWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>150</x>
-     <y>10</y>
-     <width>60</width>
-     <height>60</height>
-    </rect>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>60</width>
-     <height>60</height>
-    </size>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QWidget:disabled {
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="pelvisRFWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget:disabled {
   border-color: green;
 }
 
@@ -104,25 +104,25 @@ QWidget {
   border-style: solid;
   border-color: red;
 }</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="femurRFWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>220</x>
-     <y>10</y>
-     <width>60</width>
-     <height>60</height>
-    </rect>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>60</width>
-     <height>60</height>
-    </size>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QWidget:disabled {
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="femurRFWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget:disabled {
   border-color: green;
 }
 
@@ -133,25 +133,25 @@ QWidget {
   border-style: solid;
   border-color: red;
 }</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="probeRFWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>290</x>
-     <y>10</y>
-     <width>60</width>
-     <height>60</height>
-    </rect>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>60</width>
-     <height>60</height>
-    </size>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QWidget:disabled 
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="probeRFWidget" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QWidget:disabled 
 {
   border-color: green;
 }
@@ -164,8 +164,13 @@ QWidget
   border-style: solid;
   border-color: red;
 }</string>
-   </property>
-  </widget>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
