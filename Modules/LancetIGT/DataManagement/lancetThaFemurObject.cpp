@@ -516,10 +516,11 @@ void lancet::ThaFemurObject::CalculateCanalFrameToMechanicFrame()
 	// for mechanic axis alignment, construct a temporary coordinate system:
 	// origin: proximal femurCanal
 	// z vector: midpoint of the epicondyles --> femurCOR
-	// toolVector: proximal femurCanal -->femurCOR
+	// toolVector: femurCOR's perpendicular foot on the canal axis --> femurCOR
 	// y vector: z vector X toolVector (right femur) / toolVector X z vector (left femur)
 	auto femurCOR = Getpset_femurCOR()->GetPoint(0);
 	auto proximalCanal = Getpset_femurCanal()->GetPoint(0);
+	auto distalCanal = Getpset_femurCanal()->GetPoint(1);
 	auto medialEpi = Getpset_epicondyles()->GetPoint(0);
 	auto lateralEpi = Getpset_epicondyles()->GetPoint(1);
 	double midEpi[3];
@@ -535,16 +536,26 @@ void lancet::ThaFemurObject::CalculateCanalFrameToMechanicFrame()
 
 	Eigen::Vector3d toolVector;
 	toolVector[0] = femurCOR[0] - proximalCanal[0];
-	toolVector[1] = femurCOR[2] - proximalCanal[2];
+	toolVector[1] = femurCOR[1] - proximalCanal[1];
 	toolVector[2] = femurCOR[2] - proximalCanal[2];
+
+	Eigen::Vector3d toolVector2;
+	toolVector2[0] = proximalCanal[0] - distalCanal[0];
+	toolVector2[1] = proximalCanal[1] - distalCanal[1];
+	toolVector2[2] = proximalCanal[2] - distalCanal[2];
+	toolVector2.normalize();
+
+	Eigen::Vector3d toolVector3;
+	toolVector3 = toolVector - (toolVector.dot(toolVector2)) * toolVector2;
+
 
 	Eigen::Vector3d y_vector;
 	if(m_femurSide == 0)
 	{
-		y_vector = z_vector.cross(toolVector);
+		y_vector = z_vector.cross(toolVector3);
 	}else
 	{
-		y_vector = toolVector.cross(z_vector);
+		y_vector = toolVector3.cross(z_vector);
 	}
 
 	y_vector.normalize();
