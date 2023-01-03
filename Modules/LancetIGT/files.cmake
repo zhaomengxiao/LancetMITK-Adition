@@ -4,6 +4,7 @@ set(H_FILES
   DataManagement/lancetPathPoint.h
   DataManagement/lancetThaPelvisObject.h
   DataManagement/lancetThaFemurObject.h
+  DataManagement/lancetThaReductionObject.h
   
   IO/lancetNavigationObjectWriter.h
 
@@ -28,6 +29,7 @@ set(CPP_FILES
   DataManagement/lancetPathPoint.cpp
   DataManagement/lancetThaPelvisObject.cpp
   DataManagement/lancetThaFemurObject.cpp
+  DataManagement/lancetThaReductionObject.cpp
   
   IO/lancetNavigationObjectWriter.cpp
   

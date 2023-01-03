@@ -25,6 +25,7 @@ found in the LICENSE file.
 
 lancet::ThaFemurObject::ThaFemurObject():
 m_vtkMatrix_groupGeometry(vtkMatrix4x4::New()),
+m_vtkMatrix_canalFrameToMechanicFrame(vtkMatrix4x4::New()),
 m_surface_femur(mitk::Surface::New()),
 m_surface_femurFrame(mitk::Surface::New()),
 m_pset_neckCenter(mitk::PointSet::New()),
@@ -39,6 +40,22 @@ m_pset_epicondyles(mitk::PointSet::New())
 lancet::ThaFemurObject::~ThaFemurObject()
 {
 }
+
+void lancet::ThaFemurObject::SetGroupGeometry(vtkSmartPointer<vtkMatrix4x4> newMatrix)
+{
+	m_surface_femur->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+	m_surface_femurFrame-> GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+	m_pset_lesserTrochanter->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+	m_pset_femurCOR->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+	m_pset_neckCenter->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+	m_pset_femurCanal->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+	m_pset_epicondyles->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+
+	// m_vtkMatrix_groupGeometry and newMatrix should both be used to handle mitk::Image
+
+	m_vtkMatrix_groupGeometry->DeepCopy(newMatrix);
+}
+
 
 void lancet::ThaFemurObject::CalculateFemurVersion()
 {
@@ -363,6 +380,8 @@ bool lancet::ThaFemurObject::AlignFemurObjectWithWorldFrame()
 	RewritePointSetWithGeometryMatrix(m_pset_femurCanal);
 	RewritePointSetWithGeometryMatrix(m_pset_epicondyles);
 
+	CalculateCanalFrameToMechanicFrame();
+
 	return true;
 }
 
@@ -489,4 +508,55 @@ mitk::PointSet::Pointer lancet::ThaFemurObject::GetPointSetWithGeometryMatrix(co
 	}
 
 	return outputPointSet;
+}
+
+void lancet::ThaFemurObject::CalculateCanalFrameToMechanicFrame()
+{
+	// Provided that the femur is already aligned with the canal axis
+	// for mechanic axis alignment, construct a temporary coordinate system:
+	// origin: proximal femurCanal
+	// z vector: midpoint of the epicondyles --> femurCOR
+	// toolVector: proximal femurCanal -->femurCOR
+	// y vector: z vector X toolVector (right femur) / toolVector X z vector (left femur)
+	auto femurCOR = Getpset_femurCOR()->GetPoint(0);
+	auto proximalCanal = Getpset_femurCanal()->GetPoint(0);
+	auto medialEpi = Getpset_epicondyles()->GetPoint(0);
+	auto lateralEpi = Getpset_epicondyles()->GetPoint(1);
+	double midEpi[3];
+	midEpi[0] = (lateralEpi[0] + medialEpi[0]) / 2;
+	midEpi[1] = (lateralEpi[1] + medialEpi[1]) / 2;
+	midEpi[2] = (lateralEpi[2] + medialEpi[2]) / 2;
+
+	Eigen::Vector3d z_vector;
+	z_vector[0] = femurCOR[0] - midEpi[0];
+	z_vector[1] = femurCOR[1] - midEpi[1];
+	z_vector[2] = femurCOR[2] - midEpi[2];
+	z_vector.normalize();
+
+	Eigen::Vector3d toolVector;
+	toolVector[0] = femurCOR[0] - proximalCanal[0];
+	toolVector[1] = femurCOR[2] - proximalCanal[2];
+	toolVector[2] = femurCOR[2] - proximalCanal[2];
+
+	Eigen::Vector3d y_vector;
+	if(m_femurSide == 0)
+	{
+		y_vector = z_vector.cross(toolVector);
+	}else
+	{
+		y_vector = toolVector.cross(z_vector);
+	}
+
+	y_vector.normalize();
+
+	Eigen::Vector3d x_vector;
+	x_vector = y_vector.cross(z_vector);
+
+	for(int i{0}; i < 3; i++)
+	{
+		m_vtkMatrix_canalFrameToMechanicFrame->SetElement(i, 0, x_vector[i]);
+		m_vtkMatrix_canalFrameToMechanicFrame->SetElement(i, 1, y_vector[i]);
+		m_vtkMatrix_canalFrameToMechanicFrame->SetElement(i, 2, z_vector[i]);
+	}
+
 }

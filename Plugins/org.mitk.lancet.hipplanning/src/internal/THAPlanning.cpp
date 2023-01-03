@@ -44,6 +44,12 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
 	// Left femurObject
   connect(m_Controls.pushButton_initializeLfemurObject, &QPushButton::clicked, this, &THAPlanning::On_pushButton_initializeLfemurObject_clicked);
 
+	// noPelvicTilt + canal alignment
+  connect(m_Controls.pushButton_noTiltCanalReduction, &QPushButton::clicked, this, &THAPlanning::pushButton_noTiltCanalReduction_clicked);
+
+  // noPelvicTilt + mechanic alignment
+  connect(m_Controls.pushButton_noTiltMechanicReduction, &QPushButton::clicked, this, &THAPlanning::pushButton_noTiltMechanicReduction_clicked);
+
 }
 
 void THAPlanning::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -469,3 +475,44 @@ void THAPlanning::On_pushButton_initializeLfemurObject_clicked()
 
 }
 
+void THAPlanning::pushButton_noTiltCanalReduction_clicked()
+{
+	m_ReductionObject = lancet::ThaReductionObject::New();
+
+	m_ReductionObject->SetPelvisObject(m_pelvisObject);
+
+	m_ReductionObject->SetFemurObject_R(m_RfemurObject);
+
+	m_ReductionObject->SetFemurObject_L(m_LfemurObject);
+
+	vtkNew<vtkMatrix4x4> rFemurMatrix;
+	vtkNew<vtkMatrix4x4> lFemurMatrix;
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+
+	m_ReductionObject->GetOriginalNoTiltCanalMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
+
+	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+}
+
+void THAPlanning::pushButton_noTiltMechanicReduction_clicked()
+{
+	m_ReductionObject = lancet::ThaReductionObject::New();
+
+	m_ReductionObject->SetPelvisObject(m_pelvisObject);
+
+	m_ReductionObject->SetFemurObject_R(m_RfemurObject);
+
+	m_ReductionObject->SetFemurObject_L(m_LfemurObject);
+
+	vtkNew<vtkMatrix4x4> rFemurMatrix;
+	vtkNew<vtkMatrix4x4> lFemurMatrix;
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+
+	m_ReductionObject->GetOriginalNoTiltMechanicMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
+
+	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+}

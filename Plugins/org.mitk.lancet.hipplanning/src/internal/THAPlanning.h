@@ -24,6 +24,7 @@ found in the LICENSE file.
 #include "mitkPointSet.h"
 
 #include "lancetThaPelvisObject.h"
+#include "lancetThaReductionObject.h"
 
 /**
   \brief THAPlanning
@@ -126,11 +127,14 @@ protected:
 
   // ---------------- Test femurObject -----------------
   void On_pushButton_initializeLfemurObject_clicked();
-  void On_pushButton_moveLfemurObject_clicked();
   void On_pushButton_initializeRfemurObject_clicked();
-  void On_pushButton_moveRfemurObject_clicked();
   lancet::ThaFemurObject::Pointer m_LfemurObject;
   lancet::ThaFemurObject::Pointer m_RfemurObject;
+
+	// --------------- Test reductionObject ------------
+  void pushButton_noTiltCanalReduction_clicked();
+  void pushButton_noTiltMechanicReduction_clicked();
+  lancet::ThaReductionObject::Pointer m_ReductionObject;
 
 	//---------- Tool functions --------------
 	// Append the geometry matrix to the chosen point

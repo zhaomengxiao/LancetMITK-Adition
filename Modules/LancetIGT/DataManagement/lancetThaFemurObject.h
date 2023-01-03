@@ -70,6 +70,8 @@ namespace lancet
 
 		itkGetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 
+		itkGetMacro(vtkMatrix_canalFrameToMechanicFrame, vtkSmartPointer<vtkMatrix4x4>)
+
 		/*
 		 * Update the geometry matrix of each data component (do not rewrite the data)
 		 * with newMatrix and m_vtkMatrix_groupGeometry (be careful with mitk::Image);
@@ -114,10 +116,16 @@ namespace lancet
 		 */
 		vtkSmartPointer<vtkMatrix4x4> CalculateWorldToFemurTransform();
 
+		//TODO: calculate m_vtkMatrix_canalFrameToMechanicFrame
+		void CalculateCanalFrameToMechanicFrame();
+
 		void CalculateFemurVersion();
 
 		// the geometry matrix of the femur group object
 		vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_groupGeometry;
+
+		// transform matrix from the femurCanal frame (femurFrame) to the mechanical axis frame
+		vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_canalFrameToMechanicFrame;
 
 		// right femur is 0; left femur is 1
 		int m_femurSide{ 0 };

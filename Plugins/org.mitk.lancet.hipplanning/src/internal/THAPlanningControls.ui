@@ -253,7 +253,7 @@
       <widget class="QGroupBox" name="groupBox_3">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>10</x>
          <y>130</y>
          <width>186</width>
          <height>113</height>
@@ -292,6 +292,45 @@
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>130</y>
+         <width>181</width>
+         <height>131</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>reductionObject</string>
+       </property>
+       <widget class="QPushButton" name="pushButton_noTiltCanalReduction">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>161</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>noTilt canal reduction</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_noTiltMechanicReduction">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>60</y>
+          <width>161</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>noTilt mechanix reduction</string>
+        </property>
+       </widget>
       </widget>
      </widget>
     </widget>
