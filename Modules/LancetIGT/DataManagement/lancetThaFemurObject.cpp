@@ -71,17 +71,17 @@ void lancet::ThaFemurObject::CalculateFemurVersion()
 	Eigen::Vector3d epicondylarAxis;
 	Eigen::Vector3d canalAxis;
 
-	neckAxis[0] = GetPointWithGeometryMatrix(m_pset_femurCOR, 0)[0] - GetPointWithGeometryMatrix(m_pset_neckCenter, 0)[0];
-	neckAxis[1] = GetPointWithGeometryMatrix(m_pset_femurCOR, 0)[1] - GetPointWithGeometryMatrix(m_pset_neckCenter, 0)[1];
-	neckAxis[2] = GetPointWithGeometryMatrix(m_pset_femurCOR, 0)[2] - GetPointWithGeometryMatrix(m_pset_neckCenter, 0)[2];
+	neckAxis[0] = m_pset_femurCOR->GetPoint(0)[0] - m_pset_neckCenter->GetPoint(0)[0];
+	neckAxis[1] = m_pset_femurCOR->GetPoint(0)[1] - m_pset_neckCenter->GetPoint(0)[1];
+	neckAxis[2] = m_pset_femurCOR->GetPoint(0)[2] - m_pset_neckCenter->GetPoint(0)[2];
 
-	epicondylarAxis[0] = GetPointWithGeometryMatrix(m_pset_epicondyles, 0)[0] - GetPointWithGeometryMatrix(m_pset_epicondyles, 1)[0];
-	epicondylarAxis[1] = GetPointWithGeometryMatrix(m_pset_epicondyles, 0)[1] - GetPointWithGeometryMatrix(m_pset_epicondyles, 1)[1];
-	epicondylarAxis[2] = GetPointWithGeometryMatrix(m_pset_epicondyles, 0)[2] - GetPointWithGeometryMatrix(m_pset_epicondyles, 1)[2];
+	epicondylarAxis[0] = m_pset_epicondyles->GetPoint(0)[0] - m_pset_epicondyles->GetPoint(1)[0];
+	epicondylarAxis[1] = m_pset_epicondyles->GetPoint(0)[1] - m_pset_epicondyles->GetPoint(1)[1];
+	epicondylarAxis[2] = m_pset_epicondyles->GetPoint(0)[2] - m_pset_epicondyles->GetPoint(1)[2];
 
-	canalAxis[0] = GetPointWithGeometryMatrix(m_pset_femurCanal, 0)[0] - GetPointWithGeometryMatrix(m_pset_femurCanal, 1)[0];
-	canalAxis[1] = GetPointWithGeometryMatrix(m_pset_femurCanal, 0)[1] - GetPointWithGeometryMatrix(m_pset_femurCanal, 1)[1];
-	canalAxis[2] = GetPointWithGeometryMatrix(m_pset_femurCanal, 0)[2] - GetPointWithGeometryMatrix(m_pset_femurCanal, 1)[2];
+	canalAxis[0] = m_pset_femurCanal->GetPoint(0)[0] - m_pset_femurCanal->GetPoint(1)[0];
+	canalAxis[1] = m_pset_femurCanal->GetPoint(0)[1] - m_pset_femurCanal->GetPoint(1)[1];
+	canalAxis[2] = m_pset_femurCanal->GetPoint(0)[2] - m_pset_femurCanal->GetPoint(1)[2];
 
 	canalAxis.normalize();
 
@@ -369,6 +369,7 @@ bool lancet::ThaFemurObject::AlignFemurObjectWithWorldFrame()
 
 	// Rewrite the inside points of m_pset_lesserTrochanter, m_pset_femurCOR, m_pset_neckCenter, m_pset_femurCanal and m_pset_epicondyles
 	m_pset_lesserTrochanter->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(femurToWorldMatrix);
+	m_pset_lesserTrochanter->Update();
 	m_pset_femurCOR->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(femurToWorldMatrix);
 	m_pset_neckCenter->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(femurToWorldMatrix);
 	m_pset_femurCanal->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(femurToWorldMatrix);
@@ -440,53 +441,15 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurObject::CalculateWorldToFemurTrans
 	return worldToFemurMatrix;
 }
 
-mitk::Point3D lancet::ThaFemurObject::GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const int pointIndex)
-{
-	int size = inputPointSet->GetSize();
-	mitk::Point3D outputPoint;
-	outputPoint[0] = 0;
-	outputPoint[1] = 0;
-	outputPoint[2] = 0;
-
-	if ((size - 1) < pointIndex)
-	{
-		return outputPoint;
-	}
-
-	auto tmpPoint = inputPointSet->GetPoint(pointIndex);
-
-	vtkNew<vtkMatrix4x4> initPointMatrix;
-	initPointMatrix->Identity();
-	initPointMatrix->SetElement(0, 3, tmpPoint[0]);
-	initPointMatrix->SetElement(1, 3, tmpPoint[1]);
-	initPointMatrix->SetElement(2, 3, tmpPoint[2]);
-
-	auto geometryMatrix = inputPointSet->GetGeometry()->GetVtkMatrix();
-
-	vtkNew<vtkTransform> tmpTransform;
-	tmpTransform->Identity();
-	tmpTransform->PostMultiply();
-	tmpTransform->SetMatrix(initPointMatrix);
-	tmpTransform->Concatenate(geometryMatrix);
-	tmpTransform->Update();
-
-	auto resultMatrix = tmpTransform->GetMatrix();
-
-	outputPoint[0] = resultMatrix->GetElement(0, 3);
-	outputPoint[1] = resultMatrix->GetElement(1, 3);
-	outputPoint[2] = resultMatrix->GetElement(2, 3);
-	// MITK_INFO << "The current point is: " << outputPoint[0] << "/" << outputPoint[1] << "/" << outputPoint[2];
-	return outputPoint;
-
-}
-
 void lancet::ThaFemurObject::RewritePointSetWithGeometryMatrix(mitk::PointSet::Pointer inputPointSet)
 {
-	unsigned size = inputPointSet->GetSize();
+	int size = inputPointSet->GetSize();
+	
+	auto tmpPset = mitk::PointSet::New();
 
 	for (int i{ 0 }; i < size; i++)
 	{
-		inputPointSet->SetPoint(i, GetPointWithGeometryMatrix(inputPointSet, i));
+		tmpPset->InsertPoint(inputPointSet->GetPoint(i));
 	}
 
 	vtkNew<vtkMatrix4x4> tmpMatrix;
@@ -494,20 +457,24 @@ void lancet::ThaFemurObject::RewritePointSetWithGeometryMatrix(mitk::PointSet::P
 
 	inputPointSet->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
 
+	for (int i{ 0 }; i < size; i++)
+	{
+		inputPointSet->SetPoint(i, tmpPset->GetPoint(i));
+	}
 }
 
 mitk::PointSet::Pointer lancet::ThaFemurObject::GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet)
 {
-	auto outputPointSet = mitk::PointSet::New();
+	int size = inputPointSet->GetSize();
 
-	unsigned size = inputPointSet->GetSize();
+	auto tmpPset = mitk::PointSet::New();
 
 	for (int i{ 0 }; i < size; i++)
 	{
-		outputPointSet->InsertPoint(GetPointWithGeometryMatrix(inputPointSet, i));
+		tmpPset->InsertPoint(inputPointSet->GetPoint(i));
 	}
 
-	return outputPointSet;
+	return tmpPset;
 }
 
 void lancet::ThaFemurObject::CalculateCanalFrameToMechanicFrame()

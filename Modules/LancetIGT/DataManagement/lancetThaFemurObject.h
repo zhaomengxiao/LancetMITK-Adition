@@ -98,8 +98,6 @@ namespace lancet
 		ThaFemurObject(const ThaFemurObject& other);
 		~ThaFemurObject() override;
 
-		// Append the geometry matrix to the chosen point
-		mitk::Point3D GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const int pointIndex);
 		// Append the geometry matrix to the pointSet
 		void RewritePointSetWithGeometryMatrix(mitk::PointSet::Pointer inputPointSet);
 		mitk::PointSet::Pointer GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet);
@@ -116,7 +114,7 @@ namespace lancet
 		 */
 		vtkSmartPointer<vtkMatrix4x4> CalculateWorldToFemurTransform();
 
-		//TODO: calculate m_vtkMatrix_canalFrameToMechanicFrame
+		// Calculate m_vtkMatrix_canalFrameToMechanicFrame
 		void CalculateCanalFrameToMechanicFrame();
 
 		void CalculateFemurVersion();

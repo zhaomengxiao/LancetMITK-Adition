@@ -83,8 +83,6 @@ namespace lancet
 		ThaPelvisObject(const ThaPelvisObject& other);
 		~ThaPelvisObject() override;
 
-		// Append the geometry matrix to the chosen point
-		mitk::Point3D GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const int pointIndex);
 		// Append the geometry matrix to the pointSet
 		void RewritePointSetWithGeometryMatrix( mitk::PointSet::Pointer inputPointSet);
 		mitk::PointSet::Pointer GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet);

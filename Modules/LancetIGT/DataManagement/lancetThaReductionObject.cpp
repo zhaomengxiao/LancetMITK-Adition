@@ -82,7 +82,10 @@ void lancet::ThaReductionObject::CalOriginalNoTiltCanalMatrices()
 
 	// right femurObject matrix, only translation is required
 	auto sourcePoint = m_FemurObject_R->Getpset_femurCOR()->GetPoint(0);
+	m_FemurObject_R->Getpset_femurCOR()->GetGeometry()->WorldToIndex(sourcePoint, sourcePoint);
+
 	auto targetPoint = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(0);
+	m_PelvisObject->Getpset_pelvisCOR()->GetGeometry()->WorldToIndex(targetPoint, targetPoint);
 
 	double rightTranslation[3];
 	rightTranslation[0] = targetPoint[0] - sourcePoint[0];
@@ -95,7 +98,10 @@ void lancet::ThaReductionObject::CalOriginalNoTiltCanalMatrices()
 
 	// left femurObject matrix
 	auto sourcePoint_ = m_FemurObject_L->Getpset_femurCOR()->GetPoint(0);
+	m_FemurObject_L->Getpset_femurCOR()->GetGeometry()->WorldToIndex(sourcePoint_, sourcePoint_);
+
 	auto targetPoint_ = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(1);
+	m_PelvisObject->Getpset_pelvisCOR()->GetGeometry()->WorldToIndex(targetPoint_, targetPoint_);
 
 	double leftTranslation[3];
 	leftTranslation[0] = targetPoint_[0] - sourcePoint_[0];
@@ -133,6 +139,8 @@ void lancet::ThaReductionObject::CalOriginalNoTiltMechanicMatrices()
 	mechanicToCanal_matrix_R->DeepCopy(m_FemurObject_R->GetvtkMatrix_canalFrameToMechanicFrame());
 	mechanicToCanal_matrix_R->Invert();
 	auto femurCOR_R_old = m_FemurObject_R->Getpset_femurCOR()->GetPoint(0);
+	m_FemurObject_R->Getpset_femurCOR()->GetGeometry()->WorldToIndex(femurCOR_R_old,femurCOR_R_old);
+
 	vtkNew<vtkMatrix4x4> toolMatrix_R;
 	toolMatrix_R->SetElement(0, 3, femurCOR_R_old[0]);
 	toolMatrix_R->SetElement(1, 3, femurCOR_R_old[1]);
@@ -154,6 +162,7 @@ void lancet::ThaReductionObject::CalOriginalNoTiltMechanicMatrices()
 	};
 
 	auto targetPoint_R = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(0);
+	m_PelvisObject->Getpset_pelvisCOR()->GetGeometry()->WorldToIndex(targetPoint_R, targetPoint_R);
 
 	double translation_R[3];
 	translation_R[0] = targetPoint_R[0] - sourcePoint_R[0];
@@ -171,6 +180,8 @@ void lancet::ThaReductionObject::CalOriginalNoTiltMechanicMatrices()
 	mechanicToCanal_matrix_L->DeepCopy(m_FemurObject_L->GetvtkMatrix_canalFrameToMechanicFrame());
 	mechanicToCanal_matrix_L->Invert();
 	auto femurCOR_L_old = m_FemurObject_L->Getpset_femurCOR()->GetPoint(0);
+	m_FemurObject_L->Getpset_femurCOR()->GetGeometry()->WorldToIndex(femurCOR_L_old, femurCOR_L_old);
+
 	vtkNew<vtkMatrix4x4> toolMatrix_L;
 	toolMatrix_L->SetElement(0, 3, femurCOR_L_old[0]);
 	toolMatrix_L->SetElement(1, 3, femurCOR_L_old[1]);
@@ -192,6 +203,7 @@ void lancet::ThaReductionObject::CalOriginalNoTiltMechanicMatrices()
 	};
 
 	auto targetPoint_L = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(1);
+	m_PelvisObject->Getpset_pelvisCOR()->GetGeometry()->WorldToIndex(targetPoint_L, targetPoint_L);
 
 	double translation_L[3];
 	translation_L[0] = targetPoint_L[0] - sourcePoint_L[0];

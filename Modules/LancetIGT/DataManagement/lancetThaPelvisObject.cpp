@@ -341,53 +341,16 @@ bool lancet::ThaPelvisObject::AlignPelvicObjectWithWorldFrame()
 }
 
 
-mitk::Point3D lancet::ThaPelvisObject::GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const int pointIndex)
-{
-	int size = inputPointSet->GetSize();
-	mitk::Point3D outputPoint;
-	outputPoint[0] = 0;
-	outputPoint[1] = 0;
-	outputPoint[2] = 0;
-
-	if ((size - 1) < pointIndex)
-	{
-		return outputPoint;
-	}
-
-	auto tmpPoint = inputPointSet->GetPoint(pointIndex);
-
-	vtkNew<vtkMatrix4x4> initPointMatrix;
-	initPointMatrix->Identity();
-	initPointMatrix->SetElement(0, 3, tmpPoint[0]);
-	initPointMatrix->SetElement(1, 3, tmpPoint[1]);
-	initPointMatrix->SetElement(2, 3, tmpPoint[2]);
-
-	auto geometryMatrix = inputPointSet->GetGeometry()->GetVtkMatrix();
-
-	vtkNew<vtkTransform> tmpTransform;
-	tmpTransform->Identity();
-	tmpTransform->PostMultiply();
-	tmpTransform->SetMatrix(initPointMatrix);
-	tmpTransform->Concatenate(geometryMatrix);
-	tmpTransform->Update();
-
-	auto resultMatrix = tmpTransform->GetMatrix();
-
-	outputPoint[0] = resultMatrix->GetElement(0, 3);
-	outputPoint[1] = resultMatrix->GetElement(1, 3);
-	outputPoint[2] = resultMatrix->GetElement(2, 3);
-	// MITK_INFO << "The current point is: " << outputPoint[0] << "/" << outputPoint[1] << "/" << outputPoint[2];
-	return outputPoint;
-
-}
-
 void lancet::ThaPelvisObject::RewritePointSetWithGeometryMatrix( mitk::PointSet::Pointer inputPointSet)
 {
-	unsigned size = inputPointSet->GetSize();
+	int size = inputPointSet->GetSize();
+
+	auto tmpPset = mitk::PointSet::New();
 
 	for (int i{ 0 }; i < size; i++)
 	{
-		inputPointSet->SetPoint(i,GetPointWithGeometryMatrix(inputPointSet, i));
+		// inputPointSet->SetPoint(i, GetPointWithGeometryMatrix(inputPointSet, i));
+		tmpPset->InsertPoint(inputPointSet->GetPoint(i));
 	}
 
 	vtkNew<vtkMatrix4x4> tmpMatrix;
@@ -395,19 +358,24 @@ void lancet::ThaPelvisObject::RewritePointSetWithGeometryMatrix( mitk::PointSet:
 
 	inputPointSet->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
 
+	for (int i{ 0 }; i < size; i++)
+	{
+		inputPointSet->SetPoint(i, tmpPset->GetPoint(i));
+	}
+
 }
 
 mitk::PointSet::Pointer lancet::ThaPelvisObject::GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet)
 {
-	auto outputPointSet = mitk::PointSet::New();
+	int size = inputPointSet->GetSize();
 
-	unsigned size = inputPointSet->GetSize();
+	auto tmpPset = mitk::PointSet::New();
 
 	for (int i{ 0 }; i < size; i++)
 	{
-		outputPointSet->InsertPoint(GetPointWithGeometryMatrix(inputPointSet, i));
+		tmpPset->InsertPoint(inputPointSet->GetPoint(i));
 	}
 
-	return outputPointSet;
+	return tmpPset;
 }
 
