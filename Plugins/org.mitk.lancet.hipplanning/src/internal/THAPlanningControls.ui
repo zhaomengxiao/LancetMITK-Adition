@@ -20,6 +20,9 @@
    <string>QmitkTemplate</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="0">
+    <widget class="QTextBrowser" name="textBrowser"/>
+   </item>
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
@@ -296,47 +299,48 @@
       <widget class="QGroupBox" name="groupBox_4">
        <property name="geometry">
         <rect>
-         <x>230</x>
-         <y>130</y>
-         <width>181</width>
-         <height>131</height>
+         <x>210</x>
+         <y>110</y>
+         <width>196</width>
+         <height>142</height>
         </rect>
        </property>
        <property name="title">
         <string>reductionObject</string>
        </property>
-       <widget class="QPushButton" name="pushButton_noTiltCanalReduction">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>161</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>noTilt canal reduction</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_noTiltMechanicReduction">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>60</y>
-          <width>161</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>noTilt mechanix reduction</string>
-        </property>
-       </widget>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton_noTiltCanalReduction">
+          <property name="text">
+           <string>noTilt canal reduction</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_noTiltMechanicReduction">
+          <property name="text">
+           <string>noTilt mechanix reduction</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_supineCanalReduction">
+          <property name="text">
+           <string>supineTilt canal reuction</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QPushButton" name="pushButton_supineMechanicReduction">
+          <property name="text">
+           <string>supineTilt mechanic reuction</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QTextBrowser" name="textBrowser"/>
    </item>
   </layout>
  </widget>

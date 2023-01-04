@@ -235,19 +235,115 @@ void lancet::ThaReductionObject::GetOriginalNoTiltMechanicMatrices(
 
 void lancet::ThaReductionObject::CalOriginalSupineTiltCanalMatrices()
 {
+	// calculate m_SupinePelvicTilt_pelvisMatrix using m_pelvicTilt_supine
+	double pelvicTilt_degree = m_PelvisObject->GetpelvicTilt_supine();
+
+	vtkNew<vtkTransform> pelvisTransform;
+	pelvisTransform->Identity();
+	pelvisTransform->RotateX(pelvicTilt_degree);
+	pelvisTransform->Update();
+
+	m_SupinePelvicTilt_pelvisMatrix->DeepCopy(pelvisTransform->GetMatrix());
+
+	// calculate m_SupinePelvicTilt_canal_matrix_R and m_SupinePelvicTilt_canal_matrix_L
+	auto pelvisCOR_R = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(0);
+	m_PelvisObject->Getpset_pelvisCOR()->GetGeometry()->WorldToIndex(pelvisCOR_R, pelvisCOR_R);
+
+	auto pelvisCOR_L = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(1);
+	m_PelvisObject->Getpset_pelvisCOR()->GetGeometry()->WorldToIndex(pelvisCOR_L, pelvisCOR_L);
+
+
+	auto toolPset = mitk::PointSet::New();
+	toolPset->InsertPoint(pelvisCOR_R);
+	toolPset->InsertPoint(pelvisCOR_L);
+	toolPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(m_SupinePelvicTilt_pelvisMatrix);
+	auto target_R = toolPset->GetPoint(0);
+	auto target_L = toolPset->GetPoint(1);
+
+	// right femur, only translation is required
+	auto sourcePoint_R = m_FemurObject_R->Getpset_femurCOR()->GetPoint(0);
+	m_FemurObject_R->Getpset_femurCOR()->GetGeometry()->WorldToIndex(sourcePoint_R, sourcePoint_R);
+
+	double rightTranslation[3];
+	rightTranslation[0] = target_R[0] - sourcePoint_R[0];
+	rightTranslation[1] = target_R[1] - sourcePoint_R[1];
+	rightTranslation[2] = target_R[2] - sourcePoint_R[2];
+
+	m_SupinePelvicTilt_canal_matrix_R->SetElement(0, 3, rightTranslation[0]);
+	m_SupinePelvicTilt_canal_matrix_R->SetElement(1, 3, rightTranslation[1]);
+	m_SupinePelvicTilt_canal_matrix_R->SetElement(2, 3, rightTranslation[2]);
+
+	// left femur, only translation is required
+	auto sourcePoint_L = m_FemurObject_L->Getpset_femurCOR()->GetPoint(0);
+	m_FemurObject_L->Getpset_femurCOR()->GetGeometry()->WorldToIndex(sourcePoint_L, sourcePoint_L);
+
+	double leftTranslation[3];
+	leftTranslation[0] = target_L[0] - sourcePoint_L[0];
+	leftTranslation[1] = target_L[1] - sourcePoint_L[1];
+	leftTranslation[2] = target_L[2] - sourcePoint_L[2];
+
+	m_SupinePelvicTilt_canal_matrix_L->SetElement(0, 3, leftTranslation[0]);
+	m_SupinePelvicTilt_canal_matrix_L->SetElement(1, 3, leftTranslation[1]);
+	m_SupinePelvicTilt_canal_matrix_L->SetElement(2, 3, leftTranslation[2]);
 
 }
 
 void lancet::ThaReductionObject::GetOriginalSupineTiltCanalMatrices(
 	vtkSmartPointer<vtkMatrix4x4> pelvisMatrix,
 	vtkSmartPointer<vtkMatrix4x4> rightFemurMatrix,
-	vtkSmartPointer<vtkMatrix4x4> leftFemurMat)
+	vtkSmartPointer<vtkMatrix4x4> leftFemurMatrix)
 {
+	// Check if calculation has been performed; if not, perform the calculation
+	if (m_NoPelvicTilt_canal_matrix_L->IsIdentity())
+	{
+		CalOriginalReductionMatrices();
+	}
 
+	pelvisMatrix->DeepCopy(m_SupinePelvicTilt_pelvisMatrix);
+	rightFemurMatrix->DeepCopy(m_SupinePelvicTilt_canal_matrix_R);
+	leftFemurMatrix->DeepCopy(m_SupinePelvicTilt_canal_matrix_L);
 }
 
 void lancet::ThaReductionObject::CalOriginalSupineTiltMechanicMatrices()
 {
+	// m_SupinePelvicTilt_pelvisMatrix has been calculated in CalOriginalSupineTiltCanalMatrices()
+	// no need to calculate again
+
+	auto pelvisCOR_R = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(0);
+	m_PelvisObject->Getpset_pelvisCOR()->GetGeometry()->WorldToIndex(pelvisCOR_R, pelvisCOR_R);
+
+	auto pelvisCOR_L = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(1);
+	m_PelvisObject->Getpset_pelvisCOR()->GetGeometry()->WorldToIndex(pelvisCOR_L, pelvisCOR_L);
+
+	auto toolPset = mitk::PointSet::New();
+	toolPset->InsertPoint(pelvisCOR_R);
+	toolPset->InsertPoint(pelvisCOR_L);
+	toolPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(m_SupinePelvicTilt_pelvisMatrix);
+	auto target_R = toolPset->GetPoint(0);
+	auto target_L = toolPset->GetPoint(1);
+
+	double offset_R[3]
+	{
+		target_R[0] - pelvisCOR_R[0],
+		target_R[1] - pelvisCOR_R[1],
+		target_R[2] - pelvisCOR_R[2]
+	};
+	double offset_L[3]
+	{
+		target_L[0] - pelvisCOR_L[0],
+		target_L[1] - pelvisCOR_L[1],
+		target_L[2] - pelvisCOR_L[2]
+	};
+
+	m_SupinePelvicTilt_mechanic_matrix_R->DeepCopy(m_NoPelvicTilt_mechanic_matrix_R);
+	m_SupinePelvicTilt_mechanic_matrix_R->SetElement(0, 3, m_SupinePelvicTilt_mechanic_matrix_R->GetElement(0, 3) + offset_R[0]);
+	m_SupinePelvicTilt_mechanic_matrix_R->SetElement(1, 3, m_SupinePelvicTilt_mechanic_matrix_R->GetElement(1, 3) + offset_R[1]);
+	m_SupinePelvicTilt_mechanic_matrix_R->SetElement(2, 3, m_SupinePelvicTilt_mechanic_matrix_R->GetElement(2, 3) + offset_R[2]);
+
+	m_SupinePelvicTilt_mechanic_matrix_L->DeepCopy(m_NoPelvicTilt_mechanic_matrix_L);
+	m_SupinePelvicTilt_mechanic_matrix_L->SetElement(0, 3, m_SupinePelvicTilt_mechanic_matrix_L->GetElement(0, 3) + offset_L[0]);
+	m_SupinePelvicTilt_mechanic_matrix_L->SetElement(1, 3, m_SupinePelvicTilt_mechanic_matrix_L->GetElement(1, 3) + offset_L[1]);
+	m_SupinePelvicTilt_mechanic_matrix_L->SetElement(2, 3, m_SupinePelvicTilt_mechanic_matrix_L->GetElement(2, 3) + offset_L[2]);
 
 }
 
@@ -256,5 +352,13 @@ void lancet::ThaReductionObject::GetOriginalSupineTiltMechanicMatrices(
 	vtkSmartPointer<vtkMatrix4x4> rightFemurMatrix,
 	vtkSmartPointer<vtkMatrix4x4> leftFemurMatrix)
 {
+	// Check if calculation has been performed; if not, perform the calculation
+	if (m_NoPelvicTilt_canal_matrix_L->IsIdentity())
+	{
+		CalOriginalReductionMatrices();
+	}
 
+	pelvisMatrix->DeepCopy(m_SupinePelvicTilt_pelvisMatrix);
+	rightFemurMatrix->DeepCopy(m_SupinePelvicTilt_mechanic_matrix_R);
+	leftFemurMatrix->DeepCopy(m_SupinePelvicTilt_mechanic_matrix_L);
 }

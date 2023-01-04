@@ -50,6 +50,12 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   // noPelvicTilt + mechanic alignment
   connect(m_Controls.pushButton_noTiltMechanicReduction, &QPushButton::clicked, this, &THAPlanning::pushButton_noTiltMechanicReduction_clicked);
 
+  // SupinePelvicTilt + canal alignment
+  connect(m_Controls.pushButton_supineCanalReduction, &QPushButton::clicked, this, &THAPlanning::pushButton_supineCanalReduction_clicked);
+
+  // SupinePelvicTilt + mechanic alignment
+  connect(m_Controls.pushButton_supineMechanicReduction, &QPushButton::clicked, this, &THAPlanning::pushButton_supineMechanicReduction_clicked);
+
 }
 
 void THAPlanning::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -516,3 +522,47 @@ void THAPlanning::pushButton_noTiltMechanicReduction_clicked()
 	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
 	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
 }
+
+void THAPlanning::pushButton_supineCanalReduction_clicked()
+{
+	m_ReductionObject = lancet::ThaReductionObject::New();
+
+	m_ReductionObject->SetPelvisObject(m_pelvisObject);
+
+	m_ReductionObject->SetFemurObject_R(m_RfemurObject);
+
+	m_ReductionObject->SetFemurObject_L(m_LfemurObject);
+
+	vtkNew<vtkMatrix4x4> rFemurMatrix;
+	vtkNew<vtkMatrix4x4> lFemurMatrix;
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+
+	m_ReductionObject->GetOriginalSupineTiltCanalMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
+
+	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+}
+
+void THAPlanning::pushButton_supineMechanicReduction_clicked()
+{
+	m_ReductionObject = lancet::ThaReductionObject::New();
+
+	m_ReductionObject->SetPelvisObject(m_pelvisObject);
+
+	m_ReductionObject->SetFemurObject_R(m_RfemurObject);
+
+	m_ReductionObject->SetFemurObject_L(m_LfemurObject);
+
+	vtkNew<vtkMatrix4x4> rFemurMatrix;
+	vtkNew<vtkMatrix4x4> lFemurMatrix;
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+
+	m_ReductionObject->GetOriginalSupineTiltMechanicMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
+
+	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+}
+
+

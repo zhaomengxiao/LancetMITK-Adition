@@ -134,6 +134,8 @@ protected:
 	// --------------- Test reductionObject ------------
   void pushButton_noTiltCanalReduction_clicked();
   void pushButton_noTiltMechanicReduction_clicked();
+  void pushButton_supineCanalReduction_clicked();
+  void pushButton_supineMechanicReduction_clicked();
   lancet::ThaReductionObject::Pointer m_ReductionObject;
 
 	//---------- Tool functions --------------
