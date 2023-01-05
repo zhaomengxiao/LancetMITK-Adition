@@ -228,7 +228,7 @@
        <property name="geometry">
         <rect>
          <x>200</x>
-         <y>10</y>
+         <y>0</y>
          <width>166</width>
          <height>84</height>
         </rect>
@@ -257,7 +257,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>130</y>
+         <y>110</y>
          <width>186</width>
          <height>113</height>
         </rect>
@@ -334,6 +334,63 @@
          <widget class="QPushButton" name="pushButton_supineMechanicReduction">
           <property name="text">
            <string>supineTilt mechanic reuction</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_5">
+       <property name="geometry">
+        <rect>
+         <x>400</x>
+         <y>0</y>
+         <width>231</width>
+         <height>113</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>stemObject and pelvisObject</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_7">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton_initCupObject">
+          <property name="text">
+           <string>init cup</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="pushButton_initStemObject">
+          <property name="text">
+           <string>init stem</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_moveCupObject">
+          <property name="text">
+           <string>move cup</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="pushButton_moveStemObject">
+          <property name="text">
+           <string>move stem</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_changeCupObject">
+          <property name="text">
+           <string>change cup</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QPushButton" name="pushButton_changeStemObject">
+          <property name="text">
+           <string>change stem</string>
           </property>
          </widget>
         </item>

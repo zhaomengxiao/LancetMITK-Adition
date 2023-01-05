@@ -18,13 +18,16 @@ found in the LICENSE file.
 
 #include <QmitkAbstractView.h>
 
-#include "lancetThaFemurObject.h"
 #include "ui_THAPlanningControls.h"
 
 #include "mitkPointSet.h"
 
+#include "lancetThaFemurObject.h"
 #include "lancetThaPelvisObject.h"
 #include "lancetThaReductionObject.h"
+#include "lancetThaStemObject.h"
+#include "lancetThaCupObject.h"
+
 
 /**
   \brief THAPlanning
@@ -137,6 +140,16 @@ protected:
   void pushButton_supineCanalReduction_clicked();
   void pushButton_supineMechanicReduction_clicked();
   lancet::ThaReductionObject::Pointer m_ReductionObject;
+
+  // ---------Test cupObject and stemObject
+  lancet::ThaCupObject::Pointer m_CupObject;
+  lancet::ThaStemObject::Pointer m_StemObject;
+  void pushButton_initCupObject_clicked();
+  void pushButton_initStemObject_clicked();
+  void pushButton_moveCupObject_clicked();
+  void pushButton_moveStemObject_clicked();
+  void pushButton_changeCupObject_clicked();
+  void pushButton_changeStemObject_clicked();
 
 	//---------- Tool functions --------------
 	// Append the geometry matrix to the chosen point

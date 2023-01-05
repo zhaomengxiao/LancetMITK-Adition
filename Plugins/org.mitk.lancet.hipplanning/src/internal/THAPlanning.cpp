@@ -56,6 +56,15 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   // SupinePelvicTilt + mechanic alignment
   connect(m_Controls.pushButton_supineMechanicReduction, &QPushButton::clicked, this, &THAPlanning::pushButton_supineMechanicReduction_clicked);
 
+  // test stemObject and cupObject
+  connect(m_Controls.pushButton_initCupObject, &QPushButton::clicked, this, &THAPlanning::pushButton_initCupObject_clicked);
+  connect(m_Controls.pushButton_initStemObject, &QPushButton::clicked, this, &THAPlanning::pushButton_initStemObject_clicked);
+  connect(m_Controls.pushButton_moveCupObject, &QPushButton::clicked, this, &THAPlanning::pushButton_moveCupObject_clicked);
+  connect(m_Controls.pushButton_moveStemObject, &QPushButton::clicked, this, &THAPlanning::pushButton_moveStemObject_clicked);
+  connect(m_Controls.pushButton_changeCupObject, &QPushButton::clicked, this, &THAPlanning::pushButton_changeCupObject_clicked);
+  connect(m_Controls.pushButton_changeStemObject, &QPushButton::clicked, this, &THAPlanning::pushButton_changeStemObject_clicked);
+
+
 }
 
 void THAPlanning::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -564,5 +573,103 @@ void THAPlanning::pushButton_supineMechanicReduction_clicked()
 	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
 	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
 }
+
+
+void THAPlanning::pushButton_initCupObject_clicked()
+{
+	m_CupObject = lancet::ThaCupObject::New();
+
+	auto cupSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("cup");
+	auto linerSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("liner");
+
+	m_CupObject->SetCupSurface(cupSurface);
+	m_CupObject->SetLinerSurface(linerSurface);
+	m_CupObject->SetOperationSide(0);
+
+	m_CupObject->AlignCupObjectWithWorldFrame();
+
+
+	auto cupFrameSurface = m_CupObject->GetSurface_cupFrame();
+
+	auto dataNode_cupFrame = mitk::DataNode::New();
+
+	dataNode_cupFrame->SetData(cupFrameSurface);
+	dataNode_cupFrame->SetName("cupFrame");
+
+	GetDataStorage()->Add(dataNode_cupFrame);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	m_Controls.textBrowser->append("A cupObject has been initialized");
+
+}
+
+void THAPlanning::pushButton_initStemObject_clicked()
+{
+	m_StemObject = lancet::ThaStemObject::New();
+
+	auto stemSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("stem");
+	auto stemCOR = GetDataStorage()->GetNamedObject<mitk::PointSet>("stemCOR");
+
+	m_StemObject->SetStemSurface(stemSurface);
+	m_StemObject->SetHeadCenter(stemCOR);
+	m_StemObject->SetOperationSide(0);
+
+	m_StemObject->AlignStemObjectWithWorldFrame();
+
+	auto stemFrameSurface = m_StemObject->GetSurface_stemFrame();
+
+	auto dataNode_stemFrame = mitk::DataNode::New();
+
+	dataNode_stemFrame->SetData(stemFrameSurface);
+	dataNode_stemFrame->SetName("stemFrame");
+
+	GetDataStorage()->Add(dataNode_stemFrame);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	m_Controls.textBrowser->append("A stemObject has been initialized");
+}
+
+void THAPlanning::pushButton_moveCupObject_clicked()
+{
+	auto tmpMatrix = m_CupObject->GetvtkMatrix_groupGeometry();
+	tmpMatrix->SetElement(0,3, tmpMatrix->GetElement(0,3) + 100);
+	tmpMatrix->SetElement(1, 3, tmpMatrix->GetElement(1, 3) + 100);
+	tmpMatrix->SetElement(2, 3, tmpMatrix->GetElement(2, 3) + 100);
+
+	m_CupObject->SetGroupGeometry(tmpMatrix);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::pushButton_moveStemObject_clicked()
+{
+	auto tmpMatrix = m_StemObject->GetvtkMatrix_groupGeometry();
+	tmpMatrix->SetElement(0, 3, tmpMatrix->GetElement(0, 3) + 100);
+	tmpMatrix->SetElement(1, 3, tmpMatrix->GetElement(1, 3) + 100);
+	tmpMatrix->SetElement(2, 3, tmpMatrix->GetElement(2, 3) + 100);
+
+	m_StemObject->SetGroupGeometry(tmpMatrix);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::pushButton_changeCupObject_clicked()
+{
+	auto newCupSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("cup_50");
+	m_CupObject->SetCupSurface(newCupSurface);
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::pushButton_changeStemObject_clicked()
+{
+	auto newStemSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("stem_5");
+	m_StemObject->SetStemSurface(newStemSurface);
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+
+
 
 
