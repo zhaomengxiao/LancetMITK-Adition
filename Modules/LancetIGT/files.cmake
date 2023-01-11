@@ -7,6 +7,7 @@ set(H_FILES
   DataManagement/lancetThaReductionObject.h
   DataManagement/lancetThaCupObject.h
   DataManagement/lancetThaStemObject.h
+  DataManagement/lancetThaPelvisCupCouple.h
   
   IO/lancetNavigationObjectWriter.h
 
@@ -34,6 +35,7 @@ set(CPP_FILES
   DataManagement/lancetThaReductionObject.cpp
   DataManagement/lancetThaCupObject.cpp
   DataManagement/lancetThaStemObject.cpp
+  DataManagement/lancetThaPelvisCupCouple.cpp
   
   IO/lancetNavigationObjectWriter.cpp
   

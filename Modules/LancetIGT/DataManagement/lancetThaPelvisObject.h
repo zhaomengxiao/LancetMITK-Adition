@@ -41,6 +41,12 @@ namespace lancet
 		itkGetMacro(pelvicTilt_supine, double)
 		itkSetMacro(pelvicTilt_supine,double)
 
+		itkGetMacro(pelvicTilt_stand, double)
+		itkSetMacro(pelvicTilt_stand, double)
+
+		itkGetMacro(pelvicTilt_sit, double)
+		itkSetMacro(pelvicTilt_sit, double)
+
 		// itkSetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 		itkGetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 
@@ -113,6 +119,12 @@ namespace lancet
 
 		// supine pelvic tilt in degree, anterior(+), posterior(-)
 		double m_pelvicTilt_supine{ 0 };
+
+		// stand pelvic tilt in degree, anterior(+), posterior(-)
+		double m_pelvicTilt_stand{ 0 };
+
+		// sit pelvic tilt in degree, anterior(+), posterior(-)
+		double m_pelvicTilt_sit{ 0 };
 
 		// the complete pelvis surface
 		mitk::Surface::Pointer m_surface_pelvis;
