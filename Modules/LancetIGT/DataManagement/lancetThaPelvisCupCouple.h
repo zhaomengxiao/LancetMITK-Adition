@@ -60,7 +60,7 @@ namespace lancet
 		void SetCoupleGeometry(vtkSmartPointer<vtkMatrix4x4> newMatrix);
 		itkGetMacro(vtkMatrix_coupleGeometry, vtkSmartPointer<vtkMatrix4x4>);
 
-		// initialize pelvisFrame to cupFrame matrix
+		// initialize pelvisFrame to cupFrame matrix and move the cupObject to the initial position 
 		void InitializePelvisFrameToCupFrameMatrix();
 
 		/* Translate or rotate cup
@@ -76,22 +76,22 @@ namespace lancet
 		ThaPelvisCupCouple(const ThaPelvisCupCouple& other);
 		~ThaPelvisCupCouple() override;
 		
-		// Update cup inclination and cup version
+		// Update cup inclination and cup version, called by AdjustCup()
 		void UpdateCupAngles();
-		// Update m_CupCOR_SI, m_CupCOR_ML, m_CupCOR_AP
+		// Update m_CupCOR_SI, m_CupCOR_ML and m_CupCOR_AP, called by AdjustCup()
 		void UpdateRelativeCupCOR();
 
-		// Translate cup: x axis
+		// Translate cup: x axis of pelvisFrame
 		void TranslateCup_x(double length);
-		// Translate cup: y axis
+		// Translate cup: y axis of pelvisFrame
 		void TranslateCup_y(double length);
-		// Translate cup: z axis
+		// Translate cup: z axis of pelvisFrame
 		void TranslateCup_z(double length);
-		// Rotate cup in degree (the rotation axis passes through the cupFrame origin): x axis
+		// Rotate cup in degree (the rotation axis passes through the cupFrame origin): x axis of pelvisFrame
 		void RotateCup_x(double angle);
-		// Rotate cup in degree (the rotation axis passes through the cupFrame origin): y axis
+		// Rotate cup in degree (the rotation axis passes through the cupFrame origin): y axis of pelvisFrame
 		void RotateCup_y(double angle);
-		// Rotate cup in degree (the rotation axis passes through the cupFrame origin): z axis
+		// Rotate cup in degree (the rotation axis passes through the cupFrame origin): z axis of pelvisFrame
 		void RotateCup_z(double angle);
 
 		// the pelvisObject
@@ -119,11 +119,11 @@ namespace lancet
 		// cup version: sit
 		double m_CupVersion_sit{ 0 };
 
-		// cupCOR relative to pelvisCOR: Superior(+) or inferior(-)
+		// cupCOR relative to pelvisCOR with supine pelvic tilt: Superior(+) or inferior(-)
 		double m_CupCOR_SI{ 0 };
-		// cupCOR relative to pelvisCOR: Medial(+) or lateral(-) 
+		// cupCOR relative to pelvisCOR with supine pelvic tilt: Medial(+) or lateral(-) 
 		double m_CupCOR_ML{ 0 };
-		// cupCOR relative to pelvisCOR : Anterior(+) or posterior(-)
+		// cupCOR relative to pelvisCOR with supine pelvic tilt: Anterior(+) or posterior(-)
 		double m_CupCOR_AP{ 0 };
 
 
