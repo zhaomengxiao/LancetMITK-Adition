@@ -41,80 +41,55 @@ void lancet::ThaPelvisCupCouple::InitializePelvisFrameToCupFrameMatrix()
 
 	// Initial cup orientation has been set to 40 degrees of inclination and 20 degrees of anteversion in the Stand pose
 	// Mako THA 4.0 Page 22
-	
+	// For simplification reasons, do not consider pelvic tilt
+	// i.e. Initial cup orientation has been set to 40 degrees of inclination and 20 degrees of anteversion with the
+	// pelvic plane aligned with the frontal plane.
 
 	double pelvicTilt_stand = m_PelvisObject->GetpelvicTilt_stand();
-
-	// Operation side: right
-	if( m_CupObject->GetOperationSide() == 0)
+	
+	if (m_CupObject->GetOperationSide() == 0)
 	{
-		/*calculate the transform from cupFrame to pelvisFrame
-		 * considering pelvicTilt_stand
-		 * cup inclination: 40 degrees
-		 * cup anteversion: 20 degrees
-		 */
-
-		vtkNew<vtkTransform> cupToPelvisTransform;
-		cupToPelvisTransform->Identity();
-		cupToPelvisTransform->PostMultiply();
-		cupToPelvisTransform->RotateX(-20);
-		cupToPelvisTransform->RotateY(40);
-		cupToPelvisTransform->RotateX(-pelvicTilt_stand);
-		cupToPelvisTransform->RotateZ(180);
+		vtkNew<vtkTransform> tmpTransform;
+		tmpTransform->PostMultiply();
+		tmpTransform->RotateX(-20);
+		tmpTransform->RotateY(40);
 
 		auto pelvisCOR_R = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(0);
-		m_PelvisObject->Getpset_pelvisCOR()->GetGeometry()->WorldToIndex(pelvisCOR_R, pelvisCOR_R);
 
-		cupToPelvisTransform->Translate(
-			-pelvisCOR_R[0],
-			-pelvisCOR_R[1], 
-			-pelvisCOR_R[2]);
-
-		cupToPelvisTransform->Update();
-
-		auto pelvisToCupMatrix = cupToPelvisTransform->GetMatrix();
-		pelvisToCupMatrix->Invert();
-
-		m_vtkMatrix_pelvisFrameToCupFrame->DeepCopy(pelvisToCupMatrix);
-	}
-
-	// operation side: left
-	if(m_CupObject->GetOperationSide() == 1)
-	{
-		/*calculate the transform from cupFrame to pelvisFrame
-		 * considering pelvicTilt_stand
-		 * cup inclination: 40 degrees
-		 * cup anteversion: 20 degrees
-		 */
-
-		vtkNew<vtkTransform> cupToPelvisTransform;
-		cupToPelvisTransform->Identity();
-		cupToPelvisTransform->PostMultiply();
-		cupToPelvisTransform->RotateX(20);
-		cupToPelvisTransform->RotateY(40);
-		cupToPelvisTransform->RotateX(pelvicTilt_stand);
-
-		auto pelvicCOR_L = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(1);
-		m_PelvisObject->Getpset_pelvisCOR()->GetGeometry()->WorldToIndex(pelvicCOR_L, pelvicCOR_L);
-
-		cupToPelvisTransform->Translate(
-			-pelvicCOR_L[0],
-			-pelvicCOR_L[1],
-			-pelvicCOR_L[2]
+		tmpTransform->Translate(
+			pelvisCOR_R[0],
+			pelvisCOR_R[1],
+			pelvisCOR_R[2]
 		);
 
-		cupToPelvisTransform->Update();
+		m_vtkMatrix_pelvisFrameToCupFrame->DeepCopy(tmpTransform->GetMatrix());
+	}
 
-		auto pelvisToCupMatrix = cupToPelvisTransform->GetMatrix();
-		pelvisToCupMatrix->Invert();
+	if (m_CupObject->GetOperationSide() == 1)
+	{
+		vtkNew<vtkTransform> tmpTransform;
+		tmpTransform->PostMultiply();
+		tmpTransform->RotateZ(180);
+		tmpTransform->RotateX(-20);
+		tmpTransform->RotateY(-40);
 
-		m_vtkMatrix_pelvisFrameToCupFrame->DeepCopy(pelvisToCupMatrix);
+		auto pelvisCOR_L = m_PelvisObject->Getpset_pelvisCOR()->GetPoint(1);
 
+		tmpTransform->Translate(
+			pelvisCOR_L[0],
+			pelvisCOR_L[1],
+			pelvisCOR_L[2]
+		);
+
+		m_vtkMatrix_pelvisFrameToCupFrame->DeepCopy(tmpTransform->GetMatrix());
 	}
 
 	// Move the cupObject to the initial position
 	auto pelvisObjectMatrix = m_PelvisObject->GetvtkMatrix_groupGeometry();
 	SetCoupleGeometry(pelvisObjectMatrix);
+
+	UpdateCupAngles();
+	UpdateRelativeCupCOR();
 }
 
 void lancet::ThaPelvisCupCouple::SetCoupleGeometry(vtkSmartPointer<vtkMatrix4x4> newMatrix)
@@ -468,6 +443,21 @@ void lancet::ThaPelvisCupCouple::AdjustCup(int translateOrRotate, int direction,
 
 }
 
+void lancet::ThaPelvisCupCouple::SetPelvisFrameToCupFrameMatrix(vtkSmartPointer<vtkMatrix4x4> newMatrix)
+{
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->PostMultiply();
+	tmpTransform->SetMatrix(m_vtkMatrix_coupleGeometry);
+	tmpTransform->Concatenate(newMatrix);
+	tmpTransform->Update();
+
+	m_CupObject->SetGroupGeometry(tmpTransform->GetMatrix());
+
+	m_vtkMatrix_pelvisFrameToCupFrame->DeepCopy(newMatrix);
+
+	UpdateCupAngles();
+	UpdateRelativeCupCOR();
+}
 
 
 

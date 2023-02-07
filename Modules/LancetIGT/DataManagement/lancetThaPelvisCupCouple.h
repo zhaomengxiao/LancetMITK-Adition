@@ -35,21 +35,29 @@ namespace lancet
 		itkGetMacro(CupObject, lancet::ThaCupObject::Pointer);
 		itkSetMacro(CupObject, lancet::ThaCupObject::Pointer);
 
+		/*
+		 * m_vtkMatrix_coupleGeometry remains the same
+		 * m_vtkMatrix_groupGeometry of m_PelvisObject remains the same
+		 * update m_vtkMatrix_groupGeometry of m_CupObject
+		 * update m_pelvisFrameToCupFrame
+		 * call UpdateCupAngles()
+		 * call UpdateRelativeCupCOR()
+		 */
+		void SetPelvisFrameToCupFrameMatrix(vtkSmartPointer<vtkMatrix4x4> newMatrix);
 		itkGetMacro(vtkMatrix_pelvisFrameToCupFrame, vtkSmartPointer<vtkMatrix4x4>);
-		// itkSetMacro(vtkMatrix_pelvisFrameToCupFrame, vtkSmartPointer<vtkMatrix4x4>);
 		
 		itkGetMacro(CupInclination_supine, double);
-		// itkSetMacro(CupInclination_supine, double);
+		
 		itkGetMacro(CupInclination_stand, double);
-		// itkSetMacro(CupInclination_stand, double);
+	
 		itkGetMacro(CupInclination_sit, double);
-		// itkSetMacro(CupInclination_sit, double);
+		
 		itkGetMacro(CupVersion_supine, double);
-		// itkSetMacro(CupVersion_supine, double);
+		
 		itkGetMacro(CupVersion_stand, double);
-		// itkSetMacro(CupVersion_stand, double);
+		
 		itkGetMacro(CupVersion_sit, double);
-		// itkSetMacro(CupVersion_sit, double);
+	
 
 		itkGetMacro(CupCOR_SI, double);
 		itkGetMacro(CupCOR_ML, double);

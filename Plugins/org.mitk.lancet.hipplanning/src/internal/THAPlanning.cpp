@@ -64,6 +64,9 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_changeCupObject, &QPushButton::clicked, this, &THAPlanning::pushButton_changeCupObject_clicked);
   connect(m_Controls.pushButton_changeStemObject, &QPushButton::clicked, this, &THAPlanning::pushButton_changeStemObject_clicked);
 
+  // pelvisCupCouple
+  connect(m_Controls.pushButton_initPelvisCupCouple, &QPushButton::clicked, this, &THAPlanning::pushButton_initPelvisCupCouple_clicked);
+
 
 }
 
@@ -216,6 +219,46 @@ mitk::PointSet::Pointer THAPlanning::GetPointSetWithGeometryMatrix(const mitk::P
 	}
 
 	return outputPointSet;
+}
+
+vtkMatrix4x4* THAPlanning::GenerateMatrix()
+{
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->PostMultiply();
+
+	double stepSize = m_Controls.lineEdit_moveStepSize->text().toDouble();
+
+	int direction = m_Controls.comboBox_direction->currentIndex();
+
+	if(m_Controls.radioButton_translate->isChecked())
+	{
+		tmpTransform->Translate(stepSize*(direction == 0), 
+			stepSize * (direction == 1),
+			stepSize * (direction == 2));
+		tmpTransform->Update();
+	}
+
+	if(m_Controls.radioButton_rotate->isChecked())
+	{
+		if(direction == 0)
+		{
+			tmpTransform->RotateX(stepSize);
+		}
+
+		if(direction == 1)
+		{
+			tmpTransform->RotateY(stepSize);
+		}
+
+		if(direction == 2)
+		{
+			tmpTransform->RotateZ(stepSize);
+		}
+
+		tmpTransform->Update();
+	}
+	
+	return tmpTransform->GetMatrix();
 }
 
 
@@ -574,7 +617,6 @@ void THAPlanning::pushButton_supineMechanicReduction_clicked()
 	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
 }
 
-
 void THAPlanning::pushButton_initCupObject_clicked()
 {
 	m_CupObject = lancet::ThaCupObject::New();
@@ -584,10 +626,17 @@ void THAPlanning::pushButton_initCupObject_clicked()
 
 	m_CupObject->SetCupSurface(cupSurface);
 	m_CupObject->SetLinerSurface(linerSurface);
-	m_CupObject->SetOperationSide(0);
+
+
+	if(m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_CupObject->SetOperationSide(0);
+	}else
+	{
+		m_CupObject->SetOperationSide(1);
+	}
 
 	m_CupObject->AlignCupObjectWithWorldFrame();
-
 
 	auto cupFrameSurface = m_CupObject->GetSurface_cupFrame();
 
@@ -613,8 +662,15 @@ void THAPlanning::pushButton_initStemObject_clicked()
 
 	m_StemObject->SetStemSurface(stemSurface);
 	m_StemObject->SetHeadCenter(stemCOR);
-	m_StemObject->SetOperationSide(0);
 
+	if(m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_StemObject->SetOperationSide(0);
+	}else
+	{
+		m_StemObject->SetOperationSide(1);
+	}
+	
 	m_StemObject->AlignStemObjectWithWorldFrame();
 
 	auto stemFrameSurface = m_StemObject->GetSurface_stemFrame();
@@ -669,6 +725,19 @@ void THAPlanning::pushButton_changeStemObject_clicked()
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
+void THAPlanning::pushButton_initPelvisCupCouple_clicked()
+{
+	m_PelvisCupCouple = lancet::ThaPelvisCupCouple::New();
+
+	m_PelvisCupCouple->SetPelvisObject(m_pelvisObject);
+	m_PelvisCupCouple->SetCupObject(m_CupObject);
+
+	m_PelvisCupCouple->InitializePelvisFrameToCupFrameMatrix();
+
+	m_Controls.textBrowser->append("Supine Cup version:" + QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
+	m_Controls.textBrowser->append("Supine Cup inclination:" + QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
+
+}
 
 
 

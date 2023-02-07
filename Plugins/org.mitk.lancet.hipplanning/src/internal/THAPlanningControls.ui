@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>765</width>
-    <height>644</height>
+    <width>863</width>
+    <height>757</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -30,7 +30,7 @@
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Old model</string>
+       <string>朱's model</string>
       </attribute>
       <widget class="QPushButton" name="pushButton_currentConstruct">
        <property name="geometry">
@@ -184,14 +184,14 @@
       <widget class="QGroupBox" name="groupBox">
        <property name="geometry">
         <rect>
-         <x>20</x>
+         <x>10</x>
          <y>10</y>
-         <width>161</width>
-         <height>91</height>
+         <width>121</width>
+         <height>79</height>
         </rect>
        </property>
        <property name="title">
-        <string>Femoral version test</string>
+        <string>Femoral version</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
@@ -227,9 +227,9 @@
       <widget class="QGroupBox" name="groupBox_2">
        <property name="geometry">
         <rect>
-         <x>200</x>
-         <y>0</y>
-         <width>166</width>
+         <x>130</x>
+         <y>10</y>
+         <width>141</width>
          <height>84</height>
         </rect>
        </property>
@@ -240,14 +240,14 @@
         <item row="0" column="0">
          <widget class="QPushButton" name="pushButton_initializePelvisObject">
           <property name="text">
-           <string>Initialize PelvisObject</string>
+           <string>Init PelvisObject</string>
           </property>
          </widget>
         </item>
         <item row="1" column="0">
          <widget class="QPushButton" name="pushButton_movePelvisObject">
           <property name="text">
-           <string>set pelvisObject matrix</string>
+           <string>Set matrix</string>
           </property>
          </widget>
         </item>
@@ -256,9 +256,9 @@
       <widget class="QGroupBox" name="groupBox_3">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>110</y>
-         <width>186</width>
+         <x>270</x>
+         <y>10</y>
+         <width>181</width>
          <height>113</height>
         </rect>
        </property>
@@ -266,17 +266,10 @@
         <string>femurObject</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_5">
-        <item row="0" column="0" colspan="2">
-         <widget class="QPushButton" name="pushButton_initializeLfemurObject">
-          <property name="text">
-           <string>Initialize L femurObject</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="0" colspan="2">
          <widget class="QPushButton" name="pushButton_initializeRfemurObject">
           <property name="text">
-           <string>Initialize R femurObject</string>
+           <string>Init R femurObject</string>
           </property>
          </widget>
         </item>
@@ -284,6 +277,13 @@
          <widget class="QPushButton" name="pushButton_moveLfemurObject">
           <property name="text">
            <string>set L matrix</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QPushButton" name="pushButton_initializeLfemurObject">
+          <property name="text">
+           <string>Init L femurObject</string>
           </property>
          </widget>
         </item>
@@ -299,9 +299,9 @@
       <widget class="QGroupBox" name="groupBox_4">
        <property name="geometry">
         <rect>
-         <x>210</x>
-         <y>110</y>
-         <width>196</width>
+         <x>190</x>
+         <y>130</y>
+         <width>181</width>
          <height>142</height>
         </rect>
        </property>
@@ -312,28 +312,28 @@
         <item row="0" column="0">
          <widget class="QPushButton" name="pushButton_noTiltCanalReduction">
           <property name="text">
-           <string>noTilt canal reduction</string>
+           <string>noTilt canal reduce</string>
           </property>
          </widget>
         </item>
         <item row="1" column="0">
          <widget class="QPushButton" name="pushButton_noTiltMechanicReduction">
           <property name="text">
-           <string>noTilt mechanix reduction</string>
+           <string>noTilt mechanix reduce</string>
           </property>
          </widget>
         </item>
         <item row="2" column="0">
          <widget class="QPushButton" name="pushButton_supineCanalReduction">
           <property name="text">
-           <string>supineTilt canal reuction</string>
+           <string>supineTilt canal reduce</string>
           </property>
          </widget>
         </item>
         <item row="3" column="0">
          <widget class="QPushButton" name="pushButton_supineMechanicReduction">
           <property name="text">
-           <string>supineTilt mechanic reuction</string>
+           <string>supineTilt mechanic reduce</string>
           </property>
          </widget>
         </item>
@@ -342,55 +342,273 @@
       <widget class="QGroupBox" name="groupBox_5">
        <property name="geometry">
         <rect>
-         <x>400</x>
-         <y>0</y>
-         <width>231</width>
-         <height>113</height>
+         <x>10</x>
+         <y>130</y>
+         <width>176</width>
+         <height>137</height>
         </rect>
        </property>
        <property name="title">
-        <string>stemObject and pelvisObject</string>
+        <string>stemObject and cupObject</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_7">
-        <item row="0" column="0">
+        <item row="0" column="0" colspan="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QRadioButton" name="radioButton_implantObject_R">
+            <property name="text">
+             <string>Right</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_implantObject_L">
+            <property name="text">
+             <string>Left</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
          <widget class="QPushButton" name="pushButton_initCupObject">
           <property name="text">
            <string>init cup</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
+        <item row="1" column="1">
          <widget class="QPushButton" name="pushButton_initStemObject">
           <property name="text">
            <string>init stem</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
+        <item row="2" column="0">
          <widget class="QPushButton" name="pushButton_moveCupObject">
           <property name="text">
            <string>move cup</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
+        <item row="2" column="1">
          <widget class="QPushButton" name="pushButton_moveStemObject">
           <property name="text">
            <string>move stem</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
+        <item row="3" column="0">
          <widget class="QPushButton" name="pushButton_changeCupObject">
           <property name="text">
            <string>change cup</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
+        <item row="3" column="1">
          <widget class="QPushButton" name="pushButton_changeStemObject">
           <property name="text">
            <string>change stem</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_6">
+       <property name="geometry">
+        <rect>
+         <x>380</x>
+         <y>130</y>
+         <width>111</width>
+         <height>113</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>pelvisCupCouple</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_9">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton_initPelvisCupCouple">
+          <property name="text">
+           <string>Init couple</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_adjustCup">
+          <property name="text">
+           <string>AdjustCup</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_adjustCouple">
+          <property name="text">
+           <string>AdjustCouple</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_7">
+       <property name="geometry">
+        <rect>
+         <x>440</x>
+         <y>10</y>
+         <width>161</width>
+         <height>102</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Generate matrix</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_moveStepSize">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QRadioButton" name="radioButton_translate">
+            <property name="text">
+             <string>Translate</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_rotate">
+            <property name="text">
+             <string>Rotate</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Direction:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>StepSize:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QComboBox" name="comboBox_direction">
+          <item>
+           <property name="text">
+            <string>x</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>y</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>z</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_8">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>120</y>
+         <width>131</width>
+         <height>156</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Cup parameters</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_10">
+        <item row="0" column="0" rowspan="2">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Version</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_cupVersion">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" rowspan="2">
+         <widget class="QLineEdit" name="lineEdit_cupInclination">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Inclination</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>SI</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_cupCOR_si">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>ML</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="lineEdit_cupCOR_ml">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>AP</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="lineEdit_cupCOR_ap">
+          <property name="text">
+           <string>0</string>
           </property>
          </widget>
         </item>

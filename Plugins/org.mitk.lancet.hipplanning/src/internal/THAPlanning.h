@@ -27,6 +27,7 @@ found in the LICENSE file.
 #include "lancetThaReductionObject.h"
 #include "lancetThaStemObject.h"
 #include "lancetThaCupObject.h"
+#include "lancetThaPelvisCupCouple.h"
 
 
 /**
@@ -141,7 +142,7 @@ protected:
   void pushButton_supineMechanicReduction_clicked();
   lancet::ThaReductionObject::Pointer m_ReductionObject;
 
-  // ---------Test cupObject and stemObject
+  // --------- Test cupObject and stemObject ------------
   lancet::ThaCupObject::Pointer m_CupObject;
   lancet::ThaStemObject::Pointer m_StemObject;
   void pushButton_initCupObject_clicked();
@@ -151,7 +152,15 @@ protected:
   void pushButton_changeCupObject_clicked();
   void pushButton_changeStemObject_clicked();
 
+  // --------- Test pelvisCupCouple ---------
+  void pushButton_initPelvisCupCouple_clicked();
+  lancet::ThaPelvisCupCouple::Pointer m_PelvisCupCouple;
+
 	//---------- Tool functions --------------
+
+	// retrieve a 4x4 vtkMatrix from the UI
+  vtkMatrix4x4* GenerateMatrix();
+	
 	// Append the geometry matrix to the chosen point
   mitk::Point3D GetPointWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet, const int pointIndex);
 
