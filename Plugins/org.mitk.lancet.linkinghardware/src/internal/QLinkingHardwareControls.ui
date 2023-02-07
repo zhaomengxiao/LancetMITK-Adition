@@ -293,7 +293,7 @@ background-color: rgb(0, 0, 0);
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_auto">
+         <widget class="QPushButton" name="pushbtnActivate">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -509,7 +509,7 @@ background-color: rgb(0, 0, 0);
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_success">
+         <widget class="QPushButton" name="pushbtnActivateSuccess">
           <property name="enabled">
            <bool>false</bool>
           </property>

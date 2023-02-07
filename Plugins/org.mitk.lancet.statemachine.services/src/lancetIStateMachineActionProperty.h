@@ -51,7 +51,9 @@ namespace lancet
 		};
 
 		class LANCET_STATEMACHINE_SERVICES_PLUGIN IQActionStyleProperty
+			: public berry::Object
 		{
+			berryObjectMacro(lancet::IStateMachineActionProperty::IQActionStyleProperty);
 		public:
 			IQActionStyleProperty();
 			struct LANCET_STATEMACHINE_SERVICES_PLUGIN IThemeStyle
@@ -82,6 +84,15 @@ namespace lancet
 
 		virtual QString GetStateUiName() const;
 		virtual void SetStateUiName(const QString&);
+
+		virtual QString GetStateEditorWidgetIdentify() const;
+		virtual void SetStateEditorWidgetIdentify(const QString&);
+
+		virtual QString GetStateFucntionWidgetIdentify() const;
+		virtual void SetStateFucntionWidgetIdentify(const QString&);
+
+		virtual berry::SmartPointer<IQActionStyleProperty> GetIQActionStyleProperty() const;
+		virtual void SetIQActionStyleProperty(const berry::SmartPointer<IQActionStyleProperty>&);
 	protected:
 		virtual void Initialize() = 0;
 	private:

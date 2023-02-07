@@ -53,34 +53,26 @@ void QLancetThaApplicationWorkbenchWindowAdvisor::PostWindowCreate()
 	mainWindow->centralWidget()->setLayout(layout);
 	layout->setMargin(0);
 
-	QWidget* mainWndMenuWidget = new QWidget(mainWindow->centralWidget());
-	mainWndMenuWidget->setMinimumHeight(40);
-	mainWndMenuWidget->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
-	mainWndMenuWidget->setStyleSheet("background-color:rgb(0,0,255)");
-
 	QLancetThaWorkbenchMenuBar* menuBar = new QLancetThaWorkbenchMenuBar();
 	menuBar->setMovable(false);
-	menuBar->setMinimumHeight(48);
+	menuBar->setMinimumHeight(50);
 	menuBar->setOrientation(Qt::Horizontal);
 	menuBar->setObjectName("topMainActionsToolBar");
 	menuBar->setContextMenuPolicy(Qt::PreventContextMenu);
 	menuBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-	menuBar->setStyleSheet("background-color:rgb(255,0,0)");
 	menuBar->InitializeStateMachineForUi();
 
-	menuBar->GetModuleMenuBar()->setStyleSheet(
-		"\
-		QMenuBar::item{\
-		margin - top: 10px; \
-		margin - left: 30px; \
-		font - size:12px; \
-		padding:6px 45px 6px 45px; \
-		background: transparent; \
-		border - radius:4px; \
-		border - image:url(: / default.png); \
-		}\
-		");
+	QDir workDir(QDir::currentPath());
+	workDir.cd("..");
+	workDir.cd("..");
+	workDir.cd("bin");
+	workDir.cd("resources");
+	workDir.cd("qss");
+	workDir.cd("tha");
 
+	QFile fp(workDir.absoluteFilePath("mainWindowMenuBarStyle.qss"));
+	fp.open(QFileDevice::ReadOnly);
+	menuBar->setStyleSheet(fp.readAll());
 
 	mainWindow->addToolBar(Qt::ToolBarArea::TopToolBarArea, menuBar);
 

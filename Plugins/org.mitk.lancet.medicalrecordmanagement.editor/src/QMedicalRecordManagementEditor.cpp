@@ -61,20 +61,21 @@ QMedicalRecordManagementEditor::QMedicalRecordManagementEditor()
 	, m_Prefs(nullptr)
 	, m_PrefServiceTracker(org_mitk_lancet_medicalrecordmanagement_editor_Activator::GetContext())
 {
-  // nothing here
+	// Enable the real-time working status of the case scanner.
 	m_PrefServiceTracker.open();
-	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
 QMedicalRecordManagementEditor::~QMedicalRecordManagementEditor()
 {
-	GetSite()->GetPage()->RemovePartListener(this);
+	// Remove event listening port.
+	this->GetSite()->GetPage()->RemovePartListener(this);
+
+	// Stop the real-time working state of the case scanner.
 	if (this->GetService())
 	{
 		this->GetService()->Stop();
 		this->DisConnectToService();
 	}
-	//qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
 void QMedicalRecordManagementEditor::CreatePartControl(QWidget* parent)

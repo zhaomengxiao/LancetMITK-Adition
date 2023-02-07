@@ -1,25 +1,25 @@
-QMenuBar
-{
-  spacing: 30px;
+QToolBar#topMainActionsToolBar {
+	background-color: red;
 }
 
-QMenuBar::item
-{
-  color: white;
-  min-width: 80px;
-  border-radius: 4px;
-  backgound-color: rgb(50,170,145);
+QPushButton#pushbtnApplicationIcon {
+	visibility: hidden;
+	width: 128px;
+	height: 44px;
+	margin-top: 6px;
+	margin-left: 6px;
+	border-image: url(../../bin/resources/images/applcations/logo.png);
 }
 
-QMenuBar::item:selected
-{
-  color: #333333;
-  border-radius: 4px;
-  backgound-color: rgb(236,240,243);
+.QMenuBar::item[objectName="menubarApplication"]  {
+	margin-top: 6px;
+	margin-left: 6px;
+	margin-right: 6px;
+	padding-bottom: 12px;
+	padding-left: 72px;
+	padding-right: 72px;
+	padding-top: 12px;
+	border-radius: 12px;
+	background-color: rgb(50, 170, 145);
 }
 
-QMenuBar::item:pressed
-{
-  padding-left:5px;
-  padding-top:5px;
-}

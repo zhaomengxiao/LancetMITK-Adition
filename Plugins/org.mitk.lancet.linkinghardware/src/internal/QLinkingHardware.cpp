@@ -1,265 +1,301 @@
-/*============================================================================
-
-The Medical Imaging Interaction Toolkit (MITK)
-
-Copyright (c) German Cancer Research Center (DKFZ)
-All rights reserved.
-
-Use of this source code is governed by a 3-clause BSD license that can be
-found in the LICENSE file.
-
-============================================================================*/
-
-
-// Blueberry
-#include <berryISelectionService.h>
-#include <berryIWorkbenchWindow.h>
-
-// Qmitk
 #include "QLinkingHardware.h"
+#include "ui_QLinkingHardwareControls.h"
+#include "org_mitk_lancet_linkinghardware_Activator.h"
 
 // Qt
-
-#include <QDir>
-#include <QMessageBox>
-
-// mitk image
-#include <mitkImage.h>
-
-#include <berryIQtStyleManager.h>
-#include "org_mitk_lancet_linkinghardware_Activator.h"
-#include <lancetIDevicesAdministrationService.h>
-
-#include <QDir>
 #include <QFile>
-#include <QFileInfo>
-#include <QTextCodec>
-#include <QJsonValue> 
-#include <QJsonObject> 
+#include <QTimer>
+
+#include <QByteArray>
 #include <QJsonDocument>
-#include <QJsonParseError>
-#include <QJsonArray>
+
+// mitk
+#include <mitkNavigationData.h>
+#include <mitkTrackingDeviceSource.h>
+
+// lancet
+#include <lancetIDevicesAdministrationService.h>
+#include <core/lancetSpatialFittingPointAccuracyDate.h>
+
+class DervicveConfigurePrivate
+{
+public:
+	DervicveConfigurePrivate() {}
+	DervicveConfigurePrivate(const QString& file)
+	{
+		this->SetFileName(file);
+	}
+
+	void SetFileName(const QString& file)
+	{
+		this->_filename = file;
+	}
+
+	QString GetFileName() const
+	{
+		return this->_filename;
+	}
+
+	bool Update()
+	{
+		QFile file(this->GetFileName());
+		if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		{
+			MITK_WARN << "Not open file. see " << this->GetFileName();
+			return false;
+		}
+
+		return this->AnalysisJsonConfigure(file.readAll());
+	}
+
+	QString GetNDIIGTToolStorage() const
+	{
+		return this->_NDIIGTToolStorage;
+	}
+
+	QString GetRobotIGTToolStorage() const
+	{
+		return this->_RobotIGTToolStorage;
+	}
+
+protected:
+	bool AnalysisJsonConfigure(const QByteArray& stream)
+	{
+		QJsonParseError jsonError;
+		QJsonDocument jsonDoc = QJsonDocument::fromJson(stream, &jsonError);
+
+		if (jsonError.error != QJsonParseError::NoError)
+		{
+			return false;
+		}
+
+		this->_NDIIGTToolStorage = jsonDoc.object()["Device"].toObject()["NDIIGTToolStorage"].toString();
+		this->_RobotIGTToolStorage = jsonDoc.object()["Device"].toObject()["RobotIGTToolStorage"].toString();
+
+		return true;
+	}
+private:
+	QString _NDIIGTToolStorage;
+	QString _RobotIGTToolStorage;
+	QString _filename;
+};
 
 const std::string QLinkingHardware::VIEW_ID = "org.mitk.views.qlinkinghardware";
 
-void QLinkingHardware::SetFocus(){}
+struct QLinkingHardware::QLinkingHardwarePrivateImp
+{
+	QTimer robotMoveCheckedTimer;
+
+	mitk::Point3D robotStartPoint;
+
+	Ui::QLinkingHardwareControls m_Controls;
+};
+
+QLinkingHardware::QLinkingHardware()
+  : imp(std::make_shared<QLinkingHardwarePrivateImp>())
+{
+}
+
 QLinkingHardware::~QLinkingHardware()
 {
 }
-void QLinkingHardware::CreateQtPartControl(QWidget *parent)
-{ 
-  // create GUI widgets from the Qt Designer's .ui file
-  m_Controls.setupUi(parent); 
-  m_Controls.pushButton_success->setEnabled(true);
-  auto test_dir = QDir(":/org.mitk.lancet.linkinghardware/");
-  QFile qss(test_dir.absoluteFilePath("linkinghardware.qss"));
 
-  if (!qss.open(QIODevice::ReadOnly))
-  {
-	  
-	  qWarning() << __func__ << __LINE__ << ":" << "error load file "
-		  << test_dir.absoluteFilePath("linkinghardware.qss") << "\n"
-		  << "error: " << qss.errorString();
-  }
-  // pos
-  qInfo() << "log.file.pos " << qss.pos();
-
-  m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
-  qss.close();
-
-  connect(m_Controls.pushButton_auto, &QPushButton::clicked, this, &QLinkingHardware::on_pb_auto_clicked);
-  connect(m_Controls.pushButton_success, &QPushButton::clicked, this, &QLinkingHardware::on_pb_success_clicked);
-  
-  if (this->GetService())
-  {
-	  this->ConnectToService();
-  }
+void QLinkingHardware::SetFocus()
+{
 }
-lancet::IDevicesAdministrationService* QLinkingHardware::GetService() const
+
+void QLinkingHardware::CreateQtPartControl(QWidget *parent)
+{
+	this->imp->m_Controls.setupUi(parent);
+
+	QString qssFile = ":/org.mitk.lancet.linkinghardware/linkinghardware.qss";
+	this->UpdateQtPartControlStyleSheet(qssFile);
+	this->ConnectedQtInteractive();
+	this->ConnectedQtEventForDevicesService();
+}
+
+bool QLinkingHardware::ConnectedQtInteractive()
+{
+	connect(this->imp->m_Controls.pushbtnActivate, &QPushButton::clicked,
+		this, &QLinkingHardware::OnPushbtnActivate);
+	connect(this->imp->m_Controls.pushbtnActivateSuccess, &QPushButton::clicked,
+		this, &QLinkingHardware::OnPushbtnActivateSuccess);
+	return true;
+}
+
+bool QLinkingHardware::DisConnectedQtInteractive()
+{
+	disconnect(this->imp->m_Controls.pushbtnActivate, &QPushButton::clicked,
+		this, &QLinkingHardware::OnPushbtnActivate);
+	disconnect(this->imp->m_Controls.pushbtnActivateSuccess, &QPushButton::clicked,
+		this, &QLinkingHardware::OnPushbtnActivateSuccess);
+	return true;
+}
+
+bool QLinkingHardware::ConnectedQtEventForDevicesService()
+{
+	lancet::IDevicesAdministrationService* sender = this->GetService();
+	if (nullptr == sender)
+	{
+		return false;
+	}
+	lancet::IDevicesAdministrationService* o = sender;
+	QObject::connect(sender, &lancet::IDevicesAdministrationService::TrackingDeviceStateChange,
+		this, &QLinkingHardware::OnIDevicesGetStatus);
+
+	return true;
+}
+
+bool QLinkingHardware::DisConnectedQtEventForDevicesService()
+{
+	lancet::IDevicesAdministrationService* sender = this->GetService();
+	if (nullptr == sender)
+	{
+		return false;
+	}
+	lancet::IDevicesAdministrationService* o = sender;
+	QObject::disconnect(sender, &lancet::IDevicesAdministrationService::TrackingDeviceStateChange,
+		this, &QLinkingHardware::OnIDevicesGetStatus);
+
+	return true;
+}
+
+bool QLinkingHardware::UpdateQtPartControlStyleSheet(const QString& qssFileName)
+{
+	QFile qss(qssFileName);
+
+	if (!qss.open(QIODevice::ReadOnly))
+	{
+		MITK_WARN << "Not open file. see " << qssFileName;
+		return false;
+	}
+
+	this->imp->m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
+	return true;
+}
+
+lancet::IDevicesAdministrationService *QLinkingHardware::GetService()
 {
 	auto context = mitk::PluginActivator::GetPluginContext();
 	auto serviceRef = context->getServiceReference<lancet::IDevicesAdministrationService>();
 	return context->getService<lancet::IDevicesAdministrationService>(serviceRef);
 }
-void QLinkingHardware::ConnectToService()
+
+void QLinkingHardware::OnIDevicesGetStatus(std::string name, 
+	lancet::TrackingDeviceManage::TrackingDeviceState state)
 {
-	auto sender = this->GetService();
-	if (sender)
+	auto scanner = this->GetService()->GetConnector();
+	bool isConnected = state & lancet::TrackingDeviceManage::TrackingDeviceState::Connected;
+
+	if (name == "Vega")
 	{
-		lancet::IDevicesAdministrationService* o = sender;
-		QObject::connect(o, &lancet::IDevicesAdministrationService::TrackingDeviceStateChange,
-			this, &QLinkingHardware::Slot_IDevicesGetStatus);
+		this->imp->m_Controls.checkBox_startNDI->setChecked(isConnected);
+	}
+	else if (name == "Kuka")
+	{
+		auto connector = this->GetService()->GetConnector();
+		auto robot = connector->GetTrackingDevice("Kuka");
+		if (state == lancet::TrackingDeviceManage::TrackingDeviceState::Install)
+		{
+			connector->GetTrackingDevice("Kuka")->StartTracking();
+			return;
+		}
+		this->imp->m_Controls.checkBox_startRobot->setChecked(isConnected);
+
+		mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Kuka")->GetOutput(0);
+		this->imp->robotStartPoint = rob_move->GetPosition();
+		this->imp->robotMoveCheckedTimer.start(18);
+		connect(&this->imp->robotMoveCheckedTimer, &QTimer::timeout, 
+			this, &QLinkingHardware::OnCheckedRobotMovePosition);
+	}
+
+	// 如果设备都连接成功，那么开放跳转通道
+	bool isPass = this->imp->m_Controls.checkBox_startNDI->isChecked() 
+		&& this->imp->m_Controls.checkBox_startRobot->isChecked();
+	this->imp->m_Controls.pushbtnActivate->setEnabled(isPass);
+	if (this->imp->m_Controls.pushbtnActivateSuccess->isEnabled())
+	{
+		this->imp->m_Controls.pushbtnActivate->setText(QString::fromLocal8Bit("检测成功"));
+	}
+	else
+	{
+		this->imp->m_Controls.pushbtnActivate->setEnabled(true);
+		this->imp->m_Controls.pushbtnActivate->setText(QString::fromLocal8Bit("重新检测"));
 	}
 }
-void QLinkingHardware::Slot_IDevicesGetStatus(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState State)
-{
-    MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
-    auto scanner = this->GetService()->GetConnector();
-    bool isConnected = State & lancet::TrackingDeviceManage::TrackingDeviceState::Connected;
-    this->setStartHardware(name, isConnected);
-}
-void QLinkingHardware::setStartHardware(std::string name, bool isConnected)
-{
-	MITK_INFO << "QLinkingHardware:" << __func__  << ": log";
-    if (name == "Vega")
-    {
-        m_Controls.checkBox_startNDI->setChecked(isConnected);
-    }
-    if (name == "Kuka")
-    {
-        m_Controls.checkBox_startRobot->setChecked(isConnected);
-        if (true == isConnected)
-        {
-            auto connector = this->GetService()->GetConnector();
-            auto robot = connector->GetTrackingDevice("Kuka");
-            mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Kuka")->GetOutput(0);
-            m_RobotStartPosition = rob_move->GetPosition();
-            m_updateTimer.start(18);
-            connect(&this->m_updateTimer, &QTimer::timeout, this, &QLinkingHardware::startCheckRobotMove);
-        }
-    }
 
-    // 如果设备都连接成功，那么开放跳转通道
-    bool isPass = m_Controls.checkBox_startNDI->isChecked() && m_Controls.checkBox_startRobot->isChecked();
-    m_Controls.pushButton_success->setEnabled(isPass);
-    if (m_Controls.pushButton_success->isEnabled())
-    {
-        m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("检测成功"));
-    }
-    else
-    {
-        m_Controls.pushButton_auto->setEnabled(true);
-        m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("重新检测"));
-    }
+void QLinkingHardware::OnCheckedRobotMovePosition()
+{
+	auto connector = this->GetService()->GetConnector();
+
+	if (connector && connector->GetTrackingDevice("Kuka"))
+	{
+		mitk::NavigationData::Pointer robotTracking = 
+			connector->GetTrackingDeviceSource("Kuka")->GetOutput(0);
+
+		if (robotTracking->IsDataValid())
+		{
+			lancet::spatial_fitting::PointAccuracyDate robotMoveAccurcy;
+			robotMoveAccurcy.SetSourcePoint(this->imp->robotStartPoint);
+			robotMoveAccurcy.SetTargetPoint(robotTracking->GetPosition());
+
+			if (robotMoveAccurcy.Compute() >= 5.0)
+			{
+				this->imp->m_Controls.checkBox_free->setChecked(true);
+				this->imp->robotMoveCheckedTimer.stop();
+			}
+		}
+		else
+		{
+			MITK_WARN << "robot tracking data is invalid!";
+		}
+	}
 }
 
-void QLinkingHardware::ReadFileName()
+void QLinkingHardware::OnPushbtnActivate()
 {
-    auto test_dir = QDir(":/org.mitk.lancet.linkinghardware/");
-    QFile file(test_dir.absoluteFilePath("config.json"));
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        return;
-    }
-    QByteArray array = file.readAll();
-    QJsonParseError json_error;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(array, &json_error);
+	DervicveConfigurePrivate conf;
+	conf.SetFileName(":/org.mitk.lancet.linkinghardware/config.json");
+	conf.Update();
 
-    if (json_error.error == QJsonParseError::NoError)
-    {
-        QJsonObject rootObj = jsonDoc.object();
-        QJsonArray  JsonArray;
-        if (rootObj.contains("Device") && rootObj.value("Device").isObject())
-        {
-            QJsonObject  childJson = rootObj.value("Device").toObject();
-            JsonArray = childJson.value("IGTToolStorage").toArray();
-            auto connector = this->GetService()->GetConnector(); 
-            for (int i = 0; i < JsonArray.size(); i++)
-            {
-                QJsonObject childObj = JsonArray[i].toObject();
-                if (childObj.contains("ndifilename") && childObj.value("ndifilename").isString())
-                {
-                    filename = childObj.value("ndifilename").toString();
-                    QDir dir(filename);
-                    MITK_INFO << dir.absolutePath().toStdString();
-                    MITK_INFO  << filename;
-                    if (false == connector->IsInstallTrackingDevice("Vega"))
-                    {
-                        if (false == connector->InstallTrackingDevice("Vega", filename.toStdString(), this->GetDataStorage()))
-                        {
-                            std::cout << "install robot tracking device faild! error: " << connector->GetErrorString();
-                        }
-                        else
-                        {
-                            MITK_INFO << "Connecting to the Vega";
-                            connector->GetTrackingDevice("Vega")->OpenConnection();
-                            connector->GetTrackingDevice("Vega")->StartTracking();
-                        }
-                    }
-                }
+	if (this->GetService())
+	{
+		auto connector = this->GetService()->GetConnector();
 
-                if (childObj.contains("robfilename") && childObj.value("robfilename").isString())
-                {
-                    filename = childObj.value("robfilename").toString();
-                    MITK_INFO  << filename; 
-                    if (false == connector->IsInstallTrackingDevice("Kuka"))
-                    {
-                        if (false == connector->InstallTrackingDevice("Kuka", filename.toStdString(), this->GetDataStorage()))
-                        {
-                            std::cout << "install robot tracking device faild! error: " << connector->GetErrorString();
-                        }
-                        else
-                        {
-                            MITK_INFO << "Connecting to the Robot";
-                            connector->GetTrackingDevice("Kuka")->OpenConnection();
-							clock_t clock_timeout = clock();
-							while ((clock() - clock_timeout) < 10000)
-							{
-								if (connector->GetTrackingDevice("Kuka")->GetState() != 0)
-								{
-									connector->GetTrackingDevice("Kuka")->StartTracking();
-									break;
-								}
-								QThread::msleep(100);
-							}
-                        }
-                    }
-                }
-                auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
-                mitk::RenderingManager::GetInstance()->InitializeViews(geo);
-            }
-        }
-        if (filename.isNull()) return;
-    }
+		if (false == connector->IsInstallTrackingDevice("Vega"))
+		{
+			std::string ndiIGTToolStorage = conf.GetNDIIGTToolStorage().toStdString();
+			if (connector->InstallTrackingDevice("Vega", ndiIGTToolStorage, this->GetDataStorage()))
+			{
+				MITK_INFO << "Connecting to the Vega";
+				connector->GetTrackingDevice("Vega")->OpenConnection();
+				connector->GetTrackingDevice("Vega")->StartTracking();
+			}
+			else
+			{
+				MITK_ERROR 
+					<< "install vega tracking device faild! error: " 
+					<< connector->GetErrorString();
+			}
+		}
+		if (false == connector->IsInstallTrackingDevice("Kuka"))
+		{
+			std::string kukaIGTToolStorage = conf.GetNDIIGTToolStorage().toStdString();
+			if (connector->InstallTrackingDevice("Kuka", kukaIGTToolStorage, this->GetDataStorage()))
+			{
+				MITK_INFO << "Connecting to the Kuka";
+				connector->GetTrackingDevice("Kuka")->OpenConnection();
+			}
+			else
+			{
+				MITK_ERROR
+					<< "install robot tracking device faild! error: "
+					<< connector->GetErrorString();
+			}
+		}
+	}
 }
 
-void QLinkingHardware::on_pb_auto_clicked()
+void QLinkingHardware::OnPushbtnActivateSuccess()
 {
-    MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
-    m_Controls.pushButton_auto->setEnabled(false);
-    m_Controls.pushButton_auto->setText(QString::fromLocal8Bit("正在检测"));
-	if (isauto)
-    {
-        ReadFileName();
-    }
-    else
-    {
-        auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
-        mitk::RenderingManager::GetInstance()->InitializeViews(geo);
-    }
-}
-void QLinkingHardware::on_pb_success_clicked()
-{
-	//Log::write("QLinkingHardware::on_pushButton_success_clicked");
-	MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
-}
-void QLinkingHardware::startCheckRobotMove()
-{
-    MITK_INFO << "QLinkingHardware:" << __func__ << ": log";
-    auto connector = this->GetService()->GetConnector();
-    auto robot = connector->GetTrackingDevice("Kuka");
-    bool isRobotValid = false;
-    if (robot)
-    {
-        if (connector->IsInstallTrackingDevice("Kuka"))
-        {
-            isRobotValid = true;
-            mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Kuka")->GetOutput(0);
-            if (false == rob_move->IsDataValid()) 
-            {
-                return;
-            }
-            double Before_move[3]{ this->m_RobotStartPosition[0],this->m_RobotStartPosition[1],this->m_RobotStartPosition[2]};
-            double After_move[3]{ rob_move->GetPosition()[0],rob_move->GetPosition()[1],rob_move->GetPosition()[2] };
-            double MovingDistance;
-            MovingDistance = sqrt((Before_move[0] - After_move[0]) * (Before_move[0] - After_move[0]) +
-                (Before_move[1] - After_move[1]) * (Before_move[1] - After_move[1]) +
-                (Before_move[2] - After_move[2]) * (Before_move[2] - After_move[2]));
-            if (MovingDistance > 5.0)
-            {
-                m_Controls.checkBox_free->setChecked(true);
-                this->m_updateTimer.stop();
-            }
-        }
-    }  
 }
