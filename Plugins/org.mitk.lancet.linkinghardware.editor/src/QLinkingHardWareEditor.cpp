@@ -194,7 +194,6 @@ void QLinkingHardWareEditor::ConnectToService()
 }
 void QLinkingHardWareEditor::on_HardWareWidget(std::string name, bool isConnected)
 {
-	MITK_INFO << "QLinkingHardware:" << __func__ << ": log.name " << name << "; log.isConnected " << isConnected;
 	if (name == "Vega")
 	{
 		this->m_stateTrackingDeviceOfNDI = isConnected;
@@ -208,7 +207,8 @@ void QLinkingHardWareEditor::on_HardWareWidget(std::string name, bool isConnecte
 
 void QLinkingHardWareEditor::Slot_IDevicesGetStatus(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState State)
 {
+	MITK_INFO << "name " << name << ", state " << State;
 	auto connector = this->GetService()->GetConnector();
-	bool isConnected = State & lancet::TrackingDeviceManage::TrackingDeviceState::Connected;
+	bool isConnected = State & lancet::TrackingDeviceManage::TrackingDeviceState::Tracking;
 	this->on_HardWareWidget(name, isConnected);
 }
