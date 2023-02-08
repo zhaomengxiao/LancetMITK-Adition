@@ -66,6 +66,8 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
 
   // pelvisCupCouple
   connect(m_Controls.pushButton_initPelvisCupCouple, &QPushButton::clicked, this, &THAPlanning::pushButton_initPelvisCupCouple_clicked);
+  connect(m_Controls.pushButton_adjustCup, &QPushButton::clicked, this, &THAPlanning::pushButton_adjustCup_clicked);
+  connect(m_Controls.pushButton_adjustCouple, &QPushButton::clicked, this, &THAPlanning::pushButton_adjustCouple_clicked);
 
 
 }
@@ -434,8 +436,10 @@ void THAPlanning::On_pushButton_initializePelvisObject_clicked()
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 	m_Controls.textBrowser->append("A pelvicObject has been initialized");
-
+	
 	m_Controls.textBrowser->append("Supine pelvic tilt is: " + QString::number(m_pelvisObject->GetpelvicTilt_supine()));
+
+	
 
 }
 
@@ -734,8 +738,61 @@ void THAPlanning::pushButton_initPelvisCupCouple_clicked()
 
 	m_PelvisCupCouple->InitializePelvisFrameToCupFrameMatrix();
 
-	m_Controls.textBrowser->append("Supine Cup version:" + QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
-	m_Controls.textBrowser->append("Supine Cup inclination:" + QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
+	m_Controls.lineEdit_cupVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
+	m_Controls.lineEdit_cupInclination->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+
+	m_Controls.lineEdit_cupCOR_si->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_noTilt()));
+	m_Controls.lineEdit_cupCOR_ml->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_noTilt()));
+	m_Controls.lineEdit_cupCOR_ap->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_noTilt()));
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::pushButton_adjustCup_clicked()
+{
+	vtkNew<vtkMatrix4x4> newMatrix;
+	newMatrix->DeepCopy(GenerateMatrix());
+
+	vtkNew<vtkTransform> pelvisFrameToCupFrameTransform_new;
+	pelvisFrameToCupFrameTransform_new->PreMultiply();
+	pelvisFrameToCupFrameTransform_new->SetMatrix(m_PelvisCupCouple->GetvtkMatrix_pelvisFrameToCupFrame());
+	pelvisFrameToCupFrameTransform_new->Concatenate(newMatrix);
+
+	auto pelvisFrameToCupFrameMatrix_new = pelvisFrameToCupFrameTransform_new->GetMatrix();
+
+	m_PelvisCupCouple->SetPelvisFrameToCupFrameMatrix(pelvisFrameToCupFrameMatrix_new);
+
+	m_Controls.lineEdit_cupVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
+	m_Controls.lineEdit_cupInclination->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+
+	m_Controls.lineEdit_cupCOR_si->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_noTilt()));
+	m_Controls.lineEdit_cupCOR_ml->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_noTilt()));
+	m_Controls.lineEdit_cupCOR_ap->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_noTilt()));
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::pushButton_adjustCouple_clicked()
+{
+	vtkNew<vtkMatrix4x4> newMatrix;
+	newMatrix->DeepCopy(GenerateMatrix());
+
+	vtkNew<vtkTransform> worldToPelvisTransform_new;
+	worldToPelvisTransform_new->PreMultiply();
+	worldToPelvisTransform_new->SetMatrix(m_PelvisCupCouple->GetvtkMatrix_coupleGeometry());
+	worldToPelvisTransform_new->Concatenate(newMatrix);
+	worldToPelvisTransform_new->Update();
+
+	m_PelvisCupCouple->SetCoupleGeometry(worldToPelvisTransform_new->GetMatrix());
+
+	m_Controls.lineEdit_cupVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
+	m_Controls.lineEdit_cupInclination->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+
+	m_Controls.lineEdit_cupCOR_si->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_noTilt()));
+	m_Controls.lineEdit_cupCOR_ml->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_noTilt()));
+	m_Controls.lineEdit_cupCOR_ap->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_noTilt()));
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 }
 

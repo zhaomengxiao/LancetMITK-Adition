@@ -259,6 +259,48 @@ void lancet::ThaPelvisCupCouple::UpdateCupAngles()
 		}
 	}
 
+	// no pelvic tilt
+	vtkNew<vtkTransform> worldFrameToCupFrameTransform_noTilt;
+	worldFrameToCupFrameTransform_noTilt->PostMultiply();
+	worldFrameToCupFrameTransform_noTilt->SetMatrix(pelvisFrameToCupFrameMatrix);
+	double pelvicTilt_noTilt{ 0 };
+	worldFrameToCupFrameTransform_noTilt->RotateX(pelvicTilt_noTilt);
+	worldFrameToCupFrameTransform_noTilt->Update();
+
+	auto worldFrameToCupFrameMatrix_noTilt = worldFrameToCupFrameTransform_noTilt->GetMatrix();
+
+	// Cup axis in worldFrame: the minus z axis of cupFrame in worldFrame 
+	Eigen::Vector3d cupAxisInWorldFrame_noTilt;
+	cupAxisInWorldFrame_noTilt[0] = -worldFrameToCupFrameMatrix_noTilt->GetElement(0, 2);
+	cupAxisInWorldFrame_noTilt[1] = -worldFrameToCupFrameMatrix_noTilt->GetElement(1, 2);
+	cupAxisInWorldFrame_noTilt[2] = -worldFrameToCupFrameMatrix_noTilt->GetElement(2, 2);
+
+	// if cupAxisInWorldFrame_noTilt[1] is minus, the cup is anteversed(+ degree)
+	// if cupAxisInWorldFrame_noTilt[1] is positive, the cup is retroversed(- degree)
+	m_CupVersion_noTilt = asin(-cupAxisInWorldFrame_noTilt[1]) * 180 / 3.1415926;
+
+	Eigen::Vector3d cupAxisProjectInWorldFrame_noTilt;
+	cupAxisProjectInWorldFrame_noTilt[0] = -worldFrameToCupFrameMatrix_noTilt->GetElement(0, 2);
+	cupAxisProjectInWorldFrame_noTilt[1] = 0;
+	cupAxisProjectInWorldFrame_noTilt[2] = -worldFrameToCupFrameMatrix_noTilt->GetElement(2, 2);
+
+	m_CupInclination_noTilt = acos(cupAxisProjectInWorldFrame_noTilt.dot(minusZvector) / cupAxisProjectInWorldFrame_noTilt.norm()) * 180 / 3.1415926;
+
+	if (m_CupObject->GetOperationSide() == 0) // right operation side
+	{
+		if (cupAxisProjectInWorldFrame_noTilt[0] > 0)
+		{
+			m_CupInclination_noTilt = -m_CupInclination_noTilt;
+		}
+	}
+
+	if (m_CupObject->GetOperationSide() != 0) // left operation side
+	{
+		if (cupAxisProjectInWorldFrame_noTilt[0] < 0)
+		{
+			m_CupInclination_noTilt = -m_CupInclination_noTilt;
+		}
+	}
 }
 
 void lancet::ThaPelvisCupCouple::UpdateRelativeCupCOR()
@@ -309,14 +351,16 @@ void lancet::ThaPelvisCupCouple::UpdateRelativeCupCOR()
 	};
 
 	// superior (+) / inferior (-)
-	m_CupCOR_SI = cupCORinWorldFrame[2] - pelvisCORinWorldFrame[2];
+	m_CupCOR_SI_supine = cupCORinWorldFrame[2] - pelvisCORinWorldFrame[2];
+	m_CupCOR_SI_noTilt = m_vtkMatrix_pelvisFrameToCupFrame->GetElement(2, 3) - pelvisCOR[2];
 
 	// medial (+) / lateral (-)
-	m_CupCOR_ML = abs(pelvisCORinWorldFrame[0]) - abs(cupCORinWorldFrame[0]);
+	m_CupCOR_ML_supine = abs(pelvisCORinWorldFrame[0]) - abs(cupCORinWorldFrame[0]);
+	m_CupCOR_ML_noTilt = abs(pelvisCOR[0]) - abs(m_vtkMatrix_pelvisFrameToCupFrame->GetElement(0, 3));
 
 	// anterior (+) / posterior (-)
-	m_CupCOR_AP = pelvisCORinWorldFrame[1] - cupCORinWorldFrame[1];
-
+	m_CupCOR_AP_supine = pelvisCORinWorldFrame[1] - cupCORinWorldFrame[1];
+	m_CupCOR_AP_noTilt = pelvisCOR[1] - m_vtkMatrix_pelvisFrameToCupFrame->GetElement(1, 3);
 }
 
 void lancet::ThaPelvisCupCouple::TranslateCup_x(double length)

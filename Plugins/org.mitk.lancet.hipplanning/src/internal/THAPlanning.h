@@ -154,6 +154,8 @@ protected:
 
   // --------- Test pelvisCupCouple ---------
   void pushButton_initPelvisCupCouple_clicked();
+  void pushButton_adjustCup_clicked();
+  void pushButton_adjustCouple_clicked();
   lancet::ThaPelvisCupCouple::Pointer m_PelvisCupCouple;
 
 	//---------- Tool functions --------------

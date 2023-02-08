@@ -51,7 +51,11 @@ namespace lancet
 		itkGetMacro(CupInclination_stand, double);
 	
 		itkGetMacro(CupInclination_sit, double);
-		
+
+		itkGetMacro(CupInclination_noTilt, double);
+
+		itkGetMacro(CupVersion_noTilt, double);
+
 		itkGetMacro(CupVersion_supine, double);
 		
 		itkGetMacro(CupVersion_stand, double);
@@ -59,9 +63,13 @@ namespace lancet
 		itkGetMacro(CupVersion_sit, double);
 	
 
-		itkGetMacro(CupCOR_SI, double);
-		itkGetMacro(CupCOR_ML, double);
-		itkGetMacro(CupCOR_AP, double);
+		itkGetMacro(CupCOR_SI_supine, double);
+		itkGetMacro(CupCOR_ML_supine, double);
+		itkGetMacro(CupCOR_AP_supine, double);
+
+		itkGetMacro(CupCOR_SI_noTilt, double);
+		itkGetMacro(CupCOR_ML_noTilt, double);
+		itkGetMacro(CupCOR_AP_noTilt, double);
 
 		/* update the m_vtkMatrix_groupGeometry of m_PelvisObject and m_CupObject;
 		 * update m_vtkMatrix_coupleGeometry */
@@ -120,21 +128,30 @@ namespace lancet
 		double m_CupInclination_stand{ 0 };
 		// cup inclination: sit
 		double m_CupInclination_sit{ 0 };
+		// cup inclination: no pelvic tilt
+		double m_CupInclination_noTilt{ 0 };
 		// cup version: supine
 		double m_CupVersion_supine{ 0 };
 		// cup version: stand
 		double m_CupVersion_stand{ 0 };
 		// cup version: sit
 		double m_CupVersion_sit{ 0 };
+		// cup version: no pelvic tilt
+		double m_CupVersion_noTilt{ 0 };
 
 		// cupCOR relative to pelvisCOR with supine pelvic tilt: Superior(+) or inferior(-)
-		double m_CupCOR_SI{ 0 };
+		double m_CupCOR_SI_supine{ 0 };
 		// cupCOR relative to pelvisCOR with supine pelvic tilt: Medial(+) or lateral(-) 
-		double m_CupCOR_ML{ 0 };
+		double m_CupCOR_ML_supine{ 0 };
 		// cupCOR relative to pelvisCOR with supine pelvic tilt: Anterior(+) or posterior(-)
-		double m_CupCOR_AP{ 0 };
+		double m_CupCOR_AP_supine{ 0 };
 
-
+		// cupCOR relative to pelvisCOR with no pelvic tilt: Superior(+) or inferior(-)
+		double m_CupCOR_SI_noTilt{ 0 };
+		// cupCOR relative to pelvisCOR with no pelvic tilt: Medial(+) or lateral(-) 
+		double m_CupCOR_ML_noTilt{ 0 };
+		// cupCOR relative to pelvisCOR with no pelvic tilt: Anterior(+) or posterior(-)
+		double m_CupCOR_AP_noTilt{ 0 };
 
 	};
 }
