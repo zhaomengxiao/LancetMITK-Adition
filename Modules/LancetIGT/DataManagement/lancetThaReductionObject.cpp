@@ -60,7 +60,6 @@ bool lancet::ThaReductionObject::CheckBoneAvailablity()
 	return true;
 }
 
-
 void lancet::ThaReductionObject::CalOriginalReductionMatrices()
 {
 	if(CheckBoneAvailablity() == false)
@@ -73,7 +72,114 @@ void lancet::ThaReductionObject::CalOriginalReductionMatrices()
 	CalOriginalSupineTiltCanalMatrices();
 	CalOriginalSupineTiltMechanicMatrices();
 
+	CalOriginalSupineHipLengths();
+	CalOriginalSupineCombinedOffsets();
 }
+
+void lancet::ThaReductionObject::CalOriginalSupineHipLengths()
+{
+	// hip length is the distance from the lesser trochanter to the ASIS line when the femur is mechanically aligned
+	// the pelvisTilt is the supine tilt
+
+	for(int hipSide{0}; hipSide < 2; hipSide++)
+	{
+		mitk::Point3D lesserTrochanter_femurFrame;
+		vtkNew<vtkMatrix4x4> femurMatrix;
+		if(hipSide == 0)
+		{
+			lesserTrochanter_femurFrame = m_FemurObject_R->Getpset_lesserTrochanter()->GetPoint(0);
+			femurMatrix->DeepCopy(m_SupinePelvicTilt_mechanic_matrix_R);
+		}else
+		{
+			lesserTrochanter_femurFrame = m_FemurObject_L->Getpset_lesserTrochanter()->GetPoint(1);
+			femurMatrix->DeepCopy(m_SupinePelvicTilt_mechanic_matrix_L);
+		}
+
+		auto asis_R_pelvisFrame = m_PelvisObject->Getpset_ASIS()->GetPoint(0);
+		auto asis_L_pelvisFrame = m_PelvisObject->Getpset_ASIS()->GetPoint(1);
+
+		auto tmpPset = mitk::PointSet::New();
+
+		// lesserTrochanter in worldFrame
+		mitk::Point3D lesserTrochanter_worldFrame;
+		tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(femurMatrix);
+		tmpPset->GetGeometry()->IndexToWorld(lesserTrochanter_femurFrame,lesserTrochanter_worldFrame);
+
+		// ASIS points in worldFrame when the pelvis is in supine position
+		mitk::Point3D asis_R_worldFrame;
+		mitk::Point3D asis_L_worldFrame;
+
+		tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(m_SupinePelvicTilt_pelvisMatrix);
+		tmpPset->GetGeometry()->IndexToWorld(asis_L_pelvisFrame, asis_L_worldFrame);
+		tmpPset->GetGeometry()->IndexToWorld(asis_R_pelvisFrame, asis_R_worldFrame);
+
+		// calculate distance asis_R_worldFrame-asis_L_worldFrame line and lesserTrochanter_worldFrame
+		Eigen::Vector3d asis_vector;
+		asis_vector[0] = asis_L_worldFrame[0] - asis_R_worldFrame[0];
+		asis_vector[1] = asis_L_worldFrame[1] - asis_R_worldFrame[1];
+		asis_vector[2] = asis_L_worldFrame[2] - asis_R_worldFrame[2];
+
+		Eigen::Vector3d asis_R_to_lesserTrochanter;
+		asis_R_to_lesserTrochanter[0] = lesserTrochanter_worldFrame[0] - asis_R_worldFrame[0];
+		asis_R_to_lesserTrochanter[1] = lesserTrochanter_worldFrame[1] - asis_R_worldFrame[1];
+		asis_R_to_lesserTrochanter[2] = lesserTrochanter_worldFrame[2] - asis_R_worldFrame[2];
+
+		double projection = asis_vector.dot(asis_R_to_lesserTrochanter)/asis_vector.norm();
+
+		double hipLength = sqrt(pow(asis_R_to_lesserTrochanter.norm(), 2) - pow(projection, 2));
+
+		if (hipSide == 0)
+		{
+			m_HipLength_supine_R = hipLength;
+		}
+		else
+		{
+			m_HipLength_supine_L = hipLength;
+		}
+
+	}
+
+}
+
+void lancet::ThaReductionObject::CalOriginalSupineCombinedOffsets()
+{
+	// CombinedOffset is the distance from the canal axis (canal alignment) to the sagittal plane passing through the midline point
+	// the pelvis tilt does not influence the combinedOffset
+
+	for (int hipSide{ 0 }; hipSide < 2; hipSide++)
+	{
+		mitk::Point3D proximalCanal_femurFrame;
+		vtkNew<vtkMatrix4x4> femurMatrix;
+
+		if( hipSide == 0 ) // right side
+		{
+			proximalCanal_femurFrame = m_FemurObject_R->Getpset_femurCanal()->GetPoint(0);
+			femurMatrix->DeepCopy(m_SupinePelvicTilt_canal_matrix_R);
+		}else
+		{
+			proximalCanal_femurFrame = m_FemurObject_L->Getpset_femurCanal()->GetPoint(0);
+			femurMatrix->DeepCopy(m_SupinePelvicTilt_canal_matrix_L);
+		}
+
+		// calculate proximalCanal_worldFrame
+		mitk::Point3D proximalCanal_worldFrame;
+
+		auto tmpPset = mitk::PointSet::New();
+		tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(femurMatrix);
+		tmpPset->GetGeometry()->IndexToWorld(proximalCanal_femurFrame, proximalCanal_worldFrame);
+
+		if(hipSide == 0)
+		{
+			m_CombinedOffset_supine_R = abs(proximalCanal_worldFrame[0]);
+		}else
+		{
+			m_CombinedOffset_supine_L = abs(proximalCanal_worldFrame[0]);
+		}
+
+	}
+
+}
+
 
 void lancet::ThaReductionObject::CalOriginalNoTiltCanalMatrices()
 {

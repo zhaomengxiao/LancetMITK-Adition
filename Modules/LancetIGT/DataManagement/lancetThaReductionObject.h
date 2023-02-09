@@ -32,6 +32,11 @@ namespace lancet
 		itkSetMacro(FemurObject_L, lancet::ThaFemurObject::Pointer)
 		itkSetMacro(PelvisObject, lancet::ThaPelvisObject::Pointer)
 
+		itkGetMacro(HipLength_supine_R,double)
+		itkGetMacro(HipLength_supine_L, double)
+		itkGetMacro(CombinedOffset_supine_R, double)
+		itkGetMacro(CombinedOffset_supine_L, double)
+
 		// get matrices for No pelvicTilt and femurCanal alignment
 		void GetOriginalNoTiltCanalMatrices(vtkSmartPointer<vtkMatrix4x4> pelvisMatrix,
 				vtkSmartPointer<vtkMatrix4x4> rightFemurMatrix,
@@ -51,7 +56,7 @@ namespace lancet
 		void GetOriginalSupineTiltMechanicMatrices(vtkSmartPointer<vtkMatrix4x4> pelvisMatrix,
 			vtkSmartPointer<vtkMatrix4x4> rightFemurMatrix,
 			vtkSmartPointer<vtkMatrix4x4> leftFemurMatrix);
-
+			   
 	protected:
 
 		ThaReductionObject();
@@ -61,6 +66,12 @@ namespace lancet
 
 		// update all original patient matrices
 		void CalOriginalReductionMatrices();
+
+		// Calculate Hip lengths
+		void CalOriginalSupineHipLengths();
+
+		// Calculate combined offsets
+		void CalOriginalSupineCombinedOffsets();
 
 		// Check femur and pelvis availability
 		bool CheckBoneAvailablity();
@@ -77,6 +88,13 @@ namespace lancet
 		// update matrices for supine pelvicTilt and femur mechanic axis alignment
 		void CalOriginalSupineTiltMechanicMatrices();
 
+		// Original Hip lengths with supine pelvic tilt 
+		double m_HipLength_supine_R{ 0 };
+		double m_HipLength_supine_L{ 0 };
+
+		// Original Combined offsets with supine pelvic tilt
+		double m_CombinedOffset_supine_R{ 0 };
+		double m_CombinedOffset_supine_L{ 0 };
 
 		// pelvisObject
 		lancet::ThaPelvisObject::Pointer m_PelvisObject;

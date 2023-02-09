@@ -556,6 +556,11 @@ void THAPlanning::pushButton_noTiltCanalReduction_clicked()
 	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
 	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
 	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+	
+	m_Controls.textBrowser->append("right hip length:" + QString::number(m_ReductionObject->GetHipLength_supine_R()));
+	m_Controls.textBrowser->append("left hip length:" + QString::number(m_ReductionObject->GetHipLength_supine_L()));
+	m_Controls.textBrowser->append("right combined offset:" + QString::number(m_ReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.textBrowser->append("left combined offset:" + QString::number(m_ReductionObject->GetCombinedOffset_supine_L()));
 }
 
 void THAPlanning::pushButton_noTiltMechanicReduction_clicked()
@@ -738,12 +743,12 @@ void THAPlanning::pushButton_initPelvisCupCouple_clicked()
 
 	m_PelvisCupCouple->InitializePelvisFrameToCupFrameMatrix();
 
-	m_Controls.lineEdit_cupVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
-	m_Controls.lineEdit_cupInclination->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+	m_Controls.lineEdit_cupVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
+	m_Controls.lineEdit_cupInclination->setText(QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
 
-	m_Controls.lineEdit_cupCOR_si->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_noTilt()));
-	m_Controls.lineEdit_cupCOR_ml->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_noTilt()));
-	m_Controls.lineEdit_cupCOR_ap->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_noTilt()));
+	m_Controls.lineEdit_cupCOR_si->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_supine()));
+	m_Controls.lineEdit_cupCOR_ml->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_supine()));
+	m_Controls.lineEdit_cupCOR_ap->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -762,12 +767,12 @@ void THAPlanning::pushButton_adjustCup_clicked()
 
 	m_PelvisCupCouple->SetPelvisFrameToCupFrameMatrix(pelvisFrameToCupFrameMatrix_new);
 
-	m_Controls.lineEdit_cupVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
-	m_Controls.lineEdit_cupInclination->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+	m_Controls.lineEdit_cupVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
+	m_Controls.lineEdit_cupInclination->setText(QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
 
-	m_Controls.lineEdit_cupCOR_si->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_noTilt()));
-	m_Controls.lineEdit_cupCOR_ml->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_noTilt()));
-	m_Controls.lineEdit_cupCOR_ap->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_noTilt()));
+	m_Controls.lineEdit_cupCOR_si->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_supine()));
+	m_Controls.lineEdit_cupCOR_ml->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_supine()));
+	m_Controls.lineEdit_cupCOR_ap->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -785,12 +790,12 @@ void THAPlanning::pushButton_adjustCouple_clicked()
 
 	m_PelvisCupCouple->SetCoupleGeometry(worldToPelvisTransform_new->GetMatrix());
 
-	m_Controls.lineEdit_cupVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
-	m_Controls.lineEdit_cupInclination->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+	m_Controls.lineEdit_cupVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
+	m_Controls.lineEdit_cupInclination->setText(QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
 
-	m_Controls.lineEdit_cupCOR_si->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_noTilt()));
-	m_Controls.lineEdit_cupCOR_ml->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_noTilt()));
-	m_Controls.lineEdit_cupCOR_ap->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_noTilt()));
+	m_Controls.lineEdit_cupCOR_si->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_supine()));
+	m_Controls.lineEdit_cupCOR_ml->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_supine()));
+	m_Controls.lineEdit_cupCOR_ap->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 

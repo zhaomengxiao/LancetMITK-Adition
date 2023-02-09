@@ -539,7 +539,7 @@
         </rect>
        </property>
        <property name="title">
-        <string>CupValues with noTilt</string>
+        <string>CupValues with supineTilt</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_10">
         <item row="0" column="0" rowspan="2">
