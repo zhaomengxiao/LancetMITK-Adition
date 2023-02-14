@@ -185,10 +185,11 @@ namespace lancet
 	{
 		if (this->IsInstallTrackingDevice(name))
 		{
-			emit this->TrackingDeviceStateChange(name, TrackingDeviceState::UnInstall);
 			this->GetTrackingDevice(name)->StopTracking();
 			this->GetTrackingDevice(name)->CloseConnection();
+
 			this->imp->mapTrackingDerviceProperties.erase(name);
+			emit this->TrackingDeviceStateChange(name, TrackingDeviceState::UnInstall);
 			return true;
 		}
 		return false;

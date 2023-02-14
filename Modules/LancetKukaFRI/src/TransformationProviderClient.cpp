@@ -72,7 +72,9 @@ bool lancet::FriManager::IsConnected()
 
 void lancet::FriManager::StartFriControl()
 {
-  m_stepThread = std::thread(&FriManager::stepThreadWorker, this);
+	//m_stepThread = std::thread(&FriManager::stepThreadWorker, this);
+  auto stepThread = std::thread(&FriManager::stepThreadWorker, this);
+  stepThread.detach();
 }
 
 void lancet::FriManager::SetFriDynamicFrameTransform(mitk::AffineTransform3D::Pointer transform)
@@ -83,14 +85,24 @@ void lancet::FriManager::SetFriDynamicFrameTransform(mitk::AffineTransform3D::Po
 void lancet::FriManager::DisConnect()
 {
   m_IsConnected = false;
-  m_stepThread.join();
+  m_StepSuccess = false;
   m_ClientApp->disconnect();
+  while (!this->safeQuitWaitForThread())
+  {
+	  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
 
-  printf("\nExit TransformationProvider Client Application");
+  MITK_INFO << "Exit TransformationProvider Client Application";
+}
+
+bool lancet::FriManager::isRunningStep() const
+{
+	return this->m_isRunningStep;
 }
 
 void lancet::FriManager::stepThreadWorker()
 {
+  this->m_isRunningStep = true;
   // repeatedly call the step routine to receive and process FRI packets
   while (m_StepSuccess && m_IsConnected)
   {
@@ -106,6 +118,22 @@ void lancet::FriManager::stepThreadWorker()
       break;
     }
   }
+  this->m_isRunningStep = false;
+}
+
+bool lancet::FriManager::safeQuitWaitForThread(int timeout)
+{
+	clock_t startCheckTime = clock();
+	while (this->isRunningStep())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		if ((clock() - startCheckTime) >= timeout)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 // clean up additional defines

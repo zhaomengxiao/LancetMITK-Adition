@@ -24,8 +24,10 @@ public:
   virtual void CreateQtPartControl(QWidget* parent) override;
 
 protected:
-	bool ConnectedQtInteractive();
-	bool DisConnectedQtInteractive();
+  void InitializeTrackingToolsWidget();
+
+  bool ConnectedQtInteractive();
+  bool DisConnectedQtInteractive();
 
   bool ConnectedQtEventForDevicesService();
   bool DisConnectedQtEventForDevicesService();
@@ -42,10 +44,6 @@ protected Q_SLOTS:
 	void OnPushbtnActivate();
 
 	void OnPushbtnActivateSuccess();
-
-	void OnTestAppendTrackingTool();
-
-	void OnTestRemoveTrackingTool();
 private:
   struct QLinkingHardwarePrivateImp;
   std::shared_ptr<QLinkingHardwarePrivateImp> imp;

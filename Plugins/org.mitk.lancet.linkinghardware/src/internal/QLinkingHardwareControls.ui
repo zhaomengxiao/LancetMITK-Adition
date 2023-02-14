@@ -40,7 +40,7 @@
   <property name="currentIndex" stdset="0">
    <number>0</number>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -53,7 +53,7 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item>
+   <item row="0" column="0">
     <widget class="QWidget" name="widget" native="true">
      <property name="styleSheet">
       <string notr="true"/>
@@ -75,7 +75,7 @@
        <number>9</number>
       </property>
       <item>
-       <widget class="lancet::DeviceTrackingWidget" name="widget_3" native="true">
+       <widget class="lancet::DeviceTrackingWidget" name="widgetTrackingTools" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
           <horstretch>0</horstretch>
@@ -84,8 +84,8 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>0</width>
-          <height>74</height>
+          <width>280</width>
+          <height>80</height>
          </size>
         </property>
         <property name="maximumSize">
@@ -420,6 +420,9 @@
          </item>
          <item>
           <widget class="QCheckBox" name="checkBox_free">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>
@@ -614,32 +617,6 @@
           <height>16777215</height>
          </size>
         </property>
-        <widget class="QPushButton" name="pushbtnNew">
-         <property name="geometry">
-          <rect>
-           <x>20</x>
-           <y>10</y>
-           <width>75</width>
-           <height>23</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>New</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="pushbtnDel">
-         <property name="geometry">
-          <rect>
-           <x>170</x>
-           <y>10</y>
-           <width>75</width>
-           <height>23</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Del</string>
-         </property>
-        </widget>
        </widget>
       </item>
      </layout>
@@ -651,7 +628,7 @@
   <customwidget>
    <class>lancet::DeviceTrackingWidget</class>
    <extends>QWidget</extends>
-   <header location="global">lancetdevicetrackingwidget.h</header>
+   <header location="global">widgets/lancetDeviceTrackingWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

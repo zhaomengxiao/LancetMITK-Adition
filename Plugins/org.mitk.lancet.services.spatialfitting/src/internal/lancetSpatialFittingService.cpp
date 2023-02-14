@@ -142,14 +142,10 @@ namespace lancet
 
 	void SpatialFittingService::onDeviceConnectState_change(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState state)
 	{
-	  MITK_INFO << "log.name " << name << "; log.state " << state;
-	  if(state == lancet::TrackingDeviceManage::UnInstall)
+	  if (state == lancet::TrackingDeviceManage::UnInstall || state & lancet::TrackingDeviceManage::Tracking)
 	  {
-		MITK_WARN << "The target is not ready for effective resources.";
-		return;
+		  this->Initialize();
 	  }
-
-	  this->Initialize();
 	}
 }
 

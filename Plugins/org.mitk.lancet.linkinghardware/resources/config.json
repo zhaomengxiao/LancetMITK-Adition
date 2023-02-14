@@ -1,7 +1,7 @@
 {
 	"Device": 
 	{
-		"NDIIGTToolStorage": "../../bin/resources/IGTToolStorage/SurgSimAcc_NDI_dentalEnd.IGTToolStorage",
+		"NDIIGTToolStorage": "../../bin/resources/IGTToolStorage/ndiDeviceTool.IGTToolStorage",
 		"RobotIGTToolStorage": "../../bin/resources/IGTToolStorage/kukaRobot.IGTToolStorage"
 	}
 }

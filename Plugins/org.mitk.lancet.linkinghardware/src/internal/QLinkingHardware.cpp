@@ -112,9 +112,17 @@ void QLinkingHardware::CreateQtPartControl(QWidget *parent)
 	this->UpdateQtPartControlStyleSheet(qssFile);
 	this->ConnectedQtInteractive();
 	this->ConnectedQtEventForDevicesService();
+	this->InitializeTrackingToolsWidget();
+}
 
-	this->imp->m_Controls.widget_3->InitializeTrackingToolVisible("Probe");
-	this->imp->m_Controls.widget_3->InitializeTrackingToolVisible("Robot");
+void QLinkingHardware::InitializeTrackingToolsWidget()
+{
+	lancet::IDevicesAdministrationService* sender = this->GetService();
+	if (sender && sender->GetConnector().IsNotNull())
+	{
+		this->imp->m_Controls.widgetTrackingTools->AddTrackingToolSource(sender->GetConnector()->GetTrackingDeviceSource("Vega"));
+		this->imp->m_Controls.widgetTrackingTools->AddTrackingToolSource(sender->GetConnector()->GetTrackingDeviceSource("Kuka"));
+	}	
 }
 
 bool QLinkingHardware::ConnectedQtInteractive()
@@ -123,11 +131,6 @@ bool QLinkingHardware::ConnectedQtInteractive()
 		this, &QLinkingHardware::OnPushbtnActivate);
 	connect(this->imp->m_Controls.pushbtnActivateSuccess, &QPushButton::clicked,
 		this, &QLinkingHardware::OnPushbtnActivateSuccess);
-
-	connect(this->imp->m_Controls.pushbtnNew, &QPushButton::clicked,
-		this, &QLinkingHardware::OnTestAppendTrackingTool);
-	connect(this->imp->m_Controls.pushbtnDel, &QPushButton::clicked,
-		this, &QLinkingHardware::OnTestRemoveTrackingTool);
 	return true;
 }
 
@@ -193,7 +196,7 @@ void QLinkingHardware::OnIDevicesGetStatus(std::string name,
 	lancet::TrackingDeviceManage::TrackingDeviceState state)
 {
 	auto scanner = this->GetService()->GetConnector();
-	bool isConnected = state & lancet::TrackingDeviceManage::TrackingDeviceState::Connected;
+	bool isConnected = state & lancet::TrackingDeviceManage::TrackingDeviceState::Tracking;
 
 	if (name == "Vega")
 	{
@@ -203,18 +206,21 @@ void QLinkingHardware::OnIDevicesGetStatus(std::string name,
 	{
 		auto connector = this->GetService()->GetConnector();
 		auto robot = connector->GetTrackingDevice("Kuka");
-		if (state == lancet::TrackingDeviceManage::TrackingDeviceState::Install)
+		if (!(state & lancet::TrackingDeviceManage::TrackingDeviceState::Tracking) 
+			&& state & lancet::TrackingDeviceManage::TrackingDeviceState::Connected)
 		{
+			MITK_INFO << "The robot arm is connected, and the robot arm tracking mode is turned on by default";
 			connector->GetTrackingDevice("Kuka")->StartTracking();
 			return;
 		}
+		if (isConnected)
+		{
+			MITK_INFO << "The manipulator has switched to tracking mode";
+			this->imp->robotMoveCheckedTimer.start(18);
+			connect(&this->imp->robotMoveCheckedTimer, &QTimer::timeout,
+				this, &QLinkingHardware::OnCheckedRobotMovePosition);
+		}
 		this->imp->m_Controls.checkBox_startRobot->setChecked(isConnected);
-
-		mitk::NavigationData::Pointer rob_move = connector->GetTrackingDeviceSource("Kuka")->GetOutput(0);
-		this->imp->robotStartPoint = rob_move->GetPosition();
-		this->imp->robotMoveCheckedTimer.start(18);
-		connect(&this->imp->robotMoveCheckedTimer, &QTimer::timeout, 
-			this, &QLinkingHardware::OnCheckedRobotMovePosition);
 	}
 
 	// 如果设备都连接成功，那么开放跳转通道
@@ -243,6 +249,13 @@ void QLinkingHardware::OnCheckedRobotMovePosition()
 
 		if (robotTracking->IsDataValid())
 		{
+			if (this->imp->robotStartPoint == mitk::Point3D())
+			{
+				MITK_INFO << "Record the starting point of robot arm movement monitoring. " << robotTracking->GetPosition();
+				this->imp->robotStartPoint = robotTracking->GetPosition();
+				return;
+			}
+
 			lancet::spatial_fitting::PointAccuracyDate robotMoveAccurcy;
 			robotMoveAccurcy.SetSourcePoint(this->imp->robotStartPoint);
 			robotMoveAccurcy.SetTargetPoint(robotTracking->GetPosition());
@@ -251,10 +264,12 @@ void QLinkingHardware::OnCheckedRobotMovePosition()
 			{
 				this->imp->m_Controls.checkBox_free->setChecked(true);
 				this->imp->robotMoveCheckedTimer.stop();
+				this->imp->robotStartPoint = mitk::Point3D();
 			}
 		}
 		else
 		{
+			MITK_WARN << robotTracking->GetPosition();
 			MITK_WARN << "robot tracking data is invalid!";
 		}
 	}
@@ -288,7 +303,7 @@ void QLinkingHardware::OnPushbtnActivate()
 		}
 		if (false == connector->IsInstallTrackingDevice("Kuka"))
 		{
-			std::string kukaIGTToolStorage = conf.GetNDIIGTToolStorage().toStdString();
+			std::string kukaIGTToolStorage = conf.GetRobotIGTToolStorage().toStdString();
 			if (connector->InstallTrackingDevice("Kuka", kukaIGTToolStorage, this->GetDataStorage()))
 			{
 				MITK_INFO << "Connecting to the Kuka";
@@ -301,35 +316,13 @@ void QLinkingHardware::OnPushbtnActivate()
 					<< connector->GetErrorString();
 			}
 		}
+		else
+		{
+			connector->UnInstallTrackingDevice("Kuka", this->GetDataStorage());
+		}
 	}
 }
 
 void QLinkingHardware::OnPushbtnActivateSuccess()
 {
-}
-
-void QLinkingHardware::OnTestAppendTrackingTool()
-{
-	static int index = 0;
-
-	if (index >= this->imp->m_Controls.widget_3->GetTrackingToolNameOfWidgets().size())
-	{
-		index = 0;
-	}
-	QString name = this->imp->m_Controls.widget_3->GetTrackingToolNameOfWidgets().at(index++);
-	//this->imp->m_Controls.widget_3->InitializeTrackingToolVisible(name);
-	this->imp->m_Controls.widget_3->SetTrackingToolEnable(name,true);
-}
-
-void QLinkingHardware::OnTestRemoveTrackingTool()
-{
-	static int index = 0;
-
-	if (index >= this->imp->m_Controls.widget_3->GetTrackingToolNameOfWidgets().size())
-	{
-		index = 0;
-	}
-	QString name = this->imp->m_Controls.widget_3->GetTrackingToolNameOfWidgets().at(index++);
-	//this->imp->m_Controls.widget_3->UnInitializeTrackingToolVisible(name);
-	this->imp->m_Controls.widget_3->SetTrackingToolEnable(name, false);
 }

@@ -21,8 +21,13 @@ bool lancet::KukaRobotAPI::Connect(int tcpPort, std::string robotIP, int udpPort
     return false;
   }
   //Send heartbeat packets through TCP to maintain connection with kuka robot application;
-  m_TcpHeartBeatThread = std::thread(&KukaRobotAPI::sendTcpHeartBeat, this);
-  m_ReadRobotResultThread = std::thread(&KukaRobotAPI::threadReadRobotResult, this);
+  //m_TcpHeartBeatThread = std::thread(&KukaRobotAPI::sendTcpHeartBeat, this);
+  //m_ReadRobotResultThread = std::thread(&KukaRobotAPI::threadReadRobotResult, this);
+  auto tcpHeartBeatThread = std::thread(&KukaRobotAPI::sendTcpHeartBeat, this);
+  auto readRobotResultThread = std::thread(&KukaRobotAPI::threadReadRobotResult, this);
+
+  tcpHeartBeatThread.detach();
+  readRobotResultThread.detach();
   //connect udp to receive robot info  , connect FRI
   if (!m_UdpConnection.connect(robotIP, udpPort) )
   {
@@ -40,10 +45,12 @@ bool lancet::KukaRobotAPI::Connect(int tcpPort, std::string robotIP, int udpPort
 void lancet::KukaRobotAPI::DisConnect()
 {
   m_IsConnected = false;
-  m_TcpHeartBeatThread.join();
-  m_ReadRobotResultThread.join();
   m_TcpConnection.disconnect();
   m_UdpConnection.disconnect();
+  while (!this->safeQuitWaitForThread())
+  {
+	  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
   m_FriManager.DisConnect();
 }
 
@@ -201,23 +208,43 @@ void lancet::KukaRobotAPI::SetFriDynamicFrameTransform(mitk::AffineTransform3D::
    m_FriManager.SetFriDynamicFrameTransform(matrix);
 }
 
+lancet::KukaRobotAPI::KukaRobotAPI()
+{
+	this->m_IsConnected = false;
+	this->m_isRunningTcpHeartBeat = false;
+	this->m_isRunningReadRobotResult = false;
+}
+
 lancet::KukaRobotAPI::~KukaRobotAPI()
 {
   this->DisConnect();
 }
 
+bool lancet::KukaRobotAPI::isRunningTcpHeartBeat() const
+{
+	return this->m_isRunningTcpHeartBeat;
+}
+
+bool lancet::KukaRobotAPI::isRunningReadRobotResult() const
+{
+	return this->m_isRunningReadRobotResult;
+}
+
 void lancet::KukaRobotAPI::sendTcpHeartBeat()
 {
+  this->m_isRunningTcpHeartBeat = true;
   while (m_IsConnected && m_TcpConnection.isConnected())
   {
     auto res = m_TcpConnection.write("heartBeat");
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     //MITK_INFO << "-";
   }
+  this->m_isRunningTcpHeartBeat = false;
 }
 
 void lancet::KukaRobotAPI::threadReadRobotResult()
 {
+  this->m_isRunningReadRobotResult = true;
   while (m_IsConnected)
   {
     std::string msg;
@@ -230,6 +257,7 @@ void lancet::KukaRobotAPI::threadReadRobotResult()
       MITK_INFO << "MsgQueue Size: " << m_MsgQueueSize;
     }
   }
+  this->m_isRunningReadRobotResult = false;
 }
 
 long lancet::KukaRobotAPI::timeStamp()
@@ -237,6 +265,21 @@ long lancet::KukaRobotAPI::timeStamp()
   timeb t{};
   ftime(&t);
   return t.time * 1000 + t.millitm;
+}
+
+bool lancet::KukaRobotAPI::safeQuitWaitForThread(int timeout)
+{
+	clock_t startCheckTime = clock();
+	while (this->isRunningReadRobotResult() || this->isRunningTcpHeartBeat())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		if ((clock() - startCheckTime) >= timeout)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 std::vector<double> lancet::KukaRobotAPI::kukamatrix2angle(const double matrix3x3[3][3])
