@@ -37,22 +37,22 @@ namespace lancet
 		}
 
 		auto toolDataStorage = this->GetDeviceService()->GetConnector()->GetNavigationToolStorage("Vega");
-		//if (toolDataStorage.IsNotNull())
-		//{
-		//	for (int index = 0; index < toolDataStorage->GetToolCount(); ++index)
-		//	{
-		//		MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage->GetTool(index)->GetToolName();
-		//	}
-		//}
+		if (toolDataStorage.IsNotNull())
+		{
+			for (int index = 0; index < toolDataStorage->GetToolCount(); ++index)
+			{
+				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage->GetTool(index)->GetToolName();
+			}
+		}
 
 		auto toolDataStorage2 = this->GetDeviceService()->GetConnector()->GetNavigationToolStorage("Kuka");
-		//if (toolDataStorage2.IsNotNull())
-		//{
-		//	for (int index = 0; index < toolDataStorage2->GetToolCount(); ++index)
-		//	{
-		//		MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage2->GetTool(index)->GetToolName();
-		//	}
-		//}
+		if (toolDataStorage2.IsNotNull())
+		{
+			for (int index = 0; index < toolDataStorage2->GetToolCount(); ++index)
+			{
+				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage2->GetTool(index)->GetToolName();
+			}
+		}
 		auto ndidatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Vega");
 		this->GetRoboticsRegisterModel()->SetNdiNavigationDataSource(ndidatasource);
 
@@ -142,20 +142,14 @@ namespace lancet
 
 	void SpatialFittingService::onDeviceConnectState_change(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState state)
 	{
-		static bool isInit = true;
 	  MITK_INFO << "log.name " << name << "; log.state " << state;
 	  if(state == lancet::TrackingDeviceManage::UnInstall)
 	  {
-		isInit = true;
 		MITK_WARN << "The target is not ready for effective resources.";
 		return;
 	  }
 
-	  if (state & lancet::TrackingDeviceManage::Connected && isInit)
-	  {
-		  isInit = false;
-		  this->Initialize();
-	  }
+	  this->Initialize();
 	}
 }
 

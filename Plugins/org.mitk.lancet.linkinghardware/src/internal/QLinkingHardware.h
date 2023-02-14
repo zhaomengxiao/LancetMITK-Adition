@@ -42,6 +42,10 @@ protected Q_SLOTS:
 	void OnPushbtnActivate();
 
 	void OnPushbtnActivateSuccess();
+
+	void OnTestAppendTrackingTool();
+
+	void OnTestRemoveTrackingTool();
 private:
   struct QLinkingHardwarePrivateImp;
   std::shared_ptr<QLinkingHardwarePrivateImp> imp;

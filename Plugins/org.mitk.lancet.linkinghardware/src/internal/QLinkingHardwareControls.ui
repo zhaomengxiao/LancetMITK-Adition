@@ -75,7 +75,7 @@
        <number>9</number>
       </property>
       <item>
-       <widget class="QWidget" name="widget_3" native="true">
+       <widget class="lancet::DeviceTrackingWidget" name="widget_3" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
           <horstretch>0</horstretch>
@@ -95,9 +95,7 @@
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border-radius: 8px;
-background-color: rgb(0, 0, 0);
-</string>
+         <string notr="true"/>
         </property>
        </widget>
       </item>
@@ -616,6 +614,32 @@ background-color: rgb(0, 0, 0);
           <height>16777215</height>
          </size>
         </property>
+        <widget class="QPushButton" name="pushbtnNew">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>10</y>
+           <width>75</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>New</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="pushbtnDel">
+         <property name="geometry">
+          <rect>
+           <x>170</x>
+           <y>10</y>
+           <width>75</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Del</string>
+         </property>
+        </widget>
        </widget>
       </item>
      </layout>
@@ -623,6 +647,14 @@ background-color: rgb(0, 0, 0);
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>lancet::DeviceTrackingWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">lancetdevicetrackingwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../../resources/resources.qrc"/>
  </resources>

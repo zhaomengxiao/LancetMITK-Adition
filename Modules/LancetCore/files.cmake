@@ -4,15 +4,15 @@ set(CPP_FILES
   lancetBackendBase.cpp
   lancetLogginBackend.cpp
   lancetMatrixConvert.cpp
-  widgets/lancetDeviceTrackingWidget.cpp
+  lancetdevicetrackingwidget.cpp
 )
 
 set(MOC_H_FILES
-  include/widgets/lancetDeviceTrackingWidget.h
+  include/lancetdevicetrackingwidget.h
 )
 
 set(UI_FILES 
-  src/widgets/lancetDeviceTrackingWidget.ui
+  src/lancetDeviceTrackingWidgetControls.ui
 )
 
 set(RESOURCE_FILES
