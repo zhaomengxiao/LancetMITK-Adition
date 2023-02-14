@@ -46,8 +46,12 @@ namespace lancet
 		itkGetMacro(Surface_stemFrame, mitk::Surface::Pointer)
 
 		itkGetMacro(Pset_headCenter, mitk::PointSet::Pointer)
-		// set headCenter and apply the group geometry
-		void SetHeadCenter(mitk::PointSet::Pointer headCenter);
+		// set headCenter and apply the group geometry, and move the head surface
+		void SetHeadCenter(mitk::PointSet::Pointer headCenterPset_stemFrame_new);
+
+		itkGetMacro(Surface_head, mitk::Surface::Pointer);
+		// set head surface and apply the group geometry considering the headCenter
+		void SetHeadSurface(mitk::Surface::Pointer headSurface);
 
 		/*
 		 * Move all the data components except for the stemFrame
@@ -78,11 +82,14 @@ namespace lancet
 		// femoral stem surface
 		mitk::Surface::Pointer m_Surface_stem;
 
-		// stem frame surface
-		mitk::Surface::Pointer m_Surface_stemFrame;
-
+		// head surface
+		mitk::Surface::Pointer m_Surface_head;
+		
 		// rotation center
 		mitk::PointSet::Pointer m_Pset_headCenter;
+
+		// stem frame surface
+		mitk::Surface::Pointer m_Surface_stemFrame;
 
 	};
 }
