@@ -614,6 +614,42 @@
         </item>
        </layout>
       </widget>
+      <widget class="QGroupBox" name="groupBox_9">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>270</y>
+         <width>262</width>
+         <height>55</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>femurStemCouple</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_11">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton_initFemurStemCouple">
+          <property name="text">
+           <string>Init couple</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="pushButton_adjustStem">
+          <property name="text">
+           <string>AdjustStem</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="pushButton_adjustFemurStemCouple">
+          <property name="text">
+           <string>AdjustCouple</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </widget>
    </item>

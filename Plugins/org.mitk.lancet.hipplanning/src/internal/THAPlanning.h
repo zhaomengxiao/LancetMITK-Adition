@@ -28,7 +28,7 @@ found in the LICENSE file.
 #include "lancetThaStemObject.h"
 #include "lancetThaCupObject.h"
 #include "lancetThaPelvisCupCouple.h"
-
+#include "lancetThaFemurStemCouple.h"
 
 /**
   \brief THAPlanning
@@ -158,6 +158,12 @@ protected:
   void pushButton_adjustCouple_clicked();
   lancet::ThaPelvisCupCouple::Pointer m_PelvisCupCouple;
 
+  // -----------Test femurStemCouple ----------
+  void pushButton_initFemurStemCouple_clicked();
+  void pushButton_adjustStem_clicked();
+  void pushButton_adjustFemurStemCouple_clicked();
+  lancet::ThaFemurStemCouple::Pointer m_FemurStemCouple;
+	
 	//---------- Tool functions --------------
 
 	// retrieve a 4x4 vtkMatrix from the UI

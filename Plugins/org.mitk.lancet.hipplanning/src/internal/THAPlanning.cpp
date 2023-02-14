@@ -69,6 +69,10 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_adjustCup, &QPushButton::clicked, this, &THAPlanning::pushButton_adjustCup_clicked);
   connect(m_Controls.pushButton_adjustCouple, &QPushButton::clicked, this, &THAPlanning::pushButton_adjustCouple_clicked);
 
+  // femurStemCouple
+  connect(m_Controls.pushButton_initFemurStemCouple, &QPushButton::clicked, this, &THAPlanning::pushButton_initFemurStemCouple_clicked);
+  connect(m_Controls.pushButton_adjustStem, &QPushButton::clicked, this, &THAPlanning::pushButton_adjustStem_clicked);
+  connect(m_Controls.pushButton_adjustFemurStemCouple, &QPushButton::clicked, this, &THAPlanning::pushButton_adjustFemurStemCouple_clicked);
 
 }
 
@@ -668,8 +672,10 @@ void THAPlanning::pushButton_initStemObject_clicked()
 
 	auto stemSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("stem");
 	auto stemCOR = GetDataStorage()->GetNamedObject<mitk::PointSet>("stemCOR");
+	auto headSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("head_28");
 
 	m_StemObject->SetStemSurface(stemSurface);
+	m_StemObject->SetHeadSurface(headSurface);
 	m_StemObject->SetHeadCenter(stemCOR);
 
 	if(m_Controls.radioButton_implantObject_R->isChecked())
@@ -699,11 +705,16 @@ void THAPlanning::pushButton_initStemObject_clicked()
 void THAPlanning::pushButton_moveCupObject_clicked()
 {
 	auto tmpMatrix = m_CupObject->GetvtkMatrix_groupGeometry();
-	tmpMatrix->SetElement(0,3, tmpMatrix->GetElement(0,3) + 100);
-	tmpMatrix->SetElement(1, 3, tmpMatrix->GetElement(1, 3) + 100);
-	tmpMatrix->SetElement(2, 3, tmpMatrix->GetElement(2, 3) + 100);
 
-	m_CupObject->SetGroupGeometry(tmpMatrix);
+	GenerateMatrix();
+
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->PostMultiply();
+	tmpTransform->Concatenate(tmpMatrix);
+	tmpTransform->Concatenate(GenerateMatrix());
+	tmpTransform->Update();
+
+	m_CupObject->SetGroupGeometry(tmpTransform->GetMatrix());
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -711,11 +722,16 @@ void THAPlanning::pushButton_moveCupObject_clicked()
 void THAPlanning::pushButton_moveStemObject_clicked()
 {
 	auto tmpMatrix = m_StemObject->GetvtkMatrix_groupGeometry();
-	tmpMatrix->SetElement(0, 3, tmpMatrix->GetElement(0, 3) + 100);
-	tmpMatrix->SetElement(1, 3, tmpMatrix->GetElement(1, 3) + 100);
-	tmpMatrix->SetElement(2, 3, tmpMatrix->GetElement(2, 3) + 100);
 
-	m_StemObject->SetGroupGeometry(tmpMatrix);
+	GenerateMatrix();
+
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->PostMultiply();
+	tmpTransform->Concatenate(tmpMatrix);
+	tmpTransform->Concatenate(GenerateMatrix());
+	tmpTransform->Update();
+
+	m_StemObject->SetGroupGeometry(tmpTransform->GetMatrix());
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -799,6 +815,61 @@ void THAPlanning::pushButton_adjustCouple_clicked()
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
+}
+
+
+void THAPlanning::pushButton_initFemurStemCouple_clicked()
+{
+	m_FemurStemCouple = lancet::ThaFemurStemCouple::New();
+
+	if(m_Controls.radioButton_implantObject_R)
+	{
+		m_FemurStemCouple->SetFemurObject(m_RfemurObject);
+	}else
+	{
+		m_FemurStemCouple->SetFemurObject(m_LfemurObject);
+	}
+
+	m_FemurStemCouple->SetStemObject(m_StemObject);
+
+	m_FemurStemCouple->InitializeFemurFrameToStemFrameMatrix();
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::pushButton_adjustStem_clicked()
+{
+	vtkNew<vtkMatrix4x4> newMatrix;
+	newMatrix->DeepCopy(GenerateMatrix());
+
+	vtkNew<vtkTransform> tmpTransform; // femurFrameToStemFrame matrix
+	tmpTransform->PostMultiply();
+	tmpTransform->Concatenate(newMatrix);
+	tmpTransform->Concatenate(m_FemurStemCouple->GetvtkMatrix_femurFrameToStemFrame());
+
+	m_FemurStemCouple->SetFemurFrameToStemFrameMatrix(tmpTransform->GetMatrix());
+
+	MITK_INFO << "stem adjusted";
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+}
+
+void THAPlanning::pushButton_adjustFemurStemCouple_clicked()
+{
+	vtkNew<vtkMatrix4x4> newMatrix;
+	newMatrix->DeepCopy(GenerateMatrix());
+
+	vtkNew<vtkTransform> tmpTransform; // worldFrameToFemurFrame Transform
+
+	tmpTransform->PostMultiply();
+	tmpTransform->Concatenate(newMatrix);
+	tmpTransform->Concatenate(m_FemurStemCouple->GetvtkMatrix_coupleGeometry());
+	tmpTransform->Update();
+
+	m_FemurStemCouple->SetCoupleGeometry(tmpTransform->GetMatrix());
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 
