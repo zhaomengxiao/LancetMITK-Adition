@@ -6,6 +6,13 @@
 // mitk
 #include <mitkNavigationDataSource.h>
 
+// us
+#include "usGetModuleContext.h"
+#include "usModuleContext.h"
+#include "usModule.h"
+#include "usModuleResource.h"
+#include "usModuleResourceStream.h"
+
 namespace lancet {
 
 struct DeviceTrackingWidget::DeviceTrackingWidgetPrivateImp
@@ -20,9 +27,11 @@ struct DeviceTrackingWidget::DeviceTrackingWidgetPrivateImp
 QMap<QString, QString>
 DeviceTrackingWidget::DeviceTrackingWidgetPrivateImp::mapToolTrackingQSS =
 {
-	{"Probe", "QWidget{border-radius: 8px;background-color: rgb(0, 0, 255);}\
-QWidget:disabled {border-radius: 8px;background-color: rgb(255, 0, 0);}"},
-	{"Robot", "QWidget{border-radius: 8px;background-color: rgb(0, 0, 255);}\
+	{"Probe", "QWidget{border-radius: 8px; border: 1px solid rgb(0, 170, 0); \
+            border-image: url(:/marker/cart_marker.png);}\
+            QWidget:disabled {border-radius: 8px; background-color: rgb(170, 0, 0);\
+            border-image: url(:/marker/cart_marker.png);}"},
+	{"Robot", "QWidget{border-radius: 8px;background-color: rgb(0, 255, 0);}\
 QWidget:disabled {border-radius: 8px;background-color: rgb(255, 0, 0);}"},
 };
 
@@ -30,13 +39,16 @@ DeviceTrackingWidget::DeviceTrackingWidget(QWidget *parent)
     : QWidget(parent)
     , imp(std::make_shared<DeviceTrackingWidgetPrivateImp>())
 {
-    this->imp->ui.setupUi(this);
+	us::ModuleResource presetResource = us::GetModuleContext()->GetModule()->GetResource("resources.qrc");
+	MITK_INFO << presetResource.GetResourcePath();
+	//Q_INIT_RESOURCE(resources);
+  this->imp->ui.setupUi(this);
 
-		connect(&this->imp->tm, &QTimer::timeout, 
-			this, &DeviceTrackingWidget::OnTrackingToolStateUpdate);
+	connect(&this->imp->tm, &QTimer::timeout, 
+		this, &DeviceTrackingWidget::OnTrackingToolStateUpdate);
 
-		this->imp->tm.setInterval(100);
-		this->imp->tm.start();
+	this->imp->tm.setInterval(100);
+	this->imp->tm.start();
 }
 
 DeviceTrackingWidget::~DeviceTrackingWidget()

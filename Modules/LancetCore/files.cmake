@@ -16,5 +16,5 @@ set(UI_FILES
 )
 
 set(RESOURCE_FILES
-
+  resources.qrc
 )

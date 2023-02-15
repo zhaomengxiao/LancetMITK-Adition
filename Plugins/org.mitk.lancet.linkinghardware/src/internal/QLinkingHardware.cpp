@@ -117,6 +117,9 @@ void QLinkingHardware::CreateQtPartControl(QWidget *parent)
 
 void QLinkingHardware::InitializeTrackingToolsWidget()
 {
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible("Probe");
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible("Robot");
+
 	lancet::IDevicesAdministrationService* sender = this->GetService();
 	if (sender && sender->GetConnector().IsNotNull())
 	{

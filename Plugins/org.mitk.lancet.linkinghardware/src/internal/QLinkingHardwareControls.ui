@@ -628,7 +628,7 @@
   <customwidget>
    <class>lancet::DeviceTrackingWidget</class>
    <extends>QWidget</extends>
-   <header location="global">widgets/lancetDeviceTrackingWidget.h</header>
+   <header location="global">lancetdevicetrackingwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
