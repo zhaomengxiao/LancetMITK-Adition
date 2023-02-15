@@ -2,6 +2,7 @@
 #define LANCET_DEVICETRACKINGWIDGET_H
 
 #include <QWidget>
+#include <QCheckBox>
 
 #include <itkSmartPointer.h>
 
@@ -34,7 +35,7 @@ public:
 public slots:
 	void OnTrackingToolStateUpdate();
 protected:
-	QWidget* FindTrackingToolWidget(const QString&) const;
+	QCheckBox* FindTrackingToolWidget(const QString&) const;
 private:
     struct DeviceTrackingWidgetPrivateImp;
     std::shared_ptr<DeviceTrackingWidgetPrivateImp> imp;

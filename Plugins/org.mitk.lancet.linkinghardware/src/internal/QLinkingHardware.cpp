@@ -119,6 +119,7 @@ void QLinkingHardware::InitializeTrackingToolsWidget()
 {
 	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible("Probe");
 	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible("Robot");
+	this->imp->m_Controls.widgetTrackingTools->SetTrackingToolEnable("Robot", false);
 
 	lancet::IDevicesAdministrationService* sender = this->GetService();
 	if (sender && sender->GetConnector().IsNotNull())

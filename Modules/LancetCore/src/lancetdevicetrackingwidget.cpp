@@ -3,6 +3,8 @@
 
 // Qt
 #include <QTimer>
+#include <QImage>
+
 // mitk
 #include <mitkNavigationDataSource.h>
 
@@ -27,21 +29,21 @@ struct DeviceTrackingWidget::DeviceTrackingWidgetPrivateImp
 QMap<QString, QString>
 DeviceTrackingWidget::DeviceTrackingWidgetPrivateImp::mapToolTrackingQSS =
 {
-	{"Probe", "QWidget{border-radius: 8px; border: 1px solid rgb(0, 170, 0); \
-            border-image: url(:/marker/cart_marker.png);}\
-            QWidget:disabled {border-radius: 8px; background-color: rgb(170, 0, 0);\
-            border-image: url(:/marker/cart_marker.png);}"},
-	{"Robot", "QWidget{border-radius: 8px;background-color: rgb(0, 255, 0);}\
-QWidget:disabled {border-radius: 8px;background-color: rgb(255, 0, 0);}"},
+	{"Probe", 
+"QCheckBox::indicator { width: 0px; }\
+QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/probe_marker.png); }\
+QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/probe_marker.png); }"},
+	{"Robot",
+"QCheckBox::indicator { width: 0px; }\
+QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/robot_marker.png); }\
+QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/robot_marker.png); }"},
 };
 
 DeviceTrackingWidget::DeviceTrackingWidget(QWidget *parent)
     : QWidget(parent)
     , imp(std::make_shared<DeviceTrackingWidgetPrivateImp>())
 {
-	us::ModuleResource presetResource = us::GetModuleContext()->GetModule()->GetResource("resources.qrc");
-	MITK_INFO << presetResource.GetResourcePath();
-	//Q_INIT_RESOURCE(resources);
+	Q_INIT_RESOURCE(mitkLancetCoreResources);
   this->imp->ui.setupUi(this);
 
 	connect(&this->imp->tm, &QTimer::timeout, 
@@ -112,12 +114,15 @@ void DeviceTrackingWidget::InitializeTrackingToolVisible(const QString& widgetNa
 	auto findToolValue = this->imp->mapToolTrackingQSS.find(widgetName);
 	if (findToolValue != this->imp->mapToolTrackingQSS.end())
 	{
-		QWidget* widget = new QWidget(this->imp->ui.widgetCenter);
+		QCheckBox* widget = new QCheckBox(this->imp->ui.widgetCenter);
 		widget->setObjectName(QString("%1").arg(findToolValue.key()));
 		widget->setStyleSheet(findToolValue.value());
 		widget->setVisible(true);
 		widget->setMinimumSize(QSize(60, 60));
 		widget->setMaximumSize(QSize(60, 60));
+		QImage* widgetBackgroundImage = new QImage();
+		MITK_INFO << widgetBackgroundImage->load(":/markers/marker/robot_marker.png");
+
 		this->imp->ui.horizontalLayoutCenter->addWidget(widget);
 	}
 	else
@@ -128,7 +133,7 @@ void DeviceTrackingWidget::InitializeTrackingToolVisible(const QString& widgetNa
 
 void DeviceTrackingWidget::UnInitializeTrackingToolVisible(const QString& widgetName)
 {
-	QWidget* widget = this->FindTrackingToolWidget(widgetName);
+	QCheckBox* widget = this->FindTrackingToolWidget(widgetName);
 	if (widget != nullptr)
 	{
 		widget->deleteLater();
@@ -137,7 +142,7 @@ void DeviceTrackingWidget::UnInitializeTrackingToolVisible(const QString& widget
 
 void DeviceTrackingWidget::SetTrackingToolVisible(const QString& widgetName, bool visible)
 {
-	QWidget* widget = this->FindTrackingToolWidget(widgetName);
+	QCheckBox* widget = this->FindTrackingToolWidget(widgetName);
 	if (widget != nullptr)
 	{
 		widget->setVisible(visible);
@@ -146,7 +151,7 @@ void DeviceTrackingWidget::SetTrackingToolVisible(const QString& widgetName, boo
 
 bool DeviceTrackingWidget::GetTrackingToolVisible(const QString& widgetName) const
 {
-	QWidget* widget = this->FindTrackingToolWidget(widgetName);
+	QCheckBox* widget = this->FindTrackingToolWidget(widgetName);
 	if (widget != nullptr)
 	{
 		return widget->isVisible();
@@ -161,7 +166,7 @@ QStringList DeviceTrackingWidget::GetTrackingToolNameOfWidgets() const
 
 void DeviceTrackingWidget::SetTrackingToolEnable(const QString& widgetName, bool isEnable)
 {
-	QWidget* widget = this->FindTrackingToolWidget(widgetName);
+	QCheckBox* widget = this->FindTrackingToolWidget(widgetName);
 	if (nullptr != widget)
 	{
 		widget->setEnabled(isEnable);
@@ -170,7 +175,7 @@ void DeviceTrackingWidget::SetTrackingToolEnable(const QString& widgetName, bool
 
 bool DeviceTrackingWidget::GetTrackingToolEnable(const QString& widgetName) const
 {
-	QWidget* widget = this->FindTrackingToolWidget(widgetName);
+	QCheckBox* widget = this->FindTrackingToolWidget(widgetName);
 	if (nullptr != widget)
 	{
 		return widget->isEnabled();
@@ -201,9 +206,9 @@ void DeviceTrackingWidget::OnTrackingToolStateUpdate()
 	}
 }
 
-QWidget* DeviceTrackingWidget::FindTrackingToolWidget(const QString& widgetName) const
+QCheckBox* DeviceTrackingWidget::FindTrackingToolWidget(const QString& widgetName) const
 {
-	QList<QWidget*> toolWidgetList = this->findChildren<QWidget*>();
+	QList<QCheckBox*> toolWidgetList = this->findChildren<QCheckBox*>();
 
 	for (auto& toolWidget : toolWidgetList)
 	{

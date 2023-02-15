@@ -15,6 +15,6 @@ set(UI_FILES
   src/lancetDeviceTrackingWidgetControls.ui
 )
 
-set(RESOURCE_FILES
-  resources.qrc
+set(QRC_FILES
+  resources/mitkLancetCoreResources.qrc
 )
