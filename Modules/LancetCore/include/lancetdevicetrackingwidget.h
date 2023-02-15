@@ -13,6 +13,15 @@ class DeviceTrackingWidget : public QWidget
 {
   Q_OBJECT
 public:
+	struct Tools
+	{		
+		static const char* const Cart;
+		static const char* const Femur;
+		static const char* const Pelvis;
+		static const char* const Probe;
+		static const char* const Robot;
+	};
+public:
   explicit DeviceTrackingWidget(QWidget *parent = nullptr);
 	virtual ~DeviceTrackingWidget();
 

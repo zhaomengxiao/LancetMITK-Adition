@@ -3,7 +3,6 @@
 
 // Qt
 #include <QTimer>
-#include <QImage>
 
 // mitk
 #include <mitkNavigationDataSource.h>
@@ -26,17 +25,35 @@ struct DeviceTrackingWidget::DeviceTrackingWidgetPrivateImp
 
 		static QMap<QString, QString> mapToolTrackingQSS;
 };
+const char* const DeviceTrackingWidget::Tools::Cart = "Cart";
+const char* const DeviceTrackingWidget::Tools::Femur = "Femur";
+const char* const DeviceTrackingWidget::Tools::Pelvis = "Pelvis";
+const char* const DeviceTrackingWidget::Tools::Probe = "Probe";
+const char* const DeviceTrackingWidget::Tools::Robot = "Robot";
+
 QMap<QString, QString>
 DeviceTrackingWidget::DeviceTrackingWidgetPrivateImp::mapToolTrackingQSS =
 {
-	{"Probe", 
+	{Tools::Probe, 
 "QCheckBox::indicator { width: 0px; }\
 QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/probe_marker.png); }\
 QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/probe_marker.png); }"},
-	{"Robot",
+	{Tools::Robot,
 "QCheckBox::indicator { width: 0px; }\
 QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/robot_marker.png); }\
 QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/robot_marker.png); }"},
+	{Tools::Cart,
+"QCheckBox::indicator { width: 0px; }\
+QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/cart_marker.png); }\
+QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/cart_marker.png); }"},
+	{Tools::Femur,
+"QCheckBox::indicator { width: 0px; }\
+QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/femur_marker.png); }\
+QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/femur_marker.png); }"},
+	{Tools::Pelvis,
+"QCheckBox::indicator { width: 0px; }\
+QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/pelvis_marker.png); }\
+QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/pelvis_marker.png); }"},
 };
 
 DeviceTrackingWidget::DeviceTrackingWidget(QWidget *parent)
@@ -118,10 +135,9 @@ void DeviceTrackingWidget::InitializeTrackingToolVisible(const QString& widgetNa
 		widget->setObjectName(QString("%1").arg(findToolValue.key()));
 		widget->setStyleSheet(findToolValue.value());
 		widget->setVisible(true);
-		widget->setMinimumSize(QSize(60, 60));
-		widget->setMaximumSize(QSize(60, 60));
-		QImage* widgetBackgroundImage = new QImage();
-		MITK_INFO << widgetBackgroundImage->load(":/markers/marker/robot_marker.png");
+		widget->setEnabled(false);
+		widget->setMinimumSize(QSize(52, 52));
+		widget->setMaximumSize(QSize(52, 52));
 
 		this->imp->ui.horizontalLayoutCenter->addWidget(widget);
 	}

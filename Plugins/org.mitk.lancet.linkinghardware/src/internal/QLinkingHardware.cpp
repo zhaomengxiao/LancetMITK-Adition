@@ -117,9 +117,12 @@ void QLinkingHardware::CreateQtPartControl(QWidget *parent)
 
 void QLinkingHardware::InitializeTrackingToolsWidget()
 {
-	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible("Probe");
-	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible("Robot");
-	this->imp->m_Controls.widgetTrackingTools->SetTrackingToolEnable("Robot", false);
+	using TrackingTools = lancet::DeviceTrackingWidget::Tools;
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::Probe);
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::Robot);
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::Cart);
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::Femur);
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::Pelvis);
 
 	lancet::IDevicesAdministrationService* sender = this->GetService();
 	if (sender && sender->GetConnector().IsNotNull())
@@ -201,6 +204,11 @@ void QLinkingHardware::OnIDevicesGetStatus(std::string name,
 {
 	auto scanner = this->GetService()->GetConnector();
 	bool isConnected = state & lancet::TrackingDeviceManage::TrackingDeviceState::Tracking;
+
+	if (true == isConnected)
+	{
+		this->InitializeTrackingToolsWidget();
+	}
 
 	if (name == "Vega")
 	{
