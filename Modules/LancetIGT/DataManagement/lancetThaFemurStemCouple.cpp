@@ -169,6 +169,7 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToCanalF
 
 }
 
+// TODO: this function might be problematic
 vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToMechanicFrame()
 {
 	vtkNew<vtkMatrix4x4> coupleFrameToMechanicFrameMatrix;
@@ -195,9 +196,9 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToMechan
 	m_FemurObject->Getpset_epicondyles()->GetGeometry()->WorldToIndex(lateralEpiInFemurFrame, lateralEpiInFemurFrame);
 
 	double midEpi[3];
-	midEpi[0] = (medialEpiInFemurFrame[0] + medialEpiInFemurFrame[0]) / 2;
-	midEpi[1] = (medialEpiInFemurFrame[1] + medialEpiInFemurFrame[1]) / 2;
-	midEpi[2] = (medialEpiInFemurFrame[2] + medialEpiInFemurFrame[2]) / 2;
+	midEpi[0] = (medialEpiInFemurFrame[0] + lateralEpiInFemurFrame[0]) / 2;
+	midEpi[1] = (medialEpiInFemurFrame[1] + lateralEpiInFemurFrame[1]) / 2;
+	midEpi[2] = (medialEpiInFemurFrame[2] + lateralEpiInFemurFrame[2]) / 2;
 
 	Eigen::Vector3d z_vector;
 	z_vector[0] = stemCORinFemurFrame[0] - midEpi[0];
@@ -241,6 +242,8 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToMechan
 		coupleFrameToMechanicFrameMatrix->SetElement(i, 1, y_vector[i]);
 		coupleFrameToMechanicFrameMatrix->SetElement(i, 2, z_vector[i]);
 	}
+
+	return coupleFrameToMechanicFrameMatrix;
 }
 
 

@@ -74,6 +74,15 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_adjustStem, &QPushButton::clicked, this, &THAPlanning::pushButton_adjustStem_clicked);
   connect(m_Controls.pushButton_adjustFemurStemCouple, &QPushButton::clicked, this, &THAPlanning::pushButton_adjustFemurStemCouple_clicked);
 
+  // enhancedReductionObject
+  connect(m_Controls.pushButton_initEnhancedReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_initEnhancedReduce_clicked);
+
+  connect(m_Controls.pushButton_noTiltCanal_enhancedReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_noTiltCanal_enhancedReduce_clicked);
+  connect(m_Controls.pushButton_noTiltMech_enhancedReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_noTiltMech_enhancedReduce_clicked);
+  connect(m_Controls.pushButton_supineCanal_enhancedReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_supineCanal_enhancedReduce_clicked);
+  connect(m_Controls.pushButton_supineMech_enhancedReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_supineMech_enhancedReduce_clicked);
+
+
 }
 
 void THAPlanning::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -565,6 +574,8 @@ void THAPlanning::pushButton_noTiltCanalReduction_clicked()
 	m_Controls.textBrowser->append("left hip length:" + QString::number(m_ReductionObject->GetHipLength_supine_L()));
 	m_Controls.textBrowser->append("right combined offset:" + QString::number(m_ReductionObject->GetCombinedOffset_supine_R()));
 	m_Controls.textBrowser->append("left combined offset:" + QString::number(m_ReductionObject->GetCombinedOffset_supine_L()));
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void THAPlanning::pushButton_noTiltMechanicReduction_clicked()
@@ -586,6 +597,8 @@ void THAPlanning::pushButton_noTiltMechanicReduction_clicked()
 	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
 	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
 	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void THAPlanning::pushButton_supineCanalReduction_clicked()
@@ -607,6 +620,8 @@ void THAPlanning::pushButton_supineCanalReduction_clicked()
 	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
 	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
 	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void THAPlanning::pushButton_supineMechanicReduction_clicked()
@@ -628,6 +643,8 @@ void THAPlanning::pushButton_supineMechanicReduction_clicked()
 	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
 	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
 	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void THAPlanning::pushButton_initCupObject_clicked()
@@ -791,6 +808,15 @@ void THAPlanning::pushButton_adjustCup_clicked()
 	m_Controls.lineEdit_cupCOR_ap->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+
+	m_EnhancedReductionObject->CalReductionMatrices();
+	m_Controls.lineEdit_enhancedHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_enhancedHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_enhancedComOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_enhancedComOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
+
 }
 
 void THAPlanning::pushButton_adjustCouple_clicked()
@@ -822,7 +848,7 @@ void THAPlanning::pushButton_initFemurStemCouple_clicked()
 {
 	m_FemurStemCouple = lancet::ThaFemurStemCouple::New();
 
-	if(m_Controls.radioButton_implantObject_R)
+	if(m_Controls.radioButton_implantObject_R->isChecked())
 	{
 		m_FemurStemCouple->SetFemurObject(m_RfemurObject);
 	}else
@@ -853,6 +879,13 @@ void THAPlanning::pushButton_adjustStem_clicked()
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
+	m_EnhancedReductionObject->CalReductionMatrices();
+	m_Controls.lineEdit_enhancedHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_enhancedHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_enhancedComOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_enhancedComOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
+
 }
 
 void THAPlanning::pushButton_adjustFemurStemCouple_clicked()
@@ -871,6 +904,124 @@ void THAPlanning::pushButton_adjustFemurStemCouple_clicked()
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
+
+
+void THAPlanning::pushButton_initEnhancedReduce_clicked()
+{
+	m_EnhancedReductionObject = lancet::ThaEnhancedReductionObject::New();
+
+	m_EnhancedReductionObject->SetPelvisCupCouple(m_PelvisCupCouple);
+
+	m_EnhancedReductionObject->SetFemurStemCouple(m_FemurStemCouple);
+
+	if (m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_EnhancedReductionObject->SetFemurObject(m_LfemurObject);
+	}else
+	{
+		m_EnhancedReductionObject->SetFemurObject(m_RfemurObject);
+	}
+
+}
+
+
+
+void THAPlanning::pushButton_noTiltCanal_enhancedReduce_clicked()
+{
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+	vtkNew<vtkMatrix4x4> rightFemurMatrix;
+	vtkNew<vtkMatrix4x4> leftFemurMatrix;
+
+	m_EnhancedReductionObject->GetNoTiltCanalMatrices(pelvisMatrix, rightFemurMatrix, leftFemurMatrix);
+
+	if (m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_LfemurObject->SetGroupGeometry(leftFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rightFemurMatrix);
+	}
+	else
+	{
+		m_RfemurObject->SetGroupGeometry(rightFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(leftFemurMatrix);
+	}
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::pushButton_noTiltMech_enhancedReduce_clicked()
+{
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+	vtkNew<vtkMatrix4x4> rightFemurMatrix;
+	vtkNew<vtkMatrix4x4> leftFemurMatrix;
+
+	m_EnhancedReductionObject->GetNoTiltMechanicMatrices(pelvisMatrix, rightFemurMatrix, leftFemurMatrix);
+
+	if (m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_LfemurObject->SetGroupGeometry(leftFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rightFemurMatrix);
+	}
+	else
+	{
+		m_RfemurObject->SetGroupGeometry(rightFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(leftFemurMatrix);
+	}
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::pushButton_supineCanal_enhancedReduce_clicked()
+{
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+	vtkNew<vtkMatrix4x4> rightFemurMatrix;
+	vtkNew<vtkMatrix4x4> leftFemurMatrix;
+
+	m_EnhancedReductionObject->GetSupineTiltCanalMatrices(pelvisMatrix, rightFemurMatrix, leftFemurMatrix);
+
+	if (m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_LfemurObject->SetGroupGeometry(leftFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rightFemurMatrix);
+	}
+	else
+	{
+		m_RfemurObject->SetGroupGeometry(rightFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(leftFemurMatrix);
+	}
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::pushButton_supineMech_enhancedReduce_clicked()
+{
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+	vtkNew<vtkMatrix4x4> rightFemurMatrix;
+	vtkNew<vtkMatrix4x4> leftFemurMatrix;
+
+	m_EnhancedReductionObject->GetSupineTiltMechanicMatrices(pelvisMatrix, rightFemurMatrix, leftFemurMatrix);
+
+	if (m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_LfemurObject->SetGroupGeometry(leftFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rightFemurMatrix);
+	}
+	else
+	{
+		m_RfemurObject->SetGroupGeometry(rightFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(leftFemurMatrix);
+	}
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
 
 
 

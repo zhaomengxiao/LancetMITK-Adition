@@ -79,12 +79,9 @@ namespace lancet
 		// initialize pelvisFrame to cupFrame matrix and move the cupObject to the initial position 
 		void InitializePelvisFrameToCupFrameMatrix();
 
-		/* Translate or rotate cup
-		 * translateOrRotate: translate(0), rotate(1)
-		 * direction: x-axis(0), y-axis(1), z-axis(2)
-		 * step: mm or degree
-		 */
-		void AdjustCup(int translateOrRotate, int direction, double step);
+		// Convenient method of getting the cup center in pelvisFrame
+		mitk::Point3D GetCupCenterInPelvisFrame();
+
 
 	protected:
 
@@ -96,20 +93,7 @@ namespace lancet
 		void UpdateCupAngles();
 		// Update m_CupCOR_SI, m_CupCOR_ML and m_CupCOR_AP, called by AdjustCup()
 		void UpdateRelativeCupCOR();
-
-		// Translate cup: x axis of pelvisFrame
-		void TranslateCup_x(double length);
-		// Translate cup: y axis of pelvisFrame
-		void TranslateCup_y(double length);
-		// Translate cup: z axis of pelvisFrame
-		void TranslateCup_z(double length);
-		// Rotate cup in degree (the rotation axis passes through the cupFrame origin): x axis of pelvisFrame
-		void RotateCup_x(double angle);
-		// Rotate cup in degree (the rotation axis passes through the cupFrame origin): y axis of pelvisFrame
-		void RotateCup_y(double angle);
-		// Rotate cup in degree (the rotation axis passes through the cupFrame origin): z axis of pelvisFrame
-		void RotateCup_z(double angle);
-
+		
 		// the pelvisObject
 		lancet::ThaPelvisObject::Pointer m_PelvisObject;
 

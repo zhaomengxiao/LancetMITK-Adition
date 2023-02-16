@@ -29,6 +29,7 @@ found in the LICENSE file.
 #include "lancetThaCupObject.h"
 #include "lancetThaPelvisCupCouple.h"
 #include "lancetThaFemurStemCouple.h"
+#include "lancetThaEnhancedReductionObject.h"
 
 /**
   \brief THAPlanning
@@ -163,7 +164,15 @@ protected:
   void pushButton_adjustStem_clicked();
   void pushButton_adjustFemurStemCouple_clicked();
   lancet::ThaFemurStemCouple::Pointer m_FemurStemCouple;
-	
+
+  // -----------Test enhancedReductionObject ---------------
+  lancet::ThaEnhancedReductionObject::Pointer m_EnhancedReductionObject;
+  void pushButton_initEnhancedReduce_clicked();
+  void pushButton_noTiltCanal_enhancedReduce_clicked();
+  void pushButton_noTiltMech_enhancedReduce_clicked();
+  void pushButton_supineCanal_enhancedReduce_clicked();
+  void pushButton_supineMech_enhancedReduce_clicked();
+
 	//---------- Tool functions --------------
 
 	// retrieve a 4x4 vtkMatrix from the UI

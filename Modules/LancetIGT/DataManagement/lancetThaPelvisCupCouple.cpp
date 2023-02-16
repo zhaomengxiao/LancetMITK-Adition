@@ -363,130 +363,6 @@ void lancet::ThaPelvisCupCouple::UpdateRelativeCupCOR()
 	m_CupCOR_AP_noTilt = pelvisCOR[1] - m_vtkMatrix_pelvisFrameToCupFrame->GetElement(1, 3);
 }
 
-void lancet::ThaPelvisCupCouple::TranslateCup_x(double length)
-{
-	double preValue = m_vtkMatrix_pelvisFrameToCupFrame->GetElement(0, 3);
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(0, 3, preValue + length);
-}
-
-void lancet::ThaPelvisCupCouple::TranslateCup_y(double length)
-{
-	double preValue = m_vtkMatrix_pelvisFrameToCupFrame->GetElement(1, 3);
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(1, 3, preValue + length);
-}
-
-void lancet::ThaPelvisCupCouple::TranslateCup_z(double length)
-{
-	double preValue = m_vtkMatrix_pelvisFrameToCupFrame->GetElement(2, 3);
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(2, 3, preValue + length);
-}
-
-void lancet::ThaPelvisCupCouple::RotateCup_x(double angle)
-{
-	double cupCORinPelvisFrame[3]
-	{
-		m_vtkMatrix_pelvisFrameToCupFrame->GetElement(0, 3),
-		m_vtkMatrix_pelvisFrameToCupFrame->GetElement(1, 3),
-		m_vtkMatrix_pelvisFrameToCupFrame->GetElement(2, 3)
-	};
-
-	vtkNew<vtkTransform> tmpTransform;
-	tmpTransform->PostMultiply();
-	tmpTransform->SetMatrix(m_vtkMatrix_pelvisFrameToCupFrame);
-	tmpTransform->RotateX(angle);
-	tmpTransform->Update();
-
-	m_vtkMatrix_pelvisFrameToCupFrame->DeepCopy(tmpTransform->GetMatrix());
-
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(0, 3, cupCORinPelvisFrame[0]);
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(1, 3, cupCORinPelvisFrame[1]);
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(2, 3, cupCORinPelvisFrame[2]);
-}
-
-void lancet::ThaPelvisCupCouple::RotateCup_y(double angle)
-{
-	double cupCORinPelvisFrame[3]
-	{
-		m_vtkMatrix_pelvisFrameToCupFrame->GetElement(0, 3),
-		m_vtkMatrix_pelvisFrameToCupFrame->GetElement(1, 3),
-		m_vtkMatrix_pelvisFrameToCupFrame->GetElement(2, 3)
-	};
-
-	vtkNew<vtkTransform> tmpTransform;
-	tmpTransform->PostMultiply();
-	tmpTransform->SetMatrix(m_vtkMatrix_pelvisFrameToCupFrame);
-	tmpTransform->RotateY(angle);
-	tmpTransform->Update();
-
-	m_vtkMatrix_pelvisFrameToCupFrame->DeepCopy(tmpTransform->GetMatrix());
-
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(0, 3, cupCORinPelvisFrame[0]);
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(1, 3, cupCORinPelvisFrame[1]);
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(2, 3, cupCORinPelvisFrame[2]);
-}
-
-void lancet::ThaPelvisCupCouple::RotateCup_z(double angle)
-{
-	double cupCORinPelvisFrame[3]
-	{
-		m_vtkMatrix_pelvisFrameToCupFrame->GetElement(0, 3),
-		m_vtkMatrix_pelvisFrameToCupFrame->GetElement(1, 3),
-		m_vtkMatrix_pelvisFrameToCupFrame->GetElement(2, 3)
-	};
-
-	vtkNew<vtkTransform> tmpTransform;
-	tmpTransform->PostMultiply();
-	tmpTransform->SetMatrix(m_vtkMatrix_pelvisFrameToCupFrame);
-	tmpTransform->RotateZ(angle);
-	tmpTransform->Update();
-
-	m_vtkMatrix_pelvisFrameToCupFrame->DeepCopy(tmpTransform->GetMatrix());
-
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(0, 3, cupCORinPelvisFrame[0]);
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(1, 3, cupCORinPelvisFrame[1]);
-	m_vtkMatrix_pelvisFrameToCupFrame->SetElement(2, 3, cupCORinPelvisFrame[2]);
-}
-
-void lancet::ThaPelvisCupCouple::AdjustCup(int translateOrRotate, int direction, double step)
-{
-	// Update m_vtkMatrix_pelvisFrameToCupFrame 
-	if(translateOrRotate == 0)
-	{
-		if(direction == 0)
-		{
-			TranslateCup_x(step);
-		}
-		if(direction == 1)
-		{
-			TranslateCup_y(step);
-		}
-		if(direction == 2)
-		{
-			TranslateCup_z(step);
-		}
-	}
-
-	if(translateOrRotate == 1)
-	{
-		if (direction == 0)
-		{
-			RotateCup_x(step);
-		}
-		if (direction == 1)
-		{
-			RotateCup_y(step);
-		}
-		if (direction == 2)
-		{
-			RotateCup_z(step);
-		}
-	}
-
-	// Update the groupgeometry of the cupObject
-	SetCoupleGeometry(m_vtkMatrix_coupleGeometry);
-
-}
-
 void lancet::ThaPelvisCupCouple::SetPelvisFrameToCupFrameMatrix(vtkSmartPointer<vtkMatrix4x4> newMatrix)
 {
 	vtkNew<vtkTransform> tmpTransform;
@@ -501,6 +377,17 @@ void lancet::ThaPelvisCupCouple::SetPelvisFrameToCupFrameMatrix(vtkSmartPointer<
 
 	UpdateCupAngles();
 	UpdateRelativeCupCOR();
+}
+
+mitk::Point3D lancet::ThaPelvisCupCouple::GetCupCenterInPelvisFrame()
+{
+	mitk::Point3D cupCenterInPelvisFrame;
+
+	cupCenterInPelvisFrame[0] = m_vtkMatrix_pelvisFrameToCupFrame->GetElement(0, 3);
+	cupCenterInPelvisFrame[1] = m_vtkMatrix_pelvisFrameToCupFrame->GetElement(1, 3);
+	cupCenterInPelvisFrame[2] = m_vtkMatrix_pelvisFrameToCupFrame->GetElement(2, 3);
+
+	return cupCenterInPelvisFrame;
 }
 
 

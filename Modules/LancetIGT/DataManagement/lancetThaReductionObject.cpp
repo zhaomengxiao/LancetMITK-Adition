@@ -88,15 +88,20 @@ void lancet::ThaReductionObject::CalOriginalSupineHipLengths()
 		if(hipSide == 0)
 		{
 			lesserTrochanter_femurFrame = m_FemurObject_R->Getpset_lesserTrochanter()->GetPoint(0);
+			m_FemurObject_R->Getpset_lesserTrochanter()->GetGeometry()->WorldToIndex(lesserTrochanter_femurFrame, lesserTrochanter_femurFrame);
 			femurMatrix->DeepCopy(m_SupinePelvicTilt_mechanic_matrix_R);
 		}else
 		{
-			lesserTrochanter_femurFrame = m_FemurObject_L->Getpset_lesserTrochanter()->GetPoint(1);
+			lesserTrochanter_femurFrame = m_FemurObject_L->Getpset_lesserTrochanter()->GetPoint(0);
+			m_FemurObject_L->Getpset_lesserTrochanter()->GetGeometry()->WorldToIndex(lesserTrochanter_femurFrame, lesserTrochanter_femurFrame);
 			femurMatrix->DeepCopy(m_SupinePelvicTilt_mechanic_matrix_L);
 		}
 
 		auto asis_R_pelvisFrame = m_PelvisObject->Getpset_ASIS()->GetPoint(0);
+		m_PelvisObject->Getpset_ASIS()->GetGeometry()->WorldToIndex(asis_R_pelvisFrame, asis_R_pelvisFrame);
+
 		auto asis_L_pelvisFrame = m_PelvisObject->Getpset_ASIS()->GetPoint(1);
+		m_PelvisObject->Getpset_ASIS()->GetGeometry()->WorldToIndex(asis_L_pelvisFrame, asis_L_pelvisFrame);
 
 		auto tmpPset = mitk::PointSet::New();
 
@@ -154,10 +159,12 @@ void lancet::ThaReductionObject::CalOriginalSupineCombinedOffsets()
 		if( hipSide == 0 ) // right side
 		{
 			proximalCanal_femurFrame = m_FemurObject_R->Getpset_femurCanal()->GetPoint(0);
+			m_FemurObject_R->Getpset_femurCanal()->GetGeometry()->WorldToIndex(proximalCanal_femurFrame, proximalCanal_femurFrame);
 			femurMatrix->DeepCopy(m_SupinePelvicTilt_canal_matrix_R);
 		}else
 		{
 			proximalCanal_femurFrame = m_FemurObject_L->Getpset_femurCanal()->GetPoint(0);
+			m_FemurObject_L->Getpset_femurCanal()->GetGeometry()->WorldToIndex(proximalCanal_femurFrame, proximalCanal_femurFrame);
 			femurMatrix->DeepCopy(m_SupinePelvicTilt_canal_matrix_L);
 		}
 
