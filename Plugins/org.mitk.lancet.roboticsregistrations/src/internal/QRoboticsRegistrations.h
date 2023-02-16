@@ -66,6 +66,8 @@ private:
 
 	void UpdateUiForService();
 
+	void InitializeTrackingToolsWidget();
+
   lancet::spatial_fitting::RoboticsRegisterModelPtr GetServiceRoboticsModel() const;
 private slots:
   void on_pushButtonRobotVerify_clicked();

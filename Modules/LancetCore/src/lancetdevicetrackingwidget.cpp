@@ -25,32 +25,37 @@ struct DeviceTrackingWidget::DeviceTrackingWidgetPrivateImp
 
 		static QMap<QString, QString> mapToolTrackingQSS;
 };
-const char* const DeviceTrackingWidget::Tools::Cart = "Cart";
-const char* const DeviceTrackingWidget::Tools::Femur = "Femur";
-const char* const DeviceTrackingWidget::Tools::Pelvis = "Pelvis";
-const char* const DeviceTrackingWidget::Tools::Probe = "Probe";
-const char* const DeviceTrackingWidget::Tools::Robot = "Robot";
+const char* const DeviceTrackingWidget::Tools::VCart = "RobotBaseRF";
+const char* const DeviceTrackingWidget::Tools::VFemur = "Femur";
+const char* const DeviceTrackingWidget::Tools::VPelvis = "Pelvis";
+const char* const DeviceTrackingWidget::Tools::VProbe = "ProbeTHA";
+const char* const DeviceTrackingWidget::Tools::RRobot_Flange = "Flange";
+const char* const DeviceTrackingWidget::Tools::VRobotEndRF = "RobotEndRF";
 
 QMap<QString, QString>
 DeviceTrackingWidget::DeviceTrackingWidgetPrivateImp::mapToolTrackingQSS =
 {
-	{Tools::Probe, 
+	{Tools::VProbe, 
 "QCheckBox::indicator { width: 0px; }\
 QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/probe_marker.png); }\
 QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/probe_marker.png); }"},
-	{Tools::Robot,
+	{Tools::RRobot_Flange,
 "QCheckBox::indicator { width: 0px; }\
 QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/robot_marker.png); }\
 QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/robot_marker.png); }"},
-	{Tools::Cart,
+	{Tools::VRobotEndRF,
+"QCheckBox::indicator { width: 0px; }\
+QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/robot_marker.png); }\
+QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/robot_marker.png); }"},
+	{Tools::VCart,
 "QCheckBox::indicator { width: 0px; }\
 QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/cart_marker.png); }\
 QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/cart_marker.png); }"},
-	{Tools::Femur,
+	{Tools::VFemur,
 "QCheckBox::indicator { width: 0px; }\
 QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/femur_marker.png); }\
 QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/femur_marker.png); }"},
-	{Tools::Pelvis,
+	{Tools::VPelvis,
 "QCheckBox::indicator { width: 0px; }\
 QCheckBox:enabled {border: 1px solid rgb(0, 170, 0); image: url(:/markers/marker/pelvis_marker.png); }\
 QCheckBox:!enabled {background-color: rgb(170, 0, 0); border-image: url(:/markers/marker/pelvis_marker.png); }"},

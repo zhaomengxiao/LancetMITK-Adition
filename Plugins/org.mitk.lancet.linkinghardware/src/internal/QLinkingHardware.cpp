@@ -118,17 +118,34 @@ void QLinkingHardware::CreateQtPartControl(QWidget *parent)
 void QLinkingHardware::InitializeTrackingToolsWidget()
 {
 	using TrackingTools = lancet::DeviceTrackingWidget::Tools;
-	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::Probe);
-	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::Robot);
-	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::Cart);
-	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::Femur);
-	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::Pelvis);
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VProbe);
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VRobotEndRF);
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VCart);
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VFemur);
+	this->imp->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VPelvis);
 
 	lancet::IDevicesAdministrationService* sender = this->GetService();
 	if (sender && sender->GetConnector().IsNotNull())
 	{
-		this->imp->m_Controls.widgetTrackingTools->AddTrackingToolSource(sender->GetConnector()->GetTrackingDeviceSource("Vega"));
-		this->imp->m_Controls.widgetTrackingTools->AddTrackingToolSource(sender->GetConnector()->GetTrackingDeviceSource("Kuka"));
+		auto vegaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Vega");
+		auto kukaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Kuka");
+
+		if (vegaTrackSource.IsNotNull())
+		{
+			this->imp->m_Controls.widgetTrackingTools->AddTrackingToolSource(vegaTrackSource);
+		}
+		else
+		{
+			this->imp->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Vega");
+		}
+		if (kukaTrackSource.IsNotNull())
+		{
+			this->imp->m_Controls.widgetTrackingTools->AddTrackingToolSource(kukaTrackSource);
+		}
+		else
+		{
+			this->imp->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Kuka");
+		}
 	}	
 }
 

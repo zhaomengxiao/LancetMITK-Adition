@@ -15,11 +15,12 @@ class DeviceTrackingWidget : public QWidget
 public:
 	struct Tools
 	{		
-		static const char* const Cart;
-		static const char* const Femur;
-		static const char* const Pelvis;
-		static const char* const Probe;
-		static const char* const Robot;
+		static const char* const VCart;
+		static const char* const VFemur;
+		static const char* const VPelvis;
+		static const char* const VProbe;
+		static const char* const VRobotEndRF;
+		static const char* const RRobot_Flange;
 	};
 public:
   explicit DeviceTrackingWidget(QWidget *parent = nullptr);

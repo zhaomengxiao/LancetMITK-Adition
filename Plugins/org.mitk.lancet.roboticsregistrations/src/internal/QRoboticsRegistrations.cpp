@@ -86,6 +86,7 @@ void QRoboticsRegistrations::CreateQtPartControl(QWidget *parent)
 
   this->ConnectToQtWidget();
   this->UpdateWidgetOfService();
+	this->InitializeTrackingToolsWidget();
 }
 
 void QRoboticsRegistrations::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -166,7 +167,6 @@ void QRoboticsRegistrations::UpdateUiForService()
 		return;
 	}
 
-	
 	bool isTrackingNDIDevice = GetDeviceService()->GetConnector()->IsTrackingDeviceConnected("Vega");
 	bool isTrackingRoboticsDevice = GetDeviceService()->GetConnector()->IsTrackingDeviceConnected("Kuka");
 
@@ -199,6 +199,34 @@ void QRoboticsRegistrations::UpdateUiForService()
 
 	// Update the activation status of the [Calculate Registration Result] button.
 	this->m_Controls.pushButtonCalResult->setEnabled(btnEnabled);
+}
+
+void QRoboticsRegistrations::InitializeTrackingToolsWidget()
+{
+	using TrackingTools = lancet::DeviceTrackingWidget::Tools;
+	this->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VRobotEndRF);
+	this->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VCart);
+
+	lancet::spatial_fitting::RoboticsRegisterModelPtr sender = this->GetServiceRoboticsModel();
+	if (sender.IsNotNull())
+	{
+		if (sender->GetNdiNavigationDataSource().IsNotNull())
+		{
+			this->m_Controls.widgetTrackingTools->AddTrackingToolSource(sender->GetNdiNavigationDataSource());
+		}
+		else
+		{
+			this->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Vega");
+		}
+		if (sender->GetRoboticsNavigationDataSource().IsNotNull())
+		{
+			this->m_Controls.widgetTrackingTools->AddTrackingToolSource(sender->GetRoboticsNavigationDataSource());
+		}
+		else
+		{
+			this->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Kuka");
+		}
+	}
 }
 
 lancet::spatial_fitting::RoboticsRegisterModelPtr 
