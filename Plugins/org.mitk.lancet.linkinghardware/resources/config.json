@@ -1,7 +1,7 @@
 {
 	"Device": 
 	{
-		"NDIIGTToolStorage": "../../bin/resources/IGTToolStorage/ndiDeviceTool.IGTToolStorage",
+		"NDIIGTToolStorage": "../../bin/resources/IGTToolStorage/Vega.IGTToolStorage",
 		"RobotIGTToolStorage": "../../bin/resources/IGTToolStorage/kukaRobot.IGTToolStorage"
 	}
 }
