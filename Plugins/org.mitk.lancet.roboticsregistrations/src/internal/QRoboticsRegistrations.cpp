@@ -369,7 +369,7 @@ void QRoboticsRegistrations::on_toolCollector_complete(mitk::NavigationData* dat
 
 		mitk::NavigationDataSource* roboticsNavigationSource =
 			this->GetServiceRoboticsModel()->GetRoboticsNavigationDataSource();
-		int roboticsNavigationToolIndex = roboticsNavigationSource->GetOutputIndex("RobotBaseRF");
+		int roboticsNavigationToolIndex = roboticsNavigationSource->GetOutputIndex("Flange");
 		mitk::NavigationData::Pointer roboticsPose =
 			roboticsNavigationSource->GetOutput(roboticsNavigationToolIndex);
 
@@ -384,16 +384,15 @@ void QRoboticsRegistrations::on_toolCollector_complete(mitk::NavigationData* dat
 		// Update interface mapping of server data.
 		this->UpdateWidgetOfService();
 	}
-	else if (toolCollector->GetPermissionIdentificationArea() == "on_pushButtonCalResult_clicked")
+	else if (toolCollector->GetPermissionIdentificationArea() == "on_pushButtonRobotVerify_clicked")
 	{
 		// Pull the server's data resources.
+		mitk::NavigationDataSource* robotNavigationSource =
+			this->GetServiceRoboticsModel()->GetRoboticsNavigationDataSource();
 
-		mitk::NavigationDataSource* ndiNavigationSource =
-			this->GetServiceRoboticsModel()->GetNdiNavigationDataSource();
-
-		int roboticsAccuracyToolIndex = ndiNavigationSource->GetOutputIndex("RobotEndRF");
+		int roboticsEndRFToolIndex = robotNavigationSource->GetOutputIndex("RobotEndRF_robot");
 		mitk::NavigationData* roboticsAccuracyTool = 
-			ndiNavigationSource->GetOutput(roboticsAccuracyToolIndex);
+			robotNavigationSource->GetOutput(roboticsEndRFToolIndex);
 
 		if (roboticsAccuracyTool)
 		{

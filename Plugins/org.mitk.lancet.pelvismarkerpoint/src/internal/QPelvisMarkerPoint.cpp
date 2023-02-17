@@ -198,6 +198,7 @@ void QPelvisMarkerPoint::on_toolCollector_complete(mitk::NavigationData* data)
 
 		// Upload service.
 		this->GetServiceModel()->SetCheckPoint(data);
+		MITK_INFO << "collect point " << data->GetPosition();
 	}
 }
 

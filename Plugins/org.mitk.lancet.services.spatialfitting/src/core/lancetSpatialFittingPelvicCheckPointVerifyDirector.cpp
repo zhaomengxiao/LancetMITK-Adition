@@ -48,24 +48,24 @@ bool PelvicCheckPointVerifyDirector::Builder()
 	{
 		// RobotBaseRF
 		// RobotEndRF
-		int robotMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("RobotBaseRF");
-		int robotEndMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("RobotEndRF");
-		if (robotMarkerIndex == -1)
+		int pelvisMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("PelvisRF");
+		int probeMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("ProbeTHA");
+		if (pelvisMarkerIndex == -1 || probeMarkerIndex == -1)
 		{
 			throw std::exception("No mechanical arm trolley marker tool found.");
 		}
 
 		pipelineBuilder->BuilderNavigationToolToNavigationToolFilter(0,
-			this->GetNdiNavigationDataSource()->GetOutput(robotMarkerIndex));
+			this->GetNdiNavigationDataSource()->GetOutput(pelvisMarkerIndex));
 		pipelineBuilder->BuilderNavigationToolCollector(1, 10, 20);
 
 		pipelineBuilder->GetOutput()->FindFilter(0)->SetName("name-01");
-		pipelineBuilder->GetOutput()->FindFilter(1)->SetName("RobotEndRF2RobotBaseRF_ToolCollector");
+		pipelineBuilder->GetOutput()->FindFilter(1)->SetName("ProbeRF2PelvisRF_ToolCollector");
 
 		// connect to device pipeline resourec filter.
 		//this->GetNdiNavigationDataSource()->GetOutput(robotEndMarkerIndex);
 		pipelineBuilder->GetOutput()->ConnectTo(this->GetNdiNavigationDataSource());
-		pipelineBuilder->GetOutput()->SetInput(this->GetNdiNavigationDataSource()->GetOutput(robotEndMarkerIndex));
+		pipelineBuilder->GetOutput()->SetInput(this->GetNdiNavigationDataSource()->GetOutput(probeMarkerIndex));
 	}
 	catch (...)
 	{

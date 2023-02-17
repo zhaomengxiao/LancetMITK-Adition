@@ -48,15 +48,15 @@ bool PelvicCheckPointDirector::Builder()
 	{
 		// RobotBaseRF
 		// RobotEndRF
-		int baseMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("RobotBaseRF");
-		int probeMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("RobotEndRF");
-		if (baseMarkerIndex == -1)
+		int pelvisMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("PelvisRF");
+		int probeMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("ProbeTHA");
+		if (pelvisMarkerIndex == -1 || probeMarkerIndex == -1)
 		{
 			throw std::exception("No mechanical arm trolley marker tool found.");
 		}
 
 		pipelineBuilder->BuilderNavigationToolToNavigationToolFilter(0,
-			this->GetNdiNavigationDataSource()->GetOutput(baseMarkerIndex));
+			this->GetNdiNavigationDataSource()->GetOutput(pelvisMarkerIndex));
 		pipelineBuilder->BuilderNavigationToolCollector(1, 10, 20);
 
 		pipelineBuilder->GetOutput()->FindFilter(0)->SetName("name-01");
