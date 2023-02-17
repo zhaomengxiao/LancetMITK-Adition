@@ -48,8 +48,8 @@ bool ProbeCheckPointDirector::Builder()
 	{
 		// RobotBaseRF
 		// RobotEndRF
-		int probeMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("VirtualTool1");
-		int baseMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("VirtualTool2");
+		int probeMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("RobotBaseRF");
+		int baseMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("RobotEndRF");
 		if (baseMarkerIndex == -1)
 		{
 			throw std::exception("No mechanical arm trolley marker tool found.");

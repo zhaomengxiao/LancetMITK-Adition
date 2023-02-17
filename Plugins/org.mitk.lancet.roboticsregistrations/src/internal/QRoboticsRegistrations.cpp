@@ -369,7 +369,7 @@ void QRoboticsRegistrations::on_toolCollector_complete(mitk::NavigationData* dat
 
 		mitk::NavigationDataSource* roboticsNavigationSource =
 			this->GetServiceRoboticsModel()->GetRoboticsNavigationDataSource();
-		int roboticsNavigationToolIndex = roboticsNavigationSource->GetOutputIndex("VirtualTool1");
+		int roboticsNavigationToolIndex = roboticsNavigationSource->GetOutputIndex("RobotBaseRF");
 		mitk::NavigationData::Pointer roboticsPose =
 			roboticsNavigationSource->GetOutput(roboticsNavigationToolIndex);
 
@@ -391,7 +391,7 @@ void QRoboticsRegistrations::on_toolCollector_complete(mitk::NavigationData* dat
 		mitk::NavigationDataSource* ndiNavigationSource =
 			this->GetServiceRoboticsModel()->GetNdiNavigationDataSource();
 
-		int roboticsAccuracyToolIndex = ndiNavigationSource->GetOutputIndex("");
+		int roboticsAccuracyToolIndex = ndiNavigationSource->GetOutputIndex("RobotEndRF");
 		mitk::NavigationData* roboticsAccuracyTool = 
 			ndiNavigationSource->GetOutput(roboticsAccuracyToolIndex);
 

@@ -27,7 +27,7 @@ struct DeviceTrackingWidget::DeviceTrackingWidgetPrivateImp
 };
 const char* const DeviceTrackingWidget::Tools::VCart = "RobotBaseRF";
 const char* const DeviceTrackingWidget::Tools::VFemur = "Femur";
-const char* const DeviceTrackingWidget::Tools::VPelvis = "Pelvis";
+const char* const DeviceTrackingWidget::Tools::VPelvis = "PelvisRF";
 const char* const DeviceTrackingWidget::Tools::VProbe = "ProbeTHA";
 const char* const DeviceTrackingWidget::Tools::RRobot_Flange = "Flange";
 const char* const DeviceTrackingWidget::Tools::VRobotEndRF = "RobotEndRF";
@@ -65,14 +65,14 @@ DeviceTrackingWidget::DeviceTrackingWidget(QWidget *parent)
     : QWidget(parent)
     , imp(std::make_shared<DeviceTrackingWidgetPrivateImp>())
 {
-	Q_INIT_RESOURCE(mitkLancetCoreResources);
+  Q_INIT_RESOURCE(mitkLancetCoreResources);
   this->imp->ui.setupUi(this);
 
-	connect(&this->imp->tm, &QTimer::timeout, 
-		this, &DeviceTrackingWidget::OnTrackingToolStateUpdate);
-
-	this->imp->tm.setInterval(100);
-	this->imp->tm.start();
+  connect(&this->imp->tm, &QTimer::timeout, 
+  	this, &DeviceTrackingWidget::OnTrackingToolStateUpdate);
+  
+  this->imp->tm.setInterval(20);
+  this->imp->tm.start();
 }
 
 DeviceTrackingWidget::~DeviceTrackingWidget()
@@ -89,6 +89,7 @@ void DeviceTrackingWidget::AddTrackingToolSource(itk::SmartPointer<mitk::Navigat
 {
 	if (dataSource.IsNotNull() && false == this->HasTrackingToolSource(dataSource->GetName().c_str()))
 	{
+		MITK_ERROR << "Push back mitk.NavigationDataSource.Name " << dataSource->GetName();
 		this->imp->toolSourceArray.push_back(dataSource);
 	}
 }
@@ -212,16 +213,23 @@ void DeviceTrackingWidget::OnTrackingToolStateUpdate()
 
 		for (auto& toolName : this->GetTrackingToolNameOfWidgets())
 		{
-			auto findToolIndex = trackingToolSource->GetOutputIndex(toolName.toStdString());
-			if (-1 != findToolIndex)
+			try
 			{
-				auto trackingTool = trackingToolSource->GetOutput(findToolIndex);
-				if (nullptr != trackingTool 
-					&& trackingTool->IsDataValid() != this->GetTrackingToolEnable(toolName))
+				auto findToolIndex = trackingToolSource->GetOutputIndex(toolName.toStdString());
+				if (-1 != findToolIndex)
 				{
-					this->SetTrackingToolEnable(toolName, trackingTool->IsDataValid());
+					auto trackingTool = trackingToolSource->GetOutput(findToolIndex);
+					if (nullptr != trackingTool
+						&& trackingTool->IsDataValid() != this->GetTrackingToolEnable(toolName))
+					{
+						this->SetTrackingToolEnable(toolName, trackingTool->IsDataValid());
+					}
+					break;
 				}
-				break;
+			}
+			catch (const std::invalid_argument& e)
+			{
+				//MITK_WARN << "catch std::invalid_argument: " << e.what();
 			}
 		}
 	}

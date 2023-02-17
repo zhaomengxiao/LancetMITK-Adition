@@ -113,6 +113,7 @@ void QLinkingHardware::CreateQtPartControl(QWidget *parent)
 	this->ConnectedQtInteractive();
 	this->ConnectedQtEventForDevicesService();
 	this->InitializeTrackingToolsWidget();
+	this->UpdateQtWidgetStyleForDevicesService();
 }
 
 void QLinkingHardware::InitializeTrackingToolsWidget()
@@ -130,22 +131,16 @@ void QLinkingHardware::InitializeTrackingToolsWidget()
 		auto vegaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Vega");
 		auto kukaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Kuka");
 
-		if (vegaTrackSource.IsNotNull())
+		if (this->imp->m_Controls.widgetTrackingTools->HasTrackingToolSource("Vega Tracking Source"))
 		{
-			this->imp->m_Controls.widgetTrackingTools->AddTrackingToolSource(vegaTrackSource);
+			this->imp->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Vega Tracking Source");
 		}
-		else
+		if (this->imp->m_Controls.widgetTrackingTools->HasTrackingToolSource("Kuka Robot Tracking Source"))
 		{
-			this->imp->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Vega");
+			this->imp->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Kuka Robot Tracking Source");
 		}
-		if (kukaTrackSource.IsNotNull())
-		{
-			this->imp->m_Controls.widgetTrackingTools->AddTrackingToolSource(kukaTrackSource);
-		}
-		else
-		{
-			this->imp->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Kuka");
-		}
+		this->imp->m_Controls.widgetTrackingTools->AddTrackingToolSource(vegaTrackSource);
+		this->imp->m_Controls.widgetTrackingTools->AddTrackingToolSource(kukaTrackSource);
 	}	
 }
 
@@ -174,7 +169,7 @@ bool QLinkingHardware::ConnectedQtEventForDevicesService()
 	{
 		return false;
 	}
-	lancet::IDevicesAdministrationService* o = sender;
+
 	QObject::connect(sender, &lancet::IDevicesAdministrationService::TrackingDeviceStateChange,
 		this, &QLinkingHardware::OnIDevicesGetStatus);
 
@@ -207,6 +202,19 @@ bool QLinkingHardware::UpdateQtPartControlStyleSheet(const QString& qssFileName)
 
 	this->imp->m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
 	return true;
+}
+
+void QLinkingHardware::UpdateQtWidgetStyleForDevicesService()
+{
+	if (this->GetService())
+	{
+		auto connector = this->GetService()->GetConnector();
+		if (connector.IsNotNull())
+		{
+			this->imp->m_Controls.checkBox_startNDI->setEnabled(connector->IsStartTrackingDevice("Vega"));
+			this->imp->m_Controls.checkBox_startRobot->setEnabled(connector->IsStartTrackingDevice("Kuka"));
+		}
+	}
 }
 
 lancet::IDevicesAdministrationService *QLinkingHardware::GetService()
@@ -249,6 +257,7 @@ void QLinkingHardware::OnIDevicesGetStatus(std::string name,
 			connect(&this->imp->robotMoveCheckedTimer, &QTimer::timeout,
 				this, &QLinkingHardware::OnCheckedRobotMovePosition);
 		}
+		MITK_INFO << "change robot state to: " << isConnected;
 		this->imp->m_Controls.checkBox_startRobot->setChecked(isConnected);
 	}
 

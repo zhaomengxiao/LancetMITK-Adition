@@ -34,6 +34,8 @@ protected:
   
   bool UpdateQtPartControlStyleSheet(const QString& qss);
 
+  void UpdateQtWidgetStyleForDevicesService();
+
   static lancet::IDevicesAdministrationService* GetService();
 
 protected Q_SLOTS:

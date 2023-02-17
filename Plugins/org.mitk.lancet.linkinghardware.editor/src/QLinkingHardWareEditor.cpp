@@ -157,17 +157,18 @@ QString("border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/
     .arg(QString::number(robor)) \
     .arg(QString::number(ndi))
 
-void QLinkingHardWareEditor::OnDevicesStatePropertyChange(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState state)
+void QLinkingHardWareEditor::OnDevicesStatePropertyChange(std::string, lancet::TrackingDeviceManage::TrackingDeviceState)
 {
 	bool vegeTrackingState = false;
 	bool kukaTrackingState = false;
-	if (name == "Vega" && state & lancet::TrackingDeviceManage::TrackingDeviceState::Tracking)
+
+	if (this->GetDevicesService())
 	{
-		vegeTrackingState = true;
-	}
-	else if (name == "Kuka" && state & lancet::TrackingDeviceManage::TrackingDeviceState::Tracking)
-	{
-		kukaTrackingState = true;
+		if (this->GetDevicesService()->GetConnector().IsNotNull())
+		{
+			vegeTrackingState = this->GetDevicesService()->GetConnector()->IsStartTrackingDevice("Vega");
+			kukaTrackingState = this->GetDevicesService()->GetConnector()->IsStartTrackingDevice("Kuka");
+		}
 	}
 
 	QString styleSheet = GenerateDeviceTrackingRCFileName(vegeTrackingState, kukaTrackingState);

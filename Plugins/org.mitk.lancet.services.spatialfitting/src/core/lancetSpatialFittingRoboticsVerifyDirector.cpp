@@ -48,8 +48,8 @@ bool RoboticsVerifyDirector::Builder()
 	{
 		// RobotBaseRF
 		// RobotEndRF
-		int robotMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("VirtualTool1");
-		int robotEndMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("VirtualTool2");
+		int robotMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("RobotBaseRF");
+		int robotEndMarkerIndex = this->GetNdiNavigationDataSource()->GetOutputIndex("RobotEndRF");
 		if (robotMarkerIndex == -1)
 		{
 			throw std::exception("No mechanical arm trolley marker tool found.");
