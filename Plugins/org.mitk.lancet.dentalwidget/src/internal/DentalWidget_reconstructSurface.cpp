@@ -835,7 +835,7 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 	GetCoarseSteelballCenters(voxelThres);
 	m_Controls.lineEdit_ballGrayValue->setText(QString::number(voxelThres));
 	IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
-	RearrangeSteelballs(4, 6, foundIDs);
+	// RearrangeSteelballs(6, foundIDs); // this function is redundant ??
 
 
 	auto partialStdPointset = mitk::PointSet::New();
@@ -979,7 +979,7 @@ void DentalWidget::IterativeScreenCoarseSteelballCenters(int requiredNeighborNum
 }
 
 
-void DentalWidget::RearrangeSteelballs(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7])
+void DentalWidget::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 {
 	foundIDs[0] = 0;
 	foundIDs[1] = 0;
@@ -1038,7 +1038,7 @@ void DentalWidget::RearrangeSteelballs(int requiredNeighborNum, int stdNeighborN
 			}
 
 			//m_Controls.textBrowser->append("metric: " + QString::number(metric));
-			if (metric >= requiredNeighborNum)
+			if (metric == (inputPoinSetNum-1))
 			{
 
 				// Add this point to the pointset

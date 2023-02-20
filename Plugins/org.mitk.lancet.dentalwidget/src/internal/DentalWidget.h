@@ -95,7 +95,7 @@ protected:
   void ScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7]);
   void RemoveRedundantCenters(); // remove redundant centers
   void IterativeScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7]);
-  void RearrangeSteelballs(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7]);
+  void RearrangeSteelballs(int stdNeighborNum, int foundIDs[7]);
 
   void GetSteelballCenters_iosCBCT();
   void GetSteelballCenters_modelCBCT();
