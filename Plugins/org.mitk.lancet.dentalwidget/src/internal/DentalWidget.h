@@ -110,6 +110,7 @@ protected:
   vtkMatrix4x4* m_ModelRegistrationResult{ nullptr };
   vtkMatrix4x4* m_ModelInitalMatrix{ nullptr };
 
+
   double allBallFingerPrint[42]
   {
 	  0

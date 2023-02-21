@@ -712,7 +712,6 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 
 	// Initial preparation
 	m_Controls.textBrowser->append("------- Started steelball searching -------");
-	m_Controls.lineEdit_ballGrayValue->setText("---Pending---");
 
 	if (GetDataStorage()->GetNamedNode("Steelball centers") != nullptr)
 	{
@@ -799,43 +798,51 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 	int foundCenterNum{ 0 };
 	int foundIDs[7]{ 0 };
 
-	// Search for the best voxel value threshold
-	for (int i{ 0 }; i < searchIterations; i++)
+	if(m_Controls.comboBox_ballThresMode->currentIndex()==1)
 	{
-		double tmpVoxelThreshold = (1 - (8 / 8) * double(i) / searchIterations) * (tmpMaxVoxel - tmpMinVoxel) + tmpMinVoxel;
+		m_Controls.lineEdit_ballGrayValue->setText("---Pending---");
 
-		GetCoarseSteelballCenters(tmpVoxelThreshold);
-
-		foundCenterNum = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
-		// m_Controls.textBrowser->append(QString::number(foundCenterNum));
-		m_Controls.lineEdit_ballGrayValue->setText(QString::number(tmpVoxelThreshold));
-		if(foundCenterNum >= 40)
+		// Search for the best voxel value threshold
+		for (int i{ 0 }; i < searchIterations; i++)
 		{
-			break;
-		}
+			double tmpVoxelThreshold = (1 - (8 / 8) * double(i) / searchIterations) * (tmpMaxVoxel - tmpMinVoxel) + tmpMinVoxel;
 
-		IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
+			GetCoarseSteelballCenters(tmpVoxelThreshold);
 
-		if(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() > foundCleanCenterNum)
-		{
-			foundCleanCenterNum = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
-			voxelThres = tmpVoxelThreshold;
-			if(foundCleanCenterNum == stdCenterNum)
+			foundCenterNum = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
+			// m_Controls.textBrowser->append(QString::number(foundCenterNum));
+			m_Controls.lineEdit_ballGrayValue->setText(QString::number(tmpVoxelThreshold));
+			if (foundCenterNum >= 40)
 			{
-				//m_Controls.textBrowser->append("~~All steelballs have been found~~");
 				break;
-				
 			}
-		}
 
+			IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
+
+			if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() > foundCleanCenterNum)
+			{
+				foundCleanCenterNum = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
+				voxelThres = tmpVoxelThreshold;
+				if (foundCleanCenterNum == stdCenterNum)
+				{
+					//m_Controls.textBrowser->append("~~All steelballs have been found~~");
+					break;
+
+				}
+			}
+
+		}
+	}else
+	{
+		voxelThres = m_Controls.lineEdit_ballGrayValue->text().toDouble();
 	}
-	// m_Controls.textBrowser->append(QString::number(voxelThres));
-	// m_Controls.textBrowser->append(QString::number(foundCenterNum));
-	
+
+
+
 	GetCoarseSteelballCenters(voxelThres);
 	m_Controls.lineEdit_ballGrayValue->setText(QString::number(voxelThres));
 	IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
-	// RearrangeSteelballs(6, foundIDs); // this function is redundant ??
+	RearrangeSteelballs(6, foundIDs); // this function is redundant ??
 
 
 	auto partialStdPointset = mitk::PointSet::New();
@@ -979,84 +986,202 @@ void DentalWidget::IterativeScreenCoarseSteelballCenters(int requiredNeighborNum
 }
 
 
+// void DentalWidget::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
+// {
+// 	foundIDs[0] = 0;
+// 	foundIDs[1] = 0;
+// 	foundIDs[2] = 0;
+// 	foundIDs[3] = 0;
+// 	foundIDs[4] = 0;
+// 	foundIDs[5] = 0;
+// 	foundIDs[6] = 0;
+//
+// 	double distanceList[7]{ 0 };
+//
+// 	auto inputPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
+// 	int inputPoinSetNum = inputPointSet->GetSize();
+// 	auto steelballCenters = mitk::PointSet::New();
+//
+// 	int lengthOfFingerPrint = stdNeighborNum;
+// 	int numOfTargetSteelballs = stdNeighborNum + 1;
+//
+//
+// 	for (int q{ 0 }; q < numOfTargetSteelballs; q++)
+// 	{
+// 		double fingerPrint[6]
+// 		{
+// 			allBallFingerPrint[6 * q],
+// 			allBallFingerPrint[6 * q + 1],
+// 			allBallFingerPrint[6 * q + 2],
+// 			allBallFingerPrint[6 * q + 3],
+// 			allBallFingerPrint[6 * q + 4],
+// 			allBallFingerPrint[6 * q + 5],
+// 		};
+//
+//
+// 		for (int i{ 0 }; i < inputPoinSetNum; i++)
+// 		{
+// 			int metric{ 0 };
+//
+// 			double totalDistance{ 0 };
+// 			for (int j{ 0 }; j < lengthOfFingerPrint; j++)
+// 			{
+// 				
+// 				double standardDistance = fingerPrint[j];
+//
+//
+// 				for (int k{ 0 }; k < inputPoinSetNum; k++)
+// 				{
+// 					double tmpDistance = GetPointDistance(inputPointSet->GetPoint(i), inputPointSet->GetPoint(k));
+// 					if (fabs(tmpDistance - standardDistance) < 0.4)
+// 					{
+// 						metric += 1;
+// 						totalDistance += tmpDistance;
+// 						break;
+// 					}
+// 				}
+//
+// 				// if (metSingleRequirement == false)
+// 				// {
+// 				// 	break;
+// 				// }
+//
+// 			}
+//
+// 			//m_Controls.textBrowser->append("metric: " + QString::number(metric));
+// 			if (metric == (inputPoinSetNum-1))
+// 			{
+// 				if (foundIDs[q] == 0)
+// 				{
+// 					steelballCenters->InsertPoint(inputPointSet->GetPoint(i));
+// 					distanceList[q] = totalDistance;
+// 					foundIDs[q] = 1;
+// 				}
+//
+// 				if (foundIDs[q] == 1)
+// 				{
+// 					if (totalDistance < distanceList[q])
+// 					{
+// 						distanceList[q] = totalDistance;
+// 						int tmpSize = steelballCenters->GetSize();
+// 						steelballCenters->SetPoint(tmpSize - 1, inputPointSet->GetPoint(i));
+// 					}
+// 				}
+//
+// 			}
+//
+// 		}
+//
+// 	}
+//
+// 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Steelball centers"));
+//
+// 	auto tmpNode = mitk::DataNode::New();
+// 	tmpNode->SetName("Steelball centers");
+// 	tmpNode->SetData(steelballCenters);
+// 	GetDataStorage()->Add(tmpNode);
+// 	RemoveRedundantCenters();
+// }
+
+
 void DentalWidget::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 {
-	foundIDs[0] = 0;
-	foundIDs[1] = 0;
-	foundIDs[2] = 0;
-	foundIDs[3] = 0;
-	foundIDs[4] = 0;
-	foundIDs[5] = 0;
-	foundIDs[6] = 0;
+	auto extractedPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
 
-	auto inputPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
-	int inputPoinSetNum = inputPointSet->GetSize();
-	auto steelballCenters = mitk::PointSet::New();
+	auto standartSteelballCenters = mitk::PointSet::New();
+	int stdCenterNum{ 7 };
+	double stdCentroid[3]{ 0 };
 
-	int lengthOfFingerPrint = stdNeighborNum;
-	int numOfTargetSteelballs = stdNeighborNum + 1;
-
-
-	for (int q{ 0 }; q < numOfTargetSteelballs; q++)
+	for (int i{ 0 }; i < stdCenterNum; i++)
 	{
-		double fingerPrint[6]
+		if(foundIDs[i] == 1)
 		{
-			allBallFingerPrint[6 * q],
-			allBallFingerPrint[6 * q + 1],
-			allBallFingerPrint[6 * q + 2],
-			allBallFingerPrint[6 * q + 3],
-			allBallFingerPrint[6 * q + 4],
-			allBallFingerPrint[6 * q + 5],
-		};
-
-
-		for (int i{ 0 }; i < inputPoinSetNum; i++)
-		{
-			int metric{ 0 };
-
-			for (int j{ 0 }; j < lengthOfFingerPrint; j++)
-			{
-				bool metSingleRequirement = false;
-				double standardDistance = fingerPrint[j];
-
-				for (int k{ 0 }; k < inputPoinSetNum; k++)
-				{
-					double tmpDistance = GetPointDistance(inputPointSet->GetPoint(i), inputPointSet->GetPoint(k));
-					if (fabs(tmpDistance - standardDistance) < 0.4)
-					{
-						metSingleRequirement = true;
-						metric += 1;
-						break;
-					}
-				}
-
-				// if (metSingleRequirement == false)
-				// {
-				// 	break;
-				// }
-
-			}
-
-			//m_Controls.textBrowser->append("metric: " + QString::number(metric));
-			if (metric == (inputPoinSetNum-1))
-			{
-
-				// Add this point to the pointset
-				steelballCenters->InsertPoint(inputPointSet->GetPoint(i));
-				foundIDs[q] = 1;
-				break;
-				
-			}
-
+			stdCentroid[0] += stdCenters[i * 3];
+			stdCentroid[1] += stdCenters[i * 3 + 1];
+			stdCentroid[2] += stdCenters[i * 3 + 2];
 		}
 
+		double tmpArray[3]
+		{
+			stdCenters[i * 3],
+			stdCenters[i * 3 + 1],
+			stdCenters[i * 3 + 2]
+		};
+		mitk::Point3D p(tmpArray);
+		standartSteelballCenters->InsertPoint(p);
 	}
 
+	stdCentroid[0] = stdCentroid[0] / extractedPointSet->GetSize();
+	stdCentroid[1] = stdCentroid[1] / extractedPointSet->GetSize();
+	stdCentroid[2] = stdCentroid[2] / extractedPointSet->GetSize();
+
+	double stdBallToCentroid[7]{0};
+	for (int i{ 0 }; i < stdCenterNum; i++)
+	{
+		stdBallToCentroid[i] = sqrt(pow(stdCentroid[0]- standartSteelballCenters->GetPoint(i)[0],2)+
+			pow(stdCentroid[1] - standartSteelballCenters->GetPoint(i)[1], 2) + 
+			pow(stdCentroid[2] - standartSteelballCenters->GetPoint(i)[2], 2));
+	}
+
+	for (int i{ 0 }; i < stdCenterNum; i++)
+	{
+		if(foundIDs[i] == 0)
+		{
+			stdBallToCentroid[i] = 500;
+		}
+	}
+	   	 
+	// get the centroid of the extracted pointset
+	double extractedCentroid[3]{0};
+	for(int i{0}; i < extractedPointSet->GetSize(); i ++)
+	{
+		extractedCentroid[0] += extractedPointSet->GetPoint(i)[0];
+		extractedCentroid[1] += extractedPointSet->GetPoint(i)[1];
+		extractedCentroid[2] += extractedPointSet->GetPoint(i)[2];
+	}
+
+	extractedCentroid[0] = extractedCentroid[0] / (extractedPointSet->GetSize());
+	extractedCentroid[1] = extractedCentroid[1] / (extractedPointSet->GetSize());
+	extractedCentroid[2] = extractedCentroid[2] / (extractedPointSet->GetSize());
+
+	auto rearrangedPset = mitk::PointSet::New();
+
+	for (int i{ 0 }; i < 7; i++)
+	{
+		if(foundIDs[i] == 1)
+		{
+			double stdDistance = stdBallToCentroid[i];
+			double minDistanceDifference{ 500 };
+			int pointFlag{ 0 };
+
+			for(int j{ 0 }; j < extractedPointSet->GetSize(); j++)
+			{
+				double extractedDistance =  sqrt(pow(extractedCentroid[0] - extractedPointSet->GetPoint(j)[0], 2) +
+					pow(extractedCentroid[1] - extractedPointSet->GetPoint(j)[1], 2) +
+					pow(extractedCentroid[2] - extractedPointSet->GetPoint(j)[2], 2));
+
+				double tmpDistanceDifference = abs(extractedDistance - stdDistance);
+
+				if(tmpDistanceDifference < minDistanceDifference)
+				{
+					minDistanceDifference = tmpDistanceDifference;
+					pointFlag = j;
+				}
+			}
+
+			rearrangedPset->InsertPoint(extractedPointSet->GetPoint(pointFlag));			
+			
+
+		}
+	}
+
+	
 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Steelball centers"));
 
 	auto tmpNode = mitk::DataNode::New();
 	tmpNode->SetName("Steelball centers");
-	tmpNode->SetData(steelballCenters);
+	tmpNode->SetData(rearrangedPset);
 	GetDataStorage()->Add(tmpNode);
 	RemoveRedundantCenters();
+
 }
