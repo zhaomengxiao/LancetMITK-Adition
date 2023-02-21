@@ -47,7 +47,6 @@ public:
   QPelvisRoughRegistrationsEditor();
   virtual ~QPelvisRoughRegistrationsEditor() override;
 
-
   void CreatePartControl(QWidget* parent) override;
 
   /**
@@ -87,14 +86,23 @@ public:
   virtual berry::IPartListener::Events::Types GetPartEventTypes() const override;
 private:
 	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
-	Ui::QPelvisRoughRegistrationsEditor m_Controls;
+
+	itk::SmartPointer<mitk::DataStorage> GetDataStorage() const;
+
+private:
+	void InitializeMitkMultiWidget();
+	void UnInitializeMitkMultiWidget();
 protected:
 	typedef berry::IPreferencesService berryIPreferencesService;
 	//berry::IEditorInput::Pointer editorInput;
 	//berry::IEditorSite::Pointer editorSite;
+	QStringList listDataStorageNodes;
+	QVector<mitk::Point3D> imagePoints;
+	QVector<mitk::Point3D> vegaPoints;
 	QSharedPointer<QWidget> widgetInstace;
 	ctkServiceTracker<berryIPreferencesService*> m_PrefServiceTracker;
 	berry::IBerryPreferences::Pointer m_Prefs;
+	Ui::QPelvisRoughRegistrationsEditor m_Controls;
 };
 
 #endif // QPelvisRoughRegistrationsEditor_H

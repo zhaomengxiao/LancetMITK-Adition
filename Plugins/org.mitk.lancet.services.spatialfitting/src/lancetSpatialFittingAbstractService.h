@@ -18,6 +18,7 @@ BEGIN_SPATIAL_FITTING_NAMESPACE
 class ProbeCheckPointModel;
 class RoboticsRegisterModel;
 class PelvisCheckPointModel;
+class PelvicRoughRegistrationsModel;
 END_SPATIAL_FITTING_NAMESPACE
 
 namespace lancet
@@ -46,6 +47,9 @@ public:
 		GetPelvisCheckPointModel() const;
 	virtual void SetPelvisCheckPointModel(itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel>);
 
+	virtual itk::SmartPointer<lancet::spatial_fitting::PelvicRoughRegistrationsModel>
+		GetPelvicRoughRegistrationsModel() const;
+	virtual void SetPelvicRoughRegistrationsModel(itk::SmartPointer<lancet::spatial_fitting::PelvicRoughRegistrationsModel>);
 
 	virtual void Initialize() = 0;
 private:struct SpatialFittingAbstractServicePrivateImp;

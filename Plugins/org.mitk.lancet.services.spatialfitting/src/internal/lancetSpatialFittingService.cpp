@@ -4,6 +4,7 @@
 #include "internal/lancetSpatialFittingRoboticsRegisterModel.h"
 #include "internal/lancetSpatialFittingProbeCheckPointModel.h"
 #include "internal/lancetSpatialFittingPelvisCheckPointModel.h"
+#include "internal/lancetSpatialFittingPelvicRoughRegistrationsModel.h"
 #include <lancetIDevicesAdministrationService.h>
 #include <internal/lancetTrackingDeviceManage.h>
 namespace lancet
@@ -23,6 +24,7 @@ namespace lancet
 		this->InitializeRoboticsRegisterModel();
 		this->InitializeProbeCheckPointModel();
 		this->InitializePelvisCheckPointModel();
+		this->InitializePelvisRoughRegistrationsModel();
 	}
 
 	void SpatialFittingService::InitializeRoboticsRegisterModel()
@@ -138,6 +140,22 @@ namespace lancet
 		this->GetPelvisCheckPointModel()->SetRoboticsNavigationDataSource(robotdatasource);
 
 		this->GetPelvisCheckPointModel()->ConfigureGetCheckPointPipeline();
+	}
+
+	void SpatialFittingService::InitializePelvisRoughRegistrationsModel()
+	{
+		if (this->GetPelvicRoughRegistrationsModel().IsNull())
+		{
+			using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
+			PelvicRoughRegistrationsModel::Pointer model = PelvicRoughRegistrationsModel::Pointer(
+				new PelvicRoughRegistrationsModel);
+
+			this->SetPelvicRoughRegistrationsModel(model);
+		}
+		auto ndidatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Vega");
+		this->GetPelvicRoughRegistrationsModel()->SetNdiNavigationDataSource(ndidatasource);
+
+		this->GetPelvicRoughRegistrationsModel()->ConfigureRegistrationsPipeline();
 	}
 
 	void SpatialFittingService::onDeviceConnectState_change(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState state)

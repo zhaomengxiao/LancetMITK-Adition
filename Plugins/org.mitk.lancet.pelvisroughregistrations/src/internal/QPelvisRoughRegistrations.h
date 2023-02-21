@@ -20,6 +20,9 @@ found in the LICENSE file.
 
 #include "ui_QPelvisRoughRegistrationsControls.h"
 
+namespace mitk{ class NavigationData; }
+namespace lancet { class IDevicesAdministrationService; }
+namespace lancet::spatial_fitting{ class PelvicRoughRegistrationsModel; }
 /**
   \brief QPelvisRoughRegistrations
 
@@ -37,6 +40,7 @@ class QPelvisRoughRegistrations : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
+	QPelvisRoughRegistrations();
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -50,6 +54,26 @@ protected:
   void DoImageProcessing();
 
   Ui::QPelvisRoughRegistrationsControls m_Controls;
+
+protected slots:
+	void on_toolCollector_fail(int);
+
+	void on_toolCollector_complete(mitk::NavigationData*);
+
+	void on_toolCollector_step(int, mitk::NavigationData*);
+
+	void on_pushButtonCapturePelvis_Landmark_clicked();
+private:
+	using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
+	itk::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
+
+	void Initialize();
+	void InitializeQtWidgetEventAtOnly();
+	void InitializeQtEventToService();
+	void InitializeCollectStateForQtWidget();
+private:
+	struct QPelvisRoughRegistrationsPrivateImp;
+	std::shared_ptr<QPelvisRoughRegistrationsPrivateImp> imp;
 };
 
 #endif // QPelvisRoughRegistrations_h

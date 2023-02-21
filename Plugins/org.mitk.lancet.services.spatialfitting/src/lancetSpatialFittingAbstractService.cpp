@@ -3,6 +3,7 @@
 #include "internal/lancetSpatialFittingProbeCheckPointModel.h"
 #include "internal/lancetSpatialFittingPelvisCheckPointModel.h"
 #include "internal/lancetSpatialFittingRoboticsRegisterModel.h"
+#include "internal/lancetSpatialFittingPelvicRoughRegistrationsModel.h"
 #include <lancetIDevicesAdministrationService.h>
 
 #include "internal/lancetPluginActivator.h"
@@ -17,6 +18,8 @@ namespace lancet
 		lancet::spatial_fitting::ProbeCheckPointModel::Pointer probeCheckPointModel;
 
 		lancet::spatial_fitting::PelvisCheckPointModel::Pointer pelvisCheckPointModel;
+
+		lancet::spatial_fitting::PelvicRoughRegistrationsModel::Pointer pelvicRoughRegistrationsModel;
   };
 	berry::SmartPointer<SpatialFittingAbstractService>
 		SpatialFittingAbstractService::SpatialFittingAbstractServicePrivateImp::
@@ -68,5 +71,15 @@ namespace lancet
 		itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> model)
 	{
 		this->imp->pelvisCheckPointModel = model;
+	}
+	itk::SmartPointer<lancet::spatial_fitting::PelvicRoughRegistrationsModel> 
+		SpatialFittingAbstractService::GetPelvicRoughRegistrationsModel() const
+	{
+		return this->imp->pelvicRoughRegistrationsModel;
+	}
+	void SpatialFittingAbstractService::SetPelvicRoughRegistrationsModel(
+		itk::SmartPointer<lancet::spatial_fitting::PelvicRoughRegistrationsModel> model)
+	{
+		this->imp->pelvicRoughRegistrationsModel = model;
 	}
 }
