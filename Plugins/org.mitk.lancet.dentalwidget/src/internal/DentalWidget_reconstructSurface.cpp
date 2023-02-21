@@ -1084,23 +1084,118 @@ void DentalWidget::IterativeScreenCoarseSteelballCenters(int requiredNeighborNum
 // }
 
 
+// void DentalWidget::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
+// {
+// 	auto extractedPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
+//
+// 	auto standartSteelballCenters = mitk::PointSet::New();
+// 	int stdCenterNum{ 7 };
+// 	double stdCentroid[3]{ 0 };
+//
+// 	for (int i{ 0 }; i < stdCenterNum; i++)
+// 	{
+// 		if(foundIDs[i] == 1)
+// 		{
+// 			stdCentroid[0] += stdCenters[i * 3];
+// 			stdCentroid[1] += stdCenters[i * 3 + 1];
+// 			stdCentroid[2] += stdCenters[i * 3 + 2];
+// 		}
+//
+// 		double tmpArray[3]
+// 		{
+// 			stdCenters[i * 3],
+// 			stdCenters[i * 3 + 1],
+// 			stdCenters[i * 3 + 2]
+// 		};
+// 		mitk::Point3D p(tmpArray);
+// 		standartSteelballCenters->InsertPoint(p);
+// 	}
+//
+// 	stdCentroid[0] = stdCentroid[0] / extractedPointSet->GetSize();
+// 	stdCentroid[1] = stdCentroid[1] / extractedPointSet->GetSize();
+// 	stdCentroid[2] = stdCentroid[2] / extractedPointSet->GetSize();
+//
+// 	double stdBallToCentroid[7]{0};
+// 	for (int i{ 0 }; i < stdCenterNum; i++)
+// 	{
+// 		stdBallToCentroid[i] = sqrt(pow(stdCentroid[0]- standartSteelballCenters->GetPoint(i)[0],2)+
+// 			pow(stdCentroid[1] - standartSteelballCenters->GetPoint(i)[1], 2) + 
+// 			pow(stdCentroid[2] - standartSteelballCenters->GetPoint(i)[2], 2));
+// 	}
+//
+// 	for (int i{ 0 }; i < stdCenterNum; i++)
+// 	{
+// 		if(foundIDs[i] == 0)
+// 		{
+// 			stdBallToCentroid[i] = 500;
+// 		}
+// 	}
+// 	   	 
+// 	// get the centroid of the extracted pointset
+// 	double extractedCentroid[3]{0};
+// 	for(int i{0}; i < extractedPointSet->GetSize(); i ++)
+// 	{
+// 		extractedCentroid[0] += extractedPointSet->GetPoint(i)[0];
+// 		extractedCentroid[1] += extractedPointSet->GetPoint(i)[1];
+// 		extractedCentroid[2] += extractedPointSet->GetPoint(i)[2];
+// 	}
+//
+// 	extractedCentroid[0] = extractedCentroid[0] / (extractedPointSet->GetSize());
+// 	extractedCentroid[1] = extractedCentroid[1] / (extractedPointSet->GetSize());
+// 	extractedCentroid[2] = extractedCentroid[2] / (extractedPointSet->GetSize());
+//
+// 	auto rearrangedPset = mitk::PointSet::New();
+//
+// 	for (int i{ 0 }; i < 7; i++)
+// 	{
+// 		if(foundIDs[i] == 1)
+// 		{
+// 			double stdDistance = stdBallToCentroid[i];
+// 			double minDistanceDifference{ 500 };
+// 			int pointFlag{ 0 };
+//
+// 			for(int j{ 0 }; j < extractedPointSet->GetSize(); j++)
+// 			{
+// 				double extractedDistance =  sqrt(pow(extractedCentroid[0] - extractedPointSet->GetPoint(j)[0], 2) +
+// 					pow(extractedCentroid[1] - extractedPointSet->GetPoint(j)[1], 2) +
+// 					pow(extractedCentroid[2] - extractedPointSet->GetPoint(j)[2], 2));
+//
+// 				double tmpDistanceDifference = abs(extractedDistance - stdDistance);
+//
+// 				if(tmpDistanceDifference < minDistanceDifference)
+// 				{
+// 					minDistanceDifference = tmpDistanceDifference;
+// 					pointFlag = j;
+// 				}
+// 			}
+//
+// 			rearrangedPset->InsertPoint(extractedPointSet->GetPoint(pointFlag));			
+// 			
+//
+// 		}
+// 	}
+//
+// 	
+// 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Steelball centers"));
+//
+// 	auto tmpNode = mitk::DataNode::New();
+// 	tmpNode->SetName("Steelball centers");
+// 	tmpNode->SetData(rearrangedPset);
+// 	GetDataStorage()->Add(tmpNode);
+// 	RemoveRedundantCenters();
+//
+// }
+
 void DentalWidget::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 {
 	auto extractedPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
 
 	auto standartSteelballCenters = mitk::PointSet::New();
 	int stdCenterNum{ 7 };
-	double stdCentroid[3]{ 0 };
+	
 
 	for (int i{ 0 }; i < stdCenterNum; i++)
 	{
-		if(foundIDs[i] == 1)
-		{
-			stdCentroid[0] += stdCenters[i * 3];
-			stdCentroid[1] += stdCenters[i * 3 + 1];
-			stdCentroid[2] += stdCenters[i * 3 + 2];
-		}
-
 		double tmpArray[3]
 		{
 			stdCenters[i * 3],
@@ -1111,77 +1206,74 @@ void DentalWidget::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 		standartSteelballCenters->InsertPoint(p);
 	}
 
-	stdCentroid[0] = stdCentroid[0] / extractedPointSet->GetSize();
-	stdCentroid[1] = stdCentroid[1] / extractedPointSet->GetSize();
-	stdCentroid[2] = stdCentroid[2] / extractedPointSet->GetSize();
-
-	double stdBallToCentroid[7]{0};
-	for (int i{ 0 }; i < stdCenterNum; i++)
-	{
-		stdBallToCentroid[i] = sqrt(pow(stdCentroid[0]- standartSteelballCenters->GetPoint(i)[0],2)+
-			pow(stdCentroid[1] - standartSteelballCenters->GetPoint(i)[1], 2) + 
-			pow(stdCentroid[2] - standartSteelballCenters->GetPoint(i)[2], 2));
-	}
-
-	for (int i{ 0 }; i < stdCenterNum; i++)
-	{
-		if(foundIDs[i] == 0)
-		{
-			stdBallToCentroid[i] = 500;
-		}
-	}
-	   	 
-	// get the centroid of the extracted pointset
-	double extractedCentroid[3]{0};
-	for(int i{0}; i < extractedPointSet->GetSize(); i ++)
-	{
-		extractedCentroid[0] += extractedPointSet->GetPoint(i)[0];
-		extractedCentroid[1] += extractedPointSet->GetPoint(i)[1];
-		extractedCentroid[2] += extractedPointSet->GetPoint(i)[2];
-	}
-
-	extractedCentroid[0] = extractedCentroid[0] / (extractedPointSet->GetSize());
-	extractedCentroid[1] = extractedCentroid[1] / (extractedPointSet->GetSize());
-	extractedCentroid[2] = extractedCentroid[2] / (extractedPointSet->GetSize());
-
-	auto rearrangedPset = mitk::PointSet::New();
-
-	for (int i{ 0 }; i < 7; i++)
+	auto partialStdCenters = mitk::PointSet::New();
+	for(int i{0}; i < stdCenterNum; i++)
 	{
 		if(foundIDs[i] == 1)
 		{
-			double stdDistance = stdBallToCentroid[i];
-			double minDistanceDifference{ 500 };
-			int pointFlag{ 0 };
-
-			for(int j{ 0 }; j < extractedPointSet->GetSize(); j++)
-			{
-				double extractedDistance =  sqrt(pow(extractedCentroid[0] - extractedPointSet->GetPoint(j)[0], 2) +
-					pow(extractedCentroid[1] - extractedPointSet->GetPoint(j)[1], 2) +
-					pow(extractedCentroid[2] - extractedPointSet->GetPoint(j)[2], 2));
-
-				double tmpDistanceDifference = abs(extractedDistance - stdDistance);
-
-				if(tmpDistanceDifference < minDistanceDifference)
-				{
-					minDistanceDifference = tmpDistanceDifference;
-					pointFlag = j;
-				}
-			}
-
-			rearrangedPset->InsertPoint(extractedPointSet->GetPoint(pointFlag));			
-			
-
+			partialStdCenters->InsertPoint(standartSteelballCenters->GetPoint(i));
 		}
 	}
 
-	
+	int a[] = { 0,1,2,3,4,5,6 };
+	std::sort(a, a + 7);
+
+	double errorSum = 20;
+	int b[7]{ 0 };
+	while (std::next_permutation(a, a + 7))
+	{
+		auto newPset = mitk::PointSet::New();
+
+		for (int i{0}; i < 7; i++)
+		{
+			if (a[i] < extractedPointSet->GetSize())
+			{
+				newPset->InsertPoint(extractedPointSet->GetPoint(i));
+			}
+		}
+
+		auto landmarkRegistrator = mitk::SurfaceRegistration::New();
+		landmarkRegistrator->SetLandmarksSrc(newPset);
+		landmarkRegistrator->SetLandmarksTarget(partialStdCenters);
+
+		landmarkRegistrator->ComputeLandMarkResult();
+		double maxError = landmarkRegistrator->GetmaxLandmarkError();
+		double avgError = landmarkRegistrator->GetavgLandmarkError();
+		double tmpError = maxError + avgError;
+
+		if(tmpError < errorSum)
+		{
+			errorSum = tmpError;
+			b[0] = a[0];
+			b[1] = a[1];
+			b[2] = a[2];
+			b[3] = a[3];
+			b[4] = a[4];
+			b[5] = a[5];
+			b[6] = a[6];
+		}
+
+	}
+
+
+	auto tmpPset = mitk::PointSet::New();
+
+	for (int i{ 0 }; i < 7; i++)
+	{
+		if (b[i] < extractedPointSet->GetSize())
+		{
+			tmpPset->InsertPoint(extractedPointSet->GetPoint(i));
+		}
+	}
+
 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Steelball centers"));
 
 	auto tmpNode = mitk::DataNode::New();
 	tmpNode->SetName("Steelball centers");
-	tmpNode->SetData(rearrangedPset);
+	tmpNode->SetData(tmpPset);
 	GetDataStorage()->Add(tmpNode);
 	RemoveRedundantCenters();
 
+
 }
+
