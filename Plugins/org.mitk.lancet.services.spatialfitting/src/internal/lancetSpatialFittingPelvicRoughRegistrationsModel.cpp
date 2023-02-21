@@ -4,6 +4,7 @@
 #include "lancetSpatialFittingAbstractPipelineBuilder.h"
 #include "core/lancetSpatialFittingPelvicRoughRegistrationsDirector.h"
 
+
 BEGIN_SPATIAL_FITTING_NAMESPACE
 
 struct PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModelPrivateImp
@@ -13,6 +14,8 @@ struct PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModelPrivateImp
 
 	std::array<mitk::Point3D, 3> imagePointArray;
 	std::array<mitk::Point3D, 3> vegaPointArray;
+
+	mitk::SurfaceRegistration::Pointer surfaceRegistration = mitk::SurfaceRegistration::New();
 };
 
 PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModel()
@@ -54,6 +57,16 @@ void PelvicRoughRegistrationsModel::ConfigureRegistrationsPipeline()
 	pelvicRoughRegistrationsDirector->SetNdiNavigationDataSource(this->GetNdiNavigationDataSource());
 
 	this->SetRegistrationPipeline(pelvicRoughRegistrationsDirector->GetBuilder()->GetOutput());
+}
+
+void PelvicRoughRegistrationsModel::SetSurfaceSrc(const mitk::Surface::Pointer& src)
+{
+	this->imp->surfaceRegistration->SetSurfaceSrc(src);
+}
+
+mitk::Surface::Pointer PelvicRoughRegistrationsModel::GetSurfaceSrc() const
+{
+	return this->imp->surfaceRegistration->GetSurfaceSrc();
 }
 
 void PelvicRoughRegistrationsModel::SetImagePointArray(int index, const mitk::Point3D& pt)
@@ -102,6 +115,11 @@ mitk::Point3D PelvicRoughRegistrationsModel::GetVegaPoint(int index) const
 		return this->imp->vegaPointArray[index];
 	}
 	return mitk::Point3D();
+}
+
+mitk::SurfaceRegistration::Pointer PelvicRoughRegistrationsModel::GetSurfaceRegistration() const
+{
+	return this->imp->surfaceRegistration;
 }
 
 END_SPATIAL_FITTING_NAMESPACE

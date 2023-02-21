@@ -18,6 +18,7 @@
 #define LancetSpatialFittingPelvicRoughRegistrationsModel_H
 
 #include "lancetSpatialFittingGlobal.h"
+#include <surfaceregistraion.h>
 #include <mitkNavigationDataSource.h>
 
 BEGIN_SPATIAL_FITTING_NAMESPACE
@@ -39,9 +40,11 @@ public:
 	itk::SmartPointer<PipelineManager> GetRegistrationPipeline() const;
 	void SetRegistrationPipeline(const itk::SmartPointer<PipelineManager>&);
 
-
 	void ConfigureRegistrationsPipeline();
 public:
+	virtual void SetSurfaceSrc(const mitk::Surface::Pointer&);
+	virtual mitk::Surface::Pointer GetSurfaceSrc() const;
+
 	virtual void SetImagePointArray(int, const mitk::Point3D&);
 	virtual void SetImagePointArray(const std::array<mitk::Point3D, 3>&);
 	virtual mitk::Point3D GetImagePoint(int) const;
@@ -49,6 +52,9 @@ public:
 	virtual void SetVegaPointArray(int, const mitk::Point3D&);
 	virtual void SetVegaPointArray(const std::array<mitk::Point3D, 3>&);
 	virtual mitk::Point3D GetVegaPoint(int) const;
+
+	// [Warning] It is not recommended to operate this object directly.
+	mitk::SurfaceRegistration::Pointer GetSurfaceRegistration() const;
 private:
   struct PelvicRoughRegistrationsModelPrivateImp;
   std::shared_ptr<PelvicRoughRegistrationsModelPrivateImp> imp;
