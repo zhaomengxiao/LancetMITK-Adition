@@ -30,6 +30,9 @@ found in the LICENSE file.
 class QmitkStdMultiWidget;
 class QPelvisRoughRegistrationsEditorPrivate;
 
+//namespace mitk { class NavigationData; }
+//namespace lancet { class IDevicesAdministrationService; }
+namespace lancet::spatial_fitting { class PelvicRoughRegistrationsModel; }
 /**
  * @brief
  */
@@ -84,14 +87,21 @@ public:
   * @brief Overridden from berry::IPartListener
   */
   virtual berry::IPartListener::Events::Types GetPartEventTypes() const override;
+public slots:
+	void OnVegaPointChange();
 private:
 	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
 
 	itk::SmartPointer<mitk::DataStorage> GetDataStorage() const;
 
+	using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
+	itk::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
 private:
 	void InitializeMitkMultiWidget();
 	void UnInitializeMitkMultiWidget();
+
+	void InitializeQtEventOnService();
+	void UnInitializeQtEventOnService();
 protected:
 	typedef berry::IPreferencesService berryIPreferencesService;
 	//berry::IEditorInput::Pointer editorInput;

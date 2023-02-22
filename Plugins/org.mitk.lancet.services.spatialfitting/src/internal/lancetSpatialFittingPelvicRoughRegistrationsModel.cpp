@@ -1,5 +1,7 @@
 #include "lancetSpatialFittingPelvicRoughRegistrationsModel.h"
 
+#include <QTimer>
+
 #include "core/lancetSpatialFittingPipelineManager.h"
 #include "lancetSpatialFittingAbstractPipelineBuilder.h"
 #include "core/lancetSpatialFittingPelvicRoughRegistrationsDirector.h"
@@ -9,6 +11,8 @@ BEGIN_SPATIAL_FITTING_NAMESPACE
 
 struct PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModelPrivateImp
 {
+	QTimer tm;
+
 	PipelineManager::Pointer pipelineManager;
 	mitk::NavigationDataSource::Pointer ndiNavigationDataSource;
 
@@ -21,6 +25,23 @@ struct PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModelPrivateImp
 PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModel()
 	: imp(std::make_shared<PelvicRoughRegistrationsModelPrivateImp>())
 {
+	this->imp->tm.setInterval(20);
+	connect(&this->imp->tm, &QTimer::timeout, this, [=]() {
+		if (this->GetRegistrationPipeline().IsNotNull())
+		{
+			this->GetRegistrationPipeline()->UpdateFilter();
+		}
+		});
+}
+
+void PelvicRoughRegistrationsModel::Start()
+{
+	this->imp->tm.start();
+}
+
+void PelvicRoughRegistrationsModel::Stop()
+{
+	this->imp->tm.stop();
 }
 
 mitk::NavigationDataSource::Pointer 
@@ -55,8 +76,10 @@ void PelvicRoughRegistrationsModel::ConfigureRegistrationsPipeline()
 		PelvicRoughRegistrationsDirector::New();
 
 	pelvicRoughRegistrationsDirector->SetNdiNavigationDataSource(this->GetNdiNavigationDataSource());
-
-	this->SetRegistrationPipeline(pelvicRoughRegistrationsDirector->GetBuilder()->GetOutput());
+	if (pelvicRoughRegistrationsDirector->Builder())
+	{
+		this->SetRegistrationPipeline(pelvicRoughRegistrationsDirector->GetBuilder()->GetOutput());
+	}	
 }
 
 void PelvicRoughRegistrationsModel::SetSurfaceSrc(const mitk::Surface::Pointer& src)
@@ -98,6 +121,7 @@ void PelvicRoughRegistrationsModel::SetVegaPointArray(int index, const mitk::Poi
 	if (index < this->imp->vegaPointArray.size())
 	{
 		this->imp->vegaPointArray[index] = pt;
+		emit this->VegaPointChange();
 	}
 }
 
@@ -117,9 +141,39 @@ mitk::Point3D PelvicRoughRegistrationsModel::GetVegaPoint(int index) const
 	return mitk::Point3D();
 }
 
+int PelvicRoughRegistrationsModel::GetVegaPointVaildIndex() const
+{
+	int index = 0;
+
+	for (int index_t = 0; index_t < this->imp->vegaPointArray.size(); ++index_t)
+	{
+		if (this->GetVegaPoint(index_t) != mitk::Point3D())
+		{
+			++index;
+		}
+	}
+	return index;
+}
+
 mitk::SurfaceRegistration::Pointer PelvicRoughRegistrationsModel::GetSurfaceRegistration() const
 {
 	return this->imp->surfaceRegistration;
+}
+
+bool PelvicRoughRegistrationsModel::ComputeLandMarkResult(mitk::PointSet::Pointer src,
+	mitk::PointSet::Pointer target, mitk::Surface::Pointer surface)
+{
+	if (src.IsNull() || target.IsNull() || surface.IsNull()) { return false; }
+
+	this->GetSurfaceRegistration()->ClearLandMarks();
+	this->GetSurfaceRegistration()->ClearIcpPoints();
+	this->GetSurfaceRegistration()->Clear();
+
+	this->GetSurfaceRegistration()->SetLandmarksSrc(src);
+	this->GetSurfaceRegistration()->SetLandmarksTarget(target);
+
+	this->GetSurfaceRegistration()->SetSurfaceSrc(surface);
+	return this->GetSurfaceRegistration()->ComputeLandMarkResult();
 }
 
 END_SPATIAL_FITTING_NAMESPACE

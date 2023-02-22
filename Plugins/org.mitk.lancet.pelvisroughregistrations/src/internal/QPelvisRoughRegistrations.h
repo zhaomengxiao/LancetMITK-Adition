@@ -41,6 +41,7 @@ public:
   static const std::string VIEW_ID;
 
 	QPelvisRoughRegistrations();
+	virtual ~QPelvisRoughRegistrations();
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -63,14 +64,24 @@ protected slots:
 	void on_toolCollector_step(int, mitk::NavigationData*);
 
 	void on_pushButtonCapturePelvis_Landmark_clicked();
+
+	void on_pushButtonClearOne_Landmark_clicked();
 private:
 	using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
 	itk::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
 
 	void Initialize();
+	void InitializeTrackingToolsWidget();
 	void InitializeQtWidgetEventAtOnly();
 	void InitializeQtEventToService();
 	void InitializeCollectStateForQtWidget();
+
+	void AppendVegaPointOnBack(const mitk::Point3D&);
+	void RemoveVegaPointOnBack();
+
+	void VerifyImageRegistor();
+
+	static lancet::IDevicesAdministrationService* GetDevicesService();
 private:
 	struct QPelvisRoughRegistrationsPrivateImp;
 	std::shared_ptr<QPelvisRoughRegistrationsPrivateImp> imp;

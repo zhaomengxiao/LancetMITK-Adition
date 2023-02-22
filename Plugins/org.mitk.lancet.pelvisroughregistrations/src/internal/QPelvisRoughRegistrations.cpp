@@ -24,7 +24,9 @@ found in the LICENSE file.
 
 // mitk image
 #include <mitkImage.h>
+#include <mitkTrackingDeviceSource.h>
 
+#include <internal/lancetTrackingDeviceManage.h>
 #include <lancetSpatialFittingAbstractService.h>
 #include <lancetIDevicesAdministrationService.h>
 #include <core/lancetSpatialFittingPipelineManager.h>
@@ -46,6 +48,18 @@ void QPelvisRoughRegistrations::SetFocus()
 QPelvisRoughRegistrations::QPelvisRoughRegistrations()
 	: imp(std::make_shared<QPelvisRoughRegistrationsPrivateImp>())
 {
+	if (this->GetServiceModel().IsNotNull())
+	{
+		this->GetServiceModel()->Start();
+	}
+}
+
+QPelvisRoughRegistrations::~QPelvisRoughRegistrations()
+{
+	if (this->GetServiceModel().IsNotNull())
+	{
+		this->GetServiceModel()->Stop();
+	}
 }
 
 void QPelvisRoughRegistrations::CreateQtPartControl(QWidget *parent)
@@ -77,8 +91,9 @@ void QPelvisRoughRegistrations::DoImageProcessing()
 {
 }
 
-void QPelvisRoughRegistrations::on_toolCollector_fail(int)
+void QPelvisRoughRegistrations::on_toolCollector_fail(int step)
 {
+	MITK_INFO << "step.value " << step;
 }
 
 void QPelvisRoughRegistrations::on_toolCollector_complete(mitk::NavigationData* data)
@@ -97,39 +112,13 @@ void QPelvisRoughRegistrations::on_toolCollector_complete(mitk::NavigationData* 
 
 	if (toolCollector->GetPermissionIdentificationArea() == "on_pushButtonCapturePelvis_Landmark_clicked")
 	{
-		// update ui for widget
-		QVector<QRadioButton*> listRadioButtons = {
-			this->m_Controls.radioButton_posteriorAcetabulum,
-			this->m_Controls.radioButton_anteriorAcetabulum,
-			this->m_Controls.radioButton_superiorAcetabulum
-		};
-
-		for (int index = 0; index < listRadioButtons.size(); ++index)
-		{
-			if (this->imp->vegaPointArray[index] == mitk::Point3D())
-			{
-				this->imp->vegaPointArray[index] = data->GetPosition();
-				break;
-			}
-		}
-		
-		if (this->GetServiceModel().IsNotNull())
-		{
-			for (int index = 0; index < listRadioButtons.size(); ++index)
-			{
-				bool isChecked = this->imp->vegaPointArray[index] != mitk::Point3D();
-				listRadioButtons[index]->setChecked(isChecked);
-			}			
-		}
-
-		// Upload service.
-		this->GetServiceModel()->SetVegaPointArray(this->imp->vegaPointArray);
-		MITK_INFO << "collect point " << data->GetPosition();
+		this->AppendVegaPointOnBack(data->GetPosition());
 	}
 }
 
-void QPelvisRoughRegistrations::on_toolCollector_step(int, mitk::NavigationData*)
+void QPelvisRoughRegistrations::on_toolCollector_step(int step, mitk::NavigationData* data)
 {
+	MITK_INFO << "step.value " << step << (data ? data->GetPosition() : mitk::Point3D());
 }
 
 void QPelvisRoughRegistrations::on_pushButtonCapturePelvis_Landmark_clicked()
@@ -160,6 +149,11 @@ void QPelvisRoughRegistrations::on_pushButtonCapturePelvis_Landmark_clicked()
 	}
 }
 
+void QPelvisRoughRegistrations::on_pushButtonClearOne_Landmark_clicked()
+{
+	this->RemoveVegaPointOnBack();
+}
+
 itk::SmartPointer<QPelvisRoughRegistrations::PelvicRoughRegistrationsModel> 
   QPelvisRoughRegistrations::GetServiceModel() const
 {
@@ -177,13 +171,41 @@ itk::SmartPointer<QPelvisRoughRegistrations::PelvicRoughRegistrationsModel>
 void QPelvisRoughRegistrations::Initialize()
 {
 	this->InitializeQtEventToService();
+	this->InitializeTrackingToolsWidget();
 	this->InitializeCollectStateForQtWidget();
+}
+
+void QPelvisRoughRegistrations::InitializeTrackingToolsWidget()
+{
+	using TrackingTools = lancet::DeviceTrackingWidget::Tools;
+	this->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VProbe);
+	this->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VPelvis);
+
+	lancet::IDevicesAdministrationService* sender = this->GetDevicesService();
+	if (sender && sender->GetConnector().IsNotNull())
+	{
+		auto vegaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Vega");
+		auto kukaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Kuka");
+
+		if (this->m_Controls.widgetTrackingTools->HasTrackingToolSource("Vega Tracking Source"))
+		{
+			this->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Vega Tracking Source");
+		}
+		if (this->m_Controls.widgetTrackingTools->HasTrackingToolSource("Kuka Robot Tracking Source"))
+		{
+			this->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Kuka Robot Tracking Source");
+		}
+		this->m_Controls.widgetTrackingTools->AddTrackingToolSource(vegaTrackSource);
+		this->m_Controls.widgetTrackingTools->AddTrackingToolSource(kukaTrackSource);
+	}
 }
 
 void QPelvisRoughRegistrations::InitializeQtWidgetEventAtOnly()
 {
 	connect(this->m_Controls.pushButtonCapturePelvis_Landmark, SIGNAL(clicked()), 
 		this, SLOT(on_pushButtonCapturePelvis_Landmark_clicked()));
+	connect(this->m_Controls.pushButtonClearOne_Landmark, SIGNAL(clicked()),
+		this, SLOT(on_pushButtonClearOne_Landmark_clicked()));
 }
 
 void QPelvisRoughRegistrations::InitializeQtEventToService()
@@ -215,15 +237,21 @@ void QPelvisRoughRegistrations::InitializeCollectStateForQtWidget()
 {
 	if (this->GetServiceModel().IsNotNull())
 	{
-		bool posteriorAcetabulumEnabled = this->GetServiceModel()->GetImagePoint(0) == mitk::Point3D();
-		this->m_Controls.radioButton_posteriorAcetabulum->setEnabled(posteriorAcetabulumEnabled);
+		bool posteriorAcetabulumEnabled = this->GetServiceModel()->GetVegaPoint(0) != mitk::Point3D();
+		this->m_Controls.radioButton_posteriorAcetabulum->setChecked(posteriorAcetabulumEnabled);
 
-		bool anteriorAcetabulumEnabled = this->GetServiceModel()->GetImagePoint(1) == mitk::Point3D();
-		this->m_Controls.radioButton_anteriorAcetabulum->setEnabled(anteriorAcetabulumEnabled);
+		bool anteriorAcetabulumEnabled = this->GetServiceModel()->GetVegaPoint(1) != mitk::Point3D();
+		this->m_Controls.radioButton_anteriorAcetabulum->setChecked(anteriorAcetabulumEnabled);
 
-		bool superiorAcetabulumEnabled = this->GetServiceModel()->GetImagePoint(2) == mitk::Point3D();
-		this->m_Controls.radioButton_superiorAcetabulum->setEnabled(superiorAcetabulumEnabled);
-	}
+		bool superiorAcetabulumEnabled = this->GetServiceModel()->GetVegaPoint(2) != mitk::Point3D();
+		this->m_Controls.radioButton_superiorAcetabulum->setChecked(superiorAcetabulumEnabled);
+
+		if (posteriorAcetabulumEnabled && anteriorAcetabulumEnabled && superiorAcetabulumEnabled)
+		{
+			// TODO: peizhun 
+
+		}
+	}	
 
 	if (lancet::IDevicesAdministrationService::GetService().IsNotNull())
 	{
@@ -239,4 +267,72 @@ void QPelvisRoughRegistrations::InitializeCollectStateForQtWidget()
 			this->m_Controls.pushButtonClearOne_Landmark->setEnabled(isWidgetEnable);
 		}
 	}
+}
+
+void QPelvisRoughRegistrations::AppendVegaPointOnBack(const mitk::Point3D& pt)
+{
+	if (this->GetServiceModel().IsNotNull())
+	{
+		for (int index = 0; index < 3; ++index)
+		{
+			if (this->GetServiceModel()->GetVegaPoint(index) == mitk::Point3D())
+			{
+				this->GetServiceModel()->SetVegaPointArray(index, pt);
+				this->InitializeCollectStateForQtWidget();
+				break;
+			}
+		}
+
+		// is verify ?
+		if (this->GetServiceModel()->GetVegaPointVaildIndex() == 3)
+		{
+			this->VerifyImageRegistor();
+		}
+	}
+}
+
+void QPelvisRoughRegistrations::RemoveVegaPointOnBack()
+{
+	if (this->GetServiceModel().IsNotNull())
+	{
+		for (int index = 2; index >= 0; --index)
+		{
+			if (this->GetServiceModel()->GetVegaPoint(index) != mitk::Point3D())
+			{
+				this->GetServiceModel()->SetVegaPointArray(index, mitk::Point3D());
+				this->InitializeCollectStateForQtWidget();
+				break;
+			}
+		}
+	}
+}
+
+void QPelvisRoughRegistrations::VerifyImageRegistor()
+{
+	if (this->GetServiceModel().IsNull() || this->GetDataStorage().IsNull())
+	{
+		return;
+	}
+
+	mitk::PointSet::Pointer imagePointArray = mitk::PointSet::New();
+	mitk::PointSet::Pointer vegaPointArray = mitk::PointSet::New();
+
+	for (int index = 0; index < 3; ++index)
+	{
+		imagePointArray->InsertPoint(this->GetServiceModel()->GetImagePoint(index), index);
+		vegaPointArray->InsertPoint(this->GetServiceModel()->GetVegaPoint(index), index);
+	}
+	mitk::Surface::Pointer pelvisSurface = this->GetDataStorage()->GetNamedObject<mitk::Surface>("");
+
+	if (this->GetServiceModel()->ComputeLandMarkResult(imagePointArray, vegaPointArray, pelvisSurface))
+	{
+
+	}
+}
+
+lancet::IDevicesAdministrationService* QPelvisRoughRegistrations::GetDevicesService()
+{
+	auto context = PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::IDevicesAdministrationService>();
+	return context->getService<lancet::IDevicesAdministrationService>(serviceRef);
 }

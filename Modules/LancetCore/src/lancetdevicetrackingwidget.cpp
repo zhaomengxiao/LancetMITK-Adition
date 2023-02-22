@@ -207,12 +207,15 @@ bool DeviceTrackingWidget::GetTrackingToolEnable(const QString& widgetName) cons
 
 void DeviceTrackingWidget::OnTrackingToolStateUpdate()
 {
-	for (auto& trackingToolSource : this->imp->toolSourceArray)
-	{
-		if (trackingToolSource.IsNull()) continue;
+	//for (auto& key : this->GetTrackingToolNameOfWidgets()) { MITK_INFO << "this.GetTrackingToolNameOfWidgets " << key.toStdString(); }
 
-		for (auto& toolName : this->GetTrackingToolNameOfWidgets())
+	for (auto& toolName : this->GetTrackingToolNameOfWidgets())
+	{
+		//MITK_INFO << "toolName.value " << toolName.toStdString();
+
+		for (auto& trackingToolSource : this->imp->toolSourceArray)
 		{
+			if (trackingToolSource.IsNull()) continue;
 			try
 			{
 				auto findToolIndex = trackingToolSource->GetOutputIndex(toolName.toStdString());
@@ -224,10 +227,14 @@ void DeviceTrackingWidget::OnTrackingToolStateUpdate()
 					{
 						this->SetTrackingToolEnable(toolName, trackingTool->IsDataValid());
 					}
+					//if (toolName == Tools::VProbe && nullptr != trackingTool)
+					//{
+					//	MITK_INFO << "probe.pt " << trackingTool->GetPosition() << "; probe.vaild " << trackingTool->IsDataValid();
+					//}
 					break;
 				}
 			}
-			catch (const std::invalid_argument& e)
+			catch (const std::invalid_argument & e)
 			{
 				//MITK_WARN << "catch std::invalid_argument: " << e.what();
 			}

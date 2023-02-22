@@ -141,7 +141,7 @@ void PipelineManager::UpdateDisConntedToFilter()
 
 void PipelineManager::GenerateData()
 {
-	MITK_INFO << "log";
+	//MITK_INFO << "log";
 
 	this->CreateOutputsForAllInputs();
 

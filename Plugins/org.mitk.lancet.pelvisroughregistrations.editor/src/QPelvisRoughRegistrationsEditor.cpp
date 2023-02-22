@@ -42,6 +42,9 @@ found in the LICENSE file.
 #include <QMessageBox>
 #include <QDir>
 
+#include <lancetSpatialFittingAbstractService.h>
+#include <internal/lancetSpatialFittingPelvicRoughRegistrationsModel.h>
+
 const QString 
 QPelvisRoughRegistrationsEditor::EDITOR_ID = "org.mitk.lancet.pelvisroughregistrations.editor";
 
@@ -73,15 +76,7 @@ void QPelvisRoughRegistrationsEditor::CreatePartControl(QWidget* parent)
 {
 	m_Controls.setupUi(parent);
 	this->InitializeMitkMultiWidget();
-	//auto test_dir = QDir(":/org.mitk.lancet.pelvisroughregistrationseditor/");
-	//QFile qss(test_dir.absoluteFilePath("pelvisroughregistrationseditor.qss"));
-	//if (!qss.open(QIODevice::ReadOnly))
-	//{
-	//	MITK_WARN << "error load file "
-	//		<< test_dir.absoluteFilePath("pelvisroughregistrationseditor.qss") << "\n"
-	//		<< "error: " << qss.errorString();
-	//}
-
+	this->InitializeQtEventOnService();
 }
 
 void QPelvisRoughRegistrationsEditor::SetFocus()
@@ -164,6 +159,20 @@ itk::SmartPointer<mitk::DataStorage> QPelvisRoughRegistrationsEditor::GetDataSto
 	return itk::SmartPointer<mitk::DataStorage>();
 }
 
+itk::SmartPointer<QPelvisRoughRegistrationsEditor::PelvicRoughRegistrationsModel> 
+  QPelvisRoughRegistrationsEditor::GetServiceModel() const
+{
+	auto context = PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::SpatialFittingAbstractService>();
+	auto service = context->getService<lancet::SpatialFittingAbstractService>(serviceRef);
+	if (service)
+	{
+		return service->GetPelvicRoughRegistrationsModel();
+	}
+
+	return PelvicRoughRegistrationsModel::Pointer();
+}
+
 void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidget()
 {
 	if (this->GetDataStorage().IsNotNull())
@@ -200,7 +209,7 @@ void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidget()
 			}
 		}
 		mitk::SceneIO::Pointer sceneIO = mitk::SceneIO::New();
-		sceneIO->LoadScene("C:/Users/Sun/Desktop/lancethipnew2021.mitk", this->GetDataStorage().GetPointer());
+		sceneIO->LoadScene("C:/Users/lancet/Desktop/lancethipnew2021.mitk", this->GetDataStorage().GetPointer());
 		auto dataNodes_2 = this->GetDataStorage()->GetAll();
 		for (auto item = dataNodes_2->begin(); item != dataNodes_2->end(); ++item)
 		{
@@ -247,4 +256,43 @@ void QPelvisRoughRegistrationsEditor::UnInitializeMitkMultiWidget()
 	}
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 	//this->m_Controls.widget->SetDataStorage(nullptr);
+}
+
+void QPelvisRoughRegistrationsEditor::InitializeQtEventOnService()
+{
+	if (this->GetServiceModel().IsNull())
+	{
+		return;
+	}
+
+	connect(this->GetServiceModel().GetPointer(), &PelvicRoughRegistrationsModel::VegaPointChange,
+		this, &QPelvisRoughRegistrationsEditor::OnVegaPointChange);
+}
+
+void QPelvisRoughRegistrationsEditor::UnInitializeQtEventOnService()
+{
+}
+
+void QPelvisRoughRegistrationsEditor::OnVegaPointChange()
+{
+	if (this->GetServiceModel().IsNull() || this->GetDataStorage().IsNull())
+	{
+		return;
+	}
+
+	QStringList listImageArray = {
+		DEBUG_POSTERIOR_LANDMARK_LEFT,
+		DEBUG_ANTERIOR_LANDMARK_LEFT,
+		DEBUG_SUPERIOR_LANDMARK_LEFT
+	};
+	for (int index = 0; index < listImageArray.size(); ++index)
+	{
+		bool isVisible = this->GetServiceModel()->GetVegaPoint(index) == mitk::Point3D();
+		auto node = this->GetDataStorage()->GetNamedNode(listImageArray[index].toStdString());
+		if (node)
+		{
+			node->SetVisibility(isVisible);
+		}
+	}
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }

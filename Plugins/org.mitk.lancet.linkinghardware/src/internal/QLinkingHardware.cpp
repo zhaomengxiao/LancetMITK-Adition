@@ -307,8 +307,8 @@ void QLinkingHardware::OnCheckedRobotMovePosition()
 		}
 		else
 		{
-			MITK_WARN << robotTracking->GetPosition();
-			MITK_WARN << "robot tracking data is invalid!";
+			//MITK_WARN << robotTracking->GetPosition();
+			//MITK_WARN << "robot tracking data is invalid!";
 		}
 	}
 }

@@ -3,6 +3,8 @@ set(MOC_H_FILES
   src/internal/lancetPluginActivator.h
   src/internal/lancetSpatialFittingService.h
   src/core/lancetSpatialFittingNavigationToolCollector.h
+  src/internal/lancetSpatialFittingPelvicRoughRegistrationsModel.h
+  src/internal/lancetSpatialFittingPelvisCheckPointModel.h
 )
 
 set(SRC_CPP_FILES

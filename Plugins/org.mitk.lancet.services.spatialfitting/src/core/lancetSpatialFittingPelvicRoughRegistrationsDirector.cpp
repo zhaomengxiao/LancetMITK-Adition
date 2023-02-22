@@ -10,6 +10,7 @@ struct PelvicRoughRegistrationsDirector::PelvicRoughRegistrationsDirectorPrivate
 };
 
 PelvicRoughRegistrationsDirector::PelvicRoughRegistrationsDirector()
+	: imp(std::make_shared<PelvicRoughRegistrationsDirectorPrivateImp>())
 {
 	PipelineBuilder::Pointer pipelineBuilder = PipelineBuilder::New();
 	this->SetBuilder(pipelineBuilder);

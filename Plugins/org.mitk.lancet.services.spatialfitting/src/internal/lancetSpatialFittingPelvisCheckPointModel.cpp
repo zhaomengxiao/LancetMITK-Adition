@@ -1,5 +1,7 @@
 #include "lancetSpatialFittingPelvisCheckPointModel.h"
 
+#include <QTimer>
+
 #include "core/lancetSpatialFittingPipelineManager.h"
 #include "lancetSpatialFittingAbstractPipelineBuilder.h"
 #include "core/lancetSpatialFittingPelvicCheckPointDirector.h"
@@ -8,6 +10,8 @@ BEGIN_SPATIAL_FITTING_NAMESPACE
 
 struct PelvisCheckPointModel::PelvisCheckPointModelPrivateImp
 {
+	QTimer tm;
+
 	PipelineManager::Pointer checkPointPipeline;
 
 	mitk::NavigationDataSource::Pointer ndiNavigationDataSource;
@@ -19,6 +23,23 @@ struct PelvisCheckPointModel::PelvisCheckPointModelPrivateImp
 PelvisCheckPointModel::PelvisCheckPointModel()
 	: imp(std::make_shared<PelvisCheckPointModelPrivateImp>())
 {
+	this->imp->tm.setInterval(20);
+	connect(&this->imp->tm, &QTimer::timeout, this, [=]() {
+		if (this->GetCheckPointPipeline().IsNotNull())
+		{
+			this->GetCheckPointPipeline()->UpdateFilter();
+		}
+		});
+}
+
+void PelvisCheckPointModel::Start()
+{
+	this->imp->tm.start();
+}
+
+void PelvisCheckPointModel::Stop()
+{
+	this->imp->tm.stop();
 }
 
 itk::SmartPointer<PipelineManager> PelvisCheckPointModel::GetCheckPointPipeline() const

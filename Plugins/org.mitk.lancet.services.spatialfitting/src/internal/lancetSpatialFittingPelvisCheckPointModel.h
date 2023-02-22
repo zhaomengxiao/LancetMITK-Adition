@@ -1,6 +1,8 @@
 #ifndef LancetSpatialFittingPelvisCheckPointModel_H
 #define LancetSpatialFittingPelvisCheckPointModel_H
 
+#include <QObject>
+
 #include "lancetSpatialFittingGlobal.h"
 
 #include <mitkNavigationDataSource.h>
@@ -10,14 +12,18 @@ class PipelineManager;
 
 
 class ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN PelvisCheckPointModel
-	: public itk::Object
+	: public QObject, public itk::Object
 {
+	Q_OBJECT
 public:
 	mitkClassMacroItkParent(PelvisCheckPointModel, itk::Object)
 
 	itkNewMacro(PelvisCheckPointModel)
 
 	PelvisCheckPointModel();
+
+	void Start();
+	void Stop();
 public:
 	itk::SmartPointer<PipelineManager> GetCheckPointPipeline() const;
 	void SetCheckPointPipelinePipeline(const itk::SmartPointer<PipelineManager>&);
