@@ -5,6 +5,7 @@
 #include "core/lancetSpatialFittingPipelineManager.h"
 #include "lancetSpatialFittingAbstractPipelineBuilder.h"
 #include "core/lancetSpatialFittingPelvicRoughRegistrationsDirector.h"
+#include "core/lancetSpatialFittingPelvicRoughRegistrationsVerifyDirector.h"
 
 
 BEGIN_SPATIAL_FITTING_NAMESPACE
@@ -12,8 +13,10 @@ BEGIN_SPATIAL_FITTING_NAMESPACE
 struct PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModelPrivateImp
 {
 	QTimer tm;
+	Model model = Model::Collect;
 
 	PipelineManager::Pointer pipelineManager;
+	PipelineManager::Pointer pipelineManagerOnVerify;
 	mitk::NavigationDataSource::Pointer ndiNavigationDataSource;
 
 	std::array<mitk::Point3D, 3> imagePointArray;
@@ -44,7 +47,18 @@ void PelvicRoughRegistrationsModel::Stop()
 	this->imp->tm.stop();
 }
 
-mitk::NavigationDataSource::Pointer 
+void PelvicRoughRegistrationsModel::SetModel(const Model& model)
+{
+	this->imp->model = model;
+	emit this->RenderModelChange();
+}
+
+PelvicRoughRegistrationsModel::Model PelvicRoughRegistrationsModel::GetModel() const
+{
+	return this->imp->model;
+}
+
+mitk::NavigationDataSource::Pointer
   PelvicRoughRegistrationsModel::GetNdiNavigationDataSource() const
 {
 	return this->imp->ndiNavigationDataSource;
@@ -68,6 +82,18 @@ void PelvicRoughRegistrationsModel::SetRegistrationPipeline(
 	this->imp->pipelineManager = pipeline;
 }
 
+itk::SmartPointer<PipelineManager> 
+  PelvicRoughRegistrationsModel::GetRegistrationVerifyPipeline() const
+{
+	return this->imp->pipelineManagerOnVerify;
+}
+
+void PelvicRoughRegistrationsModel::SetRegistrationVerifyPipeline(
+	const itk::SmartPointer<PipelineManager>& pipeline)
+{
+	this->imp->pipelineManagerOnVerify = pipeline;
+}
+
 void PelvicRoughRegistrationsModel::ConfigureRegistrationsPipeline()
 {
 	using namespace lancet::spatial_fitting;
@@ -80,6 +106,32 @@ void PelvicRoughRegistrationsModel::ConfigureRegistrationsPipeline()
 	{
 		this->SetRegistrationPipeline(pelvicRoughRegistrationsDirector->GetBuilder()->GetOutput());
 	}	
+}
+
+void PelvicRoughRegistrationsModel::ConfigureRegistrationsVerifyPipeline()
+{
+	using namespace lancet::spatial_fitting;
+
+	PelvicRoughRegistrationsVerifyDirector::Pointer pelvicRoughRegistrationsVerifyDirector =
+		PelvicRoughRegistrationsVerifyDirector::New();
+
+	pelvicRoughRegistrationsVerifyDirector->SetNdiNavigationDataSource(this->GetNdiNavigationDataSource());
+
+	mitk::AffineTransform3D::Pointer convertMatrix = mitk::AffineTransform3D::New();
+	auto tmpMatrix = this->GetSurfaceRegistration()->GetMatrixLandMark();
+
+	auto tmpPset = mitk::PointSet::New();
+	tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+	auto affineTrans3D = tmpPset->GetGeometry()->GetIndexToWorldTransform();
+	convertMatrix->SetMatrix(affineTrans3D->GetMatrix());
+	convertMatrix->SetOffset(affineTrans3D->GetOffset());
+
+	pelvicRoughRegistrationsVerifyDirector->SetImageConvertMatrix(convertMatrix);
+	if (pelvicRoughRegistrationsVerifyDirector->Builder())
+	{
+		auto pipeline = pelvicRoughRegistrationsVerifyDirector->GetBuilder()->GetOutput();
+		this->SetRegistrationVerifyPipeline(pipeline);
+	}
 }
 
 void PelvicRoughRegistrationsModel::SetSurfaceSrc(const mitk::Surface::Pointer& src)

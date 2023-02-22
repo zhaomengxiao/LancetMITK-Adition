@@ -23,7 +23,7 @@ set(SRC_CPP_FILES
   core/lancetSpatialFittingPelvicCheckPointDirector.cpp
   core/lancetSpatialFittingPelvicRoughRegistrationsDirector.cpp
   core/lancetSpatialFittingPelvicCheckPointVerifyDirector.cpp
-  
+  core/lancetSpatialFittingPelvicRoughRegistrationsVerifyDirector.cpp
   
 )
 

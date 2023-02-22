@@ -89,6 +89,8 @@ public:
   virtual berry::IPartListener::Events::Types GetPartEventTypes() const override;
 public slots:
 	void OnVegaPointChange();
+
+	void OnRenderModelChange();
 private:
 	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
 
@@ -102,6 +104,9 @@ private:
 
 	void InitializeQtEventOnService();
 	void UnInitializeQtEventOnService();
+
+	void InitializeMitkMultiWidgetOnCollectModel();
+	void InitializeMitkMultiWidgetOnVerifyModel();
 protected:
 	typedef berry::IPreferencesService berryIPreferencesService;
 	//berry::IEditorInput::Pointer editorInput;

@@ -31,6 +31,12 @@ class ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
 {
 	Q_OBJECT
 public:
+	enum Model 
+	{
+		Collect,
+		Verify
+	};
+
 	mitkClassMacroItkParent(PelvicRoughRegistrationsModel, itk::Object)
 
 	itkNewMacro(PelvicRoughRegistrationsModel)
@@ -39,6 +45,9 @@ public:
 
 	void Start();
 	void Stop();
+
+	void SetModel(const Model&);
+	Model GetModel() const;
 public:
 	mitk::NavigationDataSource::Pointer GetNdiNavigationDataSource() const;
 	void SetNdiNavigationDataSource(mitk::NavigationDataSource::Pointer source);
@@ -46,7 +55,12 @@ public:
 	itk::SmartPointer<PipelineManager> GetRegistrationPipeline() const;
 	void SetRegistrationPipeline(const itk::SmartPointer<PipelineManager>&);
 
+	itk::SmartPointer<PipelineManager> GetRegistrationVerifyPipeline() const;
+	void SetRegistrationVerifyPipeline(const itk::SmartPointer<PipelineManager>&);
+
 	void ConfigureRegistrationsPipeline();
+
+	void ConfigureRegistrationsVerifyPipeline();
 public:
 	virtual void SetSurfaceSrc(const mitk::Surface::Pointer&);
 	virtual mitk::Surface::Pointer GetSurfaceSrc() const;
@@ -67,6 +81,8 @@ public:
 		mitk::PointSet::Pointer, mitk::Surface::Pointer);
 Q_SIGNALS:
 	void VegaPointChange();
+
+	void RenderModelChange();
 private:
   struct PelvicRoughRegistrationsModelPrivateImp;
   std::shared_ptr<PelvicRoughRegistrationsModelPrivateImp> imp;

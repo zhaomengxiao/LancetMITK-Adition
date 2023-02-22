@@ -326,7 +326,7 @@ void QPelvisRoughRegistrations::VerifyImageRegistor()
 
 	if (this->GetServiceModel()->ComputeLandMarkResult(imagePointArray, vegaPointArray, pelvisSurface))
 	{
-
+		this->GetServiceModel()->SetModel(PelvicRoughRegistrationsModel::Model::Verify);
 	}
 }
 
