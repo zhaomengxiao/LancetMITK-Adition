@@ -82,6 +82,12 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_supineCanal_enhancedReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_supineCanal_enhancedReduce_clicked);
   connect(m_Controls.pushButton_supineMech_enhancedReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_supineMech_enhancedReduce_clicked);
 
+  // Demonstration
+  connect(m_Controls.pushButton_demoInit, &QPushButton::clicked, this, &THAPlanning::pushButton_demoInit_clicked);
+  connect(m_Controls.pushButton_demoReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_demoReduce_clicked);
+  connect(m_Controls.pushButton_demoConfirmImplant, &QPushButton::clicked, this, &THAPlanning::pushButton_demoConfirmImplant_clicked);
+  connect(m_Controls.pushButton_demoMoveCup, &QPushButton::clicked, this, &THAPlanning::pushButton_demoMoveCup_clicked);
+  connect(m_Controls.pushButton_demoMoveStem, &QPushButton::clicked, this, &THAPlanning::pushButton_demoMoveStem_clicked);
 
 }
 
@@ -482,7 +488,15 @@ void THAPlanning::On_pushButton_initializeRfemurObject_clicked()
 	auto epicondylesPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("epicondyles_R");
 
 	m_RfemurObject->SetfemurSide(0);
-	m_RfemurObject->SetisOperationSide(1);
+	// m_RfemurObject->SetisOperationSide(1);
+	if(m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_RfemurObject->SetisOperationSide(1);
+	}else
+	{
+		m_RfemurObject->SetisOperationSide(0);
+	}
+
 	m_RfemurObject->Setsurface_femur(femurSurface);
 	m_RfemurObject->Setpset_lesserTrochanter(lesserTrochanterPset);
 	m_RfemurObject->Setpset_femurCOR(femurCORpSet);
@@ -522,7 +536,16 @@ void THAPlanning::On_pushButton_initializeLfemurObject_clicked()
 	auto epicondylesPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("epicondyles_L");
 
 	m_LfemurObject->SetfemurSide(1);
-	m_LfemurObject->SetisOperationSide(0);
+	// m_LfemurObject->SetisOperationSide(0);
+
+	if(m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_LfemurObject->SetisOperationSide(0);
+	}else
+	{
+		m_LfemurObject->SetisOperationSide(1);
+	}
+
 	m_LfemurObject->Setsurface_femur(femurSurface);
 	m_LfemurObject->Setpset_lesserTrochanter(lesserTrochanterPset);
 	m_LfemurObject->Setpset_femurCOR(femurCORpSet);
@@ -947,6 +970,13 @@ void THAPlanning::pushButton_noTiltCanal_enhancedReduce_clicked()
 
 	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
 
+	// m_EnhancedReductionObject->CalReductionMatrices();
+	m_Controls.lineEdit_enhancedHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_enhancedHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_enhancedComOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_enhancedComOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
+
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
@@ -970,6 +1000,13 @@ void THAPlanning::pushButton_noTiltMech_enhancedReduce_clicked()
 	}
 
 	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
+
+	// m_EnhancedReductionObject->CalReductionMatrices();
+	m_Controls.lineEdit_enhancedHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_enhancedHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_enhancedComOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_enhancedComOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -995,6 +1032,12 @@ void THAPlanning::pushButton_supineCanal_enhancedReduce_clicked()
 
 	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
 
+	// m_EnhancedReductionObject->CalReductionMatrices();
+	m_Controls.lineEdit_enhancedHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_enhancedHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_enhancedComOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_enhancedComOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+	
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
@@ -1019,10 +1062,376 @@ void THAPlanning::pushButton_supineMech_enhancedReduce_clicked()
 
 	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
 
+	// m_EnhancedReductionObject->CalReductionMatrices();
+	m_Controls.lineEdit_enhancedHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_enhancedHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_enhancedComOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_enhancedComOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 
 
 
+void THAPlanning::pushButton_demoInit_clicked()
+{
+	if (m_Controls.radioButton_demoRside->isChecked())
+	{
+		m_Controls.radioButton_implantObject_R->setChecked(true);
+		m_Controls.radioButton_implantObject_L->setChecked(false);
+	}
+	else
+	{
+		m_Controls.radioButton_implantObject_R->setChecked(false);
+		m_Controls.radioButton_implantObject_L->setChecked(true);
+	}
 
+	// Initialize m_pelvisObject
+	On_pushButton_initializePelvisObject_clicked();
+	m_Controls.lineEdit_demoPelvicTilt_supine->setText(QString::number(m_pelvisObject->GetpelvicTilt_supine()));
+
+	// Initialize m_RfemurObject
+	On_pushButton_initializeRfemurObject_clicked();
+
+	// Initialize m_LfemurObject
+	On_pushButton_initializeLfemurObject_clicked();
+
+	// Initialize m_CupObject and m_StemObject
+	pushButton_initCupObject_clicked();
+	pushButton_initStemObject_clicked();
+
+	// Initialize m_PelvisCupCouple
+	pushButton_initPelvisCupCouple_clicked();
+
+	// Initialize m_FemurStemCouple
+	pushButton_initFemurStemCouple_clicked();
+
+	// Initialize m_EnhancedReductionObject
+	pushButton_initEnhancedReduce_clicked();
+	pushButton_noTiltCanal_enhancedReduce_clicked();
+
+
+
+	// Utilize m_ReductionObject
+	pushButton_noTiltCanalReduction_clicked();
+
+
+
+	// Update UI parameters
+	m_Controls.lineEdit_demoHiplen_R->setText(QString::number(m_ReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_demoHiplen_L->setText(QString::number(m_ReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_demoOffset_R->setText(QString::number(m_ReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_demoOffset_L->setText(QString::number(m_ReductionObject->GetCombinedOffset_supine_L()));
+
+	// m_Controls.lineEdit_demoIntraHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+	// m_Controls.lineEdit_demoIntraHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+	// m_Controls.lineEdit_demoIntraOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+	// m_Controls.lineEdit_demoIntraOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
+	// m_Controls.lineEdit_demoSupineVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
+	// m_Controls.lineEdit_demoSupineInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
+	//
+	// m_Controls.lineEdit_demoNoTiltVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
+	// m_Controls.lineEdit_demoNoTiltInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+
+	// m_Controls.lineEdit_demoCupSI_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_supine()));
+	// m_Controls.lineEdit_demoCupML_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_supine()));
+	// m_Controls.lineEdit_demoCupAP_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	GetDataStorage()->GetNamedNode("pelvis")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("femur_R")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("femur_L")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("stemFrame")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("cupFrame")->SetVisibility(false);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+}
+
+
+void THAPlanning::pushButton_demoReduce_clicked()
+{
+	if(m_Controls.radioButton_demoPreop->isChecked() && 
+		m_Controls.radioButton_demoCanalAlign->isChecked() &&
+		m_Controls.radioButton_demoNoTilt->isChecked())
+	{
+		pushButton_noTiltCanalReduction_clicked();
+	}
+
+	if (m_Controls.radioButton_demoPreop->isChecked() &&
+		m_Controls.radioButton_demoCanalAlign->isChecked() &&
+		(m_Controls.radioButton_demoNoTilt->isChecked() == 0))
+	{
+		pushButton_supineCanalReduction_clicked();
+	}
+
+	if (m_Controls.radioButton_demoPreop->isChecked() &&
+		(m_Controls.radioButton_demoCanalAlign->isChecked() == 0) &&
+		m_Controls.radioButton_demoNoTilt->isChecked())
+	{
+		pushButton_noTiltMechanicReduction_clicked();
+	}
+
+	if (m_Controls.radioButton_demoPreop->isChecked() &&
+		(m_Controls.radioButton_demoCanalAlign->isChecked() == 0) &&
+		(m_Controls.radioButton_demoNoTilt->isChecked() == 0))
+	{
+		pushButton_supineMechanicReduction_clicked();
+	}
+
+	// ----------------------
+
+	if ((m_Controls.radioButton_demoPreop->isChecked()== 0) &&
+		m_Controls.radioButton_demoCanalAlign->isChecked() &&
+		m_Controls.radioButton_demoNoTilt->isChecked())
+	{
+		pushButton_noTiltCanal_enhancedReduce_clicked();
+	}
+
+	if ((m_Controls.radioButton_demoPreop->isChecked() == 0) &&
+		m_Controls.radioButton_demoCanalAlign->isChecked() &&
+		(m_Controls.radioButton_demoNoTilt->isChecked() == 0))
+	{
+		pushButton_supineCanal_enhancedReduce_clicked();
+	}
+
+	if ((m_Controls.radioButton_demoPreop->isChecked() == 0) &&
+		(m_Controls.radioButton_demoCanalAlign->isChecked() == 0) &&
+		m_Controls.radioButton_demoNoTilt->isChecked())
+	{
+		pushButton_noTiltMech_enhancedReduce_clicked();
+	}
+
+	if ((m_Controls.radioButton_demoPreop->isChecked() == 0) &&
+		(m_Controls.radioButton_demoCanalAlign->isChecked() == 0) &&
+		(m_Controls.radioButton_demoNoTilt->isChecked() == 0))
+	{
+		pushButton_supineMech_enhancedReduce_clicked();
+	}
+
+	if(m_Controls.radioButton_demoPreop->isChecked())
+	{
+		ShowImplants(false);
+		m_Controls.lineEdit_demoIntraHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+		m_Controls.lineEdit_demoIntraHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+		m_Controls.lineEdit_demoIntraOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+		m_Controls.lineEdit_demoIntraOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
+		m_Controls.lineEdit_demoSupineVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
+		m_Controls.lineEdit_demoSupineInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
+
+		m_Controls.lineEdit_demoNoTiltVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
+		m_Controls.lineEdit_demoNoTiltInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+
+		m_Controls.lineEdit_demoCupSI_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_supine()));
+		m_Controls.lineEdit_demoCupML_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_supine()));
+		m_Controls.lineEdit_demoCupAP_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
+	}else
+	{
+		ShowImplants(true);
+	}
+
+	// Update UI parameters
+	m_Controls.lineEdit_demoHiplen_R->setText(QString::number(m_ReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_demoHiplen_L->setText(QString::number(m_ReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_demoOffset_R->setText(QString::number(m_ReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_demoOffset_L->setText(QString::number(m_ReductionObject->GetCombinedOffset_supine_L()));
+
+	m_Controls.lineEdit_demoIntraHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_demoIntraHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_demoIntraOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_demoIntraOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
+	m_Controls.lineEdit_demoSupineVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
+	m_Controls.lineEdit_demoSupineInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
+	
+	m_Controls.lineEdit_demoNoTiltVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
+	m_Controls.lineEdit_demoNoTiltInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+
+	m_Controls.lineEdit_demoCupSI_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_supine()));
+	m_Controls.lineEdit_demoCupML_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_supine()));
+	m_Controls.lineEdit_demoCupAP_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
+	
+}
+
+void THAPlanning::ShowImplants(bool showOrHide)
+{
+	if(showOrHide == true) // show the correct implant surfaces
+	{
+		GetDataStorage()->GetNamedNode("stemFrame")->SetVisibility(true);
+		GetDataStorage()->GetNamedNode("cupFrame")->SetVisibility(true);
+		if(m_Controls.comboBox_demoCup->currentIndex() == 0)
+		{
+			GetDataStorage()->GetNamedNode("cup")->SetVisibility(true);
+		}
+
+		if (m_Controls.comboBox_demoCup->currentIndex() == 1)
+		{
+			GetDataStorage()->GetNamedNode("cup_50")->SetVisibility(true);
+		}
+
+		if (m_Controls.comboBox_demoLiner->currentIndex() == 0)
+		{
+			GetDataStorage()->GetNamedNode("liner")->SetVisibility(true);
+		}
+
+		if (m_Controls.comboBox_demoLiner->currentIndex() == 1)
+		{
+			GetDataStorage()->GetNamedNode("liner_50")->SetVisibility(true);
+		}
+
+		if (m_Controls.comboBox_demoStem->currentIndex() == 0)
+		{
+			GetDataStorage()->GetNamedNode("stem")->SetVisibility(true);
+		}
+
+		if (m_Controls.comboBox_demoStem->currentIndex() == 1)
+		{
+			GetDataStorage()->GetNamedNode("stem_5")->SetVisibility(true);
+		}
+
+		if (m_Controls.comboBox_demoHead->currentIndex() == 0)
+		{
+			GetDataStorage()->GetNamedNode("head_28")->SetVisibility(true);
+		}
+
+		if (m_Controls.comboBox_demoHead->currentIndex() == 1)
+		{
+			GetDataStorage()->GetNamedNode("head_32")->SetVisibility(true);
+		}
+
+	}else // hide the correct implant surfaces
+	{
+		GetDataStorage()->GetNamedNode("stemFrame")->SetVisibility(false);
+		GetDataStorage()->GetNamedNode("cupFrame")->SetVisibility(false);
+		GetDataStorage()->GetNamedNode("cup")->SetVisibility(false);
+		GetDataStorage()->GetNamedNode("cup_50")->SetVisibility(false);
+		GetDataStorage()->GetNamedNode("liner")->SetVisibility(false);
+		GetDataStorage()->GetNamedNode("liner_50")->SetVisibility(false);
+		GetDataStorage()->GetNamedNode("stem")->SetVisibility(false);
+		GetDataStorage()->GetNamedNode("stem_5")->SetVisibility(false);
+		GetDataStorage()->GetNamedNode("head_28")->SetVisibility(false);
+		GetDataStorage()->GetNamedNode("head_32")->SetVisibility(false);
+	}
+}
+
+void THAPlanning::pushButton_demoConfirmImplant_clicked()
+{
+	ShowImplants(false);
+	ShowImplants(true);
+
+	if (m_Controls.comboBox_demoCup->currentIndex() == 0)
+	{
+		m_CupObject->SetCupSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("cup"));
+	}
+
+	if (m_Controls.comboBox_demoCup->currentIndex() == 1)
+	{
+		m_CupObject->SetCupSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("cup_50"));
+	}
+
+	if (m_Controls.comboBox_demoLiner->currentIndex() == 0)
+	{
+		m_CupObject->SetLinerSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("liner"));
+	}
+
+	if (m_Controls.comboBox_demoLiner->currentIndex() == 1)
+	{
+		m_CupObject->SetLinerSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("liner_50"));
+	}
+
+	if (m_Controls.comboBox_demoStem->currentIndex() == 0)
+	{
+		m_StemObject->SetStemSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("stem"));
+	}
+
+	if (m_Controls.comboBox_demoStem->currentIndex() == 1)
+	{
+		m_StemObject->SetStemSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("stem_5"));
+	}
+
+	if (m_Controls.comboBox_demoHead->currentIndex() == 0)
+	{
+		m_StemObject->SetHeadSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("head_28"));
+	}
+
+	if (m_Controls.comboBox_demoHead->currentIndex() == 1)
+	{
+		m_StemObject->SetHeadSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("head_32"));
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+
+void THAPlanning::pushButton_demoMoveCup_clicked()
+{
+	if(m_Controls.radioButton_demoTranslate->isChecked())
+	{
+		m_Controls.radioButton_translate->setChecked(true);
+	}else
+	{
+		m_Controls.radioButton_rotate->setChecked(true);
+	}
+
+	m_Controls.comboBox_direction->setCurrentIndex(m_Controls.comboBox_demoDirection->currentIndex());
+
+	m_Controls.lineEdit_moveStepSize->setText(m_Controls.lineEdit_demoStepSize->text());
+
+	pushButton_adjustCup_clicked();
+
+	m_Controls.lineEdit_demoIntraHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_demoIntraHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_demoIntraOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_demoIntraOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
+	m_Controls.lineEdit_demoSupineVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
+	m_Controls.lineEdit_demoSupineInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
+	
+	m_Controls.lineEdit_demoNoTiltVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
+	m_Controls.lineEdit_demoNoTiltInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+
+	m_Controls.lineEdit_demoCupSI_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_supine()));
+	m_Controls.lineEdit_demoCupML_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_supine()));
+	m_Controls.lineEdit_demoCupAP_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
+
+
+}
+
+void THAPlanning::pushButton_demoMoveStem_clicked()
+{
+	if (m_Controls.radioButton_demoTranslate->isChecked())
+	{
+		m_Controls.radioButton_translate->setChecked(true);
+	}
+	else
+	{
+		m_Controls.radioButton_rotate->setChecked(true);
+	}
+
+	m_Controls.comboBox_direction->setCurrentIndex(m_Controls.comboBox_demoDirection->currentIndex());
+
+	m_Controls.lineEdit_moveStepSize->setText(m_Controls.lineEdit_demoStepSize->text());
+
+	pushButton_adjustStem_clicked();
+
+	m_Controls.lineEdit_demoIntraHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+	m_Controls.lineEdit_demoIntraHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+	m_Controls.lineEdit_demoIntraOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+	m_Controls.lineEdit_demoIntraOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
+	// m_Controls.lineEdit_demoSupineVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
+	// m_Controls.lineEdit_demoSupineInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
+	//
+	// m_Controls.lineEdit_demoNoTiltVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
+	// m_Controls.lineEdit_demoNoTiltInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+	//
+	// m_Controls.lineEdit_demoCupSI_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_supine()));
+	// m_Controls.lineEdit_demoCupML_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_supine()));
+	// m_Controls.lineEdit_demoCupAP_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
+
+
+}

@@ -173,6 +173,17 @@ protected:
   void pushButton_supineCanal_enhancedReduce_clicked();
   void pushButton_supineMech_enhancedReduce_clicked();
 
+
+
+	// -------------- Demonstration ---------------------
+  void pushButton_demoInit_clicked();
+  void pushButton_demoReduce_clicked();
+  void pushButton_demoConfirmImplant_clicked();
+  void pushButton_demoMoveCup_clicked();
+  void pushButton_demoMoveStem_clicked();
+  void ShowImplants(bool showOrHide);
+
+
 	//---------- Tool functions --------------
 
 	// retrieve a 4x4 vtkMatrix from the UI
