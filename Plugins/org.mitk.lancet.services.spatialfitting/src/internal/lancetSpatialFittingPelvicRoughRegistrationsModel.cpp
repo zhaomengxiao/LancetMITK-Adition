@@ -1,12 +1,16 @@
 #include "lancetSpatialFittingPelvicRoughRegistrationsModel.h"
+#include "lancetPluginActivator.h"
 
 #include <QTimer>
 
+#include <lancetIDevicesAdministrationService.h>
 #include "core/lancetSpatialFittingPipelineManager.h"
 #include "lancetSpatialFittingAbstractPipelineBuilder.h"
 #include "core/lancetSpatialFittingPelvicRoughRegistrationsDirector.h"
 #include "core/lancetSpatialFittingPelvicRoughRegistrationsVerifyDirector.h"
 
+#include <lancetNavigationObjectVisualizationFilter.h>
+#include <lancetApplySurfaceRegistratioinStaticImageFilter.h>
 
 BEGIN_SPATIAL_FITTING_NAMESPACE
 
@@ -23,6 +27,8 @@ struct PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModelPrivateImp
 	std::array<mitk::Point3D, 3> vegaPointArray;
 
 	mitk::SurfaceRegistration::Pointer surfaceRegistration = mitk::SurfaceRegistration::New();
+
+	lancet::ApplySurfaceRegistratioinStaticImageFilter::Pointer surfaceRegistrationStaticImageFilter;
 };
 
 PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModel()
@@ -108,6 +114,13 @@ void PelvicRoughRegistrationsModel::ConfigureRegistrationsPipeline()
 	}	
 }
 
+lancet::IDevicesAdministrationService* GetDevicesService()
+{
+	auto context = PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::IDevicesAdministrationService>();
+	return context->getService<lancet::IDevicesAdministrationService>(serviceRef);
+}
+
 void PelvicRoughRegistrationsModel::ConfigureRegistrationsVerifyPipeline()
 {
 	using namespace lancet::spatial_fitting;
@@ -118,7 +131,9 @@ void PelvicRoughRegistrationsModel::ConfigureRegistrationsVerifyPipeline()
 	pelvicRoughRegistrationsVerifyDirector->SetNdiNavigationDataSource(this->GetNdiNavigationDataSource());
 
 	mitk::AffineTransform3D::Pointer convertMatrix = mitk::AffineTransform3D::New();
-	auto tmpMatrix = this->GetSurfaceRegistration()->GetMatrixLandMark();
+	vtkNew<vtkMatrix4x4>(tmpMatrix);
+	tmpMatrix->DeepCopy(this->GetSurfaceRegistration()->GetMatrixLandMark());
+	tmpMatrix->Invert();
 
 	auto tmpPset = mitk::PointSet::New();
 	tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
@@ -131,6 +146,25 @@ void PelvicRoughRegistrationsModel::ConfigureRegistrationsVerifyPipeline()
 	{
 		auto pipeline = pelvicRoughRegistrationsVerifyDirector->GetBuilder()->GetOutput();
 		this->SetRegistrationVerifyPipeline(pipeline);
+	}
+
+	{
+		// TODO: Debug
+		if (nullptr == GetDevicesService() || GetDevicesService()->GetConnector().IsNull()) { return; }
+		auto trackingManager = GetDevicesService()->GetConnector();
+		auto vegaToolDataStorage = trackingManager->GetNavigationToolStorage("Vega");
+		auto pelvisRF = this->GetNdiNavigationDataSource()->GetOutput("PelvisRF");
+
+		this->imp->surfaceRegistrationStaticImageFilter =
+			lancet::ApplySurfaceRegistratioinStaticImageFilter::New();
+
+		this->imp->surfaceRegistrationStaticImageFilter->ConnectTo(this->GetNdiNavigationDataSource());
+		vegaToolDataStorage->GetToolByName("PelvisRF")->SetToolRegistrationMatrix(convertMatrix);
+		this->imp->surfaceRegistrationStaticImageFilter->SetRegistrationMatrix(convertMatrix.GetPointer());
+		this->imp->surfaceRegistrationStaticImageFilter->SetNavigationDataOfRF(pelvisRF);
+
+		trackingManager->GetNavigationDataToNavigationDataFilter("Vega")
+			->ConnectTo(this->imp->surfaceRegistrationStaticImageFilter);
 	}
 }
 

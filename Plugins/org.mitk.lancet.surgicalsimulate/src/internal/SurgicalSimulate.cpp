@@ -364,7 +364,7 @@ void SurgicalSimulate::OnVegaVisualizeTimer()
     this->RequestRenderWindowUpdate();
 
     //update probe pose
-    auto  probe = m_VegaSource->GetOutput("Probe")->GetAffineTransform3D();
+    auto  probe = m_VegaSource->GetOutput("ProbeTHA")->GetAffineTransform3D();
     // m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
     // m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", probe, m_ProbeRealTimePose);
       //mitk::AffineTransform3D::Pointer byhand = mitk::AffineTransform3D::New();

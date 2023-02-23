@@ -14,6 +14,7 @@ found in the LICENSE file.
 #define QPelvisRoughRegistrationsEditor_H
 
 // mitk gui qt common plugin
+#include <QTImer>
 #include <QmitkAbstractMultiWidgetEditor.h>
 
 #include <mitkILinkedRenderWindowPart.h>
@@ -31,7 +32,7 @@ class QmitkStdMultiWidget;
 class QPelvisRoughRegistrationsEditorPrivate;
 
 //namespace mitk { class NavigationData; }
-//namespace lancet { class IDevicesAdministrationService; }
+namespace lancet { class IDevicesAdministrationService; }
 namespace lancet::spatial_fitting { class PelvicRoughRegistrationsModel; }
 /**
  * @brief
@@ -98,7 +99,11 @@ private:
 
 	using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
 	itk::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
+
+	static lancet::IDevicesAdministrationService* GetDevicesService();
 private:
+	void InitializeDataStorageForService();
+
 	void InitializeMitkMultiWidget();
 	void UnInitializeMitkMultiWidget();
 
@@ -111,6 +116,7 @@ protected:
 	typedef berry::IPreferencesService berryIPreferencesService;
 	//berry::IEditorInput::Pointer editorInput;
 	//berry::IEditorSite::Pointer editorSite;
+	QTimer updateProbeTm;
 	QStringList listDataStorageNodes;
 	QVector<mitk::Point3D> imagePoints;
 	QVector<mitk::Point3D> vegaPoints;

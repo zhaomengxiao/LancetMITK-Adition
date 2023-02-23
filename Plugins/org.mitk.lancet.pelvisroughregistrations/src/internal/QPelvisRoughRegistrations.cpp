@@ -319,10 +319,10 @@ void QPelvisRoughRegistrations::VerifyImageRegistor()
 
 	for (int index = 0; index < 3; ++index)
 	{
-		imagePointArray->InsertPoint(this->GetServiceModel()->GetImagePoint(index), index);
-		vegaPointArray->InsertPoint(this->GetServiceModel()->GetVegaPoint(index), index);
+		imagePointArray->SetPoint(index, this->GetServiceModel()->GetImagePoint(index));
+		vegaPointArray->SetPoint(index, this->GetServiceModel()->GetVegaPoint(index));
 	}
-	mitk::Surface::Pointer pelvisSurface = this->GetDataStorage()->GetNamedObject<mitk::Surface>("");
+	mitk::Surface::Pointer pelvisSurface = this->GetDataStorage()->GetNamedObject<mitk::Surface>("pelvis_clipped_left");
 
 	if (this->GetServiceModel()->ComputeLandMarkResult(imagePointArray, vegaPointArray, pelvisSurface))
 	{
