@@ -138,7 +138,7 @@ void DrrFilter::ItkImageProcessing(const itk::Image<TPixel, VDimension> *itkImag
     imOrigin[1] += imRes[1] * static_cast<double>(imSize[1]) / 2.0;
     imOrigin[2] += imRes[2] * static_cast<double>(imSize[2]) / 2.0;
 
-    TransformType::InputPointType center;
+    TransformType::InputPointType center; // C-arm rotation center
     center[0] = m_cx + imOrigin[0];
     center[1] = m_cy + imOrigin[1];
     center[2] = m_cz + imOrigin[2];
@@ -203,7 +203,7 @@ void DrrFilter::ItkImageProcessing(const itk::Image<TPixel, VDimension> *itkImag
 
     focalpoint[0] = imOrigin[0];
     focalpoint[1] = imOrigin[1];
-    focalpoint[2] = imOrigin[2] - 1024 / 2.;
+    focalpoint[2] = imOrigin[2] - m_sid / 2.;
 
     interpolator->SetFocalPoint(focalpoint);
     // Software Guide : EndCodeSnippet

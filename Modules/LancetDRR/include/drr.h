@@ -76,17 +76,17 @@ protected:
 	// mitk::Image::Pointer GenDRR(const itk::Image<TPixel, VDimension>* input_image, DrrFilter* generator);
 	
 private:
-  //obj rotation
-	double m_rx{270.0};
+  // C-arm rotation
+	double m_rx{0.0};
 	double m_ry{0.0};
 	double m_rz{0.0};
 
-  //obj translation
+  // C-arm translation
 	double m_tx{0.0};
 	double m_ty{0.0};
 	double m_tz{0.0};
-  //obj center
 
+  // C-arm gantry rotation center offset
 	double m_cx{0.0};
 	double m_cy{ 0.0 };
 	double m_cz{ 0.0 };
@@ -94,7 +94,7 @@ private:
   //drr para
 	//double m_focalpoint{ 0.0 };
 	double m_threshold{0.0};
-	double m_sid{ 400 };
+	double m_sid{ 1024 };
 	double m_sx{ 0.75 } ;// pixel spacing along X of the 2D DRR image[mm]
 	double m_sy{ 0.75 };// pixel spacing along Y of the 2D DRR image[mm]
 	
