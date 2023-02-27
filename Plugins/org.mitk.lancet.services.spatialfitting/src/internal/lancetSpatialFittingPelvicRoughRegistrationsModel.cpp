@@ -26,6 +26,9 @@ struct PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModelPrivateImp
 	std::array<mitk::Point3D, 3> imagePointArray;
 	std::array<mitk::Point3D, 3> vegaPointArray;
 
+	std::array<mitk::Point3D, 40> imageICPPointArray;
+	std::array<mitk::Point3D, 40> vegaICPPointArray;
+
 	mitk::SurfaceRegistration::Pointer surfaceRegistration = mitk::SurfaceRegistration::New();
 
 	lancet::ApplySurfaceRegistratioinStaticImageFilter::Pointer surfaceRegistrationStaticImageFilter;
@@ -235,7 +238,68 @@ int PelvicRoughRegistrationsModel::GetVegaPointVaildIndex() const
 	{
 		if (this->GetVegaPoint(index_t) != mitk::Point3D())
 		{
-			++index;
+			index = index_t;
+			break;
+		}
+	}
+	return index;
+}
+
+void PelvicRoughRegistrationsModel::SetImageICPPointArray(int index, const mitk::Point3D& pt)
+{
+	if (this->imp->imageICPPointArray.size() > index)
+	{
+		this->imp->imageICPPointArray[index] = pt;
+	}
+}
+
+void PelvicRoughRegistrationsModel::SetImageICPPointArray(const std::array<mitk::Point3D, 40>& icpArray)
+{
+	this->imp->imageICPPointArray = icpArray;
+}
+
+mitk::Point3D PelvicRoughRegistrationsModel::GetImageICPPoint(int index) const
+{
+	if (this->imp->imageICPPointArray.size() > index)
+	{
+		return this->imp->imageICPPointArray[index];
+	}
+	return mitk::Point3D();
+}
+
+void PelvicRoughRegistrationsModel::SetVegaICPPointArray(int index, const mitk::Point3D& pt)
+{
+	if (this->imp->vegaICPPointArray.size() > index)
+	{
+		this->imp->vegaICPPointArray[index] = pt;
+		emit this->VegaPointChange();
+	}
+}
+
+void PelvicRoughRegistrationsModel::SetVegaICPPointArray(const std::array<mitk::Point3D, 40>& icpArray)
+{
+	this->imp->vegaICPPointArray = icpArray;
+}
+
+mitk::Point3D PelvicRoughRegistrationsModel::GetVegaICPPoint(int index) const
+{
+	if (this->imp->vegaICPPointArray.size() > index)
+	{
+		return this->imp->vegaICPPointArray[index];
+	}
+	return mitk::Point3D();
+}
+
+int PelvicRoughRegistrationsModel::GetVegaICPPointVaildIndex() const
+{
+	int index = -1;
+
+	for (int index_t = 0; index_t < this->imp->vegaICPPointArray.size(); ++index_t)
+	{
+		if (this->GetVegaICPPoint(index_t) != mitk::Point3D())
+		{
+			index = index_t;
+			break;
 		}
 	}
 	return index;

@@ -32,7 +32,7 @@ org_mitk_lancet_pelvisprecisionregistrations_editor_Activator::stop(ctkPluginCon
   m_Context = nullptr;
 }
 
-ctkPluginContext * org_mitk_lancet_pelvisprecisionregistrations_editor_Activator::GetContext()
+ctkPluginContext * org_mitk_lancet_pelvisprecisionregistrations_editor_Activator::GetPluginContext()
 {
   return m_Context;
 }

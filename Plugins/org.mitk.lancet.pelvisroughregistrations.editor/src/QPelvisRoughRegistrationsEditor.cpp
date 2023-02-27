@@ -274,7 +274,7 @@ void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidget()
 			}
 		}
 		mitk::SceneIO::Pointer sceneIO = mitk::SceneIO::New();
-		sceneIO->LoadScene("C:/Users/lancet/Desktop/lancethipnew2021.mitk", this->GetDataStorage().GetPointer());
+		sceneIO->LoadScene("C:/Users/sun/Desktop/lancethipnew2021.mitk", this->GetDataStorage().GetPointer());
 	}
 
 	auto defaultLayoutDesign = QmitkRenderWindowMenu::LayoutDesign::ONE_TOP_3D_BOTTOM;
@@ -291,18 +291,18 @@ void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidget()
 
 void QPelvisRoughRegistrationsEditor::UnInitializeMitkMultiWidget()
 {
-	if (this->GetDataStorage().IsNotNull())
-	{
-		for (QString& nodeName : this->listDataStorageNodes)
-		{
-			auto nodeValue = this->GetDataStorage()->GetNamedNode(nodeName.toStdString());
-			if (nodeValue)
-			{
-				this->GetDataStorage()->Remove(nodeValue);
-			}
-		}
-	}
-	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	//if (this->GetDataStorage().IsNotNull())
+	//{
+	//	for (QString& nodeName : this->listDataStorageNodes)
+	//	{
+	//		auto nodeValue = this->GetDataStorage()->GetNamedNode(nodeName.toStdString());
+	//		if (nodeValue)
+	//		{
+	//			this->GetDataStorage()->Remove(nodeValue);
+	//		}
+	//	}
+	//}
+	//mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 	//this->m_Controls.widget->SetDataStorage(nullptr);
 }
 
@@ -349,6 +349,7 @@ void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidgetOnCollectModel()
 			{
 				(*item)->SetProperty("opacity", mitk::FloatProperty::New(0.5));
 			}
+
 			if (visibilityNodeName.toStdString() == __nodename)
 			{
 				(*item)->SetVisibility(true);

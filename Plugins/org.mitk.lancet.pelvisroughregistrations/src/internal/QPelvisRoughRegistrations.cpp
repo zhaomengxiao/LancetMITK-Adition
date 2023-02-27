@@ -284,7 +284,7 @@ void QPelvisRoughRegistrations::AppendVegaPointOnBack(const mitk::Point3D& pt)
 		}
 
 		// is verify ?
-		if (this->GetServiceModel()->GetVegaPointVaildIndex() == 3)
+		if (this->GetServiceModel()->GetVegaPointVaildIndex() == 2)
 		{
 			this->VerifyImageRegistor();
 		}

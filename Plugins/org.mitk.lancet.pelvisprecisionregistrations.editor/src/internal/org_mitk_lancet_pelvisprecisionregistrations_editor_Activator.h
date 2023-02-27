@@ -32,7 +32,7 @@ public:
   void start(ctkPluginContext* context) override;
   void stop(ctkPluginContext* context) override;
 
-  static ctkPluginContext* GetContext();
+  static ctkPluginContext* GetPluginContext();
 
 private:
 

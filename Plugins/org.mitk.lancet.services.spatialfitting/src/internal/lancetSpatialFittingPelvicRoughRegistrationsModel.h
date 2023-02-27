@@ -74,6 +74,16 @@ public:
 	virtual mitk::Point3D GetVegaPoint(int) const;
 	virtual int GetVegaPointVaildIndex() const;
 
+public:
+	virtual void SetImageICPPointArray(int, const mitk::Point3D&);
+	virtual void SetImageICPPointArray(const std::array<mitk::Point3D, 40>&);
+	virtual mitk::Point3D GetImageICPPoint(int) const;
+
+	virtual void SetVegaICPPointArray(int, const mitk::Point3D&);
+	virtual void SetVegaICPPointArray(const std::array<mitk::Point3D, 40>&);
+	virtual mitk::Point3D GetVegaICPPoint(int) const;
+	virtual int GetVegaICPPointVaildIndex() const;
+
 	// [Warning] It is not recommended to operate this object directly.
 	mitk::SurfaceRegistration::Pointer GetSurfaceRegistration() const;
 

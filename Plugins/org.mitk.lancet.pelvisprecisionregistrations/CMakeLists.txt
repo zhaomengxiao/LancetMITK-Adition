@@ -3,5 +3,5 @@ project(org_mitk_lancet_pelvisprecisionregistrations)
 mitk_create_plugin(
   EXPORT_DIRECTIVE PELVISPRECISIONREGISTRATIONS_EXPORT
   EXPORTED_INCLUDE_SUFFIXES src
-  MODULE_DEPENDS MitkQtWidgetsExt
+  MODULE_DEPENDS MitkQtWidgetsExt MitkLancetCore
 )
