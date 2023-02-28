@@ -14,9 +14,14 @@
 #include <mitkImage.h>
 
 #include <physioModelFactory.h>
+#include <vtkPolyData.h>
+#include <ep/include/vtk-9.1/vtkTransformFilter.h>
 
 #include "mitkPointSet.h"
+#include "mitkSurfaceToImageFilter.h"
 
+#include "vtkPointData.h"
+#include "vtkDataArray.h"
 
 const std::string THAPlanning::VIEW_ID = "org.mitk.views.thaplanning";
 
@@ -82,12 +87,19 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_supineCanal_enhancedReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_supineCanal_enhancedReduce_clicked);
   connect(m_Controls.pushButton_supineMech_enhancedReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_supineMech_enhancedReduce_clicked);
 
+  // ------------- DRR test ----------------
+  connect(m_Controls.pushButton_testDRR, &QPushButton::clicked, this, &THAPlanning::pushButton_testDRR_clicked);
+  connect(m_Controls.pushButton_testStencil, &QPushButton::clicked, this, &THAPlanning::pushButton_testStencil_clicked);
+
+
+
   // Demonstration
   connect(m_Controls.pushButton_demoInit, &QPushButton::clicked, this, &THAPlanning::pushButton_demoInit_clicked);
   connect(m_Controls.pushButton_demoReduce, &QPushButton::clicked, this, &THAPlanning::pushButton_demoReduce_clicked);
   connect(m_Controls.pushButton_demoConfirmImplant, &QPushButton::clicked, this, &THAPlanning::pushButton_demoConfirmImplant_clicked);
   connect(m_Controls.pushButton_demoMoveCup, &QPushButton::clicked, this, &THAPlanning::pushButton_demoMoveCup_clicked);
   connect(m_Controls.pushButton_demoMoveStem, &QPushButton::clicked, this, &THAPlanning::pushButton_demoMoveStem_clicked);
+  connect(m_Controls.pushButton_demoDRR, &QPushButton::clicked, this, &THAPlanning::pushButton_demoDRR_clicked);
 
 }
 
@@ -897,9 +909,7 @@ void THAPlanning::pushButton_adjustStem_clicked()
 	tmpTransform->Concatenate(m_FemurStemCouple->GetvtkMatrix_femurFrameToStemFrame());
 
 	m_FemurStemCouple->SetFemurFrameToStemFrameMatrix(tmpTransform->GetMatrix());
-
-	MITK_INFO << "stem adjusted";
-
+	
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 	m_EnhancedReductionObject->CalReductionMatrices();
@@ -1070,8 +1080,6 @@ void THAPlanning::pushButton_supineMech_enhancedReduce_clicked()
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
-
-
 
 
 void THAPlanning::pushButton_demoInit_clicked()
@@ -1423,15 +1431,125 @@ void THAPlanning::pushButton_demoMoveStem_clicked()
 	m_Controls.lineEdit_demoIntraOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
 	m_Controls.lineEdit_demoIntraOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
 
-	// m_Controls.lineEdit_demoSupineVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
-	// m_Controls.lineEdit_demoSupineInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
-	//
-	// m_Controls.lineEdit_demoNoTiltVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
-	// m_Controls.lineEdit_demoNoTiltInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
-	//
-	// m_Controls.lineEdit_demoCupSI_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_supine()));
-	// m_Controls.lineEdit_demoCupML_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_supine()));
-	// m_Controls.lineEdit_demoCupAP_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
+}
 
+void THAPlanning::pushButton_testDRR_clicked()
+{
+	auto inputImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("cup CT")->GetData());
+
+	itk::SmartPointer<DrrFilter> drrFilter = DrrFilter::New();
+
+	drrFilter->Setrx(270);
+	drrFilter->Setty(-200);
+	drrFilter->SetInput(inputImage);
+	drrFilter->Update();
+
+	auto newNode = mitk::DataNode::New();
+	newNode->SetName("DRR");
+	newNode->SetData(drrFilter->GetOutput());
+
+	GetDataStorage()->Add(newNode);
+}
+
+
+void THAPlanning::pushButton_testStencil_clicked()
+{
+	// Generate a white image to apply the polydata stencil
+	auto nodeSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup")->GetData());
+
+	vtkNew<vtkPolyData> surfacePolyData;
+	surfacePolyData->DeepCopy(nodeSurface->GetVtkPolyData());
+
+	vtkNew<vtkTransformFilter> tmpTransFilter;
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(nodeSurface->GetGeometry()->GetVtkMatrix());
+	tmpTransFilter->SetTransform(tmpTransform);
+	tmpTransFilter->SetInputData(surfacePolyData);
+	tmpTransFilter->Update();
+
+	auto objectSurface = mitk::Surface::New();
+	objectSurface->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
+
+	vtkNew<vtkImageData> whiteImage;
+	double imageBounds[6]{ 0 };
+	double imageSpacing[3]{ 0.2, 0.2, 0.2 };
+	whiteImage->SetSpacing(imageSpacing);
+
+	auto geometry = objectSurface->GetGeometry();
+	auto surfaceBounds = geometry->GetBounds();
+	for (int n = 0; n < 6; n++)
+	{
+		imageBounds[n] = surfaceBounds[n];
+	}
+
+	int dim[3];
+	for (int i = 0; i < 3; i++)
+	{
+		dim[i] = static_cast<int>(ceil((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
+	}
+	whiteImage->SetDimensions(dim);
+	whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+
+	double origin[3];
+	origin[0] = imageBounds[0] + imageSpacing[0] / 2;
+	origin[1] = imageBounds[2] + imageSpacing[1] / 2;
+	origin[2] = imageBounds[4] + imageSpacing[2] / 2;
+	whiteImage->SetOrigin(origin);
+	whiteImage->AllocateScalars(VTK_SHORT, 1);
+
+	// fill the image with foreground voxels:
+	short insideValue = 1024;
+	// short outsideValue = 0;
+	vtkIdType count = whiteImage->GetNumberOfPoints();
+	for (vtkIdType i = 0; i < count; ++i)
+	{
+		whiteImage->GetPointData()->GetScalars()->SetTuple1(i, insideValue);
+	}
+
+	auto imageToCrop = mitk::Image::New();
+	imageToCrop->Initialize(whiteImage);
+	imageToCrop->SetVolume(whiteImage->GetScalarPointer());
+
+
+	// Apply the stencil
+	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	surfaceToImageFilter->SetImage(imageToCrop);
+	surfaceToImageFilter->SetInput(objectSurface);
+	surfaceToImageFilter->SetReverseStencil(false);
+
+	mitk::Image::Pointer convertedImage = mitk::Image::New();
+	surfaceToImageFilter->Update();
+	convertedImage = surfaceToImageFilter->GetOutput();
+
+	auto newNode = mitk::DataNode::New();
+
+	newNode->SetName("cup CT");
+
+	// add new node
+	newNode->SetData(convertedImage);
+	GetDataStorage()->Add(newNode);
+
+}
+
+
+void THAPlanning::pushButton_demoDRR_clicked()
+{
+	auto imageCombiner = lancet::Tha3DImageGenerator::New();
+
+	imageCombiner->SetPelvisImage(GetDataStorage()->GetNamedObject<mitk::Image>("pelvisImage"));
+	imageCombiner->SetFemurImage_R(GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_right"));
+	imageCombiner->SetFemurImage_L(GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_left"));
+
+	imageCombiner->SetCupSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("cup"));
+	imageCombiner->SetLinerSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("liner"));
+	imageCombiner->SetStemSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("stem"));
+	imageCombiner->SetBallHeadSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("head_28"));
+
+	auto image = imageCombiner->Generate3Dimage();
+
+	auto newNode = mitk::DataNode::New();
+	newNode->SetName("combined CT");
+	newNode->SetData(image);
+	GetDataStorage()->Add(newNode);
 
 }

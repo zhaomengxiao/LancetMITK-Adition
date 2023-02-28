@@ -31,6 +31,9 @@ found in the LICENSE file.
 #include "lancetThaFemurStemCouple.h"
 #include "lancetThaEnhancedReductionObject.h"
 
+#include "drr.h"
+#include "lancetTha3DimageGenerator.h"
+
 /**
   \brief THAPlanning
 
@@ -173,7 +176,9 @@ protected:
   void pushButton_supineCanal_enhancedReduce_clicked();
   void pushButton_supineMech_enhancedReduce_clicked();
 
-
+  // ------------------ Test DRR generation --------------------
+  void pushButton_testDRR_clicked();
+  void pushButton_testStencil_clicked();
 
 	// -------------- Demonstration ---------------------
   void pushButton_demoInit_clicked();
@@ -181,8 +186,9 @@ protected:
   void pushButton_demoConfirmImplant_clicked();
   void pushButton_demoMoveCup_clicked();
   void pushButton_demoMoveStem_clicked();
+  void pushButton_demoDRR_clicked();
   void ShowImplants(bool showOrHide);
-
+  
 
 	//---------- Tool functions --------------
 

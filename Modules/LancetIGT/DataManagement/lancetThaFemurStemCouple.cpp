@@ -59,7 +59,6 @@ void lancet::ThaFemurStemCouple::SetFemurFrameToStemFrameMatrix(vtkSmartPointer<
 
 	m_vtkMatrix_femurFrameToStemFrame->DeepCopy(newMatrix);
 
-	MITK_INFO << "stem movement really called";
 }
 
 

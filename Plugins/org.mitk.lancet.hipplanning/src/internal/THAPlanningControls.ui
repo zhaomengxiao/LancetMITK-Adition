@@ -751,6 +751,20 @@
          </layout>
         </widget>
        </item>
+       <item row="2" column="3">
+        <widget class="QPushButton" name="pushButton_testDRR">
+         <property name="text">
+          <string>Test DRR</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="4">
+        <widget class="QPushButton" name="pushButton_testStencil">
+         <property name="text">
+          <string>Test stencil</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_3">
@@ -1173,6 +1187,13 @@
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_demoDRR">
+            <property name="text">
+             <string>生成DRR</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
