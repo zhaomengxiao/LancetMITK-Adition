@@ -68,9 +68,18 @@ protected:
 
 	/*!
 	\brief Internal templated method calling the ITK drr filter. Here the actual filtering is performed.
+	Notice: this function should be called only if the input image is already aligned with the world coordinate'
+	Otherwise, use EnhancedItkImageProcessing which takes the pose of the input image into consideration 
 	*/
 	template <typename TPixel, unsigned int VDimension>
 	void ItkImageProcessing(const itk::Image<TPixel, VDimension>* itkImage);
+
+	/*!
+	\brief Internal templated method calling the ITK drr filter. Here the actual filtering is performed.
+	Notice: this function is the more considerate version of ItkImageProcessing, and can fully replace
+	ItkImageProcessing; ItkImageProcessing is remained for historical reason.
+	*/
+	void EnhancedItkImageProcessing(mitk::Image::ConstPointer mitkImage);
 
 	// template <typename TPixel, unsigned int VDimension>
 	// mitk::Image::Pointer GenDRR(const itk::Image<TPixel, VDimension>* input_image, DrrFilter* generator);

@@ -1161,6 +1161,11 @@ void THAPlanning::pushButton_demoInit_clicked()
 	GetDataStorage()->GetNamedNode("stemFrame")->SetVisibility(false);
 	GetDataStorage()->GetNamedNode("cupFrame")->SetVisibility(false);
 
+	GetDataStorage()->GetNamedNode("pelvisFrame")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("femurFrame_R")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("femurFrame_L")->SetVisibility(false);
+
+
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 }
@@ -1584,14 +1589,14 @@ void THAPlanning::pushButton_demoDRR_clicked()
 	newNode->SetName("synthesized CT");
 	newNode->SetData(image);
 	GetDataStorage()->Add(newNode);
-
+	GetDataStorage()->GetNamedNode("synthesized CT")->SetVisibility(false);
 
 	// Generate DRR
 	itk::SmartPointer<DrrFilter> drrFilter = DrrFilter::New();
 
 	drrFilter->Setsid(1500);
 	drrFilter->Setrx(270);
-	drrFilter->Setty(-500);
+	drrFilter->Setty(-800);
 	drrFilter->SetInput(image);
 	drrFilter->Update();
 
