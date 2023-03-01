@@ -77,7 +77,8 @@ bool QLancetThaWorkbenchMenuBar::OpenStateWidget(
 	
 	if (activePage->GetPerspectiveShortcuts().contains(functionId))
 	{
-		window->GetActivePage()->ShowView(functionId);
+		berry::IViewPart::Pointer view = window->GetActivePage()->ShowView(functionId);
+		qWarning() << view->GetViewSite()->GetShell()->GetControl();
 	}	
 
 	QString _editorId = state->GetActionProperty()->GetKeywordValue(
@@ -119,13 +120,6 @@ bool QLancetThaWorkbenchMenuBar::CloseStateWidget(
 		// Warning
 		return false;
 	}
-
-	// Correctness filtering
-	// The bug does not exist logically and may be removed later.
-	//if (state->GetManageStateMachine()->GetLastActiveState() != state)
-	//{
-	//	return false;
-	//}
 	
 	berry::IWorkbenchWindow::Pointer window = berry::PlatformUI::GetWorkbench()->GetActiveWorkbenchWindow();
 
@@ -182,7 +176,6 @@ bool QLancetThaWorkbenchMenuBar::InitializeStateMachineForUi()
 	if (admin.IsNotNull() && !admin->GetSubStateMachines().empty() &&
 		admin->GetActionProperty().IsNotNull())
 	{
-		auto name = admin->GetActionProperty()->GetStateUiName();
 		for (auto model : admin->GetSubStateMachines())
 		{
 			if (model.IsNotNull())
@@ -235,7 +228,27 @@ void QLancetThaWorkbenchMenuBar::onStateMachineElementEnter(IScxmlStateMachineSt
 	MITK_INFO << "log";
 	if (state && state->GetStateId() != "exit")
 	{
-		this->OpenStateWidget(IScxmlStateMachineState::Pointer(state));
+		if (true == this->OpenStateWidget(IScxmlStateMachineState::Pointer(state)))
+		{
+			// 
+			if (state->GetActionProperty().IsNotNull())
+			{
+				MITK_WARN << "properties.id " << state->GetActionProperty()->GetStateId();
+				MITK_WARN << "properties.objectName " << state->GetActionProperty()->GetStateObjectName();
+				MITK_WARN << "properties.uiName " << state->GetActionProperty()->GetStateUiName();
+
+				if (state->GetActionProperty()->GetIQActionStyleProperty().IsNotNull())
+				{
+					for (auto styleName : state->GetActionProperty()->GetIQActionStyleProperty()->GetStyleThemes())
+					{
+						MITK_WARN << "-----------------";
+						MITK_WARN << "properties.themes.styleName " << styleName;
+						MITK_WARN << "properties.themes.editorWidgetIdentify " << state->GetActionProperty()->GetIQActionStyleProperty()->GetStyle(styleName).editorWidgetQssFilePath;
+						MITK_WARN << "properties.themes.fucntionWidgetIdentify " << state->GetActionProperty()->GetIQActionStyleProperty()->GetStyle(styleName).fucntionWidgetQssFilePath;
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -279,11 +292,10 @@ bool QLancetThaWorkbenchMenuBar::InitializeUiOfStateMachine(QMenu* menu,
 	if (state.IsNotNull()&& lancet::plugin::IsLancetModuleFormat(state->GetStateId()))
 	{
 		this->ConnectToElementStateMachine(state);
+
 		// Identify whether the nature of the state is single.
 		// A single state is presented by QAction.
 		// Multiple states are presented by QMenu.
-		
-		//if (false == this->IsSigleState(state))
 		switch (state->GetStateFeatures())
 		{
 		case IScxmlStateMachineState::Multiple:

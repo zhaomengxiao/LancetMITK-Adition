@@ -161,8 +161,33 @@ namespace lancet
 
     void SetFriDynamicFrameTransform(mitk::AffineTransform3D::Pointer matrix);
 
+	KukaRobotAPI();
     //void Nothing();
     ~KukaRobotAPI() override;
+
+	/**
+	 * \brief Returns the running status of the heartbeat background processing
+	 *        thread of the robot arm.
+	 *
+	 * tips:
+	 * The purpose of this method is to solve the crash caused by thread safety
+	 * problems when the class is destructed. see #safeQuitWaitForThread().
+	 *
+	 * \retval Returns true when the thread is running, otherwise false.
+	 */
+	bool isRunningTcpHeartBeat() const;
+
+	/**
+	 * \brief Running status of background processing thread for receipt inform-
+	 *        ation of manipulator.
+	 *
+	 * tips:
+	 * The purpose of this method is to solve the crash caused by thread safety
+	 * problems when the class is destructed. see #safeQuitWaitForThread().
+	 *
+	 * \retval Returns true when the thread is running, otherwise false.
+	 */
+	bool isRunningReadRobotResult() const;
   protected:
     /**
      * \brief Send heartbeat command through TCP to maintain connection with kuka robot application;
@@ -181,6 +206,17 @@ namespace lancet
      */
     static long timeStamp();
 
+	/**
+	 * \brief Make the thread exit safely within a certain time.
+	 *
+	 * tips:
+	 * The purpose of this method is to solve the crash caused by thread safety
+	 * problems when the class is destructed.
+	 *
+	 * \retval The successful thread safety exit returns true, otherwise false.
+	 */
+	bool safeQuitWaitForThread(int timeout = 1000);
+
     std::vector<double> kukamatrix2angle(const double matrix3x3[3][3]);
 
     std::array<double, 6> kukaTransformMatrix2xyzabc(vtkMatrix4x4* matrix4x4);
@@ -194,8 +230,10 @@ namespace lancet
     UdpRobotInfoClient m_UdpConnection;
 
     FriManager m_FriManager;
-    std::thread m_TcpHeartBeatThread;
-    std::thread m_ReadRobotResultThread;
+    //std::thread m_TcpHeartBeatThread;
+	std::atomic_bool m_isRunningTcpHeartBeat;
+    //std::thread m_ReadRobotResultThread;
+	std::atomic_bool m_isRunningReadRobotResult;
     bool m_IsConnected{false};
   };
 }

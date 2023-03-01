@@ -3,7 +3,7 @@ project(org_mitk_lancet_services_spatialfitting)
 mitk_create_plugin(
   EXPORT_DIRECTIVE ORG_MITK_LANCET_SERVICES_SPATIALFITTING_PLUGIN
   EXPORTED_INCLUDE_SUFFIXES src
-  MODULE_DEPENDS PUBLIC MitkCore MitkLancetIGT
+  MODULE_DEPENDS PUBLIC MitkCore MitkLancetIGT MitkLancetRegistration
 )
 
 if (BUILD_TESTING)

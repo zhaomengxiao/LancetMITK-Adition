@@ -14,6 +14,7 @@ found in the LICENSE file.
 #define QPelvisRoughRegistrationsEditor_H
 
 // mitk gui qt common plugin
+#include <QTImer>
 #include <QmitkAbstractMultiWidgetEditor.h>
 
 #include <mitkILinkedRenderWindowPart.h>
@@ -30,6 +31,9 @@ found in the LICENSE file.
 class QmitkStdMultiWidget;
 class QPelvisRoughRegistrationsEditorPrivate;
 
+//namespace mitk { class NavigationData; }
+namespace lancet { class IDevicesAdministrationService; }
+namespace lancet::spatial_fitting { class PelvicRoughRegistrationsModel; }
 /**
  * @brief
  */
@@ -46,7 +50,6 @@ public:
 public:
   QPelvisRoughRegistrationsEditor();
   virtual ~QPelvisRoughRegistrationsEditor() override;
-
 
   void CreatePartControl(QWidget* parent) override;
 
@@ -85,16 +88,42 @@ public:
   * @brief Overridden from berry::IPartListener
   */
   virtual berry::IPartListener::Events::Types GetPartEventTypes() const override;
+public slots:
+	void OnVegaPointChange();
+
+	void OnRenderModelChange();
 private:
 	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
-	Ui::QPelvisRoughRegistrationsEditor m_Controls;
+
+	itk::SmartPointer<mitk::DataStorage> GetDataStorage() const;
+
+	using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
+	itk::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
+
+	static lancet::IDevicesAdministrationService* GetDevicesService();
+private:
+	void InitializeDataStorageForService();
+
+	void InitializeMitkMultiWidget();
+	void UnInitializeMitkMultiWidget();
+
+	void InitializeQtEventOnService();
+	void UnInitializeQtEventOnService();
+
+	void InitializeMitkMultiWidgetOnCollectModel();
+	void InitializeMitkMultiWidgetOnVerifyModel();
 protected:
 	typedef berry::IPreferencesService berryIPreferencesService;
 	//berry::IEditorInput::Pointer editorInput;
 	//berry::IEditorSite::Pointer editorSite;
+	QTimer updateProbeTm;
+	QStringList listDataStorageNodes;
+	QVector<mitk::Point3D> imagePoints;
+	QVector<mitk::Point3D> vegaPoints;
 	QSharedPointer<QWidget> widgetInstace;
 	ctkServiceTracker<berryIPreferencesService*> m_PrefServiceTracker;
 	berry::IBerryPreferences::Pointer m_Prefs;
+	Ui::QPelvisRoughRegistrationsEditor m_Controls;
 };
 
 #endif // QPelvisRoughRegistrationsEditor_H

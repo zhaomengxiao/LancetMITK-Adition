@@ -117,6 +117,8 @@ namespace lancet
     //Robot
     KukaRobotAPI m_RobotApi;
   protected:
+	bool SafeWaitThreadQuit(int = 1000);
+
     KukaRobotDevice_New();
     virtual ~KukaRobotDevice_New() override;
 
@@ -145,6 +147,7 @@ namespace lancet
     RobotTools m_RobotTools;
     ///< container for all tracking tools
        ///< creates tracking thread that continuously polls serial interface for new tracking data
+	std::atomic_bool m_isRunningTrackingTool = false;
     std::thread m_Thread; ///< ID of tracking thread
 
 

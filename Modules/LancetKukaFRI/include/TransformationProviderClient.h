@@ -78,15 +78,37 @@ namespace lancet
 
     void DisConnect();
 
+	/**
+	 * \brief Returns the running status of the background output processing thread 
+	 *        of the FRI module of the manipulator.
+	 *
+	 * tips:
+	 * The purpose of this method is to solve the crash caused by thread safety
+	 * problems when the class is destructed. see #safeQuitWaitForThread().
+	 *
+	 * \retval Returns true when the thread is running, otherwise false.
+	 */
+	bool isRunningStep() const;
   protected:
     void stepThreadWorker();
 
+	/**
+	 * \brief Make the thread exit safely within a certain time.
+	 *
+	 * tips:
+	 * The purpose of this method is to solve the crash caused by thread safety
+	 * problems when the class is destructed.
+	 *
+	 * \retval The successful thread safety exit returns true, otherwise false.
+	 */
+	bool safeQuitWaitForThread(int timeout = 1000);
     
     int m_Port;
     std::string m_HostName;
     bool m_StepSuccess{true};
 	bool m_IsConnected{ false };
-    std::thread m_stepThread;
+    //std::thread m_stepThread;
+	std::atomic_bool m_isRunningStep{false};
     mitk::AffineTransform3D::Pointer m_TransformMatrix;
 	
     //std::string m_TransformID;

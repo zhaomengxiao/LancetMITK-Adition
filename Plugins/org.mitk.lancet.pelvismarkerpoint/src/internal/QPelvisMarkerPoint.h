@@ -24,6 +24,8 @@ namespace mitk
 {
 	class NavigationData;
 }
+
+namespace lancet { class IDevicesAdministrationService; }
 namespace lancet::spatial_fitting
 {
 	class PelvisCheckPointModel;
@@ -32,7 +34,8 @@ namespace lancet::spatial_fitting
 /**
   \brief QPelvisMarkerPoint
 
-  \warning  This class is not yet documented. Use "git blame" and ask the author to provide basic documentation.
+  \warning  This class is not yet documented. Use "git blame" and ask the author 
+	          to provide basic documentation.
 
   \sa QmitkAbstractView
   \ingroup ${plugin_target}_internal
@@ -46,6 +49,8 @@ class QPelvisMarkerPoint : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
+  QPelvisMarkerPoint();
+  virtual ~QPelvisMarkerPoint();
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -63,6 +68,8 @@ protected:
   void UpdateUiForService();
 
 	itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> GetServiceModel() const;
+
+	static lancet::IDevicesAdministrationService* GetDevicesService();
 protected slots:
 
   void on_pushButtonPelvisCheckpoint_clicked();
@@ -72,6 +79,9 @@ protected slots:
 	void on_toolCollector_complete(mitk::NavigationData*);
 
 	void on_toolCollector_step(int, mitk::NavigationData*);
+private:
+
+	void InitializeTrackingToolsWidget();
 private:
   Ui::QPelvisMarkerPointControls m_Controls;
 };

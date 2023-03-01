@@ -8,7 +8,7 @@ endif()
 mitk_create_module(
   INCLUDE_DIRS
     PUBLIC include ${ADDITIONAL_INCLUDE_DIRS}
-  DEPENDS PUBLIC MitkCore
+  DEPENDS PUBLIC MitkCore MitkLancetCore
   PACKAGE_DEPENDS
   ADDITIONAL_LIBS PUBLIC "${ADDITIONAL_LIBS}"
 )

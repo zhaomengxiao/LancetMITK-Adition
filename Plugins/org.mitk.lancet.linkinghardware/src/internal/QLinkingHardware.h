@@ -1,86 +1,55 @@
-/*============================================================================
-
-The Medical Imaging Interaction Toolkit (MITK)
-
-Copyright (c) German Cancer Research Center (DKFZ)
-All rights reserved.
-
-Use of this source code is governed by a 3-clause BSD license that can be
-found in the LICENSE file.
-
-============================================================================*/
-
-
 #ifndef QLinkingHardware_h
 #define QLinkingHardware_h
 
-#include <berryISelectionListener.h>
+// Include header file for C++.
+#include <memory>
 
+// Include header file for Mitk.
 #include <QmitkAbstractView.h>
-
-#include "ui_QLinkingHardwareControls.h"
-#include "kukaRobotDevice.h"
-#include "mitkVirtualTrackingDevice.h"
-#include "mitkVirtualTrackingTool.h"
-#include "lancetNavigationObjectVisualizationFilter.h"
-#include "lancetApplyDeviceRegistratioinFilter.h"
-#include "lancetApplySurfaceRegistratioinFilter.h"
-#include "lancetTrackingDeviceSourceConfigurator.h"
-#include "lancetPathPoint.h"
-#include "mitkTrackingDeviceSource.h"
-#include "lancetVegaTrackingDevice.h"
-#include <mitkNavigationDataToPointSetFilter.h>
-#include "mitkNavigationToolStorageDeserializer.h"
-#include <QtWidgets\qfiledialog.h>
-#include "mitkIGTIOException.h"
-#include "mitkNavigationToolStorageSerializer.h"
-//#include "QmitkIGTCommonHelper.h"
 
 #include <internal/lancetTrackingDeviceManage.h>
 
-/**
-  \brief QLinkingHardware
+// Pre-declaration of third-party library reference class type.
+namespace lancet { class IDevicesAdministrationService; }
 
-  \warning  This class is not yet documented. Use "git blame" and ask the author to provide basic documentation.
-
-  \sa QmitkAbstractView
-  \ingroup ${plugin_target}_internal
-*/
-namespace lancet
-{
-	class IDevicesAdministrationService;
-}
 class QLinkingHardware : public QmitkAbstractView
 {
-  // this is needed for all Qt objects that should have a Qt meta-object
-  // (everything that derives from QObject and wants to have signal/slots)
   Q_OBJECT
-
 public:
-	static const std::string VIEW_ID;
-	~QLinkingHardware() override;
+  static const std::string VIEW_ID;
+  QLinkingHardware();
+  virtual ~QLinkingHardware() override;
 
-	virtual void CreateQtPartControl(QWidget* parent) override;
-	virtual void SetFocus() override;
+  virtual void SetFocus() override;
+  virtual void CreateQtPartControl(QWidget* parent) override;
 
 protected:
-	void ConnectToService();
-	bool isauto;
-	void ReadFileName();
-	lancet::IDevicesAdministrationService* GetService() const;
-	void setStartHardware(std::string, bool);
-	mitk::NavigationToolStorage::Pointer m_ToolStorage;
-	QString filename; 
-	QTimer m_updateTimer;
-protected Q_SLOTS:
-	void on_pb_auto_clicked();
-	void on_pb_success_clicked();
-	void startCheckRobotMove();
-	void Slot_IDevicesGetStatus(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
+  void InitializeTrackingToolsWidget();
 
+  bool ConnectedQtInteractive();
+  bool DisConnectedQtInteractive();
+
+  bool ConnectedQtEventForDevicesService();
+  bool DisConnectedQtEventForDevicesService();
+  
+  bool UpdateQtPartControlStyleSheet(const QString& qss);
+
+  void UpdateQtWidgetStyleForDevicesService();
+
+  static lancet::IDevicesAdministrationService* GetService();
+
+protected Q_SLOTS:
+	void OnIDevicesGetStatus(std::string, lancet::TrackingDeviceManage::TrackingDeviceState);
+
+	void OnCheckedRobotMovePosition();
+
+	void OnPushbtnActivate();
+
+	void OnPushbtnActivateSuccess();
 private:
-	mitk::Point3D m_RobotStartPosition;
-	Ui::QLinkingHardwareControls m_Controls;
+  struct QLinkingHardwarePrivateImp;
+  std::shared_ptr<QLinkingHardwarePrivateImp> imp;
 };
 
-#endif // QLinkingHardware_h
+
+#endif // !QLinkingHardware_h

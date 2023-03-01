@@ -40,7 +40,7 @@
   <property name="currentIndex" stdset="0">
    <number>0</number>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -53,7 +53,7 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item>
+   <item row="0" column="0">
     <widget class="QWidget" name="widget" native="true">
      <property name="styleSheet">
       <string notr="true"/>
@@ -75,7 +75,7 @@
        <number>9</number>
       </property>
       <item>
-       <widget class="QWidget" name="widget_3" native="true">
+       <widget class="lancet::DeviceTrackingWidget" name="widgetTrackingTools" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
           <horstretch>0</horstretch>
@@ -84,20 +84,18 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>0</width>
-          <height>74</height>
+          <width>280</width>
+          <height>80</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>80</height>
+          <height>70</height>
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">border-radius: 8px;
-background-color: rgb(0, 0, 0);
-</string>
+         <string notr="true"/>
         </property>
        </widget>
       </item>
@@ -293,7 +291,7 @@ background-color: rgb(0, 0, 0);
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_auto">
+         <widget class="QPushButton" name="pushbtnActivate">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -422,6 +420,9 @@ background-color: rgb(0, 0, 0);
          </item>
          <item>
           <widget class="QCheckBox" name="checkBox_free">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>
@@ -509,7 +510,7 @@ background-color: rgb(0, 0, 0);
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_success">
+         <widget class="QPushButton" name="pushbtnActivateSuccess">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -623,6 +624,14 @@ background-color: rgb(0, 0, 0);
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>lancet::DeviceTrackingWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">lancetdevicetrackingwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../../resources/resources.qrc"/>
  </resources>

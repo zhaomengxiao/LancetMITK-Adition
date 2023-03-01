@@ -72,7 +72,8 @@ namespace lancet
     this->m_StopTracking = false;
     this->m_StopTrackingMutex.unlock();
 
-    m_Thread = std::thread(&KukaRobotDevice_New::ThreadStartTracking, this);//todo start tracking agine crash here 
+    this->m_Thread = std::thread(&KukaRobotDevice_New::ThreadStartTracking, this);//todo start tracking agine crash here 
+	//thread.detach();
     // start a new thread that executes the TrackTools() method
     mitk::IGTTimeStamp::GetInstance()->Start(this);
     MITK_INFO << "lancet kuka robot start tracking";
@@ -196,6 +197,7 @@ namespace lancet
   void KukaRobotDevice_New::TrackTools()
   {
     MITK_INFO << "tracktools called";
+	this->m_isRunningTrackingTool = true;
     /* lock the TrackingFinishedMutex to signal that the execution rights are now transfered to the tracking thread */
     // keep lock until end of scope
     std::lock_guard<std::mutex> lock(m_TrackingFinishedMutex);
@@ -250,6 +252,7 @@ namespace lancet
       localStopTracking = m_StopTracking;
       this->m_StopTrackingMutex.unlock();
     }
+	this->m_isRunningTrackingTool = false;
     /* StopTracking was called, thus the mode should be changed back to Ready now that the tracking loop has ended. */
     //todo robotAPI stop tracking support
     // returnvalue = m_capi.stopTracking();
@@ -278,6 +281,20 @@ namespace lancet
     m_RobotApi.MovePTP(T_robot);
   }
 
+  bool KukaRobotDevice_New::SafeWaitThreadQuit(int waitTime)
+  {
+	  clock_t startTime = clock();
+	  while (this->m_isRunningTrackingTool)
+	  {
+		  if ((clock() - startTime) >= waitTime)
+		  {
+			  return false;
+		  }
+		  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	  }
+	  return true;
+  }
+
   KukaRobotDevice_New::KukaRobotDevice_New()
     :TrackingDevice()
   {
@@ -301,6 +318,13 @@ namespace lancet
   KukaRobotDevice_New::~KukaRobotDevice_New()
   {
 	  //m_udp.disconnect();
+	  this->StopTracking();
+	  this->CloseConnection();
+	  while (!this->SafeWaitThreadQuit())
+	  {
+		  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	  }
+	  this->m_Thread.join();
   }
 
   bool KukaRobotDevice_New::InternalAddTool(RobotTool* tool)

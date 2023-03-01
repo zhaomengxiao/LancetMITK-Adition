@@ -3,6 +3,8 @@ set(MOC_H_FILES
   src/internal/lancetPluginActivator.h
   src/internal/lancetSpatialFittingService.h
   src/core/lancetSpatialFittingNavigationToolCollector.h
+  src/internal/lancetSpatialFittingPelvicRoughRegistrationsModel.h
+  src/internal/lancetSpatialFittingPelvisCheckPointModel.h
 )
 
 set(SRC_CPP_FILES
@@ -19,10 +21,9 @@ set(SRC_CPP_FILES
   core/lancetSpatialFittingRoboticsVerifyDirector.cpp
   core/lancetSpatialFittingProbeCheckPointDirector.cpp
   core/lancetSpatialFittingPelvicCheckPointDirector.cpp
+  core/lancetSpatialFittingPelvicRoughRegistrationsDirector.cpp
   core/lancetSpatialFittingPelvicCheckPointVerifyDirector.cpp
-  core/lancetSpatialFittingPelvicMarkPointDirector.cpp
-  core/lancetSpatialFittingPelvicRegisterDirector.cpp
-  core/lancetSpatialFittingPelvicVerifyDirector.cpp
+  core/lancetSpatialFittingPelvicRoughRegistrationsVerifyDirector.cpp
   
 )
 
@@ -32,8 +33,7 @@ set(INTERNAL_CPP_FILES
   lancetSpatialFittingRoboticsRegisterModel.cpp
   lancetSpatialFittingProbeCheckPointModel.cpp
   lancetSpatialFittingPelvisCheckPointModel.cpp
-  lancetSpatialFittingPelvisMarkPointModel.cpp
-  lancetSpatialFittingPelvisRegisterModel.cpp
+  lancetSpatialFittingPelvicRoughRegistrationsModel.cpp
 )
 
 set(CPP_FILES )

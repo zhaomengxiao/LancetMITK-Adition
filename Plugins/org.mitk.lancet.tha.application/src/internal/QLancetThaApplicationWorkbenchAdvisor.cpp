@@ -6,9 +6,11 @@
 #include <src/lancetIScxmlStateMachineState.h>
 #include <src/lancetIScxmlStateMachineService.h>
 
+#include <mitkLogMacros.h>
+
 void QLancetThaApplicationWorkbenchAdvisor::Initialize(berry::IWorkbenchConfigurer::Pointer configurer)
 {
-	qDebug() << "QLancetThaApplicationWorkbenchAdvisor::Initialize";
+	MITK_DEBUG << "QLancetThaApplicationWorkbenchAdvisor::Initialize";
 	berry::QtWorkbenchAdvisor::Initialize(configurer);
 
 	configurer->SetSaveAndRestore(false);

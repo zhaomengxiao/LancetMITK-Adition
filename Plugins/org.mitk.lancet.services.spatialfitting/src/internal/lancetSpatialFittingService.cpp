@@ -4,8 +4,7 @@
 #include "internal/lancetSpatialFittingRoboticsRegisterModel.h"
 #include "internal/lancetSpatialFittingProbeCheckPointModel.h"
 #include "internal/lancetSpatialFittingPelvisCheckPointModel.h"
-#include "internal/lancetSpatialFittingPelvisRegisterModel.h"
-#include "internal/lancetSpatialFittingPelvisMarkPointModel.h"
+#include "internal/lancetSpatialFittingPelvicRoughRegistrationsModel.h"
 #include <lancetIDevicesAdministrationService.h>
 #include <internal/lancetTrackingDeviceManage.h>
 namespace lancet
@@ -25,8 +24,7 @@ namespace lancet
 		this->InitializeRoboticsRegisterModel();
 		this->InitializeProbeCheckPointModel();
 		this->InitializePelvisCheckPointModel();
-		this->InitializePelvisRegisterModel();
-		this->InitializePelvisMarkPointModel();
+		this->InitializePelvisRoughRegistrationsModel();
 	}
 
 	void SpatialFittingService::InitializeRoboticsRegisterModel()
@@ -144,94 +142,28 @@ namespace lancet
 		this->GetPelvisCheckPointModel()->ConfigureGetCheckPointPipeline();
 	}
 
-	void SpatialFittingService::InitializePelvisRegisterModel()
+	void SpatialFittingService::InitializePelvisRoughRegistrationsModel()
 	{
-		MITK_DEBUG << "log";
-		if (this->GetPelvisRegisterModel().IsNull())
+		if (this->GetPelvicRoughRegistrationsModel().IsNull())
 		{
-			using PelvisRegisterModel = lancet::spatial_fitting::PelvisRegisterModel;
-			PelvisRegisterModel::Pointer model = PelvisRegisterModel::Pointer(
-				new PelvisRegisterModel);
+			using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
+			PelvicRoughRegistrationsModel::Pointer model = PelvicRoughRegistrationsModel::Pointer(
+				new PelvicRoughRegistrationsModel);
 
-			this->SetPelvisRegisterModel(model);
-		}
-
-		auto toolDataStorage = this->GetDeviceService()->GetConnector()->GetNavigationToolStorage("Vega");
-		if (toolDataStorage.IsNotNull())
-		{
-			for (int index = 0; index < toolDataStorage->GetToolCount(); ++index)
-			{
-				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage->GetTool(index)->GetToolName();
-			}
-		}
-
-		auto toolDataStorage2 = this->GetDeviceService()->GetConnector()->GetNavigationToolStorage("Kuka");
-		if (toolDataStorage2.IsNotNull())
-		{
-			for (int index = 0; index < toolDataStorage2->GetToolCount(); ++index)
-			{
-				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage2->GetTool(index)->GetToolName();
-			}
+			this->SetPelvicRoughRegistrationsModel(model);
 		}
 		auto ndidatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Vega");
-		this->GetPelvisRegisterModel()->SetNdiNavigationDataSource(ndidatasource);
+		this->GetPelvicRoughRegistrationsModel()->SetNdiNavigationDataSource(ndidatasource);
 
-		auto robotdatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Kuka");
-		this->GetPelvisRegisterModel()->SetRoboticsNavigationDataSource(robotdatasource);
-
-		this->GetPelvisRegisterModel()->ConfigurePelvisRegisterPipeline();
-
-		this->GetPelvisRegisterModel()->ConfigurePelvisVerifyPipeline();
-	}
-
-	void SpatialFittingService::InitializePelvisMarkPointModel()
-	{
-		MITK_DEBUG << "log";
-		if (this->GetPelvisMarkPointModel().IsNull())
-		{
-			using PelvisMarkPointModel = lancet::spatial_fitting::PelvisMarkPointModel;
-			PelvisMarkPointModel::Pointer model = PelvisMarkPointModel::Pointer(
-				new PelvisMarkPointModel);
-
-			this->SetPelvisMarkPointModel(model);
-		}
-
-		auto toolDataStorage = this->GetDeviceService()->GetConnector()->GetNavigationToolStorage("Vega");
-		if (toolDataStorage.IsNotNull())
-		{
-			for (int index = 0; index < toolDataStorage->GetToolCount(); ++index)
-			{
-				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage->GetTool(index)->GetToolName();
-			}
-		}
-
-		auto toolDataStorage2 = this->GetDeviceService()->GetConnector()->GetNavigationToolStorage("Kuka");
-		if (toolDataStorage2.IsNotNull())
-		{
-			for (int index = 0; index < toolDataStorage2->GetToolCount(); ++index)
-			{
-				MITK_ERROR << "read tool data storage [" << index << "]: " << toolDataStorage2->GetTool(index)->GetToolName();
-			}
-		}
-		auto ndidatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Vega");
-		this->GetPelvisMarkPointModel()->SetNdiNavigationDataSource(ndidatasource);
-
-		auto robotdatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Kuka");
-		this->GetPelvisMarkPointModel()->SetRoboticsNavigationDataSource(robotdatasource);
-
-		this->GetPelvisMarkPointModel()->ConfigurePelvisMarkPointPipeline();
+		this->GetPelvicRoughRegistrationsModel()->ConfigureRegistrationsPipeline();
 	}
 
 	void SpatialFittingService::onDeviceConnectState_change(std::string name, lancet::TrackingDeviceManage::TrackingDeviceState state)
 	{
-	  MITK_INFO << "log.name " << name << "; log.state " << state;
-	  if(state == lancet::TrackingDeviceManage::UnInstall)
+	  if (state == lancet::TrackingDeviceManage::UnInstall || state & lancet::TrackingDeviceManage::Tracking)
 	  {
-		MITK_WARN << "The target is not ready for effective resources.";
-		return;
+		  this->Initialize();
 	  }
-
-	  this->Initialize();
 	}
 }
 

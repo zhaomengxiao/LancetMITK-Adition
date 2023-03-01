@@ -17,6 +17,8 @@ found in the LICENSE file.
 
 // Qmitk
 #include "QPelvisMarkerPoint.h"
+#include "org_mitk_lancet_pelvismarkerpoint_Activator.h"
+
 #include <mitkNavigationData.h>
 
 // Qt
@@ -25,6 +27,7 @@ found in the LICENSE file.
 
 // mitk image
 #include <mitkImage.h>
+#include <mitkTrackingDeviceSource.h>
 
 #include <lancetSpatialFittingAbstractService.h>
 
@@ -34,7 +37,7 @@ found in the LICENSE file.
 #include <internal/lancetSpatialFittingPelvisCheckPointModel.h>
 
 #include <lancetIDevicesAdministrationService.h>
-#include "org_mitk_lancet_pelvismarkerpoint_Activator.h"
+#include <internal/lancetTrackingDeviceManage.h>
 
 const std::string QPelvisMarkerPoint::VIEW_ID = "org.mitk.views.qpelvismarkerpoint";
 
@@ -49,6 +52,22 @@ lancet::IDevicesAdministrationService* GetDeviceService()
 
 void QPelvisMarkerPoint::SetFocus()
 {
+}
+
+QPelvisMarkerPoint::QPelvisMarkerPoint()
+{
+	if (this->GetServiceModel().IsNotNull())
+	{
+		this->GetServiceModel()->Start();
+	}
+}
+
+QPelvisMarkerPoint::~QPelvisMarkerPoint()
+{
+	if (this->GetServiceModel().IsNotNull())
+	{
+		this->GetServiceModel()->Stop();
+	}
 }
 
 void QPelvisMarkerPoint::CreateQtPartControl(QWidget *parent)
@@ -70,6 +89,7 @@ void QPelvisMarkerPoint::CreateQtPartControl(QWidget *parent)
 
   this->ConnectQtWidgets();
   this->UpdateUiForService();
+  this->InitializeTrackingToolsWidget();
 }
 
 void QPelvisMarkerPoint::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -154,7 +174,8 @@ void QPelvisMarkerPoint::UpdateUiForService()
 	this->m_Controls.pushButtonPelvisCheckpoint->setEnabled(notTrackingDeviceTips.isEmpty());
 }
 
-itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> QPelvisMarkerPoint::GetServiceModel() const
+itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> 
+  QPelvisMarkerPoint::GetServiceModel() const
 {
 	auto context = PluginActivator::GetPluginContext();
 	auto serviceRef = context->getServiceReference<lancet::SpatialFittingAbstractService>();
@@ -165,6 +186,13 @@ itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> QPelvisMarkerP
 	}
 
 	return lancet::spatial_fitting::PelvisCheckPointModel::Pointer();
+}
+
+lancet::IDevicesAdministrationService* QPelvisMarkerPoint::GetDevicesService()
+{
+	auto context = PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::IDevicesAdministrationService>();
+	return context->getService<lancet::IDevicesAdministrationService>(serviceRef);
 }
 
 void QPelvisMarkerPoint::on_toolCollector_fail(int)
@@ -198,12 +226,38 @@ void QPelvisMarkerPoint::on_toolCollector_complete(mitk::NavigationData* data)
 
 		// Upload service.
 		this->GetServiceModel()->SetCheckPoint(data);
+		MITK_INFO << "collect point " << data->GetPosition();
 	}
 }
 
 void QPelvisMarkerPoint::on_toolCollector_step(int step, mitk::NavigationData*)
 {
   this->m_Controls.progressBarPelvisCheckpoint->setValue(step);
+}
+
+void QPelvisMarkerPoint::InitializeTrackingToolsWidget()
+{
+	using TrackingTools = lancet::DeviceTrackingWidget::Tools;
+	this->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VProbe);
+	this->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VPelvis);
+
+	lancet::IDevicesAdministrationService* sender = this->GetDevicesService();
+	if (sender && sender->GetConnector().IsNotNull())
+	{
+		auto vegaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Vega");
+		auto kukaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Kuka");
+
+		if (this->m_Controls.widgetTrackingTools->HasTrackingToolSource("Vega Tracking Source"))
+		{
+			this->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Vega Tracking Source");
+		}
+		if (this->m_Controls.widgetTrackingTools->HasTrackingToolSource("Kuka Robot Tracking Source"))
+		{
+			this->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Kuka Robot Tracking Source");
+		}
+		this->m_Controls.widgetTrackingTools->AddTrackingToolSource(vegaTrackSource);
+		this->m_Controls.widgetTrackingTools->AddTrackingToolSource(kukaTrackSource);
+	}
 }
 
 void QPelvisMarkerPoint::on_pushButtonPelvisCheckpoint_clicked()

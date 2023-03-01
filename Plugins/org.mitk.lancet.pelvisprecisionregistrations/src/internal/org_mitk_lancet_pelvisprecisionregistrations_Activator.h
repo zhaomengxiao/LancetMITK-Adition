@@ -28,7 +28,9 @@ namespace mitk
     void start(ctkPluginContext *context);
     void stop(ctkPluginContext *context);
 
+		static ctkPluginContext* GetPluginContext();
   }; // org_mitk_lancet_pelvisprecisionregistrations_Activator
 }
 
+typedef mitk::org_mitk_lancet_pelvisprecisionregistrations_Activator PluginActivator;
 #endif // org_mitk_lancet_pelvisprecisionregistrations_Activator_h

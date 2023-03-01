@@ -5,6 +5,7 @@
 // Qt
 #include <QDir>
 #include <QFile>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QJsonParseError>
@@ -159,6 +160,23 @@ namespace lancet
 			jsonRootObject.toObject()["editorWidgetIdentify"].toString());
 		retval_property->SetKeywordValue(StateMachineActionProperty::Keywords::FUNCTION_ID,
 			jsonRootObject.toObject()["fucntionWidgetIdentify"].toString());
+
+		berry::SmartPointer<StateMachineActionProperty::IQActionStyleProperty> actionStyleProperty(
+		new StateMachineActionProperty::IQActionStyleProperty);
+
+		auto themesArray = jsonRootObject.toObject()["themes"].toArray();
+
+		for (int index = 0; index < themesArray.size(); ++index)
+		{
+			IStateMachineActionProperty::IQActionStyleProperty::IThemeStyle style;
+
+			QJsonValue value = themesArray.at(index);
+			style.editorWidgetQssFilePath = value.toObject()["editorWidgetQssFilePath"].toString();
+			style.fucntionWidgetQssFilePath = value.toObject()["fucntionWidgetQssFilePath"].toString();
+
+			actionStyleProperty->SetStyle(value.toObject()["styleName"].toString(), style);
+		}
+		retval_property->SetIQActionStyleProperty(actionStyleProperty);
 
 		return retval_property;
 	}

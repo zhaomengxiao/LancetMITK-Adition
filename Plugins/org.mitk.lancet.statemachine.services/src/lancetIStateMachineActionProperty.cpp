@@ -6,6 +6,7 @@ namespace lancet
 	struct IStateMachineActionProperty::IStateMachineActionPropertyPrivateImp
 	{
 		QMap<QString, QVariant> mapKeywords;
+		berry::SmartPointer<IQActionStyleProperty> actionStyleProperty;
 	};
 
 	struct IStateMachineActionProperty::IQActionStyleProperty::IQActionStylePropertyPrivateImp
@@ -88,6 +89,32 @@ namespace lancet
 	void IStateMachineActionProperty::SetStateUiName(const QString& name)
 	{
 		this->SetKeywordValue(Keywords::UI_NAME, name);
+	}
+	QString IStateMachineActionProperty::GetStateEditorWidgetIdentify() const
+	{
+		return this->GetKeywordValue(Keywords::EDITOR_ID).toString();
+	}
+	void IStateMachineActionProperty::SetStateEditorWidgetIdentify(const QString& id)
+	{
+		this->SetKeywordValue(Keywords::EDITOR_ID, id);
+	}
+	QString IStateMachineActionProperty::GetStateFucntionWidgetIdentify() const
+	{
+		return this->GetKeywordValue(Keywords::FUNCTION_ID).toString();
+	}
+	void IStateMachineActionProperty::SetStateFucntionWidgetIdentify(const QString& id)
+	{
+		this->SetKeywordValue(Keywords::FUNCTION_ID, id);
+	}
+	berry::SmartPointer<IStateMachineActionProperty::IQActionStyleProperty>
+		IStateMachineActionProperty::GetIQActionStyleProperty() const
+	{
+		return this->imp->actionStyleProperty;
+	}
+	void IStateMachineActionProperty::SetIQActionStyleProperty(
+		const berry::SmartPointer<IQActionStyleProperty>& actionStyleProperty)
+	{
+		this->imp->actionStyleProperty = actionStyleProperty;
 	}
 	IStateMachineActionProperty::IQActionStyleProperty::IQActionStyleProperty()
 		: imp(std::make_shared<IQActionStylePropertyPrivateImp>())

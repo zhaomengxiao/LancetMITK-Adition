@@ -40,7 +40,7 @@ namespace lancet
 		struct TrackingDeviceProperties
 		{
 			// Last connection status of the device, true: connection, false: disconnection.
-			bool lastConnectedState = false;
+			TrackingDeviceState lastConnectedState = UnInstall;
 			mitk::DataStorage::Pointer dataStorage;
 			mitk::TrackingDeviceSource::Pointer trackingDeviceSource;
 			mitk::NavigationToolStorage::Pointer navigationToolStorage; 
@@ -54,22 +54,63 @@ namespace lancet
 	TrackingDeviceManage::TrackingDeviceManage()
 		: imp(std::make_shared<TrackingDeviceManagePrivateImp>())
 	{
-		this->imp->tmScanfTrackingDeviceConnected.setInterval(1000);
+		this->imp->tmScanfTrackingDeviceConnected.setInterval(500);
 		connect(&this->imp->tmScanfTrackingDeviceConnected, &QTimer::timeout, this, [=]() {
 			for (auto& item = this->imp->mapTrackingDerviceProperties.begin();
 				item != this->imp->mapTrackingDerviceProperties.end(); ++item)
 			{
-				if (item->second.lastConnectedState != this->GetTrackingDeviceSource(item->first)->IsConnected())
+				int tempConnectedState = item->second.lastConnectedState;
+				TrackingDeviceState backupConnectedState = item->second.lastConnectedState;
+
+				switch (item->second.lastConnectedState)
 				{
-					// 同步连接状态
-					item->second.lastConnectedState = this->GetTrackingDeviceSource(item->first)->IsConnected();
-					// 反馈连接状态更新
-					int state = Install;
-					if (item->second.lastConnectedState)
+				case TrackingDeviceState::UnInstall:
+					if (tempConnectedState == TrackingDeviceState::UnInstall)
 					{
-						state |= TrackingDeviceState::Connected;
+						tempConnectedState = TrackingDeviceState::Install;
+						item->second.lastConnectedState = TrackingDeviceState::Install;
 					}
-					emit this->TrackingDeviceStateChange(item->first, (TrackingDeviceState)state);
+					break;
+				case TrackingDeviceState::Install:
+					if (this->GetTrackingDeviceSource(item->first)->IsConnected())
+					{
+						tempConnectedState = TrackingDeviceState::Install | TrackingDeviceState::Connected;
+						item->second.lastConnectedState = TrackingDeviceState::Connected;
+					}
+					else
+					{
+						tempConnectedState = TrackingDeviceState::Install;
+						item->second.lastConnectedState = TrackingDeviceState::Install;
+					}
+					break;
+				case TrackingDeviceState::Connected:
+					if (false == this->GetTrackingDeviceSource(item->first)->IsConnected())
+					{
+						tempConnectedState = TrackingDeviceState::Install;
+						item->second.lastConnectedState = TrackingDeviceState::Install;
+					}
+					else if (this->GetTrackingDeviceSource(item->first)->IsTracking())
+					{
+						tempConnectedState = TrackingDeviceState::Install | TrackingDeviceState::Connected | TrackingDeviceState::Tracking;
+						item->second.lastConnectedState = TrackingDeviceState::Tracking;
+					}
+					else
+					{
+						tempConnectedState = TrackingDeviceState::Install | TrackingDeviceState::Connected;
+						item->second.lastConnectedState = TrackingDeviceState::Connected;
+					}
+					break;
+				case TrackingDeviceState::Tracking:
+					if (false == this->GetTrackingDeviceSource(item->first)->IsTracking())
+					{
+						tempConnectedState = TrackingDeviceState::Install | TrackingDeviceState::Connected;
+						item->second.lastConnectedState = TrackingDeviceState::Connected;
+					}
+					break;
+				}
+				if (backupConnectedState != item->second.lastConnectedState)
+				{
+					emit this->TrackingDeviceStateChange(item->first, (TrackingDeviceState)tempConnectedState);
 				}
 			}
 		});
@@ -124,6 +165,11 @@ namespace lancet
 			lancet::TrackingDeviceSourceConfiguratorLancet::New(ToolStorage, vegaTrackingDevice);
 		lancet::NavigationObjectVisualizationFilter::Pointer Visualizer;
 		mitk::TrackingDeviceSource::Pointer trackingDeviceSource = SourceFactory->CreateTrackingDeviceSource(Visualizer);
+
+		if (Visualizer.IsNull() || trackingDeviceSource.IsNull())
+		{
+			return false;
+		}
 		trackingDeviceSource->SetToolMetaDataCollection(ToolStorage);
 
 		properties.dataStorage = dataStorage;
@@ -132,10 +178,6 @@ namespace lancet
 		properties.trackingDeviceSource = trackingDeviceSource;
 		this->imp->mapTrackingDerviceProperties[name] = properties;
 
-		if (Visualizer.IsNull() || trackingDeviceSource.IsNull())
-		{
-			return false;
-		}
 		return true;
 	}
 
@@ -145,7 +187,9 @@ namespace lancet
 		{
 			this->GetTrackingDevice(name)->StopTracking();
 			this->GetTrackingDevice(name)->CloseConnection();
+
 			this->imp->mapTrackingDerviceProperties.erase(name);
+			emit this->TrackingDeviceStateChange(name, TrackingDeviceState::UnInstall);
 			return true;
 		}
 		return false;
@@ -154,13 +198,13 @@ namespace lancet
 	{
 		if (name == "Vega")
 		{
-			//return NDIVegaTrackingDevice::New();
-			return mitk::VirtualTrackingDevice::New();
+			return NDIVegaTrackingDevice::New();
+			//return mitk::VirtualTrackingDevice::New();
 		}
 		if (name == "Kuka")
 		{
-			//return KukaRobotDevice_New::New();
-			return mitk::VirtualTrackingDevice::New();
+			return KukaRobotDevice_New::New();
+			//return mitk::VirtualTrackingDevice::New();
 		}
 
 		return itk::SmartPointer<mitk::TrackingDevice>();

@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/markers">
+        <file>marker/cart_marker.png</file>
+        <file>marker/femur_marker.png</file>
+        <file>marker/pelvis_marker.png</file>
+        <file>marker/probe_marker.png</file>
+        <file>marker/robot_marker.png</file>
+    </qresource>
+</RCC>

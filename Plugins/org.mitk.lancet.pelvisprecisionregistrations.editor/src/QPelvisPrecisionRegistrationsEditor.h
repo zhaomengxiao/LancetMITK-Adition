@@ -14,6 +14,7 @@ found in the LICENSE file.
 #define QPelvisPrecisionRegistrationsEditor_H
 
 // mitk gui qt common plugin
+#include <QTImer>
 #include <QmitkAbstractMultiWidgetEditor.h>
 
 #include <mitkILinkedRenderWindowPart.h>
@@ -29,6 +30,8 @@ found in the LICENSE file.
 #include "ui_QPelvisPrecisionRegistrationsEditor.h"
 class QmitkStdMultiWidget;
 class QPelvisPrecisionRegistrationsEditorPrivate;
+namespace lancet { class IDevicesAdministrationService; }
+namespace lancet::spatial_fitting { class PelvicRoughRegistrationsModel; }
 
 /**
  * @brief
@@ -85,13 +88,35 @@ public:
   * @brief Overridden from berry::IPartListener
   */
   virtual berry::IPartListener::Events::Types GetPartEventTypes() const override;
+public slots:
+	//void onV
+private:
+	void InitializeDataStorageForService();
+
+	void InitializeMitkMultiWidget();
+	void UnInitializeMitkMultiWidget();
+
+	void InitializeQtEventOnService();
+	void UnInitializeQtEventOnService();
+
+	void InitializeMitkMultiWidgetOnCollectModel();
+	void InitializeMitkMultiWidgetOnVerifyModel();
+
+	void InitializeWidgetOnlyOne();
+
+	itk::SmartPointer<mitk::DataStorage> GetDataStorage() const;
+
+	using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
+	itk::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
+
+	static lancet::IDevicesAdministrationService* GetDevicesService();
 private:
 	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
 	Ui::QPelvisPrecisionRegistrationsEditor m_Controls;
 protected:
+	QTimer updateProbeTm;
+	QStringList listDataStorageNodes;
 	typedef berry::IPreferencesService berryIPreferencesService;
-	//berry::IEditorInput::Pointer editorInput;
-	//berry::IEditorSite::Pointer editorSite;
 	QSharedPointer<QWidget> widgetInstace;
 	ctkServiceTracker<berryIPreferencesService*> m_PrefServiceTracker;
 	berry::IBerryPreferences::Pointer m_Prefs;
