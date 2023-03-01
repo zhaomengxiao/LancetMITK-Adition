@@ -441,13 +441,15 @@ void THAPlanning::On_pushButton_femoralVersion_clicked()
 
 void THAPlanning::On_pushButton_initializePelvisObject_clicked()
 {
+	auto pelvisImage = GetDataStorage()->GetNamedObject<mitk::Image>("pelvisImage");
 	auto pelvisSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("pelvis");
 	auto asisPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("ASIS");
 	auto pelvisCORpset = GetDataStorage()->GetNamedObject<mitk::PointSet>("pelvisCOR");
 	auto midlinePset = GetDataStorage()->GetNamedObject<mitk::PointSet>("midline");
-
+	
 	m_pelvisObject = lancet::ThaPelvisObject::New();
 
+	m_pelvisObject->Setimage_pelvis(pelvisImage);
 	m_pelvisObject->Setsurface_pelvis(pelvisSurface);
 	m_pelvisObject->Setpset_ASIS(asisPset);
 	m_pelvisObject->Setpset_pelvisCOR(pelvisCORpset);
@@ -492,6 +494,7 @@ void THAPlanning::On_pushButton_initializeRfemurObject_clicked()
 {
 	m_RfemurObject = lancet::ThaFemurObject::New();
 
+	auto femurImage = GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_right");
 	auto femurSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("femur_R");
 	auto lesserTrochanterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("lesserTrochanter_R");
 	auto femurCORpSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCOR_R");
@@ -509,6 +512,7 @@ void THAPlanning::On_pushButton_initializeRfemurObject_clicked()
 		m_RfemurObject->SetisOperationSide(0);
 	}
 
+	m_RfemurObject->Setimage_femur(femurImage);
 	m_RfemurObject->Setsurface_femur(femurSurface);
 	m_RfemurObject->Setpset_lesserTrochanter(lesserTrochanterPset);
 	m_RfemurObject->Setpset_femurCOR(femurCORpSet);
@@ -540,6 +544,7 @@ void THAPlanning::On_pushButton_initializeLfemurObject_clicked()
 {
 	m_LfemurObject = lancet::ThaFemurObject::New();
 
+	auto femurImage = GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_left");
 	auto femurSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("femur_L");
 	auto lesserTrochanterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("lesserTrochanter_L");
 	auto femurCORpSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCOR_L");
@@ -558,6 +563,7 @@ void THAPlanning::On_pushButton_initializeLfemurObject_clicked()
 		m_LfemurObject->SetisOperationSide(1);
 	}
 
+	m_LfemurObject->Setimage_femur(femurImage);
 	m_LfemurObject->Setsurface_femur(femurSurface);
 	m_LfemurObject->Setpset_lesserTrochanter(lesserTrochanterPset);
 	m_LfemurObject->Setpset_femurCOR(femurCORpSet);
@@ -1534,22 +1540,65 @@ void THAPlanning::pushButton_testStencil_clicked()
 
 void THAPlanning::pushButton_demoDRR_clicked()
 {
+	// auto imageCombiner = lancet::Tha3DImageGenerator::New();
+	//
+	// imageCombiner->SetPelvisImage(GetDataStorage()->GetNamedObject<mitk::Image>("pelvisImage"));
+	// imageCombiner->SetFemurImage_R(GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_right"));
+	// imageCombiner->SetFemurImage_L(GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_left"));
+	//
+	// imageCombiner->SetCupSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("cup"));
+	// imageCombiner->SetLinerSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("liner"));
+	// imageCombiner->SetStemSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("stem"));
+	// imageCombiner->SetBallHeadSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("head_28"));
+	//
+	// auto image = imageCombiner->Generate3Dimage();
+	//
+	// auto newNode = mitk::DataNode::New();
+	// newNode->SetName("combined CT");
+	// newNode->SetData(image);
+	// GetDataStorage()->Add(newNode);
+
+	if (GetDataStorage()->GetNamedNode("synthesized CT") != nullptr
+		&& GetDataStorage()->GetNamedNode("DRR") != nullptr)
+	{
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("synthesized CT"));
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("DRR"));
+	};
+
 	auto imageCombiner = lancet::Tha3DImageGenerator::New();
+	imageCombiner->SetPelvisImage(m_pelvisObject->Getimage_pelvis());
+	imageCombiner->SetFemurImage_R(m_RfemurObject->Getimage_femur());
+	imageCombiner->SetFemurImage_L(m_LfemurObject->Getimage_femur());
 
-	imageCombiner->SetPelvisImage(GetDataStorage()->GetNamedObject<mitk::Image>("pelvisImage"));
-	imageCombiner->SetFemurImage_R(GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_right"));
-	imageCombiner->SetFemurImage_L(GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_left"));
-
-	imageCombiner->SetCupSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("cup"));
-	imageCombiner->SetLinerSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("liner"));
-	imageCombiner->SetStemSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("stem"));
-	imageCombiner->SetBallHeadSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("head_28"));
+	if(m_Controls.radioButton_demoIntrop->isChecked()) // need to include implants
+	{
+		imageCombiner->SetCupSurface(m_CupObject->GetSurface_cup());
+		imageCombiner->SetLinerSurface(m_CupObject->GetSurface_liner());
+		imageCombiner->SetStemSurface(m_StemObject->GetSurface_stem());
+		imageCombiner->SetBallHeadSurface(m_StemObject->GetSurface_head());
+	}
 
 	auto image = imageCombiner->Generate3Dimage();
-
+	
 	auto newNode = mitk::DataNode::New();
-	newNode->SetName("combined CT");
+	newNode->SetName("synthesized CT");
 	newNode->SetData(image);
 	GetDataStorage()->Add(newNode);
+
+
+	// Generate DRR
+	itk::SmartPointer<DrrFilter> drrFilter = DrrFilter::New();
+
+	drrFilter->Setsid(1500);
+	drrFilter->Setrx(270);
+	drrFilter->Setty(-500);
+	drrFilter->SetInput(image);
+	drrFilter->Update();
+
+	auto newNode_1 = mitk::DataNode::New();
+	newNode_1->SetName("DRR");
+	newNode_1->SetData(drrFilter->GetOutput());
+
+	GetDataStorage()->Add(newNode_1);
 
 }

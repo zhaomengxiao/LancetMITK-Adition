@@ -50,6 +50,9 @@ namespace lancet
 		// itkSetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 		itkGetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 
+		itkSetMacro(image_pelvis, mitk::Image::Pointer)
+		itkGetMacro(image_pelvis, mitk::Image::Pointer)
+
 		itkSetMacro(surface_pelvis, mitk::Surface::Pointer)
 		itkGetMacro(surface_pelvis, mitk::Surface::Pointer)
 
@@ -126,6 +129,9 @@ namespace lancet
 		// sit pelvic tilt in degree, anterior(+), posterior(-)
 		double m_pelvicTilt_sit{ 0 };
 
+		// the pelvis image
+		mitk::Image::Pointer m_image_pelvis;
+
 		// the complete pelvis surface
 		mitk::Surface::Pointer m_surface_pelvis;
 		
@@ -141,7 +147,7 @@ namespace lancet
 		// the pelvis midline point, contains one point
 		mitk::PointSet::Pointer m_pset_midline;
 		
-
+		
 	};
 }
 

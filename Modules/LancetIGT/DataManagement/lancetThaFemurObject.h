@@ -47,6 +47,9 @@ namespace lancet
 		itkGetMacro(femurVersion, double)
 		itkSetMacro(femurVersion, double)
 
+		itkGetMacro(image_femur, mitk::Image::Pointer)
+		itkSetMacro(image_femur, mitk::Image::Pointer)
+
 		itkGetMacro(surface_femur, mitk::Surface::Pointer)
 		itkSetMacro(surface_femur, mitk::Surface::Pointer)
 
@@ -133,6 +136,9 @@ namespace lancet
 
 		// anteversion is (+), retroversion is (-)
 		double m_femurVersion{ 0 };
+
+		// femur image
+		mitk::Image::Pointer m_image_femur;
 
 		// femur surface
 		mitk::Surface::Pointer m_surface_femur;

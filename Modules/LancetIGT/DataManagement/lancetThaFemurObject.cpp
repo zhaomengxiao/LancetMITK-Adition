@@ -21,11 +21,13 @@ found in the LICENSE file.
 #include <vtkSphereSource.h>
 #include <vtkTransformPolyDataFilter.h>
 
+#include "mitkMatrixConvert.h"
 #include "surfaceregistraion.h"
 
 lancet::ThaFemurObject::ThaFemurObject():
 m_vtkMatrix_groupGeometry(vtkMatrix4x4::New()),
 m_vtkMatrix_canalFrameToMechanicFrame(vtkMatrix4x4::New()),
+m_image_femur(mitk::Image::New()),
 m_surface_femur(mitk::Surface::New()),
 m_surface_femurFrame(mitk::Surface::New()),
 m_pset_neckCenter(mitk::PointSet::New()),
@@ -51,7 +53,23 @@ void lancet::ThaFemurObject::SetGroupGeometry(vtkSmartPointer<vtkMatrix4x4> newM
 	m_pset_femurCanal->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
 	m_pset_epicondyles->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
 
-	// m_vtkMatrix_groupGeometry and newMatrix should both be used to handle mitk::Image
+	// previous m_vtkMatrix_groupGeometry and newMatrix should both be used to handle mitk::Image
+	auto affineTrans = m_image_femur->GetGeometry()->GetIndexToWorldTransform();
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+	mitk::TransferItkTransformToVtkMatrix(affineTrans, tmpMatrix);
+
+	vtkNew<vtkMatrix4x4> preMatrix;
+	preMatrix->DeepCopy(m_vtkMatrix_groupGeometry);
+	preMatrix->Invert();
+
+	vtkNew<vtkTransform> tmpTrans;
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(tmpMatrix);
+	tmpTrans->Concatenate(preMatrix);
+	tmpTrans->Concatenate(newMatrix);
+	tmpTrans->Update();
+
+	m_image_femur->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
 
 	m_vtkMatrix_groupGeometry->DeepCopy(newMatrix);
 }
@@ -250,6 +268,12 @@ bool lancet::ThaFemurObject::CheckDataAvailability()
 	// if m_isOperationSide == 0, less data are required
 	if(m_isOperationSide == 0)
 	{
+		if(m_image_femur->GetVtkImageData() == nullptr)
+		{
+			MITK_ERROR << "m_image_femur is missing";
+			return false;
+		}
+
 		if( m_surface_femur ->GetVtkPolyData() == nullptr)
 		{
 			MITK_ERROR << "m_surface_femur is missing";
@@ -366,6 +390,20 @@ bool lancet::ThaFemurObject::AlignFemurObjectWithWorldFrame()
 	tmpFilter->Update();
 
 	m_surface_femur->SetVtkPolyData(tmpFilter->GetOutput());
+
+	// Move femur image
+	auto affineTrans = m_image_femur->GetGeometry()->GetIndexToWorldTransform();
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+	mitk::TransferItkTransformToVtkMatrix(affineTrans, tmpMatrix);
+
+	vtkNew<vtkTransform> tmpTrans;
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(tmpMatrix);
+	tmpTrans->Concatenate(femurToWorldMatrix);
+	tmpTrans->Update();
+
+	m_image_femur->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
 
 	// Rewrite the inside points of m_pset_lesserTrochanter, m_pset_femurCOR, m_pset_neckCenter, m_pset_femurCanal and m_pset_epicondyles
 	m_pset_lesserTrochanter->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(femurToWorldMatrix);

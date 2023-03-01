@@ -21,10 +21,12 @@ found in the LICENSE file.
 #include <vtkSphereSource.h>
 #include <vtkTransformPolyDataFilter.h>
 
+#include "mitkMatrixConvert.h"
 #include "surfaceregistraion.h"
 
 lancet::ThaPelvisObject::ThaPelvisObject()
 	:m_vtkMatrix_groupGeometry(vtkMatrix4x4::New()),
+    m_image_pelvis(mitk::Image::New()),
 	m_surface_pelvis(mitk::Surface::New()),
 	m_surface_pelvisFrame(mitk::Surface::New()),
 	m_pset_ASIS(mitk::PointSet::New()),
@@ -227,7 +229,22 @@ void lancet::ThaPelvisObject::SetGroupGeometry(vtkSmartPointer<vtkMatrix4x4> new
 
 	m_pset_midline->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
 
-	// m_vtkMatrix_groupGeometry and newMatrix should both be used to handle mitk::Image
+	// previous m_vtkMatrix_groupGeometry and newMatrix should both be used to handle mitk::Image
+	auto preAffineTrans = m_image_pelvis->GetGeometry()->GetIndexToWorldTransform();
+	vtkNew<vtkMatrix4x4> preVtkMatrix;
+	mitk::TransferItkTransformToVtkMatrix(preAffineTrans, preVtkMatrix);
+
+	vtkNew<vtkTransform> tmpTrans;
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+	tmpMatrix->DeepCopy(m_vtkMatrix_groupGeometry);
+	tmpMatrix->Invert();
+	tmpTrans->PostMultiply();
+	tmpTrans->Concatenate(preVtkMatrix);
+	tmpTrans->Concatenate(tmpMatrix);
+	tmpTrans->Concatenate(newMatrix);
+	tmpTrans->Update();
+	
+	m_image_pelvis->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
 
 	m_vtkMatrix_groupGeometry->DeepCopy(newMatrix);
 }
@@ -267,6 +284,12 @@ void lancet::ThaPelvisObject::CalculateSupinePelvicTilt()
 
 bool lancet::ThaPelvisObject::CheckDataAvailability()
 {
+	if (m_image_pelvis->GetVtkImageData() == nullptr)
+	{
+		MITK_ERROR << "m_image_pelvis is missing";
+		return false;
+	}
+
 	if (m_surface_pelvis->GetVtkPolyData() == nullptr)
 	{
 		MITK_ERROR << "m_surface_pelvis is missing";
@@ -326,7 +349,18 @@ bool lancet::ThaPelvisObject::AlignPelvicObjectWithWorldFrame()
 	tmpFilter->Update();
 
 	m_surface_pelvis->SetVtkPolyData(tmpFilter->GetOutput());
-	
+
+	// Move the pelvis image
+	auto preAffineTrans = m_image_pelvis->GetGeometry()->GetIndexToWorldTransform();
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+	mitk::TransferItkTransformToVtkMatrix(preAffineTrans, tmpMatrix);
+	vtkNew<vtkTransform> tmpTrans;
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(tmpMatrix);
+	tmpTrans->Concatenate(pelvicToWorldMatrix);
+	tmpTrans->Update();
+	m_image_pelvis->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
 	// Rewrite the inside points of m_pset_ASIS, m_pset_pelvisCOR and m_pset_midline
 	m_pset_ASIS->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
 	m_pset_pelvisCOR->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
