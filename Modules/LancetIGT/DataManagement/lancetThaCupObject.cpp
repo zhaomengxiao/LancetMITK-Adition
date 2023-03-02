@@ -16,7 +16,10 @@ lancet::ThaCupObject::ThaCupObject():
 m_vtkMatrix_groupGeometry(vtkMatrix4x4::New()),
 m_Surface_cup(mitk::Surface::New()),
 m_Surface_liner(mitk::Surface::New()),
-m_Surface_cupFrame(mitk::Surface::New())
+m_Surface_cupFrame(mitk::Surface::New()),
+m_Node_Surface_cup(mitk::DataNode::New()),
+m_Node_Surface_liner(mitk::DataNode::New()),
+m_Node_Surface_cupFrame(mitk::DataNode::New())
 {
 	CreateInternalFrame();
 }
@@ -213,6 +216,28 @@ bool lancet::ThaCupObject::CheckDataAvailability()
 	return true;
 }
 
+void lancet::ThaCupObject::SetNode_Surface_cup(mitk::DataNode::Pointer node)
+{
+	m_Node_Surface_cup->SetVisibility(0);
+	m_Node_Surface_cup = node;
+	// m_Surface_cup = dynamic_cast<mitk::Surface*>(node->GetData());
+	SetCupSurface(dynamic_cast<mitk::Surface*>(node->GetData()));
+}
+
+void lancet::ThaCupObject::SetNode_Surface_liner(mitk::DataNode::Pointer node)
+{
+	m_Node_Surface_liner->SetVisibility(0);
+	m_Node_Surface_liner = node;
+	// m_Surface_liner = dynamic_cast<mitk::Surface*>(node->GetData());
+	SetLinerSurface(dynamic_cast<mitk::Surface*>(node->GetData()));
+}
+
+void lancet::ThaCupObject::SetNode_Surface_cupFrame(mitk::DataNode::Pointer node)
+{
+	m_Node_Surface_cupFrame->SetVisibility(0);
+	m_Node_Surface_cupFrame = node;
+	m_Surface_cupFrame = dynamic_cast<mitk::Surface*>(node->GetData());
+}
 
 
 

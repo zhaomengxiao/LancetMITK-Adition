@@ -18,7 +18,11 @@ m_vtkMatrix_groupGeometry(vtkMatrix4x4::New()),
 m_Surface_stem(mitk::Surface::New()),
 m_Surface_stemFrame(mitk::Surface::New()),
 m_Pset_headCenter(mitk::PointSet::New()),
-m_Surface_head(mitk::Surface::New())
+m_Surface_head(mitk::Surface::New()),
+m_Node_Surface_stem(mitk::DataNode::New()),
+m_Node_Surface_head(mitk::DataNode::New()),
+m_Node_Pset_headCenter(mitk::DataNode::New()),
+m_Node_Surface_stemFrame(mitk::DataNode::New())
 {
 	CreateInternalFrame();
 }
@@ -286,5 +290,38 @@ bool lancet::ThaStemObject::AlignStemObjectWithWorldFrame()
 
 	return true;
 }
+
+void lancet::ThaStemObject::SetNode_Surface_stemFrame(mitk::DataNode::Pointer node)
+{
+	m_Node_Surface_stemFrame->SetVisibility(0);
+
+	m_Node_Surface_stemFrame = node;
+	m_Surface_stemFrame = dynamic_cast<mitk::Surface*>(node->GetData());
+}
+
+void lancet::ThaStemObject::SetNode_Surface_stem(mitk::DataNode::Pointer node)
+{
+	m_Node_Surface_stem->SetVisibility(0);
+
+	m_Node_Surface_stem = node;
+	SetStemSurface(dynamic_cast<mitk::Surface*>(node->GetData()));
+}
+
+void lancet::ThaStemObject::SetNode_Pset_headCenter(mitk::DataNode::Pointer node)
+{
+	m_Node_Pset_headCenter->SetVisibility(0);
+
+	m_Node_Pset_headCenter = node;
+	SetHeadCenter(dynamic_cast<mitk::PointSet*>(node->GetData()));
+}
+
+void lancet::ThaStemObject::SetNode_Surface_head(mitk::DataNode::Pointer node)
+{
+	m_Node_Surface_head->SetVisibility(0);
+
+	m_Node_Surface_head = node;
+	SetHeadSurface(dynamic_cast<mitk::Surface*>(node->GetData()));
+}
+
 
 

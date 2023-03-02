@@ -34,7 +34,15 @@ m_pset_neckCenter(mitk::PointSet::New()),
 m_pset_lesserTrochanter(mitk::PointSet::New()),
 m_pset_femurCOR(mitk::PointSet::New()),
 m_pset_femurCanal(mitk::PointSet::New()),
-m_pset_epicondyles(mitk::PointSet::New())
+m_pset_epicondyles(mitk::PointSet::New()),
+m_Node_image_femur(mitk::DataNode::New()),
+m_Node_surface_femur(mitk::DataNode::New()),
+m_Node_surface_femurFrame(mitk::DataNode::New()),
+m_Node_pset_neckCenter(mitk::DataNode::New()),
+m_Node_pset_lesserTrochanter(mitk::DataNode::New()),
+m_Node_pset_femurCOR(mitk::DataNode::New()),
+m_Node_pset_femurCanal(mitk::DataNode::New()),
+m_Node_pset_epicondyles(mitk::DataNode::New())
 {
 	CreateInternalFrame();
 }
@@ -576,3 +584,56 @@ void lancet::ThaFemurObject::CalculateCanalFrameToMechanicFrame()
 	}
 
 }
+
+void lancet::ThaFemurObject::SetNode_image_femur(mitk::DataNode::Pointer node)
+{
+	m_Node_image_femur = node;
+	m_image_femur = dynamic_cast<mitk::Image*>(node->GetData());
+}
+
+void lancet::ThaFemurObject::SetNode_surface_femur(mitk::DataNode::Pointer node)
+{
+	m_Node_surface_femur = node;
+	m_surface_femur = dynamic_cast<mitk::Surface*>(node->GetData());
+}
+
+void lancet::ThaFemurObject::SetNode_pset_neckCenter(mitk::DataNode::Pointer node)
+{
+	m_Node_pset_neckCenter = node;
+	m_pset_neckCenter = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaFemurObject::SetNode_pset_femurCOR(mitk::DataNode::Pointer node)
+{
+	m_Node_pset_femurCOR = node;
+	m_pset_femurCOR = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaFemurObject::SetNode_pset_epicondyles(mitk::DataNode::Pointer node)
+{
+	m_Node_pset_epicondyles = node;
+	m_pset_epicondyles = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaFemurObject::SetNode_pset_femurCanal(mitk::DataNode::Pointer node)
+{
+	m_Node_pset_femurCanal = node;
+	m_pset_femurCanal = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaFemurObject::SetNode_pset_lesserTrochanter(mitk::DataNode::Pointer node)
+{
+	m_Node_pset_lesserTrochanter = node;
+	m_pset_lesserTrochanter = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaFemurObject::SetNode_surface_femurFrame(mitk::DataNode::Pointer node)
+{
+	m_Node_surface_femurFrame = node;
+	m_surface_femurFrame = dynamic_cast<mitk::Surface*>(node->GetData());
+}
+
+
+
+
+

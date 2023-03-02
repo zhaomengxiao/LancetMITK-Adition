@@ -49,6 +49,13 @@ namespace lancet
 		itkSetMacro(Surface_cupFrame, mitk::Surface::Pointer)
 		itkGetMacro(Surface_cupFrame, mitk::Surface::Pointer)
 
+		void SetNode_Surface_cup(mitk::DataNode::Pointer node);
+		void SetNode_Surface_liner(mitk::DataNode::Pointer node);
+		void SetNode_Surface_cupFrame(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_Surface_cup, mitk::DataNode::Pointer);
+		itkGetMacro(Node_Surface_liner, mitk::DataNode::Pointer);
+		itkGetMacro(Node_Surface_cupFrame, mitk::DataNode::Pointer);
+
 		/*
 		 * Move all the data components except for the cupFrame
 		 * which is created at the world frame position,
@@ -84,6 +91,11 @@ namespace lancet
 
 		// cup frame surface
 		mitk::Surface::Pointer m_Surface_cupFrame;
+
+		mitk::DataNode::Pointer m_Node_Surface_cup;
+		mitk::DataNode::Pointer m_Node_Surface_liner;
+		mitk::DataNode::Pointer m_Node_Surface_cupFrame;
+
 
 	};
 }

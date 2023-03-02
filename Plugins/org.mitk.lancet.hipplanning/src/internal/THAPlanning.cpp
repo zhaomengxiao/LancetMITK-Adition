@@ -441,19 +441,25 @@ void THAPlanning::On_pushButton_femoralVersion_clicked()
 
 void THAPlanning::On_pushButton_initializePelvisObject_clicked()
 {
-	auto pelvisImage = GetDataStorage()->GetNamedObject<mitk::Image>("pelvisImage");
-	auto pelvisSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("pelvis");
-	auto asisPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("ASIS");
-	auto pelvisCORpset = GetDataStorage()->GetNamedObject<mitk::PointSet>("pelvisCOR");
-	auto midlinePset = GetDataStorage()->GetNamedObject<mitk::PointSet>("midline");
-	
 	m_pelvisObject = lancet::ThaPelvisObject::New();
 
-	m_pelvisObject->Setimage_pelvis(pelvisImage);
-	m_pelvisObject->Setsurface_pelvis(pelvisSurface);
-	m_pelvisObject->Setpset_ASIS(asisPset);
-	m_pelvisObject->Setpset_pelvisCOR(pelvisCORpset);
-	m_pelvisObject->Setpset_midline(midlinePset);
+	// auto pelvisImage = GetDataStorage()->GetNamedObject<mitk::Image>("pelvisImage");
+	// auto pelvisSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("pelvis");
+	// auto asisPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("ASIS");
+	// auto pelvisCORpset = GetDataStorage()->GetNamedObject<mitk::PointSet>("pelvisCOR");
+	// auto midlinePset = GetDataStorage()->GetNamedObject<mitk::PointSet>("midline");
+	//
+	// m_pelvisObject->Setimage_pelvis(pelvisImage);
+	// m_pelvisObject->Setsurface_pelvis(pelvisSurface);
+	// m_pelvisObject->Setpset_ASIS(asisPset);
+	// m_pelvisObject->Setpset_pelvisCOR(pelvisCORpset);
+	// m_pelvisObject->Setpset_midline(midlinePset);
+
+	m_pelvisObject->SetNode_image_pelvis(GetDataStorage()->GetNamedNode("pelvisImage"));
+	m_pelvisObject->SetNode_surface_pelvis(GetDataStorage()->GetNamedNode("pelvis"));
+	m_pelvisObject->SetNode_pset_ASIS(GetDataStorage()->GetNamedNode("ASIS"));
+	m_pelvisObject->SetNode_pset_pelvisCOR(GetDataStorage()->GetNamedNode("pelvisCOR"));
+	m_pelvisObject->SetNode_pset_midline(GetDataStorage()->GetNamedNode("midline"));
 
 	m_pelvisObject->AlignPelvicObjectWithWorldFrame();
 
@@ -465,6 +471,8 @@ void THAPlanning::On_pushButton_initializePelvisObject_clicked()
 	dataNode_pelvisFrame->SetName("pelvisFrame");
 
 	GetDataStorage()->Add(dataNode_pelvisFrame, GetDataStorage()->GetNamedNode("pelvis"));
+
+	m_pelvisObject->SetNode_surface_pelvisFrame(dataNode_pelvisFrame);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
@@ -494,13 +502,29 @@ void THAPlanning::On_pushButton_initializeRfemurObject_clicked()
 {
 	m_RfemurObject = lancet::ThaFemurObject::New();
 
-	auto femurImage = GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_right");
-	auto femurSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("femur_R");
-	auto lesserTrochanterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("lesserTrochanter_R");
-	auto femurCORpSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCOR_R");
-	auto neckCenterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("neckCenter_R");
-	auto femurCanalPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCanal_R");
-	auto epicondylesPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("epicondyles_R");
+	// auto femurImage = GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_right");
+	// auto femurSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("femur_R");
+	// auto lesserTrochanterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("lesserTrochanter_R");
+	// auto femurCORpSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCOR_R");
+	// auto neckCenterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("neckCenter_R");
+	// auto femurCanalPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCanal_R");
+	// auto epicondylesPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("epicondyles_R");
+	//
+	// m_RfemurObject->Setimage_femur(femurImage);
+	// m_RfemurObject->Setsurface_femur(femurSurface);
+	// m_RfemurObject->Setpset_lesserTrochanter(lesserTrochanterPset);
+	// m_RfemurObject->Setpset_femurCOR(femurCORpSet);
+	// m_RfemurObject->Setpset_neckCenter(neckCenterPset);
+	// m_RfemurObject->Setpset_femurCanal(femurCanalPset);
+	// m_RfemurObject->Setpset_epicondyles(epicondylesPset);
+
+	m_RfemurObject->SetNode_image_femur(GetDataStorage()->GetNamedNode("femurImage_right"));
+	m_RfemurObject->SetNode_surface_femur(GetDataStorage()->GetNamedNode("femur_R"));
+	m_RfemurObject->SetNode_pset_lesserTrochanter(GetDataStorage()->GetNamedNode("lesserTrochanter_R"));
+	m_RfemurObject->SetNode_pset_femurCOR(GetDataStorage()->GetNamedNode("femurCOR_R"));
+	m_RfemurObject->SetNode_pset_neckCenter(GetDataStorage()->GetNamedNode("neckCenter_R"));
+	m_RfemurObject->SetNode_pset_femurCanal(GetDataStorage()->GetNamedNode("femurCanal_R"));
+	m_RfemurObject->SetNode_pset_epicondyles(GetDataStorage()->GetNamedNode("epicondyles_R"));
 
 	m_RfemurObject->SetfemurSide(0);
 	// m_RfemurObject->SetisOperationSide(1);
@@ -511,14 +535,6 @@ void THAPlanning::On_pushButton_initializeRfemurObject_clicked()
 	{
 		m_RfemurObject->SetisOperationSide(0);
 	}
-
-	m_RfemurObject->Setimage_femur(femurImage);
-	m_RfemurObject->Setsurface_femur(femurSurface);
-	m_RfemurObject->Setpset_lesserTrochanter(lesserTrochanterPset);
-	m_RfemurObject->Setpset_femurCOR(femurCORpSet);
-	m_RfemurObject->Setpset_neckCenter(neckCenterPset);
-	m_RfemurObject->Setpset_femurCanal(femurCanalPset);
-	m_RfemurObject->Setpset_epicondyles(epicondylesPset);
 
 	m_RfemurObject->AlignFemurObjectWithWorldFrame();
 
@@ -532,6 +548,8 @@ void THAPlanning::On_pushButton_initializeRfemurObject_clicked()
 
 	GetDataStorage()->Add(dataNode_femurFrame, GetDataStorage()->GetNamedNode("femur_R"));
 
+	m_RfemurObject->SetNode_surface_femurFrame(dataNode_femurFrame);
+
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 	m_Controls.textBrowser->append("A right femurObject has been initialized");
@@ -544,14 +562,28 @@ void THAPlanning::On_pushButton_initializeLfemurObject_clicked()
 {
 	m_LfemurObject = lancet::ThaFemurObject::New();
 
-	auto femurImage = GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_left");
-	auto femurSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("femur_L");
-	auto lesserTrochanterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("lesserTrochanter_L");
-	auto femurCORpSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCOR_L");
-	auto neckCenterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("neckCenter_L");
-	auto femurCanalPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCanal_L");
-	auto epicondylesPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("epicondyles_L");
-
+	// auto femurImage = GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_left");
+	// auto femurSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("femur_L");
+	// auto lesserTrochanterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("lesserTrochanter_L");
+	// auto femurCORpSet = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCOR_L");
+	// auto neckCenterPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("neckCenter_L");
+	// auto femurCanalPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("femurCanal_L");
+	// auto epicondylesPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("epicondyles_L");
+	//
+	// m_LfemurObject->Setimage_femur(femurImage);
+	// m_LfemurObject->Setsurface_femur(femurSurface);
+	// m_LfemurObject->Setpset_lesserTrochanter(lesserTrochanterPset);
+	// m_LfemurObject->Setpset_femurCOR(femurCORpSet);
+	// m_LfemurObject->Setpset_neckCenter(neckCenterPset);
+	// m_LfemurObject->Setpset_femurCanal(femurCanalPset);
+	// m_LfemurObject->Setpset_epicondyles(epicondylesPset);
+	m_LfemurObject->SetNode_image_femur(GetDataStorage()->GetNamedNode("femurImage_left"));
+	m_LfemurObject->SetNode_surface_femur(GetDataStorage()->GetNamedNode("femur_L"));
+	m_LfemurObject->SetNode_pset_lesserTrochanter(GetDataStorage()->GetNamedNode("lesserTrochanter_L"));
+	m_LfemurObject->SetNode_pset_femurCOR(GetDataStorage()->GetNamedNode("femurCOR_L"));
+	m_LfemurObject->SetNode_pset_neckCenter(GetDataStorage()->GetNamedNode("neckCenter_L"));
+	m_LfemurObject->SetNode_pset_femurCanal(GetDataStorage()->GetNamedNode("femurCanal_L"));
+	m_LfemurObject->SetNode_pset_epicondyles(GetDataStorage()->GetNamedNode("epicondyles_L"));
 	m_LfemurObject->SetfemurSide(1);
 	// m_LfemurObject->SetisOperationSide(0);
 
@@ -563,16 +595,7 @@ void THAPlanning::On_pushButton_initializeLfemurObject_clicked()
 		m_LfemurObject->SetisOperationSide(1);
 	}
 
-	m_LfemurObject->Setimage_femur(femurImage);
-	m_LfemurObject->Setsurface_femur(femurSurface);
-	m_LfemurObject->Setpset_lesserTrochanter(lesserTrochanterPset);
-	m_LfemurObject->Setpset_femurCOR(femurCORpSet);
-	m_LfemurObject->Setpset_neckCenter(neckCenterPset);
-	m_LfemurObject->Setpset_femurCanal(femurCanalPset);
-	m_LfemurObject->Setpset_epicondyles(epicondylesPset);
-
 	m_LfemurObject->AlignFemurObjectWithWorldFrame();
-
 
 	auto femurFrameSurface = m_LfemurObject->Getsurface_femurFrame();
 
@@ -582,6 +605,8 @@ void THAPlanning::On_pushButton_initializeLfemurObject_clicked()
 	dataNode_femurFrame->SetName("femurFrame_L");
 
 	GetDataStorage()->Add(dataNode_femurFrame, GetDataStorage()->GetNamedNode("femur_L"));
+
+	m_LfemurObject->SetNode_surface_femurFrame(dataNode_femurFrame);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
@@ -692,12 +717,14 @@ void THAPlanning::pushButton_initCupObject_clicked()
 {
 	m_CupObject = lancet::ThaCupObject::New();
 
-	auto cupSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("cup");
-	auto linerSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("liner");
+	// auto cupSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("cup");
+	// auto linerSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("liner");
+	//
+	// m_CupObject->SetCupSurface(cupSurface);
+	// m_CupObject->SetLinerSurface(linerSurface);
 
-	m_CupObject->SetCupSurface(cupSurface);
-	m_CupObject->SetLinerSurface(linerSurface);
-
+	m_CupObject->SetNode_Surface_cup(GetDataStorage()->GetNamedNode("cup"));
+	m_CupObject->SetNode_Surface_liner(GetDataStorage()->GetNamedNode("liner"));
 
 	if(m_Controls.radioButton_implantObject_R->isChecked())
 	{
@@ -718,6 +745,8 @@ void THAPlanning::pushButton_initCupObject_clicked()
 
 	GetDataStorage()->Add(dataNode_cupFrame);
 
+	m_CupObject->SetNode_Surface_cupFrame(dataNode_cupFrame);
+
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 	m_Controls.textBrowser->append("A cupObject has been initialized");
@@ -728,13 +757,17 @@ void THAPlanning::pushButton_initStemObject_clicked()
 {
 	m_StemObject = lancet::ThaStemObject::New();
 
-	auto stemSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("stem");
-	auto stemCOR = GetDataStorage()->GetNamedObject<mitk::PointSet>("stemCOR");
-	auto headSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("head_28");
+	// auto stemSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("stem");
+	// auto stemCOR = GetDataStorage()->GetNamedObject<mitk::PointSet>("stemCOR");
+	// auto headSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("head_28");
+	//
+	// m_StemObject->SetStemSurface(stemSurface);
+	// m_StemObject->SetHeadSurface(headSurface);
+	// m_StemObject->SetHeadCenter(stemCOR);
 
-	m_StemObject->SetStemSurface(stemSurface);
-	m_StemObject->SetHeadSurface(headSurface);
-	m_StemObject->SetHeadCenter(stemCOR);
+	m_StemObject->SetNode_Surface_stem(GetDataStorage()->GetNamedNode("stem"));
+	m_StemObject->SetNode_Pset_headCenter(GetDataStorage()->GetNamedNode("stemCOR"));
+	m_StemObject->SetNode_Surface_head(GetDataStorage()->GetNamedNode("head_28"));
 
 	if(m_Controls.radioButton_implantObject_R->isChecked())
 	{
@@ -754,6 +787,8 @@ void THAPlanning::pushButton_initStemObject_clicked()
 	dataNode_stemFrame->SetName("stemFrame");
 
 	GetDataStorage()->Add(dataNode_stemFrame);
+
+	m_StemObject->SetNode_Surface_stemFrame(dataNode_stemFrame);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
@@ -1280,107 +1315,142 @@ void THAPlanning::ShowImplants(bool showOrHide)
 {
 	if(showOrHide == true) // show the correct implant surfaces
 	{
-		GetDataStorage()->GetNamedNode("stemFrame")->SetVisibility(true);
-		GetDataStorage()->GetNamedNode("cupFrame")->SetVisibility(true);
-		if(m_Controls.comboBox_demoCup->currentIndex() == 0)
-		{
-			GetDataStorage()->GetNamedNode("cup")->SetVisibility(true);
-		}
+		// GetDataStorage()->GetNamedNode("stemFrame")->SetVisibility(true);
+		// GetDataStorage()->GetNamedNode("cupFrame")->SetVisibility(true);
+		// if(m_Controls.comboBox_demoCup->currentIndex() == 0)
+		// {
+		// 	GetDataStorage()->GetNamedNode("cup")->SetVisibility(true);
+		// }
+		//
+		// if (m_Controls.comboBox_demoCup->currentIndex() == 1)
+		// {
+		// 	GetDataStorage()->GetNamedNode("cup_50")->SetVisibility(true);
+		// }
+		//
+		// if (m_Controls.comboBox_demoLiner->currentIndex() == 0)
+		// {
+		// 	GetDataStorage()->GetNamedNode("liner")->SetVisibility(true);
+		// }
+		//
+		// if (m_Controls.comboBox_demoLiner->currentIndex() == 1)
+		// {
+		// 	GetDataStorage()->GetNamedNode("liner_50")->SetVisibility(true);
+		// }
+		//
+		// if (m_Controls.comboBox_demoStem->currentIndex() == 0)
+		// {
+		// 	GetDataStorage()->GetNamedNode("stem")->SetVisibility(true);
+		// }
+		//
+		// if (m_Controls.comboBox_demoStem->currentIndex() == 1)
+		// {
+		// 	GetDataStorage()->GetNamedNode("stem_5")->SetVisibility(true);
+		// }
+		//
+		// if (m_Controls.comboBox_demoHead->currentIndex() == 0)
+		// {
+		// 	GetDataStorage()->GetNamedNode("head_28")->SetVisibility(true);
+		// }
+		//
+		// if (m_Controls.comboBox_demoHead->currentIndex() == 1)
+		// {
+		// 	GetDataStorage()->GetNamedNode("head_32")->SetVisibility(true);
+		// }
 
-		if (m_Controls.comboBox_demoCup->currentIndex() == 1)
-		{
-			GetDataStorage()->GetNamedNode("cup_50")->SetVisibility(true);
-		}
+		m_StemObject->GetNode_Pset_headCenter()->SetVisibility(1);
+		m_StemObject->GetNode_Surface_head()->SetVisibility(1);
+		m_StemObject->GetNode_Surface_stem()->SetVisibility(1);
+		m_StemObject->GetNode_Surface_stemFrame()->SetVisibility(1);
 
-		if (m_Controls.comboBox_demoLiner->currentIndex() == 0)
-		{
-			GetDataStorage()->GetNamedNode("liner")->SetVisibility(true);
-		}
-
-		if (m_Controls.comboBox_demoLiner->currentIndex() == 1)
-		{
-			GetDataStorage()->GetNamedNode("liner_50")->SetVisibility(true);
-		}
-
-		if (m_Controls.comboBox_demoStem->currentIndex() == 0)
-		{
-			GetDataStorage()->GetNamedNode("stem")->SetVisibility(true);
-		}
-
-		if (m_Controls.comboBox_demoStem->currentIndex() == 1)
-		{
-			GetDataStorage()->GetNamedNode("stem_5")->SetVisibility(true);
-		}
-
-		if (m_Controls.comboBox_demoHead->currentIndex() == 0)
-		{
-			GetDataStorage()->GetNamedNode("head_28")->SetVisibility(true);
-		}
-
-		if (m_Controls.comboBox_demoHead->currentIndex() == 1)
-		{
-			GetDataStorage()->GetNamedNode("head_32")->SetVisibility(true);
-		}
+		m_CupObject->GetNode_Surface_cup()->SetVisibility(1);
+		m_CupObject->GetNode_Surface_cupFrame()->SetVisibility(1);
+		m_CupObject->GetNode_Surface_liner()->SetVisibility(1);
 
 	}else // hide the correct implant surfaces
 	{
-		GetDataStorage()->GetNamedNode("stemFrame")->SetVisibility(false);
-		GetDataStorage()->GetNamedNode("cupFrame")->SetVisibility(false);
-		GetDataStorage()->GetNamedNode("cup")->SetVisibility(false);
-		GetDataStorage()->GetNamedNode("cup_50")->SetVisibility(false);
-		GetDataStorage()->GetNamedNode("liner")->SetVisibility(false);
-		GetDataStorage()->GetNamedNode("liner_50")->SetVisibility(false);
-		GetDataStorage()->GetNamedNode("stem")->SetVisibility(false);
-		GetDataStorage()->GetNamedNode("stem_5")->SetVisibility(false);
-		GetDataStorage()->GetNamedNode("head_28")->SetVisibility(false);
-		GetDataStorage()->GetNamedNode("head_32")->SetVisibility(false);
+		// GetDataStorage()->GetNamedNode("stemFrame")->SetVisibility(false);
+		// GetDataStorage()->GetNamedNode("cupFrame")->SetVisibility(false);
+		// GetDataStorage()->GetNamedNode("cup")->SetVisibility(false);
+		// GetDataStorage()->GetNamedNode("cup_50")->SetVisibility(false);
+		// GetDataStorage()->GetNamedNode("liner")->SetVisibility(false);
+		// GetDataStorage()->GetNamedNode("liner_50")->SetVisibility(false);
+		// GetDataStorage()->GetNamedNode("stem")->SetVisibility(false);
+		// GetDataStorage()->GetNamedNode("stem_5")->SetVisibility(false);
+		// GetDataStorage()->GetNamedNode("head_28")->SetVisibility(false);
+		// GetDataStorage()->GetNamedNode("head_32")->SetVisibility(false);
+
+		m_StemObject->GetNode_Pset_headCenter()->SetVisibility(0);
+		m_StemObject->GetNode_Surface_head()->SetVisibility(0);
+		m_StemObject->GetNode_Surface_stem()->SetVisibility(0);
+		m_StemObject->GetNode_Surface_stemFrame()->SetVisibility(0);
+
+		m_CupObject->GetNode_Surface_cup()->SetVisibility(0);
+		m_CupObject->GetNode_Surface_cupFrame()->SetVisibility(0);
+		m_CupObject->GetNode_Surface_liner()->SetVisibility(0);
 	}
 }
 
 void THAPlanning::pushButton_demoConfirmImplant_clicked()
 {
-	ShowImplants(false);
-	ShowImplants(true);
+	auto node_cup_0 = GetDataStorage()->GetNamedNode("cup");
+	auto node_cup_1 = GetDataStorage()->GetNamedNode("cup_50");
+	auto node_liner_0 = GetDataStorage()->GetNamedNode("liner");
+	auto node_liner_1 = GetDataStorage()->GetNamedNode("liner_50");
+
+	auto node_stem_0 = GetDataStorage()->GetNamedNode("stem");
+	auto node_stem_1 = GetDataStorage()->GetNamedNode("stem_5");
+	auto node_head_0 = GetDataStorage()->GetNamedNode("head_28");
+	auto node_head_1 = GetDataStorage()->GetNamedNode("head_32");
 
 	if (m_Controls.comboBox_demoCup->currentIndex() == 0)
 	{
-		m_CupObject->SetCupSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("cup"));
+		// m_CupObject->SetCupSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("cup"));
+		m_CupObject->SetNode_Surface_cup(node_cup_0);
 	}
 
 	if (m_Controls.comboBox_demoCup->currentIndex() == 1)
 	{
-		m_CupObject->SetCupSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("cup_50"));
+		//m_CupObject->SetCupSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("cup_50"));
+		m_CupObject->SetNode_Surface_cup(node_cup_1);
 	}
 
 	if (m_Controls.comboBox_demoLiner->currentIndex() == 0)
 	{
-		m_CupObject->SetLinerSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("liner"));
+		//m_CupObject->SetLinerSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("liner"));
+		m_CupObject->SetNode_Surface_liner(node_liner_0);
 	}
 
 	if (m_Controls.comboBox_demoLiner->currentIndex() == 1)
 	{
-		m_CupObject->SetLinerSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("liner_50"));
+		// m_CupObject->SetLinerSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("liner_50"));
+		m_CupObject->SetNode_Surface_liner(node_liner_1);
 	}
 
 	if (m_Controls.comboBox_demoStem->currentIndex() == 0)
 	{
-		m_StemObject->SetStemSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("stem"));
+		// m_StemObject->SetStemSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("stem"));
+		m_StemObject->SetNode_Surface_stem(node_stem_0);
 	}
 
 	if (m_Controls.comboBox_demoStem->currentIndex() == 1)
 	{
-		m_StemObject->SetStemSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("stem_5"));
+		// m_StemObject->SetStemSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("stem_5"));
+		m_StemObject->SetNode_Surface_stem(node_stem_1);
 	}
 
 	if (m_Controls.comboBox_demoHead->currentIndex() == 0)
 	{
-		m_StemObject->SetHeadSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("head_28"));
+		//m_StemObject->SetHeadSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("head_28"));
+		m_StemObject->SetNode_Surface_head(node_head_0);
 	}
 
 	if (m_Controls.comboBox_demoHead->currentIndex() == 1)
 	{
-		m_StemObject->SetHeadSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("head_32"));
+		//m_StemObject->SetHeadSurface(GetDataStorage()->GetNamedObject<mitk::Surface>("head_32"));
+		m_StemObject->SetNode_Surface_head(node_head_1);
 	}
+
+	ShowImplants(true);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }

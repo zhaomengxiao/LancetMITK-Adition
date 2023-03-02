@@ -36,37 +36,55 @@ namespace lancet
 	public:
 		mitkClassMacroItkParent(ThaPelvisObject, itk::DataObject);
 		itkFactorylessNewMacro(Self)
-		itkCloneMacro(Self)
+			itkCloneMacro(Self)
 
-		itkGetMacro(pelvicTilt_supine, double)
-		itkSetMacro(pelvicTilt_supine,double)
+			itkGetMacro(pelvicTilt_supine, double)
+			itkSetMacro(pelvicTilt_supine, double)
 
-		itkGetMacro(pelvicTilt_stand, double)
-		itkSetMacro(pelvicTilt_stand, double)
+			itkGetMacro(pelvicTilt_stand, double)
+			itkSetMacro(pelvicTilt_stand, double)
 
-		itkGetMacro(pelvicTilt_sit, double)
-		itkSetMacro(pelvicTilt_sit, double)
+			itkGetMacro(pelvicTilt_sit, double)
+			itkSetMacro(pelvicTilt_sit, double)
 
-		// itkSetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
-		itkGetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
+			// itkSetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
+			itkGetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 
-		itkSetMacro(image_pelvis, mitk::Image::Pointer)
-		itkGetMacro(image_pelvis, mitk::Image::Pointer)
+			itkSetMacro(image_pelvis, mitk::Image::Pointer)
+			itkGetMacro(image_pelvis, mitk::Image::Pointer)
 
-		itkSetMacro(surface_pelvis, mitk::Surface::Pointer)
-		itkGetMacro(surface_pelvis, mitk::Surface::Pointer)
+			itkSetMacro(surface_pelvis, mitk::Surface::Pointer)
+			itkGetMacro(surface_pelvis, mitk::Surface::Pointer)
 
-		itkSetMacro(surface_pelvisFrame, mitk::Surface::Pointer)
-		itkGetMacro(surface_pelvisFrame, mitk::Surface::Pointer)
+			itkSetMacro(surface_pelvisFrame, mitk::Surface::Pointer)
+			itkGetMacro(surface_pelvisFrame, mitk::Surface::Pointer)
 
-		itkSetMacro(pset_ASIS, mitk::PointSet::Pointer)
-		itkGetMacro(pset_ASIS, mitk::PointSet::Pointer)
+			itkSetMacro(pset_ASIS, mitk::PointSet::Pointer)
+			itkGetMacro(pset_ASIS, mitk::PointSet::Pointer)
 
-		itkSetMacro(pset_pelvisCOR, mitk::PointSet::Pointer)
-		itkGetMacro(pset_pelvisCOR, mitk::PointSet::Pointer)
+			itkSetMacro(pset_pelvisCOR, mitk::PointSet::Pointer)
+			itkGetMacro(pset_pelvisCOR, mitk::PointSet::Pointer)
 
-		itkSetMacro(pset_midline, mitk::PointSet::Pointer)
-		itkGetMacro(pset_midline, mitk::PointSet::Pointer)
+			itkSetMacro(pset_midline, mitk::PointSet::Pointer)
+			itkGetMacro(pset_midline, mitk::PointSet::Pointer)
+
+		void SetNode_image_pelvis(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_image_pelvis, mitk::DataNode::Pointer);
+
+		void SetNode_surface_pelvis(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_surface_pelvis, mitk::DataNode::Pointer);
+
+		void SetNode_surface_pelvisFrame(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_surface_pelvisFrame, mitk::DataNode::Pointer);
+
+		void SetNode_pset_ASIS(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_pset_ASIS, mitk::DataNode::Pointer);
+
+		void SetNode_pset_pelvisCOR(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_pset_pelvisCOR, mitk::DataNode::Pointer);
+
+		void SetNode_pset_midline(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_pset_midline, mitk::DataNode::Pointer);
 
 		/*
 		 * Update the geometry matrix of each data component (do not rewrite the data)
@@ -128,7 +146,7 @@ namespace lancet
 
 		// sit pelvic tilt in degree, anterior(+), posterior(-)
 		double m_pelvicTilt_sit{ 0 };
-
+		
 		// the pelvis image
 		mitk::Image::Pointer m_image_pelvis;
 
@@ -146,7 +164,13 @@ namespace lancet
 		
 		// the pelvis midline point, contains one point
 		mitk::PointSet::Pointer m_pset_midline;
-		
+
+		mitk::DataNode::Pointer m_Node_image_pelvis;
+		mitk::DataNode::Pointer m_Node_surface_pelvis;
+		mitk::DataNode::Pointer m_Node_surface_pelvisFrame;
+		mitk::DataNode::Pointer m_Node_pset_ASIS;
+		mitk::DataNode::Pointer m_Node_pset_pelvisCOR;
+		mitk::DataNode::Pointer m_Node_pset_midline;
 		
 	};
 }

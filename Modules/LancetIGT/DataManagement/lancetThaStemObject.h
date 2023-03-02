@@ -53,6 +53,17 @@ namespace lancet
 		// set head surface and apply the group geometry considering the headCenter
 		void SetHeadSurface(mitk::Surface::Pointer headSurface);
 
+
+		itkGetMacro(Node_Surface_stem, mitk::DataNode::Pointer);
+		itkGetMacro(Node_Surface_head, mitk::DataNode::Pointer);
+		itkGetMacro(Node_Pset_headCenter, mitk::DataNode::Pointer);
+		itkGetMacro(Node_Surface_stemFrame, mitk::DataNode::Pointer);
+
+		void SetNode_Surface_stem(mitk::DataNode::Pointer node);
+		void SetNode_Surface_head(mitk::DataNode::Pointer node);
+		void SetNode_Pset_headCenter(mitk::DataNode::Pointer node);
+		void SetNode_Surface_stemFrame(mitk::DataNode::Pointer node);
+
 		/*
 		 * Move all the data components except for the stemFrame
 		 * which is created at the world frame position,
@@ -90,6 +101,11 @@ namespace lancet
 
 		// stem frame surface
 		mitk::Surface::Pointer m_Surface_stemFrame;
+
+		mitk::DataNode::Pointer m_Node_Surface_stem;
+		mitk::DataNode::Pointer m_Node_Surface_head;
+		mitk::DataNode::Pointer m_Node_Pset_headCenter;
+		mitk::DataNode::Pointer m_Node_Surface_stemFrame;
 
 	};
 }

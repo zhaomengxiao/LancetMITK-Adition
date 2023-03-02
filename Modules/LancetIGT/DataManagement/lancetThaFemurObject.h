@@ -36,44 +36,62 @@ namespace lancet
 	public:
 		mitkClassMacroItkParent(ThaFemurObject, itk::DataObject);
 		itkFactorylessNewMacro(Self)
-		itkCloneMacro(Self)
+			itkCloneMacro(Self)
 
-		itkGetMacro(femurSide, int)
-		itkSetMacro(femurSide, int)
+			itkGetMacro(femurSide, int)
+			itkSetMacro(femurSide, int)
 
-		itkGetMacro(isOperationSide, int)
-		itkSetMacro(isOperationSide, int)
+			itkGetMacro(isOperationSide, int)
+			itkSetMacro(isOperationSide, int)
 
-		itkGetMacro(femurVersion, double)
-		itkSetMacro(femurVersion, double)
+			itkGetMacro(femurVersion, double)
+			itkSetMacro(femurVersion, double)
 
-		itkGetMacro(image_femur, mitk::Image::Pointer)
-		itkSetMacro(image_femur, mitk::Image::Pointer)
+			itkGetMacro(image_femur, mitk::Image::Pointer)
+			itkSetMacro(image_femur, mitk::Image::Pointer)
 
-		itkGetMacro(surface_femur, mitk::Surface::Pointer)
-		itkSetMacro(surface_femur, mitk::Surface::Pointer)
+			itkGetMacro(surface_femur, mitk::Surface::Pointer)
+			itkSetMacro(surface_femur, mitk::Surface::Pointer)
 
-		itkGetMacro(surface_femurFrame, mitk::Surface::Pointer)
-		itkSetMacro(surface_femurFrame, mitk::Surface::Pointer)
+			itkGetMacro(surface_femurFrame, mitk::Surface::Pointer)
+			itkSetMacro(surface_femurFrame, mitk::Surface::Pointer)
 
-		itkSetMacro(pset_neckCenter, mitk::PointSet::Pointer)
-		itkGetMacro(pset_neckCenter, mitk::PointSet::Pointer)
+			itkSetMacro(pset_neckCenter, mitk::PointSet::Pointer)
+			itkGetMacro(pset_neckCenter, mitk::PointSet::Pointer)
 
-		itkSetMacro(pset_lesserTrochanter, mitk::PointSet::Pointer)
-		itkGetMacro(pset_lesserTrochanter, mitk::PointSet::Pointer)
+			itkSetMacro(pset_lesserTrochanter, mitk::PointSet::Pointer)
+			itkGetMacro(pset_lesserTrochanter, mitk::PointSet::Pointer)
 
-		itkSetMacro(pset_femurCOR, mitk::PointSet::Pointer)
-		itkGetMacro(pset_femurCOR, mitk::PointSet::Pointer)
+			itkSetMacro(pset_femurCOR, mitk::PointSet::Pointer)
+			itkGetMacro(pset_femurCOR, mitk::PointSet::Pointer)
 
-		itkSetMacro(pset_femurCanal, mitk::PointSet::Pointer)
-		itkGetMacro(pset_femurCanal, mitk::PointSet::Pointer)
+			itkSetMacro(pset_femurCanal, mitk::PointSet::Pointer)
+			itkGetMacro(pset_femurCanal, mitk::PointSet::Pointer)
 
-		itkSetMacro(pset_epicondyles, mitk::PointSet::Pointer)
-		itkGetMacro(pset_epicondyles, mitk::PointSet::Pointer)
+			itkSetMacro(pset_epicondyles, mitk::PointSet::Pointer)
+			itkGetMacro(pset_epicondyles, mitk::PointSet::Pointer)
 
-		itkGetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
+			itkGetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 
-		itkGetMacro(vtkMatrix_canalFrameToMechanicFrame, vtkSmartPointer<vtkMatrix4x4>)
+			itkGetMacro(vtkMatrix_canalFrameToMechanicFrame, vtkSmartPointer<vtkMatrix4x4>)
+
+		void SetNode_image_femur(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_image_femur, mitk::DataNode::Pointer);
+		void SetNode_surface_femur(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_surface_femur, mitk::DataNode::Pointer);
+		void SetNode_surface_femurFrame(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_surface_femurFrame, mitk::DataNode::Pointer);
+		void SetNode_pset_neckCenter(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_pset_neckCenter, mitk::DataNode::Pointer);
+		void SetNode_pset_lesserTrochanter(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_pset_lesserTrochanter, mitk::DataNode::Pointer);
+		void SetNode_pset_femurCOR(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_pset_femurCOR, mitk::DataNode::Pointer);
+		void SetNode_pset_femurCanal(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_pset_femurCanal, mitk::DataNode::Pointer);
+		void SetNode_pset_epicondyles(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_pset_epicondyles, mitk::DataNode::Pointer);
+
 
 		/*
 		 * Update the geometry matrix of each data component (do not rewrite the data)
@@ -160,6 +178,15 @@ namespace lancet
 
 		// femur epicondyles; 0 is medial; 1 is lateral
 		mitk::PointSet::Pointer m_pset_epicondyles;
+
+		mitk::DataNode::Pointer m_Node_image_femur;
+		mitk::DataNode::Pointer m_Node_surface_femur;
+		mitk::DataNode::Pointer m_Node_surface_femurFrame;
+		mitk::DataNode::Pointer m_Node_pset_neckCenter;
+		mitk::DataNode::Pointer m_Node_pset_lesserTrochanter;
+		mitk::DataNode::Pointer m_Node_pset_femurCOR;
+		mitk::DataNode::Pointer m_Node_pset_femurCanal;
+		mitk::DataNode::Pointer m_Node_pset_epicondyles;
 
 	};
 }

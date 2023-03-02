@@ -31,7 +31,13 @@ lancet::ThaPelvisObject::ThaPelvisObject()
 	m_surface_pelvisFrame(mitk::Surface::New()),
 	m_pset_ASIS(mitk::PointSet::New()),
 	m_pset_pelvisCOR(mitk::PointSet::New()),
-	m_pset_midline(mitk::PointSet::New())
+	m_pset_midline(mitk::PointSet::New()),
+m_Node_image_pelvis(mitk::DataNode::New()),
+m_Node_surface_pelvis(mitk::DataNode::New()),
+m_Node_surface_pelvisFrame(mitk::DataNode::New()),
+m_Node_pset_ASIS(mitk::DataNode::New()),
+m_Node_pset_pelvisCOR(mitk::DataNode::New()),
+m_Node_pset_midline(mitk::DataNode::New())
 {
 	CreateInternalFrame();
 }
@@ -412,4 +418,47 @@ mitk::PointSet::Pointer lancet::ThaPelvisObject::GetPointSetWithGeometryMatrix(c
 
 	return tmpPset;
 }
+
+
+void lancet::ThaPelvisObject::SetNode_image_pelvis(mitk::DataNode::Pointer node)
+{
+	m_Node_image_pelvis = node;
+	m_image_pelvis = dynamic_cast<mitk::Image*>(node->GetData());
+}
+
+void lancet::ThaPelvisObject::SetNode_surface_pelvis(mitk::DataNode::Pointer node)
+{
+	m_Node_surface_pelvis = node;
+	m_surface_pelvis = dynamic_cast<mitk::Surface*>(node->GetData());
+}
+
+void lancet::ThaPelvisObject::SetNode_surface_pelvisFrame(mitk::DataNode::Pointer node)
+{
+	m_Node_surface_pelvisFrame = node;
+	m_surface_pelvisFrame = dynamic_cast<mitk::Surface*>(node->GetData());
+}
+
+void lancet::ThaPelvisObject::SetNode_pset_ASIS(mitk::DataNode::Pointer node)
+{
+	m_Node_pset_ASIS = node;
+	m_pset_ASIS = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaPelvisObject::SetNode_pset_pelvisCOR(mitk::DataNode::Pointer node)
+{
+	m_Node_pset_pelvisCOR = node;
+	m_pset_pelvisCOR = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaPelvisObject::SetNode_pset_midline(mitk::DataNode::Pointer node)
+{
+	m_Node_pset_midline = node;
+	m_pset_midline = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+
+
+
+
+
 
