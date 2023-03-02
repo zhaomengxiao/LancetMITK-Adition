@@ -461,6 +461,14 @@ void THAPlanning::On_pushButton_initializePelvisObject_clicked()
 	m_pelvisObject->SetNode_pset_pelvisCOR(GetDataStorage()->GetNamedNode("pelvisCOR"));
 	m_pelvisObject->SetNode_pset_midline(GetDataStorage()->GetNamedNode("midline"));
 
+	m_pelvisObject->SetNode_Pset_anteriorLandmark(GetDataStorage()->GetNamedNode("anteriorLandmark"));
+	m_pelvisObject->SetNode_Pset_icpPoints(GetDataStorage()->GetNamedNode("icpPoints"));
+	m_pelvisObject->SetNode_Pset_posteriorLandmark(GetDataStorage()->GetNamedNode("posteriorLandmark"));
+	m_pelvisObject->SetNode_Pset_superiorLandmark(GetDataStorage()->GetNamedNode("superiorLandmark"));
+	m_pelvisObject->SetNode_Pset_verificationPoints(GetDataStorage()->GetNamedNode("verificationPoints"));
+	m_pelvisObject->SetNode_Surface_clippedPelvis(GetDataStorage()->GetNamedNode("clippedPelvis"));
+
+
 	m_pelvisObject->AlignPelvicObjectWithWorldFrame();
 
 	auto pelvisFrameSurface = m_pelvisObject->Getsurface_pelvisFrame();

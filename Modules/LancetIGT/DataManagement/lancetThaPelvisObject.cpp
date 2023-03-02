@@ -37,7 +37,19 @@ m_Node_surface_pelvis(mitk::DataNode::New()),
 m_Node_surface_pelvisFrame(mitk::DataNode::New()),
 m_Node_pset_ASIS(mitk::DataNode::New()),
 m_Node_pset_pelvisCOR(mitk::DataNode::New()),
-m_Node_pset_midline(mitk::DataNode::New())
+m_Node_pset_midline(mitk::DataNode::New()),
+m_Surface_clippedPelvis(mitk::Surface::New()),
+m_Pset_icpPoints(mitk::PointSet::New()),
+m_Pset_superiorLandmark(mitk::PointSet::New()),
+m_Pset_anteriorLandmark(mitk::PointSet::New()),
+m_Pset_posteriorLandmark(mitk::PointSet::New()),
+m_Pset_verificationPoints(mitk::PointSet::New()),
+m_Node_Surface_clippedPelvis(mitk::DataNode::New()),
+m_Node_Pset_icpPoints(mitk::DataNode::New()),
+m_Node_Pset_superiorLandmark(mitk::DataNode::New()),
+m_Node_Pset_anteriorLandmark(mitk::DataNode::New()),
+m_Node_Pset_posteriorLandmark(mitk::DataNode::New()),
+m_Node_Pset_verificationPoints(mitk::DataNode::New())
 {
 	CreateInternalFrame();
 }
@@ -235,6 +247,18 @@ void lancet::ThaPelvisObject::SetGroupGeometry(vtkSmartPointer<vtkMatrix4x4> new
 
 	m_pset_midline->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
 
+	m_Pset_anteriorLandmark->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+
+	m_Pset_icpPoints->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+
+	m_Pset_posteriorLandmark->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+
+	m_Pset_superiorLandmark->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+
+	m_Pset_verificationPoints->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+
+	m_Surface_clippedPelvis->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(newMatrix);
+
 	// previous m_vtkMatrix_groupGeometry and newMatrix should both be used to handle mitk::Image
 	auto preAffineTrans = m_image_pelvis->GetGeometry()->GetIndexToWorldTransform();
 	vtkNew<vtkMatrix4x4> preVtkMatrix;
@@ -354,7 +378,14 @@ bool lancet::ThaPelvisObject::AlignPelvicObjectWithWorldFrame()
 	tmpFilter->SetInputData(m_surface_pelvis->GetVtkPolyData());
 	tmpFilter->Update();
 
-	m_surface_pelvis->SetVtkPolyData(tmpFilter->GetOutput());
+	vtkNew<vtkPolyData> tmpSurface_pelvis;
+	tmpSurface_pelvis->DeepCopy(tmpFilter->GetOutput());
+
+	m_surface_pelvis->SetVtkPolyData(tmpSurface_pelvis);
+
+	tmpFilter->SetInputData(m_Surface_clippedPelvis->GetVtkPolyData());
+	tmpFilter->Update();
+	m_Surface_clippedPelvis->SetVtkPolyData(tmpFilter->GetOutput());
 
 	// Move the pelvis image
 	auto preAffineTrans = m_image_pelvis->GetGeometry()->GetIndexToWorldTransform();
@@ -372,10 +403,21 @@ bool lancet::ThaPelvisObject::AlignPelvicObjectWithWorldFrame()
 	m_pset_pelvisCOR->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
 	m_pset_midline->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
 
+	m_Pset_anteriorLandmark->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
+	m_Pset_icpPoints->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
+	m_Pset_posteriorLandmark->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
+	m_Pset_superiorLandmark->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
+	m_Pset_verificationPoints->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
+
 	RewritePointSetWithGeometryMatrix(m_pset_ASIS);
 	RewritePointSetWithGeometryMatrix(m_pset_pelvisCOR);
 	RewritePointSetWithGeometryMatrix(m_pset_midline);
-	
+	RewritePointSetWithGeometryMatrix(m_Pset_anteriorLandmark);
+	RewritePointSetWithGeometryMatrix(m_Pset_icpPoints);
+	RewritePointSetWithGeometryMatrix(m_Pset_posteriorLandmark);
+	RewritePointSetWithGeometryMatrix(m_Pset_superiorLandmark);
+	RewritePointSetWithGeometryMatrix(m_Pset_verificationPoints);
+
 	return true;
 
 }
@@ -455,6 +497,45 @@ void lancet::ThaPelvisObject::SetNode_pset_midline(mitk::DataNode::Pointer node)
 	m_Node_pset_midline = node;
 	m_pset_midline = dynamic_cast<mitk::PointSet*>(node->GetData());
 }
+
+void lancet::ThaPelvisObject::SetNode_Pset_anteriorLandmark(mitk::DataNode::Pointer node)
+{
+	m_Node_Pset_anteriorLandmark = node;
+	m_Pset_anteriorLandmark = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaPelvisObject::SetNode_Pset_icpPoints(mitk::DataNode::Pointer node)
+{
+	m_Node_Pset_icpPoints = node;
+	m_Pset_icpPoints = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaPelvisObject::SetNode_Pset_posteriorLandmark(mitk::DataNode::Pointer node)
+{
+	m_Node_Pset_posteriorLandmark = node;
+	m_Pset_posteriorLandmark = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaPelvisObject::SetNode_Pset_superiorLandmark(mitk::DataNode::Pointer node)
+{
+	m_Node_Pset_superiorLandmark = node;
+	m_Pset_superiorLandmark = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaPelvisObject::SetNode_Pset_verificationPoints(mitk::DataNode::Pointer node)
+{
+	m_Node_Pset_verificationPoints = node;
+	m_Pset_verificationPoints = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
+void lancet::ThaPelvisObject::SetNode_Surface_clippedPelvis(mitk::DataNode::Pointer node)
+{
+	m_Node_Surface_clippedPelvis = node;
+	m_Surface_clippedPelvis = dynamic_cast<mitk::Surface*>(node->GetData());
+}
+
+
+
 
 
 

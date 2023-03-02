@@ -86,6 +86,20 @@ namespace lancet
 		void SetNode_pset_midline(mitk::DataNode::Pointer node);
 		itkGetMacro(Node_pset_midline, mitk::DataNode::Pointer);
 
+		itkGetMacro(Node_Surface_clippedPelvis, mitk::DataNode::Pointer);
+		itkGetMacro(Node_Pset_icpPoints, mitk::DataNode::Pointer);
+		itkGetMacro(Node_Pset_superiorLandmark, mitk::DataNode::Pointer);
+		itkGetMacro(Node_Pset_anteriorLandmark, mitk::DataNode::Pointer);
+		itkGetMacro(Node_Pset_posteriorLandmark, mitk::DataNode::Pointer);
+		itkGetMacro(Node_Pset_verificationPoints, mitk::DataNode::Pointer);
+
+		void SetNode_Surface_clippedPelvis(mitk::DataNode::Pointer node);
+		void SetNode_Pset_icpPoints(mitk::DataNode::Pointer node);
+		void SetNode_Pset_superiorLandmark(mitk::DataNode::Pointer node);
+		void SetNode_Pset_anteriorLandmark(mitk::DataNode::Pointer node);
+		void SetNode_Pset_posteriorLandmark(mitk::DataNode::Pointer node);
+		void SetNode_Pset_verificationPoints(mitk::DataNode::Pointer node);
+
 		/*
 		 * Update the geometry matrix of each data component (do not rewrite the data)
 		 * with newMatrix and m_vtkMatrix_groupGeometry (be careful with mitk::Image);
@@ -171,7 +185,23 @@ namespace lancet
 		mitk::DataNode::Pointer m_Node_pset_ASIS;
 		mitk::DataNode::Pointer m_Node_pset_pelvisCOR;
 		mitk::DataNode::Pointer m_Node_pset_midline;
-		
+
+
+		// Data for image registration
+		mitk::Surface::Pointer m_Surface_clippedPelvis;
+		mitk::PointSet::Pointer m_Pset_icpPoints;
+		mitk::PointSet::Pointer m_Pset_superiorLandmark;
+		mitk::PointSet::Pointer m_Pset_anteriorLandmark;
+		mitk::PointSet::Pointer m_Pset_posteriorLandmark;
+		mitk::PointSet::Pointer m_Pset_verificationPoints;
+
+		mitk::DataNode::Pointer m_Node_Surface_clippedPelvis;
+		mitk::DataNode::Pointer m_Node_Pset_icpPoints;
+		mitk::DataNode::Pointer m_Node_Pset_superiorLandmark;
+		mitk::DataNode::Pointer m_Node_Pset_anteriorLandmark;
+		mitk::DataNode::Pointer m_Node_Pset_posteriorLandmark;
+		mitk::DataNode::Pointer m_Node_Pset_verificationPoints;
+
 	};
 }
 
