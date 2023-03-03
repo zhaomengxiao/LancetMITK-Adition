@@ -1,0 +1,18 @@
+{
+	"properties":
+	{
+		"id": "org_mitk_lancet_tha_pelvisroughregistrations",
+		"objectName": "ActionPelvisRoughRegistrations",
+		"uiName": "盆骨标记点",
+		"editorWidgetIdentify": "org_mitk_lancet_pelvisroughregistrations_editor",
+		"fucntionWidgetIdentify": "org_mitk_views_qpelvisroughregistrations",
+		"theme": 
+		{
+			"defaultStyle":
+			{
+				"editorWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/action_medicalrecordmanagement_default_qss",
+				"fucntionWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/editor_medicalrecordmanagement_default_qss"
+			}
+		}
+	}
+}

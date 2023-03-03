@@ -68,25 +68,34 @@ protected:
 
 	/*!
 	\brief Internal templated method calling the ITK drr filter. Here the actual filtering is performed.
+	Notice: this function should be called only if the input image is already aligned with the world coordinate'
+	Otherwise, use EnhancedItkImageProcessing which takes the pose of the input image into consideration 
 	*/
 	template <typename TPixel, unsigned int VDimension>
 	void ItkImageProcessing(const itk::Image<TPixel, VDimension>* itkImage);
+
+	/*!
+	\brief Internal templated method calling the ITK drr filter. Here the actual filtering is performed.
+	Notice: this function is the more considerate version of ItkImageProcessing, and can fully replace
+	ItkImageProcessing; ItkImageProcessing is remained for historical reason.
+	*/
+	void EnhancedItkImageProcessing(mitk::Image::ConstPointer mitkImage);
 
 	// template <typename TPixel, unsigned int VDimension>
 	// mitk::Image::Pointer GenDRR(const itk::Image<TPixel, VDimension>* input_image, DrrFilter* generator);
 	
 private:
-  //obj rotation
-	double m_rx{270.0};
+  // C-arm rotation
+	double m_rx{0.0};
 	double m_ry{0.0};
 	double m_rz{0.0};
 
-  //obj translation
+  // C-arm translation
 	double m_tx{0.0};
 	double m_ty{0.0};
 	double m_tz{0.0};
-  //obj center
 
+  // C-arm gantry rotation center offset
 	double m_cx{0.0};
 	double m_cy{ 0.0 };
 	double m_cz{ 0.0 };
@@ -94,7 +103,7 @@ private:
   //drr para
 	//double m_focalpoint{ 0.0 };
 	double m_threshold{0.0};
-	double m_sid{ 400 };
+	double m_sid{ 1024 };
 	double m_sx{ 0.75 } ;// pixel spacing along X of the 2D DRR image[mm]
 	double m_sy{ 0.75 };// pixel spacing along Y of the 2D DRR image[mm]
 	

@@ -7,7 +7,7 @@ mitk_create_plugin(
   EXPORT_DIRECTIVE ROBOT_EXPORT
   EXPORTED_INCLUDE_SUFFIXES src
   MODULE_DEPENDS MitkQtWidgetsExt MitkLancetIGT
-  #PACKAGE_DEPENDS ${qt5_depends}
+  PACKAGE_DEPENDS Poco|Net
 )
 #add_subdirectory(src/api/staubliapi)
 

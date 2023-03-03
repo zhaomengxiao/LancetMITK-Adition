@@ -1,0 +1,17 @@
+QWidget
+{
+	border-image: url(:/org.mitk.lancet.linkinghardwareeditor/registration/robot_1_NID_1.png);
+}
+QPushButton
+{
+	width: 170px;
+	height: 33px;
+	font-family: MicrosoftYaHei-Bold;
+	font-size: 33px;
+	font-weight: normal;
+	font-stretch: normal;
+	line-height: 25px;
+	letter-spacing: 1px;
+	color: #ffffff;
+    border:none;
+}    

@@ -19,29 +19,35 @@ found in the LICENSE file.
 #include "SurgicalSimulate.h"
 
 // Qt
-#include <QMessageBox>
-
+#include <QObject>
 // mitk image
-#include <mitkImage.h>
 #include <mitkAffineTransform3D.h>
+#include <mitkImage.h>
 #include <mitkMatrixConvert.h>
 
 //igt
-#include <lancetVegaTrackingDevice.h>
 #include <kukaRobotDevice.h>
 #include <lancetApplyDeviceRegistratioinFilter.h>
-#include <mitkNavigationDataToPointSetFilter.h>
 #include <lancetPathPoint.h>
-#include <vtkQuaternion.h>
+#include <lancetVegaTrackingDevice.h>
+#include <mitkNavigationDataToPointSetFilter.h>
 
+#include <QtWidgets\qfiledialog.h>
 #include "lancetTrackingDeviceSourceConfigurator.h"
 #include "mitkNavigationToolStorageDeserializer.h"
-#include <QtWidgets\qfiledialog.h>
 
+#include "lancetTreeCoords.h"
 #include "mitkIGTIOException.h"
 #include "mitkNavigationToolStorageSerializer.h"
 #include "QmitkIGTCommonHelper.h"
-#include "lancetTreeCoords.h"
+
+//udp
+#include <QTimer>
+#include <Poco/Net/DatagramSocket.h>
+#include <Poco/Net/SocketAddress.h>
+#include "kukaRobotAPI/robotInfoProtocol.h"
+
+#include "kukaRobotAPI/defaultProtocol.h"
 const std::string SurgicalSimulate::VIEW_ID = "org.mitk.views.surgicalsimulate";
 
 void SurgicalSimulate::SetFocus()
@@ -61,6 +67,21 @@ void SurgicalSimulate::OnVirtualDevice2VisualizeTimer()
     auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
     mitk::RenderingManager::GetInstance()->InitializeViews(geo);
     this->RequestRenderWindowUpdate();
+  }
+}
+
+void SurgicalSimulate::threadUpdateFriTransform()
+{
+  while (m_KeepUpdateFriTransform)
+  {
+    //calculate matrix
+    auto robotEndRFDestInNDI = m_VegaSource->GetOutput("Probe")->GetAffineTransform3D();
+    robotEndRFDestInNDI->Compose(T_probe2robotEndRF,true);
+	//MITK_WARN << "robotEndRFDestInNDI" << robotEndRFDestInNDI;
+    mitk::AffineTransform3D::Pointer robotDest = mitk::AffineTransform3D::New();
+    m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", robotEndRFDestInNDI, robotDest);
+    m_KukaTrackingDevice->m_RobotApi.SetFriDynamicFrameTransform(robotDest);
+	std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 }
 
@@ -105,7 +126,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 	connect(m_Controls.pushButton_saveNdiTools, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
 
 
-  connect(m_Controls.pushButton_setTCP, &QPushButton::clicked, this, &SurgicalSimulate::OnSetTCP);
+  connect(m_Controls.pushButton_sendCommand, &QPushButton::clicked, this, &SurgicalSimulate::SendCommand);
   connect(m_Controls.pushButton_confirmImageTargetLine, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImageLine);
   connect(m_Controls.pushButton_probeCheckPoint, &QPushButton::clicked, this, &SurgicalSimulate::ProbeImageCheckPoint);
 
@@ -114,28 +135,9 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_touchP3, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint3);
 
   connect(m_Controls.pushButton_probeSurfaceDistance, &QPushButton::clicked, this, &SurgicalSimulate::ProbeSurface);
-
-  connect(m_Controls.pushButton_roboRegisManual, &QPushButton::clicked, this, &SurgicalSimulate::ManuallySetRobotRegistration);
-  connect(m_Controls.pushButton_InitializeTcp, &QPushButton::clicked, this, &SurgicalSimulate::ResetRobotTcp);
-  connect(m_Controls.pushButton_setTcpPrecisionTest, &QPushButton::clicked, this, &SurgicalSimulate::SetPrecisionTestTcp);
-  connect(m_Controls.pushButton_recordInitial, &QPushButton::clicked, this, &SurgicalSimulate::RecordInitial);
-  connect(m_Controls.pushButton_goToInitial, &QPushButton::clicked, this, &SurgicalSimulate::GoToInitial);
-
-  connect(m_Controls.pushButton_xm, &QPushButton::clicked, this, &SurgicalSimulate::TranslateX_minus);
-  connect(m_Controls.pushButton_xp, &QPushButton::clicked, this, &SurgicalSimulate::TranslateX_plus);
-  connect(m_Controls.pushButton_ym, &QPushButton::clicked, this, &SurgicalSimulate::TranslateY_minus);
-  connect(m_Controls.pushButton_yp, &QPushButton::clicked, this, &SurgicalSimulate::TranslateY_plus);
-  connect(m_Controls.pushButton_zm, &QPushButton::clicked, this, &SurgicalSimulate::TranslateZ_minus);
-  connect(m_Controls.pushButton_zp, &QPushButton::clicked, this, &SurgicalSimulate::TranslateZ_plus);
-
-  connect(m_Controls.pushButton_rxm, &QPushButton::clicked, this, &SurgicalSimulate::RotateX_minus);
-  connect(m_Controls.pushButton_rxp, &QPushButton::clicked, this, &SurgicalSimulate::RotateX_plus);
-  connect(m_Controls.pushButton_rym, &QPushButton::clicked, this, &SurgicalSimulate::RotateY_minus);
-  connect(m_Controls.pushButton_ryp, &QPushButton::clicked, this, &SurgicalSimulate::RotateY_plus);
-  connect(m_Controls.pushButton_rzm, &QPushButton::clicked, this, &SurgicalSimulate::RotateZ_minus);
-  connect(m_Controls.pushButton_rzp, &QPushButton::clicked, this, &SurgicalSimulate::RotateZ_plus);
-  connect(m_Controls.pushButton_setFlangeTcp, &QPushButton::clicked, this, &SurgicalSimulate::ResetRobotTcp);
-
+  connect(m_Controls.pushButton_startServo, &QPushButton::clicked, this, &SurgicalSimulate::StartServo);
+  connect(m_Controls.pushButton_stopServo, &QPushButton::clicked, this, &SurgicalSimulate::StopServo);
+  connect(m_Controls.pushButton_initProbe, &QPushButton::clicked, this, &SurgicalSimulate::InitProbe);
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -178,10 +180,10 @@ void SurgicalSimulate::UseVega()
   lancet::NDIVegaTrackingDevice::Pointer vegaTrackingDevice = lancet::NDIVegaTrackingDevice::New(); //instantiate
 
   //Create Navigation Data Source with the factory class, and the visualize filter.
-  lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
+  lancet::TrackingDeviceSourceConfiguratorLancet::Pointer vegaSourceFactory =
     lancet::TrackingDeviceSourceConfiguratorLancet::New(m_VegaToolStorage, vegaTrackingDevice);
 
-  m_VegaSource = kukaSourceFactory->CreateTrackingDeviceSource(m_VegaVisualizer);
+  m_VegaSource = vegaSourceFactory->CreateTrackingDeviceSource(m_VegaVisualizer);
   m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
   m_VegaSource->Connect();
 
@@ -232,31 +234,7 @@ void SurgicalSimulate::CapturePose(bool translationOnly)
     nd_Ndi2RobotEndRF, nd_Ndi2RobotBaseRF);
 
   //add nd to registration module
-  //m_RobotRegistration.AddPose(nd_robot2flange, nd_RobotBaseRF2RobotEndRF, translationOnly);
-
-  // add vtkMatrix as poses to the registration module
-  // Average the NavigationData from the NDI camera
-  double ndiToRoboEndArrayAvg[16];
-  double ndiToBaseRFarrayAvg[16];
-  AverageNavigationData(nd_Ndi2RobotEndRF, 30, 20, ndiToRoboEndArrayAvg);
-  AverageNavigationData(nd_Ndi2RobotBaseRF, 30, 20, ndiToBaseRFarrayAvg);
-
-  vtkNew<vtkMatrix4x4> vtkNdiToRoboEndMatrix;
-  vtkNew<vtkMatrix4x4> vtkBaseRFToNdiMatrix;
-  vtkNdiToRoboEndMatrix->DeepCopy(ndiToRoboEndArrayAvg);
-  vtkBaseRFToNdiMatrix->DeepCopy(ndiToBaseRFarrayAvg);
-  vtkBaseRFToNdiMatrix->Invert();
-  auto vtkRoboBaseToFlangeMatrix = getVtkMatrix4x4(nd_robot2flange);
-
-	vtkNew<vtkTransform> tmpTransform;
-	tmpTransform->PostMultiply();
-	tmpTransform->Identity();
-	tmpTransform->SetMatrix(ndiToRoboEndArrayAvg);
-	tmpTransform->Concatenate(vtkBaseRFToNdiMatrix);
-	tmpTransform->Update();
-	auto vtkBaseRFtoRoboEndMatrix = tmpTransform->GetMatrix();
-
-	m_RobotRegistration.AddPoseWithVtkMatrix(vtkRoboBaseToFlangeMatrix, vtkBaseRFtoRoboEndMatrix, translationOnly);
+  m_RobotRegistration.AddPose(nd_robot2flange, nd_RobotBaseRF2RobotEndRF, translationOnly);
 
   MITK_INFO << nd_robot2flange;
   MITK_INFO << nd_RobotBaseRF2RobotEndRF;
@@ -302,16 +280,18 @@ void SurgicalSimulate::UseKuka()
   //KukaRobotDevice and make some settings which are necessary for a proper connection to the device.
   MITK_INFO << "Kuka tracking";
   //QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
-  m_KukaTrackingDevice = lancet::KukaRobotDevice::New(); //instantiate
+  m_KukaTrackingDevice = lancet::KukaRobotDevice_New::New(); //instantiate
 
   //Create Navigation Data Source with the factory class, and the visualize filter.
   lancet::TrackingDeviceSourceConfiguratorLancet::Pointer kukaSourceFactory =
     lancet::TrackingDeviceSourceConfiguratorLancet::New(m_KukaToolStorage, m_KukaTrackingDevice);
 
   m_KukaSource = kukaSourceFactory->CreateTrackingDeviceSource(m_KukaVisualizer);
-  // m_KukaSource->RegisterAsMicroservice(); 
-
-  m_KukaSource->Connect();
+  // m_KukaSource->RegisterAsMicroservice();
+  if (m_KukaSource.IsNotNull())
+  {
+    m_KukaSource->Connect();
+  }
 }
 
 void SurgicalSimulate::StartTracking()
@@ -350,13 +330,20 @@ void SurgicalSimulate::OnKukaVisualizeTimer()
     m_KukaVisualizer->Update(); //todo Crash When close plugin
     this->RequestRenderWindowUpdate();
   }
+
+  
+  if (m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult()>0)
+  {
+	  ResultProtocol reply = m_KukaTrackingDevice->m_RobotApi.GetCommandResult();
+	  m_Controls.textBrowser->append(QString::fromStdString(reply.ToString()));
+  }
 }
 
 void SurgicalSimulate::OnSelfCheck()
 {
   // if (m_KukaTrackingDevice.IsNotNull() && m_KukaTrackingDevice->GetState()!=0)
   // {
-  m_KukaTrackingDevice->RequestExecOperate(/*"Robot",*/ "setio", {"20", "20"});
+  //m_KukaTrackingDevice->RequestExecOperate(/*"Robot",*/ "setio", {"20", "20"});
   // }
   // else
   // {
@@ -375,6 +362,16 @@ void SurgicalSimulate::OnVegaVisualizeTimer()
     // auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
     // mitk::RenderingManager::GetInstance()->InitializeViews(geo);
     this->RequestRenderWindowUpdate();
+
+    //update probe pose
+    auto  probe = m_VegaSource->GetOutput("ProbeTHA")->GetAffineTransform3D();
+    // m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
+    // m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", probe, m_ProbeRealTimePose);
+      //mitk::AffineTransform3D::Pointer byhand = mitk::AffineTransform3D::New();
+    auto registrationMatrix = m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix();
+    probe->Compose(m_VegaSource->GetOutput("RobotBaseRF")->GetInverse()->GetAffineTransform3D());
+    probe->Compose(mitk::NavigationData::New(registrationMatrix)->GetInverse()->GetAffineTransform3D());
+    m_ProbeRealTimePose = probe;
   }
 }
 
@@ -385,8 +382,6 @@ void SurgicalSimulate::OnRobotCapture()
     CapturePose(true);
     //Increase the count each time you click the button
     m_IndexOfRobotCapture++;
-	m_Controls.lineEdit_collectedRoboPose->setText(QString::number(m_IndexOfRobotCapture));
-
     MITK_INFO << "OnRobotCapture: " << m_IndexOfRobotCapture;
   }
   else if (m_IndexOfRobotCapture < 10) //the last five rotations
@@ -394,7 +389,6 @@ void SurgicalSimulate::OnRobotCapture()
     CapturePose(false);
     //Increase the count each time you click the button
     m_IndexOfRobotCapture++;
-	m_Controls.lineEdit_collectedRoboPose->setText(QString::number(m_IndexOfRobotCapture));
     MITK_INFO << "OnRobotCapture: " << m_IndexOfRobotCapture;
   }
   else
@@ -403,33 +397,12 @@ void SurgicalSimulate::OnRobotCapture()
     vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
     m_RobotRegistration.GetRegistraionMatrix(matrix4x4);
 
-	vtkNew<vtkMatrix4x4> robotEndToFlangeMatrix;
-	m_RobotRegistration.GetTCPmatrix(robotEndToFlangeMatrix);
-	robotEndToFlangeMatrix->Invert();
-
-	m_Controls.textBrowser->append("Registration RMS: "+QString::number(m_RobotRegistration.RMS()));
-
-    //For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
-    /*vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
-    matrix4x4->SetElement(0, 0, -0.48); matrix4x4->SetElement(0, 1, -0.19); matrix4x4->SetElement(0, 2, -0.86);
-    matrix4x4->SetElement(1, 0, -0.01); matrix4x4->SetElement(1, 1, -0.97); matrix4x4->SetElement(1, 2, 0.22);
-    matrix4x4->SetElement(2, 0, -0.88); matrix4x4->SetElement(2, 1, 0.11); matrix4x4->SetElement(2, 2, 0.46);
-    matrix4x4->SetElement(0, 3, 162.37);
-    matrix4x4->SetElement(1, 3, -530.45);
-    matrix4x4->SetElement(2, 3, -255.62);*/
-
     m_RobotRegistrationMatrix = mitk::AffineTransform3D::New();
-
-	auto affineRobotEndRFtoFlangeMatrix = mitk::AffineTransform3D::New();
 
     mitk::TransferVtkMatrixToItkTransform(matrix4x4, m_RobotRegistrationMatrix.GetPointer());
 
-	mitk::TransferVtkMatrixToItkTransform(robotEndToFlangeMatrix, affineRobotEndRFtoFlangeMatrix.GetPointer());
-
     //save robot registration matrix into reference tool
     m_VegaToolStorage->GetToolByName("RobotBaseRF")->SetToolRegistrationMatrix(m_RobotRegistrationMatrix);
-	m_VegaToolStorage->GetToolByName("RobotEndRF")->SetToolRegistrationMatrix(affineRobotEndRFtoFlangeMatrix);
-
 
 	MITK_INFO << "Robot Registration Matrix";
 	MITK_INFO << m_RobotRegistrationMatrix;
@@ -466,477 +439,100 @@ void SurgicalSimulate::OnRobotCapture()
 
 	//For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
 	// https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
-	// tcp[0] = 0;
-	// tcp[1] = 100;
-	// tcp[2] = 138;
-	// tcp[3] = 0;
-	// tcp[4] = 0;
-	// tcp[5] = 0;
+	/*tcp[0] = 0;
+	tcp[1] = 100;
+	tcp[2] = 138;
+	tcp[3] = 0;
+	tcp[4] = 0;
+	tcp[5] = 0;
 
-	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];*/
 	//set tcp to robot
 	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{QString::number( tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
-  }
+	m_KukaTrackingDevice->m_RobotApi.AddFrame("RobotEndRF_robot", tcp);
 
+	//save tcp into robot tool
+	m_KukaToolStorage->GetToolByName("RobotEndRF_robot")->SetTCP(tcp.data());
+  }
 }
 
 void SurgicalSimulate::OnAutoMove()
 {
-  //Use current pose as reference to generate new poses
-  mitk::NavigationData::Pointer nd_robot2flange = m_KukaSource->GetOutput(0);
-  MITK_INFO << "nd_robot2flange";
-  MITK_INFO << nd_robot2flange;
-  mitk::AffineTransform3D::Pointer affine = mitk::AffineTransform3D::New();
-  affine = nd_robot2flange->GetAffineTransform3D()->Clone();
-  double axisx[3]{1, 0, 0};
-  double axisy[3]{0, 1, 0};
-  double axisz[3]{0, 0, 1};
-  vtkMatrix4x4* vtkMatrix = vtkMatrix4x4::New();
-
-  double trans1[3]{0, 0, 50};
-  double trans2[3]{0, 50, 0};
-  double trans3[3]{50, 0, 0};
-  double trans4[3]{0, 0, -25};
-  double trans5[3]{-25, 0, 0};
-  double trans6[3]{0, -25, 0};
-  double trans7[3]{0, -25, 0};
-  double trans8[3]{25, 0, 0};
-  double trans9[3]{-25, 0, 0};
-
-	double plusY[3]{ 0, 75, 0 };
-  double plusZ[3]{ 0,0,75 };
-  double plusX[3]{75,0,0};
-  double minusX[3]{ -150,0,0 };
-
+	auto frame = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[0];
+	MITK_INFO << frame.name;
+	std::array<double,6> p = frame.position;
   switch (m_IndexOfRobotCapture)
   {
-  case 1: //y+75
-
-    affine->Translate(plusY);
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
-
-  case 2: //y+75
-
-
-    affine->Translate(plusY);
-
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
-
-  case 3: //x+75
-
-    
-    affine->Translate(plusX);
-
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
-
-  case 4: //x+75
-
 	  
-    affine->Translate(plusX);
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
+  case 1: //x-100mm	  
+	  p[0] -= 100; 
+	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+	  break;
+  case 2: //z-100mm
+	  p[2] -= 100; 
+	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
     break;
 
-  case 5: //x-150
+  case 3: //x+100mm
+	  p[0] += 100;
+	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 
+    break;
 
-    // affine->Rotate3D(axisx, 0.174);
-    affine->Translate(minusX);
+  case 4: //y+100
+	  p[1] += 100;
+	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+    break;
 
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
+  case 5: //x rotate 10 degree x -25
+	  
+	  p[0] -=25;
+	  p[3] += (10.0 / 180.0 * 3.14);
+	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+
+   
     break;
 
   case 6: //x rotate -20 degree y -25
-
-    affine->Rotate3D(axisx, -0.174 * 2);
-    affine->Translate(trans6);
-
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
+	 
+	  p[1] -= 25;
+	  p[3] -= (20.0 / 180.0 * 3.14);
+	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+   
     break;
 
   case 7: //y rotate 10 degree y +25
-
-    affine->Rotate3D(axisy, 0.174);
-    affine->Translate(trans7);
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
+	 
+	  p[1] -= 25;
+	  p[4] += (10.0 / 180.0 * 3.14);
+	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+    
     break;
 
   case 8: //y rotate -20 degree x +25
 
-    affine->Rotate3D(axisy, -0.174 * 2);
-    affine->Translate(trans8);
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
+	  
+	  p[0] += 25;
+	  p[4] -= (20.0 / 180.0 * 3.14);
+	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+    
     break;
 
   case 9: //z rotate 20 degree x -25
-
-    affine->Rotate3D(axisz, 0.174 * 2);
-    affine->Translate(trans9);
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
+	  
+	  p[0] -= 25;
+	  p[5] += (20.0 / 180.0 * 3.14);
+	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+    
     break;
 
   default:
-
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
+	 
+	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+   
     break;
   }
-}
-
-bool SurgicalSimulate::RecordInitial()
-{
-	m_initial_robotBaseToFlange = vtkMatrix4x4::New();
-
-	mitk::NavigationData::Pointer nd_robotBaseToFlange = m_KukaSource->GetOutput(0)->Clone();
-
-	mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), m_initial_robotBaseToFlange);
-
-	return true;
-}
-
-bool SurgicalSimulate::GoToInitial()
-{
-	m_KukaTrackingDevice->RobotMove(m_initial_robotBaseToFlange);
-
-	return true;
-}
-
-bool SurgicalSimulate::InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementMatrix, vtkMatrix4x4* movementMatrixInRobotBase)
-{
-	int index = m_Controls.comboBox_robotMoveType->currentIndex();
-	if (index == 1)
-	{
-		vtkNew<vtkMatrix4x4> matrix_robotBaseToFlange;
-
-		mitk::NavigationData::Pointer nd_robotBaseToFlange = m_KukaSource->GetOutput(0)->Clone();
-
-		mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), matrix_robotBaseToFlange);
-
-		vtkNew<vtkTransform> tmpTransform;
-		tmpTransform->Identity();
-		tmpTransform->PostMultiply();
-		tmpTransform->SetMatrix(matrix_robotBaseToFlange);
-		tmpTransform->Concatenate(rawMovementMatrix);
-		tmpTransform->Update();
-
-		movementMatrixInRobotBase->DeepCopy(tmpTransform->GetMatrix());
-
-		m_Controls.textBrowser->append("Movement matrix in robot base has been updated.");
-		m_Controls.textBrowser->append("Translation: x: " + QString::number(movementMatrixInRobotBase->GetElement(0, 3)) +
-			"/ y: " + QString::number(movementMatrixInRobotBase->GetElement(1, 3)) + "/ z: " + QString::number(movementMatrixInRobotBase->GetElement(2, 3)));
-
-		return true;
-	}
-
-	if (index == 0)
-	{
-		vtkNew<vtkMatrix4x4> matrix_robotBaseToFlange;
-
-		mitk::NavigationData::Pointer nd_robotBaseToFlange = m_KukaSource->GetOutput(0)->Clone();
-
-		mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), matrix_robotBaseToFlange);
-
-		vtkNew<vtkMatrix4x4> matrix_flangeSpaceToMovementSpace;
-		// matrix_flangeSpaceToMovementSpace->DeepCopy(m_matrix_flangeSpaceToMovementSpace);
-		matrix_flangeSpaceToMovementSpace->Identity();
-
-		vtkNew<vtkTransform> tmpTransform;
-		tmpTransform->Identity();
-		tmpTransform->PostMultiply();
-		tmpTransform->SetMatrix(rawMovementMatrix);
-		tmpTransform->Concatenate(matrix_flangeSpaceToMovementSpace);
-		tmpTransform->Concatenate(matrix_robotBaseToFlange);
-		tmpTransform->Update();
-
-		movementMatrixInRobotBase->DeepCopy(tmpTransform->GetMatrix());
-
-		m_Controls.textBrowser->append("Movement matrix in robot base has been updated.");
-		m_Controls.textBrowser->append("Translation: x: " + QString::number(movementMatrixInRobotBase->GetElement(0, 3)) +
-			"/ y: " + QString::number(movementMatrixInRobotBase->GetElement(1, 3)) + "/ z: " + QString::number(movementMatrixInRobotBase->GetElement(2, 3)));
-
-		return true;
-	}
-
-	return false;
-}
-
-bool SurgicalSimulate::TranslateX_plus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axis[3]{ 1,0,0 };
-	axis[0] = axis[0] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
-	affineTransform->Translate(axis);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::TranslateX_minus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axis[3]{ 1,0,0 };
-	axis[0] = -axis[0] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
-	affineTransform->Translate(axis);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::TranslateY_plus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axis[3]{ 0,1,0 };
-	axis[1] = axis[1] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
-	affineTransform->Translate(axis);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::TranslateY_minus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axis[3]{ 0,1,0 };
-	axis[1] = -axis[1] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
-	affineTransform->Translate(axis);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::TranslateZ_plus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axis[3]{ 0,0,1 };
-	axis[2] = axis[2] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
-	affineTransform->Translate(axis);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::TranslateZ_minus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axis[3]{ 0,0,1 };
-	axis[2] = -axis[2] * (m_Controls.lineEdit_intuitiveValue->text().toDouble());
-	affineTransform->Translate(axis);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::RotateX_plus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axisZ[3]{ 1,0,0 };
-	double angle = 3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
-	affineTransform->Rotate3D(axisZ, angle);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::RotateX_minus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axisZ[3]{ 1,0,0 };
-	double angle = -3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
-	affineTransform->Rotate3D(axisZ, angle);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::RotateY_plus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axisZ[3]{ 0,1,0 };
-	double angle = 3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
-	affineTransform->Rotate3D(axisZ, angle);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::RotateY_minus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axisZ[3]{ 0,1,0 };
-	double angle = -3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
-	affineTransform->Rotate3D(axisZ, angle);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::RotateZ_plus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axisZ[3]{ 0,0,1 };
-	double angle = 3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
-	affineTransform->Rotate3D(axisZ, angle);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
-}
-
-bool SurgicalSimulate::RotateZ_minus()
-{
-	mitk::AffineTransform3D::Pointer affineTransform = mitk::AffineTransform3D::New();
-	affineTransform->SetIdentity();
-	double axisZ[3]{ 0,0,1 };
-	double angle = -3.14159 * (m_Controls.lineEdit_intuitiveValue->text().toDouble()) / 180;
-	affineTransform->Rotate3D(axisZ, angle);
-
-	vtkNew<vtkMatrix4x4> rawMovementMatrix;
-	vtkNew<vtkMatrix4x4> movementMatrixInRobotBase;
-
-
-	mitk::TransferItkTransformToVtkMatrix(affineTransform.GetPointer(), rawMovementMatrix);
-
-	InterpretMovementAsInBaseSpace(rawMovementMatrix, movementMatrixInRobotBase);
-
-	m_KukaTrackingDevice->RobotMove(movementMatrixInRobotBase);
-
-	return true;
 }
 
 void SurgicalSimulate::OnResetRobotRegistration()
@@ -976,6 +572,36 @@ void SurgicalSimulate::OnSaveRobotRegistraion()
     }
     m_Controls.textBrowser->append(QString::fromStdString(m_VegaToolStorage->GetName()+" saved"));
   }
+
+  if (m_KukaToolStorage.IsNotNull())
+  {
+	  QFileDialog* fileDialog = new QFileDialog;
+	  fileDialog->setDefaultSuffix("IGTToolStorage");
+	  QString suffix = "IGT Tool Storage (*.IGTToolStorage)";
+	  // Set default file name to LastFileSavePath + storage name
+	  QString defaultFileName = QmitkIGTCommonHelper::GetLastFileSavePath() + "/" + QString::fromStdString(m_KukaToolStorage->GetName());
+	  QString filename = fileDialog->getSaveFileName(nullptr, tr("Save Navigation Tool Storage"), defaultFileName, suffix, &suffix);
+
+	  if (filename.isEmpty()) return; //canceled by the user
+
+	  // check file suffix
+	  QFileInfo file(filename);
+	  if (file.suffix().isEmpty()) filename += ".IGTToolStorage";
+
+	  //serialize tool storage
+	  mitk::NavigationToolStorageSerializer::Pointer mySerializer = mitk::NavigationToolStorageSerializer::New();
+
+	  try
+	  {
+		  mySerializer->Serialize(filename.toStdString(), m_KukaToolStorage);
+	  }
+	  catch (const mitk::IGTIOException & e)
+	  {
+		  m_Controls.textBrowser->append(QString::fromStdString("Error: " + std::string(e.GetDescription())));
+		  return;
+	  }
+	  m_Controls.textBrowser->append(QString::fromStdString(m_KukaToolStorage->GetName() + " saved"));
+  }
 }
 
 void SurgicalSimulate::OnUsePreRobotRegitration()
@@ -988,69 +614,26 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   m_VegaSource->Update();
   m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
 
-  //TODO: store tcp into toolstorage
-  //For Test Use ,7L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
-  std::array<double, 6> tcp;
-	//design
-  /*tcp[0] = 23.80;
-	tcp[1] = 47.49;
-	tcp[2] = 95;
-	tcp[3] =1.575;
-	tcp[4] = -3.141;
-	tcp[5] = 0;*/
-	//algo
-	tcp[0] = 22.5281;
-	tcp[1] = 45.9194;
-	tcp[2] = 93.4865;
-	tcp[3] = 1.575;
-	tcp[4] = -3.141;
-	tcp[5] = 0;
-
-	//set tcp to robot
-	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
-
   m_KukaVisualizeTimer->stop();
   m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
   m_KukaVisualizeTimer->start();
-
-
-  
-
-
-
-
-  //For Test Use, regard ball 2 as the TCP, the pose is the same as the flange
-  // https://gn1phhht53.feishu.cn/wiki/wikcnxxvosvrccWKPux0Bjd4j6g
-  
-  tcp[0] = 0;
-  tcp[1] = 100;
-  tcp[2] = 138;
-  tcp[3] = 0;
-  tcp[4] = 0;
-  tcp[5] = 0;
-  MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
-  //set tcp to robot
-	//set tcp
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-  QThread::msleep(1000);
-  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 }
 
 void SurgicalSimulate::OnSetTCP()
 {
-	QString tcpNum = m_Controls.lineEdit_tcp->text();
+	// QString tcpNum = m_Controls.lineEdit_tcp->text();
+	//
+	// m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", tcpNum });
+	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
+  const char* ipaddr = "127.0.0.1";
+  Poco::Net::SocketAddress sa(ipaddr, 5004);
+  Poco::Net::DatagramSocket dgs(Poco::Net::IPAddress::IPv4);
+  dgs.connect(sa);
 
-	m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", tcpNum });
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
+  std::string msg("hello");
+  //Poco::Timestamp now;
+  //msg = Poco::DateTimeFormatter::format(now,)
+  dgs.sendBytes(msg.data(), msg.size());
 }
 
 void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
@@ -1186,57 +769,34 @@ bool SurgicalSimulate::InterpretImageLine()
 	auto targetPoint_1 = targetLinePoints->GetPoint(1);
 
 	// Interpret targetPoint_0 from image frame to robot (internal) base frame
-	// do some average
-	double targetPointUnderBase_0[3]{ 0 };
-	double targetPointUnderBase_1[3]{ 0 };
-	for (int i{ 0 }; i < 20; i++) {
-		m_VegaSource->Update();
-		auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
+	auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
 
-		auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
+	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
 
-		auto registrationMatrix_surfaceToRF = m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix();
-		vtkNew<vtkMatrix4x4> tmpMatrix;
-		mitk::TransferItkTransformToVtkMatrix(registrationMatrix_surfaceToRF.GetPointer(), tmpMatrix);
-		tmpMatrix->Invert();
+	auto registrationMatrix_surfaceToRF = m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix();
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+	mitk::TransferItkTransformToVtkMatrix(registrationMatrix_surfaceToRF.GetPointer(), tmpMatrix);
+	tmpMatrix->Invert();
 
-		mitk::TransferVtkMatrixToItkTransform(tmpMatrix, rfToSurfaceMatrix.GetPointer());
+	mitk::TransferVtkMatrixToItkTransform(tmpMatrix, rfToSurfaceMatrix.GetPointer());
 
-		auto ndiToTargetMatrix_0 = mitk::AffineTransform3D::New();
-		ndiToTargetMatrix_0->SetOffset(targetPoint_0.GetDataPointer());
-		ndiToTargetMatrix_0->Compose(rfToSurfaceMatrix);
-		ndiToTargetMatrix_0->Compose(ndiToObjectRfMatrix);
-		auto targetUnderBase_0 = mitk::AffineTransform3D::New();
-		m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_0, targetUnderBase_0);
-		auto targetPointUnderBase_tmp0 = targetUnderBase_0->GetOffset();
+	auto ndiToTargetMatrix_0 = mitk::AffineTransform3D::New();
+	ndiToTargetMatrix_0->SetOffset(targetPoint_0.GetDataPointer());
+	ndiToTargetMatrix_0->Compose(rfToSurfaceMatrix);
+	ndiToTargetMatrix_0->Compose(ndiToObjectRfMatrix);
+	auto targetUnderBase_0 = mitk::AffineTransform3D::New();
+	m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_0, targetUnderBase_0);
+	auto targetPointUnderBase_0 = targetUnderBase_0->GetOffset();
 
-		auto ndiToTargetMatrix_1 = mitk::AffineTransform3D::New();
-		ndiToTargetMatrix_1->SetOffset(targetPoint_1.GetDataPointer());
-		ndiToTargetMatrix_1->Compose(rfToSurfaceMatrix);
-		ndiToTargetMatrix_1->Compose(ndiToObjectRfMatrix);
-		auto targetUnderBase_1 = mitk::AffineTransform3D::New();
-		m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_1, targetUnderBase_1);
-		auto targetPointUnderBase_tmp1 = targetUnderBase_1->GetOffset();
+	auto ndiToTargetMatrix_1 = mitk::AffineTransform3D::New();
+	ndiToTargetMatrix_1->SetOffset(targetPoint_1.GetDataPointer());
+	ndiToTargetMatrix_1->Compose(rfToSurfaceMatrix);
+	ndiToTargetMatrix_1->Compose(ndiToObjectRfMatrix);
+	auto targetUnderBase_1 = mitk::AffineTransform3D::New();
+	m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_1, targetUnderBase_1);
+	auto targetPointUnderBase_1 = targetUnderBase_1->GetOffset();
 
-		targetPointUnderBase_0[0] += targetPointUnderBase_tmp0[0];
-		targetPointUnderBase_0[1] += targetPointUnderBase_tmp0[1];
-		targetPointUnderBase_0[2] += targetPointUnderBase_tmp0[2];
-
-		targetPointUnderBase_1[0] += targetPointUnderBase_tmp1[0];
-		targetPointUnderBase_1[1] += targetPointUnderBase_tmp1[1];
-		targetPointUnderBase_1[2] += targetPointUnderBase_tmp1[2];
-
-		MITK_INFO << "tmp target Point:" << targetPointUnderBase_tmp0[0];
-	}
 	
-	targetPointUnderBase_0[0] = targetPointUnderBase_0[0] / 20;
-	targetPointUnderBase_0[1] = targetPointUnderBase_0[1] / 20;
-	targetPointUnderBase_0[2] = targetPointUnderBase_0[2] / 20;
-
-	targetPointUnderBase_1[0] = targetPointUnderBase_1[0] / 20;
-	targetPointUnderBase_1[1] = targetPointUnderBase_1[1] / 20;
-	targetPointUnderBase_1[2] = targetPointUnderBase_1[2] / 20;
-
 	// fine tune the direction
 	// dynamic TCP will take effect when the GetOutput function of KukaSource is called;
 	// By comparison, GetOutput function of VegaSource will not automatically take the registration matrix of the corresponding
@@ -1432,126 +992,59 @@ void SurgicalSimulate::UpdateToolStatusWidget()
 {
   m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
   m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
+}
 
-  // Update the real time robot registration distance error
-	if(m_KukaSource == nullptr || m_VegaSource == nullptr)
-	{
-		return;
-	}
+void SurgicalSimulate::SendCommand()
+{
+  bool res = m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara(m_Controls.lineEdit_command->text().toStdString());
+}
 
-	auto baseRFtoBaseMatrix = m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix();
-	auto endRFtoFlangematrix = m_VegaToolStorage->GetToolByName("RobotEndRF")->GetToolRegistrationMatrix();
+void SurgicalSimulate::StartServo()
+{
+  bool res = m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StartServo");
+  m_KeepUpdateFriTransform = true;
 
-	mitk::NavigationData::Pointer nd_baseToFlange = m_KukaSource->GetOutput(0);
-	mitk::NavigationData::Pointer nd_ndiToRobotEndRF = m_VegaSource->GetOutput("RobotEndRF");
-	mitk::NavigationData::Pointer nd_ndiToBaseRF = m_VegaSource->GetOutput("RobotBaseRF");
+  m_friThread = std::thread(&SurgicalSimulate::threadUpdateFriTransform, this);
+}
 
-	auto baseToFlangeMatrix = nd_baseToFlange->GetAffineTransform3D();
-	auto ndiToBaseRFMatrix = nd_ndiToBaseRF->GetAffineTransform3D();
+void SurgicalSimulate::StopServo()
+{
+	m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("StopServo");
+  //m_FriManager.DisConnect();
+  m_KeepUpdateFriTransform = false;
+  m_friThread.join();
+}
 
-	vtkNew<vtkMatrix4x4> vtkNdiToBaseRF;
-	mitk::TransferItkTransformToVtkMatrix(ndiToBaseRFMatrix.GetPointer(), vtkNdiToBaseRF);
-	
-	vtkNew<vtkMatrix4x4> vtkBaseRFtoBase;
-	mitk::TransferItkTransformToVtkMatrix(baseRFtoBaseMatrix.GetPointer(), vtkBaseRFtoBase);
+void SurgicalSimulate::InitProbe()
+{
+  //1
+  // m_ProbeInitPose = m_ProbeRealTimePose;
+  // vtkMatrix4x4* dest = vtkMatrix4x4::New();
+  // double trans[3]{ 0, 0, 50 };
+  // m_ProbeInitPose->Translate(trans);
+  // mitk::TransferItkTransformToVtkMatrix(m_ProbeInitPose.GetPointer(), dest);
+  //
+  // m_KukaTrackingDevice->m_RobotApi.MovePTP(dest);
 
-	vtkNew<vtkMatrix4x4> vtkFlangeToEndRF_backup;
-	mitk::TransferItkTransformToVtkMatrix(endRFtoFlangematrix.GetPointer(), vtkFlangeToEndRF_backup);
+  //2
+  // m_offset[2] += 10;
+  // mitk::AffineTransform3D::Pointer friMatrix = mitk::AffineTransform3D::New();
+  // friMatrix->SetOffset(m_offset);
+  // m_KukaTrackingDevice->m_RobotApi.SetFriDynamicFrameTransform(friMatrix);
+  BindRobotToProbe();
+}
 
-	vtkNew<vtkMatrix4x4> vtkFlangeToEndRF;
-	vtkFlangeToEndRF->DeepCopy(vtkFlangeToEndRF_backup);
-	vtkFlangeToEndRF->Invert();
+void SurgicalSimulate::BindRobotToProbe()
+{
+  //bind robotEndRF to Probe
+  auto T_ndi2probe = m_VegaSource->GetOutput("Probe")->GetAffineTransform3D();
+  auto T_ndi2robotEndRF = m_KukaApplyRegistrationFilter->GetOutput("Flange")->GetAffineTransform3D();
+  MITK_WARN << "T_ndi2robotEndRF: " << T_ndi2robotEndRF;
 
-	vtkNew<vtkMatrix4x4> vtkBaseToFlange;
-	mitk::TransferItkTransformToVtkMatrix(baseToFlangeMatrix.GetPointer(), vtkBaseToFlange);
-
-	double endRFposition[3];
-	endRFposition[0] = (nd_ndiToRobotEndRF->GetPosition())[0];
-	endRFposition[1] = (nd_ndiToRobotEndRF->GetPosition())[1];
-	endRFposition[2] = (nd_ndiToRobotEndRF->GetPosition())[2];
-
-	vtkNew<vtkTransform> tmpTransform;
-	tmpTransform->Identity();
-	tmpTransform->PostMultiply();
-	tmpTransform->SetMatrix(vtkFlangeToEndRF);
-	tmpTransform->Concatenate(vtkBaseToFlange);
-	tmpTransform->Concatenate(vtkBaseRFtoBase);
-	tmpTransform->Concatenate(vtkNdiToBaseRF);
-	tmpTransform->Update();
-
-	auto vtkNdiToEndRFmatrix = tmpTransform->GetMatrix();
-
-	double  endRFposition_1[3]
-	{
-		vtkNdiToEndRFmatrix->GetElement(0,3),vtkNdiToEndRFmatrix->GetElement(1,3),vtkNdiToEndRFmatrix->GetElement(2,3)
-	};
-
-	double error = sqrt(pow(endRFposition_1[0] - endRFposition[0],2) +
-		pow(endRFposition_1[1] - endRFposition[1],2)+
-		pow(endRFposition_1[2] - endRFposition[2], 2));
-	m_Controls.lineEdit_roboRegistrationError->setText(QString::number(error));
-
-	// Update the real time robot registration angle error
-	auto vtkNdiToRoboEndRFmatrix_direct = getVtkMatrix4x4(nd_ndiToRobotEndRF);
-	double x_direct[3]
-	{
-		vtkNdiToRoboEndRFmatrix_direct->GetElement(0,0),
-		vtkNdiToRoboEndRFmatrix_direct->GetElement(1,0),
-		vtkNdiToRoboEndRFmatrix_direct->GetElement(2,0)
-	};
-
-	double x_indirect[3]
-	{
-		vtkNdiToEndRFmatrix->GetElement(0,0),
-		vtkNdiToEndRFmatrix->GetElement(1,0),
-		vtkNdiToEndRFmatrix->GetElement(2,0)
-	};
-
-	double y_direct[3]
-	{
-		vtkNdiToRoboEndRFmatrix_direct->GetElement(0,1),
-		vtkNdiToRoboEndRFmatrix_direct->GetElement(1,1),
-		vtkNdiToRoboEndRFmatrix_direct->GetElement(2,1)
-	};
-
-	double y_indirect[3]
-	{
-		vtkNdiToEndRFmatrix->GetElement(0,1),
-		vtkNdiToEndRFmatrix->GetElement(1,1),
-		vtkNdiToEndRFmatrix->GetElement(2,1)
-	};
-
-	double z_direct[3]
-	{
-		vtkNdiToRoboEndRFmatrix_direct->GetElement(0,2),
-		vtkNdiToRoboEndRFmatrix_direct->GetElement(1,2),
-		vtkNdiToRoboEndRFmatrix_direct->GetElement(2,2)
-	};
-
-	double z_indirect[3]
-	{
-		vtkNdiToEndRFmatrix->GetElement(0,2),
-		vtkNdiToEndRFmatrix->GetElement(1,2),
-		vtkNdiToEndRFmatrix->GetElement(2,2)
-	};
-
-	double x_angleError = (180 / 3.14159265359) * acos(x_direct[0]*x_indirect[0] 
-		+ x_direct[1] * x_indirect[1]
-		+ x_direct[2] * x_indirect[2]);
-
-	double y_angleError = (180 / 3.14159265359) * acos(y_direct[0] * y_indirect[0]
-		+ y_direct[1] * y_indirect[1]
-		+ y_direct[2] * y_indirect[2]);
-
-	double z_angleError = (180 / 3.14159265359) * acos(z_direct[0] * z_indirect[0]
-		+ z_direct[1] * z_indirect[1]
-		+ z_direct[2] * z_indirect[2]);
-
-	m_Controls.lineEdit_xAngleError->setText(QString::number(x_angleError));
-	m_Controls.lineEdit_yAngleError->setText(QString::number(y_angleError));
-	m_Controls.lineEdit_zAngleError->setText(QString::number(z_angleError));
-
-
+  T_probe2robotEndRF = mitk::AffineTransform3D::New();
+  T_ndi2probe->GetInverse(T_probe2robotEndRF);
+ 
+  T_probe2robotEndRF->Compose(T_ndi2robotEndRF,true);
 }
 
 void SurgicalSimulate::ShowToolStatus_Vega()
@@ -1583,175 +1076,3 @@ void SurgicalSimulate::ShowToolStatus_Kuka()
   m_Controls.m_StatusWidgetKukaToolToShow->SetNavigationDatas(&m_KukaNavigationData);
   m_Controls.m_StatusWidgetKukaToolToShow->ShowStatusLabels();
 }
-
-
-bool SurgicalSimulate::AverageNavigationData(mitk::NavigationData::Pointer ndPtr, int timeInterval, int intervalNum, double matrixArray[16])
-{
-	// The frame rate of Vega ST is 60 Hz, so the timeInterval should be larger than 16.7 ms
-
-	double tmp_x[3]{ 0,0,0 };
-	double tmp_y[3]{ 0,0,0 };
-	double tmp_translation[3]{ 0,0,0 };
-
-	for (int i{ 0 }; i < intervalNum; i++)
-	{
-		ndPtr->Update();
-
-		auto tmpMatrix = getVtkMatrix4x4(ndPtr);
-
-		MITK_INFO << "Averaging NavigationData and print the 1st element:" << tmpMatrix->GetElement(0, 0);
-
-		tmp_x[0] += tmpMatrix->GetElement(0, 0);
-		tmp_x[1] += tmpMatrix->GetElement(1, 0);
-		tmp_x[2] += tmpMatrix->GetElement(2, 0);
-
-		tmp_y[0] += tmpMatrix->GetElement(0, 1);
-		tmp_y[1] += tmpMatrix->GetElement(1, 1);
-		tmp_y[2] += tmpMatrix->GetElement(2, 1);
-
-		tmp_translation[0] += tmpMatrix->GetElement(0, 3);
-		tmp_translation[1] += tmpMatrix->GetElement(1, 3);
-		tmp_translation[2] += tmpMatrix->GetElement(2, 3);
-
-		QThread::msleep(timeInterval);
-	}
-
-	// Assemble baseRF to EndRF matrix
-	Eigen::Vector3d x;
-	x[0] = tmp_x[0];
-	x[1] = tmp_x[1];
-	x[2] = tmp_x[2];
-	x.normalize();
-
-	Eigen::Vector3d h;
-	h[0] = tmp_y[0];
-	h[1] = tmp_y[1];
-	h[2] = tmp_y[2];
-	h.normalize();
-
-	Eigen::Vector3d z;
-	z = x.cross(h);
-	z.normalize();
-
-	Eigen::Vector3d y;
-	y = z.cross(x);
-	y.normalize();
-
-	tmp_translation[0] = tmp_translation[0] / intervalNum;
-	tmp_translation[1] = tmp_translation[1] / intervalNum;
-	tmp_translation[2] = tmp_translation[2] / intervalNum;
-
-	double tmpArray[16]
-	{
-	  x[0], y[0], z[0], tmp_translation[0],
-	  x[1], y[1], z[1], tmp_translation[1],
-	  x[2], y[2], z[2], tmp_translation[2],
-	  0,0,0,1
-	};
-
-	for (int i{ 0 }; i < 16; i++)
-	{
-		matrixArray[i] = tmpArray[i];
-	}
-	
-	return true;
-}
-
-vtkMatrix4x4* SurgicalSimulate::getVtkMatrix4x4(mitk::NavigationData::Pointer nd)
-{
-	auto o = nd->GetOrientation();
-	double R[3][3];
-	double* V = { nd->GetPosition().GetDataPointer() };
-	vtkQuaterniond quaterniond{ o.r(), o.x(), o.y(), o.z() };
-	quaterniond.ToMatrix3x3(R);
-
-	vtkMatrix4x4* matrix = vtkMatrix4x4::New();
-	matrix->SetElement(0, 0, R[0][0]);
-	matrix->SetElement(0, 1, R[0][1]);
-	matrix->SetElement(0, 2, R[0][2]);
-	matrix->SetElement(1, 0, R[1][0]);
-	matrix->SetElement(1, 1, R[1][1]);
-	matrix->SetElement(1, 2, R[1][2]);
-	matrix->SetElement(2, 0, R[2][0]);
-	matrix->SetElement(2, 1, R[2][1]);
-	matrix->SetElement(2, 2, R[2][2]);
-
-	matrix->SetElement(0, 3, V[0]);
-	matrix->SetElement(1, 3, V[1]);
-	matrix->SetElement(2, 3, V[2]);
-
-	matrix->Print(std::cout);
-	return matrix;
-}
-
-bool SurgicalSimulate::ResetRobotTcp()
-{
-	double tcp[6]{ 0 };
-	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
-	//set tcp to robot
-	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
-	return true;
-}
-
-bool SurgicalSimulate::SetPrecisionTestTcp()
-{
-	// set TCP for precision test
-	// For Test Use, regard ball 2 as the TCP, the pose can be seen on
-	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
-	//--------------------------------------------------
-	Eigen::Vector3d x_tcp;
-	x_tcp[0] = 51.91;
-	x_tcp[1] = -55.01;
-	x_tcp[2] = 0.16;
-	x_tcp.normalize();
-
-	Eigen::Vector3d z_flange;
-	z_flange[0] = 0.0;
-	z_flange[1] = 0.0;
-	z_flange[2] = 1;
-
-	Eigen::Vector3d y_tcp;
-	y_tcp = z_flange.cross(x_tcp);
-	y_tcp.normalize();
-
-	Eigen::Vector3d z_tcp;
-	z_tcp = x_tcp.cross(y_tcp);
-
-	Eigen::Matrix3d Re;
-
-	Re << x_tcp[0], y_tcp[0], z_tcp[0],
-		x_tcp[1], y_tcp[1], z_tcp[1],
-		x_tcp[2], y_tcp[2], z_tcp[2];
-
-
-	Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
-
-	//------------------------------------------------
-	double tcp[6];
-	tcp[0] = 0.75; // tx
-	tcp[1] = 100.21; // ty
-	tcp[2] = 137.73; // tz
-	tcp[3] = eulerAngle(0);//-0.81;// -0.813428203; // rz
-	tcp[4] = eulerAngle(1); // ry
-	tcp[5] = eulerAngle(2); // rx
-	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
-	//set tcp to robot
-	  //set tcp
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	QThread::msleep(1000);
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
-
-	return true;
-}
-
-
-

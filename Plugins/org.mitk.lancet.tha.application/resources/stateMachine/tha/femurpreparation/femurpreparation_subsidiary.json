@@ -1,0 +1,17 @@
+{
+	"properties":
+	{
+		"id": "org_mitk_lancet_tha_femurpreparation",
+		"objectName": "ActionFemurPreparation",
+		"uiName": "股骨制备",
+		"theme": 
+		{
+			"defaultStyle":
+			{
+				"actionQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/action_medicalrecordmanagement_default.qss",
+				"editorQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/editor_medicalrecordmanagement_default.qss",
+				"viewQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/view_medicalrecordmanagement_default.qss"
+			}
+		}
+	}
+}

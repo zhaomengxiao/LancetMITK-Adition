@@ -1,0 +1,7 @@
+project(org_mitk_lancet_roboticsregistrationsaccuracy)
+
+mitk_create_plugin(
+  EXPORT_DIRECTIVE ROBOTICSREGISTRATIONSACCURACY_EXPORT
+  EXPORTED_INCLUDE_SUFFIXES src
+  MODULE_DEPENDS MitkQtWidgetsExt
+)

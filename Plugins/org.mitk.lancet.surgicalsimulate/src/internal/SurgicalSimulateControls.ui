@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>701</width>
-    <height>760</height>
+    <height>749</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -49,7 +49,7 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>50</height>
+                <height>16777215</height>
                </size>
               </property>
              </widget>
@@ -74,7 +74,7 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>50</height>
+                <height>16777215</height>
                </size>
               </property>
              </widget>
@@ -173,503 +173,102 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Output</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0">
-       <widget class="QTextBrowser" name="textBrowser"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
+     <widget class="QWidget" name="tab_6">
+      <attribute name="title">
+       <string>RobotControl</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_12">
+       <item row="0" column="0">
+        <widget class="QLineEdit" name="lineEdit_command"/>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="pushButton_sendCommand">
+         <property name="text">
+          <string>Send</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="pushButton_handGuiding">
+         <property name="text">
+          <string>HandGuiding</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="pushButton_motionStop">
+         <property name="text">
+          <string>MotionStop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="pushButton_startServo">
+         <property name="text">
+          <string>StartServo</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="pushButton_stopServo">
+         <property name="text">
+          <string>StopServo</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="pushButton_initProbe">
+         <property name="text">
+          <string>init probe</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tab">
       <attribute name="title">
        <string>Robot registration</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_13">
-       <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_14">
-         <item>
-          <widget class="QPushButton" name="pushButton_captureRobot">
-           <property name="text">
-            <string>Capture</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="lineEdit_collectedRoboPose">
-           <property name="layoutDirection">
-            <enum>Qt::LeftToRight</enum>
-           </property>
-           <property name="text">
-            <string>0</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>/10</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_automove">
-           <property name="text">
-            <string>AutoMove</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_resetRobotReg">
-           <property name="text">
-            <string>Reset</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_saveRobotRegist">
-           <property name="text">
-            <string>Save</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_usePreRobotRegit">
-           <property name="text">
-            <string>Use Previous (movable image)</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+      <layout class="QGridLayout" name="gridLayout_11">
+       <item row="0" column="2">
+        <widget class="QPushButton" name="pushButton_automove">
+         <property name="text">
+          <string>AutoMove</string>
+         </property>
+        </widget>
        </item>
-       <item row="1" column="0">
-        <layout class="QGridLayout" name="gridLayout_12">
-         <item row="0" column="0">
-          <widget class="QPushButton" name="pushButton_InitializeTcp">
-           <property name="text">
-            <string>Initialize TCP</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <layout class="QHBoxLayout" name="horizontalLayout_13">
-           <item>
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string>Real time robot registration error:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_7">
-             <item>
-              <widget class="QLineEdit" name="lineEdit_roboRegistrationError"/>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_4">
-               <property name="text">
-                <string>mm</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </item>
-         <item row="1" column="0" colspan="2">
-          <layout class="QHBoxLayout" name="horizontalLayout_12">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_11">
-             <item>
-              <widget class="QLineEdit" name="lineEdit_xAngleError"/>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="lineEdit_yAngleError"/>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="lineEdit_zAngleError"/>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>xyz axis degree</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="pushButton_resetRobotReg">
+         <property name="text">
+          <string>Reset</string>
+         </property>
+        </widget>
        </item>
-       <item row="2" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_10">
-         <item>
-          <widget class="QLineEdit" name="lineEdit_tcp"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_setTCP">
-           <property name="text">
-            <string>SetTCP</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_roboRegisManual">
-           <property name="text">
-            <string>Use fixed registration value (manipulated values in the code)</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+       <item row="0" column="4">
+        <widget class="QPushButton" name="pushButton_saveRobotRegist">
+         <property name="text">
+          <string>Save</string>
+         </property>
+        </widget>
        </item>
-       <item row="3" column="0">
-        <layout class="QGridLayout" name="gridLayout_11">
-         <item row="0" column="0">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_0">
-           <property name="text">
-            <string>-0.588471</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_1">
-           <property name="text">
-            <string>0.0021502</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_2">
-           <property name="text">
-            <string>-0.808515</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="3">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_3">
-           <property name="text">
-            <string>337.01</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_4">
-           <property name="text">
-            <string>0.788157</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_5">
-           <property name="text">
-            <string>0.22453</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_6">
-           <property name="text">
-            <string>-0.573057</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_7">
-           <property name="text">
-            <string>500.514</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_8">
-           <property name="text">
-            <string>0.180304</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_9">
-           <property name="text">
-            <string>-0.974465</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_10">
-           <property name="text">
-            <string>-0.133824</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="3">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_11">
-           <property name="text">
-            <string>473.348</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_12">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_13">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="2">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_14">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="3">
-          <widget class="QLineEdit" name="lineEdit_manualRoboregis_15">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>1</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_6">
-      <attribute name="title">
-       <string>Robot control</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_15">
        <item row="0" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_17">
-         <item>
-          <widget class="QPushButton" name="pushButton_setFlangeTcp">
-           <property name="text">
-            <string>Set tcp to flange</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_recordInitial">
-           <property name="text">
-            <string>Collect position 1</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_goToInitial">
-           <property name="text">
-            <string>Go to position 1</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QPushButton" name="pushButton_captureRobot">
+         <property name="text">
+          <string>Capture</string>
+         </property>
+        </widget>
        </item>
-       <item row="1" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_15">
-         <item>
-          <widget class="QLabel" name="label_13">
-           <property name="text">
-            <string>Move relative to:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="comboBox_robotMoveType">
-           <item>
-            <property name="text">
-             <string>TCP</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Robot base</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="2" column="1">
-        <layout class="QGridLayout" name="gridLayout_14">
-         <item row="3" column="6">
-          <widget class="QPushButton" name="pushButton_rym">
-           <property name="text">
-            <string>RY-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="4">
-          <widget class="QPushButton" name="pushButton_zm">
-           <property name="text">
-            <string>Z-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="4">
-          <widget class="QPushButton" name="pushButton_ym">
-           <property name="text">
-            <string>Y-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLabel" name="label_15">
-           <property name="text">
-            <string>(mm or degrees)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3">
-          <widget class="QPushButton" name="pushButton_xp">
-           <property name="text">
-            <string>X+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="5">
-          <widget class="QPushButton" name="pushButton_rzp">
-           <property name="text">
-            <string>RZ+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="5">
-          <widget class="QPushButton" name="pushButton_ryp">
-           <property name="text">
-            <string>RY+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="lineEdit_intuitiveValue">
-           <property name="text">
-            <string>2</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="6">
-          <widget class="QPushButton" name="pushButton_rxm">
-           <property name="text">
-            <string>RX-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="3">
-          <widget class="QPushButton" name="pushButton_yp">
-           <property name="text">
-            <string>Y+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="3">
-          <widget class="QPushButton" name="pushButton_zp">
-           <property name="text">
-            <string>Z+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="5">
-          <widget class="QPushButton" name="pushButton_rxp">
-           <property name="text">
-            <string>RX+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="4">
-          <widget class="QPushButton" name="pushButton_xm">
-           <property name="text">
-            <string>X-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="6">
-          <widget class="QPushButton" name="pushButton_rzm">
-           <property name="text">
-            <string>RZ-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="label_16">
-           <property name="layoutDirection">
-            <enum>Qt::LeftToRight</enum>
-           </property>
-           <property name="text">
-            <string>Step size =</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="1" column="0">
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+       <item row="0" column="5">
+        <widget class="QPushButton" name="pushButton_usePreRobotRegit">
+         <property name="text">
+          <string>Use Previous (movable image)</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="2">
-        <spacer name="horizontalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="3" column="1">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -843,8 +442,8 @@
        <property name="geometry">
         <rect>
          <x>230</x>
-         <y>50</y>
-         <width>131</width>
+         <y>20</y>
+         <width>86</width>
          <height>23</height>
         </rect>
        </property>
@@ -855,9 +454,9 @@
       <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
-         <x>80</x>
+         <x>160</x>
          <y>80</y>
-         <width>491</width>
+         <width>317</width>
          <height>25</height>
         </rect>
        </property>
@@ -884,9 +483,9 @@
       <widget class="QWidget" name="layoutWidget_2">
        <property name="geometry">
         <rect>
-         <x>80</x>
+         <x>160</x>
          <y>120</y>
-         <width>491</width>
+         <width>317</width>
          <height>25</height>
         </rect>
        </property>
@@ -910,19 +509,6 @@
         </item>
        </layout>
       </widget>
-      <widget class="QPushButton" name="pushButton_setTcpPrecisionTest">
-       <property name="geometry">
-        <rect>
-         <x>200</x>
-         <y>20</y>
-         <width>201</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Set precision test TCP</string>
-       </property>
-      </widget>
      </widget>
      <widget class="QWidget" name="tab_4">
       <attribute name="title">
@@ -931,8 +517,8 @@
       <widget class="QPushButton" name="pushButton_startAutoPosition">
        <property name="geometry">
         <rect>
-         <x>250</x>
-         <y>30</y>
+         <x>220</x>
+         <y>20</y>
          <width>181</width>
          <height>23</height>
         </rect>
@@ -986,6 +572,18 @@
        </property>
       </widget>
      </widget>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Output</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0">
+       <widget class="QTextBrowser" name="textBrowser"/>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

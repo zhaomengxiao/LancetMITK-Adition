@@ -38,6 +38,10 @@ int main(int argc, char **argv)
   QStringList appIdTokens = QFileInfo(selectedConfiguration).baseName().toLower().split('_', QString::SkipEmptyParts);
   appId += appIdTokens.size() > 1 ? appIdTokens.at(1) : appIdTokens.at(0);
 
+	if (appId == "org.mitk.lancet.tha")
+	{
+		appId = "org.mitk.lancet.tha.application";
+	}
   app.setProperty(mitk::BaseApplication::PROP_APPLICATION, appId);
 
   return app.run();

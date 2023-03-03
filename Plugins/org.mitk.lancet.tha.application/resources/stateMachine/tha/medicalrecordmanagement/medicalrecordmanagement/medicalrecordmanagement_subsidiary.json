@@ -1,0 +1,18 @@
+{
+	"properties":
+	{
+		"id": "org_mitk_lancet_medicalrecordmanagement",
+		"objectName": "ActionMedicalRecordManagement-Unit",
+		"uiName": "病案管理",
+		"editorWidgetIdentify": "org_mitk_lancet_medicalrecordmanagement_editor",
+		"fucntionWidgetIdentify": "org_mitk_views_qmedicalrecordmanagement",
+		"themes": 
+		[
+			{
+				"styleName": "defaultStyle",
+				"editorWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/action_medicalrecordmanagement_default.qss",
+				"fucntionWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/editor_medicalrecordmanagement_default.qss"
+			}
+		]
+	}
+}
