@@ -1,7 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>test.json</file>
-        <file>test_empty.json</file>
-        <file>test_error.json</file>
-    </qresource>
-</RCC>

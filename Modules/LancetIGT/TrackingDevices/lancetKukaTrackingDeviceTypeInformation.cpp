@@ -1,5 +1,6 @@
 #include "lancetKukaTrackingDeviceTypeInformation.h"
-#include "lancetKukaRobotDevice.h"
+#include "kukaRobotDevice.h"
+#include "lancetVegaTrackingDevice.h"
 
 namespace lancet
 {
@@ -28,18 +29,18 @@ namespace lancet
     {
         
         mitk::TrackingDeviceSource::Pointer returnValue = mitk::TrackingDeviceSource::New();
-        KukaRobotDevice_New::Pointer thisDevice = dynamic_cast<KukaRobotDevice_New*>(trackingDevice.GetPointer());
+        KukaRobotDevice::Pointer thisDevice = dynamic_cast<KukaRobotDevice*>(trackingDevice.GetPointer());
         *toolCorrespondencesInToolStorage = std::vector<int>();
         //add the tools to the tracking device
         for (unsigned int i = 0; i < navigationTools->GetToolCount(); i++)
         {
             mitk::NavigationTool::Pointer thisNavigationTool = navigationTools->GetTool(i);
             toolCorrespondencesInToolStorage->push_back(i);
-            bool toolAddSuccess = thisDevice->AddTool(thisNavigationTool->GetToolName().c_str(), thisNavigationTool->GetTCP());
+            bool toolAddSuccess = thisDevice->AddTool(thisNavigationTool->GetToolName().c_str(), thisNavigationTool->GetCalibrationFile().c_str());
             if (!toolAddSuccess)
             {
                 //todo: error handling
-                errorMessage->append("Can't add tool");
+                errorMessage->append("Can't add tool, is the SROM-file valid?");
                 return nullptr;
             }
             thisDevice->GetTool(i)->SetToolTipPosition(thisNavigationTool->GetToolTipPosition(), thisNavigationTool->GetToolAxisOrientation());

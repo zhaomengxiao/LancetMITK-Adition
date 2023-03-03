@@ -42,7 +42,6 @@ found in the LICENSE file.
 #include "mitkNodePredicateProperty.h"
 #include "QmitkDataStorageTreeModel.h"
 #include <QmitkSingleNodeSelectionWidget.h>
-#include <QTimer>
 #include <vtkImplicitPolyDataDistance.h>
 
 #include "lancetTreeCoords.h"
@@ -388,12 +387,12 @@ bool SurgicalSimulate::ApplySurfaceRegistration_staticImage()
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
 	//set tcp to robot
 	  //set tcp
-	// QThread::msleep(1000);
-	// m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	// QThread::msleep(1000);
-	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	// QThread::msleep(1000);
-	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 
 	return true;
 }
@@ -470,12 +469,12 @@ bool SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage()
 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
 	//set tcp to robot
 	  //set tcp
-	// QThread::msleep(1000);
-	// m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
-	// QThread::msleep(1000);
-	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
-	// QThread::msleep(1000);
-	// m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 
 
 	return true;

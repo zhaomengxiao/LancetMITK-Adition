@@ -1,7 +1,0 @@
-<RCC>
-  <qresource prefix="org.mitk.lancet.medicalrecordmanagementeditor">
-    <file>icon.xpm</file>
-    <file>img.png</file>
-    <file>medicalrecordmanagementeditor.qss</file>
-  </qresource>
-</RCC>

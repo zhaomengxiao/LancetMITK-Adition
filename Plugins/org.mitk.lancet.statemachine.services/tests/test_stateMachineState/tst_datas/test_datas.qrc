@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/org.mitk.lancet.statemachine.services/Test_Datas">
-        <file>tst_error_statemachine.scxml</file>
-    </qresource>
-</RCC>

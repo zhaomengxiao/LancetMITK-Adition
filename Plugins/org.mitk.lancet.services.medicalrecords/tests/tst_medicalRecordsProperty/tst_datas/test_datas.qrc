@@ -1,6 +1,0 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource>
-    <file>tst_error_statemachine.scxml</file>
-	<file>tst_error_statemachine_subsidiary.json</file>
-</qresource>
-</RCC>

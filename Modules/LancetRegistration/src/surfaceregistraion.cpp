@@ -51,18 +51,12 @@ void mitk::SurfaceRegistration::AddIcpPoints(mitk::Point3D point)
 
 void mitk::SurfaceRegistration::ClearLandMarks()
 {
-	if (m_LandmarksTarget != nullptr)
-	{
-		m_LandmarksTarget->Clear();
-	}
+    m_LandmarksTarget->Clear();
 }
 
 void mitk::SurfaceRegistration::ClearIcpPoints()
 {
-	if (m_IcpPoints)
-	{
-		m_IcpPoints->Clear();
-	}
+    m_IcpPoints->Clear();
 }
 
 bool mitk::SurfaceRegistration::ComputeLandMarkResult()
