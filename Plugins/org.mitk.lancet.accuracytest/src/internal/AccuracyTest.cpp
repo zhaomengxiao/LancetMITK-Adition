@@ -57,6 +57,9 @@ void AccuracyTest::CreateQtPartControl(QWidget* parent)
 	m_distancePointSet = mitk::PointSet::New();
 	m_distancePointSetNode = mitk::DataNode::New();
 	m_distancePointSetNode->SetData(m_distancePointSet);
+
+  m_NDinRefFilter = lancet::NavigationDataInReferenceCoordFilter::New();
+  //m_NDtoPointSetFilter = mitk::NavigationDataToPointSetFilter::New();
 	// create GUI widgets from the Qt Designer's .ui file
 	m_Controls.setupUi(parent);
 
@@ -135,6 +138,8 @@ void AccuracyTest::SetProbe()
 		m_Controls.m_StatusWidgetProbe->AddNavigationData(m_NavigationDataSourceOfProbe->GetOutput(m_IDofProbe));
 		m_Controls.m_StatusWidgetProbe->ShowStatusLabels();
 		if (!m_TrackingTimer->isActive()) m_TrackingTimer->start(100);
+
+    m_NDinRefFilter->SetInput(0, m_NavigationDataSourceOfProbe->GetOutput(m_IDofProbe));
 	}
 }
 
@@ -158,6 +163,9 @@ void AccuracyTest::SetReferenceFrame()
 		m_Controls.m_StatusWidgetRF->AddNavigationData(m_NavigationDataSourceOfRF->GetOutput(m_IDofRF));
 		m_Controls.m_StatusWidgetRF->ShowStatusLabels();
 		if (!m_TrackingTimer->isActive()) m_TrackingTimer->start(100);
+
+    m_NDinRefFilter->SetInput(1, m_NavigationDataSourceOfRF->GetOutput(m_IDofRF));
+    m_NDinRefFilter->SetRefToolIndex(1);
 	}
 }
 
@@ -167,124 +175,119 @@ void AccuracyTest::UpdateTrackingTimer()
 	m_Controls.m_StatusWidgetRF->Refresh();
 }
 
+void AccuracyTest::AddPoint(mitk::PointSet::Pointer pointSet)
+{
+  //create NavigationDataToPointSetFilter to get a point3D by probe in NDI coordinates
+  mitk::NavigationDataToPointSetFilter::Pointer probePoint = mitk::NavigationDataToPointSetFilter::New();
+  //auto probeToolIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+  probePoint->SetInput(m_NDinRefFilter->GetOutput(0));
+  probePoint->SetOperationMode(mitk::NavigationDataToPointSetFilter::Mode3DMean);
+  probePoint->SetNumberForMean(50);
+  //run the filter
+  probePoint->Update();
+  //get output
+  mitk::PointSet::Pointer target = probePoint->GetOutput(0);
+
+  m_PointSetPivoting->InsertPoint(m_PointSetPivoting->GetSize(), target->GetPoint(0));
+}
+
 void AccuracyTest::AddPivotPoint()
 {
 	if (!CheckInitialization()) { return; }
-	mitk::NavigationData::Pointer navDataTool = m_NavigationDataSourceOfRF->GetOutput(m_IDofRF);
-	mitk::Point3D point = m_NavigationDataSourceOfProbe->GetOutput(m_IDofProbe)->GetPosition();
-
-	//convert to itk transform
-	itk::Vector<double, 3> translation;
-	for (int k = 0; k < 3; k++) translation[k] = navDataTool->GetPosition()[k];
-	itk::Matrix<double, 3, 3> rotation;
-	for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotation[k][l] = navDataTool->GetOrientation().rotation_matrix_transpose()[k][l];
-	rotation = rotation.GetTranspose();
-	itk::Vector<double> point_itk;
-	point_itk[0] = point[0];
-	point_itk[1] = point[1];
-	point_itk[2] = point[2];
-
-	//compute point in reference frame coordinates
-	itk::Matrix<double, 3, 3> rotationInverse;
-	for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotationInverse[k][l] = rotation.GetInverse()[k][l];
-	point_itk = rotationInverse * (point_itk - translation);
-
-	//convert back and add landmark to pointset
-	point[0] = point_itk[0];
-	point[1] = point_itk[1];
-	point[2] = point_itk[2];
-
-	m_PointSetPivoting->InsertPoint(m_PointSetPivoting->GetSize(), point);
+	AddPoint(m_PointSetPivoting);
 }
 
 void AccuracyTest::AddTopplePoint()
 {
 	if (!CheckInitialization()) { return; }
-	mitk::NavigationData::Pointer navDataTool = m_NavigationDataSourceOfRF->GetOutput(m_IDofRF);
-	mitk::Point3D point = m_NavigationDataSourceOfProbe->GetOutput(m_IDofProbe)->GetPosition();
-
-	//convert to itk transform
-	itk::Vector<double, 3> translation;
-	for (int k = 0; k < 3; k++) translation[k] = navDataTool->GetPosition()[k];
-	itk::Matrix<double, 3, 3> rotation;
-	for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotation[k][l] = navDataTool->GetOrientation().rotation_matrix_transpose()[k][l];
-	rotation = rotation.GetTranspose();
-	itk::Vector<double> point_itk;
-	point_itk[0] = point[0];
-	point_itk[1] = point[1];
-	point_itk[2] = point[2];
-
-	//compute point in reference frame coordinates
-	itk::Matrix<double, 3, 3> rotationInverse;
-	for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotationInverse[k][l] = rotation.GetInverse()[k][l];
-	point_itk = rotationInverse * (point_itk - translation);
-
-	//convert back and add landmark to pointset
-	point[0] = point_itk[0];
-	point[1] = point_itk[1];
-	point[2] = point_itk[2];
-
-	m_PointSetTopple->InsertPoint(m_PointSetTopple->GetSize(), point);
+	// mitk::NavigationData::Pointer navDataTool = m_NavigationDataSourceOfRF->GetOutput(m_IDofRF);
+	// mitk::Point3D point = m_NavigationDataSourceOfProbe->GetOutput(m_IDofProbe)->GetPosition();
+	//
+	// //convert to itk transform
+	// itk::Vector<double, 3> translation;
+	// for (int k = 0; k < 3; k++) translation[k] = navDataTool->GetPosition()[k];
+	// itk::Matrix<double, 3, 3> rotation;
+	// for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotation[k][l] = navDataTool->GetOrientation().rotation_matrix_transpose()[k][l];
+	// rotation = rotation.GetTranspose();
+	// itk::Vector<double> point_itk;
+	// point_itk[0] = point[0];
+	// point_itk[1] = point[1];
+	// point_itk[2] = point[2];
+	//
+	// //compute point in reference frame coordinates
+	// itk::Matrix<double, 3, 3> rotationInverse;
+	// for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotationInverse[k][l] = rotation.GetInverse()[k][l];
+	// point_itk = rotationInverse * (point_itk - translation);
+	//
+	// //convert back and add landmark to pointset
+	// point[0] = point_itk[0];
+	// point[1] = point_itk[1];
+	// point[2] = point_itk[2];
+	//
+	// m_PointSetTopple->InsertPoint(m_PointSetTopple->GetSize(), point);
+  AddPoint(m_PointSetTopple);
 }
 
 void AccuracyTest::AddTiltPoint()
 {
 	if (!CheckInitialization()) { return; }
-	mitk::NavigationData::Pointer navDataTool = m_NavigationDataSourceOfRF->GetOutput(m_IDofRF);
-	mitk::Point3D point = m_NavigationDataSourceOfProbe->GetOutput(m_IDofProbe)->GetPosition();
-
-	//convert to itk transform
-	itk::Vector<double, 3> translation;
-	for (int k = 0; k < 3; k++) translation[k] = navDataTool->GetPosition()[k];
-	itk::Matrix<double, 3, 3> rotation;
-	for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotation[k][l] = navDataTool->GetOrientation().rotation_matrix_transpose()[k][l];
-	rotation = rotation.GetTranspose();
-	itk::Vector<double> point_itk;
-	point_itk[0] = point[0];
-	point_itk[1] = point[1];
-	point_itk[2] = point[2];
-
-	//compute point in reference frame coordinates
-	itk::Matrix<double, 3, 3> rotationInverse;
-	for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotationInverse[k][l] = rotation.GetInverse()[k][l];
-	point_itk = rotationInverse * (point_itk - translation);
-
-	//convert back and add landmark to pointset
-	point[0] = point_itk[0];
-	point[1] = point_itk[1];
-	point[2] = point_itk[2];
-
-	m_PointSetTilt->InsertPoint(m_PointSetTilt->GetSize(), point);
+	// mitk::NavigationData::Pointer navDataTool = m_NavigationDataSourceOfRF->GetOutput(m_IDofRF);
+	// mitk::Point3D point = m_NavigationDataSourceOfProbe->GetOutput(m_IDofProbe)->GetPosition();
+	//
+	// //convert to itk transform
+	// itk::Vector<double, 3> translation;
+	// for (int k = 0; k < 3; k++) translation[k] = navDataTool->GetPosition()[k];
+	// itk::Matrix<double, 3, 3> rotation;
+	// for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotation[k][l] = navDataTool->GetOrientation().rotation_matrix_transpose()[k][l];
+	// rotation = rotation.GetTranspose();
+	// itk::Vector<double> point_itk;
+	// point_itk[0] = point[0];
+	// point_itk[1] = point[1];
+	// point_itk[2] = point[2];
+	//
+	// //compute point in reference frame coordinates
+	// itk::Matrix<double, 3, 3> rotationInverse;
+	// for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotationInverse[k][l] = rotation.GetInverse()[k][l];
+	// point_itk = rotationInverse * (point_itk - translation);
+	//
+	// //convert back and add landmark to pointset
+	// point[0] = point_itk[0];
+	// point[1] = point_itk[1];
+	// point[2] = point_itk[2];
+  //
+	//m_PointSetTilt->InsertPoint(m_PointSetTilt->GetSize(), point);
+  AddPoint(m_PointSetTilt);
 }
 
 void AccuracyTest::AddDistancePoint()
 {
 	if (!CheckInitialization()) { return; }
-	mitk::NavigationData::Pointer navDataTool = m_NavigationDataSourceOfRF->GetOutput(m_IDofRF);
-	mitk::Point3D point = m_NavigationDataSourceOfProbe->GetOutput(m_IDofProbe)->GetPosition();
-
-	//convert to itk transform
-	itk::Vector<double, 3> translation;
-	for (int k = 0; k < 3; k++) translation[k] = navDataTool->GetPosition()[k];
-	itk::Matrix<double, 3, 3> rotation;
-	for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotation[k][l] = navDataTool->GetOrientation().rotation_matrix_transpose()[k][l];
-	rotation = rotation.GetTranspose();
-	itk::Vector<double> point_itk;
-	point_itk[0] = point[0];
-	point_itk[1] = point[1];
-	point_itk[2] = point[2];
-
-	//compute point in reference frame coordinates
-	itk::Matrix<double, 3, 3> rotationInverse;
-	for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotationInverse[k][l] = rotation.GetInverse()[k][l];
-	point_itk = rotationInverse * (point_itk - translation);
-
-	//convert back and add landmark to pointset
-	point[0] = point_itk[0];
-	point[1] = point_itk[1];
-	point[2] = point_itk[2];
-
-	m_distancePointSet->InsertPoint(m_distancePointSet->GetSize(), point);
+	// mitk::NavigationData::Pointer navDataTool = m_NavigationDataSourceOfRF->GetOutput(m_IDofRF);
+	// mitk::Point3D point = m_NavigationDataSourceOfProbe->GetOutput(m_IDofProbe)->GetPosition();
+	//
+	// //convert to itk transform
+	// itk::Vector<double, 3> translation;
+	// for (int k = 0; k < 3; k++) translation[k] = navDataTool->GetPosition()[k];
+	// itk::Matrix<double, 3, 3> rotation;
+	// for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotation[k][l] = navDataTool->GetOrientation().rotation_matrix_transpose()[k][l];
+	// rotation = rotation.GetTranspose();
+	// itk::Vector<double> point_itk;
+	// point_itk[0] = point[0];
+	// point_itk[1] = point[1];
+	// point_itk[2] = point[2];
+	//
+	// //compute point in reference frame coordinates
+	// itk::Matrix<double, 3, 3> rotationInverse;
+	// for (int k = 0; k < 3; k++) for (int l = 0; l < 3; l++) rotationInverse[k][l] = rotation.GetInverse()[k][l];
+	// point_itk = rotationInverse * (point_itk - translation);
+	//
+	// //convert back and add landmark to pointset
+	// point[0] = point_itk[0];
+	// point[1] = point_itk[1];
+	// point[2] = point_itk[2];
+	//
+	// m_distancePointSet->InsertPoint(m_distancePointSet->GetSize(), point);
+  AddPoint(m_distancePointSet);
 }
 
 //Calculate the average tip position
