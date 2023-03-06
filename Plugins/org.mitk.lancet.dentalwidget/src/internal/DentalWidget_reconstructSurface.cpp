@@ -791,7 +791,10 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 
 	}
 
-	int searchIterations{ 5 }; // optimal voxel value
+	int searchIterations{ 7 }; // optimal voxel value
+	tmpMaxVoxel = 15000; // tmp fix  March 03, 2023
+	tmpMinVoxel = 1500; // tmp fix  March 03, 2023
+
 
 	double voxelThres{ tmpMaxVoxel };
 	int foundCleanCenterNum{ 0 };
@@ -803,9 +806,10 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 		m_Controls.lineEdit_ballGrayValue->setText("---Pending---");
 
 		// Search for the best voxel value threshold
-		for (int i{ 0 }; i < searchIterations; i++)
+		for (int i{ 0 }; i < (searchIterations + 1); i++)
 		{
-			double tmpVoxelThreshold = (1 - (8 / 8) * double(i) / searchIterations) * (tmpMaxVoxel - tmpMinVoxel) + tmpMinVoxel;
+			// double tmpVoxelThreshold = (1 -  double(i) / searchIterations) * (tmpMaxVoxel - tmpMinVoxel) + tmpMinVoxel;
+			double tmpVoxelThreshold = tmpMaxVoxel - (tmpMaxVoxel - tmpMinVoxel)*i/ searchIterations;
 
 			GetCoarseSteelballCenters(tmpVoxelThreshold);
 
@@ -823,7 +827,7 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 			{
 				foundCleanCenterNum = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
 				voxelThres = tmpVoxelThreshold;
-				if (foundCleanCenterNum == stdCenterNum)
+				if (foundCleanCenterNum >= stdCenterNum)
 				{
 					//m_Controls.textBrowser->append("~~All steelballs have been found~~");
 					break;
@@ -842,6 +846,19 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 	GetCoarseSteelballCenters(voxelThres);
 	m_Controls.lineEdit_ballGrayValue->setText(QString::number(voxelThres));
 	IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
+
+	if(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() > 7)
+	{
+		IterativeScreenCoarseSteelballCenters(6, 6, foundIDs);
+	}
+
+	if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() == 0)
+	{
+		GetCoarseSteelballCenters(voxelThres);
+		m_Controls.lineEdit_ballGrayValue->setText(QString::number(voxelThres));
+		IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
+	}
+
 	RearrangeSteelballs(6, foundIDs); // this function is redundant ??
 
 
@@ -955,7 +972,6 @@ void DentalWidget::UpdateStdCenters()
 void DentalWidget::IterativeScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7])
 {
 	int oldNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
-
 	
 	ScreenCoarseSteelballCenters(requiredNeighborNum, stdNeighborNum, foundIDs);
 	int newNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
@@ -1215,20 +1231,34 @@ void DentalWidget::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 		}
 	}
 
-	int a[] = { 0,1,2,3,4,5,6 };
-	std::sort(a, a + 7);
+	// Todo: this array should be generated automatically
+	// int a[] = { 0,1,2,3,4,5,6,7,8,9 }; // in case the result of iterative search has pointNum larger than 7
 
-	double errorSum = 20;
-	int b[7]{ 0 };
-	while (std::next_permutation(a, a + 7))
+	std::vector<int> a;
+	for(int n{0}; n < extractedPointSet->GetSize(); n++)
+	{
+		a.push_back(n);
+	}
+
+	std::sort(a.begin(), a.end());
+
+	double errorSum = 50;
+	int b[7]{ 0,1,2,3,4,5,6 };
+	do
 	{
 		auto newPset = mitk::PointSet::New();
 
-		for (int i{0}; i < 7; i++)
+
+		for (int i{0}; i < extractedPointSet->GetSize(); i++)
 		{
-			if (a[i] < extractedPointSet->GetSize())
+			// if (a[i] < (extractedPointSet->GetSize()))
+			// {
+			// 	newPset->InsertPoint(extractedPointSet->GetPoint(a[i]));
+			// 	
+			// }
+			if ((newPset->GetSize()) < partialStdCenters->GetSize())
 			{
-				newPset->InsertPoint(extractedPointSet->GetPoint(i));
+				newPset->InsertPoint(extractedPointSet->GetPoint(a[i]));
 			}
 		}
 
@@ -1241,9 +1271,13 @@ void DentalWidget::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 		double avgError = landmarkRegistrator->GetavgLandmarkError();
 		double tmpError = maxError + avgError;
 
-		if(tmpError < errorSum)
+		MITK_INFO << "tmpError: " << tmpError;
+		MITK_INFO << "errorSum: " << errorSum;
+
+		if(tmpError < errorSum && tmpError > 0)
 		{
 			errorSum = tmpError;
+			
 			b[0] = a[0];
 			b[1] = a[1];
 			b[2] = a[2];
@@ -1253,16 +1287,22 @@ void DentalWidget::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 			b[6] = a[6];
 		}
 
-	}
+		if(tmpError < 1)
+		{
+			break;
+		}
+
+
+	}while (std::next_permutation(a.begin(), a.end()));
 
 
 	auto tmpPset = mitk::PointSet::New();
 
 	for (int i{ 0 }; i < 7; i++)
 	{
-		if (b[i] < extractedPointSet->GetSize())
+		if (i < partialStdCenters->GetSize())
 		{
-			tmpPset->InsertPoint(extractedPointSet->GetPoint(i));
+			tmpPset->InsertPoint(extractedPointSet->GetPoint(b[i]));
 		}
 	}
 
