@@ -51,8 +51,7 @@ namespace lancet {
     {
       Mode3D,
       Mode3DMean,
-      Mode4D,
-      Mode3DRef
+      Mode4D
     };
 
     /**Documentation
@@ -72,6 +71,15 @@ namespace lancet {
     */
     itkGetMacro(NumberForMean, unsigned int);
 
+    /**
+     * \brief Sets the Frame rate of recorded Navigation data when using Mode 3DMean.
+     */
+    itkSetMacro(FrameRate, unsigned int);
+
+    /**
+     * \brief Gets the Frame rate of recorded Navigation data when using Mode 3DMean.
+     */
+    itkGetMacro(FrameRate, unsigned int);
 
     /**
     * \brief filter execute method
@@ -142,8 +150,6 @@ namespace lancet {
     */
     virtual void GenerateDataMode4D();
 
-    virtual void GenerateDataMode3DRef();
-
     /**
     * \brief create output objects according to OperationMode for all inputs
     */
@@ -153,6 +159,7 @@ namespace lancet {
     unsigned int m_RingBufferSize;  ///< Stores the ringbuffer size
     unsigned int m_CurrentTimeStep; ///< Indicates the current timestamp
     unsigned int m_NumberForMean;   ///< Number of Navigation Data, which should be averaged
+    unsigned int m_FrameRate;   ///< Frame rate of recorded Navigation data when using Mode 3DMean
   };
 } // namespace lancet
 #endif // LANCETNAVIGATIONDATATOPOINTSETFILTER_H

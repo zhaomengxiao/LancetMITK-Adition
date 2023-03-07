@@ -14,19 +14,11 @@ found in the LICENSE file.
 #ifndef AccuracyTest_h
 #define AccuracyTest_h
 
-#include <berryISelectionListener.h>
-
 #include <QmitkAbstractView.h>
 #include "ui_AccuracyTestControls.h"
 
-#include <mitkNavigationData.h>
-
-#include "lancetTreeCoords.h"
-#include "mitkNavigationDataSource.h"
-#include "mitkNavigationTool.h"
-#include "mitkTrackingDeviceSource.h"
 #include "lancetNavigationDataInReferenceCoordFilter.h"
-#include "mitkNavigationDataToPointSetFilter.h"
+#include "mitkNavigationDataSource.h"
 
 /**
   \brief AccuracyTest
@@ -63,6 +55,8 @@ public:
 	std::vector<double> distanceCompare(const std::vector<double>&);
 	double averageValueCompute(const std::vector<double>&);
 protected slots:
+  void SetFrameRate(int frameRate);
+  void SetNumberOfMean(int numberOfMean);
 	void SetProbe();
 	void SetReferenceFrame();
 	void UpdateTrackingTimer();
@@ -107,7 +101,11 @@ private:
   mitk::DataNode::Pointer m_PointSetTiltNode;
   mitk::PointSet::Pointer m_distancePointSet;
   mitk::DataNode::Pointer m_distancePointSetNode;
-  QTimer* m_TrackingTimer; //<<< tracking timer that updates the status widgets
+  QTimer* m_TrackingTimer = nullptr; //<<< tracking timer that updates the status widgets
+
+  int m_FrameRate{ 20 };
+  int m_NumberOfMean{ 1 };
+
   Ui::AccuracyTestControls m_Controls;
 
   lancet::NavigationDataInReferenceCoordFilter::Pointer m_NDinRefFilter;

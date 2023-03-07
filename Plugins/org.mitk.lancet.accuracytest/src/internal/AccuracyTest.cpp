@@ -27,6 +27,8 @@ found in the LICENSE file.
 #include <iostream>
 #include <fstream>
 #include <string>
+
+#include "lancetNavigationDataToPointSetFilter.h"
 using namespace std;
 const std::string AccuracyTest::VIEW_ID = "org.mitk.views.accuracytest";
 
@@ -81,6 +83,8 @@ void AccuracyTest::CreateQtPartControl(QWidget* parent)
 	connect(m_Controls.m_compute_2, &QPushButton::clicked, this, &AccuracyTest::computeTilt);
 	connect(m_Controls.m_AddPoint_3, &QPushButton::clicked, this, &AccuracyTest::AddDistancePoint);
 	connect(m_Controls.m_compute_3, &QPushButton::clicked, this, &AccuracyTest::computeDistance);
+  connect(m_Controls.spinBox_frameRate, SIGNAL(valueChanged(int)), this,SLOT(SetFrameRate(int)));
+  connect(m_Controls.spinBox_numOfMean, SIGNAL(valueChanged(int)), this, SLOT(SetNumberOfMean(int)));
 }
 
 void AccuracyTest::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -178,11 +182,12 @@ void AccuracyTest::UpdateTrackingTimer()
 void AccuracyTest::AddPoint(mitk::PointSet::Pointer pointSet)
 {
   //create NavigationDataToPointSetFilter to get a point3D by probe in NDI coordinates
-  mitk::NavigationDataToPointSetFilter::Pointer probePoint = mitk::NavigationDataToPointSetFilter::New();
+  lancet::NavigationDataToPointSetFilter::Pointer probePoint = lancet::NavigationDataToPointSetFilter::New();
   //auto probeToolIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
   probePoint->SetInput(m_NDinRefFilter->GetOutput(0));
-  probePoint->SetOperationMode(mitk::NavigationDataToPointSetFilter::Mode3DMean);
-  probePoint->SetNumberForMean(50);
+  probePoint->SetOperationMode(lancet::NavigationDataToPointSetFilter::Mode3DMean);
+  probePoint->SetNumberForMean(m_NumberOfMean);
+  probePoint->SetFrameRate(m_FrameRate);
   //run the filter
   probePoint->Update();
   //get output
@@ -357,6 +362,17 @@ double AccuracyTest::averageValueCompute(const std::vector<double>& dist)
 	}
 	return averageValue /= dist.size();
 }
+
+void AccuracyTest::SetFrameRate(int frameRate)
+{
+  m_FrameRate = frameRate;
+}
+
+void AccuracyTest::SetNumberOfMean(int numberOfMean)
+{
+  m_NumberOfMean = numberOfMean;
+}
+
 void AccuracyTest::compute()
 {
 	double mistake = 0.0;

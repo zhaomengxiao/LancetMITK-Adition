@@ -47,8 +47,6 @@ void lancet::NavigationDataToPointSetFilter::GenerateData()
   case Mode4D:
     GenerateDataMode4D();
     break;
-  case Mode3DRef:
-    GenerateDataMode3DRef();
   default:
     break;
   }
@@ -159,6 +157,7 @@ void lancet::NavigationDataToPointSetFilter::GenerateDataMode3DMean()
   bool numberForMean_is_reached = false;
   while (!numberForMean_is_reached)
   {
+    Sleep(1000 / m_FrameRate);
     for (unsigned int i = 0; i < this->GetNumberOfIndexedOutputs() ; ++i)  // for each output PointSet; change through pointsets to collect all navigation data in order
     {
         mitk::PointSet* output = this->GetOutput(i);
@@ -235,90 +234,6 @@ void lancet::NavigationDataToPointSetFilter::GenerateDataMode4D()
     m_CurrentTimeStep = 0;
   else
     m_CurrentTimeStep++;
-}
-
-void lancet::NavigationDataToPointSetFilter::GenerateDataMode3DRef()
-{
-  //make it editable through a Set method if needed
-
-  //check for outputs and inputs
-  for (unsigned int i = 0; i < this->GetNumberOfIndexedOutputs(); ++i)  // for each output PointSet; change through pointsets to collect all navigation data in order
-  {
-    assert(this->GetOutput(i));
-    assert(this->GetInput(i));
-  }
-
-  //vector of counters for each output
-  std::vector<unsigned int> counterVec(this->GetNumberOfIndexedOutputs(), 0);
-
-  //vector of old timesteps for each output
-  std::vector<mitk::NavigationData::TimeStampType> vectorOldTime(this->GetNumberOfIndexedOutputs());
-
-  //use first Output to get the size of the pointsets. All output pointssets have to have the same size!
-  mitk::PointSet::PointIdentifier newPointId = this->GetOutput()->GetSize();
-
-  bool numberForMean_is_reached = false;
-  while (!numberForMean_is_reached)
-  {
-    for (unsigned int i = 0; i < this->GetNumberOfIndexedOutputs(); ++i)  // for each output PointSet; change through pointsets to collect all navigation data in order
-    {
-      mitk::PointSet* output = this->GetOutput(i);
-      const mitk::NavigationData* input = this->GetInput(i);
-      if (input->IsDataValid() == false)  // don't add point if input is invalid
-        continue;//do not store
-      mitk::PointSet::PointType pos;
-      if (counterVec[i] == 0) //first Element must be inserted
-      {
-        vectorOldTime[i] = input->GetIGTTimeStamp();
-
-        //no need to call an update
-        pos = input->GetPosition();  // NavigationData::PositionType must be compatible with PointSet::PointType!
-        output->InsertPoint(newPointId, pos);  // add point with current position of input NavigationData to the output PointSet
-        counterVec[i]++;
-      }
-      else
-      {
-        //manually call an update to track new positions
-        this->ProcessObject::GetInput(i)->Update();
-        input = this->GetInput(i);
-        mitk::NavigationData::TimeStampType newTime = input->GetIGTTimeStamp();
-        if (vectorOldTime[i] < newTime)
-        {
-          pos = input->GetPosition();  // NavigationData::PositionType must be compatible with PointSet::PointType!
-
-          //calculate the summ of the old position and the current coordinate
-          mitk::Vector3D vec(0.0);
-          vec.SetVnlVector(pos.GetVnlVector().as_ref());
-          mitk::PointSet::PointType oPoint = output->GetPoint(newPointId);
-          oPoint += vec;//summ up
-          output->SetPoint(newPointId, oPoint);
-
-          //store in counterVec to know how many have been added (and not skipped because of invalid data)
-          counterVec[i]++;
-          vectorOldTime[i] = newTime;
-        }
-      }
-      // \TODO: regard ringbuffersize
-    }
-    numberForMean_is_reached = true;
-    for (unsigned int i = 0; i < this->GetNumberOfIndexedOutputs(); ++i)
-    {
-      if (counterVec[i] < m_NumberForMean)
-        numberForMean_is_reached = false;
-    }
-
-  }
-
-  //divide with counterVec
-  for (unsigned int i = 0; i < this->GetNumberOfIndexedOutputs(); ++i)  // for each output PointSet; change through pointsets to collect all navigation data in order
-  {
-    mitk::PointSet* output = this->GetOutput(i);
-    mitk::PointSet::PointType oPoint = output->GetPoint(newPointId);
-    for (unsigned int index = 0; index < oPoint.Size(); index++)
-      oPoint[index] = oPoint[index] / counterVec[i];
-    output->SetPoint(newPointId, oPoint);
-    MBI_INFO << "For output # " << i << ", " << counterVec[i] << " tracked positions used for averaging";
-  }
 }
 
 
