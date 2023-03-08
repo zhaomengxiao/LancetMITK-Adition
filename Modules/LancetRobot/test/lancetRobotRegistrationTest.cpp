@@ -24,7 +24,7 @@ class lancetRobotRegistrationTestSuite : public mitk::TestFixture
   CPPUNIT_TEST_SUITE_END();
 
 private:
-  //NavigationTree::Pointer m_NavigationTree;
+  //NavigationScene::Pointer m_NavigationTree;
 
 public:
   /**

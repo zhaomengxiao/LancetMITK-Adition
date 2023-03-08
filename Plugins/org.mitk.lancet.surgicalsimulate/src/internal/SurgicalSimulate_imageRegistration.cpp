@@ -549,21 +549,21 @@ bool SurgicalSimulate::CollectIcpProbe()
 
 bool SurgicalSimulate::TouchProbeCalibrationPoint1()
 {
-	NavigationTree::Pointer tree = NavigationTree::New();
+	NavigationScene::Pointer tree = NavigationScene::New();
 
-  NavigationNode::Pointer ndi = NavigationNode::New();
+  SceneNode::Pointer ndi = SceneNode::New();
   ndi->SetNavigationData(mitk::NavigationData::New());
   ndi->SetNodeName("ndi");
 
   tree->Init(ndi);
 
-  NavigationNode::Pointer probe = NavigationNode::New();
+  SceneNode::Pointer probe = SceneNode::New();
   probe->SetNodeName("Probe");
   probe->SetNavigationData(m_VegaSource->GetOutput("Probe"));
 
   tree->AddChild(probe, ndi);
 
-  NavigationNode::Pointer probeCalibrator = NavigationNode::New();
+  SceneNode::Pointer probeCalibrator = SceneNode::New();
   probeCalibrator->SetNodeName("ProbeCalibrator");
   probeCalibrator->SetNavigationData(m_VegaSource->GetOutput("ProbeCalibrator"));
 

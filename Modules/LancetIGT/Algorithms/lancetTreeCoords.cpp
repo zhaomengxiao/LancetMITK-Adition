@@ -1,29 +1,29 @@
 #include  "lancetTreeCoords.h"
 
-void NavigationTree::Init(NavigationNode::Pointer root)
+void NavigationScene::Init(SceneNode::Pointer root)
 {
   this->m_Root = root;
   m_SearchMap.insert_or_assign(root->m_NodeName, root);
 }
 
-void NavigationTree::AddChild(NavigationNode::Pointer node, NavigationNode::Pointer parent) {
+void NavigationScene::AddChild(SceneNode::Pointer node, SceneNode::Pointer parent) {
   parent->m_Children.push_back(node);
   node->m_Parent = parent;
   m_SearchMap.insert_or_assign(node->m_NodeName, node);
 }
 
-void NavigationTree::AddChildren(std::vector<NavigationNode::Pointer> nodes, NavigationNode::Pointer parent) {
+void NavigationScene::AddChildren(std::vector<SceneNode::Pointer> nodes, SceneNode::Pointer parent) {
   for (int i = 0; i < nodes.size(); ++i) {
     AddChild(nodes[i], parent);
   }
 }
 
-void NavigationTree::Tranversal() {
+void NavigationScene::Tranversal() {
   this->Tranversal(this->m_Root);
 }
 
-void NavigationTree::Tranversal(NavigationNode::Pointer root) {
-  std::vector<NavigationNode::Pointer> nodes = root->m_Children;
+void NavigationScene::Tranversal(SceneNode::Pointer root) {
+  std::vector<SceneNode::Pointer> nodes = root->m_Children;
   for (int i = 0; i < nodes.size(); ++i) {
     if (nodes[i]->m_Children.size() > 0)
       Tranversal(nodes[i]);
@@ -33,13 +33,13 @@ void NavigationTree::Tranversal(NavigationNode::Pointer root) {
   std::cout << root->m_NodeName << ",";
 }
 
-int NavigationTree::GetMaxDepth(NavigationNode::Pointer root, std::vector<NavigationNode::Pointer> nodes) {
+int NavigationScene::GetMaxDepth(SceneNode::Pointer root, std::vector<SceneNode::Pointer> nodes) {
   auto iResult = 0;
 
   return iResult;
 }
 
-NavigationNode::Pointer NavigationTree::GetNodeByName(std::string nodeName)
+SceneNode::Pointer NavigationScene::GetNodeByName(std::string nodeName)
 {
   auto item = m_SearchMap.find(nodeName);
   if (item != m_SearchMap.end()) {
@@ -50,7 +50,7 @@ NavigationNode::Pointer NavigationTree::GetNodeByName(std::string nodeName)
   }
 }
 
-void NavigationTree::PrintPathToRoot(NavigationNode::Pointer node)
+void NavigationScene::PrintPathToRoot(SceneNode::Pointer node)
 {
   if (node.IsNull())
   {
@@ -67,7 +67,7 @@ void NavigationTree::PrintPathToRoot(NavigationNode::Pointer node)
   }
 }
 
-void NavigationTree::ComputeNdFromRootToNode(NavigationNode::Pointer node, mitk::NavigationData::Pointer& output)
+void NavigationScene::ComputeNdFromRootToNode(SceneNode::Pointer node, mitk::NavigationData::Pointer& output)
 {
   if (node.IsNull())
   {
@@ -86,7 +86,7 @@ void NavigationTree::ComputeNdFromRootToNode(NavigationNode::Pointer node, mitk:
   }
 }
 
-mitk::NavigationData::Pointer NavigationTree::GetNavigationData(mitk::NavigationData::Pointer input,
+mitk::NavigationData::Pointer NavigationScene::GetNavigationData(mitk::NavigationData::Pointer input,
                                                                 std::string inputName, std::string outputName)
 {
   mitk::NavigationData::Pointer rootToInput = mitk::NavigationData::New();

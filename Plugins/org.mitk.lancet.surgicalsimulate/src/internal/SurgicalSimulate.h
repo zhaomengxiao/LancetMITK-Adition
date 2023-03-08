@@ -27,6 +27,7 @@ found in the LICENSE file.
 #include "mitkTrackingDeviceSource.h"
 #include "mitkVirtualTrackingDevice.h"
 #include "robotRegistration.h"
+#include "lancetNavigationSceneFilter.h"
 #include "ui_SurgicalSimulateControls.h"
 #include <mutex>
 
@@ -123,7 +124,6 @@ public:
   ~SurgicalSimulate() override;
 protected:
   Ui::SurgicalSimulateControls m_Controls;
-
 
   lancet::KukaRobotDevice_New::Pointer m_KukaTrackingDevice;
   //vega trackingDeviceSource
@@ -231,6 +231,10 @@ protected:
 
   // Check the distance between the probe and image after image registration
   bool ProbeSurface();
+
+  //use navigation scene filter
+  lancet::NavigationSceneFilter::Pointer m_NavigationSceneFilter;
+  NavigationScene::Pointer m_NavigationScene;
 
 };
 

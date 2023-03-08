@@ -19,8 +19,8 @@ found in the LICENSE file.
 #include <itkObject.h>
 
 //mitk IGT includes
-#include "lancetNavigationDataInReferenceCoordFilter.h"
 //#include "mitkNavigationDataObjectVisualizationFilter.h"
+#include "lancetNavigationDataInReferenceCoordFilter.h"
 #include "lancetNavigationObjectVisualizationFilter.h"
 #include "mitkNavigationToolStorage.h"
 #include "mitkTrackingDeviceSource.h"

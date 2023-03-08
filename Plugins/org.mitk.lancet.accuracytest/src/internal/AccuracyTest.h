@@ -70,9 +70,9 @@ protected slots:
 	void computeTilt();
 	void computeDistance();
 private:
-  // void CreateNavigationTreeFromTrackingDeviceSource(mitk::TrackingDeviceSource::Pointer trackingDeviceSource, NavigationTree::Pointer tree)
+  // void CreateNavigationTreeFromTrackingDeviceSource(mitk::TrackingDeviceSource::Pointer trackingDeviceSource, NavigationScene::Pointer tree)
   // {
-  //   auto parentNode = NavigationNode::New();
+  //   auto parentNode = SceneNode::New();
   //   parentNode->SetNodeName(trackingDeviceSource->GetName());
   //   parentNode->SetNavigationData(mitk::NavigationData::New());
   //   tree->Init(parentNode);
@@ -80,7 +80,7 @@ private:
   //   auto outputs = trackingDeviceSource->GetOutputs();
   //   for (int i = 0; i < trackingDeviceSource->GetNumberOfOutputs(); i++)
   //   {
-  //     auto node = NavigationNode::New();
+  //     auto node = SceneNode::New();
   //     node->SetNodeName(trackingDeviceSource->GetOutput(i)->GetName());
   //     node->SetNavigationData(trackingDeviceSource->GetOutput(i));
   //

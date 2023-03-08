@@ -203,6 +203,11 @@ void SurgicalSimulate::UseVega()
 
   auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
   mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+
+  //use navigation scene filter
+  m_NavigationSceneFilter = lancet::NavigationSceneFilter::New();
+  m_NavigationSceneFilter->SetTrackingDevice(m_VegaSource);
+  m_NavigationSceneFilter->SetReferenceName(m_VegaSource->GetName());
 }
 
 void SurgicalSimulate::GeneratePoses()
@@ -292,6 +297,10 @@ void SurgicalSimulate::UseKuka()
   {
     m_KukaSource->Connect();
   }
+
+  //use navigation scene filter
+  m_NavigationSceneFilter->AddTrackingDevice(m_KukaSource,"RobotBaseRF");
+  m_NavigationSceneFilter->GetNavigationScene()->Tranversal();
 }
 
 void SurgicalSimulate::StartTracking()
@@ -664,21 +673,21 @@ void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
   //convert from ndi to robot use navigationTree
   //========
     //build the tree
-  //NavigationTree::Pointer tree = NavigationTree::New();
+  //NavigationScene::Pointer tree = NavigationScene::New();
 
-  //NavigationNode::Pointer ndi = NavigationNode::New();
+  //SceneNode::Pointer ndi = SceneNode::New();
   //ndi->SetNavigationData(mitk::NavigationData::New());
   //ndi->SetNodeName("ndi");
 
   //tree->Init(ndi);
 
-  //NavigationNode::Pointer robotBaseRF = NavigationNode::New();
+  //SceneNode::Pointer robotBaseRF = SceneNode::New();
   //robotBaseRF->SetNodeName("RobotBaseRF");
   //robotBaseRF->SetNavigationData(m_VegaSource->GetOutput("RobotBaseRF"));
 
   //tree->AddChild(robotBaseRF, ndi);
 
-  //NavigationNode::Pointer robot = NavigationNode::New();
+  //SceneNode::Pointer robot = SceneNode::New();
   //robot->SetNodeName("Robot");
   //robot->SetNavigationData(mitk::NavigationData::New(m_RobotRegistrationMatrix));
 

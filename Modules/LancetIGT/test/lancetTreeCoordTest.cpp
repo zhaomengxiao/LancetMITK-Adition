@@ -70,11 +70,11 @@ private:
   //   B   C
   //        \
   //         D
-  NavigationTree::Pointer m_NavigationTree;
-  NavigationNode::Pointer m_NodeA;
-  NavigationNode::Pointer m_NodeB;
-  NavigationNode::Pointer m_NodeC;
-  NavigationNode::Pointer m_NodeD;
+  NavigationScene::Pointer m_NavigationTree;
+  SceneNode::Pointer m_NodeA;
+  SceneNode::Pointer m_NodeB;
+  SceneNode::Pointer m_NodeC;
+  SceneNode::Pointer m_NodeD;
   mitk::NavigationData::Pointer m_ndA;
   mitk::NavigationData::Pointer m_ndB;
   mitk::NavigationData::Pointer m_ndC;
@@ -125,25 +125,25 @@ public:
     //   B   C
     //        \
     //         D
-    m_NavigationTree = NavigationTree::New();
+    m_NavigationTree = NavigationScene::New();
 
-    m_NodeA = NavigationNode::New();
+    m_NodeA = SceneNode::New();
     m_NodeA->SetNodeName("A");
     m_NodeA->SetNavigationData(m_ndA);
 
     m_NavigationTree->Init(m_NodeA);
 
-    m_NodeB = NavigationNode::New();
+    m_NodeB = SceneNode::New();
     m_NodeB->SetNodeName("B");
     m_NodeB->SetNavigationData(m_ndB);
     m_NavigationTree->AddChild(m_NodeB, m_NodeA);
 
-    m_NodeC = NavigationNode::New();
+    m_NodeC = SceneNode::New();
     m_NodeC->SetNodeName("C");
     m_NodeC->SetNavigationData(m_ndC);
     m_NavigationTree->AddChild(m_NodeC, m_NodeA);
 
-    m_NodeD = NavigationNode::New();
+    m_NodeD = SceneNode::New();
     m_NodeD->SetNodeName("D");
     m_NodeD->SetNavigationData(m_ndD);
     m_NavigationTree->AddChild(m_NodeD, m_NodeC);
