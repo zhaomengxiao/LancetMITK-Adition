@@ -313,6 +313,8 @@ void RobotRegistration::calculateR0()
 	auto u = svd.matrixU();
 	//std::cout << "V:\n" << v << std::endl;
 	//std::cout << "U:\n" << u << std::endl;
+	// Todo: this matrix often fails to become a pure rotation matrix due to the data collection error.
+	// Todo: need to exclude the spacing component
 	R0 = v * u.transpose();
 
 	//std::cout << "R0:\n" << R0 << std::endl;

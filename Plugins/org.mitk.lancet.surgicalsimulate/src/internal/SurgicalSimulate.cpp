@@ -68,7 +68,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
-  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_metaImageNode);
+  // InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_metaImageNode);
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surface_regis);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
@@ -138,6 +138,10 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_setFlangeTcp, &QPushButton::clicked, this, &SurgicalSimulate::ResetRobotTcp);
 
   connect(m_Controls.pushButton_confirmImageTargetPlane, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImagePlane);
+
+  connect(m_Controls.pushButton_path1, &QPushButton::clicked, this, &SurgicalSimulate::preparePath1);
+  connect(m_Controls.pushButton_path2, &QPushButton::clicked, this, &SurgicalSimulate::preparePath2);
+  connect(m_Controls.pushButton_path3, &QPushButton::clicked, this, &SurgicalSimulate::preparePath3);
 
 
 }
@@ -518,92 +522,155 @@ void SurgicalSimulate::OnAutoMove()
   double plusX[3]{75,0,0};
   double minusX[3]{ -150,0,0 };
 
+  vtkNew<vtkTransform> tmpTrans;
+  double tcp[6]{ 0 };
+
   switch (m_IndexOfRobotCapture)
   {
   case 1: //y+75
 
-    affine->Translate(plusY);
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
-
-  case 2: //y+75
-
-
-    affine->Translate(plusY);
-
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
-
-  case 3: //x+75
-
-    
-    affine->Translate(plusX);
-
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
-
-  case 4: //x+75
-
+	  // ensure flange TCP is applied when the robot starts to move
 	  
-    affine->Translate(plusX);
+	  MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	  //set tcp to robot
+		//set tcp
+	  QThread::msleep(1000);
+	  m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	  QThread::msleep(1000);
+	  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	  QThread::msleep(1000);
+	  m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+	  // record the initial position into m_initial_robotBaseToFlange
+  	RecordInitial();
+
+    affine->Translate(plusY);
     mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
 
     m_KukaTrackingDevice->RobotMove(vtkMatrix);
     break;
 
-  case 5: //x-150
+  case 2: //y - 75
+    // affine->Translate(plusY);
+    //
+    // mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+	  tmpTrans->PostMultiply();
+	  tmpTrans->Translate(0, -75, 0);
+	  tmpTrans->Concatenate(m_initial_robotBaseToFlange);
+	  tmpTrans->Update();
+
+    m_KukaTrackingDevice->RobotMove(tmpTrans->GetMatrix());
+    break;
+
+  case 3:
+    // affine->Translate(plusX);
+    //
+    // mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+    //
+    // m_KukaTrackingDevice->RobotMove(vtkMatrix);
+	  tmpTrans->PostMultiply();
+	  tmpTrans->Translate(0, 0, 75);
+	  tmpTrans->Concatenate(m_initial_robotBaseToFlange);
+	  tmpTrans->Update();
+
+	  m_KukaTrackingDevice->RobotMove(tmpTrans->GetMatrix());
+	  break;
 
 
+    break;
+
+  case 4: 
+    // affine->Translate(plusX);
+    // mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+    //
+    // m_KukaTrackingDevice->RobotMove(vtkMatrix);
+
+	  tmpTrans->PostMultiply();
+	  tmpTrans->Translate(0, 0, -75);
+	  tmpTrans->Concatenate(m_initial_robotBaseToFlange);
+	  tmpTrans->Update();
+
+	  m_KukaTrackingDevice->RobotMove(tmpTrans->GetMatrix());
+    break;
+
+  case 5: 
     // affine->Rotate3D(axisx, 0.174);
-    affine->Translate(minusX);
+    // affine->Translate(minusX);
+    //
+    // mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+    //
+    // m_KukaTrackingDevice->RobotMove(vtkMatrix);
+    // break;
+	  tmpTrans->PostMultiply();
+	  tmpTrans->RotateX(15);
+	  tmpTrans->Concatenate(m_initial_robotBaseToFlange);
+	  tmpTrans->Update();
 
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+	  m_KukaTrackingDevice->RobotMove(tmpTrans->GetMatrix());
+	  break;
 
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
 
-  case 6: //x rotate -20 degree y -25
+  case 6: 
+    // affine->Rotate3D(axisx, -0.174 * 2);
+    // affine->Translate(trans6);
+    //
+    // mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+    //
+    // m_KukaTrackingDevice->RobotMove(vtkMatrix);
+    // break;
+	  tmpTrans->PostMultiply();
+	  tmpTrans->RotateX(-15);
+	  tmpTrans->Concatenate(m_initial_robotBaseToFlange);
+	  tmpTrans->Update();
 
-    affine->Rotate3D(axisx, -0.174 * 2);
-    affine->Translate(trans6);
+	  m_KukaTrackingDevice->RobotMove(tmpTrans->GetMatrix());
+	  break;
 
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+  case 7:
+    // affine->Rotate3D(axisy, 0.174);
+    // affine->Translate(trans7);
+    // mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+    //
+    // m_KukaTrackingDevice->RobotMove(vtkMatrix);
+    // break;
+	  tmpTrans->PostMultiply();
+	  tmpTrans->RotateX(10);
+	  tmpTrans->Concatenate(m_initial_robotBaseToFlange);
+	  tmpTrans->Update();
 
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
+	  m_KukaTrackingDevice->RobotMove(tmpTrans->GetMatrix());
+	  break;
 
-  case 7: //y rotate 10 degree y +25
+  case 8: 
+    // affine->Rotate3D(axisy, -0.174 * 2);
+    // affine->Translate(trans8);
+    // mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+    //
+    // m_KukaTrackingDevice->RobotMove(vtkMatrix);
+    // break;
+	  tmpTrans->PostMultiply();
+	  tmpTrans->RotateZ(10);
+	  tmpTrans->Concatenate(m_initial_robotBaseToFlange);
+	  tmpTrans->Update();
 
-    affine->Rotate3D(axisy, 0.174);
-    affine->Translate(trans7);
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+	  m_KukaTrackingDevice->RobotMove(tmpTrans->GetMatrix());
+	  break;
 
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
-
-  case 8: //y rotate -20 degree x +25
-
-    affine->Rotate3D(axisy, -0.174 * 2);
-    affine->Translate(trans8);
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
 
   case 9: //z rotate 20 degree x -25
+    // affine->Rotate3D(axisz, 0.174 * 2);
+    // affine->Translate(trans9);
+    // mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
+    //
+    // m_KukaTrackingDevice->RobotMove(vtkMatrix);
+    // break;
+	  tmpTrans->PostMultiply();
+	  tmpTrans->RotateZ(-10);
+	  tmpTrans->Concatenate(m_initial_robotBaseToFlange);
+	  tmpTrans->Update();
 
-    affine->Rotate3D(axisz, 0.174 * 2);
-    affine->Translate(trans9);
-    mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
-
-    m_KukaTrackingDevice->RobotMove(vtkMatrix);
-    break;
+	  m_KukaTrackingDevice->RobotMove(tmpTrans->GetMatrix());
+	  break;
 
   default:
 
@@ -1364,29 +1431,48 @@ bool SurgicalSimulate::InterpretImagePlane()
 	vtkBaseToBaseRF->Invert();
 
 	// get surface to target plane matrix
-	Eigen::Vector3d x_surfaceToPlane;
-	x_surfaceToPlane << targetPoint_2[0] - targetPoint_1[0],
-	targetPoint_2[1] - targetPoint_1[1],
-	targetPoint_2[2] - targetPoint_1[2];
-	x_surfaceToPlane.normalize();
+	// Eigen::Vector3d x_surfaceToPlane;
+	// x_surfaceToPlane << targetPoint_2[0] - targetPoint_1[0],
+	// targetPoint_2[1] - targetPoint_1[1],
+	// targetPoint_2[2] - targetPoint_1[2];
+	// x_surfaceToPlane.normalize();
+	//
+	// Eigen::Vector3d tmp_y;
+	// tmp_y << targetPoint_0[0] - targetPoint_1[0],
+	// 	targetPoint_0[1] - targetPoint_1[1],
+	// 	targetPoint_0[2] - targetPoint_1[2];
+	// tmp_y.normalize();
+	//
+	// Eigen::Vector3d z_surfaceToPlane = x_surfaceToPlane.cross(tmp_y);
+	// z_surfaceToPlane.normalize();
+	//
+	// Eigen::Vector3d y_surfaceToPlane = z_surfaceToPlane.cross(x_surfaceToPlane);
+	// y_surfaceToPlane.normalize();
+
+	//---------------------- March 07, 2023 modification
+	Eigen::Vector3d z_surfaceToPlane;
+	z_surfaceToPlane << targetPoint_0[0] - targetPoint_1[0],
+	targetPoint_0[1] - targetPoint_1[1],
+	targetPoint_0[2] - targetPoint_1[2];
+	z_surfaceToPlane.normalize();
 
 	Eigen::Vector3d tmp_y;
-	tmp_y << targetPoint_0[0] - targetPoint_1[0],
-		targetPoint_0[1] - targetPoint_1[1],
-		targetPoint_0[2] - targetPoint_1[2];
+	tmp_y << targetPoint_2[0] - targetPoint_0[0],
+		targetPoint_2[1] - targetPoint_0[1],
+		targetPoint_2[2] - targetPoint_0[2];
 	tmp_y.normalize();
 
-	Eigen::Vector3d z_surfaceToPlane = x_surfaceToPlane.cross(tmp_y);
-	z_surfaceToPlane.normalize();
+	Eigen::Vector3d x_surfaceToPlane = tmp_y.cross(z_surfaceToPlane);
+	x_surfaceToPlane.normalize();
 
 	Eigen::Vector3d y_surfaceToPlane = z_surfaceToPlane.cross(x_surfaceToPlane);
 	y_surfaceToPlane.normalize();
 
 	double array_surfaceToPlane[16]
 	{
-		x_surfaceToPlane[0], y_surfaceToPlane[0], z_surfaceToPlane[0], targetPoint_1[0],
-		x_surfaceToPlane[1], y_surfaceToPlane[1], z_surfaceToPlane[1], targetPoint_1[1],
-		x_surfaceToPlane[2], y_surfaceToPlane[2], z_surfaceToPlane[2], targetPoint_1[2],
+		x_surfaceToPlane[0], y_surfaceToPlane[0], z_surfaceToPlane[0], targetPoint_0[0],
+		x_surfaceToPlane[1], y_surfaceToPlane[1], z_surfaceToPlane[1], targetPoint_0[1],
+		x_surfaceToPlane[2], y_surfaceToPlane[2], z_surfaceToPlane[2], targetPoint_0[2],
 		0,0,0,1
 	};
 	vtkNew<vtkMatrix4x4> vtkSurfaceToPlane;
@@ -1413,10 +1499,17 @@ bool SurgicalSimulate::InterpretImagePlane()
 
 void SurgicalSimulate::OnAutoPositionStart()
 {
-   vtkMatrix4x4* t = vtkMatrix4x4::New();
-   mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
-  
-   m_KukaTrackingDevice->RobotMove(t);
+	if(m_Controls.pushButton_startAutoPosition->isChecked() == false)
+	{
+		vtkMatrix4x4* t = vtkMatrix4x4::New();
+		mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+
+		m_KukaTrackingDevice->RobotMove(t);
+	}else
+	{
+		UsePreparedPaths();
+	}
+   
 }
 
 void SurgicalSimulate::UseVirtualDevice1()
@@ -1804,10 +1897,21 @@ bool SurgicalSimulate::SetPrecisionTestTcp()
 	// For Test Use, regard ball 2 as the TCP, the pose can be seen on
 	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
 	//--------------------------------------------------
+	Eigen::Vector3d p2;
+	p2[0] = m_Controls.lineEdit_p2_x->text().toDouble();
+	p2[1] = m_Controls.lineEdit_p2_y->text().toDouble();
+	p2[2] = m_Controls.lineEdit_p2_z->text().toDouble();
+
+	Eigen::Vector3d p3;
+	p3[0] = m_Controls.lineEdit_p3_x->text().toDouble();
+	p3[1] = m_Controls.lineEdit_p3_y->text().toDouble();
+	p3[2] = m_Controls.lineEdit_p3_z->text().toDouble();
+
 	Eigen::Vector3d x_tcp;
-	x_tcp[0] = 51.91;
-	x_tcp[1] = -55.01;
-	x_tcp[2] = 0.16;
+	x_tcp = p3 - p2;
+	// x_tcp[0] = 51.91;
+	// x_tcp[1] = -55.01;
+	// x_tcp[2] = 0.16;
 	x_tcp.normalize();
 
 	Eigen::Vector3d z_flange;
@@ -1833,9 +1937,9 @@ bool SurgicalSimulate::SetPrecisionTestTcp()
 
 	//------------------------------------------------
 	double tcp[6];
-	tcp[0] = 0.75; // tx
-	tcp[1] = 100.21; // ty
-	tcp[2] = 137.73; // tz
+	tcp[0] = p2[0]; // tx
+	tcp[1] = p2[1]; // ty
+	tcp[2] = p2[2]; // tz
 	tcp[3] = eulerAngle(0);//-0.81;// -0.813428203; // rz
 	tcp[4] = eulerAngle(1); // ry
 	tcp[5] = eulerAngle(2); // rx
@@ -1859,9 +1963,9 @@ bool SurgicalSimulate::SetPlanePrecisionTestTcp()
 	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh
 	//--------------------------------------------------
 	Eigen::Vector3d x_tcp;
-	x_tcp[0] = 90.33;
-	x_tcp[1] = -0.16;
-	x_tcp[2] = 0.03;
+	x_tcp[0] = 1.0;
+	x_tcp[1] = 0.0;
+	x_tcp[2] = 0.0;
 	x_tcp.normalize();
 
 	Eigen::Vector3d z_flange;
@@ -1886,9 +1990,9 @@ bool SurgicalSimulate::SetPlanePrecisionTestTcp()
 
 	//------------------------------------------------
 	double tcp[6];
-	tcp[0] = -37.93; // tx
-	tcp[1] = 45.31; // ty
-	tcp[2] = 137.99; // tz
+	tcp[0] = -10.17; // tx
+	tcp[1] = 137.40; // ty
+	tcp[2] = 114.13; // tz
 	tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
 	tcp[4] = eulerAngle(1); // ry
 	tcp[5] = eulerAngle(2); // rx
@@ -1902,6 +2006,219 @@ bool SurgicalSimulate::SetPlanePrecisionTestTcp()
 	QThread::msleep(1000);
 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 	return true;
+}
+
+
+void SurgicalSimulate::preparePath1()
+{
+	double tcp[6]{ 0 };
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+
+	mitk::NavigationData::Pointer nd_robotBaseToFlange = m_KukaSource->GetOutput(0)->Clone();
+
+	mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), tmpMatrix);
+
+	m_Controls.lineEdit_path1_0->setText(QString::number(tmpMatrix->GetElement(0, 0)));
+	m_Controls.lineEdit_path1_1->setText(QString::number(tmpMatrix->GetElement(1, 0)));
+	m_Controls.lineEdit_path1_2->setText(QString::number(tmpMatrix->GetElement(2, 0)));
+	m_Controls.lineEdit_path1_4->setText(QString::number(tmpMatrix->GetElement(0, 1)));
+	m_Controls.lineEdit_path1_5->setText(QString::number(tmpMatrix->GetElement(1, 1)));
+	m_Controls.lineEdit_path1_6->setText(QString::number(tmpMatrix->GetElement(2, 1)));
+	m_Controls.lineEdit_path1_8->setText(QString::number(tmpMatrix->GetElement(0, 2)));
+	m_Controls.lineEdit_path1_9->setText(QString::number(tmpMatrix->GetElement(1, 2)));
+	m_Controls.lineEdit_path1_10->setText(QString::number(tmpMatrix->GetElement(2, 2)));
+	m_Controls.lineEdit_path1_12->setText(QString::number(tmpMatrix->GetElement(0, 3)));
+	m_Controls.lineEdit_path1_13->setText(QString::number(tmpMatrix->GetElement(1, 3)));
+	m_Controls.lineEdit_path1_14->setText(QString::number(tmpMatrix->GetElement(2, 3)));
+	
+
+}
+
+void SurgicalSimulate::preparePath2()
+{
+	double tcp[6]{ 0 };
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+
+	mitk::NavigationData::Pointer nd_robotBaseToFlange = m_KukaSource->GetOutput(0)->Clone();
+
+	mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), tmpMatrix);
+
+	m_Controls.lineEdit_path2_0->setText(QString::number(tmpMatrix->GetElement(0, 0)));
+	m_Controls.lineEdit_path2_1->setText(QString::number(tmpMatrix->GetElement(1, 0)));
+	m_Controls.lineEdit_path2_2->setText(QString::number(tmpMatrix->GetElement(2, 0)));
+	m_Controls.lineEdit_path2_4->setText(QString::number(tmpMatrix->GetElement(0, 1)));
+	m_Controls.lineEdit_path2_5->setText(QString::number(tmpMatrix->GetElement(1, 1)));
+	m_Controls.lineEdit_path2_6->setText(QString::number(tmpMatrix->GetElement(2, 1)));
+	m_Controls.lineEdit_path2_8->setText(QString::number(tmpMatrix->GetElement(0, 2)));
+	m_Controls.lineEdit_path2_9->setText(QString::number(tmpMatrix->GetElement(1, 2)));
+	m_Controls.lineEdit_path2_10->setText(QString::number(tmpMatrix->GetElement(2, 2)));
+	m_Controls.lineEdit_path2_12->setText(QString::number(tmpMatrix->GetElement(0, 3)));
+	m_Controls.lineEdit_path2_13->setText(QString::number(tmpMatrix->GetElement(1, 3)));
+	m_Controls.lineEdit_path2_14->setText(QString::number(tmpMatrix->GetElement(2, 3)));
+}
+
+void SurgicalSimulate::preparePath3()
+{
+	double tcp[6]{ 0 };
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+	vtkNew<vtkMatrix4x4> tmpMatrix;
+
+	mitk::NavigationData::Pointer nd_robotBaseToFlange = m_KukaSource->GetOutput(0)->Clone();
+
+	mitk::TransferItkTransformToVtkMatrix(nd_robotBaseToFlange->GetAffineTransform3D().GetPointer(), tmpMatrix);
+
+	m_Controls.lineEdit_path3_0->setText(QString::number(tmpMatrix->GetElement(0, 0)));
+	m_Controls.lineEdit_path3_1->setText(QString::number(tmpMatrix->GetElement(1, 0)));
+	m_Controls.lineEdit_path3_2->setText(QString::number(tmpMatrix->GetElement(2, 0)));
+	m_Controls.lineEdit_path3_4->setText(QString::number(tmpMatrix->GetElement(0, 1)));
+	m_Controls.lineEdit_path3_5->setText(QString::number(tmpMatrix->GetElement(1, 1)));
+	m_Controls.lineEdit_path3_6->setText(QString::number(tmpMatrix->GetElement(2, 1)));
+	m_Controls.lineEdit_path3_8->setText(QString::number(tmpMatrix->GetElement(0, 2)));
+	m_Controls.lineEdit_path3_9->setText(QString::number(tmpMatrix->GetElement(1, 2)));
+	m_Controls.lineEdit_path3_10->setText(QString::number(tmpMatrix->GetElement(2, 2)));
+	m_Controls.lineEdit_path3_12->setText(QString::number(tmpMatrix->GetElement(0, 3)));
+	m_Controls.lineEdit_path3_13->setText(QString::number(tmpMatrix->GetElement(1, 3)));
+	m_Controls.lineEdit_path3_14->setText(QString::number(tmpMatrix->GetElement(2, 3)));
+}
+
+void SurgicalSimulate::recoverPath1()
+{
+	m_initial_robotBaseToFlange = vtkMatrix4x4::New();
+
+	m_initial_robotBaseToFlange->SetElement(0, 0, m_Controls.lineEdit_path1_0->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 0, m_Controls.lineEdit_path1_1->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 0, m_Controls.lineEdit_path1_2->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(0, 1, m_Controls.lineEdit_path1_4->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 1, m_Controls.lineEdit_path1_5->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 1, m_Controls.lineEdit_path1_6->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(0, 2, m_Controls.lineEdit_path1_8->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 2, m_Controls.lineEdit_path1_9->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 2, m_Controls.lineEdit_path1_10->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(0, 3, m_Controls.lineEdit_path1_12->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 3, m_Controls.lineEdit_path1_13->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 3, m_Controls.lineEdit_path1_14->text().toDouble());
+
+
+}
+
+void SurgicalSimulate::recoverPath2()
+{
+	m_initial_robotBaseToFlange = vtkMatrix4x4::New();
+
+	m_initial_robotBaseToFlange->SetElement(0, 0, m_Controls.lineEdit_path2_0->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 0, m_Controls.lineEdit_path2_1->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 0, m_Controls.lineEdit_path2_2->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(0, 1, m_Controls.lineEdit_path2_4->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 1, m_Controls.lineEdit_path2_5->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 1, m_Controls.lineEdit_path2_6->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(0, 2, m_Controls.lineEdit_path2_8->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 2, m_Controls.lineEdit_path2_9->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 2, m_Controls.lineEdit_path2_10->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(0, 3, m_Controls.lineEdit_path2_12->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 3, m_Controls.lineEdit_path2_13->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 3, m_Controls.lineEdit_path2_14->text().toDouble());
+
+}
+
+void SurgicalSimulate::recoverPath3()
+{
+	m_initial_robotBaseToFlange = vtkMatrix4x4::New();
+
+	m_initial_robotBaseToFlange->SetElement(0, 0, m_Controls.lineEdit_path3_0->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 0, m_Controls.lineEdit_path3_1->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 0, m_Controls.lineEdit_path3_2->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(0, 1, m_Controls.lineEdit_path3_4->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 1, m_Controls.lineEdit_path3_5->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 1, m_Controls.lineEdit_path3_6->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(0, 2, m_Controls.lineEdit_path3_8->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 2, m_Controls.lineEdit_path3_9->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 2, m_Controls.lineEdit_path3_10->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(0, 3, m_Controls.lineEdit_path3_12->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(1, 3, m_Controls.lineEdit_path3_13->text().toDouble());
+	m_initial_robotBaseToFlange->SetElement(2, 3, m_Controls.lineEdit_path3_14->text().toDouble());
+
+}
+
+
+void SurgicalSimulate::usePath1()
+{
+	double tcp[6]{ 0 };
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+	recoverPath1();
+	m_KukaTrackingDevice->RobotMove(m_initial_robotBaseToFlange);
+}
+
+void SurgicalSimulate::UsePreparedPaths()
+{
+	double tcp[6]{ 0 };
+	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+	//set tcp to robot
+	  //set tcp
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+
+	auto targetLinePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetLine->GetSelectedNode()->GetData());
+	auto targetPoint_0 = targetLinePoints->GetPoint(0);
+
+	if(abs(targetPoint_0[0] + 45.132 ) < 0.5)
+	{
+		recoverPath1();
+		m_KukaTrackingDevice->RobotMove(m_initial_robotBaseToFlange);
+	}
+
+	if (abs(targetPoint_0[0] + 55.330) < 0.5)
+	{
+		recoverPath2();
+		m_KukaTrackingDevice->RobotMove(m_initial_robotBaseToFlange);
+	}
+
+	if (abs(targetPoint_0[0] + 35.615) < 0.5)
+	{
+		recoverPath3();
+		m_KukaTrackingDevice->RobotMove(m_initial_robotBaseToFlange);
+	}
 }
 
 

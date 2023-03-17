@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>701</width>
-    <height>760</height>
+    <height>789</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -20,6 +20,18 @@
    <string>QmitkTemplate</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_10">
+   <item row="2" column="0">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Output</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="0">
+       <widget class="QTextBrowser" name="textBrowser"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
@@ -29,13 +41,13 @@
       <item row="1" column="0">
        <widget class="QGroupBox" name="groupBox_8">
         <property name="title">
-         <string>Tool status</string>
+         <string>工具状态</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="0" column="1">
           <widget class="QGroupBox" name="groupBox_7">
            <property name="title">
-            <string>KUKA tools</string>
+            <string>KUKA工具</string>
            </property>
            <layout class="QGridLayout" name="gridLayout_7">
             <item row="0" column="0">
@@ -60,7 +72,7 @@
          <item row="0" column="0">
           <widget class="QGroupBox" name="groupBox_6">
            <property name="title">
-            <string>NDI tools</string>
+            <string>NDI工具</string>
            </property>
            <layout class="QGridLayout" name="gridLayout_6">
             <item row="0" column="0">
@@ -88,7 +100,7 @@
       <item row="0" column="0">
        <widget class="QGroupBox" name="groupBox">
         <property name="title">
-         <string>Connection</string>
+         <string>设备连接</string>
         </property>
         <layout class="QGridLayout" name="gridLayout">
          <item row="0" column="1">
@@ -103,7 +115,7 @@
            <item>
             <widget class="QPushButton" name="pushButton_connectVega">
              <property name="text">
-              <string>Connect</string>
+              <string>连接</string>
              </property>
             </widget>
            </item>
@@ -134,21 +146,21 @@
            <item>
             <widget class="QPushButton" name="pushButton_connectKuka">
              <property name="text">
-              <string>Connect</string>
+              <string>连接</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_startTracking">
              <property name="text">
-              <string>Start tracking</string>
+              <string>启动</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_selfcheck">
              <property name="text">
-              <string>Self check</string>
+              <string>自检运动</string>
              </property>
             </widget>
            </item>
@@ -173,26 +185,243 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="title">
-      <string>Output</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="0" column="0">
-       <widget class="QTextBrowser" name="textBrowser"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
       <number>3</number>
      </property>
+     <widget class="QWidget" name="tab_6">
+      <attribute name="title">
+       <string>机械臂快捷设置</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_15">
+       <item row="0" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout_17">
+         <item>
+          <widget class="QPushButton" name="pushButton_setFlangeTcp">
+           <property name="text">
+            <string>Set tcp to flange</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_recordInitial">
+           <property name="text">
+            <string>Collect position 1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_goToInitial">
+           <property name="text">
+            <string>Go to position 1</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout_15">
+         <item>
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>Move relative to:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBox_robotMoveType">
+           <item>
+            <property name="text">
+             <string>TCP</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Robot base</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="2" column="1">
+        <layout class="QGridLayout" name="gridLayout_14">
+         <item row="3" column="4">
+          <widget class="QPushButton" name="pushButton_ym">
+           <property name="text">
+            <string>Y-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="5">
+          <widget class="QPushButton" name="pushButton_ryp">
+           <property name="text">
+            <string>RY+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="3">
+          <widget class="QPushButton" name="pushButton_zp">
+           <property name="text">
+            <string>Z+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5">
+          <widget class="QPushButton" name="pushButton_rxp">
+           <property name="text">
+            <string>RX+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_16">
+           <property name="layoutDirection">
+            <enum>Qt::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>Step size =</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="5">
+          <widget class="QPushButton" name="pushButton_rzp">
+           <property name="text">
+            <string>RZ+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QPushButton" name="pushButton_yp">
+           <property name="text">
+            <string>Y+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="lineEdit_intuitiveValue">
+           <property name="text">
+            <string>2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="6">
+          <widget class="QPushButton" name="pushButton_rxm">
+           <property name="text">
+            <string>RX-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>(mm or degrees)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="6">
+          <widget class="QPushButton" name="pushButton_rzm">
+           <property name="text">
+            <string>RZ-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4">
+          <widget class="QPushButton" name="pushButton_xm">
+           <property name="text">
+            <string>X-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="6">
+          <widget class="QPushButton" name="pushButton_rym">
+           <property name="text">
+            <string>RY-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="4">
+          <widget class="QPushButton" name="pushButton_zm">
+           <property name="text">
+            <string>Z-</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QPushButton" name="pushButton_xp">
+           <property name="text">
+            <string>X+</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="3">
+          <widget class="QPushButton" name="pushButton_path1">
+           <property name="text">
+            <string>Test 1</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="4">
+          <widget class="QPushButton" name="pushButton_path2">
+           <property name="text">
+            <string>Test 2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="5">
+          <widget class="QPushButton" name="pushButton_path3">
+           <property name="text">
+            <string>Test 3</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="0">
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="2">
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="3" column="1">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Robot registration</string>
+       <string>机械臂配准</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_13">
        <item row="0" column="0">
@@ -200,7 +429,7 @@
          <item>
           <widget class="QPushButton" name="pushButton_captureRobot">
            <property name="text">
-            <string>Capture</string>
+            <string>捕获姿态</string>
            </property>
           </widget>
          </item>
@@ -227,28 +456,28 @@
          <item>
           <widget class="QPushButton" name="pushButton_automove">
            <property name="text">
-            <string>AutoMove</string>
+            <string>移动机械臂</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_resetRobotReg">
            <property name="text">
-            <string>Reset</string>
+            <string>重置</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_saveRobotRegist">
            <property name="text">
-            <string>Save</string>
+            <string>保存</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_usePreRobotRegit">
            <property name="text">
-            <string>Use Previous (movable image)</string>
+            <string>复用之前结果</string>
            </property>
           </widget>
          </item>
@@ -256,19 +485,12 @@
        </item>
        <item row="1" column="0">
         <layout class="QGridLayout" name="gridLayout_12">
-         <item row="0" column="0">
-          <widget class="QPushButton" name="pushButton_InitializeTcp">
-           <property name="text">
-            <string>Initialize TCP</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="1">
           <layout class="QHBoxLayout" name="horizontalLayout_13">
            <item>
             <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>Real time robot registration error:</string>
+              <string>实时配准误差显示: </string>
              </property>
             </widget>
            </item>
@@ -312,30 +534,16 @@
            </item>
           </layout>
          </item>
-        </layout>
-       </item>
-       <item row="2" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_10">
-         <item>
-          <widget class="QLineEdit" name="lineEdit_tcp"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_setTCP">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pushButton_InitializeTcp">
            <property name="text">
-            <string>SetTCP</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_roboRegisManual">
-           <property name="text">
-            <string>Use fixed registration value (manipulated values in the code)</string>
+            <string>设置TCP为法兰</string>
            </property>
           </widget>
          </item>
         </layout>
        </item>
-       <item row="3" column="0">
+       <item row="4" column="0">
         <layout class="QGridLayout" name="gridLayout_11">
          <item row="0" column="0">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_0">
@@ -463,219 +671,39 @@
          </item>
         </layout>
        </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_6">
-      <attribute name="title">
-       <string>Robot control</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_15">
-       <item row="0" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_17">
+       <item row="2" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_10">
          <item>
-          <widget class="QPushButton" name="pushButton_setFlangeTcp">
+          <widget class="QLabel" name="label_17">
            <property name="text">
-            <string>Set tcp to flange</string>
+            <string>设置快捷TCP： </string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_recordInitial">
-           <property name="text">
-            <string>Collect position 1</string>
-           </property>
-          </widget>
+          <widget class="QLineEdit" name="lineEdit_tcp"/>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_goToInitial">
+          <widget class="QPushButton" name="pushButton_setTCP">
            <property name="text">
-            <string>Go to position 1</string>
+            <string>确认</string>
            </property>
           </widget>
          </item>
         </layout>
        </item>
-       <item row="1" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_15">
-         <item>
-          <widget class="QLabel" name="label_13">
-           <property name="text">
-            <string>Move relative to:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="comboBox_robotMoveType">
-           <item>
-            <property name="text">
-             <string>TCP</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Robot base</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="2" column="1">
-        <layout class="QGridLayout" name="gridLayout_14">
-         <item row="3" column="6">
-          <widget class="QPushButton" name="pushButton_rym">
-           <property name="text">
-            <string>RY-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="4">
-          <widget class="QPushButton" name="pushButton_zm">
-           <property name="text">
-            <string>Z-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="4">
-          <widget class="QPushButton" name="pushButton_ym">
-           <property name="text">
-            <string>Y-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLabel" name="label_15">
-           <property name="text">
-            <string>(mm or degrees)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3">
-          <widget class="QPushButton" name="pushButton_xp">
-           <property name="text">
-            <string>X+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="5">
-          <widget class="QPushButton" name="pushButton_rzp">
-           <property name="text">
-            <string>RZ+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="5">
-          <widget class="QPushButton" name="pushButton_ryp">
-           <property name="text">
-            <string>RY+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="lineEdit_intuitiveValue">
-           <property name="text">
-            <string>2</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="6">
-          <widget class="QPushButton" name="pushButton_rxm">
-           <property name="text">
-            <string>RX-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="3">
-          <widget class="QPushButton" name="pushButton_yp">
-           <property name="text">
-            <string>Y+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="3">
-          <widget class="QPushButton" name="pushButton_zp">
-           <property name="text">
-            <string>Z+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="5">
-          <widget class="QPushButton" name="pushButton_rxp">
-           <property name="text">
-            <string>RX+</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="4">
-          <widget class="QPushButton" name="pushButton_xm">
-           <property name="text">
-            <string>X-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="6">
-          <widget class="QPushButton" name="pushButton_rzm">
-           <property name="text">
-            <string>RZ-</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="label_16">
-           <property name="layoutDirection">
-            <enum>Qt::LeftToRight</enum>
-           </property>
-           <property name="text">
-            <string>Step size =</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="1" column="0">
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+       <item row="3" column="0">
+        <widget class="QPushButton" name="pushButton_roboRegisManual">
+         <property name="text">
+          <string>以矩阵形式指定配准矩阵 (TCP设为法兰)</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="2">
-        <spacer name="horizontalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="3" column="1">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
+        </widget>
        </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
-       <string>Image registration</string>
+       <string>影像配准</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
        <item row="0" column="0">
@@ -683,7 +711,7 @@
          <item>
           <widget class="QLabel" name="label_12">
            <property name="text">
-            <string>Check Point:</string>
+            <string>验证点选择:</string>
            </property>
           </widget>
          </item>
@@ -697,25 +725,7 @@
          <item>
           <widget class="QPushButton" name="pushButton_probeCheckPoint">
            <property name="text">
-            <string>Probe and check</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="0" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>Meta image node: </string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_metaImageNode" native="true">
-           <property name="enabled">
-            <bool>false</bool>
+            <string>探针验证精度</string>
            </property>
           </widget>
          </item>
@@ -724,13 +734,13 @@
        <item row="1" column="0">
         <widget class="QGroupBox" name="groupBox_5">
          <property name="title">
-          <string>Assemble simple navigation object</string>
+          <string>影像数据： </string>
          </property>
          <layout class="QGridLayout" name="gridLayout_9">
           <item row="2" column="0">
            <widget class="QPushButton" name="pushButton_assembleNavigationObject">
             <property name="text">
-             <string>Confirm</string>
+             <string>确认</string>
             </property>
            </widget>
           </item>
@@ -739,7 +749,7 @@
             <item>
              <widget class="QLabel" name="label_8">
               <property name="text">
-               <string>Surface: </string>
+               <string>STL表面:  </string>
               </property>
              </widget>
             </item>
@@ -750,6 +760,9 @@
           </item>
           <item row="3" column="0">
            <widget class="QPushButton" name="pushButton_applyPreImageRegistration">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Apply preexisting registration (movable image)</string>
             </property>
@@ -760,7 +773,7 @@
             <item>
              <widget class="QLabel" name="label_9">
               <property name="text">
-               <string>Landmark source: </string>
+               <string>影像粗配准点:  </string>
               </property>
              </widget>
             </item>
@@ -772,24 +785,24 @@
           <item row="4" column="0">
            <widget class="QPushButton" name="pushButton_applyPreImageRegistrationNew">
             <property name="text">
-             <string>Apply preexisting registration (static image)</string>
+             <string>复用上次影像配准</string>
             </property>
            </widget>
           </item>
           <item row="5" column="0">
            <widget class="QPushButton" name="pushButton_probeSurfaceDistance">
             <property name="text">
-             <string>Probe and evaluate distance</string>
+             <string>精度验证（需将探针尖端放在模型上）</string>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
        </item>
-       <item row="1" column="1">
+       <item row="0" column="1" rowspan="2">
         <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
-          <string>Simple image registration</string>
+          <string>探针采点与影像配准：</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_8">
           <item row="1" column="0">
@@ -798,19 +811,22 @@
              <bool>true</bool>
             </property>
             <property name="text">
-             <string>Collect ICP points</string>
+             <string>采集精配准点</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
            <widget class="QPushButton" name="pushButton_collectLandmark">
             <property name="text">
-             <string>Collect landmarks</string>
+             <string>采集粗配准点</string>
             </property>
            </widget>
           </item>
           <item row="2" column="0">
            <widget class="QPushButton" name="pushButton_applyRegistration">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Apply calculated registration (movable image)</string>
             </property>
@@ -819,14 +835,14 @@
           <item row="3" column="0">
            <widget class="QPushButton" name="pushButton_applyRegistrationNew">
             <property name="text">
-             <string>Apply calculated registration (static image)</string>
+             <string>进行配准</string>
             </property>
            </widget>
           </item>
           <item row="4" column="0">
            <widget class="QPushButton" name="pushButton_saveNdiTools">
             <property name="text">
-             <string>Save</string>
+             <string>保存影像配准结果</string>
             </property>
            </widget>
           </item>
@@ -837,26 +853,29 @@
      </widget>
      <widget class="QWidget" name="tab_3">
       <attribute name="title">
-       <string>Surgical planning</string>
+       <string>规划位选择 与 机械臂走位</string>
       </attribute>
       <widget class="QPushButton" name="pushButton_captureSurgicalPlane">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="geometry">
         <rect>
-         <x>230</x>
-         <y>50</y>
-         <width>131</width>
+         <x>60</x>
+         <y>10</y>
+         <width>151</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
-        <string>Capture Probe</string>
+        <string>设定探针位置为目标位</string>
        </property>
       </widget>
       <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>80</x>
-         <y>80</y>
+         <y>100</y>
          <width>491</width>
          <height>25</height>
         </rect>
@@ -865,7 +884,7 @@
         <item>
          <widget class="QLabel" name="label_10">
           <property name="text">
-           <string>Image target point: </string>
+           <string>目标点选择: </string>
           </property>
          </widget>
         </item>
@@ -874,8 +893,11 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_confirmImageTarget">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>Confirm image target point</string>
+           <string>确认目标点</string>
           </property>
          </widget>
         </item>
@@ -885,7 +907,7 @@
        <property name="geometry">
         <rect>
          <x>80</x>
-         <y>120</y>
+         <y>140</y>
          <width>491</width>
          <height>25</height>
         </rect>
@@ -894,7 +916,7 @@
         <item>
          <widget class="QLabel" name="label_11">
           <property name="text">
-           <string>Image target line: </string>
+           <string>目标线选择: </string>
           </property>
          </widget>
         </item>
@@ -903,8 +925,11 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_confirmImageTargetLine">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
           <property name="text">
-           <string>Confirm image target line</string>
+           <string>确认目标线</string>
           </property>
          </widget>
         </item>
@@ -913,21 +938,21 @@
       <widget class="QPushButton" name="pushButton_setTcpPrecisionTest">
        <property name="geometry">
         <rect>
-         <x>210</x>
-         <y>0</y>
-         <width>201</width>
+         <x>240</x>
+         <y>70</y>
+         <width>131</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
-        <string>Set line precision test TCP</string>
+        <string>设置走线精度TCP</string>
        </property>
       </widget>
       <widget class="QWidget" name="layoutWidget_4">
        <property name="geometry">
         <rect>
          <x>80</x>
-         <y>160</y>
+         <y>180</y>
          <width>491</width>
          <height>25</height>
         </rect>
@@ -936,7 +961,7 @@
         <item>
          <widget class="QLabel" name="label_14">
           <property name="text">
-           <string>Image target plane: </string>
+           <string>目标平面选择: </string>
           </property>
          </widget>
         </item>
@@ -945,87 +970,608 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_confirmImageTargetPlane">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>Confirm image target plane</string>
+           <string>确认目标平面</string>
           </property>
          </widget>
         </item>
        </layout>
       </widget>
       <widget class="QPushButton" name="pushButton_setPlanePrecisionTestTcp">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="geometry">
         <rect>
-         <x>210</x>
-         <y>20</y>
-         <width>201</width>
+         <x>60</x>
+         <y>40</y>
+         <width>151</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
-        <string>Set plane precision test TCP</string>
+        <string>设置走面精度TCP</string>
        </property>
       </widget>
-     </widget>
-     <widget class="QWidget" name="tab_4">
-      <attribute name="title">
-       <string>Auto positioning</string>
-      </attribute>
       <widget class="QPushButton" name="pushButton_startAutoPosition">
        <property name="geometry">
         <rect>
          <x>250</x>
-         <y>30</y>
+         <y>240</y>
          <width>181</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
-        <string>Start (go to probe point)</string>
+        <string>前往目标位置</string>
        </property>
+      </widget>
+      <widget class="QRadioButton" name="radioButton_usePreparedData">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>30</y>
+         <width>21</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="comboBox">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>220</y>
+         <width>69</width>
+         <height>22</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QWidget" name="">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>10</y>
+         <width>211</width>
+         <height>52</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>P2: </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_p2_x">
+            <property name="text">
+             <string>0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_p2_y">
+            <property name="text">
+             <string>100</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_p2_z">
+            <property name="text">
+             <string>138</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_18">
+          <item>
+           <widget class="QLabel" name="label_19">
+            <property name="text">
+             <string>P3: </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_p3_x">
+            <property name="text">
+             <string>52</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_p3_y">
+            <property name="text">
+             <string>45</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_p3_z">
+            <property name="text">
+             <string>138</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
-       <string>Calibrate Probe</string>
+       <string>测试页面</string>
       </attribute>
       <widget class="QPushButton" name="pushButton_touchP1">
        <property name="geometry">
         <rect>
-         <x>270</x>
-         <y>40</y>
-         <width>75</width>
+         <x>250</x>
+         <y>10</y>
+         <width>81</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
-        <string>Touch p1</string>
+        <string>采集校准点1</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_touchP2">
        <property name="geometry">
         <rect>
-         <x>270</x>
-         <y>80</y>
-         <width>75</width>
+         <x>330</x>
+         <y>10</y>
+         <width>81</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
-        <string>Touch p2</string>
+        <string>采集校准点2</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_touchP3">
        <property name="geometry">
         <rect>
-         <x>270</x>
-         <y>120</y>
-         <width>75</width>
+         <x>410</x>
+         <y>10</y>
+         <width>81</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
-        <string>Touch p3</string>
+        <string>采集校准点3</string>
        </property>
+      </widget>
+      <widget class="QLabel" name="label_7">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>10</y>
+         <width>141</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>测试牙科蝴蝶块校准探针</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_5">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>40</y>
+         <width>331</width>
+         <height>100</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_16">
+        <item row="0" column="0">
+         <widget class="QLineEdit" name="lineEdit_path1_0">
+          <property name="text">
+           <string>-0.588471</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_path1_4">
+          <property name="text">
+           <string>0.0021502</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLineEdit" name="lineEdit_path1_8">
+          <property name="text">
+           <string>-0.808515</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QLineEdit" name="lineEdit_path1_12">
+          <property name="text">
+           <string>337.01</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLineEdit" name="lineEdit_path1_1">
+          <property name="text">
+           <string>0.788157</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_path1_5">
+          <property name="text">
+           <string>0.22453</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLineEdit" name="lineEdit_path1_9">
+          <property name="text">
+           <string>-0.573057</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLineEdit" name="lineEdit_path1_13">
+          <property name="text">
+           <string>500.514</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLineEdit" name="lineEdit_path1_2">
+          <property name="text">
+           <string>0.180304</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEdit_path1_6">
+          <property name="text">
+           <string>-0.974465</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLineEdit" name="lineEdit_path1_10">
+          <property name="text">
+           <string>-0.133824</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLineEdit" name="lineEdit_path1_14">
+          <property name="text">
+           <string>473.348</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLineEdit" name="lineEdit_path1_3">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_path1_7">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QLineEdit" name="lineEdit_path1_11">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <widget class="QLineEdit" name="lineEdit_path1_15">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_6">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>150</y>
+         <width>331</width>
+         <height>100</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_17">
+        <item row="0" column="0">
+         <widget class="QLineEdit" name="lineEdit_path2_0">
+          <property name="text">
+           <string>-0.588471</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_path2_4">
+          <property name="text">
+           <string>0.0021502</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLineEdit" name="lineEdit_path2_8">
+          <property name="text">
+           <string>-0.808515</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QLineEdit" name="lineEdit_path2_12">
+          <property name="text">
+           <string>337.01</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLineEdit" name="lineEdit_path2_1">
+          <property name="text">
+           <string>0.788157</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_path2_5">
+          <property name="text">
+           <string>0.22453</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLineEdit" name="lineEdit_path2_9">
+          <property name="text">
+           <string>-0.573057</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLineEdit" name="lineEdit_path2_13">
+          <property name="text">
+           <string>500.514</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLineEdit" name="lineEdit_path2_2">
+          <property name="text">
+           <string>0.180304</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEdit_path2_6">
+          <property name="text">
+           <string>-0.974465</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLineEdit" name="lineEdit_path2_10">
+          <property name="text">
+           <string>-0.133824</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLineEdit" name="lineEdit_path2_14">
+          <property name="text">
+           <string>473.348</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLineEdit" name="lineEdit_path2_3">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_path2_7">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QLineEdit" name="lineEdit_path2_11">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <widget class="QLineEdit" name="lineEdit_path2_15">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_7">
+       <property name="geometry">
+        <rect>
+         <x>350</x>
+         <y>40</y>
+         <width>291</width>
+         <height>100</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_18">
+        <item row="0" column="0">
+         <widget class="QLineEdit" name="lineEdit_path3_0">
+          <property name="text">
+           <string>-0.588471</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEdit_path3_4">
+          <property name="text">
+           <string>0.0021502</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLineEdit" name="lineEdit_path3_8">
+          <property name="text">
+           <string>-0.808515</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QLineEdit" name="lineEdit_path3_12">
+          <property name="text">
+           <string>337.01</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLineEdit" name="lineEdit_path3_1">
+          <property name="text">
+           <string>0.788157</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEdit_path3_5">
+          <property name="text">
+           <string>0.22453</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLineEdit" name="lineEdit_path3_9">
+          <property name="text">
+           <string>-0.573057</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLineEdit" name="lineEdit_path3_13">
+          <property name="text">
+           <string>500.514</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLineEdit" name="lineEdit_path3_2">
+          <property name="text">
+           <string>0.180304</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="lineEdit_path3_6">
+          <property name="text">
+           <string>-0.974465</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLineEdit" name="lineEdit_path3_10">
+          <property name="text">
+           <string>-0.133824</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLineEdit" name="lineEdit_path3_14">
+          <property name="text">
+           <string>473.348</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLineEdit" name="lineEdit_path3_3">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="lineEdit_path3_7">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QLineEdit" name="lineEdit_path3_11">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <widget class="QLineEdit" name="lineEdit_path3_15">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </widget>
