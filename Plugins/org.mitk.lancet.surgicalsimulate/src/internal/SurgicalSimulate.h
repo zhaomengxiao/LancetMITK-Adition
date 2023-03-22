@@ -252,24 +252,6 @@ protected:
   bool RotateZ_minus();
 
 
-  // Prepare for the THA examination 3.15.2023
-  void preparePath1();
-  void preparePath2();
-  void preparePath3();
-
-  // Recover prepared paths
-  void recoverPath1();
-  void recoverPath2();
-  void recoverPath3();
-
-	// Use prepared paths
-  void usePath1();
-  void usePath2();
-  void usePath3();
-
-	// use prepared paths
-  void UsePreparedPaths();
-
 };
 
 #endif // SurgicalSimulate_h

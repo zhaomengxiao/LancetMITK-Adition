@@ -3,6 +3,8 @@
 #include <vtkNew.h>
 #include <mitkLog.h>
 
+#include "mitkPointSet.h"
+
 #ifndef M_PI
 #define M_PI (3.14159265358979323846)
 #endif
@@ -170,7 +172,12 @@ bool RobotRegistration::GetRegistraionMatrix(vtkMatrix4x4* output)
 	res->DeepCopy(matrix.data());
 	res->Transpose();
 
-	output->DeepCopy(res);
+	// Exclude the spacing component to ensure the 3x3 matrix is a pure rotation matrix
+	auto tmpPset = mitk::PointSet::New();
+	tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrixWithoutChangingSpacing(res);
+	auto res_withoutSpacing = tmpPset->GetGeometry()->GetVtkMatrix();
+
+	output->DeepCopy(res_withoutSpacing);
 	return true;
 }
 
