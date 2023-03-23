@@ -823,14 +823,18 @@ void DentalWidget::GetSteelballCenters_modelCBCT()
 
 			IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
 
-			if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() > foundCleanCenterNum)
+			if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() >= foundCleanCenterNum)
 			{
 				foundCleanCenterNum = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
 				voxelThres = tmpVoxelThreshold;
 				if (foundCleanCenterNum >= stdCenterNum)
 				{
-					//m_Controls.textBrowser->append("~~All steelballs have been found~~");
-					break;
+					IterativeScreenCoarseSteelballCenters(6, 6, foundIDs);
+					if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() == stdCenterNum)
+					{
+						//m_Controls.textBrowser->append("~~All steelballs have been found~~");
+						break;
+					}
 
 				}
 			}
@@ -961,6 +965,15 @@ void DentalWidget::UpdateStdCenters()
 		for (int i{ 0 }; i < 21; i++)
 		{
 			stdCenters[i] = iosStdCenters[i];
+		}
+
+	}
+
+	if (m_Controls.radioButton_midSteelball->isChecked())
+	{
+		for (int i{ 0 }; i < 21; i++)
+		{
+			stdCenters[i] = midStdCenters[i];
 		}
 
 	}

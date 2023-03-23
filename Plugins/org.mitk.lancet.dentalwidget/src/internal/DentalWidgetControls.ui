@@ -293,7 +293,7 @@
             <item>
              <widget class="QRadioButton" name="radioButton_model">
               <property name="text">
-               <string>全颌导板钢珠提取</string>
+               <string>全颌导板</string>
               </property>
               <property name="checked">
                <bool>false</bool>
@@ -303,10 +303,17 @@
             <item>
              <widget class="QRadioButton" name="radioButton_ios">
               <property name="text">
-               <string>口内配准块钢珠提取</string>
+               <string>口内配准块(非中)</string>
               </property>
               <property name="checked">
                <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButton_midSteelball">
+              <property name="text">
+               <string>口内配准块（中）</string>
               </property>
              </widget>
             </item>
