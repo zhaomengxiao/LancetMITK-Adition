@@ -14,6 +14,7 @@
 #include <mitkImage.h>
 
 #include <physioModelFactory.h>
+#include <vtkImageCast.h>
 #include <vtkPolyData.h>
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 
@@ -1561,7 +1562,7 @@ void THAPlanning::pushButton_testStencil_clicked()
 
 	vtkNew<vtkImageData> whiteImage;
 	double imageBounds[6]{ 0 };
-	double imageSpacing[3]{ 0.2, 0.2, 0.2 };
+	double imageSpacing[3]{ 0.4, 0.4, 0.4 };
 	whiteImage->SetSpacing(imageSpacing);
 
 	auto geometry = objectSurface->GetGeometry();
@@ -1587,7 +1588,7 @@ void THAPlanning::pushButton_testStencil_clicked()
 	whiteImage->AllocateScalars(VTK_SHORT, 1);
 
 	// fill the image with foreground voxels:
-	short insideValue = 1024;
+	short insideValue = 2000;
 	// short outsideValue = 0;
 	vtkIdType count = whiteImage->GetNumberOfPoints();
 	for (vtkIdType i = 0; i < count; ++i)
@@ -1602,6 +1603,7 @@ void THAPlanning::pushButton_testStencil_clicked()
 
 	// Apply the stencil
 	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	surfaceToImageFilter->SetBackgroundValue(0);
 	surfaceToImageFilter->SetImage(imageToCrop);
 	surfaceToImageFilter->SetInput(objectSurface);
 	surfaceToImageFilter->SetReverseStencil(false);
@@ -1610,12 +1612,97 @@ void THAPlanning::pushButton_testStencil_clicked()
 	surfaceToImageFilter->Update();
 	convertedImage = surfaceToImageFilter->GetOutput();
 
+	// Test: set the boundary voxel of the image to 
+	auto inputVtkImage = convertedImage->GetVtkImageData();
+	int dims[3];
+	inputVtkImage->GetDimensions(dims);
+
+	int tmpRegion[6]{ 0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1 };
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(inputVtkImage);
+	caster->SetOutputScalarTypeToInt();
+	caster->Update();
+
+	auto castVtkImage = caster->GetOutput();
+
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y <dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+				int x_p = ((x + 1) > (dims[0]-1)) ? (dims[0] - 1) : (x + 1);
+				int x_m = ((x -1) < 0) ? 0 : (x-1);
+
+				int y_p = ((y + 1) > (dims[1] - 1)) ? (dims[1] - 1) : (y + 1);
+				int y_m = ((y - 1) < 0) ? 0 : (y - 1);
+
+				int z_p = ((z + 1) > (dims[2] - 1)) ? (dims[2] - 1) : (z + 1);
+				int z_m = ((z - 1) < 0) ? z : (z - 1);
+
+				int* n = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z));
+				int* n1 = static_cast<int*>(castVtkImage->GetScalarPointer(x_m, y, z));
+				int* n2 = static_cast<int*>(castVtkImage->GetScalarPointer(x_p, y, z));
+				int* n3 = static_cast<int*>(castVtkImage->GetScalarPointer(x , y_m, z));
+				int* n4 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y_p, z));
+				int* n5 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y , z_m));
+				int* n6 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z_p));
+
+				if(n[0] == 2000)
+				{
+					if(n1[0] ==0 || n2[0] == 0 || n3[0] == 0 || n4[0] == 0 || n5[0] == 0 || n6[0] == 0 )
+					{
+						n[0] = 500;
+					}
+				}
+
+			}
+		}
+	}
+
+	for (int z = 1; z < (dims[2] - 1); z++)
+	{
+		for (int y = 1; y < (dims[1] - 1); y++)
+		{
+			for (int x = 1; x < (dims[0] - 1); x++)
+			{
+				int* n = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z));
+				int* n1 = static_cast<int*>(castVtkImage->GetScalarPointer(x - 1, y, z));
+				int* n2 = static_cast<int*>(castVtkImage->GetScalarPointer(x + 1, y, z));
+				int* n3 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y - 1, z));
+				int* n4 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y + 1, z));
+				int* n5 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z - 1));
+				int* n6 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z + 1));
+
+				if (n[0] == 2000)
+				{
+					if (n1[0] == 500 || n2[0] == 500 || n3[0] == 500 || n4[0] == 500 || n5[0] == 500 || n6[0] == 500)
+					{
+						n[0] = 499;
+					}
+				}
+
+			}
+		}
+	}
+		
+	
+	
+	
+	auto resultMitkImage = mitk::Image::New();
+	resultMitkImage->Initialize(castVtkImage);
+	resultMitkImage->SetVolume(castVtkImage->GetScalarPointer());
+	resultMitkImage->SetGeometry(convertedImage->GetGeometry());
+	
+	//-----------------------------------------------
+	
 	auto newNode = mitk::DataNode::New();
-
+	
 	newNode->SetName("cup CT");
-
+	
 	// add new node
-	newNode->SetData(convertedImage);
+	newNode->SetData(resultMitkImage);
 	GetDataStorage()->Add(newNode);
 
 }

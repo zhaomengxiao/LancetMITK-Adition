@@ -119,6 +119,20 @@ protected:
   void AppendRegistrationMatrix();
 
   void SurfaceToSurfaceIcp();
+
+
+  // Test cutting
+  mitk::DataNode::Pointer m_growingCutterNode{nullptr};
+  void TestCut();
+
+  void TestCut2();
+
+  void TestCut3();
+
+  void on_pushButton_ApplyStencil_clicked();
+
+  void on_pushButton_implantStencil_clicked();
+
 };
 
 #endif // MoveData_h
