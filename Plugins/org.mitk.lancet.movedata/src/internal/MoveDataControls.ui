@@ -106,9 +106,16 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="pushButton_level">
            <property name="text">
-            <string>PushButton</string>
+            <string>Segregate</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_combine">
+           <property name="text">
+            <string>Combine</string>
            </property>
           </widget>
          </item>

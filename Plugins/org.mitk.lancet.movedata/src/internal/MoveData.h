@@ -133,6 +133,9 @@ protected:
 
   void on_pushButton_implantStencil_clicked();
 
+  void on_pushButton_level_clicked();
+
+  void on_pushButton_combine_clicked();
 };
 
 #endif // MoveData_h

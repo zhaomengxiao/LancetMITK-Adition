@@ -107,6 +107,8 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_ApplyStencil, &QPushButton::clicked, this, &MoveData::on_pushButton_ApplyStencil_clicked);
   connect(m_Controls.pushButton_implantStencil, &QPushButton::clicked, this, &MoveData::on_pushButton_implantStencil_clicked);
+  connect(m_Controls.pushButton_level, &QPushButton::clicked, this, &MoveData::on_pushButton_level_clicked);
+  connect(m_Controls.pushButton_combine, &QPushButton::clicked, this, &MoveData::on_pushButton_combine_clicked);
 
 }
 
@@ -227,8 +229,10 @@ void MoveData::Translate(double direction[3], double length, mitk::BaseData* dat
 	{
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 	}
-
+	clock_t start = clock();
 	TestCut2();
+	MITK_WARN << "Test.Interface.time(TestCut2): " << (clock() - start);
+	
 	// TestCut3();
 
 }
@@ -259,8 +263,9 @@ void MoveData::Rotate(double center[3], double direction[3], double counterclock
 	{
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 	}
-
+	clock_t start = clock();
 	TestCut2();
+	MITK_WARN << "Test.Interface.time(TestCut2): " << (clock() - start);
 	// TestCut3();
 }
 
@@ -1422,7 +1427,7 @@ void MoveData::TestCut2()
 
 	auto surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
 	//surfaceToImageFilter->SetMakeOutputBinary(false);
-	surfaceToImageFilter->SetBackgroundValue(0);
+	surfaceToImageFilter->SetBackgroundValue(2150);
 	//surfaceToImageFilter->SetUShortBinaryPixelType(false);
 	surfaceToImageFilter->SetImage(imageToCut);
 	surfaceToImageFilter->SetInput(movedSurface);
@@ -1764,7 +1769,6 @@ void MoveData::on_pushButton_implantStencil_clicked()
 	resultMitkImage->SetVolume(boneVtkImage->GetScalarPointer());
 	resultMitkImage->SetGeometry(convertedImage->GetGeometry());
 
-
 	auto newNode = mitk::DataNode::New();
 
 	newNode->SetName("implantStencilImage");
@@ -1772,6 +1776,257 @@ void MoveData::on_pushButton_implantStencil_clicked()
 	// add new node
 	newNode->SetData(resultMitkImage);
 	GetDataStorage()->Add(newNode);
+
+
+	// // Test multichannel MITK image
+	// auto multiChannelMitkImage = mitk::Image::New();
+	// multiChannelMitkImage->Initialize(boneVtkImage,4);
+	//
+	// vtkNew<vtkImageData> channel_1;
+	// channel_1->DeepCopy(boneVtkImage);
+	//
+	// vtkNew<vtkImageData> channel_2;
+	// channel_2->DeepCopy(boneVtkImage);
+	//
+	// vtkNew<vtkImageData> channel_3;
+	// channel_3->DeepCopy(boneVtkImage);
+	//
+	//
+	// vtkIdType count = channel_1->GetNumberOfPoints();
+	// for (vtkIdType i = 0; i < count; ++i)
+	// {
+	// 	channel_1->GetPointData()->GetScalars()->SetTuple1(i, 0);
+	// }
+	//
+	// multiChannelMitkImage->SetVolume(boneVtkImage->GetScalarPointer(), 0,0);
+	// multiChannelMitkImage->SetVolume(channel_3->GetScalarPointer(),0, 1);
+	// multiChannelMitkImage->SetVolume(channel_2->GetScalarPointer(), 0, 2);
+	// multiChannelMitkImage->SetVolume(channel_1->GetScalarPointer(), 0, 3);
+	//
+	//
+	//
+	// auto testNode = mitk::DataNode::New();
+	// testNode->SetName("testNode");
+	// testNode->SetData(multiChannelMitkImage);
+	// GetDataStorage()->Add(testNode);
+
+
+
 }
 
 
+void MoveData::on_pushButton_level_clicked()
+{
+	auto image = GetDataStorage()->GetNamedObject<mitk::Image>("proximalTibialImage");
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(image->GetVtkImageData());
+	caster->SetOutputScalarTypeToInt();
+	caster->Update();
+
+
+	auto vtkImage = caster->GetOutput();
+
+	int dims[3];
+
+	vtkImage->GetDimensions(dims);
+
+	vtkNew<vtkImageData> whiteLayer_image;
+	whiteLayer_image->DeepCopy(vtkImage);
+
+	vtkNew<vtkImageData> redPart_image;
+	redPart_image->DeepCopy(vtkImage);
+
+	vtkNew<vtkImageData> greenPart_image;
+	greenPart_image->DeepCopy(vtkImage);
+
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+				int* n = static_cast<int*>(vtkImage->GetScalarPointer(x, y, z));
+				int* w = static_cast<int*>(whiteLayer_image->GetScalarPointer(x, y, z));
+				int* r = static_cast<int*>(redPart_image->GetScalarPointer(x, y, z));
+				int* g = static_cast<int*>(greenPart_image->GetScalarPointer(x, y, z));
+
+				if(n[0] == 3000)
+				{
+					r[0] = 0;
+					g[0] = 0;
+
+					g[0] = 1700;
+				}
+
+				if(n[0] == 2000)
+				{
+					w[0] = 0;
+					g[0] = 0;
+
+					w[0] = 3000;
+					g[0] = 1700;
+				}
+
+				if(n[0] == 1000)
+				{
+					w[0] = 0;
+					r[0] = 0;
+
+					w[0] = 2600;
+				}
+
+				if(n[0] == 0)
+				{
+					w[0] = 2600;
+					g[0] = 1700;
+				}
+			
+			}
+		}
+	}
+
+	auto whiteMitkImage = mitk::Image::New();
+	whiteMitkImage->Initialize(whiteLayer_image);
+	whiteMitkImage->SetVolume(whiteLayer_image->GetScalarPointer());
+	whiteMitkImage->SetGeometry(image->GetGeometry());
+
+	auto whiteNode = mitk::DataNode::New();
+
+	whiteNode->SetName("white");
+
+	whiteNode->SetData(whiteMitkImage);
+	GetDataStorage()->Add(whiteNode);
+
+	auto redMitkImage = mitk::Image::New();
+	redMitkImage->Initialize(redPart_image);
+	redMitkImage->SetVolume(redPart_image->GetScalarPointer());
+	redMitkImage->SetGeometry(image->GetGeometry());
+
+	auto redNode = mitk::DataNode::New();
+
+	redNode->SetName("red");
+
+	redNode->SetData(redMitkImage);
+	GetDataStorage()->Add(redNode);
+
+	auto greenMitkImage = mitk::Image::New();
+	greenMitkImage->Initialize(greenPart_image);
+	greenMitkImage->SetVolume(greenPart_image->GetScalarPointer());
+	greenMitkImage->SetGeometry(image->GetGeometry());
+
+	auto greenNode = mitk::DataNode::New();
+
+	greenNode->SetName("green");
+
+	greenNode->SetData(greenMitkImage);
+	GetDataStorage()->Add(greenNode);
+}
+
+
+void MoveData::on_pushButton_combine_clicked()
+{
+	auto redImage = GetDataStorage()->GetNamedObject<mitk::Image>("red");
+
+	auto caster_red = vtkImageCast::New();
+	caster_red->SetInputData(redImage->GetVtkImageData());
+	caster_red->SetOutputScalarTypeToInt();
+	caster_red->Update();
+
+	auto redVtkImage = caster_red->GetOutput();
+
+	int dims[3];
+
+	redVtkImage->GetDimensions(dims);
+
+	//----------
+	auto whiteImage = GetDataStorage()->GetNamedObject<mitk::Image>("white");
+
+	auto caster_white = vtkImageCast::New();
+	caster_white->SetInputData(whiteImage->GetVtkImageData());
+	caster_white->SetOutputScalarTypeToInt();
+	caster_white->Update();
+
+	auto whiteVtkImage = caster_white->GetOutput();
+
+	// ------------------
+	auto greenImage = GetDataStorage()->GetNamedObject<mitk::Image>("green");
+
+	auto caster_green = vtkImageCast::New();
+	caster_green->SetInputData(greenImage->GetVtkImageData());
+	caster_green->SetOutputScalarTypeToInt();
+	caster_green->Update();
+
+	auto greenVtkImage = caster_green->GetOutput();
+
+	vtkNew<vtkImageData> combinedVtkImage;
+	combinedVtkImage->DeepCopy(redVtkImage);
+
+	// --------------
+	auto image = GetDataStorage()->GetNamedObject<mitk::Image>("proximalTibialImage");
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(image->GetVtkImageData());
+	caster->SetOutputScalarTypeToInt();
+	caster->Update();
+
+
+	auto vtkImage = caster->GetOutput();
+
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+				int* n = static_cast<int*>(vtkImage->GetScalarPointer(x, y, z));
+				int* m = static_cast<int*>(combinedVtkImage->GetScalarPointer(x, y, z));
+				int* w = static_cast<int*>(whiteVtkImage->GetScalarPointer(x, y, z));
+				int* r = static_cast<int*>(redVtkImage->GetScalarPointer(x, y, z));
+				int* g = static_cast<int*>(greenVtkImage->GetScalarPointer(x, y, z));
+
+				m[0] = n[0];
+
+				// green part
+				if(g[0] < 1695)
+				{
+					if(n[0] == 0 || n[0] == 1000)
+					{
+						m[0] = g[0];
+					}					
+				}
+
+				// white part
+				if(/*n[0] != 2000 &&*/ n[0] != 1000 && w[0] > 2600)
+				{
+					m[0] = w[0];
+				}
+
+				if(n[0] == 0 && m[0] == 0)
+				{
+					m[0] = 2150;
+				}
+
+				if(n[0] == 2000 && m[0] == 2998)
+				{
+					m[0] = 1964;
+				}
+
+			}
+		}
+	}
+
+
+	auto combinedMitkImage = mitk::Image::New();
+	combinedMitkImage->Initialize(combinedVtkImage);
+	combinedMitkImage->SetVolume(combinedVtkImage->GetScalarPointer());
+	combinedMitkImage->SetGeometry(image->GetGeometry());
+
+	auto newNode = mitk::DataNode::New();
+
+	newNode->SetName("combined");
+
+	newNode->SetData(combinedMitkImage);
+	GetDataStorage()->Add(newNode);
+
+}
