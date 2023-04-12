@@ -1,9 +1,11 @@
 set(MITK_MODULES
   ExampleModule
+  LancetCore
   LancetAlgo
   LancetGeoUtil
   LancetRegistration
   LancetDRR
+  LancetKukaFRI
   LancetRobot
   LancetNCC
   LancetIGT

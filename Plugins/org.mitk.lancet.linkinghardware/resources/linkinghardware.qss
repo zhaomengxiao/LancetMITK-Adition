@@ -1,0 +1,74 @@
+QWidget
+{
+    background-color:#d4deea;
+	border:none;
+}
+QFrame#line1
+{
+    border-image: url(:/org.mitk.lancet.linkinghardware/image/fenge.png);
+}
+QFrame#line2
+{
+    border-image: url(:/org.mitk.lancet.linkinghardware/image/fenge.png);
+}
+QFrame#line3
+{
+    border-image: url(:/org.mitk.lancet.linkinghardware/image/fenge.png);
+}
+QFrame#line4
+{
+    border-image: url(:/org.mitk.lancet.linkinghardware/image/fenge.png);
+}
+QCheckBox
+{  
+    font: 18px "ºÚÌå";
+    color:black;
+}
+QCheckBox::indicator 
+{
+	width: 25px; 
+	height: 25px;
+}
+QCheckBox::indicator:unchecked 
+{ 
+    image: url(:/org.mitk.lancet.linkinghardware/image/radio_error.png);
+}
+QCheckBox::indicator:checked 
+{
+    image: url(:/org.mitk.lancet.linkinghardware/image/radio_success.png);}
+}
+QGroupBox
+{
+    font: 18px "ºÚÌå";
+    color:black;
+	Qt::AlignLeft;
+}
+QGroupBox::title 
+{
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 3px;
+}
+QPushButton{
+	border-image: url(:/org.mitk.lancet.linkinghardware/image/default.png);
+	color:white;
+}
+QPushButton::hover
+{
+	border-image: url(:/org.mitk.lancet.linkinghardware/image/on.png);
+	color:balck;
+}
+QPushButton::disabled
+{
+	border-image: url(:/org.mitk.lancet.linkinghardware/image/disabled.png);	
+	color: rgb(153, 153, 153);
+}
+QPushButton::pressed { 
+	padding-left:6px;
+	padding-top:6px;
+}
+QWidget#widgetTrackingTools
+{
+border-radius: 8px;
+background-color: rgb(0, 0, 0);
+}

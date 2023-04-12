@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+  <extension id="org.mitk.lancet.tha.application" point="org.blueberry.osgi.applications">
+    <application>
+      <run class="QLancetThaApplication"/>
+    </application>
+  </extension>
+
+  <extension point="org.blueberry.ui.perspectives">
+    <perspective
+      id="org.mitk.qlancetthaapplicationperspective"
+      name="Hip application perspective class"
+      class="QLancetThaApplicationPerspective">
+    </perspective>
+  </extension>
+
+</plugin>

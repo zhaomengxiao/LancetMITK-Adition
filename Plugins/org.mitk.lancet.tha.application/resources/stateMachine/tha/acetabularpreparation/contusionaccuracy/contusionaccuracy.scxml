@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Hip software flow status machine definition
+	-contusionaccuracy
+	
+	Rules for state name definition <Process editor plugin name> (all lower case letters) 
+	.eg <org_mitk_lancet_tka_stdevelopmentsurgicalprotocol>.
+	
+	Jump event name definition rules: to_<Process editor plugin name> (all lower case letters) 
+	.eg to_org_mitk_lancet_tka_stdevelopmentsurgicalprotocol.
+-->
+<scxml 
+	xmlns="http://www.w3.org/2005/07/scxml" 
+	version="1.0" 
+	binding="early" 
+	xmlns:qt="http://www.qt.io/2015/02/scxml-ext" 
+	datamodel="ecmascript" 
+	name="LancetThaStDevelopmentSurgicalProtocolStateMachine" 
+	qt:editorversion="4.13.1" 
+	initial="org_mitk_lancet_tha_contusionaccuracy"
+>
+	<!--
+		name: org_mitk_lancet_tha_contusionaccuracy
+		events: 
+			event name														target state
+			to_exit															exit
+	-->
+	<state id="org_mitk_lancet_tha_contusionaccuracy">
+		<transition event="to_exit" target="exit"/>
+	</state>
+	
+    <final id="exit">
+        
+    </final>
+</scxml>

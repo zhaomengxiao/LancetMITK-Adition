@@ -1,0 +1,4 @@
+QWidget
+{
+    border-image: url(:/org.mitk.lancet.putmolarcupprosthesisaccuracyeditor/navigation/cup_Result.png);
+}

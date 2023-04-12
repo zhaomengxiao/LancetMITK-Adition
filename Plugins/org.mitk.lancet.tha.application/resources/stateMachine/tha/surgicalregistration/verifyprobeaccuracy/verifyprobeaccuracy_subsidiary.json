@@ -1,0 +1,18 @@
+{
+	"properties":
+	{
+		"id": "org_mitk_lancet_tha_verifyprobeaccuracy",
+		"objectName": "ActionVerifyProbeAccuracy",
+		"uiName": "探针检查点",
+		"editorWidgetIdentify": "org_mitk_lancet_linkinghardware_editor",
+		"fucntionWidgetIdentify": "org_mitk_views_qroboticsregistrationsaccuracy",
+		"theme": 
+		{
+			"defaultStyle":
+			{
+				"editorWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/action_medicalrecordmanagement_default_qss",
+				"fucntionWidgetQssFilePath": ":/resources/qss/tha/medicalrecordmanagement/editor_medicalrecordmanagement_default_qss"
+			}
+		}
+	}
+}

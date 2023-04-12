@@ -14,15 +14,11 @@ found in the LICENSE file.
 #ifndef AccuracyTest_h
 #define AccuracyTest_h
 
-#include <berryISelectionListener.h>
-
 #include <QmitkAbstractView.h>
 #include "ui_AccuracyTestControls.h"
 
-#include <mitkNavigationData.h>
-
+#include "lancetNavigationDataInReferenceCoordFilter.h"
 #include "mitkNavigationDataSource.h"
-#include "mitkNavigationTool.h"
 
 /**
   \brief AccuracyTest
@@ -59,10 +55,13 @@ public:
 	std::vector<double> distanceCompare(const std::vector<double>&);
 	double averageValueCompute(const std::vector<double>&);
 protected slots:
+  void SetFrameRate(int frameRate);
+  void SetNumberOfMean(int numberOfMean);
 	void SetProbe();
 	void SetReferenceFrame();
 	void UpdateTrackingTimer();
-	void AddPivotPoint();
+  void AddPoint(mitk::PointSet::Pointer pointSet);
+  void AddPivotPoint();
 	void AddTopplePoint();
 	void AddTiltPoint();
 	void AddDistancePoint();
@@ -71,6 +70,23 @@ protected slots:
 	void computeTilt();
 	void computeDistance();
 private:
+  // void CreateNavigationTreeFromTrackingDeviceSource(mitk::TrackingDeviceSource::Pointer trackingDeviceSource, NavigationTree::Pointer tree)
+  // {
+  //   auto parentNode = NavigationNode::New();
+  //   parentNode->SetNodeName(trackingDeviceSource->GetName());
+  //   parentNode->SetNavigationData(mitk::NavigationData::New());
+  //   tree->Init(parentNode);
+  //
+  //   auto outputs = trackingDeviceSource->GetOutputs();
+  //   for (int i = 0; i < trackingDeviceSource->GetNumberOfOutputs(); i++)
+  //   {
+  //     auto node = NavigationNode::New();
+  //     node->SetNodeName(trackingDeviceSource->GetOutput(i)->GetName());
+  //     node->SetNavigationData(trackingDeviceSource->GetOutput(i));
+  //
+  //     tree->AddChild(node, parentNode);
+  //   }
+  // }
   //mitk::NavigationTool::Pointer m_ToolToCalibrate; ///< tool that will be calibrated
   int m_IDofProbe; ///< id of the Probe (of the navigation data source)
   int m_IDofRF; ///< id of the reference frame (of the corresponding navigation data source)
@@ -85,8 +101,15 @@ private:
   mitk::DataNode::Pointer m_PointSetTiltNode;
   mitk::PointSet::Pointer m_distancePointSet;
   mitk::DataNode::Pointer m_distancePointSetNode;
-  QTimer* m_TrackingTimer; //<<< tracking timer that updates the status widgets
+  QTimer* m_TrackingTimer = nullptr; //<<< tracking timer that updates the status widgets
+
+  int m_FrameRate{ 20 };
+  int m_NumberOfMean{ 1 };
+
   Ui::AccuracyTestControls m_Controls;
+
+  lancet::NavigationDataInReferenceCoordFilter::Pointer m_NDinRefFilter;
+  //mitk::NavigationDataToPointSetFilter::Pointer m_NDtoPointSetFilter;
 };
 
 #endif // AccuracyTest_h

@@ -1,0 +1,4 @@
+QWidget
+{
+    border-image: url(:/org.mitk.lancet.femurcontusioneditor/navigation/Femur.png);
+}

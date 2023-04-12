@@ -1,0 +1,59 @@
+QWidget
+{
+    background-color:#d4deea;
+	border:none;
+}
+
+QFrame#line1
+{
+    border-image: url(:/org.mitk.lancet.qctmark/image/fenge.png);
+}
+QFrame#line2
+{
+    border-image: url(:/org.mitk.lancet.qctmark/image/fenge.png);
+}
+
+QCheckBox::indicator:unchecked 
+{
+    image:url(:/org.mitk.lancet.qctmark/image/radio_success.png);   
+    width:25px;
+    height:25px;
+}
+QCheckBox
+{
+	font: 18px "ºÚÌå";
+    color:black;
+}
+QCheckBox::indicator:checked 
+{
+    image: url(:/org.mitk.lancet.qctmark/image/radio.png);
+	color:green;    
+    width:25px;
+    height:25px;
+}
+QCheckBox:unchecked 
+{    
+    color:black;
+}
+QCheckBox:checked 
+{   
+    color: rgb(55,174,150);
+}
+QPushButton{
+	border-image: url(:/org.mitk.lancet.qctmark/image/default.png);
+	color:white;
+}
+QPushButton::hover
+{
+	border-image: url(:/org.mitk.lancet.qctmark/image/on.png);
+	color:balck;
+}
+QPushButton::disabled
+{
+	border-image: url(:/org.mitk.lancet.qctmark/image/disabled.png);	
+	color: rgb(153, 153, 153);
+}
+QPushButton:pressed{
+	padding-left:6px;
+	padding-top:6px;
+}
