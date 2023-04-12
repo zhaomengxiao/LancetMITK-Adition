@@ -94,7 +94,7 @@
          <item>
           <widget class="QPushButton" name="pushButton_ApplyStencil">
            <property name="text">
-            <string>Apply bone stencil</string>
+            <string>Bone stencil</string>
            </property>
           </widget>
          </item>
@@ -108,7 +108,7 @@
          <item>
           <widget class="QPushButton" name="pushButton_level">
            <property name="text">
-            <string>Segregate</string>
+            <string>Segregate and Gaussian</string>
            </property>
           </widget>
          </item>

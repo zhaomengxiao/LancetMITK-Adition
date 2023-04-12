@@ -22,6 +22,7 @@ found in the LICENSE file.
 #include <QMessageBox>
 
 // mitk image
+#include <mitkCLUtil.h>
 #include <mitkImage.h>
 #include <vtkAppendPolyData.h>
 #include "mitkSurfaceToImageFilter.h"
@@ -1407,6 +1408,12 @@ void MoveData::TestCut2()
 	}
 
 	auto initSurface = dynamic_cast<mitk::Surface*>(m_currentSelectedNode->GetData());
+
+	if(initSurface == nullptr)
+	{
+		return;
+	}
+
 	auto initPolyData = initSurface->GetVtkPolyData();
 
 	vtkNew<vtkPolyData> movedPolyData;
@@ -1423,7 +1430,12 @@ void MoveData::TestCut2()
 	auto movedSurface = mitk::Surface::New();
 	movedSurface->SetVtkPolyData(movedPolyData);
 
-	auto imageToCut = GetDataStorage()->GetNamedObject<mitk::Image>("proximalTibialImage");
+	if(GetDataStorage()->GetNamedNode("imageToCut") == nullptr)
+	{
+		return;
+	}
+
+	auto imageToCut = GetDataStorage()->GetNamedObject<mitk::Image>("imageToCut");
 
 	auto surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
 	//surfaceToImageFilter->SetMakeOutputBinary(false);
@@ -1434,7 +1446,7 @@ void MoveData::TestCut2()
 	surfaceToImageFilter->SetReverseStencil(true);
 	surfaceToImageFilter->Update();
 
-	GetDataStorage()->GetNamedNode("proximalTibialImage")->SetData(surfaceToImageFilter->GetOutput());
+	GetDataStorage()->GetNamedNode("imageToCut")->SetData(surfaceToImageFilter->GetOutput());
 }
 
 
@@ -1562,86 +1574,6 @@ void MoveData::on_pushButton_ApplyStencil_clicked()
 		}
 	}
 
-	// for (int z = 1; z < (dims[2] - 1); z++)
-	// {
-	// 	for (int y = 1; y < (dims[1] - 1); y++)
-	// 	{
-	// 		for (int x = 1; x < (dims[0] - 1); x++)
-	// 		{
-	// 			int* n = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z));
-	// 			int* n1 = static_cast<int*>(castVtkImage->GetScalarPointer(x - 1, y, z));
-	// 			int* n2 = static_cast<int*>(castVtkImage->GetScalarPointer(x + 1, y, z));
-	// 			int* n3 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y - 1, z));
-	// 			int* n4 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y + 1, z));
-	// 			int* n5 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z - 1));
-	// 			int* n6 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z + 1));
-	//
-	// 			if (n[0] == 2000)
-	// 			{
-	// 				if (n1[0] == 3000 || n2[0] == 3000 || n3[0] == 3000 || n4[0] == 3000 || n5[0] == 3000 || n6[0] == 3000)
-	// 				{
-	// 					n[0] = 2999;
-	// 				}
-	// 			}
-	//
-	// 		}
-	// 	}
-	// }
-	//
-	// for (int z = 1; z < (dims[2] - 1); z++)
-	// {
-	// 	for (int y = 1; y < (dims[1] - 1); y++)
-	// 	{
-	// 		for (int x = 1; x < (dims[0] - 1); x++)
-	// 		{
-	// 			int* n = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z));
-	// 			int* n1 = static_cast<int*>(castVtkImage->GetScalarPointer(x - 1, y, z));
-	// 			int* n2 = static_cast<int*>(castVtkImage->GetScalarPointer(x + 1, y, z));
-	// 			int* n3 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y - 1, z));
-	// 			int* n4 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y + 1, z));
-	// 			int* n5 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z - 1));
-	// 			int* n6 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z + 1));
-	//
-	// 			if (n[0] == 2000)
-	// 			{
-	// 				if (n1[0] == 2999 || n2[0] == 2999 || n3[0] == 2999 || n4[0] == 2999 || n5[0] == 2999 || n6[0] == 2999)
-	// 				{
-	// 					n[0] = 2998;
-	// 				}
-	// 			}
-	//
-	// 		}
-	// 	}
-	// }
-	//
-	// for (int z = 1; z < (dims[2] - 1); z++)
-	// {
-	// 	for (int y = 1; y < (dims[1] - 1); y++)
-	// 	{
-	// 		for (int x = 1; x < (dims[0] - 1); x++)
-	// 		{
-	// 			int* n = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z));
-	// 			int* n1 = static_cast<int*>(castVtkImage->GetScalarPointer(x - 1, y, z));
-	// 			int* n2 = static_cast<int*>(castVtkImage->GetScalarPointer(x + 1, y, z));
-	// 			int* n3 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y - 1, z));
-	// 			int* n4 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y + 1, z));
-	// 			int* n5 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z - 1));
-	// 			int* n6 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z + 1));
-	//
-	// 			if (n[0] == 2000)
-	// 			{
-	// 				if (n1[0] == 2998 || n2[0] == 2998 || n3[0] == 2998 || n4[0] == 2998 || n5[0] == 2998 || n6[0] == 2998)
-	// 				{
-	// 					n[0] = 2997;
-	// 				}
-	// 			}
-	//
-	// 		}
-	// 	}
-	// }
-
-
-
 	auto resultMitkImage = mitk::Image::New();
 	resultMitkImage->Initialize(castVtkImage);
 	resultMitkImage->SetVolume(castVtkImage->GetScalarPointer());
@@ -1726,7 +1658,7 @@ void MoveData::on_pushButton_implantStencil_clicked()
 	}
 
 
-	// 1 mm white boundary
+	// 1-voxel layer white boundary
 	for (int z = 0; z < dims[2]; z++)
 	{
 		for (int y = 0; y < dims[1]; y++)
@@ -1763,7 +1695,6 @@ void MoveData::on_pushButton_implantStencil_clicked()
 		}
 	}
 
-
 	auto resultMitkImage = mitk::Image::New();
 	resultMitkImage->Initialize(boneVtkImage);
 	resultMitkImage->SetVolume(boneVtkImage->GetScalarPointer());
@@ -1777,47 +1708,13 @@ void MoveData::on_pushButton_implantStencil_clicked()
 	newNode->SetData(resultMitkImage);
 	GetDataStorage()->Add(newNode);
 
-
-	// // Test multichannel MITK image
-	// auto multiChannelMitkImage = mitk::Image::New();
-	// multiChannelMitkImage->Initialize(boneVtkImage,4);
-	//
-	// vtkNew<vtkImageData> channel_1;
-	// channel_1->DeepCopy(boneVtkImage);
-	//
-	// vtkNew<vtkImageData> channel_2;
-	// channel_2->DeepCopy(boneVtkImage);
-	//
-	// vtkNew<vtkImageData> channel_3;
-	// channel_3->DeepCopy(boneVtkImage);
-	//
-	//
-	// vtkIdType count = channel_1->GetNumberOfPoints();
-	// for (vtkIdType i = 0; i < count; ++i)
-	// {
-	// 	channel_1->GetPointData()->GetScalars()->SetTuple1(i, 0);
-	// }
-	//
-	// multiChannelMitkImage->SetVolume(boneVtkImage->GetScalarPointer(), 0,0);
-	// multiChannelMitkImage->SetVolume(channel_3->GetScalarPointer(),0, 1);
-	// multiChannelMitkImage->SetVolume(channel_2->GetScalarPointer(), 0, 2);
-	// multiChannelMitkImage->SetVolume(channel_1->GetScalarPointer(), 0, 3);
-	//
-	//
-	//
-	// auto testNode = mitk::DataNode::New();
-	// testNode->SetName("testNode");
-	// testNode->SetData(multiChannelMitkImage);
-	// GetDataStorage()->Add(testNode);
-
-
-
 }
 
 
 void MoveData::on_pushButton_level_clicked()
 {
-	auto image = GetDataStorage()->GetNamedObject<mitk::Image>("proximalTibialImage");
+	auto image = GetDataStorage()->GetNamedObject<mitk::Image>("implantStencilImage");
+	auto imageNode = GetDataStorage()->GetNamedNode("implantStencilImage");
 
 	auto caster = vtkImageCast::New();
 	caster->SetInputData(image->GetVtkImageData());
@@ -1886,17 +1783,22 @@ void MoveData::on_pushButton_level_clicked()
 		}
 	}
 
+	
+
 	auto whiteMitkImage = mitk::Image::New();
 	whiteMitkImage->Initialize(whiteLayer_image);
 	whiteMitkImage->SetVolume(whiteLayer_image->GetScalarPointer());
 	whiteMitkImage->SetGeometry(image->GetGeometry());
 
+	auto whiteMitkImage_smoothed = mitk::Image::New();
+	mitk::CLUtil::GaussianFilter(whiteMitkImage, whiteMitkImage_smoothed, 0.1);
+
 	auto whiteNode = mitk::DataNode::New();
 
 	whiteNode->SetName("white");
 
-	whiteNode->SetData(whiteMitkImage);
-	GetDataStorage()->Add(whiteNode);
+	whiteNode->SetData(whiteMitkImage_smoothed);
+	GetDataStorage()->Add(whiteNode, imageNode);
 
 	auto redMitkImage = mitk::Image::New();
 	redMitkImage->Initialize(redPart_image);
@@ -1908,19 +1810,22 @@ void MoveData::on_pushButton_level_clicked()
 	redNode->SetName("red");
 
 	redNode->SetData(redMitkImage);
-	GetDataStorage()->Add(redNode);
+	GetDataStorage()->Add(redNode,imageNode);
 
 	auto greenMitkImage = mitk::Image::New();
 	greenMitkImage->Initialize(greenPart_image);
 	greenMitkImage->SetVolume(greenPart_image->GetScalarPointer());
 	greenMitkImage->SetGeometry(image->GetGeometry());
 
+	auto greenMitkImage_smoothed = mitk::Image::New();
+	mitk::CLUtil::GaussianFilter(greenMitkImage, greenMitkImage_smoothed, 0.1);
+	
 	auto greenNode = mitk::DataNode::New();
 
 	greenNode->SetName("green");
 
-	greenNode->SetData(greenMitkImage);
-	GetDataStorage()->Add(greenNode);
+	greenNode->SetData(greenMitkImage_smoothed);
+	GetDataStorage()->Add(greenNode, imageNode);
 }
 
 
@@ -1963,7 +1868,7 @@ void MoveData::on_pushButton_combine_clicked()
 	combinedVtkImage->DeepCopy(redVtkImage);
 
 	// --------------
-	auto image = GetDataStorage()->GetNamedObject<mitk::Image>("proximalTibialImage");
+	auto image = GetDataStorage()->GetNamedObject<mitk::Image>("implantStencilImage");
 
 	auto caster = vtkImageCast::New();
 	caster->SetInputData(image->GetVtkImageData());
@@ -2007,7 +1912,7 @@ void MoveData::on_pushButton_combine_clicked()
 					m[0] = 2150;
 				}
 
-				if(n[0] == 2000 && m[0] == 2998)
+				if(n[0] == 2000 && m[0] >= 2995)
 				{
 					m[0] = 1964;
 				}
@@ -2024,7 +1929,7 @@ void MoveData::on_pushButton_combine_clicked()
 
 	auto newNode = mitk::DataNode::New();
 
-	newNode->SetName("combined");
+	newNode->SetName("imageToCut");
 
 	newNode->SetData(combinedMitkImage);
 	GetDataStorage()->Add(newNode);
