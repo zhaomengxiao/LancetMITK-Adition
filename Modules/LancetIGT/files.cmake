@@ -19,6 +19,7 @@ set(H_FILES
   Algorithms/lancetApplySurfaceRegistratioinFilter.h
   Algorithms/lancetApplySurfaceRegistratioinStaticImageFilter.h
   Algorithms/lancetTreeCoords.h
+  Algorithms/lancetNavigationDataToPointSetFilter.h
   
   Rendering/lancetNavigationObjectVisualizationFilter.h
 
@@ -50,6 +51,7 @@ set(CPP_FILES
   Algorithms/lancetApplySurfaceRegistratioinFilter.cpp
   Algorithms/lancetApplySurfaceRegistratioinStaticImageFilter.cpp
   Algorithms/lancetTreeCoords.cpp
+  Algorithms/lancetNavigationDataToPointSetFilter.cpp
 
   Rendering/lancetNavigationObjectVisualizationFilter.cpp
 
