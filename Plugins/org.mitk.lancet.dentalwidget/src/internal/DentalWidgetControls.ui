@@ -39,163 +39,6 @@
        <string>图像成分提取</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_12">
-       <item row="0" column="2">
-        <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_intraopCt" native="true">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <spacer name="horizontalSpacer_8">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="2" column="1" colspan="2">
-        <widget class="QGroupBox" name="groupBox_6">
-         <property name="title">
-          <string>配准钢珠球心提取</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_4">
-          <item row="3" column="1" colspan="3">
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>钢珠 面片下限：</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_ballMinCell">
-              <property name="text">
-               <string>150</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="1" colspan="3">
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
-            <item>
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>钢珠 灰度值下限：</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_ballGrayValue">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>自动优化</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="2" column="0">
-           <spacer name="horizontalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="1" colspan="3">
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
-             <widget class="QRadioButton" name="radioButton_model">
-              <property name="text">
-               <string>全颌导板钢珠提取</string>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioButton_ios">
-              <property name="text">
-               <string>口内配准块钢珠提取</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="4" column="1">
-           <widget class="QCheckBox" name="checkBox_generateStandardBallCenters">
-            <property name="text">
-             <string>输出点集设计值</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1" colspan="3">
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>钢珠 面片上限：</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_ballMaxCell">
-              <property name="text">
-               <string>2000</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="3" column="4">
-           <spacer name="horizontalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="4" column="2" colspan="2">
-           <widget class="QPushButton" name="pushButton_extractBallCenters">
-            <property name="text">
-             <string>提取钢珠球心</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>术中 CT 影像: </string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="1" colspan="2">
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
@@ -308,6 +151,33 @@
          </layout>
         </widget>
        </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>术中 CT 影像: </string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <spacer name="horizontalSpacer_8">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="2">
+        <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_intraopCt" native="true">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="0">
         <spacer name="horizontalSpacer_11">
          <property name="orientation">
@@ -320,6 +190,137 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="2" column="1" colspan="2">
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>配准钢珠球心提取</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="3" column="0" colspan="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="label_8">
+              <property name="text">
+               <string>钢珠 面片下限：</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_ballMinCell">
+              <property name="text">
+               <string>150</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="1" colspan="2">
+           <widget class="QPushButton" name="pushButton_extractBallCenters">
+            <property name="text">
+             <string>提取钢珠球心</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="3">
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>钢珠 面片上限：</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_ballMaxCell">
+              <property name="text">
+               <string>2000</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0" colspan="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>钢珠 灰度下限：</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_ballThresMode">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>7</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <item>
+               <property name="text">
+                <string>手动</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>自动</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_ballGrayValue">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="text">
+               <string>7000</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="checkBox_generateStandardBallCenters">
+            <property name="text">
+             <string>输出点集设计值</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QRadioButton" name="radioButton_model">
+              <property name="text">
+               <string>全颌导板</string>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButton_ios">
+              <property name="text">
+               <string>口内配准块(非中)</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButton_midSteelball">
+              <property name="text">
+               <string>口内配准块（中）</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>

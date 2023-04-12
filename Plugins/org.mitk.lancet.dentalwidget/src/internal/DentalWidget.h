@@ -95,7 +95,7 @@ protected:
   void ScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7]);
   void RemoveRedundantCenters(); // remove redundant centers
   void IterativeScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7]);
-  void RearrangeSteelballs(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7]);
+  void RearrangeSteelballs(int stdNeighborNum, int foundIDs[7]);
 
   void GetSteelballCenters_iosCBCT();
   void GetSteelballCenters_modelCBCT();
@@ -109,6 +109,7 @@ protected:
   void ExtractAllPlans_model();
   vtkMatrix4x4* m_ModelRegistrationResult{ nullptr };
   vtkMatrix4x4* m_ModelInitalMatrix{ nullptr };
+
 
   double allBallFingerPrint[42]
   {
@@ -138,7 +139,17 @@ protected:
 	// 18.93, -150.78, -29.20
   };
 
- 
+  double midStdCenters[21]
+  {
+	  -69.07, 27, -32.73,
+	-66.59, 19, -36.62,
+	-57.75, 13.5, -25.66,
+	-60.23, 17.50, -26.02,
+	-59.17, 31, -22.83,
+	-56.69, 38.50, -26.72,
+	-67.65, 33, -36.98
+  };
+
   double modelStdCenters[21]
   {
 	  29.97436, -76.53379, -51.15766,
