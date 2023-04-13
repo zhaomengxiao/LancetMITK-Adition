@@ -649,7 +649,7 @@ bool HTOTest::CutTibiaImage()
 
 	auto surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
 	//surfaceToImageFilter->SetMakeOutputBinary(false);
-	surfaceToImageFilter->SetBackgroundValue(-1024);
+	surfaceToImageFilter->SetBackgroundValue(0);
 	//surfaceToImageFilter->SetUShortBinaryPixelType(false);
 	surfaceToImageFilter->SetImage(imageClone);
 	surfaceToImageFilter->SetInput(mitkProximalSurface);
@@ -663,7 +663,6 @@ bool HTOTest::CutTibiaImage()
 	proximalBoundingBox->SetGeometry(mitkProximalSurface->GetGeometry());
 
 	auto cutter = mitk::BoundingShapeCropper::New();
-	cutter->SetOutsideValue(-1024);
 	cutter->SetGeometry(proximalBoundingBox);
 	cutter->SetUseWholeInputRegion(false);
 	cutter->SetInput(proximalImage);
@@ -678,7 +677,6 @@ bool HTOTest::CutTibiaImage()
 	distalBoundingBox->SetGeometry(mitkDistalSurface->GetGeometry());
 
 	auto cutterDistal = mitk::BoundingShapeCropper::New();
-	cutterDistal->SetOutsideValue(-1024);
 	cutterDistal->SetGeometry(distalBoundingBox);
 	cutterDistal->SetUseWholeInputRegion(false);
 	cutterDistal->SetInput(distalImage);

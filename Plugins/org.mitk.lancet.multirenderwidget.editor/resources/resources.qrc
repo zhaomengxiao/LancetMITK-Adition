@@ -1,7 +1,0 @@
-<RCC>
-  <qresource prefix="org.mitk.lancet.multirenderwidgeteditor">
-    <file>icon.xpm</file>
-    <file>img.png</file>
-    <file>multirenderwidgeteditor.qss</file>
-  </qresource>
-</RCC>

@@ -1,4 +1,0 @@
-QWidget
-{
-	border-image: url(:/org.mitk.lancet.contusionaccuracyeditor/navigation/cup_impaction11.png);
-}

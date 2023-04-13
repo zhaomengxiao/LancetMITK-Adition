@@ -20,8 +20,8 @@ found in the LICENSE file.
 #include <kukaRobotDevice.h>
 
 #include "ui_StaubilWidget.h"
+//udp
 #include "udpsocketrobotheartbeat.h"
-#include "kukaRobotAPI/kukaRobotAPI.h"
 /**
   \brief RobotView
 
@@ -64,26 +64,10 @@ public slots:
   void SelfCheck();
 
   void SendCommand();
-
-  void StartUDP();
-
-  //Test TCP
-  // void InitVirtualTCPClient();
-  // void SendHello();
-  // void Read();
 	
 private:
-  void threadUDP_RobotInfo();
-
   lancet::KukaRobotDevice::Pointer m_device;
-  // UdpSocketRobotHeartbeat m_udp;
-  // Poco::Net::DatagramSocket m_udpSocket_RobotInfo;
-  // Poco::Net::ServerSocket m_tcpSocket_RobotCommand;
-  // Poco::Net::StreamSocket ss;
-   std::thread m_Thread;
-   std::thread m_ThreadRead;
-  // std::thread m_Thread2;
-  lancet::KukaRobotAPI m_KukaRobotApi;
+  UdpSocketRobotHeartbeat m_udp;
 	QTimer m_timer;
 	
 	Ui::StaubilWidget m_Controls;

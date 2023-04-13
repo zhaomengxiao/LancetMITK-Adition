@@ -1,4 +1,0 @@
-QWidget
-{
-    border-image: url(:/org.mitk.lancet.putfemurprosthesisaccuracyeditor/registration/femoral_checkpoint_0.png);
-}

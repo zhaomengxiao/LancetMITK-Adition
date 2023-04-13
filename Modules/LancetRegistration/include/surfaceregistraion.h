@@ -71,7 +71,6 @@ namespace mitk
 	itkGetMacro(avgLandmarkError, double);
 	itkGetMacro(maxIcpError, double);
 	itkGetMacro(avgIcpError, double);
-	itkGetMacro(SurfaceSrc, mitk::Surface::Pointer);
     //itkGetMacro(MatrixICP, vtkMatrix4x4*);
 
         
