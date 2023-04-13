@@ -22,7 +22,16 @@ found in the LICENSE file.
 #include <QMessageBox>
 
 // mitk image
+#include <mitkCLUtil.h>
 #include <mitkImage.h>
+#include <vtkAppendPolyData.h>
+#include "mitkSurfaceToImageFilter.h"
+#include <ep/include/vtk-9.1/vtkTransformFilter.h>
+#include <vtkCleanPolyData.h>
+#include <vtkClipPolyData.h>
+#include <vtkImageCast.h>
+#include <vtkImplicitPolyDataDistance.h>
+#include <vtkPointData.h>
 
 #include "mitkApplyTransformMatrixOperation.h"
 #include "mitkInteractionConst.h"
@@ -34,6 +43,7 @@ found in the LICENSE file.
 #include "mitkPointSet.h"
 #include "mitkRotationOperation.h"
 #include "mitkSurface.h"
+#include "mitkSurfaceToImageFilter.h"
 #include "QmitkSingleNodeSelectionWidget.h"
 #include "QmitkDataStorageTreeModel.h"
 #include "QmitkDataStorageTreeModelInternalItem.h"
@@ -96,6 +106,10 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_getgeometryWithoutSpacing, &QPushButton::clicked, this, &MoveData::GetObjectGeometryWithoutSpacing);
   connect(m_Controls.pushButton_Icp_surfaceToSurface, &QPushButton::clicked, this, &MoveData::SurfaceToSurfaceIcp);
 
+  connect(m_Controls.pushButton_ApplyStencil, &QPushButton::clicked, this, &MoveData::on_pushButton_ApplyStencil_clicked);
+  connect(m_Controls.pushButton_implantStencil, &QPushButton::clicked, this, &MoveData::on_pushButton_implantStencil_clicked);
+  connect(m_Controls.pushButton_level, &QPushButton::clicked, this, &MoveData::on_pushButton_level_clicked);
+  connect(m_Controls.pushButton_combine, &QPushButton::clicked, this, &MoveData::on_pushButton_combine_clicked);
 
 }
 
@@ -216,6 +230,11 @@ void MoveData::Translate(double direction[3], double length, mitk::BaseData* dat
 	{
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 	}
+	clock_t start = clock();
+	TestCut2();
+	MITK_WARN << "Test.Interface.time(TestCut2): " << (clock() - start);
+	
+	// TestCut3();
 
 }
 
@@ -245,6 +264,10 @@ void MoveData::Rotate(double center[3], double direction[3], double counterclock
 	{
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
 	}
+	clock_t start = clock();
+	TestCut2();
+	MITK_WARN << "Test.Interface.time(TestCut2): " << (clock() - start);
+	// TestCut3();
 }
 
 void MoveData::TranslateMinusX()
@@ -667,36 +690,6 @@ void MoveData::AppendOffsetMatrix()
 		else
 		{
 			m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
-		}
-
-		// if the m_baseDataToMove is pointSet, rewrite the pointSet members and keep geometry matrix as identity
-		if (dynamic_cast<mitk::PointSet*>(m_baseDataToMove) != nullptr)
-		{
-			auto tmpPointSet = dynamic_cast<mitk::PointSet*>(m_baseDataToMove);
-			int size = tmpPointSet->GetSize();
-
-			for (int i{ 0 }; i < size; i++)
-			{
-				auto tmpPoint = tmpPointSet->GetPoint(i);
-				vtkNew<vtkTransform> tmpTrans;
-				tmpTrans->Identity();
-				tmpTrans->PostMultiply();
-				tmpTrans->Translate(tmpPoint[0], tmpPoint[1], tmpPoint[2]);
-				tmpTrans->Concatenate(tmpPointSet->GetGeometry()->GetVtkMatrix());
-				tmpTrans->Update();
-				auto tmpMatrix = tmpTrans->GetMatrix();
-
-				mitk::Point3D newPoint;
-				newPoint[0] = tmpMatrix->GetElement(0, 3);
-				newPoint[1] = tmpMatrix->GetElement(1, 3);
-				newPoint[2] = tmpMatrix->GetElement(2, 3);
-
-				tmpPointSet->SetPoint(i, newPoint);
-
-			}
-			vtkNew<vtkMatrix4x4> identityMatrix;
-			identityMatrix->Identity();
-			tmpPointSet->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
 		}
 
 	}
@@ -1285,13 +1278,660 @@ void MoveData::GetObjectGeometryWithoutSpacing()
 
 	GetRenderWindowPart()->GetRenderingManager();
 
+}
+
+void MoveData::TestCut() 
+{
+	if (m_Controls.radioButton_testCutting->isChecked() == false) 
+	{
+		return;
+	}
+
+	if (m_growingCutterNode == nullptr)
+	{
+		m_growingCutterNode = mitk::DataNode::New();
+		auto initSurface = dynamic_cast<mitk::Surface*>(m_currentSelectedNode->GetData());
+		auto initPolyData = initSurface->GetVtkPolyData();
+
+		vtkNew<vtkPolyData> movedPolyData;
+
+		vtkNew<vtkTransformFilter> transformFilter;
+		vtkNew<vtkTransform> tmpTransform;
+		tmpTransform->SetMatrix(initSurface->GetGeometry()->GetVtkMatrix());
+		transformFilter->SetTransform(tmpTransform);
+		transformFilter->SetInputData(initPolyData);
+		transformFilter->Update();
+
+		movedPolyData->DeepCopy(transformFilter->GetPolyDataOutput());
+
+		auto tmpSurface = mitk::Surface::New();
+		tmpSurface->SetVtkPolyData(movedPolyData);
+		m_growingCutterNode->SetData(tmpSurface);
+		m_growingCutterNode->SetName("growingCutter");
+		GetDataStorage()->Add(m_growingCutterNode);
+	}
+
+	// Append the current cutter
+	auto initSurface = dynamic_cast<mitk::Surface*>(m_currentSelectedNode->GetData());
+	auto initPolyData = initSurface->GetVtkPolyData();
+
+	vtkNew<vtkPolyData> movedPolyData;
+
+	vtkNew<vtkTransformFilter> transformFilter;
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(initSurface->GetGeometry()->GetVtkMatrix());
+	transformFilter->SetTransform(tmpTransform);
+	transformFilter->SetInputData(initPolyData);
+	transformFilter->Update();
+
+	movedPolyData->DeepCopy(transformFilter->GetPolyDataOutput());
+
+	auto initGrowingCutter = dynamic_cast<mitk::Surface*>(m_growingCutterNode->GetData())->GetVtkPolyData();
+
+	vtkNew<vtkAppendPolyData> appendFilter;
+	appendFilter->AddInputData(initGrowingCutter);
+	appendFilter->AddInputData(movedPolyData);
+	appendFilter->Update();
+
+	auto tmpSurface = mitk::Surface::New();
+	tmpSurface->SetVtkPolyData(appendFilter->GetOutput());
+	m_growingCutterNode->SetData(tmpSurface);
+
+}
+
+void MoveData::TestCut3()
+{
+	if (m_Controls.radioButton_testCutting->isChecked() == false)
+	{
+		return;
+	}
+
+
+	auto dataToCut = GetDataStorage()->GetNamedObject<mitk::Surface>("surfaceToCut")->GetVtkPolyData();
+
+	auto initSurface = dynamic_cast<mitk::Surface*>(m_currentSelectedNode->GetData());
+	auto initPolyData = initSurface->GetVtkPolyData();
+
+	vtkNew<vtkPolyData> movedPolyData;
+
+	vtkNew<vtkTransformFilter> transformFilter;
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(initSurface->GetGeometry()->GetVtkMatrix());
+	transformFilter->SetTransform(tmpTransform);
+	transformFilter->SetInputData(initPolyData);
+	transformFilter->Update();
+
+	movedPolyData->DeepCopy(transformFilter->GetPolyDataOutput());
+
+	vtkNew<vtkClipPolyData> clipper;
+	clipper->SetInputData(dataToCut);
+	clipper->GenerateClippedOutputOn();
+
+	vtkNew<vtkImplicitPolyDataDistance> implicitDistance;
+
+	implicitDistance->SetInput(movedPolyData);
+
+	clipper->SetClipFunction(implicitDistance);
+
+	clipper->Update();
+
+	// // use the bone to clip the saw
+	// vtkNew<vtkClipPolyData> clipper2;
+	// clipper2->SetInputData(movedPolyData);
+	// clipper2->GenerateClippedOutputOn();
+	//
+	// vtkNew<vtkImplicitPolyDataDistance> implicitDistance2;
+	//
+	// implicitDistance2->SetInput(GetDataStorage()->GetNamedObject<mitk::Surface>("backup")->GetVtkPolyData());
+	//
+	//
+	// clipper2->SetClipFunction(implicitDistance2);
+	//
+	// clipper2->Update();
+
+
+	// vtkNew<vtkAppendPolyData> appenderFilter;
+	// appenderFilter->SetInputData(clipper2->GetOutput());
+	// appenderFilter->AddInputData(clipper->GetOutput());
+	// appenderFilter->Update();
+
+	GetDataStorage()->GetNamedObject<mitk::Surface>("surfaceToCut")->SetVtkPolyData(clipper->GetOutput());
+
+	
+}
+
+void MoveData::TestCut2()
+{
+	if (m_Controls.radioButton_testCutting->isChecked() == false)
+	{
+		return;
+	}
+
+	auto initSurface = dynamic_cast<mitk::Surface*>(m_currentSelectedNode->GetData());
+
+	if(initSurface == nullptr)
+	{
+		return;
+	}
+
+	auto initPolyData = initSurface->GetVtkPolyData();
+
+	vtkNew<vtkPolyData> movedPolyData;
+
+	vtkNew<vtkTransformFilter> transformFilter;
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(initSurface->GetGeometry()->GetVtkMatrix());
+	transformFilter->SetTransform(tmpTransform);
+	transformFilter->SetInputData(initPolyData);
+	transformFilter->Update();
+
+	movedPolyData->DeepCopy(transformFilter->GetPolyDataOutput());
+
+	auto movedSurface = mitk::Surface::New();
+	movedSurface->SetVtkPolyData(movedPolyData);
+
+	if(GetDataStorage()->GetNamedNode("imageToCut") == nullptr)
+	{
+		return;
+	}
+
+	auto imageToCut = GetDataStorage()->GetNamedObject<mitk::Image>("imageToCut");
+
+	auto surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	//surfaceToImageFilter->SetMakeOutputBinary(false);
+	surfaceToImageFilter->SetBackgroundValue(2150);
+	//surfaceToImageFilter->SetUShortBinaryPixelType(false);
+	surfaceToImageFilter->SetImage(imageToCut);
+	surfaceToImageFilter->SetInput(movedSurface);
+	surfaceToImageFilter->SetReverseStencil(true);
+	surfaceToImageFilter->Update();
+
+	GetDataStorage()->GetNamedNode("imageToCut")->SetData(surfaceToImageFilter->GetOutput());
+}
+
+
+void MoveData::on_pushButton_ApplyStencil_clicked()
+{
+	// Generate a white image to apply the polydata stencil
+	auto nodeSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("surfaceToCut")->GetData());
+
+	vtkNew<vtkPolyData> surfacePolyData;
+	surfacePolyData->DeepCopy(nodeSurface->GetVtkPolyData());
+
+	vtkNew<vtkTransformFilter> tmpTransFilter;
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(nodeSurface->GetGeometry()->GetVtkMatrix());
+	tmpTransFilter->SetTransform(tmpTransform);
+	tmpTransFilter->SetInputData(surfacePolyData);
+	tmpTransFilter->Update();
+
+	auto objectSurface = mitk::Surface::New();
+	objectSurface->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
+
+	vtkNew<vtkImageData> whiteImage;
+	double imageBounds[6]{ 0 };
+	double imageSpacing[3]{ 0.4, 0.4, 0.4 };
+	whiteImage->SetSpacing(imageSpacing);
+
+	auto geometry = objectSurface->GetGeometry();
+	auto surfaceBounds = geometry->GetBounds();
+	for (int n = 0; n < 6; n++)
+	{
+		imageBounds[n] = surfaceBounds[n];
+	}
+
+	int dim[3];
+	for (int i = 0; i < 3; i++)
+	{
+		dim[i] = static_cast<int>(ceil((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
+	}
+	whiteImage->SetDimensions(dim);
+	whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+
+	double origin[3];
+	origin[0] = imageBounds[0] + imageSpacing[0] / 2;
+	origin[1] = imageBounds[2] + imageSpacing[1] / 2;
+	origin[2] = imageBounds[4] + imageSpacing[2] / 2;
+	whiteImage->SetOrigin(origin);
+	whiteImage->AllocateScalars(VTK_SHORT, 1);
+
+	// fill the image with foreground voxels:
+	short insideValue = 2000;
+	// short outsideValue = 0;
+	vtkIdType count = whiteImage->GetNumberOfPoints();
+	for (vtkIdType i = 0; i < count; ++i)
+	{
+		whiteImage->GetPointData()->GetScalars()->SetTuple1(i, insideValue);
+	}
+
+	auto imageToCrop = mitk::Image::New();
+	imageToCrop->Initialize(whiteImage);
+	imageToCrop->SetVolume(whiteImage->GetScalarPointer());
+
+
+	// Apply the stencil
+	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	surfaceToImageFilter->SetBackgroundValue(0);
+	surfaceToImageFilter->SetImage(imageToCrop);
+	surfaceToImageFilter->SetInput(objectSurface);
+	surfaceToImageFilter->SetReverseStencil(false);
+
+	mitk::Image::Pointer convertedImage = mitk::Image::New();
+	surfaceToImageFilter->Update();
+	convertedImage = surfaceToImageFilter->GetOutput();
+
+	// Test: set the boundary voxel of the image to 
+	auto inputVtkImage = convertedImage->GetVtkImageData();
+	int dims[3];
+	inputVtkImage->GetDimensions(dims);
+
+	int tmpRegion[6]{ 0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1 };
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(inputVtkImage);
+	caster->SetOutputScalarTypeToInt();
+	caster->Update();
+
+	auto castVtkImage = caster->GetOutput();
+
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+				int x_p = ((x + 1) > (dims[0] - 1)) ? (dims[0] - 1) : (x + 1);
+				int x_m = ((x - 1) < 0) ? 0 : (x - 1);
+
+				int y_p = ((y + 1) > (dims[1] - 1)) ? (dims[1] - 1) : (y + 1);
+				int y_m = ((y - 1) < 0) ? 0 : (y - 1);
+
+				int z_p = ((z + 1) > (dims[2] - 1)) ? (dims[2] - 1) : (z + 1);
+				int z_m = ((z - 1) < 0) ? z : (z - 1);
+
+				int* n = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z));
+				int* n1 = static_cast<int*>(castVtkImage->GetScalarPointer(x_m, y, z));
+				int* n2 = static_cast<int*>(castVtkImage->GetScalarPointer(x_p, y, z));
+				int* n3 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y_m, z));
+				int* n4 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y_p, z));
+				int* n5 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z_m));
+				int* n6 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z_p));
+
+				if (n[0] == 2000)
+				{
+					if (n1[0] == 0 || n2[0] == 0 || n3[0] == 0 || n4[0] == 0 || n5[0] == 0 || n6[0] == 0)
+					{
+						n[0] = 3000;
+					}
+
+					if (x == dims[0]-1 || x == 0 || y == dims[1]-1 || y == 0 || z == dims[2]-1 || z == 0)
+					{
+						n[0] = 3000;
+					}
+				}
+
+			}
+		}
+	}
+
+	auto resultMitkImage = mitk::Image::New();
+	resultMitkImage->Initialize(castVtkImage);
+	resultMitkImage->SetVolume(castVtkImage->GetScalarPointer());
+	resultMitkImage->SetGeometry(convertedImage->GetGeometry());
+
+	//-----------------------------------------------
+
+	auto newNode = mitk::DataNode::New();
+
+	newNode->SetName("proximalTibialImage");
+
+	// add new node
+	newNode->SetData(resultMitkImage);
+	GetDataStorage()->Add(newNode);
 
 }
 
 
+void MoveData::on_pushButton_implantStencil_clicked()
+{
+	auto nodeSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("implant")->GetData());
+
+	vtkNew<vtkPolyData> surfacePolyData;
+	surfacePolyData->DeepCopy(nodeSurface->GetVtkPolyData());
+
+	vtkNew<vtkTransformFilter> tmpTransFilter;
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(nodeSurface->GetGeometry()->GetVtkMatrix());
+	tmpTransFilter->SetTransform(tmpTransform);
+	tmpTransFilter->SetInputData(surfacePolyData);
+	tmpTransFilter->Update();
+
+	auto objectSurface = mitk::Surface::New();
+	objectSurface->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
+
+	auto imageToCrop = GetDataStorage()->GetNamedObject<mitk::Image>("proximalTibialImage");
+
+	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	surfaceToImageFilter->SetBackgroundValue(0);
+	surfaceToImageFilter->SetImage(imageToCrop);
+	surfaceToImageFilter->SetInput(objectSurface);
+	surfaceToImageFilter->SetReverseStencil(false);
+
+	mitk::Image::Pointer convertedImage = mitk::Image::New();
+	surfaceToImageFilter->Update();
+	convertedImage = surfaceToImageFilter->GetOutput();
 
 
+	// Test: set the boundary voxel of the image to 
+	auto inputVtkImage = convertedImage->GetVtkImageData();
+	int dims[3];
+	inputVtkImage->GetDimensions(dims);
+
+	int tmpRegion[6]{ 0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1 };
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(inputVtkImage);
+	caster->SetOutputScalarTypeToInt();
+	caster->Update();
+
+	auto implantStencilImage = caster->GetOutput();
+
+	auto boneVtkImage = imageToCrop->GetVtkImageData();
+	
+
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+				int* n = static_cast<int*>(implantStencilImage->GetScalarPointer(x, y, z));
+				int* m = static_cast<int*>(boneVtkImage->GetScalarPointer(x, y, z));
+
+				if(m[0] > 0 && n[0] != 0)
+				{
+					m[0] = 1000;
+				}
+
+			}
+		}
+	}
 
 
+	// 1-voxel layer white boundary
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+				int x_p = ((x + 1) > (dims[0] - 1)) ? (dims[0] - 1) : (x + 1);
+				int x_m = ((x - 1) < 0) ? 0 : (x - 1);
+
+				int y_p = ((y + 1) > (dims[1] - 1)) ? (dims[1] - 1) : (y + 1);
+				int y_m = ((y - 1) < 0) ? 0 : (y - 1);
+
+				int z_p = ((z + 1) > (dims[2] - 1)) ? (dims[2] - 1) : (z + 1);
+				int z_m = ((z - 1) < 0) ? z : (z - 1);
+
+				int* n = static_cast<int*>(boneVtkImage->GetScalarPointer(x, y, z));
+				int* n1 = static_cast<int*>(boneVtkImage->GetScalarPointer(x_m, y, z));
+				int* n2 = static_cast<int*>(boneVtkImage->GetScalarPointer(x_p, y, z));
+				int* n3 = static_cast<int*>(boneVtkImage->GetScalarPointer(x, y_m, z));
+				int* n4 = static_cast<int*>(boneVtkImage->GetScalarPointer(x, y_p, z));
+				int* n5 = static_cast<int*>(boneVtkImage->GetScalarPointer(x, y, z_m));
+				int* n6 = static_cast<int*>(boneVtkImage->GetScalarPointer(x, y, z_p));
+
+				if (n[0] == 2000)
+				{
+					if (n1[0] == 1000 || n2[0] == 1000 || n3[0] == 1000 || n4[0] == 1000 || n5[0] == 1000 || n6[0] == 1000)
+					{
+						n[0] = 3000;
+					}
+
+				}
+
+			}
+		}
+	}
+
+	auto resultMitkImage = mitk::Image::New();
+	resultMitkImage->Initialize(boneVtkImage);
+	resultMitkImage->SetVolume(boneVtkImage->GetScalarPointer());
+	resultMitkImage->SetGeometry(convertedImage->GetGeometry());
+
+	auto newNode = mitk::DataNode::New();
+
+	newNode->SetName("implantStencilImage");
+
+	// add new node
+	newNode->SetData(resultMitkImage);
+	GetDataStorage()->Add(newNode);
+
+}
 
 
+void MoveData::on_pushButton_level_clicked()
+{
+	auto image = GetDataStorage()->GetNamedObject<mitk::Image>("implantStencilImage");
+	auto imageNode = GetDataStorage()->GetNamedNode("implantStencilImage");
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(image->GetVtkImageData());
+	caster->SetOutputScalarTypeToInt();
+	caster->Update();
+
+
+	auto vtkImage = caster->GetOutput();
+
+	int dims[3];
+
+	vtkImage->GetDimensions(dims);
+
+	vtkNew<vtkImageData> whiteLayer_image;
+	whiteLayer_image->DeepCopy(vtkImage);
+
+	vtkNew<vtkImageData> redPart_image;
+	redPart_image->DeepCopy(vtkImage);
+
+	vtkNew<vtkImageData> greenPart_image;
+	greenPart_image->DeepCopy(vtkImage);
+
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+				int* n = static_cast<int*>(vtkImage->GetScalarPointer(x, y, z));
+				int* w = static_cast<int*>(whiteLayer_image->GetScalarPointer(x, y, z));
+				int* r = static_cast<int*>(redPart_image->GetScalarPointer(x, y, z));
+				int* g = static_cast<int*>(greenPart_image->GetScalarPointer(x, y, z));
+
+				if(n[0] == 3000)
+				{
+					r[0] = 0;
+					g[0] = 0;
+
+					g[0] = 1700;
+				}
+
+				if(n[0] == 2000)
+				{
+					w[0] = 0;
+					g[0] = 0;
+
+					w[0] = 3000;
+					g[0] = 1700;
+				}
+
+				if(n[0] == 1000)
+				{
+					w[0] = 0;
+					r[0] = 0;
+
+					w[0] = 2600;
+				}
+
+				if(n[0] == 0)
+				{
+					w[0] = 2600;
+					g[0] = 1700;
+				}
+			
+			}
+		}
+	}
+
+	
+
+	auto whiteMitkImage = mitk::Image::New();
+	whiteMitkImage->Initialize(whiteLayer_image);
+	whiteMitkImage->SetVolume(whiteLayer_image->GetScalarPointer());
+	whiteMitkImage->SetGeometry(image->GetGeometry());
+
+	auto whiteMitkImage_smoothed = mitk::Image::New();
+	mitk::CLUtil::GaussianFilter(whiteMitkImage, whiteMitkImage_smoothed, 0.1);
+
+	auto whiteNode = mitk::DataNode::New();
+
+	whiteNode->SetName("white");
+
+	whiteNode->SetData(whiteMitkImage_smoothed);
+	GetDataStorage()->Add(whiteNode, imageNode);
+
+	auto redMitkImage = mitk::Image::New();
+	redMitkImage->Initialize(redPart_image);
+	redMitkImage->SetVolume(redPart_image->GetScalarPointer());
+	redMitkImage->SetGeometry(image->GetGeometry());
+
+	auto redNode = mitk::DataNode::New();
+
+	redNode->SetName("red");
+
+	redNode->SetData(redMitkImage);
+	GetDataStorage()->Add(redNode,imageNode);
+
+	auto greenMitkImage = mitk::Image::New();
+	greenMitkImage->Initialize(greenPart_image);
+	greenMitkImage->SetVolume(greenPart_image->GetScalarPointer());
+	greenMitkImage->SetGeometry(image->GetGeometry());
+
+	auto greenMitkImage_smoothed = mitk::Image::New();
+	mitk::CLUtil::GaussianFilter(greenMitkImage, greenMitkImage_smoothed, 0.1);
+	
+	auto greenNode = mitk::DataNode::New();
+
+	greenNode->SetName("green");
+
+	greenNode->SetData(greenMitkImage_smoothed);
+	GetDataStorage()->Add(greenNode, imageNode);
+}
+
+
+void MoveData::on_pushButton_combine_clicked()
+{
+	auto redImage = GetDataStorage()->GetNamedObject<mitk::Image>("red");
+
+	auto caster_red = vtkImageCast::New();
+	caster_red->SetInputData(redImage->GetVtkImageData());
+	caster_red->SetOutputScalarTypeToInt();
+	caster_red->Update();
+
+	auto redVtkImage = caster_red->GetOutput();
+
+	int dims[3];
+
+	redVtkImage->GetDimensions(dims);
+
+	//----------
+	auto whiteImage = GetDataStorage()->GetNamedObject<mitk::Image>("white");
+
+	auto caster_white = vtkImageCast::New();
+	caster_white->SetInputData(whiteImage->GetVtkImageData());
+	caster_white->SetOutputScalarTypeToInt();
+	caster_white->Update();
+
+	auto whiteVtkImage = caster_white->GetOutput();
+
+	// ------------------
+	auto greenImage = GetDataStorage()->GetNamedObject<mitk::Image>("green");
+
+	auto caster_green = vtkImageCast::New();
+	caster_green->SetInputData(greenImage->GetVtkImageData());
+	caster_green->SetOutputScalarTypeToInt();
+	caster_green->Update();
+
+	auto greenVtkImage = caster_green->GetOutput();
+
+	vtkNew<vtkImageData> combinedVtkImage;
+	combinedVtkImage->DeepCopy(redVtkImage);
+
+	// --------------
+	auto image = GetDataStorage()->GetNamedObject<mitk::Image>("implantStencilImage");
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(image->GetVtkImageData());
+	caster->SetOutputScalarTypeToInt();
+	caster->Update();
+
+
+	auto vtkImage = caster->GetOutput();
+
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+				int* n = static_cast<int*>(vtkImage->GetScalarPointer(x, y, z));
+				int* m = static_cast<int*>(combinedVtkImage->GetScalarPointer(x, y, z));
+				int* w = static_cast<int*>(whiteVtkImage->GetScalarPointer(x, y, z));
+				int* r = static_cast<int*>(redVtkImage->GetScalarPointer(x, y, z));
+				int* g = static_cast<int*>(greenVtkImage->GetScalarPointer(x, y, z));
+
+				m[0] = n[0];
+
+				// green part
+				if(g[0] < 1695)
+				{
+					if(n[0] == 0 || n[0] == 1000)
+					{
+						m[0] = g[0];
+					}					
+				}
+
+				// white part
+				if(/*n[0] != 2000 &&*/ n[0] != 1000 && w[0] > 2600)
+				{
+					m[0] = w[0];
+				}
+
+				if(n[0] == 0 && m[0] == 0)
+				{
+					m[0] = 2150;
+				}
+
+				if(n[0] == 2000 && m[0] >= 2995)
+				{
+					m[0] = 1964;
+				}
+
+			}
+		}
+	}
+
+
+	auto combinedMitkImage = mitk::Image::New();
+	combinedMitkImage->Initialize(combinedVtkImage);
+	combinedMitkImage->SetVolume(combinedVtkImage->GetScalarPointer());
+	combinedMitkImage->SetGeometry(image->GetGeometry());
+
+	auto newNode = mitk::DataNode::New();
+
+	newNode->SetName("imageToCut");
+
+	newNode->SetData(combinedMitkImage);
+	GetDataStorage()->Add(newNode);
+
+}
