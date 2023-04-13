@@ -110,6 +110,7 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_implantStencil, &QPushButton::clicked, this, &MoveData::on_pushButton_implantStencil_clicked);
   connect(m_Controls.pushButton_level, &QPushButton::clicked, this, &MoveData::on_pushButton_level_clicked);
   connect(m_Controls.pushButton_combine, &QPushButton::clicked, this, &MoveData::on_pushButton_combine_clicked);
+  connect(m_Controls.pushButton_hardenData, &QPushButton::clicked, this, &MoveData::on_pushButton_hardenData_clicked);
 
 }
 
@@ -1934,4 +1935,37 @@ void MoveData::on_pushButton_combine_clicked()
 	newNode->SetData(combinedMitkImage);
 	GetDataStorage()->Add(newNode);
 
+}
+
+
+void MoveData::on_pushButton_hardenData_clicked()
+{
+	if(dynamic_cast<mitk::Surface*>(m_currentSelectedNode->GetData()) != nullptr)
+	{
+		vtkNew<vtkTransformFilter> tmpTransFilter;
+		vtkNew<vtkTransform> tmpTransform;
+		tmpTransform->SetMatrix(m_currentSelectedNode->GetData()->GetGeometry()->GetVtkMatrix());
+		tmpTransFilter->SetTransform(tmpTransform);
+		tmpTransFilter->SetInputData(dynamic_cast<mitk::Surface*>(m_currentSelectedNode->GetData())->GetVtkPolyData());
+		tmpTransFilter->Update();
+
+		auto tmpSurface = mitk::Surface::New();
+		tmpSurface->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
+		m_currentSelectedNode->SetData(tmpSurface);
+	}
+
+	if (dynamic_cast<mitk::PointSet*>(m_currentSelectedNode->GetData()) != nullptr)
+	{
+		auto tmpPset = dynamic_cast<mitk::PointSet*>(m_currentSelectedNode->GetData());
+		auto newPset = mitk::PointSet::New();
+
+		for(int i{0}; i < tmpPset->GetSize(); i ++)
+		{
+			mitk::Point3D tmpPoint;
+			tmpPoint = tmpPset->GetPoint(i);
+			newPset->InsertPoint(tmpPoint);
+		}
+
+		m_currentSelectedNode->SetData(newPset);
+	}
 }

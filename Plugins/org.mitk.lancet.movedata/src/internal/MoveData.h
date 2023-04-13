@@ -120,6 +120,7 @@ protected:
 
   void SurfaceToSurfaceIcp();
 
+  void on_pushButton_hardenData_clicked();
 
   // Test cutting
   mitk::DataNode::Pointer m_growingCutterNode{nullptr};
