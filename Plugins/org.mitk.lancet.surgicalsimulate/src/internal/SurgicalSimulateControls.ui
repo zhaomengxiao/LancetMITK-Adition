@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>701</width>
-    <height>789</height>
+    <height>815</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -188,7 +188,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_6">
       <attribute name="title">
@@ -200,21 +200,21 @@
          <item>
           <widget class="QPushButton" name="pushButton_setFlangeTcp">
            <property name="text">
-            <string>Set tcp to flange</string>
+            <string>设置TCP为法兰</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_recordInitial">
            <property name="text">
-            <string>Collect position 1</string>
+            <string>采集位置1</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_goToInitial">
            <property name="text">
-            <string>Go to position 1</string>
+            <string>前往位置1</string>
            </property>
           </widget>
          </item>
@@ -408,7 +408,7 @@
          <item>
           <widget class="QPushButton" name="pushButton_captureRobot">
            <property name="text">
-            <string>捕获姿态</string>
+            <string>捕获 姿态</string>
            </property>
           </widget>
          </item>
@@ -526,6 +526,9 @@
         <layout class="QGridLayout" name="gridLayout_11">
          <item row="0" column="0">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_0">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>-0.588471</string>
            </property>
@@ -533,6 +536,9 @@
          </item>
          <item row="0" column="1">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_1">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>0.0021502</string>
            </property>
@@ -540,6 +546,9 @@
          </item>
          <item row="0" column="2">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_2">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>-0.808515</string>
            </property>
@@ -547,6 +556,9 @@
          </item>
          <item row="0" column="3">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_3">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>337.01</string>
            </property>
@@ -554,6 +566,9 @@
          </item>
          <item row="1" column="0">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_4">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>0.788157</string>
            </property>
@@ -561,6 +576,9 @@
          </item>
          <item row="1" column="1">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_5">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>0.22453</string>
            </property>
@@ -568,6 +586,9 @@
          </item>
          <item row="1" column="2">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_6">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>-0.573057</string>
            </property>
@@ -575,6 +596,9 @@
          </item>
          <item row="1" column="3">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_7">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>500.514</string>
            </property>
@@ -582,6 +606,9 @@
          </item>
          <item row="2" column="0">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_8">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>0.180304</string>
            </property>
@@ -589,6 +616,9 @@
          </item>
          <item row="2" column="1">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_9">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>-0.974465</string>
            </property>
@@ -596,6 +626,9 @@
          </item>
          <item row="2" column="2">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_10">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>-0.133824</string>
            </property>
@@ -603,6 +636,9 @@
          </item>
          <item row="2" column="3">
           <widget class="QLineEdit" name="lineEdit_manualRoboregis_11">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>473.348</string>
            </property>
@@ -654,16 +690,26 @@
         <layout class="QHBoxLayout" name="horizontalLayout_10">
          <item>
           <widget class="QLabel" name="label_17">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>设置快捷TCP： </string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="lineEdit_tcp"/>
+          <widget class="QLineEdit" name="lineEdit_tcp">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_setTCP">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>确认</string>
            </property>
@@ -673,6 +719,9 @@
        </item>
        <item row="3" column="0">
         <widget class="QPushButton" name="pushButton_roboRegisManual">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>以矩阵形式指定配准矩阵 (TCP设为法兰)</string>
          </property>
@@ -843,7 +892,7 @@
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_10">
          <property name="title">
-          <string>走面</string>
+          <string>走面精度(TKA模拟精度)</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_21">
           <item row="3" column="0">
@@ -851,21 +900,21 @@
             <item>
              <widget class="QLabel" name="label_25">
               <property name="text">
-               <string>P4: </string>
+               <string>P3: </string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QLineEdit" name="lineEdit_plane_p4_x">
               <property name="text">
-               <string>0</string>
+               <string>52</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QLineEdit" name="lineEdit_plane_p4_y">
               <property name="text">
-               <string>100</string>
+               <string>45</string>
               </property>
              </widget>
             </item>
@@ -883,21 +932,21 @@
             <item>
              <widget class="QLabel" name="label_23">
               <property name="text">
-               <string>P2: </string>
+               <string>P1: </string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QLineEdit" name="lineEdit_plane_p2_x">
               <property name="text">
-               <string>0</string>
+               <string>-38.0</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QLineEdit" name="lineEdit_plane_p2_y">
               <property name="text">
-               <string>100</string>
+               <string>45.0</string>
               </property>
              </widget>
             </item>
@@ -925,7 +974,7 @@
             <item>
              <widget class="QLabel" name="label_24">
               <property name="text">
-               <string>P3: </string>
+               <string>P2: </string>
               </property>
              </widget>
             </item>
@@ -979,7 +1028,7 @@
           <item row="0" column="0">
            <widget class="QLineEdit" name="lineEdit_3">
             <property name="text">
-             <string>https://gn1phhht53.feishu.cn/wiki/wikcnqHGHeSFDrg6pDogJH6c8pe?table=tblk7ke86l8RyAoN&amp;view=vew1Kd7wVv</string>
+             <string>https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh?table=tblk7ke86l8RyAoN&amp;view=vew1Kd7wVv</string>
             </property>
            </widget>
           </item>
@@ -989,7 +1038,7 @@
        <item row="0" column="1" colspan="2">
         <widget class="QGroupBox" name="groupBox_9">
          <property name="title">
-          <string>走线</string>
+          <string>走线精度 （系统精度/THA模拟精度）</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_19">
           <item row="0" column="0">
@@ -1148,471 +1197,6 @@
         </widget>
        </item>
       </layout>
-     </widget>
-     <widget class="QWidget" name="tab_5">
-      <attribute name="title">
-       <string>测试页面</string>
-      </attribute>
-      <widget class="QPushButton" name="pushButton_touchP1">
-       <property name="geometry">
-        <rect>
-         <x>250</x>
-         <y>10</y>
-         <width>81</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>采集校准点1</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_touchP2">
-       <property name="geometry">
-        <rect>
-         <x>330</x>
-         <y>10</y>
-         <width>81</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>采集校准点2</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_touchP3">
-       <property name="geometry">
-        <rect>
-         <x>410</x>
-         <y>10</y>
-         <width>81</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>采集校准点3</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_7">
-       <property name="geometry">
-        <rect>
-         <x>100</x>
-         <y>10</y>
-         <width>141</width>
-         <height>16</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>测试牙科蝴蝶块校准探针</string>
-       </property>
-      </widget>
-      <widget class="QWidget" name="layoutWidget_5">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>40</y>
-         <width>331</width>
-         <height>100</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_16">
-        <item row="0" column="0">
-         <widget class="QLineEdit" name="lineEdit_path1_0">
-          <property name="text">
-           <string>-0.588471</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="lineEdit_path1_4">
-          <property name="text">
-           <string>0.0021502</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QLineEdit" name="lineEdit_path1_8">
-          <property name="text">
-           <string>-0.808515</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="3">
-         <widget class="QLineEdit" name="lineEdit_path1_12">
-          <property name="text">
-           <string>337.01</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLineEdit" name="lineEdit_path1_1">
-          <property name="text">
-           <string>0.788157</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit_path1_5">
-          <property name="text">
-           <string>0.22453</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QLineEdit" name="lineEdit_path1_9">
-          <property name="text">
-           <string>-0.573057</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QLineEdit" name="lineEdit_path1_13">
-          <property name="text">
-           <string>500.514</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLineEdit" name="lineEdit_path1_2">
-          <property name="text">
-           <string>0.180304</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="lineEdit_path1_6">
-          <property name="text">
-           <string>-0.974465</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QLineEdit" name="lineEdit_path1_10">
-          <property name="text">
-           <string>-0.133824</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="3">
-         <widget class="QLineEdit" name="lineEdit_path1_14">
-          <property name="text">
-           <string>473.348</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLineEdit" name="lineEdit_path1_3">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="lineEdit_path1_7">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QLineEdit" name="lineEdit_path1_11">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="3">
-         <widget class="QLineEdit" name="lineEdit_path1_15">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="layoutWidget_6">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>150</y>
-         <width>331</width>
-         <height>100</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_17">
-        <item row="0" column="0">
-         <widget class="QLineEdit" name="lineEdit_path2_0">
-          <property name="text">
-           <string>-0.588471</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="lineEdit_path2_4">
-          <property name="text">
-           <string>0.0021502</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QLineEdit" name="lineEdit_path2_8">
-          <property name="text">
-           <string>-0.808515</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="3">
-         <widget class="QLineEdit" name="lineEdit_path2_12">
-          <property name="text">
-           <string>337.01</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLineEdit" name="lineEdit_path2_1">
-          <property name="text">
-           <string>0.788157</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit_path2_5">
-          <property name="text">
-           <string>0.22453</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QLineEdit" name="lineEdit_path2_9">
-          <property name="text">
-           <string>-0.573057</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QLineEdit" name="lineEdit_path2_13">
-          <property name="text">
-           <string>500.514</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLineEdit" name="lineEdit_path2_2">
-          <property name="text">
-           <string>0.180304</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="lineEdit_path2_6">
-          <property name="text">
-           <string>-0.974465</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QLineEdit" name="lineEdit_path2_10">
-          <property name="text">
-           <string>-0.133824</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="3">
-         <widget class="QLineEdit" name="lineEdit_path2_14">
-          <property name="text">
-           <string>473.348</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLineEdit" name="lineEdit_path2_3">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="lineEdit_path2_7">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QLineEdit" name="lineEdit_path2_11">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="3">
-         <widget class="QLineEdit" name="lineEdit_path2_15">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="layoutWidget_7">
-       <property name="geometry">
-        <rect>
-         <x>350</x>
-         <y>40</y>
-         <width>291</width>
-         <height>100</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_18">
-        <item row="0" column="0">
-         <widget class="QLineEdit" name="lineEdit_path3_0">
-          <property name="text">
-           <string>-0.588471</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="lineEdit_path3_4">
-          <property name="text">
-           <string>0.0021502</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QLineEdit" name="lineEdit_path3_8">
-          <property name="text">
-           <string>-0.808515</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="3">
-         <widget class="QLineEdit" name="lineEdit_path3_12">
-          <property name="text">
-           <string>337.01</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLineEdit" name="lineEdit_path3_1">
-          <property name="text">
-           <string>0.788157</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit_path3_5">
-          <property name="text">
-           <string>0.22453</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QLineEdit" name="lineEdit_path3_9">
-          <property name="text">
-           <string>-0.573057</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QLineEdit" name="lineEdit_path3_13">
-          <property name="text">
-           <string>500.514</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLineEdit" name="lineEdit_path3_2">
-          <property name="text">
-           <string>0.180304</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QLineEdit" name="lineEdit_path3_6">
-          <property name="text">
-           <string>-0.974465</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QLineEdit" name="lineEdit_path3_10">
-          <property name="text">
-           <string>-0.133824</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="3">
-         <widget class="QLineEdit" name="lineEdit_path3_14">
-          <property name="text">
-           <string>473.348</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLineEdit" name="lineEdit_path3_3">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLineEdit" name="lineEdit_path3_7">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QLineEdit" name="lineEdit_path3_11">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="3">
-         <widget class="QLineEdit" name="lineEdit_path3_15">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
      </widget>
     </widget>
    </item>

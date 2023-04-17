@@ -109,9 +109,9 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_confirmImageTargetLine, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImageLine);
   connect(m_Controls.pushButton_probeCheckPoint, &QPushButton::clicked, this, &SurgicalSimulate::ProbeImageCheckPoint);
 
-  connect(m_Controls.pushButton_touchP1, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint1);
-  connect(m_Controls.pushButton_touchP2, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint2);
-  connect(m_Controls.pushButton_touchP3, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint3);
+  // connect(m_Controls.pushButton_touchP1, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint1);
+  // connect(m_Controls.pushButton_touchP2, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint2);
+  // connect(m_Controls.pushButton_touchP3, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint3);
 
   connect(m_Controls.pushButton_probeSurfaceDistance, &QPushButton::clicked, this, &SurgicalSimulate::ProbeSurface);
 
@@ -630,7 +630,7 @@ void SurgicalSimulate::OnAutoMove()
     // m_KukaTrackingDevice->RobotMove(vtkMatrix);
     // break;
 	  tmpTrans->PostMultiply();
-	  tmpTrans->RotateX(10);
+	  tmpTrans->RotateX(11);
 	  tmpTrans->Concatenate(m_initial_robotBaseToFlange);
 	  tmpTrans->Update();
 
@@ -669,6 +669,7 @@ void SurgicalSimulate::OnAutoMove()
 	  break;
 
   default:
+
 
     mitk::TransferItkTransformToVtkMatrix(affine.GetPointer(), vtkMatrix);
 
@@ -1379,6 +1380,120 @@ bool SurgicalSimulate::InterpretImageLine()
 	return true;
 }
 
+// bool SurgicalSimulate::InterpretImagePlane()
+// {
+// 	auto targetPlanePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPlane->GetSelectedNode()->GetData());
+// 	auto targetPoint_0 = targetPlanePoints->GetPoint(0); // TCP frame origin should move to this point
+// 	auto targetPoint_1 = targetPlanePoints->GetPoint(1);
+// 	auto targetPoint_2 = targetPlanePoints->GetPoint(2);
+//
+// 	// // Interpret targetPoint_0 & targetPoint_1 & targetPoint_2 from image frame to robot (internal) base frame
+// 	// double targetPointUnderBase_0[3]{ 0 };
+// 	// double targetPointUnderBase_1[3]{ 0 };
+// 	// double targetPointUnderBase_2[3]{ 0 };
+//
+// 	// get objectRF to surface matrix 
+// 	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
+// 	auto registrationMatrix_surfaceToRF = m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix();
+// 	vtkNew<vtkMatrix4x4> vtkObjectRFtoSurface;
+// 	mitk::TransferItkTransformToVtkMatrix(registrationMatrix_surfaceToRF.GetPointer(), vtkObjectRFtoSurface);
+// 	vtkObjectRFtoSurface->Invert();
+// 	// mitk::TransferVtkMatrixToItkTransform(vtkObjectRFtoSurface, rfToSurfaceMatrix.GetPointer());
+//
+// 	// get baseRF to objectRF matrix
+// 	auto nd_ndiToObjectRF = m_VegaSource->GetOutput("ObjectRf");
+// 	auto nd_ndiToBaseRF = m_VegaSource->GetOutput("RobotBaseRF");
+// 	double array_ndiToObjectRF[16];
+// 	double array_ndiToBaseRF[16];
+//
+// 	AverageNavigationData(nd_ndiToObjectRF, 10, 5, array_ndiToObjectRF);
+// 	AverageNavigationData(nd_ndiToBaseRF, 10, 5, array_ndiToBaseRF);
+//
+// 	vtkNew<vtkMatrix4x4> vtkNdiToObjectRF;
+// 	vtkNdiToObjectRF->DeepCopy(array_ndiToObjectRF);
+// 	vtkNew<vtkMatrix4x4> vtkBaseRFtoNdi;
+// 	vtkBaseRFtoNdi->DeepCopy(array_ndiToBaseRF);
+// 	vtkBaseRFtoNdi->Invert();
+//
+// 	vtkNew<vtkTransform> baseRFtoObjectRFtransform;
+// 	baseRFtoObjectRFtransform->PostMultiply();
+// 	baseRFtoObjectRFtransform->SetMatrix(vtkNdiToObjectRF);
+// 	baseRFtoObjectRFtransform->Concatenate(vtkBaseRFtoNdi);
+// 	baseRFtoObjectRFtransform->Update();
+// 	auto vtkBaseRFtoObjectRF = baseRFtoObjectRFtransform->GetMatrix();
+//
+// 	// get base to baseRF matrix
+// 	auto baseRFtoBase = m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix();
+// 	vtkNew<vtkMatrix4x4> vtkBaseToBaseRF;
+// 	mitk::TransferItkTransformToVtkMatrix(baseRFtoBase.GetPointer(), vtkBaseToBaseRF);
+// 	vtkBaseToBaseRF->Invert();
+//
+// 	// get surface to target plane matrix
+// 	// Eigen::Vector3d x_surfaceToPlane;
+// 	// x_surfaceToPlane << targetPoint_2[0] - targetPoint_1[0],
+// 	// targetPoint_2[1] - targetPoint_1[1],
+// 	// targetPoint_2[2] - targetPoint_1[2];
+// 	// x_surfaceToPlane.normalize();
+// 	//
+// 	// Eigen::Vector3d tmp_y;
+// 	// tmp_y << targetPoint_0[0] - targetPoint_1[0],
+// 	// 	targetPoint_0[1] - targetPoint_1[1],
+// 	// 	targetPoint_0[2] - targetPoint_1[2];
+// 	// tmp_y.normalize();
+// 	//
+// 	// Eigen::Vector3d z_surfaceToPlane = x_surfaceToPlane.cross(tmp_y);
+// 	// z_surfaceToPlane.normalize();
+// 	//
+// 	// Eigen::Vector3d y_surfaceToPlane = z_surfaceToPlane.cross(x_surfaceToPlane);
+// 	// y_surfaceToPlane.normalize();
+//
+// 	//---------------------- March 07, 2023 modification
+// 	Eigen::Vector3d z_surfaceToPlane;
+// 	z_surfaceToPlane << targetPoint_0[0] - targetPoint_1[0],
+// 	targetPoint_0[1] - targetPoint_1[1],
+// 	targetPoint_0[2] - targetPoint_1[2];
+// 	z_surfaceToPlane.normalize();
+//
+// 	Eigen::Vector3d tmp_y;
+// 	tmp_y << targetPoint_2[0] - targetPoint_0[0],
+// 		targetPoint_2[1] - targetPoint_0[1],
+// 		targetPoint_2[2] - targetPoint_0[2];
+// 	tmp_y.normalize();
+//
+// 	Eigen::Vector3d x_surfaceToPlane = tmp_y.cross(z_surfaceToPlane);
+// 	x_surfaceToPlane.normalize();
+//
+// 	Eigen::Vector3d y_surfaceToPlane = z_surfaceToPlane.cross(x_surfaceToPlane);
+// 	y_surfaceToPlane.normalize();
+//
+// 	double array_surfaceToPlane[16]
+// 	{
+// 		x_surfaceToPlane[0], y_surfaceToPlane[0], z_surfaceToPlane[0], targetPoint_0[0],
+// 		x_surfaceToPlane[1], y_surfaceToPlane[1], z_surfaceToPlane[1], targetPoint_0[1],
+// 		x_surfaceToPlane[2], y_surfaceToPlane[2], z_surfaceToPlane[2], targetPoint_0[2],
+// 		0,0,0,1
+// 	};
+// 	vtkNew<vtkMatrix4x4> vtkSurfaceToPlane;
+// 	vtkSurfaceToPlane->DeepCopy(array_surfaceToPlane);
+//
+// 	// get base to target plane matrix
+// 	vtkNew<vtkTransform> vtkBaseToTargetPlaneTransform;
+// 	vtkBaseToTargetPlaneTransform->Identity();
+// 	vtkBaseToTargetPlaneTransform->PostMultiply();
+// 	vtkBaseToTargetPlaneTransform->SetMatrix(vtkSurfaceToPlane);
+// 	vtkBaseToTargetPlaneTransform->Concatenate(vtkObjectRFtoSurface);
+// 	vtkBaseToTargetPlaneTransform->Concatenate(vtkBaseRFtoObjectRF);
+// 	vtkBaseToTargetPlaneTransform->Concatenate(vtkBaseToBaseRF);
+// 	vtkBaseToTargetPlaneTransform->Update();
+//
+// 	m_T_robot = mitk::AffineTransform3D::New();
+// 	mitk::TransferVtkMatrixToItkTransform(vtkBaseToTargetPlaneTransform->GetMatrix(), m_T_robot.GetPointer());
+//
+// 	m_Controls.textBrowser->append("result plane target point:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
+//
+// 	return true;
+// }
+
 bool SurgicalSimulate::InterpretImagePlane()
 {
 	auto targetPlanePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPlane->GetSelectedNode()->GetData());
@@ -1428,48 +1543,29 @@ bool SurgicalSimulate::InterpretImagePlane()
 	vtkBaseToBaseRF->Invert();
 
 	// get surface to target plane matrix
-	// Eigen::Vector3d x_surfaceToPlane;
-	// x_surfaceToPlane << targetPoint_2[0] - targetPoint_1[0],
-	// targetPoint_2[1] - targetPoint_1[1],
-	// targetPoint_2[2] - targetPoint_1[2];
-	// x_surfaceToPlane.normalize();
-	//
-	// Eigen::Vector3d tmp_y;
-	// tmp_y << targetPoint_0[0] - targetPoint_1[0],
-	// 	targetPoint_0[1] - targetPoint_1[1],
-	// 	targetPoint_0[2] - targetPoint_1[2];
-	// tmp_y.normalize();
-	//
-	// Eigen::Vector3d z_surfaceToPlane = x_surfaceToPlane.cross(tmp_y);
-	// z_surfaceToPlane.normalize();
-	//
-	// Eigen::Vector3d y_surfaceToPlane = z_surfaceToPlane.cross(x_surfaceToPlane);
-	// y_surfaceToPlane.normalize();
-
-	//---------------------- March 07, 2023 modification
-	Eigen::Vector3d z_surfaceToPlane;
-	z_surfaceToPlane << targetPoint_0[0] - targetPoint_1[0],
-	targetPoint_0[1] - targetPoint_1[1],
-	targetPoint_0[2] - targetPoint_1[2];
-	z_surfaceToPlane.normalize();
-
-	Eigen::Vector3d tmp_y;
-	tmp_y << targetPoint_2[0] - targetPoint_0[0],
-		targetPoint_2[1] - targetPoint_0[1],
-		targetPoint_2[2] - targetPoint_0[2];
-	tmp_y.normalize();
-
-	Eigen::Vector3d x_surfaceToPlane = tmp_y.cross(z_surfaceToPlane);
+	Eigen::Vector3d x_surfaceToPlane;
+	x_surfaceToPlane << targetPoint_2[0] - targetPoint_1[0],
+	targetPoint_2[1] - targetPoint_1[1],
+	targetPoint_2[2] - targetPoint_1[2];
 	x_surfaceToPlane.normalize();
-
+	
+	Eigen::Vector3d tmp_y;
+	tmp_y << targetPoint_0[0] - targetPoint_1[0],
+		targetPoint_0[1] - targetPoint_1[1],
+		targetPoint_0[2] - targetPoint_1[2];
+	tmp_y.normalize();
+	
+	Eigen::Vector3d z_surfaceToPlane = x_surfaceToPlane.cross(tmp_y);
+	z_surfaceToPlane.normalize();
+	
 	Eigen::Vector3d y_surfaceToPlane = z_surfaceToPlane.cross(x_surfaceToPlane);
 	y_surfaceToPlane.normalize();
 
 	double array_surfaceToPlane[16]
 	{
-		x_surfaceToPlane[0], y_surfaceToPlane[0], z_surfaceToPlane[0], targetPoint_0[0],
-		x_surfaceToPlane[1], y_surfaceToPlane[1], z_surfaceToPlane[1], targetPoint_0[1],
-		x_surfaceToPlane[2], y_surfaceToPlane[2], z_surfaceToPlane[2], targetPoint_0[2],
+		x_surfaceToPlane[0], y_surfaceToPlane[0], z_surfaceToPlane[0], targetPoint_1[0],
+		x_surfaceToPlane[1], y_surfaceToPlane[1], z_surfaceToPlane[1], targetPoint_1[1],
+		x_surfaceToPlane[2], y_surfaceToPlane[2], z_surfaceToPlane[2], targetPoint_1[2],
 		0,0,0,1
 	};
 	vtkNew<vtkMatrix4x4> vtkSurfaceToPlane;
@@ -1946,26 +2042,109 @@ bool SurgicalSimulate::SetPrecisionTestTcp()
 	return true;
 }
 
+// bool SurgicalSimulate::SetPlanePrecisionTestTcp()
+// {
+// 	// set TCP for precision test
+// 	// For plane Test Use, regard ball 2 as the TCP, the pose can be seen on
+// 	// https://gn1phhht53.feishu.cn/wiki/wikcnqHGHeSFDrg6pDogJH6c8pe
+// 	//--------------------------------------------------
+// 	Eigen::Vector3d p2;
+// 	p2[0] = m_Controls.lineEdit_plane_p2_x->text().toDouble();
+// 	p2[1] = m_Controls.lineEdit_plane_p2_y->text().toDouble();
+// 	p2[2] = m_Controls.lineEdit_plane_p2_z->text().toDouble();
+//
+// 	Eigen::Vector3d p3;
+// 	p3[0] = m_Controls.lineEdit_plane_p3_x->text().toDouble();
+// 	p3[1] = m_Controls.lineEdit_plane_p3_y->text().toDouble();
+// 	p3[2] = m_Controls.lineEdit_plane_p3_z->text().toDouble();
+//
+// 	Eigen::Vector3d p4;
+// 	p4[0] = m_Controls.lineEdit_plane_p4_x->text().toDouble();
+// 	p4[1] = m_Controls.lineEdit_plane_p4_y->text().toDouble();
+// 	p4[2] = m_Controls.lineEdit_plane_p4_z->text().toDouble();
+//
+// 	// Eigen::Vector3d x_tcp;
+// 	// x_tcp[0] = 1.0;
+// 	// x_tcp[1] = 0.0;
+// 	// x_tcp[2] = 0.0;
+// 	// x_tcp.normalize();
+// 	//
+// 	// Eigen::Vector3d z_flange;
+// 	// z_flange[0] = 0.0;
+// 	// z_flange[1] = 0.0;
+// 	// z_flange[2] = 1;
+// 	//
+// 	// Eigen::Vector3d y_tcp;
+// 	// y_tcp = z_flange.cross(x_tcp);
+// 	// y_tcp.normalize();
+// 	//
+// 	// Eigen::Vector3d z_tcp;
+// 	// z_tcp = x_tcp.cross(y_tcp);
+//
+// 	Eigen::Vector3d z_tcp;
+// 	z_tcp = p2 - p3;
+// 	z_tcp.normalize();
+//
+// 	Eigen::Vector3d y_tmp;
+// 	y_tmp = p4 - p2;
+//
+// 	Eigen::Vector3d x_tcp;
+// 	x_tcp = y_tmp.cross(z_tcp);
+// 	x_tcp.normalize();
+//
+// 	Eigen::Vector3d y_tcp;
+// 	y_tcp = z_tcp.cross(x_tcp);
+// 	y_tcp.normalize();
+//
+// 	Eigen::Matrix3d Re;
+//
+// 	Re << x_tcp[0], y_tcp[0], z_tcp[0],
+// 		x_tcp[1], y_tcp[1], z_tcp[1],
+// 		x_tcp[2], y_tcp[2], z_tcp[2];
+//
+// 	Eigen::Vector3d eulerAngle = Re.eulerAngles(2, 1, 0);
+//
+// 	//------------------------------------------------
+// 	double tcp[6];
+// 	tcp[0] = -10.17; // tx
+// 	tcp[1] = 137.40; // ty
+// 	tcp[2] = 114.13; // tz
+// 	tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
+// 	tcp[4] = eulerAngle(1); // ry
+// 	tcp[5] = eulerAngle(2); // rx
+// 	MITK_INFO << "TCP:" << tcp[0] << "," << tcp[1] << "," << tcp[2] << "," << tcp[3] << "," << tcp[4] << "," << tcp[5];
+// 	//set tcp to robot
+// 	  //set tcp
+// 	QThread::msleep(1000);
+// 	m_KukaTrackingDevice->RequestExecOperate("movel", QStringList{ QString::number(tcp[0]),QString::number(tcp[1]),QString::number(tcp[2]),QString::number(tcp[3]),QString::number(tcp[4]),QString::number(tcp[5]) });
+// 	QThread::msleep(1000);
+// 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "11" });
+// 	QThread::msleep(1000);
+// 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
+// 	return true;
+// }
+
+
 bool SurgicalSimulate::SetPlanePrecisionTestTcp()
 {
 	// set TCP for precision test
 	// For plane Test Use, regard ball 2 as the TCP, the pose can be seen on
-	// https://gn1phhht53.feishu.cn/wiki/wikcnqHGHeSFDrg6pDogJH6c8pe
+	// https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh?table=tblk7ke86l8RyAoN&view=vew1Kd7wVv
 	//--------------------------------------------------
+	Eigen::Vector3d p1;
+	p1[0] = m_Controls.lineEdit_plane_p2_x->text().toDouble();
+	p1[1] = m_Controls.lineEdit_plane_p2_y->text().toDouble();
+	p1[2] = m_Controls.lineEdit_plane_p2_z->text().toDouble();
+
 	Eigen::Vector3d p2;
-	p2[0] = m_Controls.lineEdit_plane_p2_x->text().toDouble();
-	p2[1] = m_Controls.lineEdit_plane_p2_y->text().toDouble();
-	p2[2] = m_Controls.lineEdit_plane_p2_z->text().toDouble();
+	p2[0] = m_Controls.lineEdit_plane_p3_x->text().toDouble();
+	p2[1] = m_Controls.lineEdit_plane_p3_y->text().toDouble();
+	p2[2] = m_Controls.lineEdit_plane_p3_z->text().toDouble();
 
 	Eigen::Vector3d p3;
-	p3[0] = m_Controls.lineEdit_plane_p3_x->text().toDouble();
-	p3[1] = m_Controls.lineEdit_plane_p3_y->text().toDouble();
-	p3[2] = m_Controls.lineEdit_plane_p3_z->text().toDouble();
-
-	Eigen::Vector3d p4;
-	p4[0] = m_Controls.lineEdit_plane_p4_x->text().toDouble();
-	p4[1] = m_Controls.lineEdit_plane_p4_y->text().toDouble();
-	p4[2] = m_Controls.lineEdit_plane_p4_z->text().toDouble();
+	p3[0] = m_Controls.lineEdit_plane_p4_x->text().toDouble();
+	p3[1] = m_Controls.lineEdit_plane_p4_y->text().toDouble();
+	p3[2] = m_Controls.lineEdit_plane_p4_z->text().toDouble();
 
 	// Eigen::Vector3d x_tcp;
 	// x_tcp[0] = 1.0;
@@ -1985,16 +2164,17 @@ bool SurgicalSimulate::SetPlanePrecisionTestTcp()
 	// Eigen::Vector3d z_tcp;
 	// z_tcp = x_tcp.cross(y_tcp);
 
-	Eigen::Vector3d z_tcp;
-	z_tcp = p2 - p3;
-	z_tcp.normalize();
+	Eigen::Vector3d x_tcp;
+	x_tcp = p3 - p1;
+	x_tcp.normalize();
 
 	Eigen::Vector3d y_tmp;
-	y_tmp = p4 - p2;
+	y_tmp = p2 - p1;
+	y_tmp.normalize();
 
-	Eigen::Vector3d x_tcp;
-	x_tcp = y_tmp.cross(z_tcp);
-	x_tcp.normalize();
+	Eigen::Vector3d z_tcp;
+	z_tcp = x_tcp.cross(y_tmp);
+	z_tcp.normalize();
 
 	Eigen::Vector3d y_tcp;
 	y_tcp = z_tcp.cross(x_tcp);
@@ -2010,9 +2190,9 @@ bool SurgicalSimulate::SetPlanePrecisionTestTcp()
 
 	//------------------------------------------------
 	double tcp[6];
-	tcp[0] = -10.17; // tx
-	tcp[1] = 137.40; // ty
-	tcp[2] = 114.13; // tz
+	tcp[0] = p1[0]; // tx
+	tcp[1] = p1[1]; // ty
+	tcp[2] = p1[2]; // tz
 	tcp[3] = eulerAngle(0); //-0.81;// -0.813428203; // rz
 	tcp[4] = eulerAngle(1); // ry
 	tcp[5] = eulerAngle(2); // rx
@@ -2027,9 +2207,6 @@ bool SurgicalSimulate::SetPlanePrecisionTestTcp()
 	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 	return true;
 }
-
-
-
 
 
 

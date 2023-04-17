@@ -324,6 +324,28 @@ void RobotRegistration::calculateR0()
 	// Todo: need to exclude the spacing component
 	R0 = v * u.transpose();
 
+	Eigen::Vector3d x;
+	Eigen::Vector3d y;
+	Eigen::Vector3d z;
+
+	for(int i{0}; i < 3; i++)
+	{
+		x[i] = R0(i, 0);
+		y[i] = R0(i, 1);
+		z[i] = R0(i, 2);
+	}
+
+	x.normalize();
+	y.normalize();
+	z.normalize();
+
+	for (int i{ 0 }; i < 3; i++)
+	{
+		R0(i, 0) = x[i];
+		R0(i, 1) = y[i];
+		R0(i, 2) = z[i];
+	}
+
 	//std::cout << "R0:\n" << R0 << std::endl;
 }
 
