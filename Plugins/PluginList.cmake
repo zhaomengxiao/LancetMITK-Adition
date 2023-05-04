@@ -14,4 +14,5 @@ set(MITK_PLUGINS
   org.mitk.lancet.htotest:ON
   org.mitk.lancet.surgicalsimulate:ON
   org.mitk.lancet.kukarobotcontrol:ON
+  org.mitk.lancet.hipplanning:ON
 )
