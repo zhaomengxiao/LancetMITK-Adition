@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>676</width>
-    <height>595</height>
+    <height>608</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -20,10 +20,22 @@
    <string>QmitkTemplate</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_20">
+   <item row="1" column="0">
+    <widget class="QGroupBox" name="groupBox_18">
+     <property name="title">
+      <string>Output</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_22">
+      <item row="0" column="0">
+       <widget class="QTextBrowser" name="textBrowser"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -925,6 +937,49 @@
           <string>Circle Hough</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_17">
+          <item row="5" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_39">
+            <item>
+             <widget class="QLabel" name="label_45">
+              <property name="text">
+               <string>Radius of the disk to remove from the accumulator:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_RadiusToRemove">
+              <property name="text">
+               <string>10</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_38">
+            <item>
+             <widget class="QLabel" name="label_44">
+              <property name="text">
+               <string>Variance of the accumulator blurring: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_BlurVariance">
+              <property name="text">
+               <string>5</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="6" column="0">
+           <widget class="QPushButton" name="pushButton_detectCircle">
+            <property name="text">
+             <string>Detect Hough circles</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_32">
             <item>
@@ -938,6 +993,38 @@
              <widget class="QLineEdit" name="lineEdit_circleNum">
               <property name="text">
                <string>5</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_34">
+            <item>
+             <widget class="QLabel" name="label_42">
+              <property name="text">
+               <string>Sweep Angle:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_SweepAngle">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_43">
+              <property name="text">
+               <string>Sigma gradient:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_SigmaGradient">
+              <property name="text">
+               <string>1</string>
               </property>
              </widget>
             </item>
@@ -959,10 +1046,6 @@
               </property>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item row="3" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_35">
             <item>
              <widget class="QLabel" name="label_41">
               <property name="text">
@@ -979,85 +1062,6 @@
             </item>
            </layout>
           </item>
-          <item row="4" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_34">
-            <item>
-             <widget class="QLabel" name="label_42">
-              <property name="text">
-               <string>Sweep Angle:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_SweepAngle">
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="5" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_37">
-            <item>
-             <widget class="QLabel" name="label_43">
-              <property name="text">
-               <string>Sigma gradient:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_SigmaGradient">
-              <property name="text">
-               <string>1</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="6" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_38">
-            <item>
-             <widget class="QLabel" name="label_44">
-              <property name="text">
-               <string>Variance of the accumulator blurring: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_BlurVariance">
-              <property name="text">
-               <string>5</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="7" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_39">
-            <item>
-             <widget class="QLabel" name="label_45">
-              <property name="text">
-               <string>Radius of the disk to remove from the accumulator:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_RadiusToRemove">
-              <property name="text">
-               <string>10</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="8" column="0">
-           <widget class="QPushButton" name="pushButton_detectCircle">
-            <property name="text">
-             <string>Detect Hough circles</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
@@ -1066,62 +1070,50 @@
          <property name="title">
           <string>Canny edge detection</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_18">
+         <layout class="QGridLayout" name="gridLayout_10">
           <item row="0" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_40">
-            <item>
-             <widget class="QLabel" name="label_46">
-              <property name="text">
-               <string>Variance: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_cannyVariance">
-              <property name="text">
-               <string>2.0</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLabel" name="label_46">
+            <property name="text">
+             <string>Variance: </string>
+            </property>
+           </widget>
           </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_41">
-            <item>
-             <widget class="QLabel" name="label_47">
-              <property name="text">
-               <string>Upper threshold: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_cannyUpper">
-              <property name="text">
-               <string>1.0</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEdit_cannyVariance">
+            <property name="text">
+             <string>2.0</string>
+            </property>
+           </widget>
           </item>
-          <item row="2" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_42">
-            <item>
-             <widget class="QLabel" name="label_48">
-              <property name="text">
-               <string>Lower threshold: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_cannyLower">
-              <property name="text">
-               <string>0.0</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+          <item row="0" column="2">
+           <widget class="QLabel" name="label_47">
+            <property name="text">
+             <string>Upper threshold: </string>
+            </property>
+           </widget>
           </item>
-          <item row="3" column="0">
+          <item row="0" column="3">
+           <widget class="QLineEdit" name="lineEdit_cannyUpper">
+            <property name="text">
+             <string>1.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QLabel" name="label_48">
+            <property name="text">
+             <string>Lower threshold: </string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="5">
+           <widget class="QLineEdit" name="lineEdit_cannyLower">
+            <property name="text">
+             <string>0.0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="6">
            <widget class="QPushButton" name="pushButton_canny">
             <property name="text">
              <string>Canny edge</string>
@@ -1153,10 +1145,6 @@
               </property>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_44">
             <item>
              <widget class="QLabel" name="label_50">
               <property name="text">
@@ -1173,6 +1161,9 @@
             </item>
            </layout>
           </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_44"/>
+          </item>
           <item row="2" column="0">
            <widget class="QPushButton" name="pushButton_testNCC">
             <property name="text">
@@ -1182,16 +1173,6 @@
           </item>
          </layout>
         </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_3">
-      <attribute name="title">
-       <string>Output</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_10">
-       <item row="0" column="0">
-        <widget class="QTextBrowser" name="textBrowser"/>
        </item>
       </layout>
      </widget>

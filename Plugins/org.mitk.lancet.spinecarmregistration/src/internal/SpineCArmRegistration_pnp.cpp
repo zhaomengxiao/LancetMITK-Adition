@@ -490,7 +490,8 @@ void SpineCArmRegistration::ApplyRegistration_pnp()
 	node->RemoveProperty("material.representation");
 	node->RemoveProperty("material.interpolation");
 
-	
+	node->SetColor(1.0, 1.0, 1.0);
+	node->SetOpacity(1.0);
 	  
 
 }
@@ -547,7 +548,7 @@ void SpineCArmRegistration::ConfirmApPoint_pnp()
 		lancetAlgorithm::GetLinePlaneIntersection(auxiliaryPoint0, ltSourceArray, apSourceArray, ltPlanePointArray, ltPlaneNormalArray);
 		lancetAlgorithm::GetLinePlaneIntersection(auxiliaryPoint1, ltSourceArray, apPointArray, ltPlanePointArray, ltPlaneNormalArray);
 
-		double colorProjectionLine[3]{ 0.7,0.7,0.7 };
+		double colorProjectionLine[3]{ 0.0,1.0,0.0 };
 		DrawLine(auxiliaryPoint0, auxiliaryPoint1, colorProjectionLine, 1, "Projection line");
 
 		double tmpColor[3]{ 0,0,1 };

@@ -38,6 +38,7 @@ found in the LICENSE file.
 #include "itkCastImageFilter.h"
 #include "itkMath.h"
 #include "lancetNCC.h"
+#include "mitkImageToOpenCVImageFilter.h"
 
 void SpineCArmRegistration::DetectCircles()
 {
@@ -211,17 +212,29 @@ int SpineCArmRegistration::TestNCC()
 	auto templatePath = templateQbyteArray.data();
 
 
-	//IplImage* templateImage = cvLoadImage("D:/Data/spine/2. Two projection project/TestNCC/Template.jpg", -1);
-	IplImage* templateImage = cvLoadImage(templatePath, -1);
+	// Convert mitk Image to OpenCV image
+	//IplImage* templateImage = cvLoadImage(templatePath, -1);
+	mitk::ImageToOpenCVImageFilter::Pointer mitkToOpenCv_template = mitk::ImageToOpenCVImageFilter::New();
+	mitkToOpenCv_template->SetImage(GetDataStorage()->GetNamedObject<mitk::Image>("Template"));
+	cv::Mat openCVImage_template = mitkToOpenCv_template->GetOpenCVMat();
+	IplImage copy_template = cvIplImage(openCVImage_template);
+	IplImage* templateImage = &copy_template;
 
+	
 	if (templateImage == NULL)
 	{
 		cout << "\nERROR: Could not load Template Image.\n";
 		return 0;
 	}
 
-	//IplImage* searchImage = cvLoadImage("D:/Data/spine/2. Two projection project/TestNCC/Search1.jpg", -1);
-	IplImage* searchImage = cvLoadImage(sourcePath, -1);
+
+	//IplImage* searchImage = cvLoadImage(sourcePath, -1);
+	mitk::ImageToOpenCVImageFilter::Pointer mitkToOpenCv_search = mitk::ImageToOpenCVImageFilter::New();
+	mitkToOpenCv_search->SetImage(GetDataStorage()->GetNamedObject<mitk::Image>("Search"));
+	cv::Mat openCVImage_search = mitkToOpenCv_search->GetOpenCVMat();
+	IplImage copy_search = cvIplImage(openCVImage_search);
+	IplImage* searchImage = &copy_search;
+
 
 	if (searchImage == NULL)
 	{
@@ -270,11 +283,13 @@ int SpineCArmRegistration::TestNCC()
 	clock_t finish_time1 = clock();
 	total_time = (double)(finish_time1 - start_time1) / CLOCKS_PER_SEC;
 
+	// Todo: add mitk::PointSet as result
 	if (score > minScore) // if score is at least 0.4
 	{
 		cout << " Found at [" << result.x << ", " << result.y << "]\n Score = " << score << "\n Searching Time = " << total_time * 1000 << "ms";
 		// GM.DrawContours(searchImage, result, CV_RGB(0, 255, 0), 1);
 		GM.DrawContours(searchImage, result, cvScalar(0, 255, 0), 1);
+
 	}
 	else
 		cout << " Object Not found";
@@ -291,10 +306,10 @@ int SpineCArmRegistration::TestNCC()
 	cvWaitKey(0);
 	cvDestroyWindow("Search Image");
 	cvDestroyWindow("Template");
-	cvReleaseImage(&searchImage);
-	cvReleaseImage(&graySearchImg);
-	cvReleaseImage(&templateImage);
-	cvReleaseImage(&grayTemplateImg);
+	// cvReleaseImage(&searchImage);
+	// cvReleaseImage(&graySearchImg);
+	// cvReleaseImage(&templateImage);
+	// cvReleaseImage(&grayTemplateImg);
 
 	return 1;
 }
