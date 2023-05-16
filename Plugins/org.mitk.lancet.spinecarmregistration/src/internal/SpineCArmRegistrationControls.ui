@@ -35,7 +35,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -1129,6 +1129,16 @@
           <string>Edge detection and NCC</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_19">
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_44"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="pushButton_testNCC">
+            <property name="text">
+             <string>Test NCC</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_43">
             <item>
@@ -1161,13 +1171,10 @@
             </item>
            </layout>
           </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_44"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="pushButton_testNCC">
+          <item row="3" column="0">
+           <widget class="QPushButton" name="pushButton_recursiveSearch">
             <property name="text">
-             <string>Test NCC</string>
+             <string>Recursice search</string>
             </property>
            </widget>
           </item>

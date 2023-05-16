@@ -101,6 +101,8 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_canny, &QPushButton::clicked, this, &SpineCArmRegistration::GetCannyEdge);
   connect(m_Controls.pushButton_testNCC, &QPushButton::clicked, this, &SpineCArmRegistration::TestNCC);
 
+  connect(m_Controls.pushButton_recursiveSearch, &QPushButton::clicked, this, &SpineCArmRegistration::on_pushButton_recursiveSearch_clicked);
+
 }
 void SpineCArmRegistration::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)
 {

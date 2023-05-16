@@ -343,6 +343,185 @@ double GeoMatch::FindGeoMatchModel(const void* srcarr, double minScore, double g
 
 	return resultScore;
 }
+
+double GeoMatch::FindGeoMatchModelEnhanced(const void* srcarr, double minScore,
+	double greediness, mitk::PointSet::Pointer foundPts,
+	double pixelSize_x, double pixelSize_y,
+	double steelballSize /*mm*/, CvPoint* resultPoint)
+{
+	CvMat* Sdx = 0, * Sdy = 0;
+
+	double resultScore = 0;
+	double partialSum = 0;
+	double sumOfCoords = 0;
+	double partialScore;
+	const short* _Sdx;
+	const short* _Sdy;
+	int i, j, m;			// count variables
+	double iTx, iTy, iSx, iSy;
+	double gradMag;
+	int curX, curY;
+
+	double** matGradMag;  //Gradient magnitude matrix
+
+	CvMat srcstub, * src = (CvMat*)srcarr;
+	src = cvGetMat(src, &srcstub);
+	if (CV_MAT_TYPE(src->type) != CV_8UC1 || !modelDefined)
+	{
+		return 0;
+	}
+
+	// source image size
+	CvSize Ssize;
+	Ssize.width = src->width;
+	Ssize.height = src->height;
+
+	CreateDoubleMatrix(matGradMag, Ssize); // create image to save gradient magnitude  values
+
+	Sdx = cvCreateMat(Ssize.height, Ssize.width, CV_16SC1); // X derivatives
+	Sdy = cvCreateMat(Ssize.height, Ssize.width, CV_16SC1); // y derivatives
+
+	cvSobel(src, Sdx, 1, 0, 3);  // find X derivatives
+	cvSobel(src, Sdy, 0, 1, 3); // find Y derivatives
+
+	// stopping criteria to search for model
+	double normMinScore = minScore / noOfCordinates; // precompute minimum score 
+	double normGreediness = ((1 - greediness * minScore) / (1 - greediness)) / noOfCordinates; // precompute greedniness 
+
+	for (i = 0; i < Ssize.height; i++)
+	{
+		_Sdx = (short*)(Sdx->data.ptr + Sdx->step * (i));
+		_Sdy = (short*)(Sdy->data.ptr + Sdy->step * (i));
+
+		for (j = 0; j < Ssize.width; j++)
+		{
+			iSx = _Sdx[j];  // X derivative of Source image
+			iSy = _Sdy[j];  // Y derivative of Source image
+
+			gradMag = sqrt((iSx * iSx) + (iSy * iSy)); //Magnitude = Sqrt(dx^2 +dy^2)
+
+			if (gradMag != 0) // hande divide by zero
+				matGradMag[i][j] = 1 / gradMag;   // 1/Sqrt(dx^2 +dy^2)
+			else
+				matGradMag[i][j] = 0;
+
+		}
+	}
+	for (i = 0; i < Ssize.height; i++)
+	{
+		for (j = 0; j < Ssize.width; j++)
+		{
+			partialSum = 0; // initialize partialSum measure
+			for (m = 0; m < noOfCordinates; m++)
+			{
+				// zzhou -----------------------
+				// Stop searching if the current Point is near the foundPts
+				int foundPtNum = foundPts->GetSize();
+				bool isNearFoundPts = false;
+				for (int k{0}; k < foundPtNum; k ++)
+				{
+					double x_tmp = (i + 0.5) * pixelSize_x;
+					double y_tmp = (j + 0.5) * pixelSize_y;
+					double x_found = foundPts->GetPoint(k)[1];
+					double y_found = foundPts->GetPoint(k)[0];
+
+					double distance = sqrt(pow(x_tmp-x_found,2)+ pow(y_tmp - y_found, 2));
+
+					if(distance < 3 * steelballSize)
+					{
+						isNearFoundPts = true;
+						break;
+					}
+				}
+
+				if (isNearFoundPts == true)
+				{
+					break;
+				}
+
+				// zzhou ------------------------
+
+				curX = i + cordinates[m].x;	// template X coordinate
+				curY = j + cordinates[m].y; // template Y coordinate
+				iTx = edgeDerivativeX[m];	// template X derivative
+				iTy = edgeDerivativeY[m];    // template Y derivative
+
+				if (curX<0 || curY<0 || curX>Ssize.height - 1 || curY>Ssize.width - 1)
+					continue;
+
+				_Sdx = (short*)(Sdx->data.ptr + Sdx->step * (curX));
+				_Sdy = (short*)(Sdy->data.ptr + Sdy->step * (curX));
+
+				iSx = _Sdx[curY]; // get corresponding  X derivative from source image
+				iSy = _Sdy[curY]; // get corresponding  Y derivative from source image
+
+				if ((iSx != 0 || iSy != 0) && (iTx != 0 || iTy != 0))
+				{
+					//partial Sum  = Sum of(((Source X derivative* Template X drivative) + Source Y derivative * Template Y derivative)) / Edge magnitude of(Template)* edge magnitude of(Source))
+					partialSum = partialSum + ((iSx * iTx) + (iSy * iTy)) * (edgeMagnitude[m] * matGradMag[curX][curY]);
+
+				}
+
+				sumOfCoords = m + 1;
+				partialScore = partialSum / sumOfCoords;
+				// check termination criteria
+				// if partial score score is less than the score than needed to make the required score at that position
+				// break searching at that coordinate.
+				if (partialScore < (MIN((minScore - 1) + normGreediness * sumOfCoords, normMinScore * sumOfCoords)))
+					break;
+
+			}
+			if (partialScore > resultScore)
+			{
+				resultScore = partialScore; //  Match score
+				resultPoint->x = i;			// result coordinate X		
+				resultPoint->y = j;			// result coordinate Y
+			}
+		}
+	}
+
+	// free used resources and return score
+	ReleaseDoubleMatrix(matGradMag, Ssize.height);
+	cvReleaseMat(&Sdx);
+	cvReleaseMat(&Sdy);
+
+	return resultScore;
+}
+
+
+bool GeoMatch::FindAllGeoMatchModel(const void* srcarr, double minScore, double greediness,
+	int matchNum, double pixelSize_x, double pixelSize_y, 
+	double steelballSize /*mm*/, mitk::PointSet::Pointer resultPointSet)
+{
+	for (int i{0}; i < matchNum; i ++)
+	{
+		CvPoint tmp_result;
+		double tmp_score = FindGeoMatchModelEnhanced(srcarr,  minScore,
+			greediness, resultPointSet, 
+			pixelSize_x, pixelSize_y,
+			steelballSize, &tmp_result);
+
+		if(tmp_score > minScore)
+		{
+			mitk::Point3D newPoint;
+			newPoint[0] = tmp_result.y * 0.264583;
+			newPoint[1] = tmp_result.x * 0.264583;
+			newPoint[2] = 0;
+
+			resultPointSet->InsertPoint(newPoint);
+		}
+
+	}
+
+	int finalFoundNum = resultPointSet->GetSize();
+	if (finalFoundNum == matchNum)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 // destructor
 GeoMatch::~GeoMatch(void)
 {

@@ -39,6 +39,7 @@ found in the LICENSE file.
 #include "itkMath.h"
 #include "lancetNCC.h"
 #include "mitkImageToOpenCVImageFilter.h"
+#include "mitkPointSet.h"
 
 void SpineCArmRegistration::DetectCircles()
 {
@@ -199,8 +200,8 @@ int SpineCArmRegistration::TestNCC()
 	int lowThreshold = 10;		//deafult value; should be within [0,255]; threshold for gradient collection
 	int highThreashold = 100;	//deafult value; should be within [0,255]; threshold for gradient collection
 
-	double minScore = 0.5;		//deafult value
-	double greediness = 0.8;		//deafult value
+	double minScore = 0.65;		//deafult value
+	double greediness = 0.7;		//deafult value
 
 	double total_time = 0;
 	double score = 0;
@@ -283,12 +284,28 @@ int SpineCArmRegistration::TestNCC()
 	clock_t finish_time1 = clock();
 	total_time = (double)(finish_time1 - start_time1) / CLOCKS_PER_SEC;
 
-	// Todo: add mitk::PointSet as result
+	
 	if (score > minScore) // if score is at least 0.4
 	{
 		cout << " Found at [" << result.x << ", " << result.y << "]\n Score = " << score << "\n Searching Time = " << total_time * 1000 << "ms";
 		// GM.DrawContours(searchImage, result, CV_RGB(0, 255, 0), 1);
 		GM.DrawContours(searchImage, result, cvScalar(0, 255, 0), 1);
+
+
+		// Todo: add mitk::PointSet as result
+		auto extracted_Pset = mitk::PointSet::New();
+		mitk::Point3D newPoint;
+		newPoint[0] = result.y * 0.264583;
+		newPoint[1] = result.x * 0.264583;
+		newPoint[2] = 0;
+
+		extracted_Pset->InsertPoint(newPoint);
+
+		auto newNode = mitk::DataNode::New();
+		newNode->SetData(extracted_Pset);
+		newNode->SetName("Extracted Node");
+
+		GetDataStorage()->Add(newNode);
 
 	}
 	else
@@ -312,6 +329,158 @@ int SpineCArmRegistration::TestNCC()
 	// cvReleaseImage(&grayTemplateImg);
 
 	return 1;
+}
+
+
+int SpineCArmRegistration::on_pushButton_recursiveSearch_clicked()
+{
+	int foundBallNum{ 0 };
+
+	GeoMatch GM;
+	int lowThreshold = 10;		//deafult value; should be within [0,255]; threshold for gradient collection
+	int highThreashold = 100;	//deafult value; should be within [0,255]; threshold for gradient collection
+
+	double minScore = 0.65;		//deafult value
+	double greediness = 0.7;		//deafult value
+
+	double total_time = 0;
+	double score = 0;
+	CvPoint result;
+
+	auto sourceQbyteArray = m_Controls.lineEdit_NccSource->text().toLatin1();
+	auto sourcePath = sourceQbyteArray.data();
+	auto templateQbyteArray = m_Controls.lineEdit_NccTemplate->text().toLatin1();
+	auto templatePath = templateQbyteArray.data();
+
+
+	// Convert mitk Image to OpenCV image
+	//IplImage* templateImage = cvLoadImage(templatePath, -1);
+	mitk::ImageToOpenCVImageFilter::Pointer mitkToOpenCv_template = mitk::ImageToOpenCVImageFilter::New();
+	mitkToOpenCv_template->SetImage(GetDataStorage()->GetNamedObject<mitk::Image>("Template"));
+	cv::Mat openCVImage_template = mitkToOpenCv_template->GetOpenCVMat();
+	IplImage copy_template = cvIplImage(openCVImage_template);
+	IplImage* templateImage = &copy_template;
+
+
+	if (templateImage == NULL)
+	{
+		cout << "\nERROR: Could not load Template Image.\n";
+		return 0;
+	}
+
+
+	//IplImage* searchImage = cvLoadImage(sourcePath, -1);
+	mitk::ImageToOpenCVImageFilter::Pointer mitkToOpenCv_search = mitk::ImageToOpenCVImageFilter::New();
+	mitkToOpenCv_search->SetImage(GetDataStorage()->GetNamedObject<mitk::Image>("Search"));
+	cv::Mat openCVImage_search = mitkToOpenCv_search->GetOpenCVMat();
+	IplImage copy_search = cvIplImage(openCVImage_search);
+	IplImage* searchImage = &copy_search;
+
+
+	if (searchImage == NULL)
+	{
+		cout << "\nERROR: Could not load Search Image.";
+		return 0;
+	}
+
+	CvSize templateSize = cvSize(templateImage->width, templateImage->height);
+	IplImage* grayTemplateImg = cvCreateImage(templateSize, IPL_DEPTH_8U, 1);
+
+
+	// Convert color image to gray image.
+	if (templateImage->nChannels == 3)
+	{
+		cvCvtColor(templateImage, grayTemplateImg, CV_RGB2GRAY);
+	}
+	else
+	{
+		cvCopy(templateImage, grayTemplateImg);
+	}
+	cout << "\n Edge Based Template Matching Program\n";
+	cout << " ------------------------------------\n";
+
+	if (!GM.CreateGeoMatchModel(grayTemplateImg, lowThreshold, highThreashold))
+	{
+		cout << "ERROR: could not create model...";
+		return 0;
+	}
+	// GM.DrawContours(templateImage, CV_RGB(255, 0, 0), 1);
+	GM.DrawContours(templateImage, cvScalar(255, 0, 0), 1);
+	cout << " Shape model created.." << "with  Low Threshold = " << lowThreshold << " High Threshold = " << highThreashold << endl;
+	CvSize searchSize = cvSize(searchImage->width, searchImage->height);
+	IplImage* graySearchImg = cvCreateImage(searchSize, IPL_DEPTH_8U, 1);
+
+	// Convert color image to gray image. 
+	if (searchImage->nChannels == 3)
+		cvCvtColor(searchImage, graySearchImg, CV_RGB2GRAY);
+	else
+	{
+		cvCopy(searchImage, graySearchImg);
+	}
+	cout << " Finding Shape Model.." << " Minumum Score = " << minScore << " Greediness = " << greediness << "\n\n";
+	cout << " ------------------------------------\n";
+	clock_t start_time1 = clock();
+	// score = GM.FindGeoMatchModel(graySearchImg, minScore, greediness, &result);
+	// --------zzhou: test the recursive search
+	auto resultPset = mitk::PointSet::New();
+	GM.FindAllGeoMatchModel(graySearchImg, minScore, greediness, 
+		5, 0.264583, 0.264583, 4,
+		resultPset);
+
+	auto newNode = mitk::DataNode::New();
+	newNode->SetData(resultPset);
+	newNode->SetName("Extracted Node");
+	GetDataStorage()->Add(newNode);
+
+	clock_t finish_time1 = clock();
+	total_time = (double)(finish_time1 - start_time1) / CLOCKS_PER_SEC;
+
+	return resultPset->GetSize();
+
+	// if (score > minScore) // if score is at least 0.4
+	// {
+	// 	cout << " Found at [" << result.x << ", " << result.y << "]\n Score = " << score << "\n Searching Time = " << total_time * 1000 << "ms";
+	// 	// GM.DrawContours(searchImage, result, CV_RGB(0, 255, 0), 1);
+	// 	GM.DrawContours(searchImage, result, cvScalar(0, 255, 0), 1);
+	//
+	//
+	// 	// Todo: add mitk::PointSet as result
+	// 	auto extracted_Pset = mitk::PointSet::New();
+	// 	mitk::Point3D newPoint;
+	// 	newPoint[0] = result.y * 0.264583;
+	// 	newPoint[1] = result.x * 0.264583;
+	// 	newPoint[2] = 0;
+	//
+	// 	extracted_Pset->InsertPoint(newPoint);
+	//
+	// 	auto newNode = mitk::DataNode::New();
+	// 	newNode->SetData(extracted_Pset);
+	// 	newNode->SetName("Extracted Node");
+	//
+	// 	GetDataStorage()->Add(newNode);
+	//
+	// }
+	// else
+	// 	cout << " Object Not found";
+	//
+	// cout << "\n ------------------------------------\n\n";
+	// cout << "\n Press any key to exit!";
+	//
+	// //Display result
+	// cvNamedWindow("Template", CV_WINDOW_AUTOSIZE);
+	// cvShowImage("Template", templateImage);
+	// cvNamedWindow("Search Image", CV_WINDOW_AUTOSIZE);
+	// cvShowImage("Search Image", searchImage);
+	// // wait for both windows to be closed before releasing images
+	// cvWaitKey(0);
+	// cvDestroyWindow("Search Image");
+	// cvDestroyWindow("Template");
+	// // cvReleaseImage(&searchImage);
+	// // cvReleaseImage(&graySearchImg);
+	// // cvReleaseImage(&templateImage);
+	// // cvReleaseImage(&grayTemplateImg);
+	//
+	// return foundBallNum;
 }
 
 

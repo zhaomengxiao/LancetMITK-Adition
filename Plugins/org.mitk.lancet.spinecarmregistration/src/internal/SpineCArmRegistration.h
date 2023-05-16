@@ -115,6 +115,9 @@ protected:
   // Test NCC
   int TestNCC();
 
+  // Recursive search
+  int on_pushButton_recursiveSearch_clicked();
+
   // Utilities
   void PlotCoordinate(mitk::DataStorage* ds, std::string name, double color[3]);
   void DrawLine(double start[3], double end[3], double color[3], double opacity, const char* name);
