@@ -39,6 +39,7 @@ found in the LICENSE file.
 #include "itkMath.h"
 #include "lancetNCC.h"
 #include "mitkImageToOpenCVImageFilter.h"
+#include "mitkOpenCVToMitkImageFilter.h"
 #include "mitkPointSet.h"
 
 void SpineCArmRegistration::DetectCircles()
@@ -196,16 +197,16 @@ void SpineCArmRegistration::GetCannyEdge()
 
 int SpineCArmRegistration::TestNCC()
 {
-	GeoMatch GM;
-	int lowThreshold = 10;		//deafult value; should be within [0,255]; threshold for gradient collection
-	int highThreashold = 100;	//deafult value; should be within [0,255]; threshold for gradient collection
+	GeoMatch GM = GeoMatch();
+	double lowThreshold = 10.0;		//deafult value; should be within [0,255]; threshold for gradient collection
+	double highThreashold = 100.0;	//deafult value; should be within [0,255]; threshold for gradient collection
 
 	double minScore = 0.65;		//deafult value
 	double greediness = 0.7;		//deafult value
 
-	double total_time = 0;
-	double score = 0;
-	CvPoint result;
+	double total_time = 0.0;
+	double score = 0.0;
+	CvPoint result = CvPoint();
 
 	auto sourceQbyteArray = m_Controls.lineEdit_NccSource->text().toLatin1();
 	auto sourcePath = sourceQbyteArray.data();
@@ -272,31 +273,35 @@ int SpineCArmRegistration::TestNCC()
 
 	// Convert color image to gray image. 
 	if (searchImage->nChannels == 3)
+	{
 		cvCvtColor(searchImage, graySearchImg, CV_RGB2GRAY);
+	}		
 	else
 	{
 		cvCopy(searchImage, graySearchImg);
 	}
 	cout << " Finding Shape Model.." << " Minumum Score = " << minScore << " Greediness = " << greediness << "\n\n";
 	cout << " ------------------------------------\n";
+	
 	clock_t start_time1 = clock();
 	score = GM.FindGeoMatchModel(graySearchImg, minScore, greediness, &result);
 	clock_t finish_time1 = clock();
 	total_time = (double)(finish_time1 - start_time1) / CLOCKS_PER_SEC;
 
-	
+
 	if (score > minScore) // if score is at least 0.4
 	{
 		cout << " Found at [" << result.x << ", " << result.y << "]\n Score = " << score << "\n Searching Time = " << total_time * 1000 << "ms";
 		// GM.DrawContours(searchImage, result, CV_RGB(0, 255, 0), 1);
 		GM.DrawContours(searchImage, result, cvScalar(0, 255, 0), 1);
 
+		m_Controls.textBrowser->append("Score:" + QString::number(score, 'f', 5));
 
 		// Todo: add mitk::PointSet as result
 		auto extracted_Pset = mitk::PointSet::New();
 		mitk::Point3D newPoint;
-		newPoint[0] = result.y * 0.264583;
-		newPoint[1] = result.x * 0.264583;
+		newPoint[0] = (result.y ) * 0.264583;
+		newPoint[1] = (result.x ) * 0.264583;
 		newPoint[2] = 0;
 
 		extracted_Pset->InsertPoint(newPoint);
@@ -405,7 +410,7 @@ int SpineCArmRegistration::on_pushButton_recursiveSearch_clicked()
 		return 0;
 	}
 	// GM.DrawContours(templateImage, CV_RGB(255, 0, 0), 1);
-	GM.DrawContours(templateImage, cvScalar(255, 0, 0), 1);
+	// GM.DrawContours(templateImage, cvScalar(255, 0, 0), 1);
 	cout << " Shape model created.." << "with  Low Threshold = " << lowThreshold << " High Threshold = " << highThreashold << endl;
 	CvSize searchSize = cvSize(searchImage->width, searchImage->height);
 	IplImage* graySearchImg = cvCreateImage(searchSize, IPL_DEPTH_8U, 1);

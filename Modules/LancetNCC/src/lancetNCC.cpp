@@ -12,9 +12,9 @@ GeoMatch::GeoMatch(void)
 int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, double minContrast)
 {
 
-	CvMat* gx = 0;		//Matrix to store X derivative
-	CvMat* gy = 0;		//Matrix to store Y derivative
-	CvMat* nmsEdges = 0;		//Matrix to store temp restult
+	CvMat* gx = nullptr;		//Matrix to store X derivative
+	CvMat* gy = nullptr;		//Matrix to store Y derivative
+	CvMat* nmsEdges = nullptr;		//Matrix to store temp restult
 	CvSize Ssize;
 
 	// Convert IplImage to Matrix for integer operations
@@ -30,7 +30,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 	Ssize.height = src->height;
 	modelHeight = src->height;		//Save Template height
 	modelWidth = src->width;			//Save Template width
-
+	
 	noOfCordinates = 0;											//initialize	
 	cordinates = new CvPoint[modelWidth * modelHeight];		//Allocate memory for coordinates of selected points in template image
 
@@ -43,7 +43,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 	gx = cvCreateMat(Ssize.height, Ssize.width, CV_16SC1);		//create Matrix to store X derivative
 	gy = cvCreateMat(Ssize.height, Ssize.width, CV_16SC1);		//create Matrix to store Y derivative
 	cvSobel(src, gx, 1, 0, 3);		//gradient in X direction			
-	cvSobel(src, gy, 0, 1, 3);	//gradient in Y direction
+	cvSobel(src, gy, 0, 1, 3);	    //gradient in Y direction
 
 	nmsEdges = cvCreateMat(Ssize.height, Ssize.width, CV_32F);		//create Matrix to store Final nmsEdges
 	const short* _sdx;
@@ -58,6 +58,15 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 	double** magMat;
 	CreateDoubleMatrix(magMat, Ssize);
 
+	// initialize magMat
+	for(int m{0}; m < Ssize.height; m++)
+	{
+		for(int n{0}; n < Ssize.width; n++)
+		{
+			magMat[m][n] = 0.0;
+		}
+	}
+
 	for (i = 1; i < Ssize.height - 1; i++)
 	{
 		for (j = 1; j < Ssize.width - 1; j++)
@@ -66,35 +75,41 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 			_sdy = (short*)(gy->data.ptr + gy->step * i); // Get the entire row
 			fdx = _sdx[j]; fdy = _sdy[j];        // read x, y derivatives
 
-			MagG = sqrt((float)(fdx * fdx) + (float)(fdy * fdy)); //Magnitude = Sqrt(gx^2 +gy^2)
-			direction = cvFastArctan((float)fdy, (float)fdx);	 //Direction = invtan (Gy / Gx)
+			MagG = sqrt((fdx * fdx) + (fdy * fdy)); //Magnitude = Sqrt(gx^2 +gy^2)
+
+			double a = ceil(fdy * 100000.0);
+			double b = ceil(fdx * 100000.0);
+
+			direction = cvFastArctan(a, b);	 //Direction = invtan (Gy / Gx)
 			magMat[i][j] = MagG;
 
 			if (MagG > MaxGradient)
 				MaxGradient = MagG; // get maximum gradient value for normalizing.
 
 
-				// get closest angle from 0, 45, 90, 135 set
-			if ((direction > 0 && direction < 22.5) || (direction > 157.5 && direction < 202.5) || (direction > 337.5 && direction < 360))
-				direction = 0;
+			// get closest angle from 0, 45, 90, 135 set
+			if ((direction > 0.0 && direction < 22.5) || (direction > 157.5 && direction < 202.5) || (direction > 337.5 && direction < 360))
+				direction = 0.0;
 			else if ((direction > 22.5 && direction < 67.5) || (direction > 202.5 && direction < 247.5))
-				direction = 45;
+				direction = 45.0;
 			else if ((direction > 67.5 && direction < 112.5) || (direction > 247.5 && direction < 292.5))
-				direction = 90;
+				direction = 90.0;
 			else if ((direction > 112.5 && direction < 157.5) || (direction > 292.5 && direction < 337.5))
-				direction = 135;
+				direction = 135.0;
 			else
-				direction = 0;
+				direction = 0.0;
 
 			orients[count] = (int)direction;
 			count++;
+
+
 		}
 	}
 
 	count = 0; // init count
 	// non maximum suppression
 	double leftPixel, rightPixel;
-
+	
 	for (i = 1; i < Ssize.height - 1; i++)
 	{
 		for (j = 1; j < Ssize.width - 1; j++)
@@ -120,10 +135,12 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 			}
 			// compare current pixels value with adjacent pixels
 			if ((magMat[i][j] < leftPixel) || (magMat[i][j] < rightPixel))
-				(nmsEdges->data.ptr + nmsEdges->step * i)[j] = 0;
+				(nmsEdges->data.ptr + nmsEdges->step * (i))[j] = 0;
 			else
-				(nmsEdges->data.ptr + nmsEdges->step * i)[j] = (uchar)(magMat[i][j] / MaxGradient * 255); // Normalized to [0,255] 
-
+			{
+				(nmsEdges->data.ptr + nmsEdges->step * (i))[j] = (uchar)(magMat[i][j] / MaxGradient * 255); // Normalized to [0,255] 
+				
+			}
 			count++;
 		}
 	}
@@ -136,7 +153,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 	//Hysteresis threshold
 	for (i = 1; i < Ssize.height - 1; i++)
 	{
-		for (j = 1; j < Ssize.width; j++)
+		for (j = 1; j < Ssize.width - 1; j++)
 		{
 			_sdx = (short*)(gx->data.ptr + gx->step * i); // Row vector
 			_sdy = (short*)(gy->data.ptr + gy->step * i); // Row vector
@@ -147,27 +164,27 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 
 			////((uchar*)(imgGDir->imageData + imgGDir->widthStep*i))[j]= MagG;
 			flag = 1;
-			if (((double)((nmsEdges->data.ptr + nmsEdges->step * i))[j]) < maxContrast)
+			if (((double)((nmsEdges->data.ptr + (nmsEdges->step) * (i)))[j]) < maxContrast)
 			{
-				if (((double)((nmsEdges->data.ptr + nmsEdges->step * i))[j]) < minContrast)
+				if (((double)((nmsEdges->data.ptr + (nmsEdges->step) * (i)))[j]) < minContrast)
 				{
 
-					(nmsEdges->data.ptr + nmsEdges->step * i)[j] = 0;
+					(nmsEdges->data.ptr + (nmsEdges->step) * (i))[j] = 0;
 					flag = 0; // remove from edge
 					////((uchar*)(imgGDir->imageData + imgGDir->widthStep*i))[j]=0;
 				}
 				else
 				{   // if any of 8 neighboring pixel is not greater than max contrast remove from edge
-					if ((((double)((nmsEdges->data.ptr + nmsEdges->step * (i - 1)))[j - 1]) < maxContrast) &&
-						(((double)((nmsEdges->data.ptr + nmsEdges->step * (i - 1)))[j]) < maxContrast) &&
-						(((double)((nmsEdges->data.ptr + nmsEdges->step * (i - 1)))[j + 1]) < maxContrast) &&
-						(((double)((nmsEdges->data.ptr + nmsEdges->step * i))[j - 1]) < maxContrast) &&
-						(((double)((nmsEdges->data.ptr + nmsEdges->step * i))[j + 1]) < maxContrast) &&
-						(((double)((nmsEdges->data.ptr + nmsEdges->step * (i + 1)))[j - 1]) < maxContrast) &&
-						(((double)((nmsEdges->data.ptr + nmsEdges->step * (i + 1)))[j]) < maxContrast) &&
-						(((double)((nmsEdges->data.ptr + nmsEdges->step * (i + 1)))[j + 1]) < maxContrast))
+					if ((((double)((nmsEdges->data.ptr + (nmsEdges->step) * (i - 1)))[j - 1]) < maxContrast) &&
+						(((double)((nmsEdges->data.ptr + (nmsEdges->step) * (i - 1)))[j]) < maxContrast) &&
+						(((double)((nmsEdges->data.ptr + (nmsEdges->step) * (i - 1)))[j + 1]) < maxContrast) &&
+						(((double)((nmsEdges->data.ptr + (nmsEdges->step) * i))[j - 1]) < maxContrast) &&
+						(((double)((nmsEdges->data.ptr + (nmsEdges->step) * i))[j + 1]) < maxContrast) &&
+						(((double)((nmsEdges->data.ptr + (nmsEdges->step) * (i + 1)))[j - 1]) < maxContrast) &&
+						(((double)((nmsEdges->data.ptr + (nmsEdges->step) * (i + 1)))[j]) < maxContrast) &&
+						(((double)((nmsEdges->data.ptr + (nmsEdges->step) * (i + 1)))[j + 1]) < maxContrast))
 					{
-						(nmsEdges->data.ptr + nmsEdges->step * i)[j] = 0;
+						(nmsEdges->data.ptr + (nmsEdges->step) * i)[j] = 0;
 						flag = 0;
 						////((uchar*)(imgGDir->imageData + imgGDir->widthStep*i))[j]=0;
 					}
@@ -175,11 +192,13 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 
 			}
 
+
+
 			// save selected edge information
 			curX = i;	curY = j; // current x and current y
 			if (flag != 0)
 			{
-				if (fdx != 0 || fdy != 0)
+				if (abs(fdx) > 0.000001 || abs(fdy) >  0.000001)
 				{
 					RSum = RSum + curX;	CSum = CSum + curY; // Row sum and column sum for center of gravity
 
@@ -189,7 +208,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 					edgeDerivativeY[noOfCordinates] = fdy;
 
 					//handle divided by zero
-					if (MagG != 0)
+					if (abs(MagG) > 0.000001)
 						edgeMagnitude[noOfCordinates] = 1 / MagG;  // gradient magnitude 
 					else
 						edgeMagnitude[noOfCordinates] = 0;
@@ -202,6 +221,10 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 
 	centerOfGravity.x = RSum / noOfCordinates; // center of gravity
 	centerOfGravity.y = CSum / noOfCordinates;	// center of gravity
+
+	cout << "Center of gravity x: " << centerOfGravity.x << endl;
+	cout << "RSum: " << RSum << endl;
+	cout << "noOfCordinates: " << noOfCordinates << endl;
 
 	// change coordinates to reflect center of gravity
 	for (int m = 0; m < noOfCordinates; m++)
@@ -232,49 +255,51 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 
 double GeoMatch::FindGeoMatchModel(const void* srcarr, double minScore, double greediness, CvPoint* resultPoint)
 {
-	CvMat* Sdx = 0, * Sdy = 0;
+	CvMat* Sdx = nullptr, * Sdy = nullptr;
 
-	double resultScore = 0;
-	double partialSum = 0;
-	double sumOfCoords = 0;
-	double partialScore;
-	const short* _Sdx;
-	const short* _Sdy;
-	int i, j, m;			// count variables
-	double iTx, iTy, iSx, iSy;
-	double gradMag;
-	int curX, curY;
+	double resultScore = 0.0;
+	double partialSum = 0.0;
+	double sumOfCoords = 0.0;
+	double partialScore = 0.0;
+	const short* _Sdx = nullptr;
+	const short* _Sdy = nullptr;
+	int i = 0, j = 0, m = 0;			// count variables
+	double iTx = 0.0, iTy = 0.0, iSx = 0.0, iSy = 0.0;
+	double gradMag = 0.0;
+	int curX = 0, curY = 0;
 
-	double** matGradMag;  //Gradient magnitude matrix
+	double** matGradMag = nullptr;  //Gradient magnitude matrix
 
-	CvMat srcstub, * src = (CvMat*)srcarr;
-	src = cvGetMat(src, &srcstub);
-	if (CV_MAT_TYPE(src->type) != CV_8UC1 || !modelDefined)
+	CvMat srcstub;
+	CvMat* src = (CvMat*)srcarr;
+	CvMat* copy_src = nullptr;
+	copy_src = cvGetMat(src, &srcstub);
+	if (CV_MAT_TYPE(copy_src->type) != CV_8UC1 || !modelDefined)
 	{
 		return 0;
 	}
 
 	// source image size
-	CvSize Ssize;
-	Ssize.width = src->width;
-	Ssize.height = src->height;
+	CvSize Ssize = CvSize(); 
+	Ssize.width = copy_src->width;
+	Ssize.height = copy_src->height;
 
 	CreateDoubleMatrix(matGradMag, Ssize); // create image to save gradient magnitude  values
 
 	Sdx = cvCreateMat(Ssize.height, Ssize.width, CV_16SC1); // X derivatives
 	Sdy = cvCreateMat(Ssize.height, Ssize.width, CV_16SC1); // y derivatives
 
-	cvSobel(src, Sdx, 1, 0, 3);  // find X derivatives
-	cvSobel(src, Sdy, 0, 1, 3); // find Y derivatives
+	cvSobel(copy_src, Sdx, 1, 0, 3);  // find X derivatives
+	cvSobel(copy_src, Sdy, 0, 1, 3); // find Y derivatives
 
 	// stopping criteria to search for model
-	double normMinScore = minScore / noOfCordinates; // precompute minimum score 
-	double normGreediness = ((1 - greediness * minScore) / (1 - greediness)) / noOfCordinates; // precompute greedniness 
+	double normMinScore = (minScore / (double)noOfCordinates); // precompute minimum score 
+	double normGreediness = ((1.0 - greediness * minScore) / (1.0 - greediness)) / (double)noOfCordinates; // precompute greedniness 
 
 	for (i = 0; i < Ssize.height; i++)
 	{
-		_Sdx = (short*)(Sdx->data.ptr + Sdx->step * (i));
-		_Sdy = (short*)(Sdy->data.ptr + Sdy->step * (i));
+		_Sdx = (short*)(Sdx->data.ptr + Sdx->step * i);
+		_Sdy = (short*)(Sdy->data.ptr + Sdy->step * i);
 
 		for (j = 0; j < Ssize.width; j++)
 		{
@@ -283,10 +308,10 @@ double GeoMatch::FindGeoMatchModel(const void* srcarr, double minScore, double g
 
 			gradMag = sqrt((iSx * iSx) + (iSy * iSy)); //Magnitude = Sqrt(dx^2 +dy^2)
 
-			if (gradMag != 0) // hande divide by zero
-				matGradMag[i][j] = 1 / gradMag;   // 1/Sqrt(dx^2 +dy^2)
+			if (abs(gradMag) > 0.000001) // hande divide by zero
+				matGradMag[i][j] = 1.0 / gradMag;   // 1/Sqrt(dx^2 +dy^2)
 			else
-				matGradMag[i][j] = 0;
+				matGradMag[i][j] = 0.0;
 
 		}
 	}
@@ -294,7 +319,7 @@ double GeoMatch::FindGeoMatchModel(const void* srcarr, double minScore, double g
 	{
 		for (j = 0; j < Ssize.width; j++)
 		{
-			partialSum = 0; // initialize partialSum measure
+			partialSum = 0.0; // initialize partialSum measure
 			for (m = 0; m < noOfCordinates; m++)
 			{
 				curX = i + cordinates[m].x;	// template X coordinate
@@ -305,29 +330,30 @@ double GeoMatch::FindGeoMatchModel(const void* srcarr, double minScore, double g
 				if (curX<0 || curY<0 || curX>Ssize.height - 1 || curY>Ssize.width - 1)
 					continue;
 
-				_Sdx = (short*)(Sdx->data.ptr + Sdx->step * (curX));
-				_Sdy = (short*)(Sdy->data.ptr + Sdy->step * (curX));
+				_Sdx = (short*)(Sdx->data.ptr + Sdx->step * curX);
+				_Sdy = (short*)(Sdy->data.ptr + Sdy->step * curX);
 
 				iSx = _Sdx[curY]; // get corresponding  X derivative from source image
 				iSy = _Sdy[curY]; // get corresponding  Y derivative from source image
 
-				if ((iSx != 0 || iSy != 0) && (iTx != 0 || iTy != 0))
+				if ((abs(iSx) > 0.000001 || abs(iSy) > 0.000001) && (abs(iTx) > 0.000001 || abs(iTy) > 0.000001))
 				{
 					//partial Sum  = Sum of(((Source X derivative* Template X drivative) + Source Y derivative * Template Y derivative)) / Edge magnitude of(Template)* edge magnitude of(Source))
 					partialSum = partialSum + ((iSx * iTx) + (iSy * iTy)) * (edgeMagnitude[m] * matGradMag[curX][curY]);
 
 				}
 
-				sumOfCoords = m + 1;
+				sumOfCoords = m + 1.0;
 				partialScore = partialSum / sumOfCoords;
 				// check termination criteria
 				// if partial score score is less than the score than needed to make the required score at that position
 				// break searching at that coordinate.
-				if (partialScore < (MIN((minScore - 1) + normGreediness * sumOfCoords, normMinScore * sumOfCoords)))
+				if (partialScore < (MIN((minScore - 1.0) + normGreediness * sumOfCoords, normMinScore * sumOfCoords)))
 					break;
 
 			}
-			if (partialScore > resultScore)
+
+			if ((partialScore > resultScore))
 			{
 				resultScore = partialScore; //  Match score
 				resultPoint->x = i;			// result coordinate X		
