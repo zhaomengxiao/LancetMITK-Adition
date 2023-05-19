@@ -63,8 +63,23 @@ QFemurRoughRegistrationsEditor::~QFemurRoughRegistrationsEditor()
 	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
+#include <mitkDataStorage.h>
+
+mitk::DataStorage::Pointer GetDataStorage() 
+{
+	return mitk::DataStorage::Pointer();
+}
+
 void QFemurRoughRegistrationsEditor::CreatePartControl(QWidget* parent)
 {
+	auto pDs = GetDataStorage();
+	auto dataNodeArray = pDs->GetAll();
+	
+	for (auto& node = dataNodeArray->Begin(); node != dataNodeArray->End(); ++node)
+	{
+
+	}
+
 	m_Controls.setupUi(parent);
 	auto test_dir = QDir(":/org.mitk.lancet.femurroughregistrationseditor/");
 	QFile qss(test_dir.absoluteFilePath("femurroughregistrationseditor.qss"));

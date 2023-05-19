@@ -67,7 +67,7 @@ protected:
 
   void UpdateUiForService();
 
-	itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> GetServiceModel() const;
+	berry::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> GetServiceModel() const;
 
 	static lancet::IDevicesAdministrationService* GetDevicesService();
 protected slots:

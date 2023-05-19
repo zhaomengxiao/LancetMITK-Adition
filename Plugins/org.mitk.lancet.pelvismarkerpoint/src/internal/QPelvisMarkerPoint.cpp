@@ -32,9 +32,8 @@ found in the LICENSE file.
 #include <lancetSpatialFittingAbstractService.h>
 
 #include <core/lancetSpatialFittingPipelineManager.h>
-//#include <core/lancetSpatialFittingPointAccuracyDate.h>
 #include <core/lancetSpatialFittingNavigationToolCollector.h>
-#include <internal/lancetSpatialFittingPelvisCheckPointModel.h>
+#include <internal/moduls/lancetSpatialFittingPelvisCheckPointModel.h>
 
 #include <lancetIDevicesAdministrationService.h>
 #include <internal/lancetTrackingDeviceManage.h>
@@ -58,7 +57,7 @@ QPelvisMarkerPoint::QPelvisMarkerPoint()
 {
 	if (this->GetServiceModel().IsNotNull())
 	{
-		this->GetServiceModel()->Start();
+		this->GetServiceModel()->StartWorking();
 	}
 }
 
@@ -66,7 +65,7 @@ QPelvisMarkerPoint::~QPelvisMarkerPoint()
 {
 	if (this->GetServiceModel().IsNotNull())
 	{
-		this->GetServiceModel()->Stop();
+		this->GetServiceModel()->StopWorking();
 	}
 }
 
@@ -78,7 +77,7 @@ void QPelvisMarkerPoint::CreateQtPartControl(QWidget *parent)
   QFile qss(test_dir.absoluteFilePath("pelvismarkerpoint.qss"));
   if (!qss.open(QIODevice::ReadOnly))
   {
-	  qWarning() << __func__ << __LINE__ << ":" << "error load file "
+	  MITK_WARN << "error load file "
 		  << test_dir.absoluteFilePath("pelvismarkerpoint.qss") << "\n"
 		  << "error: " << qss.errorString();
   }
@@ -174,18 +173,20 @@ void QPelvisMarkerPoint::UpdateUiForService()
 	this->m_Controls.pushButtonPelvisCheckpoint->setEnabled(notTrackingDeviceTips.isEmpty());
 }
 
-itk::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel> 
+berry::SmartPointer<lancet::spatial_fitting::PelvisCheckPointModel>
   QPelvisMarkerPoint::GetServiceModel() const
 {
+	using namespace lancet::spatial_fitting;
 	auto context = PluginActivator::GetPluginContext();
-	auto serviceRef = context->getServiceReference<lancet::SpatialFittingAbstractService>();
-	auto service = context->getService<lancet::SpatialFittingAbstractService>(serviceRef);
+	auto serviceRef = context->getServiceReference<lancet::AbstractService>();
+	auto service = context->getService<lancet::AbstractService>(serviceRef);
 	if (service)
 	{
-		return service->GetPelvisCheckPointModel();
+		return service->GetModel(ModulsFactor::Items::PELVIS_CHECKPOINT_MODEL).
+			Cast<PelvisCheckPointModel>();
 	}
 
-	return lancet::spatial_fitting::PelvisCheckPointModel::Pointer();
+	return PelvisCheckPointModel::Pointer();
 }
 
 lancet::IDevicesAdministrationService* QPelvisMarkerPoint::GetDevicesService()
@@ -224,8 +225,12 @@ void QPelvisMarkerPoint::on_toolCollector_complete(mitk::NavigationData* data)
 		// update ui for widget
 		this->m_Controls.checkBoxPelvisCheckpoint->setChecked(data->IsDataValid());
 
+		mitk::NavigationData::Pointer collectNavigationData = mitk::NavigationData::New();
+		collectNavigationData->Graft(data);
+
 		// Upload service.
-		this->GetServiceModel()->SetCheckPoint(data);
+		this->GetServiceModel()->SetProperty("PelvisMarkerPoint", 
+			mitk::GenericProperty<mitk::NavigationData::Pointer>::New(collectNavigationData));
 		MITK_INFO << "collect point " << data->GetPosition();
 	}
 }

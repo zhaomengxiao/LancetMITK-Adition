@@ -3,6 +3,7 @@
 #include "internal/lancetSpatialFittingProbeCheckPointModel.h"
 #include "internal/lancetSpatialFittingPelvisCheckPointModel.h"
 #include "internal/lancetSpatialFittingRoboticsRegisterModel.h"
+#include "internal/lancetSpatialFittingPelvicRegistrationsModel.h"
 #include "internal/lancetSpatialFittingPelvicRoughRegistrationsModel.h"
 #include <lancetIDevicesAdministrationService.h>
 
@@ -81,5 +82,14 @@ namespace lancet
 		itk::SmartPointer<lancet::spatial_fitting::PelvicRoughRegistrationsModel> model)
 	{
 		this->imp->pelvicRoughRegistrationsModel = model;
+	}
+	itk::SmartPointer<lancet::spatial_fitting::PelvicRegistrationsModel> 
+		SpatialFittingAbstractService::GetPelvicRegistrationsModel() const
+	{
+		return itk::SmartPointer<lancet::spatial_fitting::PelvicRegistrationsModel>();
+	}
+	void SpatialFittingAbstractService::SetPelvicRegistrationsModel(
+		itk::SmartPointer<lancet::spatial_fitting::PelvicRegistrationsModel>)
+	{
 	}
 }

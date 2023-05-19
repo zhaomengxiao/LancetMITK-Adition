@@ -1,43 +1,21 @@
-/*============================================================================
-
-The Medical Imaging Interaction Toolkit (MITK)
-
-Copyright (c) German Cancer Research Center (DKFZ)
-All rights reserved.
-
-Use of this source code is governed by a 3-clause BSD license that can be
-found in the LICENSE file.
-
-============================================================================*/
-
 #ifndef QPelvisPrecisionRegistrationsEditor_H
 #define QPelvisPrecisionRegistrationsEditor_H
-
-// mitk gui qt common plugin
-#include <QTImer>
-#include <QmitkAbstractMultiWidgetEditor.h>
-
-#include <mitkILinkedRenderWindowPart.h>
-
 #include <org_mitk_lancet_pelvisprecisionregistrations_editor_Export.h>
 
-#include <ctkServiceTracker.h>
+// Include header files for Qt.
+#include <QTimer>
 
-#include <berryIPreferencesService.h>
-// c++
-#include <memory>
+// Include header files for mitk.
+#include <QmitkAbstractMultiWidgetEditor.h>
 
-#include "ui_QPelvisPrecisionRegistrationsEditor.h"
-class QmitkStdMultiWidget;
-class QPelvisPrecisionRegistrationsEditorPrivate;
-namespace lancet { class IDevicesAdministrationService; }
-namespace lancet::spatial_fitting { class PelvicRoughRegistrationsModel; }
+// define mitk namespace class.
+namespace mitk { class DataStorage; } // namespace mitk::DataStorage;
+namespace lancet { class IDevicesAdministrationService; } // namespace lancet::IDevicesAdministrationService;
+namespace lancet::spatial_fitting { class PelvicRegistrationsModel; } // namespace lancet::spatial_fitting::PelvicRegistrationsModel;
 
-/**
- * @brief
- */
-class ORG_MITK_LANCET_PELVISPRECISIONREGISTRATIONS_EDITOR QPelvisPrecisionRegistrationsEditor final
-	: public berry::EditorPart, public berry::IPartListener
+class ORG_MITK_LANCET_PELVISPRECISIONREGISTRATIONS_EDITOR 
+  QPelvisPrecisionRegistrationsEditor final : public berry::EditorPart,
+   public berry::IPartListener
 {
   Q_OBJECT
 
@@ -50,7 +28,10 @@ public:
   QPelvisPrecisionRegistrationsEditor();
   virtual ~QPelvisPrecisionRegistrationsEditor() override;
 
-
+public:
+  /**
+  * @brief Overridden from berry::EditorPart
+  */
   void CreatePartControl(QWidget* parent) override;
 
   /**
@@ -88,38 +69,42 @@ public:
   * @brief Overridden from berry::IPartListener
   */
   virtual berry::IPartListener::Events::Types GetPartEventTypes() const override;
+
+	virtual int GetRegisterPointSize() const;
+
 public slots:
-	//void onV
+	//void OnVegaPointChange();
+
+	void onCollectModelOfCapturePoint(int);
 private:
-	void InitializeDataStorageForService();
+  void InitializeDataStorageForService();
+  void UnInitializeDataStorageForService();
 
-	void InitializeMitkMultiWidget();
-	void UnInitializeMitkMultiWidget();
+  void InitializeMitkMultiWidget();
+  void UnInitializeMitkMultiWidget();
+  
+  void InitializeQtEventOnService();
+  void UnInitializeQtEventOnService();
 
-	void InitializeQtEventOnService();
-	void UnInitializeQtEventOnService();
+	void BackupDataStorageNodes(const itk::SmartPointer<mitk::DataStorage>&);
+	void RecoverDataStorageNodes(const itk::SmartPointer<mitk::DataStorage>&);
 
 	void InitializeMitkMultiWidgetOnCollectModel();
+	void UnInitializeMitkMultiWidgetOnCollectModel();
 	void InitializeMitkMultiWidgetOnVerifyModel();
+	void UnInitializeMitkMultiWidgetOnVerifyModel();
 
-	void InitializeWidgetOnlyOne();
+	void UpdateSelectedPoint(int index, bool selected, float size = 8.0f);
 
-	itk::SmartPointer<mitk::DataStorage> GetDataStorage() const;
+  static lancet::IDevicesAdministrationService* GetDevicesService();
 
-	using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
-	itk::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
+  static itk::SmartPointer<lancet::spatial_fitting::PelvicRegistrationsModel> 
+    GetServiceModel();
 
-	static lancet::IDevicesAdministrationService* GetDevicesService();
+	static itk::SmartPointer<mitk::DataStorage> GetDataStorage();
 private:
-	virtual void OnPreferencesChanged(const berry::IBerryPreferences*);
-	Ui::QPelvisPrecisionRegistrationsEditor m_Controls;
-protected:
-	QTimer updateProbeTm;
-	QStringList listDataStorageNodes;
-	typedef berry::IPreferencesService berryIPreferencesService;
-	QSharedPointer<QWidget> widgetInstace;
-	ctkServiceTracker<berryIPreferencesService*> m_PrefServiceTracker;
-	berry::IBerryPreferences::Pointer m_Prefs;
+  struct PrivateImp;
+  std::shared_ptr<PrivateImp> imp;
 };
 
-#endif // QPelvisPrecisionRegistrationsEditor_H
+#endif // !QPelvisPrecisionRegistrationsEditor_H

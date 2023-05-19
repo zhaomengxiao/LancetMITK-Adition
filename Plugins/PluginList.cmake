@@ -2,6 +2,7 @@ set(MITK_PLUGINS
   org.mitk.lancet.statemachine.services:ON
   org.mitk.lancet.services.medicalrecords:ON
   org.mitk.lancet.services.spatialfitting:ON
+  org.mitk.lancet.services.spatialfitting.ex:ON
   org.mitk.lancet.services.devicesadministration:ON
   org.mitk.exampleplugin.eageractivation:ON
   org.mitk.gui.qt.exampleplugin:ON

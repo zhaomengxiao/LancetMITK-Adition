@@ -28,7 +28,7 @@ found in the LICENSE file.
 #include <core/lancetSpatialFittingPipelineManager.h>
 #include <core/lancetSpatialFittingPointAccuracyDate.h>
 #include <core/lancetSpatialFittingNavigationToolCollector.h>
-#include <internal/lancetSpatialFittingProbeCheckPointModel.h>
+#include <internal/moduls/lancetSpatialFittingProbeCheckPointModel.h>
 
 #include <lancetIDevicesAdministrationService.h>
 
@@ -59,7 +59,7 @@ void QRoboticsRegistrationsAccuracy::CreateQtPartControl(QWidget *parent)
   QFile qss(test_dir.absoluteFilePath("roboticsregistrationsaccuracy.qss"));
   if (!qss.open(QIODevice::ReadOnly))
   {
-	  qWarning() << __func__ << __LINE__ << ":" << "error load file "
+	  MITK_WARN << ":" << "error load file "
 		  << test_dir.absoluteFilePath("roboticsregistrationsaccuracy.qss") << "\n"
 		  << "error: " << qss.errorString();
   }
@@ -153,16 +153,18 @@ void QRoboticsRegistrationsAccuracy::UpdateUiForService()
 	this->m_Controls.pushButtonProbeCheckPoint->setEnabled(notTrackingDeviceTips.isEmpty());
 }
 
-itk::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> 
+berry::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> 
 QRoboticsRegistrationsAccuracy::GetServiceModel() const
 {
+	using namespace lancet::spatial_fitting;
 	auto context = PluginActivator::GetPluginContext();
-	auto serviceRef = context->getServiceReference<lancet::SpatialFittingAbstractService>();
-	auto service = context->getService<lancet::SpatialFittingAbstractService>(serviceRef);
+	auto serviceRef = context->getServiceReference<lancet::AbstractService>();
+	auto service = context->getService<lancet::AbstractService>(serviceRef);
 
 	if (service)
 	{
-		return service->GetProbeCheckPointModel();
+		return service->GetModel(ModulsFactor::Items::PELVIS_CHECKPOINT_MODEL)
+			.Cast<ProbeCheckPointModel>();
 	}
 
 	return lancet::spatial_fitting::ProbeCheckPointModel::Pointer(nullptr);
@@ -209,7 +211,13 @@ void QRoboticsRegistrationsAccuracy::on_toolCollector_complete(mitk::NavigationD
 		this->m_Controls.checkBoxProbeCheckPoint->setChecked(data->IsDataValid());
 
 		// Upload service.
-		this->GetServiceModel()->SetCheckPoint(data);
+		mitk::NavigationData::Pointer property_data = mitk::NavigationData::New();
+		property_data->Graft(data);
+
+		mitk::GenericProperty<mitk::NavigationData::Pointer>::Pointer property =
+			mitk::GenericProperty<mitk::NavigationData::Pointer>::New(property_data);
+
+		this->GetServiceModel()->SetProperty("PROBE_REGISTER_POINT", property);
 	}
 }
 

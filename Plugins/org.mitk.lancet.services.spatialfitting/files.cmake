@@ -4,6 +4,7 @@ set(MOC_H_FILES
   src/internal/lancetSpatialFittingService.h
   src/core/lancetSpatialFittingNavigationToolCollector.h
   src/internal/lancetSpatialFittingPelvicRoughRegistrationsModel.h
+  src/internal/lancetSpatialFittingPelvicRegistrationsModel.h
   src/internal/lancetSpatialFittingPelvisCheckPointModel.h
 )
 
@@ -34,6 +35,7 @@ set(INTERNAL_CPP_FILES
   lancetSpatialFittingProbeCheckPointModel.cpp
   lancetSpatialFittingPelvisCheckPointModel.cpp
   lancetSpatialFittingPelvicRoughRegistrationsModel.cpp
+  lancetSpatialFittingPelvicRegistrationsModel.cpp
 )
 
 set(CPP_FILES )

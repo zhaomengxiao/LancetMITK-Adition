@@ -68,7 +68,7 @@ protected:
 
   void UpdateUiForService();
 
-  itk::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> GetServiceModel() const;
+	berry::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> GetServiceModel() const;
 protected slots:
   void on_pushButtonProbeCheckPoint_clicked();
 

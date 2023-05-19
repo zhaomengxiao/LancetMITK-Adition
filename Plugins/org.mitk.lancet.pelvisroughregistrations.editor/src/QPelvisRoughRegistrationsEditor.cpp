@@ -273,8 +273,8 @@ void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidget()
 				find_node->SetVisibility(false);
 			}
 		}
-		mitk::SceneIO::Pointer sceneIO = mitk::SceneIO::New();
-		sceneIO->LoadScene("C:/Users/sun/Desktop/lancethipnew2021.mitk", this->GetDataStorage().GetPointer());
+		//mitk::SceneIO::Pointer sceneIO = mitk::SceneIO::New();
+		//sceneIO->LoadScene("C:/Users/sun/Desktop/lancethipnew2021.mitk", this->GetDataStorage().GetPointer());
 	}
 
 	auto defaultLayoutDesign = QmitkRenderWindowMenu::LayoutDesign::ONE_TOP_3D_BOTTOM;
