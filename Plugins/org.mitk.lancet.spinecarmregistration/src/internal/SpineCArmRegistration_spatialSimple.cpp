@@ -84,7 +84,8 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   InitImageSelector(m_Controls.mitkNodeSelectWidget_LtImage);
   InitImageSelector(m_Controls.mitkNodeSelectWidget_image_pnp);
   InitImageSelector(m_Controls.mitkNodeSelectWidget_circleDetectInput);
-
+  InitImageSelector(m_Controls.mitkNodeSelectWidget_search);
+  InitImageSelector(m_Controls.mitkNodeSelectWidget_template);
 
 
   //connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &SpineCArmRegistration::DoImageProcessing);

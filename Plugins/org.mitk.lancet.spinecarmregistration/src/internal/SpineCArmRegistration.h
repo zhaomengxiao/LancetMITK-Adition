@@ -105,13 +105,15 @@ protected:
   void ConfirmLtPoint_pnp();
 
 
-
+//---------------DR steelball detection -------------------
+  
   // Hough circle detection
   void DetectCircles();
 
   // Canny edge detection
   void GetCannyEdge();
 
+	
   // Test NCC
   int TestNCC();
 

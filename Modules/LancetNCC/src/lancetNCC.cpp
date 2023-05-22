@@ -24,7 +24,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 	{
 		return 0;
 	}
-
+	
 	// set width and height
 	Ssize.width = src->width;
 	Ssize.height = src->height;
@@ -85,7 +85,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 
 			if (MagG > MaxGradient)
 				MaxGradient = MagG; // get maximum gradient value for normalizing.
-
+			// cout << "MagG: " << MagG <<endl;
 
 			// get closest angle from 0, 45, 90, 135 set
 			if ((direction > 0.0 && direction < 22.5) || (direction > 157.5 && direction < 202.5) || (direction > 337.5 && direction < 360))
@@ -218,7 +218,7 @@ int GeoMatch::CreateGeoMatchModel(const void* templateArr, double maxContrast, d
 			}
 		}
 	}
-
+	// cout << "noOfCordinates: " << noOfCordinates;
 	centerOfGravity.x = RSum / noOfCordinates; // center of gravity
 	centerOfGravity.y = CSum / noOfCordinates;	// center of gravity
 
@@ -446,10 +446,10 @@ double GeoMatch::FindGeoMatchModelEnhanced(const void* srcarr, double minScore,
 				bool isNearFoundPts = false;
 				for (int k{0}; k < foundPtNum; k ++)
 				{
-					double x_tmp = (i + 0.5) * pixelSize_x;
-					double y_tmp = (j + 0.5) * pixelSize_y;
-					double x_found = foundPts->GetPoint(k)[1];
-					double y_found = foundPts->GetPoint(k)[0];
+					double x_tmp = (j + 0.5) * pixelSize_x;
+					double y_tmp = (i + 0.5) * pixelSize_y;
+					double x_found = foundPts->GetPoint(k)[0];
+					double y_found = foundPts->GetPoint(k)[1];
 
 					double distance = sqrt(pow(x_tmp-x_found,2)+ pow(y_tmp - y_found, 2));
 
@@ -530,8 +530,8 @@ bool GeoMatch::FindAllGeoMatchModel(const void* srcarr, double minScore, double 
 		if(tmp_score > minScore)
 		{
 			mitk::Point3D newPoint;
-			newPoint[0] = tmp_result.y * 0.264583;
-			newPoint[1] = tmp_result.x * 0.264583;
+			newPoint[0] = tmp_result.y * pixelSize_x;
+			newPoint[1] = tmp_result.x * pixelSize_y;
 			newPoint[2] = 0;
 
 			resultPointSet->InsertPoint(newPoint);

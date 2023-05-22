@@ -912,7 +912,7 @@
       <attribute name="title">
        <string>Steelball detection</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_21">
+      <layout class="QGridLayout" name="gridLayout_19">
        <item row="0" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_33">
          <item>
@@ -1128,50 +1128,51 @@
          <property name="title">
           <string>Edge detection and NCC</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_19">
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_44"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="pushButton_testNCC">
-            <property name="text">
-             <string>Test NCC</string>
-            </property>
-           </widget>
-          </item>
+         <layout class="QGridLayout" name="gridLayout_18">
           <item row="0" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_43">
+           <layout class="QHBoxLayout" name="horizontalLayout_31">
             <item>
              <widget class="QLabel" name="label_49">
+              <property name="text">
+               <string>Search: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_search" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_35">
+            <item>
+             <widget class="QLabel" name="label_50">
               <property name="text">
                <string>Template: </string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit_NccTemplate">
-              <property name="text">
-               <string>D:/Data/spine/2.Two_projection_project/TestNCC/Template.jpg</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_50">
-              <property name="text">
-               <string>Source: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_NccSource">
-              <property name="text">
-               <string>D:/Data/spine/2.Two_projection_project/TestNCC/Search1.jpg</string>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_template" native="true">
+              <property name="enabled">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
            </layout>
           </item>
-          <item row="3" column="0">
+          <item row="1" column="0" colspan="2">
+           <widget class="QPushButton" name="pushButton_testNCC">
+            <property name="text">
+             <string>Test algorithm</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
            <widget class="QPushButton" name="pushButton_recursiveSearch">
             <property name="text">
              <string>Recursice search</string>
