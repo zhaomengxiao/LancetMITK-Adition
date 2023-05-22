@@ -28,7 +28,7 @@ found in the LICENSE file.
 #include <RobotRegistration.h>
 #include <core/lancetSpatialFittingPipelineManager.h>
 #include <core/lancetSpatialFittingNavigationToolCollector.h>
-#include <internal/lancetSpatialFittingRoboticsRegisterModel.h>
+#include <internal/moduls/lancetSpatialFittingRoboticsRegisterModel.h>
 
 #include <internal/lancetSpatialFittingService.h>
 #include <core/lancetSpatialFittingPipelineBuilder.h>
@@ -233,12 +233,14 @@ lancet::spatial_fitting::RoboticsRegisterModelPtr
 QRoboticsRegistrations::GetServiceRoboticsModel() const
 {
   auto context = PluginActivator::GetPluginContext();
-  auto serviceRef = context->getServiceReference<lancet::SpatialFittingAbstractService>();
-  auto service = context->getService<lancet::SpatialFittingAbstractService>(serviceRef);
+  auto serviceRef = context->getServiceReference<lancet::AbstractService>();
+  auto service = context->getService<lancet::AbstractService>(serviceRef);
   
   if (service)
   {
-	  return service->GetRoboticsRegisterModel();
+		using namespace lancet::spatial_fitting;
+		return service->GetModel(ModulsFactor::Items::ROBOTICS_REGISTER_MODEL)
+			.Cast<RoboticsRegisterModel>();
   }
 
   return lancet::spatial_fitting::RoboticsRegisterModelPtr(nullptr);

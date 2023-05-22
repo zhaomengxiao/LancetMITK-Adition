@@ -6,6 +6,10 @@
 // devices
 #include <lancetIDevicesAdministrationService.h>
 
+// mitk
+#include <mitkTrackingDeviceSource.h>
+//#include <mitkNavigationDataSource.h>
+
 lancet::Service::Service()
 	: AbstractService()
 {
@@ -23,12 +27,24 @@ bool lancet::Service::Initialize()
 	QStringList listModuls =
 	{
 		spatial_fitting::ModulsFactor::Items::PROBE_REGISTER_MODEL,
+		spatial_fitting::ModulsFactor::Items::ROBOTICS_REGISTER_MODEL,
 		spatial_fitting::ModulsFactor::Items::PELVIS_CHECKPOINT_MODEL,
+		spatial_fitting::ModulsFactor::Items::PELVIS_ROUGH_REGISTER_MODEL,
+		//spatial_fitting::ModulsFactor::Items::PELVIS_PELVIC_REGISTER_MODEL,
 	};
+
+	auto ndidatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Vega");
+	auto robotdatasource = this->GetDeviceService()->GetConnector()->GetTrackingDeviceSource("Kuka");
 
 	for (auto item_key : listModuls)
 	{
-		this->SetModel(item_key, factor.CreateModel(item_key));
+		auto model = factor.CreateModel(item_key);
+
+		// init
+		model->SetNdiNavigationDataSource(ndidatasource);
+		model->SetRoboticsNavigationDataSource(robotdatasource);
+
+		this->SetModel(item_key, model);
 	}
 
 	return true;

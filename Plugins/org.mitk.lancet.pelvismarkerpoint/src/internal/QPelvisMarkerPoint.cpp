@@ -219,7 +219,7 @@ void QPelvisMarkerPoint::on_toolCollector_complete(mitk::NavigationData* data)
 		MITK_WARN << "Input RoboticsRegisterModel is nullptr, Ignore this request!";
 		return;
 	}
-
+	
 	if (toolCollector->GetPermissionIdentificationArea() == "on_pushButtonPelvisCheckpoint_clicked")
 	{
 		// update ui for widget

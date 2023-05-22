@@ -31,7 +31,7 @@ found in the LICENSE file.
 #include <lancetIDevicesAdministrationService.h>
 #include <core/lancetSpatialFittingPipelineManager.h>
 #include <core/lancetSpatialFittingNavigationToolCollector.h>
-#include <internal/lancetSpatialFittingPelvicRoughRegistrationsModel.h>
+#include <internal/moduls/lancetSpatialFittingPelvicRoughRegistrationsModel.h>
 
 struct QPelvisRoughRegistrations::QPelvisRoughRegistrationsPrivateImp
 {
@@ -50,7 +50,7 @@ QPelvisRoughRegistrations::QPelvisRoughRegistrations()
 {
 	if (this->GetServiceModel().IsNotNull())
 	{
-		this->GetServiceModel()->Start();
+		this->GetServiceModel()->StartWorking();
 	}
 }
 
@@ -58,7 +58,7 @@ QPelvisRoughRegistrations::~QPelvisRoughRegistrations()
 {
 	if (this->GetServiceModel().IsNotNull())
 	{
-		this->GetServiceModel()->Stop();
+		this->GetServiceModel()->StopWorking();
 	}
 }
 
@@ -154,15 +154,18 @@ void QPelvisRoughRegistrations::on_pushButtonClearOne_Landmark_clicked()
 	this->RemoveVegaPointOnBack();
 }
 
-itk::SmartPointer<QPelvisRoughRegistrations::PelvicRoughRegistrationsModel> 
+berry::SmartPointer<QPelvisRoughRegistrations::PelvicRoughRegistrationsModel> 
   QPelvisRoughRegistrations::GetServiceModel() const
 {
+	using namespace lancet::spatial_fitting;
+
 	auto context = PluginActivator::GetPluginContext();
-	auto serviceRef = context->getServiceReference<lancet::SpatialFittingAbstractService>();
-	auto service = context->getService<lancet::SpatialFittingAbstractService>(serviceRef);
+	auto serviceRef = context->getServiceReference<lancet::AbstractService>();
+	auto service = context->getService<lancet::AbstractService>(serviceRef);
 	if (service)
 	{
-		return service->GetPelvicRoughRegistrationsModel();
+		return service->GetModel(ModulsFactor::Items::PELVIS_ROUGH_REGISTER_MODEL)
+			.Cast<PelvicRoughRegistrationsModel>();
 	}
 
 	return PelvicRoughRegistrationsModel::Pointer();
@@ -237,13 +240,16 @@ void QPelvisRoughRegistrations::InitializeCollectStateForQtWidget()
 {
 	if (this->GetServiceModel().IsNotNull())
 	{
-		bool posteriorAcetabulumEnabled = this->GetServiceModel()->GetVegaPoint(0) != mitk::Point3D();
+		bool posteriorAcetabulumEnabled = this->GetServiceModel()->GetRegistrationsPoints().
+			GetReferencePointSet(0) != mitk::Point3D();
 		this->m_Controls.radioButton_posteriorAcetabulum->setChecked(posteriorAcetabulumEnabled);
 
-		bool anteriorAcetabulumEnabled = this->GetServiceModel()->GetVegaPoint(1) != mitk::Point3D();
+		bool anteriorAcetabulumEnabled = this->GetServiceModel()->GetRegistrationsPoints().
+			GetReferencePointSet(1) != mitk::Point3D();
 		this->m_Controls.radioButton_anteriorAcetabulum->setChecked(anteriorAcetabulumEnabled);
 
-		bool superiorAcetabulumEnabled = this->GetServiceModel()->GetVegaPoint(2) != mitk::Point3D();
+		bool superiorAcetabulumEnabled = this->GetServiceModel()->GetRegistrationsPoints().
+			GetReferencePointSet(2) != mitk::Point3D();
 		this->m_Controls.radioButton_superiorAcetabulum->setChecked(superiorAcetabulumEnabled);
 
 		if (posteriorAcetabulumEnabled && anteriorAcetabulumEnabled && superiorAcetabulumEnabled)
@@ -275,19 +281,23 @@ void QPelvisRoughRegistrations::AppendVegaPointOnBack(const mitk::Point3D& pt)
 	{
 		for (int index = 0; index < 3; ++index)
 		{
-			if (this->GetServiceModel()->GetVegaPoint(index) == mitk::Point3D())
+			if (this->GetServiceModel()->GetRegistrationsPoints().GetReferencePointSet(index) == mitk::Point3D())
 			{
-				this->GetServiceModel()->SetVegaPointArray(index, pt);
+				this->GetServiceModel()->GetRegistrationsPoints().SetReferencePointSet(index, pt);
 				this->InitializeCollectStateForQtWidget();
 				break;
 			}
 		}
 
 		// is verify ?
-		if (this->GetServiceModel()->GetVegaPointVaildIndex() == 2)
+		for (int index = 0; index < this->GetServiceModel()->GetRegistrationsPoints().GetNumber(); ++index)
 		{
-			this->VerifyImageRegistor();
+			if (this->GetServiceModel()->GetRegistrationsPoints().GetReferencePointSet(index) == mitk::Point3D())
+			{
+				return;
+			}
 		}
+		this->VerifyImageRegistor();
 	}
 }
 
@@ -297,9 +307,9 @@ void QPelvisRoughRegistrations::RemoveVegaPointOnBack()
 	{
 		for (int index = 2; index >= 0; --index)
 		{
-			if (this->GetServiceModel()->GetVegaPoint(index) != mitk::Point3D())
+			if (this->GetServiceModel()->GetRegistrationsPoints().GetReferencePointSet(index) != mitk::Point3D())
 			{
-				this->GetServiceModel()->SetVegaPointArray(index, mitk::Point3D());
+				this->GetServiceModel()->GetRegistrationsPoints().SetReferencePointSet(index, mitk::Point3D());
 				this->InitializeCollectStateForQtWidget();
 				break;
 			}
@@ -314,19 +324,23 @@ void QPelvisRoughRegistrations::VerifyImageRegistor()
 		return;
 	}
 
+	using namespace lancet::spatial_fitting;
+
 	mitk::PointSet::Pointer imagePointArray = mitk::PointSet::New();
 	mitk::PointSet::Pointer vegaPointArray = mitk::PointSet::New();
 
 	for (int index = 0; index < 3; ++index)
 	{
-		imagePointArray->SetPoint(index, this->GetServiceModel()->GetImagePoint(index));
-		vegaPointArray->SetPoint(index, this->GetServiceModel()->GetVegaPoint(index));
+		auto imgPoint = this->GetServiceModel()->GetRegistrationsPoints().GetStandardPointSet(index);
+		auto ndiPoint = this->GetServiceModel()->GetRegistrationsPoints().GetReferencePointSet(index);
+		imagePointArray->SetPoint(index, imgPoint);
+		vegaPointArray->SetPoint(index, ndiPoint);
 	}
 	mitk::Surface::Pointer pelvisSurface = this->GetDataStorage()->GetNamedObject<mitk::Surface>("pelvis_clipped_left");
 
 	if (this->GetServiceModel()->ComputeLandMarkResult(imagePointArray, vegaPointArray, pelvisSurface))
 	{
-		this->GetServiceModel()->SetModel(PelvicRoughRegistrationsModel::Model::Verify);
+		this->GetServiceModel()->SetWorkingStream(AbstractPelvicRegistrationsModel::VerifyAccuracy);
 	}
 }
 

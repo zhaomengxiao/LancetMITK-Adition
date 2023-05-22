@@ -68,7 +68,7 @@ protected slots:
 	void on_pushButtonClearOne_Landmark_clicked();
 private:
 	using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
-	itk::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
+	berry::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
 
 	void Initialize();
 	void InitializeTrackingToolsWidget();

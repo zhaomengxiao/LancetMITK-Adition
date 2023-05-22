@@ -39,7 +39,7 @@ itk::SmartPointer<mitk::NavigationDataSource> AbstractModel::GetNdiNavigationDat
 
 void AbstractModel::SetNdiNavigationDataSource(const itk::SmartPointer<mitk::NavigationDataSource>& source)
 {
-    this->imp->ndiNavigationDataSource = source;
+   this->imp->ndiNavigationDataSource = source;
 }
 
 itk::SmartPointer<mitk::NavigationDataSource> AbstractModel::GetRoboticsNavigationDataSource() const

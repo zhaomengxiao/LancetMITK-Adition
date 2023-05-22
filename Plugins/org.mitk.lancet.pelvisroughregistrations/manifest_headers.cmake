@@ -4,6 +4,6 @@ set(Plugin-Vendor "German Cancer Research Center (DKFZ)")
 set(Plugin-ContactAddress "")
 set(Require-Plugin 
   org.mitk.gui.qt.common
-  org.mitk.lancet.services.spatialfitting
+  org.mitk.lancet.services.spatialfitting.ex
   org.mitk.lancet.services.devicesadministration
   )

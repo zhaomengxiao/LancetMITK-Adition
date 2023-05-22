@@ -25,7 +25,7 @@ namespace lancet::spatial_fitting
 {
   class RoboticsRegisterModel;
 
-  using RoboticsRegisterModelPtr = itk::SmartPointer<RoboticsRegisterModel>;
+  using RoboticsRegisterModelPtr = berry::SmartPointer<RoboticsRegisterModel>;
 } // namespace lancet::spatial_fitting
 
 /**
