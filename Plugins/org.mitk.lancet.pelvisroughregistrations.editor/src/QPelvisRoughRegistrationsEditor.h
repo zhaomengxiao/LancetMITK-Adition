@@ -98,7 +98,7 @@ private:
 	itk::SmartPointer<mitk::DataStorage> GetDataStorage() const;
 
 	using PelvicRoughRegistrationsModel = lancet::spatial_fitting::PelvicRoughRegistrationsModel;
-	itk::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
+	berry::SmartPointer<PelvicRoughRegistrationsModel> GetServiceModel() const;
 
 	static lancet::IDevicesAdministrationService* GetDevicesService();
 private:

@@ -82,7 +82,6 @@ void QPelvisMarkerPoint::CreateQtPartControl(QWidget *parent)
 		  << "error: " << qss.errorString();
   }
   // pos
-  qInfo() << "log.file.pos " << qss.pos();
   m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
   qss.close();
 
@@ -271,7 +270,7 @@ void QPelvisMarkerPoint::on_pushButtonPelvisCheckpoint_clicked()
 
 	if (this->GetServiceModel().IsNull())
 	{
-		MITK_WARN << "Input RoboticsRegisterModel is nullptr, Ignore this request!";
+		MITK_WARN << "Input Pelvis check point model is nullptr, Ignore this request!";
 		return;
 	}
 	using namespace lancet::spatial_fitting;

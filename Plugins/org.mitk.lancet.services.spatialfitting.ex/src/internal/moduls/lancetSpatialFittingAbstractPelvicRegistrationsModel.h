@@ -42,6 +42,12 @@ public:
 		is not recommended to be dropped onto derived class objects")]]
 	virtual void SetSurfaceRegistration(const mitk::SurfaceRegistration::Pointer&) final;
 
+	virtual itk::SmartPointer<PipelineManager> GetRegistrationPipeline() const;
+	virtual void SetRegistrationPipeline(const itk::SmartPointer<PipelineManager>&);
+
+	virtual itk::SmartPointer<PipelineManager> GetRegistrationVerifyPipeline() const;
+	virtual void SetRegistrationVerifyPipeline(const itk::SmartPointer<PipelineManager>&);
+
 	virtual bool ComputeLandMarkResult(mitk::PointSet::Pointer,
 		mitk::PointSet::Pointer, mitk::Surface::Pointer) = 0;
 

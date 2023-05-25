@@ -48,12 +48,6 @@ public:
 	virtual bool ComputeLandMarkResult(mitk::PointSet::Pointer,
 		mitk::PointSet::Pointer, mitk::Surface::Pointer) override;
 public:
-	virtual itk::SmartPointer<PipelineManager> GetRegistrationPipeline() const;
-	virtual void SetRegistrationPipeline(const itk::SmartPointer<PipelineManager>&);
-
-	virtual itk::SmartPointer<PipelineManager> GetRegistrationVerifyPipeline() const;
-	virtual void SetRegistrationVerifyPipeline(const itk::SmartPointer<PipelineManager>&);
-
 	virtual PelvicRoughRegistrationsPoints& GetRegistrationsPoints();
 private:
 	struct PrivateImp;

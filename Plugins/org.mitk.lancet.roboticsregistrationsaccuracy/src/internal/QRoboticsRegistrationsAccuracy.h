@@ -68,6 +68,8 @@ protected:
 
   void UpdateUiForService();
 
+  void InitializeTrackingToolsWidget();
+
 	berry::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> GetServiceModel() const;
 protected slots:
   void on_pushButtonProbeCheckPoint_clicked();

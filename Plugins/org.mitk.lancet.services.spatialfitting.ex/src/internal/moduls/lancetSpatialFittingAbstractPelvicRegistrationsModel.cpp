@@ -1,11 +1,15 @@
 #include "lancetSpatialFittingAbstractPelvicRegistrationsModel.h"
-
+#include <core/lancetSpatialFittingPipelineManager.h>
 
 BEGIN_SPATIAL_FITTING_NAMESPACE
 
 struct AbstractPelvicRegistrationsModel::PrivateImp
 {
 	WorkingStream workingStream;
+
+	PipelineManager::Pointer registrationPipeline;
+	PipelineManager::Pointer registrationVerifyPipeline;
+
 	static mitk::SurfaceRegistration::Pointer surfaceRegistration;
 };
 
@@ -31,6 +35,26 @@ void AbstractPelvicRegistrationsModel::SetSurfaceRegistration(
 	const mitk::SurfaceRegistration::Pointer& surfaceRegistration)
 {
 	PrivateImp::surfaceRegistration = surfaceRegistration;
+}
+
+itk::SmartPointer<PipelineManager> AbstractPelvicRegistrationsModel::GetRegistrationPipeline() const
+{
+	return this->imp->registrationPipeline;
+}
+
+void AbstractPelvicRegistrationsModel::SetRegistrationPipeline(const itk::SmartPointer<PipelineManager>& pipeline)
+{
+	this->imp->registrationPipeline = pipeline;
+}
+
+itk::SmartPointer<PipelineManager> AbstractPelvicRegistrationsModel::GetRegistrationVerifyPipeline() const
+{
+	return this->imp->registrationVerifyPipeline;
+}
+
+void AbstractPelvicRegistrationsModel::SetRegistrationVerifyPipeline(const itk::SmartPointer<PipelineManager>& pipeline)
+{
+	this->imp->registrationVerifyPipeline = pipeline;
 }
 
 AbstractPelvicRegistrationsModel::WorkingStream 

@@ -47,7 +47,7 @@ found in the LICENSE file.
 #include <internal/lancetTrackingDeviceManage.h>
 #include <core/lancetSpatialFittingPipelineManager.h>
 #include <lancetNavigationObjectVisualizationFilter.h>
-#include <internal/lancetSpatialFittingPelvicRoughRegistrationsModel.h>
+#include <internal/moduls/lancetSpatialFittingPelvicRoughRegistrationsModel.h>
 
 
 const QString 
@@ -71,7 +71,7 @@ QPelvisRoughRegistrationsEditor::QPelvisRoughRegistrationsEditor()
   // nothing here
 	m_PrefServiceTracker.open();
 
-	this->updateProbeTm.setInterval(100);
+	this->updateProbeTm.setInterval(150);
 	connect(&updateProbeTm, &QTimer::timeout, this, [=]() 
 		{
 			if (nullptr == this->GetDevicesService() || this->GetDevicesService()->GetConnector().IsNull())
@@ -167,19 +167,19 @@ berry::IPartListener::Events::Types QPelvisRoughRegistrationsEditor::GetPartEven
 
 void QPelvisRoughRegistrationsEditor::OnRenderModelChange()
 {
-	using Model = lancet::spatial_fitting::PelvicRoughRegistrationsModel::Model;
-	Model model = Model::Collect;
+	using Model = lancet::spatial_fitting::AbstractPelvicRegistrationsModel::WorkingStream;
+	Model model = Model::Collector;
 	if (this->GetServiceModel().IsNotNull())
 	{
-		model = this->GetServiceModel()->GetModel();
+		model = this->GetServiceModel()->GetWorkingStream();
 	}
 
 	switch (model)
 	{
-	case Model::Collect:
+	case Model::Collector:
 		this->InitializeMitkMultiWidgetOnCollectModel();
 		break;
-	case Model::Verify:
+		case Model::VerifyAccuracy:
 		this->InitializeMitkMultiWidgetOnVerifyModel();
 		break;
 	}
@@ -203,15 +203,17 @@ itk::SmartPointer<mitk::DataStorage> QPelvisRoughRegistrationsEditor::GetDataSto
 	return itk::SmartPointer<mitk::DataStorage>();
 }
 
-itk::SmartPointer<QPelvisRoughRegistrationsEditor::PelvicRoughRegistrationsModel> 
+berry::SmartPointer<QPelvisRoughRegistrationsEditor::PelvicRoughRegistrationsModel> 
   QPelvisRoughRegistrationsEditor::GetServiceModel() const
 {
+	using namespace lancet::spatial_fitting;
 	auto context = PluginActivator::GetPluginContext();
-	auto serviceRef = context->getServiceReference<lancet::SpatialFittingAbstractService>();
-	auto service = context->getService<lancet::SpatialFittingAbstractService>(serviceRef);
+	auto serviceRef = context->getServiceReference<lancet::AbstractService>();
+	auto service = context->getService<lancet::AbstractService>(serviceRef);
 	if (service)
 	{
-		return service->GetPelvicRoughRegistrationsModel();
+		return service->GetModel(ModulsFactor::Items::PELVIS_ROUGH_REGISTER_MODEL)
+			.Cast<PelvicRoughRegistrationsModel>();
 	}
 
 	return PelvicRoughRegistrationsModel::Pointer();
@@ -245,7 +247,7 @@ void QPelvisRoughRegistrationsEditor::InitializeDataStorageForService()
 			if (tmpPointSet)
 			{
 				MITK_INFO << "image point " << tmpPointSet->GetPoint(0);
-				this->GetServiceModel()->SetImagePointArray(index, tmpPointSet->GetPoint(0));
+				this->GetServiceModel()->GetRegistrationsPoints().SetStandardPointSet(index, tmpPointSet->GetPoint(0));
 			}
 		}
 	}
@@ -273,8 +275,6 @@ void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidget()
 				find_node->SetVisibility(false);
 			}
 		}
-		//mitk::SceneIO::Pointer sceneIO = mitk::SceneIO::New();
-		//sceneIO->LoadScene("C:/Users/sun/Desktop/lancethipnew2021.mitk", this->GetDataStorage().GetPointer());
 	}
 
 	auto defaultLayoutDesign = QmitkRenderWindowMenu::LayoutDesign::ONE_TOP_3D_BOTTOM;
@@ -283,6 +283,7 @@ void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidget()
 	m_Controls.widget->AddPlanesToDataStorage();
 	m_Controls.widget->GetRenderWindow4()->LayoutDesignChanged(defaultLayoutDesign);
 	m_Controls.widget->ResetCrosshair();
+	m_Controls.widget->SetCrosshairVisibility(false);
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 	this->OnRenderModelChange();
@@ -313,9 +314,9 @@ void QPelvisRoughRegistrationsEditor::InitializeQtEventOnService()
 		return;
 	}
 	
-	connect(this->GetServiceModel().GetPointer(), &PelvicRoughRegistrationsModel::VegaPointChange,
+	connect(this->GetServiceModel().GetPointer(), &PelvicRoughRegistrationsModel::UpdatePointSetpArray,
 		this, &QPelvisRoughRegistrationsEditor::OnVegaPointChange);
-	connect(this->GetServiceModel().GetPointer(), &PelvicRoughRegistrationsModel::RenderModelChange,
+	connect(this->GetServiceModel().GetPointer(), &PelvicRoughRegistrationsModel::UpdateWorkingStream,
 		this, &QPelvisRoughRegistrationsEditor::OnRenderModelChange);
 }
 
@@ -372,7 +373,9 @@ void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidgetOnVerifyModel()
 	QStringList listImageArray = {
 	DEBUG_POSTERIOR_LANDMARK_LEFT,
 	DEBUG_ANTERIOR_LANDMARK_LEFT,
-	DEBUG_SUPERIOR_LANDMARK_LEFT
+	DEBUG_SUPERIOR_LANDMARK_LEFT,
+	DEBUG_PELVIS_SURFACE_LEFT,
+	DEBUG_TEMP_VERIFY_POINTSET
 	};
 	for (int index = 0; index < listImageArray.size(); ++index)
 	{
@@ -391,14 +394,14 @@ void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidgetOnVerifyModel()
 
 		if (this->GetServiceModel()->GetRegistrationVerifyPipeline().IsNull())
 		{
-			this->GetServiceModel()->ConfigureRegistrationsVerifyPipeline();
+			this->GetServiceModel()->InitializeVerifyPipeline();
 		}
 		auto pipeline = this->GetServiceModel()->GetRegistrationVerifyPipeline();
 
 		for (int index = 0; index < 3; ++index)
 		{
 			mitk::NavigationData::Pointer data = mitk::NavigationData::New();
-			data->SetPosition(this->GetServiceModel()->GetVegaPoint(index));
+			data->SetPosition(this->GetServiceModel()->GetRegistrationsPoints().GetReferencePointSet(index));
 			data->SetDataValid(true);
 
 			pipeline->SetInput(data);
@@ -417,19 +420,19 @@ void QPelvisRoughRegistrationsEditor::InitializeMitkMultiWidgetOnVerifyModel()
 		tmpNode->SetProperty("pointsize", mitk::FloatProperty::New(4.0f));
 		tmpNode->SetProperty("contourcolor", mitk::ColorProperty::New(1.0f, 0.0f, 0.0f));
 		this->GetDataStorage()->Add(tmpNode);
-
-		if (this->GetDataStorage()->GetNamedNode("ProbeTHA"))
-		{
-			this->GetDataStorage()->GetNamedNode("ProbeTHA")->SetVisibility(true);
-		}
-
-		this->updateProbeTm.start();
 	}
+
+	if (this->GetDataStorage()->GetNamedNode("ProbeTHA"))
+	{
+		this->GetDataStorage()->GetNamedNode("ProbeTHA")->SetVisibility(true);
+	}
+
+	this->updateProbeTm.start();
 }
 
 void QPelvisRoughRegistrationsEditor::OnVegaPointChange()
 {
-	using Model = lancet::spatial_fitting::PelvicRoughRegistrationsModel::Model;
+	using Model = lancet::spatial_fitting::AbstractPelvicRegistrationsModel::WorkingStream;
 	if (this->GetServiceModel().IsNull() || this->GetDataStorage().IsNull())
 	{
 		return;
@@ -442,7 +445,8 @@ void QPelvisRoughRegistrationsEditor::OnVegaPointChange()
 	};
 	for (int index = 0; index < listImageArray.size(); ++index)
 	{
-		bool isVisible = this->GetServiceModel()->GetVegaPoint(index) == mitk::Point3D();
+		bool isVisible = this->GetServiceModel()->GetRegistrationsPoints()
+			.GetReferencePointSet(index) == mitk::Point3D();
 		auto node = this->GetDataStorage()->GetNamedNode(listImageArray[index].toStdString());
 		if (node)
 		{

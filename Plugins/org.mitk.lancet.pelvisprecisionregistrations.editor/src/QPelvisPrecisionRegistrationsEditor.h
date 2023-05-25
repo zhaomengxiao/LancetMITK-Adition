@@ -98,8 +98,8 @@ private:
 
   static lancet::IDevicesAdministrationService* GetDevicesService();
 
-  static itk::SmartPointer<lancet::spatial_fitting::PelvicRegistrationsModel> 
-    GetServiceModel();
+  //static berry::SmartPointer<lancet::spatial_fitting::PelvicRegistrationsModel>
+  //  GetServiceModel();
 
 	static itk::SmartPointer<mitk::DataStorage> GetDataStorage();
 private:

@@ -26,7 +26,8 @@
 // Include header file for lancet tracking data.
 #include <lancetSpatialFittingAbstractService.h>
 #include <lancetNavigationObjectVisualizationFilter.h>
-#include <internal/lancetSpatialFittingPelvicRegistrationsModel.h>
+#include <internal/lancetSpatiaFittingModulsFactor.h>
+#include <internal/moduls/lancetSpatialFittingPelvicPrecisionRegistrationsModel.h>
 
 #include <mitkDataStorageEditorInput.h>
 
@@ -177,10 +178,10 @@ void QPelvisPrecisionRegistrationsEditor::onCollectModelOfCapturePoint(int index
 
 void QPelvisPrecisionRegistrationsEditor::InitializeDataStorageForService()
 {
-	if (this->GetServiceModel().IsNull() || this->GetDataStorage().IsNull())
-	{
-		return;
-	}
+	//if (this->GetServiceModel().IsNull() || this->GetDataStorage().IsNull())
+	//{
+	//	return;
+	//}
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -211,6 +212,7 @@ void QPelvisPrecisionRegistrationsEditor::InitializeMitkMultiWidget()
 	this->imp->m_Controls.widget->AddPlanesToDataStorage();
 	this->imp->m_Controls.widget->GetRenderWindow4()->LayoutDesignChanged(defaultLayoutDesign);
 	this->imp->m_Controls.widget->ResetCrosshair();
+	this->imp->m_Controls.widget->SetCrosshairVisibility(false);
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
@@ -220,10 +222,10 @@ void QPelvisPrecisionRegistrationsEditor::UnInitializeMitkMultiWidget()
 
 void QPelvisPrecisionRegistrationsEditor::InitializeQtEventOnService()
 {
-	if (this->GetServiceModel().IsNull())
-	{
-		return;
-	}
+	//if (this->GetServiceModel().IsNull())
+	//{
+	//	return;
+	//}
 
 	using PelvicRegistrationsModel = lancet::spatial_fitting::PelvicRegistrationsModel;
 
@@ -360,19 +362,21 @@ lancet::IDevicesAdministrationService*
 	return context->getService<lancet::IDevicesAdministrationService>(serviceRef);
 }
 
-itk::SmartPointer<lancet::spatial_fitting::PelvicRegistrationsModel> 
-  QPelvisPrecisionRegistrationsEditor::GetServiceModel()
-{
-	auto context = PluginActivator::GetPluginContext();
-	auto serviceRef = context->getServiceReference<lancet::SpatialFittingAbstractService>();
-	auto service = context->getService<lancet::SpatialFittingAbstractService>(serviceRef);
-	if (service)
-	{
-		return service->GetPelvicRegistrationsModel();
-	}
-
-	return lancet::spatial_fitting::PelvicRegistrationsModel::Pointer();
-}
+//berry::SmartPointer<lancet::spatial_fitting::> 
+//  QPelvisPrecisionRegistrationsEditor::GetServiceModel()
+//{
+//	using namespace lancet::spatial_fitting;
+//	auto context = PluginActivator::GetPluginContext();
+//	auto serviceRef = context->getServiceReference<lancet::AbstractService>();
+//	auto service = context->getService<lancet::AbstractService>(serviceRef);
+//	if (service)
+//	{
+//		return service->GetModel(ModulsFactor::Items::PELVIS_PELVIC_REGISTER_MODEL)
+//			.Cast<PelvicRegistrationsModel>();
+//	}
+//
+//	return PelvicRegistrationsModel::Pointer();
+//}
 
 itk::SmartPointer<mitk::DataStorage> QPelvisPrecisionRegistrationsEditor::GetDataStorage()
 {

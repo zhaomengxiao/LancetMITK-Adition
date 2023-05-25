@@ -9,7 +9,7 @@ Use of this source code is governed by a 3-clause BSD license that can be
 found in the LICENSE file.
 
 ============================================================================*/
-
+#include "org_mitk_lancet_femurroughregistrations_Activator.h"
 
 // Blueberry
 #include <berryISelectionService.h>
@@ -24,8 +24,21 @@ found in the LICENSE file.
 
 // mitk image
 #include <mitkImage.h>
+#include <mitkTrackingDeviceSource.h>
+
+#include <lancetIDevicesAdministrationService.h>
+#include <internal/lancetTrackingDeviceManage.h>
 
 const std::string QFemurRoughRegistrations::VIEW_ID = "org.mitk.views.qfemurroughregistrations";
+
+lancet::IDevicesAdministrationService* GetDeviceService()
+{
+	auto context = PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::IDevicesAdministrationService>();
+	auto service = context->getService<lancet::IDevicesAdministrationService>(serviceRef);
+
+	return service;
+}
 
 void QFemurRoughRegistrations::SetFocus()
 {
@@ -39,14 +52,14 @@ void QFemurRoughRegistrations::CreateQtPartControl(QWidget *parent)
   QFile qss(test_dir.absoluteFilePath("femurroughregistrations.qss"));
   if (!qss.open(QIODevice::ReadOnly))
   {
-	  qWarning() << __func__ << __LINE__ << ":" << "error load file "
+	  MITK_WARN << "error load file "
 		  << test_dir.absoluteFilePath("femurroughregistrations.qss") << "\n"
 		  << "error: " << qss.errorString();
   }
-  // pos
-  qInfo() << "log.file.pos " << qss.pos();
   m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
   qss.close();
+
+  this->InitializeTrackingToolsWidget();
 }
 
 void QFemurRoughRegistrations::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -59,4 +72,29 @@ void QFemurRoughRegistrations::OnSelectionChanged(berry::IWorkbenchPart::Pointer
 void QFemurRoughRegistrations::DoImageProcessing()
 {
   
+}
+
+void QFemurRoughRegistrations::InitializeTrackingToolsWidget()
+{
+	using TrackingTools = lancet::DeviceTrackingWidget::Tools;
+	this->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VProbe);
+	this->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VPelvis);
+
+	lancet::IDevicesAdministrationService* sender = GetDeviceService();
+	if (sender && sender->GetConnector().IsNotNull())
+	{
+		auto vegaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Vega");
+		auto kukaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Kuka");
+
+		if (this->m_Controls.widgetTrackingTools->HasTrackingToolSource("Vega Tracking Source"))
+		{
+			this->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Vega Tracking Source");
+		}
+		if (this->m_Controls.widgetTrackingTools->HasTrackingToolSource("Kuka Robot Tracking Source"))
+		{
+			this->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Kuka Robot Tracking Source");
+		}
+		this->m_Controls.widgetTrackingTools->AddTrackingToolSource(vegaTrackSource);
+		this->m_Controls.widgetTrackingTools->AddTrackingToolSource(kukaTrackSource);
+	}
 }

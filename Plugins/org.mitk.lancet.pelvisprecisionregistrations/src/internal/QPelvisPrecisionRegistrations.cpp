@@ -153,6 +153,7 @@ itk::SmartPointer<QPelvisPrecisionRegistrations::PelvicRoughRegistrationsModel>
 
 void QPelvisPrecisionRegistrations::Initialize()
 {
+	this->InitializeQtWidgetEventAtOnly();
 }
 
 void QPelvisPrecisionRegistrations::InitializeTrackingToolsWidget()

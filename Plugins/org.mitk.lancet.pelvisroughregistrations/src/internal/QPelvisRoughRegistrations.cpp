@@ -283,6 +283,7 @@ void QPelvisRoughRegistrations::AppendVegaPointOnBack(const mitk::Point3D& pt)
 		{
 			if (this->GetServiceModel()->GetRegistrationsPoints().GetReferencePointSet(index) == mitk::Point3D())
 			{
+				this->GetServiceModel()->GetRegistrationsPoints().SetModify(true);
 				this->GetServiceModel()->GetRegistrationsPoints().SetReferencePointSet(index, pt);
 				this->InitializeCollectStateForQtWidget();
 				break;
@@ -311,6 +312,7 @@ void QPelvisRoughRegistrations::RemoveVegaPointOnBack()
 			{
 				this->GetServiceModel()->GetRegistrationsPoints().SetReferencePointSet(index, mitk::Point3D());
 				this->InitializeCollectStateForQtWidget();
+				this->GetServiceModel()->GetRegistrationsPoints().SetModify(true);
 				break;
 			}
 		}

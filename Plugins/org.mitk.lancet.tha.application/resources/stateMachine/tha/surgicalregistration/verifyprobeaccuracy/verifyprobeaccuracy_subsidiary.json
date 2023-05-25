@@ -4,7 +4,7 @@
 		"id": "org_mitk_lancet_tha_verifyprobeaccuracy",
 		"objectName": "ActionVerifyProbeAccuracy",
 		"uiName": "探针检查点",
-		"editorWidgetIdentify": "org_mitk_lancet_linkinghardware_editor",
+		"editorWidgetIdentify": "org_mitk_lancet_roboticsregistrationsaccuracy_editor",
 		"fucntionWidgetIdentify": "org_mitk_views_qroboticsregistrationsaccuracy",
 		"theme": 
 		{

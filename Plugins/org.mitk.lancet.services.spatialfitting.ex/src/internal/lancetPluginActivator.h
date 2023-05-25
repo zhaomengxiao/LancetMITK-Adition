@@ -39,7 +39,7 @@ private:
 	std::shared_ptr<PrivateImp> imp;
 };
 
-	typedef org_mitk_lancet_services_SpatialFitting_ex PluginActivator;
 }
+typedef lancet::org_mitk_lancet_services_SpatialFitting_ex PluginActivator;
 
 #endif // !LancetPluginActivator_H

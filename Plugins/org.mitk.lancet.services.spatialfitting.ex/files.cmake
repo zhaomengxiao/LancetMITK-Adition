@@ -7,6 +7,7 @@ set(MOC_H_FILES
   src/internal/moduls/lancetSpatialFittingProbeCheckPointModel.h
   src/internal/moduls/lancetSpatialFittingRoboticsRegisterModel.h
   src/internal/moduls/lancetSpatialFittingPelvicRoughRegistrationsModel.h
+  src/internal/moduls/lancetSpatialFittingPelvicPrecisionRegistrationsModel.h
 )
 
 set(SRC_CPP_FILES
@@ -38,6 +39,7 @@ set(INTERNAL_CPP_FILES
   moduls/lancetSpatialFittingRoboticsRegisterModel.cpp
   moduls/lancetSpatialFittingAbstractPelvicRegistrationsModel.cpp
   moduls/lancetSpatialFittingPelvicRoughRegistrationsModel.cpp
+  moduls/lancetSpatialFittingPelvicPrecisionRegistrationsModel.cpp
 )
 
 set(CPP_FILES )

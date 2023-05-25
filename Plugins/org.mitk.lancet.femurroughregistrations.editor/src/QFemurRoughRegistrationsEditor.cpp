@@ -50,23 +50,33 @@ QFemurRoughRegistrationsEditor::QFemurRoughRegistrationsEditor()
   : berry::EditorPart()
 	, widgetInstace(nullptr)
 	, m_Prefs(nullptr)
-	, m_PrefServiceTracker(org_mitk_lancet_femurroughregistrations_editor_Activator::GetContext())
+	, m_PrefServiceTracker(PluginActivator::GetPluginContext())
 {
   // nothing here
 	m_PrefServiceTracker.open();
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
 QFemurRoughRegistrationsEditor::~QFemurRoughRegistrationsEditor()
 {
 	GetSite()->GetPage()->RemovePartListener(this);
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
 #include <mitkDataStorage.h>
 
+mitk::IDataStorageService* GetDataStorageService()
+{
+	auto context = PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<mitk::IDataStorageService>();
+	return context->getService<mitk::IDataStorageService>(serviceRef);
+}
+
 mitk::DataStorage::Pointer GetDataStorage() 
 {
+	mitk::IDataStorageService* pDsService = GetDataStorageService();
+	if (nullptr != pDsService && pDsService->GetActiveDataStorage().IsNotNull())
+	{
+		return pDsService->GetActiveDataStorage()->GetDataStorage();
+	}
 	return mitk::DataStorage::Pointer();
 }
 
@@ -85,19 +95,17 @@ void QFemurRoughRegistrationsEditor::CreatePartControl(QWidget* parent)
 	QFile qss(test_dir.absoluteFilePath("femurroughregistrationseditor.qss"));
 	if (!qss.open(QIODevice::ReadOnly))
 	{
-		qWarning() << __func__ << __LINE__ << ":" << "error load file "
+		MITK_WARN << "error load file "
 			<< test_dir.absoluteFilePath("femurroughregistrationseditor.qss") << "\n"
 			<< "error: " << qss.errorString();
 	}
 	// pos
-	qInfo() << "log.file.pos " << qss.pos();
 	m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
 	qss.close();
 }
 
 void QFemurRoughRegistrationsEditor::SetFocus()
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	if (widgetInstace.isNull() == false)
 	{
 		widgetInstace->setFocus();
@@ -106,12 +114,10 @@ void QFemurRoughRegistrationsEditor::SetFocus()
 
 void QFemurRoughRegistrationsEditor::DoSave()
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
 void QFemurRoughRegistrationsEditor::DoSaveAs()
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 }
 
 bool QFemurRoughRegistrationsEditor::IsSaveOnCloseNeeded() const
@@ -121,13 +127,11 @@ bool QFemurRoughRegistrationsEditor::IsSaveOnCloseNeeded() const
 
 bool QFemurRoughRegistrationsEditor::IsDirty() const
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	return true;
 }
 
 bool QFemurRoughRegistrationsEditor::IsSaveAsAllowed() const
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	return true;
 }
 
@@ -145,7 +149,6 @@ void QFemurRoughRegistrationsEditor::Init(berry::IEditorSite::Pointer site, berr
 {
 	//editorSite = site;
 	//editorInput = input;
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	if (input.Cast<mitk::DataStorageEditorInput>().IsNull())
 		throw berry::PartInitException("Invalid Input: Must be mitk::DataStorageEditorInput");
 
@@ -162,7 +165,6 @@ void QFemurRoughRegistrationsEditor::Init(berry::IEditorSite::Pointer site, berr
 
 berry::IPartListener::Events::Types QFemurRoughRegistrationsEditor::GetPartEventTypes() const
 {
-	qDebug() << "\033[0;34m" << QString("file(%1) line(%2) func(%3)").arg(__FILE__).arg(__LINE__).arg(__FUNCTION__) << QString("log") << "\033[0m";
 	return Events::CLOSED | Events::OPENED | Events::HIDDEN | Events::VISIBLE;
 }
 

@@ -1,9 +1,16 @@
 #include "lancetSpatialFittingPelvicRoughRegistrationsModel.h"
+#include "internal/lancetPluginActivator.h"
 
 #include "core/lancetSpatialFittingPipelineManager.h"
 #include "lancetSpatialFittingAbstractPipelineBuilder.h"
 #include "core/lancetSpatialFittingPelvicRoughRegistrationsDirector.h"
 #include "core/lancetSpatialFittingPelvicRoughRegistrationsVerifyDirector.h"
+
+#include <lancetIDevicesAdministrationService.h>
+#include <lancetNavigationObjectVisualizationFilter.h>
+#include <lancetApplySurfaceRegistratioinStaticImageFilter.h>
+
+#include <internal/lancetTrackingDeviceManage.h>
 
 #include <QTimer>
 
@@ -13,11 +20,16 @@ struct PelvicRoughRegistrationsModel::PrivateImp
 {
 	QTimer tm;
 
-	PipelineManager::Pointer registrationPipeline;
-	PipelineManager::Pointer registrationVerifyPipeline;
-
 	PelvicRoughRegistrationsPoints registrationsPoints;
+	lancet::ApplySurfaceRegistratioinStaticImageFilter::Pointer surfaceRegistrationStaticImageFilter;
 };
+
+lancet::IDevicesAdministrationService* GetDevicesService()
+{
+	auto context = PluginActivator::GetPluginContext();
+	auto serviceRef = context->getServiceReference<lancet::IDevicesAdministrationService>();
+	return context->getService<lancet::IDevicesAdministrationService>(serviceRef);
+}
 
 PelvicRoughRegistrationsModel::PelvicRoughRegistrationsModel(const QString& serialNumber)
 	: AbstractPelvicRegistrationsModel(serialNumber)
@@ -117,7 +129,7 @@ bool PelvicRoughRegistrationsModel::InitializeVerifyPipeline()
 
 	// Convert the transformation matrix obtained after image registration to the 
 	// type of mitk::AffineTransform3D.
-	{
+	
 		mitk::AffineTransform3D::Pointer convertMatrix = mitk::AffineTransform3D::New();
 		vtkNew<vtkMatrix4x4>(tmpMatrix);
 		tmpMatrix->DeepCopy(this->GetSurfaceRegistration()->GetMatrixLandMark());
@@ -130,7 +142,7 @@ bool PelvicRoughRegistrationsModel::InitializeVerifyPipeline()
 		convertMatrix->SetOffset(affineTrans3D->GetOffset());
 
 		pelvicRoughRegistrationsVerifyDirector->SetImageConvertMatrix(convertMatrix);
-	}
+	
 
 	if (false == pelvicRoughRegistrationsVerifyDirector->Builder())
 	{
@@ -139,36 +151,45 @@ bool PelvicRoughRegistrationsModel::InitializeVerifyPipeline()
 	auto pipeline = pelvicRoughRegistrationsVerifyDirector->GetBuilder()->GetOutput();
 	this->SetRegistrationVerifyPipeline(pipeline);
 
+	{
+		// TODO: Debug
+		if (nullptr == GetDevicesService() || GetDevicesService()->GetConnector().IsNull()) 
+		{ 
+			return false; 
+		}
+		auto trackingManager = GetDevicesService()->GetConnector();
+		auto vegaToolDataStorage = trackingManager->GetNavigationToolStorage("Vega");
+		auto pelvisRF = this->GetNdiNavigationDataSource()->GetOutput("PelvisRF");
+
+		this->imp->surfaceRegistrationStaticImageFilter =
+			lancet::ApplySurfaceRegistratioinStaticImageFilter::New();
+
+		this->imp->surfaceRegistrationStaticImageFilter->ConnectTo(this->GetNdiNavigationDataSource());
+		vegaToolDataStorage->GetToolByName("PelvisRF")->SetToolRegistrationMatrix(convertMatrix);
+		this->imp->surfaceRegistrationStaticImageFilter->SetRegistrationMatrix(convertMatrix.GetPointer());
+		this->imp->surfaceRegistrationStaticImageFilter->SetNavigationDataOfRF(pelvisRF);
+
+		trackingManager->GetNavigationDataToNavigationDataFilter("Vega")
+			->ConnectTo(this->imp->surfaceRegistrationStaticImageFilter);
+	}
+
 	return true;
 }
 
-bool PelvicRoughRegistrationsModel::ComputeLandMarkResult(mitk::PointSet::Pointer,
-	mitk::PointSet::Pointer, mitk::Surface::Pointer)
+bool PelvicRoughRegistrationsModel::ComputeLandMarkResult(mitk::PointSet::Pointer src,
+	mitk::PointSet::Pointer target, mitk::Surface::Pointer surface)
 {
-	return true;
-}
+	if (src.IsNull() || target.IsNull() || surface.IsNull()) { return false; }
 
-itk::SmartPointer<PipelineManager> 
-	PelvicRoughRegistrationsModel::GetRegistrationPipeline() const
-{
-	return this->imp->registrationPipeline;
-}
+	this->GetSurfaceRegistration()->ClearLandMarks();
+	this->GetSurfaceRegistration()->ClearIcpPoints();
+	this->GetSurfaceRegistration()->Clear();
 
-void PelvicRoughRegistrationsModel::SetRegistrationPipeline(
-	const itk::SmartPointer<PipelineManager>& pipeline)
-{
-	this->imp->registrationPipeline = pipeline;
-}
+	this->GetSurfaceRegistration()->SetLandmarksSrc(src);
+	this->GetSurfaceRegistration()->SetLandmarksTarget(target);
 
-itk::SmartPointer<PipelineManager> 
-	PelvicRoughRegistrationsModel::GetRegistrationVerifyPipeline() const
-{
-	return this->imp->registrationVerifyPipeline;
-}
-void PelvicRoughRegistrationsModel::SetRegistrationVerifyPipeline(
-	const itk::SmartPointer<PipelineManager>& pipeline)
-{
-	this->imp->registrationVerifyPipeline = pipeline;
+	this->GetSurfaceRegistration()->SetSurfaceSrc(surface);
+	return this->GetSurfaceRegistration()->ComputeLandMarkResult();
 }
 
 PelvicRoughRegistrationsModel::PelvicRoughRegistrationsPoints& 

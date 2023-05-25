@@ -70,12 +70,11 @@ void QRoboticsRegistrationsAccuracyEditor::CreatePartControl(QWidget* parent)
 	QFile qss(test_dir.absoluteFilePath("roboticsregistrationsaccuracyeditor.qss"));
 	if (!qss.open(QIODevice::ReadOnly))
 	{
-		qWarning() << __func__ << __LINE__ << ":" << "error load file "
+		MITK_WARN << "error load file "
 			<< test_dir.absoluteFilePath("roboticsregistrationsaccuracyeditor.qss") << "\n"
 			<< "error: " << qss.errorString();
 	}
 	// pos
-	qInfo() << "log.file.pos " << qss.pos();
 	m_Controls.widget->setStyleSheet(QLatin1String(qss.readAll()));
 	qss.close();
 }

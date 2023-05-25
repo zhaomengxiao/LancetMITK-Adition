@@ -43,6 +43,7 @@ bool lancet::Service::Initialize()
 		// init
 		model->SetNdiNavigationDataSource(ndidatasource);
 		model->SetRoboticsNavigationDataSource(robotdatasource);
+		model->Initialize();
 
 		this->SetModel(item_key, model);
 	}

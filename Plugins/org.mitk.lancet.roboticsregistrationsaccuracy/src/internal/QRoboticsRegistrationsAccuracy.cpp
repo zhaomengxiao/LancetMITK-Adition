@@ -17,6 +17,7 @@ found in the LICENSE file.
 
 // Qmitk
 #include <mitkImage.h>
+#include <mitkTrackingDeviceSource.h>
 #include "QRoboticsRegistrationsAccuracy.h"
 
 // Qt
@@ -70,6 +71,7 @@ void QRoboticsRegistrationsAccuracy::CreateQtPartControl(QWidget *parent)
 
   this->ConnectToQtWidget();
   this->UpdateUiForService();
+  this->InitializeTrackingToolsWidget();
 }
 
 void QRoboticsRegistrationsAccuracy::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -153,6 +155,31 @@ void QRoboticsRegistrationsAccuracy::UpdateUiForService()
 	this->m_Controls.pushButtonProbeCheckPoint->setEnabled(notTrackingDeviceTips.isEmpty());
 }
 
+void QRoboticsRegistrationsAccuracy::InitializeTrackingToolsWidget()
+{
+	using TrackingTools = lancet::DeviceTrackingWidget::Tools;
+	this->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VProbe);
+	this->m_Controls.widgetTrackingTools->InitializeTrackingToolVisible(TrackingTools::VRobotEndRF);
+
+	lancet::IDevicesAdministrationService* sender = GetDeviceService();
+	if (sender && sender->GetConnector().IsNotNull())
+	{
+		auto vegaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Vega");
+		auto kukaTrackSource = sender->GetConnector()->GetTrackingDeviceSource("Kuka");
+
+		if (this->m_Controls.widgetTrackingTools->HasTrackingToolSource("Vega Tracking Source"))
+		{
+			this->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Vega Tracking Source");
+		}
+		if (this->m_Controls.widgetTrackingTools->HasTrackingToolSource("Kuka Robot Tracking Source"))
+		{
+			this->m_Controls.widgetTrackingTools->RemoveTrackingToolSource("Kuka Robot Tracking Source");
+		}
+		this->m_Controls.widgetTrackingTools->AddTrackingToolSource(vegaTrackSource);
+		this->m_Controls.widgetTrackingTools->AddTrackingToolSource(kukaTrackSource);
+	}
+}
+
 berry::SmartPointer<lancet::spatial_fitting::ProbeCheckPointModel> 
 QRoboticsRegistrationsAccuracy::GetServiceModel() const
 {
@@ -163,7 +190,7 @@ QRoboticsRegistrationsAccuracy::GetServiceModel() const
 
 	if (service)
 	{
-		return service->GetModel(ModulsFactor::Items::PELVIS_CHECKPOINT_MODEL)
+		return service->GetModel(ModulsFactor::Items::PROBE_REGISTER_MODEL)
 			.Cast<ProbeCheckPointModel>();
 	}
 

@@ -49,6 +49,10 @@ protected:
   /// \brief Called when the user clicks the GUI button
   void DoImageProcessing();
 
+  void InitializeTrackingToolsWidget();
+
+private:
+
   Ui::QFemurMarkerPointControls m_Controls;
 };
 

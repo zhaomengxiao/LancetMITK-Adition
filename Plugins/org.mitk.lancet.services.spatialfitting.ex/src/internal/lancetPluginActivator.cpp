@@ -38,7 +38,7 @@ namespace lancet
         AbstractService* streakingServicePointer = new Service();
     
         // register service to mitk
-        this->imp->service =berry::SmartPointer(streakingServicePointer);
+        this->imp->service = berry::SmartPointer(streakingServicePointer);
         this->imp->pluginContext->registerService<AbstractService>(streakingServicePointer);
 	}
 

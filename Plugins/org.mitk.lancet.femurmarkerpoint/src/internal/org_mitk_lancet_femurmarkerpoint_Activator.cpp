@@ -16,10 +16,20 @@ found in the LICENSE file.
 
 namespace mitk
 {
+  static ctkPluginContext* staticCtkPluginContext = nullptr;
   void org_mitk_lancet_femurmarkerpoint_Activator::start(ctkPluginContext *context)
   {
+    staticCtkPluginContext = context;
     BERRY_REGISTER_EXTENSION_CLASS(QFemurMarkerPoint, context)
   }
 
-  void org_mitk_lancet_femurmarkerpoint_Activator::stop(ctkPluginContext *context) { Q_UNUSED(context) }
+  void org_mitk_lancet_femurmarkerpoint_Activator::stop(ctkPluginContext *context) 
+  {
+	Q_UNUSED(context);
+	staticCtkPluginContext = nullptr;
+  }
+  ctkPluginContext* org_mitk_lancet_femurmarkerpoint_Activator::GetPluginContext()
+  {
+	  return staticCtkPluginContext;
+  }
 }
