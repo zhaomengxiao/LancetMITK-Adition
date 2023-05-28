@@ -1,0 +1,120 @@
+/*============================================================================
+
+The Medical Imaging Interaction Toolkit (MITK)
+
+Copyright (c) German Cancer Research Center (DKFZ)
+All rights reserved.
+
+Use of this source code is governed by a 3-clause BSD license that can be
+found in the LICENSE file.
+
+============================================================================*/
+
+
+#ifndef RecordAndMove_h
+#define RecordAndMove_h
+
+#include <berryISelectionListener.h>
+
+#include <QmitkAbstractView.h>
+
+#include "ui_RecordAndMoveControls.h"
+
+
+//#include "kukaRobotDevice.h"
+#include "lancetApplyDeviceRegistratioinFilter.h"
+#include "lancetApplySurfaceRegistratioinFilter.h"
+#include "lancetApplySurfaceRegistratioinStaticImageFilter.h"
+#include "lancetKukaRobotDevice.h"
+#include "lancetNavigationObjectVisualizationFilter.h"
+#include "lancetPathPoint.h"
+#include "mitkTrackingDeviceSource.h"
+#include "mitkVirtualTrackingDevice.h"
+#include "robotRegistration.h"
+#include "lancetNavigationSceneFilter.h"
+#include <mutex>
+/**
+  \brief RecordAndMove
+
+  \warning  This class is not yet documented. Use "git blame" and ask the author to provide basic documentation.
+
+  \sa QmitkAbstractView
+  \ingroup ${plugin_target}_internal
+*/
+class RecordAndMove : public QmitkAbstractView
+{
+  // this is needed for all Qt objects that should have a Qt meta-object
+  // (everything that derives from QObject and wants to have signal/slots)
+  Q_OBJECT
+
+public:
+  static const std::string VIEW_ID;
+
+public slots:
+	void UseKuka();
+	void OnAutoMove();
+
+	//我自己写的bullshit
+	void RecordOnce();
+	void Record();
+
+protected:
+  virtual void CreateQtPartControl(QWidget *parent) override;
+
+  virtual void SetFocus() override;
+
+  /// \brief called by QmitkFunctionality when DataManager's selection has changed
+  virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
+                                  const QList<mitk::DataNode::Pointer> &nodes) override;
+
+  /// \brief Called when the user clicks the GUI button
+
+
+
+  Ui::RecordAndMoveControls m_Controls;
+
+  lancet::KukaRobotDevice_New::Pointer m_KukaTrackingDevice;
+  //vega trackingDeviceSource
+  mitk::TrackingDeviceSource::Pointer m_VegaSource;
+  //kuka trackingDeviceSource
+  mitk::TrackingDeviceSource::Pointer m_KukaSource;
+
+  lancet::NavigationObjectVisualizationFilter::Pointer m_KukaVisualizer;
+  lancet::NavigationObjectVisualizationFilter::Pointer m_VegaVisualizer;
+  lancet::ApplyDeviceRegistratioinFilter::Pointer m_KukaApplyRegistrationFilter;
+  QTimer* m_KukaVisualizeTimer{ nullptr };
+  QTimer* m_VegaVisualizeTimer{ nullptr };
+  mitk::NavigationToolStorage::Pointer m_KukaToolStorage;
+  mitk::NavigationToolStorage::Pointer m_VegaToolStorage;
+
+  //filter test
+  mitk::VirtualTrackingDevice::Pointer m_VirtualDevice1;
+  mitk::VirtualTrackingDevice::Pointer m_VirtualDevice2;
+  mitk::TrackingDeviceSource::Pointer m_VirtualDevice1Source;
+  mitk::TrackingDeviceSource::Pointer m_VirtualDevice2Source;
+  lancet::NavigationObjectVisualizationFilter::Pointer m_VirtualDevice1Visualizer;
+  lancet::NavigationObjectVisualizationFilter::Pointer m_VirtualDevice2Visualizer;
+  QTimer* m_VirtualDevice1Timer{ nullptr };
+  QTimer* m_VirtualDevice2Timer{ nullptr };
+  mitk::NavigationToolStorage::Pointer m_VirtualDevice1ToolStorage;
+  mitk::NavigationToolStorage::Pointer m_VirtualDevice2ToolStorage;
+  QTimer* m_ToolStatusTimer{ nullptr }; //<<< tracking timer that updates the status widgets
+
+  std::vector<mitk::NavigationData::Pointer> m_VegaNavigationData;
+  std::vector<mitk::NavigationData::Pointer> m_KukaNavigationData;
+
+  //fri test
+  // lancet::FriManager m_FriManager;
+  std::thread m_friThread;
+  mitk::AffineTransform3D::Pointer m_ProbeRealTimePose;
+  mitk::AffineTransform3D::Pointer m_ProbeInitPose;
+  mitk::AffineTransform3D::Pointer T_probe2robotEndRF;
+  bool m_KeepUpdateFriTransform{ true };
+  //double m_offset[3]{ 0,0,0 };
+
+  //use navigation scene filter
+  lancet::NavigationSceneFilter::Pointer m_NavigationSceneFilter;
+  NavigationScene::Pointer m_NavigationScene;
+};
+
+#endif // RecordAndMove_h

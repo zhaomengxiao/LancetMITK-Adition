@@ -58,4 +58,5 @@ set(MITK_PLUGINS
   org.mitk.lancet.surgicalsimulate:ON
   org.mitk.lancet.kukarobotcontrol:ON
   org.mitk.lancet.tha.application:ON
+  org.mitk.lancet.recordandmove:ON
 )

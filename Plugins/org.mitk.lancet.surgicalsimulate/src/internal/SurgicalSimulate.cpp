@@ -217,17 +217,20 @@ void SurgicalSimulate::GeneratePoses()
 
   vtkMatrix4x4* vtkMatrix = vtkMatrix4x4::New();
   mitk::TransferItkTransformToVtkMatrix(nd_robot2flange->GetAffineTransform3D().GetPointer(), vtkMatrix);
-
-
   //
 }
+
+
+//计算 Robo Base 和 Flange 之间的Transformation
+//计算 RoboRF 和 Robo End 之间的Transformation
+//把这两个 Transformation 加入 m_RobotRegistration
+//NDI看到的坐标系是SO3吗？ （貌似是）
 
 void SurgicalSimulate::CapturePose(bool translationOnly)
 {
   //Output sequence is the same as AddTool sequence
   //get navigation data of flange in robot coords,
   mitk::NavigationData::Pointer nd_robot2flange = m_KukaSource->GetOutput(0);
-
   //get navigation data of RobotEndRF in ndi coords,
   //auto RobotEndRF = m_VegaToolStorage->GetToolIndexByName("RobotEndRF");
   mitk::NavigationData::Pointer nd_Ndi2RobotEndRF = m_VegaSource->GetOutput("RobotEndRF");
@@ -243,6 +246,8 @@ void SurgicalSimulate::CapturePose(bool translationOnly)
 
   MITK_INFO << nd_robot2flange;
   MITK_INFO << nd_RobotBaseRF2RobotEndRF;
+  cout << "nd_robot2flange: "<<nd_robot2flange << endl;
+  cout << "nd_RobotBaseRF2RobotEndRF: " << nd_RobotBaseRF2RobotEndRF << endl;
 }
 
 mitk::NavigationData::Pointer SurgicalSimulate::GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
@@ -343,7 +348,9 @@ void SurgicalSimulate::OnKukaVisualizeTimer()
   
   if (m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult()>0)
   {
+	  
 	  ResultProtocol reply = m_KukaTrackingDevice->m_RobotApi.GetCommandResult();
+	  cout << "This is reply: " << reply.ToString() << endl;
 	  m_Controls.textBrowser->append(QString::fromStdString(reply.ToString()));
   }
 }
@@ -359,6 +366,7 @@ void SurgicalSimulate::OnSelfCheck()
   //   MITK_ERROR << "robot not connect";
   // }
 }
+
 
 void SurgicalSimulate::OnVegaVisualizeTimer()
 {
@@ -384,10 +392,16 @@ void SurgicalSimulate::OnVegaVisualizeTimer()
   }
 }
 
+//哪一行指令是让机器人平移？
+//哪一行指令是让机器人旋转？
+//save robot registration matrix into reference tool 什么意思
+//什么是 build ApplyDeviceRegistrationFilter？  "RobotBaseRF"对应"m_RobotRegistrationMatrix"？？？
+//为什么 m_KukaVisualizeTimer 要停止？因为要ConnectTo(m_KukaApplyRegistrationFilter)?
 void SurgicalSimulate::OnRobotCapture()
 {
   if (m_IndexOfRobotCapture < 5) //The first five translations, 
   {
+	cout << "OnRobotCapture::m_IndexOfRobotCapture: "<<m_IndexOfRobotCapture << endl;
     CapturePose(true);
     //Increase the count each time you click the button
     m_IndexOfRobotCapture++;
@@ -395,6 +409,7 @@ void SurgicalSimulate::OnRobotCapture()
   }
   else if (m_IndexOfRobotCapture < 10) //the last five rotations
   {
+	cout << "OnRobotCapture::m_IndexOfRobotCapture: " << m_IndexOfRobotCapture << endl;
     CapturePose(false);
     //Increase the count each time you click the button
     m_IndexOfRobotCapture++;
@@ -415,7 +430,10 @@ void SurgicalSimulate::OnRobotCapture()
 
 	MITK_INFO << "Robot Registration Matrix";
 	MITK_INFO << m_RobotRegistrationMatrix;
+
     //build ApplyDeviceRegistrationFilter
+	//m_KukaSource:基于RoboBase
+	//m_KukaApplyRegistrationFilter转到NDI坐标系下
     m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
     m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
     m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
@@ -428,6 +446,7 @@ void SurgicalSimulate::OnRobotCapture()
 
 	std::array<double, 6> tcp{};
 	m_RobotRegistration.GetTCP(tcp);
+	cout << "TCP: " << tcp[0]<<" " << tcp[1] << " " << tcp[2] << " " << tcp[3] << " " << tcp[4] << " " << tcp[5] <<endl;
 
 
 	//For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
@@ -462,34 +481,43 @@ void SurgicalSimulate::OnRobotCapture()
 
 	//save tcp into robot tool
 	m_KukaToolStorage->GetToolByName("RobotEndRF_robot")->SetTCP(tcp.data());
+	cout << "tcp.date: "<<tcp.data() << endl;
   }
 }
 
+
+//m_RobotApi.GetRobotInfo().frames[0] 是什么？
 void SurgicalSimulate::OnAutoMove()
 {
 	auto frame = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[0];
 	MITK_INFO << frame.name;
 	std::array<double,6> p = frame.position;
+	cout << "frame.position" << p[0] << endl;
+	cout << "frame.position" << p[1] << endl;
+	cout << "frame.position" << p[2] << endl;
+	cout << "frame.position" << p[3] << endl;
+	cout << "frame.position" << p[4] << endl;
+	cout << "frame.position" << p[5] << endl;
   switch (m_IndexOfRobotCapture)
   {
 	  
-  case 1: //x-100mm	  
-	  p[0] -= 100; 
+  case 1: //x-50mm	  
+	  p[0] -= 50; 
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 	  break;
-  case 2: //z-100mm
-	  p[2] -= 100; 
+  case 2: //z-50mm
+	  p[2] -= 50; 
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
     break;
 
-  case 3: //x+100mm
-	  p[0] += 100;
+  case 3: //x+50mm
+	  p[0] += 50;
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 
     break;
 
-  case 4: //y+100
-	  p[1] += 100;
+  case 4: //y+50
+	  p[1] += 50;
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 
     break;
