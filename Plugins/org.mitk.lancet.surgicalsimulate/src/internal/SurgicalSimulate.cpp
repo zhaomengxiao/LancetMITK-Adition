@@ -50,6 +50,7 @@ found in the LICENSE file.
 #include "kukaRobotAPI/defaultProtocol.h"
 const std::string SurgicalSimulate::VIEW_ID = "org.mitk.views.surgicalsimulate";
 
+//SetFocusÊÇÊ²Ã´£¿£¿£¿
 void SurgicalSimulate::SetFocus()
 {
   m_Controls.pushButton_connectKuka->setFocus();

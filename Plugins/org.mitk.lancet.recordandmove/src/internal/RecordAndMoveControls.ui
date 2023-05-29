@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>222</width>
-    <height>161</height>
+    <width>737</width>
+    <height>520</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -21,12 +21,19 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="label_position">
-     <property name="styleSheet">
-      <string notr="true">QLabel { color: rgb(255, 0, 0) }</string>
+    <widget class="QPushButton" name="pushButton_connect">
+     <property name="text">
+      <string>Connect to Kuka</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton_disconnect">
+     <property name="enabled">
+      <bool>true</bool>
      </property>
      <property name="text">
-      <string>Please select an image!</string>
+      <string>Disconnect</string>
      </property>
     </widget>
    </item>
@@ -41,20 +48,32 @@
     </widget>
    </item>
    <item>
-    <spacer name="spacer1">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+    <widget class="QLabel" name="label_position">
+     <property name="text">
+      <string>Position: </string>
      </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Expanding</enum>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton_setAsTarget">
+     <property name="text">
+      <string>Set as target</string>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>220</height>
-      </size>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_target">
+     <property name="text">
+      <string>Target:</string>
      </property>
-    </spacer>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton_moveToTarget">
+     <property name="text">
+      <string>Move to target</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

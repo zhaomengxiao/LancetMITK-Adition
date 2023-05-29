@@ -99,6 +99,7 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
+  connect(m_Controls.pushButton_connect, &QPushButton::clicked, this, &RecordAndMove::Record);
   connect(m_Controls.pushButton_recordPosition, &QPushButton::clicked, this, &RecordAndMove::Record);
 }
 
