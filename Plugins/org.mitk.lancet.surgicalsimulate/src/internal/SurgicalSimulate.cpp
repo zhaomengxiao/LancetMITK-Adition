@@ -306,7 +306,13 @@ void SurgicalSimulate::UseKuka()
 
   //use navigation scene filter
   m_NavigationSceneFilter->AddTrackingDevice(m_KukaSource,"RobotBaseRF");
+
   m_NavigationSceneFilter->GetNavigationScene()->Tranversal();
+}
+
+SurgicalSimulate::SurgicalSimulate()
+{
+  
 }
 
 void SurgicalSimulate::StartTracking()
@@ -493,12 +499,6 @@ void SurgicalSimulate::OnAutoMove()
 	auto frame = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[0];
 	MITK_INFO << frame.name;
 	std::array<double,6> p = frame.position;
-	cout << "frame.position" << p[0] << endl;
-	cout << "frame.position" << p[1] << endl;
-	cout << "frame.position" << p[2] << endl;
-	cout << "frame.position" << p[3] << endl;
-	cout << "frame.position" << p[4] << endl;
-	cout << "frame.position" << p[5] << endl;
   switch (m_IndexOfRobotCapture)
   {
 	  

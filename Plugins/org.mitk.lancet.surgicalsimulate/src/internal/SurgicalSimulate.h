@@ -48,7 +48,7 @@ class SurgicalSimulate : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
-
+  SurgicalSimulate();
 public slots:
   //Step1:Use a kuka Tracking Device
   void UseKuka();

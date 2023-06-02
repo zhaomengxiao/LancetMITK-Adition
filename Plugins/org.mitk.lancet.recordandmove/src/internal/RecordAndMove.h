@@ -33,6 +33,8 @@ found in the LICENSE file.
 #include "robotRegistration.h"
 #include "lancetNavigationSceneFilter.h"
 #include <mutex>
+// ************************* 为什么不可以用 *************************************
+//include "udpRobotiInfoClient.h"
 /**
   \brief RecordAndMove
 
@@ -49,16 +51,42 @@ class RecordAndMove : public QmitkAbstractView
 
 public:
   static const std::string VIEW_ID;
+  
 
 public slots:
 	void UseKuka();
-	void OnAutoMove();
+	//void OnAutoMove();
 
 	//我自己写的bullshit
-	void RecordOnce();
+	//void SetAsTarget();
+	
 	void Record();
+	void ThreadRecord();
+
+	void HandDrive();
+	void ThreadHandDrive();
+	void StopHandDrive();
+
+	void SetAsTarget();
+	void MoveToTarget();
 
 protected:
+  float target_x;
+  float target_y;
+  float target_z;
+  float target_a;
+  float target_b;
+  float target_c;
+  std::array<double, 6> m_Target;
+
+  bool m_ThreadRecord_Flag;
+
+  bool m_ThreadHandDrive_Flag = false;
+  std::thread m_ThreadHandDrive_Handler;
+  std::thread m_ThreadRecord_Handler;
+  // ************************* 为什么不可以用 *************************************
+  //UdpRobotInfoClient m_UdpConnection;
+
   virtual void CreateQtPartControl(QWidget *parent) override;
 
   virtual void SetFocus() override;
@@ -110,6 +138,8 @@ protected:
   mitk::AffineTransform3D::Pointer m_ProbeInitPose;
   mitk::AffineTransform3D::Pointer T_probe2robotEndRF;
   bool m_KeepUpdateFriTransform{ true };
+  bool preciousHandGuiding_select = false;
+  bool m_handGuidingOn = true;
   //double m_offset[3]{ 0,0,0 };
 
   //use navigation scene filter

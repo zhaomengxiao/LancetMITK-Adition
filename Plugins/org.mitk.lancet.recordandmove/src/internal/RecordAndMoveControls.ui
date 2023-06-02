@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="text">
-      <string>Disconnect</string>
+      <string>Disconnect（无效键）</string>
      </property>
     </widget>
    </item>
@@ -53,6 +53,40 @@
       <string>Position: </string>
      </property>
     </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton_handDrive">
+     <property name="text">
+      <string>Hand Drive</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton_stopHandDrive">
+     <property name="text">
+      <string>Stop Hand Drive</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_handDriveFlag">
+     <property name="text">
+      <string>handDriveFlag</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QPushButton" name="pushButton_setAsTarget">

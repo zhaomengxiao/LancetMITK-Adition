@@ -101,6 +101,7 @@ namespace lancet
      * \see RobotInformationProtocol
      */
     RobotInformationProtocol GetRobotInfo();
+	RobotInformationProtocol GetRobotInfo_xiao();
 
     //todo bool GetTrackingData();
 

@@ -102,13 +102,65 @@ unsigned int lancet::KukaRobotAPI::GetNumberOfCommandResult()
 	return m_MsgQueueSize;
 }
 
+RobotInformationProtocol lancet::KukaRobotAPI::GetRobotInfo_xiao()
+{
+	RobotInformationProtocol info{};
+
+	Poco::JSON::Parser parser;
+	parser.reset();
+	// Poco::Dynamic::Var result = parser.parse(m_UdpConnection.read());//todo crush when disconnect ,add err handle
+	  // #TODO: Debug kuka robot code
+	std::string updMessageRead = m_UdpConnection.read();
+
+	if (updMessageRead.empty())
+	{
+		MITK_WARN << "read empty message text.";
+		return info;
+	}
+
+	//MITK_ERROR << "DEBUG: " << updMessageRead;
+	Poco::Dynamic::Var result = parser.parse(updMessageRead);//todo crush when disconnect ,add err handle
+	auto pObj = result.extract<Poco::JSON::Object::Ptr>();
+	
+
+	cout << result.toString() << endl;
+	cout << "*******************************************" << endl;
+	cout << "*******************************************" << endl;
+	cout << "*******************************************" << endl;
+	if (pObj.isNull())
+	{
+		MITK_ERROR << "GetRobotInfo Failed: Can not parse udp massage to json Object,empty info returned";
+		return info;
+	}
+
+	if (!info.FromJsonObj(*pObj))
+	{
+		MITK_ERROR << "GetRobotInfo Failed: json format error,empty info returned.please check udp massage below:";
+		std::stringstream ss;
+		pObj->stringify(ss, 2);
+		MITK_ERROR << ss.str();
+	}
+	return info;
+}
+
 RobotInformationProtocol lancet::KukaRobotAPI::GetRobotInfo()
 {
   RobotInformationProtocol info{};
 
   Poco::JSON::Parser parser;
   parser.reset();
-  Poco::Dynamic::Var result = parser.parse(m_UdpConnection.read());//todo crush when disconnect ,add err handle
+  // Poco::Dynamic::Var result = parser.parse(m_UdpConnection.read());//todo crush when disconnect ,add err handle
+    // #TODO: Debug kuka robot code
+  std::string updMessageRead = m_UdpConnection.read();
+
+  if (updMessageRead.empty())
+  {
+	  MITK_WARN << "read empty message text.";
+	  return info;
+  }
+
+  //MITK_ERROR << "DEBUG: " << updMessageRead;
+  Poco::Dynamic::Var result = parser.parse(updMessageRead);//todo crush when disconnect ,add err handle
   auto pObj = result.extract<Poco::JSON::Object::Ptr>();
   if (pObj.isNull())
   {
@@ -294,7 +346,7 @@ std::vector<double> lancet::KukaRobotAPI::kukamatrix2angle(const double matrix3x
   double ay = matrix3x3[2][1];
   double az = matrix3x3[2][2];
 
-  //Çó½âRx¡¢Ry¡¢Rz
+  //ï¿½ï¿½ï¿½Rxï¿½ï¿½Ryï¿½ï¿½Rz
   //call Atan2(ax,sqrt(power(nx,2)+power(ox,2)),ry1)
   //double cry = (double)sqrt(nx * nx + ox * ox);
   double rx, ry, rz, rx2, ry2, rz2, rx_Origin, ry_Origin, rz_Origin;

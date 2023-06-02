@@ -59,48 +59,17 @@ void RecordAndMove::SetFocus()
   m_Controls.pushButton_recordPosition->setFocus();
 }
 
-
-//继续看了解IGT filter
-//VirtualDevice 和Visualizer是什么
-//geo是什么
-//RenderingManager是什么
-//void RecordAndMove::OnVirtualDevice2VisualizeTimer()
-//{
-//	//Here we call the Update() method from the Visualization Filter. Internally the filter checks if
-//	//new NavigationData is available. If we have a new NavigationData the cone position and orientation
-//	//will be adapted.
-//	if (m_VirtualDevice2Visualizer.IsNotNull())
-//	{
-//		m_VirtualDevice2Visualizer->Update();
-//		auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
-//		mitk::RenderingManager::GetInstance()->InitializeViews(geo);
-//		this->RequestRenderWindowUpdate();
-//	}
-//}
-
-
-// “Probe” 是什么？
-//void RecordAndMove::threadUpdateFriTransform()
-//{
-//	while (m_KeepUpdateFriTransform)
-//	{
-//		//calculate matrix
-//		auto robotEndRFDestInNDI = m_VegaSource->GetOutput("Probe")->GetAffineTransform3D();
-//		robotEndRFDestInNDI->Compose(T_probe2robotEndRF, true);
-//		//MITK_WARN << "robotEndRFDestInNDI" << robotEndRFDestInNDI;
-//		mitk::AffineTransform3D::Pointer robotDest = mitk::AffineTransform3D::New();
-//		m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", robotEndRFDestInNDI, robotDest);//都是什么？？
-//		m_KukaTrackingDevice->m_RobotApi.SetFriDynamicFrameTransform(robotDest);//??????FriDynamic是什么？？？
-//		std::this_thread::sleep_for(std::chrono::milliseconds(20));
-//	}
-//}
-
 void RecordAndMove::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
-  connect(m_Controls.pushButton_connect, &QPushButton::clicked, this, &RecordAndMove::Record);
-  connect(m_Controls.pushButton_recordPosition, &QPushButton::clicked, this, &RecordAndMove::Record);
+  
+  connect(m_Controls.pushButton_connect, &QPushButton::clicked, this, &RecordAndMove::UseKuka);
+  connect(m_Controls.pushButton_recordPosition, &QPushButton::clicked, this, &RecordAndMove::ThreadRecord);
+  connect(m_Controls.pushButton_handDrive, &QPushButton::clicked, this, &RecordAndMove::ThreadHandDrive);
+  connect(m_Controls.pushButton_setAsTarget, &QPushButton::clicked, this, &RecordAndMove::SetAsTarget);
+  connect(m_Controls.pushButton_moveToTarget, &QPushButton::clicked, this, &RecordAndMove::MoveToTarget);
+  connect(m_Controls.pushButton_stopHandDrive, &QPushButton::clicked, this, &RecordAndMove::StopHandDrive);
 }
 
 void RecordAndMove::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -138,51 +107,100 @@ void RecordAndMove::UseKuka()
 	if (m_KukaSource.IsNotNull())
 	{
 		m_KukaSource->Connect();
+		std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+		m_KukaSource->StartTracking();
 	}
+	MITK_INFO << "m_KukaSource connected!";
 
 	//use navigation scene filter
-	m_NavigationSceneFilter->AddTrackingDevice(m_KukaSource, "RobotBaseRF");
-	m_NavigationSceneFilter->GetNavigationScene()->Tranversal();
+	/*m_NavigationSceneFilter->AddTrackingDevice(m_KukaSource, "RobotBaseRF");
+	m_NavigationSceneFilter->GetNavigationScene()->Tranversal();*/
 }
 
+void RecordAndMove::ThreadHandDrive()
+{
+	if (m_ThreadHandDrive_Flag == false)
+	{
+		m_ThreadHandDrive_Flag = true;
+		m_ThreadHandDrive_Handler = std::thread(&RecordAndMove::HandDrive, this);
+		//QString handDriveFlag_text = QString::number(m_ThreadHandDrive_Flag);
+		m_Controls.label_handDriveFlag->setText("Hand Drive ON");
+	}
+}
+
+void RecordAndMove::ThreadRecord()
+{
+	m_ThreadRecord_Flag = true;
+	m_ThreadRecord_Handler = std::thread(&RecordAndMove::Record, this);
+}
 
 void RecordAndMove::Record()
 {
-	QTimer* timer = new QTimer(this);
-	timer->start(100);
-	connect(timer, &QTimer::timeout, this, &RecordAndMove::RecordOnce);
+	while (m_ThreadRecord_Flag)
+	{
+		auto frame = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[0];
+		//MITK_INFO << frame.name;
+		std::array<double, 6> p = frame.position;
+		QString position_text = "x: "+ QString::number(p[0]) + "    y: " + QString::number(p[1]) + "    z: " + QString::number(p[2]) + "    a: " + QString::number(p[3]) + "    b: " + QString::number(p[4]) + "    c: " + QString::number(p[5]);
+		m_Controls.label_position->setText(position_text);
+	}
 }
 
-void RecordAndMove::RecordOnce()
+void RecordAndMove::HandDrive()
 {
-	auto frame = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[0];
-	MITK_INFO << frame.name;
-	std::array<double, 6> p = frame.position;
-	cout << "frame.position" << p[0] << endl;
-	cout << "frame.position" << p[1] << endl;
-	cout << "frame.position" << p[2] << endl;
-	cout << "frame.position" << p[3] << endl;
-	cout << "frame.position" << p[4] << endl;
-	cout << "frame.position" << p[5] << endl;
-	cout << "***************" << endl;
+	while (m_ThreadHandDrive_Flag)
+	{
+		ResultProtocol reply;
+		if (m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult() > 0)
+		{
+			reply = m_KukaTrackingDevice->m_RobotApi.GetCommandResult();
+			MITK_INFO << "Receive Reply: " << QString::fromStdString(reply.operateType);
+		}
+
+		if (QString::fromStdString(reply.operateType) == "non_precious")
+		{
+			m_handGuidingOn = false;
+		}
+		//start handguiding
+		if (QString::fromStdString(reply.operateType) == "precious")
+		{
+			if (preciousHandGuiding_select == true) {
+				m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("HandGuiding");
+			}
+			else {
+				m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("Test");
+			}
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+	}
 }
 
+void RecordAndMove::StopHandDrive()
+{
+	if (m_ThreadHandDrive_Flag = true)
+	{
+		m_ThreadHandDrive_Flag = false;
+		m_ThreadHandDrive_Handler.join();
+		QString handDriveFlag_text = QString::number(m_ThreadHandDrive_Flag);
+		m_Controls.label_handDriveFlag->setText("Hand Drive OFF");
+	}
+	
+}
 
-void RecordAndMove::OnAutoMove()
+void RecordAndMove::SetAsTarget()
 {
 	auto frame = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[0];
-	MITK_INFO << frame.name;
+	//MITK_INFO << frame.name;
 	std::array<double, 6> p = frame.position;
-	cout << "frame.position" << p[0] << endl;
-	cout << "frame.position" << p[1] << endl;
-	cout << "frame.position" << p[2] << endl;
-	cout << "frame.position" << p[3] << endl;
-	cout << "frame.position" << p[4] << endl;
-	cout << "frame.position" << p[5] << endl;	  
-	p[0] -= 100;
-	p[1] -= 100;
-	p[2] -= 100;
-	m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+	m_Target = p;
+	QString position_text = "Target:    x: " + QString::number(p[0]) + "    y: " + QString::number(p[1]) + "    z: " + QString::number(p[2]) + "    a: " + QString::number(p[3]) + "    b: " + QString::number(p[4]) + "    c: " + QString::number(p[5]);
+	m_Controls.label_target->setText(position_text);
+}
+
+void RecordAndMove::MoveToTarget()
+{
+	StopHandDrive();
+	bool isGetTarget = m_KukaTrackingDevice->m_RobotApi.MovePTP(m_Target);
 }
 
 
