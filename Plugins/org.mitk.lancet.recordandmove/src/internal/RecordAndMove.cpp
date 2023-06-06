@@ -76,14 +76,13 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
 
 void RecordAndMove::UseKuka()
 {
-	m_Controls.pushButton_connect->setText("Connecting...");
+	m_Controls.pushButton_connectKuka->setText("Kuka Connecting...");
 	//read in filename
 	QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
 		tr("Tool Storage Files (*.IGTToolStorage)"));
 	if (filename.isNull()) return;
 
 	//read tool storage from disk
-	std::string errorMessage = "";
 	mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(
 		GetDataStorage());
 	m_KukaToolStorage = myDeserializer->Deserialize(filename.toStdString());
@@ -109,11 +108,76 @@ void RecordAndMove::UseKuka()
 		m_KukaSource->StartTracking();
 	}
 	MITK_INFO << "m_KukaSource connected!";
-	m_Controls.pushButton_connect->setText("Connected Successfully!");
+	m_Controls.pushButton_connect->setText("Kuka Connected Successfully!");
 
 	//use navigation scene filter
 	/*m_NavigationSceneFilter->AddTrackingDevice(m_KukaSource, "RobotBaseRF");
 	m_NavigationSceneFilter->GetNavigationScene()->Tranversal();*/
+}
+
+void RecordAndMove::UseVega()
+{
+	m_Controls.pushButton_connectVega->setText("Vega Connecting...");
+	//read in filename
+	QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
+		tr("Tool Storage Files (*.IGTToolStorage)"));
+	if (filename.isNull()) return;
+
+	//read tool storage from disk  ????????????????????????????????????????????????????????????
+	mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(
+		GetDataStorage());
+	m_VegaToolStorage = myDeserializer->Deserialize(filename.toStdString());
+	m_VegaToolStorage->SetName(filename.toStdString());
+
+	MITK_INFO << "Vega tracking";
+	//QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
+	lancet::NDIVegaTrackingDevice::Pointer vegaTrackingDevice = lancet::NDIVegaTrackingDevice::New(); //instantiate
+
+	//Create Navigation Data Source with the factory class, and the visualize filter.
+	lancet::TrackingDeviceSourceConfiguratorLancet::Pointer vegaSourceFactory =
+		lancet::TrackingDeviceSourceConfiguratorLancet::New(m_VegaToolStorage, vegaTrackingDevice);
+
+	m_VegaSource = vegaSourceFactory->CreateTrackingDeviceSource(m_VegaVisualizer);
+	m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
+	m_VegaSource->Connect();
+
+	m_VegaSource->StartTracking();
+
+	//update visualize filter by timer
+	if (m_VegaVisualizeTimer == nullptr)
+	{
+		m_VegaVisualizeTimer = new QTimer(this); //create a new timer
+	}
+	connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnVegaVisualizeTimer()));
+	//connect the timer to the method OnTimer()
+	connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget()));
+	//connect the timer to the method OnTimer()
+	ShowToolStatus_Vega();
+	m_VegaVisualizeTimer->start(100); //Every 100ms the method OnTimer() is called. -> 10fps
+
+	auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+	mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+
+	//use navigation scene filter
+	m_NavigationSceneFilter = lancet::NavigationSceneFilter::New();
+	m_NavigationSceneFilter->SetTrackingDevice(m_VegaSource);
+	m_NavigationSceneFilter->SetReferenceName(m_VegaSource->GetName());
+	m_Controls.pushButton_connectVega->setText("Vega Connected Successfully!");
+}
+
+void RecordAndMove::ShowToolStatus_Vega()
+{
+	m_VegaNavigationData.clear();
+	for (std::size_t i = 0; i < m_VegaSource->GetNumberOfOutputs(); i++)
+	{
+		m_VegaNavigationData.push_back(m_VegaSource->GetOutput(i));
+	}
+	//initialize widget
+	/*m_Controls.m_StatusWidgetVegaToolToShow->RemoveStatusLabels();
+	m_Controls.m_StatusWidgetVegaToolToShow->SetShowPositions(true);
+	m_Controls.m_StatusWidgetVegaToolToShow->SetTextAlignment(Qt::AlignLeft);
+	m_Controls.m_StatusWidgetVegaToolToShow->SetNavigationDatas(&m_VegaNavigationData);
+	m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();*/
 }
 
 void RecordAndMove::ThreadHandDrive()

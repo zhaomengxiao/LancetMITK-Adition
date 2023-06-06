@@ -55,6 +55,8 @@ public:
 
 public slots:
 	void UseKuka();
+	void UseVega();
+	void ShowToolStatus_Vega();
 
 	void Record();
 	void ThreadRecord();
