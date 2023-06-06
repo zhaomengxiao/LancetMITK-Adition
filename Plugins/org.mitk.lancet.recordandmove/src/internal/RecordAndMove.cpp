@@ -165,6 +165,36 @@ void RecordAndMove::UseVega()
 	m_Controls.pushButton_connectVega->setText("Vega Connected Successfully!");
 }
 
+void RecordAndMove::OnVegaVisualizeTimer()
+{
+	//Here we call the Update() method from the Visualization Filter. Internally the filter checks if
+	//new NavigationData is available. If we have a new NavigationData the cone position and orientation
+	//will be adapted.
+	if (m_VegaVisualizer.IsNotNull())
+	{
+		m_VegaVisualizer->Update();
+		// auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+		// mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+		this->RequestRenderWindowUpdate();
+
+		//update probe pose
+		auto  probe = m_VegaSource->GetOutput("ProbeTHA")->GetAffineTransform3D();
+		// m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
+		// m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", probe, m_ProbeRealTimePose);
+		  //mitk::AffineTransform3D::Pointer byhand = mitk::AffineTransform3D::New();
+		auto registrationMatrix = m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix();
+		probe->Compose(m_VegaSource->GetOutput("RobotBaseRF")->GetInverse()->GetAffineTransform3D());
+		probe->Compose(mitk::NavigationData::New(registrationMatrix)->GetInverse()->GetAffineTransform3D());
+		m_ProbeRealTimePose = probe;
+	}
+}
+
+void RecordAndMove::UpdateToolStatusWidget()
+{
+	/*m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
+	m_Controls.m_StatusWidgetKukaToolToShow->Refresh();*/
+}
+
 void RecordAndMove::ShowToolStatus_Vega()
 {
 	m_VegaNavigationData.clear();
