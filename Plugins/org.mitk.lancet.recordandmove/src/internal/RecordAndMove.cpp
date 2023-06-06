@@ -63,18 +63,14 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
-  
   connect(m_Controls.pushButton_connect, &QPushButton::clicked, this, &RecordAndMove::UseKuka);
   connect(m_Controls.pushButton_recordPosition, &QPushButton::clicked, this, &RecordAndMove::ThreadRecord);
   connect(m_Controls.pushButton_handDrive, &QPushButton::clicked, this, &RecordAndMove::ThreadHandDrive);
   connect(m_Controls.pushButton_setAsTarget, &QPushButton::clicked, this, &RecordAndMove::SetAsTarget);
   connect(m_Controls.pushButton_moveToTarget, &QPushButton::clicked, this, &RecordAndMove::MoveToTarget);
   connect(m_Controls.pushButton_stopHandDrive, &QPushButton::clicked, this, &RecordAndMove::StopHandDrive);
-}
+  connect(m_Controls.pushButton_capturePose, &QPushButton::clicked, this, &RecordAndMove::OnRobotCapture);
 
-void RecordAndMove::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
-	const QList<mitk::DataNode::Pointer>& nodes)
-{
 }
 
 void RecordAndMove::UseKuka()
@@ -177,14 +173,13 @@ void RecordAndMove::HandDrive()
 
 void RecordAndMove::StopHandDrive()
 {
-	if (m_ThreadHandDrive_Flag = true)
+	if (m_ThreadHandDrive_Flag == true)
 	{
 		m_ThreadHandDrive_Flag = false;
 		m_ThreadHandDrive_Handler.join();
 		QString handDriveFlag_text = QString::number(m_ThreadHandDrive_Flag);
 		m_Controls.label_handDriveFlag->setText("Hand Drive OFF");
 	}
-	
 }
 
 void RecordAndMove::SetAsTarget()
@@ -201,6 +196,99 @@ void RecordAndMove::MoveToTarget()
 {
 	StopHandDrive();
 	bool isGetTarget = m_KukaTrackingDevice->m_RobotApi.MovePTP(m_Target);
+}
+
+//=====================================  Helper Function =========================================
+mitk::NavigationData::Pointer RecordAndMove::GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
+	mitk::NavigationData::Pointer nd_ref)
+{
+	mitk::NavigationData::Pointer res = mitk::NavigationData::New();
+	res->Graft(nd);
+	res->Compose(nd_ref->GetInverse());
+	return res;
+}
+
+void RecordAndMove::CapturePose(bool translationOnly)
+{
+	//Output sequence is the same as AddTool sequence
+	//get navigation data of flange in robot coords,
+	mitk::NavigationData::Pointer nd_robot2flange = m_KukaSource->GetOutput(0);
+	//get navigation data of RobotEndRF in ndi coords,
+	//auto RobotEndRF = m_VegaToolStorage->GetToolIndexByName("RobotEndRF");
+	mitk::NavigationData::Pointer nd_Ndi2RobotEndRF = m_VegaSource->GetOutput("RobotEndRF");
+	//get navigation data of RobotBaseRF in ndi coords,
+	//auto RobotBaseRF = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+	mitk::NavigationData::Pointer nd_Ndi2RobotBaseRF = m_VegaSource->GetOutput("RobotBaseRF");
+	//get navigation data RobotEndRF in reference frame RobotBaseRF
+	mitk::NavigationData::Pointer nd_RobotBaseRF2RobotEndRF = GetNavigationDataInRef(
+		nd_Ndi2RobotEndRF, nd_Ndi2RobotBaseRF);
+
+	//add nd to registration module
+	m_RobotRegistration.AddPose(nd_robot2flange, nd_RobotBaseRF2RobotEndRF, translationOnly);
+
+	//MITK_INFO << nd_robot2flange;
+	//MITK_INFO << nd_RobotBaseRF2RobotEndRF;
+	cout << "nd_robot2flange: " << nd_robot2flange << endl;
+	cout << "nd_RobotBaseRF2RobotEndRF: " << nd_RobotBaseRF2RobotEndRF << endl;
+}
+
+void RecordAndMove::OnRobotCapture()
+{
+	if (m_IndexOfRobotCapture < 5) //The first five translations, 
+	{
+		CapturePose(true);
+		m_IndexOfRobotCapture++;
+		MITK_INFO << "OnRobotCapture: " << m_IndexOfRobotCapture<<"  (Translation): "<< m_IndexOfRobotCapture<<"/5";
+		m_Controls.pushButton_capturePose->setText("Translation "+ QString::number(m_IndexOfRobotCapture)+"/5");
+	}
+	else if (m_IndexOfRobotCapture < 10) //the last five rotations
+	{
+		CapturePose(false);
+		m_IndexOfRobotCapture++;
+		MITK_INFO << "OnRobotCapture: " << m_IndexOfRobotCapture << "  (Rotation): " << m_IndexOfRobotCapture-5 << "/5";
+		m_Controls.pushButton_capturePose->setText("Rotation " + QString::number(m_IndexOfRobotCapture-5) + "/5");
+	}
+	else
+	{
+		MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
+		m_Controls.pushButton_capturePose->setText("OnRobotCapture finish: "+QString::number(m_IndexOfRobotCapture));
+		vtkMatrix4x4* matrix4x4 = vtkMatrix4x4::New();
+		m_RobotRegistration.GetRegistraionMatrix(matrix4x4);  //RobotBase to RobotBaseRF
+
+		m_RobotRegistrationMatrix = mitk::AffineTransform3D::New();   //RobotBase to RobotBaseRF
+
+		mitk::TransferVtkMatrixToItkTransform(matrix4x4, m_RobotRegistrationMatrix.GetPointer());   //RobotBase to RobotBaseRF
+
+		//save robot registration matrix into reference tool
+		m_VegaToolStorage->GetToolByName("RobotBaseRF")->SetToolRegistrationMatrix(m_RobotRegistrationMatrix);
+
+		MITK_INFO << "Robot Registration Matrix";
+		MITK_INFO << m_RobotRegistrationMatrix;
+
+		//build ApplyDeviceRegistrationFilter
+		//m_KukaSource:基于RoboBase
+		//m_KukaApplyRegistrationFilter转到NDI坐标系下
+		m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
+		m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
+		m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
+		m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
+
+		m_KukaVisualizeTimer->stop();
+		m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+		m_KukaVisualizeTimer->start();
+		//tcp
+
+		std::array<double, 6> tcp{};
+		m_RobotRegistration.GetTCP(tcp);
+		cout << "TCP: " << tcp[0] << " " << tcp[1] << " " << tcp[2] << " " << tcp[3] << " " << tcp[4] << " " << tcp[5] << endl;
+		
+		//set tcp
+		m_KukaTrackingDevice->m_RobotApi.AddFrame("RobotEndRF_robot", tcp);
+
+		//save tcp into robot tool
+		m_KukaToolStorage->GetToolByName("RobotEndRF_robot")->SetTCP(tcp.data());
+		cout << "tcp.date: " << tcp.data() << endl;
+	}
 }
 
 

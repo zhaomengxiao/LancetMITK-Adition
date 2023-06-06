@@ -43,7 +43,7 @@
       <string>Do image processing</string>
      </property>
      <property name="text">
-      <string>I want to get robot position!</string>
+      <string>Get current robot position</string>
      </property>
     </widget>
    </item>
@@ -112,7 +112,14 @@
    <item>
     <widget class="QPushButton" name="pushButton_capturePose">
      <property name="text">
-      <string>Capture Pose(5 translation + 5 rotation)</string>
+      <string>Capture Pose</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_indexOfRobotCapture">
+     <property name="text">
+      <string>TextLabel</string>
      </property>
     </widget>
    </item>

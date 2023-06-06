@@ -55,11 +55,7 @@ public:
 
 public slots:
 	void UseKuka();
-	//void OnAutoMove();
 
-	//我自己写的bullshit
-	//void SetAsTarget();
-	
 	void Record();
 	void ThreadRecord();
 
@@ -70,13 +66,14 @@ public slots:
 	void SetAsTarget();
 	void MoveToTarget();
 
+	void CapturePose(bool translationOnly);
+	void OnRobotCapture();
+
+
+
 protected:
-  float target_x;
-  float target_y;
-  float target_z;
-  float target_a;
-  float target_b;
-  float target_c;
+	
+
   std::array<double, 6> m_Target;
 
   bool m_ThreadRecord_Flag;
@@ -84,20 +81,16 @@ protected:
   bool m_ThreadHandDrive_Flag = false;
   std::thread m_ThreadHandDrive_Handler;
   std::thread m_ThreadRecord_Handler;
-  // ************************* 为什么不可以用 *************************************
-  //UdpRobotInfoClient m_UdpConnection;
 
   virtual void CreateQtPartControl(QWidget *parent) override;
 
   virtual void SetFocus() override;
 
-  /// \brief called by QmitkFunctionality when DataManager's selection has changed
-  virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
-                                  const QList<mitk::DataNode::Pointer> &nodes) override;
+  //*********Helper Function****************
+  RobotRegistration m_RobotRegistration;
 
-  /// \brief Called when the user clicks the GUI button
-
-
+  mitk::NavigationData::Pointer GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
+	  mitk::NavigationData::Pointer nd_ref);
 
   Ui::RecordAndMoveControls m_Controls;
 
@@ -145,6 +138,11 @@ protected:
   //use navigation scene filter
   lancet::NavigationSceneFilter::Pointer m_NavigationSceneFilter;
   NavigationScene::Pointer m_NavigationScene;
+
+  //robot registration
+  unsigned int m_IndexOfRobotCapture{ 0 };
+  std::array<vtkMatrix4x4*, 10> m_AutoPoses{};
+  mitk::AffineTransform3D::Pointer m_RobotRegistrationMatrix;//
 };
 
 #endif // RecordAndMove_h

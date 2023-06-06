@@ -31,6 +31,8 @@ void RobotRegistration::AddPose(mitk::NavigationData::Pointer nd_robot2flange, m
 	Vector3d vn;
     vn << Vndi2RegistFrame[0], Vndi2RegistFrame[1], Vndi2RegistFrame[2];
 
+
+	//为什么这样设计？？？？ 需要 translationonly ？？？
 	this->m_translationOnly = translationOnly;
 	if (translationOnly)
 	{
