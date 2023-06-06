@@ -254,7 +254,7 @@ bool SurgicalSimulate::CollectLandmarkProbe()
 	auto pointSet_probeLandmark = navigatedImage->GetLandmarks_probe();
 
 	//get navigation data of RobotEndRF in ndi coords,
-	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("ProbeTHA");
 	auto objectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
 	if(probeIndex == -1 || objectRfIndex == -1)
 	{
@@ -521,7 +521,7 @@ bool SurgicalSimulate::CollectIcpProbe()
 	auto pointSet_probeIcp = navigatedImage->GetIcpPoints_probe();
 
 	//get navigation data of RobotEndRF in ndi coords,
-	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("ProbeTHA");
 	auto objectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
 	if (probeIndex == -1 || objectRfIndex == -1)
 	{

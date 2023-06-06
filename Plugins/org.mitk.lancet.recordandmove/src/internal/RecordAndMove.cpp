@@ -63,7 +63,8 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
-  connect(m_Controls.pushButton_connect, &QPushButton::clicked, this, &RecordAndMove::UseKuka);
+  connect(m_Controls.pushButton_connectkuka, &QPushButton::clicked, this, &RecordAndMove::UseKuka);
+  connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &RecordAndMove::UseVega);
   connect(m_Controls.pushButton_recordPosition, &QPushButton::clicked, this, &RecordAndMove::ThreadRecord);
   connect(m_Controls.pushButton_handDrive, &QPushButton::clicked, this, &RecordAndMove::ThreadHandDrive);
   connect(m_Controls.pushButton_setAsTarget, &QPushButton::clicked, this, &RecordAndMove::SetAsTarget);
@@ -75,6 +76,7 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
 
 void RecordAndMove::UseKuka()
 {
+	m_Controls.pushButton_connect->setText("Connecting...");
 	//read in filename
 	QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
 		tr("Tool Storage Files (*.IGTToolStorage)"));
@@ -107,6 +109,7 @@ void RecordAndMove::UseKuka()
 		m_KukaSource->StartTracking();
 	}
 	MITK_INFO << "m_KukaSource connected!";
+	m_Controls.pushButton_connect->setText("Connected Successfully!");
 
 	//use navigation scene filter
 	/*m_NavigationSceneFilter->AddTrackingDevice(m_KukaSource, "RobotBaseRF");
@@ -212,22 +215,28 @@ void RecordAndMove::CapturePose(bool translationOnly)
 {
 	//Output sequence is the same as AddTool sequence
 	//get navigation data of flange in robot coords,
+	cout << "------------------  1.1  -----------------------" << endl;
 	mitk::NavigationData::Pointer nd_robot2flange = m_KukaSource->GetOutput(0);
 	//get navigation data of RobotEndRF in ndi coords,
 	//auto RobotEndRF = m_VegaToolStorage->GetToolIndexByName("RobotEndRF");
+	cout << "------------------  1.2  -----------------------" << endl;
 	mitk::NavigationData::Pointer nd_Ndi2RobotEndRF = m_VegaSource->GetOutput("RobotEndRF");
 	//get navigation data of RobotBaseRF in ndi coords,
 	//auto RobotBaseRF = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+	cout << "------------------  1.3  -----------------------" << endl;
 	mitk::NavigationData::Pointer nd_Ndi2RobotBaseRF = m_VegaSource->GetOutput("RobotBaseRF");
 	//get navigation data RobotEndRF in reference frame RobotBaseRF
+	cout << "------------------  1.4  -----------------------" << endl;
 	mitk::NavigationData::Pointer nd_RobotBaseRF2RobotEndRF = GetNavigationDataInRef(
 		nd_Ndi2RobotEndRF, nd_Ndi2RobotBaseRF);
 
 	//add nd to registration module
+	cout << "------------------  1.5  -----------------------" << endl;
 	m_RobotRegistration.AddPose(nd_robot2flange, nd_RobotBaseRF2RobotEndRF, translationOnly);
 
 	//MITK_INFO << nd_robot2flange;
 	//MITK_INFO << nd_RobotBaseRF2RobotEndRF;
+	cout << "------------------  1.6  -----------------------" << endl;
 	cout << "nd_robot2flange: " << nd_robot2flange << endl;
 	cout << "nd_RobotBaseRF2RobotEndRF: " << nd_RobotBaseRF2RobotEndRF << endl;
 }
@@ -236,10 +245,14 @@ void RecordAndMove::OnRobotCapture()
 {
 	if (m_IndexOfRobotCapture < 5) //The first five translations, 
 	{
+		cout << "------------------  1  -----------------------" << endl;
 		CapturePose(true);
+		cout << "------------------  2  -----------------------" << endl;
 		m_IndexOfRobotCapture++;
 		MITK_INFO << "OnRobotCapture: " << m_IndexOfRobotCapture<<"  (Translation): "<< m_IndexOfRobotCapture<<"/5";
+		cout << "------------------  3  -----------------------" << endl;
 		m_Controls.pushButton_capturePose->setText("Translation "+ QString::number(m_IndexOfRobotCapture)+"/5");
+		cout << "------------------  4  -----------------------" << endl;
 	}
 	else if (m_IndexOfRobotCapture < 10) //the last five rotations
 	{

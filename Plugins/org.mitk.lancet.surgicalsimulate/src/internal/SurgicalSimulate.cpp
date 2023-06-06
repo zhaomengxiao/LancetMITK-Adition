@@ -503,22 +503,22 @@ void SurgicalSimulate::OnAutoMove()
   {
 	  
   case 1: //x-50mm	  
-	  p[0] -= 50; 
+	  p[0] -= 100; 
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 	  break;
   case 2: //z-50mm
-	  p[2] -= 50; 
+	  p[2] -= 100; 
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
     break;
 
   case 3: //x+50mm
-	  p[0] += 50;
+	  p[0] += 100;
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 
     break;
 
   case 4: //y+50
-	  p[1] += 50;
+	  p[1] += 100;
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 
     break;
