@@ -35,16 +35,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="pushButton_disconnect">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="text">
-      <string>Disconnect（无效键）</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QPushButton" name="pushButton_recordPosition">
      <property name="toolTip">
       <string>Do image processing</string>
@@ -117,9 +107,16 @@
     </spacer>
    </item>
    <item>
+    <widget class="QPushButton" name="pushButton_moveToHomePosition">
+     <property name="text">
+      <string>Move to home position</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="pushButton_capturePose">
      <property name="text">
-      <string>Capture Pose(5 translation + 5 rotation)</string>
+      <string>Start Capture Pose</string>
      </property>
     </widget>
    </item>

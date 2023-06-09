@@ -50,12 +50,10 @@ found in the LICENSE file.
 #include "kukaRobotAPI/defaultProtocol.h"
 const std::string SurgicalSimulate::VIEW_ID = "org.mitk.views.surgicalsimulate";
 
-//SetFocus是什么？？？
 void SurgicalSimulate::SetFocus()
 {
   m_Controls.pushButton_connectKuka->setFocus();
 }
-
 
 void SurgicalSimulate::OnVirtualDevice2VisualizeTimer()
 {
@@ -162,7 +160,7 @@ void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*sourc
 void SurgicalSimulate::UseVega()
 {
   //read in filename
-  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
+  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/C:/Users/lancet/Desktop/fx",
                                                   tr("Tool Storage Files (*.IGTToolStorage)"));
   if (filename.isNull()) return;
 
@@ -222,11 +220,6 @@ void SurgicalSimulate::GeneratePoses()
 }
 
 
-//计算 Robo Base 和 Flange 之间的Transformation
-//计算 RoboRF 和 Robo End 之间的Transformation
-//把这两个 Transformation 加入 m_RobotRegistration
-//NDI看到的坐标系是SO3吗？ （貌似是）
-
 void SurgicalSimulate::CapturePose(bool translationOnly)
 {
   //Output sequence is the same as AddTool sequence
@@ -275,7 +268,7 @@ SurgicalSimulate::~SurgicalSimulate()
 void SurgicalSimulate::UseKuka()
 {
   //read in filename
-  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
+  QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/C:/Users/lancet/Desktop/fx",
                                                   tr("Tool Storage Files (*.IGTToolStorage)"));
   if (filename.isNull()) return;
 
@@ -306,7 +299,6 @@ void SurgicalSimulate::UseKuka()
 
   //use navigation scene filter
   m_NavigationSceneFilter->AddTrackingDevice(m_KukaSource,"RobotBaseRF");
-
   m_NavigationSceneFilter->GetNavigationScene()->Tranversal();
 }
 
@@ -317,10 +309,10 @@ SurgicalSimulate::SurgicalSimulate()
 
 void SurgicalSimulate::StartTracking()
 {
+ 
   if (m_KukaTrackingDevice->GetState() == 1) //ready
   {
     m_KukaSource->StartTracking();
-
     //update visualize filter by timer
     if (m_KukaVisualizeTimer == nullptr)
     {
@@ -339,6 +331,7 @@ void SurgicalSimulate::StartTracking()
   }
   auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
   mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+  MITK_INFO << "m_KukaSource connected!";
 }
 
 void SurgicalSimulate::OnKukaVisualizeTimer()
@@ -355,7 +348,7 @@ void SurgicalSimulate::OnKukaVisualizeTimer()
   
   if (m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult()>0)
   {
-	  
+	  cout << "******************  m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult()>0  ***************" << endl;
 	  ResultProtocol reply = m_KukaTrackingDevice->m_RobotApi.GetCommandResult();
 	  cout << "This is reply: " << reply.ToString() << endl;
 	  m_Controls.textBrowser->append(QString::fromStdString(reply.ToString()));
@@ -503,22 +496,22 @@ void SurgicalSimulate::OnAutoMove()
   {
 	  
   case 1: //x-50mm	  
-	  p[0] -= 100; 
+	  p[0] -= 50; 
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 	  break;
   case 2: //z-50mm
-	  p[2] -= 100; 
+	  p[2] -= 50; 
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
     break;
 
   case 3: //x+50mm
-	  p[0] += 100;
+	  p[0] += 50;
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 
     break;
 
   case 4: //y+50
-	  p[1] += 100;
+	  p[1] += 50;
 	  m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 
     break;

@@ -57,6 +57,7 @@ public slots:
 	void UseKuka();
 	void UseVega();
 	void ShowToolStatus_Vega();
+	void OnKukaVisualizeTimer();
 	void OnVegaVisualizeTimer();
 	void UpdateToolStatusWidget();
 
@@ -69,9 +70,11 @@ public slots:
 
 	void SetAsTarget();
 	void MoveToTarget();
+	void MoveToHomePosition();
 
 	void CapturePose(bool translationOnly);
 	void OnRobotCapture();
+	void OnAutoMove();
 
 
 
@@ -79,9 +82,9 @@ protected:
 	
 
   std::array<double, 6> m_Target;
+  std::array<double, 6> m_HomePosition = {-751.08,196.235,542.805,-3.0812,-0.21958,3.05353};
 
   bool m_ThreadRecord_Flag;
-
   bool m_ThreadHandDrive_Flag = false;
   std::thread m_ThreadHandDrive_Handler;
   std::thread m_ThreadRecord_Handler;
