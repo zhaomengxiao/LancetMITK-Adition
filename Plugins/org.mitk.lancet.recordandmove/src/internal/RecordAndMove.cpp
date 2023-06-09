@@ -43,6 +43,19 @@ found in the LICENSE file.
 #include "mitkNavigationToolStorageSerializer.h"
 #include "QmitkIGTCommonHelper.h"
 
+//image registration needed
+#include "mitkNodePredicateAnd.h"
+#include "mitkNodePredicateDataType.h"
+#include "mitkNodePredicateNot.h"
+#include "mitkNodePredicateOr.h"
+#include "mitkNodePredicateProperty.h"
+#include "QmitkDataStorageTreeModel.h"
+#include <QmitkSingleNodeSelectionWidget.h>
+#include <QTimer>
+#include <vtkImplicitPolyDataDistance.h>
+
+#include "lancetTreeCoords.h"
+
 //udp
 #include <QTimer>
 #include <Poco/Net/DatagramSocket.h>
@@ -74,7 +87,18 @@ void RecordAndMove::SetFocus()
 void RecordAndMove::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
-  m_Controls.setupUi(parent);
+	InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surface_regis);
+	InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);
+	//InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_metaImageNode);
+	//InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
+	/*InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetLine);
+	InitPointSetSelector(m_Controls.mitkNodeSelectWidget_ImageCheckPoint); m_Controls.setupUi(parent);*/
+
+  connect(m_Controls.pushButton_assembleNavigationObject, &QPushButton::clicked, this, &RecordAndMove::SetupNavigatedImage);
+  connect(m_Controls.pushButton_collectLandmark, &QPushButton::clicked, this, &RecordAndMove::CollectLandmarkProbe);
+  connect(m_Controls.pushButton_collectIcp, &QPushButton::clicked, this, &RecordAndMove::CollectIcpProbe);
+  connect(m_Controls.pushButton_applyRegistration, &QPushButton::clicked, this, &RecordAndMove::ApplySurfaceRegistration);
+
   connect(m_Controls.pushButton_connectKuka, &QPushButton::clicked, this, &RecordAndMove::UseKuka);
   connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &RecordAndMove::UseVega);
   connect(m_Controls.pushButton_recordPosition, &QPushButton::clicked, this, &RecordAndMove::ThreadRecord);
@@ -85,6 +109,191 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_capturePose, &QPushButton::clicked, this, &RecordAndMove::OnRobotCapture);
   connect(m_Controls.pushButton_moveToHomePosition, &QPushButton::clicked, this, &RecordAndMove::MoveToHomePosition);
 }
+
+void RecordAndMove::InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget)
+{
+	widget->SetDataStorage(GetDataStorage());
+	widget->SetNodePredicate(mitk::NodePredicateAnd::New(
+		mitk::TNodePredicateDataType<mitk::Surface>::New(),
+		mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(mitk::NodePredicateProperty::New("helper object"),
+			mitk::NodePredicateProperty::New("hidden object")))));
+
+	widget->SetSelectionIsOptional(true);
+	widget->SetAutoSelectNewNodes(true);
+	widget->SetEmptyInfo(QString("Please select a surface"));
+	widget->SetPopUpTitel(QString("Select surface"));
+}
+
+void RecordAndMove::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)
+{
+	widget->SetDataStorage(GetDataStorage());
+	widget->SetNodePredicate(mitk::NodePredicateAnd::New(
+		mitk::TNodePredicateDataType<mitk::PointSet>::New(),
+		mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(mitk::NodePredicateProperty::New("helper object"),
+			mitk::NodePredicateProperty::New("hidden object")))));
+
+	widget->SetSelectionIsOptional(true);
+	widget->SetAutoSelectNewNodes(true);
+	widget->SetEmptyInfo(QString("Please select a point set"));
+	widget->SetPopUpTitel(QString("Select point set"));
+}
+
+bool RecordAndMove::SetupNavigatedImage()
+{
+	// The surface node should have no offset, i.e., should have an identity matrix!
+	auto surfaceNode = m_Controls.mitkNodeSelectWidget_surface_regis->GetSelectedNode();
+	auto landmarkSrcNode = m_Controls.mitkNodeSelectWidget_landmark_src->GetSelectedNode();
+
+	if (surfaceNode == nullptr || landmarkSrcNode == nullptr)
+	{
+		m_Controls.textBrowser->append("Source surface or source landmarks is not ready!");
+		return false;
+	}
+
+	navigatedImage = lancet::NavigationObject::New();
+
+	auto matrix = dynamic_cast<mitk::Surface*>(surfaceNode->GetData())->GetGeometry()->GetVtkMatrix();
+
+	if (matrix->IsIdentity() == false)
+	{
+		vtkNew<vtkMatrix4x4> identityMatrix;
+		identityMatrix->Identity();
+		dynamic_cast<mitk::Surface*>(surfaceNode->GetData())->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+		m_Controls.textBrowser->append("Warning: the initial surface has a non-identity offset matrix; the matrix has been reset to identity!");
+		cout << "Warning: the initial surface has a non - identity offset matrix; the matrix has been reset to identity!" << endl;
+	}
+
+	navigatedImage->SetDataNode(surfaceNode);
+
+	navigatedImage->SetLandmarks(dynamic_cast<mitk::PointSet*>(landmarkSrcNode->GetData()));
+
+	navigatedImage->SetReferencFrameName(surfaceNode->GetName());
+
+	m_Controls.textBrowser->append("--- navigatedImage has been set up ---");
+
+	return true;
+}
+
+bool RecordAndMove::CollectLandmarkProbe()
+{
+	if (navigatedImage == nullptr)
+	{
+		m_Controls.textBrowser->append("Please setup the navigationObject first!");
+		return false;
+	}
+
+	int landmark_surfaceNum = navigatedImage->GetLandmarks()->GetSize();
+	int landmark_rmNum = navigatedImage->GetLandmarks_probe()->GetSize();
+
+	if (landmark_surfaceNum == landmark_rmNum)
+	{
+		m_Controls.textBrowser->append("--- Enough landmarks have been collected ----");
+		return true;
+	}
+
+	auto pointSet_probeLandmark = navigatedImage->GetLandmarks_probe();
+
+	//get navigation data of RobotEndRF in ndi coords,
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("ProbeTHA");
+	auto objectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+	if (probeIndex == -1 || objectRfIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ObjectRf' in the toolStorage!");
+	}
+
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToObjectRf = m_VegaSource->GetOutput(objectRfIndex);
+
+	mitk::NavigationData::Pointer nd_rfToProbe = GetNavigationDataInRef(nd_ndiToProbe, nd_ndiToObjectRf);
+
+
+	mitk::Point3D probeTipPointUnderRf = nd_rfToProbe->GetPosition();
+
+	pointSet_probeLandmark->InsertPoint(probeTipPointUnderRf);
+
+	m_Controls.textBrowser->append("Added landmark: " + QString::number(probeTipPointUnderRf[0]) +
+		"/ " + QString::number(probeTipPointUnderRf[1]) + "/ " + QString::number(probeTipPointUnderRf[2]));
+
+	return true;
+}
+
+bool RecordAndMove::CollectIcpProbe()
+{
+	if (navigatedImage == nullptr)
+	{
+		m_Controls.textBrowser->append("Please setup the navigationObject first!");
+		return false;
+	}
+	auto pointSet_probeIcp = navigatedImage->GetIcpPoints_probe();
+
+	//get navigation data of RobotEndRF in ndi coords,
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("ProbeTHA");
+	auto objectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+	if (probeIndex == -1 || objectRfIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ObjectRf' in the toolStorage!");
+	}
+
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToObjectRf = m_VegaSource->GetOutput(objectRfIndex);
+
+	mitk::NavigationData::Pointer nd_rfToProbe = GetNavigationDataInRef(nd_ndiToProbe, nd_ndiToObjectRf);
+
+
+	mitk::Point3D probeTipPointUnderRf = nd_rfToProbe->GetPosition();
+
+	pointSet_probeIcp->InsertPoint(probeTipPointUnderRf);
+
+	m_Controls.textBrowser->append("Added icp point: " + QString::number(probeTipPointUnderRf[0]) +
+		"/ " + QString::number(probeTipPointUnderRf[1]) + "/ " + QString::number(probeTipPointUnderRf[2]));
+
+	return true;
+}
+
+bool RecordAndMove::ApplySurfaceRegistration()
+{
+	//build ApplyDeviceRegistrationFilter
+	m_surfaceRegistrationFilter = lancet::ApplySurfaceRegistratioinFilter::New();
+	m_surfaceRegistrationFilter->ConnectTo(m_VegaSource);
+	m_surfaceRegistrationFilter->SetnavigationImage(navigatedImage);
+	m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
+	navigatedImage->UpdateObjectToRfMatrix();
+	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
+
+	m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
+
+	m_surfaceRegistrationFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix());
+
+	auto indexOfObjectRF = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+	m_surfaceRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput(indexOfObjectRF));
+
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationFilter);
+	m_VegaVisualizeTimer->start();
+
+	return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void RecordAndMove::UseKuka()
 {

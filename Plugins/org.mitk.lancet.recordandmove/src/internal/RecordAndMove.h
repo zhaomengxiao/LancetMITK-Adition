@@ -76,10 +76,21 @@ public slots:
 	void OnRobotCapture();
 	void OnAutoMove();
 
+	void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
+	void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
+	bool SetupNavigatedImage();
+	bool CollectLandmarkProbe();
+	bool CollectIcpProbe();
+	bool ApplySurfaceRegistration();
+	
 
 
 protected:
 	
+  lancet::ApplySurfaceRegistratioinFilter::Pointer m_surfaceRegistrationFilter;
+  lancet::NavigationObject::Pointer navigatedImage;
+  mitk::AffineTransform3D::Pointer m_imageRegistrationMatrix; // image(surface) to Rf matrix
+
 
   std::array<double, 6> m_Target;
   std::array<double, 6> m_HomePosition = {-751.08,196.235,542.805,-3.0812,-0.21958,3.05353};
