@@ -86,6 +86,7 @@ void RecordAndMove::SetFocus()
 
 void RecordAndMove::CreateQtPartControl(QWidget *parent)
 {
+	m_Controls.setupUi(parent);
   // create GUI widgets from the Qt Designer's .ui file
 	InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surface_regis);
 	InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);

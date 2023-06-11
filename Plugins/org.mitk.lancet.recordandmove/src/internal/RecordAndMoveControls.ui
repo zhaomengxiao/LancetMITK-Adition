@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>737</width>
-    <height>520</height>
+    <width>963</width>
+    <height>712</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -24,7 +24,7 @@
     <rect>
      <x>9</x>
      <y>9</y>
-     <width>220</width>
+     <width>421</width>
      <height>41</height>
     </rect>
    </property>
@@ -45,73 +45,43 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="widget_5" native="true">
-   <property name="geometry">
-    <rect>
-     <x>380</x>
-     <y>70</y>
-     <width>201</width>
-     <height>91</height>
-    </rect>
-   </property>
-   <widget class="QPushButton" name="pushButton_moveToHomePosition">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>20</y>
-      <width>134</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Move to home position</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_capturePose">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>50</y>
-      <width>116</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Start Capture Pose</string>
-    </property>
-   </widget>
-  </widget>
   <widget class="QWidget" name="widget_6" native="true">
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>60</y>
-     <width>250</width>
-     <height>207</height>
+     <y>50</y>
+     <width>731</width>
+     <height>411</height>
     </rect>
    </property>
-   <layout class="QFormLayout" name="formLayout">
+   <layout class="QGridLayout" name="gridLayout_4">
     <item row="0" column="0">
      <widget class="QWidget" name="widget_2" native="true">
-      <layout class="QFormLayout" name="formLayout_2">
-       <item row="0" column="0" colspan="2">
-        <widget class="QPushButton" name="pushButton_recordPosition">
-         <property name="toolTip">
-          <string>Do image processing</string>
-         </property>
-         <property name="text">
-          <string>I want to get robot position!</string>
-         </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QWidget" name="widget_8" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QPushButton" name="pushButton_recordPosition">
+            <property name="toolTip">
+             <string>Do image processing</string>
+            </property>
+            <property name="text">
+             <string>Get Robot Position</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_position">
+            <property name="text">
+             <string>Position: </string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_position">
-         <property name="text">
-          <string>Position: </string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
+       <item>
         <widget class="QWidget" name="widget_3" native="true">
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0">
@@ -128,7 +98,7 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="1" column="0" colspan="2">
            <widget class="QLabel" name="label_handDriveFlag">
             <property name="text">
              <string>handDriveFlag</string>
@@ -138,7 +108,7 @@
          </layout>
         </widget>
        </item>
-       <item row="3" column="0">
+       <item>
         <widget class="QWidget" name="widget_4" native="true">
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="0" column="0">
@@ -165,6 +135,26 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QWidget" name="widget_5" native="true">
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="pushButton_moveToHomePosition">
+            <property name="text">
+             <string>Move to home position</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_capturePose">
+            <property name="text">
+             <string>Start Capture Pose</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
@@ -173,8 +163,8 @@
   <widget class="QWidget" name="widget_7" native="true">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>340</y>
+     <x>20</x>
+     <y>520</y>
      <width>271</width>
      <height>71</height>
     </rect>
@@ -205,8 +195,8 @@
   <widget class="QTextBrowser" name="textBrowser">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>310</y>
+     <x>20</x>
+     <y>490</y>
      <width>151</width>
      <height>21</height>
     </rect>
@@ -215,8 +205,8 @@
   <widget class="QPushButton" name="pushButton_assembleNavigationObject">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>430</y>
+     <x>40</x>
+     <y>600</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -228,8 +218,8 @@
   <widget class="QPushButton" name="pushButton_collectLandmark">
    <property name="geometry">
     <rect>
-     <x>500</x>
-     <y>300</y>
+     <x>590</x>
+     <y>490</y>
      <width>151</width>
      <height>31</height>
     </rect>
@@ -241,8 +231,8 @@
   <widget class="QPushButton" name="pushButton_collectIcp">
    <property name="geometry">
     <rect>
-     <x>500</x>
-     <y>340</y>
+     <x>590</x>
+     <y>540</y>
      <width>151</width>
      <height>31</height>
     </rect>
@@ -254,8 +244,8 @@
   <widget class="QPushButton" name="pushButton_applyRegistration">
    <property name="geometry">
     <rect>
-     <x>500</x>
-     <y>380</y>
+     <x>620</x>
+     <y>610</y>
      <width>121</width>
      <height>61</height>
     </rect>
