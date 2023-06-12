@@ -160,99 +160,145 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="widget_7" native="true">
+  <widget class="QWidget" name="widget_9" native="true">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>520</y>
-     <width>271</width>
-     <height>71</height>
+     <x>10</x>
+     <y>470</y>
+     <width>441</width>
+     <height>131</height>
     </rect>
    </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_surface">
-      <property name="text">
-       <string>Surface:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surface_regis" native="true"/>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_landMarkSource">
-      <property name="text">
-       <string>Landmark Source:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_landmark_src" native="true"/>
-    </item>
-   </layout>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <widget class="QWidget" name="widget_7" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>40</y>
+      <width>251</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_surface">
+       <property name="text">
+        <string>Surface:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surface_regis" native="true"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_landMarkSource">
+       <property name="text">
+        <string>Landmark Source:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_landmark_src" native="true"/>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QTextBrowser" name="textBrowser">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>10</y>
+      <width>251</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_assembleNavigationObject">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>100</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Confirm</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_collectLandmark">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>10</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Collect Landmarks</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_collectIcp">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>50</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Collect ICP Points</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_applyRegistration">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>90</y>
+      <width>121</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Apply Registration</string>
+    </property>
+   </widget>
   </widget>
-  <widget class="QTextBrowser" name="textBrowser">
+  <widget class="QWidget" name="widget_10" native="true">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>490</y>
-     <width>151</width>
-     <height>21</height>
+     <x>470</x>
+     <y>470</y>
+     <width>461</width>
+     <height>211</height>
     </rect>
    </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_assembleNavigationObject">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>600</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Confirm</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_collectLandmark">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>490</y>
-     <width>151</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Collect Landmarks</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_collectIcp">
-   <property name="geometry">
-    <rect>
-     <x>590</x>
-     <y>540</y>
-     <width>151</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Collect ICP Points</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_applyRegistration">
-   <property name="geometry">
-    <rect>
-     <x>620</x>
-     <y>610</y>
-     <width>121</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Apply Registration</string>
-   </property>
+   <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_CTSteelballCenterInImage" native="true">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>10</y>
+      <width>113</width>
+      <height>19</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_getCTSteelballCenter">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Get CT Steelball Center</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

@@ -90,12 +90,16 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
   // create GUI widgets from the Qt Designer's .ui file
 	InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surface_regis);
 	InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);
+
+
+	InitCTSteelballCenterSelector(m_Controls.mitkNodeSelectWidget_CTSteelballCenterInImage);
+	connect(m_Controls.pushButton_assembleNavigationObject, &QPushButton::clicked, this, &RecordAndMove::SetupNavigatedImage);
 	//InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_metaImageNode);
 	//InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
 	/*InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetLine);
 	InitPointSetSelector(m_Controls.mitkNodeSelectWidget_ImageCheckPoint); m_Controls.setupUi(parent);*/
 
-  connect(m_Controls.pushButton_assembleNavigationObject, &QPushButton::clicked, this, &RecordAndMove::SetupNavigatedImage);
+  connect(m_Controls.pushButton_getCTSteelballCenter, &QPushButton::clicked, this, &RecordAndMove::GetCTSteelballCenterInImage);
   connect(m_Controls.pushButton_collectLandmark, &QPushButton::clicked, this, &RecordAndMove::CollectLandmarkProbe);
   connect(m_Controls.pushButton_collectIcp, &QPushButton::clicked, this, &RecordAndMove::CollectIcpProbe);
   connect(m_Controls.pushButton_applyRegistration, &QPushButton::clicked, this, &RecordAndMove::ApplySurfaceRegistration);
@@ -109,6 +113,40 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_stopHandDrive, &QPushButton::clicked, this, &RecordAndMove::StopHandDrive);
   connect(m_Controls.pushButton_capturePose, &QPushButton::clicked, this, &RecordAndMove::OnRobotCapture);
   connect(m_Controls.pushButton_moveToHomePosition, &QPushButton::clicked, this, &RecordAndMove::MoveToHomePosition);
+}
+
+
+
+bool RecordAndMove::GetCTSteelballCenterInImage()
+{
+	auto CTSteelballCenterPositionInImage = m_Controls.mitkNodeSelectWidget_CTSteelballCenterInImage->GetSelectedNode();
+	if (CTSteelballCenterPositionInImage == nullptr)
+	{
+		cout << "Source surface or source landmarks is not ready!" << endl;
+		return false;
+	}
+	cout<<"******************************"<<endl;
+	cout << CTSteelballCenterPositionInImage->GetData()->GetGeometry()->GetCenter() << endl;
+	cout << "_______________________________" << endl;
+	cout << *dynamic_cast<mitk::PointSet*>(CTSteelballCenterPositionInImage->GetData()) << endl;
+	cout << "******************************" << endl;
+
+	return true;
+}
+
+
+void RecordAndMove::InitCTSteelballCenterSelector(QmitkSingleNodeSelectionWidget* widget)
+{
+	widget->SetDataStorage(GetDataStorage());
+	widget->SetNodePredicate(mitk::NodePredicateAnd::New(
+		mitk::TNodePredicateDataType<mitk::PointSet>::New(),
+		mitk::NodePredicateNot::New(mitk::NodePredicateOr::New(mitk::NodePredicateProperty::New("helper object"),
+			mitk::NodePredicateProperty::New("hidden object")))));
+
+	widget->SetSelectionIsOptional(true);
+	widget->SetAutoSelectNewNodes(true);
+	widget->SetEmptyInfo(QString("Please select a point set"));
+	widget->SetPopUpTitel(QString("Select point set"));
 }
 
 void RecordAndMove::InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget)
@@ -166,8 +204,7 @@ bool RecordAndMove::SetupNavigatedImage()
 
 	navigatedImage->SetDataNode(surfaceNode);
 
-	navigatedImage->SetLandmarks(dynamic_cast<mitk::PointSet*>(landmarkSrcNode->GetData()));
-
+	navigatedImage->SetLandmarks(dynamic_cast<mitk::PointSet*>(landmarkSrcNode->GetData()));;
 	navigatedImage->SetReferencFrameName(surfaceNode->GetName());
 
 	m_Controls.textBrowser->append("--- navigatedImage has been set up ---");
