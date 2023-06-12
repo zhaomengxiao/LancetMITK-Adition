@@ -125,15 +125,13 @@ bool RecordAndMove::GetCTSteelballCenterInImage()
 		cout << "Source surface or source landmarks is not ready!" << endl;
 		return false;
 	}
-	cout<<"******************************"<<endl;
-	cout << CTSteelballCenterPositionInImage->GetData()->GetGeometry()->GetCenter() << endl;
-	cout << "_______________________________" << endl;
-	cout << *dynamic_cast<mitk::PointSet*>(CTSteelballCenterPositionInImage->GetData()) << endl;
-	cout << "******************************" << endl;
 
 	auto CTSteelballCenter_Pset = dynamic_cast<mitk::PointSet*>(CTSteelballCenterPositionInImage->GetData());
-	CTSteelballCenter_Pset->GetPointSet();
-
+	cout << "*****************************" << endl;
+	cout << CTSteelballCenter_Pset->GetPoint(1)<<endl;
+	cout << "*****************************" << endl;
+	cout << CTSteelballCenter_Pset->GetPointSet(0) << endl;
+	cout << "*****************************" << endl;
 	return true;
 }
 
