@@ -131,6 +131,9 @@ bool RecordAndMove::GetCTSteelballCenterInImage()
 	cout << *dynamic_cast<mitk::PointSet*>(CTSteelballCenterPositionInImage->GetData()) << endl;
 	cout << "******************************" << endl;
 
+	auto CTSteelballCenter_Pset = dynamic_cast<mitk::PointSet*>(CTSteelballCenterPositionInImage->GetData());
+	CTSteelballCenter_Pset->GetPointSet();
+
 	return true;
 }
 
