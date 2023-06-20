@@ -62,15 +62,7 @@ public slots:
 	void OnVegaVisualizeTimer();
 	void UpdateToolStatusWidget();
 
-	void Record();
-	void ThreadRecord();
-
-	void HandDrive();
-	void ThreadHandDrive();
-	void StopHandDrive();
-
 	void SetAsTarget();
-	void MoveToTarget();
 	void MoveToHomePosition();
 
 	void CapturePose(bool translationOnly);
@@ -93,12 +85,13 @@ public slots:
 	bool ApplySurfaceRegistration();
 	
 	void InitCTSteelballCenterSelector(QmitkSingleNodeSelectionWidget* widget);
-	bool GetCTSteelballCenterInRobotBase();
-	bool MoveToBPoint();
+	bool InterpretImagePoint();
+	bool MoveToTargetPoint();
+	bool InterpretImageLine();
+	bool MoveToTargetLine();
 
 
 protected:
-	
   lancet::ApplySurfaceRegistratioinFilter::Pointer m_surfaceRegistrationFilter;
   lancet::NavigationObject::Pointer navigatedImage;
   mitk::AffineTransform3D::Pointer m_imageRegistrationMatrix; // image(surface) to Rf matrix
@@ -110,9 +103,9 @@ protected:
   std::array<double, 6> m_Target;
   std::array<double, 6> m_HomePosition = {-751.08,196.235,542.805,-3.0812,-0.21958,3.05353};
 
+  mitk::AffineTransform3D::Pointer m_T_robot;
+
   bool m_ThreadRecord_Flag;
-  bool m_ThreadHandDrive_Flag = false;
-  std::thread m_ThreadHandDrive_Handler;
   std::thread m_ThreadRecord_Handler;
 
   virtual void CreateQtPartControl(QWidget *parent) override;

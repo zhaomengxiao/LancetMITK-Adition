@@ -82,7 +82,7 @@ mitk::NavigationData::Pointer RecordAndMove::GetNavigationDataInRef(mitk::Naviga
 
 void RecordAndMove::SetFocus()
 {
-  m_Controls.pushButton_recordPosition->setFocus();
+  m_Controls.pushButton_connectKuka->setFocus();
 }
 
 void RecordAndMove::CreateQtPartControl(QWidget *parent)
@@ -100,31 +100,24 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
 	/*InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetLine);
 	InitPointSetSelector(m_Controls.mitkNodeSelectWidget_ImageCheckPoint); m_Controls.setupUi(parent);*/
 
-  connect(m_Controls.pushButton_getCTSteelballCenter, &QPushButton::clicked, this, &RecordAndMove::GetCTSteelballCenterInRobotBase);
+  connect(m_Controls.pushButton_interpretImagePoint, &QPushButton::clicked, this, &RecordAndMove::InterpretImagePoint);
   connect(m_Controls.pushButton_collectLandmark, &QPushButton::clicked, this, &RecordAndMove::CollectLandmarkProbe);
   connect(m_Controls.pushButton_collectIcp, &QPushButton::clicked, this, &RecordAndMove::CollectIcpProbe);
   connect(m_Controls.pushButton_applyRegistration, &QPushButton::clicked, this, &RecordAndMove::ApplySurfaceRegistration);
-
   connect(m_Controls.pushButton_connectKuka, &QPushButton::clicked, this, &RecordAndMove::UseKuka);
   connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &RecordAndMove::UseVega);
-  connect(m_Controls.pushButton_recordPosition, &QPushButton::clicked, this, &RecordAndMove::ThreadRecord);
-  connect(m_Controls.pushButton_handDrive, &QPushButton::clicked, this, &RecordAndMove::ThreadHandDrive);
   connect(m_Controls.pushButton_setAsTarget, &QPushButton::clicked, this, &RecordAndMove::SetAsTarget);
-  connect(m_Controls.pushButton_moveToTarget, &QPushButton::clicked, this, &RecordAndMove::MoveToTarget);
-  connect(m_Controls.pushButton_stopHandDrive, &QPushButton::clicked, this, &RecordAndMove::StopHandDrive);
   connect(m_Controls.pushButton_capturePose, &QPushButton::clicked, this, &RecordAndMove::OnRobotCapture);
   connect(m_Controls.pushButton_moveToHomePosition, &QPushButton::clicked, this, &RecordAndMove::MoveToHomePosition);
-  connect(m_Controls.pushButton_onAutoMove, &QPushButton::clicked, this, &RecordAndMove::OnAutoMove);
-  connect(m_Controls.pushButton_moveToBPoint, &QPushButton::clicked, this, &RecordAndMove::MoveToBPoint);
+  connect(m_Controls.pushButton_moveToTargetPoint, &QPushButton::clicked, this, &RecordAndMove::MoveToTargetPoint);
   connect(m_Controls.pushButton_moveAlongA, &QPushButton::clicked, this, &RecordAndMove::MoveAlongA);
   connect(m_Controls.pushButton_moveAlongB, &QPushButton::clicked, this, &RecordAndMove::MoveAlongB);
   connect(m_Controls.pushButton_moveAlongC, &QPushButton::clicked, this, &RecordAndMove::MoveAlongC);
   connect(m_Controls.pushButton_moveAlongX, &QPushButton::clicked, this, &RecordAndMove::MoveAlongX);
   connect(m_Controls.pushButton_moveAlongY, &QPushButton::clicked, this, &RecordAndMove::MoveAlongY);
   connect(m_Controls.pushButton_moveAlongZ, &QPushButton::clicked, this, &RecordAndMove::MoveAlongZ);
-
-
 }
+
 
 void RecordAndMove::MoveAlongA() {
 	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
@@ -193,8 +186,157 @@ void RecordAndMove::MoveAlongZ() {
 }
 
 
+// Point Accuracy Test
+bool RecordAndMove::InterpretImageLine()
+{
+	auto targetLinePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_CTSteelballCenterInImage->GetSelectedNode()->GetData());
+	auto targetPoint_0 = targetLinePoints->GetPoint(0); // TCP frame origin should move to this point
+	auto targetPoint_1 = targetLinePoints->GetPoint(1);
 
-bool RecordAndMove::GetCTSteelballCenterInRobotBase()
+	// Interpret targetPoint_0 from image frame to robot (internal) base frame
+	// do some average
+	double targetPointUnderBase_0[3]{ 0 };
+	double targetPointUnderBase_1[3]{ 0 };
+	for (int i{ 0 }; i < 20; i++) {
+		m_VegaSource->Update();
+		auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
+
+		auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
+
+		auto registrationMatrix_surfaceToRF = m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix();
+		vtkNew<vtkMatrix4x4> tmpMatrix;
+		mitk::TransferItkTransformToVtkMatrix(registrationMatrix_surfaceToRF.GetPointer(), tmpMatrix);
+		tmpMatrix->Invert();
+
+		mitk::TransferVtkMatrixToItkTransform(tmpMatrix, rfToSurfaceMatrix.GetPointer());
+
+		auto ndiToTargetMatrix_0 = mitk::AffineTransform3D::New();
+		ndiToTargetMatrix_0->SetOffset(targetPoint_0.GetDataPointer());
+		ndiToTargetMatrix_0->Compose(rfToSurfaceMatrix);
+		ndiToTargetMatrix_0->Compose(ndiToObjectRfMatrix);
+		auto targetUnderBase_0 = mitk::AffineTransform3D::New();
+		m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_0, targetUnderBase_0);
+		auto targetPointUnderBase_tmp0 = targetUnderBase_0->GetOffset();
+
+		auto ndiToTargetMatrix_1 = mitk::AffineTransform3D::New();
+		ndiToTargetMatrix_1->SetOffset(targetPoint_1.GetDataPointer());
+		ndiToTargetMatrix_1->Compose(rfToSurfaceMatrix);
+		ndiToTargetMatrix_1->Compose(ndiToObjectRfMatrix);
+		auto targetUnderBase_1 = mitk::AffineTransform3D::New();
+		m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_1, targetUnderBase_1);
+		auto targetPointUnderBase_tmp1 = targetUnderBase_1->GetOffset();
+
+		targetPointUnderBase_0[0] += targetPointUnderBase_tmp0[0];
+		targetPointUnderBase_0[1] += targetPointUnderBase_tmp0[1];
+		targetPointUnderBase_0[2] += targetPointUnderBase_tmp0[2];
+
+		targetPointUnderBase_1[0] += targetPointUnderBase_tmp1[0];
+		targetPointUnderBase_1[1] += targetPointUnderBase_tmp1[1];
+		targetPointUnderBase_1[2] += targetPointUnderBase_tmp1[2];
+
+		MITK_INFO << "tmp target Point:" << targetPointUnderBase_tmp0[0];
+	}
+
+	targetPointUnderBase_0[0] = targetPointUnderBase_0[0] / 20;
+	targetPointUnderBase_0[1] = targetPointUnderBase_0[1] / 20;
+	targetPointUnderBase_0[2] = targetPointUnderBase_0[2] / 20;
+
+	targetPointUnderBase_1[0] = targetPointUnderBase_1[0] / 20;
+	targetPointUnderBase_1[1] = targetPointUnderBase_1[1] / 20;
+	targetPointUnderBase_1[2] = targetPointUnderBase_1[2] / 20;
+
+	// fine tune the direction
+	// dynamic TCP will take effect when the GetOutput function of KukaSource is called;
+	// By comparison, GetOutput function of VegaSource will not automatically take the registration matrix of the corresponding tool into consideration
+	//auto currentPostureUnderBase = m_KukaSource->GetOutput(0)->GetAffineTransform3D();
+	auto currentPostureUnderBase = m_KukaSource->GetOutput(2)->GetAffineTransform3D();
+	cout << m_KukaSource->GetOutput(2)->GetName() << endl;
+	cout << m_KukaSource->GetOutput(2)->GetAffineTransform3D()->GetMatrix() << endl;
+	m_KukaToolStorage->GetToolByName("RobotEndRF_robot")->GetToolRegistrationMatrix();
+
+
+	vtkNew<vtkMatrix4x4> vtkCurrentPoseUnderBase;
+	mitk::TransferItkTransformToVtkMatrix(currentPostureUnderBase.GetPointer(), vtkCurrentPoseUnderBase);
+
+	Eigen::Vector3d currentXunderBase;
+	currentXunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 1);
+	currentXunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 1);
+	currentXunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 1);
+	currentXunderBase.normalize();
+	MITK_INFO << "currentXunderBase" << currentXunderBase;
+
+	// Eigen::Vector3d currentYunderBase;
+	// currentYunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 1);
+	// currentYunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 1);
+	// currentYunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 1);
+	//
+	// Eigen::Vector3d currentZunderBase;
+	// currentZunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 2);
+	// currentZunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 2);
+	// currentZunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 2);ML
+
+	Eigen::Vector3d targetXunderBase;
+	targetXunderBase[0] = targetPointUnderBase_0[0] - targetPointUnderBase_1[0];
+	targetXunderBase[1] = targetPointUnderBase_0[1] - targetPointUnderBase_1[1];
+	targetXunderBase[2] = targetPointUnderBase_0[2] - targetPointUnderBase_1[2];
+
+	targetXunderBase.normalize();
+
+	MITK_INFO << "targetXunderBase" << targetXunderBase;
+
+	Eigen::Vector3d rotationAxis;
+	rotationAxis = currentXunderBase.cross(targetXunderBase);
+	rotationAxis;
+
+	double rotationAngle;
+	if (currentXunderBase.dot(targetXunderBase) > 0) {
+		rotationAngle = 180 * asin(rotationAxis.norm()) / 3.1415926;
+	}
+	else {
+		rotationAngle = 180 - 180 * asin(rotationAxis.norm()) / 3.1415926;
+	}
+
+
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->PostMultiply();
+	tmpTransform->Identity();
+	tmpTransform->SetMatrix(vtkCurrentPoseUnderBase);
+	tmpTransform->RotateWXYZ(rotationAngle, rotationAxis[0], rotationAxis[1], rotationAxis[2]);
+	tmpTransform->Update();
+
+	auto testMatrix = tmpTransform->GetMatrix();
+
+	auto targetPoseUnderBase = mitk::AffineTransform3D::New();
+	mitk::TransferVtkMatrixToItkTransform(tmpTransform->GetMatrix(), targetPoseUnderBase.GetPointer());
+
+	m_Controls.textBrowser->append("Move to this x axix:" + QString::number(testMatrix->GetElement(0, 0)) + "/" + QString::number(testMatrix->GetElement(1, 0)) + "/" + QString::number(testMatrix->GetElement(2, 0)));
+
+
+	// Assemble m_T_robot
+	m_T_robot = mitk::AffineTransform3D::New();
+	m_T_robot->SetMatrix(targetPoseUnderBase->GetMatrix());
+	m_T_robot->SetOffset(targetPointUnderBase_0);
+
+	m_Controls.textBrowser->append("result Line target point:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
+
+	// m_Controls.textBrowser->append("Move to this x axix:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
+
+	return true;
+}
+
+bool RecordAndMove::MoveToTargetLine()
+{
+	cout << CTSteelPointCenterTransformationInRobotBaseFrame[0] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[1] << ",  "
+		<< CTSteelPointCenterTransformationInRobotBaseFrame[2] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[3] << ",  "
+		<< CTSteelPointCenterTransformationInRobotBaseFrame[4] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[5] << endl;
+	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
+	m_KukaTrackingDevice->m_RobotApi.MovePTP(CTSteelPointCenterTransformationInRobotBaseFrame);
+	return true;
+}
+
+
+// Point Accuracy Test
+bool RecordAndMove::InterpretImagePoint()
 {
 	//read file
 	auto CTSteelballCenterPositionInImage = m_Controls.mitkNodeSelectWidget_CTSteelballCenterInImage->GetSelectedNode();
@@ -305,7 +447,7 @@ bool RecordAndMove::GetCTSteelballCenterInRobotBase()
 	return true;
 }
 
-bool RecordAndMove::MoveToBPoint()
+bool RecordAndMove::MoveToTargetPoint()
 {
 	cout << CTSteelPointCenterTransformationInRobotBaseFrame[0] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[1] << ",  "
 		<< CTSteelPointCenterTransformationInRobotBaseFrame[2] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[3] << ",  "
@@ -315,6 +457,8 @@ bool RecordAndMove::MoveToBPoint()
 	return true;
 }
 
+
+// Image Registration
 void RecordAndMove::InitCTSteelballCenterSelector(QmitkSingleNodeSelectionWidget* widget)
 {
 	widget->SetDataStorage(GetDataStorage());
@@ -491,10 +635,6 @@ bool RecordAndMove::ApplySurfaceRegistration()
 
 	return true;
 }
-
-
-
-
 
 
 
@@ -696,75 +836,6 @@ void RecordAndMove::ShowToolStatus_Kuka()
 	m_Controls.m_StatusWidgetKukaToolToShow->ShowStatusLabels();
 }
 
-void RecordAndMove::ThreadHandDrive()
-{
-	if (m_ThreadHandDrive_Flag == false)
-	{
-		m_ThreadHandDrive_Flag = true;
-		m_ThreadHandDrive_Handler = std::thread(&RecordAndMove::HandDrive, this);
-		//QString handDriveFlag_text = QString::number(m_ThreadHandDrive_Flag);
-		m_Controls.label_handDriveFlag->setText("Hand Drive ON");
-	}
-}
-
-void RecordAndMove::ThreadRecord()
-{
-	m_ThreadRecord_Flag = true;
-	m_ThreadRecord_Handler = std::thread(&RecordAndMove::Record, this);
-}
-
-void RecordAndMove::Record()
-{
-	while (m_ThreadRecord_Flag)
-	{
-		auto frame = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[0];
-		//MITK_INFO << frame.name;
-		std::array<double, 6> p = frame.position;
-		QString position_text = "x: "+ QString::number(p[0]) + "    y: " + QString::number(p[1]) + "    z: " + QString::number(p[2]) + "    a: " + QString::number(p[3]) + "    b: " + QString::number(p[4]) + "    c: " + QString::number(p[5]);
-		m_Controls.label_position->setText(position_text);
-	}
-}
-
-void RecordAndMove::HandDrive()
-{
-	//while (m_ThreadHandDrive_Flag)
-	//{
-	//	ResultProtocol reply;
-	//	if (m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult() > 0)
-	//	{
-	//		reply = m_KukaTrackingDevice->m_RobotApi.GetCommandResult();
-	//		MITK_INFO << "Receive Reply: " << QString::fromStdString(reply.operateType);
-	//	}
-
-	//	if (QString::fromStdString(reply.operateType) == "non_precious")
-	//	{
-	//		m_ThreadHandDrive_Flag = false;
-	//		m_Controls.label_handDriveFlag->setText("Hand Drive OFF");
-	//	}
-	//	//start handguiding
-	//	if (QString::fromStdString(reply.operateType) == "precious")
-	//	{
-	//		if (preciousHandGuiding_select == true) {
-	//			m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("HandGuiding");
-	//		}
-	//		else {
-	//			m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("Test");
-	//		}
-	//	}
-	//	std::this_thread::sleep_for(std::chrono::milliseconds(5));
-	//}
-}
-
-void RecordAndMove::StopHandDrive()
-{
-	if (m_ThreadHandDrive_Flag == true)
-	{
-		m_ThreadHandDrive_Flag = false;
-		m_ThreadHandDrive_Handler.join();
-		m_Controls.label_handDriveFlag->setText("Hand Drive OFF");
-	}
-}
-
 void RecordAndMove::SetAsTarget()
 {
 	auto frame = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[0];
@@ -776,13 +847,7 @@ void RecordAndMove::SetAsTarget()
 }
 
 
-
-void RecordAndMove::MoveToTarget()
-{
-	StopHandDrive();
-	bool isGetTarget = m_KukaTrackingDevice->m_RobotApi.MovePTP(m_Target);
-}
-
+// Robot Registration
 void RecordAndMove::OnAutoMove()
 {
 	auto frame = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[0];
@@ -848,7 +913,6 @@ void RecordAndMove::OnAutoMove()
 
 void::RecordAndMove::MoveToHomePosition()
 {
-	StopHandDrive();
 	bool isGetHome = m_KukaTrackingDevice->m_RobotApi.MovePTP(m_HomePosition);
 }
 
