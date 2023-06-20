@@ -102,47 +102,6 @@ unsigned int lancet::KukaRobotAPI::GetNumberOfCommandResult()
 	return m_MsgQueueSize;
 }
 
-RobotInformationProtocol lancet::KukaRobotAPI::GetRobotInfo_xiao()
-{
-	RobotInformationProtocol info{};
-
-	Poco::JSON::Parser parser;
-	parser.reset();
-	// Poco::Dynamic::Var result = parser.parse(m_UdpConnection.read());//todo crush when disconnect ,add err handle
-	  // #TODO: Debug kuka robot code
-	std::string updMessageRead = m_UdpConnection.read();
-
-	if (updMessageRead.empty())
-	{
-		MITK_WARN << "read empty message text.";
-		return info;
-	}
-
-	//MITK_ERROR << "DEBUG: " << updMessageRead;
-	Poco::Dynamic::Var result = parser.parse(updMessageRead);//todo crush when disconnect ,add err handle
-	auto pObj = result.extract<Poco::JSON::Object::Ptr>();
-	
-
-	cout << result.toString() << endl;
-	cout << "*******************************************" << endl;
-	cout << "*******************************************" << endl;
-	cout << "*******************************************" << endl;
-	if (pObj.isNull())
-	{
-		MITK_ERROR << "GetRobotInfo Failed: Can not parse udp massage to json Object,empty info returned";
-		return info;
-	}
-
-	if (!info.FromJsonObj(*pObj))
-	{
-		MITK_ERROR << "GetRobotInfo Failed: json format error,empty info returned.please check udp massage below:";
-		std::stringstream ss;
-		pObj->stringify(ss, 2);
-		MITK_ERROR << ss.str();
-	}
-	return info;
-}
-
 RobotInformationProtocol lancet::KukaRobotAPI::GetRobotInfo()
 {
   RobotInformationProtocol info{};

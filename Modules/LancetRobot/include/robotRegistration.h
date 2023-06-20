@@ -38,7 +38,11 @@ public:
 
 	bool GetRegistraionMatrix(vtkMatrix4x4* output);
 
+	bool GetCorrectTcpMatrix(vtkMatrix4x4* output);
+
 	void GetTCP(std::array<double, 6>& output);
+
+	void GetCorrectTCP(std::array<double, 6>& output);
 
 	bool Regist();
 
@@ -74,6 +78,7 @@ public:
 	 * \brief robot registration matrix,from RobotMaker to robot base.
 	 */
 	Eigen::Matrix3d R0{};
+
 	/**
 	 * \brief robot registration matrix,from RobotMaker to robot base.
 	 */

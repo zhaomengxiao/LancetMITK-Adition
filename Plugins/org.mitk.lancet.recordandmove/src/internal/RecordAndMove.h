@@ -57,6 +57,7 @@ public slots:
 	void UseKuka();
 	void UseVega();
 	void ShowToolStatus_Vega();
+	void ShowToolStatus_Kuka();
 	void OnKukaVisualizeTimer();
 	void OnVegaVisualizeTimer();
 	void UpdateToolStatusWidget();
@@ -75,6 +76,14 @@ public slots:
 	void CapturePose(bool translationOnly);
 	void OnRobotCapture();
 	void OnAutoMove();
+	void MoveAlongA();
+	void MoveAlongB();
+	void MoveAlongC();
+	void MoveAlongX();
+	void MoveAlongY();
+	void MoveAlongZ();
+
+
 
 	void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
 	void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
@@ -84,7 +93,8 @@ public slots:
 	bool ApplySurfaceRegistration();
 	
 	void InitCTSteelballCenterSelector(QmitkSingleNodeSelectionWidget* widget);
-	bool GetCTSteelballCenterInImage();
+	bool GetCTSteelballCenterInRobotBase();
+	bool MoveToBPoint();
 
 
 protected:
@@ -92,8 +102,11 @@ protected:
   lancet::ApplySurfaceRegistratioinFilter::Pointer m_surfaceRegistrationFilter;
   lancet::NavigationObject::Pointer navigatedImage;
   mitk::AffineTransform3D::Pointer m_imageRegistrationMatrix; // image(surface) to Rf matrix
+  mitk::Point3D m_pointPositionInNDI;
+  mitk::Point3D m_pointPositionInRobotBase;
+  std::array<double, 6> CTSteelPointCenterTransformationInRobotBaseFrame;
 
-
+  mitk::Point3D CTSteelPointCenterPositionInRobotBaseFrame;
   std::array<double, 6> m_Target;
   std::array<double, 6> m_HomePosition = {-751.08,196.235,542.805,-3.0812,-0.21958,3.05353};
 

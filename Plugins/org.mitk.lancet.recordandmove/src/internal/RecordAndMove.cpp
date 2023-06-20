@@ -52,6 +52,7 @@ found in the LICENSE file.
 #include "QmitkDataStorageTreeModel.h"
 #include <QmitkSingleNodeSelectionWidget.h>
 #include <QTimer>
+#include <itkAffineTransform.h>
 #include <vtkImplicitPolyDataDistance.h>
 
 #include "lancetTreeCoords.h"
@@ -99,7 +100,7 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
 	/*InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetLine);
 	InitPointSetSelector(m_Controls.mitkNodeSelectWidget_ImageCheckPoint); m_Controls.setupUi(parent);*/
 
-  connect(m_Controls.pushButton_getCTSteelballCenter, &QPushButton::clicked, this, &RecordAndMove::GetCTSteelballCenterInImage);
+  connect(m_Controls.pushButton_getCTSteelballCenter, &QPushButton::clicked, this, &RecordAndMove::GetCTSteelballCenterInRobotBase);
   connect(m_Controls.pushButton_collectLandmark, &QPushButton::clicked, this, &RecordAndMove::CollectLandmarkProbe);
   connect(m_Controls.pushButton_collectIcp, &QPushButton::clicked, this, &RecordAndMove::CollectIcpProbe);
   connect(m_Controls.pushButton_applyRegistration, &QPushButton::clicked, this, &RecordAndMove::ApplySurfaceRegistration);
@@ -113,12 +114,89 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_stopHandDrive, &QPushButton::clicked, this, &RecordAndMove::StopHandDrive);
   connect(m_Controls.pushButton_capturePose, &QPushButton::clicked, this, &RecordAndMove::OnRobotCapture);
   connect(m_Controls.pushButton_moveToHomePosition, &QPushButton::clicked, this, &RecordAndMove::MoveToHomePosition);
+  connect(m_Controls.pushButton_onAutoMove, &QPushButton::clicked, this, &RecordAndMove::OnAutoMove);
+  connect(m_Controls.pushButton_moveToBPoint, &QPushButton::clicked, this, &RecordAndMove::MoveToBPoint);
+  connect(m_Controls.pushButton_moveAlongA, &QPushButton::clicked, this, &RecordAndMove::MoveAlongA);
+  connect(m_Controls.pushButton_moveAlongB, &QPushButton::clicked, this, &RecordAndMove::MoveAlongB);
+  connect(m_Controls.pushButton_moveAlongC, &QPushButton::clicked, this, &RecordAndMove::MoveAlongC);
+  connect(m_Controls.pushButton_moveAlongX, &QPushButton::clicked, this, &RecordAndMove::MoveAlongX);
+  connect(m_Controls.pushButton_moveAlongY, &QPushButton::clicked, this, &RecordAndMove::MoveAlongY);
+  connect(m_Controls.pushButton_moveAlongZ, &QPushButton::clicked, this, &RecordAndMove::MoveAlongZ);
+
+
+}
+
+void RecordAndMove::MoveAlongA() {
+	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
+	auto frame_2 = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[2];
+	MITK_INFO << "*******************************  " << frame_2.name << "  *******************************" << endl;
+	std::array<double, 6> p = frame_2.position;
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	p[3] += (20.0 / 180.0 * 3.14);
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+}
+
+void RecordAndMove::MoveAlongB() {
+	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
+	auto frame_2 = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[2];
+	MITK_INFO << "*******************************  " << frame_2.name << "  *******************************" << endl;
+	std::array<double, 6> p = frame_2.position;
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	p[4] += (20.0 / 180.0 * 3.14);
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+}
+
+void RecordAndMove::MoveAlongC() {
+	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
+	auto frame_2 = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[2];
+	MITK_INFO << "*******************************  " << frame_2.name << "  *******************************" << endl;
+	std::array<double, 6> p = frame_2.position;
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	p[5] += (20.0 / 180.0 * 3.14);
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+}
+
+void RecordAndMove::MoveAlongX() {
+	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
+	auto frame_2 = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[2];
+	MITK_INFO << "*******************************  " << frame_2.name << "  *******************************" << endl;
+	std::array<double, 6> p = frame_2.position;
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	p[0] += 50;
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+}
+
+void RecordAndMove::MoveAlongY() {
+	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
+	auto frame_2 = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[2];
+	MITK_INFO << "*******************************  " << frame_2.name << "  *******************************" << endl;
+	std::array<double, 6> p = frame_2.position;
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	p[1] += 50;
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+}
+
+void RecordAndMove::MoveAlongZ() {
+	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
+	auto frame_2 = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[2];
+	MITK_INFO << "*******************************  " << frame_2.name << "  *******************************" << endl;
+	std::array<double, 6> p = frame_2.position;
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	p[2] += 50;
+	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
+	m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 }
 
 
 
-bool RecordAndMove::GetCTSteelballCenterInImage()
+bool RecordAndMove::GetCTSteelballCenterInRobotBase()
 {
+	//read file
 	auto CTSteelballCenterPositionInImage = m_Controls.mitkNodeSelectWidget_CTSteelballCenterInImage->GetSelectedNode();
 	if (CTSteelballCenterPositionInImage == nullptr)
 	{
@@ -126,15 +204,116 @@ bool RecordAndMove::GetCTSteelballCenterInImage()
 		return false;
 	}
 
+	//get one point position in image frame, we select the second point for example.
 	auto CTSteelballCenter_Pset = dynamic_cast<mitk::PointSet*>(CTSteelballCenterPositionInImage->GetData());
+	auto pointPositionInImage = CTSteelballCenter_Pset->GetPoint(1);
+	cout << "======================================  p_image(pointPositionInImage)  ======================================" << endl;
+	cout << pointPositionInImage << endl;
 	cout << "*****************************" << endl;
-	cout << CTSteelballCenter_Pset->GetPoint(1)<<endl;
-	cout << "*****************************" << endl;
-	cout << CTSteelballCenter_Pset->GetPointSet(0) << endl;
-	cout << "*****************************" << endl;
+
+	//check and visualize transformation matrix
+	cout << "====================================== 1. F image_ObjeRf  ======================================" << endl;
+	vtkMatrix4x4* F_image_ObjectRf = vtkMatrix4x4::New();
+	cout << "m_imageRegistrationMatrix: " << endl;
+	cout << *m_imageRegistrationMatrix << endl;
+	cout << "-------------------------" << endl;
+	mitk::TransferItkTransformToVtkMatrix(m_imageRegistrationMatrix.GetPointer(), F_image_ObjectRf);
+	vtkMatrix4x4* F_image_ObjectRf_inverse = vtkMatrix4x4::New();;
+	mitk::TransferItkTransformToVtkMatrix(m_imageRegistrationMatrix.GetPointer(), F_image_ObjectRf_inverse);
+	F_image_ObjectRf_inverse->Invert();
+	cout << "F_image_ObjectRf_inverse: " << endl;
+	cout << *F_image_ObjectRf_inverse << endl;
+	cout << "**********************" << endl;
+
+	cout << "======================================  2. F NDI_ObjeRf  ======================================" << endl;;
+	auto ObjectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+	mitk::NavigationData::Pointer nd_ndiToObjeRf = m_VegaSource->GetOutput(ObjectRfIndex);
+	vtkMatrix4x4* F_NDI_ObjectRf = vtkMatrix4x4::New();
+	mitk::TransferItkTransformToVtkMatrix(nd_ndiToObjeRf->GetAffineTransform3D().GetPointer(), F_NDI_ObjectRf);
+	cout << "F_NDI_ObjectRf: " << endl;
+	cout << *F_NDI_ObjectRf << endl;
+	cout << "**********************" << endl;
+
+	cout << "======================================  3. F NDI_RobotBaseRF  ======================================" << endl;
+	auto RobotBaseRFIndex = m_VegaToolStorage->GetToolIndexByName("RobotBaseRF");
+	mitk::NavigationData::Pointer nd_ndiToRobotBaseRF = m_VegaSource->GetOutput(RobotBaseRFIndex);
+	vtkMatrix4x4* F_NDI_RobotBaseRF_inverse = vtkMatrix4x4::New();
+	cout << "nd_ndiToRobotBaseRF: " << endl;
+	cout << nd_ndiToRobotBaseRF->GetAffineTransform3D()->GetMatrix() << endl;
+	cout << "**********************" << endl;
+	mitk::TransferItkTransformToVtkMatrix(nd_ndiToRobotBaseRF->GetInverse()->GetAffineTransform3D().GetPointer(), F_NDI_RobotBaseRF_inverse);
+	cout << "F_NDI_RobotBaseRF_inverse: " << endl;
+	cout << *F_NDI_RobotBaseRF_inverse << endl;
+	cout << "**********************" << endl;
+
+	cout << "====================================== 4. F RobobaseRf_RoboBase  =================== ===================" << endl;
+	vtkMatrix4x4* F_RobotBaseRF_RobotBase = vtkMatrix4x4::New();
+	cout << "m_RobotRegistrationMatrix: " << endl;
+	cout << m_RobotRegistrationMatrix->GetMatrix() << endl;
+	cout << "-------------------------" << endl;
+	mitk::TransferItkTransformToVtkMatrix(m_RobotRegistrationMatrix.GetPointer(), F_RobotBaseRF_RobotBase);
+	vtkMatrix4x4* F_RobotBaseRF_RobotBase_inverse = vtkMatrix4x4::New();;
+	mitk::TransferItkTransformToVtkMatrix(m_RobotRegistrationMatrix.GetPointer(), F_RobotBaseRF_RobotBase_inverse);
+	F_RobotBaseRF_RobotBase_inverse->Invert();
+	cout << "F_RobotBaseRF_RobotBase_inverse: " << endl;
+	cout << *F_RobotBaseRF_RobotBase_inverse << endl;
+	cout << "**********************" << endl;
+
+	// Calculate Point in RobotBase
+	//Transfer Point3D to vtkMatrix4x4
+	auto pointPositionInImage_Matrix = vtkMatrix4x4::New();
+	pointPositionInImage_Matrix->Identity();
+	pointPositionInImage_Matrix->SetElement(0, 3, pointPositionInImage[0]);
+	pointPositionInImage_Matrix->SetElement(1, 3, pointPositionInImage[1]);
+	pointPositionInImage_Matrix->SetElement(2, 3, pointPositionInImage[2]);
+	cout << "************  pointPositionInImage_Matrix  *****************" << endl;
+	cout << *pointPositionInImage_Matrix << endl;
+	//Multiply Point Matrix by 4 Matrixs
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->Identity();
+	tmpTrans->SetMatrix(pointPositionInImage_Matrix);
+	tmpTrans->PostMultiply();
+	tmpTrans->Concatenate(F_image_ObjectRf_inverse);
+	cout << "************  F_image_ObjectRf_inverse * p  *****************" << endl;
+	cout << *tmpTrans << endl;
+	tmpTrans->Concatenate(F_NDI_ObjectRf);
+	cout << "************  F_NDI_ObjectRf * F_image_ObjectRf_inverse * p  *****************" << endl;
+	cout << *tmpTrans << endl;
+	tmpTrans->Concatenate(F_NDI_RobotBaseRF_inverse);
+	tmpTrans->Concatenate(F_RobotBaseRF_RobotBase_inverse);
+	//Extract translation part from composed matrix(tmpTrans)
+
+	auto resultMatrix = tmpTrans->GetMatrix();
+	CTSteelPointCenterPositionInRobotBaseFrame[0] = resultMatrix->GetElement(0, 3);
+	CTSteelPointCenterPositionInRobotBaseFrame[1] = resultMatrix->GetElement(1, 3);
+	CTSteelPointCenterPositionInRobotBaseFrame[2] = resultMatrix->GetElement(2, 3);
+	cout << "************************  result point in F_robotbase ***********************" << endl;
+	cout << CTSteelPointCenterPositionInRobotBaseFrame << endl;
+	cout << "**********************************" << endl;
+
+	//Move TCP to CTSteelPointCenterInRobotBaseFrame
+	auto frame_2 = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[2];
+	MITK_INFO << "*******************************  " << frame_2.name << "  *******************************" << endl;
+	std::array<double, 6> p = frame_2.position;
+	cout << "p:" << endl;
+	cout << p[0] <<", "<< p[1] << ", " << p[2] << ", " << p[3] << ", " << p[4] << ", " << p[5] << endl;
+	CTSteelPointCenterTransformationInRobotBaseFrame = { CTSteelPointCenterPositionInRobotBaseFrame[0],CTSteelPointCenterPositionInRobotBaseFrame[1],
+																	CTSteelPointCenterPositionInRobotBaseFrame[2],  2.37, 1.16, -0.80 };
+	cout << CTSteelPointCenterTransformationInRobotBaseFrame[0] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[1] << ",  " 
+		<< CTSteelPointCenterTransformationInRobotBaseFrame[2] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[3] << ",  " 
+		<< CTSteelPointCenterTransformationInRobotBaseFrame[4] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[5] << endl;
 	return true;
 }
 
+bool RecordAndMove::MoveToBPoint()
+{
+	cout << CTSteelPointCenterTransformationInRobotBaseFrame[0] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[1] << ",  "
+		<< CTSteelPointCenterTransformationInRobotBaseFrame[2] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[3] << ",  "
+		<< CTSteelPointCenterTransformationInRobotBaseFrame[4] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[5] << endl;
+	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
+	m_KukaTrackingDevice->m_RobotApi.MovePTP(CTSteelPointCenterTransformationInRobotBaseFrame);
+	return true;
+}
 
 void RecordAndMove::InitCTSteelballCenterSelector(QmitkSingleNodeSelectionWidget* widget)
 {
@@ -199,13 +378,14 @@ bool RecordAndMove::SetupNavigatedImage()
 		vtkNew<vtkMatrix4x4> identityMatrix;
 		identityMatrix->Identity();
 		dynamic_cast<mitk::Surface*>(surfaceNode->GetData())->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+
 		m_Controls.textBrowser->append("Warning: the initial surface has a non-identity offset matrix; the matrix has been reset to identity!");
-		cout << "Warning: the initial surface has a non - identity offset matrix; the matrix has been reset to identity!" << endl;
 	}
 
 	navigatedImage->SetDataNode(surfaceNode);
 
-	navigatedImage->SetLandmarks(dynamic_cast<mitk::PointSet*>(landmarkSrcNode->GetData()));;
+	navigatedImage->SetLandmarks(dynamic_cast<mitk::PointSet*>(landmarkSrcNode->GetData()));
+
 	navigatedImage->SetReferencFrameName(surfaceNode->GetName());
 
 	m_Controls.textBrowser->append("--- navigatedImage has been set up ---");
@@ -242,7 +422,6 @@ bool RecordAndMove::CollectLandmarkProbe()
 
 	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
 	mitk::NavigationData::Pointer nd_ndiToObjectRf = m_VegaSource->GetOutput(objectRfIndex);
-
 	mitk::NavigationData::Pointer nd_rfToProbe = GetNavigationDataInRef(nd_ndiToProbe, nd_ndiToObjectRf);
 
 
@@ -319,21 +498,6 @@ bool RecordAndMove::ApplySurfaceRegistration()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void RecordAndMove::UseKuka()
 {
 	m_Controls.pushButton_connectKuka->setText("Kuka Connecting...");
@@ -374,7 +538,7 @@ void RecordAndMove::UseKuka()
 		//connect the timer to the method OnTimer()
 		connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget()));
 		//connect the timer to the method OnTimer()
-		//ShowToolStatus_Kuka();
+		ShowToolStatus_Kuka();
 		m_KukaVisualizeTimer->start(100); //Every 100ms the method OnTimer() is called. -> 10fps
 	}
 	else
@@ -453,6 +617,28 @@ void RecordAndMove::OnKukaVisualizeTimer()
 		ResultProtocol reply = m_KukaTrackingDevice->m_RobotApi.GetCommandResult();
 		cout << "This is reply: " << reply.ToString() << endl;
 		//m_Controls.textBrowser->append(QString::fromStdString(reply.ToString()));
+
+		/*if (m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult() > 0)
+		{
+			reply = m_KukaTrackingDevice->m_RobotApi.GetCommandResult();
+			MITK_INFO << "Receive Reply: " << QString::fromStdString(reply.operateType);
+		}*/
+
+		/*if (QString::fromStdString(reply.operateType) == "non_precious")
+		{
+			m_handGuidingOn = false;
+			m_Controls.label_handDriveFlag->setText("Hand Drive OFF");
+		}*/
+		//start handguiding
+		if (QString::fromStdString(reply.operateType) == "precious")
+		{
+			if (preciousHandGuiding_select == true) {
+				m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("HandGuiding");
+			}
+			else {
+				m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("Test");
+			}
+		}
 	}
 }
 
@@ -480,12 +666,6 @@ void RecordAndMove::OnVegaVisualizeTimer()
 	}
 }
 
-void RecordAndMove::UpdateToolStatusWidget()
-{
-	/*m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
-	m_Controls.m_StatusWidgetKukaToolToShow->Refresh();*/
-}
-
 void RecordAndMove::ShowToolStatus_Vega()
 {
 	m_VegaNavigationData.clear();
@@ -494,11 +674,26 @@ void RecordAndMove::ShowToolStatus_Vega()
 		m_VegaNavigationData.push_back(m_VegaSource->GetOutput(i));
 	}
 	//initialize widget
-	/*m_Controls.m_StatusWidgetVegaToolToShow->RemoveStatusLabels();
+	m_Controls.m_StatusWidgetVegaToolToShow->RemoveStatusLabels();
 	m_Controls.m_StatusWidgetVegaToolToShow->SetShowPositions(true);
 	m_Controls.m_StatusWidgetVegaToolToShow->SetTextAlignment(Qt::AlignLeft);
 	m_Controls.m_StatusWidgetVegaToolToShow->SetNavigationDatas(&m_VegaNavigationData);
-	m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();*/
+	m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();
+}
+
+void RecordAndMove::ShowToolStatus_Kuka()
+{
+	m_KukaNavigationData.clear();
+	for (std::size_t i = 0; i < m_KukaSource->GetNumberOfOutputs(); i++)
+	{
+		m_KukaNavigationData.push_back(m_KukaSource->GetOutput(i));
+	}
+	//initialize widget
+	m_Controls.m_StatusWidgetKukaToolToShow->RemoveStatusLabels();
+	m_Controls.m_StatusWidgetKukaToolToShow->SetShowPositions(true);
+	m_Controls.m_StatusWidgetKukaToolToShow->SetTextAlignment(Qt::AlignLeft);
+	m_Controls.m_StatusWidgetKukaToolToShow->SetNavigationDatas(&m_KukaNavigationData);
+	m_Controls.m_StatusWidgetKukaToolToShow->ShowStatusLabels();
 }
 
 void RecordAndMove::ThreadHandDrive()
@@ -532,31 +727,32 @@ void RecordAndMove::Record()
 
 void RecordAndMove::HandDrive()
 {
-	while (m_ThreadHandDrive_Flag)
-	{
-		ResultProtocol reply;
-		if (m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult() > 0)
-		{
-			reply = m_KukaTrackingDevice->m_RobotApi.GetCommandResult();
-			MITK_INFO << "Receive Reply: " << QString::fromStdString(reply.operateType);
-		}
+	//while (m_ThreadHandDrive_Flag)
+	//{
+	//	ResultProtocol reply;
+	//	if (m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult() > 0)
+	//	{
+	//		reply = m_KukaTrackingDevice->m_RobotApi.GetCommandResult();
+	//		MITK_INFO << "Receive Reply: " << QString::fromStdString(reply.operateType);
+	//	}
 
-		if (QString::fromStdString(reply.operateType) == "non_precious")
-		{
-			m_handGuidingOn = false;
-		}
-		//start handguiding
-		if (QString::fromStdString(reply.operateType) == "precious")
-		{
-			if (preciousHandGuiding_select == true) {
-				m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("HandGuiding");
-			}
-			else {
-				m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("Test");
-			}
-		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(5));
-	}
+	//	if (QString::fromStdString(reply.operateType) == "non_precious")
+	//	{
+	//		m_ThreadHandDrive_Flag = false;
+	//		m_Controls.label_handDriveFlag->setText("Hand Drive OFF");
+	//	}
+	//	//start handguiding
+	//	if (QString::fromStdString(reply.operateType) == "precious")
+	//	{
+	//		if (preciousHandGuiding_select == true) {
+	//			m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("HandGuiding");
+	//		}
+	//		else {
+	//			m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("Test");
+	//		}
+	//	}
+	//	std::this_thread::sleep_for(std::chrono::milliseconds(5));
+	//}
 }
 
 void RecordAndMove::StopHandDrive()
@@ -565,7 +761,6 @@ void RecordAndMove::StopHandDrive()
 	{
 		m_ThreadHandDrive_Flag = false;
 		m_ThreadHandDrive_Handler.join();
-		QString handDriveFlag_text = QString::number(m_ThreadHandDrive_Flag);
 		m_Controls.label_handDriveFlag->setText("Hand Drive OFF");
 	}
 }
@@ -579,6 +774,8 @@ void RecordAndMove::SetAsTarget()
 	QString position_text = "Target:    x: " + QString::number(p[0]) + "    y: " + QString::number(p[1]) + "    z: " + QString::number(p[2]) + "    a: " + QString::number(p[3]) + "    b: " + QString::number(p[4]) + "    c: " + QString::number(p[5]);
 	m_Controls.label_target->setText(position_text);
 }
+
+
 
 void RecordAndMove::MoveToTarget()
 {
@@ -615,19 +812,19 @@ void RecordAndMove::OnAutoMove()
 
 	case 5: //x rotate 10 degree x -25
 		p[0] -= 25;
-		p[3] += (10.0 / 180.0 * 3.14);
+		p[3] += (15.0 / 180.0 * 3.14);
 		m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 		break;
 
 	case 6: //x rotate -20 degree y -25
 		p[1] -= 25;
-		p[3] -= (20.0 / 180.0 * 3.14);
+		p[3] -= (15.0 / 180.0 * 3.14);
 		m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 		break;
 
 	case 7: //y rotate 10 degree y +25
-		p[1] -= 25;
-		p[4] += (10.0 / 180.0 * 3.14);
+		p[1] += 25;
+		p[4] += (15.0 / 180.0 * 3.14);
 		m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 		break;
 
@@ -657,7 +854,6 @@ void::RecordAndMove::MoveToHomePosition()
 
 void RecordAndMove::CapturePose(bool translationOnly)
 {
-	OnAutoMove();
 	//Output sequence is the same as AddTool sequence
 	//get navigation data of flange in robot coords,
 	mitk::NavigationData::Pointer nd_robot2flange = m_KukaSource->GetOutput(0);
@@ -676,8 +872,13 @@ void RecordAndMove::CapturePose(bool translationOnly)
 
 	//MITK_INFO << nd_robot2flange;
 	//MITK_INFO << nd_RobotBaseRF2RobotEndRF;
-	cout << "nd_robot2flange: " << nd_robot2flange << endl;
-	cout << "nd_RobotBaseRF2RobotEndRF: " << nd_RobotBaseRF2RobotEndRF << endl;
+	cout << "nd_robot2flange: " << endl;
+	cout<<nd_robot2flange->GetRotationMatrix() << endl;
+	cout << nd_robot2flange->GetPosition() << endl;
+	cout << "******************" << endl;
+	cout << "nd_RobotBaseRF2RobotEndRF: " << endl;
+	cout<<nd_RobotBaseRF2RobotEndRF->GetRotationMatrix() << endl;
+	cout << nd_RobotBaseRF2RobotEndRF->GetPosition() << endl;
 }
 
 void RecordAndMove::OnRobotCapture()
@@ -688,16 +889,19 @@ void RecordAndMove::OnRobotCapture()
 		m_IndexOfRobotCapture++;
 		MITK_INFO << "OnRobotCapture: " << m_IndexOfRobotCapture<<"  (Translation: "<< m_IndexOfRobotCapture<<"/5)";
 		m_Controls.pushButton_capturePose->setText("Capturing "+ QString::number(m_IndexOfRobotCapture)+"/10");
+		return;
 	}
 	else if (m_IndexOfRobotCapture < 10) //the last five rotations
 	{
 		CapturePose(false);
 		m_IndexOfRobotCapture++;
 		MITK_INFO << "OnRobotCapture: " << m_IndexOfRobotCapture << "  (Rotation: " << m_IndexOfRobotCapture-5 << "/5)";
-		m_Controls.pushButton_capturePose->setText("Capturing " + QString::number(m_IndexOfRobotCapture-5) + "/10");
+		m_Controls.pushButton_capturePose->setText("Capturing " + QString::number(m_IndexOfRobotCapture) + "/10");
+		return;
 	}
 	if (m_IndexOfRobotCapture==10)
 	{
+
 		m_IndexOfRobotCapture++;
 		MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
 		m_Controls.pushButton_capturePose->setText("OnRobotCapture finish, Calculating registration matrix....");
@@ -723,9 +927,13 @@ void RecordAndMove::OnRobotCapture()
 		//tcp
 
 		std::array<double, 6> tcp{};
-		m_RobotRegistration.GetTCP(tcp);
-		cout << "TCP: " << tcp[0] << " " << tcp[1] << " " << tcp[2] << " " << tcp[3] << " " << tcp[4] << " " << tcp[5] << endl;
+
 		
+		//m_RobotRegistration.GetCorrectTCP(tcp);
+		m_RobotRegistration.GetTCP(tcp);
+		cout << "******************************* TCP *************************************" << endl;
+		cout << "TCP: " << tcp[0] << " " << tcp[1] << " " << tcp[2] << " " << tcp[3] << " " << tcp[4] << " " << tcp[5] << endl;
+		cout << "******************************* TCP *************************************" << endl;
 		//set tcp
 		m_KukaTrackingDevice->m_RobotApi.AddFrame("RobotEndRF_robot", tcp);
 
@@ -733,7 +941,13 @@ void RecordAndMove::OnRobotCapture()
 		m_KukaToolStorage->GetToolByName("RobotEndRF_robot")->SetTCP(tcp.data());
 		cout << "tcp.date: " << tcp.data() << endl;
 		m_Controls.pushButton_capturePose->setText("OnRobotCapture finish! Calculate finish!");
+		return;
 	}
 }
 
+void RecordAndMove::UpdateToolStatusWidget()
+{
+	m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
+	m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
+}
 

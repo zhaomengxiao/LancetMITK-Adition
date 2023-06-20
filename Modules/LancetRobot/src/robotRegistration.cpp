@@ -136,6 +136,29 @@ bool RobotRegistration::GetRegistraionMatrix(vtkMatrix4x4* output)
 	return true;
 }
 
+bool RobotRegistration::GetCorrectTcpMatrix(vtkMatrix4x4* output)
+{
+	if (Regist() == false)
+	{
+		return false;
+	}
+
+	Matrix4d matrix;
+	matrix.setIdentity();
+	matrix.block(0, 0, 3, 3) = Re;
+	matrix.block(0, 3, 3, 1) = Ve;
+
+	vtkNew<vtkMatrix4x4> res;
+	res->DeepCopy(matrix.data());
+	res->Transpose();
+
+	res->Invert();
+
+	output->DeepCopy(res);
+	return true;
+}
+
+
 void RobotRegistration::GetTCP(std::array<double, 6>& output)
 {
 	//In case anyone forgets to do calculation
@@ -151,6 +174,36 @@ void RobotRegistration::GetTCP(std::array<double, 6>& output)
 	output[5] = eulerAngle(2);
 }
 
+void RobotRegistration::GetCorrectTCP(std::array<double, 6>& output)
+{
+	Regist();
+
+
+	Matrix4d matrix;
+	matrix.setIdentity();
+	matrix.block(0, 0, 3, 3) = Re;
+	matrix.block(0, 3, 3, 1) = Ve;
+
+	vtkNew<vtkMatrix4x4> res;
+	res->DeepCopy(matrix.data());
+	res->Transpose();
+
+	res->Invert();
+
+	output[0] = res->GetElement(0, 3);
+	output[1] = res->GetElement(1, 3);
+	output[2] = res->GetElement(2, 3);
+
+	Matrix3d tmpRotationMatrix;
+	tmpRotationMatrix << res->GetElement(0, 0), res->GetElement(0, 1), res->GetElement(0, 2),
+		res->GetElement(1, 0), res->GetElement(1, 1), res->GetElement(1, 2),
+		res->GetElement(2, 0), res->GetElement(2, 1), res->GetElement(2, 2);
+
+	Eigen::Vector3d eulerAngle = tmpRotationMatrix.eulerAngles(2, 1, 0);
+	output[3] = eulerAngle(0);
+	output[4] = eulerAngle(1);
+	output[5] = eulerAngle(2);
+}
 
 bool RobotRegistration::Regist()
 {

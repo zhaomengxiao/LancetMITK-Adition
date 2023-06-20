@@ -50,7 +50,7 @@
     <rect>
      <x>0</x>
      <y>50</y>
-     <width>731</width>
+     <width>471</width>
      <height>411</height>
     </rect>
    </property>
@@ -145,10 +145,17 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <widget class="QPushButton" name="pushButton_capturePose">
             <property name="text">
              <string>Start Capture Pose</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_onAutoMove">
+            <property name="text">
+             <string>AutoMove</string>
             </property>
            </widget>
           </item>
@@ -299,6 +306,117 @@
      <string>Get CT Steelball Center</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="pushButton_moveToBPoint">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>50</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Move to B point</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QmitkToolTrackingStatusWidget" name="m_StatusWidgetVegaToolToShow" native="true">
+   <property name="geometry">
+    <rect>
+     <x>510</x>
+     <y>40</y>
+     <width>281</width>
+     <height>121</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QmitkToolTrackingStatusWidget" name="m_StatusWidgetKukaToolToShow" native="true">
+   <property name="geometry">
+    <rect>
+     <x>510</x>
+     <y>200</y>
+     <width>261</width>
+     <height>201</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_moveAlongX">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>620</y>
+     <width>121</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Move Along X</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_moveAlongY">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>620</y>
+     <width>111</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Move Along Y</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_moveAlongZ">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>620</y>
+     <width>121</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Move Along Z</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_moveAlongA">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>660</y>
+     <width>121</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Move Along A</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_moveAlongB">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>660</y>
+     <width>111</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Move Along B</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_moveAlongC">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>660</y>
+     <width>121</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Move Along C</string>
+   </property>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
@@ -307,6 +425,12 @@
    <class>QmitkSingleNodeSelectionWidget</class>
    <extends>QWidget</extends>
    <header location="global">QmitkSingleNodeSelectionWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QmitkToolTrackingStatusWidget</class>
+   <extends>QWidget</extends>
+   <header>QmitkToolTrackingStatusWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

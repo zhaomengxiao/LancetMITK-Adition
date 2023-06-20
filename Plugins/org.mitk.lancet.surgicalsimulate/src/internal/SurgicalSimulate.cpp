@@ -348,7 +348,6 @@ void SurgicalSimulate::OnKukaVisualizeTimer()
   
   if (m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult()>0)
   {
-	  cout << "******************  m_KukaTrackingDevice->m_RobotApi.GetNumberOfCommandResult()>0  ***************" << endl;
 	  ResultProtocol reply = m_KukaTrackingDevice->m_RobotApi.GetCommandResult();
 	  cout << "This is reply: " << reply.ToString() << endl;
 	  m_Controls.textBrowser->append(QString::fromStdString(reply.ToString()));
@@ -392,11 +391,6 @@ void SurgicalSimulate::OnVegaVisualizeTimer()
   }
 }
 
-//哪一行指令是让机器人平移？
-//哪一行指令是让机器人旋转？
-//save robot registration matrix into reference tool 什么意思
-//什么是 build ApplyDeviceRegistrationFilter？  "RobotBaseRF"对应"m_RobotRegistrationMatrix"？？？
-//为什么 m_KukaVisualizeTimer 要停止？因为要ConnectTo(m_KukaApplyRegistrationFilter)?
 void SurgicalSimulate::OnRobotCapture()
 {
   if (m_IndexOfRobotCapture < 5) //The first five translations, 
@@ -446,8 +440,7 @@ void SurgicalSimulate::OnRobotCapture()
 
 	std::array<double, 6> tcp{};
 	m_RobotRegistration.GetTCP(tcp);
-	cout << "TCP: " << tcp[0]<<" " << tcp[1] << " " << tcp[2] << " " << tcp[3] << " " << tcp[4] << " " << tcp[5] <<endl;
-
+	
 
 	//For Test Use ,4L tka device registration result ,you can skip registration workflow by using it, Only if the RobotBase Reference Frame not moved!
 	/*tcp[0] = 69.162;
@@ -485,8 +478,6 @@ void SurgicalSimulate::OnRobotCapture()
   }
 }
 
-
-//m_RobotApi.GetRobotInfo().frames[0] 是什么？
 void SurgicalSimulate::OnAutoMove()
 {
 	auto frame = m_KukaTrackingDevice->m_RobotApi.GetRobotInfo().frames[0];
@@ -901,7 +892,6 @@ bool SurgicalSimulate::InterpretImageLine()
 
 	return true;
 }
-
 
 void SurgicalSimulate::OnAutoPositionStart()
 {
