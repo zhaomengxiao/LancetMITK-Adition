@@ -90,7 +90,9 @@ public slots:
 	bool MoveToTargetPoint();
 	bool InterpretImageLine();
 	bool MoveToTargetLine();
-
+	void OnSaveRobotRegistration();
+	void OnUsePreRobotRegistration();
+	bool OnUsePreNDIRegistration();
 
 protected:
   lancet::ApplySurfaceRegistratioinFilter::Pointer m_surfaceRegistrationFilter;

@@ -69,13 +69,13 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>280</y>
-     <width>801</width>
-     <height>321</height>
+     <y>270</y>
+     <width>841</width>
+     <height>371</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -84,10 +84,10 @@
     <widget class="QWidget" name="widget_9" native="true">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>10</x>
        <y>140</y>
-       <width>431</width>
-       <height>141</height>
+       <width>421</width>
+       <height>191</height>
       </rect>
      </property>
      <property name="autoFillBackground">
@@ -97,7 +97,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>40</y>
+        <y>90</y>
         <width>251</width>
         <height>61</height>
        </rect>
@@ -129,7 +129,7 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>10</y>
+        <y>40</y>
         <width>251</width>
         <height>21</height>
        </rect>
@@ -138,8 +138,8 @@
      <widget class="QPushButton" name="pushButton_assembleNavigationObject">
       <property name="geometry">
        <rect>
-        <x>140</x>
-        <y>100</y>
+        <x>20</x>
+        <y>160</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -151,8 +151,8 @@
      <widget class="QPushButton" name="pushButton_collectLandmark">
       <property name="geometry">
        <rect>
-        <x>260</x>
-        <y>10</y>
+        <x>270</x>
+        <y>40</y>
         <width>121</width>
         <height>31</height>
        </rect>
@@ -164,8 +164,8 @@
      <widget class="QPushButton" name="pushButton_collectIcp">
       <property name="geometry">
        <rect>
-        <x>260</x>
-        <y>50</y>
+        <x>270</x>
+        <y>80</y>
         <width>121</width>
         <height>31</height>
        </rect>
@@ -177,8 +177,8 @@
      <widget class="QPushButton" name="pushButton_applyRegistration">
       <property name="geometry">
        <rect>
-        <x>260</x>
-        <y>90</y>
+        <x>270</x>
+        <y>120</y>
         <width>121</width>
         <height>31</height>
        </rect>
@@ -187,25 +187,51 @@
        <string>Apply Registration</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="pushButton_onSaveNDIRegistration">
+      <property name="geometry">
+       <rect>
+        <x>270</x>
+        <y>160</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_onUsePreNDIRegistration">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>10</y>
+        <width>391</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Use previous NDI registration</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="widget_5" native="true">
      <property name="geometry">
       <rect>
        <x>0</x>
        <y>10</y>
-       <width>435</width>
+       <width>441</width>
        <height>121</height>
       </rect>
      </property>
-     <layout class="QGridLayout" name="gridLayout_5">
-      <item row="0" column="0">
-       <widget class="QPushButton" name="pushButton_moveToHomePosition">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="2" column="0" colspan="2">
+       <widget class="QPushButton" name="pushButton_onSaveRobotRegistration">
         <property name="text">
-         <string>Move to home position</string>
+         <string>Save</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="1" column="1">
        <widget class="QPushButton" name="pushButton_capturePose">
         <property name="text">
          <string>Start Capture Pose</string>
@@ -216,6 +242,13 @@
        <widget class="QPushButton" name="pushButton_onAutoMove">
         <property name="text">
          <string>AutoMove</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QPushButton" name="pushButton_onUsePreRobotRegistration">
+        <property name="text">
+         <string>Use previous Robot registration</string>
         </property>
        </widget>
       </item>
@@ -396,16 +429,16 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>160</y>
+     <y>140</y>
      <width>411</width>
-     <height>81</height>
+     <height>111</height>
     </rect>
    </property>
    <widget class="QPushButton" name="pushButton_moveAlongC">
     <property name="geometry">
      <rect>
       <x>270</x>
-      <y>50</y>
+      <y>40</y>
       <width>121</width>
       <height>23</height>
      </rect>
@@ -431,7 +464,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>50</y>
+      <y>40</y>
       <width>121</width>
       <height>23</height>
      </rect>
@@ -457,7 +490,7 @@
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>50</y>
+      <y>40</y>
       <width>111</width>
       <height>23</height>
      </rect>
@@ -477,6 +510,19 @@
     </property>
     <property name="text">
      <string>Move Along Y</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_moveToHomePosition">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>75</y>
+      <width>371</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Move to home position</string>
     </property>
    </widget>
   </widget>

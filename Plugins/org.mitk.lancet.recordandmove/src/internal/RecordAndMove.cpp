@@ -120,6 +120,10 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_moveAlongY, &QPushButton::clicked, this, &RecordAndMove::MoveAlongY);
   connect(m_Controls.pushButton_moveAlongZ, &QPushButton::clicked, this, &RecordAndMove::MoveAlongZ);
   connect(m_Controls.pushButton_movePTPStop, &QPushButton::clicked, this, &RecordAndMove::MovePTPStop);
+  connect(m_Controls.pushButton_onSaveRobotRegistration, &QPushButton::clicked, this, &RecordAndMove::OnSaveRobotRegistration);
+  connect(m_Controls.pushButton_onSaveNDIRegistration, &QPushButton::clicked, this, &RecordAndMove::OnSaveRobotRegistration);
+  connect(m_Controls.pushButton_onUsePreRobotRegistration, &QPushButton::clicked, this, &RecordAndMove::OnUsePreRobotRegistration);
+  connect(m_Controls.pushButton_onUsePreNDIRegistration, &QPushButton::clicked, this, &RecordAndMove::OnUsePreNDIRegistration);
 }
 
 
@@ -1061,3 +1065,105 @@ void RecordAndMove::UpdateToolStatusWidget()
 	m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
 }
 
+void RecordAndMove::OnSaveRobotRegistration()
+{
+	if (m_VegaToolStorage.IsNotNull())
+	{
+		QFileDialog* fileDialog = new QFileDialog;
+		fileDialog->setDefaultSuffix("IGTToolStorage");
+		QString suffix = "IGT Tool Storage (*.IGTToolStorage)";
+		// Set default file name to LastFileSavePath + storage name
+		QString defaultFileName = QmitkIGTCommonHelper::GetLastFileSavePath() + "/" + QString::fromStdString(m_VegaToolStorage->GetName());
+		QString filename = fileDialog->getSaveFileName(nullptr, tr("Save Navigation Tool Storage"), defaultFileName, suffix, &suffix);
+
+		if (filename.isEmpty()) return; //canceled by the user
+
+		// check file suffix
+		QFileInfo file(filename);
+		if (file.suffix().isEmpty()) filename += ".IGTToolStorage";
+
+		//serialize tool storage
+		mitk::NavigationToolStorageSerializer::Pointer mySerializer = mitk::NavigationToolStorageSerializer::New();
+
+		try
+		{
+			mySerializer->Serialize(filename.toStdString(), m_VegaToolStorage);
+		}
+		catch (const mitk::IGTIOException & e)
+		{
+			m_Controls.textBrowser->append(QString::fromStdString("Error: " + std::string(e.GetDescription())));
+			return;
+		}
+		m_Controls.textBrowser->append(QString::fromStdString(m_VegaToolStorage->GetName() + " saved"));
+	}
+
+	if (m_KukaToolStorage.IsNotNull())
+	{
+		QFileDialog* fileDialog = new QFileDialog;
+		fileDialog->setDefaultSuffix("IGTToolStorage");
+		QString suffix = "IGT Tool Storage (*.IGTToolStorage)";
+		// Set default file name to LastFileSavePath + storage name
+		QString defaultFileName = QmitkIGTCommonHelper::GetLastFileSavePath() + "/" + QString::fromStdString(m_KukaToolStorage->GetName());
+		QString filename = fileDialog->getSaveFileName(nullptr, tr("Save Navigation Tool Storage"), defaultFileName, suffix, &suffix);
+
+		if (filename.isEmpty()) return; //canceled by the user
+
+		// check file suffix
+		QFileInfo file(filename);
+		if (file.suffix().isEmpty()) filename += ".IGTToolStorage";
+
+		//serialize tool storage
+		mitk::NavigationToolStorageSerializer::Pointer mySerializer = mitk::NavigationToolStorageSerializer::New();
+
+		try
+		{
+			mySerializer->Serialize(filename.toStdString(), m_KukaToolStorage);
+		}
+		catch (const mitk::IGTIOException & e)
+		{
+			m_Controls.textBrowser->append(QString::fromStdString("Error: " + std::string(e.GetDescription())));
+			return;
+		}
+		m_Controls.textBrowser->append(QString::fromStdString(m_KukaToolStorage->GetName() + " saved"));
+	}
+}
+
+void RecordAndMove::OnUsePreRobotRegistration()
+{
+	//build ApplyDeviceRegistrationFilter
+	m_KukaApplyRegistrationFilter = lancet::ApplyDeviceRegistratioinFilter::New();
+	m_KukaApplyRegistrationFilter->ConnectTo(m_KukaSource);
+	m_RobotRegistrationMatrix = m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix();
+	m_KukaApplyRegistrationFilter->SetRegistrationMatrix(m_RobotRegistrationMatrix);
+	m_VegaSource->Update();
+	m_KukaApplyRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("RobotBaseRF"));//must make sure NavigationDataOfRF update somewhere else.
+
+	m_KukaVisualizeTimer->stop();
+	m_KukaVisualizer->ConnectTo(m_KukaApplyRegistrationFilter);
+	m_KukaVisualizeTimer->start();
+}
+
+bool RecordAndMove::OnUsePreNDIRegistration()
+{
+	// Apply preexisting surface registration result
+	m_surfaceRegistrationFilter = lancet::ApplySurfaceRegistratioinFilter::New();
+	m_surfaceRegistrationFilter->ConnectTo(m_VegaSource);
+	/*vtkNew<vtkMatrix4x4> surfaceToRfMatrix;
+	mitk::TransferItkTransformToVtkMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix().GetPointer(), surfaceToRfMatrix);
+	navigatedImage->SetT_Object2ReferenceFrame(surfaceToRfMatrix);*/
+
+	m_surfaceRegistrationFilter->SetnavigationImage(navigatedImage);
+	m_surfaceRegistrationFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix());
+	m_surfaceRegistrationFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("ObjectRf"));
+
+	// save image(surface) registration matrix into its corresponding RF tool
+	// m_imageRegistrationMatrix = mitk::AffineTransform3D::New();
+	// mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
+	// m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
+
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_surfaceRegistrationFilter);
+	m_VegaVisualizeTimer->start();
+
+	return true;
+}
