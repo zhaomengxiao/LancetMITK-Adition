@@ -91,9 +91,9 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
   // create GUI widgets from the Qt Designer's .ui file
 	InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surface_regis);
 	InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);
-
-
 	InitCTSteelballCenterSelector(m_Controls.mitkNodeSelectWidget_CTSteelballCenterInImage);
+	InitCTSteelballCenterSelector(m_Controls.mitkNodeSelectWidget_CTSteelballInImage_2);
+
 	connect(m_Controls.pushButton_assembleNavigationObject, &QPushButton::clicked, this, &RecordAndMove::SetupNavigatedImage);
 	//InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_metaImageNode);
 	//InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
@@ -101,6 +101,9 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
 	InitPointSetSelector(m_Controls.mitkNodeSelectWidget_ImageCheckPoint); m_Controls.setupUi(parent);*/
 
   connect(m_Controls.pushButton_interpretImagePoint, &QPushButton::clicked, this, &RecordAndMove::InterpretImagePoint);
+  connect(m_Controls.pushButton_interpretImageLine, &QPushButton::clicked, this, &RecordAndMove::InterpretImageLine);
+  connect(m_Controls.pushButton_moveToTargetPoint, &QPushButton::clicked, this, &RecordAndMove::MoveToTargetPoint);
+  connect(m_Controls.pushButton_moveToTargetLine, &QPushButton::clicked, this, &RecordAndMove::MoveToTargetLine);
   connect(m_Controls.pushButton_collectLandmark, &QPushButton::clicked, this, &RecordAndMove::CollectLandmarkProbe);
   connect(m_Controls.pushButton_collectIcp, &QPushButton::clicked, this, &RecordAndMove::CollectIcpProbe);
   connect(m_Controls.pushButton_applyRegistration, &QPushButton::clicked, this, &RecordAndMove::ApplySurfaceRegistration);
@@ -108,14 +111,15 @@ void RecordAndMove::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &RecordAndMove::UseVega);
   connect(m_Controls.pushButton_setAsTarget, &QPushButton::clicked, this, &RecordAndMove::SetAsTarget);
   connect(m_Controls.pushButton_capturePose, &QPushButton::clicked, this, &RecordAndMove::OnRobotCapture);
+  connect(m_Controls.pushButton_onAutoMove, &QPushButton::clicked, this, &RecordAndMove::OnAutoMove);
   connect(m_Controls.pushButton_moveToHomePosition, &QPushButton::clicked, this, &RecordAndMove::MoveToHomePosition);
-  connect(m_Controls.pushButton_moveToTargetPoint, &QPushButton::clicked, this, &RecordAndMove::MoveToTargetPoint);
   connect(m_Controls.pushButton_moveAlongA, &QPushButton::clicked, this, &RecordAndMove::MoveAlongA);
   connect(m_Controls.pushButton_moveAlongB, &QPushButton::clicked, this, &RecordAndMove::MoveAlongB);
   connect(m_Controls.pushButton_moveAlongC, &QPushButton::clicked, this, &RecordAndMove::MoveAlongC);
   connect(m_Controls.pushButton_moveAlongX, &QPushButton::clicked, this, &RecordAndMove::MoveAlongX);
   connect(m_Controls.pushButton_moveAlongY, &QPushButton::clicked, this, &RecordAndMove::MoveAlongY);
   connect(m_Controls.pushButton_moveAlongZ, &QPushButton::clicked, this, &RecordAndMove::MoveAlongZ);
+  connect(m_Controls.pushButton_movePTPStop, &QPushButton::clicked, this, &RecordAndMove::MovePTPStop);
 }
 
 
@@ -128,6 +132,14 @@ void RecordAndMove::MoveAlongA() {
 	p[3] += (20.0 / 180.0 * 3.14);
 	cout << p[0] << ",  " << p[1] << ",  " << p[2] << ",  " << p[3] << ",  " << p[4] << ",  " << p[5] << endl;
 	m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
+
+	/*auto tmpTrans = vtkTransform::New();
+	tmpTrans->Identity();
+	tmpTrans->PostMultiply;
+	tmpTrans->RotateX(p[5]*180/3.1415926);
+	tmpTrans->Translate();
+	tmpTrans->Update();
+	auto resultMatrix = tmpTrans->GetMatrix();*/
 }
 
 void RecordAndMove::MoveAlongB() {
@@ -186,11 +198,23 @@ void RecordAndMove::MoveAlongZ() {
 }
 
 
-// Point Accuracy Test
+// Accuracy Test
+void RecordAndMove::MovePTPStop()
+{
+	m_KukaTrackingDevice->m_RobotApi.SendCommandNoPara("MoveStop");
+}
+
 bool RecordAndMove::InterpretImageLine()
 {
-	auto targetLinePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_CTSteelballCenterInImage->GetSelectedNode()->GetData());
-	auto targetPoint_0 = targetLinePoints->GetPoint(0); // TCP frame origin should move to this point
+	auto targetLinePointsNode = m_Controls.mitkNodeSelectWidget_CTSteelballInImage_2->GetSelectedNode();
+	if (targetLinePointsNode == nullptr)
+	{
+		cout << "Source surface or source landmarks is not ready!" << endl;
+		return false;
+	}
+
+	auto targetLinePoints = dynamic_cast<mitk::PointSet*>(targetLinePointsNode->GetData());
+	auto targetPoint_0 = targetLinePoints->GetPoint(2); // TCP frame origin should move to this point
 	auto targetPoint_1 = targetLinePoints->GetPoint(1);
 
 	// Interpret targetPoint_0 from image frame to robot (internal) base frame
@@ -211,9 +235,13 @@ bool RecordAndMove::InterpretImageLine()
 		mitk::TransferVtkMatrixToItkTransform(tmpMatrix, rfToSurfaceMatrix.GetPointer());
 
 		auto ndiToTargetMatrix_0 = mitk::AffineTransform3D::New();
+		ndiToTargetMatrix_0->SetIdentity();
 		ndiToTargetMatrix_0->SetOffset(targetPoint_0.GetDataPointer());
 		ndiToTargetMatrix_0->Compose(rfToSurfaceMatrix);
 		ndiToTargetMatrix_0->Compose(ndiToObjectRfMatrix);
+		cout << "******************  targetPoint_0 under NDI  *******************" << endl;
+		cout << *ndiToTargetMatrix_0 << endl;
+
 		auto targetUnderBase_0 = mitk::AffineTransform3D::New();
 		m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_0, targetUnderBase_0);
 		auto targetPointUnderBase_tmp0 = targetUnderBase_0->GetOffset();
@@ -234,7 +262,7 @@ bool RecordAndMove::InterpretImageLine()
 		targetPointUnderBase_1[1] += targetPointUnderBase_tmp1[1];
 		targetPointUnderBase_1[2] += targetPointUnderBase_tmp1[2];
 
-		MITK_INFO << "tmp target Point:" << targetPointUnderBase_tmp0[0];
+		MITK_INFO << "tmp target Point:" << targetPointUnderBase_tmp0;
 	}
 
 	targetPointUnderBase_0[0] = targetPointUnderBase_0[0] / 20;
@@ -249,31 +277,20 @@ bool RecordAndMove::InterpretImageLine()
 	// dynamic TCP will take effect when the GetOutput function of KukaSource is called;
 	// By comparison, GetOutput function of VegaSource will not automatically take the registration matrix of the corresponding tool into consideration
 	//auto currentPostureUnderBase = m_KukaSource->GetOutput(0)->GetAffineTransform3D();
-	auto currentPostureUnderBase = m_KukaSource->GetOutput(2)->GetAffineTransform3D();
-	cout << m_KukaSource->GetOutput(2)->GetName() << endl;
-	cout << m_KukaSource->GetOutput(2)->GetAffineTransform3D()->GetMatrix() << endl;
-	m_KukaToolStorage->GetToolByName("RobotEndRF_robot")->GetToolRegistrationMatrix();
-
-
+	auto currentPostureUnderBase = m_KukaSource->GetOutput(1)->GetAffineTransform3D();
 	vtkNew<vtkMatrix4x4> vtkCurrentPoseUnderBase;
 	mitk::TransferItkTransformToVtkMatrix(currentPostureUnderBase.GetPointer(), vtkCurrentPoseUnderBase);
 
+	cout << vtkCurrentPoseUnderBase->GetElement(0, 0) << "    " << vtkCurrentPoseUnderBase->GetElement(0, 1) << "    " << vtkCurrentPoseUnderBase->GetElement(0, 2) << "   " << vtkCurrentPoseUnderBase->GetElement(0, 3) << endl;
+	cout << vtkCurrentPoseUnderBase->GetElement(1, 0) << "    " << vtkCurrentPoseUnderBase->GetElement(1, 1) << "    " << vtkCurrentPoseUnderBase->GetElement(1, 2) << "   " << vtkCurrentPoseUnderBase->GetElement(1, 3) << endl;
+	cout << vtkCurrentPoseUnderBase->GetElement(2, 0) << "    " << vtkCurrentPoseUnderBase->GetElement(2, 1) << "    " << vtkCurrentPoseUnderBase->GetElement(2, 2) << "   " << vtkCurrentPoseUnderBase->GetElement(2, 3) << endl;
+	cout << vtkCurrentPoseUnderBase->GetElement(3, 0) << "    " << vtkCurrentPoseUnderBase->GetElement(3, 1) << "    " << vtkCurrentPoseUnderBase->GetElement(3, 2) << "   " << vtkCurrentPoseUnderBase->GetElement(3, 3) << endl;
 	Eigen::Vector3d currentXunderBase;
 	currentXunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 1);
 	currentXunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 1);
 	currentXunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 1);
 	currentXunderBase.normalize();
 	MITK_INFO << "currentXunderBase" << currentXunderBase;
-
-	// Eigen::Vector3d currentYunderBase;
-	// currentYunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 1);
-	// currentYunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 1);
-	// currentYunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 1);
-	//
-	// Eigen::Vector3d currentZunderBase;
-	// currentZunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 2);
-	// currentZunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 2);
-	// currentZunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 2);ML
 
 	Eigen::Vector3d targetXunderBase;
 	targetXunderBase[0] = targetPointUnderBase_0[0] - targetPointUnderBase_1[0];
@@ -297,19 +314,38 @@ bool RecordAndMove::InterpretImageLine()
 	}
 
 
+	//vtkNew<vtkTransform> m_T_robot;
+	//m_T_robot->PostMultiply();
+	//m_T_robot->Identity();
+	//vtkMatrix4x4* temp = vtkMatrix4x4::New();
+	//mitk::TransferItkTransformToVtkMatrix(m_KukaSource->GetOutput(1)->GetAffineTransform3D().GetPointer(), temp);
+	//m_T_robot->SetMatrix(temp);
+	//m_T_robot->RotateWXYZ(rotationAngle, rotationAxis[0], rotationAxis[1], rotationAxis[2]);
+	//auto x = m_KukaSource->GetOutput(1)->GetAffineTransform3D()->GetOffset();
+	////m_T_robot->Translate(x);
+	//m_T_robot->Update();
+	
+
 	vtkNew<vtkTransform> tmpTransform;
 	tmpTransform->PostMultiply();
 	tmpTransform->Identity();
 	tmpTransform->SetMatrix(vtkCurrentPoseUnderBase);
+	tmpTransform->Update();
+	cout << "************* tmpTransform before rotate *****************" << endl;
+	cout << *tmpTransform->GetMatrix() << endl;
+
 	tmpTransform->RotateWXYZ(rotationAngle, rotationAxis[0], rotationAxis[1], rotationAxis[2]);
 	tmpTransform->Update();
+	cout << "************* tmpTransform final *****************" << endl;
+	cout << *tmpTransform->GetMatrix() << endl;
+	
 
 	auto testMatrix = tmpTransform->GetMatrix();
 
 	auto targetPoseUnderBase = mitk::AffineTransform3D::New();
 	mitk::TransferVtkMatrixToItkTransform(tmpTransform->GetMatrix(), targetPoseUnderBase.GetPointer());
 
-	m_Controls.textBrowser->append("Move to this x axix:" + QString::number(testMatrix->GetElement(0, 0)) + "/" + QString::number(testMatrix->GetElement(1, 0)) + "/" + QString::number(testMatrix->GetElement(2, 0)));
+	//m_Controls.textBrowser->append("Move to this x axix:" + QString::number(testMatrix->GetElement(0, 0)) + "/" + QString::number(testMatrix->GetElement(1, 0)) + "/" + QString::number(testMatrix->GetElement(2, 0)));
 
 
 	// Assemble m_T_robot
@@ -317,20 +353,28 @@ bool RecordAndMove::InterpretImageLine()
 	m_T_robot->SetMatrix(targetPoseUnderBase->GetMatrix());
 	m_T_robot->SetOffset(targetPointUnderBase_0);
 
-	m_Controls.textBrowser->append("result Line target point:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
+	vtkMatrix4x4* t = vtkMatrix4x4::New();
+	mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+	cout << "************* t *****************" << endl;
+	cout << t->GetElement(0, 0) << "    " << t->GetElement(0, 1) << "    " << t->GetElement(0, 2) << "   " << t->GetElement(0, 3) << endl;
+	cout << t->GetElement(1, 0) << "    " << t->GetElement(1, 1) << "    " << t->GetElement(1, 2) << "   " << t->GetElement(1, 3) << endl;
+	cout << t->GetElement(2, 0) << "    " << t->GetElement(2, 1) << "    " << t->GetElement(2, 2) << "   " << t->GetElement(2, 3) << endl;
+	cout << t->GetElement(3, 0) << "    " << t->GetElement(3, 1) << "    " << t->GetElement(3, 2) << "   " << t->GetElement(3, 3) << endl;
 
-	// m_Controls.textBrowser->append("Move to this x axix:" + QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
 
 	return true;
 }
 
 bool RecordAndMove::MoveToTargetLine()
 {
-	cout << CTSteelPointCenterTransformationInRobotBaseFrame[0] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[1] << ",  "
-		<< CTSteelPointCenterTransformationInRobotBaseFrame[2] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[3] << ",  "
-		<< CTSteelPointCenterTransformationInRobotBaseFrame[4] << ",  " << CTSteelPointCenterTransformationInRobotBaseFrame[5] << endl;
-	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
-	m_KukaTrackingDevice->m_RobotApi.MovePTP(CTSteelPointCenterTransformationInRobotBaseFrame);
+	vtkMatrix4x4* t = vtkMatrix4x4::New();
+	mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+	cout << "************* t *****************" << endl;
+	cout << t->GetElement(0, 0) << "    " << t->GetElement(0, 1) << "    " << t->GetElement(0, 2) << "   " << t->GetElement(0, 3) << endl;
+	cout << t->GetElement(1, 0) << "    " << t->GetElement(1, 1) << "    " << t->GetElement(1, 2) << "   " << t->GetElement(1, 3) << endl;
+	cout << t->GetElement(2, 0) << "    " << t->GetElement(2, 1) << "    " << t->GetElement(2, 2) << "   " << t->GetElement(2, 3) << endl;
+	cout << t->GetElement(3, 0) << "    " << t->GetElement(3, 1) << "    " << t->GetElement(3, 2) << "   " << t->GetElement(3, 3) << endl;
+	m_KukaTrackingDevice->m_RobotApi.MovePTP(t);
 	return true;
 }
 
@@ -623,6 +667,8 @@ bool RecordAndMove::ApplySurfaceRegistration()
 	mitk::TransferVtkMatrixToItkTransform(navigatedImage->GetT_Object2ReferenceFrame(), m_imageRegistrationMatrix.GetPointer());
 
 	m_VegaToolStorage->GetToolByName("ObjectRf")->SetToolRegistrationMatrix(m_imageRegistrationMatrix);
+	cout << "***************  m_imageRegistrationMatrix  *****************" << endl;
+	cout << *m_imageRegistrationMatrix << endl;
 
 	m_surfaceRegistrationFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix());
 

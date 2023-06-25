@@ -84,6 +84,7 @@ public slots:
 	bool CollectIcpProbe();
 	bool ApplySurfaceRegistration();
 	
+	void MovePTPStop();
 	void InitCTSteelballCenterSelector(QmitkSingleNodeSelectionWidget* widget);
 	bool InterpretImagePoint();
 	bool MoveToTargetPoint();

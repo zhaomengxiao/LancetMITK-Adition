@@ -343,6 +343,19 @@
        <string>Get CT Steelball Surface</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="pushButton_movePTPStop">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>40</y>
+        <width>151</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>MovePTP Stop</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
