@@ -84,7 +84,6 @@ public slots:
 	bool CollectIcpProbe();
 	bool ApplySurfaceRegistration();
 	
-	void MovePTPStop();
 	void InitCTSteelballCenterSelector(QmitkSingleNodeSelectionWidget* widget);
 	bool InterpretImagePoint();
 	bool MoveToTargetPoint();
@@ -92,7 +91,7 @@ public slots:
 	bool MoveToTargetLine();
 	void OnSaveRobotRegistration();
 	void OnUsePreRobotRegistration();
-	bool OnUsePreNDIRegistration();
+	void OnUsePreNDIRegistration();
 
 protected:
   lancet::ApplySurfaceRegistratioinFilter::Pointer m_surfaceRegistrationFilter;

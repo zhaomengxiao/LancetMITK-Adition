@@ -179,6 +179,7 @@ bool lancet::KukaRobotAPI::MoveStop()
   return SendCommandNoPara("MoveStop");
 }
 
+// This function is problematic and should be handled with care Fuxiao 2023.06.25
 bool lancet::KukaRobotAPI::MovePTP(vtkMatrix4x4* target)
 {
   DefaultProtocol protocol;
