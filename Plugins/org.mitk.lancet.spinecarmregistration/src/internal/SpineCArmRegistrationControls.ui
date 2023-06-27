@@ -1129,7 +1129,32 @@
           <string>Edge detection and NCC</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_18">
-          <item row="0" column="0">
+          <item row="1" column="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_37">
+            <item>
+             <widget class="QLabel" name="label_52">
+              <property name="text">
+               <string>Ball size: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_searchBallSize">
+              <property name="text">
+               <string>4</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_53">
+              <property name="text">
+               <string>mm</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="0" colspan="3">
            <layout class="QHBoxLayout" name="horizontalLayout_31">
             <item>
              <widget class="QLabel" name="label_49">
@@ -1145,10 +1170,6 @@
               </property>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item row="0" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_35">
             <item>
              <widget class="QLabel" name="label_50">
               <property name="text">
@@ -1166,16 +1187,34 @@
            </layout>
           </item>
           <item row="1" column="0" colspan="2">
-           <widget class="QPushButton" name="pushButton_testNCC">
-            <property name="text">
-             <string>Test algorithm</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_35">
+            <item>
+             <widget class="QLabel" name="label_51">
+              <property name="text">
+               <string>Ball number: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_searchBallNum">
+              <property name="text">
+               <string>5</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
-          <item row="2" column="0" colspan="2">
+          <item row="1" column="3">
            <widget class="QPushButton" name="pushButton_recursiveSearch">
             <property name="text">
              <string>Recursice search</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="QPushButton" name="pushButton_testNCC">
+            <property name="text">
+             <string>Test algorithm</string>
             </property>
            </widget>
           </item>

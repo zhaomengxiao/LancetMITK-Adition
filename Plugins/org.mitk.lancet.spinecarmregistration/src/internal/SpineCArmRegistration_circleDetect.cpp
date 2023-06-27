@@ -399,13 +399,13 @@ int SpineCArmRegistration::on_pushButton_recursiveSearch_clicked()
 	double highThreashold = 100.0;	//deafult value; should be within [0,255]; threshold for gradient collection
 
 	double minScore = 0.4;		//deafult value
-	double greediness = 0.7;		//deafult value
+	double greediness = 0.7;	//deafult value
 
 	double total_time = 0.0;
 
-	int searchNum = 5; // the number of steelballs
+	int searchNum = m_Controls.lineEdit_searchBallNum->text().toInt(); // the number of steelballs
 
-	double steelballSize = 4.0; // the diameter of the steelball
+	double steelballSize = m_Controls.lineEdit_searchBallSize->text().toDouble(); // the diameter of the steelball
 
 	auto mitkSearchImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_search->GetSelectedNode()->GetData());
 	auto mitkTemplateImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_template->GetSelectedNode()->GetData());
