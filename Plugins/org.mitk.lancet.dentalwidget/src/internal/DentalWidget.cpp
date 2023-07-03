@@ -21,6 +21,8 @@ found in the LICENSE file.
 
 // mitk image
 #include <mitkImage.h>
+#include <vtkImageCast.h>
+#include <vtkPointData.h>
 
 #include "mitkImageToSurfaceFilter.h"
 #include "mitkNodePredicateAnd.h"
@@ -153,7 +155,9 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_retrieveMatrix, &QPushButton::clicked, this, &DentalWidget::RetrieveRegistrationMatrix);
   connect(m_Controls.pushButton_appendOffsetMatrix, &QPushButton::clicked, this, &DentalWidget::AppendMatrix_regisCbct);
   connect(m_Controls.pushButton_assembleRegistrationPoints, &QPushButton::clicked, this, &DentalWidget::AssembleRegistrationPoints);
-  
+
+  connect(m_Controls.pushButton_testSharpen, &QPushButton::clicked, this, &DentalWidget::on_pushButton_testSharpen_clicked);
+
 
 
   // Prepare some empty pointsets for registration purposes
@@ -199,6 +203,100 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
 }
 
 
+void DentalWidget::on_pushButton_testSharpen_clicked()
+{
+	auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_intraopCt->GetSelectedNode()->GetData());
+
+	//------------white image------------
+	vtkNew<vtkImageData> whiteImage;
+	double imageBounds[6]{ 0 };
+	double imageSpacing[3]{ 1, 1, 1 };
+	whiteImage->SetSpacing(imageSpacing);
+
+	auto geometry = inputImage->GetGeometry();
+	auto surfaceBounds = geometry->GetBounds();
+	for (int n = 0; n < 6; n++)
+	{
+		imageBounds[n] = surfaceBounds[n];
+	}
+
+	int dim[3];
+	for (int i = 0; i < 3; i++)
+	{
+		dim[i] = static_cast<int>(ceil((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
+	}
+
+	whiteImage->SetDimensions(dim);
+	//whiteImage->SetExtent(0, dim[0] , 0, dim[1] , 0, dim[2] );
+
+	cout << "Printing dim: " << dim[0] << ", " << dim[1] << ", " << dim[2] << endl;
+
+	double origin[3];
+	origin[0] = imageBounds[0] + imageSpacing[0] / 2;
+	origin[1] = imageBounds[2] + imageSpacing[1] / 2;
+	origin[2] = imageBounds[4] + imageSpacing[2] / 2;
+	whiteImage->SetOrigin(origin);
+	whiteImage->AllocateScalars(VTK_SHORT, 1);
+
+	// fill the image with foreground voxels:
+	short insideValue = 2000;
+	// short outsideValue = 0;
+	vtkIdType count = whiteImage->GetNumberOfPoints();
+	for (vtkIdType i = 0; i < count; ++i)
+	{
+		whiteImage->GetPointData()->GetScalars()->SetTuple1(i, insideValue);
+	}
+
+	//-----------------
+
+
+	// Test: set the boundary voxel of the image to 
+	auto inputVtkImage = inputImage->GetVtkImageData(0,0);
+	int dims[3];
+	inputVtkImage->GetDimensions(dims);
+
+	cout << "Printing dims: " << dims[0] << ", " << dims[1] << ", " << dims[2] <<endl;
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(inputVtkImage);
+	caster->SetOutputScalarTypeToInt();
+	caster->Update();
+
+	auto castVtkImage = caster->GetOutput();
+
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+				int* n = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z));
+
+				int* m = static_cast<int*>(whiteImage->GetScalarPointer(x, y, z));
+
+				m[0] = n[0];
+
+			}
+		}
+	}
+
+
+
+	auto newMitkImage = mitk::Image::New();
+	
+	newMitkImage->Initialize(whiteImage,1,-1,dim[2],dim[1]);
+	
+	newMitkImage->SetVolume(whiteImage->GetScalarPointer());
+
+	// newMitkImage->SetGeometry(inputImage->GetGeometry());
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetName("testNode");
+	tmpNode->SetData(newMitkImage);
+	GetDataStorage()->Add(tmpNode);
+	//
+	// m_Controls.textBrowser->append("new button connected!");
+}
 
 
 

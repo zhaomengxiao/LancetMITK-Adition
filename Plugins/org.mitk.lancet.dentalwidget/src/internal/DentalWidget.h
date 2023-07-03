@@ -199,6 +199,10 @@ protected:
   void ExtractPlan(vtkSmartPointer<vtkPolyData> implant_polydata, vtkSmartPointer<vtkPolyData> teeth_polydata, 
 	  double startPoint[3], double endPoint[3]);
 
+
+
+  void on_pushButton_testSharpen_clicked();
+
 };
 
 #endif // DentalWidget_h
