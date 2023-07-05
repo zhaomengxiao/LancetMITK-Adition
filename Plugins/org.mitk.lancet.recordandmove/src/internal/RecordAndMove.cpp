@@ -326,11 +326,10 @@ bool RecordAndMove::MoveToTargetLine()
 
 	m_KukaTrackingDevice->m_RobotApi.SetMotionFrame("RobotEndRF_robot");
 	// Todo: MovePTP(vtkMatrix * t) is an error
-	//  m_KukaTrackingDevice->m_RobotApi.MovePTP(t); 
+	//m_KukaTrackingDevice->m_RobotApi.MovePTP(t); 
 	m_KukaTrackingDevice->m_RobotApi.MovePTP(p);
 	return true;
 }
-
 
 // Point Accuracy Test
 bool RecordAndMove::InterpretImagePoint()

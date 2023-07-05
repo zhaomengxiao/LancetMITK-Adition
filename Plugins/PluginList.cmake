@@ -59,4 +59,5 @@ set(MITK_PLUGINS
   org.mitk.lancet.kukarobotcontrol:ON
   org.mitk.lancet.tha.application:ON
   org.mitk.lancet.recordandmove:ON
+  org.mitk.lancet.cameratest:ON
 )
