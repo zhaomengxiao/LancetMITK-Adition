@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CameraTestControls</class>
+ <widget class="QWidget" name="CameraTestControls">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>758</width>
+    <height>696</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>QmitkTemplate</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QPushButton" name="pushButton_connectVega">
+       <property name="toolTip">
+        <string>Do image processing</string>
+       </property>
+       <property name="text">
+        <string>连接NDI</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QmitkToolTrackingStatusWidget" name="m_StatusWidgetVegaToolToShow" native="true"/>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>探测位置重复性测试</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QWidget" name="widget_5" native="true">
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="pushButton_readPosition">
+            <property name="text">
+             <string>读取位置（单位：mm）</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" rowspan="4">
+           <widget class="QTextBrowser" name="textBrowserLog"/>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="pushButton_calculateRepeatability">
+            <property name="text">
+             <string>计算位置重复性</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="label_repeatability">
+            <property name="text">
+             <string>误差(mm)：</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QPushButton" name="pushButton_printPoint">
+            <property name="text">
+             <string>COUT位置</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QPushButton" name="pushButton_clearPoint">
+            <property name="text">
+             <string>清空位置</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>探测距离偏差测试</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="0" column="0">
+        <widget class="QWidget" name="widget_10" native="true">
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="pushButton_readEnd10fLine">
+            <property name="text">
+             <string>读取线段端点 1（单位：mm）</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="pushButton_readEnd2OfLine">
+            <property name="text">
+             <string>读取线段端点 2（单位：mm）</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="pushButton_calculateLength">
+            <property name="text">
+             <string>计算线段长度（单位：mm）</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" rowspan="6">
+           <widget class="QTextBrowser" name="textBrowser_End1OfLine"/>
+          </item>
+          <item row="1" column="1" rowspan="6">
+           <widget class="QTextBrowser" name="textBrowser_End2OfLine"/>
+          </item>
+          <item row="1" column="2" rowspan="6">
+           <widget class="QTextBrowser" name="textBrowser_length"/>
+          </item>
+          <item row="1" column="3">
+           <widget class="QPushButton" name="pushButton_calculateDeviationOfLength">
+            <property name="text">
+             <string>计算距离偏差</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3">
+           <widget class="QLabel" name="label_DeviationOfLength">
+            <property name="text">
+             <string>距离偏差</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3">
+           <widget class="QPushButton" name="pushButton_printEnd1">
+            <property name="text">
+             <string>COUT端点1</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="3">
+           <widget class="QPushButton" name="pushButton_printEnd2">
+            <property name="text">
+             <string>COUT端点2</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="3">
+           <widget class="QPushButton" name="pushButton_clearEnd1">
+            <property name="text">
+             <string>清空端点1</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="3">
+           <widget class="QPushButton" name="pushButton_ClearEnd2">
+            <property name="text">
+             <string>清空端点2</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QmitkToolTrackingStatusWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QmitkToolTrackingStatusWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
