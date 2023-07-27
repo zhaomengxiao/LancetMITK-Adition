@@ -138,6 +138,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_setFlangeTcp, &QPushButton::clicked, this, &SurgicalSimulate::ResetRobotTcp);
 
   connect(m_Controls.pushButton_confirmImageTargetPlane, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImagePlane);
+  connect(m_Controls.pushButton_goToFakePlane, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_goToFakePlane_clicked);
 
 
 }
@@ -1596,6 +1597,28 @@ void SurgicalSimulate::OnAutoPositionStart()
 	mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
 
 	m_KukaTrackingDevice->RobotMove(t);
+}
+
+void SurgicalSimulate::On_pushButton_goToFakePlane_clicked()
+{
+	vtkMatrix4x4* t = vtkMatrix4x4::New();
+	mitk::TransferItkTransformToVtkMatrix(m_T_robot.GetPointer(), t);
+
+	auto tmpVtkTrans = vtkTransform::New();
+
+	auto offsetMatrix = vtkMatrix4x4::New();
+	offsetMatrix->Identity();
+	offsetMatrix->SetElement(1, 3, 50);
+
+	tmpVtkTrans->PostMultiply();
+	tmpVtkTrans->Identity();
+	tmpVtkTrans->SetMatrix(offsetMatrix);
+	tmpVtkTrans->Concatenate(t);
+	tmpVtkTrans->Update();
+
+	auto resultMatrix = tmpVtkTrans->GetMatrix();
+
+	m_KukaTrackingDevice->RobotMove(resultMatrix);
 }
 
 void SurgicalSimulate::UseVirtualDevice1()

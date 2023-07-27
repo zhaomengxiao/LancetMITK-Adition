@@ -76,6 +76,9 @@ public slots:
   //Step5: Run the Surgical Plane by robot auto move to position
   void OnAutoPositionStart();
 
+  void On_pushButton_goToFakePlane_clicked();
+
+
   //TEST
   void UseVirtualDevice1();
   void OnVirtualDevice1VisualizeTimer();
