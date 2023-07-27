@@ -21,9 +21,12 @@ found in the LICENSE file.
 
 // mitk image
 #include <mitkImage.h>
+#include <vtkConnectivityFilter.h>
+#include <vtkDecimatePro.h>
 #include <vtkImageCast.h>
 #include <vtkPointData.h>
 
+#include "leastsquaresfit.h"
 #include "mitkImageToSurfaceFilter.h"
 #include "mitkNodePredicateAnd.h"
 #include "mitkNodePredicateDataType.h"
@@ -32,6 +35,7 @@ found in the LICENSE file.
 #include "mitkNodePredicateProperty.h"
 #include "mitkPointSet.h"
 #include "mitkSurface.h"
+#include "mitkSurfaceToImageFilter.h"
 
 const std::string DentalWidget::VIEW_ID = "org.mitk.views.dentalwidget";
 
@@ -158,6 +162,11 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_testSharpen, &QPushButton::clicked, this, &DentalWidget::on_pushButton_testSharpen_clicked);
 
+  connect(m_Controls.pushButtonCbctNdiMarkerExtract, &QPushButton::clicked, this, &DentalWidget::on_pushButtonCbctNdiMarkerExtract_clicked);
+
+  connect(m_Controls.pushButton_stencilImage, &QPushButton::clicked, this, &DentalWidget::on_pushButton_stencilImage_clicked);
+
+  connect(m_Controls.pushButton_decimatePolyData, &QPushButton::clicked, this, &DentalWidget::on_pushButton_decimatePolyData_clicked);
 
 
   // Prepare some empty pointsets for registration purposes
@@ -202,7 +211,35 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
 
 }
 
+// Decimate the polydata using vtkDecimatePro
+void DentalWidget::on_pushButton_decimatePolyData_clicked()
+{
+	auto mitkSteelBallSurfaces = mitk::Surface::New();
 
+	mitkSteelBallSurfaces = GetDataStorage()->GetNamedObject<mitk::Surface>("Reconstructed CBCT surface");
+
+	auto inputPolyData = mitkSteelBallSurfaces->GetVtkPolyData();
+
+	vtkNew<vtkDecimatePro> decimate;
+	decimate->SetInputData(inputPolyData);
+	decimate->SetTargetReduction(.7);
+	decimate->PreserveTopologyOn();
+	decimate->Update();
+
+	auto outputPolyData = decimate->GetOutput();
+
+	auto outputSurface = mitk::Surface::New();
+	outputSurface->SetVtkPolyData(outputPolyData);
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(outputSurface);
+	tmpNode->SetName("Decimated");
+	GetDataStorage()->Add(tmpNode);
+
+}
+
+
+// Read in a 3D gray-scale rgb image and convert it into a  3D single-channel image
 void DentalWidget::on_pushButton_testSharpen_clicked()
 {
 	auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_intraopCt->GetSelectedNode()->GetData());
@@ -296,6 +333,82 @@ void DentalWidget::on_pushButton_testSharpen_clicked()
 	GetDataStorage()->Add(tmpNode);
 	//
 	// m_Controls.textBrowser->append("new button connected!");
+}
+
+
+// Use mitk::SurfaceToImageFilter to stencil an image
+void DentalWidget::on_pushButton_stencilImage_clicked()
+{
+	auto surfaceStencil = GetDataStorage()->GetNamedObject<mitk::Surface>("surfaceStencil");
+
+	auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_intraopCt->GetSelectedNode()->GetData());
+
+	// Apply the stencil
+	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	surfaceToImageFilter->SetBackgroundValue(0);
+	surfaceToImageFilter->SetImage(inputImage);
+	surfaceToImageFilter->SetInput(surfaceStencil);
+	surfaceToImageFilter->SetReverseStencil(true);
+
+	mitk::Image::Pointer convertedImage = mitk::Image::New();
+	surfaceToImageFilter->Update();
+	convertedImage = surfaceToImageFilter->GetOutput();
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(convertedImage);
+	tmpNode->SetName("stenciled image");
+
+	GetDataStorage()->Add(tmpNode);
+
+}
+
+// Read in a polydata, test connectivity and return the largest region
+void DentalWidget::on_pushButtonCbctNdiMarkerExtract_clicked()
+{
+	// INPUT 1: inputCtImage (MITK image)
+	
+	auto mitkSteelBallSurfaces = mitk::Surface::New();
+	
+	mitkSteelBallSurfaces = GetDataStorage()->GetNamedObject<mitk::Surface>("Reconstructed CBCT surface");
+
+	
+	// Separate steelball surface by examining their connectivity
+	vtkNew<vtkConnectivityFilter> vtkConnectivityFilter;
+	vtkConnectivityFilter->SetInputData(mitkSteelBallSurfaces->GetVtkPolyData());
+
+	cout << "Connectivity filter begins" << endl;
+
+	vtkConnectivityFilter->SetExtractionModeToAllRegions();
+	vtkConnectivityFilter->Update();
+	int numberOfPotentialSteelBalls = vtkConnectivityFilter->GetNumberOfExtractedRegions();
+
+	cout << "numberOfPotentialSteelBalls: " << numberOfPotentialSteelBalls << endl;
+
+	auto mitkSingleSteelballCenterPointset = mitk::PointSet::New(); // store each steelball's center
+	double centerOfAllSteelballs[3]{ 0, 0, 0 };                       // the center of all steel balls
+
+	m_Controls.textBrowser->append("Fragment number: "+ QString::number(numberOfPotentialSteelBalls));
+
+	// Extract the largest region
+	vtkConnectivityFilter->SetExtractionModeToLargestRegion();
+	vtkConnectivityFilter->Update();
+
+	auto vtkSingleSteelBallSurface = vtkConnectivityFilter->GetPolyDataOutput();
+
+	auto tmpSurface = mitk::Surface::New();
+	tmpSurface->SetVtkPolyData(vtkSingleSteelBallSurface);
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(tmpSurface);
+	tmpNode->SetName("0");
+
+	GetDataStorage()->Add(tmpNode);
+
+	vtkNew<vtkPolyData> tmpPolyData;
+	tmpPolyData->DeepCopy(vtkSingleSteelBallSurface);
+
+	
+
 }
 
 

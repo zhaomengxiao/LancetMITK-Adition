@@ -110,6 +110,11 @@ protected:
   vtkMatrix4x4* m_ModelRegistrationResult{ nullptr };
   vtkMatrix4x4* m_ModelInitalMatrix{ nullptr };
 
+	// Extract NDI markers in CBCT image
+  void on_pushButtonCbctNdiMarkerExtract_clicked();
+  void on_pushButton_stencilImage_clicked();
+  void on_pushButton_decimatePolyData_clicked();
+
 
   double allBallFingerPrint[42]
   {
