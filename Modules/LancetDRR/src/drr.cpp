@@ -203,7 +203,7 @@ void DrrFilter::ItkImageProcessing(const itk::Image<TPixel, VDimension> *itkImag
 
     focalpoint[0] = imOrigin[0];
     focalpoint[1] = imOrigin[1];
-    focalpoint[2] = imOrigin[2] - 1024 / 2.;
+    focalpoint[2] = imOrigin[2] - m_sid / 2.;
 
     interpolator->SetFocalPoint(focalpoint);
     // Software Guide : EndCodeSnippet
@@ -227,7 +227,8 @@ void DrrFilter::ItkImageProcessing(const itk::Image<TPixel, VDimension> *itkImag
     interpolator->Print(std::cout);
 
     filter->SetInterpolator(interpolator);
-    filter->SetTransform(transform);
+    filter->SetTransform(transform); // ??
+    
     // Software Guide : EndCodeSnippet
 
     // Software Guide : BeginLatex

@@ -104,6 +104,7 @@ private:
 
 	double m_o2Dx { 0.0 };
 	double m_o2Dy{ 0.0 };
+
 	//double m_direction;
 	bool m_verbose { true };
 };
