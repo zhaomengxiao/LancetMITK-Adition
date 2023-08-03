@@ -129,6 +129,11 @@ protected:
   mitk::DataNode* m_linesStartsNode{ nullptr };
   mitk::DataNode* m_linesEndsNode{ nullptr };
 
+
+  // DRR simulation
+  void on_pushButton_generateDRR_clicked();
+
+
 };
 
 #endif // SpineCArmRegistration_h

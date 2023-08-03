@@ -86,6 +86,7 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   InitImageSelector(m_Controls.mitkNodeSelectWidget_circleDetectInput);
   InitImageSelector(m_Controls.mitkNodeSelectWidget_search);
   InitImageSelector(m_Controls.mitkNodeSelectWidget_template);
+  InitImageSelector(m_Controls.mitkNodeSelectWidget_drrCT);
 
 
   //connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &SpineCArmRegistration::DoImageProcessing);
@@ -103,6 +104,7 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_testNCC, &QPushButton::clicked, this, &SpineCArmRegistration::TestNCC);
 
   connect(m_Controls.pushButton_recursiveSearch, &QPushButton::clicked, this, &SpineCArmRegistration::on_pushButton_recursiveSearch_clicked);
+  connect(m_Controls.pushButton_generateDRR, &QPushButton::clicked, this, &SpineCArmRegistration::on_pushButton_generateDRR_clicked);
 
 }
 void SpineCArmRegistration::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)

@@ -8,6 +8,7 @@ set(INTERNAL_CPP_FILES
   SpineCArmRegistration_spatialDemo.cpp
   SpineCArmRegistration_pnp.cpp
   SpineCArmRegistration_circleDetect.cpp
+  SpineCArmRegistration_drrSimulation.cpp
 )
 
 set(UI_FILES
