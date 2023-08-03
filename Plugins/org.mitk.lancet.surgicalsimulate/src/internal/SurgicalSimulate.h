@@ -254,6 +254,8 @@ protected:
   bool RotateY_minus();
   bool RotateZ_minus();
 
+  // Simulate robot pose
+  void On_pushButton_updateRobotSimuPose_clicked();
 
 };
 

@@ -140,6 +140,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_confirmImageTargetPlane, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImagePlane);
   connect(m_Controls.pushButton_goToFakePlane, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_goToFakePlane_clicked);
 
+  connect(m_Controls.pushButton_updateRobotSimuPose, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_updateRobotSimuPose_clicked);
 
 }
 
@@ -2232,4 +2233,203 @@ bool SurgicalSimulate::SetPlanePrecisionTestTcp()
 }
 
 
+void SurgicalSimulate::On_pushButton_updateRobotSimuPose_clicked()
+{
+	// F1 --> F2
+	// rotation: jt_1
+	// translation: [0, 0, 0]
+	auto vtkTrans_F1ToF2 = vtkTransform::New();
+	vtkTrans_F1ToF2->Identity();
+	vtkTrans_F1ToF2->PostMultiply();
+	vtkTrans_F1ToF2->RotateZ(m_Controls.lineEdit_jt_1->text().toDouble()); // in degrees
+	vtkTrans_F1ToF2->Update();
+	auto vtkMatrix_F1ToF2 = vtkTrans_F1ToF2->GetMatrix();
+
+	// F2 --> F3
+	// rotation: jt_2
+	// translation: [0, 0, 202.2]
+	auto vtkTrans_F2ToF3 = vtkTransform::New();
+	vtkTrans_F2ToF3->Identity();
+	vtkTrans_F2ToF3->PostMultiply();
+	vtkTrans_F2ToF3->RotateY(m_Controls.lineEdit_jt_2->text().toDouble()); // in degrees
+	vtkTrans_F2ToF3->Translate(0, 0, 202.2);
+	vtkTrans_F2ToF3->Update();
+	auto vtkMatrix_F2ToF3 = vtkTrans_F2ToF3->GetMatrix();
+
+	// F3 --> F4
+	// rotation: jt_3
+	// translation: [0, 0, 441-202.2]
+	auto vtkTrans_F3ToF4 = vtkTransform::New();
+	vtkTrans_F3ToF4->Identity();
+	vtkTrans_F3ToF4->PostMultiply();
+	vtkTrans_F3ToF4->RotateZ(m_Controls.lineEdit_jt_3->text().toDouble()); // in degrees
+	vtkTrans_F3ToF4->Translate(0, 0, 441 - 202.2);
+	vtkTrans_F3ToF4->Update();
+	auto vtkMatrix_F3ToF4 = vtkTrans_F3ToF4->GetMatrix();
+
+	// F4 --> F5
+	// rotation: - jt_4
+	// translation: [0, 0, 621.6 - 441]
+	auto vtkTrans_F4ToF5 = vtkTransform::New();
+	vtkTrans_F4ToF5->Identity();
+	vtkTrans_F4ToF5->PostMultiply();
+	vtkTrans_F4ToF5->RotateY(-m_Controls.lineEdit_jt_4->text().toDouble()); // in degrees
+	vtkTrans_F4ToF5->Translate(0, 0, 621.6 - 441);
+	vtkTrans_F4ToF5->Update();
+	auto vtkMatrix_F4ToF5 = vtkTrans_F4ToF5->GetMatrix();
+
+	// F5 --> F6
+	// rotation: jt_5
+	// translation: [0, 0, 839.5 - 621.6]
+	auto vtkTrans_F5ToF6 = vtkTransform::New();
+	vtkTrans_F5ToF6->Identity();
+	vtkTrans_F5ToF6->PostMultiply();
+	vtkTrans_F5ToF6->RotateZ(m_Controls.lineEdit_jt_5->text().toDouble()); // in degrees
+	vtkTrans_F5ToF6->Translate(0, 0, 839.5 - 621.6);
+	vtkTrans_F5ToF6->Update();
+	auto vtkMatrix_F5ToF6 = vtkTrans_F5ToF6->GetMatrix();
+
+	// F6 --> F7
+	// rotation: jt_6
+	// translation: [0, -61.2, 1021 - 839.5]
+	auto vtkTrans_F6ToF7 = vtkTransform::New();
+	vtkTrans_F6ToF7->Identity();
+	vtkTrans_F6ToF7->PostMultiply();
+	vtkTrans_F6ToF7->RotateY(m_Controls.lineEdit_jt_6->text().toDouble()); // in degrees
+	vtkTrans_F6ToF7->Translate(0, -61.2, 1021 - 839.5);
+	vtkTrans_F6ToF7->Update();
+	auto vtkMatrix_F6ToF7 = vtkTrans_F6ToF7->GetMatrix();
+
+	// F7 --> F8
+	// rotation: jt_7
+	// translation: [0, 61.2, 1113 - 1021]
+	auto vtkTrans_F7ToF8 = vtkTransform::New();
+	vtkTrans_F7ToF8->Identity();
+	vtkTrans_F7ToF8->PostMultiply();
+	vtkTrans_F7ToF8->RotateZ(m_Controls.lineEdit_jt_7->text().toDouble()); // in degrees
+	vtkTrans_F7ToF8->Translate(0, 61.2, 1113 - 1021);
+	vtkTrans_F7ToF8->Update();
+	auto vtkMatrix_F7ToF8 = vtkTrans_F7ToF8->GetMatrix();
+
+
+	// world --> F1
+	auto vtkMatrix_sceneToF1 = vtkMatrix4x4::New();
+	vtkMatrix_sceneToF1->Identity();
+
+	// world --> F2
+	auto vtkTrans_sceneToF2 = vtkTransform::New();
+	vtkTrans_sceneToF2->Identity();
+	vtkTrans_sceneToF2->PostMultiply();
+	vtkTrans_sceneToF2->Concatenate(vtkMatrix_F1ToF2);
+	vtkTrans_sceneToF2->Concatenate(vtkMatrix_sceneToF1);
+
+	// world --> F3
+	auto vtkTrans_sceneToF3 = vtkTransform::New();
+	vtkTrans_sceneToF3->Identity();
+	vtkTrans_sceneToF3->PostMultiply();
+	vtkTrans_sceneToF3->Concatenate(vtkMatrix_F2ToF3);
+	vtkTrans_sceneToF3->Concatenate(vtkMatrix_F1ToF2);
+	vtkTrans_sceneToF3->Concatenate(vtkMatrix_sceneToF1);
+
+	// world --> F4
+	auto vtkTrans_sceneToF4 = vtkTransform::New();
+	vtkTrans_sceneToF4->Identity();
+	vtkTrans_sceneToF4->PostMultiply();
+	vtkTrans_sceneToF4->Concatenate(vtkMatrix_F3ToF4);
+	vtkTrans_sceneToF4->Concatenate(vtkMatrix_F2ToF3);
+	vtkTrans_sceneToF4->Concatenate(vtkMatrix_F1ToF2);
+	vtkTrans_sceneToF4->Concatenate(vtkMatrix_sceneToF1);
+
+	// world --> F5
+	auto vtkTrans_sceneToF5 = vtkTransform::New();
+	vtkTrans_sceneToF5->Identity();
+	vtkTrans_sceneToF5->PostMultiply();
+	vtkTrans_sceneToF5->Concatenate(vtkMatrix_F4ToF5);
+	vtkTrans_sceneToF5->Concatenate(vtkMatrix_F3ToF4);
+	vtkTrans_sceneToF5->Concatenate(vtkMatrix_F2ToF3);
+	vtkTrans_sceneToF5->Concatenate(vtkMatrix_F1ToF2);
+	vtkTrans_sceneToF5->Concatenate(vtkMatrix_sceneToF1);
+
+	// world --> F6
+	auto vtkTrans_sceneToF6 = vtkTransform::New();
+	vtkTrans_sceneToF6->Identity();
+	vtkTrans_sceneToF6->PostMultiply();
+	vtkTrans_sceneToF6->Concatenate(vtkMatrix_F5ToF6);
+	vtkTrans_sceneToF6->Concatenate(vtkMatrix_F4ToF5);
+	vtkTrans_sceneToF6->Concatenate(vtkMatrix_F3ToF4);
+	vtkTrans_sceneToF6->Concatenate(vtkMatrix_F2ToF3);
+	vtkTrans_sceneToF6->Concatenate(vtkMatrix_F1ToF2);
+	vtkTrans_sceneToF6->Concatenate(vtkMatrix_sceneToF1);
+
+	// world --> F7
+	auto vtkTrans_sceneToF7 = vtkTransform::New();
+	vtkTrans_sceneToF7->Identity();
+	vtkTrans_sceneToF7->PostMultiply();
+	vtkTrans_sceneToF7->Concatenate(vtkMatrix_F6ToF7);
+	vtkTrans_sceneToF7->Concatenate(vtkMatrix_F5ToF6);
+	vtkTrans_sceneToF7->Concatenate(vtkMatrix_F4ToF5);
+	vtkTrans_sceneToF7->Concatenate(vtkMatrix_F3ToF4);
+	vtkTrans_sceneToF7->Concatenate(vtkMatrix_F2ToF3);
+	vtkTrans_sceneToF7->Concatenate(vtkMatrix_F1ToF2);
+	vtkTrans_sceneToF7->Concatenate(vtkMatrix_sceneToF1);
+
+	// world --> F8
+	auto vtkTrans_sceneToF8 = vtkTransform::New();
+	vtkTrans_sceneToF8->Identity();
+	vtkTrans_sceneToF8->PostMultiply();
+	vtkTrans_sceneToF8->Concatenate(vtkMatrix_F7ToF8);
+	vtkTrans_sceneToF8->Concatenate(vtkMatrix_F6ToF7);
+	vtkTrans_sceneToF8->Concatenate(vtkMatrix_F5ToF6);
+	vtkTrans_sceneToF8->Concatenate(vtkMatrix_F4ToF5);
+	vtkTrans_sceneToF8->Concatenate(vtkMatrix_F3ToF4);
+	vtkTrans_sceneToF8->Concatenate(vtkMatrix_F2ToF3);
+	vtkTrans_sceneToF8->Concatenate(vtkMatrix_F1ToF2);
+	vtkTrans_sceneToF8->Concatenate(vtkMatrix_sceneToF1);
+
+	auto p_1 = GetDataStorage()->GetNamedObject<mitk::Surface>("p_1");
+	p_1->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkMatrix_sceneToF1);
+	auto f_1 = GetDataStorage()->GetNamedObject<mitk::Surface>("f_1");
+	f_1->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkMatrix_sceneToF1);
+
+	auto p_2 = GetDataStorage()->GetNamedObject<mitk::Surface>("p_2");
+	p_2->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF2->GetMatrix());
+	auto f_2 = GetDataStorage()->GetNamedObject<mitk::Surface>("f_2");
+	f_2->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF2->GetMatrix());
+
+	auto p_3 = GetDataStorage()->GetNamedObject<mitk::Surface>("p_3");
+	p_3->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF3->GetMatrix());
+	auto f_3 = GetDataStorage()->GetNamedObject<mitk::Surface>("f_3");
+	f_3->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF3->GetMatrix());
+
+	auto p_4 = GetDataStorage()->GetNamedObject<mitk::Surface>("p_4");
+	p_4->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF4->GetMatrix());
+	auto f_4 = GetDataStorage()->GetNamedObject<mitk::Surface>("f_4");
+	f_4->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF4->GetMatrix());
+
+	auto p_5 = GetDataStorage()->GetNamedObject<mitk::Surface>("p_5");
+	p_5->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF5->GetMatrix());
+	auto f_5 = GetDataStorage()->GetNamedObject<mitk::Surface>("f_5");
+	f_5->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF5->GetMatrix());
+
+	auto p_6 = GetDataStorage()->GetNamedObject<mitk::Surface>("p_6");
+	p_6->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF6->GetMatrix());
+	auto f_6 = GetDataStorage()->GetNamedObject<mitk::Surface>("f_6");
+	f_6->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF6->GetMatrix());
+
+	auto p_7 = GetDataStorage()->GetNamedObject<mitk::Surface>("p_7");
+	p_7->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF7->GetMatrix());
+	auto f_7 = GetDataStorage()->GetNamedObject<mitk::Surface>("f_7");
+	f_7->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF7->GetMatrix());
+
+	auto p_8 = GetDataStorage()->GetNamedObject<mitk::Surface>("p_8");
+	p_8->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF8->GetMatrix());
+	auto f_8 = GetDataStorage()->GetNamedObject<mitk::Surface>("f_8");
+	f_8->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF8->GetMatrix());
+
+	auto tool = GetDataStorage()->GetNamedObject<mitk::Surface>("THA_endEffector");
+	tool->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkTrans_sceneToF8->GetMatrix());
+
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
 
