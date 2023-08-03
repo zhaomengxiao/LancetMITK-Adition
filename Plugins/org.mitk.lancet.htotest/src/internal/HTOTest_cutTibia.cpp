@@ -273,67 +273,83 @@ bool HTOTest::CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut,
 
 
 	// Create the capping 
-	 vtkNew<vtkFeatureEdges> boundaryEdges;
-	 boundaryEdges->SetInputData(tibiaPart_0);
-	 boundaryEdges->BoundaryEdgesOn();
-	 boundaryEdges->FeatureEdgesOff();
-	 boundaryEdges->NonManifoldEdgesOff();
-	 boundaryEdges->ManifoldEdgesOff();
-	
-	 vtkNew<vtkStripper> boundaryStrips;
-	 boundaryStrips->SetInputConnection(boundaryEdges->GetOutputPort());
-	 boundaryStrips->Update();
-	
-	 // Change the polylines into polygons
-	 vtkNew<vtkPolyData> boundaryPoly;
-	 boundaryPoly->SetPoints(boundaryStrips->GetOutput()->GetPoints());
-	 boundaryPoly->SetPolys(boundaryStrips->GetOutput()->GetLines());
-	
-	
-	 vtkNew<vtkPolyData> boundaryPoly_copy;
-	 boundaryPoly_copy->DeepCopy(boundaryPoly);
-	
-	 // Append the capping
-	 vtkSmartPointer<vtkAppendPolyData> appendFilter =
-	 	vtkSmartPointer<vtkAppendPolyData>::New();
-	 vtkSmartPointer<vtkCleanPolyData> cleanFilter =
-	 	vtkSmartPointer<vtkCleanPolyData>::New();
-	
-	 appendFilter->AddInputData(tibiaPart_0);
-	 appendFilter->AddInputData(boundaryPoly);
-	 appendFilter->Update();
-	
-	 cleanFilter->SetInputData(appendFilter->GetOutput());
-	 cleanFilter->Update();
-	
-	 vtkNew<vtkPolyData> tibia_0;
-	 tibia_0->DeepCopy(cleanFilter->GetOutput());
-	
-	
-	 vtkSmartPointer<vtkAppendPolyData> appendFilter2 =
-	 	vtkSmartPointer<vtkAppendPolyData>::New();
-	 vtkSmartPointer<vtkCleanPolyData> cleanFilter2 =
-	 	vtkSmartPointer<vtkCleanPolyData>::New();
-	
-	 appendFilter2->AddInputData(tibiaPart_1);
-	 appendFilter2->AddInputData(boundaryPoly_copy);
-	 appendFilter2->Update();
-	
-	 cleanFilter2->SetInputData(appendFilter2->GetOutput());
-	 cleanFilter2->Update();
-	
-	 vtkNew<vtkPolyData> tibia_1;
-	 tibia_1->DeepCopy(cleanFilter2->GetOutput());
+	 // vtkNew<vtkFeatureEdges> boundaryEdges;
+	 // boundaryEdges->SetInputData(tibiaPart_0);
+	 // boundaryEdges->BoundaryEdgesOn();
+	 // boundaryEdges->FeatureEdgesOff();
+	 // boundaryEdges->NonManifoldEdgesOff();
+	 // boundaryEdges->ManifoldEdgesOff();
+	 //
+	 // vtkNew<vtkStripper> boundaryStrips;
+	 // boundaryStrips->SetInputConnection(boundaryEdges->GetOutputPort());
+	 // boundaryStrips->Update();
+	 //
+	 // // Change the polylines into polygons
+	 // vtkNew<vtkPolyData> boundaryPoly;
+	 // boundaryPoly->SetPoints(boundaryStrips->GetOutput()->GetPoints());
+	 // boundaryPoly->SetPolys(boundaryStrips->GetOutput()->GetLines());
+	 //
+	 //
+	 // vtkNew<vtkPolyData> boundaryPoly_copy;
+	 // boundaryPoly_copy->DeepCopy(boundaryPoly);
+	 //
+	 // // Append the capping
+	 // vtkSmartPointer<vtkAppendPolyData> appendFilter =
+	 // 	vtkSmartPointer<vtkAppendPolyData>::New();
+	 // vtkSmartPointer<vtkCleanPolyData> cleanFilter =
+	 // 	vtkSmartPointer<vtkCleanPolyData>::New();
+	 //
+	 // appendFilter->AddInputData(tibiaPart_0);
+	 // appendFilter->AddInputData(boundaryPoly);
+	 // appendFilter->Update();
+	 //
+	 // cleanFilter->SetInputData(appendFilter->GetOutput());
+	 // cleanFilter->Update();
+	 //
+	 // vtkNew<vtkPolyData> tibia_0;
+	 // tibia_0->DeepCopy(cleanFilter->GetOutput());
+	 //
+	 //
+	 // vtkSmartPointer<vtkAppendPolyData> appendFilter2 =
+	 // 	vtkSmartPointer<vtkAppendPolyData>::New();
+	 // vtkSmartPointer<vtkCleanPolyData> cleanFilter2 =
+	 // 	vtkSmartPointer<vtkCleanPolyData>::New();
+	 //
+	 // appendFilter2->AddInputData(tibiaPart_1);
+	 // appendFilter2->AddInputData(boundaryPoly_copy);
+	 // appendFilter2->Update();
+	 //
+	 // cleanFilter2->SetInputData(appendFilter2->GetOutput());
+	 // cleanFilter2->Update();
+	 //
+	 // vtkNew<vtkPolyData> tibia_1;
+	 // tibia_1->DeepCopy(cleanFilter2->GetOutput());
 
 
+	// Fill holes
+	vtkNew<vtkFillHolesFilter> holeFiller0;
+	holeFiller0->SetInputData(tibiaPart_0);
+	holeFiller0->SetHoleSize(500);
+	holeFiller0->Update();
+	vtkNew<vtkPolyData> tibia_filled_0;
+	tibia_filled_0->DeepCopy(holeFiller0->GetOutput());
+	
+	
+	vtkNew<vtkFillHolesFilter> holeFiller1;
+	holeFiller1->SetInputData(tibiaPart_1);
+	holeFiller1->SetHoleSize(500);
+	holeFiller1->Update();
+	vtkNew<vtkPolyData> tibia_filled_1;
+	tibia_filled_1->DeepCopy(holeFiller1->GetOutput());
+	
 	if(cellNum_1 >= cellNum_0)
 	{
-		largerSubPart->DeepCopy(tibia_1);
-		smallerSubPart->DeepCopy(tibia_0);
+		largerSubPart->DeepCopy(tibia_filled_0);
+		smallerSubPart->DeepCopy(tibia_filled_1);
 	}else
 	{
-		largerSubPart->DeepCopy(tibia_0);
-		smallerSubPart->DeepCopy(tibia_1);
+		largerSubPart->DeepCopy(tibia_filled_0);
+		smallerSubPart->DeepCopy(tibia_filled_1);
 	}
 
 	return true;
@@ -554,14 +570,34 @@ bool HTOTest::CutTibiaWithTwoPlanes()
 	auto proximal_remehsed = mitk::Remeshing::Decimate(proximalSurface, 1, true, true);
 	auto distal_remehsed = mitk::Remeshing::Decimate(distalSurface, 1, true, true);
 
+	// // Fill holes
+	// vtkNew<vtkFillHolesFilter> holeFiller0;
+	// holeFiller0->SetInputData(proximal_remehsed->GetVtkPolyData());
+	// holeFiller0->SetHoleSize(20);
+	// holeFiller0->Update();
+	// vtkNew<vtkPolyData> proximalTibia_remeshed_filled_vtk;
+	// proximalTibia_remeshed_filled_vtk->DeepCopy(holeFiller0->GetOutput());
+	// proximalSurface->SetVtkPolyData(proximalTibia_remeshed_filled_vtk);
+	//
+	// vtkNew<vtkFillHolesFilter> holeFiller1;
+	// holeFiller1->SetInputData(distal_remehsed->GetVtkPolyData());
+	// holeFiller1->SetHoleSize(20);
+	// holeFiller1->Update();
+	// vtkNew<vtkPolyData> distalTibia_remeshed_filled_vtk;
+	// distalTibia_remeshed_filled_vtk->DeepCopy(holeFiller1->GetOutput());
+	// distalSurface->SetVtkPolyData(distalTibia_remeshed_filled_vtk);
 
+	// Save into nodes
 	auto proximalNode = mitk::DataNode::New();
 	auto distalNode = mitk::DataNode::New();
 
 	proximalNode->SetName("proximal tibiaSurface");
 	proximalNode->SetData(proximalSurface);
+	//proximalNode->SetData(proximal_remehsed);
 	distalNode->SetName("distal tibiaSurface");
 	distalNode->SetData(distalSurface);
+	//distalNode->SetData(distal_remehsed);
+
 
 	GetDataStorage()->Add(distalNode);
 	GetDataStorage()->Add(proximalNode);
