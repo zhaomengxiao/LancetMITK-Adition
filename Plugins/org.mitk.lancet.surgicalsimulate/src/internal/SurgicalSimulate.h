@@ -256,6 +256,20 @@ protected:
 
   // Simulate robot pose
   void On_pushButton_updateRobotSimuPose_clicked();
+  void On_pushButton_a1_p_clicked();
+  void On_pushButton_a1_m_clicked();
+  void On_pushButton_a2_p_clicked();
+  void On_pushButton_a2_m_clicked();
+  void On_pushButton_a3_p_clicked();
+  void On_pushButton_a3_m_clicked();
+  void On_pushButton_a4_p_clicked();
+  void On_pushButton_a4_m_clicked();
+  void On_pushButton_a5_p_clicked();
+  void On_pushButton_a5_m_clicked();
+  void On_pushButton_a6_p_clicked();
+  void On_pushButton_a6_m_clicked();
+  void On_pushButton_a7_p_clicked();
+  void On_pushButton_a7_m_clicked();
 
 };
 

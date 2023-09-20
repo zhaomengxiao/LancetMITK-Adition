@@ -142,6 +142,22 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 
   connect(m_Controls.pushButton_updateRobotSimuPose, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_updateRobotSimuPose_clicked);
 
+  connect(m_Controls.pushButton_a1_p, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a1_p_clicked);
+  connect(m_Controls.pushButton_a1_m, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a1_m_clicked);
+  connect(m_Controls.pushButton_a2_p, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a2_p_clicked);
+  connect(m_Controls.pushButton_a2_m, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a2_m_clicked);
+  connect(m_Controls.pushButton_a3_p, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a3_p_clicked);
+  connect(m_Controls.pushButton_a3_m, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a3_m_clicked);
+  connect(m_Controls.pushButton_a4_p, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a4_p_clicked);
+  connect(m_Controls.pushButton_a4_m, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a4_m_clicked);
+  connect(m_Controls.pushButton_a5_p, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a5_p_clicked);
+  connect(m_Controls.pushButton_a5_m, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a5_m_clicked);
+  connect(m_Controls.pushButton_a6_p, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a6_p_clicked);
+  connect(m_Controls.pushButton_a6_m, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a6_m_clicked);
+  connect(m_Controls.pushButton_a7_p, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a7_p_clicked);
+  connect(m_Controls.pushButton_a7_m, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a7_m_clicked);
+
+
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -2433,3 +2449,171 @@ void SurgicalSimulate::On_pushButton_updateRobotSimuPose_clicked()
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
+
+void SurgicalSimulate::On_pushButton_a1_p_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_1->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle + stepSize;
+
+	m_Controls.lineEdit_jt_1->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a1_m_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_1->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle - stepSize;
+
+	m_Controls.lineEdit_jt_1->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a2_p_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_2->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle + stepSize;
+
+	m_Controls.lineEdit_jt_2->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a2_m_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_2->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle - stepSize;
+
+	m_Controls.lineEdit_jt_2->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a3_p_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_3->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle + stepSize;
+
+	m_Controls.lineEdit_jt_3->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a3_m_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_3->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle - stepSize;
+
+	m_Controls.lineEdit_jt_3->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a4_p_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_4->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle + stepSize;
+
+	m_Controls.lineEdit_jt_4->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a4_m_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_4->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle - stepSize;
+
+	m_Controls.lineEdit_jt_4->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a5_p_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_5->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle + stepSize;
+
+	m_Controls.lineEdit_jt_5->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a5_m_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_5->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle - stepSize;
+
+	m_Controls.lineEdit_jt_5->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a6_p_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_6->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle + stepSize;
+
+	m_Controls.lineEdit_jt_6->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a6_m_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_6->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle - stepSize;
+
+	m_Controls.lineEdit_jt_6->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a7_m_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_7->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle - stepSize;
+
+	m_Controls.lineEdit_jt_7->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+void SurgicalSimulate::On_pushButton_a7_p_clicked()
+{
+	double currentAngle = m_Controls.lineEdit_jt_7->text().toDouble();
+	double stepSize = m_Controls.lineEdit_robotMoveStep->text().toDouble();
+
+	double newAngle = currentAngle + stepSize;
+
+	m_Controls.lineEdit_jt_7->setText(QString::number(newAngle));
+
+	On_pushButton_updateRobotSimuPose_clicked();
+}
