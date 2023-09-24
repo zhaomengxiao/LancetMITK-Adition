@@ -54,6 +54,12 @@ public slots:
   void UseKuka();
   //
   void StartTracking();
+
+  // EndTool power control
+  void StartTrackingWithPowerControl();
+  void OnCheckPowerStatusTimer();
+ 
+
   void OnKukaVisualizeTimer();
   void OnSelfCheck();
   //Step1:Use a NDI Vega Tracking Device
@@ -270,6 +276,10 @@ protected:
   void On_pushButton_a6_m_clicked();
   void On_pushButton_a7_p_clicked();
   void On_pushButton_a7_m_clicked();
+
+  // EndTool power control
+  QTimer* m_CheckPowerStatusTimer{nullptr};
+  int m_PowerStatus{ 0 };
 
 };
 

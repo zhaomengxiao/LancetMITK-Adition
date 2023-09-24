@@ -157,7 +157,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_a7_p, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a7_p_clicked);
   connect(m_Controls.pushButton_a7_m, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a7_m_clicked);
 
-
+  connect(m_Controls.pushButton_endToolPower, &QPushButton::clicked, this, &SurgicalSimulate::StartTrackingWithPowerControl);
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -335,6 +335,73 @@ void SurgicalSimulate::UseKuka()
 
   m_KukaSource->Connect();
 }
+
+
+
+void SurgicalSimulate::OnCheckPowerStatusTimer()
+{
+	double limit{ 50 };
+	double current{ 1000 };
+
+	limit = m_Controls.lineEdit_powerThres->text().toDouble();
+
+
+	double targetPoint[3]{ m_T_robot->GetOffset()[0] ,m_T_robot->GetOffset()[1] ,m_T_robot->GetOffset()[2] };
+	double currentPoint[3];
+
+	currentPoint[0] = m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetOffset()[0];
+	currentPoint[1] = m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetOffset()[1];
+	currentPoint[2] = m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetOffset()[2];
+
+	current = sqrt(
+		pow(targetPoint[0] - currentPoint[0], 2) +
+		pow(targetPoint[1] - currentPoint[1], 2) +
+		pow(targetPoint[2] - currentPoint[2], 2)
+	);
+
+	m_Controls.lineEdit_distanceToTarget->setText(QString::number(current));
+
+
+
+	if (current < limit && m_PowerStatus == 0)
+	{
+		// Switch On
+		m_KukaTrackingDevice->RequestExecOperate("setio", { "1","1" });
+		m_PowerStatus = 1;
+	}
+
+	if (current > limit && m_PowerStatus == 1)
+	{
+		// Switch Off
+		m_KukaTrackingDevice->RequestExecOperate("setio", { "1","0" });
+		m_PowerStatus = 0;
+	}
+
+
+}
+
+// Todo: Monitor endTool powerStatus
+void SurgicalSimulate::StartTrackingWithPowerControl()
+{
+	if(m_T_robot != nullptr)
+	{
+		if (m_CheckPowerStatusTimer == nullptr)
+		{
+			m_CheckPowerStatusTimer = new QTimer(this); //create a new timer
+		}
+
+		connect(m_CheckPowerStatusTimer, SIGNAL(timeout()), this, SLOT(OnCheckPowerStatusTimer()));
+		// connect the timer to the method OnTimer()
+		// connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget()));
+		// connect the timer to the method OnTimer()
+		// ShowToolStatus_Kuka();
+		m_CheckPowerStatusTimer->start(100); //Every 100ms the method OnTimer() is called. -> 10fps
+
+		m_Controls.textBrowser->append("Start endTool power control");
+	}
+
+}
+
 
 void SurgicalSimulate::StartTracking()
 {
