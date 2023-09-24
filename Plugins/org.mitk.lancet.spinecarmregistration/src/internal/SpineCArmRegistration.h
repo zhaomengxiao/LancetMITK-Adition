@@ -168,6 +168,7 @@ protected:
 
   // Dental DR post-processing Demo
   void DrEnhanceType2();
+  void DrEnhanceType1_intermediate();
   void DrEnhanceType1();
   void on_pushButton_step_1_3_clicked();
   void on_pushButton_step_4_5_clicked();

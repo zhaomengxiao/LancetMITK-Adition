@@ -1305,7 +1305,8 @@ void SpineCArmRegistration::on_pushButton_teethDetect_clicked()
 	 return addFilter->GetOutput();
 	 //image = addFilter.Execute(castImage, edgeImage);
  }
- void SpineCArmRegistration::DrEnhanceType1()
+
+void SpineCArmRegistration::DrEnhanceType1()
  {
 	 // MITK input image
 	 auto attemptNode = GetDataStorage()->GetNamedNode("raw");
@@ -1350,6 +1351,37 @@ void SpineCArmRegistration::on_pushButton_teethDetect_clicked()
 	 auto flipped_rawImage = flipper_raw_input->GetOutput();
 	 flipped_rawImage->SetOrigin(inputImage->GetOrigin());
 	 printf("step2\n");
+
+
+	 // Collect garbage: extra step
+	 thresholdFilterType::Pointer thFilter_white_garbage = thresholdFilterType::New();
+	 thFilter_white_garbage->SetInput(flipped_rawImage);
+	 thFilter_white_garbage->SetLowerThreshold(65530);
+	 thFilter_white_garbage->SetUpperThreshold(65536);
+	 thFilter_white_garbage->SetInsideValue(1);
+	 thFilter_white_garbage->SetOutsideValue(0);
+	 thFilter_white_garbage->UpdateLargestPossibleRegion();
+
+	 auto white_garbage = thFilter_white_garbage->GetOutput();
+
+	 thresholdFilterType::Pointer thFilter_black_garbage = thresholdFilterType::New();
+	 thFilter_black_garbage->SetInput(flipped_rawImage);
+	 thFilter_black_garbage->SetLowerThreshold(0);
+	 thFilter_black_garbage->SetUpperThreshold(50000); // requires fine-tuning
+	 thFilter_black_garbage->SetInsideValue(1);
+	 thFilter_black_garbage->SetOutsideValue(0);
+	 thFilter_black_garbage->UpdateLargestPossibleRegion();
+
+	 auto black_garbage = thFilter_black_garbage->GetOutput();
+
+	 addFilterType::Pointer addFilter_whole_garbage = addFilterType::New();
+	 addFilter_whole_garbage->SetInput1(black_garbage);
+	 addFilter_whole_garbage->SetInput2(white_garbage);
+	 addFilter_whole_garbage->UpdateLargestPossibleRegion();
+
+	 auto whole_garbage = addFilter_whole_garbage->GetOutput();
+
+
 
 	 //turn 65535 into 60000
 	 doubleImageIteratorType flipped_it(flipped_rawImage, flipped_rawImage->GetRequestedRegion());
@@ -1433,6 +1465,238 @@ void SpineCArmRegistration::on_pushButton_teethDetect_clicked()
 			 weighted_it.Set(0);
 		 ++weighted_it;
 	 }
+
+
+
+	 /////////
+	 // Garbage
+	 thresholdFilterType::Pointer thresFilter_garbageBackground = thresholdFilterType::New();
+	 thresFilter_garbageBackground->SetInput(whole_garbage);
+	 thresFilter_garbageBackground->SetLowerThreshold(-1);
+	 thresFilter_garbageBackground->SetUpperThreshold(0.5);
+	 thresFilter_garbageBackground->SetInsideValue(1);
+	 thresFilter_garbageBackground->SetOutsideValue(0);
+	 thresFilter_garbageBackground->UpdateLargestPossibleRegion();
+
+	 auto garbageBackground = thresFilter_garbageBackground->GetOutput();
+
+	 shiftScaleFilterType::Pointer shiftScale_garbage = shiftScaleFilterType::New();
+	 shiftScale_garbage->SetInput(whole_garbage);
+	 shiftScale_garbage->SetScale(10000);
+	 shiftScale_garbage->Update();
+
+	 auto scaled_garbage = shiftScale_garbage->GetOutput();
+
+	 multiplyFilterType::Pointer mulFilter_1 = multiplyFilterType::New();
+	 mulFilter_1->SetInput1(garbageBackground);
+	 mulFilter_1->SetInput2(rescaleFilter2->GetOutput());
+	 mulFilter_1->UpdateLargestPossibleRegion();
+
+	 auto noGarbage = mulFilter_1->GetOutput();
+
+
+	 addFilterType::Pointer addFilter_1 = addFilterType::New();
+	 addFilter_1->SetInput1(noGarbage);
+	 addFilter_1->SetInput2(scaled_garbage);
+	 addFilter_1->Update();
+
+	 auto result = addFilter_1->GetOutput();
+
+	 /////////
+
+
+	 //clahe
+	 //cv::Mat mat_image = itk::OpenCVImageBridge::ITKImageToCVMat<doubleImageType>(rescaleFilter2->GetOutput());
+	 //double clipLimit = 3;
+	 //int gridWidth = 4;
+	 //int gridHeight = 4;
+
+	 //cv::Mat imageInput;
+	 //mat_image.convertTo(imageInput, CV_16UC1);
+
+	 //cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
+	 //clahe->setClipLimit(clipLimit);
+	 //clahe->setTilesGridSize(cv::Size(gridWidth, gridHeight));
+
+	 //cv::Mat enhancedImage;
+	 //clahe->apply(imageInput, enhancedImage);
+
+	 //cv::Mat enhancedOutput;
+	 //enhancedImage.convertTo(enhancedOutput, CV_64FC1);
+
+	 //auto claheImage = itk::OpenCVImageBridge::CVMatToITKImage<doubleImageType>(enhancedOutput);
+
+
+	 // Final window level/width and gamma modulation Sept. 24
+	 double low_in_ = m_Controls.lineEdit_lowIn->text().toDouble();
+	 double low_out_ = m_Controls.lineEdit_lowOut->text().toDouble();
+	 double high_in_ = m_Controls.lineEdit_highIn->text().toDouble();
+	 double high_out_ = m_Controls.lineEdit_highOut->text().toDouble();
+	 double max_ = m_Controls.lineEdit_max->text().toDouble();
+	 double gamma_ = m_Controls.lineEdit_gamma->text().toDouble();
+
+	 auto final = ApplyImAdjust(result, low_in_, high_in_, low_out_, high_out_, max_, gamma_);
+
+	 printf("step11\n");
+
+	 D2ICastFilterType::Pointer castFilter3 = D2ICastFilterType::New();
+	 castFilter3->SetInput(final);
+	 castFilter3->Update();
+	 
+
+	 // MITK test view----------------------------
+	 auto a = mitk::Image::New();
+	 a = mitk::ImportItkImage(castFilter3->GetOutput())->Clone();
+	 auto b = mitk::Image::New();
+	 b = mitk::ImportItkImage(LOG_image)->Clone();
+
+	 auto a_node = mitk::DataNode::New();
+	 auto b_node = mitk::DataNode::New();
+
+	 a_node->SetData(a);
+	 a_node->SetName("Type_1");
+	 b_node->SetData(b);
+	 b_node->SetName("b");
+
+	 GetDataStorage()->Add(a_node);
+	 // GetDataStorage()->Add(b_node);
+
+	 // MITK test view----------------------------
+
+	 // return castFilter3->GetOutput();
+ }
+
+
+ void SpineCArmRegistration::DrEnhanceType1_intermediate()
+ {
+	 // MITK input image
+	 auto attemptNode = GetDataStorage()->GetNamedNode("raw");
+
+	 if (attemptNode == nullptr)
+	 {
+		 m_Controls.textBrowser->append("There is no raw image!");
+
+		 return;
+	 }
+
+	 auto inputMitkImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("raw")->GetData());
+
+	 auto inputImage = doubleImageType::New();
+
+	 mitk::CastToItkImage(inputMitkImage, inputImage);
+
+
+	 typedef itk::CastImageFilter< doubleImageType, imageType > D2ICastFilterType;
+	 printf("step1\n");
+	 //Flip
+	 int param1{ 0 }; // Axis
+	 flipImageFilterType::Pointer flipper_raw_input = flipImageFilterType::New();
+
+	 flipper_raw_input->SetInput(inputImage);
+	 itk::FixedArray<bool, 2> flipAxes;
+	 for (int i = 0; i < 2; ++i)
+	 {
+		 if (i == param1)
+		 {
+			 // flipAxes[i] = true;
+			 flipAxes[i] = true;
+		 }
+		 else
+		 {
+			 flipAxes[i] = false;
+		 }
+	 }
+	 flipper_raw_input->SetFlipAxes(flipAxes);
+	 flipper_raw_input->UpdateLargestPossibleRegion();
+
+	 auto flipped_rawImage = flipper_raw_input->GetOutput();
+	 flipped_rawImage->SetOrigin(inputImage->GetOrigin());
+	 printf("step2\n");
+
+
+	 //turn 65535 into 60000
+	 doubleImageIteratorType flipped_it(flipped_rawImage, flipped_rawImage->GetRequestedRegion());
+	 while (!flipped_it.IsAtEnd())
+	 {
+		 if ((int)flipped_it.Get() == 65535)
+			 flipped_it.Set(60000);
+		 ++flipped_it;
+	 }
+
+
+	 printf("step3\n");
+	 //gamma = 1.5
+
+	 auto gamma_image1 = ApplyImAdjust(flipped_rawImage, 0.6, 0.9999, 0, 1, 65535.0, 1.5);
+
+
+	 printf("step4\n");
+	 //pixel <= 9000 turn into 0
+	 doubleImageIteratorType gamma_it1(gamma_image1, gamma_image1->GetRequestedRegion());
+	 while (!gamma_it1.IsAtEnd())
+	 {
+		 if (gamma_it1.Get() <= 9000)
+			 gamma_it1.Set(0);
+		 ++gamma_it1;
+	 }
+
+
+	 auto gamma_image2 = ApplyImAdjust(gamma_image1, 0, 1, 0, 1, 65535.0, 1.3);
+	 printf("step5\n");
+	 //wiener
+
+	 D2ICastFilterType::Pointer castFilter1 = D2ICastFilterType::New();
+	 castFilter1->SetInput(gamma_image2);
+	 castFilter1->UpdateLargestPossibleRegion();
+	 auto cast_gamma_image = castFilter1->GetOutput();
+
+
+	 int block[2]{ 5,5 };
+	 imageType::Pointer wiener_image = imageType::New();
+	 ApplyWienerFilter(cast_gamma_image, block, wiener_image);
+
+	 typedef itk::CastImageFilter< imageType, doubleImageType > I2DCastFilterType;
+	 I2DCastFilterType::Pointer castFilter2 = I2DCastFilterType::New();
+	 castFilter2->SetInput(wiener_image);
+	 castFilter2->UpdateLargestPossibleRegion();
+	 printf("step6\n");
+	 //LOG
+	 auto LOG_image = ApplyNegativeLoG(castFilter2->GetOutput(), 5, 20);
+
+	 printf("step7\n");
+	 //rescaleIntensity
+	 rescaleFilterType::Pointer rescaleFilter1 = rescaleFilterType::New();
+	 rescaleFilter1->SetInput(LOG_image);
+	 rescaleFilter1->SetOutputMinimum(0);
+	 rescaleFilter1->SetOutputMaximum(65535);
+	 rescaleFilter1->UpdateLargestPossibleRegion();
+
+
+	 double low_in = 30000.0 / 65535.0;
+	 double high_in = 50000.0 / 65535.0;
+	 auto new_LOG_image = ApplyImAdjust(rescaleFilter1->GetOutput(), low_in, high_in, 0, 1, 65535, 1.2);
+
+	 printf("step8\n");
+	 //image weighted Add
+	 auto weighted_image = ApplyImageWeightedAdd(castFilter2->GetOutput(), new_LOG_image, 1, 0.2);
+
+	 printf("step9\n");
+	 //rescaleIntensity
+	 rescaleFilterType::Pointer rescaleFilter2 = rescaleFilterType::New();
+	 rescaleFilter2->SetInput(weighted_image);
+	 rescaleFilter2->SetOutputMinimum(0);
+	 rescaleFilter2->SetOutputMaximum(65535);
+	 rescaleFilter2->UpdateLargestPossibleRegion();
+	 printf("step10\n");
+	 //pixel = 7000 turn into 0
+	 doubleImageIteratorType weighted_it(rescaleFilter2->GetOutput(), rescaleFilter2->GetOutput()->GetRequestedRegion());
+	 while (!weighted_it.IsAtEnd())
+	 {
+		 if (weighted_it.Get() <= 7000)
+			 weighted_it.Set(0);
+		 ++weighted_it;
+	 }
+
 	 //clahe
 	 //cv::Mat mat_image = itk::OpenCVImageBridge::ITKImageToCVMat<doubleImageType>(rescaleFilter2->GetOutput());
 	 //double clipLimit = 3;
@@ -1461,11 +1725,11 @@ void SpineCArmRegistration::on_pushButton_teethDetect_clicked()
 	 D2ICastFilterType::Pointer castFilter3 = D2ICastFilterType::New();
 	 castFilter3->SetInput(rescaleFilter2->GetOutput());
 	 castFilter3->Update();
-	 
+
 
 	 // MITK test view----------------------------
 	 auto a = mitk::Image::New();
-	 a = mitk::ImportItkImage(rescaleFilter2->GetOutput())->Clone();
+	 a = mitk::ImportItkImage(castFilter3->GetOutput())->Clone();
 	 auto b = mitk::Image::New();
 	 b = mitk::ImportItkImage(LOG_image)->Clone();
 
@@ -1473,7 +1737,7 @@ void SpineCArmRegistration::on_pushButton_teethDetect_clicked()
 	 auto b_node = mitk::DataNode::New();
 
 	 a_node->SetData(a);
-	 a_node->SetName("Type_1");
+	 a_node->SetName("Type_1_intermediate");
 	 b_node->SetData(b);
 	 b_node->SetName("b");
 
@@ -1491,7 +1755,7 @@ void SpineCArmRegistration::DrEnhanceType2()
  {
  	// MITK input image
  	auto attemptNode = GetDataStorage()->GetNamedNode("raw");
- 	auto attemptNode2 = GetDataStorage()->GetNamedNode("Type_1"); // 
+ 	auto attemptNode2 = GetDataStorage()->GetNamedNode("Type_1_intermediate"); // 
  	if (attemptNode == nullptr || attemptNode2 == nullptr)
  	{
  		m_Controls.textBrowser->append("There is no raw image!");
@@ -1500,7 +1764,7 @@ void SpineCArmRegistration::DrEnhanceType2()
  	}
  	
  	auto inputImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("raw")->GetData());
- 	auto processedImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("Type_1")->GetData());
+ 	auto processedImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("Type_1_intermediate")->GetData());
  	
  	auto inputItkImage = doubleImageType::New();
  	auto processedItkImage = doubleImageType::New(); // output of Type1
@@ -1737,9 +2001,22 @@ void SpineCArmRegistration::DrEnhanceType2()
 
 	auto result = addFilter_1->GetOutput();
 
+
+	// Final window level/width and gamma modulation Sept. 24
+	double low_in = m_Controls.lineEdit_lowIn->text().toDouble();
+	double low_out = m_Controls.lineEdit_lowOut->text().toDouble();
+	double high_in = m_Controls.lineEdit_highIn->text().toDouble();
+	double high_out = m_Controls.lineEdit_highOut->text().toDouble();
+	double max = m_Controls.lineEdit_max->text().toDouble();
+	double gamma = m_Controls.lineEdit_gamma->text().toDouble();
+
+	auto final = ApplyImAdjust(result, low_in, high_in, low_out, high_out, max, gamma);
+
+
+
 	typedef itk::CastImageFilter< doubleImageType, imageType > CastFilterType;
 	CastFilterType::Pointer castFilter = CastFilterType::New();
-	castFilter->SetInput(result);
+	castFilter->SetInput(final);
 
 	auto castResult = castFilter->GetOutput();
 
@@ -1780,8 +2057,6 @@ typedef itk::GrayscaleMorphologicalClosingImageFilter<ImageType, ImageType, Ball
 
 void SpineCArmRegistration::on_pushButton_step_1_3_clicked()
 {
-	DrEnhanceType1();
-	DrEnhanceType2();
 	//-------Start Step 2: convert the 2D raw image into 3D-------------
 	auto attemptNode = GetDataStorage()->GetNamedNode("raw");
 	if(attemptNode == nullptr)
@@ -1925,6 +2200,11 @@ void SpineCArmRegistration::on_pushButton_step_1_3_clicked()
 	tmpNode->SetName("raw_flipped");
 	tmpNode->SetData(newMitkImage);
 	GetDataStorage()->Add(tmpNode);
+
+
+	DrEnhanceType1_intermediate();
+	DrEnhanceType2();
+	DrEnhanceType1();
 }
 
 void SpineCArmRegistration::on_pushButton_step_4_5_clicked()

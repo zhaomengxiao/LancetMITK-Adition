@@ -200,8 +200,8 @@
       <widget class="QPushButton" name="pushButton_EasyItkTest">
        <property name="geometry">
         <rect>
-         <x>190</x>
-         <y>300</y>
+         <x>270</x>
+         <y>330</y>
          <width>75</width>
          <height>23</height>
         </rect>
@@ -209,6 +209,162 @@
        <property name="text">
         <string>tmp Button</string>
        </property>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_24">
+       <property name="geometry">
+        <rect>
+         <x>250</x>
+         <y>230</y>
+         <width>195</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_67">
+        <item>
+         <widget class="QLabel" name="label_82">
+          <property name="text">
+           <string>high_in</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_highIn">
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_25">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>260</y>
+         <width>195</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_68">
+        <item>
+         <widget class="QLabel" name="label_83">
+          <property name="text">
+           <string>low_out</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_lowOut">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_26">
+       <property name="geometry">
+        <rect>
+         <x>250</x>
+         <y>260</y>
+         <width>195</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_69">
+        <item>
+         <widget class="QLabel" name="label_84">
+          <property name="text">
+           <string>high_out</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_highOut">
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_27">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>290</y>
+         <width>195</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_70">
+        <item>
+         <widget class="QLabel" name="label_85">
+          <property name="text">
+           <string>max</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_max">
+          <property name="text">
+           <string>65535</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_28">
+       <property name="geometry">
+        <rect>
+         <x>250</x>
+         <y>290</y>
+         <width>195</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_71">
+        <item>
+         <widget class="QLabel" name="label_86">
+          <property name="text">
+           <string>gamma</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_gamma">
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>230</y>
+         <width>195</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_66">
+        <item>
+         <widget class="QLabel" name="label_81">
+          <property name="text">
+           <string>low_in</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_lowIn">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_6">
