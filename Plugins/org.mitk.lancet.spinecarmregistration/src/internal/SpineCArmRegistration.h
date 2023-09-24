@@ -23,6 +23,20 @@ found in the LICENSE file.
 #include <opencv2/calib3d/calib3d.hpp>
 #include <itkHoughTransform2DCirclesImageFilter.h>
 
+#include <itkAddImageFilter.h>
+// #include <itkBinaryBallStructuringElement.h>
+// #include <itkBinaryThresholdImageFilter.h>
+// #include <itkCannyEdgeDetectionImageFilter.h>
+// #include <itkFlipImageFilter.h>
+// #include <itkGrayscaleMorphologicalClosingImageFilter.h>
+// #include <itkInvertIntensityImageFilter.h>
+// #include <itkResampleImageFilter.h>
+// #include <itkRescaleIntensityImageFilter.h>
+// #include <itkShiftScaleImageFilter.h>
+// #include <itkSubtractImageFilter.h>
+// #include "itkDiscreteGaussianImageFilter.h"
+// #include "itkTotalVariationDenoisingImageFilter.h"
+
 /**
   \brief SpineCArmRegistration
 
@@ -133,6 +147,82 @@ protected:
   // DRR simulation
   void on_pushButton_generateDRR_clicked();
 
+
+  // Apply CLAHE
+  void on_pushButton_CLAHE_clicked();
+
+  // Apply Histogram equalization
+  void on_pushButton_HE_clicked();
+
+
+
+  // Apply self-made outlier filter
+  void on_pushButton_outlieFilter_clicked();
+
+	// Return converted result  
+  unsigned short ConvertOutlier3X3(unsigned short potentialOutlier, unsigned short neighbors[8]);
+
+  // Apply teeth detection to a binary image containing the original edges
+  void on_pushButton_teethDetect_clicked();
+
+
+  // Dental DR post-processing Demo
+  void DrEnhanceType2();
+  void DrEnhanceType1();
+  void on_pushButton_step_1_3_clicked();
+  void on_pushButton_step_4_5_clicked();
+  void on_pushButton_step_6_10_clicked();
+  void on_pushButton_step_11_13_clicked();
+  void on_pushButton_step_14_16_clicked();
+  void on_pushButton_step_17_clicked();
+
+  // Easy access of ITK filters
+  // typedef itk::Image<short, 3> ImageType;
+  // typedef itk::Image<double, 3> DoubleImageType;
+  // typedef itk::FlipImageFilter< ImageType > FlipImageFilterType;
+  // typedef itk::BinaryThresholdImageFilter< ImageType, ImageType > ThresholdFilterType;
+  // typedef itk::AddImageFilter< ImageType, ImageType, ImageType > AddFilterType;
+  // typedef itk::MultiplyImageFilter< ImageType, ImageType, ImageType > MultiplyFilterType;
+  // typedef itk::InvertIntensityImageFilter< ImageType, ImageType > InversionFilterType;
+  // typedef itk::DiscreteGaussianImageFilter< ImageType, ImageType> GaussianFilterType;
+  // typedef itk::SubtractImageFilter< ImageType, ImageType, ImageType > SubtractFilterType;
+  // typedef itk::TotalVariationDenoisingImageFilter<DoubleImageType, DoubleImageType> TotalVariationFilterType;
+  // typedef itk::BinaryBallStructuringElement<ImageType::PixelType, 3> BallType;
+  // typedef itk::GrayscaleMorphologicalClosingImageFilter<ImageType, ImageType, BallType> ClosingFilterType;
+
+  void on_pushButton_EasyItkTest_clicked();
+
+  using us_short_ImageType = itk::Image<unsigned short, 2>;
+  using double_ImageType = itk::Image<double, 2>;
+
+  void ApplyAddFilter(us_short_ImageType::Pointer inputImage_1,
+	  us_short_ImageType::Pointer inputImage_2, 
+	  us_short_ImageType::Pointer outputImage);
+
+  void ApplySubtractFilter(us_short_ImageType::Pointer inputImage_1,
+	  us_short_ImageType::Pointer inputImage_2,
+	  us_short_ImageType::Pointer outputImage);
+
+  void ApplyGaussianFilter(us_short_ImageType::Pointer inputImage, double variance,
+	  us_short_ImageType::Pointer outputImage);
+
+  void ApplyRescaleToIntervalFilter(us_short_ImageType::Pointer inputImage, 
+	  int upperLimit,
+	  int lowerLimit,
+	  us_short_ImageType::Pointer outputImage);
+
+	// Shift the image first and scale it 
+  void ApplyShiftAndScaleFilter(us_short_ImageType::Pointer inputImage,
+	  int shiftFactor,
+	  int scaleFactor,
+	  us_short_ImageType::Pointer outputImage);
+
+  void ApplyMultiplyFilter(us_short_ImageType::Pointer inputImage_1,
+	  us_short_ImageType::Pointer inputImage_2,
+	  us_short_ImageType::Pointer outputImage);
+
+  void ApplyLaplacianFilter(us_short_ImageType::Pointer inputImage,
+	  double_ImageType::Pointer outputImage);
 
 };
 
