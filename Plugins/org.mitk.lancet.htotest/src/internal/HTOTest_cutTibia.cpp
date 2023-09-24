@@ -344,12 +344,12 @@ bool HTOTest::CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut,
 	
 	if(cellNum_1 >= cellNum_0)
 	{
-		largerSubPart->DeepCopy(tibia_filled_0);
-		smallerSubPart->DeepCopy(tibia_filled_1);
+		largerSubPart->DeepCopy(tibia_filled_1);
+		smallerSubPart->DeepCopy(tibia_filled_0);
 	}else
 	{
-		largerSubPart->DeepCopy(tibia_filled_0);
-		smallerSubPart->DeepCopy(tibia_filled_1);
+		largerSubPart->DeepCopy(tibia_filled_1);
+		smallerSubPart->DeepCopy(tibia_filled_0);
 	}
 
 	return true;
