@@ -87,7 +87,7 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   InitImageSelector(m_Controls.mitkNodeSelectWidget_search);
   InitImageSelector(m_Controls.mitkNodeSelectWidget_template);
   InitImageSelector(m_Controls.mitkNodeSelectWidget_drrCT);
-
+  InitImageSelector(m_Controls.mitkNodeSelectWidget_dentalDR);
 
   //connect(m_Controls.buttonPerformImageProcessing, &QPushButton::clicked, this, &SpineCArmRegistration::DoImageProcessing);
   connect(m_Controls.pushButton_InitSpatialScene, &QPushButton::clicked, this, &SpineCArmRegistration::InitSceneSpatialLocalization);

@@ -1309,17 +1309,19 @@ void SpineCArmRegistration::on_pushButton_teethDetect_clicked()
 void SpineCArmRegistration::DrEnhanceType1()
  {
 	 // MITK input image
-	 auto attemptNode = GetDataStorage()->GetNamedNode("raw");
-	
-	 if (attemptNode == nullptr )
-	 {
-		 m_Controls.textBrowser->append("There is no raw image!");
-	
-		 return;
-	 }
+	 // auto attemptNode = GetDataStorage()->GetNamedNode("raw");
+	 //
+	 // if (attemptNode == nullptr )
+	 // {
+		//  m_Controls.textBrowser->append("There is no raw image!");
+	 //
+		//  return;
+	 // }
+	 //
+	 // auto inputMitkImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("raw")->GetData());
+	 auto inputMitkImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_dentalDR->GetSelectedNode()->GetData());
 
-	 auto inputMitkImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("raw")->GetData());
-	 
+
 	 auto inputImage = doubleImageType::New();
 
 	 mitk::CastToItkImage(inputMitkImage, inputImage);
@@ -1554,7 +1556,7 @@ void SpineCArmRegistration::DrEnhanceType1()
 	 auto b_node = mitk::DataNode::New();
 
 	 a_node->SetData(a);
-	 a_node->SetName("Type_1");
+	 a_node->SetName(m_Controls.mitkNodeSelectWidget_dentalDR->GetSelectedNode()->GetName() + "_1");
 	 b_node->SetData(b);
 	 b_node->SetName("b");
 
@@ -1570,16 +1572,19 @@ void SpineCArmRegistration::DrEnhanceType1()
  void SpineCArmRegistration::DrEnhanceType1_intermediate()
  {
 	 // MITK input image
-	 auto attemptNode = GetDataStorage()->GetNamedNode("raw");
+	 // auto attemptNode = GetDataStorage()->GetNamedNode("raw");
+	 //
+	 // if (attemptNode == nullptr)
+	 // {
+		//  m_Controls.textBrowser->append("There is no raw image!");
+	 //
+		//  return;
+	 // }
+	 //
+	 // auto inputMitkImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("raw")->GetData());
 
-	 if (attemptNode == nullptr)
-	 {
-		 m_Controls.textBrowser->append("There is no raw image!");
+	 auto inputMitkImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_dentalDR->GetSelectedNode()->GetData());
 
-		 return;
-	 }
-
-	 auto inputMitkImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("raw")->GetData());
 
 	 auto inputImage = doubleImageType::New();
 
@@ -1754,16 +1759,17 @@ void SpineCArmRegistration::DrEnhanceType1()
 void SpineCArmRegistration::DrEnhanceType2()
  {
  	// MITK input image
- 	auto attemptNode = GetDataStorage()->GetNamedNode("raw");
- 	auto attemptNode2 = GetDataStorage()->GetNamedNode("Type_1_intermediate"); // 
- 	if (attemptNode == nullptr || attemptNode2 == nullptr)
- 	{
- 		m_Controls.textBrowser->append("There is no raw image!");
- 		m_Controls.textBrowser->append("There is no processed image!");
- 		return;
- 	}
- 	
- 	auto inputImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("raw")->GetData());
+ 	// auto attemptNode = GetDataStorage()->GetNamedNode("raw");
+ 	// auto attemptNode2 = GetDataStorage()->GetNamedNode("Type_1_intermediate"); // 
+ 	// if (attemptNode == nullptr || attemptNode2 == nullptr)
+ 	// {
+ 	// 	m_Controls.textBrowser->append("There is no raw image!");
+ 	// 	m_Controls.textBrowser->append("There is no processed image!");
+ 	// 	return;
+ 	// }
+	
+ 	// auto inputImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("raw")->GetData());
+	auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_dentalDR->GetSelectedNode()->GetData());
  	auto processedImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("Type_1_intermediate")->GetData());
  	
  	auto inputItkImage = doubleImageType::New();
@@ -2030,7 +2036,7 @@ void SpineCArmRegistration::DrEnhanceType2()
  	auto b_node = mitk::DataNode::New();
  	
  	a_node->SetData(a);
- 	a_node->SetName("Type_2");
+ 	a_node->SetName(m_Controls.mitkNodeSelectWidget_dentalDR->GetSelectedNode()->GetName()+"_2");
  	b_node->SetData(b);
  	b_node->SetName("b");
   	
@@ -2057,16 +2063,20 @@ typedef itk::GrayscaleMorphologicalClosingImageFilter<ImageType, ImageType, Ball
 
 void SpineCArmRegistration::on_pushButton_step_1_3_clicked()
 {
+	DrEnhanceType1_intermediate();
+	DrEnhanceType2();
+	DrEnhanceType1();
+
 	//-------Start Step 2: convert the 2D raw image into 3D-------------
-	auto attemptNode = GetDataStorage()->GetNamedNode("raw");
-	if(attemptNode == nullptr)
-	{
-		m_Controls.textBrowser->append("There is no raw image!");
-		return;
-	}
+	// auto attemptNode = GetDataStorage()->GetNamedNode("raw");
+	// if(attemptNode == nullptr)
+	// {
+	// 	m_Controls.textBrowser->append("There is no raw image!");
+	// 	return;
+	// }
 
 
-	auto inputImage = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("raw")->GetData());
+	auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_dentalDR->GetSelectedNode()->GetData());
 
 	// first we create a blank image
 	vtkNew<vtkImageData> whiteImage;
@@ -2202,9 +2212,7 @@ void SpineCArmRegistration::on_pushButton_step_1_3_clicked()
 	GetDataStorage()->Add(tmpNode);
 
 
-	DrEnhanceType1_intermediate();
-	DrEnhanceType2();
-	DrEnhanceType1();
+	
 }
 
 void SpineCArmRegistration::on_pushButton_step_4_5_clicked()
