@@ -207,6 +207,7 @@ protected:
 
 
   void on_pushButton_testSharpen_clicked();
+  void on_pushButton_convert3Dto2D_clicked();
 
 };
 

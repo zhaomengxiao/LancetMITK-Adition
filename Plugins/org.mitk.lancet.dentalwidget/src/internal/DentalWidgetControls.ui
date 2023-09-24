@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>753</width>
-    <height>599</height>
+    <height>643</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -39,48 +39,7 @@
        <string>图像成分提取</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_12">
-       <item row="0" column="2">
-        <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_intraopCt" native="true">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1" colspan="2">
-        <widget class="QPushButton" name="pushButton_stencilImage">
-         <property name="text">
-          <string>Stencil image</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <spacer name="horizontalSpacer_11">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>术中 CT 影像: </string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1" colspan="2">
-        <widget class="QPushButton" name="pushButton_testSharpen">
-         <property name="text">
-          <string>Test dental DR sharpening</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1" colspan="2">
+       <item row="7" column="1" colspan="2">
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
           <string>CBCT表面重建</string>
@@ -193,6 +152,67 @@
         </widget>
        </item>
        <item row="6" column="1" colspan="2">
+        <widget class="QPushButton" name="pushButton_stencilImage">
+         <property name="text">
+          <string>Stencil image</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <spacer name="horizontalSpacer_8">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>术中 CT 影像: </string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <spacer name="horizontalSpacer_11">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="5" column="1" colspan="2">
+        <widget class="QPushButton" name="pushButton_decimatePolyData">
+         <property name="text">
+          <string>Decimate polyData</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1" colspan="2">
+        <widget class="QPushButton" name="pushButtonCbctNdiMarkerExtract">
+         <property name="text">
+          <string>CBCT NDI marker extraction</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_intraopCt" native="true">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1" colspan="2">
         <widget class="QGroupBox" name="groupBox_6">
          <property name="title">
           <string>配准钢珠球心提取</string>
@@ -323,30 +343,17 @@
          </layout>
         </widget>
        </item>
-       <item row="0" column="3">
-        <spacer name="horizontalSpacer_8">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="2" column="1" colspan="2">
-        <widget class="QPushButton" name="pushButtonCbctNdiMarkerExtract">
+       <item row="2" column="1">
+        <widget class="QPushButton" name="pushButton_convert3Dto2D">
          <property name="text">
-          <string>CBCT NDI marker extraction</string>
+          <string>Convert 3D to 2D</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="1" colspan="2">
-        <widget class="QPushButton" name="pushButton_decimatePolyData">
+       <item row="2" column="2">
+        <widget class="QPushButton" name="pushButton_testSharpen">
          <property name="text">
-          <string>Decimate polyData</string>
+          <string>Convert 2D to 3D</string>
          </property>
         </widget>
        </item>

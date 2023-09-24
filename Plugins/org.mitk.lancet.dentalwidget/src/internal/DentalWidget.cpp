@@ -168,6 +168,8 @@ void DentalWidget::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_decimatePolyData, &QPushButton::clicked, this, &DentalWidget::on_pushButton_decimatePolyData_clicked);
 
+  connect(m_Controls.pushButton_convert3Dto2D, &QPushButton::clicked, this, &DentalWidget::on_pushButton_convert3Dto2D_clicked);
+
 
   // Prepare some empty pointsets for registration purposes
   if (GetDataStorage()->GetNamedNode("landmark_src") == nullptr)
@@ -239,7 +241,7 @@ void DentalWidget::on_pushButton_decimatePolyData_clicked()
 }
 
 
-// Read in a 3D gray-scale rgb image and convert it into a  3D single-channel image
+// Read in a 3D or 2D gray-scale rgb or single-channel image and convert it into a 3D single-channel image
 void DentalWidget::on_pushButton_testSharpen_clicked()
 {
 	auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_intraopCt->GetSelectedNode()->GetData());
@@ -273,7 +275,8 @@ void DentalWidget::on_pushButton_testSharpen_clicked()
 	origin[1] = imageBounds[2] + imageSpacing[1] / 2;
 	origin[2] = imageBounds[4] + imageSpacing[2] / 2;
 	whiteImage->SetOrigin(origin);
-	whiteImage->AllocateScalars(VTK_SHORT, 1);
+	whiteImage->AllocateScalars(VTK_UNSIGNED_SHORT, 1);
+	//whiteImage->AllocateScalars(VTK_INT, 1);
 
 	// fill the image with foreground voxels:
 	short insideValue = 2000;
@@ -296,7 +299,8 @@ void DentalWidget::on_pushButton_testSharpen_clicked()
 
 	auto caster = vtkImageCast::New();
 	caster->SetInputData(inputVtkImage);
-	caster->SetOutputScalarTypeToInt();
+	caster->SetOutputScalarTypeToUnsignedShort();
+	//caster->SetOutputScalarTypeToInt();
 	caster->Update();
 
 	auto castVtkImage = caster->GetOutput();
@@ -325,7 +329,116 @@ void DentalWidget::on_pushButton_testSharpen_clicked()
 	
 	newMitkImage->SetVolume(whiteImage->GetScalarPointer());
 
+	auto identityMatrix = vtkMatrix4x4::New();
+	identityMatrix->Identity();
+	newMitkImage->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+
+	// newMitkImage->Initialize(castVtkImage, 1, -1, dim[2], dim[1]);
+	//
+	// newMitkImage->SetVolume(castVtkImage->GetScalarPointer());
+
 	// newMitkImage->SetGeometry(inputImage->GetGeometry());
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetName("testNode");
+	tmpNode->SetData(newMitkImage);
+	GetDataStorage()->Add(tmpNode);
+	//
+	// m_Controls.textBrowser->append("new button connected!");
+}
+
+
+// Read in a 3D or 2D gray-scale rgb or single-channel image and convert it into a 2D single-channel image
+void DentalWidget::on_pushButton_convert3Dto2D_clicked()
+{
+	auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_intraopCt->GetSelectedNode()->GetData());
+
+	//------------white image------------
+	vtkNew<vtkImageData> whiteImage;
+	double imageBounds[6]{ 0 };
+	double imageSpacing[3]{ 1, 1, 1 };
+	whiteImage->SetSpacing(imageSpacing);
+
+	auto geometry = inputImage->GetGeometry();
+	auto surfaceBounds = geometry->GetBounds();
+	for (int n = 0; n < 6; n++)
+	{
+		imageBounds[n] = surfaceBounds[n];
+	}
+
+	int dim[3];
+	for (int i = 0; i < 3; i++)
+	{
+		dim[i] = static_cast<int>(ceil((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
+	}
+
+	whiteImage->SetDimensions(dim);
+	//whiteImage->SetExtent(0, dim[0] , 0, dim[1] , 0, dim[2] );
+
+	cout << "Printing dim: " << dim[0] << ", " << dim[1] << ", " << dim[2] << endl;
+
+	double origin[3];
+	origin[0] = imageBounds[0] + imageSpacing[0] / 2;
+	origin[1] = imageBounds[2] + imageSpacing[1] / 2;
+	origin[2] = imageBounds[4] + imageSpacing[2] / 2;
+	whiteImage->SetOrigin(origin);
+	whiteImage->AllocateScalars(VTK_UNSIGNED_SHORT, 1);
+	//whiteImage->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+
+	// fill the image with foreground voxels:
+	short insideValue = 2000;
+	// short outsideValue = 0;
+	vtkIdType count = whiteImage->GetNumberOfPoints();
+	for (vtkIdType i = 0; i < count; ++i)
+	{
+		whiteImage->GetPointData()->GetScalars()->SetTuple1(i, insideValue);
+	}
+
+	//-----------------
+
+
+	// Test: set the boundary voxel of the image to 
+	auto inputVtkImage = inputImage->GetVtkImageData(0, 0);
+	int dims[3];
+	inputVtkImage->GetDimensions(dims);
+
+	cout << "Printing dims: " << dims[0] << ", " << dims[1] << ", " << dims[2] << endl;
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(inputVtkImage);
+	caster->SetOutputScalarTypeToUnsignedShort();
+	//caster->SetOutputScalarTypeToUnsignedChar();
+	caster->Update();
+
+	auto castVtkImage = caster->GetOutput();
+
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+				int* n = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z));
+
+				int* m = static_cast<int*>(whiteImage->GetScalarPointer(x, y, z));
+
+				m[0] = n[0];
+
+			}
+		}
+	}
+
+
+
+	auto newMitkImage = mitk::Image::New();
+
+	newMitkImage->Initialize(whiteImage, 1, -1, -1, dim[1]);
+
+	newMitkImage->SetVolume(whiteImage->GetScalarPointer());
+
+	auto identityMatrix = vtkMatrix4x4::New();
+	identityMatrix->Identity();
+	newMitkImage->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
 
 	auto tmpNode = mitk::DataNode::New();
 	tmpNode->SetName("testNode");
