@@ -1384,7 +1384,7 @@ void SpineCArmRegistration::DrEnhanceType1()
 	 multiFilter_blackGarbage->UpdateLargestPossibleRegion();
 	 auto garbage_retain = multiFilter_blackGarbage->GetOutput();
 	 
-	 auto garbage_retain_rescaled = ApplyImAdjust(garbage_retain, 0, 1, 0, 0.2, 47000, 1);
+	 auto garbage_retain_rescaled = ApplyImAdjust(garbage_retain, 0, 1, 0, 0.17, 47000, 1);
 
 	 addFilterType::Pointer addFilter_whole_garbage = addFilterType::New();
 	 addFilter_whole_garbage->SetInput1(black_garbage);
@@ -1846,6 +1846,17 @@ void SpineCArmRegistration::DrEnhanceType2()
  	
  	auto black_garbage = thFilter_black_garbage->GetOutput();
 
+	// 0928 Update: black_garbage region should be retained and not be thoroughly excluded 
+	auto multiFilter_blackGarbage = multiplyFilterType::New();
+	multiFilter_blackGarbage->SetInput1(black_garbage);
+	multiFilter_blackGarbage->SetInput2(flipped_rawImage);
+	multiFilter_blackGarbage->UpdateLargestPossibleRegion();
+	auto garbage_retain = multiFilter_blackGarbage->GetOutput();
+
+	auto garbage_retain_rescaled = ApplyImAdjust(garbage_retain, 0, 1, 0, 0.17, 47000, 1);
+
+
+
 	addFilterType::Pointer addFilter_whole_garbage = addFilterType::New();
 	addFilter_whole_garbage->SetInput1(black_garbage);
 	addFilter_whole_garbage->SetInput2(white_garbage);
@@ -2021,7 +2032,12 @@ void SpineCArmRegistration::DrEnhanceType2()
 	addFilter_1->SetInput2(scaled_garbage);
 	addFilter_1->Update();
 
-	auto result = addFilter_1->GetOutput();
+	addFilterType::Pointer addFilter_2 = addFilterType::New();
+	addFilter_2->SetInput1(addFilter_1->GetOutput());
+	addFilter_2->SetInput2(garbage_retain_rescaled);
+	addFilter_2->Update();
+
+	auto result = addFilter_2->GetOutput();
 
 
 	// Final window level/width and gamma modulation Sept. 24
