@@ -1369,12 +1369,22 @@ void SpineCArmRegistration::DrEnhanceType1()
 	 thresholdFilterType::Pointer thFilter_black_garbage = thresholdFilterType::New();
 	 thFilter_black_garbage->SetInput(flipped_rawImage);
 	 thFilter_black_garbage->SetLowerThreshold(0);
-	 thFilter_black_garbage->SetUpperThreshold(50000); // requires fine-tuning
+	 thFilter_black_garbage->SetUpperThreshold(47000); // requires fine-tuning
 	 thFilter_black_garbage->SetInsideValue(1);
 	 thFilter_black_garbage->SetOutsideValue(0);
 	 thFilter_black_garbage->UpdateLargestPossibleRegion();
 
-	 auto black_garbage = thFilter_black_garbage->GetOutput();
+ 	 auto black_garbage = thFilter_black_garbage->GetOutput();
+
+
+	 // 0928 Update: black_garbage region should be retained and not be thoroughly excluded 
+	 auto multiFilter_blackGarbage = multiplyFilterType::New();
+	 multiFilter_blackGarbage->SetInput1(black_garbage);
+	 multiFilter_blackGarbage->SetInput2(flipped_rawImage);
+	 multiFilter_blackGarbage->UpdateLargestPossibleRegion();
+	 auto garbage_retain = multiFilter_blackGarbage->GetOutput();
+	 
+	 auto garbage_retain_rescaled = ApplyImAdjust(garbage_retain, 0, 1, 0, 0.2, 47000, 1);
 
 	 addFilterType::Pointer addFilter_whole_garbage = addFilterType::New();
 	 addFilter_whole_garbage->SetInput1(black_garbage);
@@ -1502,7 +1512,13 @@ void SpineCArmRegistration::DrEnhanceType1()
 	 addFilter_1->SetInput2(scaled_garbage);
 	 addFilter_1->Update();
 
-	 auto result = addFilter_1->GetOutput();
+	 addFilterType::Pointer addFilter_2 = addFilterType::New();
+	 addFilter_2->SetInput1(addFilter_1->GetOutput());
+	 addFilter_2->SetInput2(garbage_retain_rescaled);
+	 addFilter_2->Update();
+
+	 auto result = addFilter_2->GetOutput();
+	 // auto result = rescaleFilter2->GetOutput();
 
 	 /////////
 
@@ -1550,7 +1566,7 @@ void SpineCArmRegistration::DrEnhanceType1()
 	 auto a = mitk::Image::New();
 	 a = mitk::ImportItkImage(castFilter3->GetOutput())->Clone();
 	 auto b = mitk::Image::New();
-	 b = mitk::ImportItkImage(LOG_image)->Clone();
+	 b = mitk::ImportItkImage(garbage_retain_rescaled)->Clone();
 
 	 auto a_node = mitk::DataNode::New();
 	 auto b_node = mitk::DataNode::New();
@@ -1561,7 +1577,7 @@ void SpineCArmRegistration::DrEnhanceType1()
 	 b_node->SetName("b");
 
 	 GetDataStorage()->Add(a_node);
-	 // GetDataStorage()->Add(b_node);
+	 GetDataStorage()->Add(b_node);
 
 	 // MITK test view----------------------------
 
@@ -1823,7 +1839,7 @@ void SpineCArmRegistration::DrEnhanceType2()
 	thresholdFilterType::Pointer thFilter_black_garbage = thresholdFilterType::New();
 	thFilter_black_garbage->SetInput(flipped_rawImage);
 	thFilter_black_garbage->SetLowerThreshold(0);
-	thFilter_black_garbage->SetUpperThreshold(50000); // requires fine-tuning
+	thFilter_black_garbage->SetUpperThreshold(47000); // requires fine-tuning
 	thFilter_black_garbage->SetInsideValue(1);
 	thFilter_black_garbage->SetOutsideValue(0);
 	thFilter_black_garbage->UpdateLargestPossibleRegion();
