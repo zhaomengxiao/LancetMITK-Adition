@@ -279,7 +279,7 @@
            <item>
             <widget class="QLineEdit" name="lineEdit_gamma">
              <property name="text">
-              <string>1.15</string>
+              <string>1.25</string>
              </property>
             </widget>
            </item>

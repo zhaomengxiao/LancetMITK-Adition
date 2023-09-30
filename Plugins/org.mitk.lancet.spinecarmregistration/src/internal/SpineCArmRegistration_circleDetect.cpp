@@ -1658,13 +1658,13 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 
 
 	// 0928 Update: black_garbage region should be retained and not be thoroughly excluded 
-	auto multiFilter_blackGarbage = multiplyFilterType::New();
-	multiFilter_blackGarbage->SetInput1(black_garbage);
-	multiFilter_blackGarbage->SetInput2(flipped_rawImage);
-	multiFilter_blackGarbage->UpdateLargestPossibleRegion();
-	auto garbage_retain = multiFilter_blackGarbage->GetOutput();
-
-	auto garbage_retain_rescaled = ApplyImAdjust(garbage_retain, 0, 1, 0, 0.17, 47000, 1);
+	// auto multiFilter_blackGarbage = multiplyFilterType::New();
+	// multiFilter_blackGarbage->SetInput1(black_garbage);
+	// multiFilter_blackGarbage->SetInput2(flipped_rawImage);
+	// multiFilter_blackGarbage->UpdateLargestPossibleRegion();
+	// auto garbage_retain = multiFilter_blackGarbage->GetOutput();
+	//
+	// auto garbage_retain_rescaled = ApplyImAdjust(garbage_retain, 0, 1, 0, 0.17, 47000, 1);
 
 	addFilterType::Pointer addFilter_whole_garbage = addFilterType::New();
 	addFilter_whole_garbage->SetInput1(black_garbage);
@@ -1742,24 +1742,24 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 
 	printf("step8\n");
 	//image weighted Add
-	auto weighted_image = ApplyImageWeightedAdd(castFilter2->GetOutput(), new_LOG_image, 1, 0.5);
+	auto weighted_image = ApplyImageWeightedAdd(castFilter2->GetOutput(), new_LOG_image, 1, 0.4);
 
 	printf("step9\n");
 	//rescaleIntensity
-	rescaleFilterType::Pointer rescaleFilter2 = rescaleFilterType::New();
-	rescaleFilter2->SetInput(weighted_image);
-	rescaleFilter2->SetOutputMinimum(0);
-	rescaleFilter2->SetOutputMaximum(65535);
-	rescaleFilter2->UpdateLargestPossibleRegion();
+	// rescaleFilterType::Pointer rescaleFilter2 = rescaleFilterType::New();
+	// rescaleFilter2->SetInput(weighted_image);
+	// rescaleFilter2->SetOutputMinimum(0);
+	// rescaleFilter2->SetOutputMaximum(65535);
+	// rescaleFilter2->UpdateLargestPossibleRegion();
 	printf("step10\n");
 	//pixel = 7000 turn into 0
-	doubleImageIteratorType weighted_it(rescaleFilter2->GetOutput(), rescaleFilter2->GetOutput()->GetRequestedRegion());
-	while (!weighted_it.IsAtEnd())
-	{
-		if (weighted_it.Get() <= 7000)
-			weighted_it.Set(0);
-		++weighted_it;
-	}
+	// doubleImageIteratorType weighted_it(rescaleFilter2->GetOutput(), rescaleFilter2->GetOutput()->GetRequestedRegion());
+	// while (!weighted_it.IsAtEnd())
+	// {
+	// 	if (weighted_it.Get() <= 7000)
+	// 		weighted_it.Set(0);
+	// 	++weighted_it;
+	// }
 
 
 
@@ -1775,16 +1775,24 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 
 	auto garbageBackground = thresFilter_garbageBackground->GetOutput();
 
-	shiftScaleFilterType::Pointer shiftScale_garbage = shiftScaleFilterType::New();
-	shiftScale_garbage->SetInput(whole_garbage);
-	shiftScale_garbage->SetScale(10000);
-	shiftScale_garbage->Update();
+	multiplyFilterType::Pointer mulFilter = multiplyFilterType::New();
+	mulFilter->SetInput1(black_garbage);
+	mulFilter->SetInput2(weighted_image);
+	mulFilter->UpdateLargestPossibleRegion();
 
-	auto scaled_garbage = shiftScale_garbage->GetOutput();
+	typedef itk::MinimumMaximumImageCalculator<doubleImageType> CalculatorType;
+	CalculatorType::Pointer calculator = CalculatorType::New();
+	calculator->SetImage(mulFilter->GetOutput());
 
+	calculator->Compute();
+	auto maxValue = calculator->GetMaximum();
+
+
+	auto retain_garbage = ApplyImAdjust(mulFilter->GetOutput(), 0, 1, 0, 1, maxValue, 1.7);
+	
 	multiplyFilterType::Pointer mulFilter_1 = multiplyFilterType::New();
 	mulFilter_1->SetInput1(garbageBackground);
-	mulFilter_1->SetInput2(rescaleFilter2->GetOutput());
+	mulFilter_1->SetInput2(weighted_image);
 	mulFilter_1->UpdateLargestPossibleRegion();
 
 	auto noGarbage = mulFilter_1->GetOutput();
@@ -1792,40 +1800,16 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 
 	addFilterType::Pointer addFilter_1 = addFilterType::New();
 	addFilter_1->SetInput1(noGarbage);
-	addFilter_1->SetInput2(scaled_garbage);
+	addFilter_1->SetInput2(retain_garbage);
 	addFilter_1->Update();
 
-	addFilterType::Pointer addFilter_2 = addFilterType::New();
-	addFilter_2->SetInput1(addFilter_1->GetOutput());
-	addFilter_2->SetInput2(garbage_retain_rescaled);
-	addFilter_2->Update();
+	// addFilterType::Pointer addFilter_2 = addFilterType::New();
+	// addFilter_2->SetInput1(addFilter_1->GetOutput());
+	// addFilter_2->SetInput2(garbage_retain_rescaled);
+	// addFilter_2->Update();
 
-	auto result = addFilter_2->GetOutput();
-	// auto result = rescaleFilter2->GetOutput();
+	auto result = addFilter_1->GetOutput();
 
-	/////////
-
-
-	//clahe
-	//cv::Mat mat_image = itk::OpenCVImageBridge::ITKImageToCVMat<doubleImageType>(rescaleFilter2->GetOutput());
-	//double clipLimit = 3;
-	//int gridWidth = 4;
-	//int gridHeight = 4;
-
-	//cv::Mat imageInput;
-	//mat_image.convertTo(imageInput, CV_16UC1);
-
-	//cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
-	//clahe->setClipLimit(clipLimit);
-	//clahe->setTilesGridSize(cv::Size(gridWidth, gridHeight));
-
-	//cv::Mat enhancedImage;
-	//clahe->apply(imageInput, enhancedImage);
-
-	//cv::Mat enhancedOutput;
-	//enhancedImage.convertTo(enhancedOutput, CV_64FC1);
-
-	//auto claheImage = itk::OpenCVImageBridge::CVMatToITKImage<doubleImageType>(enhancedOutput);
 
 
 	// Final window level/width and gamma modulation Sept. 24
@@ -1975,13 +1959,13 @@ void SpineCArmRegistration::DrEnhanceType1_intermediate()
 	rescaleFilter1->UpdateLargestPossibleRegion();
 
 
-	double low_in = 30000.0 / 65535.0;
-	double high_in = 50000.0 / 65535.0;
+	double low_in = 0;//30000.0 / 65535.0;
+	double high_in = 1;// 50000.0 / 65535.0;
 	auto new_LOG_image = ApplyImAdjust(rescaleFilter1->GetOutput(), low_in, high_in, 0, 1, 65535, 1.2);
 
 	printf("step8\n");
 	//image weighted Add
-	auto weighted_image = ApplyImageWeightedAdd(castFilter2->GetOutput(), new_LOG_image, 1, 0.2);
+	auto weighted_image = ApplyImageWeightedAdd(castFilter2->GetOutput(), new_LOG_image, 1, 0.45);
 
 	printf("step9\n");
 	//rescaleIntensity
@@ -2160,13 +2144,13 @@ void SpineCArmRegistration::DrEnhanceType1_intermediate_test()
 	rescaleFilter1->UpdateLargestPossibleRegion();
 
 
-	double low_in = 30000.0 / 65535.0;
-	double high_in = 50000.0 / 65535.0;
+	double low_in = 0;// 30000.0 / 65535.0;
+	double high_in = 1;// 50000.0 / 65535.0;
 	auto new_LOG_image = ApplyImAdjust(rescaleFilter1->GetOutput(), low_in, high_in, 0, 1, 65535, 1.2);
 
 	printf("step8\n");
 	//image weighted Add
-	auto weighted_image = ApplyImageWeightedAdd(castFilter2->GetOutput(), new_LOG_image, 1, 0.2);
+	auto weighted_image = ApplyImageWeightedAdd(castFilter2->GetOutput(), new_LOG_image, 1, 0.5);
 
 	printf("step9\n");
 	//rescaleIntensity
@@ -2184,28 +2168,6 @@ void SpineCArmRegistration::DrEnhanceType1_intermediate_test()
 			weighted_it.Set(0);
 		++weighted_it;
 	}
-
-	//clahe
-	//cv::Mat mat_image = itk::OpenCVImageBridge::ITKImageToCVMat<doubleImageType>(rescaleFilter2->GetOutput());
-	//double clipLimit = 3;
-	//int gridWidth = 4;
-	//int gridHeight = 4;
-
-	//cv::Mat imageInput;
-	//mat_image.convertTo(imageInput, CV_16UC1);
-
-	//cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
-	//clahe->setClipLimit(clipLimit);
-	//clahe->setTilesGridSize(cv::Size(gridWidth, gridHeight));
-
-	//cv::Mat enhancedImage;
-	//clahe->apply(imageInput, enhancedImage);
-
-	//cv::Mat enhancedOutput;
-	//enhancedImage.convertTo(enhancedOutput, CV_64FC1);
-
-	//auto claheImage = itk::OpenCVImageBridge::CVMatToITKImage<doubleImageType>(enhancedOutput);
-
 
 
 	printf("step11\n");
@@ -2620,13 +2582,13 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 	auto black_garbage = thFilter_black_garbage->GetOutput();
 
 	// 0928 Update: black_garbage region should be retained and not be thoroughly excluded 
-	auto multiFilter_blackGarbage = multiplyFilterType::New();
-	multiFilter_blackGarbage->SetInput1(black_garbage);
-	multiFilter_blackGarbage->SetInput2(flipped_rawImage);
-	multiFilter_blackGarbage->UpdateLargestPossibleRegion();
-	auto garbage_retain = multiFilter_blackGarbage->GetOutput();
-
-	auto garbage_retain_rescaled = ApplyImAdjust(garbage_retain, 0, 1, 0, 0.17, 47000, 1);
+	// auto multiFilter_blackGarbage = multiplyFilterType::New();
+	// multiFilter_blackGarbage->SetInput1(black_garbage);
+	// multiFilter_blackGarbage->SetInput2(flipped_rawImage);
+	// multiFilter_blackGarbage->UpdateLargestPossibleRegion();
+	// auto garbage_retain = multiFilter_blackGarbage->GetOutput();
+	//
+	// auto garbage_retain_rescaled = ApplyImAdjust(garbage_retain, 0, 1, 0, 0.17, 47000, 1);
 
 
 
@@ -2687,17 +2649,17 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 	// Todo: use edge density information to decide the enhancement values
 	doubleImageIteratorType edges_it(edges, edges->GetRequestedRegion());
 	// edges_it.GoToBegin();
-	int edge_count{ 0 };
-	while (!edges_it.IsAtEnd())
-	{
-		if (edges_it.Get() > 0)
-		{
-			edge_count += 1;
-		}
-			
-		++edges_it;
-	}
-	cout << "edge pix num: " << edge_count << endl;
+	// int edge_count{ 0 };
+	// while (!edges_it.IsAtEnd())
+	// {
+	// 	if (edges_it.Get() > 0)
+	// 	{
+	// 		edge_count += 1;
+	// 	}
+	// 		
+	// 	++edges_it;
+	// }
+	// cout << "edge pix num: " << edge_count << endl;
 
 	thresholdFilterType::Pointer thresFilter_background = thresholdFilterType::New();
 	thresFilter_background->SetInput(edges);
@@ -2746,7 +2708,7 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 	// closed + 0.5* processedImage 
 	shiftScaleFilterType::Pointer shiftScale_preprocess = shiftScaleFilterType::New();
 	shiftScale_preprocess->SetInput(flipped_processedImage);
-	shiftScale_preprocess->SetScale(0.5);
+	shiftScale_preprocess->SetScale(0.35);
 	shiftScale_preprocess->Update();
 
 	auto flipped_processed_half = shiftScale_preprocess->GetOutput();
@@ -2801,12 +2763,30 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 
 	auto garbageBackground = thresFilter_garbageBackground->GetOutput();
 
-	shiftScaleFilterType::Pointer shiftScale_garbage = shiftScaleFilterType::New();
-	shiftScale_garbage->SetInput(whole_garbage);
-	shiftScale_garbage->SetScale(10000);
-	shiftScale_garbage->Update();
 
-	auto scaled_garbage = shiftScale_garbage->GetOutput();
+
+	// shiftScaleFilterType::Pointer shiftScale_garbage = shiftScaleFilterType::New();
+	// shiftScale_garbage->SetInput(whole_garbage);
+	// shiftScale_garbage->SetScale(10000);
+	// shiftScale_garbage->Update();
+
+	// auto scaled_garbage = shiftScale_garbage->GetOutput();
+
+	multiplyFilterType::Pointer mulFilter_retain = multiplyFilterType::New();
+	mulFilter_retain->SetInput1(black_garbage);
+	mulFilter_retain->SetInput2(claheImage);
+	mulFilter_retain->UpdateLargestPossibleRegion();
+
+	typedef itk::MinimumMaximumImageCalculator<doubleImageType> CalculatorType;
+	CalculatorType::Pointer calculator = CalculatorType::New();
+	calculator->SetImage(mulFilter_retain->GetOutput());
+
+	calculator->Compute();
+	auto maxValue = calculator->GetMaximum();
+
+
+	auto retain_garbage = ApplyImAdjust(mulFilter_retain->GetOutput(), 0, 1, 0, 1, maxValue, 1.4);
+
 
 	multiplyFilterType::Pointer mulFilter_1 = multiplyFilterType::New();
 	mulFilter_1->SetInput1(garbageBackground);
@@ -2818,15 +2798,15 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 
 	addFilterType::Pointer addFilter_1 = addFilterType::New();
 	addFilter_1->SetInput1(clahe_noGarbage);
-	addFilter_1->SetInput2(scaled_garbage);
+	addFilter_1->SetInput2(retain_garbage);
 	addFilter_1->Update();
 
-	addFilterType::Pointer addFilter_2 = addFilterType::New();
-	addFilter_2->SetInput1(addFilter_1->GetOutput());
-	addFilter_2->SetInput2(garbage_retain_rescaled);
-	addFilter_2->Update();
+	// addFilterType::Pointer addFilter_2 = addFilterType::New();
+	// addFilter_2->SetInput1(addFilter_1->GetOutput());
+	// addFilter_2->SetInput2(garbage_retain_rescaled);
+	// addFilter_2->Update();
 
-	auto result = addFilter_2->GetOutput();
+	auto result = addFilter_1->GetOutput();
 
 
 	// Final window level/width and gamma modulation Sept. 24
@@ -4246,8 +4226,8 @@ void SpineCArmRegistration::ApplyLaplacianFilter(us_short_ImageType::Pointer inp
 
 void SpineCArmRegistration::on_pushButton_EasyItkTest_clicked()
 {
-	// DrEnhanceType1_intermediate_test();
-	// DrEnhanceType2_test();
+	DrEnhanceType1_intermediate_test();
+	DrEnhanceType2_test();
 	DrEnhanceType1_test();
 
 	// auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_dentalDR->GetSelectedNode()->GetData());
