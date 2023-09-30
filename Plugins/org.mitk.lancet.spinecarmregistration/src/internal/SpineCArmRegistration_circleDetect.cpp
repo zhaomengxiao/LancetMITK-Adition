@@ -1634,7 +1634,7 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 		if (i == param1)
 		{
 			// flipAxes[i] = true;
-			flipAxes[i] = true;
+			flipAxes[i] = false;
 		}
 		else
 		{
@@ -1663,7 +1663,7 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 	thresholdFilterType::Pointer thFilter_black_garbage = thresholdFilterType::New();
 	thFilter_black_garbage->SetInput(flipped_rawImage);
 	thFilter_black_garbage->SetLowerThreshold(0);
-	thFilter_black_garbage->SetUpperThreshold(47000); // requires fine-tuning
+	thFilter_black_garbage->SetUpperThreshold(46000); // requires fine-tuning
 	thFilter_black_garbage->SetInsideValue(1);
 	thFilter_black_garbage->SetOutsideValue(0);
 	thFilter_black_garbage->UpdateLargestPossibleRegion();
@@ -2091,7 +2091,7 @@ void SpineCArmRegistration::DrEnhanceType1_intermediate_test()
 		if (i == param1)
 		{
 			// flipAxes[i] = true;
-			flipAxes[i] = true;
+			flipAxes[i] = false;
 		}
 		else
 		{
@@ -2561,7 +2561,7 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 		if (i == param1)
 		{
 			// flipAxes[i] = true;
-			flipAxes[i] = true;
+			flipAxes[i] = false;
 		}
 		else
 		{
@@ -2594,7 +2594,7 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 	thresholdFilterType::Pointer thFilter_black_garbage = thresholdFilterType::New();
 	thFilter_black_garbage->SetInput(flipped_rawImage);
 	thFilter_black_garbage->SetLowerThreshold(0);
-	thFilter_black_garbage->SetUpperThreshold(47000); // requires fine-tuning
+	thFilter_black_garbage->SetUpperThreshold(46000); // requires fine-tuning
 	thFilter_black_garbage->SetInsideValue(1);
 	thFilter_black_garbage->SetOutsideValue(0);
 	thFilter_black_garbage->UpdateLargestPossibleRegion();
