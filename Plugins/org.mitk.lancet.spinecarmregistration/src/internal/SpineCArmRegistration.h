@@ -170,26 +170,17 @@ protected:
   void DrEnhanceType2();
   void DrEnhanceType1_intermediate();
   void DrEnhanceType1();
+
+  void DrEnhanceType2_test();
+  void DrEnhanceType1_intermediate_test();
+  void DrEnhanceType1_test();
+
   void on_pushButton_step_1_3_clicked();
   void on_pushButton_step_4_5_clicked();
   void on_pushButton_step_6_10_clicked();
   void on_pushButton_step_11_13_clicked();
   void on_pushButton_step_14_16_clicked();
   void on_pushButton_step_17_clicked();
-
-  // Easy access of ITK filters
-  // typedef itk::Image<short, 3> ImageType;
-  // typedef itk::Image<double, 3> DoubleImageType;
-  // typedef itk::FlipImageFilter< ImageType > FlipImageFilterType;
-  // typedef itk::BinaryThresholdImageFilter< ImageType, ImageType > ThresholdFilterType;
-  // typedef itk::AddImageFilter< ImageType, ImageType, ImageType > AddFilterType;
-  // typedef itk::MultiplyImageFilter< ImageType, ImageType, ImageType > MultiplyFilterType;
-  // typedef itk::InvertIntensityImageFilter< ImageType, ImageType > InversionFilterType;
-  // typedef itk::DiscreteGaussianImageFilter< ImageType, ImageType> GaussianFilterType;
-  // typedef itk::SubtractImageFilter< ImageType, ImageType, ImageType > SubtractFilterType;
-  // typedef itk::TotalVariationDenoisingImageFilter<DoubleImageType, DoubleImageType> TotalVariationFilterType;
-  // typedef itk::BinaryBallStructuringElement<ImageType::PixelType, 3> BallType;
-  // typedef itk::GrayscaleMorphologicalClosingImageFilter<ImageType, ImageType, BallType> ClosingFilterType;
 
   void on_pushButton_EasyItkTest_clicked();
 
