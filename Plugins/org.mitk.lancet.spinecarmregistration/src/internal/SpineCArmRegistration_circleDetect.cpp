@@ -1072,33 +1072,47 @@ doubleImageType::Pointer ApplyImAdjust(doubleImageType::Pointer inputImage, doub
 
 	//int count = 0;
 	itk::ImageRegionIterator<doubleImageType> imageIterator(inputImage, inputImage->GetRequestedRegion());
-	while (!imageIterator.IsAtEnd())
+
+	if( max == 0)
 	{
-		//count++;
-		auto pixel = imageIterator.Get();
-		if (pixel < low_in_value)
+		while (!imageIterator.IsAtEnd())
 		{
-			imageIterator.Set(low_out_value);
+			imageIterator.Set(0);
 			++imageIterator;
 		}
-		else if (pixel > high_in_value)
+	}else
+	{
+		while (!imageIterator.IsAtEnd())
 		{
-			imageIterator.Set(high_out_value);
-			++imageIterator;
+			//count++;
+			auto pixel = imageIterator.Get();
+
+			if (pixel < low_in_value)
+			{
+				imageIterator.Set(low_out_value);
+				++imageIterator;
+			}
+			else if (pixel > high_in_value)
+			{
+				imageIterator.Set(high_out_value);
+				++imageIterator;
+			}
+			else
+			{
+				double partial = (pixel - low_in_value) / (high_in_value - low_in_value);
+				double gammaPixel = std::pow(partial, gamma) * (high_out_value - low_out_value) + low_out_value;
+				//std::cout << "gamma:" << gammaPixel;
+				imageIterator.Set(gammaPixel);
+				++imageIterator;
+			}
+			//if (count % 1000 == 0)
+			//{
+			//	std::cout << "count:" << count << "\n";
+			//}	
 		}
-		else
-		{
-			double partial = (pixel - low_in_value) / (high_in_value - low_in_value);
-			double gammaPixel = std::pow(partial, gamma) * (high_out_value - low_out_value) + low_out_value;
-			//std::cout << "gamma:" << gammaPixel;
-			imageIterator.Set(gammaPixel);
-			++imageIterator;
-		}
-		//if (count % 1000 == 0)
-		//{
-		//	std::cout << "count:" << count << "\n";
-		//}	
 	}
+
+	
 	return inputImage;
 }
 
@@ -1742,7 +1756,7 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 
 	printf("step8\n");
 	//image weighted Add
-	auto weighted_image = ApplyImageWeightedAdd(castFilter2->GetOutput(), new_LOG_image, 1, 0.4);
+	auto weighted_image = ApplyImageWeightedAdd(castFilter2->GetOutput(), new_LOG_image, 1, 0.45);
 
 	printf("step9\n");
 	//rescaleIntensity
@@ -1788,7 +1802,7 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 	auto maxValue = calculator->GetMaximum();
 
 
-	auto retain_garbage = ApplyImAdjust(mulFilter->GetOutput(), 0, 1, 0, 1, maxValue, 1.7);
+	auto retain_garbage = ApplyImAdjust(mulFilter->GetOutput(), 0, 1, 0, 1, maxValue, 1);
 	
 	multiplyFilterType::Pointer mulFilter_1 = multiplyFilterType::New();
 	mulFilter_1->SetInput1(garbageBackground);
@@ -1810,7 +1824,13 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 
 	auto result = addFilter_1->GetOutput();
 
+	rescaleFilterType::Pointer rescaleFilter2 = rescaleFilterType::New();
+	rescaleFilter2->SetInput(result);
+	rescaleFilter2->SetOutputMinimum(0);
+	rescaleFilter2->SetOutputMaximum(65535);
+	rescaleFilter2->UpdateLargestPossibleRegion();
 
+	auto rescaled_result = rescaleFilter2->GetOutput();
 
 	// Final window level/width and gamma modulation Sept. 24
 	double low_in_ = m_Controls.lineEdit_lowIn->text().toDouble();
@@ -1820,7 +1840,7 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 	double max_ = m_Controls.lineEdit_max->text().toDouble();
 	double gamma_ = m_Controls.lineEdit_gamma->text().toDouble();
 
-	auto final = ApplyImAdjust(result, low_in_, high_in_, low_out_, high_out_, max_, gamma_);
+	auto final = ApplyImAdjust(rescaled_result, low_in_, high_in_, low_out_, high_out_, max_, gamma_);
 
 	printf("step11\n");
 
@@ -1833,7 +1853,7 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 	auto a = mitk::Image::New();
 	a = mitk::ImportItkImage(castFilter3->GetOutput())->Clone();
 	auto b = mitk::Image::New();
-	b = mitk::ImportItkImage(new_LOG_image)->Clone();
+	b = mitk::ImportItkImage(black_garbage)->Clone();
 
 	auto a_node = mitk::DataNode::New();
 	auto b_node = mitk::DataNode::New();
@@ -1841,10 +1861,10 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 	a_node->SetData(a);
 	a_node->SetName(m_Controls.mitkNodeSelectWidget_dentalDR->GetSelectedNode()->GetName() + "_1");
 	b_node->SetData(b);
-	b_node->SetName("new_LOG_image");
+	b_node->SetName("black_garbage");
 
 	GetDataStorage()->Add(a_node);
-	GetDataStorage()->Add(b_node);
+	// GetDataStorage()->Add(b_node);
 
 	// MITK test view----------------------------
 
@@ -2809,6 +2829,14 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 	auto result = addFilter_1->GetOutput();
 
 
+	rescaleFilterType::Pointer rescaleFilter2 = rescaleFilterType::New();
+	rescaleFilter2->SetInput(result);
+	rescaleFilter2->SetOutputMinimum(0);
+	rescaleFilter2->SetOutputMaximum(65535);
+	rescaleFilter2->UpdateLargestPossibleRegion();
+
+	auto rescaled_result = rescaleFilter2->GetOutput();
+
 	// Final window level/width and gamma modulation Sept. 24
 	double low_in = m_Controls.lineEdit_lowIn->text().toDouble();
 	double low_out = m_Controls.lineEdit_lowOut->text().toDouble();
@@ -2817,7 +2845,7 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 	double max = m_Controls.lineEdit_max->text().toDouble();
 	double gamma = m_Controls.lineEdit_gamma->text().toDouble();
 
-	auto final = ApplyImAdjust(result, low_in, high_in, low_out, high_out, max, gamma);
+	auto final = ApplyImAdjust(rescaled_result, low_in, high_in, low_out, high_out, max, gamma);
 
 
 
@@ -2842,7 +2870,7 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 	b_node->SetName("edges");
 
 	GetDataStorage()->Add(a_node);
-	GetDataStorage()->Add(b_node);
+	// GetDataStorage()->Add(b_node);
 
 }
 
