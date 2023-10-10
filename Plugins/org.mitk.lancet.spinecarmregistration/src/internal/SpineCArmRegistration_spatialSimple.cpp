@@ -119,7 +119,10 @@ void SpineCArmRegistration::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_step_14_16, &QPushButton::clicked, this, &SpineCArmRegistration::on_pushButton_step_14_16_clicked);
   connect(m_Controls.pushButton_step_17, &QPushButton::clicked, this, &SpineCArmRegistration::on_pushButton_step_17_clicked);
   connect(m_Controls.pushButton_EasyItkTest, &QPushButton::clicked, this, &SpineCArmRegistration::on_pushButton_EasyItkTest_clicked);
+  connect(m_Controls.pushButton_finalTuning, &QPushButton::clicked, this, &SpineCArmRegistration::on_pushButton_finalTuning_clicked);
 
+
+  
 }
 void SpineCArmRegistration::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)
 {

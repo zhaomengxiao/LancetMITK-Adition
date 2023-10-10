@@ -1600,6 +1600,42 @@ void SpineCArmRegistration::DrEnhanceType1()
 	// return castFilter3->GetOutput();
 }
 
+void SpineCArmRegistration::on_pushButton_finalTuning_clicked()
+{
+	auto inputMitkImage = dynamic_cast<mitk::Image*>(m_Controls.mitkNodeSelectWidget_dentalDR->GetSelectedNode()->GetData());
+
+
+	auto inputImage = doubleImageType::New();
+
+	mitk::CastToItkImage(inputMitkImage, inputImage);
+
+
+	double low_in_ = m_Controls.lineEdit_lowIn->text().toDouble();
+	double low_out_ = m_Controls.lineEdit_lowOut->text().toDouble();
+	double high_in_ = m_Controls.lineEdit_highIn->text().toDouble();
+	double high_out_ = m_Controls.lineEdit_highOut->text().toDouble();
+	double max_ = m_Controls.lineEdit_max->text().toDouble();
+	double gamma_ = m_Controls.lineEdit_gamma->text().toDouble();
+
+	auto test = ApplyImAdjust(inputImage, low_in_, high_in_, low_out_, high_out_, max_, gamma_);
+
+	typedef itk::CastImageFilter< doubleImageType, imageType > D2ICastFilterType;
+	D2ICastFilterType::Pointer castFilter = D2ICastFilterType::New();
+	castFilter->SetInput(test);
+	castFilter->Update();
+
+	auto a = mitk::Image::New();
+	a = mitk::ImportItkImage(castFilter->GetOutput())->Clone();
+
+	auto a_node = mitk::DataNode::New();
+	
+	a_node->SetData(a);
+	a_node->SetName(m_Controls.mitkNodeSelectWidget_dentalDR->GetSelectedNode()->GetName() + "test");
+
+	GetDataStorage()->Add(a_node);
+
+}
+
 void SpineCArmRegistration::DrEnhanceType1_test()
 {
 	// MITK input image
@@ -1801,9 +1837,11 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 	calculator->Compute();
 	auto maxValue = calculator->GetMaximum();
 
+	double high_out = maxValue / 65535.0;
 
-	auto retain_garbage = ApplyImAdjust(mulFilter->GetOutput(), 0, 1, 0, 1, maxValue, 1);
-	
+	// auto retain_garbage = ApplyImAdjust(mulFilter->GetOutput(), 0, 1, 0, high_out, 65535, 0.8);
+	auto retain_garbage = ApplyImAdjust(mulFilter->GetOutput(), 0, 1, 0, 1, maxValue, 0.7);
+
 	multiplyFilterType::Pointer mulFilter_1 = multiplyFilterType::New();
 	mulFilter_1->SetInput1(garbageBackground);
 	mulFilter_1->SetInput2(weighted_image);
@@ -1832,13 +1870,13 @@ void SpineCArmRegistration::DrEnhanceType1_test()
 
 	auto rescaled_result = rescaleFilter2->GetOutput();
 
-	// Final window level/width and gamma modulation Sept. 24
-	double low_in_ = m_Controls.lineEdit_lowIn->text().toDouble();
-	double low_out_ = m_Controls.lineEdit_lowOut->text().toDouble();
-	double high_in_ = m_Controls.lineEdit_highIn->text().toDouble();
-	double high_out_ = m_Controls.lineEdit_highOut->text().toDouble();
-	double max_ = m_Controls.lineEdit_max->text().toDouble();
-	double gamma_ = m_Controls.lineEdit_gamma->text().toDouble();
+	//  window level/width and gamma modulation Sept. 24
+	double low_in_ = 0.25;//m_Controls.lineEdit_lowIn->text().toDouble();
+	double low_out_ = 0; //m_Controls.lineEdit_lowOut->text().toDouble();
+	double high_in_ = 1;// m_Controls.lineEdit_highIn->text().toDouble();
+	double high_out_ = 1;// m_Controls.lineEdit_highOut->text().toDouble();
+	double max_ = 65535;// m_Controls.lineEdit_max->text().toDouble();
+	double gamma_ = 1.25;// m_Controls.lineEdit_gamma->text().toDouble();
 
 	auto final = ApplyImAdjust(rescaled_result, low_in_, high_in_, low_out_, high_out_, max_, gamma_);
 
@@ -2805,7 +2843,7 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 	auto maxValue = calculator->GetMaximum();
 
 
-	auto retain_garbage = ApplyImAdjust(mulFilter_retain->GetOutput(), 0, 1, 0, 1, maxValue, 1.4);
+	auto retain_garbage = ApplyImAdjust(mulFilter_retain->GetOutput(), 0, 1, 0, 1, maxValue, 0.7);
 
 
 	multiplyFilterType::Pointer mulFilter_1 = multiplyFilterType::New();
@@ -2838,12 +2876,12 @@ void SpineCArmRegistration::DrEnhanceType2_test()
 	auto rescaled_result = rescaleFilter2->GetOutput();
 
 	// Final window level/width and gamma modulation Sept. 24
-	double low_in = m_Controls.lineEdit_lowIn->text().toDouble();
-	double low_out = m_Controls.lineEdit_lowOut->text().toDouble();
-	double high_in = m_Controls.lineEdit_highIn->text().toDouble();
-	double high_out = m_Controls.lineEdit_highOut->text().toDouble();
-	double max = m_Controls.lineEdit_max->text().toDouble();
-	double gamma = m_Controls.lineEdit_gamma->text().toDouble();
+	double low_in = 0.2;//m_Controls.lineEdit_lowIn->text().toDouble();
+	double low_out = 0; //m_Controls.lineEdit_lowOut->text().toDouble();
+	double high_in = 1;// m_Controls.lineEdit_highIn->text().toDouble();
+	double high_out = 1;// m_Controls.lineEdit_highOut->text().toDouble();
+	double max = 65535;// m_Controls.lineEdit_max->text().toDouble();
+	double gamma = 1.25;// m_Controls.lineEdit_gamma->text().toDouble();
 
 	auto final = ApplyImAdjust(rescaled_result, low_in, high_in, low_out, high_out, max, gamma);
 
@@ -2891,9 +2929,9 @@ typedef itk::GrayscaleMorphologicalClosingImageFilter<ImageType, ImageType, Ball
 
 void SpineCArmRegistration::on_pushButton_step_1_3_clicked()
 {
-	DrEnhanceType1_intermediate();
-	DrEnhanceType2();
-	DrEnhanceType1();
+	// DrEnhanceType1_intermediate();
+	// DrEnhanceType2();
+	// DrEnhanceType1();
 
 	//-------Start Step 2: convert the 2D raw image into 3D-------------
 	// auto attemptNode = GetDataStorage()->GetNamedNode("raw");

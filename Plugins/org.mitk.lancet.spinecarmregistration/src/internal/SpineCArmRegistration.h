@@ -174,6 +174,7 @@ protected:
   void DrEnhanceType2_test();
   void DrEnhanceType1_intermediate_test();
   void DrEnhanceType1_test();
+  void on_pushButton_finalTuning_clicked();
 
   void on_pushButton_step_1_3_clicked();
   void on_pushButton_step_4_5_clicked();

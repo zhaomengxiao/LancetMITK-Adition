@@ -287,6 +287,13 @@
          </item>
         </layout>
        </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_finalTuning">
+         <property name="text">
+          <string>Final tuning</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_6">
