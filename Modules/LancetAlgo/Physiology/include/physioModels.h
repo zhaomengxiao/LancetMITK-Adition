@@ -1,10 +1,10 @@
 #ifndef PHYSIOMODELS_H
 #define PHYSIOMODELS_H
 #include <array>
-#include <vector>
 #include <map>
-#include "physioConst.h"
 #include <memory>
+#include <vector>
+#include "physioConst.h"
 
 using LandMarkType = std::array<double, 3>;
 using VectorType = std::array<double, 3>;

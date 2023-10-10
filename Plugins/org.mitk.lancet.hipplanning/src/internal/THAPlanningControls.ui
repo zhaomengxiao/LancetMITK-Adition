@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>863</width>
-    <height>757</height>
+    <width>927</width>
+    <height>860</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -160,7 +160,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -226,8 +226,8 @@
         <rect>
          <x>10</x>
          <y>120</y>
-         <width>481</width>
-         <height>66</height>
+         <width>521</width>
+         <height>79</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
@@ -1414,6 +1414,90 @@
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="QWidget" name="tab_4">
+      <attribute name="title">
+       <string>页</string>
+      </attribute>
+      <widget class="QGroupBox" name="groupBox_22">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>10</y>
+         <width>205</width>
+         <height>143</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>pelvisObject</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_18">
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_movePelvisObject_2">
+          <property name="text">
+           <string>Move to local</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton_initializePelvisObject_2">
+          <property name="text">
+           <string>Init PelvisObject</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_pelvisCorrection">
+          <property name="text">
+           <string>Correction</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_23">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>20</y>
+         <width>241</width>
+         <height>143</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>femurObject</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_19">
+        <item row="1" column="0" colspan="2">
+         <widget class="QPushButton" name="pushButton_initializeRfemurObject_2">
+          <property name="text">
+           <string>Init R femurObject</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_moveLfemurObject_2">
+          <property name="text">
+           <string>set L matrix</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QPushButton" name="pushButton_initializeLfemurObject_2">
+          <property name="text">
+           <string>Init L femurObject</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QPushButton" name="pushButton_moveRfemurObject_2">
+          <property name="text">
+           <string>set R matrix</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </widget>
    </item>

@@ -1,6 +1,6 @@
 #include "leastsquaresfit.h"
 #include <iostream>
-#include <Eigen/Eigen>
+#include <itkeigen/Eigen/Eigen>
 
 namespace lancetAlgorithm
 {

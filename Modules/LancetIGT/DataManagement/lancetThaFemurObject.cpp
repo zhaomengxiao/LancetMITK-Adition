@@ -123,7 +123,7 @@ void lancet::ThaFemurObject::CalculateFemurVersion()
 	// epicondylarAxis projection onto the perpendicular plane
 	Eigen::Vector3d epicondylarAxis_ontoPlane = epicondylarAxis - epicondylarAxis_ontoCanalAxis;
 
-	double femoralVersion = (180 / 3.14159) * acos(epicondylarAxis_ontoPlane.dot(neckAxis_ontoPlane)
+	double femoralVersion = (180 / vtkMath::Pi()) * acos(epicondylarAxis_ontoPlane.dot(neckAxis_ontoPlane)
 		/ (epicondylarAxis_ontoPlane.norm() * neckAxis_ontoPlane.norm()));
 
 	// Determine anteversion or retroversion; if ante, assign femoralVersion as (+); if retro, assign as (-)

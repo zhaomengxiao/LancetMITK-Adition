@@ -2,10 +2,10 @@
 
 
 #include <array>
-#include "Eigen/Eigen"
-#include <leastsquaresfit.h>
 #include <basic.h>
 #include <iostream>
+#include <leastsquaresfit.h>
+#include <itkeigen/Eigen/Eigen>
 
 namespace lancetAlgorithm
 {

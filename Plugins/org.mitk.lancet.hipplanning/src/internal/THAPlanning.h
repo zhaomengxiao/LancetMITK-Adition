@@ -1,4 +1,4 @@
-/*============================================================================
+﻿/*============================================================================
 
 The Medical Imaging Interaction Toolkit (MITK)
 
@@ -14,25 +14,24 @@ found in the LICENSE file.
 #ifndef THAPlanning_h
 #define THAPlanning_h
 
-#include <berryISelectionListener.h>
-
 #include <QmitkAbstractView.h>
 
 #include "ui_THAPlanningControls.h"
 
 #include "mitkPointSet.h"
 
+#include "lancetThaCupObject.h"
+#include "lancetThaEnhancedReductionObject.h"
 #include "lancetThaFemurObject.h"
+#include "lancetThaFemurStemCouple.h"
+#include "lancetThaPelvisCupCouple.h"
 #include "lancetThaPelvisObject.h"
 #include "lancetThaReductionObject.h"
 #include "lancetThaStemObject.h"
-#include "lancetThaCupObject.h"
-#include "lancetThaPelvisCupCouple.h"
-#include "lancetThaFemurStemCouple.h"
-#include "lancetThaEnhancedReductionObject.h"
 
 #include "drr.h"
-#include "lancetTha3DimageGenerator.h"
+#include "hip.h"
+#include "mitkApplyTransformMatrixOperation.h"
 
 /**
   \brief THAPlanning
@@ -201,8 +200,40 @@ protected:
     // Append the geometry matrix to the pointSet
   mitk::PointSet::Pointer GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet);
 
-  
+  //FuterTec
+  FuturTecAlgorithm::Pelvis* m_pelvis = nullptr;
+  FuturTecAlgorithm::Femur* m_femur_r = nullptr;
+  FuturTecAlgorithm::Femur* m_femur_l = nullptr;
+  void initPelvis();
+  void moveToLocal();
 
+	void initFemurR();
+  void moveToLocal_FemurR();
+  void initFemurL();
+  void moveToLocal_FemurL();
+  bool getPoint(std::string name,mitk::PointSet::PointType* point, unsigned int index = 0);
+  void Show(Eigen::Matrix4d transform, std::string name);
+  void Show(Eigen::Vector3d point, std::string name);
+  void Show(FuturTecAlgorithm::AxisType axis, std::string name);
+  void Show(FuturTecAlgorithm::PlaneType plane, std::string name);
+
+  Eigen::Matrix4d vtkMatrix4x4ToEigen(const vtkSmartPointer<vtkMatrix4x4>& vtkMatrix)
+  {
+    Eigen::Matrix4d eigenMatrix;
+    // Get a pointer to the VTK matrix data array
+    const double* vtkData = vtkMatrix->GetData();
+    
+    // Copy the VTK matrix data to the Eigen matrix
+    std::memcpy(eigenMatrix.data(), vtkData, 16 * sizeof(double));
+    
+    return eigenMatrix.transpose();
+  }
+
+  void EigenToVtkMatrix4x4(const Eigen::Matrix4d& matrix,vtkSmartPointer<vtkMatrix4x4>& vtkmatrix)
+  {
+    std::memcpy(vtkmatrix->GetData(), matrix.data(), 16 * sizeof(double));
+    vtkmatrix->Transpose();
+  }
 };
 
 #endif // THAPlanning_h

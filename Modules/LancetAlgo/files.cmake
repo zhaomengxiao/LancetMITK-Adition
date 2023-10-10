@@ -3,12 +3,14 @@ set(H_FILES
   Physiology/include/physioConst.h
   Physiology/include/physioModelFactory.h
   Physiology/include/physioModels.h
+  Physiology/include/hip.h
   Geometry/include/basic.h
   Geometry/include/leastsquaresfit.h
 )
 set(CPP_FILES
   Physiology/src/physioModelFactory.cpp
   Physiology/src/physioModels.cpp
+  Physiology/src/hip.cpp
   Geometry/src/basic.cpp
   Geometry/src/leastsquaresfit.cpp
 )

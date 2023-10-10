@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "basic.h"
-#include "Eigen/Eigen"
+#include <itkeigen/Eigen/Eigen>
 
 
 namespace lancetAlgorithm
