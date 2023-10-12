@@ -167,14 +167,11 @@ protected:
 
 
   // Dental DR post-processing Demo
-  void DrEnhanceType2();
-  void DrEnhanceType1_intermediate();
-  void DrEnhanceType1();
-
   void DrEnhanceType2_test();
   void DrEnhanceType1_intermediate_test();
   void DrEnhanceType1_test();
   void on_pushButton_finalTuning_clicked();
+  void on_pushButton_EasyItkTest_clicked();
 
   void on_pushButton_step_1_3_clicked();
   void on_pushButton_step_4_5_clicked();
@@ -183,7 +180,7 @@ protected:
   void on_pushButton_step_14_16_clicked();
   void on_pushButton_step_17_clicked();
 
-  void on_pushButton_EasyItkTest_clicked();
+  
 
   using us_short_ImageType = itk::Image<unsigned short, 2>;
   using double_ImageType = itk::Image<double, 2>;
