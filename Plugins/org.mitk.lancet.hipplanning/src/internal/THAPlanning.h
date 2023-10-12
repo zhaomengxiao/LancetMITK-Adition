@@ -204,13 +204,25 @@ protected:
   FuturTecAlgorithm::Pelvis* m_pelvis = nullptr;
   FuturTecAlgorithm::Femur* m_femur_r = nullptr;
   FuturTecAlgorithm::Femur* m_femur_l = nullptr;
-  void initPelvis();
+  FuturTecAlgorithm::Cup* m_cup_r = nullptr;
+  //pelvis
+	void initPelvis();
+  void testPelvisCorrection();
   void moveToLocal();
-
+  //femurR
 	void initFemurR();
+  void testFemurRCorrection();
   void moveToLocal_FemurR();
+  //femurL
   void initFemurL();
+  void testFemurLCorrection();
   void moveToLocal_FemurL();
+  //cupR
+  void initCupR();
+  void placeCupR();
+  void calAIAngleR();
+
+
   bool getPoint(std::string name,mitk::PointSet::PointType* point, unsigned int index = 0);
   void Show(Eigen::Matrix4d transform, std::string name);
   void Show(Eigen::Vector3d point, std::string name);

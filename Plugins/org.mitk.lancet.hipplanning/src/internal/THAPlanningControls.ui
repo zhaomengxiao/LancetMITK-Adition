@@ -1468,20 +1468,6 @@
         <string>femurObject</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_19">
-        <item row="1" column="0" colspan="2">
-         <widget class="QPushButton" name="pushButton_initializeRfemurObject_2">
-          <property name="text">
-           <string>Init R femurObject</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QPushButton" name="pushButton_moveLfemurObject_2">
-          <property name="text">
-           <string>set L matrix</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="0" colspan="2">
          <widget class="QPushButton" name="pushButton_initializeLfemurObject_2">
           <property name="text">
@@ -1489,10 +1475,74 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
+        <item row="1" column="0" colspan="2">
+         <widget class="QPushButton" name="pushButton_initializeRfemurObject_2">
+          <property name="text">
+           <string>Init R femurObject</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
          <widget class="QPushButton" name="pushButton_moveRfemurObject_2">
           <property name="text">
            <string>set R matrix</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QPushButton" name="pushButton_moveLfemurObject_2">
+          <property name="text">
+           <string>set L matrix</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_femurLCorrection">
+          <property name="text">
+           <string>corr L</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QPushButton" name="pushButton_femurRCorrection">
+          <property name="text">
+           <string>corr R</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_24">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>190</y>
+         <width>205</width>
+         <height>143</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>CupObject</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_27">
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_cal">
+          <property name="text">
+           <string>cal</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton_initCup">
+          <property name="text">
+           <string>init</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_placeCup">
+          <property name="text">
+           <string>place</string>
           </property>
          </widget>
         </item>

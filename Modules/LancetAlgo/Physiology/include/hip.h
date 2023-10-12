@@ -2,6 +2,7 @@
 #define HIP_H
 
 #include <array>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <vector>
@@ -135,6 +136,8 @@ namespace FuturTecAlgorithm
 		case ELandMarks::f_CheckPointP_post: return "f_CheckPointP_post";
 		case ELandMarks::f_CheckPointD_post: return "f_CheckPointD_post";
 		case ELandMarks::f_FHC_inOp: return "f_FHC_inOp";
+		case ELandMarks::f_MidEEs: return "f_MidEEs";
+		case ELandMarks::f_O: return "f_O";
 		default: return "unknown";
 		}
 	}
@@ -151,15 +154,6 @@ namespace FuturTecAlgorithm
 		 * pointing to the right. Parallel to the line connecting the left and right anterior superior iliac spines */
 		p_Z,
 		/** \brief [ModelOutput] Pelvic Horizontal Axis, The line connecting LASI and RASI */
-		p_PHA,
-		/** \brief [ModelOutput] Pelvic Longitudinal Axis, The line that passes through the midpoint of LASI & RASI, perpendicular to PHA */
-		p_PLA,
-		/** \brief [ModelOutput] Pelvic Sagittal Axis, perpendicular to PHA & PLA*/
-		p_PSA,
-		/** \brief [ModelOutput] Right Acetabular Axis*/
-		p_RAA,
-		/** \brief [ModelOutput] Left Acetabular Axis*/
-		p_LAA,
 
 		/** \brief [ModelOutput] Femur Mechanical Axis*/
 		f_Mechanics,
@@ -177,19 +171,31 @@ namespace FuturTecAlgorithm
 		f_X_mechanical,
 		f_Y_mechanical,
 		f_Z_mechanical,
+
+
+		//prothesis
+		cup_X,
+		cup_Y,
+		cup_Z
 	};
 
-	inline const char* to_String(EAxes e)
+	inline  const char* to_string(EAxes e)
 	{
 		switch (e)
 		{
-		case EAxes::p_PHA: return "p_PHA";
-		case EAxes::p_PLA: return "p_PLA";
-		case EAxes::p_PSA: return "p_PSA";
-		case EAxes::p_RAA: return "p_RAA";
-		case EAxes::p_LAA: return "p_LAA";
+		case EAxes::p_X: return "p_X";
+		case EAxes::p_Y: return "p_Y";
+		case EAxes::p_Z: return "p_Z";
 		case EAxes::f_Mechanics: return "f_Mechanics";
 		case EAxes::f_Canal: return "f_Canal";
+		case EAxes::f_Epicondyla: return "f_Epicondyla";
+		case EAxes::f_Neck: return "f_Neck";
+		case EAxes::f_X_canal: return "f_X_canal";
+		case EAxes::f_Y_canal: return "f_Y_canal";
+		case EAxes::f_Z_canal: return "f_Z_canal";
+		case EAxes::f_X_mechanical: return "f_X_mechanical";
+		case EAxes::f_Y_mechanical: return "f_Y_mechanical";
+		case EAxes::f_Z_mechanical: return "f_Z_mechanical";
 		default: return "unknown";
 		}
 	}
@@ -244,7 +250,7 @@ namespace FuturTecAlgorithm
 		p_LeftInclination
 	};
 
-	inline const char* to_String(EResult e)
+	inline  const char* to_string(EResult e)
 	{
 		switch (e)
 		{
@@ -266,8 +272,6 @@ namespace FuturTecAlgorithm
 		case EResult::p_LeftInclination: return "p_LeftInclination";
 		default: return "unknown";
 		}
-
-
 	}
 
 	using PointType = Eigen::Vector3d;
@@ -278,27 +282,27 @@ namespace FuturTecAlgorithm
 	class AxisType
 	{
 	public:
-		enum class EConstractType
-		{
-			TWO_POINT,
-			POINT_DIRECTION
-		};
+		// enum class EConstractType
+		// {
+		// 	TWO_POINT,
+		// 	POINT_DIRECTION
+		// };
 
-		AxisType() = default;
+		// AxisType() = default;
 
-		AxisType(const PointType& p_start, const PointType& p_d, EConstractType type)
-		{
-			if (EConstractType::TWO_POINT == type)
-			{
-				startPoint = p_start;
-				direction = p_d - p_start;
-			}
-			else
-			{
-				startPoint = p_start;
-				direction = p_d;
-			}
-		}
+		// AxisType(const PointType& p_start, const PointType& p_d, EConstractType type)
+		// {
+		// 	if (EConstractType::TWO_POINT == type)
+		// 	{
+		// 		startPoint = p_start;
+		// 		direction = p_d - p_start;
+		// 	}
+		// 	else
+		// 	{
+		// 		startPoint = p_start;
+		// 		direction = p_d;
+		// 	}
+		// }
 
 		PointType startPoint{};
 		VectorType direction{};
@@ -360,7 +364,13 @@ namespace FuturTecAlgorithm
 		TransformAxis(transform, input.normal, output.normal);
 	}
 
-
+	class Joint
+	{
+	public:
+		Eigen::Matrix4d transform_parent;
+		Eigen::Matrix4d transform_child;
+		Eigen::Matrix4d transform_interJonit;
+	};
 
 	/**
 	 * \brief base class to access data for all physio model.
@@ -400,7 +410,7 @@ namespace FuturTecAlgorithm
 
 		virtual void SetAxis(EAxes name, double* p_start, double* direction);
 		virtual bool GetAxis(EAxes name, AxisType& outp_axis);
-		virtual bool GetGlobalLandAxis(EAxes name, AxisType& outp_axis);
+		virtual bool GetGlobalAxis(EAxes name, AxisType& outp_axis);
 
 		virtual void SetPlane(EPlanes name, double* center, double* normal);
 		virtual bool GetPlane(EPlanes name,PlaneType& outp_plane);
@@ -416,14 +426,13 @@ namespace FuturTecAlgorithm
 		virtual void convertToLocal();
 		Eigen::Matrix4d m_T_image_body;
 		Eigen::Matrix4d m_T_body_image;
-		Eigen::Matrix4d m_T_local_world;
+		Eigen::Matrix4d m_T_world_local;
 	protected:
 		std::string m_name;
 		std::map<ELandMarks, PointType> m_landMarks{};
 		std::map<EAxes, AxisType> m_axes{};
 		std::map<EPlanes, PlaneType> m_planes{};
 		std::map<EResult, double> m_results{};
-		
 	};
 
 
@@ -455,43 +464,15 @@ namespace FuturTecAlgorithm
 		ESide m_side{ESide::right};
 	};
 
-	//Virtual Corrrection
-	inline Eigen::Matrix4d CalPelvisCorrectionMatrix(Eigen::Vector3d x_pelvis,Eigen::Vector3d ASIS_R)
+	class Cup : public Body
 	{
-		Eigen::Vector3d x_world;
-		Eigen::Matrix3d rot = Eigen::Quaterniond().FromTwoVectors(x_pelvis, x_world).matrix();
+	public:
+		void init();
+		ESide m_side{ ESide::right };
 
-		Eigen::Vector3d ASIS_R_roted = rot * ASIS_R;
-		Eigen::Vector3d t = ASIS_R - ASIS_R_roted;
-		Eigen::Matrix4d transform;
-		transform.setIdentity();
-
-		transform.block<3, 3>(0, 0) = rot;
-		transform.block<3, 1>(0, 3) = t;
-		return transform;
-	}
-
-	inline Eigen::Matrix4d CalFemurCanalCorrectionMatrix(Eigen::Vector3d x_femur, Eigen::Vector3d y_femur, Eigen::Vector3d z_femur)
-	{
-		Eigen::Matrix4d transform;
-		transform.setIdentity();
-
-		transform.block<3, 1>(0, 0) = x_femur;
-		transform.block<3, 1>(0, 1) = y_femur;
-		transform.block<3, 1>(0, 2) = z_femur;
-		return transform;
-	}
-
-	inline Eigen::Matrix4d CalFemurMechanicalCorrectionMatrix(Eigen::Vector3d x_femur, Eigen::Vector3d y_femur, Eigen::Vector3d z_femur)
-	{
-		Eigen::Matrix4d transform;
-		transform.setIdentity();
-
-		transform.block<3, 1>(0, 0) = x_femur;
-		transform.block<3, 1>(0, 1) = y_femur;
-		transform.block<3, 1>(0, 2) = z_femur;
-		return transform;
-	}
+		void calTransformImageToBodyISB() override;
+		void calTransformImageToBody() override;
+	};
 
 	/**
 	 * compute the Anteversion angle and the Inclination Angle
@@ -503,13 +484,46 @@ namespace FuturTecAlgorithm
 	 * @param ResultInclination [Output] The compute result of Inclination.
 	 * @param type [Input] different type of Anteversion/Inclination angle, default:Radiographic
 	 */
-	 void AnteversionAndInclinationAngle(double* direction, double& ResultAnteversion, double& ResultInclination,
-	                                     EIVAngelType type = EIVAngelType::RADIO_GRAPHIC);
-	 void AIAngleRadiographic(double* direction, double& ResultAnteversion, double& ResultInclination);
-	 void AIAngleOperative(double* direction, double& ResultAnteversion, double& ResultInclination);
-	 void AIAngleAnatomical(double* direction, double& ResultAnteversion, double& ResultInclination);
+	void AnteversionAndInclinationAngle(double* direction, double& ResultAnteversion, double& ResultInclination,
+		EIVAngelType type = EIVAngelType::RADIO_GRAPHIC);
+	void AIAngleRadiographic(double* direction, double& ResultAnteversion, double& ResultInclination);
+	void AIAngleOperative(double* direction, double& ResultAnteversion, double& ResultInclination);
+	void AIAngleAnatomical(double* direction, double& ResultAnteversion, double& ResultInclination);
 
-		/**
+	inline Eigen::Matrix4d CalApplyAIAngleMatrix(Eigen::Vector3d center, double Anteversion, double Inclination,ESide side)
+	{
+		Anteversion = Anteversion / 180.0 * EIGEN_PI;
+		Inclination = Inclination / 180.0 * EIGEN_PI;
+		Eigen::Vector3d x, y, z;
+		x << 1, 0, 0;
+		y << 0, 1, 0;
+		z << 0, 0, 1;
+
+		Eigen::Isometry3d T;
+		T.setIdentity();
+
+		if (side == ESide::right)
+		{
+			const Eigen::AngleAxis rot(Inclination, y);
+			T.rotate(rot);
+		}
+		else
+		{
+			const Eigen::AngleAxis rot(Inclination, -y);
+			T.rotate(rot);
+		}
+
+		Eigen::Vector3d x_rot = T * x;
+		Eigen::AngleAxis rot2(Anteversion, -x_rot);
+		T.prerotate(rot2);
+
+		Eigen::Vector3d center_rot = T * center;
+		T.pretranslate(center - center_rot);
+
+		return T.matrix();
+	}
+
+	 /**
 	* Compute the Femoral Version Angle.
 	*
 	* can use either local or global points, all points are on Femur.
@@ -611,10 +625,76 @@ namespace FuturTecAlgorithm
 	};
 
 
+	//Cal local Frame
 	Eigen::Matrix4d calPelvisLocalFrame(Eigen::Vector3d& ASIS_L, Eigen::Vector3d& ASIS_R, Eigen::Vector3d& MidLine);
+
 	Eigen::Matrix4d calFemurLocalFrame_canal(Eigen::Vector3d& FHC, Eigen::Vector3d& FNC, Eigen::Vector3d& DFCA, Eigen::Vector3d& PFCA, ESide side);
+
 	Eigen::Matrix4d calFemurLocalFrame_mechanical(Eigen::Vector3d& FHC, Eigen::Vector3d& FNC, Eigen::Vector3d& ME,
 		Eigen::Vector3d& LE, ESide side);
+
+	//Virtual Corrrection
+	inline Eigen::Matrix4d CalPelvisCorrectionMatrix(Eigen::Vector3d ASIS_R, Eigen::Vector3d ASIS_L)
+	{
+		Eigen::Vector3d x_world;
+		x_world << 1, 0, 0;
+		Eigen::Vector3d x_pelvis;
+		x_pelvis = ASIS_L - ASIS_R;
+		Eigen::Matrix3d rot = Eigen::Quaterniond().FromTwoVectors(x_pelvis, x_world).matrix();
+
+		Eigen::Isometry3d T;
+		T.setIdentity();
+		T.rotate(rot);
+
+		Eigen::Vector3d ASIS_R_roted = T * ASIS_R;
+		Eigen::Vector3d t = ASIS_R - ASIS_R_roted;
+
+		T.pretranslate(t);
+
+		return T.matrix();
+	}
+
+	inline Eigen::Matrix4d CalFemurCanalCorrectionMatrix(Eigen::Vector3d FHC, Eigen::Vector3d FNC, Eigen::Vector3d DFCA, Eigen::Vector3d PFCA,ESide side)
+	{
+		//cal axes
+		Eigen::Matrix4d localFrame = calFemurLocalFrame_canal(FHC, FNC, DFCA, PFCA, side);
+		//rotate to align axes
+		Eigen::Matrix3d rot;
+		rot.setIdentity();
+		rot = localFrame.block<3, 3>(0, 0);
+
+		Eigen::Isometry3d T;
+		T.setIdentity();
+		T.rotate(rot.inverse());
+
+		//translate back to fhc
+		Eigen::Vector3d fhc_rot = T * FHC;
+		Eigen::Vector3d t = FHC - fhc_rot;
+		T.pretranslate(t);
+
+		return T.matrix();
+	}
+
+	inline Eigen::Matrix4d CalFemurMechanicalCorrectionMatrix(Eigen::Vector3d FHC, Eigen::Vector3d FNC, Eigen::Vector3d ME, Eigen::Vector3d LE, ESide side)
+	{
+		//cal axes
+		Eigen::Matrix4d localFrame = calFemurLocalFrame_mechanical(FHC, FNC, ME, LE, side);
+		//rotate to align axes
+		Eigen::Matrix3d rot;
+		rot.setIdentity();
+		rot = localFrame.block<3, 3>(0, 0);
+
+		Eigen::Isometry3d T;
+		T.setIdentity();
+		T.rotate(rot.inverse());
+
+		//translate back to fhc
+		Eigen::Vector3d fhc_rot = T * FHC;
+		Eigen::Vector3d t = FHC - fhc_rot;
+		T.pretranslate(t);
+
+		return T.matrix();
+	}
 }
 
 #endif

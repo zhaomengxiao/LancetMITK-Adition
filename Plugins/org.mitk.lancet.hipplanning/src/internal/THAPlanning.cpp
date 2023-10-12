@@ -29,6 +29,7 @@
 #include <vtkCylinderSource.h>
 #include <vtkLineSource.h>
 #include <vtkSphereSource.h>
+#include <vtkArrowSource.h>
 #include <vtkTransformPolyDataFilter.h>
 
 #include "lancetTha3DimageGenerator.h"
@@ -117,12 +118,19 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
 	//futerTec
 	connect(m_Controls.pushButton_initializePelvisObject_2, &QPushButton::clicked, this, &THAPlanning::initPelvis);
 	connect(m_Controls.pushButton_movePelvisObject_2, &QPushButton::clicked, this, &THAPlanning::moveToLocal);
+	connect(m_Controls.pushButton_pelvisCorrection, &QPushButton::clicked, this, &THAPlanning::testPelvisCorrection);
 
 	connect(m_Controls.pushButton_initializeRfemurObject_2, &QPushButton::clicked, this, &THAPlanning::initFemurR);
 	connect(m_Controls.pushButton_moveRfemurObject_2, &QPushButton::clicked, this, &THAPlanning::moveToLocal_FemurR);
+	connect(m_Controls.pushButton_femurRCorrection, &QPushButton::clicked, this, &THAPlanning::testFemurRCorrection);
 
 	connect(m_Controls.pushButton_initializeLfemurObject_2, &QPushButton::clicked, this, &THAPlanning::initFemurL);
 	connect(m_Controls.pushButton_moveLfemurObject_2, &QPushButton::clicked, this, &THAPlanning::moveToLocal_FemurL);
+	connect(m_Controls.pushButton_femurLCorrection, &QPushButton::clicked, this, &THAPlanning::testFemurLCorrection);
+
+	connect(m_Controls.pushButton_initCup, &QPushButton::clicked, this, &THAPlanning::initCupR);
+	connect(m_Controls.pushButton_placeCup, &QPushButton::clicked, this, &THAPlanning::placeCupR);
+	connect(m_Controls.pushButton_cal, &QPushButton::clicked, this, &THAPlanning::calAIAngleR);
 }
 
 void THAPlanning::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -287,6 +295,7 @@ void THAPlanning::initPelvis()
 		m_pelvis->SetLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_R, ASIS_R.data());
 		m_pelvis->SetLandMark(FuturTecAlgorithm::ELandMarks::p_MidLine, MidLine.data());
 		m_pelvis->calTransformImageToBody();
+		m_pelvis->convertToLocal();
 		Show(m_pelvis->m_T_image_body, "pelvisCoords");
 		
 	}
@@ -294,6 +303,39 @@ void THAPlanning::initPelvis()
 	{
 		MITK_WARN << "Pelvis init failed";
 	}
+	
+}
+
+void THAPlanning::testPelvisCorrection()
+{
+	FuturTecAlgorithm::AxisType x;
+	Eigen::Vector3d asis_l,asis_r;
+	if (m_pelvis->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_L, asis_l)
+		&& m_pelvis->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_R, asis_r)
+		&& m_pelvis->GetGlobalAxis(FuturTecAlgorithm::EAxes::p_X, x))
+	{
+		Show(x, "p_X");
+
+		Eigen::Matrix4d trans = FuturTecAlgorithm::CalPelvisCorrectionMatrix(asis_r, asis_l);
+
+		//move pelvis surface 
+		auto pelvis = GetDataStorage()->GetNamedNode("pelvis");
+
+		vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+		EigenToVtkMatrix4x4(trans, coord);
+		double ref[3]{ 0, 0, 0 };
+		mitk::Point3D refp{ ref };
+		auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+		pelvis->GetData()->GetGeometry()->ExecuteOperation(doOp);
+		//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
+		delete doOp;
+	}
+
+	else
+	{
+		MITK_WARN << "testPelvisCorrection fail";
+	}
+
 	
 }
 
@@ -318,7 +360,7 @@ void THAPlanning::moveToLocal()
 	delete doOp;
 
 	//show local data
-	m_pelvis->convertToLocal();
+
 	Eigen::Vector3d asis_l;
 	if (m_pelvis->GetLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_L, asis_l))
 	{
@@ -350,11 +392,42 @@ void THAPlanning::initFemurR()
 		m_femur_r->SetLandMark(FuturTecAlgorithm::ELandMarks::f_ME, ME_R.data());
 		m_femur_r->SetLandMark(FuturTecAlgorithm::ELandMarks::f_LE, LE_R.data());
 		m_femur_r->calTransformImageToBody();
+		m_femur_r->convertToLocal();
 		Show(m_femur_r->m_T_image_body, "femurRCoords");
 	}
 	else
 	{
 		MITK_WARN << "Femur init failed";
+	}
+}
+
+void THAPlanning::testFemurRCorrection()
+{
+	Eigen::Vector3d fhc,fnc,dfca,pfca;
+	if (m_femur_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, fhc)
+		&& m_femur_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_FNC, fnc)
+		&& m_femur_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_DFCA, dfca)
+		&& m_femur_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_PFCA, pfca))
+	{
+		Eigen::Matrix4d trans = FuturTecAlgorithm::CalFemurCanalCorrectionMatrix(fhc,fnc,dfca,pfca,FuturTecAlgorithm::ESide::right);
+		
+		//move pelvis surface 
+		auto femur = GetDataStorage()->GetNamedNode("femur_R");
+		
+		vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+		EigenToVtkMatrix4x4(trans, coord);
+		double ref[3]{ 0, 0, 0 };
+		mitk::Point3D refp{ ref };
+		auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+		femur->GetData()->GetGeometry()->ExecuteOperation(doOp);
+		delete doOp;
+
+		RequestRenderWindowUpdate();
+	}
+	
+	else
+	{
+		MITK_WARN << "testPelvisCorrection fail";
 	}
 }
 
@@ -374,7 +447,7 @@ void THAPlanning::moveToLocal_FemurR()
 	delete doOp;
 
 	//show local data
-	m_femur_r->convertToLocal();
+
 	Eigen::Vector3d fhc_r;
 	if (m_femur_r->GetLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, fhc_r))
 	{
@@ -406,11 +479,42 @@ void THAPlanning::initFemurL()
 		m_femur_l->SetLandMark(FuturTecAlgorithm::ELandMarks::f_ME, ME_L.data());
 		m_femur_l->SetLandMark(FuturTecAlgorithm::ELandMarks::f_LE, LE_L.data());
 		m_femur_l->calTransformImageToBody();
+		m_femur_l->convertToLocal();
 		Show(m_femur_l->m_T_image_body, "femurLCoords");
 	}
 	else
 	{
 		MITK_WARN << "FemurL init failed";
+	}
+}
+
+void THAPlanning::testFemurLCorrection()
+{
+	Eigen::Vector3d fhc, fnc, dfca, pfca;
+	if (m_femur_l->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, fhc)
+		&& m_femur_l->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_FNC, fnc)
+		&& m_femur_l->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_DFCA, dfca)
+		&& m_femur_l->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_PFCA, pfca))
+	{
+		Eigen::Matrix4d trans = FuturTecAlgorithm::CalFemurCanalCorrectionMatrix(fhc, fnc, dfca, pfca, FuturTecAlgorithm::ESide::left);
+
+		//move pelvis surface 
+		auto femur = GetDataStorage()->GetNamedNode("femur_L");
+
+		vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+		EigenToVtkMatrix4x4(trans, coord);
+		double ref[3]{ 0, 0, 0 };
+		mitk::Point3D refp{ ref };
+		auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+		femur->GetData()->GetGeometry()->ExecuteOperation(doOp);
+		delete doOp;
+
+		RequestRenderWindowUpdate();
+	}
+
+	else
+	{
+		MITK_WARN << "testPelvisCorrection fail";
 	}
 }
 
@@ -442,6 +546,81 @@ void THAPlanning::moveToLocal_FemurL()
 	{
 		Show(fnc_l, "FNC_L_local");
 	}
+}
+
+void THAPlanning::initCupR()
+{
+	m_cup_r = new FuturTecAlgorithm::Cup;
+	m_cup_r->m_side = FuturTecAlgorithm::ESide::right;
+	m_cup_r->calTransformImageToBody();
+	Show(m_cup_r->m_T_world_local,"cupCoords");
+}
+
+void THAPlanning::placeCupR()
+{
+	double Inclination = 45.0;
+	double Anteversion = 10.0;
+	//
+	// Eigen::Vector3d o, x, y, z;
+	// o << 0, 0, 0;
+	// x << 1, 0, 0;
+	// y << 0, 1, 0;
+	// z << 0, 0, 1;
+	//
+	// Eigen::Isometry3d T;
+	// T.setIdentity();
+	// Eigen::AngleAxis rot(Inclination, y);
+	//
+	// T.rotate(rot);
+	// Eigen::Vector3d x_rot = T * x;
+	// Eigen::Vector3d z_rot = T * z;
+	//
+	// FuturTecAlgorithm::AxisType x_r, z_r,z_r2;
+	// x_r.startPoint = o;
+	// x_r.direction = x_rot;
+	//
+	// z_r.startPoint = o;
+	// z_r.direction = z_rot;
+	// Show(x_r, "cup_x_rot");
+	// Show(z_r, "cup_z_rot");
+	//
+	//
+	// Eigen::AngleAxis rot2(Anteversion, -x_rot);
+	//
+	// T.prerotate(rot2);
+	//
+	// Eigen::Vector3d z_rot2 = T * z;
+	// z_r2.startPoint = o;
+	// z_r2.direction = z_rot2;
+	// Show(z_r2, "cup_z_rot2");
+
+	//move cup surface and vis coords 
+	auto cupCoords = GetDataStorage()->GetNamedNode("cupCoords");
+	auto cup_54 = GetDataStorage()->GetNamedNode("Cup_54");
+	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
+	Eigen::Matrix4d T = CalApplyAIAngleMatrix(Eigen::Vector3d(0, 0, 0), Anteversion, Inclination, FuturTecAlgorithm::ESide::left);
+	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+	EigenToVtkMatrix4x4(T, coord);
+	double ref[3]{ 0, 0, 0 };
+	mitk::Point3D refp{ ref };
+	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+	cupCoords->GetData()->GetGeometry()->ExecuteOperation(doOp);
+	cup_54->GetData()->GetGeometry()->ExecuteOperation(doOp);
+	delete doOp;
+
+	m_cup_r->SetWorldTransform(T);
+}
+
+void THAPlanning::calAIAngleR()
+{
+	FuturTecAlgorithm::AxisType aa;
+	m_cup_r->GetGlobalAxis(FuturTecAlgorithm::EAxes::cup_Z, aa);
+	aa.direction = -aa.direction;
+	double Anteversion, Inclination;
+	FuturTecAlgorithm::AnteversionAndInclinationAngle(aa.direction.data(), Anteversion, Inclination);
+
+	MITK_WARN << "Anteversion: " << Anteversion;
+	MITK_WARN << "Inclination: " << Inclination;
 }
 
 bool THAPlanning::getPoint(std::string name, mitk::PointSet::PointType* point, unsigned index)
@@ -621,143 +800,50 @@ void THAPlanning::Show(Eigen::Vector3d point, std::string name)
 
 void THAPlanning::Show(FuturTecAlgorithm::AxisType axis, std::string name)
 {
-	// mitk::Surface::Pointer mySphere = mitk::Surface::New();
-	//
-	// double axisLength = 5.;
-	//
-	// vtkSmartPointer<vtkSphereSource> vtkSphere = vtkSmartPointer<vtkSphereSource>::New();
-	// vtkSmartPointer<vtkConeSource> vtkCone = vtkSmartPointer<vtkConeSource>::New();
-	// vtkSmartPointer<vtkCylinderSource> vtkCylinder = vtkSmartPointer<vtkCylinderSource>::New();
-	// vtkSmartPointer<vtkPolyData> axis = vtkSmartPointer<vtkPolyData>::New();
-	// vtkSmartPointer<vtkLineSource> vtkLine = vtkSmartPointer<vtkLineSource>::New();
-	// vtkSmartPointer<vtkLineSource> vtkLine2 = vtkSmartPointer<vtkLineSource>::New();
-	// vtkSmartPointer<vtkLineSource> vtkLine3 = vtkSmartPointer<vtkLineSource>::New();
-	//
-	// vtkSmartPointer<vtkAppendPolyData> appendPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
-	// vtkSmartPointer<vtkPolyData> surface = vtkSmartPointer<vtkPolyData>::New();
-	//
-	// //Y-Axis (start with y, cause cylinder is oriented in y by vtk default...)
-	// vtkCone->SetDirection(0, 1, 0);
-	// vtkCone->SetHeight(1.0);
-	// vtkCone->SetRadius(0.4f);
-	// vtkCone->SetResolution(16);
-	// vtkCone->SetCenter(0.0, axisLength, 0.0);
-	// vtkCone->Update();
-	//
-	// vtkCylinder->SetRadius(0.05);
-	// vtkCylinder->SetHeight(axisLength);
-	// vtkCylinder->SetCenter(0.0, 0.5 * axisLength, 0.0);
-	// vtkCylinder->Update();
-	//
-	// appendPolyData->AddInputData(vtkCone->GetOutput());
-	// appendPolyData->AddInputData(vtkCylinder->GetOutput());
-	// appendPolyData->Update();
-	// axis->DeepCopy(appendPolyData->GetOutput());
-	//
-	// //y symbol
-	// vtkLine->SetPoint1(-0.5, axisLength + 2., 0.0);
-	// vtkLine->SetPoint2(0.0, axisLength + 1.5, 0.0);
-	// vtkLine->Update();
-	//
-	// vtkLine2->SetPoint1(0.5, axisLength + 2., 0.0);
-	// vtkLine2->SetPoint2(-0.5, axisLength + 1., 0.0);
-	// vtkLine2->Update();
-	//
-	// appendPolyData->AddInputData(vtkLine->GetOutput());
-	// appendPolyData->AddInputData(vtkLine2->GetOutput());
-	// appendPolyData->AddInputData(axis);
-	// appendPolyData->Update();
-	// surface->DeepCopy(appendPolyData->GetOutput());
-	//
-	// //X-axis
-	// vtkSmartPointer<vtkTransform> XTransform = vtkSmartPointer<vtkTransform>::New();
-	// XTransform->RotateZ(-90);
-	// vtkSmartPointer<vtkTransformPolyDataFilter> TrafoFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-	// TrafoFilter->SetTransform(XTransform);
-	// TrafoFilter->SetInputData(axis);
-	// TrafoFilter->Update();
-	//
-	// //x symbol
-	// vtkLine->SetPoint1(axisLength + 2., -0.5, 0.0);
-	// vtkLine->SetPoint2(axisLength + 1., 0.5, 0.0);
-	// vtkLine->Update();
-	//
-	// vtkLine2->SetPoint1(axisLength + 2., 0.5, 0.0);
-	// vtkLine2->SetPoint2(axisLength + 1., -0.5, 0.0);
-	// vtkLine2->Update();
-	//
-	// appendPolyData->AddInputData(vtkLine->GetOutput());
-	// appendPolyData->AddInputData(vtkLine2->GetOutput());
-	// appendPolyData->AddInputData(TrafoFilter->GetOutput());
-	// appendPolyData->AddInputData(surface);
-	// appendPolyData->Update();
-	// surface->DeepCopy(appendPolyData->GetOutput());
-	//
-	// //Z-axis
-	// vtkSmartPointer<vtkTransform> ZTransform = vtkSmartPointer<vtkTransform>::New();
-	// ZTransform->RotateX(90);
-	// TrafoFilter->SetTransform(ZTransform);
-	// TrafoFilter->SetInputData(axis);
-	// TrafoFilter->Update();
-	//
-	// //z symbol
-	// vtkLine->SetPoint1(-0.5, 0.0, axisLength + 2.);
-	// vtkLine->SetPoint2(0.5, 0.0, axisLength + 2.);
-	// vtkLine->Update();
-	//
-	// vtkLine2->SetPoint1(-0.5, 0.0, axisLength + 2.);
-	// vtkLine2->SetPoint2(0.5, 0.0, axisLength + 1.);
-	// vtkLine2->Update();
-	//
-	// vtkLine3->SetPoint1(0.5, 0.0, axisLength + 1.);
-	// vtkLine3->SetPoint2(-0.5, 0.0, axisLength + 1.);
-	// vtkLine3->Update();
-	//
-	// appendPolyData->AddInputData(vtkLine->GetOutput());
-	// appendPolyData->AddInputData(vtkLine2->GetOutput());
-	// appendPolyData->AddInputData(vtkLine3->GetOutput());
-	// appendPolyData->AddInputData(TrafoFilter->GetOutput());
-	// appendPolyData->AddInputData(surface);
-	// appendPolyData->Update();
-	// surface->DeepCopy(appendPolyData->GetOutput());
-	//
-	// //Center
-	// vtkSphere->SetRadius(0.5f);
-	// vtkSphere->SetCenter(0.0, 0.0, 0.0);
-	// vtkSphere->Update();
-	//
-	// appendPolyData->AddInputData(vtkSphere->GetOutput());
-	// appendPolyData->AddInputData(surface);
-	// appendPolyData->Update();
-	// surface->DeepCopy(appendPolyData->GetOutput());
-	//
-	// //Scale
-	// vtkSmartPointer<vtkTransform> ScaleTransform = vtkSmartPointer<vtkTransform>::New();
-	// ScaleTransform->Scale(20., 20., 20.);
-	//
-	// TrafoFilter->SetTransform(ScaleTransform);
-	// TrafoFilter->SetInputData(surface);
-	// TrafoFilter->Update();
-	//
-	// mySphere->SetVtkPolyData(TrafoFilter->GetOutput());
-	//
-	// auto node = mitk::DataNode::New();
-	//
-	// node->SetData(mySphere);
-	// node->SetName(name);
-	//
-	// double ref[3]{ 0, 0, 0 };
-	// mitk::Point3D refp{ ref };
-	//
-	// vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-	// EigenToVtkMatrix4x4(transform, coord);
-	//
-	// auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-	// node->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	// delete doOp;
-	//
-	// GetDataStorage()->Add(node);
-	// //RequestRenderWindowUpdate();
+	mitk::Surface::Pointer myArrow = mitk::Surface::New();
+	
+	vtkSmartPointer<vtkArrowSource> arrow = vtkArrowSource::New();
+	arrow->Update();
+
+	vtkSmartPointer<vtkTransform> ScaleTransform = vtkSmartPointer<vtkTransform>::New();
+	ScaleTransform->Scale(200., 200., 200.);
+
+	vtkSmartPointer<vtkTransformPolyDataFilter> TrafoFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+	TrafoFilter->SetTransform(ScaleTransform);
+	TrafoFilter->SetInputData(arrow->GetOutput());
+	TrafoFilter->Update();
+	myArrow->SetVtkPolyData(TrafoFilter->GetOutput());
+	
+	auto node = mitk::DataNode::New();
+	
+	node->SetData(myArrow);
+	node->SetName(name);
+
+	//transform
+	Eigen::Vector3d arrowAxis;
+	arrowAxis << 1, 0, 0;
+	
+	Eigen::Matrix3d rot = Eigen::Quaterniond().FromTwoVectors(arrowAxis, axis.direction).matrix();
+	
+	Eigen::Matrix4d transform;
+	transform.setIdentity();
+	
+	transform.block<3, 3>(0, 0) = rot;
+	transform.block<3, 1>(0, 3) = axis.startPoint;
+	
+	
+	double ref[3]{ 0, 0, 0 };
+	mitk::Point3D refp{ ref };
+	
+	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+	EigenToVtkMatrix4x4(transform, coord);
+	
+	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+	node->GetData()->GetGeometry()->ExecuteOperation(doOp);
+	delete doOp;
+	
+	GetDataStorage()->Add(node);
+	//RequestRenderWindowUpdate();
 }
 
 void THAPlanning::Show(FuturTecAlgorithm::PlaneType plane, std::string name)

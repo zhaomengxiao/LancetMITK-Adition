@@ -70,7 +70,7 @@ namespace FuturTecAlgorithm
 		Eigen::Vector3d pt;
 		if (GetLandMark(name, pt))
 		{
-			TransformPoint(m_T_local_world, pt, pt);
+			TransformPoint(m_T_world_local, pt, pt);
 			oup_value = pt;
 			return true;
 		}
@@ -81,7 +81,9 @@ namespace FuturTecAlgorithm
 	{
 		PointType p1{ p_start };
 		PointType p2{ direction };
-		AxisType axis{ p1,p2,AxisType::EConstractType::POINT_DIRECTION };
+		AxisType axis;
+		axis.startPoint = p1;
+		axis.direction = p2;
 
 		m_axes.insert_or_assign(name, axis);
 	}
@@ -94,17 +96,18 @@ namespace FuturTecAlgorithm
 			outp_axis = iter->second;
 			return true;
 		}
-		std::cout << "Error: Cant find Axis:" << to_String(name) << std::endl;
+		std::cout << "Error: Cant find Axis:" << to_string(name) << std::endl;
 		return false;
 	}
 
-	bool Body::GetGlobalLandAxis(EAxes name, AxisType& outp_axis)
+	bool Body::GetGlobalAxis(EAxes name, AxisType& outp_axis)
 	{
 		AxisType tmp;
 		if (GetAxis(name, tmp))
 		{
-			TransformAxis(m_T_local_world, tmp, tmp);
-			outp_axis = tmp;
+			TransformAxis(m_T_world_local, tmp, tmp);
+			outp_axis.startPoint = tmp.startPoint;
+			outp_axis.direction = tmp.direction;
 			return true;
 		}
 		return false;
@@ -138,7 +141,7 @@ namespace FuturTecAlgorithm
 		PlaneType tmp;
 		if (GetPlane(name, tmp))
 		{
-			TransformPlane(m_T_local_world, tmp, tmp);
+			TransformPlane(m_T_world_local, tmp, tmp);
 			outp_plane = tmp;
 			return true;
 		}
@@ -158,13 +161,13 @@ namespace FuturTecAlgorithm
 			outp_res = iter->second;
 			return true;
 		}
-		std::cout << "Error: Cant find Result:" << to_String(name) << std::endl;
+		std::cout << "Error: Cant find Result:" << to_string(name) << std::endl;
 		return false;
 	}
 
 	void Body::SetWorldTransform(Eigen::Matrix4d transform)
 	{
-		m_T_local_world = transform;
+		m_T_world_local = transform;
 	}
 
 	void Body::convertToLocal()
@@ -178,7 +181,7 @@ namespace FuturTecAlgorithm
 		}
 		//axis
 		for (auto it : m_axes) {
-			std::cout << to_String(it.first) << std::endl;
+			std::cout << to_string(it.first) << std::endl;
 			AxisType axis;
 			TransformAxis(m_T_body_image, it.second, axis);
 			SetAxis(it.first, axis.startPoint.data(),axis.direction.data());
@@ -245,6 +248,7 @@ namespace FuturTecAlgorithm
 			//transform
 			m_T_image_body = ConvertCoordstoTransform(MidLine, x, y, z);
 			m_T_body_image = m_T_image_body.inverse();
+			m_T_world_local = m_T_image_body;
 			//std::cout << m_T_image_body << std::endl;
 		}
 		else
@@ -270,7 +274,8 @@ namespace FuturTecAlgorithm
 
 	void Femur::calTransformImageToBody()
 	{
-		calTransformImageToBody_Mechanical();
+		//calTransformImageToBody_Mechanical();
+		calTransformImageToBody_Canal();
 	}
 
 	void Femur::calTransformImageToBody_Canal()
@@ -304,6 +309,7 @@ namespace FuturTecAlgorithm
 			//transform
 			m_T_image_body = localFrame;
 			m_T_body_image = m_T_image_body.inverse();
+			m_T_world_local = m_T_image_body;
 			std::cout << m_T_image_body << std::endl;
 		}
 		else
@@ -348,6 +354,7 @@ namespace FuturTecAlgorithm
 			//transform
 			m_T_image_body = ConvertCoordstoTransform(FHC, x, y, z);
 			m_T_body_image = m_T_image_body.inverse();
+			m_T_world_local = m_T_image_body;
 			std::cout << m_T_image_body << std::endl;
 		}
 		else
@@ -356,40 +363,6 @@ namespace FuturTecAlgorithm
 		}
 		std::cout << "exit calTransformImageToBody(Femur)" << std::endl;
 	}
-
-
-
-	// void FemurL::calTransformImageToBody()
-	// {
-	// 	PointType FHC{};
-	// 	PointType FNC{};
-	// 	PointType DFCA{};
-	// 	PointType PFCA{};
-	// 	if (GetLandMark(ELandMarks::f_FHC, FHC) && GetLandMark(ELandMarks::f_FNC, FNC)
-	// 		&& GetLandMark(ELandMarks::f_DFCA, DFCA) && GetLandMark(ELandMarks::f_PFCA, PFCA))
-	// 	{
-	// 		//origin
-	// 		SetLandMark(ELandMarks::f_O, FHC.data());
-	// 		//cal axes
-	//
-	// 		VectorType z = (PFCA - DFCA).normalized();
-	// 		VectorType y = (FHC - FNC).cross(z).normalized();
-	// 		VectorType x = y.cross(z).normalized();
-	// 		SetAxis(EAxes::f_X_canal, FHC.data(), x.data());
-	// 		SetAxis(EAxes::f_Y_canal, FHC.data(), y.data());
-	// 		SetAxis(EAxes::f_Z_canal, FHC.data(), z.data());
-	//
-	// 		//transform
-	// 		m_T_image_body = ConvertCoordstoTransform(FHC, x, y, z);
-	// 		m_T_body_image = m_T_image_body.inverse();
-	// 		std::cout << m_T_image_body << std::endl;
-	// 	}
-	// 	else
-	// 	{
-	// 		std::cout << "calTransformImageToBody(FemurL) Error: Missing LandMarks:" << std::endl;
-	// 	}
-	// 	std::cout << "exit calTransformImageToBody(FemurL)" << std::endl;
-	// }
 
 
 	Eigen::Matrix4d ConvertCoordstoTransform(Eigen::Vector3d& o, Eigen::Vector3d& x, Eigen::Vector3d& y, Eigen::Vector3d& z)
@@ -401,6 +374,30 @@ namespace FuturTecAlgorithm
 			x(2), y(2), z(2), o(2),
 			0, 0, 0, 1;
 		return transform;
+	}
+
+	void Cup::init()
+	{
+		Eigen::Vector3d o, x, y, z;
+		o << 0, 0, 0;
+		x << 1, 0, 0;
+		y << 0, 1, 0;
+		z << 0, 0, 1;
+
+		SetAxis(EAxes::cup_X, o.data(), x.data());
+		SetAxis(EAxes::cup_Y, o.data(), y.data());
+		SetAxis(EAxes::cup_Z, o.data(), z.data());
+
+		m_T_world_local = Eigen::Matrix4d::Identity();
+	}
+
+	void Cup::calTransformImageToBodyISB()
+	{
+	}
+
+	void Cup::calTransformImageToBody()
+	{
+		init();
 	}
 
 	 void AnteversionAndInclinationAngle(double* direction, double& ResultAnteversion, double& ResultInclination, EIVAngelType type)
