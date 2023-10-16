@@ -21,6 +21,7 @@ found in the LICENSE file.
 #include "QmitkDataStorageTreeModel.h"
 #include "QmitkSingleNodeSelectionWidget.h"
 #include "ui_MoveDataControls.h"
+#include "mitkGizmo.h"
 
 
 /**
@@ -137,6 +138,9 @@ protected:
   void on_pushButton_level_clicked();
 
   void on_pushButton_combine_clicked();
+
+  void on_pushButton_addGizmo_clicked();
+
 };
 
 #endif // MoveData_h

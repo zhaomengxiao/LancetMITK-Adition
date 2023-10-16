@@ -112,6 +112,8 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_combine, &QPushButton::clicked, this, &MoveData::on_pushButton_combine_clicked);
   connect(m_Controls.pushButton_hardenData, &QPushButton::clicked, this, &MoveData::on_pushButton_hardenData_clicked);
 
+  connect(m_Controls.pushButton_addGizmo, &QPushButton::clicked, this, &MoveData::on_pushButton_addGizmo_clicked);
+
 }
 
 void MoveData::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)
@@ -1968,4 +1970,18 @@ void MoveData::on_pushButton_hardenData_clicked()
 
 		m_currentSelectedNode->SetData(newPset);
 	}
+}
+
+
+void MoveData::on_pushButton_addGizmo_clicked()
+{
+
+	if(mitk::Gizmo::HasGizmoAttached(m_currentSelectedNode, GetDataStorage()) == 1)
+	{
+		mitk::Gizmo::RemoveGizmoFromNode(m_currentSelectedNode, GetDataStorage());
+	}else
+	{
+		mitk::Gizmo::AddGizmoToNode(m_currentSelectedNode, GetDataStorage());
+	}
+	
 }
