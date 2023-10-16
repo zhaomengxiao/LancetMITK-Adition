@@ -158,6 +158,9 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_a7_m, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_a7_m_clicked);
 
   connect(m_Controls.pushButton_endToolPower, &QPushButton::clicked, this, &SurgicalSimulate::StartTrackingWithPowerControl);
+
+  connect(m_Controls.pushButton_calibrateDrill, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_calibrateDrill_clicked);
+
 }
 
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -2683,4 +2686,33 @@ void SurgicalSimulate::On_pushButton_a7_p_clicked()
 	m_Controls.lineEdit_jt_7->setText(QString::number(newAngle));
 
 	On_pushButton_updateRobotSimuPose_clicked();
+}
+
+
+void SurgicalSimulate::On_pushButton_calibrateDrill_clicked()
+{
+	// Calculate T_drillDRFtoCalibratorDRF
+	auto calibratorDRFindex = m_VegaToolStorage->GetToolIndexByName("calibratorDRF");
+	auto drillDRFindex = m_VegaToolStorage->GetToolIndexByName("drillDRF");
+	if (calibratorDRFindex == -1 || drillDRFindex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'calibratorDRF' or 'drillDRF' in the toolStorage!");
+	}
+
+	mitk::NavigationData::Pointer nd_ndiTocalibratorDRF = m_VegaSource->GetOutput(calibratorDRFindex);
+	mitk::NavigationData::Pointer nd_ndiTodrillDRF = m_VegaSource->GetOutput(drillDRFindex);
+
+	mitk::NavigationData::Pointer nd_drillDRFtoCalibratorDRF = GetNavigationDataInRef(nd_ndiTocalibratorDRF, nd_ndiTodrillDRF);
+
+	vtkMatrix4x4* T_drillDRFtoCalibratorDRF = vtkMatrix4x4::New();
+	mitk::TransferItkTransformToVtkMatrix(nd_drillDRFtoCalibratorDRF->GetAffineTransform3D().GetPointer(), T_drillDRFtoCalibratorDRF);
+
+	m_Controls.textBrowser->append("Drill calibration matrix");
+	for(int i{0}; i < 4; i++)
+	{
+		for(int j{0}; j < 4; j++)
+		{
+			m_Controls.textBrowser->append(QString::number(T_drillDRFtoCalibratorDRF->GetElement(i, j)));
+		}
+	}
 }

@@ -281,6 +281,11 @@ protected:
   QTimer* m_CheckPowerStatusTimer{nullptr};
   int m_PowerStatus{ 0 };
 
+
+  // Calibrate the dental drill
+  void On_pushButton_calibrateDrill_clicked();
+
+
 };
 
 #endif // SurgicalSimulate_h
