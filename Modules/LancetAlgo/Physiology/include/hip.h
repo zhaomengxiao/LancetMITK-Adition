@@ -38,31 +38,30 @@ namespace FuturTecAlgorithm
 		 * easily palpable or identifiable during surgery.
 		 * Used only as an alternative choice for the anterior horn landmark in direct anterior pelvic registration.*/
 		p_AntNotch,
+		/** \brief [UserInput]Hip Center of Rotation	(operative Side) */
+		p_COR,
 
 		/** \brief [UserInput] Right ASIS(Anterior superior iliac spine) */
-		p_ASIS_R,
-		/** \brief [UserInput] Left ASIS(Anterior superior iliac spine) */
 		p_ASIS_L,
+		/** \brief [UserInput] Left ASIS(Anterior superior iliac spine) */
+		p_ASIS_R,
 		/** \brief [UserInput] Right Pubic tubercle,The rounded eminence located at the upper border of the right pubis near the pubic symphysis. */
-		p_PT_R,
-		/** \brief [UserInput] Left Pubic tubercle */
 		p_PT_L,
+		/** \brief [UserInput] Left Pubic tubercle */
+		p_PT_R,
 		/** \brief [UserInput] Leaving the boneand centrally located in the symphysis pubis, it is used to determine the midlineand plane of segmentation of the pelvis. */
 		p_MidLine,
 		/** \brief [UserInput]The top line of the sacral plate (S1) defined on the sagittal CT image, used to determine the angle between the sacral plate and the anterior-posterior axis.	 */
 		p_SS_A,
 		/** \brief [UserInput]The top line of the sacral plate (S1) defined on the sagittal CT image, used to determine the angle between the sacral plate and the anterior-posterior axis.	 */
 		p_SS_P,
-		/** \brief [UserInput]Hip Center of Rotation	(Operation Side) */
-		p_COR,
 
+		/** \brief [UserInput]Femur Assembly Point (Left Side) = FHC_L	*/
+		p_FemurAssemblyPoint_L,
+		/** \brief [UserInput]Femur Assembly Point (Right Side) = FHC_R */
+		p_FemurAssemblyPoint_R,
 		/** \brief [ModelOutput] the Origin of Pelvis local coordinates */
 		p_O,
-
-		// /** \brief [ModelOutput] the Center of Right Acetabular */
-		// p_RAC,
-		// /** \brief [ModelOutput] the Center of Left Acetabular */
-		// p_LAC,
 
 
 		//==========================Femur=======================
@@ -348,13 +347,26 @@ namespace FuturTecAlgorithm
 		T = transform;
 		output = T * input;
 	}
-	static void TransformAxis(Eigen::Matrix4d& transform, AxisType& input, AxisType& output)
+
+	static void TransformAxis(const Eigen::Matrix4d& transform, const AxisType& input, AxisType& output)
 	{
 		Eigen::Isometry3d T;
 		T = transform;
 		output.startPoint = T * input.startPoint;
-		output.direction = T * input.direction;
+		Eigen::Vector3d endPoint = input.startPoint + input.direction;
+		endPoint = T * endPoint;
+		output.direction = endPoint - output.startPoint;
 	}
+
+	// static void TransformAxis(const Eigen::Matrix4d& transform, const AxisType& input, AxisType& output)
+	// {
+	// 	Eigen::Isometry3d T;
+	// 	T = transform;
+	// 	output.startPoint = T * input.startPoint;
+	// 	output.direction = T.inverse() * input.direction;
+	// 	std::cout << "1:" << std::endl;
+	// 	std::cout << output.direction << std::endl;
+	// }
 
 	static void TransformPlane(Eigen::Matrix4d& transform, PlaneType& input, PlaneType& output)
 	{

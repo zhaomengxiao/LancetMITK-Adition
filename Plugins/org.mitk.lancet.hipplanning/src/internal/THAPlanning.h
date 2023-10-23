@@ -15,6 +15,7 @@ found in the LICENSE file.
 #define THAPlanning_h
 
 #include <QmitkAbstractView.h>
+#include <vtkTransformFilter.h>
 
 #include "ui_THAPlanningControls.h"
 
@@ -32,6 +33,7 @@ found in the LICENSE file.
 #include "drr.h"
 #include "hip.h"
 #include "mitkApplyTransformMatrixOperation.h"
+
 
 /**
   \brief THAPlanning
@@ -205,18 +207,26 @@ protected:
   FuturTecAlgorithm::Femur* m_femur_r = nullptr;
   FuturTecAlgorithm::Femur* m_femur_l = nullptr;
   FuturTecAlgorithm::Cup* m_cup_r = nullptr;
-  //pelvis
+
+	//pelvis
 	void initPelvis();
   void testPelvisCorrection();
   void moveToLocal();
+  void moveToLocal_new();
   //femurR
 	void initFemurR();
   void testFemurRCorrection();
   void moveToLocal_FemurR();
+  void moveToLocal_FemurR_new();
   //femurL
   void initFemurL();
   void testFemurLCorrection();
   void moveToLocal_FemurL();
+  void moveToLocal_FemurL_new();
+
+  //pre op
+  void assamble_preOp();
+
   //cupR
   void initCupR();
   void placeCupR();
@@ -228,6 +238,8 @@ protected:
   void Show(Eigen::Vector3d point, std::string name);
   void Show(FuturTecAlgorithm::AxisType axis, std::string name);
   void Show(FuturTecAlgorithm::PlaneType plane, std::string name);
+
+  void hardenTransform(mitk::DataNode::Pointer node);
 
   Eigen::Matrix4d vtkMatrix4x4ToEigen(const vtkSmartPointer<vtkMatrix4x4>& vtkMatrix)
   {

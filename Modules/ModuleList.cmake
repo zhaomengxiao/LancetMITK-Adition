@@ -8,4 +8,5 @@ set(MITK_MODULES
   LancetNCC
   LancetIGT
   LancetIGTUI
+  Orthopedics
 )

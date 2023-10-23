@@ -102,12 +102,11 @@ namespace FuturTecAlgorithm
 
 	bool Body::GetGlobalAxis(EAxes name, AxisType& outp_axis)
 	{
-		AxisType tmp;
-		if (GetAxis(name, tmp))
+		AxisType local;
+		if (GetAxis(name, local))
 		{
-			TransformAxis(m_T_world_local, tmp, tmp);
-			outp_axis.startPoint = tmp.startPoint;
-			outp_axis.direction = tmp.direction;
+			TransformAxis(m_T_world_local, local, outp_axis);
+
 			return true;
 		}
 		return false;
@@ -383,12 +382,19 @@ namespace FuturTecAlgorithm
 		x << 1, 0, 0;
 		y << 0, 1, 0;
 		z << 0, 0, 1;
+		Eigen::Vector3d p1, p2, p3;
+		p1 << 0, 0, 0;
+		p2 << 0, 0, -100;
+		SetLandMark(ELandMarks::p_SS_A, p1.data());
+		SetLandMark(ELandMarks::p_SS_P, p2.data());
 
 		SetAxis(EAxes::cup_X, o.data(), x.data());
 		SetAxis(EAxes::cup_Y, o.data(), y.data());
 		SetAxis(EAxes::cup_Z, o.data(), z.data());
 
 		m_T_world_local = Eigen::Matrix4d::Identity();
+		m_T_body_image = m_T_world_local.inverse();
+		m_T_image_body = m_T_world_local;
 	}
 
 	void Cup::calTransformImageToBodyISB()
