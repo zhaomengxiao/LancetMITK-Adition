@@ -281,27 +281,7 @@ namespace FuturTecAlgorithm
 	class AxisType
 	{
 	public:
-		// enum class EConstractType
-		// {
-		// 	TWO_POINT,
-		// 	POINT_DIRECTION
-		// };
-
-		// AxisType() = default;
-
-		// AxisType(const PointType& p_start, const PointType& p_d, EConstractType type)
-		// {
-		// 	if (EConstractType::TWO_POINT == type)
-		// 	{
-		// 		startPoint = p_start;
-		// 		direction = p_d - p_start;
-		// 	}
-		// 	else
-		// 	{
-		// 		startPoint = p_start;
-		// 		direction = p_d;
-		// 	}
-		// }
+		
 
 		PointType startPoint{};
 		VectorType direction{};

@@ -23,7 +23,7 @@
 #include "vtkPointData.h"
 #include "vtkDataArray.h"
 
-#include <hip.h>
+//#include <hip.h>
 #include <vtkAppendPolyData.h>
 #include <vtkConeSource.h>
 #include <vtkCylinderSource.h>
@@ -37,6 +37,7 @@
 #include "mitkInteractionConst.h"
 
 #include "hipFunctions.h"
+#include "body.h"
 #include "mitkGizmo.h"
 
 const std::string THAPlanning::VIEW_ID = "org.mitk.views.thaplanning";
@@ -120,22 +121,22 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
 
 	//futerTec
 	connect(m_Controls.pushButton_initializePelvisObject_2, &QPushButton::clicked, this, &THAPlanning::initPelvis);
-	connect(m_Controls.pushButton_movePelvisObject_2, &QPushButton::clicked, this, &THAPlanning::moveToLocal_new);
-	connect(m_Controls.pushButton_pelvisCorrection, &QPushButton::clicked, this, &THAPlanning::testPelvisCorrection);
-
+	connect(m_Controls.pushButton_movePelvisObject_2, &QPushButton::clicked, this, &THAPlanning::showPelvis);
+	// connect(m_Controls.pushButton_pelvisCorrection, &QPushButton::clicked, this, &THAPlanning::testPelvisCorrection);
+	//
 	connect(m_Controls.pushButton_initializeRfemurObject_2, &QPushButton::clicked, this, &THAPlanning::initFemurR);
-	connect(m_Controls.pushButton_moveRfemurObject_2, &QPushButton::clicked, this, &THAPlanning::moveToLocal_FemurR_new);
-	connect(m_Controls.pushButton_femurRCorrection, &QPushButton::clicked, this, &THAPlanning::testFemurRCorrection);
-
+	connect(m_Controls.pushButton_moveRfemurObject_2, &QPushButton::clicked, this, &THAPlanning::showFemurR);
+	// connect(m_Controls.pushButton_femurRCorrection, &QPushButton::clicked, this, &THAPlanning::testFemurRCorrection);
+	//
 	connect(m_Controls.pushButton_initializeLfemurObject_2, &QPushButton::clicked, this, &THAPlanning::initFemurL);
-	connect(m_Controls.pushButton_moveLfemurObject_2, &QPushButton::clicked, this, &THAPlanning::moveToLocal_FemurL_new);
-	connect(m_Controls.pushButton_femurLCorrection, &QPushButton::clicked, this, &THAPlanning::testFemurLCorrection);
-
+	connect(m_Controls.pushButton_moveLfemurObject_2, &QPushButton::clicked, this, &THAPlanning::showFemurL);
+	// connect(m_Controls.pushButton_femurLCorrection, &QPushButton::clicked, this, &THAPlanning::testFemurLCorrection);
+	//
 	connect(m_Controls.pushButton_demoReduce_2, &QPushButton::clicked, this, &THAPlanning::assamble_preOp);
-
-	connect(m_Controls.pushButton_initCup, &QPushButton::clicked, this, &THAPlanning::initCupR);
-	connect(m_Controls.pushButton_placeCup, &QPushButton::clicked, this, &THAPlanning::placeCupR);
-	connect(m_Controls.pushButton_cal, &QPushButton::clicked, this, &THAPlanning::calAIAngleR);
+	//
+	// connect(m_Controls.pushButton_initCup, &QPushButton::clicked, this, &THAPlanning::initCupR);
+	// connect(m_Controls.pushButton_placeCup, &QPushButton::clicked, this, &THAPlanning::placeCupR);
+	// connect(m_Controls.pushButton_cal, &QPushButton::clicked, this, &THAPlanning::calAIAngleR);
 }
 
 void THAPlanning::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -291,36 +292,60 @@ mitk::PointSet::Pointer THAPlanning::GetPointSetWithGeometryMatrix(const mitk::P
 
 void THAPlanning::initPelvis()
 {
-	m_pelvis = new FuturTecAlgorithm::Pelvis;
-	//GetPoint
+	m_pelvis = othopedics::Pelvis::New();
+	//Obtain the marker points attached to the pelvic body 
 	mitk::PointSet::PointType ASIS_L, ASIS_R, MidLine,FHC_L,FHC_R;
 	if (getPoint("ASIS_L", &ASIS_L) && getPoint("ASIS_R", &ASIS_R) && getPoint("MidLine", &MidLine) 
 		&& getPoint("FHC_L", &FHC_L) && getPoint("FHC_R", &FHC_R))
 	{
-		m_pelvis->SetLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_L, ASIS_L.data());
-		m_pelvis->SetLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_R, ASIS_R.data());
-		m_pelvis->SetLandMark(FuturTecAlgorithm::ELandMarks::p_MidLine, MidLine.data());
-		m_pelvis->SetLandMark(FuturTecAlgorithm::ELandMarks::p_FemurAssemblyPoint_L, FHC_L.data());
-		m_pelvis->SetLandMark(FuturTecAlgorithm::ELandMarks::p_FemurAssemblyPoint_R, FHC_R.data());
-		m_pelvis->calTransformImageToBody();
-		m_pelvis->convertToLocal();
-		Show(m_pelvis->m_T_image_body, "pelvisCoords");
-		
+		m_pelvis->SetLandMark(othopedics::ELandMarks::p_ASIS_L, ASIS_L.data());
+		m_pelvis->SetLandMark(othopedics::ELandMarks::p_ASIS_R, ASIS_R.data());
+		m_pelvis->SetLandMark(othopedics::ELandMarks::p_MidLine, MidLine.data());
+		m_pelvis->SetLandMark(othopedics::ELandMarks::p_FemurAssemblyPoint_L, FHC_L.data());
+		m_pelvis->SetLandMark(othopedics::ELandMarks::p_FemurAssemblyPoint_R, FHC_R.data());
 	}
 	else
 	{
 		MITK_WARN << "Pelvis init failed";
 	}
+	auto pelvis = GetDataStorage()->GetNamedNode("pelvis");
+	if (pelvis !=nullptr)
+	{
+		m_pelvis->SetSurface(dynamic_cast<mitk::Surface*>( pelvis->GetData()));
+		m_pelvis->Init();
+		mitk::Gizmo::AddGizmoToNode(pelvis, GetDataStorage());
+	}
 	
+	
+	
+	
+	// auto dn = mitk::DataNode::New();
+	// dn->SetData(m_pelvis->GetSurface());
+	// dn->SetName("pelvisBodySurface");
+	// GetDataStorage()->Add(dn);
+}
+
+void THAPlanning::showPelvis()
+{
+	Show(m_pelvis->m_T_world_local, "pelvisCoords");
+
+	Eigen::Vector3d ASIS_L, ASIS_R, MidLine;
+	m_pelvis->GetGlobalLandMark(othopedics::ELandMarks::p_ASIS_L, ASIS_L);
+	m_pelvis->GetGlobalLandMark(othopedics::ELandMarks::p_ASIS_R, ASIS_R);
+	m_pelvis->GetGlobalLandMark(othopedics::ELandMarks::p_MidLine, MidLine);
+
+	Show(ASIS_L, "body_ASIS_L");
+	Show(ASIS_R, "body_ASIS_R");
+	Show(MidLine, "body_MidLine");
 }
 
 void THAPlanning::testPelvisCorrection()
 {
-	FuturTecAlgorithm::AxisType x;
+	othopedics::AxisType x;
 	Eigen::Vector3d asis_l,asis_r;
-	if (m_pelvis->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_L, asis_l)
-		&& m_pelvis->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_R, asis_r)
-		&& m_pelvis->GetGlobalAxis(FuturTecAlgorithm::EAxes::p_X, x))
+	if (m_pelvis->GetGlobalLandMark(othopedics::ELandMarks::p_ASIS_L, asis_l)
+		&& m_pelvis->GetGlobalLandMark(othopedics::ELandMarks::p_ASIS_R, asis_r)
+		&& m_pelvis->GetGlobalAxis(othopedics::EAxes::p_X, x))
 	{
 		Show(x, "p_X");
 
@@ -347,477 +372,514 @@ void THAPlanning::testPelvisCorrection()
 	
 }
 
-void THAPlanning::moveToLocal()
-{
-	//show origin coords
-	Eigen::Matrix4d identity;
-	identity.setIdentity();
-	Show(identity, "origin");
-
-	//move pelvis surface and vis coords 
-	auto pelvis = GetDataStorage()->GetNamedNode("pelvis");
-	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
-
-	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-	EigenToVtkMatrix4x4(m_pelvis->m_T_body_image, coord);
-	double ref[3]{ 0, 0, 0 };
-	mitk::Point3D refp{ ref };
-	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-	pelvis->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	delete doOp;
-
-	//show local data
-
-	Eigen::Vector3d asis_l;
-	if (m_pelvis->GetLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_L, asis_l))
-	{
-		Show(asis_l, "ASIS_L_local");
-	}
-	
-	Eigen::Vector3d asis_r;
-	if (m_pelvis->GetLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_R, asis_r))
-	{
-		Show(asis_r, "ASIS_R_local");
-	}
-}
-
-void THAPlanning::moveToLocal_new()
-{
-	//show origin coords
-	Eigen::Matrix4d identity;
-	identity.setIdentity();
-	Show(identity, "origin");
-
-	//move pelvis surface and vis coords 
-	auto pelvis = GetDataStorage()->GetNamedNode("pelvis");
-	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
-
-	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-	EigenToVtkMatrix4x4(m_pelvis->m_T_body_image, coord);
-	double ref[3]{ 0, 0, 0 };
-	mitk::Point3D refp{ ref };
-	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-	pelvis->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	delete doOp;
-
-	hardenTransform(pelvis);
-	m_pelvis->SetWorldTransform(Eigen::Matrix4d::Identity());
-	Eigen::Vector3d asis_l;
-	if (m_pelvis->GetLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_L, asis_l))
-	{
-		Show(asis_l, "ASIS_L_local");
-	}
-
-	Eigen::Vector3d asis_r;
-	if (m_pelvis->GetLandMark(FuturTecAlgorithm::ELandMarks::p_ASIS_R, asis_r))
-	{
-		Show(asis_r, "ASIS_R_local");
-	}
-}
-
+// void THAPlanning::moveToLocal()
+// {
+// 	//show origin coords
+// 	Eigen::Matrix4d identity;
+// 	identity.setIdentity();
+// 	Show(identity, "origin");
+//
+// 	//move pelvis surface and vis coords 
+// 	auto pelvis = GetDataStorage()->GetNamedNode("pelvis");
+// 	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
+//
+// 	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+// 	EigenToVtkMatrix4x4(m_pelvis->m_T_body_image, coord);
+// 	double ref[3]{ 0, 0, 0 };
+// 	mitk::Point3D refp{ ref };
+// 	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+// 	pelvis->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	delete doOp;
+//
+// 	//show local data
+//
+// 	Eigen::Vector3d asis_l;
+// 	if (m_pelvis->GetLandMark(othopedics::ELandMarks::p_ASIS_L, asis_l))
+// 	{
+// 		Show(asis_l, "ASIS_L_local");
+// 	}
+// 	
+// 	Eigen::Vector3d asis_r;
+// 	if (m_pelvis->GetLandMark(othopedics::ELandMarks::p_ASIS_R, asis_r))
+// 	{
+// 		Show(asis_r, "ASIS_R_local");
+// 	}
+// }
+//
+// void THAPlanning::moveToLocal_new()
+// {
+// 	//show origin coords
+// 	Eigen::Matrix4d identity;
+// 	identity.setIdentity();
+// 	Show(identity, "origin");
+//
+// 	//move pelvis surface and vis coords 
+// 	auto pelvis = GetDataStorage()->GetNamedNode("pelvis");
+// 	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
+//
+// 	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+// 	EigenToVtkMatrix4x4(m_pelvis->m_T_body_image, coord);
+// 	double ref[3]{ 0, 0, 0 };
+// 	mitk::Point3D refp{ ref };
+// 	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+// 	pelvis->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	delete doOp;
+//
+// 	hardenTransform(pelvis);
+// 	m_pelvis->SetWorldTransform(Eigen::Matrix4d::Identity());
+// 	Eigen::Vector3d asis_l;
+// 	if (m_pelvis->GetLandMark(othopedics::ELandMarks::p_ASIS_L, asis_l))
+// 	{
+// 		Show(asis_l, "ASIS_L_local");
+// 	}
+//
+// 	Eigen::Vector3d asis_r;
+// 	if (m_pelvis->GetLandMark(othopedics::ELandMarks::p_ASIS_R, asis_r))
+// 	{
+// 		Show(asis_r, "ASIS_R_local");
+// 	}
+// }
+//
 void THAPlanning::initFemurR()
 {
-	m_femur_r = new FuturTecAlgorithm::Femur;
-	m_femur_r->m_side = FuturTecAlgorithm::ESide::right;
+	m_femur_r = new othopedics::Femur;
+	m_femur_r->m_Side = othopedics::ESide::right;
 	//GetPoint
-	mitk::PointSet::PointType FHC_R, FNC_R, PFCA_R,DFCA_R,ME_R,LE_R;
+	mitk::PointSet::PointType FHC_R, FNC_R, PFCA_R,DFCA_R,ME_R,LE_R,LT_R;
 	if (getPoint("FHC_R", &FHC_R) && getPoint("FNC_R", &FNC_R) 
 		&& getPoint("PFCA_R", &PFCA_R) && getPoint("DFCA_R", &DFCA_R)
-		&& getPoint("ME_R", &ME_R) && getPoint("LE_R", &LE_R))
+		&& getPoint("ME_R", &ME_R) && getPoint("LE_R", &LE_R)
+		&& getPoint("LT_R", &LT_R))
 	{
 
-		m_femur_r->SetLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, FHC_R.data());
-		m_femur_r->SetLandMark(FuturTecAlgorithm::ELandMarks::f_FNC, FNC_R.data());
-		m_femur_r->SetLandMark(FuturTecAlgorithm::ELandMarks::f_PFCA, PFCA_R.data());
-		m_femur_r->SetLandMark(FuturTecAlgorithm::ELandMarks::f_DFCA, DFCA_R.data());
-		m_femur_r->SetLandMark(FuturTecAlgorithm::ELandMarks::f_ME, ME_R.data());
-		m_femur_r->SetLandMark(FuturTecAlgorithm::ELandMarks::f_LE, LE_R.data());
-		m_femur_r->calTransformImageToBody();
-		m_femur_r->convertToLocal();
-		Show(m_femur_r->m_T_image_body, "femurRCoords");
+		m_femur_r->SetLandMark(othopedics::ELandMarks::f_FHC, FHC_R.data());
+		m_femur_r->SetLandMark(othopedics::ELandMarks::f_FNC, FNC_R.data());
+		m_femur_r->SetLandMark(othopedics::ELandMarks::f_PFCA, PFCA_R.data());
+		m_femur_r->SetLandMark(othopedics::ELandMarks::f_DFCA, DFCA_R.data());
+		m_femur_r->SetLandMark(othopedics::ELandMarks::f_ME, ME_R.data());
+		m_femur_r->SetLandMark(othopedics::ELandMarks::f_LE, LE_R.data());
+		m_femur_r->SetLandMark(othopedics::ELandMarks::f_LT, LT_R.data());
 	}
 	else
 	{
 		MITK_WARN << "Femur init failed";
 	}
-}
 
-void THAPlanning::testFemurRCorrection()
-{
-	Eigen::Vector3d fhc,fnc,dfca,pfca;
-	if (m_femur_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, fhc)
-		&& m_femur_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_FNC, fnc)
-		&& m_femur_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_DFCA, dfca)
-		&& m_femur_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_PFCA, pfca))
+	auto femur = GetDataStorage()->GetNamedNode("femur_R");
+	if (femur != nullptr)
 	{
-		Eigen::Matrix4d trans = othopedics::CalFemurCanalCorrectionMatrix(fhc,fnc,dfca,pfca,othopedics::ESide::right);
-		
-		//move pelvis surface 
-		auto femur = GetDataStorage()->GetNamedNode("femur_R");
-		
-		vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-		EigenToVtkMatrix4x4(trans, coord);
-		double ref[3]{ 0, 0, 0 };
-		mitk::Point3D refp{ ref };
-		auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-		femur->GetData()->GetGeometry()->ExecuteOperation(doOp);
-		delete doOp;
-
-		RequestRenderWindowUpdate();
+		m_femur_r->SetSurface(dynamic_cast<mitk::Surface*>(femur->GetData()));
+		m_femur_r->Init();
+		mitk::Gizmo::AddGizmoToNode(femur, GetDataStorage());
 	}
+
 	
-	else
-	{
-		MITK_WARN << "testPelvisCorrection fail";
-	}
 }
 
-void THAPlanning::moveToLocal_FemurR()
+void THAPlanning::showFemurR()
 {
-	//move pelvis surface and vis coords 
-	auto femurR = GetDataStorage()->GetNamedNode("femur_R");
-	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
+	Show(m_femur_r->m_T_world_local, "femurRCoords");
 
-	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-	EigenToVtkMatrix4x4(m_femur_r->m_T_body_image, coord);
-	double ref[3]{ 0, 0, 0 };
-	mitk::Point3D refp{ ref };
-	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-	femurR->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	delete doOp;
+	Eigen::Vector3d FHC_R, FNC_R, PFCA_R;
+	m_femur_r->GetGlobalLandMark(othopedics::ELandMarks::f_FHC, FHC_R);
+	m_femur_r->GetGlobalLandMark(othopedics::ELandMarks::f_FNC, FNC_R);
+	m_femur_r->GetGlobalLandMark(othopedics::ELandMarks::f_PFCA, PFCA_R);
 
-	//show local data
-
-	Eigen::Vector3d fhc_r;
-	if (m_femur_r->GetLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, fhc_r))
-	{
-		Show(fhc_r, "FHC_R_local");
-	}
-
-	Eigen::Vector3d fnc_r;
-	if (m_femur_r->GetLandMark(FuturTecAlgorithm::ELandMarks::f_FNC, fnc_r))
-	{
-		Show(fnc_r, "FNC_R_local");
-	}
+	Show(FHC_R, "body_FHC_R");
+	Show(FNC_R, "body_FNC_R");
+	Show(PFCA_R, "body_PFCA_R");
 }
 
-void THAPlanning::moveToLocal_FemurR_new()
-{
-	//move pelvis surface and vis coords 
-	auto femurR = GetDataStorage()->GetNamedNode("femur_R");
-	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
-
-	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-	EigenToVtkMatrix4x4(m_femur_r->m_T_body_image, coord);
-	double ref[3]{ 0, 0, 0 };
-	mitk::Point3D refp{ ref };
-	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-	femurR->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	delete doOp;
-
-	hardenTransform(femurR);
-	m_femur_r->SetWorldTransform(Eigen::Matrix4d::Identity());
-}
-
+//
+// void THAPlanning::testFemurRCorrection()
+// {
+// 	Eigen::Vector3d fhc,fnc,dfca,pfca;
+// 	if (m_femur_r->GetGlobalLandMark(othopedics::ELandMarks::f_FHC, fhc)
+// 		&& m_femur_r->GetGlobalLandMark(othopedics::ELandMarks::f_FNC, fnc)
+// 		&& m_femur_r->GetGlobalLandMark(othopedics::ELandMarks::f_DFCA, dfca)
+// 		&& m_femur_r->GetGlobalLandMark(othopedics::ELandMarks::f_PFCA, pfca))
+// 	{
+// 		Eigen::Matrix4d trans = othopedics::CalFemurCanalCorrectionMatrix(fhc,fnc,dfca,pfca,othopedics::ESide::right);
+// 		
+// 		//move pelvis surface 
+// 		auto femur = GetDataStorage()->GetNamedNode("femur_R");
+// 		
+// 		vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+// 		EigenToVtkMatrix4x4(trans, coord);
+// 		double ref[3]{ 0, 0, 0 };
+// 		mitk::Point3D refp{ ref };
+// 		auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+// 		femur->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 		delete doOp;
+//
+// 		RequestRenderWindowUpdate();
+// 	}
+// 	
+// 	else
+// 	{
+// 		MITK_WARN << "testPelvisCorrection fail";
+// 	}
+// }
+//
+// void THAPlanning::moveToLocal_FemurR()
+// {
+// 	//move pelvis surface and vis coords 
+// 	auto femurR = GetDataStorage()->GetNamedNode("femur_R");
+// 	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
+//
+// 	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+// 	EigenToVtkMatrix4x4(m_femur_r->m_T_body_image, coord);
+// 	double ref[3]{ 0, 0, 0 };
+// 	mitk::Point3D refp{ ref };
+// 	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+// 	femurR->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	delete doOp;
+//
+// 	//show local data
+//
+// 	Eigen::Vector3d fhc_r;
+// 	if (m_femur_r->GetLandMark(othopedics::ELandMarks::f_FHC, fhc_r))
+// 	{
+// 		Show(fhc_r, "FHC_R_local");
+// 	}
+//
+// 	Eigen::Vector3d fnc_r;
+// 	if (m_femur_r->GetLandMark(othopedics::ELandMarks::f_FNC, fnc_r))
+// 	{
+// 		Show(fnc_r, "FNC_R_local");
+// 	}
+// }
+//
+// void THAPlanning::moveToLocal_FemurR_new()
+// {
+// 	//move pelvis surface and vis coords 
+// 	auto femurR = GetDataStorage()->GetNamedNode("femur_R");
+// 	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
+//
+// 	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+// 	EigenToVtkMatrix4x4(m_femur_r->m_T_body_image, coord);
+// 	double ref[3]{ 0, 0, 0 };
+// 	mitk::Point3D refp{ ref };
+// 	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+// 	femurR->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	delete doOp;
+//
+// 	hardenTransform(femurR);
+// 	m_femur_r->SetWorldTransform(Eigen::Matrix4d::Identity());
+// }
+//
 void THAPlanning::initFemurL()
 {
-	m_femur_l = new FuturTecAlgorithm::Femur;
-	m_femur_l->m_side = FuturTecAlgorithm::ESide::left;
+	m_femur_l = new othopedics::Femur;
+	m_femur_l->m_Side = othopedics::ESide::left;
 	//GetPoint
-	mitk::PointSet::PointType FHC_L, FNC_L, PFCA_L, DFCA_L,ME_L,LE_L;
+	mitk::PointSet::PointType FHC_L, FNC_L, PFCA_L, DFCA_L,ME_L,LE_L,LT_L;
 	if (getPoint("FHC_L", &FHC_L) && getPoint("FNC_L", &FNC_L)
 		&& getPoint("PFCA_L", &PFCA_L) && getPoint("DFCA_L", &DFCA_L)
-		&& getPoint("ME_L", &ME_L) && getPoint("LE_L", &LE_L))
+		&& getPoint("ME_L", &ME_L) && getPoint("LE_L", &LE_L)
+		&& getPoint("LT_L", &LT_L) )
 	{
 
-		m_femur_l->SetLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, FHC_L.data());
-		m_femur_l->SetLandMark(FuturTecAlgorithm::ELandMarks::f_FNC, FNC_L.data());
-		m_femur_l->SetLandMark(FuturTecAlgorithm::ELandMarks::f_PFCA, PFCA_L.data());
-		m_femur_l->SetLandMark(FuturTecAlgorithm::ELandMarks::f_DFCA, DFCA_L.data());
-		m_femur_l->SetLandMark(FuturTecAlgorithm::ELandMarks::f_ME, ME_L.data());
-		m_femur_l->SetLandMark(FuturTecAlgorithm::ELandMarks::f_LE, LE_L.data());
-		m_femur_l->calTransformImageToBody();
-		m_femur_l->convertToLocal();
-		Show(m_femur_l->m_T_image_body, "femurLCoords");
+		m_femur_l->SetLandMark(othopedics::ELandMarks::f_FHC, FHC_L.data());
+		m_femur_l->SetLandMark(othopedics::ELandMarks::f_FNC, FNC_L.data());
+		m_femur_l->SetLandMark(othopedics::ELandMarks::f_PFCA, PFCA_L.data());
+		m_femur_l->SetLandMark(othopedics::ELandMarks::f_DFCA, DFCA_L.data());
+		m_femur_l->SetLandMark(othopedics::ELandMarks::f_ME, ME_L.data());
+		m_femur_l->SetLandMark(othopedics::ELandMarks::f_LE, LE_L.data());
+		m_femur_l->SetLandMark(othopedics::ELandMarks::f_LT, LT_L.data());
 	}
 	else
 	{
 		MITK_WARN << "FemurL init failed";
 	}
+
+	auto femur = GetDataStorage()->GetNamedNode("femur_L");
+	if (femur != nullptr)
+	{
+		m_femur_l->SetSurface(dynamic_cast<mitk::Surface*>(femur->GetData()));
+		m_femur_l->Init();
+		mitk::Gizmo::AddGizmoToNode(femur, GetDataStorage());
+	}
+
+	
 }
 
-void THAPlanning::testFemurLCorrection()
+void THAPlanning::showFemurL()
 {
-	Eigen::Vector3d fhc, fnc, dfca, pfca;
-	if (m_femur_l->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, fhc)
-		&& m_femur_l->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_FNC, fnc)
-		&& m_femur_l->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_DFCA, dfca)
-		&& m_femur_l->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_PFCA, pfca))
-	{
-		Eigen::Matrix4d trans = othopedics::CalFemurCanalCorrectionMatrix(fhc, fnc, dfca, pfca, othopedics::ESide::left);
+	Show(m_femur_l->m_T_world_local, "femurLCoords");
 
-		//move pelvis surface 
-		auto femur = GetDataStorage()->GetNamedNode("femur_L");
+	Eigen::Vector3d FHC_L, FNC_L, PFCA_L;
+	m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_FHC, FHC_L);
+	m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_FNC, FNC_L);
+	m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_PFCA, PFCA_L);
 
-		vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-		EigenToVtkMatrix4x4(trans, coord);
-		double ref[3]{ 0, 0, 0 };
-		mitk::Point3D refp{ ref };
-		auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-		femur->GetData()->GetGeometry()->ExecuteOperation(doOp);
-		delete doOp;
-
-		RequestRenderWindowUpdate();
-	}
-
-	else
-	{
-		MITK_WARN << "testPelvisCorrection fail";
-	}
+	Show(FHC_L, "body_FHC_L");
+	Show(FNC_L, "body_FNC_L");
+	Show(PFCA_L, "body_PFCA_L");
 }
 
-void THAPlanning::moveToLocal_FemurL()
-{
-	//move pelvis surface and vis coords 
-	auto femurL = GetDataStorage()->GetNamedNode("femur_L");
-	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
-
-	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-	EigenToVtkMatrix4x4(m_femur_l->m_T_body_image, coord);
-	double ref[3]{ 0, 0, 0 };
-	mitk::Point3D refp{ ref };
-	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-	femurL->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	delete doOp;
-
-	//show local data
-	m_femur_l->convertToLocal();
-	Eigen::Vector3d fhc_l;
-	if (m_femur_l->GetLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, fhc_l))
-	{
-		Show(fhc_l, "FHC_L_local");
-	}
-
-	Eigen::Vector3d fnc_l;
-	if (m_femur_l->GetLandMark(FuturTecAlgorithm::ELandMarks::f_FNC, fnc_l))
-	{
-		Show(fnc_l, "FNC_L_local");
-	}
-}
-
-void THAPlanning::moveToLocal_FemurL_new()
-{
-	//move pelvis surface and vis coords 
-	auto femurL = GetDataStorage()->GetNamedNode("femur_L");
-	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
-
-	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-	EigenToVtkMatrix4x4(m_femur_l->m_T_body_image, coord);
-	double ref[3]{ 0, 0, 0 };
-	mitk::Point3D refp{ ref };
-	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-	femurL->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	delete doOp;
-
-	hardenTransform(femurL);
-	m_femur_l->SetWorldTransform(Eigen::Matrix4d::Identity());
-}
-
+//
+// void THAPlanning::testFemurLCorrection()
+// {
+// 	Eigen::Vector3d fhc, fnc, dfca, pfca;
+// 	if (m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_FHC, fhc)
+// 		&& m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_FNC, fnc)
+// 		&& m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_DFCA, dfca)
+// 		&& m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_PFCA, pfca))
+// 	{
+// 		Eigen::Matrix4d trans = othopedics::CalFemurCanalCorrectionMatrix(fhc, fnc, dfca, pfca, othopedics::ESide::left);
+//
+// 		//move pelvis surface 
+// 		auto femur = GetDataStorage()->GetNamedNode("femur_L");
+//
+// 		vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+// 		EigenToVtkMatrix4x4(trans, coord);
+// 		double ref[3]{ 0, 0, 0 };
+// 		mitk::Point3D refp{ ref };
+// 		auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+// 		femur->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 		delete doOp;
+//
+// 		RequestRenderWindowUpdate();
+// 	}
+//
+// 	else
+// 	{
+// 		MITK_WARN << "testPelvisCorrection fail";
+// 	}
+// }
+//
+// void THAPlanning::moveToLocal_FemurL()
+// {
+// 	//move pelvis surface and vis coords 
+// 	auto femurL = GetDataStorage()->GetNamedNode("femur_L");
+// 	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
+//
+// 	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+// 	EigenToVtkMatrix4x4(m_femur_l->m_T_body_image, coord);
+// 	double ref[3]{ 0, 0, 0 };
+// 	mitk::Point3D refp{ ref };
+// 	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+// 	femurL->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	delete doOp;
+//
+// 	//show local data
+// 	m_femur_l->convertToLocal();
+// 	Eigen::Vector3d fhc_l;
+// 	if (m_femur_l->GetLandMark(othopedics::ELandMarks::f_FHC, fhc_l))
+// 	{
+// 		Show(fhc_l, "FHC_L_local");
+// 	}
+//
+// 	Eigen::Vector3d fnc_l;
+// 	if (m_femur_l->GetLandMark(othopedics::ELandMarks::f_FNC, fnc_l))
+// 	{
+// 		Show(fnc_l, "FNC_L_local");
+// 	}
+// }
+//
+// void THAPlanning::moveToLocal_FemurL_new()
+// {
+// 	//move pelvis surface and vis coords 
+// 	auto femurL = GetDataStorage()->GetNamedNode("femur_L");
+// 	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
+//
+// 	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+// 	EigenToVtkMatrix4x4(m_femur_l->m_T_body_image, coord);
+// 	double ref[3]{ 0, 0, 0 };
+// 	mitk::Point3D refp{ ref };
+// 	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+// 	femurL->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	//coords->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	delete doOp;
+//
+// 	hardenTransform(femurL);
+// 	m_femur_l->SetWorldTransform(Eigen::Matrix4d::Identity());
+// }
+//
 void THAPlanning::assamble_preOp()
 {
-	//correction
-
-	//move femur center to hip center
-	//L
-	Eigen::Vector3d hipCenterL,femurLHipCenter;
-	m_pelvis->GetLandMark(FuturTecAlgorithm::ELandMarks::p_FemurAssemblyPoint_L, hipCenterL);
-	m_femur_l->GetLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, femurLHipCenter);
-
-	Show(hipCenterL, "hipCenterL");
-	Show(femurLHipCenter, "femurLHipCenter");
-
-	Eigen::Vector3d t = hipCenterL - femurLHipCenter;
-
-	vtkSmartPointer<vtkTransform> trans = vtkTransform::New();
-	trans->Translate(t.data());
-
-	auto femurL = GetDataStorage()->GetNamedNode("femur_L");
-	double ref[3]{ 0, 0, 0 };
-	mitk::Point3D refp{ ref };
-	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, trans->GetMatrix(), refp);
-	femurL->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	delete doOp;
-
-	m_femur_l->SetWorldTransform(vtkMatrix4x4ToEigen(trans->GetMatrix()));
-	m_femur_l->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, femurLHipCenter);
-	Show(femurLHipCenter, "femurLHipCenter_moved");
-
-	//move femur center to hip center
-	//R
-	Eigen::Vector3d hipCenterR, FHC_R;
-	m_pelvis->GetLandMark(FuturTecAlgorithm::ELandMarks::p_FemurAssemblyPoint_R, hipCenterR);
-	m_femur_r->GetLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, FHC_R);
-
-	Show(hipCenterR, "hipCenterL");
-	Show(FHC_R, "femurRHipCenter");
-
-	Eigen::Vector3d t2 = hipCenterR - FHC_R;
-
-	vtkSmartPointer<vtkTransform> trans2 = vtkTransform::New();
-	trans2->Translate(t2.data());
-
-	auto femurR = GetDataStorage()->GetNamedNode("femur_R");
-	// double ref[3]{ 0, 0, 0 };
-	// mitk::Point3D refp{ ref };
-	auto* doOp2 = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, trans2->GetMatrix(), refp);
-	femurR->GetData()->GetGeometry()->ExecuteOperation(doOp2);
-	delete doOp2;
-
-	m_femur_r->SetWorldTransform(vtkMatrix4x4ToEigen(trans2->GetMatrix()));
-	m_femur_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::f_FHC, FHC_R);
-	Show(FHC_R, "femurRHipCenter_moved");
-}
-
-void THAPlanning::initCupR()
-{
-	// auto gizmo = mitk::Gizmo::New();
-	// double o[3]{ 0,0,0 };
-	// double x[3]{ 1,0,0 };
-	// double y[3]{ 0,1,0 };
-	// double z[3]{ 0,0,1 };
-	// gizmo->SetCenter(o);
-	// gizmo->SetAxisX(x);
-	// gizmo->SetAxisY(y);
-	// gizmo->SetAxisY(y);
-	//
-	// auto gizmoNode = mitk::DataNode::New();
-	// gizmoNode->SetName("gizmoNode");
-
-	// gizmo->AddGizmoToNode(gizmoNode, GetDataStorage());
-
-	//GetDataStorage()->Add(gizmoNode);
-	m_cup_r = new FuturTecAlgorithm::Cup;
-	m_cup_r->m_side = FuturTecAlgorithm::ESide::right;
-	m_cup_r->calTransformImageToBody();
-	m_cup_r->convertToLocal();
-	Show(m_cup_r->m_T_world_local,"cupCoords");
-}
-
-void THAPlanning::placeCupR()
-{
-	double Inclination = 45.0;
-	double Anteversion = 10.0;
-	//
-	// Eigen::Vector3d o, x, y, z;
-	// o << 0, 0, 0;
-	// x << 1, 0, 0;
-	// y << 0, 1, 0;
-	// z << 0, 0, 1;
-	//
-	// Eigen::Isometry3d T;
-	// T.setIdentity();
-	// Eigen::AngleAxis rot(Inclination, y);
-	//
-	// T.rotate(rot);
-	// Eigen::Vector3d x_rot = T * x;
-	// Eigen::Vector3d z_rot = T * z;
-	//
-	// FuturTecAlgorithm::AxisType x_r, z_r,z_r2;
-	// x_r.startPoint = o;
-	// x_r.direction = x_rot;
-	//
-	// z_r.startPoint = o;
-	// z_r.direction = z_rot;
-	// Show(x_r, "cup_x_rot");
-	// Show(z_r, "cup_z_rot");
-	//
-	//
-	// Eigen::AngleAxis rot2(Anteversion, -x_rot);
-	//
-	// T.prerotate(rot2);
-	//
-	// Eigen::Vector3d z_rot2 = T * z;
-	// z_r2.startPoint = o;
-	// z_r2.direction = z_rot2;
-	// Show(z_r2, "cup_z_rot2");
-
-	//move cup surface and vis coords 
-	auto cupCoords = GetDataStorage()->GetNamedNode("cupCoords");
-	auto cup_54 = GetDataStorage()->GetNamedNode("Cup_54");
-
-	//add gizmo
-	auto gizmoNode = mitk::Gizmo::AddGizmoToNode(cup_54, GetDataStorage());
-
-	mitk::Gizmo::Pointer gizmo =dynamic_cast<mitk::Gizmo*>( gizmoNode->GetData());
-	gizmo->SetAllowScaling(false);
-
-	// double o[3]{ 0,0,0 };
-	// gizmo->SetCenter(o);
-	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
-	// Eigen::Matrix4d T = CalApplyAIAngleMatrix(Eigen::Vector3d(0, 0, 0), Anteversion, Inclination, FuturTecAlgorithm::ESide::left);
-	// vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-	// EigenToVtkMatrix4x4(T, coord);
-	// double ref[3]{ 0, 0, 0 };
-	// mitk::Point3D refp{ ref };
-	// auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-	// cupCoords->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	// cup_54->GetData()->GetGeometry()->ExecuteOperation(doOp);
-	// delete doOp;
-
-	
-}
-
-void THAPlanning::calAIAngleR()
-{
-	auto cup_54 = GetDataStorage()->GetNamedNode("Cup_54");
-	
-	auto T= vtkMatrix4x4ToEigen(cup_54->GetData()->GetGeometry()->GetVtkMatrix());
-	m_cup_r->SetWorldTransform(T);
-
-	Show(m_cup_r->m_T_world_local, "cup_T_world_local");
-
-
-	// Eigen::Vector3d p1, p2;
-	// m_cup_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::p_SS_A, p1);
-	// m_cup_r->GetGlobalLandMark(FuturTecAlgorithm::ELandMarks::p_SS_P, p2);
-
-	// Show(p1, "p1");
-	// Show(p2, "p2");
-
-
-	FuturTecAlgorithm::AxisType aa;
-	// aa.startPoint = p1;
-	// aa.direction = (p2 - p1).normalized();
-
-	Show(aa, "aa");
-
-	if (m_cup_r->GetGlobalAxis(FuturTecAlgorithm::EAxes::cup_Z, aa))
+	if (reduction == nullptr)
 	{
-		MITK_WARN << "z_axis start: " << aa.startPoint;
-		MITK_WARN << "z_axis direction: " << aa.direction;
+		reduction = othopedics::Reduction::New();
+		reduction->SetPelvis(m_pelvis);
+		reduction->SetFemur_L(m_femur_l);
+		reduction->SetFemur_R(m_femur_r);
 
-		//Show(Z, "cup_Z");
-		double Anteversion, Inclination;
-		FuturTecAlgorithm::AnteversionAndInclinationAngle(aa.direction.data(), Anteversion, Inclination);
-
-		MITK_WARN << "Anteversion: " << Anteversion;
-		MITK_WARN << "Inclination: " << Inclination;
+		reduction->m_OperationSide = othopedics::ESide::left;
 	}
-	else
+
+	if (m_Controls.radioButton_demoCanalAlign_2->isChecked())
 	{
-		MITK_WARN << "no cup_Z";
+		reduction->PreOperativeReduction_Canal();
+		reduction->CalPreopOffset();
+
+		double Offset_preop, Offset_contra, OffsetDiff_preop_vs_contra;
+		reduction->GetResult(othopedics::EResult::r_Offset_preop, Offset_preop);
+		reduction->GetResult(othopedics::EResult::r_Offset_contra, Offset_contra);
+		reduction->GetResult(othopedics::EResult::r_OffsetDiff_preop_vs_contra, OffsetDiff_preop_vs_contra);
+
+		MITK_INFO << "r_Offset_preop: " << Offset_preop;
+		MITK_INFO << "r_Offset_contra: " << Offset_contra;
+		MITK_INFO << "r_OffsetDiff_preop_vs_contra: " << OffsetDiff_preop_vs_contra;
 	}
-	// aa.direction = -aa.direction;
-	
-	//
-	
+
+	if (m_Controls.radioButton_demoMechAlign_2->isChecked())
+	{
+		reduction->PreOperativeReduction_Mechanical();
+		reduction->CalPreopHipLength();
+
+		double hipLength_preop, hipLength_contra, hipLengthDiff_preop_vs_contra;
+		reduction->GetResult(othopedics::EResult::r_HipLength_preop, hipLength_preop);
+		reduction->GetResult(othopedics::EResult::r_HipLength_contra, hipLength_contra);
+		reduction->GetResult(othopedics::EResult::r_HipLengthDiff_preop_vs_contra, hipLengthDiff_preop_vs_contra);
+
+		MITK_INFO << "r_HipLength_preop: " << hipLength_preop;
+		MITK_INFO << "r_HipLength_contra: " << hipLength_contra;
+		MITK_INFO << "r_HipLengthDiff_preop_vs_contra: " << hipLengthDiff_preop_vs_contra;
+	}
 }
+
+
+// void THAPlanning::initCupR()
+// {
+// 	// auto gizmo = mitk::Gizmo::New();
+// 	// double o[3]{ 0,0,0 };
+// 	// double x[3]{ 1,0,0 };
+// 	// double y[3]{ 0,1,0 };
+// 	// double z[3]{ 0,0,1 };
+// 	// gizmo->SetCenter(o);
+// 	// gizmo->SetAxisX(x);
+// 	// gizmo->SetAxisY(y);
+// 	// gizmo->SetAxisY(y);
+// 	//
+// 	// auto gizmoNode = mitk::DataNode::New();
+// 	// gizmoNode->SetName("gizmoNode");
+//
+// 	// gizmo->AddGizmoToNode(gizmoNode, GetDataStorage());
+//
+// 	//GetDataStorage()->Add(gizmoNode);
+// 	m_cup_r = new othopedics::Cup;
+// 	m_cup_r->m_side = othopedics::ESide::right;
+// 	m_cup_r->calTransformImageToBody();
+// 	m_cup_r->convertToLocal();
+// 	Show(m_cup_r->m_T_world_local,"cupCoords");
+// }
+//
+// void THAPlanning::placeCupR()
+// {
+// 	double Inclination = 45.0;
+// 	double Anteversion = 10.0;
+// 	//
+// 	// Eigen::Vector3d o, x, y, z;
+// 	// o << 0, 0, 0;
+// 	// x << 1, 0, 0;
+// 	// y << 0, 1, 0;
+// 	// z << 0, 0, 1;
+// 	//
+// 	// Eigen::Isometry3d T;
+// 	// T.setIdentity();
+// 	// Eigen::AngleAxis rot(Inclination, y);
+// 	//
+// 	// T.rotate(rot);
+// 	// Eigen::Vector3d x_rot = T * x;
+// 	// Eigen::Vector3d z_rot = T * z;
+// 	//
+// 	// othopedics::AxisType x_r, z_r,z_r2;
+// 	// x_r.startPoint = o;
+// 	// x_r.direction = x_rot;
+// 	//
+// 	// z_r.startPoint = o;
+// 	// z_r.direction = z_rot;
+// 	// Show(x_r, "cup_x_rot");
+// 	// Show(z_r, "cup_z_rot");
+// 	//
+// 	//
+// 	// Eigen::AngleAxis rot2(Anteversion, -x_rot);
+// 	//
+// 	// T.prerotate(rot2);
+// 	//
+// 	// Eigen::Vector3d z_rot2 = T * z;
+// 	// z_r2.startPoint = o;
+// 	// z_r2.direction = z_rot2;
+// 	// Show(z_r2, "cup_z_rot2");
+//
+// 	//move cup surface and vis coords 
+// 	auto cupCoords = GetDataStorage()->GetNamedNode("cupCoords");
+// 	auto cup_54 = GetDataStorage()->GetNamedNode("Cup_54");
+//
+// 	//add gizmo
+// 	auto gizmoNode = mitk::Gizmo::AddGizmoToNode(cup_54, GetDataStorage());
+//
+// 	mitk::Gizmo::Pointer gizmo =dynamic_cast<mitk::Gizmo*>( gizmoNode->GetData());
+// 	gizmo->SetAllowScaling(false);
+//
+// 	// double o[3]{ 0,0,0 };
+// 	// gizmo->SetCenter(o);
+// 	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
+// 	// Eigen::Matrix4d T = CalApplyAIAngleMatrix(Eigen::Vector3d(0, 0, 0), Anteversion, Inclination, othopedics::ESide::left);
+// 	// vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+// 	// EigenToVtkMatrix4x4(T, coord);
+// 	// double ref[3]{ 0, 0, 0 };
+// 	// mitk::Point3D refp{ ref };
+// 	// auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+// 	// cupCoords->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	// cup_54->GetData()->GetGeometry()->ExecuteOperation(doOp);
+// 	// delete doOp;
+//
+// 	
+// }
+//
+// void THAPlanning::calAIAngleR()
+// {
+// 	auto cup_54 = GetDataStorage()->GetNamedNode("Cup_54");
+// 	
+// 	auto T= vtkMatrix4x4ToEigen(cup_54->GetData()->GetGeometry()->GetVtkMatrix());
+// 	m_cup_r->SetWorldTransform(T);
+//
+// 	Show(m_cup_r->m_T_world_local, "cup_T_world_local");
+//
+//
+// 	// Eigen::Vector3d p1, p2;
+// 	// m_cup_r->GetGlobalLandMark(othopedics::ELandMarks::p_SS_A, p1);
+// 	// m_cup_r->GetGlobalLandMark(othopedics::ELandMarks::p_SS_P, p2);
+//
+// 	// Show(p1, "p1");
+// 	// Show(p2, "p2");
+//
+//
+// 	othopedics::AxisType aa;
+// 	// aa.startPoint = p1;
+// 	// aa.direction = (p2 - p1).normalized();
+//
+// 	Show(aa, "aa");
+//
+// 	if (m_cup_r->GetGlobalAxis(othopedics::EAxes::cup_Z, aa))
+// 	{
+// 		MITK_WARN << "z_axis start: " << aa.startPoint;
+// 		MITK_WARN << "z_axis direction: " << aa.direction;
+//
+// 		//Show(Z, "cup_Z");
+// 		double Anteversion, Inclination;
+// 		othopedics::AnteversionAndInclinationAngle(aa.direction.data(), Anteversion, Inclination);
+//
+// 		MITK_WARN << "Anteversion: " << Anteversion;
+// 		MITK_WARN << "Inclination: " << Inclination;
+// 	}
+// 	else
+// 	{
+// 		MITK_WARN << "no cup_Z";
+// 	}
+// 	// aa.direction = -aa.direction;
+// 	
+// 	//
+// 	
+// }
 
 bool THAPlanning::getPoint(std::string name, mitk::PointSet::PointType* point, unsigned index)
 {
@@ -994,7 +1056,7 @@ void THAPlanning::Show(Eigen::Vector3d point, std::string name)
 	GetDataStorage()->Add(node);
 }
 
-void THAPlanning::Show(FuturTecAlgorithm::AxisType axis, std::string name)
+void THAPlanning::Show(othopedics::AxisType axis, std::string name)
 {
 	mitk::Surface::Pointer myArrow = mitk::Surface::New();
 	
@@ -1042,7 +1104,7 @@ void THAPlanning::Show(FuturTecAlgorithm::AxisType axis, std::string name)
 	//RequestRenderWindowUpdate();
 }
 
-void THAPlanning::Show(FuturTecAlgorithm::PlaneType plane, std::string name)
+void THAPlanning::Show(othopedics::PlaneType plane, std::string name)
 {
 
 }

@@ -15,7 +15,6 @@ found in the LICENSE file.
 #define THAPlanning_h
 
 #include <QmitkAbstractView.h>
-#include <vtkTransformFilter.h>
 
 #include "ui_THAPlanningControls.h"
 
@@ -31,8 +30,9 @@ found in the LICENSE file.
 #include "lancetThaStemObject.h"
 
 #include "drr.h"
-#include "hip.h"
+#include "body.h"
 #include "mitkApplyTransformMatrixOperation.h"
+#include "reduction.h"
 
 
 /**
@@ -203,41 +203,49 @@ protected:
   mitk::PointSet::Pointer GetPointSetWithGeometryMatrix(const mitk::PointSet::Pointer inputPointSet);
 
   //FuterTec
-  FuturTecAlgorithm::Pelvis* m_pelvis = nullptr;
-  FuturTecAlgorithm::Femur* m_femur_r = nullptr;
-  FuturTecAlgorithm::Femur* m_femur_l = nullptr;
-  FuturTecAlgorithm::Cup* m_cup_r = nullptr;
+  // FuturTecAlgorithm::Pelvis* m_pelvis = nullptr;
+  // FuturTecAlgorithm::Femur* m_femur_r = nullptr;
+  // FuturTecAlgorithm::Femur* m_femur_l = nullptr;
+  // FuturTecAlgorithm::Cup* m_cup_r = nullptr;
 
+  othopedics::Pelvis::Pointer m_pelvis = nullptr;
+  othopedics::Femur::Pointer m_femur_r = nullptr;
+  othopedics::Femur::Pointer m_femur_l = nullptr;
+  othopedics::Body::Pointer m_cup_r = nullptr;
+  othopedics::Reduction::Pointer reduction = nullptr;
 	//pelvis
 	void initPelvis();
+  void showPelvis();
   void testPelvisCorrection();
-  void moveToLocal();
-  void moveToLocal_new();
-  //femurR
-	void initFemurR();
-  void testFemurRCorrection();
-  void moveToLocal_FemurR();
-  void moveToLocal_FemurR_new();
-  //femurL
+ //  void moveToLocal();
+ //  void moveToLocal_new();
+ //  //femurR
+  void initFemurR();
+  void showFemurR();
+ //  void testFemurRCorrection();
+ //  void moveToLocal_FemurR();
+ //  void moveToLocal_FemurR_new();
+ //  //femurL
   void initFemurL();
-  void testFemurLCorrection();
-  void moveToLocal_FemurL();
-  void moveToLocal_FemurL_new();
-
-  //pre op
+  void showFemurL();
+ //  void testFemurLCorrection();
+ //  void moveToLocal_FemurL();
+ //  void moveToLocal_FemurL_new();
+ //
+ //  //pre op
   void assamble_preOp();
-
-  //cupR
-  void initCupR();
-  void placeCupR();
-  void calAIAngleR();
+ //
+ //  //cupR
+ //  void initCupR();
+ //  void placeCupR();
+ //  void calAIAngleR();
 
 
   bool getPoint(std::string name,mitk::PointSet::PointType* point, unsigned int index = 0);
   void Show(Eigen::Matrix4d transform, std::string name);
   void Show(Eigen::Vector3d point, std::string name);
-  void Show(FuturTecAlgorithm::AxisType axis, std::string name);
-  void Show(FuturTecAlgorithm::PlaneType plane, std::string name);
+  void Show(othopedics::AxisType axis, std::string name);
+  void Show(othopedics::PlaneType plane, std::string name);
 
   void hardenTransform(mitk::DataNode::Pointer node);
 

@@ -235,62 +235,130 @@ namespace othopedics
 	enum class EResult
 	{
 		/** \brief [ModelOutput] 骨盆前倾角*/
-		f_PT = 0,
-		/** \brief [ModelOutput] 在双侧股骨机械轴对齐，股骨偏心距最大处与冠状面平行的前提下，从小转子到髂前上棘连线（即骨盆横轴）的距离*/
-		f_HipLength,
-		/** \brief [ModelOutput] 在股骨干垂直，股骨偏心距最大处与冠状面平行，股骨干轴到骨盆中轴面的距离*/
-		f_Offset,
-
-		f_HipLength_post,
-		f_Offset_post,
-		/** \brief [ModelOutput] Difference(mm) in hip length between the operative and contralateral sides before operation*/
-		f_HipLengthDiff_preOp2Contral,
-		/** \brief [ModelOutput] Difference(mm) in hip length between the operative and contralateral sides after operation*/
-		f_HipLengthDiff_Op2Contralateral,
-		/** \brief [ModelOutput] Difference(mm) in hip length before and after operation */
-		f_HipLengthDiff_PrePostOp,
-		/** \brief[ModelOutput] Difference(mm) in Combined Offset between the operative and contralateral sides before operation */
-		f_OffsetDiff_preOp2Contral,
-		/** \brief[ModelOutput] Difference(mm) in Combined Offset between the operative and contralateral sides after operation*/
-		f_OffsetDiff_Op2Contralateral,
-		/** \brief[ModelOutput] Difference(mm) in Combined Offset before and after operation */
-		f_OffsetDiff_PrePostOp,
+		p_PelvicTilt = 0,
 		/** \brief [ModelOutput] 术侧股骨倾角*/
 		f_OpVersion,
 
 		/** \brief [ModelOutput] 右侧臼杯前倾角*/
-		p_RightAnteversion,
+		r_RightAnteversion,
 		/** \brief [ModelOutput] 右侧臼杯外展角*/
-		p_RightInclination,
+		r_RightInclination,
 		/** \brief [ModelOutput] 左侧臼杯前倾角*/
-		p_LeftAnteversion,
+		r_LeftAnteversion,
 		/** \brief [ModelOutput] 左侧臼杯外展角*/
-		p_LeftInclination
+		r_LeftInclination,
+
+
+		/** \brief [ModelOutput] Contralateral Side HipLength*/
+		r_HipLength_contra,
+		/** \brief [ModelOutput] Preoperative HipLength(Operation Side)*/
+		r_HipLength_preop,
+		/** \brief [ModelOutput] Planed Hip Length(Operation Side)*/
+		r_HipLength_planed,
+		/** \brief [ModelOutput] Reduced Hip Length(Operation Side)*/
+		r_HipLength_reduced,
+
+
+		/** \brief [ModelOutput] Contralateral Side Combined Offset*/
+		r_Offset_contra,
+		/** \brief [ModelOutput] Preoperative Combined Offset(Operation Side)*/
+		r_Offset_preop,
+		/** \brief [ModelOutput] Planed Combined Offset(Operation Side)*/
+		r_Offset_planed,
+		/** \brief [ModelOutput] Reduced Combined Offset(Operation Side)*/
+		r_Offset_reduced,
+
+		/** \brief [ModelOutput] Preoperative HipLength Difference, Operation Side vs.Contralateral Side
+		 *
+		 * r_HipLength_preop - r_HipLength_contra
+		 */
+		r_HipLengthDiff_preop_vs_contra,
+		/** \brief [ModelOutput] Preoperative Combined Offset Diff, Operation Side vs. Contralateral Side
+		 *
+		 * r_Offset_preop - r_Offset_contra
+		 */
+		r_OffsetDiff_preop_vs_contra,
+
+
+		/** \brief [ModelOutput] Planed HipLength Diff,  vs. Contralateral Side
+		 *
+		 * r_HipLength_planed - r_HipLength_contra
+		 */
+		r_HipLengthDiff_planed_vs_contra,
+		/** \brief [ModelOutput] Planed Combined Offset Diff, vs. Contralateral Side
+		 *
+		 * r_Offset_planed - r_Offset_contra
+		 */
+		r_OffsetDiff_planed_vs_contra,
+
+		/** \brief [ModelOutput] Planed HipLength Diff,  vs. Preoperative
+		 *
+		 * r_HipLength_planed - r_HipLength_preop
+		 */
+		r_HipLengthDiff_planed_vs_preop,
+		/** \brief [ModelOutput] Planed  Combined Offset Diff,  vs. Preoperative
+		 *
+		 * r_Offset_planed - r_Offset_preop
+		 */
+		r_OffsetDiff_planed_vs_preop,
+
+
+		/** \brief [ModelOutput] Reduced HipLength Diff,  vs. Contralateral Side
+		 *
+		 * r_HipLength_reduced - r_HipLength_contra
+		 */
+		r_HipLengthDiff_reduced_vs_contra,
+		/** \brief [ModelOutput] Reduced  Combined Offset Diff,  vs. Contralateral Side
+		 *
+		 * r_Offset_reduced - r_Offset_contra
+		 */
+		r_OffsetDiff_reduced_vs_contra,
+
+		/** \brief [ModelOutput] Reduced HipLength Diff,  vs. Preoperative
+		 *
+		 * r_HipLength_reduced - r_HipLength_preop
+		 */
+		r_HipLengthDiff_reduced_vs_preop,
+		/** \brief [ModelOutput] Reduced  Combined Offset Diff,  vs. Preoperative
+		 *
+		 * r_Offset_reduced - r_Offset_preop
+		 */
+		r_OffsetDiff_reduced_vs_preop,
 	};
 
 	inline const char* to_string(EResult e)
 	{
 		switch (e)
 		{
-		case EResult::f_PT: return "f_PT";
-		case EResult::f_HipLength: return "f_HipLength";
-		case EResult::f_Offset: return "f_Offset";
-		case EResult::f_HipLength_post: return "f_HipLength_post";
-		case EResult::f_Offset_post: return "f_Offset_post";
-		case EResult::f_HipLengthDiff_preOp2Contral: return "f_HipLengthDiff_preOp2Contral";
-		case EResult::f_HipLengthDiff_Op2Contralateral: return "f_HipLengthDiff_Op2Contralateral";
-		case EResult::f_HipLengthDiff_PrePostOp: return "f_HipLengthDiff_PrePostOp";
-		case EResult::f_OffsetDiff_preOp2Contral: return "f_OffsetDiff_preOp2Contral";
-		case EResult::f_OffsetDiff_Op2Contralateral: return "f_OffsetDiff_Op2Contralateral";
-		case EResult::f_OffsetDiff_PrePostOp: return "f_OffsetDiff_PrePostOp";
+		case EResult::p_PelvicTilt: return "p_PelvicTilt";
 		case EResult::f_OpVersion: return "f_OpVersion";
-		case EResult::p_RightAnteversion: return "p_RightAnteversion";
-		case EResult::p_RightInclination: return "p_RightInclination";
-		case EResult::p_LeftAnteversion: return "p_LeftAnteversion";
-		case EResult::p_LeftInclination: return "p_LeftInclination";
+		case EResult::r_RightAnteversion: return "r_RightAnteversion";
+		case EResult::r_RightInclination: return "r_RightInclination";
+		case EResult::r_LeftAnteversion: return "r_LeftAnteversion";
+		case EResult::r_LeftInclination: return "r_LeftInclination";
+		case EResult::r_HipLength_contra: return "r_HipLength_contra";
+		case EResult::r_HipLength_preop: return "r_HipLength_preop";
+		case EResult::r_HipLength_planed: return "r_HipLength_planed";
+		case EResult::r_HipLength_reduced: return "r_HipLength_reduced";
+		case EResult::r_Offset_contra: return "r_Offset_contra";
+		case EResult::r_Offset_preop: return "r_Offset_preop";
+		case EResult::r_Offset_planed: return "r_Offset_planed";
+		case EResult::r_Offset_reduced: return "r_Offset_reduced";
+		case EResult::r_HipLengthDiff_preop_vs_contra: return "r_HipLengthDiff_preop_vs_contra";
+		case EResult::r_OffsetDiff_preop_vs_contra: return "r_OffsetDiff_preop_vs_contra";
+		case EResult::r_HipLengthDiff_planed_vs_contra: return "r_HipLengthDiff_planed_vs_contra";
+		case EResult::r_OffsetDiff_planed_vs_contra: return "r_OffsetDiff_planed_vs_contra";
+		case EResult::r_HipLengthDiff_planed_vs_preop: return "r_HipLengthDiff_planed_vs_preop";
+		case EResult::r_OffsetDiff_planed_vs_preop: return "r_OffsetDiff_planed_vs_preop";
+		case EResult::r_HipLengthDiff_reduced_vs_contra: return "r_HipLengthDiff_reduced_vs_contra";
+		case EResult::r_OffsetDiff_reduced_vs_contra: return "r_OffsetDiff_reduced_vs_contra";
+		case EResult::r_HipLengthDiff_reduced_vs_preop: return "r_HipLengthDiff_reduced_vs_preop";
+		case EResult::r_OffsetDiff_reduced_vs_preop: return "r_OffsetDiff_reduced_vs_preop";
 		default: return "unknown";
 		}
 	}
+
+	
 
 	enum class ECupAngleType
 	{
