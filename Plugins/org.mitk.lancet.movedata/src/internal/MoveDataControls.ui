@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>717</width>
-    <height>587</height>
+    <height>611</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -56,10 +56,22 @@
      </property>
     </widget>
    </item>
+   <item row="3" column="0">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Output:</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0">
+       <widget class="QTextBrowser" name="textBrowser_moveData"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="2" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -1024,21 +1036,35 @@
      </widget>
      <widget class="QWidget" name="tab_4">
       <attribute name="title">
-       <string>Apply quaternion</string>
+       <string>Test CPR</string>
       </attribute>
+      <widget class="QPushButton" name="pushButton_testCrosshair">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>40</y>
+         <width>151</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Generate Spline</string>
+       </property>
+      </widget>
+      <widget class="QSlider" name="horizontalSlider_testCrosshair">
+       <property name="geometry">
+        <rect>
+         <x>110</x>
+         <y>120</y>
+         <width>401</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
      </widget>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Output:</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="0">
-       <widget class="QTextBrowser" name="textBrowser_moveData"/>
-      </item>
-     </layout>
     </widget>
    </item>
   </layout>

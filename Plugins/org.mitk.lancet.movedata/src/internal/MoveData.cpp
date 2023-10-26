@@ -25,6 +25,9 @@ found in the LICENSE file.
 #include <mitkCLUtil.h>
 #include <mitkImage.h>
 #include <vtkAppendPolyData.h>
+#include <vtkCardinalSpline.h>
+#include <vtkSplineFilter.h>
+
 #include "mitkSurfaceToImageFilter.h"
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 #include <vtkCleanPolyData.h>
@@ -47,8 +50,10 @@ found in the LICENSE file.
 #include "QmitkSingleNodeSelectionWidget.h"
 #include "QmitkDataStorageTreeModel.h"
 #include "QmitkDataStorageTreeModelInternalItem.h"
+#include "QmitkRenderWindow.h"
 #include "surfaceregistraion.h"
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
+
 
 void MoveData::SetFocus()
 {
@@ -113,6 +118,12 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_hardenData, &QPushButton::clicked, this, &MoveData::on_pushButton_hardenData_clicked);
 
   connect(m_Controls.pushButton_addGizmo, &QPushButton::clicked, this, &MoveData::on_pushButton_addGizmo_clicked);
+
+  connect(m_Controls.pushButton_testCrosshair, &QPushButton::clicked, this, &MoveData::on_pushButton_testCrosshair_clicked);
+
+  m_Controls.horizontalSlider_testCrosshair->setMinimum(0);
+  m_Controls.horizontalSlider_testCrosshair->setMaximum(100);
+  connect(m_Controls.horizontalSlider_testCrosshair,&QSlider::valueChanged, this, &MoveData::horizontalSlider_testCrosshair_value_changed);
 
 }
 
@@ -1984,4 +1995,176 @@ void MoveData::on_pushButton_addGizmo_clicked()
 		mitk::Gizmo::AddGizmoToNode(m_currentSelectedNode, GetDataStorage());
 	}
 	
+}
+
+
+void MoveData::on_pushButton_testCrosshair_clicked()
+{
+	
+	// Test vtkSplineFilter
+
+	// vtkPoints
+	if(GetDataStorage()->GetNamedNode("Dental curve") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Dental curve missing");
+		return;
+	}
+
+	auto mitkPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("Dental curve");
+
+	vtkNew<vtkPoints> points;
+	for (int i{0}; i < mitkPset->GetSize(); i++)
+	{
+		auto mitkPoint = mitkPset->GetPoint(i);
+		points->InsertNextPoint(mitkPoint[0], mitkPoint[1], mitkPoint[2]);
+	}
+
+	// vtkCellArrays
+	vtkNew<vtkCellArray> lines;
+	lines->InsertNextCell(mitkPset->GetSize());
+	for (unsigned int i = 0; i < mitkPset->GetSize(); ++i)
+	{
+		lines->InsertCellPoint(i);
+	}
+
+	// vtkPolyData
+	auto polyData = vtkSmartPointer<vtkPolyData>::New();
+	polyData->SetPoints(points);
+	polyData->SetLines(lines);
+
+
+	auto spline = vtkCardinalSpline::New();
+	spline->SetLeftConstraint(2);
+	spline->SetLeftValue(0.0);
+	spline->SetRightConstraint(2);
+	spline->SetRightValue(0.0);
+	
+	vtkNew<vtkSplineFilter> splineFilter;
+	splineFilter->SetInputData(polyData);
+	// splineFilter->SetNumberOfSubdivisions(polyData->GetNumberOfPoints() * 10);
+	splineFilter->SetSubdivideToLength();
+	splineFilter->SetLength(0.3);
+	splineFilter->SetSpline(spline);
+	splineFilter->Update();
+
+	auto output = splineFilter->GetOutput();
+
+	int ptNum = output->GetNumberOfPoints();
+	auto outputPts = output->GetPoints();
+
+	auto mitkPsetNew = mitk::PointSet::New();
+
+	for(int i{0}; i < ptNum; i++)
+	{
+		mitk::Point3D a;
+		a[0] = outputPts->GetPoint(i)[0];
+		a[1] = outputPts->GetPoint(i)[1];
+		a[2] = outputPts->GetPoint(i)[2];
+
+		mitkPsetNew->InsertPoint(a);
+	}
+
+
+
+	// auto tmpSurface = mitk::Surface::New();
+	// tmpSurface->SetVtkPolyData(output);
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(mitkPsetNew);
+	tmpNode->SetName("Dental spline");
+	tmpNode->SetFloatProperty("point 2D size", 0.2);
+
+	GetDataStorage()->Add(tmpNode);
+}
+
+
+void MoveData::horizontalSlider_testCrosshair_value_changed()
+{
+	if(GetDataStorage()->GetNamedNode("Dental spline") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Dental spline missing");
+		return;
+	}
+
+	auto mitkPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("Dental spline");
+
+	double sliderValue = m_Controls.horizontalSlider_testCrosshair->value();
+
+	int currentIndex = floor(sliderValue*(mitkPset->GetSize()-1) / m_Controls.horizontalSlider_testCrosshair->maximum());
+
+	if(currentIndex == (mitkPset->GetSize() - 1))
+	{
+		currentIndex -= 1;
+	}
+
+	auto currentPoint = mitkPset->GetPoint(currentIndex);
+	auto nextPoint = mitkPset->GetPoint(currentIndex + 1);
+
+		
+	auto iRenderWindowPart = GetRenderWindowPart();
+
+    QmitkRenderWindow* renderWindow = iRenderWindowPart->GetQmitkRenderWindow("coronal");
+	if (renderWindow)
+	{
+		// m_Controls.textBrowser_moveData->append("Coronal exists");
+	
+		mitk::Vector3D a;
+		a[0] = nextPoint[0]-currentPoint[0];
+		a[1] = nextPoint[1] - currentPoint[1];
+		a[2] = nextPoint[2] - currentPoint[2];
+		a.Normalize();
+
+		mitk::Vector3D b;
+		b[0] = 0;
+		b[1] = 0;
+		b[2] = 1;
+
+		renderWindow->ResetView();
+		renderWindow->GetSliceNavigationController()->ReorientSlices(currentPoint,a,b);
+		
+	}
+
+
+	
+	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("sagittal");
+	if (renderWindow)
+	{
+		mitk::Vector3D a;
+		a[1] = (nextPoint[0] - currentPoint[0]);
+		a[0] = -(nextPoint[1] - currentPoint[1]);
+		a[2] = nextPoint[2] - currentPoint[2];
+		a.Normalize();
+
+		mitk::Vector3D b;
+		b[0] = 0;
+		b[1] = 0;
+		b[2] = 1;
+		// m_Controls.textBrowser_moveData->append("Sagittal exists");
+
+		
+		renderWindow->GetSliceNavigationController()->ReorientSlices(currentPoint, a, b);
+	}
+	
+	
+	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("axial");
+	if (renderWindow)
+	{
+		mitk::Vector3D a;
+		a[0] = 1;
+		a[1] = 0;
+		a[2] = 0;
+		a.Normalize();
+
+		mitk::Vector3D b;
+		b[0] = 0;
+		b[1] = -1;
+		b[2] = 0;
+		// m_Controls.textBrowser_moveData->append("axial exists");
+
+		
+		renderWindow->GetSliceNavigationController()->ReorientSlices(currentPoint, a, b);
+	}
+
+
+
 }
