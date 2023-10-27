@@ -86,6 +86,101 @@ namespace othopedics
 			return degreeAngle;
 		}
 	}
+
+
+
+	/**
+	 * \brief Determine the intersection between lines.
+	 *
+	 * \param line1_p1 a point on line 1
+	 * \param line1_p2 another point on line 1
+	 * \param line2_p1 a point on line 2
+	 * \param line2_p2 another point on line 2
+	 * \param intersectP intersection point
+	 * \return true,if intersection
+	 */
+	inline bool lineIntersect3d_2points(const Eigen::Vector3d& line1_p1, const Eigen::Vector3d& line1_p2, const Eigen::Vector3d& line2_p1, const Eigen::Vector3d& line2_p2, Eigen::Vector3d& intersectP)
+	{
+		Eigen::Vector3d v1 = line1_p2 - line1_p1;
+		Eigen::Vector3d v2 = line2_p2 - line2_p1;
+		if (v1.dot(v2) == 1)
+		{
+			// Two parallel lines
+			return false;
+		}
+
+		Eigen::Vector3d startPointSeg = line2_p1 - line1_p1;
+		Eigen::Vector3d vecS1 = v1.cross(v2);            // Directed area1
+		Eigen::Vector3d vecS2 = startPointSeg.cross(v2); // Directed area2
+		double num = startPointSeg.dot(vecS1);
+
+		// Determine whether the two lines are coplanar
+		if (num >= 1E-05f || num <= -1E-05f)
+		{
+			return false;
+		}
+
+		// The point product of the directed area ratio is because it could be positive or negative　　　　　　　　　　　　　　
+		float num2 = vecS2.dot(vecS1) / vecS1.squaredNorm();
+
+		intersectP = line1_p1 + v1 * num2;
+		return true;
+	}
+
+	inline bool StemInitPosition(double* FHC, double* FNC, double* PFCA, double* DFCA, double* res)
+	{
+		Eigen::Vector3d fhc{ FHC };
+		
+		Eigen::Vector3d pfca{ PFCA };
+		Eigen::Vector3d dfca{ DFCA };
+		//plane
+		Eigen::Vector3d plane = (dfca - pfca).cross(fhc - pfca);
+		//project FHC and FNC on plan(fhc pfca dface,three points as a plane)
+		double fhc_projected[3], fnc_projected[3];
+		projectToPlane(FHC, PFCA, plane.data(), fhc_projected);
+		projectToPlane(FNC, PFCA, plane.data(), fnc_projected);
+
+		//find intersection
+		Eigen::Vector3d intersection;
+
+		if (!lineIntersect3d_2points(Eigen::Vector3d(fhc_projected), Eigen::Vector3d(fnc_projected), pfca, dfca, intersection))
+		{
+			return false;
+		}
+		res[0] = intersection.data()[0];
+		res[1] = intersection.data()[1];
+		res[2] = intersection.data()[2];
+		//res = intersection.data();
+		std::cout << res[0]<<"," << res[1] << "," << res[2] << std::endl;
+		return true;
+	};
+
+	inline bool StemInitPosition(double* FHC,double* FNC,double* PFCA,double* DFCA,double* y,Eigen::Vector3d& res)
+	{
+		 Eigen::Vector3d fhc{ FHC };
+		 Eigen::Vector3d fnc{ FNC };
+		 Eigen::Vector3d pfca{ PFCA };
+		 Eigen::Vector3d dfca{ DFCA };
+		//plane
+		 //Eigen::Vector3d plane = (dfca - pfca).cross(fhc - pfca);
+		//project FHC and FNC on plan(fhc pfca dface,three points as a plane)
+		double fhc_projected[3], fnc_projected[3];
+		projectToPlane(FHC, PFCA, y, fhc_projected);
+		projectToPlane(FNC, PFCA, y, fnc_projected);
+
+		//find intersection
+		Eigen::Vector3d intersection;
+
+		if (!lineIntersect3d_2points(Eigen::Vector3d(fhc_projected), Eigen::Vector3d(fnc_projected), pfca, dfca, intersection))
+		{
+			return false;
+		}
+		res = intersection;
+		std::cout << res << std::endl;
+		return true;
+	};
+
+
 	/**
 	 * compute the Anteversion angle and the Inclination Angle
 	 *
@@ -174,6 +269,9 @@ namespace othopedics
 	Eigen::Matrix4d MITKORTHOPEDICS_EXPORT CalFemurCanalCorrectionMatrix(Eigen::Vector3d FHC, Eigen::Vector3d FNC, Eigen::Vector3d DFCA, Eigen::Vector3d PFCA, ESide side);
 
 	Eigen::Matrix4d MITKORTHOPEDICS_EXPORT CalFemurMechanicalCorrectionMatrix(Eigen::Vector3d FHC, Eigen::Vector3d FNC, Eigen::Vector3d ME, Eigen::Vector3d LE, ESide side);
+
+	//cup placement
+	Eigen::Matrix4d MITKORTHOPEDICS_EXPORT CalApplyAIAngleMatrix(Eigen::Vector3d center, double Anteversion, double Inclination, ESide side);
 };
 
 #endif

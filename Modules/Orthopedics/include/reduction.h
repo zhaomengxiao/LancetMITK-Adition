@@ -15,6 +15,8 @@ namespace othopedics
 		itkSetMacro(Pelvis, Pelvis::Pointer);
 		itkSetMacro(Femur_L, Femur::Pointer);
 		itkSetMacro(Femur_R, Femur::Pointer);
+		itkSetMacro(Cup, Cup::Pointer);
+		itkSetMacro(Stem, Stem::Pointer);
 
 		itkGetMacro(Pelvis, Pelvis::Pointer);
 		itkGetMacro(Femur_L, Femur::Pointer);
@@ -27,11 +29,15 @@ namespace othopedics
 		void PreOperativeReduction_Mechanical();
 		void CalPreopOffset();
 		void CalPreopHipLength();
+
+		void PlanReduction(Eigen::Matrix4d cupPlanMatrix, Eigen::Matrix4d stemPlanMatrix);
 		ESide m_OperationSide{ESide::right};
 	private:
 		Pelvis::Pointer m_Pelvis;
 		Femur::Pointer m_Femur_L;
 		Femur::Pointer m_Femur_R;
+		Cup::Pointer m_Cup;
+		Stem::Pointer m_Stem;
 
 		std::map<EResult, double> m_results{};
 	};

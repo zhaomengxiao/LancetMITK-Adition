@@ -211,34 +211,52 @@ protected:
   othopedics::Pelvis::Pointer m_pelvis = nullptr;
   othopedics::Femur::Pointer m_femur_r = nullptr;
   othopedics::Femur::Pointer m_femur_l = nullptr;
-  othopedics::Body::Pointer m_cup_r = nullptr;
+  othopedics::Cup::Pointer m_cup_l = nullptr;
+  othopedics::Stem::Pointer m_stem_l = nullptr;
   othopedics::Reduction::Pointer reduction = nullptr;
+
+  Eigen::Matrix4d m_cupPlanMatrix;
+  Eigen::Matrix4d m_stemPlanMatrix;
 	//pelvis
 	void initPelvis();
   void showPelvis();
   void testPelvisCorrection();
  //  void moveToLocal();
  //  void moveToLocal_new();
- //  //femurR
+
+ //femurR
   void initFemurR();
   void showFemurR();
  //  void testFemurRCorrection();
  //  void moveToLocal_FemurR();
  //  void moveToLocal_FemurR_new();
- //  //femurL
+
+ //femurL
   void initFemurL();
   void showFemurL();
  //  void testFemurLCorrection();
  //  void moveToLocal_FemurL();
  //  void moveToLocal_FemurL_new();
- //
- //  //pre op
+
+ //cupL
+  void initCupR();
+  void placeCupR();
+  void calAIAngleR();
+
+ //stemL
+  void initStemL();
+  void showStemL();
+  void placeStemL();
+  void calStemL();
+
+  //plan
+  void savePlan();
+
+ //Reduction
   void assamble_preOp();
- //
- //  //cupR
- //  void initCupR();
- //  void placeCupR();
- //  void calAIAngleR();
+
+  //
+  void screw();
 
 
   bool getPoint(std::string name,mitk::PointSet::PointType* point, unsigned int index = 0);

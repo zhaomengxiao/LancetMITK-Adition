@@ -47,7 +47,7 @@ namespace othopedics
 		//std::cout << "ResultAnteversion:" << ResultAnteversion << std::endl;
 		double CupLineProject[3];
 		double origin[] = { 0, 0, 0 };
-		//投影到冠状面上
+		//Projected onto the coronal plane
 		projectToPlane(CupLineTransform, origin, Coronalnormal, CupLineProject);
 		double z[3] = { 0, 0, 1 };
 		double InclinationRadians = AngleBetween2Vector(CupLineProject, z, true);
@@ -261,6 +261,39 @@ namespace othopedics
 		Eigen::Vector3d fhc_rot = T * FHC;
 		Eigen::Vector3d t = FHC - fhc_rot;
 		T.pretranslate(t);
+
+		return T.matrix();
+	}
+
+	Eigen::Matrix4d CalApplyAIAngleMatrix(Eigen::Vector3d center, double Anteversion, double Inclination, ESide side)
+	{
+		Anteversion = Anteversion / 180.0 * EIGEN_PI;
+		Inclination = Inclination / 180.0 * EIGEN_PI;
+		Eigen::Vector3d x, y, z;
+		x << 1, 0, 0;
+		y << 0, 1, 0;
+		z << 0, 0, 1;
+
+		Eigen::Isometry3d T;
+		T.setIdentity();
+
+		if (side == ESide::right)
+		{
+			const Eigen::AngleAxis rot(Inclination, y);
+			T.rotate(rot);
+		}
+		else
+		{
+			const Eigen::AngleAxis rot(Inclination, -y);
+			T.rotate(rot);
+		}
+
+		Eigen::Vector3d x_rot = T * x;
+		Eigen::AngleAxis rot2(Anteversion, -x_rot);
+		T.prerotate(rot2);
+
+		Eigen::Vector3d center_rot = T * center;
+		T.pretranslate(center - center_rot);
 
 		return T.matrix();
 	}

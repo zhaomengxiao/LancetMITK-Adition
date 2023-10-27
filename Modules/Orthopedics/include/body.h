@@ -1,4 +1,4 @@
-#ifndef body_h
+﻿#ifndef body_h
 #define body_h
 
 #include <MitkOrthopedicsExports.h>
@@ -39,6 +39,49 @@ namespace othopedics
 	};
 
 	//helper functions
+
+	/**
+	 * \brief Determine the intersection between lines.
+	 * \param p1 a point on line 1
+	 * \param v1 direction vector of line 1
+	 * \param p2 a point on line 2
+	 * \param v2 direction vector of line 2
+	 * \param intersectP intersection point
+	 * \return true,if intersection
+	 */
+	inline bool lineIntersect3d(const Eigen::Vector3d& p1, const Eigen::Vector3d& v1, const Eigen::Vector3d& p2, const Eigen::Vector3d& v2, Eigen::Vector3d& intersectP)
+	{
+		{
+			if (v1.dot(v2) == 1)
+			{
+				// 两线平行
+				return false;
+			}
+
+			Eigen::Vector3d startPointSeg = p2 - p1;
+			Eigen::Vector3d vecS1 = v1.cross(v2);            // 有向面积1
+			Eigen::Vector3d vecS2 = startPointSeg.cross(v2); // 有向面积2
+			double num = startPointSeg.dot(vecS1);
+
+			// 判断两这直线是否共面
+			if (num >= 1E-05f || num <= -1E-05f)
+			{
+				return false;
+			}
+
+			// 有向面积比值，利用点乘是因为结果可能是正数或者负数　　　　　　　　　　　　　　　　if (qFuzzyIsNull(vecS1.lengthSquared())) {        　　　　　　return false;    　　　　　　}　
+			float num2 = vecS2.dot(vecS1) / vecS1.squaredNorm();
+			if (num2 > 1 || num < 0) {
+				return false;//num2的大小还可以判断是延长线相交还是线段相交
+			}
+
+			intersectP = p1 + v1 * num2;
+			return true;
+		}
+	}
+
+	
+
 	inline Eigen::Matrix4d vtkMatrix4x4ToEigen(const vtkSmartPointer<vtkMatrix4x4>& vtkMatrix)
 	{
 		Eigen::Matrix4d eigenMatrix;
@@ -178,6 +221,34 @@ namespace othopedics
 	private:
 		void InitFemurLocalFrame();
 		void InitFemurLocalFrame_Mechanical();
+	};
+
+	class MITKORTHOPEDICS_EXPORT Cup :public Body
+	{
+	public:
+		mitkClassMacro(Cup, Body);
+		itkNewMacro(Cup);
+
+		ESide m_Side{ ESide::right };
+
+		void Init() override;
+
+	private:
+		void InitCupLocalFrame();
+	};
+
+	class MITKORTHOPEDICS_EXPORT Stem :public Body
+	{
+	public:
+		mitkClassMacro(Stem, Body);
+		itkNewMacro(Stem);
+
+		ESide m_Side{ ESide::right };
+
+		void Init() override;
+
+	private:
+		void InitStemLocalFrame();
 	};
 }
 

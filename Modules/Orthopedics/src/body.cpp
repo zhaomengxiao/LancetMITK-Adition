@@ -18,6 +18,8 @@ void Body::Init()
 {
 	m_T_world_local = Eigen::Matrix4d::Identity();
 	m_name = "body";
+
+	//listenSurfaceGeoModify();
 }
 
 void Body::SetLandMark(ELandMarks name, double* data)
@@ -222,24 +224,25 @@ void Body::listenSurfaceGeoModify()
 	m_FollowerTag = m_FollowedGeometry->AddObserver(itk::ModifiedEvent(), observer);
 
 	// initial adjustment
-	onSurfaceGeoModified();
+	//onSurfaceGeoModified();
 }
 
 
 void Pelvis::Init()
 {
+	Body::Init();
+	m_name = "Pelvis";
 	//cal local coords
 	InitPelvisLocalFrame();
 	//Transform all data into local coords
 	TransformAllInternalData(m_T_world_local.inverse());
 
-	//
+	//recover transform
 	vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
 	EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
 	m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
 
-	//
-	listenSurfaceGeoModify();
+	//listenSurfaceGeoModify();
 }
 
 
@@ -276,18 +279,17 @@ void Pelvis::InitPelvisLocalFrame()
 
 void Femur::Init()
 {
+	Body::Init();
+	m_name = "Femur";
 	//cal local coords
 	InitFemurLocalFrame();
 	//Transform all data into local coords
 	TransformAllInternalData(m_T_world_local.inverse());
 
-	//
+	//recover surface transform
 	vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
 	EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
 	m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
-
-	//
-	listenSurfaceGeoModify();
 }
 
 void Femur::InitFemurLocalFrame()
@@ -321,12 +323,36 @@ void Femur::InitFemurLocalFrame()
 		//transform
 		m_T_world_local = localFrame;
 		//std::cout << m_T_image_body << std::endl;
+
+		//project FHC and FNC on plan(canal and y axis)
+		// double fhc_projected[3], fnc_projected[3];
+		// projectToPlane(FHC.data(), PFCA.data(), y.data(), fhc_projected);
+		// projectToPlane(FNC.data(), PFCA.data(), y.data(), fnc_projected);
+		// SetLandMark(ELandMarks::stem_CutPoint, fhc_projected);
+		// SetLandMark(ELandMarks::stem_EndPoint, fnc_projected);
+		//
+		// //find intersection
+		// Eigen::Vector3d intersection;
+		//
+		// if (!lineIntersect3d_2points(Eigen::Vector3d(fhc_projected), Eigen::Vector3d(fnc_projected), PFCA, DFCA, intersection))
+		// {
+		// 	MITK_WARN << "line not intersection";
+		// 	return;
+		// }
+
+		//Eigen::Vector3d intersectP;
+		double intersectP[3]{0,0,0};
+		if (!StemInitPosition(FHC.data(), FNC.data(), PFCA.data(), DFCA.data(), intersectP))
+		{
+			MITK_ERROR << "StemInitPosition Error: no intersection:" << std::endl;
+		}
+		MITK_WARN << "intersectP" << intersectP[0]<<"," << intersectP[1] << "," << intersectP[2];
+		SetLandMark(ELandMarks::f_NeckCanalIntersectPoint, intersectP/*.data()*/);
 	}
 	else
 	{
-		std::cout << "InitFemurLocalFrame Error: Missing LandMarks:" << std::endl;
+		MITK_ERROR << "InitFemurLocalFrame Error: Missing LandMarks:" << std::endl;
 	}
-	std::cout << "exit InitFemurLocalFrame" << std::endl;
 }
 
 void Femur::InitFemurLocalFrame_Mechanical()
@@ -368,7 +394,52 @@ void Femur::InitFemurLocalFrame_Mechanical()
 	}
 	else
 	{
-		std::cout << "calTransformImageToBody(Femur) Error: Missing LandMarks:" << std::endl;
+		std::cout << "InitFemurLocalFrame_Mechanical Error: Missing LandMarks:" << std::endl;
 	}
-	std::cout << "exit calTransformImageToBody(Femur)" << std::endl;
+	std::cout << "exit InitFemurLocalFrame_Mechanical" << std::endl;
+}
+
+void Cup::Init()
+{
+	Body::Init();
+	m_name = "Cup";
+	InitCupLocalFrame();
+}
+
+void Cup::InitCupLocalFrame()
+{
+	Eigen::Vector3d o, x, y, z;
+	o << 0, 0, 0;
+	x << 1, 0, 0;
+	y << 0, 1, 0;
+	z << 0, 0, 1;
+	SetLandMark(ELandMarks::cup_COR,o.data());
+
+	SetAxis(EAxes::cup_X, o.data(), x.data());
+	SetAxis(EAxes::cup_Y, o.data(), y.data());
+	SetAxis(EAxes::cup_Z, o.data(), z.data());
+
+	m_T_world_local = Eigen::Matrix4d::Identity();
+}
+
+void Stem::Init()
+{
+	Body::Init();
+	m_name = "Stem";
+	InitStemLocalFrame();
+}
+
+void Stem::InitStemLocalFrame()
+{
+	Eigen::Vector3d o, x, y, z;
+	o << 0, 0, 0;
+	x << 1, 0, 0;
+	y << 0, 1, 0;
+	z << 0, 0, 1;
+
+	SetLandMark(ELandMarks::stem_O, o.data());
+
+	SetAxis(EAxes::stem_X, o.data(), x.data());
+	SetAxis(EAxes::stem_Y, o.data(), y.data());
+	SetAxis(EAxes::stem_Z, o.data(), z.data());
 }

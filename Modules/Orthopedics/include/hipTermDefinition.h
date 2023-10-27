@@ -106,6 +106,8 @@ namespace othopedics
 		f_LT,
 		/** \brief [ModelOutput] Midpoint of Medial and Lateral Epicondyles */
 		f_MidEEs,
+		/** \brief [ModelOutput] Intersection Point of the Femoral Canal and the Neck shaft  */
+		f_NeckCanalIntersectPoint,
 
 		f_O,
 
@@ -118,7 +120,22 @@ namespace othopedics
 		/** \brief [UserInput] Distal Checkpoint,The position after the operation    */
 		f_CheckPointD_post,
 		/** \brief [UserInput] Femur Head Center During the operation, the surgeon will place four points on the cup to verify its placement.  */
-		f_FHC_inOp
+		f_FHC_inOp,
+
+		//==========================Cup=======================
+		cup_COR,
+		cup_LinerAssemblyPoint,
+
+		//==========================Stem=======================
+		stem_O,
+
+		stem_HeadAssemblyPoint_M,
+		stem_HeadAssemblyPoint_S,
+		stem_HeadAssemblyPoint_L,
+
+		stem_CutPoint,
+		stem_NeckCanalIntersectPoint,
+		stem_EndPoint,
 	};
 
 	inline const char* to_String(ELandMarks e)
@@ -194,7 +211,11 @@ namespace othopedics
 		//prothesis
 		cup_X,
 		cup_Y,
-		cup_Z
+		cup_Z,
+
+		stem_X,
+		stem_Y,
+		stem_Z
 	};
 
 	inline const char* to_string(EAxes e)

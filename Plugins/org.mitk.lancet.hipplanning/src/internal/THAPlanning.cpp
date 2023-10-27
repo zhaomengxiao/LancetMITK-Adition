@@ -121,7 +121,7 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
 
 	//futerTec
 	connect(m_Controls.pushButton_initializePelvisObject_2, &QPushButton::clicked, this, &THAPlanning::initPelvis);
-	connect(m_Controls.pushButton_movePelvisObject_2, &QPushButton::clicked, this, &THAPlanning::showPelvis);
+	connect(m_Controls.pushButton_movePelvisObject_2, &QPushButton::clicked, this, &THAPlanning::screw);
 	// connect(m_Controls.pushButton_pelvisCorrection, &QPushButton::clicked, this, &THAPlanning::testPelvisCorrection);
 	//
 	connect(m_Controls.pushButton_initializeRfemurObject_2, &QPushButton::clicked, this, &THAPlanning::initFemurR);
@@ -133,10 +133,15 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
 	// connect(m_Controls.pushButton_femurLCorrection, &QPushButton::clicked, this, &THAPlanning::testFemurLCorrection);
 	//
 	connect(m_Controls.pushButton_demoReduce_2, &QPushButton::clicked, this, &THAPlanning::assamble_preOp);
-	//
-	// connect(m_Controls.pushButton_initCup, &QPushButton::clicked, this, &THAPlanning::initCupR);
-	// connect(m_Controls.pushButton_placeCup, &QPushButton::clicked, this, &THAPlanning::placeCupR);
-	// connect(m_Controls.pushButton_cal, &QPushButton::clicked, this, &THAPlanning::calAIAngleR);
+	//cup
+	connect(m_Controls.pushButton_initCup, &QPushButton::clicked, this, &THAPlanning::initCupR);
+	connect(m_Controls.pushButton_placeCup, &QPushButton::clicked, this, &THAPlanning::placeCupR);
+	connect(m_Controls.pushButton_cal, &QPushButton::clicked, this, &THAPlanning::calAIAngleR);
+	//stem
+	connect(m_Controls.pushButton_initStem_2, &QPushButton::clicked, this, &THAPlanning::initStemL);
+	connect(m_Controls.pushButton_placeStem_2, &QPushButton::clicked, this, &THAPlanning::showStemL);
+	connect(m_Controls.pushButton_calstem_2, &QPushButton::clicked, this, &THAPlanning::placeStemL);
+	connect(m_Controls.pushButton_saveplan, &QPushButton::clicked, this, &THAPlanning::savePlan);
 }
 
 void THAPlanning::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -313,16 +318,11 @@ void THAPlanning::initPelvis()
 	{
 		m_pelvis->SetSurface(dynamic_cast<mitk::Surface*>( pelvis->GetData()));
 		m_pelvis->Init();
-		mitk::Gizmo::AddGizmoToNode(pelvis, GetDataStorage());
+		// auto gizmoNode = mitk::Gizmo::AddGizmoToNode(pelvis, GetDataStorage());
+		//
+		// mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+		// gizmo->SetAllowScaling(false);
 	}
-	
-	
-	
-	
-	// auto dn = mitk::DataNode::New();
-	// dn->SetData(m_pelvis->GetSurface());
-	// dn->SetName("pelvisBodySurface");
-	// GetDataStorage()->Add(dn);
 }
 
 void THAPlanning::showPelvis()
@@ -472,7 +472,10 @@ void THAPlanning::initFemurR()
 	{
 		m_femur_r->SetSurface(dynamic_cast<mitk::Surface*>(femur->GetData()));
 		m_femur_r->Init();
-		mitk::Gizmo::AddGizmoToNode(femur, GetDataStorage());
+		auto gizmoNode = mitk::Gizmo::AddGizmoToNode(femur, GetDataStorage());
+
+		mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+		gizmo->SetAllowScaling(false);
 	}
 
 	
@@ -602,7 +605,10 @@ void THAPlanning::initFemurL()
 	{
 		m_femur_l->SetSurface(dynamic_cast<mitk::Surface*>(femur->GetData()));
 		m_femur_l->Init();
-		mitk::Gizmo::AddGizmoToNode(femur, GetDataStorage());
+		auto gizmoNode = mitk::Gizmo::AddGizmoToNode(femur, GetDataStorage());
+
+		mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+		gizmo->SetAllowScaling(false);
 	}
 
 	
@@ -612,14 +618,20 @@ void THAPlanning::showFemurL()
 {
 	Show(m_femur_l->m_T_world_local, "femurLCoords");
 
-	Eigen::Vector3d FHC_L, FNC_L, PFCA_L;
+	Eigen::Vector3d FHC_L, FNC_L, PFCA_L,intersection,p1,p2;
 	m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_FHC, FHC_L);
 	m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_FNC, FNC_L);
 	m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_PFCA, PFCA_L);
+	m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_NeckCanalIntersectPoint, intersection);
+	m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::stem_CutPoint, p1);
+	m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::stem_EndPoint, p2);
 
 	Show(FHC_L, "body_FHC_L");
 	Show(FNC_L, "body_FNC_L");
 	Show(PFCA_L, "body_PFCA_L");
+	// Show(p1, "p1");
+	// Show(p2, "p2");
+	Show(intersection, "f_NeckCanalIntersectPoint");
 }
 
 //
@@ -714,7 +726,7 @@ void THAPlanning::assamble_preOp()
 		reduction->m_OperationSide = othopedics::ESide::left;
 	}
 
-	if (m_Controls.radioButton_demoCanalAlign_2->isChecked())
+	if (m_Controls.radioButton_demoCanalAlign_2->isChecked() && !m_Controls.radioButton_demoIntrop_2->isChecked())
 	{
 		reduction->PreOperativeReduction_Canal();
 		reduction->CalPreopOffset();
@@ -729,7 +741,7 @@ void THAPlanning::assamble_preOp()
 		MITK_INFO << "r_OffsetDiff_preop_vs_contra: " << OffsetDiff_preop_vs_contra;
 	}
 
-	if (m_Controls.radioButton_demoMechAlign_2->isChecked())
+	if (m_Controls.radioButton_demoMechAlign_2->isChecked() && !m_Controls.radioButton_demoIntrop_2->isChecked())
 	{
 		reduction->PreOperativeReduction_Mechanical();
 		reduction->CalPreopHipLength();
@@ -743,143 +755,259 @@ void THAPlanning::assamble_preOp()
 		MITK_INFO << "r_HipLength_contra: " << hipLength_contra;
 		MITK_INFO << "r_HipLengthDiff_preop_vs_contra: " << hipLengthDiff_preop_vs_contra;
 	}
+
+	if (m_Controls.radioButton_demoIntrop_2->isChecked())
+	{
+		reduction->SetCup(m_cup_l);
+		reduction->SetStem(m_stem_l);
+		reduction->PlanReduction(m_cupPlanMatrix,m_stemPlanMatrix);
+	}
+}
+
+void THAPlanning::screw()
+{
+	// auto screw1 = othopedics::Cup::New();
+	// screw1->m_Side = othopedics::ESide::left;
+	// auto dn_screw1 = GetDataStorage()->GetNamedNode("screw1");
+	// if (dn_screw1 != nullptr)
+	// {
+	// 	screw1->SetSurface(dynamic_cast<mitk::Surface*>(dn_screw1->GetData()));
+	// 	screw1->Init();
+	// 	auto gizmoNode = mitk::Gizmo::AddGizmoToNode(dn_screw1, GetDataStorage());
+	//
+	// 	mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+	// 	gizmo->SetAllowScaling(false);
+	// }
+	//
+	// auto screw2 = othopedics::Cup::New();
+	// screw2->m_Side = othopedics::ESide::left;
+	// auto dn_screw2 = GetDataStorage()->GetNamedNode("screw2");
+	// if (dn_screw2 != nullptr)
+	// {
+	// 	screw2->SetSurface(dynamic_cast<mitk::Surface*>(dn_screw2->GetData()));
+	// 	screw2->Init();
+	// 	auto gizmoNode = mitk::Gizmo::AddGizmoToNode(dn_screw2, GetDataStorage());
+	//
+	// 	mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+	// 	gizmo->SetAllowScaling(false);
+	// }
+	//
+	// auto screw3 = othopedics::Cup::New();
+	// screw3->m_Side = othopedics::ESide::left;
+	// auto dn_screw3 = GetDataStorage()->GetNamedNode("screw3");
+	// if (dn_screw3 != nullptr)
+	// {
+	// 	screw3->SetSurface(dynamic_cast<mitk::Surface*>(dn_screw3->GetData()));
+	// 	screw3->Init();
+	// 	auto gizmoNode = mitk::Gizmo::AddGizmoToNode(dn_screw3, GetDataStorage());
+	//
+	// 	mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+	// 	gizmo->SetAllowScaling(false);
+	// }
+	auto dn_screw1 = GetDataStorage()->GetNamedNode("screw1");
+	auto dn_screw2 = GetDataStorage()->GetNamedNode("screw2");
+	auto dn_screw3 = GetDataStorage()->GetNamedNode("screw3");
+	{
+		auto gizmoNode = mitk::Gizmo::AddGizmoToNode(dn_screw1, GetDataStorage());
+
+		mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+		gizmo->SetAllowScaling(false);
+	}
+
+	{
+		auto gizmoNode = mitk::Gizmo::AddGizmoToNode(dn_screw2, GetDataStorage());
+
+		mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+		gizmo->SetAllowScaling(false);
+	}
+
+	{
+		auto gizmoNode = mitk::Gizmo::AddGizmoToNode(dn_screw3, GetDataStorage());
+
+		mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+		gizmo->SetAllowScaling(false);
+	}
+	
 }
 
 
-// void THAPlanning::initCupR()
-// {
-// 	// auto gizmo = mitk::Gizmo::New();
-// 	// double o[3]{ 0,0,0 };
-// 	// double x[3]{ 1,0,0 };
-// 	// double y[3]{ 0,1,0 };
-// 	// double z[3]{ 0,0,1 };
-// 	// gizmo->SetCenter(o);
-// 	// gizmo->SetAxisX(x);
-// 	// gizmo->SetAxisY(y);
-// 	// gizmo->SetAxisY(y);
-// 	//
-// 	// auto gizmoNode = mitk::DataNode::New();
-// 	// gizmoNode->SetName("gizmoNode");
-//
-// 	// gizmo->AddGizmoToNode(gizmoNode, GetDataStorage());
-//
-// 	//GetDataStorage()->Add(gizmoNode);
-// 	m_cup_r = new othopedics::Cup;
-// 	m_cup_r->m_side = othopedics::ESide::right;
-// 	m_cup_r->calTransformImageToBody();
-// 	m_cup_r->convertToLocal();
-// 	Show(m_cup_r->m_T_world_local,"cupCoords");
-// }
-//
-// void THAPlanning::placeCupR()
-// {
-// 	double Inclination = 45.0;
-// 	double Anteversion = 10.0;
-// 	//
-// 	// Eigen::Vector3d o, x, y, z;
-// 	// o << 0, 0, 0;
-// 	// x << 1, 0, 0;
-// 	// y << 0, 1, 0;
-// 	// z << 0, 0, 1;
-// 	//
-// 	// Eigen::Isometry3d T;
-// 	// T.setIdentity();
-// 	// Eigen::AngleAxis rot(Inclination, y);
-// 	//
-// 	// T.rotate(rot);
-// 	// Eigen::Vector3d x_rot = T * x;
-// 	// Eigen::Vector3d z_rot = T * z;
-// 	//
-// 	// othopedics::AxisType x_r, z_r,z_r2;
-// 	// x_r.startPoint = o;
-// 	// x_r.direction = x_rot;
-// 	//
-// 	// z_r.startPoint = o;
-// 	// z_r.direction = z_rot;
-// 	// Show(x_r, "cup_x_rot");
-// 	// Show(z_r, "cup_z_rot");
-// 	//
-// 	//
-// 	// Eigen::AngleAxis rot2(Anteversion, -x_rot);
-// 	//
-// 	// T.prerotate(rot2);
-// 	//
-// 	// Eigen::Vector3d z_rot2 = T * z;
-// 	// z_r2.startPoint = o;
-// 	// z_r2.direction = z_rot2;
-// 	// Show(z_r2, "cup_z_rot2");
-//
-// 	//move cup surface and vis coords 
-// 	auto cupCoords = GetDataStorage()->GetNamedNode("cupCoords");
-// 	auto cup_54 = GetDataStorage()->GetNamedNode("Cup_54");
-//
-// 	//add gizmo
-// 	auto gizmoNode = mitk::Gizmo::AddGizmoToNode(cup_54, GetDataStorage());
-//
-// 	mitk::Gizmo::Pointer gizmo =dynamic_cast<mitk::Gizmo*>( gizmoNode->GetData());
-// 	gizmo->SetAllowScaling(false);
-//
-// 	// double o[3]{ 0,0,0 };
-// 	// gizmo->SetCenter(o);
-// 	//auto coords = GetDataStorage()->GetNamedNode("pelvisCoords");
-// 	// Eigen::Matrix4d T = CalApplyAIAngleMatrix(Eigen::Vector3d(0, 0, 0), Anteversion, Inclination, othopedics::ESide::left);
-// 	// vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
-// 	// EigenToVtkMatrix4x4(T, coord);
-// 	// double ref[3]{ 0, 0, 0 };
-// 	// mitk::Point3D refp{ ref };
-// 	// auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
-// 	// cupCoords->GetData()->GetGeometry()->ExecuteOperation(doOp);
-// 	// cup_54->GetData()->GetGeometry()->ExecuteOperation(doOp);
-// 	// delete doOp;
-//
-// 	
-// }
-//
-// void THAPlanning::calAIAngleR()
-// {
-// 	auto cup_54 = GetDataStorage()->GetNamedNode("Cup_54");
-// 	
-// 	auto T= vtkMatrix4x4ToEigen(cup_54->GetData()->GetGeometry()->GetVtkMatrix());
-// 	m_cup_r->SetWorldTransform(T);
-//
-// 	Show(m_cup_r->m_T_world_local, "cup_T_world_local");
-//
-//
-// 	// Eigen::Vector3d p1, p2;
-// 	// m_cup_r->GetGlobalLandMark(othopedics::ELandMarks::p_SS_A, p1);
-// 	// m_cup_r->GetGlobalLandMark(othopedics::ELandMarks::p_SS_P, p2);
-//
-// 	// Show(p1, "p1");
-// 	// Show(p2, "p2");
-//
-//
-// 	othopedics::AxisType aa;
-// 	// aa.startPoint = p1;
-// 	// aa.direction = (p2 - p1).normalized();
-//
-// 	Show(aa, "aa");
-//
-// 	if (m_cup_r->GetGlobalAxis(othopedics::EAxes::cup_Z, aa))
-// 	{
-// 		MITK_WARN << "z_axis start: " << aa.startPoint;
-// 		MITK_WARN << "z_axis direction: " << aa.direction;
-//
-// 		//Show(Z, "cup_Z");
-// 		double Anteversion, Inclination;
-// 		othopedics::AnteversionAndInclinationAngle(aa.direction.data(), Anteversion, Inclination);
-//
-// 		MITK_WARN << "Anteversion: " << Anteversion;
-// 		MITK_WARN << "Inclination: " << Inclination;
-// 	}
-// 	else
-// 	{
-// 		MITK_WARN << "no cup_Z";
-// 	}
-// 	// aa.direction = -aa.direction;
-// 	
-// 	//
-// 	
-// }
+void THAPlanning::initCupR()
+{
+	m_cup_l = othopedics::Cup::New();
+	m_cup_l->m_Side = othopedics::ESide::left;
+	auto cup_54 = GetDataStorage()->GetNamedNode("Cup_54");
+	if (cup_54 != nullptr)
+	{
+		m_cup_l->SetSurface(dynamic_cast<mitk::Surface*>(cup_54->GetData()));
+		m_cup_l->Init();
+		auto gizmoNode = mitk::Gizmo::AddGizmoToNode(cup_54, GetDataStorage());
+
+		mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+		gizmo->SetAllowScaling(false);
+	}
+}
+
+void THAPlanning::placeCupR()
+{
+	double Inclination = 40.0;
+	double Anteversion = 20.0;
+	//initial pose
+	if (m_cup_l==nullptr)
+	{
+		MITK_WARN << "placeCupR failed: m_cup_l==nullptr";
+		return;
+	}
+	m_cup_l->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
+
+	Eigen::Matrix4d trans = CalApplyAIAngleMatrix(Eigen::Vector3d(0, 0, 0), Anteversion, Inclination, othopedics::ESide::left);
+	//trans to hip center of rotation
+	if (m_pelvis == nullptr)
+	{
+		MITK_WARN << "placeCupR failed: m_pelvis == nullptr";
+		return;
+	}
+
+	Eigen::Vector3d COR;
+	m_pelvis->GetGlobalLandMark(othopedics::ELandMarks::p_FemurAssemblyPoint_L, COR);
+	trans.block<3, 1>(0, 3) += COR;
+	m_cup_l->SetIndexToWorldTransform(trans);
+}
+
+void THAPlanning::calAIAngleR()
+{
+	Show(m_cup_l->m_T_world_local, "cup_T_world_local");
+
+
+	// Eigen::Vector3d p1, p2;
+	// m_cup_r->GetGlobalLandMark(othopedics::ELandMarks::p_SS_A, p1);
+	// m_cup_r->GetGlobalLandMark(othopedics::ELandMarks::p_SS_P, p2);
+
+	// Show(p1, "p1");
+	// Show(p2, "p2");
+
+
+	othopedics::AxisType aa;
+	// aa.startPoint = p1;
+	// aa.direction = (p2 - p1).normalized();
+
+	if (m_cup_l->GetGlobalAxis(othopedics::EAxes::cup_Z, aa))
+	{
+		aa.direction = -aa.direction;
+		MITK_WARN << "z_axis start: " << aa.startPoint;
+		MITK_WARN << "z_axis direction: " << aa.direction;
+
+		Show(aa, "cup_Z");
+		double Anteversion, Inclination;
+		othopedics::CupAngle(aa.direction.data(), Anteversion, Inclination);
+
+		MITK_WARN << "Anteversion: " << Anteversion;
+		MITK_WARN << "Inclination: " << Inclination;
+	}
+	else
+	{
+		MITK_WARN << "no cup_Z";
+	}
+	// 
+	
+	//
+	
+}
+
+void THAPlanning::initStemL()
+{
+	m_stem_l = othopedics::Stem::New();
+	m_stem_l->m_Side = othopedics::ESide::left;
+
+	//hard code stem parameter
+	double m[3]{ 0,0,0 };
+	double p1[3]{ 23.26, 0.0, -23.26 };
+	double p2[3]{ 39.55,0.0 ,-39.55 };
+	double p3[3]{ 39.55,0.0 ,-158.75 };
+	m_stem_l->SetLandMark(othopedics::ELandMarks::stem_CutPoint, p1);
+	m_stem_l->SetLandMark(othopedics::ELandMarks::stem_CutPoint, p1);
+	m_stem_l->SetLandMark(othopedics::ELandMarks::stem_NeckCanalIntersectPoint, p2);
+	m_stem_l->SetLandMark(othopedics::ELandMarks::stem_EndPoint, p3);
+
+	//todo s m l head assembly point
+	m_stem_l->SetLandMark(othopedics::ELandMarks::stem_HeadAssemblyPoint_M, m);
+
+	auto stem = GetDataStorage()->GetNamedNode("Stem_4");
+	if (stem != nullptr)
+	{
+		m_stem_l->SetSurface(dynamic_cast<mitk::Surface*>(stem->GetData()));
+		m_stem_l->Init();
+		auto gizmoNode = mitk::Gizmo::AddGizmoToNode(stem, GetDataStorage());
+
+		mitk::Gizmo::Pointer gizmo = dynamic_cast<mitk::Gizmo*>(gizmoNode->GetData());
+		gizmo->SetAllowScaling(false);
+	}
+}
+
+void THAPlanning::showStemL()
+{
+	Show(m_stem_l->m_T_world_local, "stemCoords");
+
+	Eigen::Vector3d p1, p2, p3;
+	m_stem_l->GetGlobalLandMark(othopedics::ELandMarks::stem_CutPoint, p1);
+	m_stem_l->GetGlobalLandMark(othopedics::ELandMarks::stem_NeckCanalIntersectPoint, p2);
+	m_stem_l->GetGlobalLandMark(othopedics::ELandMarks::stem_EndPoint, p3);
+
+	Show(p1, "stem_CutPoint");
+	Show(p2, "stem_NeckCanalIntersectPoint");
+	Show(p3, "stem_EndPoint");
+}
+
+void THAPlanning::placeStemL()
+{
+	//initial pose
+	if (m_stem_l == nullptr)
+	{
+		MITK_WARN << "placeStemL failed: m_stem_l==nullptr";
+		return;
+	}
+	m_stem_l->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
+
+	if (m_femur_l == nullptr)
+	{
+		MITK_WARN << "placeStemL failed: m_femur_l == nullptr";
+		return;
+	}
+
+	Eigen::Vector3d femurP,StemP;
+	if (!m_femur_l->GetGlobalLandMark(othopedics::ELandMarks::f_NeckCanalIntersectPoint, femurP)
+		|| !m_stem_l->GetGlobalLandMark(othopedics::ELandMarks::stem_NeckCanalIntersectPoint, StemP))
+	{
+		MITK_WARN << "placeStemL failed: missing landmark";
+		return;
+	}
+
+	Eigen::Vector3d t = femurP - StemP;
+
+	Eigen::Matrix4d trans;
+	trans.setIdentity();
+	trans.block<3, 1>(0, 3) = t;
+
+	m_stem_l->SetIndexToWorldTransform(trans);
+}
+
+void THAPlanning::calStemL()
+{
+}
+
+void THAPlanning::savePlan()
+{
+	//save cupPlanMatrix
+	Eigen::Matrix4d Tworld2pelvis = m_pelvis->m_T_world_local;
+	Eigen::Matrix4d Tworld2cup = m_cup_l->m_T_world_local;
+	Eigen::Matrix4d Tpelvis2cup = Tworld2pelvis.inverse() * Tworld2cup;
+	m_cupPlanMatrix = Tpelvis2cup;
+
+	//save femurPlanMatrix
+	Eigen::Matrix4d Tworld2femurl = m_femur_l->m_T_world_local;
+	Eigen::Matrix4d Tworld2steml = m_stem_l->m_T_world_local;
+	Eigen::Matrix4d Tfemurl2steml = Tworld2femurl.inverse() * Tworld2steml;
+	m_stemPlanMatrix = Tfemurl2steml;
+}
 
 bool THAPlanning::getPoint(std::string name, mitk::PointSet::PointType* point, unsigned index)
 {
