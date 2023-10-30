@@ -144,6 +144,9 @@ protected:
   void on_pushButton_testCrosshair_clicked();
 
   void horizontalSlider_testCrosshair_value_changed();
+
+  void on_pushButton_testCPR_clicked();
+
 };
 
 #endif // MoveData_h
