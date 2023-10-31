@@ -28,6 +28,8 @@ found in the LICENSE file.
 #include <vtkCardinalSpline.h>
 #include <vtkSplineFilter.h>
 #include <vtkProbeFilter.h>
+#include <vtkImageSlabReslice.h>
+#include <vtkImageAppend.h>
 
 #include "mitkSurfaceToImageFilter.h"
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
@@ -605,65 +607,37 @@ void MoveData::RotateMinusY()
 }
 void MoveData::RotateMinusZ()
 {
-	// if (m_baseDataToMove == nullptr)
-	// {
-	// 	m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
-	// 	return;
-	// }
-	//
-	// double direction[3]{ 0,0,1 };
-	// double angle = - m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
-	// mitk::Point<double, 3>::ValueType* center = m_currentSelectedNode->GetData()->GetGeometry()->GetCenter().GetDataPointer();
-	//
-	// QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
-	//
-	// int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
-	// int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
-	//
-	// for (int i = 0; i < (parentRowCount + 1); i++)
-	// {
-	// 	if (i == parentRowCount)
-	// 	{
-	// 		m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
-	//
-	// 	}
-	// 	else
-	// 	{
-	// 		QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
-	// 		m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
-	// 	}
-	//
-	// 	Rotate(center, direction, angle, m_baseDataToMove);
-	// }
-
-	QTimer* tm =new QTimer;
-	connect(tm, &QTimer::timeout, this, [=]()
+	if (m_baseDataToMove == nullptr)
 	{
-			double direction[3]{ 1,0,0 };
+		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
+		return;
+	}
+	
+	double direction[3]{ 0,0,1 };
+	double angle = - m_Controls.lineEdit_intuitiveValue_1->text().toDouble();
+	mitk::Point<double, 3>::ValueType* center = m_currentSelectedNode->GetData()->GetGeometry()->GetCenter().GetDataPointer();
+	
+	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
+	
+	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
+	int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
+	
+	for (int i = 0; i < (parentRowCount + 1); i++)
+	{
+		if (i == parentRowCount)
+		{
+			m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
+	
+		}
+		else
+		{
+			QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
+			m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
+		}
+	
+		Rotate(center, direction, angle, m_baseDataToMove);
+	}
 
-			QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
-
-			int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
-			int parentColumnCount = m_NodetreeModel->columnCount(parentIndex);
-
-			for (int i = 0; i < (parentRowCount + 1); i++)
-			{
-				if (i == parentRowCount)
-				{
-					m_baseDataToMove = m_NodetreeModel->GetNode(parentIndex)->GetData();
-
-				}
-				else
-				{
-					QModelIndex tmpIndex = m_NodetreeModel->index(i, 0, parentIndex);
-					m_baseDataToMove = m_NodetreeModel->GetNode(tmpIndex)->GetData();
-				}
-
-				Translate(direction, m_Controls.lineEdit_intuitiveValue_1->text().toDouble(), m_baseDataToMove);
-			}
-
-	});
-	tm->start(200);
 }
 
 void MoveData::OverwriteOffsetMatrix()
@@ -2251,6 +2225,200 @@ vtkSmartPointer<vtkPolyData> SweepLine(vtkPolyData* line, double direction[3],
 	return surface;
 }
 
+vtkSmartPointer<vtkPolyData> ExpandSpline(vtkPolyData* line, int divisionNum,
+	double stepSize)
+{
+
+	vtkNew<vtkPoints> points;
+	for (int i{ 0 }; i < line->GetNumberOfPoints(); i++)
+	{
+		Eigen::Vector3d currentPoint;
+		currentPoint[0] = line->GetPoint(i)[0];
+		currentPoint[1] = line->GetPoint(i)[1];
+		currentPoint[2] = line->GetPoint(i)[2];
+
+		Eigen::Vector3d z_axis;
+		z_axis[0] = 0;
+		z_axis[1] = 0;
+		z_axis[2] = 1;
+
+		Eigen::Vector3d ptpVector;
+
+		if (i == (line->GetNumberOfPoints() - 1))
+		{
+			ptpVector[0] = -line->GetPoint(i-1)[0] + currentPoint[0];
+			ptpVector[1] = -line->GetPoint(i-1)[1] + currentPoint[1];
+			ptpVector[2] = -line->GetPoint(i-1)[2] + currentPoint[2];
+		}else
+		{
+			ptpVector[0] = line->GetPoint(i + 1)[0] - currentPoint[0];
+			ptpVector[1] = line->GetPoint(i + 1)[1] - currentPoint[1];
+			ptpVector[2] = line->GetPoint(i + 1)[2] - currentPoint[2];
+		}
+
+		Eigen::Vector3d tmpVector;
+
+		tmpVector = z_axis.cross(ptpVector);
+
+		tmpVector.normalize();
+
+		points->InsertNextPoint(currentPoint[0] + tmpVector[0] * stepSize,
+			currentPoint[1] + tmpVector[1] * stepSize, 
+			currentPoint[2] + tmpVector[2] * stepSize);
+
+	}
+
+	// vtkCellArrays
+	vtkNew<vtkCellArray> lines;
+	lines->InsertNextCell(points->GetNumberOfPoints());
+	for (unsigned int i = 0; i < points->GetNumberOfPoints(); ++i)
+	{
+		lines->InsertCellPoint(i);
+	}
+
+	// vtkPolyData
+	auto polyData = vtkSmartPointer<vtkPolyData>::New();
+	polyData->SetPoints(points);
+	polyData->SetLines(lines);
+
+	auto spline = vtkCardinalSpline::New();
+	spline->SetLeftConstraint(2);
+	spline->SetLeftValue(0.0);
+	spline->SetRightConstraint(2);
+	spline->SetRightValue(0.0);
+
+	vtkNew<vtkSplineFilter> splineFilter;
+	splineFilter->SetInputData(polyData);
+	splineFilter->SetSubdivideToSpecified();
+	splineFilter->SetNumberOfSubdivisions(divisionNum);
+	splineFilter->SetSpline(spline);
+	splineFilter->Update();
+
+	auto spline_PolyData = splineFilter->GetOutput();
+
+	return spline_PolyData;
+}
+
+// void MoveData::on_pushButton_testCPR_clicked()
+// {
+// 	if (GetDataStorage()->GetNamedNode("Dental curve") == nullptr)
+// 	{
+// 		m_Controls.textBrowser_moveData->append("Dental curve missing");
+// 		return;
+// 	}
+//
+// 	auto mitkPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("Dental curve");
+//
+// 	vtkNew<vtkPoints> points;
+// 	for (int i{ 0 }; i < mitkPset->GetSize(); i++)
+// 	{
+// 		auto mitkPoint = mitkPset->GetPoint(i);
+// 		points->InsertNextPoint(mitkPoint[0], mitkPoint[1], mitkPoint[2]);
+// 	}
+//
+// 	// vtkCellArrays
+// 	vtkNew<vtkCellArray> lines;
+// 	lines->InsertNextCell(mitkPset->GetSize());
+// 	for (unsigned int i = 0; i < mitkPset->GetSize(); ++i)
+// 	{
+// 		lines->InsertCellPoint(i);
+// 	}
+//
+// 	// vtkPolyData
+// 	auto polyData = vtkSmartPointer<vtkPolyData>::New();
+// 	polyData->SetPoints(points);
+// 	polyData->SetLines(lines);
+//
+//
+// 	auto spline = vtkCardinalSpline::New();
+// 	spline->SetLeftConstraint(2);
+// 	spline->SetLeftValue(0.0);
+// 	spline->SetRightConstraint(2);
+// 	spline->SetRightValue(0.0);
+//
+// 	double segLength{ 0.3 };
+//
+// 	vtkNew<vtkSplineFilter> splineFilter;
+// 	splineFilter->SetInputData(polyData);
+// 	splineFilter->SetLength(segLength);
+// 	splineFilter->SetSubdivideToLength();
+// 	splineFilter->SetSpline(spline);
+// 	splineFilter->Update();
+// 	
+// 	auto spline_PolyData = splineFilter->GetOutput();
+//
+// 	auto expandedSpline = ExpandSpline(spline_PolyData, spline_PolyData->GetNumberOfPoints()-1, 3);
+//
+// 	auto mitkSurface = mitk::Surface::New();
+// 	mitkSurface->SetVtkPolyData(expandedSpline);
+//
+// 	auto mitkNode = mitk::DataNode::New();
+//
+// 	mitkNode->SetData(mitkSurface);
+// 	mitkNode->SetName("test Expand");
+// 	GetDataStorage()->Add(mitkNode);
+//
+// 	// Sweep the line to form a surface.
+// 	double direction[3];
+// 	direction[0] = 0.0;
+// 	direction[1] = 0.0;
+// 	direction[2] = 1.0;
+// 	unsigned cols = 400;
+//
+// 	double distance = cols * segLength;
+// 	auto surface =
+// 		SweepLine(spline_PolyData, direction, distance, cols);
+//
+// 	auto tmpSurface = mitk::Surface::New();
+// 	tmpSurface->SetVtkPolyData(surface);
+// 	
+// 	auto tmpNode1 = mitk::DataNode::New();
+// 	tmpNode1->SetData(tmpSurface);
+// 	tmpNode1->SetName("probeSurface");
+// 	GetDataStorage()->Add(tmpNode1);
+//
+//
+// 	// Probe the volume with the extruded surface.
+//
+// 	auto vtkImage = GetDataStorage()->GetNamedObject<mitk::Image>("Image")->GetVtkImageData();
+// 	
+// 	vtkNew<vtkProbeFilter> sampleVolume;
+// 	sampleVolume->SetSourceData(vtkImage);
+// 	sampleVolume->SetInputData(surface);
+// 	
+// 	sampleVolume->Update();
+//
+// 	auto probeData = sampleVolume->GetOutput();
+//
+// 	auto probePointData = probeData->GetPointData();
+//
+// 	auto tmpArray = probePointData->GetScalars();
+// 	
+// 	auto testimageData = vtkImageData::New();
+// 	testimageData->SetDimensions(cols+1, spline_PolyData->GetNumberOfPoints(), 1);
+//
+// 	testimageData->SetSpacing(segLength, segLength, 1);
+// 	testimageData->SetOrigin(0,0,0);
+// 	testimageData->AllocateScalars(VTK_INT, 1);
+// 	testimageData->GetPointData()->SetScalars(tmpArray);
+//
+// 	auto tmpImage = mitk::Image::New();
+//
+// 	if (testimageData == nullptr)
+// 	{
+// 		m_Controls.textBrowser_moveData->append("no imageData");
+// 		return;
+// 	}
+//
+// 	tmpImage->Initialize(testimageData);
+// 	tmpImage->SetVolume(testimageData->GetScalarPointer());
+//
+// 	auto tmpNode = mitk::DataNode::New();
+// 	tmpNode->SetData(tmpImage);
+// 	tmpNode->SetName("Oral Panorama");
+// 	
+// 	GetDataStorage()->Add(tmpNode);
+// }
 
 void MoveData::on_pushButton_testCPR_clicked()
 {
@@ -2289,19 +2457,86 @@ void MoveData::on_pushButton_testCPR_clicked()
 	spline->SetRightConstraint(2);
 	spline->SetRightValue(0.0);
 
+	double segLength{ 0.3 };
+
 	vtkNew<vtkSplineFilter> splineFilter;
 	splineFilter->SetInputData(polyData);
-	splineFilter->SetNumberOfSubdivisions(polyData->GetNumberOfPoints() * 10);
-	splineFilter->SetSubdivideToSpecified();
-	// splineFilter->SetLength(0.3);
+	splineFilter->SetLength(segLength);
+	splineFilter->SetSubdivideToLength();
 	splineFilter->SetSpline(spline);
 	splineFilter->Update();
-
-	m_Controls.textBrowser_moveData->append("polyData->GetNumberOfPoints() Point num: " + QString::number(polyData->GetNumberOfPoints()));
-
+	
 	auto spline_PolyData = splineFilter->GetOutput();
 
-	m_Controls.textBrowser_moveData->append("spline_PolyData Point num: " + QString::number(spline_PolyData->GetNumberOfPoints()));
+
+	vtkSmartPointer<vtkImageAppend> append = vtkSmartPointer<vtkImageAppend >::New();
+
+	append->SetAppendAxis(2);
+
+	int thickness{ 20 };
+
+	auto vtkImage = GetDataStorage()->GetNamedObject<mitk::Image>("Image")->GetVtkImageData();
+
+	for (int i{0}; i < 2* thickness; i++)
+	{
+		double stepSize = segLength * (-thickness + i);
+
+		auto expandedSpline = ExpandSpline(spline_PolyData, spline_PolyData->GetNumberOfPoints() - 1, stepSize);
+		
+		// Sweep the line to form a surface.
+		double direction[3];
+		direction[0] = 0.0;
+		direction[1] = 0.0;
+		direction[2] = 1.0;
+		unsigned cols = 300;
+
+		double distance = cols * segLength;
+		auto surface =
+			SweepLine(expandedSpline, direction, distance, cols);
+
+		vtkNew<vtkProbeFilter> sampleVolume;
+		sampleVolume->SetSourceData(vtkImage);
+		sampleVolume->SetInputData(surface);
+
+		sampleVolume->Update();
+
+		auto probeData = sampleVolume->GetOutput();
+
+		auto probePointData = probeData->GetPointData();
+
+		auto tmpArray = probePointData->GetScalars();
+
+		auto testimageData = vtkImageData::New();
+		testimageData->SetDimensions(cols + 1, spline_PolyData->GetNumberOfPoints(), 1);
+
+		testimageData->SetSpacing(segLength, segLength, 1);
+		testimageData->SetOrigin(0, 0, 0);
+		testimageData->AllocateScalars(VTK_INT, 1);
+		testimageData->GetPointData()->SetScalars(tmpArray);
+
+		// auto tmpImage = vtkImageData::New();
+		// tmpImage->DeepCopy(testimageData);
+
+		append->AddInputData(testimageData);
+		
+	}
+
+	append->Update();
+	auto appenedImage = append->GetOutput();
+	appenedImage->SetSpacing(segLength, segLength, segLength);
+
+	auto mitkAppendedImage = mitk::Image::New();
+
+	mitkAppendedImage->Initialize(appenedImage);
+	mitkAppendedImage->SetVolume(appenedImage->GetScalarPointer());
+
+	auto tmpNode_ = mitk::DataNode::New();
+	tmpNode_->SetData(mitkAppendedImage);
+	tmpNode_->SetName("Appended Image");
+
+	GetDataStorage()->Add(tmpNode_);
+
+	// auto expandedSpline = ExpandSpline(spline_PolyData, spline_PolyData->GetNumberOfPoints()-1, 3);
 
 
 	// Sweep the line to form a surface.
@@ -2309,22 +2544,23 @@ void MoveData::on_pushButton_testCPR_clicked()
 	direction[0] = 0.0;
 	direction[1] = 0.0;
 	direction[2] = 1.0;
-	double distance = 20;
+	unsigned cols = 300;
+
+	double distance = cols * segLength;
 	auto surface =
-		SweepLine(spline_PolyData, direction, distance, 100);
+		SweepLine(spline_PolyData, direction, distance, cols);
 
 	auto tmpSurface = mitk::Surface::New();
 	tmpSurface->SetVtkPolyData(surface);
 	
 	auto tmpNode1 = mitk::DataNode::New();
 	tmpNode1->SetData(tmpSurface);
-	tmpNode1->SetName("sweep");
+	tmpNode1->SetName("probeSurface");
 	GetDataStorage()->Add(tmpNode1);
 
 
 	// Probe the volume with the extruded surface.
 
-	auto vtkImage = GetDataStorage()->GetNamedObject<mitk::Image>("Image")->GetVtkImageData();
 	
 	vtkNew<vtkProbeFilter> sampleVolume;
 	sampleVolume->SetSourceData(vtkImage);
@@ -2332,56 +2568,20 @@ void MoveData::on_pushButton_testCPR_clicked()
 	
 	sampleVolume->Update();
 
-	auto outputData = sampleVolume->GetOutput();
+	auto probeData = sampleVolume->GetOutput();
 
-	auto pointData = outputData->GetPointData();
+	auto probePointData = probeData->GetPointData();
 
-	auto tmpArray = pointData->GetScalars();
-
+	auto tmpArray = probePointData->GetScalars();
 	
-
-	for(int i{0}; i< 10201; i++)
-	{
-		double n;
-		n = tmpArray->GetTuple1(i);
-		if (abs(n) >0.001)
-		{
-			cout << "printing voxel values: " << n << endl;
-		}
-	}
-
-	int tmpSize = tmpArray->GetSize();
-
 	auto testimageData = vtkImageData::New();
-	testimageData->SetDimensions(101, 101, 1);
-	//testimageData->SetScalarType("Int");
-	testimageData->SetSpacing(1, 1, 1);
+	testimageData->SetDimensions(cols+1, spline_PolyData->GetNumberOfPoints(), 1);
+
+	testimageData->SetSpacing(segLength, segLength, 1);
 	testimageData->SetOrigin(0,0,0);
 	testimageData->AllocateScalars(VTK_INT, 1);
+	testimageData->GetPointData()->SetScalars(tmpArray);
 
-
-	//testimageData->Initialize();
-	testimageData->GetPointData()->SetScalars(pointData->GetScalars());
-
-	// for (int i{ 0 }; i < 101; i++)
-	// {
-	// 	for (int j{ 0 }; j < 101; j++)
-	// 	{
-	// 		int* n = static_cast<int*>(vtkImage->GetScalarPointer(i, j, 0));
-	// 		cout << "printing voxel values: " << n[0] << endl;
-	// 	}
-	// }
-
-	int outputPointNum = outputData->GetNumberOfPoints();
-	int outputCellNum = outputData->GetNumberOfCells();
-
-	m_Controls.textBrowser_moveData->append("Point num: " + QString::number(outputPointNum));
-	m_Controls.textBrowser_moveData->append("Cell num: " + QString::number(outputCellNum));
-	m_Controls.textBrowser_moveData->append("Array size: " + QString::number(tmpSize));
-	m_Controls.textBrowser_moveData->append("Array size: " + QString::number(testimageData->GetPointData()->GetScalars()->GetSize()));
-
-	vtkImageData* imageData = vtkImageData::SafeDownCast(outputData);
-	
 	auto tmpImage = mitk::Image::New();
 
 	if (testimageData == nullptr)
@@ -2395,7 +2595,7 @@ void MoveData::on_pushButton_testCPR_clicked()
 
 	auto tmpNode = mitk::DataNode::New();
 	tmpNode->SetData(tmpImage);
-	tmpNode->SetName("image_");
+	tmpNode->SetName("Oral Panorama");
 	
 	GetDataStorage()->Add(tmpNode);
 }
