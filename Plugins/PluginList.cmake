@@ -1,7 +1,7 @@
 set(MITK_PLUGINS
   org.mitk.exampleplugin.eageractivation:ON
   org.mitk.gui.qt.exampleplugin:ON
-  org.mitk.virtualcorrection:ON
+  org.mitk.virtualcorrection:OFF
   org.mitk.lancet.spinectregistration:ON
   org.mitk.lancet.movedata:ON
   org.mitk.lancet.spinecarmregistration:ON
@@ -16,4 +16,5 @@ set(MITK_PLUGINS
   org.mitk.lancet.kukarobotcontrol:ON
   org.mitk.lancet.hipplanning:ON
   org.mitk.lancet.cameratest:ON
+  org.mitk.orthopedics.thaplan:ON
 )

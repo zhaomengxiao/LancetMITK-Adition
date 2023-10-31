@@ -137,7 +137,7 @@ namespace othopedics
 
 		
 
-		virtual void Init();
+		virtual bool Init();
 		void SetIndexToWorldTransform(Eigen::Matrix4d T);
 		/**
 		 * \brief Sets the position of a particular landmark in three-dimensional space.
@@ -193,6 +193,19 @@ namespace othopedics
 		unsigned long m_FollowerTag{};
 	};
 
+	// class Bone:public Body
+	// {
+	// public:
+	// public:
+	// 	mitkClassMacro(Bone, Body);
+	// 	itkNewMacro(Bone);
+	//
+	// 	bool Init() override;
+	//
+	// protected:
+	//
+	// 	virtual  void InitLocalFrame() =0;
+	// };
 
   class MITKORTHOPEDICS_EXPORT Pelvis:public Body
   {
@@ -200,12 +213,12 @@ namespace othopedics
 		mitkClassMacro(Pelvis, Body);
 		itkNewMacro(Pelvis);
 
-		void Init() override;
+		bool Init() override;
 
   private:
 		//static Eigen::Matrix4d calPelvisLocalFrame(Eigen::Vector3d& ASIS_L, Eigen::Vector3d& ASIS_R, Eigen::Vector3d& MidLine);
 
-		void InitPelvisLocalFrame();
+		bool InitPelvisLocalFrame();
   };
 
 	class MITKORTHOPEDICS_EXPORT Femur :public Body
@@ -216,11 +229,11 @@ namespace othopedics
 
 		ESide m_Side{ ESide::right };
 
-		void Init() override;
+		bool Init() override;
 
 	private:
-		void InitFemurLocalFrame();
-		void InitFemurLocalFrame_Mechanical();
+		bool InitFemurLocalFrame();
+		bool InitFemurLocalFrame_Mechanical();
 	};
 
 	class MITKORTHOPEDICS_EXPORT Cup :public Body
@@ -231,7 +244,7 @@ namespace othopedics
 
 		ESide m_Side{ ESide::right };
 
-		void Init() override;
+		bool Init() override;
 
 	private:
 		void InitCupLocalFrame();
@@ -245,7 +258,7 @@ namespace othopedics
 
 		ESide m_Side{ ESide::right };
 
-		void Init() override;
+		bool Init() override;
 
 	private:
 		void InitStemLocalFrame();

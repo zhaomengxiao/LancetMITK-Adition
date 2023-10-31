@@ -1,0 +1,5 @@
+set(Plugin-Name "Thaplan")
+set(Plugin-Version "0.1")
+set(Plugin-Vendor "Zhao Youjun")
+set(Plugin-ContactAddress "zhaoyouj@outlook.com")
+set(Require-Plugin org.mitk.gui.qt.common)

@@ -20,6 +20,42 @@ bool Reduction::GetResult(EResult name, double& outp_res)
 	return false;
 }
 
+void Reduction::FemurPreopReduction_Canal(Pelvis::Pointer pelvis, Femur::Pointer femur)
+{
+	femur->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
+	Eigen::Vector3d hipCOR, FHC;
+	if (femur->m_Side == ESide::left)
+	{
+		if (!pelvis->GetGlobalLandMark(ELandMarks::p_FemurAssemblyPoint_L, hipCOR))
+		{
+			MITK_WARN << "PreOperativeReduction_Canal Failed: missing p_FemurAssemblyPoint_L";
+			return;
+		}
+	}
+	else
+	{
+		if (!pelvis->GetGlobalLandMark(ELandMarks::p_FemurAssemblyPoint_R, hipCOR))
+		{
+			MITK_WARN << "PreOperativeReduction_Canal Failed: missing p_FemurAssemblyPoint_R";
+			return;
+		}
+	}
+
+	if (!femur->GetGlobalLandMark(ELandMarks::f_FHC, FHC))
+	{
+		MITK_WARN << "PreOperativeReduction_Canal Failed: missing f_FHC";
+		return;
+	}
+
+	Eigen::Vector3d t = hipCOR - FHC;
+
+	Eigen::Matrix4d trans;
+	trans.setIdentity();
+	trans.block<3, 1>(0, 3) = t;
+	//MITK_INFO << trans;
+	femur->SetIndexToWorldTransform(trans);
+}
+
 void Reduction::PreOperativeReduction_Canal()
 {
 	if (m_Pelvis == nullptr|| m_Femur_R == nullptr|| m_Femur_L == nullptr)
@@ -29,44 +65,10 @@ void Reduction::PreOperativeReduction_Canal()
 	}
 	//correction and move to origin
 	m_Pelvis->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
-	m_Femur_R->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
-	m_Femur_L->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
-
-	//move femur center to hip center
 	//L
-	Eigen::Vector3d hipCenterL, femurLHipCenter;
-	if (!m_Pelvis->GetGlobalLandMark(ELandMarks::p_FemurAssemblyPoint_L, hipCenterL)
-		|| !m_Femur_L->GetGlobalLandMark(ELandMarks::f_FHC, femurLHipCenter))
-	{
-		MITK_WARN << "PreOperativeReduction_Canal Failed: missing landmarks";
-		return;
-	}
-	
-	Eigen::Vector3d t = hipCenterL - femurLHipCenter;
-	
-	Eigen::Matrix4d trans;
-	trans.setIdentity();
-	trans.block<3, 1>(0, 3) = t;
-	//MITK_INFO << trans;
-	m_Femur_L->SetIndexToWorldTransform(trans);
-	
-	//move femur center to hip center
+	FemurPreopReduction_Canal(m_Pelvis, m_Femur_L);
 	//R
-	Eigen::Vector3d hipCenterR, FHC_R;
-	if (!m_Pelvis->GetGlobalLandMark(ELandMarks::p_FemurAssemblyPoint_R, hipCenterR)
-		|| !m_Femur_R->GetGlobalLandMark(ELandMarks::f_FHC, FHC_R))
-	{
-		MITK_WARN << "PreOperativeReduction_Canal Failed: missing landmarks";
-		return;
-	}
-	
-	Eigen::Vector3d t2 = hipCenterR - FHC_R;
-	
-	Eigen::Matrix4d trans2;
-	trans2.setIdentity();
-	trans2.block<3, 1>(0, 3) = t2;
-	//MITK_INFO << trans2;
-	m_Femur_R->SetIndexToWorldTransform(trans2);
+	FemurPreopReduction_Canal(m_Pelvis, m_Femur_R);
 }
 
 void Reduction::PreOperativeReduction_Mechanical()
@@ -213,7 +215,7 @@ void Reduction::CalPreopHipLength()
 	}
 }
 
-void Reduction::PlanReduction(Eigen::Matrix4d cupPlanMatrix,Eigen::Matrix4d stemPlanMatrix)
+void Reduction::PlanReduction_Canal(Eigen::Matrix4d cupPlanMatrix,Eigen::Matrix4d stemPlanMatrix)
 {
 	if (m_Pelvis == nullptr || m_Femur_R == nullptr || m_Femur_L == nullptr || m_Cup == nullptr || m_Stem == nullptr)
 	{
@@ -250,53 +252,127 @@ void Reduction::PlanReduction(Eigen::Matrix4d cupPlanMatrix,Eigen::Matrix4d stem
 	
 	m_Stem->SetIndexToWorldTransform(stemTrans);
 
-	//move femur to stem
+	Femur::Pointer femur_operation;
+	Femur::Pointer femur_nonOp;
+	Eigen::Vector3d hipCenter_nonOp;
 	if (m_OperationSide == ESide::left)
 	{
-		//left femur
-		Eigen::Matrix4d femurTrans_L = stemTrans * (stemPlanMatrix.inverse());
-		m_Femur_L->SetIndexToWorldTransform(femurTrans_L);
+		femur_operation = m_Femur_L;
+		femur_nonOp = m_Femur_R;
 
-		//move right femur center to hip center
-		Eigen::Vector3d hipCenterR, FHC_R;
-		if (!m_Pelvis->GetGlobalLandMark(ELandMarks::p_FemurAssemblyPoint_R, hipCenterR)
-			|| !m_Femur_R->GetGlobalLandMark(ELandMarks::f_FHC, FHC_R))
+		if (!m_Pelvis->GetGlobalLandMark(ELandMarks::p_FemurAssemblyPoint_R, hipCenter_nonOp))
 		{
-			MITK_WARN << "PreOperativeReduction_Canal Failed: missing landmarks";
+			MITK_WARN << "PreOperativeReduction_Canal Failed: missing p_FemurAssemblyPoint_R";
 			return;
 		}
-
-		Eigen::Vector3d t_femur_r = hipCenterR - FHC_R;
-
-		Eigen::Matrix4d femurTrans_R;
-		femurTrans_R.setIdentity();
-		femurTrans_R.block<3, 1>(0, 3) = t_femur_r;
-		//MITK_INFO << trans2;
-		m_Femur_R->SetIndexToWorldTransform(femurTrans_R);
-
 	}
 	else
 	{
-		//right femur
-		Eigen::Matrix4d femurTrans_R = stemTrans * (stemPlanMatrix.inverse());
-		m_Femur_R->SetIndexToWorldTransform(femurTrans_R);
+		femur_operation = m_Femur_R;
+		femur_nonOp = m_Femur_L;
 
-		//move right femur center to hip center
-		Eigen::Vector3d hipCenterL, FHC_L;
-		if (!m_Pelvis->GetGlobalLandMark(ELandMarks::p_FemurAssemblyPoint_L, hipCenterL)
-			|| !m_Femur_L->GetGlobalLandMark(ELandMarks::f_FHC, FHC_L))
+		if (!m_Pelvis->GetGlobalLandMark(ELandMarks::p_FemurAssemblyPoint_L, hipCenter_nonOp))
 		{
-			MITK_WARN << "PreOperativeReduction_Canal Failed: missing landmarks";
+			MITK_WARN << "PreOperativeReduction_Canal Failed: missing p_FemurAssemblyPoint_L";
 			return;
 		}
-
-		Eigen::Vector3d t_femur_l = hipCenterL - FHC_L;
-
-		Eigen::Matrix4d femurTrans_L;
-		femurTrans_L.setIdentity();
-		femurTrans_L.block<3, 1>(0, 3) = t_femur_l;
-		//MITK_INFO << trans2;
-		m_Femur_R->SetIndexToWorldTransform(femurTrans_L);
 	}
 
+	//femur_operation move to stem
+	Eigen::Matrix4d femurTrans_op = stemTrans * (stemPlanMatrix.inverse());
+	femur_operation->SetIndexToWorldTransform(femurTrans_op);
+
+	FemurPreopReduction_Canal(m_Pelvis, femur_nonOp);
+}
+
+void Reduction::PlanReduction_Mechanical(Eigen::Matrix4d cupPlanMatrix, Eigen::Matrix4d stemPlanMatrix)
+{
+	if (m_Pelvis == nullptr || m_Femur_R == nullptr || m_Femur_L == nullptr || m_Cup == nullptr || m_Stem == nullptr)
+	{
+		MITK_WARN << "PlanReduction_Canal Failed: missing bodies";
+		return;
+	}
+
+	//init pose
+	m_Pelvis->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
+	m_Cup->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
+	m_Stem->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
+	m_Femur_L->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
+	m_Femur_R->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
+
+	Eigen::Matrix4d pelvisTrans = Eigen::Matrix4d::Identity();
+	m_Pelvis->SetIndexToWorldTransform(pelvisTrans);
+
+	Eigen::Matrix4d cupTrans = pelvisTrans * cupPlanMatrix;
+	m_Cup->SetIndexToWorldTransform(cupTrans);
+
+	//move stem center to cup center
+	//R
+	Eigen::Vector3d cupCOR, headAssemblyPoint;
+	if (!m_Cup->GetGlobalLandMark(ELandMarks::cup_COR, cupCOR)
+		|| !m_Stem->GetGlobalLandMark(ELandMarks::stem_HeadAssemblyPoint_M, headAssemblyPoint))
+	{
+		MITK_WARN << "PreOperativeReduction_Canal Failed: missing landmarks";
+		return;
+	}
+	Eigen::Matrix4d stemTrans;
+	stemTrans.setIdentity();
+	Eigen::Vector3d t = cupCOR - headAssemblyPoint;
+	stemTrans.block<3, 1>(0, 3) = t;
+
+	m_Stem->SetIndexToWorldTransform(stemTrans);
+
+	Femur::Pointer femur_operation;
+	Femur::Pointer femur_nonOp;
+	Eigen::Vector3d hipCenter_nonOp;
+	if (m_OperationSide == ESide::left)
+	{
+		femur_operation = m_Femur_L;
+		femur_nonOp = m_Femur_R;
+
+		if (!m_Pelvis->GetGlobalLandMark(ELandMarks::p_FemurAssemblyPoint_R, hipCenter_nonOp))
+		{
+			MITK_WARN << "PreOperativeReduction_Canal Failed: missing p_FemurAssemblyPoint_R";
+			return;
+		}
+	}
+	else
+	{
+		femur_operation = m_Femur_R;
+		femur_nonOp = m_Femur_L;
+
+		if (!m_Pelvis->GetGlobalLandMark(ELandMarks::p_FemurAssemblyPoint_L, hipCenter_nonOp))
+		{
+			MITK_WARN << "PreOperativeReduction_Canal Failed: missing p_FemurAssemblyPoint_L";
+			return;
+		}
+	}
+
+	//femur_operation move to stem
+	Eigen::Matrix4d femurTrans_op = stemTrans * (stemPlanMatrix.inverse());
+	femur_operation->SetIndexToWorldTransform(femurTrans_op);
+
+	//femur_nonOp move to pelvis COR
+	Eigen::Vector3d  FHC;
+	if (!femur_nonOp->GetGlobalLandMark(ELandMarks::f_FHC, FHC))
+	{
+		MITK_WARN << "PreOperativeReduction_Canal Failed: missing f_FHC";
+		return;
+	}
+
+	Eigen::Vector3d t_femur_nonOp = hipCenter_nonOp - FHC;
+
+	Eigen::Matrix4d femurTrans_nonOp;
+	femurTrans_nonOp.setIdentity();
+	femurTrans_nonOp.block<3, 1>(0, 3) = t_femur_nonOp;
+	//MITK_INFO << trans2;
+	femur_nonOp->SetIndexToWorldTransform(femurTrans_nonOp);
+}
+
+void Reduction::CalPlanedOffset()
+{
+}
+
+void Reduction::CalPlanedHipLength()
+{
 }

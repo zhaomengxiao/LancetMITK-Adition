@@ -14,11 +14,12 @@ void Body::SetIndexToWorldTransform(Eigen::Matrix4d T)
 	this->Modified();
 }
 
-void Body::Init()
+bool Body::Init()
 {
 	m_T_world_local = Eigen::Matrix4d::Identity();
 	m_name = "body";
 
+	return true;
 	//listenSurfaceGeoModify();
 }
 
@@ -228,25 +229,39 @@ void Body::listenSurfaceGeoModify()
 }
 
 
-void Pelvis::Init()
+// void Bone::InitLocalFrame()
+// {
+// }
+
+bool Pelvis::Init()
 {
 	Body::Init();
 	m_name = "Pelvis";
 	//cal local coords
-	InitPelvisLocalFrame();
+	if (!InitPelvisLocalFrame())
+	{
+		return false;
+	}
+	
 	//Transform all data into local coords
 	TransformAllInternalData(m_T_world_local.inverse());
 
 	//recover transform
+	if (m_Surface == nullptr)
+	{
+		return false;
+	}
+
 	vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
 	EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
 	m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
 
 	//listenSurfaceGeoModify();
+	return true;
 }
 
 
-void Pelvis::InitPelvisLocalFrame()
+bool Pelvis::InitPelvisLocalFrame()
 {
 	PointType ASIS_L{};
 	PointType ASIS_R{};
@@ -272,27 +287,40 @@ void Pelvis::InitPelvisLocalFrame()
 	}
 	else
 	{
-		std::cout << "InitPelvisLocalFrame Error: Missing LandMarks:" << std::endl;
+		MITK_ERROR << "InitPelvisLocalFrame Error: Missing LandMarks:" << std::endl;
+		return false;
 	}
-	std::cout << "exit InitPelvisLocalFrame" << std::endl;
+	//std::cout << "exit InitPelvisLocalFrame" << std::endl;
+	return true;
 }
 
-void Femur::Init()
+bool Femur::Init()
 {
 	Body::Init();
 	m_name = "Femur";
 	//cal local coords
-	InitFemurLocalFrame();
+	if (!InitFemurLocalFrame())
+	{
+		return false;
+	}
+	
 	//Transform all data into local coords
 	TransformAllInternalData(m_T_world_local.inverse());
 
 	//recover surface transform
+	if (m_Surface == nullptr)
+	{
+		return false;
+	}
+
 	vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
 	EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
 	m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
+
+	return true;
 }
 
-void Femur::InitFemurLocalFrame()
+bool Femur::InitFemurLocalFrame()
 {
 	PointType FHC{};
 	PointType FNC{};
@@ -322,40 +350,25 @@ void Femur::InitFemurLocalFrame()
 
 		//transform
 		m_T_world_local = localFrame;
-		//std::cout << m_T_image_body << std::endl;
-
-		//project FHC and FNC on plan(canal and y axis)
-		// double fhc_projected[3], fnc_projected[3];
-		// projectToPlane(FHC.data(), PFCA.data(), y.data(), fhc_projected);
-		// projectToPlane(FNC.data(), PFCA.data(), y.data(), fnc_projected);
-		// SetLandMark(ELandMarks::stem_CutPoint, fhc_projected);
-		// SetLandMark(ELandMarks::stem_EndPoint, fnc_projected);
-		//
-		// //find intersection
-		// Eigen::Vector3d intersection;
-		//
-		// if (!lineIntersect3d_2points(Eigen::Vector3d(fhc_projected), Eigen::Vector3d(fnc_projected), PFCA, DFCA, intersection))
-		// {
-		// 	MITK_WARN << "line not intersection";
-		// 	return;
-		// }
-
-		//Eigen::Vector3d intersectP;
+		
 		double intersectP[3]{0,0,0};
 		if (!StemInitPosition(FHC.data(), FNC.data(), PFCA.data(), DFCA.data(), intersectP))
 		{
 			MITK_ERROR << "StemInitPosition Error: no intersection:" << std::endl;
+			return false;
 		}
-		MITK_WARN << "intersectP" << intersectP[0]<<"," << intersectP[1] << "," << intersectP[2];
-		SetLandMark(ELandMarks::f_NeckCanalIntersectPoint, intersectP/*.data()*/);
+		//MITK_WARN << "intersectP" << intersectP[0]<<"," << intersectP[1] << "," << intersectP[2];
+		SetLandMark(ELandMarks::f_NeckCanalIntersectPoint, intersectP);
 	}
 	else
 	{
 		MITK_ERROR << "InitFemurLocalFrame Error: Missing LandMarks:" << std::endl;
+		return false;
 	}
+	return true;
 }
 
-void Femur::InitFemurLocalFrame_Mechanical()
+bool Femur::InitFemurLocalFrame_Mechanical()
 {
 	PointType FHC{};
 	PointType FNC{};
@@ -395,15 +408,19 @@ void Femur::InitFemurLocalFrame_Mechanical()
 	else
 	{
 		std::cout << "InitFemurLocalFrame_Mechanical Error: Missing LandMarks:" << std::endl;
+		return false;
 	}
 	std::cout << "exit InitFemurLocalFrame_Mechanical" << std::endl;
+	return true;
 }
 
-void Cup::Init()
+bool Cup::Init()
 {
 	Body::Init();
 	m_name = "Cup";
 	InitCupLocalFrame();
+	listenSurfaceGeoModify();
+	return true;
 }
 
 void Cup::InitCupLocalFrame()
@@ -422,11 +439,13 @@ void Cup::InitCupLocalFrame()
 	m_T_world_local = Eigen::Matrix4d::Identity();
 }
 
-void Stem::Init()
+bool Stem::Init()
 {
 	Body::Init();
 	m_name = "Stem";
 	InitStemLocalFrame();
+	listenSurfaceGeoModify();
+	return true;
 }
 
 void Stem::InitStemLocalFrame()

@@ -265,7 +265,7 @@ namespace othopedics
 		return T.matrix();
 	}
 
-	Eigen::Matrix4d CalApplyAIAngleMatrix(Eigen::Vector3d center, double Anteversion, double Inclination, ESide side)
+	Eigen::Matrix4d CalApplyCupAngleMatrix(Eigen::Vector3d center, double Anteversion, double Inclination, ESide side)
 	{
 		Anteversion = Anteversion / 180.0 * EIGEN_PI;
 		Inclination = Inclination / 180.0 * EIGEN_PI;

@@ -271,7 +271,7 @@ namespace othopedics
 	Eigen::Matrix4d MITKORTHOPEDICS_EXPORT CalFemurMechanicalCorrectionMatrix(Eigen::Vector3d FHC, Eigen::Vector3d FNC, Eigen::Vector3d ME, Eigen::Vector3d LE, ESide side);
 
 	//cup placement
-	Eigen::Matrix4d MITKORTHOPEDICS_EXPORT CalApplyAIAngleMatrix(Eigen::Vector3d center, double Anteversion, double Inclination, ESide side);
+	Eigen::Matrix4d MITKORTHOPEDICS_EXPORT CalApplyCupAngleMatrix(Eigen::Vector3d center, double Anteversion, double Inclination, ESide side);
 };
 
 #endif

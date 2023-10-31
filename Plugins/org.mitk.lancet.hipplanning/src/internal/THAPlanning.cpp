@@ -760,7 +760,7 @@ void THAPlanning::assamble_preOp()
 	{
 		reduction->SetCup(m_cup_l);
 		reduction->SetStem(m_stem_l);
-		reduction->PlanReduction(m_cupPlanMatrix,m_stemPlanMatrix);
+		reduction->PlanReduction_Canal(m_cupPlanMatrix,m_stemPlanMatrix);
 	}
 }
 
@@ -859,7 +859,7 @@ void THAPlanning::placeCupR()
 	}
 	m_cup_l->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
 
-	Eigen::Matrix4d trans = CalApplyAIAngleMatrix(Eigen::Vector3d(0, 0, 0), Anteversion, Inclination, othopedics::ESide::left);
+	Eigen::Matrix4d trans = CalApplyCupAngleMatrix(Eigen::Vector3d(0, 0, 0), Anteversion, Inclination, othopedics::ESide::left);
 	//trans to hip center of rotation
 	if (m_pelvis == nullptr)
 	{
@@ -923,7 +923,6 @@ void THAPlanning::initStemL()
 	double p1[3]{ 23.26, 0.0, -23.26 };
 	double p2[3]{ 39.55,0.0 ,-39.55 };
 	double p3[3]{ 39.55,0.0 ,-158.75 };
-	m_stem_l->SetLandMark(othopedics::ELandMarks::stem_CutPoint, p1);
 	m_stem_l->SetLandMark(othopedics::ELandMarks::stem_CutPoint, p1);
 	m_stem_l->SetLandMark(othopedics::ELandMarks::stem_NeckCanalIntersectPoint, p2);
 	m_stem_l->SetLandMark(othopedics::ELandMarks::stem_EndPoint, p3);

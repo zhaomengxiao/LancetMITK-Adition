@@ -25,12 +25,18 @@ namespace othopedics
 		virtual void SetResult(EResult name, double res);
 		virtual bool GetResult(EResult name, double& outp_res);
 
+		//move femur head center to hip center of rotation
+		void FemurPreopReduction_Canal(Pelvis::Pointer pelvis, Femur::Pointer femur);
+
 		void PreOperativeReduction_Canal();
 		void PreOperativeReduction_Mechanical();
 		void CalPreopOffset();
 		void CalPreopHipLength();
 
-		void PlanReduction(Eigen::Matrix4d cupPlanMatrix, Eigen::Matrix4d stemPlanMatrix);
+		void PlanReduction_Canal(Eigen::Matrix4d cupPlanMatrix, Eigen::Matrix4d stemPlanMatrix);
+		void PlanReduction_Mechanical(Eigen::Matrix4d cupPlanMatrix, Eigen::Matrix4d stemPlanMatrix);
+		void CalPlanedOffset();
+		void CalPlanedHipLength();
 		ESide m_OperationSide{ESide::right};
 	private:
 		Pelvis::Pointer m_Pelvis;
