@@ -339,11 +339,22 @@ void RobotRegistration::calculateR0()
 	y.normalize();
 	z.normalize();
 
+	Eigen::Vector3d x_;
+	Eigen::Vector3d y_;
+	Eigen::Vector3d z_;
+
+	x_ = x;
+	z_ = x_.cross(y);
+	y_ = z_.cross(x_);
+
+	z_.normalize();
+	y_.normalize();
+
 	for (int i{ 0 }; i < 3; i++)
 	{
-		R0(i, 0) = x[i];
-		R0(i, 1) = y[i];
-		R0(i, 2) = z[i];
+		R0(i, 0) = x_[i];
+		R0(i, 1) = y_[i];
+		R0(i, 2) = z_[i];
 	}
 
 	//std::cout << "R0:\n" << R0 << std::endl;
@@ -369,6 +380,40 @@ void RobotRegistration::calculateRe()
 	//std::cout << "B:\n" << B << std::endl;
 	Re = (A.transpose() * A).inverse() * A.transpose() * B;
 	//std::cout << "Re:\n" << Re << std::endl;
+
+
+	Eigen::Vector3d x;
+	Eigen::Vector3d y;
+	Eigen::Vector3d z;
+
+	for (int i{ 0 }; i < 3; i++)
+	{
+		x[i] = Re(i, 0);
+		y[i] = Re(i, 1);
+		z[i] = Re(i, 2);
+	}
+
+	x.normalize();
+	y.normalize();
+	z.normalize();
+
+	Eigen::Vector3d x_;
+	Eigen::Vector3d y_;
+	Eigen::Vector3d z_;
+
+	x_ = x;
+	z_ = x_.cross(y);
+	y_ = z_.cross(x_);
+
+	z_.normalize();
+	y_.normalize();
+
+	for (int i{ 0 }; i < 3; i++)
+	{
+		Re(i, 0) = x_[i];
+		Re(i, 1) = y_[i];
+		Re(i, 2) = z_[i];
+	}
 }
 
 void RobotRegistration::calculateVe()
