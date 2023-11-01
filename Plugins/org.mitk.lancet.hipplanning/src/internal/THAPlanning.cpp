@@ -720,10 +720,17 @@ void THAPlanning::assamble_preOp()
 	{
 		reduction = othopedics::Reduction::New();
 		reduction->SetPelvis(m_pelvis);
-		reduction->SetFemur_L(m_femur_l);
-		reduction->SetFemur_R(m_femur_r);
-
-		reduction->m_OperationSide = othopedics::ESide::left;
+		othopedics::ESide side = othopedics::ESide::left;
+		if (side == othopedics::ESide::left)
+		{
+			reduction->SetFemur_op(m_femur_l);
+			reduction->SetFemur_contra(m_femur_r);
+		}
+		else
+		{
+			reduction->SetFemur_op(m_femur_r);
+			reduction->SetFemur_contra(m_femur_l);
+		}
 	}
 
 	if (m_Controls.radioButton_demoCanalAlign_2->isChecked() && !m_Controls.radioButton_demoIntrop_2->isChecked())

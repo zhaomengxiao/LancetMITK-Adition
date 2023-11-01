@@ -124,7 +124,7 @@ namespace othopedics
 
 		//==========================Cup=======================
 		cup_COR,
-		cup_LinerAssemblyPoint,
+		cup_O,
 
 		//==========================Stem=======================
 		stem_O,
@@ -215,7 +215,8 @@ namespace othopedics
 
 		stem_X,
 		stem_Y,
-		stem_Z
+		stem_Z,
+		stem_Neck
 	};
 
 	inline const char* to_string(EAxes e)

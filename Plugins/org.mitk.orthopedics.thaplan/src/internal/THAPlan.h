@@ -56,8 +56,9 @@ protected:
   void onPushButton_preop_clicked();
   void onPushButton_cupPlan_clicked();
   void onPushButton_stemPlan_clicked();
-  void onPushButton_redeuction_clicked();
-
+  void onPushButton_reduction_clicked();
+  void OnPushButton_test1_clicked();
+  void OnPushButton_test2_clicked();
   Ui::THAPlanControls m_Controls;
 
 
@@ -65,9 +66,11 @@ private:
   bool initPelvis();
   bool initFemurR();
   bool initFemurL();
-  bool initCup();
-  bool initStem();
-
+  bool initCup(std::string size = "Cup_56");
+  bool initStem(std::string size = "Stem_6");
+  bool initLiner(std::string size = "Liner_36");
+  bool initHead(std::string size = "Head_36_M");
+  //bool initHead(std::string size = "Cup_54");
   bool getPoint(std::string name, mitk::PointSet::PointType* point, unsigned int index = 0) const;
   void HideAllNode(mitk::DataStorage* dataStorage);
 
@@ -76,12 +79,18 @@ private:
 
   void listenStemGeoModify();
   void updateStemPlanMatrix();
+
+  void Show(Eigen::Vector3d point, std::string name);
+
 private:
   othopedics::Pelvis::Pointer m_Pelvis = nullptr;
   othopedics::Femur::Pointer m_Femur_R = nullptr;
   othopedics::Femur::Pointer m_Femur_L = nullptr;
   othopedics::Cup::Pointer m_Cup = nullptr;
   othopedics::Stem::Pointer m_Stem = nullptr;
+  othopedics::Body::Pointer m_Liner = nullptr;
+  othopedics::Body::Pointer m_Head = nullptr;
+
   othopedics::Reduction::Pointer m_Reduction = nullptr;
 
   mitk::DataNode::Pointer m_dn_pelvis = nullptr;
@@ -89,6 +98,8 @@ private:
   mitk::DataNode::Pointer m_dn_femurL = nullptr;
   mitk::DataNode::Pointer m_dn_cup = nullptr;
   mitk::DataNode::Pointer m_dn_stem = nullptr;
+  mitk::DataNode::Pointer m_dn_liner = nullptr;
+  mitk::DataNode::Pointer m_dn_head = nullptr;
   //mitk::DataNode::Pointer m_dn_pelvis;
 
   //todo these parameter should from config file or pre steps
