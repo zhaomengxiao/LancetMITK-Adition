@@ -21,6 +21,20 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QComboBox" name="comboBox_opSide">
+     <item>
+      <property name="text">
+       <string>Left</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Right</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="pushButton_init">
      <property name="text">
       <string>INIT</string>

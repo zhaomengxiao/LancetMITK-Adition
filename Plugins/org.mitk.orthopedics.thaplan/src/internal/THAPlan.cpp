@@ -47,6 +47,17 @@ void THAPlan::SetFocus()
 
 void THAPlan::onPushButton_init_clicked()
 {
+	//config operation side
+	if (m_Controls.comboBox_opSide->currentIndex() == 0)
+	{
+		m_OperationSide = othopedics::ESide::left;
+	}
+	else
+	{
+		m_OperationSide = othopedics::ESide::right;
+	}
+	
+	MITK_INFO << "Operation Side: " << to_string(m_OperationSide);
 	//todo init should clean all previous memery
 	m_cupPlanMatrix = Eigen::Matrix4d::Identity();
 	m_stemPlanMatrix = Eigen::Matrix4d::Identity();
@@ -443,6 +454,7 @@ bool THAPlan::restoreCupPose()
 
 bool THAPlan::restoreStemPose()
 {
+	m_Stem->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
 	Eigen::Matrix4d transform;
 	//if not planed, place to init pose
 	othopedics::Femur::Pointer femur;
@@ -741,6 +753,13 @@ bool THAPlan::initPelvis()
 	}
 	m_Pelvis->SetSurface(dynamic_cast<mitk::Surface*>(m_dn_pelvis->GetData()));
 
+	//set image
+	auto pelvisImage = GetDataStorage()->GetNamedObject<mitk::Image>("pelvisImage");
+	if (pelvisImage != nullptr)
+	{
+		m_Pelvis->SetImage(pelvisImage);
+	}
+
 	return m_Pelvis->Init();
 }
 
@@ -778,8 +797,12 @@ bool THAPlan::initFemurR()
 		return false;
 	}
 	m_Femur_R->SetSurface(dynamic_cast<mitk::Surface*>(m_dn_femurR->GetData()));
-	//todo Set Image
-
+	//set image
+	auto femurImage = GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_right");
+	if (femurImage != nullptr)
+	{
+		m_Femur_R->SetImage(femurImage);
+	}
 	return m_Femur_R->Init();
 }
 
@@ -794,7 +817,6 @@ bool THAPlan::initFemurL()
 		&& getPoint("ME_L", &ME_L) && getPoint("LE_L", &LE_L)
 		&& getPoint("LT_L", &LT_L))
 	{
-
 		m_Femur_L->SetLandMark(othopedics::ELandMarks::f_FHC, FHC_L.data());
 		m_Femur_L->SetLandMark(othopedics::ELandMarks::f_FNC, FNC_L.data());
 		m_Femur_L->SetLandMark(othopedics::ELandMarks::f_PFCA, PFCA_L.data());
@@ -816,8 +838,12 @@ bool THAPlan::initFemurL()
 		return false;
 	}
 	m_Femur_L->SetSurface(dynamic_cast<mitk::Surface*>(m_dn_femurL->GetData()));
-	//todo Set Image
-
+	//set image
+	auto femurImage = GetDataStorage()->GetNamedObject<mitk::Image>("femurImage_left");
+	if (femurImage != nullptr)
+	{
+		m_Femur_L->SetImage(femurImage);
+	}
 	return m_Femur_L->Init();
 }
 
@@ -842,7 +868,7 @@ bool THAPlan::initCup(std::string size)
 bool THAPlan::initStem(std::string size)
 {
 	m_Stem = othopedics::Stem::New();
-	m_Stem->m_Side = othopedics::ESide::left;
+	m_Stem->m_Side = m_OperationSide;
 
 	//hard code stem parameter
 	//#4

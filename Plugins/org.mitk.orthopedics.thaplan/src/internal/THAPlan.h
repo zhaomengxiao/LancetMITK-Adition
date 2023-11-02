@@ -86,9 +86,9 @@ protected:
   void OnPushButton_test1_clicked();
   void testOdd45dTransform();
   void OnPushButton_test2_clicked();
+
+
   Ui::THAPlanControls m_Controls;
-
-
 private:
   bool initPelvis();
   bool initFemurR();

@@ -923,7 +923,7 @@ void THAPlanning::calAIAngleR()
 void THAPlanning::initStemL()
 {
 	m_stem_l = othopedics::Stem::New();
-	m_stem_l->m_Side = othopedics::ESide::left;
+	m_stem_l->m_Side = othopedics::ESide::right;
 
 	//hard code stem parameter
 	double m[3]{ 0,0,0 };

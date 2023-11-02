@@ -26,10 +26,22 @@ void Body::AppendTransform(Eigen::Matrix4d T)
 
 void Body::FlushTransform()
 {
-	//todo update image transform, and when m_T_world_local changed surface image should update auto
-	vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
-	EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
-	m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
+	//todo update image transform
+	
+	if (m_Surface!=nullptr)
+	{
+		vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
+		EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
+		m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
+	}
+
+	if (m_Image!=nullptr)
+	{
+		Eigen::Matrix4d T_world_image = m_T_world_local * m_T_Local_Image;
+		vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
+		EigenToVtkMatrix4x4(T_world_image, vtkmatrix);
+		m_Image->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
+	}
 }
 
 bool Body::Init()
@@ -197,15 +209,14 @@ void Body::TransformAllInternalData(Eigen::Matrix4d transform)
 		SetPlane(it.first, plane.normal.startPoint.data(), plane.normal.direction.data());
 	}
 
-	//todo surface
+	vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
+	EigenToVtkMatrix4x4(transform, vtkmatrix);
+
+	vtkNew<vtkTransform> trans;
+	trans->SetMatrix(vtkmatrix);
+
 	if (m_Surface!=nullptr)
 	{
-		vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
-		EigenToVtkMatrix4x4(transform, vtkmatrix);
-		
-		vtkNew<vtkTransform> trans;
-		trans->SetMatrix(vtkmatrix);
-
 		vtkNew<vtkTransformPolyDataFilter> transFilter;
 		transFilter->SetTransform(trans);
 		transFilter->SetInputData(m_Surface->GetVtkPolyData());
@@ -213,7 +224,13 @@ void Body::TransformAllInternalData(Eigen::Matrix4d transform)
 
 		m_Surface->SetVtkPolyData(transFilter->GetOutput());
 	}
-	//todo image
+
+	if (m_Image!=nullptr)
+	{
+		Eigen::Matrix4d T_world_image = vtkMatrix4x4ToEigen(m_Image->GetGeometry()->GetVtkMatrix());
+		//Eigen::Matrix4d T_local_world = transform;
+		m_T_Local_Image = transform * T_world_image;
+	}
 }
 
 Body::Body()
@@ -462,6 +479,20 @@ bool Stem::Init()
 	Body::Init();
 	m_name = "Stem";
 	InitStemLocalFrame();
+
+	//Transform all data into local coords
+	TransformAllInternalData(m_T_world_local.inverse());
+
+	//recover transform
+	if (m_Surface == nullptr)
+	{
+		return false;
+	}
+
+	vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
+	EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
+	m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
+
 	listenSurfaceGeoModify();
 	return true;
 }
@@ -474,9 +505,19 @@ void Stem::InitStemLocalFrame()
 	y << 0, 1, 0;
 	z << 0, 0, 1;
 
+	if (m_Side == ESide::right)
+	{
+		x = -x;
+		y = -y;
+	}
+
 	SetLandMark(ELandMarks::stem_O, o.data());
 
 	SetAxis(EAxes::stem_X, o.data(), x.data());
 	SetAxis(EAxes::stem_Y, o.data(), y.data());
 	SetAxis(EAxes::stem_Z, o.data(), z.data());
+
+	m_T_world_local.block<3, 1>(0, 0) = x;
+	m_T_world_local.block<3, 1>(0, 1) = y;
+	m_T_world_local.block<3, 1>(0, 2) = z;
 }

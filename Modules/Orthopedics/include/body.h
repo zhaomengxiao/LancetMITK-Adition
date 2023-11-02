@@ -129,13 +129,14 @@ namespace othopedics
   {
   public:
 		mitkClassMacroItkParent(Body, itk::Object);
-		itkFactorylessNewMacro(Self)
+		itkFactorylessNewMacro(Self);
 
 
-		itkSetMacro(Surface, mitk::Surface::Pointer)
-		itkGetMacro(Surface, mitk::Surface::Pointer)
+		itkSetMacro(Surface, mitk::Surface::Pointer);
+		itkGetMacro(Surface, mitk::Surface::Pointer);
 
-		
+		itkSetMacro(Image, mitk::Image::Pointer);
+		itkGetMacro(Image, mitk::Image::Pointer);
 
 		virtual bool Init();
 
@@ -176,8 +177,7 @@ namespace othopedics
 		virtual bool GetResult(EResult name, double& outp_res);
 
 		virtual void TransformAllInternalData(Eigen::Matrix4d transform);
-		// Eigen::Matrix4d m_T_image_body;
-		// Eigen::Matrix4d m_T_body_image;
+
 		Eigen::Matrix4d m_T_world_local;
 	protected:
 		Body();
@@ -191,11 +191,13 @@ namespace othopedics
 		std::map<EPlanes, PlaneType> m_planes{};
 		std::map<EResult, double> m_results{};
 		mitk::Surface::Pointer m_Surface{};
-		mitk::Image::Pointer m_image{};
+		mitk::Image::Pointer m_Image{};
 
 		mitk::BaseGeometry::Pointer m_FollowedGeometry = nullptr;
 		//! ITK tag for the observing of m_FollowedGeometry
 		unsigned long m_FollowerTag{};
+
+		Eigen::Matrix4d m_T_Local_Image;
 	};
 
 	// class Bone:public Body
