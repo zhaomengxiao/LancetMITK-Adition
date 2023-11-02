@@ -84,6 +84,7 @@ protected:
 
   //test
   void OnPushButton_test1_clicked();
+  void testOdd45dTransform();
   void OnPushButton_test2_clicked();
   Ui::THAPlanControls m_Controls;
 
@@ -117,6 +118,7 @@ private:
 
   void FlushAllTransform();
   void Show(Eigen::Vector3d point, std::string name);
+	void Show(Eigen::Matrix4d transform, std::string name);
 
 private:
   othopedics::Pelvis::Pointer m_Pelvis = nullptr;

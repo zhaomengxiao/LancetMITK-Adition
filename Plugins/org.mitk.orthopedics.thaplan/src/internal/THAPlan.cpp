@@ -28,6 +28,15 @@ found in the LICENSE file.
 #include "mitkGizmo.h"
 
 #include <sstream>
+#include <vtkAppendPolyData.h>
+#include <vtkConeSource.h>
+#include <vtkCylinderSource.h>
+#include <vtkLineSource.h>
+#include <vtkSphereSource.h>
+#include <vtkTransformPolyDataFilter.h>
+
+#include "mitkApplyTransformMatrixOperation.h"
+#include "mitkInteractionConst.h"
 
 const std::string THAPlan::VIEW_ID = "org.mitk.views.thaplan";
 
@@ -193,6 +202,147 @@ void THAPlan::Show(Eigen::Vector3d point, std::string name)
 	mitk::Point3D refp{ ref };
 
 	GetDataStorage()->Add(node);
+}
+
+void THAPlan::Show(Eigen::Matrix4d transform, std::string name)
+{
+	mitk::Surface::Pointer mySphere = mitk::Surface::New();
+
+	double axisLength = 5.;
+
+	vtkSmartPointer<vtkSphereSource> vtkSphere = vtkSmartPointer<vtkSphereSource>::New();
+	vtkSmartPointer<vtkConeSource> vtkCone = vtkSmartPointer<vtkConeSource>::New();
+	vtkSmartPointer<vtkCylinderSource> vtkCylinder = vtkSmartPointer<vtkCylinderSource>::New();
+	vtkSmartPointer<vtkPolyData> axis = vtkSmartPointer<vtkPolyData>::New();
+	vtkSmartPointer<vtkLineSource> vtkLine = vtkSmartPointer<vtkLineSource>::New();
+	vtkSmartPointer<vtkLineSource> vtkLine2 = vtkSmartPointer<vtkLineSource>::New();
+	vtkSmartPointer<vtkLineSource> vtkLine3 = vtkSmartPointer<vtkLineSource>::New();
+
+	vtkSmartPointer<vtkAppendPolyData> appendPolyData = vtkSmartPointer<vtkAppendPolyData>::New();
+	vtkSmartPointer<vtkPolyData> surface = vtkSmartPointer<vtkPolyData>::New();
+
+	//Y-Axis (start with y, cause cylinder is oriented in y by vtk default...)
+	vtkCone->SetDirection(0, 1, 0);
+	vtkCone->SetHeight(1.0);
+	vtkCone->SetRadius(0.4f);
+	vtkCone->SetResolution(16);
+	vtkCone->SetCenter(0.0, axisLength, 0.0);
+	vtkCone->Update();
+
+	vtkCylinder->SetRadius(0.05);
+	vtkCylinder->SetHeight(axisLength);
+	vtkCylinder->SetCenter(0.0, 0.5 * axisLength, 0.0);
+	vtkCylinder->Update();
+
+	appendPolyData->AddInputData(vtkCone->GetOutput());
+	appendPolyData->AddInputData(vtkCylinder->GetOutput());
+	appendPolyData->Update();
+	axis->DeepCopy(appendPolyData->GetOutput());
+
+	//y symbol
+	vtkLine->SetPoint1(-0.5, axisLength + 2., 0.0);
+	vtkLine->SetPoint2(0.0, axisLength + 1.5, 0.0);
+	vtkLine->Update();
+
+	vtkLine2->SetPoint1(0.5, axisLength + 2., 0.0);
+	vtkLine2->SetPoint2(-0.5, axisLength + 1., 0.0);
+	vtkLine2->Update();
+
+	appendPolyData->AddInputData(vtkLine->GetOutput());
+	appendPolyData->AddInputData(vtkLine2->GetOutput());
+	appendPolyData->AddInputData(axis);
+	appendPolyData->Update();
+	surface->DeepCopy(appendPolyData->GetOutput());
+
+	//X-axis
+	vtkSmartPointer<vtkTransform> XTransform = vtkSmartPointer<vtkTransform>::New();
+	XTransform->RotateZ(-90);
+	vtkSmartPointer<vtkTransformPolyDataFilter> TrafoFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+	TrafoFilter->SetTransform(XTransform);
+	TrafoFilter->SetInputData(axis);
+	TrafoFilter->Update();
+
+	//x symbol
+	vtkLine->SetPoint1(axisLength + 2., -0.5, 0.0);
+	vtkLine->SetPoint2(axisLength + 1., 0.5, 0.0);
+	vtkLine->Update();
+
+	vtkLine2->SetPoint1(axisLength + 2., 0.5, 0.0);
+	vtkLine2->SetPoint2(axisLength + 1., -0.5, 0.0);
+	vtkLine2->Update();
+
+	appendPolyData->AddInputData(vtkLine->GetOutput());
+	appendPolyData->AddInputData(vtkLine2->GetOutput());
+	appendPolyData->AddInputData(TrafoFilter->GetOutput());
+	appendPolyData->AddInputData(surface);
+	appendPolyData->Update();
+	surface->DeepCopy(appendPolyData->GetOutput());
+
+	//Z-axis
+	vtkSmartPointer<vtkTransform> ZTransform = vtkSmartPointer<vtkTransform>::New();
+	ZTransform->RotateX(90);
+	TrafoFilter->SetTransform(ZTransform);
+	TrafoFilter->SetInputData(axis);
+	TrafoFilter->Update();
+
+	//z symbol
+	vtkLine->SetPoint1(-0.5, 0.0, axisLength + 2.);
+	vtkLine->SetPoint2(0.5, 0.0, axisLength + 2.);
+	vtkLine->Update();
+
+	vtkLine2->SetPoint1(-0.5, 0.0, axisLength + 2.);
+	vtkLine2->SetPoint2(0.5, 0.0, axisLength + 1.);
+	vtkLine2->Update();
+
+	vtkLine3->SetPoint1(0.5, 0.0, axisLength + 1.);
+	vtkLine3->SetPoint2(-0.5, 0.0, axisLength + 1.);
+	vtkLine3->Update();
+
+	appendPolyData->AddInputData(vtkLine->GetOutput());
+	appendPolyData->AddInputData(vtkLine2->GetOutput());
+	appendPolyData->AddInputData(vtkLine3->GetOutput());
+	appendPolyData->AddInputData(TrafoFilter->GetOutput());
+	appendPolyData->AddInputData(surface);
+	appendPolyData->Update();
+	surface->DeepCopy(appendPolyData->GetOutput());
+
+	//Center
+	vtkSphere->SetRadius(0.5f);
+	vtkSphere->SetCenter(0.0, 0.0, 0.0);
+	vtkSphere->Update();
+
+	appendPolyData->AddInputData(vtkSphere->GetOutput());
+	appendPolyData->AddInputData(surface);
+	appendPolyData->Update();
+	surface->DeepCopy(appendPolyData->GetOutput());
+
+	//Scale
+	vtkSmartPointer<vtkTransform> ScaleTransform = vtkSmartPointer<vtkTransform>::New();
+	ScaleTransform->Scale(20., 20., 20.);
+
+	TrafoFilter->SetTransform(ScaleTransform);
+	TrafoFilter->SetInputData(surface);
+	TrafoFilter->Update();
+
+	mySphere->SetVtkPolyData(TrafoFilter->GetOutput());
+
+	auto node = mitk::DataNode::New();
+
+	node->SetData(mySphere);
+	node->SetName(name);
+
+	double ref[3]{ 0, 0, 0 };
+	mitk::Point3D refp{ ref };
+
+	vtkSmartPointer<vtkMatrix4x4> coord = vtkMatrix4x4::New();
+	othopedics::EigenToVtkMatrix4x4(transform, coord);
+
+	auto* doOp = new mitk::ApplyTransformMatrixOperation(mitk::OpAPPLYTRANSFORMMATRIX, coord, refp);
+	node->GetData()->GetGeometry()->ExecuteOperation(doOp);
+	delete doOp;
+
+	GetDataStorage()->Add(node);
+	//RequestRenderWindowUpdate();
 }
 
 void THAPlan::onPushButton_preop_clicked()
@@ -526,6 +676,12 @@ void THAPlan::onPushButton_reduction_clicked()
 
 void THAPlan::OnPushButton_test1_clicked()
 {
+	Eigen::Matrix4d origin = Eigen::Matrix4d::Identity();
+	Show(origin,"Origin");
+}
+
+void THAPlan::testOdd45dTransform()
+{
 	Eigen::Matrix3d rot = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d(0, 0, -1).normalized(), Eigen::Vector3d(1, 0, -1).normalized()).matrix();
 	Eigen::Matrix4d headTrans;
 	headTrans.setIdentity();
@@ -801,22 +957,4 @@ void THAPlan::CreateQtPartControl(QWidget *parent)
 	connect(m_Controls.pushButton_test1, &QPushButton::clicked, this, &THAPlan::OnPushButton_test1_clicked);
 	connect(m_Controls.pushButton_test2, &QPushButton::clicked, this, &THAPlan::OnPushButton_test2_clicked);
 }
-
-// void THAPlan::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
-//                                                 const QList<mitk::DataNode::Pointer> &nodes)
-// {
-//   // iterate all selected objects, adjust warning visibility
-//   foreach (mitk::DataNode::Pointer node, nodes)
-//   {
-//     if (node.IsNotNull() && dynamic_cast<mitk::Image *>(node->GetData()))
-//     {
-//       m_Controls.labelWarning->setVisible(false);
-//       m_Controls.buttonPerformImageProcessing->setEnabled(true);
-//       return;
-//     }
-//   }
-//
-//   m_Controls.labelWarning->setVisible(true);
-//   m_Controls.buttonPerformImageProcessing->setEnabled(false);
-// }
 

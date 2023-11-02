@@ -310,9 +310,9 @@ void Reduction::PlanReduction_Mechanical(Eigen::Matrix4d cupPlanMatrix, Eigen::M
 	m_Femur_op->AppendTransform(stemReductionTransform);
 
 	//liner and head
-	//m_Liner->SetIndexToWorldTransform(m_Cup->m_T_world_local);
+	m_Liner->SetIndexToWorldTransform(m_Cup->m_T_world_local);
 
-	//HeadReduction(m_Head, m_Stem, ELandMarks::stem_HeadAssemblyPoint_M);
+	HeadReduction(m_Head, m_Stem, ELandMarks::stem_HeadAssemblyPoint_M);
 
 	//contra
 	//m_Femur_contra move to pelvis COR
