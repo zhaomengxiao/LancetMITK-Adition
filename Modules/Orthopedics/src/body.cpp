@@ -8,20 +8,28 @@ using namespace othopedics;
 void Body::SetIndexToWorldTransform(Eigen::Matrix4d T)
 {
 	m_T_world_local = T;
-	vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
-	EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
-	//todo update image transform, and when m_T_world_local changed surface image should update auto
-	m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
+	//vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
+	//EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
+	// 
+	// m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
 	this->Modified();
 }
 
 void Body::AppendTransform(Eigen::Matrix4d T)
 {
 	m_T_world_local = T * m_T_world_local ;
+	// vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
+	// EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
+	// m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
+	this->Modified();
+}
+
+void Body::FlushTransform()
+{
+	//todo update image transform, and when m_T_world_local changed surface image should update auto
 	vtkSmartPointer<vtkMatrix4x4> vtkmatrix = vtkMatrix4x4::New();
 	EigenToVtkMatrix4x4(m_T_world_local, vtkmatrix);
 	m_Surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkmatrix);
-	this->Modified();
 }
 
 bool Body::Init()

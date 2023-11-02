@@ -142,6 +142,8 @@ namespace othopedics
 		void SetIndexToWorldTransform(Eigen::Matrix4d T);
 
 		void AppendTransform(Eigen::Matrix4d T);
+
+		void FlushTransform();
 		/**
 		 * \brief Sets the position of a particular landmark in three-dimensional space.
 		 *

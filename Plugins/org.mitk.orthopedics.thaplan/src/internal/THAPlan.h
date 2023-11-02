@@ -22,6 +22,28 @@ found in the LICENSE file.
 #include "reduction.h"
 #include "ui_THAPlanControls.h"
 
+enum class EState
+{
+  NONINIT = 0,
+  READY,
+  Preoperative,
+  Plan,
+  Reduction
+};
+
+inline const char* to_string(EState e)
+{
+  switch (e)
+  {
+  case EState::NONINIT: return "NONINIT";
+  case EState::READY: return "READY";
+  case EState::Preoperative: return "Preoperative";
+  case EState::Plan: return "Plan";
+  case EState::Reduction: return "Reduction";
+  default: return "unknown";
+  }
+}
+
 /**
   \brief THAPlan
 
@@ -37,6 +59,7 @@ class THAPlan : public QmitkAbstractView
   Q_OBJECT
 
 public:
+
   static const std::string VIEW_ID;
 
   void Init(berry::IViewSite::Pointer site, berry::IMemento::Pointer memento) override;
@@ -57,6 +80,9 @@ protected:
   void onPushButton_cupPlan_clicked();
   void onPushButton_stemPlan_clicked();
   void onPushButton_reduction_clicked();
+
+
+  //test
   void OnPushButton_test1_clicked();
   void OnPushButton_test2_clicked();
   Ui::THAPlanControls m_Controls;
@@ -70,16 +96,26 @@ private:
   bool initStem(std::string size = "Stem_6");
   bool initLiner(std::string size = "Liner_36");
   bool initHead(std::string size = "Head_36_M");
-  //bool initHead(std::string size = "Cup_54");
+
+  //if there is no m_cupPlanMatrix,place cup to init pose
+  bool restoreCupPose();
+  bool restoreStemPose();
+
   bool getPoint(std::string name, mitk::PointSet::PointType* point, unsigned int index = 0) const;
   void HideAllNode(mitk::DataStorage* dataStorage);
 
   void listenCupGeoModify();
+  void onCupGeoModified();
   void updateCupPlanMatrix();
 
   void listenStemGeoModify();
+  void onStemGeoModified();
   void updateStemPlanMatrix();
 
+  void updateUI_HipLengthAndOffset();
+  void updateHipLengthAndOffset();
+
+  void FlushAllTransform();
   void Show(Eigen::Vector3d point, std::string name);
 
 private:
@@ -114,6 +150,8 @@ private:
   mitk::BaseGeometry::Pointer m_StemGeometry = nullptr;
   //! ITK tag for the observing of m_CupGeometry
   unsigned long m_StemListenTag{};
+
+  EState m_state{EState::NONINIT};
 };
 
 #endif // THAPlan_h

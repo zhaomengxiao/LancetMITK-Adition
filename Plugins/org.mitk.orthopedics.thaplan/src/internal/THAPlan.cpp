@@ -38,6 +38,10 @@ void THAPlan::SetFocus()
 
 void THAPlan::onPushButton_init_clicked()
 {
+	//todo init should clean all previous memery
+	m_cupPlanMatrix = Eigen::Matrix4d::Identity();
+	m_stemPlanMatrix = Eigen::Matrix4d::Identity();
+
 	if (!initPelvis() || !initFemurL() || !initFemurR() || !initCup() || !initStem() || !initLiner() || !initHead())
 	{
 		return;
@@ -62,13 +66,20 @@ void THAPlan::onPushButton_init_clicked()
 	m_Reduction->SetLiner(m_Liner);
 	m_Reduction->SetHead(m_Head);
 
-	//disable button when not init bodies
+	m_Reduction->PreOperativeReduction_Canal();
+	//initial pose of cup and stem
+	restoreCupPose();
+	restoreStemPose();
+
+	//enable buttons
 	m_Controls.pushButton_preop->setDisabled(false);
 	m_Controls.pushButton_cupPlan->setDisabled(false);
 	m_Controls.pushButton_stemPlan->setDisabled(false);
 	m_Controls.pushButton_reduction->setDisabled(false);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	m_state = EState::READY;
 }
 
 void THAPlan::HideAllNode(mitk::DataStorage* dataStorage)
@@ -90,7 +101,7 @@ void THAPlan::HideAllNode(mitk::DataStorage* dataStorage)
 void THAPlan::listenCupGeoModify()
 {
 	auto observer = itk::SimpleMemberCommand<THAPlan>::New();
-	observer->SetCallbackFunction(this, &THAPlan::updateCupPlanMatrix);
+	observer->SetCallbackFunction(this, &THAPlan::onCupGeoModified);
 
 	if (m_CupGeometry.IsNotNull())
 	{
@@ -101,6 +112,16 @@ void THAPlan::listenCupGeoModify()
 		m_CupGeometry = m_dn_cup->GetData()->GetGeometry();
 		m_CupListenTag = m_CupGeometry->AddObserver(itk::ModifiedEvent(), observer);
 	}
+
+	//init update
+	updateCupPlanMatrix();
+}
+
+void THAPlan::onCupGeoModified()
+{
+	updateCupPlanMatrix();
+	updateHipLengthAndOffset();
+	updateUI_HipLengthAndOffset();
 }
 
 void THAPlan::updateCupPlanMatrix()
@@ -117,7 +138,7 @@ void THAPlan::updateCupPlanMatrix()
 void THAPlan::listenStemGeoModify()
 {
 	auto observer = itk::SimpleMemberCommand<THAPlan>::New();
-	observer->SetCallbackFunction(this, &THAPlan::updateStemPlanMatrix);
+	observer->SetCallbackFunction(this, &THAPlan::onStemGeoModified);
 
 	if (m_StemGeometry.IsNotNull())
 	{
@@ -130,25 +151,31 @@ void THAPlan::listenStemGeoModify()
 	}
 }
 
+void THAPlan::onStemGeoModified()
+{
+	updateStemPlanMatrix();
+	updateHipLengthAndOffset();
+	updateUI_HipLengthAndOffset();
+}
+
 void THAPlan::updateStemPlanMatrix()
 {
 	if (m_Femur_L != nullptr && m_Femur_R && m_Stem != nullptr)
 	{
-		othopedics::Femur::Pointer femur;
-		if (m_OperationSide == othopedics::ESide::left)
-		{
-			femur = m_Femur_L;
-		}
-		else
-		{
-			femur = m_Femur_R;
-		}
-		Eigen::Matrix4d Tworld2femurl = femur->m_T_world_local;
-		Eigen::Matrix4d Tworld2steml = m_Stem->m_T_world_local;
-		Eigen::Matrix4d Tfemurl2steml = Tworld2femurl.inverse() * Tworld2steml;
-		m_stemPlanMatrix = Tfemurl2steml;
-		//MITK_WARN << "updated m_stemPlanMatrix";
-		//MITK_WARN << m_stemPlanMatrix;
+		// othopedics::Femur::Pointer femur;
+		// if (m_OperationSide == othopedics::ESide::left)
+		// {
+		// 	femur = m_Femur_L;
+		// }
+		// else
+		// {
+		// 	femur = m_Femur_R;
+		// }
+		// Eigen::Matrix4d Tworld2femurl = femur->m_T_world_local;
+		// Eigen::Matrix4d Tworld2steml = m_Stem->m_T_world_local;
+		// Eigen::Matrix4d Tfemurl2steml = Tworld2femurl.inverse() * Tworld2steml;
+		// m_stemPlanMatrix = Tfemurl2steml;
+		m_stemPlanMatrix = m_Stem->m_T_world_local;
 	}
 }
 
@@ -170,77 +197,68 @@ void THAPlan::Show(Eigen::Vector3d point, std::string name)
 
 void THAPlan::onPushButton_preop_clicked()
 {
+	m_state = EState::Preoperative;
+
 	m_Reduction->PreOperativeReduction_Canal();
 	m_Reduction->CalPreopOffset();
 	m_Reduction->PreOperativeReduction_Mechanical();
 	m_Reduction->CalPreopHipLength();
 
+	FlushAllTransform();
+
 	//hide all node,make it clear
 	HideAllNode(GetDataStorage());
 
 	//show pelvis and femur
-	GetDataStorage()->GetNamedNode("pelvis")->SetVisibility(true);
-	GetDataStorage()->GetNamedNode("femur_R")->SetVisibility(true);
-	GetDataStorage()->GetNamedNode("femur_L")->SetVisibility(true);
+	m_dn_pelvis->SetVisibility(true);
+	m_dn_femurL->SetVisibility(true);
+	m_dn_femurR->SetVisibility(true);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 	mitk::RenderingManager::GetInstance()->InitializeViewsByBoundingObjects(GetDataStorage());
+
+	updateUI_HipLengthAndOffset();
 	//show result
-	QString opSide;
-	QString state = "Preoperative";
-	if (m_OperationSide == othopedics::ESide::left)
-	{
-		opSide = "(Left)";
-	}
-	else
-	{
-		opSide = "(Right)";
-	}
-	m_Controls.label_lengthOffsetHeader->setText(state + opSide);
-
-	double Offset_preop, Offset_contra, OffsetDiff_preop_vs_contra;
-	m_Reduction->GetResult(othopedics::EResult::r_Offset_preop, Offset_preop);
-	m_Reduction->GetResult(othopedics::EResult::r_Offset_contra, Offset_contra);
-	m_Reduction->GetResult(othopedics::EResult::r_OffsetDiff_preop_vs_contra, OffsetDiff_preop_vs_contra);
-
-	double hipLength_preop, hipLength_contra, hipLengthDiff_preop_vs_contra;
-	m_Reduction->GetResult(othopedics::EResult::r_HipLength_preop, hipLength_preop);
-	m_Reduction->GetResult(othopedics::EResult::r_HipLength_contra, hipLength_contra);
-	m_Reduction->GetResult(othopedics::EResult::r_HipLengthDiff_preop_vs_contra, hipLengthDiff_preop_vs_contra);
-
-	std::stringstream ss;
-	ss << "Offset_preop: " << Offset_preop <<std::endl;
-	ss << "Offset_contra: " << Offset_contra << std::endl;
-	ss << "OffsetDiff_preop_vs_contra: " << OffsetDiff_preop_vs_contra << std::endl;
-	ss << "r_HipLength_preop: " << hipLength_preop << std::endl;
-	ss << "r_HipLength_contra: " << hipLength_contra << std::endl;
-	ss << "r_HipLengthDiff_preop_vs_contra: " << hipLengthDiff_preop_vs_contra << std::endl;
-	
-	m_Controls.textBrowser->setText(QString::fromStdString(ss.str()));
-
-	m_Controls.lineEdit_HipLength_vsOpposite->setText(QString::number(hipLengthDiff_preop_vs_contra, 'f', 2));
-	m_Controls.lineEdit_Offset_vsOpposite->setText(QString::number(OffsetDiff_preop_vs_contra, 'f', 2));
-	m_Controls.lineEdit_HipLength_vsPreop->setText("N/A");
-	m_Controls.lineEdit_Offset_vsPreop->setText("N/A");
+	// QString opSide;
+	// QString state = "Preoperative";
+	// if (m_OperationSide == othopedics::ESide::left)
+	// {
+	// 	opSide = "(Left)";
+	// }
+	// else
+	// {
+	// 	opSide = "(Right)";
+	// }
+	// m_Controls.label_lengthOffsetHeader->setText(state + opSide);
+	//
+	// double Offset_preop, Offset_contra, OffsetDiff_preop_vs_contra;
+	// m_Reduction->GetResult(othopedics::EResult::r_Offset_preop, Offset_preop);
+	// m_Reduction->GetResult(othopedics::EResult::r_Offset_contra, Offset_contra);
+	// m_Reduction->GetResult(othopedics::EResult::r_OffsetDiff_preop_vs_contra, OffsetDiff_preop_vs_contra);
+	//
+	// double hipLength_preop, hipLength_contra, hipLengthDiff_preop_vs_contra;
+	// m_Reduction->GetResult(othopedics::EResult::r_HipLength_preop, hipLength_preop);
+	// m_Reduction->GetResult(othopedics::EResult::r_HipLength_contra, hipLength_contra);
+	// m_Reduction->GetResult(othopedics::EResult::r_HipLengthDiff_preop_vs_contra, hipLengthDiff_preop_vs_contra);
+	//
+	// std::stringstream ss;
+	// ss << "Offset_preop: " << Offset_preop <<std::endl;
+	// ss << "Offset_contra: " << Offset_contra << std::endl;
+	// ss << "OffsetDiff_preop_vs_contra: " << OffsetDiff_preop_vs_contra << std::endl;
+	// ss << "r_HipLength_preop: " << hipLength_preop << std::endl;
+	// ss << "r_HipLength_contra: " << hipLength_contra << std::endl;
+	// ss << "r_HipLengthDiff_preop_vs_contra: " << hipLengthDiff_preop_vs_contra << std::endl;
+	//
+	// m_Controls.textBrowser->setText(QString::fromStdString(ss.str()));
+	//
+	// m_Controls.lineEdit_HipLength_vsOpposite->setText(QString::number(hipLengthDiff_preop_vs_contra, 'f', 2));
+	// m_Controls.lineEdit_Offset_vsOpposite->setText(QString::number(OffsetDiff_preop_vs_contra, 'f', 2));
+	// m_Controls.lineEdit_HipLength_vsPreop->setText("N/A");
+	// m_Controls.lineEdit_Offset_vsPreop->setText("N/A");
 }
 
-void THAPlan::onPushButton_cupPlan_clicked()
+bool THAPlan::restoreCupPose()
 {
-	if (m_Cup == nullptr || m_Pelvis == nullptr)
-	{
-		MITK_WARN << "Cup Plan failed: missing bodies";
-		return;
-	}
-	//m_Cup->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
-	//hide all node,make it clear
-	HideAllNode(GetDataStorage());
-
-	//show pelvis and cup
-	m_dn_pelvis->SetVisibility(true);
-	m_dn_cup->SetVisibility(true);
-
-	//todo save and restore cup pose
-
 	Eigen::Matrix4d transform;
 	//if not planed, place to init pose
 	if (m_cupPlanMatrix.isIdentity())
@@ -254,7 +272,7 @@ void THAPlan::onPushButton_cupPlan_clicked()
 		if (m_Pelvis == nullptr)
 		{
 			MITK_WARN << "Cup Plan failed: missing pelvis body";
-			return;
+			return false;
 		}
 		if (m_OperationSide == othopedics::ESide::left)
 		{
@@ -268,48 +286,13 @@ void THAPlan::onPushButton_cupPlan_clicked()
 		transform.block<3, 1>(0, 3) += COR;
 		m_cupPlanMatrix = transform;
 	}
-	else
-	{
-		transform = m_cupPlanMatrix;
-	}
 
-
-	m_Cup->SetIndexToWorldTransform(transform);
-
-	//place a gizmo to adjust cup pose
-	mitk::Gizmo::AddGizmoToNode(m_dn_cup,GetDataStorage());
-
-	//whenever cup place moved,m_cupPlanMatrix should be updated
-	listenCupGeoModify();
-
-	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-	mitk::RenderingManager::GetInstance()->InitializeViewsByBoundingObjects(GetDataStorage());
+	m_Cup->SetIndexToWorldTransform(m_cupPlanMatrix);
+	return true;
 }
 
-void THAPlan::onPushButton_stemPlan_clicked()
+bool THAPlan::restoreStemPose()
 {
-	m_Reduction->PreOperativeReduction_Canal();
-	m_Stem->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
-	if (m_Cup == nullptr || m_Femur_L == nullptr || m_Femur_R == nullptr)
-	{
-		MITK_WARN << "Stem Plan failed: missing bodies";
-		return;
-	}
-	//hide all node,make it clear
-	HideAllNode(GetDataStorage());
-
-	//show femur and stem
-	m_dn_stem->SetVisibility(true);
-	if (m_OperationSide == othopedics::ESide::left)
-	{
-		m_dn_femurL->SetVisibility(true);
-	}
-	else
-	{
-		m_dn_femurR->SetVisibility(true);
-	}
-
-	//todo save and restore cup pose
 	Eigen::Matrix4d transform;
 	//if not planed, place to init pose
 	othopedics::Femur::Pointer femur;
@@ -324,32 +307,87 @@ void THAPlan::onPushButton_stemPlan_clicked()
 
 	if (m_stemPlanMatrix.isIdentity())
 	{
-		
-
 		Eigen::Vector3d femurP, StemP;
-		if (!femur->GetGlobalLandMark(othopedics::ELandMarks::f_NeckCanalIntersectPoint, femurP)
-			|| !m_Stem->GetGlobalLandMark(othopedics::ELandMarks::stem_NeckCanalIntersectPoint, StemP))
+		//m_stemPlanMatrix is in Femur coords ,so we don't need to use GetGlobalLandMark
+		if (!femur->GetLandMark(othopedics::ELandMarks::f_NeckCanalIntersectPoint, femurP)
+			|| !m_Stem->GetLandMark(othopedics::ELandMarks::stem_NeckCanalIntersectPoint, StemP))
 		{
 			MITK_WARN << "placeStemL failed: missing landmark";
-			return;
+			return false; 
 		}
-
 		Eigen::Vector3d t = femurP - StemP;
 
 		transform.setIdentity();
 		transform.block<3, 1>(0, 3) = t;
-		m_Stem->SetIndexToWorldTransform(transform);
-		updateStemPlanMatrix();
+		//m_Stem->SetIndexToWorldTransform(transform);
+		m_stemPlanMatrix = transform;
+	}
+
+	m_Stem->SetIndexToWorldTransform(femur->m_T_world_local * m_stemPlanMatrix);
+	return true;
+}
+
+void THAPlan::onPushButton_cupPlan_clicked()
+{
+	m_state = EState::Plan;
+	if (m_Cup == nullptr || m_Pelvis == nullptr)
+	{
+		MITK_WARN << "Cup Plan failed: missing bodies";
+		return;
+	}
+	//m_Cup->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
+	//hide all node,make it clear
+	HideAllNode(GetDataStorage());
+
+	//show pelvis and cup
+	m_dn_pelvis->SetVisibility(true);
+	m_dn_cup->SetVisibility(true);
+
+	//todo save and restore cup pose
+	restoreCupPose();
+	FlushAllTransform();
+	//place a gizmo to adjust cup pose
+	mitk::Gizmo::AddGizmoToNode(m_dn_cup,GetDataStorage());
+
+	//whenever cup place moved,m_cupPlanMatrix should be updated
+	listenCupGeoModify();
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	mitk::RenderingManager::GetInstance()->InitializeViewsByBoundingObjects(GetDataStorage());
+}
+
+void THAPlan::onPushButton_stemPlan_clicked()
+{
+	m_state = EState::Plan;
+	//m_Reduction->PreOperativeReduction_Canal();
+	m_Stem->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
+	if (m_Cup == nullptr || m_Femur_L == nullptr || m_Femur_R == nullptr)
+	{
+		MITK_WARN << "Stem Plan failed: missing bodies";
+		return;
+	}
+	//hide all node,make it clear
+	HideAllNode(GetDataStorage());
+
+	//show femur and stem
+	m_dn_stem->SetVisibility(true);
+	
+	if (m_OperationSide == othopedics::ESide::left)
+	{
+		m_dn_femurL->SetVisibility(true);
+		m_Femur_L->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
 	}
 	else
 	{
-		transform =  m_stemPlanMatrix;
-		m_Stem->SetIndexToWorldTransform(femur->m_T_world_local * transform);
+		m_dn_femurR->SetVisibility(true);
+		m_Femur_R->SetIndexToWorldTransform(Eigen::Matrix4d::Identity());
 	}
 
+	//todo save and restore cup pose
+	restoreStemPose();
+	FlushAllTransform();
 	//place a gizmo to adjust stem pose
 	mitk::Gizmo::AddGizmoToNode(m_dn_stem, GetDataStorage());
-
 
 	//whenever stem moved,m_cupPlanMatrix should be updated
 	listenStemGeoModify();
@@ -358,8 +396,104 @@ void THAPlan::onPushButton_stemPlan_clicked()
 	mitk::RenderingManager::GetInstance()->InitializeViewsByBoundingObjects(GetDataStorage());
 }
 
+void THAPlan::updateUI_HipLengthAndOffset()
+{
+	QString opSide;
+	QString state = to_string(m_state);
+	if (m_OperationSide == othopedics::ESide::left)
+	{
+		opSide = "(Left)";
+	}
+	else
+	{
+		opSide = "(Right)";
+	}
+	m_Controls.label_lengthOffsetHeader->setText(state + opSide);
+
+	if (m_state == EState::Plan)
+	{
+		double Offset_planed, Offset_contra, OffsetDiff_planed_vs_contra, OffsetDiff_planed_vs_preop;
+		m_Reduction->GetResult(othopedics::EResult::r_Offset_planed, Offset_planed);
+		m_Reduction->GetResult(othopedics::EResult::r_Offset_contra, Offset_contra);
+		m_Reduction->GetResult(othopedics::EResult::r_OffsetDiff_planed_vs_contra, OffsetDiff_planed_vs_contra);
+		m_Reduction->GetResult(othopedics::EResult::r_OffsetDiff_planed_vs_preop, OffsetDiff_planed_vs_preop);
+
+		double hipLength_planed, hipLength_contra, hipLengthDiff_planed_vs_contra, hipLengthDiff_planed_vs_preop;
+		m_Reduction->GetResult(othopedics::EResult::r_HipLength_planed, hipLength_planed);
+		m_Reduction->GetResult(othopedics::EResult::r_HipLength_contra, hipLength_contra);
+		m_Reduction->GetResult(othopedics::EResult::r_HipLengthDiff_planed_vs_contra, hipLengthDiff_planed_vs_contra);
+		m_Reduction->GetResult(othopedics::EResult::r_HipLengthDiff_planed_vs_preop, hipLengthDiff_planed_vs_preop);
+
+		std::stringstream ss;
+		ss << "Offset_planed: " << Offset_planed << std::endl;
+		ss << "Offset_contra: " << Offset_contra << std::endl;
+		ss << "OffsetDiff_planed_vs_contra: " << OffsetDiff_planed_vs_contra << std::endl;
+		ss << "OffsetDiff_planed_vs_preop: " << OffsetDiff_planed_vs_preop << std::endl;
+
+		ss << "hipLength_planed: " << hipLength_planed << std::endl;
+		ss << "hipLength_contra: " << hipLength_contra << std::endl;
+		ss << "hipLengthDiff_planed_vs_contra: " << hipLengthDiff_planed_vs_contra << std::endl;
+		ss << "hipLengthDiff_planed_vs_preop: " << hipLengthDiff_planed_vs_preop << std::endl;
+
+
+		m_Controls.textBrowser->setText(QString::fromStdString(ss.str()));
+
+		m_Controls.lineEdit_HipLength_vsOpposite->setText(QString::number(hipLengthDiff_planed_vs_contra, 'f', 2));
+		m_Controls.lineEdit_Offset_vsOpposite->setText(QString::number(OffsetDiff_planed_vs_contra, 'f', 2));
+		m_Controls.lineEdit_HipLength_vsPreop->setText(QString::number(hipLengthDiff_planed_vs_preop, 'f', 2));
+		m_Controls.lineEdit_Offset_vsPreop->setText(QString::number(OffsetDiff_planed_vs_preop, 'f', 2));
+	}
+	else if(m_state == EState::Preoperative)
+	{
+		double Offset_preop, Offset_contra, OffsetDiff_preop_vs_contra;
+		m_Reduction->GetResult(othopedics::EResult::r_Offset_preop, Offset_preop);
+		m_Reduction->GetResult(othopedics::EResult::r_Offset_contra, Offset_contra);
+		m_Reduction->GetResult(othopedics::EResult::r_OffsetDiff_preop_vs_contra, OffsetDiff_preop_vs_contra);
+
+		double hipLength_preop, hipLength_contra, hipLengthDiff_preop_vs_contra;
+		m_Reduction->GetResult(othopedics::EResult::r_HipLength_preop, hipLength_preop);
+		m_Reduction->GetResult(othopedics::EResult::r_HipLength_contra, hipLength_contra);
+		m_Reduction->GetResult(othopedics::EResult::r_HipLengthDiff_preop_vs_contra, hipLengthDiff_preop_vs_contra);
+
+		std::stringstream ss;
+		ss << "Offset_preop: " << Offset_preop << std::endl;
+		ss << "Offset_contra: " << Offset_contra << std::endl;
+		ss << "OffsetDiff_preop_vs_contra: " << OffsetDiff_preop_vs_contra << std::endl;
+		ss << "r_HipLength_preop: " << hipLength_preop << std::endl;
+		ss << "r_HipLength_contra: " << hipLength_contra << std::endl;
+		ss << "r_HipLengthDiff_preop_vs_contra: " << hipLengthDiff_preop_vs_contra << std::endl;
+
+		m_Controls.textBrowser->setText(QString::fromStdString(ss.str()));
+
+		m_Controls.lineEdit_HipLength_vsOpposite->setText(QString::number(hipLengthDiff_preop_vs_contra, 'f', 2));
+		m_Controls.lineEdit_Offset_vsOpposite->setText(QString::number(OffsetDiff_preop_vs_contra, 'f', 2));
+		m_Controls.lineEdit_HipLength_vsPreop->setText("N/A");
+		m_Controls.lineEdit_Offset_vsPreop->setText("N/A");
+	}
+}
+
+void THAPlan::updateHipLengthAndOffset()
+{
+	m_Reduction->PlanReduction_Canal(m_cupPlanMatrix, m_stemPlanMatrix);
+	m_Reduction->CalPlanedOffset();
+	m_Reduction->PlanReduction_Mechanical(m_cupPlanMatrix, m_stemPlanMatrix);
+	m_Reduction->CalPlanedHipLength();
+}
+
+void THAPlan::FlushAllTransform()
+{
+	m_Pelvis->FlushTransform();
+	m_Cup->FlushTransform();
+	m_Stem->FlushTransform();
+	m_Femur_L->FlushTransform();
+	m_Femur_R->FlushTransform();
+	m_Head->FlushTransform();
+	m_Liner->FlushTransform();
+}
+
 void THAPlan::onPushButton_reduction_clicked()
 {
+	m_state = EState::Plan;
 	//todo if skip cup and stem plan,reduction should place cup and stem initial pose
 	//hide all node,make it clear
 	HideAllNode(GetDataStorage());
@@ -374,12 +508,9 @@ void THAPlan::onPushButton_reduction_clicked()
 	m_dn_liner->SetVisibility(true);
 
 
-	m_Reduction->PlanReduction_Canal(m_cupPlanMatrix, m_stemPlanMatrix);
-	m_Reduction->CalPlanedOffset();
-	m_Reduction->PlanReduction_Mechanical(m_cupPlanMatrix, m_stemPlanMatrix);
-	m_Reduction->CalPlanedHipLength();
+	updateHipLengthAndOffset();
 	
-
+	FlushAllTransform();
 	Eigen::Vector3d CupCOR, StemAssPoint;
 	m_Cup->GetGlobalLandMark(othopedics::ELandMarks::cup_COR, CupCOR);
 	m_Stem->GetGlobalLandMark(othopedics::ELandMarks::stem_HeadAssemblyPoint_M, StemAssPoint);
@@ -390,48 +521,7 @@ void THAPlan::onPushButton_reduction_clicked()
 	mitk::RenderingManager::GetInstance()->InitializeViewsByBoundingObjects(GetDataStorage());
 
 	//show result
-	QString opSide;
-	QString state = "Planed";
-	if (m_OperationSide == othopedics::ESide::left)
-	{
-		opSide = "(Left)";
-	}
-	else
-	{
-		opSide = "(Right)";
-	}
-	m_Controls.label_lengthOffsetHeader->setText(state + opSide);
-	
-	double Offset_planed, Offset_contra, OffsetDiff_planed_vs_contra, OffsetDiff_planed_vs_preop;
-	m_Reduction->GetResult(othopedics::EResult::r_Offset_planed, Offset_planed);
-	m_Reduction->GetResult(othopedics::EResult::r_Offset_contra, Offset_contra);
-	m_Reduction->GetResult(othopedics::EResult::r_OffsetDiff_planed_vs_contra, OffsetDiff_planed_vs_contra);
-	m_Reduction->GetResult(othopedics::EResult::r_OffsetDiff_planed_vs_preop, OffsetDiff_planed_vs_preop);
-	
-	double hipLength_planed, hipLength_contra, hipLengthDiff_planed_vs_contra, hipLengthDiff_planed_vs_preop;
-	m_Reduction->GetResult(othopedics::EResult::r_HipLength_planed, hipLength_planed);
-	m_Reduction->GetResult(othopedics::EResult::r_HipLength_contra, hipLength_contra);
-	m_Reduction->GetResult(othopedics::EResult::r_HipLengthDiff_planed_vs_contra, hipLengthDiff_planed_vs_contra);
-	m_Reduction->GetResult(othopedics::EResult::r_HipLengthDiff_planed_vs_preop, hipLengthDiff_planed_vs_preop);
-	
-	std::stringstream ss;
-	ss << "Offset_planed: " << Offset_planed << std::endl;
-	ss << "Offset_contra: " << Offset_contra << std::endl;
-	ss << "OffsetDiff_planed_vs_contra: " << OffsetDiff_planed_vs_contra << std::endl;
-	ss << "OffsetDiff_planed_vs_preop: " << OffsetDiff_planed_vs_preop << std::endl;
-	
-	ss << "hipLength_planed: " << hipLength_planed << std::endl;
-	ss << "hipLength_contra: " << hipLength_contra << std::endl;
-	ss << "hipLengthDiff_planed_vs_contra: " << hipLengthDiff_planed_vs_contra << std::endl;
-	ss << "hipLengthDiff_planed_vs_preop: " << hipLengthDiff_planed_vs_preop << std::endl;
-	
-	
-	m_Controls.textBrowser->setText(QString::fromStdString(ss.str()));
-	
-	m_Controls.lineEdit_HipLength_vsOpposite->setText(QString::number(hipLengthDiff_planed_vs_contra, 'f', 2));
-	m_Controls.lineEdit_Offset_vsOpposite->setText(QString::number(OffsetDiff_planed_vs_contra, 'f', 2));
-	m_Controls.lineEdit_HipLength_vsPreop->setText(QString::number(hipLengthDiff_planed_vs_preop, 'f', 2));
-	m_Controls.lineEdit_Offset_vsPreop->setText(QString::number(OffsetDiff_planed_vs_preop, 'f', 2));
+	updateUI_HipLengthAndOffset();
 }
 
 void THAPlan::OnPushButton_test1_clicked()

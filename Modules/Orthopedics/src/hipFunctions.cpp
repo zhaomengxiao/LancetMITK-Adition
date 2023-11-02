@@ -190,15 +190,31 @@ namespace othopedics
 		}
 		return angle;
 	}
-
+	//todo algo updated
 	double HipLength(double* LT, double* ASIS_L, double* ASIS_R)
 	{
-		return GetPointToLineDistance(LT, ASIS_L, ASIS_R);
+		//project to coronal plane
+		double o[3]{ 0,0,0 };
+		double normal[3]{ 0,1,0 };
+		double LT_projected[3], ASIS_L_projected[3], ASIS_R_projected[3];
+		projectToPlane(LT, o, normal, LT_projected);
+		projectToPlane(ASIS_L, o, normal, ASIS_L_projected);
+		projectToPlane(ASIS_R, o, normal, ASIS_R_projected);
+		//and cal LT to ASIS line distance
+		return GetPointToLineDistance(LT_projected, ASIS_L_projected, ASIS_R_projected);
 	}
 
 	double CombinedOffset(double* PFCA, double* DFCA, double* MidLine)
 	{
-		return GetPointToLineDistance(MidLine, PFCA, DFCA);
+		//project to coronal plane
+		double o[3]{ 0,0,0 };
+		double normal[3]{ 0,1,0 };
+		double PFCA_projected[3], DFCA_projected[3], MidLine_projected[3];
+		projectToPlane(PFCA, o, normal, PFCA_projected);
+		projectToPlane(DFCA, o, normal, DFCA_projected);
+		projectToPlane(MidLine, o, normal, MidLine_projected);
+		//and cal MidLine to Canal Axis distance
+		return GetPointToLineDistance(MidLine_projected, PFCA_projected, DFCA_projected);
 	}
 
 	Eigen::Matrix4d CalPelvisCorrectionMatrix(Eigen::Vector3d ASIS_R, Eigen::Vector3d ASIS_L)
