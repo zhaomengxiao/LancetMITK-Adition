@@ -2176,6 +2176,85 @@ void MoveData::horizontalSlider_testCrosshair_value_changed()
 }
 
 
+vtkSmartPointer<vtkPolyData> SweepLine_2Sides(vtkPolyData* line, double direction[3],
+	double distance, unsigned int cols)
+{
+	unsigned int rows = line->GetNumberOfPoints();
+	double spacing = distance / cols;
+	vtkNew<vtkPolyData> surface;
+
+	// Generate the points.
+	cols++;
+	unsigned int numberOfPoints = rows * cols;
+	unsigned int numberOfPolys = (rows - 1) * (cols - 1);
+	vtkNew<vtkPoints> points;
+	points->Allocate(numberOfPoints);
+	vtkNew<vtkCellArray> polys;
+	polys->Allocate(numberOfPolys * 4);
+
+	double x[3];
+	unsigned int cnt = 0;
+	for (unsigned int row = 0; row < rows; row++)
+	{
+		for (unsigned int col = 0; col < cols; col++)
+		{
+			double p[3];
+			line->GetPoint(row, p);
+			x[0] = p[0] - distance * direction[0] / 2 + direction[0] * col * spacing;
+			x[1] = p[1] - distance * direction[1] / 2 + direction[1] * col * spacing;
+			x[2] = p[2] - distance * direction[2] / 2 + direction[2] * col * spacing;
+			points->InsertPoint(cnt++, x);
+		}
+	}
+	// Generate the quads.
+	vtkIdType pts[4];
+	for (unsigned int row = 0; row < rows - 1; row++)
+	{
+		for (unsigned int col = 0; col < cols - 1; col++)
+		{
+			pts[0] = col + row * (cols);
+			pts[1] = pts[0] + 1;
+			pts[2] = pts[0] + cols + 1;
+			pts[3] = pts[0] + cols;
+			polys->InsertNextCell(4, pts);
+		}
+	}
+	surface->SetPoints(points);
+	surface->SetPolys(polys);
+
+	// double x[3];
+	// unsigned int cnt = 0;
+	// for (unsigned int col = 0; col < cols; col++)
+	// {
+	// 	for (unsigned int row = 0; row < rows; row++)
+	// 	{
+	// 		double p[3];
+	// 		line->GetPoint(row, p);
+	// 		x[0] = p[0] - distance * direction[0] / 2 + direction[0] * col * spacing;
+	// 		x[1] = p[1] - distance * direction[1] / 2 + direction[1] * col * spacing;
+	// 		x[2] = p[2] - distance * direction[2] / 2 + direction[2] * col * spacing;
+	// 		points->InsertPoint(cnt++, x);
+	// 	}
+	// }
+	// // Generate the quads.
+	// vtkIdType pts[4];
+	// for (unsigned int col = 0; col < cols - 1; col++)
+	// {
+	// 	for (unsigned int row = 0; row < rows - 1; row++)
+	// 	{
+	// 		pts[0] = col + row * (cols);
+	// 		pts[1] = pts[0] + 1;
+	// 		pts[2] = pts[0] + cols + 1;
+	// 		pts[3] = pts[0] + cols;
+	// 		polys->InsertNextCell(4, pts);
+	// 	}
+	// }
+	// surface->SetPoints(points);
+	// surface->SetPolys(polys);
+
+	return surface;
+}
+
 vtkSmartPointer<vtkPolyData> SweepLine(vtkPolyData* line, double direction[3],
 	double distance, unsigned int cols)
 {
@@ -2477,26 +2556,70 @@ void MoveData::on_pushButton_testCPR_clicked()
 
 	auto vtkImage = GetDataStorage()->GetNamedObject<mitk::Image>("Image")->GetVtkImageData();
 
+	// Note: the vtkImage above may not occupy the same space as the mitk Image because "GetVtkImageData()" loses the MITK geometry transform
+	// therefore we have to apply the inverse transform to the probe polydata instead
+
+	auto mitkAppendedImage_ = mitk::Image::New();
+
+	mitkAppendedImage_->Initialize(vtkImage);
+	mitkAppendedImage_->SetVolume(vtkImage->GetScalarPointer());
+
+	auto tmpNode__ = mitk::DataNode::New();
+	tmpNode__->SetData(mitkAppendedImage_);
+	tmpNode__->SetName("vtkImage");
+	GetDataStorage()->Add(tmpNode__);
+
 	for (int i{0}; i < 2* thickness; i++)
 	{
 		double stepSize = segLength * (-thickness + i);
 
 		auto expandedSpline = ExpandSpline(spline_PolyData, spline_PolyData->GetNumberOfPoints() - 1, stepSize);
+
 		
+
 		// Sweep the line to form a surface.
 		double direction[3];
 		direction[0] = 0.0;
 		direction[1] = 0.0;
 		direction[2] = 1.0;
-		unsigned cols = 300;
+		unsigned cols = 250;
 
 		double distance = cols * segLength;
 		auto surface =
-			SweepLine(expandedSpline, direction, distance, cols);
+			SweepLine_2Sides(expandedSpline, direction, distance, cols);
+			   
+		// Apply the inverse geometry of the MITK image to the probe surface
+		auto geometryMatrix = vtkMatrix4x4::New();
+		geometryMatrix->DeepCopy(GetDataStorage()->GetNamedObject<mitk::Image>("Image")->GetGeometry()->GetVtkMatrix());
+		auto spacing = GetDataStorage()->GetNamedObject<mitk::Image>("Image")->GetGeometry()->GetSpacing();
+
+		for(int j{0}; j < 3; j++)
+		{
+			geometryMatrix->SetElement(j, 0, geometryMatrix->GetElement(j, 0) / spacing[0]);
+			geometryMatrix->SetElement(j, 1, geometryMatrix->GetElement(j, 1) / spacing[1]);
+			geometryMatrix->SetElement(j, 2, geometryMatrix->GetElement(j, 2) / spacing[2]);
+		}
+
+		geometryMatrix->Invert();
+
+		vtkNew<vtkTransformFilter> tmpTransFilter;
+		vtkNew<vtkTransform> tmpTransform;
+		tmpTransform->SetMatrix(geometryMatrix);
+		tmpTransFilter->SetTransform(tmpTransform);
+		tmpTransFilter->SetInputData(surface);
+		tmpTransFilter->Update();
+
+		auto testSpline = mitk::Surface::New();
+		testSpline->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
+		auto testNode = mitk::DataNode::New();
+		testNode->SetData(testSpline);
+		testNode->SetName("surface");
+		GetDataStorage()->Add(testNode);
+
 
 		vtkNew<vtkProbeFilter> sampleVolume;
 		sampleVolume->SetSourceData(vtkImage);
-		sampleVolume->SetInputData(surface);
+		sampleVolume->SetInputData(tmpTransFilter->GetPolyDataOutput());
 
 		sampleVolume->Update();
 
@@ -2508,6 +2631,8 @@ void MoveData::on_pushButton_testCPR_clicked()
 
 		auto testimageData = vtkImageData::New();
 		testimageData->SetDimensions(cols + 1, spline_PolyData->GetNumberOfPoints(), 1);
+		//testimageData->SetDimensions( spline_PolyData->GetNumberOfPoints(), cols + 1, 1);
+
 
 		testimageData->SetSpacing(segLength, segLength, 1);
 		testimageData->SetOrigin(0, 0, 0);
@@ -2524,78 +2649,28 @@ void MoveData::on_pushButton_testCPR_clicked()
 	append->Update();
 	auto appenedImage = append->GetOutput();
 	appenedImage->SetSpacing(segLength, segLength, segLength);
-
+	
 	auto mitkAppendedImage = mitk::Image::New();
 
 	mitkAppendedImage->Initialize(appenedImage);
 	mitkAppendedImage->SetVolume(appenedImage->GetScalarPointer());
 
+	// Rotate the image by -90 degree along the +z axis
+	auto rotateTrans = vtkTransform::New();
+	rotateTrans->PostMultiply();
+	rotateTrans->SetMatrix(mitkAppendedImage->GetGeometry()->GetVtkMatrix());
+	rotateTrans->RotateZ(-90);
+	rotateTrans->Update();
+
+	mitkAppendedImage->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(rotateTrans->GetMatrix());
+
 	auto tmpNode_ = mitk::DataNode::New();
 	tmpNode_->SetData(mitkAppendedImage);
-	tmpNode_->SetName("Appended Image");
+	tmpNode_->SetName("Panorama");
+
+	
 
 	GetDataStorage()->Add(tmpNode_);
 
-	// auto expandedSpline = ExpandSpline(spline_PolyData, spline_PolyData->GetNumberOfPoints()-1, 3);
-
-
-	// Sweep the line to form a surface.
-	double direction[3];
-	direction[0] = 0.0;
-	direction[1] = 0.0;
-	direction[2] = 1.0;
-	unsigned cols = 300;
-
-	double distance = cols * segLength;
-	auto surface =
-		SweepLine(spline_PolyData, direction, distance, cols);
-
-	auto tmpSurface = mitk::Surface::New();
-	tmpSurface->SetVtkPolyData(surface);
 	
-	auto tmpNode1 = mitk::DataNode::New();
-	tmpNode1->SetData(tmpSurface);
-	tmpNode1->SetName("probeSurface");
-	GetDataStorage()->Add(tmpNode1);
-
-
-	// Probe the volume with the extruded surface.
-
-	
-	vtkNew<vtkProbeFilter> sampleVolume;
-	sampleVolume->SetSourceData(vtkImage);
-	sampleVolume->SetInputData(surface);
-	
-	sampleVolume->Update();
-
-	auto probeData = sampleVolume->GetOutput();
-
-	auto probePointData = probeData->GetPointData();
-
-	auto tmpArray = probePointData->GetScalars();
-	
-	auto testimageData = vtkImageData::New();
-	testimageData->SetDimensions(cols+1, spline_PolyData->GetNumberOfPoints(), 1);
-
-	testimageData->SetSpacing(segLength, segLength, 1);
-	testimageData->SetOrigin(0,0,0);
-	testimageData->AllocateScalars(VTK_INT, 1);
-	testimageData->GetPointData()->SetScalars(tmpArray);
-
-	auto tmpImage = mitk::Image::New();
-
-	if (testimageData == nullptr)
-	{
-		m_Controls.textBrowser_moveData->append("no imageData");
-		return;
-	}
-
-	tmpImage->Initialize(testimageData);
-	tmpImage->SetVolume(testimageData->GetScalarPointer());
-
-	auto tmpNode = mitk::DataNode::New();
-	tmpNode->SetData(tmpImage);
-	tmpNode->SetName("Oral Panorama");
-	
-	GetDataStorage()->Add(tmpNode);
 }
