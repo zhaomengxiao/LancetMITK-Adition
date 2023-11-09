@@ -2552,22 +2552,22 @@ void MoveData::on_pushButton_testCPR_clicked()
 
 	append->SetAppendAxis(2);
 
-	int thickness{ 20 };
+	int thickness{ 30 };
 
 	auto vtkImage = GetDataStorage()->GetNamedObject<mitk::Image>("Image")->GetVtkImageData();
 
 	// Note: the vtkImage above may not occupy the same space as the mitk Image because "GetVtkImageData()" loses the MITK geometry transform
 	// therefore we have to apply the inverse transform to the probe polydata instead
 
-	auto mitkAppendedImage_ = mitk::Image::New();
-
-	mitkAppendedImage_->Initialize(vtkImage);
-	mitkAppendedImage_->SetVolume(vtkImage->GetScalarPointer());
-
-	auto tmpNode__ = mitk::DataNode::New();
-	tmpNode__->SetData(mitkAppendedImage_);
-	tmpNode__->SetName("vtkImage");
-	GetDataStorage()->Add(tmpNode__);
+	// auto mitkAppendedImage_ = mitk::Image::New();
+	//
+	// mitkAppendedImage_->Initialize(vtkImage);
+	// mitkAppendedImage_->SetVolume(vtkImage->GetScalarPointer());
+	//
+	// auto tmpNode__ = mitk::DataNode::New();
+	// tmpNode__->SetData(mitkAppendedImage_);
+	// tmpNode__->SetName("vtkImage");
+	// GetDataStorage()->Add(tmpNode__);
 
 	for (int i{0}; i < 2* thickness; i++)
 	{
@@ -2609,12 +2609,12 @@ void MoveData::on_pushButton_testCPR_clicked()
 		tmpTransFilter->SetInputData(surface);
 		tmpTransFilter->Update();
 
-		auto testSpline = mitk::Surface::New();
-		testSpline->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
-		auto testNode = mitk::DataNode::New();
-		testNode->SetData(testSpline);
-		testNode->SetName("surface");
-		GetDataStorage()->Add(testNode);
+		// auto testSpline = mitk::Surface::New();
+		// testSpline->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
+		// auto testNode = mitk::DataNode::New();
+		// testNode->SetData(testSpline);
+		// testNode->SetName("surface");
+		// GetDataStorage()->Add(testNode);
 
 
 		vtkNew<vtkProbeFilter> sampleVolume;
