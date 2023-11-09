@@ -258,13 +258,25 @@ void Reduction::PlanReduction_Canal(Eigen::Matrix4d cupPlanMatrix,Eigen::Matrix4
 	Eigen::Matrix4d cupTrans = pelvisTrans* cupPlanMatrix;
 	m_Cup->SetIndexToWorldTransform(cupTrans);
 
-	//move stem center to cup center
-	StemReduction(m_Cup, m_Stem, ELandMarks::stem_HeadAssemblyPoint_M);
+	//m_Femur_op move to pelvis COR and canal correction
+	FemurPreopReduction_Canal(m_Pelvis, m_Femur_op);
+	//stem move to m_Femur_op
+	Eigen::Matrix4d stemTrans = m_Femur_op->m_T_world_local * stemPlanMatrix;
+	m_Stem->SetIndexToWorldTransform(stemTrans);
 
-	//femur_operation move to stem
-	Eigen::Matrix4d femurTrans_op = m_Stem->m_T_world_local * (stemPlanMatrix.inverse());
-	m_Femur_op->SetIndexToWorldTransform(femurTrans_op);
+	//reduct stem and cup,append transform to stem and femur and head
+	Eigen::Matrix4d stemReductionTransform = GetStemReductionTransform(m_Cup, m_Stem, ELandMarks::stem_HeadAssemblyPoint_M);
+	// MITK_WARN << "stemReductionTransform";
+	// MITK_WARN << stemReductionTransform;
+	m_Stem->AppendTransform(stemReductionTransform);
+	m_Femur_op->AppendTransform(stemReductionTransform);
+	// //move stem center to cup center
+	// StemReduction(m_Cup, m_Stem, ELandMarks::stem_HeadAssemblyPoint_M);
 
+	// //femur_operation move to stem
+	// Eigen::Matrix4d femurTrans_op = m_Stem->m_T_world_local * (stemPlanMatrix.inverse());
+	// m_Femur_op->SetIndexToWorldTransform(femurTrans_op);
+	//
 	//liner and head
 	m_Liner->SetIndexToWorldTransform(m_Cup->m_T_world_local);
 	
