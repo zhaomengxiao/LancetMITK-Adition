@@ -112,8 +112,8 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 		}
 	}
 
-	// Todo: set tool registration matrix
-	
+	m_VegaToolStorage->GetToolByName("drillRF")->SetToolRegistrationMatrix(nd_drillDRFtoCalibratorDRF->GetAffineTransform3D());
+
 
 }
 
@@ -598,9 +598,9 @@ void DentalAccuracy::on_pushButton_setImplant_clicked()
 
 	ResetView();
 
-	if (GetDataStorage()->GetNamedNode("alveolar nerve") != nullptr)
+	if (GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped-labels_3D-interpolation") != nullptr)
 	{
-		GetDataStorage()->GetNamedNode("alveolar nerve")->SetVisibility(true);
+		GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped-labels_3D-interpolation")->SetVisibility(true);
 	}
 }
 
@@ -643,9 +643,9 @@ void DentalAccuracy::on_pushButton_setCrown_clicked()
 		m_Controls.pushButton_setCrown->setText("Finish");
 	}
 
-	if (GetDataStorage()->GetNamedNode("alveolar nerve") != nullptr)
+	if (GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped-labels_3D-interpolation") != nullptr)
 	{
-		GetDataStorage()->GetNamedNode("alveolar nerve")->SetVisibility(true);
+		GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped-labels_3D-interpolation")->SetVisibility(true);
 	}
 
 	auto tmpMatrix = vtkMatrix4x4::New();
