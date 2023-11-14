@@ -23,6 +23,7 @@ found in the LICENSE file.
 
 // mitk image
 #include <mitkImage.h>
+#include <QFileDialog>
 #include <vtkAppendPolyData.h>
 #include <vtkCardinalSpline.h>
 #include <vtkCellArray.h>
@@ -40,9 +41,13 @@ found in the LICENSE file.
 #include <vtkSplineFilter.h>
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 
+#include "lancetTrackingDeviceSourceConfigurator.h"
+#include "lancetVegaTrackingDevice.h"
 #include "leastsquaresfit.h"
 #include "mitkGizmo.h"
 #include "mitkImageToSurfaceFilter.h"
+#include "mitkMatrixConvert.h"
+#include "mitkNavigationToolStorageDeserializer.h"
 #include "mitkPointSet.h"
 #include "QmitkDataStorageTreeModel.h"
 #include "QmitkRenderWindow.h"
@@ -73,8 +78,235 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_setCrown, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_setCrown_clicked);
   connect(m_Controls.pushButton_setImplant, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_setImplant_clicked);
   connect(m_Controls.pushButton_steelballExtract, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_steelballExtract_clicked);
+  connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_connectVega_clicked);
+  connect(m_Controls.pushButton_imageRegis, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_imageRegis_clicked);
+  connect(m_Controls.pushButton_calibrateDrill, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_calibrateDrill_clicked);
 
 }
+
+
+void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
+{
+	// Calculate T_drillDRFtoCalibratorDRF
+	auto calibratorDRFindex = m_VegaToolStorage->GetToolIndexByName("calibrator");
+	auto drillDRFindex = m_VegaToolStorage->GetToolIndexByName("drillRF");
+	if (calibratorDRFindex == -1 || drillDRFindex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'calibrator' or 'drillDRF' in the toolStorage!");
+	}
+
+	mitk::NavigationData::Pointer nd_ndiTocalibratorDRF = m_VegaSource->GetOutput(calibratorDRFindex);
+	mitk::NavigationData::Pointer nd_ndiTodrillDRF = m_VegaSource->GetOutput(drillDRFindex);
+
+	mitk::NavigationData::Pointer nd_drillDRFtoCalibratorDRF = GetNavigationDataInRef(nd_ndiTocalibratorDRF, nd_ndiTodrillDRF);
+
+	vtkMatrix4x4* T_drillDRFtoCalibratorDRF = vtkMatrix4x4::New();
+	mitk::TransferItkTransformToVtkMatrix(nd_drillDRFtoCalibratorDRF->GetAffineTransform3D().GetPointer(), T_drillDRFtoCalibratorDRF);
+
+	m_Controls.textBrowser->append("Drill calibration matrix");
+	for (int i{ 0 }; i < 4; i++)
+	{
+		for (int j{ 0 }; j < 4; j++)
+		{
+			m_Controls.textBrowser->append(QString::number(T_drillDRFtoCalibratorDRF->GetElement(i, j)));
+		}
+	}
+
+	// Todo: set tool registration matrix
+	
+
+}
+
+mitk::NavigationData::Pointer DentalAccuracy::GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
+	mitk::NavigationData::Pointer nd_ref)
+{
+	mitk::NavigationData::Pointer res = mitk::NavigationData::New();
+	res->Graft(nd);
+	res->Compose(nd_ref->GetInverse());
+	return res;
+}
+
+void DentalAccuracy::on_pushButton_imageRegis_clicked()
+{
+	if(m_ImageRegistrationMatrix->IsIdentity() == false)
+	{
+		m_Controls.textBrowser->append("Image registration has been done.");
+		return;
+	}
+
+	auto extractedBall_node = GetDataStorage()->GetNamedNode("Steelball centers");
+	
+	auto stdBall_node = GetDataStorage()->GetNamedNode("std_steelball");
+
+	if(extractedBall_node == nullptr)
+	{
+		m_Controls.textBrowser->append("Steelball centers are missing");
+		return;
+	}
+
+	if(stdBall_node == nullptr)
+	{
+		m_Controls.textBrowser->append("std_steelball is missing");
+		return;
+	}
+
+	auto extractedBall_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("Steelball centers");
+	auto stdball_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("std_steelball");
+	int extracted_num = extractedBall_pset->GetSize();
+
+	if(extracted_num < 7)
+	{
+		m_Controls.textBrowser->append("Steel ball extraction incomplete");
+		return;
+	}
+
+	// Todo: assemble navigation object "Reconstructed CBCT surface"
+	// The surface node should have no offset, i.e., should have an identity matrix!
+	auto surfaceNode = GetDataStorage()->GetNamedNode("Reconstructed CBCT surface");
+
+	if (surfaceNode == nullptr )
+	{
+		m_Controls.textBrowser->append("Reconstructed CBCT surface is missing!");
+		return;
+	}
+
+	m_NavigatedImage = lancet::NavigationObject::New();
+
+	auto matrix = dynamic_cast<mitk::Surface*>(surfaceNode->GetData())->GetGeometry()->GetVtkMatrix();
+
+	if (matrix->IsIdentity() == false)
+	{
+		vtkNew<vtkMatrix4x4> identityMatrix;
+		identityMatrix->Identity();
+		dynamic_cast<mitk::Surface*>(surfaceNode->GetData())->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+
+		m_Controls.textBrowser->append("Warning: the initial surface has a non-identity offset matrix; the matrix has been reset to identity!");
+	}
+
+	m_NavigatedImage->SetDataNode(surfaceNode);
+
+	m_NavigatedImage->SetLandmarks(extractedBall_pset);
+
+	m_NavigatedImage->SetReferencFrameName(surfaceNode->GetName());
+
+	m_Controls.textBrowser->append("--- NavigatedImage has been set up ---");
+
+	m_NavigatedImage->SetLandmarks_probe(stdball_pset);
+
+	/// Apply image registration
+	m_SurfaceRegistrationStaticImageFilter = lancet::ApplySurfaceRegistratioinStaticImageFilter::New();
+	m_SurfaceRegistrationStaticImageFilter->ConnectTo(m_VegaSource);
+
+	m_NavigatedImage->UpdateObjectToRfMatrix();
+	m_Controls.textBrowser->append("Avg landmark error:" + QString::number(m_NavigatedImage->GetlandmarkRegis_avgError()));
+	m_Controls.textBrowser->append("Max landmark error:" + QString::number(m_NavigatedImage->GetlandmarkRegis_maxError()));
+
+	m_ImageRegistrationMatrix->DeepCopy(m_NavigatedImage->GetT_Object2ReferenceFrame());
+
+	auto tmpMatrix = mitk::AffineTransform3D::New();
+
+	mitk::TransferVtkMatrixToItkTransform(m_ImageRegistrationMatrix, tmpMatrix.GetPointer());
+
+	m_VegaToolStorage->GetToolByName("patientRF")->SetToolRegistrationMatrix(tmpMatrix);
+
+	m_SurfaceRegistrationStaticImageFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("patientRF")->GetToolRegistrationMatrix());
+
+	m_SurfaceRegistrationStaticImageFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("patientRF"));
+
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_SurfaceRegistrationStaticImageFilter);
+	m_VegaVisualizeTimer->start();
+
+}
+
+
+void DentalAccuracy::on_pushButton_connectVega_clicked()
+{
+	//read in filename
+	QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/",
+		tr("Tool Storage Files (*.IGTToolStorage)"));
+	if (filename.isNull()) return;
+
+	//read tool storage from disk
+	std::string errorMessage = "";
+	mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(
+		GetDataStorage());
+	m_VegaToolStorage = myDeserializer->Deserialize(filename.toStdString());
+	m_VegaToolStorage->SetName(filename.toStdString());
+
+
+	MITK_INFO << "Vega tracking";
+	lancet::NDIVegaTrackingDevice::Pointer vegaTrackingDevice = lancet::NDIVegaTrackingDevice::New(); //instantiate
+
+	//Create Navigation Data Source with the factory class, and the visualize filter.
+	lancet::TrackingDeviceSourceConfiguratorLancet::Pointer vegaSourceFactory =
+		lancet::TrackingDeviceSourceConfiguratorLancet::New(m_VegaToolStorage, vegaTrackingDevice);
+
+	m_VegaSource = vegaSourceFactory->CreateTrackingDeviceSource(m_VegaVisualizer);
+	m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
+	m_VegaSource->Connect();
+
+	m_VegaSource->StartTracking();
+
+	//update visualize filter by timer
+	if (m_VegaVisualizeTimer == nullptr)
+	{
+		m_VegaVisualizeTimer = new QTimer(this); //create a new timer
+	}
+	connect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DentalAccuracy::OnVegaVisualizeTimer);
+
+	ShowToolStatus_Vega();
+
+	m_VegaVisualizeTimer->start(100); //Every 100ms the method OnTimer() is called. -> 10fps
+
+	auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+	mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+
+	m_ImageRegistrationMatrix->Identity();
+
+}
+
+void DentalAccuracy::UpdateToolStatusWidget()
+{
+	m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
+	// m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
+}
+
+
+void DentalAccuracy::OnVegaVisualizeTimer()
+{
+	//Here we call the Update() method from the Visualization Filter. Internally the filter checks if
+	//new NavigationData is available. If we have a new NavigationData the cone position and orientation
+	//will be adapted.
+	
+	if (m_VegaVisualizer.IsNotNull())
+	{
+		m_VegaVisualizer->Update();
+		// auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
+		// mitk::RenderingManager::GetInstance()->InitializeViews(geo);
+		this->RequestRenderWindowUpdate();
+	}
+
+	m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
+
+}
+
+
+void DentalAccuracy::ShowToolStatus_Vega()
+{
+	m_VegaNavigationData.clear();
+	for (std::size_t i = 0; i < m_VegaSource->GetNumberOfOutputs(); i++)
+	{
+		m_VegaNavigationData.push_back(m_VegaSource->GetOutput(i));
+	}
+	//initialize widget
+	m_Controls.m_StatusWidgetVegaToolToShow->RemoveStatusLabels();
+	m_Controls.m_StatusWidgetVegaToolToShow->SetShowPositions(true);
+	m_Controls.m_StatusWidgetVegaToolToShow->SetTextAlignment(Qt::AlignLeft);
+	m_Controls.m_StatusWidgetVegaToolToShow->SetNavigationDatas(&m_VegaNavigationData);
+	m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();
+}
+
 
 void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 {
@@ -273,6 +505,48 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 	GetDataStorage()->Add(childNode);
 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Steelball centers"));
 	childNode->SetName("Steelball centers");
+
+
+	////////////////////// Move the dental splint surface ///////////////////////
+	auto extractedBall_node = GetDataStorage()->GetNamedNode("Steelball centers");
+	auto splint_node = GetDataStorage()->GetNamedNode("dentalSplint");
+	auto stdBall_node = GetDataStorage()->GetNamedNode("std_steelball");
+
+	if (extractedBall_node == nullptr)
+	{
+		m_Controls.textBrowser->append("Steelball centers are missing");
+		return;
+	}
+
+	if (splint_node == nullptr || stdBall_node == nullptr)
+	{
+		m_Controls.textBrowser->append("dentalSplint or std_steelball is missing");
+		return;
+	}
+
+	auto extractedBall_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("Steelball centers");
+	auto stdball_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("std_steelball");
+	int extracted_num = extractedBall_pset->GetSize();
+
+	if (extracted_num < 7)
+	{
+		m_Controls.textBrowser->append("Steel ball extraction incomplete");
+		return;
+	}
+
+	auto landmarkRegistrator2 = mitk::SurfaceRegistration::New();
+	landmarkRegistrator2->SetLandmarksSrc(stdball_pset);
+	landmarkRegistrator2->SetLandmarksTarget(extractedBall_pset);
+	
+	landmarkRegistrator2->ComputeLandMarkResult();
+	
+	auto result_matrix = landmarkRegistrator2->GetResult();
+
+	auto splint_surface = GetDataStorage()->GetNamedObject<mitk::Surface>("dentalSplint");
+
+	splint_surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(result_matrix);
+
+	GetDataStorage()->GetNamedNode("dentalSplint")->SetVisibility(true);
 }
 
 
@@ -303,6 +577,10 @@ void DentalAccuracy::on_pushButton_setImplant_clicked()
 	
 	TurnOffAllNodesVisibility();
 	GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped")->SetVisibility(true);
+	if (GetDataStorage()->GetNamedNode("merged ios") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("merged ios")->SetVisibility(true);
+	}
 	implantNode->SetVisibility(true);
 	crownNode->SetVisibility(true);
 
@@ -313,7 +591,7 @@ void DentalAccuracy::on_pushButton_setImplant_clicked()
 	}
 	else
 	{
-		implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(crownNode->GetData()->GetGeometry()->GetVtkMatrix());
+		
 		mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
 		m_Controls.pushButton_setImplant->setText("Finish");
 	}
@@ -368,6 +646,33 @@ void DentalAccuracy::on_pushButton_setCrown_clicked()
 	if (GetDataStorage()->GetNamedNode("alveolar nerve") != nullptr)
 	{
 		GetDataStorage()->GetNamedNode("alveolar nerve")->SetVisibility(true);
+	}
+
+	auto tmpMatrix = vtkMatrix4x4::New();
+	tmpMatrix->DeepCopy(crownNode->GetData()->GetGeometry()->GetVtkMatrix());
+	Eigen::Vector3d x;
+	Eigen::Vector3d y;
+	Eigen::Vector3d z;
+
+	for (int i{ 0 }; i < 3; i++)
+	{
+		x[i] = tmpMatrix->GetElement(i, 0);
+		y[i] = tmpMatrix->GetElement(i, 1);
+		z[i] = tmpMatrix->GetElement(i, 2);
+	}
+	x.normalize();
+	y.normalize();
+	z.normalize();
+	for (int i{ 0 }; i < 3; i++)
+	{
+		tmpMatrix->SetElement(i, 0, x[i]);
+		tmpMatrix->SetElement(i, 1, y[i]);
+		tmpMatrix->SetElement(i, 2, z[i]);
+	}
+	if (GetDataStorage()->GetNamedNode("implant") != nullptr)
+	{
+		auto implantNode = GetDataStorage()->GetNamedNode("implant");
+		implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
 	}
 
 }
@@ -510,7 +815,7 @@ void DentalAccuracy::on_pushButton_CBCTreconstruct_clicked()
 	if(GetDataStorage()->GetNamedNode("ios") == nullptr)
 	{
 		m_Controls.textBrowser->append("Intraoral scan (ios) is missing");
-		return;
+	
 	}
 
 
@@ -551,8 +856,12 @@ void DentalAccuracy::on_pushButton_CBCTreconstruct_clicked()
 
 	TurnOffAllNodesVisibility();
 	GetDataStorage()->GetNamedNode("Reconstructed CBCT surface")->SetVisibility(true);
-	GetDataStorage()->GetNamedNode("ios")->SetVisibility(true);
 
+	if (GetDataStorage()->GetNamedNode("ios") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("ios")->SetVisibility(true);
+	}
+	
 	ResetView();
 }
 

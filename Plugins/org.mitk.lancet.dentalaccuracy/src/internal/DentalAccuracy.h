@@ -19,7 +19,10 @@ found in the LICENSE file.
 #include <QmitkAbstractView.h>
 #include <vtkPolyData.h>
 
+#include "lancetApplySurfaceRegistratioinStaticImageFilter.h"
+#include "lancetNavigationObjectVisualizationFilter.h"
 #include "mitkPointSet.h"
+#include "mitkTrackingDeviceSource.h"
 #include "ui_DentalAccuracyControls.h"
 
 /**
@@ -68,7 +71,16 @@ protected:
 
   void on_pushButton_steelballExtract_clicked();
 
+  void on_pushButton_connectVega_clicked();
+
+  void on_pushButton_imageRegis_clicked();
+
+  void on_pushButton_calibrateDrill_clicked();
+
 	// Functions
+
+  mitk::NavigationData::Pointer DentalAccuracy::GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
+	  mitk::NavigationData::Pointer nd_ref);
 
   void TurnOffAllNodesVisibility();
 
@@ -93,7 +105,23 @@ protected:
   void RearrangeSteelballs(int stdNeighborNum, int foundIDs[7]);
 
 
+  void OnVegaVisualizeTimer();
+  void ShowToolStatus_Vega();
+  void UpdateToolStatusWidget();
+
 	// Variables
+
+  mitk::NavigationToolStorage::Pointer m_VegaToolStorage;
+  mitk::TrackingDeviceSource::Pointer m_VegaSource;
+  lancet::NavigationObjectVisualizationFilter::Pointer m_VegaVisualizer;
+  QTimer* m_VegaVisualizeTimer{ nullptr };
+  std::vector<mitk::NavigationData::Pointer> m_VegaNavigationData;
+
+  // Image registration
+  lancet::NavigationObject::Pointer m_NavigatedImage;
+  vtkNew<vtkMatrix4x4> m_ImageRegistrationMatrix; // image(surface) to ObjectRf matrix
+  lancet::ApplySurfaceRegistratioinStaticImageFilter::Pointer m_SurfaceRegistrationStaticImageFilter;
+
   double allBallFingerPrint[42]
   {
 	  0
@@ -112,13 +140,20 @@ protected:
 
   double iosStdCenters[21]
   {
-	  0, 0, 0,
-	  10, -1.5, -5,
-	  15.5, 13.5, -3,
-	  11.8, 11, -1.5,
-	  -7, 14, 0,
-	  -13.5, 14, -4.5,
-	  -10, -2, -4
+	  -23.930450476, -87.4997006055, 10.9484740283,
+	  -34.990049118, -89.0005671575, 9.31059563815,
+	  -38.350507198, -74.0005629566, 4.51922953965,
+	  -34.458882368, -76.5002777601, 5.4117977894,
+	  -18.196807484, -73.4994482961, 14.9632296697,
+	  -15.451925984, -73.4996695078, 22.3771091697,
+	  -18.031253332, -89.4997450515, 19.9595375081
+	  // 0, 0, 0,
+	  // 10, -1.5, -5,
+	  // 15.5, 13.5, -3,
+	  // 11.8, 11, -1.5,
+	  // -7, 14, 0,
+	  // -13.5, 14, -4.5,
+	  // -10, -2, -4
 	  // 25.36, -152.54, -21.55,
 	  // 21.88,  -155.34, -12.45,
 	  // 21.98, -151.21, -6.14,

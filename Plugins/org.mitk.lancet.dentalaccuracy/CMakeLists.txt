@@ -4,6 +4,6 @@ mitk_create_plugin(
   EXPORT_DIRECTIVE DENTALACCURACY_EXPORT
   EXPORTED_INCLUDE_SUFFIXES src
   MODULE_DEPENDS MitkQtWidgetsExt MitkBoundingShape MitkLancetAlgo MitkLancetGeoUtil MitkDICOM   MitkLancetRegistration MitkGizmo
-  MitkCore MitkCLCore MitkCommandLine MitkCLUtilities MitkMatchPointRegistration
+  MitkCore MitkCLCore MitkCommandLine MitkCLUtilities MitkMatchPointRegistration MitkIGTUI MitkLancetIGT MitkLancetRobot
   PACKAGE_DEPENDS PRIVATE ITK VTK VTK|CommonComputationalGeometry
 )

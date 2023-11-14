@@ -38,11 +38,18 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>2. Volume visualization</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>2. Adjust the occlusal plane </string>
+            <string>3. Adjust the occlusal plane </string>
            </property>
           </widget>
          </item>
@@ -58,7 +65,7 @@
        <item>
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>3. Pick dental curve points with &quot;Point Set Interaction&quot;</string>
+          <string>4. Pick dental curve points with &quot;Point Set Interaction&quot;</string>
          </property>
         </widget>
        </item>
@@ -67,7 +74,7 @@
          <item>
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>4. Generate the dental spline and the Panorama MIP</string>
+            <string>5. Generate the dental spline and the Panorama MIP</string>
            </property>
           </widget>
          </item>
@@ -107,7 +114,7 @@
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>5. Segment the alveolar nerve with &quot;Segmentation&quot;</string>
+          <string>6. Segment the alveolar nerve with &quot;Segmentation&quot;</string>
          </property>
         </widget>
        </item>
@@ -118,7 +125,7 @@
          </property>
          <widget class="QLabel" name="label_10">
           <property name="text">
-           <string>6. Reconstruct CBCT surface</string>
+           <string>7. Reconstruct CBCT surface</string>
           </property>
          </widget>
          <widget class="QPushButton" name="pushButton_CBCTreconstruct">
@@ -131,7 +138,7 @@
        <item>
         <widget class="QLabel" name="label_6">
          <property name="text">
-          <string>7. Pick landmarks with &quot;Point Set Interaction&quot; </string>
+          <string>8. Pick landmarks with &quot;Point Set Interaction&quot; </string>
          </property>
         </widget>
        </item>
@@ -140,7 +147,7 @@
          <item>
           <widget class="QLabel" name="label_7">
            <property name="text">
-            <string>8. Merge the intraoral scan and CBCT </string>
+            <string>9. Merge the intraoral scan and CBCT </string>
            </property>
           </widget>
          </item>
@@ -158,7 +165,7 @@
          <item>
           <widget class="QLabel" name="label_8">
            <property name="text">
-            <string>9. Dental crown placement  </string>
+            <string>10. Dental crown placement  </string>
            </property>
           </widget>
          </item>
@@ -176,7 +183,7 @@
          <item>
           <widget class="QLabel" name="label_9">
            <property name="text">
-            <string>10. Implant placement  </string>
+            <string>11. Implant placement  </string>
            </property>
           </widget>
          </item>
@@ -194,7 +201,7 @@
          <item>
           <widget class="QLabel" name="label_14">
            <property name="text">
-            <string>11.Steel ball extraction</string>
+            <string>12.Steel ball extraction</string>
            </property>
           </widget>
          </item>
@@ -213,6 +220,78 @@
       <attribute name="title">
        <string>Navigation</string>
       </attribute>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0" colspan="2">
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>NDI camera:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_connectVega">
+           <property name="text">
+            <string>Connect</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QPushButton" name="pushButton_imageRegis">
+         <property name="text">
+          <string>Image Registration</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0" colspan="2">
+        <widget class="QPushButton" name="pushButton_calibrateDrill">
+         <property name="text">
+          <string>Calibrate Dental Drill</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="2">
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>NDI tool status</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_6">
+          <item row="0" column="0">
+           <widget class="QmitkToolTrackingStatusWidget" name="m_StatusWidgetVegaToolToShow" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>200</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>50</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>
@@ -231,6 +310,14 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QmitkToolTrackingStatusWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QmitkToolTrackingStatusWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
