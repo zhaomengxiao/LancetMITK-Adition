@@ -81,8 +81,242 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_connectVega_clicked);
   connect(m_Controls.pushButton_imageRegis, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_imageRegis_clicked);
   connect(m_Controls.pushButton_calibrateDrill, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_calibrateDrill_clicked);
+  connect(m_Controls.pushButton_genSplineAndAppend, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_genSplineAndAppend_clicked);
+  connect(m_Controls.pushButton_GenSeeds, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_GenSeeds_clicked);
 
 }
+
+void DentalAccuracy::on_pushButton_GenSeeds_clicked()
+{
+	if(GetDataStorage()->GetNamedNode("Initial seeds") == nullptr)
+	{
+		m_Controls.textBrowser->append("Initial seeds are missing");
+		return;
+	}
+
+	auto initialSeeds = GetDataStorage()->GetNamedObject<mitk::PointSet>("Initial seeds");
+
+	int halfROIsliceNum{ 36 };
+	double z_spacing{ 1 };
+
+	for(int i{0}; i < 2 * halfROIsliceNum; i++)
+	{
+		
+		auto tmpPset = mitk::PointSet::New();
+
+		for(int j{0}; j < initialSeeds->GetSize(); j++)
+		{
+			mitk::Point3D tmpPoint;
+			tmpPoint[0] = initialSeeds->GetPoint(j)[0];
+			tmpPoint[1] = initialSeeds->GetPoint(j)[1];
+			tmpPoint[2] = initialSeeds->GetPoint(j)[2] + i*z_spacing - halfROIsliceNum * z_spacing;
+
+			tmpPset->InsertPoint(tmpPoint);
+		}
+
+		auto tmpNode = mitk::DataNode::New();
+		tmpNode->SetData(tmpPset);
+		auto nodeName = QString("pset_") + QString::number(i);
+		tmpNode->SetName(nodeName.toStdString());
+		GetDataStorage()->Add(tmpNode);
+	}
+
+}
+
+
+void DentalAccuracy::on_pushButton_genSplineAndAppend_clicked()
+{
+	auto appender = vtkAppendPolyData::New();
+	int linePointNum{0};
+	int lineNum = 72;
+
+	for(int i{0}; i < lineNum; i++)
+	{
+		auto index = QString::number(i);
+		auto nodeName = QString("pset_") + index;
+
+		// GetDataStorage()->GetNamedNode(nodeName.toStdString());
+
+		auto mitkPset = GetDataStorage()->GetNamedObject<mitk::PointSet>(nodeName.toStdString());
+
+		vtkNew<vtkPoints> points;
+		for (int i{ 0 }; i < mitkPset->GetSize(); i++)
+		{
+			auto mitkPoint = mitkPset->GetPoint(i);
+			points->InsertNextPoint(mitkPoint[0], mitkPoint[1], mitkPoint[2]);
+		}
+
+		// vtkCellArrays
+		vtkNew<vtkCellArray> lines;
+		lines->InsertNextCell(mitkPset->GetSize());
+		for (unsigned int i = 0; i < mitkPset->GetSize(); ++i)
+		{
+			lines->InsertCellPoint(i);
+		}
+
+		// vtkPolyData
+		auto polyData = vtkSmartPointer<vtkPolyData>::New();
+		polyData->SetPoints(points);
+		polyData->SetLines(lines);
+
+		auto spline = vtkCardinalSpline::New();
+		spline->SetLeftConstraint(2);
+		spline->SetLeftValue(0.0);
+		spline->SetRightConstraint(2);
+		spline->SetRightValue(0.0);
+
+		// double segLength{ 0.3 };
+		int subDivideNum{ 200 };
+
+		vtkNew<vtkSplineFilter> splineFilter;
+		splineFilter->SetInputData(polyData);
+		// splineFilter->SetLength(segLength);
+		// splineFilter->SetSubdivideToLength();
+		splineFilter->SetSubdivideToSpecified();
+		splineFilter->SetNumberOfSubdivisions(subDivideNum);
+		splineFilter->SetSpline(spline);
+		splineFilter->Update();
+
+		auto spline_PolyData = splineFilter->GetOutput();
+
+		linePointNum = spline_PolyData->GetPoints()->GetNumberOfPoints();
+
+		appender->AddInputData(spline_PolyData);
+
+	}
+
+	appender->Update();
+
+	auto appendedSplines = appender->GetOutput();
+
+	auto tmpSurface = mitk::Surface::New();
+	tmpSurface->SetVtkPolyData(appendedSplines);
+	auto curveNode = mitk::DataNode::New();
+	curveNode->SetData(tmpSurface);
+	curveNode->SetName("Dental curves");
+	GetDataStorage()->Add(curveNode);
+
+	// Generate surface with the splines
+	int rows = linePointNum;
+	int cols = lineNum;
+
+	vtkNew<vtkPolyData> surface;
+
+	// Generate the points.
+	int numberOfPoints = rows * cols;
+	int numberOfPolys = (rows - 1) * (cols - 1);
+	vtkNew<vtkPoints> points;
+	m_Controls.textBrowser->append("linePointNum: " + QString::number(linePointNum));
+	m_Controls.textBrowser->append("Num of pts: " + QString::number(numberOfPoints));
+	m_Controls.textBrowser->append("Num of polys: " + QString::number(numberOfPolys * 3));
+	points->Allocate(numberOfPoints);
+	vtkNew<vtkCellArray> polys;
+	polys->Allocate(numberOfPolys * 4);
+
+	points->DeepCopy(appendedSplines->GetPoints());
+
+	vtkIdType pts[4];
+	for (unsigned int row = 0; row < rows - 1; row++)
+	{
+		for (unsigned int col = 0; col < cols - 1; col++)
+		{
+			pts[0] = row + rows * (col);
+			pts[1] = pts[0] + 1;
+			pts[2] = pts[0] + rows + 1;
+			pts[3] = pts[0] + rows;
+			polys->InsertNextCell(4, pts);
+		}
+	}
+	surface->SetPoints(points);
+	surface->SetPolys(polys);
+
+	vtkNew<vtkSmoothPolyDataFilter> smoothFilter;
+	smoothFilter->SetInputData(surface);
+	smoothFilter->SetNumberOfIterations(20);
+	smoothFilter->SetRelaxationFactor(0.2);
+	smoothFilter->FeatureEdgeSmoothingOff();
+	smoothFilter->BoundarySmoothingOn();
+	smoothFilter->Update();
+
+
+	auto tmpSurface1 = mitk::Surface::New();
+	tmpSurface1->SetVtkPolyData(smoothFilter->GetOutput());
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(tmpSurface1);
+	tmpNode->SetName("Smoothed Probe surface");
+	GetDataStorage()->Add(tmpNode);
+
+	auto tmpSurface2 = mitk::Surface::New();
+	tmpSurface2->SetVtkPolyData(surface);
+	auto tmpNode1 = mitk::DataNode::New();
+	tmpNode1->SetData(tmpSurface2);
+	tmpNode1->SetName("Probe surface");
+	GetDataStorage()->Add(tmpNode1);
+
+
+	// Probe the image
+	// Apply the inverse geometry of the MITK image to the probe surface
+	auto geometryMatrix = vtkMatrix4x4::New();
+	if(GetDataStorage()->GetNamedNode("CBCT") == nullptr)
+	{
+		m_Controls.textBrowser->append("CBCT is missing");
+		return;
+	}
+	geometryMatrix->DeepCopy(GetDataStorage()->GetNamedNode("CBCT")->GetData()->GetGeometry()->GetVtkMatrix());
+	auto spacing = GetDataStorage()->GetNamedNode("CBCT")->GetData()->GetGeometry()->GetSpacing();
+
+	for (int j{ 0 }; j < 3; j++)
+	{
+		geometryMatrix->SetElement(j, 0, geometryMatrix->GetElement(j, 0) / spacing[0]);
+		geometryMatrix->SetElement(j, 1, geometryMatrix->GetElement(j, 1) / spacing[1]);
+		geometryMatrix->SetElement(j, 2, geometryMatrix->GetElement(j, 2) / spacing[2]);
+	}
+
+	geometryMatrix->Invert();
+
+	vtkNew<vtkTransformFilter> tmpTransFilter;
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(geometryMatrix);
+	tmpTransFilter->SetTransform(tmpTransform);
+	tmpTransFilter->SetInputData(smoothFilter->GetOutput());
+	tmpTransFilter->Update();
+
+	auto vtkImage = GetDataStorage()->GetNamedObject<mitk::Image>("CBCT")->GetVtkImageData();
+
+	vtkNew<vtkProbeFilter> sampleVolume;
+	sampleVolume->SetSourceData(vtkImage);
+	sampleVolume->SetInputData(tmpTransFilter->GetPolyDataOutput());
+
+	sampleVolume->Update();
+
+	auto probeData = sampleVolume->GetOutput();
+
+	auto probePointData = probeData->GetPointData();
+
+	auto tmpArray = probePointData->GetScalars();
+
+	auto testimageData = vtkImageData::New();
+	testimageData->SetDimensions(rows, cols, 1);
+	//testimageData->SetDimensions( spline_PolyData->GetNumberOfPoints(), cols + 1, 1);
+
+
+	testimageData->SetSpacing(1, 1, 1);
+	testimageData->SetOrigin(0, 0, 0);
+	testimageData->AllocateScalars(VTK_INT, 1);
+	testimageData->GetPointData()->SetScalars(tmpArray);
+
+	auto mitkAppendedImage = mitk::Image::New();
+
+	mitkAppendedImage->Initialize(testimageData);
+	mitkAppendedImage->SetVolume(testimageData->GetScalarPointer());
+
+	auto testNode = mitk::DataNode::New();
+	testNode->SetData(mitkAppendedImage);
+	testNode->SetName("Test Panorama");
+	GetDataStorage()->Add(testNode);
+
+}
+
 
 
 void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
@@ -160,7 +394,7 @@ void DentalAccuracy::on_pushButton_imageRegis_clicked()
 		return;
 	}
 
-	// Todo: assemble navigation object "Reconstructed CBCT surface"
+	
 	// The surface node should have no offset, i.e., should have an identity matrix!
 	auto surfaceNode = GetDataStorage()->GetNamedNode("Reconstructed CBCT surface");
 
@@ -1414,35 +1648,6 @@ vtkSmartPointer<vtkPolyData> DentalAccuracy::SweepLine_2Sides(vtkPolyData* line,
 	surface->SetPoints(points);
 	surface->SetPolys(polys);
 
-	// double x[3];
-	// unsigned int cnt = 0;
-	// for (unsigned int col = 0; col < cols; col++)
-	// {
-	// 	for (unsigned int row = 0; row < rows; row++)
-	// 	{
-	// 		double p[3];
-	// 		line->GetPoint(row, p);
-	// 		x[0] = p[0] - distance * direction[0] / 2 + direction[0] * col * spacing;
-	// 		x[1] = p[1] - distance * direction[1] / 2 + direction[1] * col * spacing;
-	// 		x[2] = p[2] - distance * direction[2] / 2 + direction[2] * col * spacing;
-	// 		points->InsertPoint(cnt++, x);
-	// 	}
-	// }
-	// // Generate the quads.
-	// vtkIdType pts[4];
-	// for (unsigned int col = 0; col < cols - 1; col++)
-	// {
-	// 	for (unsigned int row = 0; row < rows - 1; row++)
-	// 	{
-	// 		pts[0] = col + row * (cols);
-	// 		pts[1] = pts[0] + 1;
-	// 		pts[2] = pts[0] + cols + 1;
-	// 		pts[3] = pts[0] + cols;
-	// 		polys->InsertNextCell(4, pts);
-	// 	}
-	// }
-	// surface->SetPoints(points);
-	// surface->SetPolys(polys);
 
 	return surface;
 }

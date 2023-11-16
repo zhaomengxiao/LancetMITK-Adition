@@ -77,6 +77,10 @@ protected:
 
   void on_pushButton_calibrateDrill_clicked();
 
+  void on_pushButton_genSplineAndAppend_clicked();
+
+  void on_pushButton_GenSeeds_clicked();
+
 	// Functions
 
   mitk::NavigationData::Pointer DentalAccuracy::GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
