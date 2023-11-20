@@ -19,7 +19,7 @@ inline const char* to_string(ESide e)
 
 enum class ELandMarks
 {
-	/** \brief [UserInput]÷ÄÇ°ÉÏ¼¬_ÓÒ Right ASIS(Anterior superior iliac spine) */
+	/** \brief [UserInput]ï¿½ï¿½Ç°ï¿½Ï¼ï¿½_ï¿½ï¿½ Right ASIS(Anterior superior iliac spine) */
 	p_RASI = 0,
 	/** \brief [UserInput] Left ASIS(Anterior superior iliac spine) */
 	p_LASI,
@@ -136,11 +136,11 @@ inline const char* to_string(EPlanes e)
 
 enum class EResult
 {
-	/** \brief [ModelOutput] ¹ÇÅèÇ°Çã½Ç*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½*/
 	f_PT = 0,
-	/** \brief [ModelOutput] ÔÚË«²à¹É¹Ç»úÐµÖá¶ÔÆë£¬¹É¹ÇÆ«ÐÄ¾à×î´ó´¦Óë¹Ú×´ÃæÆ½ÐÐµÄÇ°ÌáÏÂ£¬´ÓÐ¡×ª×Óµ½÷ÄÇ°ÉÏ¼¬Á¬Ïß£¨¼´¹ÇÅèºáÖá£©µÄ¾àÀë*/
+	/** \brief [ModelOutput] ï¿½ï¿½Ë«ï¿½ï¿½É¹Ç»ï¿½Ðµï¿½ï¿½ï¿½ï¿½ë£¬ï¿½É¹ï¿½Æ«ï¿½Ä¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´ï¿½ï¿½Æ½ï¿½Ðµï¿½Ç°ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½Ð¡×ªï¿½Óµï¿½ï¿½ï¿½Ç°ï¿½Ï¼ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á£©ï¿½Ä¾ï¿½ï¿½ï¿½*/
 	f_HipLength ,
-	/** \brief [ModelOutput] ÔÚ¹É¹Ç¸É´¹Ö±£¬¹É¹ÇÆ«ÐÄ¾à×î´ó´¦Óë¹Ú×´ÃæÆ½ÐÐ£¬¹É¹Ç¸ÉÖáµ½¹ÇÅèÖÐÖáÃæµÄ¾àÀë*/
+	/** \brief [ModelOutput] ï¿½Ú¹É¹Ç¸É´ï¿½Ö±ï¿½ï¿½ï¿½É¹ï¿½Æ«ï¿½Ä¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´ï¿½ï¿½Æ½ï¿½Ð£ï¿½ï¿½É¹Ç¸ï¿½ï¿½áµ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½*/
 	f_Offset,
 
 	f_HipLength_post,
@@ -157,16 +157,16 @@ enum class EResult
 	f_OffsetDiff_Op2Contralateral,
 	/** \brief[ModelOutput] Difference(mm) in Combined Offset before and after operation */
 	f_OffsetDiff_PrePostOp,
-	/** \brief [ModelOutput] Êõ²à¹É¹ÇÇã½Ç*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½*/
 	f_OpVersion,
 
-	/** \brief [ModelOutput] ÓÒ²à¾Ê±­Ç°Çã½Ç*/
+	/** \brief [ModelOutput] ï¿½Ò²ï¿½Ê±ï¿½Ç°ï¿½ï¿½ï¿½*/
 	p_RightAnteversion,
-	/** \brief [ModelOutput] ÓÒ²à¾Ê±­ÍâÕ¹½Ç*/
+	/** \brief [ModelOutput] ï¿½Ò²ï¿½Ê±ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½*/
 	p_RightInclination,
-	/** \brief [ModelOutput] ×ó²à¾Ê±­Ç°Çã½Ç*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½Ê±ï¿½Ç°ï¿½ï¿½ï¿½*/
 	p_LeftAnteversion,
-	/** \brief [ModelOutput] ×ó²à¾Ê±­ÍâÕ¹½Ç*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½*/
 	p_LeftInclination
 };
 
@@ -215,101 +215,101 @@ inline const char* to_string(TKASide t)
 
 enum class TKALandmarks
 {
-	/** \brief [UserInput] ¹É¹ÇÄÚÉÏ÷Á femur medial epicondyle*/
+	/** \brief [UserInput] ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ femur medial epicondyle*/
 	f_ME = 0,
-	/** \brief [UserInput] ¹É¹ÇÍâÉÏ÷Á femur lateral epicondyle*/
+	/** \brief [UserInput] ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ femur lateral epicondyle*/
 	f_LE,
-	/** \brief [UserInput] ¹É¹ÇÄÚ²àºó÷Á femur posterior medial*/
+	/** \brief [UserInput] ï¿½É¹ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ femur posterior medial*/
 	f_PM,
-	/** \brief [UserInput] ¹É¹ÇÍâ²àºó÷Á  femur posterior lateral*/
+	/** \brief [UserInput] ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  femur posterior lateral*/
 	f_PL,
-	/** \brief [UserInput] ¹É¹ÇÄÚ²àÔ¶¶ËÆ½Ãæµã(ÊÖ¶¯ÊäÈë) femur medial distal point*/
+	/** \brief [UserInput] ï¿½É¹ï¿½ï¿½Ú²ï¿½Ô¶ï¿½ï¿½Æ½ï¿½ï¿½ï¿½(ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½) femur medial distal point*/
 	f_MDP,
-	/** \brief [UserInput] ¹É¹ÇÍâ²àÔ¶¶ËÆ½Ãæµã(ÊÖ¶¯ÊäÈë) femur lateral distal point*/
+	/** \brief [UserInput] ï¿½É¹ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½Æ½ï¿½ï¿½ï¿½(ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½) femur lateral distal point*/
 	f_LDP,
-	/** \brief [UserInput] ¹É¹ÇÄÚ²àºó¶ËÆ½Ãæµã(ÊÖ¶¯ÊäÈë) femur posterior medial point*/
+	/** \brief [UserInput] ï¿½É¹ï¿½ï¿½Ú²ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½(ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½) femur posterior medial point*/
 	f_MPP,
-	/** \brief [UserInput] ¹É¹ÇÍâ²àºó¶ËÆ½Ãæµã(ÊÖ¶¯ÊäÈë) femur posterior lateral point*/
+	/** \brief [UserInput] ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½(ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½) femur posterior lateral point*/
 	f_LPP,
-	/** \brief [UserInput] ÷Å¹Ø½ÚÖÐÐÄ  hip center*/
+	/** \brief [UserInput] ï¿½Å¹Ø½ï¿½ï¿½ï¿½ï¿½ï¿½  hip center*/
 	HIP_CENTER,
-	/** \brief [UserInput] ¹É¹ÇÏ¥¹Ø½ÚÖÐÐÄ  femur knee center*/
+	/** \brief [UserInput] ï¿½É¹ï¿½Ï¥ï¿½Ø½ï¿½ï¿½ï¿½ï¿½ï¿½  femur knee center*/
 	fKNEE_CENTER,
-	/** \brief [UserInput] ºó½»²æÈÍ´øÖÐÐÄ	 posterior cruciate ligament center*/
+	/** \brief [UserInput] ï¿½ó½»²ï¿½ï¿½Í´ï¿½ï¿½ï¿½ï¿½ï¿½	 posterior cruciate ligament center*/
 	PCL_CENTER,
-	/** \brief [UserInput] ëÖ¹ÇÏ¥¹Ø½ÚÖÐÐÄ  tibia knee center*/
+	/** \brief [UserInput] ï¿½Ö¹ï¿½Ï¥ï¿½Ø½ï¿½ï¿½ï¿½ï¿½ï¿½  tibia knee center*/
 	tKNEE_CENTER,
-	/** \brief [UserInput] ëÖ¹Çõ×¹Ø½ÚÖÐÐÄ  tibia ankle joint center*/
+	/** \brief [UserInput] ï¿½Ö¹ï¿½ï¿½×¹Ø½ï¿½ï¿½ï¿½ï¿½ï¿½  tibia ankle joint center*/
 	tANKLE_CENTER,
-	/** \brief [UserInput] ëÖ¹Ç½á½ÚÄÚ²à1/3´¦	 Medial 1/3 of the tubercle*/
+	/** \brief [UserInput] ï¿½Ö¹Ç½ï¿½ï¿½ï¿½Ú²ï¿½1/3ï¿½ï¿½	 Medial 1/3 of the tubercle*/
 	TUBERCLE,
-	/** \brief [UserInput] ëÖ¹ÇÆ½Ì¨ÄÚ²à tibia proximal medial*/
+	/** \brief [UserInput] ï¿½Ö¹ï¿½Æ½Ì¨ï¿½Ú²ï¿½ tibia proximal medial*/
 	t_PM,
-	/** \brief [UserInput] ëÖ¹ÇÆ½Ì¨Íâ²à tibia proximal lateral*/
+	/** \brief [UserInput] ï¿½Ö¹ï¿½Æ½Ì¨ï¿½ï¿½ï¿½ tibia proximal lateral*/
 	t_PL,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåÇ°¶Ë·¨ÏßÆðµã femur implant anterior cut start*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ç°ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ femur implant anterior cut start*/
 	fi_ANTERIORSTART,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåÇ°¶Ë·¨ÏßÖÕµã femur implant anterior cut end*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ç°ï¿½Ë·ï¿½ï¿½ï¿½ï¿½Õµï¿½ femur implant anterior cut end*/
 	fi_ANTERIOREND,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåÇ°µ¹½Ç·¨ÏßÆðµã femur implant anterior chamfer cut start*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ femur implant anterior chamfer cut start*/
 	fi_ANTERIORCHAMSTART,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåÇ°µ¹½Ç·¨ÏßÖÕµã femur implant anterior chamfer cut end*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Õµï¿½ femur implant anterior chamfer cut end*/
 	fi_ANTERIORCHAMEND,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåÔ¶¶Ë·¨ÏßÆðµã femur implant distal cut start*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ô¶ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ femur implant distal cut start*/
 	fi_DISTALSTART,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåÔ¶¶Ë·¨ÏßÖÕµã femur implant distal cut end*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ô¶ï¿½Ë·ï¿½ï¿½ï¿½ï¿½Õµï¿½ femur implant distal cut end*/
 	fi_DISTALEND,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåºóµ¹½Ç·¨ÏßÆðµã femur implant posterior chamfer cut start*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½óµ¹½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ femur implant posterior chamfer cut start*/
 	fi_POSTERIORCHAMSTART,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåºóµ¹½Ç·¨ÏßÖÕµã femur implant posterior chamfer cut end*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½óµ¹½Ç·ï¿½ï¿½ï¿½ï¿½Õµï¿½ femur implant posterior chamfer cut end*/
 	fi_POSTERIORCHAMEND,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåºó¶Ë·¨ÏßÆðµã femur implant posterior cut start*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ femur implant posterior cut start*/
 	fi_POSTERIORSTART,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåºó¶Ë·¨ÏßÖÕµã femur implant posterior cut end*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½ï¿½Ë·ï¿½ï¿½ï¿½ï¿½Õµï¿½ femur implant posterior cut end*/
 	fi_POSTERIOREND,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌå½Ø¹ÇÏßÄÚ²àµã femur implant resection line medial*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ femur implant resection line medial*/
 	fi_ResectionMedial,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌå½Ø¹ÇÏßÍâ²àµã femur implant resection line lateral*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ femur implant resection line lateral*/
 	fi_ResectionLateral,
-	/** \brief [UserInput] ëÖ¹Ç¼ÙÌå½ü¶Ë·¨ÏßÆðµã tibia implant proximal cut start*/
+	/** \brief [UserInput] ï¿½Ö¹Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ tibia implant proximal cut start*/
 	ti_PROXIMALSTART,
-	/** \brief [UserInput] ëÖ¹Ç¼ÙÌå½ü¶Ë·¨ÏßÖÕµã tibia implant proximal cut end*/
+	/** \brief [UserInput] ï¿½Ö¹Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½Ë·ï¿½ï¿½ï¿½ï¿½Õµï¿½ tibia implant proximal cut end*/
 	ti_PROXIMALEND,
-	/** \brief [UserInput] ëÖ¹Ç¼ÙÌå¶Ô³ÆÖáÆðµã tibia implant symmetry axis start*/
+	/** \brief [UserInput] ï¿½Ö¹Ç¼ï¿½ï¿½ï¿½Ô³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ tibia implant symmetry axis start*/
 	ti_SYMMETRYSTART,
-	/** \brief [UserInput] ëÖ¹Ç¼ÙÌå¶Ô³ÆÖáÖÕµã tibia implant symmetry axis end*/
+	/** \brief [UserInput] ï¿½Ö¹Ç¼ï¿½ï¿½ï¿½Ô³ï¿½ï¿½ï¿½ï¿½Õµï¿½ tibia implant symmetry axis end*/
 	ti_SYMMETRYEND,
-	/** \brief [ModelOutput] ÉìÖ±Î»¹É¹Ç½Ø¹ÇÆ½ÃæÄÚ²àµã(ÓÃÓÚ¼ÆËã¹Ø½Ú¼äÏ¶)*/
+	/** \brief [ModelOutput] ï¿½ï¿½Ö±Î»ï¿½É¹Ç½Ø¹ï¿½Æ½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½(ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½Ø½Ú¼ï¿½Ï¶)*/
 	fi_FLEXIONMEDIAL,
-	/** \brief [ModelOutput] ÉìÖ±Î»¹É¹Ç½Ø¹ÇÆ½ÃæÍâ²àµã(ÓÃÓÚ¼ÆËã¹Ø½Ú¼äÏ¶)*/
+	/** \brief [ModelOutput] ï¿½ï¿½Ö±Î»ï¿½É¹Ç½Ø¹ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½Ø½Ú¼ï¿½Ï¶)*/
 	fi_FLEXIONLATERAL,
-	/** \brief [ModelOutput] ÇüÇúÎ»¹É¹Ç½Ø¹ÇÆ½ÃæÄÚ²àµã(ÓÃÓÚ¼ÆËã¹Ø½Ú¼äÏ¶)*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½ï¿½Î»ï¿½É¹Ç½Ø¹ï¿½Æ½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½(ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½Ø½Ú¼ï¿½Ï¶)*/
 	fi_EXTENSIONMEDIAL,
-	/** \brief [ModelOutput] ÇüÇúÎ»¹É¹Ç½Ø¹ÇÆ½ÃæÍâ²àµã(ÓÃÓÚ¼ÆËã¹Ø½Ú¼äÏ¶)*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½ï¿½Î»ï¿½É¹Ç½Ø¹ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½Ø½Ú¼ï¿½Ï¶)*/
 	fi_EXTENSIONLATERAL,
-	/** \brief [ModelOutput] ÉìÖ±Î»ëÖ¹Ç½Ø¹ÇÆ½ÃæÄÚ²àµã(ÓÃÓÚ¼ÆËã¹Ø½Ú¼äÏ¶)*/
+	/** \brief [ModelOutput] ï¿½ï¿½Ö±Î»ï¿½Ö¹Ç½Ø¹ï¿½Æ½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½(ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½Ø½Ú¼ï¿½Ï¶)*/
 	ti_FLEXIONMEDIAL,
-	/** \brief [ModelOutput] ÉìÖ±Î»ëÖ¹Ç½Ø¹ÇÆ½ÃæÍâ²àµã(ÓÃÓÚ¼ÆËã¹Ø½Ú¼äÏ¶)*/
+	/** \brief [ModelOutput] ï¿½ï¿½Ö±Î»ï¿½Ö¹Ç½Ø¹ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½Ø½Ú¼ï¿½Ï¶)*/
 	ti_FLEXIONLATERAL,
-	/** \brief [ModelOutput] ÇüÇúÎ»ëÖ¹Ç½Ø¹ÇÆ½ÃæÄÚ²àµã(ÓÃÓÚ¼ÆËã¹Ø½Ú¼äÏ¶)*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ö¹Ç½Ø¹ï¿½Æ½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½(ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½Ø½Ú¼ï¿½Ï¶)*/
 	ti_EXTENSIONMEDIAL,
-	/** \brief [ModelOutput] ÇüÇúÎ»ëÖ¹Ç½Ø¹ÇÆ½ÃæÍâ²àµã(ÓÃÓÚ¼ÆËã¹Ø½Ú¼äÏ¶)*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ö¹Ç½Ø¹ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½Ø½Ú¼ï¿½Ï¶)*/
 	ti_EXTENSIONLATERAL,
-	///** \brief [UserInput] ¹É¹Ç¼ÙÌåÔ¶¶ËÄÚ²àÆ½Ãæµã1*/
+	///** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½Ú²ï¿½Æ½ï¿½ï¿½ï¿½1*/
 	//fi_DISTALMEDIAL_1,
-	///** \brief [UserInput] ¹É¹Ç¼ÙÌåÔ¶¶ËÄÚ²àÆ½Ãæµã2*/
+	///** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½Ú²ï¿½Æ½ï¿½ï¿½ï¿½2*/
 	//fi_DISTALMEDIAL_2,
-	///** \brief [UserInput] ¹É¹Ç¼ÙÌåÔ¶¶ËÄÚ²àÆ½Ãæµã3*/
+	///** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½Ú²ï¿½Æ½ï¿½ï¿½ï¿½3*/
 	//fi_DISTALMEDIAL_3,
-	///** \brief [UserInput] ¹É¹Ç¼ÙÌåÔ¶¶ËÄÚ²àÆ½Ãæµã4*/
+	///** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½Ú²ï¿½Æ½ï¿½ï¿½ï¿½4*/
 	//fi_DISTALMEDIAL_4,
-	///** \brief [UserInput] ¹É¹Ç¼ÙÌåÔ¶¶ËÍâ²àÆ½Ãæµã1*/
+	///** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½1*/
 	//fi_DISTALLATERAL_1,
-	///** \brief [UserInput] ¹É¹Ç¼ÙÌåÔ¶¶ËÄÚ²àÆ½Ãæµã2*/
+	///** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½Ú²ï¿½Æ½ï¿½ï¿½ï¿½2*/
 	//fi_DISTALLATERAL_2,
-	///** \brief [UserInput] ¹É¹Ç¼ÙÌåÔ¶¶ËÄÚ²àÆ½Ãæµã3*/
+	///** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½Ú²ï¿½Æ½ï¿½ï¿½ï¿½3*/
 	//fi_DISTALLATERAL_3,
-	///** \brief [UserInput] ¹É¹Ç¼ÙÌåÔ¶¶ËÄÚ²àÆ½Ãæµã4*/
+	///** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½Ú²ï¿½Æ½ï¿½ï¿½ï¿½4*/
 	//fi_DISTALLATERAL_4,
 
 };
@@ -372,37 +372,37 @@ inline const char* to_string(TKALandmarks t)
 
 enum class TKAAxes
 {
-	/** \brief [UserInput] ¹É¹Ç½âÆÊÖá femur anatomical axis*/
+	/** \brief [UserInput] ï¿½É¹Ç½ï¿½ï¿½ï¿½ï¿½ï¿½ femur anatomical axis*/
 	f_AA = 0,
-	/** \brief [UserInput] ¹É¹Ç»úÐµÖá mechanical axis of femur*/
+	/** \brief [UserInput] ï¿½É¹Ç»ï¿½Ðµï¿½ï¿½ mechanical axis of femur*/
 	f_MA,
-	/** \brief [UserInput] ¹É¹ÇÄÚÍâ÷ÁÖá femur TE axis*/
+	/** \brief [UserInput] ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ femur TE axis*/
 	f_TEA,
-	/** \brief [UserInput] ¹É¹Çºó÷ÁÖá femur PC axis*/
+	/** \brief [UserInput] ï¿½É¹Çºï¿½ï¿½ï¿½ï¿½ï¿½ femur PC axis*/
 	f_PCA,
-	/** \brief [UserInput] ëÖ¹Ç»úÐµÖá mechanical axis of tibia*/
+	/** \brief [UserInput] ï¿½Ö¹Ç»ï¿½Ðµï¿½ï¿½ mechanical axis of tibia*/
 	t_MA,
-	/** \brief [UserInput] ëÖ¹ÇÇ°ºóÖá tibia AP axis*/
+	/** \brief [UserInput] ï¿½Ö¹ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ tibia AP axis*/
 	t_APA,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌåÖáÏß femur implant axis*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ femur implant axis*/
 	fi_A,
-	/** \brief [UserInput] ¹É¹Ç¼ÙÌå½Ø¹ÇÏß femur implant bone resection line*/
+	/** \brief [UserInput] ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ femur implant bone resection line*/
 	fi_BRL,
-	/** \brief [UserInput] ëÖ¹Ç¼ÙÌåÖáÏß tibia implant axis*/
+	/** \brief [UserInput] ï¿½Ö¹Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ tibia implant axis*/
 	ti_A,
-	/** \brief [UserInput] ëÖ¹Ç¼ÙÌåÆ½Ì¨¶Ô³ÆÖáÏß tibia implant symmetry axis*/
+	/** \brief [UserInput] ï¿½Ö¹Ç¼ï¿½ï¿½ï¿½Æ½Ì¨ï¿½Ô³ï¿½ï¿½ï¿½ï¿½ï¿½ tibia implant symmetry axis*/
 	ti_SA,
-	/** \brief [UserInput] ¹É¹Ç¹Ú×´Ãæ·¨Ïß Ê¸²æ³Ëºá femur coronal plane normal*/
+	/** \brief [UserInput] ï¿½É¹Ç¹ï¿½×´ï¿½æ·¨ï¿½ï¿½ Ê¸ï¿½ï¿½Ëºï¿½ femur coronal plane normal*/
 	f_coronal,
-	/** \brief [UserInput] ¹É¹Çºá½ØÃæ·¨Ïß ´ÓÉÏµ½ÏÂ femur transverse plane normal*/
+	/** \brief [UserInput] ï¿½É¹Çºï¿½ï¿½ï¿½æ·¨ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ femur transverse plane normal*/
 	f_transverse,
-	/** \brief [UserInput] ¹É¹ÇÊ¸×´Ãæ·¨Ïß ´ÓÍâµ½ÄÚ femur sagittal plane normal */
+	/** \brief [UserInput] ï¿½É¹ï¿½Ê¸×´ï¿½æ·¨ï¿½ï¿½ ï¿½ï¿½ï¿½âµ½ï¿½ï¿½ femur sagittal plane normal */
 	f_sagittal,
-	/** \brief [UserInput] ëÖ¹Ç¹Ú×´Ãæ·¨Ïß ´ÓºóÏòÇ°tibia coronal plane normal*/
+	/** \brief [UserInput] ï¿½Ö¹Ç¹ï¿½×´ï¿½æ·¨ï¿½ï¿½ ï¿½Óºï¿½ï¿½ï¿½Ç°tibia coronal plane normal*/
 	t_coronal,
-	/** \brief [UserInput] ëÖ¹Çºá½ØÃæ·¨Ïß ´ÓÉÏµ½ÏÂ tibia transverse plane normal*/
+	/** \brief [UserInput] ï¿½Ö¹Çºï¿½ï¿½ï¿½æ·¨ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ tibia transverse plane normal*/
 	t_transverse,
-	/** \brief [UserInput] ëÖ¹ÇÊ¸×´Ãæ·¨Ïß ¹Ú²æ³Ëºá tibia sagittal plane normal*/
+	/** \brief [UserInput] ï¿½Ö¹ï¿½Ê¸×´ï¿½æ·¨ï¿½ï¿½ ï¿½Ú²ï¿½Ëºï¿½ tibia sagittal plane normal*/
 	t_sagittal,
 };
 
@@ -432,17 +432,17 @@ inline const char* to_string(TKAAxes t)
 
 enum class TKAPlanes
 {
-	/** \brief [UserInput] ¹É¹ÇÇ°¶Ë½Ø¹ÇÃæ femur anterior planar cut*/
+	/** \brief [UserInput] ï¿½É¹ï¿½Ç°ï¿½Ë½Ø¹ï¿½ï¿½ï¿½ femur anterior planar cut*/
 	FEMURANTERIOR,
-	/** \brief [UserInput] ¹É¹ÇÇ°µ¹½Ç½Ø¹ÇÃæ femur anterior chamfer planar cut*/
+	/** \brief [UserInput] ï¿½É¹ï¿½Ç°ï¿½ï¿½ï¿½Ç½Ø¹ï¿½ï¿½ï¿½ femur anterior chamfer planar cut*/
 	FEMURANTERIORCHAM,
-	/** \brief [UserInput] ¹É¹ÇÔ¶¶Ë½Ø¹ÇÃæ femur distal planar cut*/
+	/** \brief [UserInput] ï¿½É¹ï¿½Ô¶ï¿½Ë½Ø¹ï¿½ï¿½ï¿½ femur distal planar cut*/
 	FEMURDISTAL,
-	/** \brief [UserInput] ¹É¹Çºóµ¹½Ç½Ø¹ÇÃæ femur posterior planar cut*/
+	/** \brief [UserInput] ï¿½É¹Çºóµ¹½Ç½Ø¹ï¿½ï¿½ï¿½ femur posterior planar cut*/
 	FEMURPOSTERIORCHAM,
-	/** \brief [UserInput] ¹É¹Çºó¶Ë½Ø¹ÇÃæ femur posterior planar cut*/
+	/** \brief [UserInput] ï¿½É¹Çºï¿½Ë½Ø¹ï¿½ï¿½ï¿½ femur posterior planar cut*/
 	FEMURPOSTERIOR,
-	/** \brief [UserInput] ëÖ¹Ç½ü¶Ë½Ø¹ÇÃæ tibia proximal planar cut*/
+	/** \brief [UserInput] ï¿½Ö¹Ç½ï¿½ï¿½Ë½Ø¹ï¿½ï¿½ï¿½ tibia proximal planar cut*/
 	TIBIAPROXIMAL,
 };
 
@@ -462,49 +462,49 @@ inline const char* to_string(TKAPlanes t)
 
 enum class TKAResult
 {
-	/** \brief [ModelOutput] ¹É¹ÇÄÚ·­½Ç ¹É¹Ç¼ÙÌåÖáÏßÓë¹É¹Ç»úÐµÖáµÄ¼Ð½Ç*/
+	/** \brief [ModelOutput] ï¿½É¹ï¿½ï¿½Ú·ï¿½ï¿½ï¿½ ï¿½É¹Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¹Ç»ï¿½Ðµï¿½ï¿½Ä¼Ð½ï¿½*/
 	f_Varus,
-	/** \brief [ModelOutput] ¹É¹ÇÍâÐý½Ç ¹É¹Ç¼ÙÌå½Ø¹ÇÏßÓë¹É¹Çºó÷ÁÖáµÄ¼Ð½Ç*/
+	/** \brief [ModelOutput] ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ï¿½É¹Çºï¿½ï¿½ï¿½ï¿½ï¿½Ä¼Ð½ï¿½*/
 	f_TEAExternal,
-	/** \brief [ModelOutput] ¹É¹ÇÄÚÐý½Ç ¹É¹Ç¼ÙÌå½Ø¹ÇÏßÓë¹É¹ÇÄÚÍâ÷ÁÖáµÄ¼Ð½Ç*/
+	/** \brief [ModelOutput] ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¹Ç¼ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼Ð½ï¿½*/
 	f_PCAExternal,
-	/** \brief [ModelOutput] ¹É¹ÇÍäÇú¶È ¹É¹Ç¼ÙÌåÖáÏßÓë¹É¹Ç»úÐµÖáµÄ¼Ð½Ç*/
+	/** \brief [ModelOutput] ï¿½É¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¹Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¹Ç»ï¿½Ðµï¿½ï¿½Ä¼Ð½ï¿½*/
 	f_flexion,
-	/** \brief [ModelOutput] ¹É¹ÇÔ¶¶ËÄÚ²à½Ø¹ÇÉî¶È medial resection Depth of the distal femur*/
+	/** \brief [ModelOutput] ï¿½É¹ï¿½Ô¶ï¿½ï¿½ï¿½Ú²ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ medial resection Depth of the distal femur*/
 	f_Distal_MRD,
-	/** \brief [ModelOutput] ¹É¹ÇÔ¶¶ËÍâ²à½Ø¹ÇÉî¶È lateral resection Depth of the distal femur*/
+	/** \brief [ModelOutput] ï¿½É¹ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ lateral resection Depth of the distal femur*/
 	f_Distal_LRD,
-	/** \brief [ModelOutput] ¹É¹Çºó¶ËÄÚ²à½Ø¹ÇÉî¶È medial resection Depth of the posterior femur*/
+	/** \brief [ModelOutput] ï¿½É¹Çºï¿½ï¿½ï¿½Ú²ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ medial resection Depth of the posterior femur*/
 	f_Posterior_MRD,
-	/** \brief [ModelOutput] ¹É¹Çºó¶ËÍâ²à½Ø¹ÇÉî¶È lateral resection Depth of the posterior femur*/
+	/** \brief [ModelOutput] ï¿½É¹Çºï¿½ï¿½ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ lateral resection Depth of the posterior femur*/
 	f_Posterior_LRD,
-	/** \brief [ModelOutput] ëÖ¹ÇÄÚ·­½Ç ëÖ¹Ç½Ø¹ÇÏßµÄ³ö´¹ÏßÓëÏÂÖ«»úÐµÖáµÄ¼Ð½Ç*/
+	/** \brief [ModelOutput] ï¿½Ö¹ï¿½ï¿½Ú·ï¿½ï¿½ï¿½ ï¿½Ö¹Ç½Ø¹ï¿½ï¿½ßµÄ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö«ï¿½ï¿½Ðµï¿½ï¿½Ä¼Ð½ï¿½*/
 	t_Varus,
-	/** \brief [ModelOutput] ëÖ¹ÇÍâÇã½Ç ëÖ¹Ç¼ÙÌåÖáÏßÓëëÖ¹Ç»úÐµÖáµÄ¼Ð½Ç*/
+	/** \brief [ModelOutput] ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¹Ç»ï¿½Ðµï¿½ï¿½Ä¼Ð½ï¿½*/
 	t_External,
-	/** \brief [ModelOutput] ëÖ¹ÇºóÇã½Ç ëÖ¹Ç¼ÙÌåÖáÏßÓëëÖ¹Ç»úÐµÖáµÄ¼Ð½Ç*/
+	/** \brief [ModelOutput] ï¿½Ö¹Çºï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹Ç¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¹Ç»ï¿½Ðµï¿½ï¿½Ä¼Ð½ï¿½*/
 	t_PSlope,
-	/** \brief [ModelOutput] ëÖ¹Ç½ü¶ËÄÚ²à½Ø¹ÇÉî¶È medial resection depth of the proximal tibia*/
+	/** \brief [ModelOutput] ï¿½Ö¹Ç½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ medial resection depth of the proximal tibia*/
 	t_Proximal_MRD,
-	/** \brief [ModelOutput] ëÖ¹Ç½ü¶ËÍâ²à½Ø¹ÇÉî¶È lateral resection depth of the proximal tibia*/
+	/** \brief [ModelOutput] ï¿½Ö¹Ç½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ lateral resection depth of the proximal tibia*/
 	t_Proximal_LRD,
-	/** \brief [ModelOutput] ÉìÖ±Î»¹Ø½ÚÄÚ²à¼äÏ¶*/
+	/** \brief [ModelOutput] ï¿½ï¿½Ö±Î»ï¿½Ø½ï¿½ï¿½Ú²ï¿½ï¿½Ï¶*/
 	ExtensionMedialGap,
-	/** \brief [ModelOutput] ÉìÖ±Î»¹Ø½ÚÍâ²à¼äÏ¶*/
+	/** \brief [ModelOutput] ï¿½ï¿½Ö±Î»ï¿½Ø½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶*/
 	ExtensionLateralGap,
-	/** \brief [ModelOutput] ÇüÇúÎ»¹Ø½ÚÄÚ²à¼äÏ¶*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ø½ï¿½ï¿½Ú²ï¿½ï¿½Ï¶*/
 	flexionMedialGap,
-	/** \brief [ModelOutput] ÇüÇúÎ»¹Ø½ÚÍâ²à¼äÏ¶*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ø½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶*/
 	flexionLateralGap,
-	/** \brief [ModelOutput] ÏÂÖ«ÇüÇú¶È*/
+	/** \brief [ModelOutput] ï¿½ï¿½Ö«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
 	Limb_Flexion,
-	/** \brief [ModelOutput] ÏÂÖ«ÄÚÍâ·­*/
+	/** \brief [ModelOutput] ï¿½ï¿½Ö«ï¿½ï¿½ï¿½â·­*/
 	Limb_Varus,
-	/** \brief [ModelOutput] ¹æ»®ÄÚÍâ·­*/
+	/** \brief [ModelOutput] ï¿½æ»®ï¿½ï¿½ï¿½â·­*/
 	Planned_Varus,
-	/** \brief [ModelOutput] ÉìÖ±¼äÏ¶*/
+	/** \brief [ModelOutput] ï¿½ï¿½Ö±ï¿½ï¿½Ï¶*/
 	Extension,
-	/** \brief [ModelOutput] ÇüÇú¼äÏ¶*/
+	/** \brief [ModelOutput] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶*/
 	Flexion,
 };
 

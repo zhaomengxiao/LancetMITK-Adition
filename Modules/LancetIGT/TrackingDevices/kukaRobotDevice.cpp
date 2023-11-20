@@ -209,7 +209,7 @@ namespace lancet
     double ay = matrix3x3[2][1];
     double az = matrix3x3[2][2];
 
-    //Çó½âRx¡¢Ry¡¢Rz
+    //ï¿½ï¿½ï¿½Rxï¿½ï¿½Ryï¿½ï¿½Rz
     //call Atan2(ax,sqrt(power(nx,2)+power(ox,2)),ry1)
     //double cry = (double)sqrt(nx * nx + ox * ox);
     double rx, ry, rz, rx2, ry2, rz2, rx_Origin, ry_Origin, rz_Origin;

@@ -68,9 +68,9 @@ namespace lancetAlgorithm
 
 	enum EIVAngelType
 	{
-		RADIO_GRAPHIC,//³£ÓÃ£¬Ó°ÏñÑ§¶¨Òå
-		OPERATIVE, //»úÐµÖáµÄ¶¨Òå
-		ANATOMICAL //½âÆÊÑ§µÄ¶¨Òå
+		RADIO_GRAPHIC,//ï¿½ï¿½ï¿½Ã£ï¿½Ó°ï¿½ï¿½Ñ§ï¿½ï¿½ï¿½ï¿½
+		OPERATIVE, //ï¿½ï¿½Ðµï¿½ï¿½Ä¶ï¿½ï¿½ï¿½
+		ANATOMICAL //ï¿½ï¿½ï¿½ï¿½Ñ§ï¿½Ä¶ï¿½ï¿½ï¿½
 	};
 
 	/**

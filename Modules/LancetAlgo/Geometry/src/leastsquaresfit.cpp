@@ -18,7 +18,7 @@ namespace lancetAlgorithm
 			return;
 		}
 
-		//½¨Á¢¾ØÕó
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		int length = inp_x.size();
 		Eigen::MatrixXd A;
 		Eigen::VectorXd b;
@@ -135,7 +135,7 @@ namespace lancetAlgorithm
 			return false;
 		}
 
-		//½¨Á¢¾ØÕó
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		int length = inp_x.size();
 		Eigen::MatrixXd A;
 		Eigen::VectorXd b;

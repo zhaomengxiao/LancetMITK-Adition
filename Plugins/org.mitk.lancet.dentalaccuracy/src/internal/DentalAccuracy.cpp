@@ -874,8 +874,6 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 	}
 
 
-
-
 	GetCoarseSteelballCenters(voxelThres);
 	//m_Controls.lineEdit_ballGrayValue->setText(QString::number(voxelThres));
 	IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
@@ -1341,52 +1339,62 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 	auto iRenderWindowPart = GetRenderWindowPart();
 
 	auto worldPoint = iRenderWindowPart->GetSelectedPosition();
+	
 	worldPoint[0] = currentPoint[0];
 	worldPoint[1] = currentPoint[1];
+	
+	iRenderWindowPart->SetSelectedPosition(worldPoint);
 
 	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetQmitkRenderWindow("coronal");
 	if (renderWindow)
-	{
-		// m_Controls.textBrowser_moveData->append("Coronal exists");
-
+	{	
 		mitk::Vector3D a;
 		a[0] = nextPoint[0] - currentPoint[0];
 		a[1] = nextPoint[1] - currentPoint[1];
 		a[2] = nextPoint[2] - currentPoint[2];
 		a.Normalize();
-
+	
 		mitk::Vector3D b;
 		b[0] = 0;
 		b[1] = 0;
 		b[2] = 1;
+	
+		// renderWindow->ResetView();
+	
+		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
 
-		renderWindow->ResetView();
-		
-		renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+		mitk::Point3D origin;
+		FillVector3D(origin, 0.0, 0.0, 0.0);
+		renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+		renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+
 
 	}
-
-
+	
 
 	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("sagittal");
 	if (renderWindow)
 	{
 		mitk::Vector3D a;
-		a[1] = (nextPoint[0] - currentPoint[0]);
 		a[0] = -(nextPoint[1] - currentPoint[1]);
+		a[1] = (nextPoint[0] - currentPoint[0]);
 		a[2] = nextPoint[2] - currentPoint[2];
 		a.Normalize();
-
+	
 		mitk::Vector3D b;
 		b[0] = 0;
 		b[1] = 0;
 		b[2] = 1;
-
-
-		renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+	
+	
+		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+		mitk::Point3D origin;
+		FillVector3D(origin, 0.0, 0.0, 0.0);
+		renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+		renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
 	}
-
-
+	
+	
 	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("axial");
 	if (renderWindow)
 	{
@@ -1395,13 +1403,18 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 		a[1] = 0;
 		a[2] = 0;
 		a.Normalize();
-
+	
 		mitk::Vector3D b;
 		b[0] = 0;
 		b[1] = -1;
 		b[2] = 0;
+	
+		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
 
-		renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+		mitk::Point3D origin;
+		FillVector3D(origin, 0.0, 0.0, 0.0);
+		renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+		renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
 	}
 
 }
@@ -1718,7 +1731,7 @@ void DentalAccuracy::on_pushButton_viewCursiveMPR_clicked()
 		m_Controls.horizontalSlider->setEnabled(true);
 		m_Controls.pushButton_viewCursiveMPR->setText("Stop viewing cursive MPR");
 		m_Controls.horizontalSlider->setValue(0);
-		probeSurfaceNode->SetVisibility(true);
+		// probeSurfaceNode->SetVisibility(true);
 	}
 
 	attemptNode->SetVisibility(true);

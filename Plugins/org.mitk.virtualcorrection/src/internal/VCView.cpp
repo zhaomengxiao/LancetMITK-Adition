@@ -931,7 +931,7 @@ void VCView::BuildPelvis()
 
 void VCView::BuildFemurL()
 {
-  //×óÍÈ
+  //ï¿½ï¿½ï¿½ï¿½
   if (m_canalAxisL == nullptr || m_fhcL == nullptr || m_trochanterL == nullptr)
   {
     MITK_ERROR << "BuildFemurL == nullptr";
@@ -959,7 +959,7 @@ void VCView::BuildFemurL()
 
 void VCView::BuildFemurR()
 {
-  //ÓÒÍÈ
+  //ï¿½ï¿½ï¿½ï¿½
   if (m_canalAxisR == nullptr || m_fhcR == nullptr || m_trochanterR == nullptr)
   {
     MITK_ERROR << "BuildFemurR == nullptr";
@@ -2887,7 +2887,7 @@ mitk::Vector3D VCView::CalCOR(mitk::PointSet *inp_pointset, double &radius)
     X(2, 2) += pow(inp_pointset->GetPoint(i)[2], 2);
     X(2, 3) -= inp_pointset->GetPoint(i)[2];
   }
-  //¶Ô³Æ¾ØÕó
+  //ï¿½Ô³Æ¾ï¿½ï¿½ï¿½
   X(1, 0) = X(0, 1);
   X(2, 0) = X(0, 2);
   X(2, 1) = X(1, 2);
@@ -2895,7 +2895,7 @@ mitk::Vector3D VCView::CalCOR(mitk::PointSet *inp_pointset, double &radius)
   X(3, 1) = X(1, 3);
   X(3, 2) = X(2, 3);
   X(3, 3) = nCount;
-  //ÅÐ¶ÏÊÇ·ñ¿ÉÄæ
+  //ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
   double dX = 0.0, dY = 0.0, dZ = 0.0, dD = 0.0;
   double dRadius = 0.0;
   if (X.determinant() != 0)
@@ -3590,8 +3590,8 @@ void VCView::OnpushButton_FemoralVersionAngle()
   mitk::Point3D LDFCA = m_canalAxisL->GetPoint(1);
   mitk::Point3D LFHC = m_fhcL->GetPoint(0);
   mitk::Point3D LBT = m_BtrochanterL->GetPoint(0);
-  mitk::Point3D LMC = m_condylesL->GetPoint(0); //ÄÚ÷Á
-  mitk::Point3D LLC = m_condylesL->GetPoint(1); //Íâ÷Á
+  mitk::Point3D LMC = m_condylesL->GetPoint(0); //ï¿½ï¿½ï¿½ï¿½
+  mitk::Point3D LLC = m_condylesL->GetPoint(1); //ï¿½ï¿½ï¿½ï¿½
 
   double m_LPFCA[3]{LPFCA[0], LPFCA[1], LPFCA[2]}, m_LDFCA[3]{LDFCA[0], LDFCA[1], LDFCA[2]},
     m_LFHC[3]{LFHC[0], LFHC[1], LFHC[2]}, m_LBT[3]{LBT[0], LBT[1], LBT[2]}, m_LMC[3]{LMC[0], LMC[1], LMC[2]},
@@ -3604,8 +3604,8 @@ void VCView::OnpushButton_FemoralVersionAngle()
   mitk::Point3D RDFCA = m_canalAxisR->GetPoint(1);
   mitk::Point3D RFHC = m_fhcR->GetPoint(0);
   mitk::Point3D RBT = m_BtrochanterR->GetPoint(0);
-  mitk::Point3D RMC = m_condylesR->GetPoint(0); //ÄÚ÷Á
-  mitk::Point3D RLC = m_condylesR->GetPoint(1); //Íâ÷Á
+  mitk::Point3D RMC = m_condylesR->GetPoint(0); //ï¿½ï¿½ï¿½ï¿½
+  mitk::Point3D RLC = m_condylesR->GetPoint(1); //ï¿½ï¿½ï¿½ï¿½
 
   double m_RPFCA[3]{RPFCA[0], RPFCA[1], RPFCA[2]}, m_RDFCA[3]{RDFCA[0], RDFCA[1], RDFCA[2]},
     m_RFHC[3]{RFHC[0], RFHC[1], RFHC[2]}, m_RBT[3]{RBT[0], RBT[1], RBT[2]}, m_RMC[3]{RMC[0], RMC[1], RMC[2]},
@@ -3641,9 +3641,9 @@ void VCView::ClipFemur()
   planeNew->SetOrigin(65.556, -135.381, 1194.230);
   planeNew->SetNormal(0, 0, 1);
 
-  vtkClipPolyData *clipper = vtkClipPolyData::New(); //²Ã¼ôpolydata
+  vtkClipPolyData *clipper = vtkClipPolyData::New(); //ï¿½Ã¼ï¿½polydata
   clipper->SetInputData(m_femur->GetVtkPolyData());
-  clipper->SetClipFunction(planeNew);  //!!!!ºÜÖØÒªµÄÒ»²½£¬Ìí¼Ó×Ô¶¨ÒåÒþº¯Êý
+  clipper->SetClipFunction(planeNew);  //!!!!ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   clipper->GenerateClippedOutputOff(); // important to NOT generate normals data for clipped part
   clipper->InsideOutOn();
   clipper->SetValue(0.5);

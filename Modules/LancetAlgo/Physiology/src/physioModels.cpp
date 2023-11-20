@@ -713,7 +713,7 @@ namespace lancetAlgorithm
 		//std::cout << "ResultAnteversion:" << ResultAnteversion << std::endl;
 		double CupLineProject[3];
 		double origin[] = { 0, 0, 0 };
-		//Í¶Ó°µ½¹Ú×´ÃæÉÏ
+		//Í¶Ó°ï¿½ï¿½ï¿½ï¿½×´ï¿½ï¿½ï¿½ï¿½
 		projectToPlane(CupLineTransform, origin, Coronalnormal, CupLineProject);
 		double z[3] = { 0, 0, 1 };
 		double InclinationRadians = AngleBetween2Vector(CupLineProject, z, true);
@@ -733,7 +733,7 @@ namespace lancetAlgorithm
 		double CupLineTransform[3] = { direction[0], direction[1], direction[2] };
 		double CupLineProject[3];
 		double origin[] = { 0, 0, 0 };
-		//Í¶Ó°µ½Ê¸×´ÃæÉÏ
+		//Í¶Ó°ï¿½ï¿½Ê¸×´ï¿½ï¿½ï¿½ï¿½
 		projectToPlane(CupLineTransform, origin, Sagittalnormal, CupLineProject);
 		double VersionRadians = AngleBetween2Vector(z, CupLineProject, true);
 		ResultAnteversion = (double)(VersionRadians * (180.0f / EIGEN_PI));
@@ -760,7 +760,7 @@ namespace lancetAlgorithm
 		double CupLineTransform[3] = { direction[0], direction[1], direction[2] };
 		double CupLineProject[3];
 		double origin[] = { 0, 0, 0 };
-		//Í¶Ó°µ½ºá¶ÏÃæÉÏ
+		//Í¶Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		projectToPlane(CupLineTransform, origin, TransverseNormal, CupLineProject);
 		double VersionRadians = AngleBetween2Vector(x, CupLineProject, true);
 		ResultAnteversion = (double)(VersionRadians * (180.0f / EIGEN_PI));
