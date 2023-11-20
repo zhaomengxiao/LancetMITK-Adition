@@ -81,6 +81,12 @@ protected:
 
   void on_pushButton_GenSeeds_clicked();
 
+  void on_pushButton_collectDitch_clicked();
+
+  void on_pushButton_imageRegisNew_clicked();
+
+  void on_pushButton_resetImageRegis_clicked();
+
 	// Functions
 
   mitk::NavigationData::Pointer DentalAccuracy::GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
@@ -190,7 +196,9 @@ protected:
   };
 
 
-
+  mitk::PointSet::Pointer m_probeDitchPset_cmm; // probe ditch points from CMM
+  mitk::PointSet::Pointer m_probeDitchPset_image; // probe ditch points under image frame
+  mitk::PointSet::Pointer m_probeDitchPset_rf; // probe ditch points under patientRF
 
 };
 

@@ -83,8 +83,217 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_calibrateDrill, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_calibrateDrill_clicked);
   connect(m_Controls.pushButton_genSplineAndAppend, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_genSplineAndAppend_clicked);
   connect(m_Controls.pushButton_GenSeeds, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_GenSeeds_clicked);
+  connect(m_Controls.pushButton_collectDitch, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_collectDitch_clicked);
+  connect(m_Controls.pushButton_imageRegisNew, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_imageRegisNew_clicked);
+  connect(m_Controls.pushButton_resetImageRegis, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_resetImageRegis_clicked);
+
 
 }
+
+void DentalAccuracy::on_pushButton_resetImageRegis_clicked()
+{
+	m_Controls.label_15->setText("0");
+	m_probeDitchPset_rf = mitk::PointSet::New();
+	m_ImageRegistrationMatrix->Identity();
+}
+
+
+void DentalAccuracy::on_pushButton_collectDitch_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("probePoints_cmm") == nullptr)
+	{
+		m_Controls.textBrowser->append("probePoints_cmm is missing.");
+		return;
+	}
+
+	m_probeDitchPset_cmm = GetDataStorage()->GetNamedObject<mitk::PointSet>("probePoints_cmm");
+
+	if(m_probeDitchPset_rf == nullptr)
+	{
+		m_probeDitchPset_rf = mitk::PointSet::New();
+	}
+
+	if(m_probeDitchPset_rf->GetSize() == m_probeDitchPset_cmm->GetSize())
+	{
+		m_Controls.textBrowser->append("Enough points have been captured");
+		return;
+	}
+
+	// Calculate T_drillDRFtoCalibratorDRF
+	auto patientRFindex = m_VegaToolStorage->GetToolIndexByName("patientRF");
+	auto drillDRFindex = m_VegaToolStorage->GetToolIndexByName("drillRF");
+	if (patientRFindex == -1 || drillDRFindex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'patientRF' or 'drillDRF' in the toolStorage!");
+		return;
+	}
+
+	mitk::NavigationData::Pointer nd_ndiToPatientRF = m_VegaSource->GetOutput(patientRFindex);
+	mitk::NavigationData::Pointer nd_ndiTodrillDRF = m_VegaSource->GetOutput(drillDRFindex);
+
+	if (nd_ndiToPatientRF->IsDataValid() == 0 || nd_ndiTodrillDRF->IsDataValid() == 0)
+	{
+		m_Controls.textBrowser->append("'patientRF' or 'drillDRF' is missing");
+		return;
+	}
+
+	mitk::NavigationData::Pointer nd_patientRFtoDrillRF = GetNavigationDataInRef(nd_ndiTodrillDRF, nd_ndiToPatientRF);
+
+	vtkMatrix4x4* T_patientRFtoDrillDRF = vtkMatrix4x4::New();
+	mitk::TransferItkTransformToVtkMatrix(nd_patientRFtoDrillRF->GetAffineTransform3D().GetPointer(), T_patientRFtoDrillDRF);
+
+	auto drillRFtoTipMatrix = vtkMatrix4x4::New();
+	mitk::TransferItkTransformToVtkMatrix(m_VegaToolStorage->GetToolByName("drillRF")->GetToolRegistrationMatrix().GetPointer(), drillRFtoTipMatrix);
+
+	if (drillRFtoTipMatrix->IsIdentity())
+	{
+		m_Controls.textBrowser->append("The drill has not been calibrated yet.");
+		return;
+	}
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->Identity();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(drillRFtoTipMatrix);
+	tmpTrans->Concatenate(T_patientRFtoDrillDRF);
+	tmpTrans->Update();
+
+	auto patientRFtoDrillTipMatrix = tmpTrans->GetMatrix();
+
+	mitk::Point3D tipPointUnderPatientRF;
+	tipPointUnderPatientRF[0] = patientRFtoDrillTipMatrix->GetElement(0, 3);
+	tipPointUnderPatientRF[1] = patientRFtoDrillTipMatrix->GetElement(1, 3);
+	tipPointUnderPatientRF[2] = patientRFtoDrillTipMatrix->GetElement(2, 3);
+
+	m_probeDitchPset_rf->InsertPoint(tipPointUnderPatientRF);
+
+	m_Controls.textBrowser->append("Captured point " + QString::number(m_probeDitchPset_rf->GetSize()));
+
+	m_Controls.label_15->setText(QString::number(m_probeDitchPset_rf->GetSize()));
+
+}
+
+void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
+{
+	auto cmm_Ball_node = GetDataStorage()->GetNamedNode("steelball_cmm"); // steelballs from CMM
+
+	auto extractedBall_node = GetDataStorage()->GetNamedNode("steelball_image"); // steelballs in image
+
+	auto cmm_ProbeDitch_node = GetDataStorage()->GetNamedNode("probePoints_cmm"); // probe ditch points from CMM
+
+	if(cmm_Ball_node == nullptr)
+	{
+		m_Controls.textBrowser->append("steelball_cmm is missing");
+		return;
+	}
+
+	if(extractedBall_node == nullptr)
+	{
+		m_Controls.textBrowser->append("'steelball_image' is missing");
+		return;
+	}
+
+	if(cmm_ProbeDitch_node == nullptr)
+	{
+		m_Controls.textBrowser->append("probePoints_cmm is missing");
+		return;
+	}
+
+	// Step 1: Calculate the transform from steelballs_cmm to steelballs_image
+	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
+	landmarkRegistrator->SetLandmarksSrc(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelball_cmm")->GetData()));
+	landmarkRegistrator->SetLandmarksTarget(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelball_image")->GetData()));
+
+	landmarkRegistrator->ComputeLandMarkResult();
+
+	auto tmpMatrix = landmarkRegistrator->GetResult();
+
+	// Step 2: Apply tmpMatrix to 'probePoints_cmm' to get 'probePoints_image'
+	auto probePoints_cmm = GetDataStorage()->GetNamedObject<mitk::PointSet>("probePoints_cmm");
+	probePoints_cmm->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+
+	auto probePoints_image = mitk::PointSet::New();
+
+	for(int i{0}; i < probePoints_cmm->GetSize(); i++)
+	{
+		probePoints_image->InsertPoint(probePoints_cmm->GetPoint(i));
+	}
+
+	
+	// Step 3: Check if enough probe ditch points have been collected
+	if (m_probeDitchPset_rf == nullptr)
+	{
+		m_Controls.textBrowser->append("No probe ditch point has been captured");
+		return;
+	}
+
+	if (m_probeDitchPset_rf->GetSize() < probePoints_cmm->GetSize())
+	{
+		m_Controls.textBrowser->append("More probe ditch point should be captured");
+		return;
+	}
+
+	// Step 4: Calculate surface to objectRf matrix and reconnect the IGT pipeline
+
+	// The surface node should have no offset, i.e., should have an identity matrix!
+	auto surfaceNode = GetDataStorage()->GetNamedNode("Reconstructed CBCT surface");
+
+	if (surfaceNode == nullptr)
+	{
+		m_Controls.textBrowser->append("Reconstructed CBCT surface is missing!");
+		return;
+	}
+
+	m_NavigatedImage = lancet::NavigationObject::New();
+
+	auto matrix = dynamic_cast<mitk::Surface*>(surfaceNode->GetData())->GetGeometry()->GetVtkMatrix();
+
+	if (matrix->IsIdentity() == false)
+	{
+		vtkNew<vtkMatrix4x4> identityMatrix;
+		identityMatrix->Identity();
+		dynamic_cast<mitk::Surface*>(surfaceNode->GetData())->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+
+		m_Controls.textBrowser->append("Warning: the initial surface has a non-identity offset matrix; the matrix has been reset to identity!");
+	}
+
+	m_NavigatedImage->SetDataNode(surfaceNode);
+
+	m_NavigatedImage->SetLandmarks(probePoints_image);
+
+	m_NavigatedImage->SetReferencFrameName(surfaceNode->GetName());
+
+	m_Controls.textBrowser->append("--- NavigatedImage has been set up ---");
+
+	m_NavigatedImage->SetLandmarks_probe(m_probeDitchPset_rf);
+
+	/// Apply image registration
+	m_SurfaceRegistrationStaticImageFilter = lancet::ApplySurfaceRegistratioinStaticImageFilter::New();
+	m_SurfaceRegistrationStaticImageFilter->ConnectTo(m_VegaSource);
+
+	m_NavigatedImage->UpdateObjectToRfMatrix();
+	m_Controls.textBrowser->append("Avg landmark error:" + QString::number(m_NavigatedImage->GetlandmarkRegis_avgError()));
+	m_Controls.textBrowser->append("Max landmark error:" + QString::number(m_NavigatedImage->GetlandmarkRegis_maxError()));
+
+	m_ImageRegistrationMatrix->DeepCopy(m_NavigatedImage->GetT_Object2ReferenceFrame());
+
+	auto tmpMatrix_1 = mitk::AffineTransform3D::New();
+
+	mitk::TransferVtkMatrixToItkTransform(m_ImageRegistrationMatrix, tmpMatrix_1.GetPointer());
+
+	m_VegaToolStorage->GetToolByName("patientRF")->SetToolRegistrationMatrix(tmpMatrix_1);
+
+	m_SurfaceRegistrationStaticImageFilter->SetRegistrationMatrix(m_VegaToolStorage->GetToolByName("patientRF")->GetToolRegistrationMatrix());
+
+	m_SurfaceRegistrationStaticImageFilter->SetNavigationDataOfRF(m_VegaSource->GetOutput("patientRF"));
+
+	m_VegaVisualizeTimer->stop();
+	m_VegaVisualizer->ConnectTo(m_SurfaceRegistrationStaticImageFilter);
+	m_VegaVisualizeTimer->start();
+
+
+}
+
 
 void DentalAccuracy::on_pushButton_GenSeeds_clicked()
 {
@@ -332,6 +541,12 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 	mitk::NavigationData::Pointer nd_ndiTocalibratorDRF = m_VegaSource->GetOutput(calibratorDRFindex);
 	mitk::NavigationData::Pointer nd_ndiTodrillDRF = m_VegaSource->GetOutput(drillDRFindex);
 
+	if(nd_ndiTocalibratorDRF->IsDataValid() == 0 || nd_ndiTodrillDRF->IsDataValid() == 0)
+	{
+		m_Controls.textBrowser->append("calibrator or drillRF is missing");
+		return;
+	}
+
 	mitk::NavigationData::Pointer nd_drillDRFtoCalibratorDRF = GetNavigationDataInRef(nd_ndiTocalibratorDRF, nd_ndiTodrillDRF);
 
 	vtkMatrix4x4* T_drillDRFtoCalibratorDRF = vtkMatrix4x4::New();
@@ -368,29 +583,29 @@ void DentalAccuracy::on_pushButton_imageRegis_clicked()
 		return;
 	}
 
-	auto extractedBall_node = GetDataStorage()->GetNamedNode("Steelball centers");
+	auto extractedBall_node = GetDataStorage()->GetNamedNode("steelball_image");
 	
-	auto stdBall_node = GetDataStorage()->GetNamedNode("std_steelball");
+	auto stdBall_node = GetDataStorage()->GetNamedNode("steelball_rf");
 
 	if(extractedBall_node == nullptr)
 	{
-		m_Controls.textBrowser->append("Steelball centers are missing");
+		m_Controls.textBrowser->append("steelball_image is missing");
 		return;
 	}
 
 	if(stdBall_node == nullptr)
 	{
-		m_Controls.textBrowser->append("std_steelball is missing");
+		m_Controls.textBrowser->append("steelball_rf is missing");
 		return;
 	}
 
-	auto extractedBall_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("Steelball centers");
-	auto stdball_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("std_steelball");
+	auto extractedBall_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("steelball_image");
+	auto stdball_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("steelball_rf");
 	int extracted_num = extractedBall_pset->GetSize();
 
-	if(extracted_num < 7)
+	if(extracted_num < stdball_pset->GetSize())
 	{
-		m_Controls.textBrowser->append("Steel ball extraction incomplete");
+		m_Controls.textBrowser->append("steelball_image extraction incomplete");
 		return;
 	}
 
@@ -738,17 +953,17 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 	childNode->SetData(tmpPointSet);
 	GetDataStorage()->Add(childNode);
 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Steelball centers"));
-	childNode->SetName("Steelball centers");
+	childNode->SetName("steelball_image");
 
 
 	////////////////////// Move the dental splint surface ///////////////////////
-	auto extractedBall_node = GetDataStorage()->GetNamedNode("Steelball centers");
+	auto extractedBall_node = GetDataStorage()->GetNamedNode("steelball_image");
 	auto splint_node = GetDataStorage()->GetNamedNode("dentalSplint");
-	auto stdBall_node = GetDataStorage()->GetNamedNode("std_steelball");
+	auto stdBall_node = GetDataStorage()->GetNamedNode("steelball_rf");
 
 	if (extractedBall_node == nullptr)
 	{
-		m_Controls.textBrowser->append("Steelball centers are missing");
+		m_Controls.textBrowser->append("steelball_image is missing");
 		return;
 	}
 
@@ -758,13 +973,13 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 		return;
 	}
 
-	auto extractedBall_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("Steelball centers");
-	auto stdball_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("std_steelball");
+	auto extractedBall_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("steelball_image");
+	auto stdball_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("steelball_rf");
 	int extracted_num = extractedBall_pset->GetSize();
 
-	if (extracted_num < 7)
+	if (extracted_num < stdball_pset->GetSize())
 	{
-		m_Controls.textBrowser->append("Steel ball extraction incomplete");
+		m_Controls.textBrowser->append("steelball_image extraction incomplete");
 		return;
 	}
 
