@@ -1312,12 +1312,17 @@ void DentalAccuracy::on_pushButton_CBCTreconstruct_clicked()
 	ResetView();
 }
 
-
 void DentalAccuracy::valueChanged_horizontalSlider()
 {
-	if(GetDataStorage()->GetNamedNode("Dental curve") == nullptr)
+	if (GetDataStorage()->GetNamedNode("Dental curve") == nullptr)
 	{
-		m_Controls.textBrowser->append("Dental curve missing");
+		m_Controls.textBrowser->append("Dental curve is missing");
+		return;
+	}
+
+	if (GetDataStorage()->GetNamedNode("roi_mpr") == nullptr)
+	{
+		m_Controls.textBrowser->append("roi_mpr is missing");
 		return;
 	}
 
@@ -1339,38 +1344,71 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 	auto iRenderWindowPart = GetRenderWindowPart();
 
 	auto worldPoint = iRenderWindowPart->GetSelectedPosition();
-	
+
 	worldPoint[0] = currentPoint[0];
 	worldPoint[1] = currentPoint[1];
-	
+	worldPoint[2] = floor(abs(worldPoint[2])) * (worldPoint[2] / abs(worldPoint[2]));
+
+	m_Controls.textBrowser->append(QString::number(worldPoint[2]));
+
+	TurnOffAllNodesVisibility();
+
+	GetDataStorage()->GetNamedNode("roi_mpr")->SetVisibility(true);
+
+	Eigen::Vector3d x_tmp;
+	x_tmp[0] = nextPoint[0] - currentPoint[0];
+	x_tmp[1] = nextPoint[1] - currentPoint[1];
+	x_tmp[2] = nextPoint[2] - currentPoint[2];
+	x_tmp.normalize();
+
+	Eigen::Vector3d z_tmp;
+	z_tmp[0] = 0;
+	z_tmp[1] = 0;
+	z_tmp[2] = 1;
+
+	Eigen::Vector3d y_tmp = z_tmp.cross(x_tmp);
+	y_tmp.normalize();
+
+	auto tmpMatrix = vtkMatrix4x4::New();
+	tmpMatrix->Identity();
+	for(int i{0}; i < 3; i++)
+	{
+		//tmpMatrix->SetElement(i,0,x_tmp[i]);
+		//tmpMatrix->SetElement(i, 1, y_tmp[i]);
+		//tmpMatrix->SetElement(i, 2, z_tmp[i]);
+		tmpMatrix->SetElement(i, 3, worldPoint[i]);
+	}
+
+	GetDataStorage()->GetNamedNode("roi_mpr")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+
 	iRenderWindowPart->SetSelectedPosition(worldPoint);
 
 	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetQmitkRenderWindow("coronal");
 	if (renderWindow)
-	{	
+	{
 		mitk::Vector3D a;
 		a[0] = nextPoint[0] - currentPoint[0];
 		a[1] = nextPoint[1] - currentPoint[1];
 		a[2] = nextPoint[2] - currentPoint[2];
 		a.Normalize();
-	
+
 		mitk::Vector3D b;
 		b[0] = 0;
 		b[1] = 0;
 		b[2] = 1;
-	
-		// renderWindow->ResetView();
-	
-		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+
+		renderWindow->ResetView();
+
+		renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
 
 		mitk::Point3D origin;
 		FillVector3D(origin, 0.0, 0.0, 0.0);
-		renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
-		renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+		//renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+		//renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
 
 
 	}
-	
+
 
 	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("sagittal");
 	if (renderWindow)
@@ -1380,21 +1418,21 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 		a[1] = (nextPoint[0] - currentPoint[0]);
 		a[2] = nextPoint[2] - currentPoint[2];
 		a.Normalize();
-	
+
 		mitk::Vector3D b;
 		b[0] = 0;
 		b[1] = 0;
 		b[2] = 1;
-	
-	
-		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+
+
+		renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
 		mitk::Point3D origin;
 		FillVector3D(origin, 0.0, 0.0, 0.0);
-		renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
-		renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+		//renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+		//renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
 	}
-	
-	
+
+
 	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("axial");
 	if (renderWindow)
 	{
@@ -1403,21 +1441,132 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 		a[1] = 0;
 		a[2] = 0;
 		a.Normalize();
-	
+
 		mitk::Vector3D b;
 		b[0] = 0;
 		b[1] = -1;
 		b[2] = 0;
-	
-		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+
+		renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
 
 		mitk::Point3D origin;
 		FillVector3D(origin, 0.0, 0.0, 0.0);
-		renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
-		renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+		//renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+		//renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+
 	}
 
+	GetDataStorage()->GetNamedNode("roi_mpr")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped")->SetVisibility(true);
+
 }
+
+// void DentalAccuracy::valueChanged_horizontalSlider()
+// {
+// 	if(GetDataStorage()->GetNamedNode("Dental curve") == nullptr)
+// 	{
+// 		m_Controls.textBrowser->append("Dental curve missing");
+// 		return;
+// 	}
+//
+// 	auto mitkPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("Dental curve");
+//
+// 	double sliderValue = m_Controls.horizontalSlider->value();
+//
+// 	int currentIndex = floor(sliderValue * (mitkPset->GetSize() - 1) / m_Controls.horizontalSlider->maximum());
+//
+// 	if (currentIndex == (mitkPset->GetSize() - 1))
+// 	{
+// 		currentIndex -= 1;
+// 	}
+//
+// 	auto currentPoint = mitkPset->GetPoint(currentIndex);
+// 	auto nextPoint = mitkPset->GetPoint(currentIndex + 1);
+//
+//
+// 	auto iRenderWindowPart = GetRenderWindowPart();
+//
+// 	auto worldPoint = iRenderWindowPart->GetSelectedPosition();
+// 	
+// 	worldPoint[0] = currentPoint[0];
+// 	worldPoint[1] = currentPoint[1];
+// 	
+// 	iRenderWindowPart->SetSelectedPosition(worldPoint);
+//
+// 	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetQmitkRenderWindow("coronal");
+// 	if (renderWindow)
+// 	{	
+// 		mitk::Vector3D a;
+// 		a[0] = nextPoint[0] - currentPoint[0];
+// 		a[1] = nextPoint[1] - currentPoint[1];
+// 		a[2] = nextPoint[2] - currentPoint[2];
+// 		a.Normalize();
+// 	
+// 		mitk::Vector3D b;
+// 		b[0] = 0;
+// 		b[1] = 0;
+// 		b[2] = 1;
+// 	
+// 		// renderWindow->ResetView();
+// 	
+// 		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+//
+// 		mitk::Point3D origin;
+// 		FillVector3D(origin, 0.0, 0.0, 0.0);
+// 		renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+// 		renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+//
+//
+// 	}
+// 	
+//
+// 	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("sagittal");
+// 	if (renderWindow)
+// 	{
+// 		mitk::Vector3D a;
+// 		a[0] = -(nextPoint[1] - currentPoint[1]);
+// 		a[1] = (nextPoint[0] - currentPoint[0]);
+// 		a[2] = nextPoint[2] - currentPoint[2];
+// 		a.Normalize();
+// 	
+// 		mitk::Vector3D b;
+// 		b[0] = 0;
+// 		b[1] = 0;
+// 		b[2] = 1;
+// 	
+// 	
+// 		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+// 		mitk::Point3D origin;
+// 		FillVector3D(origin, 0.0, 0.0, 0.0);
+// 		renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+// 		renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+// 	}
+// 	
+// 	
+// 	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("axial");
+// 	if (renderWindow)
+// 	{
+// 		mitk::Vector3D a;
+// 		a[0] = 1;
+// 		a[1] = 0;
+// 		a[2] = 0;
+// 		a.Normalize();
+// 	
+// 		mitk::Vector3D b;
+// 		b[0] = 0;
+// 		b[1] = -1;
+// 		b[2] = 0;
+// 	
+// 		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+//
+// 		mitk::Point3D origin;
+// 		FillVector3D(origin, 0.0, 0.0, 0.0);
+// 		renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+// 		renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+// 		
+// 	}
+//
+// }
 
 
 void DentalAccuracy::on_pushButton_viewPano_clicked()
