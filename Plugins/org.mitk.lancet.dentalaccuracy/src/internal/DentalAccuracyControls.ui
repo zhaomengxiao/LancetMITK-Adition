@@ -23,7 +23,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -191,6 +191,13 @@
           <widget class="QPushButton" name="pushButton_setImplant">
            <property name="text">
             <string>Set implant</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_implantFocus">
+           <property name="text">
+            <string>Focus on implant</string>
            </property>
           </widget>
          </item>

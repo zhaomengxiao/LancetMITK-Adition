@@ -86,9 +86,11 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_collectDitch, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_collectDitch_clicked);
   connect(m_Controls.pushButton_imageRegisNew, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_imageRegisNew_clicked);
   connect(m_Controls.pushButton_resetImageRegis, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_resetImageRegis_clicked);
+  connect(m_Controls.pushButton_implantFocus, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_implantFocus_clicked);
 
 
 }
+
 
 void DentalAccuracy::on_pushButton_resetImageRegis_clicked()
 {
@@ -1312,6 +1314,184 @@ void DentalAccuracy::on_pushButton_CBCTreconstruct_clicked()
 	ResetView();
 }
 
+void DentalAccuracy::on_pushButton_implantFocus_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	if (GetDataStorage()->GetNamedNode("roi_implantMPR") == nullptr)
+	{
+		m_Controls.textBrowser->append("roi_implantMPR is missing");
+		return;
+	}
+
+	// auto mitkPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("Dental curve");
+	//
+	// double sliderValue = m_Controls.horizontalSlider->value();
+	//
+	// int currentIndex = floor(sliderValue * (mitkPset->GetSize() - 1) / m_Controls.horizontalSlider->maximum());
+	//
+	// if (currentIndex == (mitkPset->GetSize() - 1))
+	// {
+	// 	currentIndex -= 1;
+	// }
+	//
+	// auto currentPoint = mitkPset->GetPoint(currentIndex);
+	// auto nextPoint = mitkPset->GetPoint(currentIndex + 1);
+
+
+	auto iRenderWindowPart = GetRenderWindowPart();
+
+	// worldPoint = iRenderWindowPart->GetSelectedPosition();
+
+	// worldPoint[0] = currentPoint[0];
+	// worldPoint[1] = currentPoint[1];
+	// worldPoint[2] = floor(abs(worldPoint[2])) * (worldPoint[2] / abs(worldPoint[2]));
+
+	// m_Controls.textBrowser->append(QString::number(worldPoint[2]));
+
+	TurnOffAllNodesVisibility();
+
+	GetDataStorage()->GetNamedNode("roi_implantMPR")->SetVisibility(true);
+
+	auto implantMatrix = GetDataStorage()->GetNamedNode("implant")->GetData()->GetGeometry()->GetVtkMatrix();
+
+	mitk::Point3D implantPoint = GetDataStorage()->GetNamedNode("implant")->GetData()->GetGeometry()->GetCenter();;
+
+	auto tmpMatrix = vtkMatrix4x4::New();
+	tmpMatrix->Identity();
+	tmpMatrix->SetElement(0,3,implantPoint[0]);
+	tmpMatrix->SetElement(1, 3, implantPoint[1]);
+	tmpMatrix->SetElement(2, 3, implantPoint[2]);
+
+	
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	GetDataStorage()->GetNamedNode("roi_implantMPR")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+
+	iRenderWindowPart->SetSelectedPosition(implantPoint);
+
+	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetQmitkRenderWindow("coronal");
+	if (renderWindow)
+	{
+		Eigen::Vector3d x_projection = x_std - y_mpr * (x_std.dot(y_mpr));
+		x_projection.normalize();
+
+		Eigen::Vector3d z_projection = x_projection.cross(y_mpr);
+		z_projection.normalize();
+
+		mitk::Vector3D a;
+		a[0] = x_projection[0];
+		a[1] = x_projection[1];
+		a[2] = x_projection[2];
+		
+
+		mitk::Vector3D b;
+		b[0] = z_projection[0];
+		b[1] = z_projection[1];
+		b[2] = z_projection[2];
+
+		renderWindow->ResetView();
+		// renderWindow->CrosshairVisibilityChanged(false);
+
+		renderWindow->GetSliceNavigationController()->ReorientSlices(implantPoint, a, b);
+
+		// mitk::Point3D origin;
+		// FillVector3D(origin, 0.0, 0.0, 0.0);
+		//renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+		//renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+
+
+	}
+
+
+	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("sagittal");
+	if (renderWindow)
+	{
+		Eigen::Vector3d y_projection = y_std - x_mpr * (y_std.dot(x_mpr));
+		y_projection.normalize();
+
+		Eigen::Vector3d z_projection = x_mpr.cross(y_projection);
+		y_projection.normalize();
+
+		mitk::Vector3D a;
+		a[0] = y_projection[0];
+		a[1] = y_projection[1];
+		a[2] = y_projection[2];
+
+
+		mitk::Vector3D b;
+		b[0] = z_projection[0];
+		b[1] = z_projection[1];
+		b[2] = z_projection[2];
+
+		renderWindow->GetSliceNavigationController()->ReorientSlices(implantPoint, a, b);
+		// mitk::Point3D origin;
+		// FillVector3D(origin, 0.0, 0.0, 0.0);
+		//renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+		//renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+	}
+
+
+	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("axial");
+	if (renderWindow)
+	{
+		Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
+		x_projection.normalize();
+
+		Eigen::Vector3d y_projection = z_mpr.cross(x_projection);
+		y_projection.normalize();
+
+		mitk::Vector3D a;
+		a[0] = x_projection[0];
+		a[1] = x_projection[1];
+		a[2] = x_projection[2];
+
+
+		mitk::Vector3D b;
+		b[0] = -y_projection[0];
+		b[1] = -y_projection[1];
+		b[2] = -y_projection[2];
+
+		renderWindow->GetSliceNavigationController()->ReorientSlices(implantPoint, a, b);
+
+		// mitk::Point3D origin;
+		// FillVector3D(origin, 0.0, 0.0, 0.0);
+		//renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
+		//renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
+
+	}
+
+	GetDataStorage()->GetNamedNode("roi_implantMPR")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("implant")->SetVisibility(true);
+
+	if(GetDataStorage()->GetNamedNode("Gizmo") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("Gizmo")->SetVisibility(true);
+	}
+
+	GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped")->SetVisibility(true);
+}
+
+
+
 void DentalAccuracy::valueChanged_horizontalSlider()
 {
 	if (GetDataStorage()->GetNamedNode("Dental curve") == nullptr)
@@ -1320,9 +1500,9 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 		return;
 	}
 
-	if (GetDataStorage()->GetNamedNode("roi_mpr") == nullptr)
+	if (GetDataStorage()->GetNamedNode("roi_dentalCurveMPR") == nullptr)
 	{
-		m_Controls.textBrowser->append("roi_mpr is missing");
+		m_Controls.textBrowser->append("roi_dentalCurveMPR is missing");
 		return;
 	}
 
@@ -1349,11 +1529,11 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 	worldPoint[1] = currentPoint[1];
 	worldPoint[2] = floor(abs(worldPoint[2])) * (worldPoint[2] / abs(worldPoint[2]));
 
-	m_Controls.textBrowser->append(QString::number(worldPoint[2]));
+	// m_Controls.textBrowser->append(QString::number(worldPoint[2]));
 
 	TurnOffAllNodesVisibility();
 
-	GetDataStorage()->GetNamedNode("roi_mpr")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("roi_dentalCurveMPR")->SetVisibility(true);
 
 	Eigen::Vector3d x_tmp;
 	x_tmp[0] = nextPoint[0] - currentPoint[0];
@@ -1376,10 +1556,10 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 		//tmpMatrix->SetElement(i,0,x_tmp[i]);
 		//tmpMatrix->SetElement(i, 1, y_tmp[i]);
 		//tmpMatrix->SetElement(i, 2, z_tmp[i]);
-		tmpMatrix->SetElement(i, 3, worldPoint[i]);
+		tmpMatrix->SetElement(i, 3, currentPoint[i]);
 	}
 
-	GetDataStorage()->GetNamedNode("roi_mpr")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+	GetDataStorage()->GetNamedNode("roi_dentalCurveMPR")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
 
 	iRenderWindowPart->SetSelectedPosition(worldPoint);
 
@@ -1398,6 +1578,7 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 		b[2] = 1;
 
 		renderWindow->ResetView();
+		// renderWindow->CrosshairVisibilityChanged(false);
 
 		renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
 
@@ -1456,7 +1637,7 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 
 	}
 
-	GetDataStorage()->GetNamedNode("roi_mpr")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("roi_dentalCurveMPR")->SetVisibility(false);
 	GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped")->SetVisibility(true);
 
 }

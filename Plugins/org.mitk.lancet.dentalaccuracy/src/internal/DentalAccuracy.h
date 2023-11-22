@@ -87,6 +87,8 @@ protected:
 
   void on_pushButton_resetImageRegis_clicked();
 
+  void on_pushButton_implantFocus_clicked();
+
 	// Functions
 
   mitk::NavigationData::Pointer DentalAccuracy::GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
