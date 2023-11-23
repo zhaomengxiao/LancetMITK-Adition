@@ -25,6 +25,7 @@ found in the LICENSE file.
 #include <mitkImage.h>
 #include <QFileDialog>
 #include <vtkAppendPolyData.h>
+#include <vtkCamera.h>
 #include <vtkCardinalSpline.h>
 #include <vtkCellArray.h>
 #include <vtkCleanPolyData.h>
@@ -38,6 +39,7 @@ found in the LICENSE file.
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkProbeFilter.h>
+#include <vtkRendererCollection.h>
 #include <vtkSplineFilter.h>
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 
@@ -1045,8 +1047,11 @@ void DentalAccuracy::on_pushButton_setImplant_clicked()
 		m_Controls.pushButton_setImplant->setText("Finish");
 	}
 
-	ResetView();
+	// ResetView();
 
+	on_pushButton_implantFocus_clicked();
+
+	// Display the alveolar nerve segmentation
 	if (GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped-labels_3D-interpolation") != nullptr)
 	{
 		GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped-labels_3D-interpolation")->SetVisibility(true);
@@ -1388,7 +1393,24 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 
 	iRenderWindowPart->SetSelectedPosition(implantPoint);
 
-	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetQmitkRenderWindow("coronal");
+	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetActiveQmitkRenderWindow();
+
+	if (renderWindow)
+	{
+
+		auto camera = renderWindow->GetVtkRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+
+		auto camera_copy = vtkCamera::New();
+
+		camera_copy->DeepCopy(camera);
+
+		renderWindow->ResetView();
+
+		renderWindow->GetVtkRenderWindow()->GetRenderers()->GetFirstRenderer()->SetActiveCamera(camera_copy);
+
+	}
+
+	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("coronal");
 	if (renderWindow)
 	{
 		Eigen::Vector3d x_projection = x_std - y_mpr * (x_std.dot(y_mpr));
@@ -1408,7 +1430,7 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 		b[1] = z_projection[1];
 		b[2] = z_projection[2];
 
-		renderWindow->ResetView();
+		// renderWindow->ResetView();
 		// renderWindow->CrosshairVisibilityChanged(false);
 
 		renderWindow->GetSliceNavigationController()->ReorientSlices(implantPoint, a, b);
@@ -1563,7 +1585,25 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 
 	iRenderWindowPart->SetSelectedPosition(worldPoint);
 
-	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetQmitkRenderWindow("coronal");
+
+	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetActiveQmitkRenderWindow();
+
+	if (renderWindow)
+	{
+
+		auto camera = renderWindow->GetVtkRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+
+		auto camera_copy = vtkCamera::New();
+
+		camera_copy->DeepCopy(camera);
+
+		renderWindow->ResetView();
+
+		renderWindow->GetVtkRenderWindow()->GetRenderers()->GetFirstRenderer()->SetActiveCamera(camera_copy);
+
+	}
+
+	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("coronal");
 	if (renderWindow)
 	{
 		mitk::Vector3D a;
@@ -1577,10 +1617,13 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 		b[1] = 0;
 		b[2] = 1;
 
-		renderWindow->ResetView();
+		// renderWindow->ResetView();
+
+		renderWindow->GetVtkRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+
 		// renderWindow->CrosshairVisibilityChanged(false);
 
-		renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
 
 		mitk::Point3D origin;
 		FillVector3D(origin, 0.0, 0.0, 0.0);
@@ -1637,6 +1680,7 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 
 	}
 
+	
 	GetDataStorage()->GetNamedNode("roi_dentalCurveMPR")->SetVisibility(false);
 	GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped")->SetVisibility(true);
 
