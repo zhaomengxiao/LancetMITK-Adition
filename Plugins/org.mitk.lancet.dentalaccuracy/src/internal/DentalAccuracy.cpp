@@ -90,8 +90,32 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_resetImageRegis, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_resetImageRegis_clicked);
   connect(m_Controls.pushButton_implantFocus, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_implantFocus_clicked);
 
+  connect(m_Controls.pushButton_U_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_U_ax_clicked);
+  connect(m_Controls.pushButton_D_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_D_ax_clicked);
+  connect(m_Controls.pushButton_R_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_R_ax_clicked);
+  connect(m_Controls.pushButton_L_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_L_ax_clicked);
+  connect(m_Controls.pushButton_D_cor, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_D_cor_clicked);
+  connect(m_Controls.pushButton_D_sag, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_D_sag_clicked);
+  connect(m_Controls.pushButton_U_cor, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_U_cor_clicked);
+  connect(m_Controls.pushButton_U_sag, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_U_sag_clicked);
+  connect(m_Controls.pushButton_L_cor, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_L_cor_clicked);
+  connect(m_Controls.pushButton_R_cor, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_R_cor_clicked);
+  connect(m_Controls.pushButton_L_sag, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_L_sag_clicked);
+  connect(m_Controls.pushButton_R_sag, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_R_sag_clicked);
+  connect(m_Controls.pushButton_clock_cor, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_clock_cor_clicked);
+  connect(m_Controls.pushButton_counter_cor, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_counter_cor_clicked);
+  connect(m_Controls.pushButton_clock_sag, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_clock_sag_clicked);
+  connect(m_Controls.pushButton_counter_sag, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_counter_sag_clicked);
+  connect(m_Controls.pushButton_clock_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_clock_ax_clicked);
+  connect(m_Controls.pushButton_counter_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_counter_ax_clicked);
+
+
 
 }
+
+
+
+
 
 
 void DentalAccuracy::on_pushButton_resetImageRegis_clicked()
@@ -1319,6 +1343,973 @@ void DentalAccuracy::on_pushButton_CBCTreconstruct_clicked()
 	ResetView();
 }
 
+
+void DentalAccuracy::on_pushButton_U_ax_clicked()
+{
+	if(GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
+	x_projection.normalize();
+
+	Eigen::Vector3d y_projection = z_mpr.cross(x_projection);
+	y_projection.normalize();
+
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	tmpTrans->Translate(-y_projection[0] * stepSize,
+		-y_projection[1] * stepSize,
+		-y_projection[2] * stepSize);
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_D_ax_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
+	x_projection.normalize();
+
+	Eigen::Vector3d y_projection = z_mpr.cross(x_projection);
+	y_projection.normalize();
+
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	tmpTrans->Translate(y_projection[0] * stepSize,
+		y_projection[1] * stepSize,
+		y_projection[2] * stepSize);
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_R_ax_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
+	x_projection.normalize();
+
+	Eigen::Vector3d y_projection = z_mpr.cross(x_projection);
+	y_projection.normalize();
+
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	tmpTrans->Translate(x_projection[0] * stepSize,
+		x_projection[1] * stepSize,
+		x_projection[2] * stepSize);
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_L_ax_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
+	x_projection.normalize();
+
+	Eigen::Vector3d y_projection = z_mpr.cross(x_projection);
+	y_projection.normalize();
+
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	tmpTrans->Translate(-x_projection[0] * stepSize,
+		-x_projection[1] * stepSize,
+		-x_projection[2] * stepSize);
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_U_sag_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	tmpTrans->Translate(z_mpr[0] * stepSize,
+		z_mpr[1] * stepSize,
+		z_mpr[2] * stepSize);
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_U_cor_clicked()
+{
+	on_pushButton_U_sag_clicked();
+}
+void DentalAccuracy::on_pushButton_D_sag_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	tmpTrans->Translate(-z_mpr[0] * stepSize,
+		-z_mpr[1] * stepSize,
+		-z_mpr[2] * stepSize);
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_D_cor_clicked()
+{
+	on_pushButton_D_sag_clicked();
+}
+void DentalAccuracy::on_pushButton_L_cor_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	tmpTrans->Translate(leftSide[0] * stepSize,
+		leftSide[1] * stepSize,
+		leftSide[2] * stepSize);
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_R_cor_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	Eigen::Vector3d rightSide = -z_mpr.cross(y_mpr);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	tmpTrans->Translate(rightSide[0] * stepSize,
+		rightSide[1] * stepSize,
+		rightSide[2] * stepSize);
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_R_sag_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	Eigen::Vector3d rightSide = z_mpr.cross(x_mpr);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	tmpTrans->Translate(rightSide[0] * stepSize,
+		rightSide[1] * stepSize,
+		rightSide[2] * stepSize);
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_L_sag_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	Eigen::Vector3d leftSide = -z_mpr.cross(x_mpr);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	tmpTrans->Translate(leftSide[0] * stepSize,
+		leftSide[1] * stepSize,
+		leftSide[2] * stepSize);
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_clock_cor_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
+
+	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
+	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
+
+	mitk::Point3D boundCenter_init;
+	boundCenter_init[0] = (maxBound_init.GetElement(0) + minBound_init.GetElement(0)) / 2;
+	boundCenter_init[1] = (maxBound_init.GetElement(1) + minBound_init.GetElement(1)) / 2;
+	boundCenter_init[2] = (maxBound_init.GetElement(2) + minBound_init.GetElement(2)) / 2;
+
+	auto tmpPset = mitk::PointSet::New();
+	tmpPset->InsertPoint(boundCenter_init);
+	tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(implantMatrix);
+
+	auto implantEndPoint = tmpPset->GetPoint(0);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	// tmpTrans->Translate(leftSide[0] * stepSize,
+	// 	leftSide[1] * stepSize,
+	// 	leftSide[2] * stepSize);
+	tmpTrans->Translate(-implantEndPoint[0], -implantEndPoint[1], -implantEndPoint[2]);
+	tmpTrans->RotateWXYZ(stepSize,y_mpr[0], y_mpr[1], y_mpr[2]);
+	tmpTrans->Translate(implantEndPoint[0], implantEndPoint[1], implantEndPoint[2]);
+
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_counter_cor_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
+
+	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
+	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
+
+	mitk::Point3D boundCenter_init;
+	boundCenter_init[0] = (maxBound_init.GetElement(0) + minBound_init.GetElement(0)) / 2;
+	boundCenter_init[1] = (maxBound_init.GetElement(1) + minBound_init.GetElement(1)) / 2;
+	boundCenter_init[2] = (maxBound_init.GetElement(2) + minBound_init.GetElement(2)) / 2;
+
+	auto tmpPset = mitk::PointSet::New();
+	tmpPset->InsertPoint(boundCenter_init);
+	tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(implantMatrix);
+
+	auto implantEndPoint = tmpPset->GetPoint(0);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	// tmpTrans->Translate(leftSide[0] * stepSize,
+	// 	leftSide[1] * stepSize,
+	// 	leftSide[2] * stepSize);
+	tmpTrans->Translate(-implantEndPoint[0], -implantEndPoint[1], -implantEndPoint[2]);
+	tmpTrans->RotateWXYZ(-stepSize, y_mpr[0], y_mpr[1], y_mpr[2]);
+	tmpTrans->Translate(implantEndPoint[0], implantEndPoint[1], implantEndPoint[2]);
+	
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_clock_sag_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
+
+	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
+	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
+
+	mitk::Point3D boundCenter_init;
+	boundCenter_init[0] = (maxBound_init.GetElement(0) + minBound_init.GetElement(0)) / 2;
+	boundCenter_init[1] = (maxBound_init.GetElement(1) + minBound_init.GetElement(1)) / 2;
+	boundCenter_init[2] = (maxBound_init.GetElement(2) + minBound_init.GetElement(2)) / 2;
+
+	auto tmpPset = mitk::PointSet::New();
+	tmpPset->InsertPoint(boundCenter_init);
+	tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(implantMatrix);
+
+	auto implantEndPoint = tmpPset->GetPoint(0);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	// tmpTrans->Translate(leftSide[0] * stepSize,
+	// 	leftSide[1] * stepSize,
+	// 	leftSide[2] * stepSize);
+	tmpTrans->Translate(-implantEndPoint[0], -implantEndPoint[1], -implantEndPoint[2]);
+	tmpTrans->RotateWXYZ(-stepSize, x_mpr[0], x_mpr[1], x_mpr[2]);
+	tmpTrans->Translate(implantEndPoint[0], implantEndPoint[1], implantEndPoint[2]);
+
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+
+}
+void DentalAccuracy::on_pushButton_counter_sag_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
+
+	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
+	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
+
+	mitk::Point3D boundCenter_init;
+	boundCenter_init[0] = (maxBound_init.GetElement(0) + minBound_init.GetElement(0)) / 2;
+	boundCenter_init[1] = (maxBound_init.GetElement(1) + minBound_init.GetElement(1)) / 2;
+	boundCenter_init[2] = (maxBound_init.GetElement(2) + minBound_init.GetElement(2)) / 2;
+
+	auto tmpPset = mitk::PointSet::New();
+	tmpPset->InsertPoint(boundCenter_init);
+	tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(implantMatrix);
+
+	auto implantEndPoint = tmpPset->GetPoint(0);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	// tmpTrans->Translate(leftSide[0] * stepSize,
+	// 	leftSide[1] * stepSize,
+	// 	leftSide[2] * stepSize);
+	tmpTrans->Translate(-implantEndPoint[0], -implantEndPoint[1], -implantEndPoint[2]);
+	tmpTrans->RotateWXYZ(stepSize, x_mpr[0], x_mpr[1], x_mpr[2]);
+	tmpTrans->Translate(implantEndPoint[0], implantEndPoint[1], implantEndPoint[2]);
+
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_clock_ax_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
+
+	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
+	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
+
+	mitk::Point3D boundCenter_init;
+	boundCenter_init[0] = (maxBound_init.GetElement(0) + minBound_init.GetElement(0)) / 2;
+	boundCenter_init[1] = (maxBound_init.GetElement(1) + minBound_init.GetElement(1)) / 2;
+	boundCenter_init[2] = (maxBound_init.GetElement(2) + minBound_init.GetElement(2)) / 2;
+
+	auto tmpPset = mitk::PointSet::New();
+	tmpPset->InsertPoint(boundCenter_init);
+	tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(implantMatrix);
+
+	auto implantEndPoint = tmpPset->GetPoint(0);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	// tmpTrans->Translate(leftSide[0] * stepSize,
+	// 	leftSide[1] * stepSize,
+	// 	leftSide[2] * stepSize);
+	tmpTrans->Translate(-implantEndPoint[0], -implantEndPoint[1], -implantEndPoint[2]);
+	tmpTrans->RotateWXYZ(stepSize, z_mpr[0], z_mpr[1], z_mpr[2]);
+	tmpTrans->Translate(implantEndPoint[0], implantEndPoint[1], implantEndPoint[2]);
+
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+void DentalAccuracy::on_pushButton_counter_ax_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	double stepSize = m_Controls.lineEdit_stepSize->text().toDouble();
+
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+
+	Eigen::Vector3d z_mpr{
+		implantMatrix->GetElement(0,2),
+		implantMatrix->GetElement(1,2),
+		implantMatrix->GetElement(2,2)
+	};
+
+	if (m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	y_mpr.normalize();
+
+	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
+	x_mpr.normalize();
+
+	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
+
+	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
+	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
+
+	mitk::Point3D boundCenter_init;
+	boundCenter_init[0] = (maxBound_init.GetElement(0) + minBound_init.GetElement(0)) / 2;
+	boundCenter_init[1] = (maxBound_init.GetElement(1) + minBound_init.GetElement(1)) / 2;
+	boundCenter_init[2] = (maxBound_init.GetElement(2) + minBound_init.GetElement(2)) / 2;
+
+	auto tmpPset = mitk::PointSet::New();
+	tmpPset->InsertPoint(boundCenter_init);
+	tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(implantMatrix);
+
+	auto implantEndPoint = tmpPset->GetPoint(0);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(implantMatrix);
+	// tmpTrans->Translate(leftSide[0] * stepSize,
+	// 	leftSide[1] * stepSize,
+	// 	leftSide[2] * stepSize);
+	tmpTrans->Translate(-implantEndPoint[0], -implantEndPoint[1], -implantEndPoint[2]);
+	tmpTrans->RotateWXYZ(-stepSize, z_mpr[0], z_mpr[1], z_mpr[2]);
+	tmpTrans->Translate(implantEndPoint[0], implantEndPoint[1], implantEndPoint[2]);
+
+	tmpTrans->Update();
+
+	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+
+	// Update the attached gizmo
+	mitk::Gizmo::RemoveGizmoFromNode(implantNode, GetDataStorage());
+	mitk::Gizmo::AddGizmoToNode(implantNode, GetDataStorage());
+
+	on_pushButton_implantFocus_clicked();
+}
+
+
+
+
+
 void DentalAccuracy::on_pushButton_implantFocus_clicked()
 {
 	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
@@ -1332,31 +2323,8 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 		m_Controls.textBrowser->append("roi_implantMPR is missing");
 		return;
 	}
-
-	// auto mitkPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("Dental curve");
-	//
-	// double sliderValue = m_Controls.horizontalSlider->value();
-	//
-	// int currentIndex = floor(sliderValue * (mitkPset->GetSize() - 1) / m_Controls.horizontalSlider->maximum());
-	//
-	// if (currentIndex == (mitkPset->GetSize() - 1))
-	// {
-	// 	currentIndex -= 1;
-	// }
-	//
-	// auto currentPoint = mitkPset->GetPoint(currentIndex);
-	// auto nextPoint = mitkPset->GetPoint(currentIndex + 1);
-
-
+	
 	auto iRenderWindowPart = GetRenderWindowPart();
-
-	// worldPoint = iRenderWindowPart->GetSelectedPosition();
-
-	// worldPoint[0] = currentPoint[0];
-	// worldPoint[1] = currentPoint[1];
-	// worldPoint[2] = floor(abs(worldPoint[2])) * (worldPoint[2] / abs(worldPoint[2]));
-
-	// m_Controls.textBrowser->append(QString::number(worldPoint[2]));
 
 	TurnOffAllNodesVisibility();
 
@@ -1378,6 +2346,11 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 		implantMatrix->GetElement(1,2),
 		implantMatrix->GetElement(2,2)
 	};
+
+	if(m_Controls.radioButton_mandible->isChecked())
+	{
+		z_mpr = -z_mpr;
+	}
 
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };

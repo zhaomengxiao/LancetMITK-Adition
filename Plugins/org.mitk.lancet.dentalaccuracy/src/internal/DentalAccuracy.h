@@ -89,6 +89,33 @@ protected:
 
   void on_pushButton_implantFocus_clicked();
 
+
+	// U: insertion direction
+	// D: withdrawal direction
+	// R: right side of insertion direction
+	// L: left side of insertion direction
+	// clock: clockwise rotation
+	// counter: counterclockwise rotation 
+  void on_pushButton_U_ax_clicked();
+  void on_pushButton_D_ax_clicked();
+  void on_pushButton_L_ax_clicked();
+  void on_pushButton_R_ax_clicked();
+  void on_pushButton_counter_ax_clicked();
+  void on_pushButton_clock_ax_clicked();
+
+  void on_pushButton_U_sag_clicked();
+  void on_pushButton_D_sag_clicked();
+  void on_pushButton_L_sag_clicked();
+  void on_pushButton_R_sag_clicked();
+  void on_pushButton_counter_sag_clicked();
+  void on_pushButton_clock_sag_clicked();
+
+  void on_pushButton_U_cor_clicked();
+  void on_pushButton_D_cor_clicked();
+  void on_pushButton_L_cor_clicked();
+  void on_pushButton_R_cor_clicked();
+  void on_pushButton_counter_cor_clicked();
+  void on_pushButton_clock_cor_clicked();
 	// Functions
 
   mitk::NavigationData::Pointer DentalAccuracy::GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
