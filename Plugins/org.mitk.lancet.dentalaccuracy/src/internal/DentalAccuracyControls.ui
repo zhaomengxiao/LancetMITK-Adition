@@ -189,23 +189,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QRadioButton" name="radioButton_maxilla">
-           <property name="text">
-            <string>Maxilla</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioButton_mandible">
-           <property name="text">
-            <string>Mandible</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="pushButton_setImplant">
            <property name="text">
             <string>Set implant</string>

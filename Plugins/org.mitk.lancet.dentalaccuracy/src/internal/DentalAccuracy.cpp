@@ -2429,8 +2429,10 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("coronal");
 	if (renderWindow)
 	{
-		Eigen::Vector3d x_projection = x_std - y_mpr * (x_std.dot(y_mpr));
-		x_projection.normalize();
+		// Eigen::Vector3d x_projection = x_std - y_mpr * (x_std.dot(y_mpr));
+		// x_projection.normalize();
+
+		Eigen::Vector3d x_projection = y_mpr.cross(z_std);
 
 		Eigen::Vector3d z_projection = x_projection.cross(y_mpr);
 		z_projection.normalize();
@@ -2463,8 +2465,10 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("sagittal");
 	if (renderWindow)
 	{
-		Eigen::Vector3d y_projection = y_std - x_mpr * (y_std.dot(x_mpr));
-		y_projection.normalize();
+		// Eigen::Vector3d y_projection = y_std - x_mpr * (y_std.dot(x_mpr));
+		// y_projection.normalize();
+
+		Eigen::Vector3d y_projection = z_std.cross(x_mpr);
 
 		Eigen::Vector3d z_projection = x_mpr.cross(y_projection);
 		y_projection.normalize();
@@ -2481,6 +2485,8 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 		b[2] = z_projection[2];
 
 		renderWindow->GetSliceNavigationController()->ReorientSlices(implantPoint, a, b);
+		
+
 		// mitk::Point3D origin;
 		// FillVector3D(origin, 0.0, 0.0, 0.0);
 		//renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
@@ -2491,8 +2497,10 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 	renderWindow = iRenderWindowPart->GetQmitkRenderWindow("axial");
 	if (renderWindow)
 	{
-		Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
-		x_projection.normalize();
+		// Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
+		// x_projection.normalize();
+
+		Eigen::Vector3d x_projection = y_std.cross(z_mpr);
 
 		Eigen::Vector3d y_projection = z_mpr.cross(x_projection);
 		y_projection.normalize();
