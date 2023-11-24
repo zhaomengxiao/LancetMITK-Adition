@@ -2352,7 +2352,12 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 	Eigen::Vector3d z_std{ 0,0,1 };
 
 
-	Eigen::Vector3d x_implant{ implantMatrix->GetElement(0,0),implantMatrix->GetElement(1,0),0 };
+	Eigen::Vector3d x_implant{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+	    implantMatrix->GetElement(2,0)
+	};
+
 	x_implant.normalize();
 
 	if(x_implant.dot(x_std) < 0)
