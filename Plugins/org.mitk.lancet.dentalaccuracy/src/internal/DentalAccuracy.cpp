@@ -2356,7 +2356,12 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	Eigen::Vector3d x_implant{ implantMatrix->GetElement(0,0),implantMatrix->GetElement(1,0),0 };
+	x_std.normalize();
+	// Eigen::Vector3d y_std{ implantMatrix->GetElement(1,0),implantMatrix->GetElement(1,1),0 };
+	// y_std.normalize();
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_implant);
 	y_mpr.normalize();
 
 	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
@@ -2366,7 +2371,7 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 
 	iRenderWindowPart->SetSelectedPosition(implantPoint);
 
-	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetActiveQmitkRenderWindow();
+	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetQmitkRenderWindow("3d");
 
 	if (renderWindow)
 	{
