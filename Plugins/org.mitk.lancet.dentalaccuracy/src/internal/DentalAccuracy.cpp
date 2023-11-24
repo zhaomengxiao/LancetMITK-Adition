@@ -1364,20 +1364,28 @@ void DentalAccuracy::on_pushButton_U_ax_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
-	y_mpr.normalize();
+	if (z_mpr.dot(z_std) < 0)
+	{
+		z_mpr = -z_mpr;
+	}
 
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
+	};
+
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_mpr);
+	y_mpr.normalize();
 
 	Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
 	x_projection.normalize();
@@ -1389,9 +1397,9 @@ void DentalAccuracy::on_pushButton_U_ax_clicked()
 	auto tmpTrans = vtkTransform::New();
 	tmpTrans->PostMultiply();
 	tmpTrans->SetMatrix(implantMatrix);
-	tmpTrans->Translate(-y_projection[0] * stepSize,
-		-y_projection[1] * stepSize,
-		-y_projection[2] * stepSize);
+	tmpTrans->Translate(-y_mpr[0] * stepSize,
+		-y_mpr[1] * stepSize,
+		-y_mpr[2] * stepSize);
 	tmpTrans->Update();
 
 	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
@@ -1422,34 +1430,36 @@ void DentalAccuracy::on_pushButton_D_ax_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	if (z_mpr.dot(z_std) < 0)
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
+	};
+
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_mpr);
 	y_mpr.normalize();
-
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
-
-	Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
-	x_projection.normalize();
-
-	Eigen::Vector3d y_projection = z_mpr.cross(x_projection);
-	y_projection.normalize();
 
 
 	auto tmpTrans = vtkTransform::New();
 	tmpTrans->PostMultiply();
 	tmpTrans->SetMatrix(implantMatrix);
-	tmpTrans->Translate(y_projection[0] * stepSize,
-		y_projection[1] * stepSize,
-		y_projection[2] * stepSize);
+	tmpTrans->Translate(y_mpr[0] * stepSize,
+		y_mpr[1] * stepSize,
+		y_mpr[2] * stepSize);
 	tmpTrans->Update();
 
 	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
@@ -1480,34 +1490,35 @@ void DentalAccuracy::on_pushButton_R_ax_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	if (z_mpr.dot(z_std) < 0)
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
+	};
+
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_mpr);
 	y_mpr.normalize();
-
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
-
-	Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
-	x_projection.normalize();
-
-	Eigen::Vector3d y_projection = z_mpr.cross(x_projection);
-	y_projection.normalize();
-
-
+	
 	auto tmpTrans = vtkTransform::New();
 	tmpTrans->PostMultiply();
 	tmpTrans->SetMatrix(implantMatrix);
-	tmpTrans->Translate(x_projection[0] * stepSize,
-		x_projection[1] * stepSize,
-		x_projection[2] * stepSize);
+	tmpTrans->Translate(x_mpr[0] * stepSize,
+		x_mpr[1] * stepSize,
+		x_mpr[2] * stepSize);
 	tmpTrans->Update();
 
 	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
@@ -1538,34 +1549,35 @@ void DentalAccuracy::on_pushButton_L_ax_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	if (z_mpr.dot(z_std) < 0)
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
+	};
+
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_mpr);
 	y_mpr.normalize();
-
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
-
-	Eigen::Vector3d x_projection = x_std - z_mpr * (x_std.dot(z_mpr));
-	x_projection.normalize();
-
-	Eigen::Vector3d y_projection = z_mpr.cross(x_projection);
-	y_projection.normalize();
-
 
 	auto tmpTrans = vtkTransform::New();
 	tmpTrans->PostMultiply();
 	tmpTrans->SetMatrix(implantMatrix);
-	tmpTrans->Translate(-x_projection[0] * stepSize,
-		-x_projection[1] * stepSize,
-		-x_projection[2] * stepSize);
+	tmpTrans->Translate(-x_mpr[0] * stepSize,
+		-x_mpr[1] * stepSize,
+		-x_mpr[2] * stepSize);
 	tmpTrans->Update();
 
 	implantNode->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
@@ -1596,7 +1608,9 @@ void DentalAccuracy::on_pushButton_U_sag_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	if (z_mpr.dot(z_std) < 0)
 	{
 		z_mpr = -z_mpr;
 	}
@@ -1641,10 +1655,15 @@ void DentalAccuracy::on_pushButton_D_sag_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	if (z_mpr.dot(z_std) < 0)
 	{
 		z_mpr = -z_mpr;
 	}
+
 
 	auto tmpTrans = vtkTransform::New();
 	tmpTrans->PostMultiply();
@@ -1686,20 +1705,28 @@ void DentalAccuracy::on_pushButton_L_cor_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
-	y_mpr.normalize();
+	if (z_mpr.dot(z_std) < 0)
+	{
+		z_mpr = -z_mpr;
+	}
 
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
+	};
+
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_mpr);
+	y_mpr.normalize();
 
 	Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
 
@@ -1739,20 +1766,28 @@ void DentalAccuracy::on_pushButton_R_cor_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
-	y_mpr.normalize();
+	if (z_mpr.dot(z_std) < 0)
+	{
+		z_mpr = -z_mpr;
+	}
 
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
+	};
+
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_mpr);
+	y_mpr.normalize();
 
 	Eigen::Vector3d rightSide = -z_mpr.cross(y_mpr);
 
@@ -1792,20 +1827,28 @@ void DentalAccuracy::on_pushButton_R_sag_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
-	y_mpr.normalize();
+	if (z_mpr.dot(z_std) < 0)
+	{
+		z_mpr = -z_mpr;
+	}
 
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
+	};
+
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_mpr);
+	y_mpr.normalize();
 
 	Eigen::Vector3d rightSide = z_mpr.cross(x_mpr);
 
@@ -1845,20 +1888,28 @@ void DentalAccuracy::on_pushButton_L_sag_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
-	y_mpr.normalize();
+	if (z_mpr.dot(z_std) < 0)
+	{
+		z_mpr = -z_mpr;
+	}
 
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
+	};
+
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_mpr);
+	y_mpr.normalize();
 
 	Eigen::Vector3d leftSide = -z_mpr.cross(x_mpr);
 
@@ -1898,22 +1949,28 @@ void DentalAccuracy::on_pushButton_clock_cor_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	if (z_mpr.dot(z_std) < 0)
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
+	};
+
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_mpr);
 	y_mpr.normalize();
-
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
-
-	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
 
 	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
 	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
@@ -1936,7 +1993,7 @@ void DentalAccuracy::on_pushButton_clock_cor_clicked()
 	// 	leftSide[1] * stepSize,
 	// 	leftSide[2] * stepSize);
 	tmpTrans->Translate(-implantEndPoint[0], -implantEndPoint[1], -implantEndPoint[2]);
-	tmpTrans->RotateWXYZ(stepSize,y_mpr[0], y_mpr[1], y_mpr[2]);
+	tmpTrans->RotateWXYZ(stepSize, y_mpr[0], y_mpr[1], y_mpr[2]);
 	tmpTrans->Translate(implantEndPoint[0], implantEndPoint[1], implantEndPoint[2]);
 
 	tmpTrans->Update();
@@ -1969,22 +2026,28 @@ void DentalAccuracy::on_pushButton_counter_cor_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
 	Eigen::Vector3d y_std{ 0,1,0 };
 	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
+	if (z_mpr.dot(z_std) < 0)
+	{
+		z_mpr = -z_mpr;
+	}
+
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
+	};
+
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
+
+	Eigen::Vector3d y_mpr = z_mpr.cross(x_mpr);
 	y_mpr.normalize();
-
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
-
-	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
 
 	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
 	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
@@ -2022,6 +2085,7 @@ void DentalAccuracy::on_pushButton_counter_cor_clicked()
 }
 void DentalAccuracy::on_pushButton_clock_sag_clicked()
 {
+
 	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
 	{
 		m_Controls.textBrowser->append("implant is missing");
@@ -2034,28 +2098,18 @@ void DentalAccuracy::on_pushButton_clock_sag_clicked()
 
 	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
 
-	Eigen::Vector3d z_mpr{
-		implantMatrix->GetElement(0,2),
-		implantMatrix->GetElement(1,2),
-		implantMatrix->GetElement(2,2)
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
-	Eigen::Vector3d y_std{ 0,1,0 };
-	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
-	y_mpr.normalize();
-
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
-
-	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
+	if (x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
 
 	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
 	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
@@ -2106,28 +2160,18 @@ void DentalAccuracy::on_pushButton_counter_sag_clicked()
 
 	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
 
-	Eigen::Vector3d z_mpr{
-		implantMatrix->GetElement(0,2),
-		implantMatrix->GetElement(1,2),
-		implantMatrix->GetElement(2,2)
+	Eigen::Vector3d x_mpr{
+		implantMatrix->GetElement(0,0),
+		implantMatrix->GetElement(1,0),
+		implantMatrix->GetElement(2,0)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
-	{
-		z_mpr = -z_mpr;
-	}
-
 	Eigen::Vector3d x_std{ 1,0,0 };
-	Eigen::Vector3d y_std{ 0,1,0 };
-	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
-	y_mpr.normalize();
-
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
-
-	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
+	if(x_mpr.dot(x_std) < 0)
+	{
+		x_mpr = -x_mpr;
+	}
 
 	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
 	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
@@ -2183,23 +2227,13 @@ void DentalAccuracy::on_pushButton_clock_ax_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	if (z_mpr.dot(z_std) < 0)
 	{
 		z_mpr = -z_mpr;
 	}
-
-	Eigen::Vector3d x_std{ 1,0,0 };
-	Eigen::Vector3d y_std{ 0,1,0 };
-	Eigen::Vector3d z_std{ 0,0,1 };
-
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
-	y_mpr.normalize();
-
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
-
-	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
-
+	
 	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
 	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
 
@@ -2254,21 +2288,12 @@ void DentalAccuracy::on_pushButton_counter_ax_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
-	if (m_Controls.radioButton_mandible->isChecked())
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+	if (z_mpr.dot(z_std) < 0)
 	{
 		z_mpr = -z_mpr;
 	}
-
-	Eigen::Vector3d x_std{ 1,0,0 };
-	Eigen::Vector3d y_std{ 0,1,0 };
-	Eigen::Vector3d z_std{ 0,0,1 };
-
-	Eigen::Vector3d y_mpr = z_mpr.cross(x_std);
-	y_mpr.normalize();
-
-	Eigen::Vector3d x_mpr = y_mpr.cross(z_mpr);
-	x_mpr.normalize();
-
 	// Eigen::Vector3d leftSide = z_mpr.cross(y_mpr);
 
 	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
@@ -2364,8 +2389,8 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 	{
 		x_implant = -x_implant;
 	}
-
-	if(m_Controls.radioButton_mandible->isChecked())
+	
+	if (z_mpr.dot(z_std) < 0)
 	{
 		z_mpr = -z_mpr;
 	}
