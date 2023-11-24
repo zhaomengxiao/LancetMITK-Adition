@@ -2347,17 +2347,25 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 		implantMatrix->GetElement(2,2)
 	};
 
+	Eigen::Vector3d x_std{ 1,0,0 };
+	Eigen::Vector3d y_std{ 0,1,0 };
+	Eigen::Vector3d z_std{ 0,0,1 };
+
+
+	Eigen::Vector3d x_implant{ implantMatrix->GetElement(0,0),implantMatrix->GetElement(1,0),0 };
+	x_implant.normalize();
+
+	if(x_implant.dot(x_std) < 0)
+	{
+		x_implant = -x_implant;
+	}
+
 	if(m_Controls.radioButton_mandible->isChecked())
 	{
 		z_mpr = -z_mpr;
 	}
 
-	Eigen::Vector3d x_std{ 1,0,0 };
-	Eigen::Vector3d y_std{ 0,1,0 };
-	Eigen::Vector3d z_std{ 0,0,1 };
 
-	Eigen::Vector3d x_implant{ implantMatrix->GetElement(0,0),implantMatrix->GetElement(1,0),0 };
-	x_std.normalize();
 	// Eigen::Vector3d y_std{ implantMatrix->GetElement(1,0),implantMatrix->GetElement(1,1),0 };
 	// y_std.normalize();
 
