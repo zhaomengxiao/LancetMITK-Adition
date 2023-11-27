@@ -35,6 +35,7 @@ found in the LICENSE file.
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 #include <vtkCleanPolyData.h>
 #include <vtkClipPolyData.h>
+#include <vtkDataSetMapper.h>
 #include <vtkImageCast.h>
 #include <vtkImplicitPolyDataDistance.h>
 #include <vtkPointData.h>
@@ -55,6 +56,7 @@ found in the LICENSE file.
 #include "QmitkDataStorageTreeModelInternalItem.h"
 #include "QmitkRenderWindow.h"
 #include "surfaceregistraion.h"
+#include <vtkWindowLevelLookupTable.h>
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
 
 
@@ -2624,6 +2626,79 @@ void MoveData::on_pushButton_testCPR_clicked()
 		sampleVolume->Update();
 
 		auto probeData = sampleVolume->GetOutput();
+
+		// probeData test show below:
+
+		if( i == thickness)
+		{
+			vtkNew<vtkProbeFilter> sampleVolume_;
+			sampleVolume_->SetSourceData(vtkImage);
+			tmpTransFilter->SetTransform(tmpTransform);
+			tmpTransFilter->SetInputData(GetDataStorage()->GetNamedObject<mitk::Surface>("probe surface")->GetVtkPolyData());
+			tmpTransFilter->Update();
+			sampleVolume_->SetInputData(tmpTransFilter->GetOutput());
+
+			sampleVolume_->Update();
+
+			auto probeData_ = sampleVolume_->GetOutput();
+
+
+			vtkNew<vtkWindowLevelLookupTable> wlLut;
+			// double range = 5837;
+			// double level = 1919;
+			double range = 1000;
+			double level = 500;
+			wlLut->SetWindow(range);
+			wlLut->SetLevel(level);
+		
+			// Create a mapper and actor.
+			vtkNew<vtkDataSetMapper> mapper;
+			mapper->SetInputData(probeData_);
+			mapper->SetLookupTable(wlLut);
+			//mapper->SetScalarRange(-500, 1500);
+			mapper->SetScalarRange(-700, 2000);
+		
+			vtkNew<vtkActor> actor;
+			actor->SetMapper(mapper);
+		
+			auto iRenderWindowPart = GetRenderWindowPart();
+		
+			QmitkRenderWindow* mitkRenderWindow = iRenderWindowPart->GetQmitkRenderWindow("3d");
+		
+			auto renderWindow = mitkRenderWindow->GetVtkRenderWindow();
+		
+			vtkNew<vtkRenderer> renderer;
+		
+			renderWindow->AddRenderer(renderer);
+			
+			renderer->AddActor(actor);
+			renderer->SetBackground(255,255,255);
+		
+			// // Create a renderer, render window, and interactor.
+			// vtkNew<vtkRenderer> renderer;
+			// vtkNew<vtkRenderWindow> renderWindow;
+			// renderWindow->AddRenderer(renderer);
+			// renderWindow->SetWindowName("CurvedReformation");
+			//
+			// // Add the actors to the scene.
+			// renderer->AddActor(actor);
+			// renderer->SetBackground(colors->GetColor3d("DarkSlateGray").GetData());
+			//
+			// // Set the camera for viewing medical images.
+			// renderer->GetActiveCamera()->SetViewUp(0, 0, 1);
+			// renderer->GetActiveCamera()->SetPosition(0, 0, 0);
+			// renderer->GetActiveCamera()->SetFocalPoint(0, 1, 0);
+			// renderer->ResetCamera();
+			//
+			// // Render and interact
+			// renderWindow->Render();
+			// renderWindowInteractor->Start();
+		
+			// probeData test show above
+		}
+		
+
+
 
 		auto probePointData = probeData->GetPointData();
 

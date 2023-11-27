@@ -90,10 +90,10 @@ protected:
   void on_pushButton_implantFocus_clicked();
 
 
-	// U: insertion direction
-	// D: withdrawal direction
-	// R: right side of insertion direction
-	// L: left side of insertion direction
+	// U: up
+	// D: down
+	// R: right
+	// L: left
 	// clock: clockwise rotation
 	// counter: counterclockwise rotation 
   void on_pushButton_U_ax_clicked();

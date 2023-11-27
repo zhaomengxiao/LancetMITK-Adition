@@ -2357,7 +2357,7 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 
 	auto implantMatrix = GetDataStorage()->GetNamedNode("implant")->GetData()->GetGeometry()->GetVtkMatrix();
 
-	mitk::Point3D implantPoint = GetDataStorage()->GetNamedNode("implant")->GetData()->GetGeometry()->GetCenter();;
+	mitk::Point3D implantPoint = GetDataStorage()->GetNamedNode("implant")->GetData()->GetGeometry()->GetCenter();
 
 	auto tmpMatrix = vtkMatrix4x4::New();
 	tmpMatrix->Identity();
@@ -2517,12 +2517,7 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 		b[2] = -y_projection[2];
 
 		renderWindow->GetSliceNavigationController()->ReorientSlices(implantPoint, a, b);
-
-		// mitk::Point3D origin;
-		// FillVector3D(origin, 0.0, 0.0, 0.0);
-		//renderWindow->GetSliceNavigationController()->ReorientSlices(origin, a, b);
-		//renderWindow->GetSliceNavigationController()->SelectSliceByPoint(worldPoint);
-
+		
 	}
 
 	GetDataStorage()->GetNamedNode("roi_implantMPR")->SetVisibility(false);
