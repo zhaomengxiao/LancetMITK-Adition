@@ -364,6 +364,7 @@ void DentalAccuracy::on_pushButton_GenSeeds_clicked()
 void DentalAccuracy::on_pushButton_genSplineAndAppend_clicked()
 {
 	auto appender = vtkAppendPolyData::New();
+	auto appender2 = vtkAppendPolyData::New();
 	int linePointNum{0};
 	int lineNum = 72;
 
@@ -375,6 +376,21 @@ void DentalAccuracy::on_pushButton_genSplineAndAppend_clicked()
 		// GetDataStorage()->GetNamedNode(nodeName.toStdString());
 
 		auto mitkPset = GetDataStorage()->GetNamedObject<mitk::PointSet>(nodeName.toStdString());
+
+		auto tmpPoint = mitkPset->GetPoint(0);
+
+		mitk::Point3D startPoint;
+		startPoint[0] = -58.650;
+		startPoint[1] = 38.850;
+		startPoint[2] = tmpPoint[2];
+
+		mitk::Point3D endPoint;
+		endPoint[0] = 48.150;
+		endPoint[1] = 43.950;
+		endPoint[2] = tmpPoint[2];
+
+		mitkPset->SetPoint(0, startPoint);
+		mitkPset->InsertPoint(endPoint);
 
 		vtkNew<vtkPoints> points;
 		for (int i{ 0 }; i < mitkPset->GetSize(); i++)
@@ -403,7 +419,7 @@ void DentalAccuracy::on_pushButton_genSplineAndAppend_clicked()
 		spline->SetRightValue(0.0);
 
 		// double segLength{ 0.3 };
-		int subDivideNum{ 200 };
+		int subDivideNum{ 600 };
 
 		vtkNew<vtkSplineFilter> splineFilter;
 		splineFilter->SetInputData(polyData);
@@ -420,6 +436,36 @@ void DentalAccuracy::on_pushButton_genSplineAndAppend_clicked()
 
 		appender->AddInputData(spline_PolyData);
 
+		// make the surface denser
+		auto tmpTransFilter = vtkTransformFilter::New();
+		auto tmpTrans = vtkTransform::New();
+		tmpTrans->Identity();
+		auto tmpMatrix = vtkMatrix4x4::New();
+		tmpMatrix->Identity();
+		tmpMatrix->SetElement(3, 2, 0.3333);
+		tmpTrans->SetMatrix(tmpMatrix);
+		tmpTransFilter->SetTransform(tmpTrans);
+		tmpTransFilter->SetInputData(spline_PolyData);
+		tmpTransFilter->Update();
+
+		auto movedSpline = tmpTransFilter->GetPolyDataOutput();
+
+		appender->AddInputData(movedSpline);
+
+		auto tmpTransFilter2 = vtkTransformFilter::New();
+		auto tmpTrans2 = vtkTransform::New();
+		tmpTrans2->Identity();
+		auto tmpMatrix2 = vtkMatrix4x4::New();
+		tmpMatrix2->Identity();
+		tmpMatrix2->SetElement(3, 2, 0.666);
+		tmpTrans2->SetMatrix(tmpMatrix2);
+		tmpTransFilter2->SetTransform(tmpTrans2);
+		tmpTransFilter2->SetInputData(spline_PolyData);
+		tmpTransFilter2->Update();
+
+		auto movedSpline2 = tmpTransFilter2->GetPolyDataOutput();
+
+		appender->AddInputData(movedSpline2);
 	}
 
 	appender->Update();
@@ -433,9 +479,11 @@ void DentalAccuracy::on_pushButton_genSplineAndAppend_clicked()
 	curveNode->SetName("Dental curves");
 	GetDataStorage()->Add(curveNode);
 
+
+
 	// Generate surface with the splines
 	int rows = linePointNum;
-	int cols = lineNum;
+	int cols = lineNum * 3;
 
 	vtkNew<vtkPolyData> surface;
 
@@ -469,8 +517,8 @@ void DentalAccuracy::on_pushButton_genSplineAndAppend_clicked()
 
 	vtkNew<vtkSmoothPolyDataFilter> smoothFilter;
 	smoothFilter->SetInputData(surface);
-	smoothFilter->SetNumberOfIterations(20);
-	smoothFilter->SetRelaxationFactor(0.2);
+	smoothFilter->SetNumberOfIterations(100);
+	smoothFilter->SetRelaxationFactor(0.9);
 	smoothFilter->FeatureEdgeSmoothingOff();
 	smoothFilter->BoundarySmoothingOn();
 	smoothFilter->Update();
@@ -743,11 +791,7 @@ void DentalAccuracy::on_pushButton_connectVega_clicked()
 
 }
 
-void DentalAccuracy::UpdateToolStatusWidget()
-{
-	m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
-	// m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
-}
+
 
 
 void DentalAccuracy::OnVegaVisualizeTimer()
@@ -2907,6 +2951,7 @@ void DentalAccuracy::on_pushButton_splineAndPanorama_clicked()
 	spline->SetLeftValue(0.0);
 	spline->SetRightConstraint(2);
 	spline->SetRightValue(0.0);
+
 
 	double segLength{ 0.3 };
 

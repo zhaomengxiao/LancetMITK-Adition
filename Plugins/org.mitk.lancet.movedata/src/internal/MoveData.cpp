@@ -2642,7 +2642,6 @@ void MoveData::on_pushButton_testCPR_clicked()
 
 			auto probeData_ = sampleVolume_->GetOutput();
 
-
 			vtkNew<vtkWindowLevelLookupTable> wlLut;
 			// double range = 5837;
 			// double level = 1919;

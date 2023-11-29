@@ -146,7 +146,6 @@ protected:
 
   void OnVegaVisualizeTimer();
   void ShowToolStatus_Vega();
-  void UpdateToolStatusWidget();
 
 	// Variables
 
