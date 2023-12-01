@@ -87,6 +87,9 @@ protected:
 
   void FocusOnImplant();
 
+
+  void RoboticsCalibrationByFoot();
+
 	// Variables
 
   // Camera connection

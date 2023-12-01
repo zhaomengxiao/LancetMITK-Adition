@@ -167,3 +167,156 @@ void SpineDemo::ShowToolStatus_Vega()
 	m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();
 }
 
+// void SpineDemo::RoboticsCalibrationByFoot()
+// {
+// 	// Step 0: set the puncture guide TCP to the robot
+// 	Eigen::Vector3d punctureAxisProximal_inFlange{-34.59,0.0,171.04};
+// 	Eigen::Vector3d punctureAxisDistal_inFlange{ 69.36,0.0, 208.88};
+//
+// 	Eigen::Vector3d punctureVector_inFlange = punctureAxisDistal_inFlange - punctureAxisProximal_inFlange;
+// 	punctureVector_inFlange.normalize();
+//
+// 	// Todo: fulfill the TCP matrix T_flangeToEndEffector
+// 	auto T_flangeToEndEffector = vtkMatrix4x4::New();
+// 	Eigen::Vector3d x_tcp = punctureVector_inFlange;
+// 	Eigen::Vector3d z_std{0, 0, 1};
+//
+// 	Eigen::Vector3d y_tcp = z_std.cross(x_tcp);
+// 	y_tcp.normalize();
+//
+// 	Eigen::Vector3d z_tcp = x_tcp.cross(y_tcp);
+// 	z_tcp.normalize();
+//
+//
+// 	double const r_flangeToEndEffector[3][3]{ {x_tcp[0], y_tcp[0], z_tcp[0]},
+// 		{x_tcp[1],  y_tcp[1], z_tcp[1]},
+// 		{x_tcp[2],  y_tcp[2], z_tcp[2] }
+// 	};
+//
+// 	// robot TCP a, b, c
+// 	std::vector<double> angleEndEffector = this->kukamatrix2angle(r_flangeToEndEffector);
+// 	
+// 	QString x_tcp_string = QString::number(punctureAxisDistal_inFlange[0], 'f', 6);
+// 	QString y_tcp_string = QString::number(punctureAxisDistal_inFlange[1], 'f', 6);
+// 	QString z_tcp_string = QString::number(punctureAxisDistal_inFlange[2], 'f', 6);
+// 	QString a_tcp_string = QString::number(angleEndEffector[0], 'f', 6);
+// 	QString b_tcp_string = QString::number(angleEndEffector[1], 'f', 6);
+// 	QString c_tcp_string = QString::number(angleEndEffector[2], 'f', 6);
+//
+// 	QString param_tcp = x_tcp_string + "," + y_tcp_string + "," + z_tcp_string + "," + a_tcp_string + "," + b_tcp_string + "," + c_tcp_string;
+//
+// 	// Todo: sleep for some time
+// 	devicePluginManager->requestExecOperate("Robot", "applyTCPValue", param_tcp.split(','));
+//
+// 	// Step 1: get the implant trajectory in the image frame from a point set
+// 	// Todo: this point set should be replaced by the implant surface
+// 	auto trajectoryPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("trajectory");
+//
+// 	// Step 2: calculate the trajectory and target point in the robot base frame
+// 	// Todo: get the global image registration matrix: T_imageToPatientRF
+// 	auto T_imageToPatientRF = vtkMatrix4x4::New();
+//
+// 	auto T_patientRFtoImage = vtkMatrix4x4::New();
+// 	T_patientRFtoImage->DeepCopy(T_imageToPatientRF);
+// 	T_patientRFtoImage->Invert();
+//
+// 	// Todo: get the global T_cameraToRobotBaseRF
+// 	auto T_cameraToRobotBaseRF = vtkMatrix4x4::New();
+//
+// 	auto T_robotBaseRFtoCamera = vtkMatrix4x4::New();
+// 	T_robotBaseRFtoCamera->DeepCopy(T_cameraToRobotBaseRF);
+// 	T_robotBaseRFtoCamera->Invert();
+//
+// 	// Todo: get the global T_cameraToPatientRF
+// 	auto T_cameraToPatientRF = vtkMatrix4x4::New();
+//
+//
+// 	// Todo: get the global Robot registration matrix: T_robotBaseRFtoRobotBase
+// 	auto T_robotBaseRFtoRobotBase = vtkMatrix4x4::New();
+//
+// 	auto T_robotBaseToRobotBaseRF = vtkMatrix4x4::New();
+// 	T_robotBaseToRobotBaseRF->DeepCopy(T_robotBaseRFtoRobotBase);
+// 	T_robotBaseToRobotBaseRF->Invert();
+//
+// 	auto trans_robotBaseToImage = vtkTransform::New();
+// 	trans_robotBaseToImage->Identity();
+// 	trans_robotBaseToImage->PostMultiply();
+// 	trans_robotBaseToImage->SetMatrix(T_patientRFtoImage);
+// 	trans_robotBaseToImage->Concatenate(T_cameraToPatientRF);
+// 	trans_robotBaseToImage->Concatenate(T_robotBaseRFtoCamera);
+// 	trans_robotBaseToImage->Concatenate(T_robotBaseToRobotBaseRF);
+// 	trans_robotBaseToImage->Update();
+//
+// 	auto T_robotBaseToImage = trans_robotBaseToImage->GetMatrix();
+//
+// 	trajectoryPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_robotBaseToImage);
+//
+// 	auto entryPoint_inRobotBase = trajectoryPset->GetPoint(0);
+//
+// 	auto exitPoint_inRobotBase = trajectoryPset->GetPoint(1);
+//
+// 	Eigen::Vector3d punctureVector_inRobotBase{
+// 		exitPoint_inRobotBase[0] - entryPoint_inRobotBase[0],
+// 	exitPoint_inRobotBase[1] - entryPoint_inRobotBase[1],
+// 	exitPoint_inRobotBase[2] - entryPoint_inRobotBase[2]};
+//
+// 	punctureVector_inRobotBase.normalize();
+//
+// 	double targetPoint_inRobotBase[3]{ entryPoint_inRobotBase[0] - 100 * punctureVector_inRobotBase[0],
+// 		entryPoint_inRobotBase[1] - 100 * punctureVector_inRobotBase[1],
+// 		entryPoint_inRobotBase[2] - 100 * punctureVector_inRobotBase[2],
+// 	};
+//
+//
+// 	// Step 3: Calculate the endEffector pose in the robot base frame: T_robotBaseToTargetPose
+//
+// 	// Todo: Get the global current endEffector pose in robotBase frame T_currentRobotBaseToEndEffector
+// 	auto T_currentRobotBaseToEndEffector = vtkMatrix4x4::New();
+//
+// 	Eigen::Vector3d current_x{ T_currentRobotBaseToEndEffector->GetElement(0,0),
+// 	T_currentRobotBaseToEndEffector->GetElement(1,0),
+// 	T_currentRobotBaseToEndEffector->GetElement(2,0)
+// 	};
+//
+// 	Eigen::Vector3d rotAxis = current_x.cross(punctureVector_inRobotBase);
+// 	rotAxis.normalize();
+//
+// 	double rotAngle = 180 * acos(current_x.dot(punctureVector_inRobotBase))/3.1415926;
+//
+// 	auto tmpTrans = vtkTransform::New();
+// 	tmpTrans->PostMultiply();
+// 	tmpTrans->Identity();
+// 	tmpTrans->SetMatrix(T_currentRobotBaseToEndEffector);
+// 	tmpTrans->RotateWXYZ(rotAngle, rotAxis[0], rotAxis[1], rotAxis[2]);
+// 	tmpTrans->Update();
+//
+// 	auto tmpMatrix = tmpTrans->GetMatrix();
+//
+// 	auto T_robotBaseToTargetPose = vtkMatrix4x4::New();
+// 	T_robotBaseToTargetPose->DeepCopy(tmpMatrix);
+// 	T_robotBaseToTargetPose->SetElement(0,3, targetPoint_inRobotBase[0]);
+// 	T_robotBaseToTargetPose->SetElement(1, 3, targetPoint_inRobotBase[1]);
+// 	T_robotBaseToTargetPose->SetElement(2, 3, targetPoint_inRobotBase[2]);
+//
+//
+// 	// Step 4: Move the robot 
+//
+// 	double const r_robotBaseToTargetPose[3][3]{ {T_robotBaseToTargetPose->GetElement(0,0), T_robotBaseToTargetPose->GetElement(0,1), T_robotBaseToTargetPose->GetElement(0,2)},
+// 		{T_robotBaseToTargetPose->GetElement(1,0), T_robotBaseToTargetPose->GetElement(1,1), T_robotBaseToTargetPose->GetElement(1,2)},
+// 		{T_robotBaseToTargetPose->GetElement(2,0), T_robotBaseToTargetPose->GetElement(2,1), T_robotBaseToTargetPose->GetElement(2,2)}
+// 	};
+//
+// 	// robot TCP a, b, c
+// 	std::vector<double> angleRobotBaseToTargetPose = this->kukamatrix2angle(r_robotBaseToTargetPose);
+//
+// 	QString str1 = QString::number(T_robotBaseToTargetPose->GetElement(0, 3), 'f', 6);
+// 	QString str2 = QString::number(T_robotBaseToTargetPose->GetElement(1, 3), 'f', 6);
+// 	QString str3 = QString::number(T_robotBaseToTargetPose->GetElement(2, 3), 'f', 6);
+// 	QString str4 = QString::number(angleRobotBaseToTargetPose[0], 'f', 6);
+// 	QString str5 = QString::number(angleRobotBaseToTargetPose[1], 'f', 6);
+// 	QString str6 = QString::number(angleRobotBaseToTargetPose[2], 'f', 6);
+//
+// 	QString param = str1 + "," + str2 + "," + str3 + "," + str4 + "," + str5 + "," + str6;
+//
+// 	devicePluginManager->requestExecOperate("Robot", "movep", param.split(','));
+// }
