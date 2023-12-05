@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>899</width>
-    <height>892</height>
+    <width>767</width>
+    <height>810</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -99,6 +99,32 @@
            </property>
            <property name="text">
             <string>Start planning</string>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="pushButton_pseudoSavePlan">
+           <property name="geometry">
+            <rect>
+             <x>450</x>
+             <y>20</y>
+             <width>131</width>
+             <height>23</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Pseudo save plan</string>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="pushButton_pseudoRecoverPlan">
+           <property name="geometry">
+            <rect>
+             <x>450</x>
+             <y>60</y>
+             <width>131</width>
+             <height>23</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Pseudo recover plan</string>
            </property>
           </widget>
           <widget class="QWidget" name="">

@@ -118,6 +118,8 @@ protected:
   void on_pushButton_clock_cor_clicked();
 	// Functions
 
+  double CalImplantToAlveolarNerve();
+
   mitk::NavigationData::Pointer DentalAccuracy::GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
 	  mitk::NavigationData::Pointer nd_ref);
 
@@ -222,7 +224,6 @@ protected:
 	  13.91066, -68.38903, -56.32448,
 	  21.41421, -64.86712, -55.98294
   };
-
 
   mitk::PointSet::Pointer m_probeDitchPset_cmm; // probe ditch points from CMM
   mitk::PointSet::Pointer m_probeDitchPset_image; // probe ditch points under image frame

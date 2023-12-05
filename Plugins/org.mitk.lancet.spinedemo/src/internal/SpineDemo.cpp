@@ -72,6 +72,10 @@ void SpineDemo::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_clock_ax, &QPushButton::clicked, this, &SpineDemo::on_pushButton_clock_ax_clicked);
   connect(m_Controls.pushButton_counter_ax, &QPushButton::clicked, this, &SpineDemo::on_pushButton_counter_ax_clicked);
 
+  connect(m_Controls.pushButton_pseudoSavePlan, &QPushButton::clicked, this, &SpineDemo::on_pushButton_pseudoSavePlan_clicked);
+  connect(m_Controls.pushButton_pseudoRecoverPlan, &QPushButton::clicked, this, &SpineDemo::on_pushButton_pseudoRecoverPlan_clicked);
+
+
 }
 
 void SpineDemo::InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget)
@@ -166,6 +170,109 @@ void SpineDemo::ShowToolStatus_Vega()
 	m_Controls.m_StatusWidgetVegaToolToShow->SetNavigationDatas(&m_VegaNavigationData);
 	m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();
 }
+
+
+void SpineDemo::GetTrajectoryDeviation()
+{
+	// Step 0: Calculate T_robotBaseToImage
+	// Todo: GET the 4 global variables below
+	auto T_patientRFtoImage = vtkMatrix4x4::New(); // image registration matrix 
+	auto T_cameraToPatientRF = vtkMatrix4x4::New(); // camera raw output
+	auto T_cameraToRobotBaseRF = vtkMatrix4x4::New(); // camera raw output
+	auto T_robotBaseRFtoRobotBase = vtkMatrix4x4::New(); // robot registration matrix
+
+
+	auto T_robotBaseRFtoCamera = vtkMatrix4x4::New();
+	T_robotBaseRFtoCamera->DeepCopy(T_cameraToRobotBaseRF);
+	T_robotBaseRFtoCamera->Invert();
+
+	auto T_robotBaseToRobotBaseRF = vtkMatrix4x4::New();
+	T_robotBaseToRobotBaseRF->DeepCopy(T_robotBaseRFtoRobotBase);
+	T_robotBaseToRobotBaseRF->Invert();
+
+	auto vtkTrans_robotBaseToImage = vtkTransform::New();
+	vtkTrans_robotBaseToImage->Identity();
+	vtkTrans_robotBaseToImage->PostMultiply();
+	vtkTrans_robotBaseToImage->SetMatrix(T_patientRFtoImage);
+	vtkTrans_robotBaseToImage->Concatenate(T_cameraToPatientRF);
+	vtkTrans_robotBaseToImage->Concatenate(T_robotBaseRFtoCamera);
+	vtkTrans_robotBaseToImage->Concatenate(T_robotBaseToRobotBaseRF);
+	vtkTrans_robotBaseToImage->Update();
+
+	auto T_robotBaseToImage = vtkTrans_robotBaseToImage->GetMatrix();
+
+
+	// Step 1: Calculate T_robotBaseToRobotEndEffector
+	// Todo: GET the 2 global variables below
+	auto T_robotBaseToFlange = vtkMatrix4x4::New();
+	auto T_flangeToRobotEndEffector = vtkMatrix4x4::New();
+
+	auto vtkTrans_robotBaseToRobotEndEffector = vtkTransform::New();
+	vtkTrans_robotBaseToRobotEndEffector->Identity();
+	vtkTrans_robotBaseToRobotEndEffector->PostMultiply();
+	vtkTrans_robotBaseToRobotEndEffector->SetMatrix(T_flangeToRobotEndEffector);
+	vtkTrans_robotBaseToRobotEndEffector->Concatenate(T_robotBaseToFlange);
+	vtkTrans_robotBaseToRobotEndEffector->Update();
+
+	auto T_robotBaseToRobotEndEffector = vtkTrans_robotBaseToRobotEndEffector->GetMatrix();
+
+
+	// Step 2: Calculate the planned entry/exit point in the robot base frame
+	// Todo: GET the "trajectory" in image frame
+	auto trajectory_inImage = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("trajectory"));
+
+	trajectory_inImage->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_robotBaseToImage);
+
+	auto entry_inRobotBase = trajectory_inImage->GetPoint(0);
+	auto exit_inRobotBase = trajectory_inImage->GetPoint(1);
+
+	Eigen::Vector3d planEntry_inRobotBase{entry_inRobotBase[0], entry_inRobotBase[1], entry_inRobotBase[2]};
+	Eigen::Vector3d planExit_inRobotBase{exit_inRobotBase[0], exit_inRobotBase[1], exit_inRobotBase[2]};
+
+
+	// Step 3: Calculate the proximal/distal end effector point in the robot base frame
+	/* In the hardware setup of 12/01/2023,
+	the TCP is at the distal end effector and TCP y-axis is the proximal->distal direction */
+	Eigen::Vector3d proximalToolPoint_inRobotBase{
+		T_robotBaseToRobotEndEffector->GetElement(0,3),
+		T_robotBaseToRobotEndEffector->GetElement(1,3),
+		T_robotBaseToRobotEndEffector->GetElement(2,3)
+	};
+
+	Eigen::Vector3d distalToolPoint_inRobotBase{
+		T_robotBaseToRobotEndEffector->GetElement(0,3) + T_robotBaseToRobotEndEffector->GetElement(0,1),
+		T_robotBaseToRobotEndEffector->GetElement(1,3) + T_robotBaseToRobotEndEffector->GetElement(1,1),
+		T_robotBaseToRobotEndEffector->GetElement(2,3) + T_robotBaseToRobotEndEffector->GetElement(2,1),
+	};
+
+
+	// Step 4: Calculate the parameters on GUI
+	Eigen::Vector3d vec_proximalToolPointToPlanEntry = planEntry_inRobotBase - proximalToolPoint_inRobotBase;
+	Eigen::Vector3d vec_proximalToolPointToPlanExit = planExit_inRobotBase - proximalToolPoint_inRobotBase;
+
+	Eigen::Vector3d punctureAxis_inRobotBase = distalToolPoint_inRobotBase - proximalToolPoint_inRobotBase;
+	punctureAxis_inRobotBase.normalize();
+
+	// GUI Output 0: Entry point deviation in mm
+	double entryDeviation = abs((punctureAxis_inRobotBase.cross(vec_proximalToolPointToPlanEntry)).norm());
+
+	// GUI Output 1: Exit point deviation in mm
+	double exitDeviation = abs((punctureAxis_inRobotBase.cross(vec_proximalToolPointToPlanExit)).norm());
+
+	// GUI Output 2: Angle Deviation in degrees
+	double angleDeviation =
+		(180 / 3.1415926) * acos(punctureAxis_inRobotBase.dot((planEntry_inRobotBase - planExit_inRobotBase)));
+
+	// GUI Output 3: 3D Line-line distance in mm
+	Eigen::Vector3d planAxis_inRobotBase = -planEntry_inRobotBase + planExit_inRobotBase;
+	Eigen::Vector3d normal = planAxis_inRobotBase.cross(punctureAxis_inRobotBase);
+	normal.normalize();
+
+	double lineDeviation = abs(vec_proximalToolPointToPlanExit.dot(normal)	);
+
+}
+
+
 
 // void SpineDemo::RoboticsCalibrationByFoot()
 // {
@@ -320,3 +427,49 @@ void SpineDemo::ShowToolStatus_Vega()
 //
 // 	devicePluginManager->requestExecOperate("Robot", "movep", param.split(','));
 // }
+
+
+
+void SpineDemo::EvaluateLandmarkRegisError(mitk::PointSet::Pointer srcPset, mitk::PointSet::Pointer dstPset, vtkMatrix4x4* resultMatrix, double avgError, double maxError)
+{
+	int srcSize = srcPset->GetSize();
+	int dstSize = dstPset->GetSize();
+
+	if(srcSize != dstSize)
+	{
+		MITK_ERROR << "Landmark src and dst sizes don't match";
+		maxError = 1000;
+		avgError = 1000;
+		return;
+	}
+
+	double tmpMax{0};
+	double tmpSum{0};
+
+	srcPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(resultMatrix);
+
+	for(int i{0} ; i < srcSize; i++)
+	{
+		double tmpDistance = sqrt(pow(srcPset->GetPoint(i)[0] - dstPset->GetPoint(i)[0],2)+
+			pow(srcPset->GetPoint(i)[1] - dstPset->GetPoint(i)[1], 2) +
+			pow(srcPset->GetPoint(i)[2] - dstPset->GetPoint(i)[2], 2));
+
+		if(tmpDistance > tmpMax)
+		{
+			tmpMax = tmpDistance;
+		}
+
+		tmpSum += tmpDistance;
+	}
+
+	maxError = tmpMax;
+
+	avgError = tmpSum / srcSize;
+
+	auto tmpMatrix = vtkMatrix4x4::New();
+	tmpMatrix->Identity();
+
+	srcPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+}
+
+

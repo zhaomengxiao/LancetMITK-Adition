@@ -29,6 +29,61 @@ found in the LICENSE file.
 #include "mitkGizmo.h"
 #include "QmitkRenderWindow.h"
 
+void SpineDemo::on_pushButton_pseudoRecoverPlan_clicked()
+{
+	MoveImplantToTrajectory();
+}
+
+void SpineDemo::on_pushButton_pseudoSavePlan_clicked()
+{
+	// This function is aimed to prepare the project data so that the plan can be recovered when the project is loaded next time
+	// This function should be called when exiting the planning stage
+
+	// Step 0: Retrieve the position and orientation from the implant model and assign it to the "trajectory" Point set
+	auto implantMatrix = GetDataStorage()->GetNamedNode("implant")->GetData()->GetGeometry()->GetVtkMatrix();
+
+	mitk::Point3D newExitPoint;
+	newExitPoint[0] = implantMatrix->GetElement(0,3);
+	newExitPoint[1] = implantMatrix->GetElement(1,3);
+	newExitPoint[2] = implantMatrix->GetElement(2,3);
+
+	Eigen::Vector3d implantAxis{implantMatrix->GetElement(0,2),
+	implantMatrix->GetElement(1,2),
+	implantMatrix->GetElement(2,2)};
+
+	implantAxis.normalize();
+
+	mitk::Point3D oldEntryPoint = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("trajectory")->GetData())->GetPoint(0);
+	mitk::Point3D oldExitPoint = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("trajectory")->GetData())->GetPoint(1);
+
+	double tmpLength = sqrt(
+		pow(oldEntryPoint[0]- oldExitPoint[0],2)+
+		pow(oldEntryPoint[1] - oldExitPoint[1], 2)+
+		pow(oldEntryPoint[2] - oldExitPoint[2], 2)
+	);
+
+	mitk::Point3D newEntryPoint;
+	newEntryPoint[0] = newExitPoint[0] - implantAxis[0] * tmpLength;
+	newEntryPoint[1] = newExitPoint[1] - implantAxis[1] * tmpLength;
+	newEntryPoint[2] = newExitPoint[2] - implantAxis[2] * tmpLength;
+
+	dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("trajectory")->GetData())->SetPoint(0, newEntryPoint);
+	dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("trajectory")->GetData())->SetPoint(1, newExitPoint);
+
+	// Step 1: Move the implant and its ancillary roi bounding shape to its original place
+	auto tmpMatrix = vtkMatrix4x4::New();
+	tmpMatrix->Identity();
+	GetDataStorage()->GetNamedNode("implant")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+	GetDataStorage()->GetNamedNode("roi_implantMPR")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+
+	mitk::Gizmo::RemoveGizmoFromNode(GetDataStorage()->GetNamedNode("implant"), GetDataStorage()); // in case there's already a gizmo
+
+
+	// Now the project data can be saved
+}
+
+
+
 void SpineDemo::on_pushButton_startPlan_3d_clicked()
 {
 	// Step 1: move the implant to the trajectory

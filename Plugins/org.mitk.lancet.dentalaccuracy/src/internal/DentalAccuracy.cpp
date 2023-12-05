@@ -34,6 +34,7 @@ found in the LICENSE file.
 #include <vtkImageAppend.h>
 #include <vtkImageCast.h>
 #include <vtkImageIterator.h>
+#include <vtkImplicitPolyDataDistance.h>
 #include <vtkPlanes.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
@@ -1124,6 +1125,53 @@ void DentalAccuracy::on_pushButton_setImplant_clicked()
 	{
 		GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped-labels_3D-interpolation")->SetVisibility(true);
 	}
+}
+
+double DentalAccuracy::CalImplantToAlveolarNerve()
+{
+	auto nerveNode = GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped-labels_3D-interpolation");
+
+	if (nerveNode == nullptr)
+	{
+		m_Controls.textBrowser->append("CBCT Bounding Shape_cropped-labels_3D-interpolation is missing");
+		return -1000;
+	}
+
+	auto implantNode = GetDataStorage()->GetNamedNode("implant");
+
+	if (implantNode == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+		return -1000;
+	}
+
+	// Step 0: Get the implant end point
+	auto implantMatrix = implantNode->GetData()->GetGeometry()->GetVtkMatrix();
+	auto maxBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMaximum();
+	auto minBound_init = implantNode->GetData()->GetGeometry()->GetBoundingBox()->GetMinimum();
+
+	mitk::Point3D boundCenter_init;
+	boundCenter_init[0] = (maxBound_init.GetElement(0) + minBound_init.GetElement(0)) / 2;
+	boundCenter_init[1] = (maxBound_init.GetElement(1) + minBound_init.GetElement(1)) / 2;
+	boundCenter_init[2] = (maxBound_init.GetElement(2) + minBound_init.GetElement(2)) / 2;
+
+	auto tmpPset = mitk::PointSet::New();
+	tmpPset->InsertPoint(boundCenter_init);
+	tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(implantMatrix);
+
+	auto implantEndPoint = tmpPset->GetPoint(0);
+
+	// Step 1: Calculate the distance from the point to the surface
+
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+
+	double tmpPoint[3]{ implantEndPoint[0],implantEndPoint[1],implantEndPoint[2] };
+
+	implicitPolyDataDistance->SetInput(dynamic_cast<mitk::Surface*>(nerveNode->GetData())->GetVtkPolyData());
+
+	double distance = implicitPolyDataDistance->EvaluateFunction(tmpPoint);
+
+	return abs(distance);
 }
 
 
@@ -2573,6 +2621,9 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 	}
 
 	GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped")->SetVisibility(true);
+
+
+	m_Controls.label_nerveDistance->setText(QString::number(CalImplantToAlveolarNerve()));
 }
 
 

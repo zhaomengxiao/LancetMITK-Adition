@@ -57,6 +57,8 @@ found in the LICENSE file.
 #include "QmitkRenderWindow.h"
 #include "surfaceregistraion.h"
 #include <vtkWindowLevelLookupTable.h>
+
+#include "mitkSmartPointerProperty.h"
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
 
 
@@ -2089,6 +2091,7 @@ void MoveData::on_pushButton_testCrosshair_clicked()
 
 void MoveData::horizontalSlider_testCrosshair_value_changed()
 {
+
 	if(GetDataStorage()->GetNamedNode("Dental spline") == nullptr)
 	{
 		m_Controls.textBrowser_moveData->append("Dental spline missing");

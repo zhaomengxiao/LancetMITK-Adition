@@ -83,12 +83,23 @@ protected:
   void on_pushButton_counter_cor_clicked();
   void on_pushButton_clock_cor_clicked();
 
+  void on_pushButton_pseudoSavePlan_clicked();
+  void on_pushButton_pseudoRecoverPlan_clicked();
+
   void MoveImplantToTrajectory();
 
   void FocusOnImplant();
 
+  // void RoboticsCalibrationByFoot();
 
-  void RoboticsCalibrationByFoot();
+  void GetTrajectoryDeviation();
+
+  void EvaluateLandmarkRegisError(
+	  mitk::PointSet::Pointer srcPset, 
+	  mitk::PointSet::Pointer dstPset,
+	  vtkMatrix4x4* resultMatrix,
+	  double avgError,
+	  double maxError);
 
 	// Variables
 
