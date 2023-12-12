@@ -225,9 +225,44 @@ protected:
 	  21.41421, -64.86712, -55.98294
   };
 
+  
+
+
+
+  // Rewrite the image registration and navigation part without using the MITK IGT pipeline
+
   mitk::PointSet::Pointer m_probeDitchPset_cmm; // probe ditch points from CMM
   mitk::PointSet::Pointer m_probeDitchPset_image; // probe ditch points under image frame
   mitk::PointSet::Pointer m_probeDitchPset_rf; // probe ditch points under patientRF
+
+  double CalculateDistance(const mitk::Point3D& point1, const mitk::Point3D& point2);
+  mitk::Point3D CalculateMassCenter(const mitk::PointSet::Pointer& pointSet);
+  bool ComparePointsByDistance(const mitk::Point3D& massCenter, const mitk::Point3D& point1, const mitk::Point3D& point2);
+  void SortPointSetByDistance(mitk::PointSet::Pointer inputPointSet, mitk::PointSet::Pointer outputPointSet);
+  void GenerateCombinations(int m, int n, int index, std::vector<int>& currentCombination, std::vector<std::vector<int>>& result);
+  std::vector<std::vector<int>> GenerateAllCombinations(int m, int n);
+
+
+  void on_pushButton_startNavi_clicked();
+  void UpdateDrillVisual();
+
+  // Navigation data from the camera
+  double m_T_cameraToHandpieceRF[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 };
+  bool m_Stat_cameraToHandpieceRF{false};
+  double m_T_cameraToPatientRF[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 };
+  bool m_Stat_cameraToPatientRF{false};
+  double m_T_cameraToCalibratorRF[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 };
+  bool m_Stat_cameraToCalibratorRF{ false };
+
+  // Image registration matrix and tool calibration matrix
+  bool m_Stat_calibratorRFtoDrill{ true };
+  double m_T_calibratorRFtoDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // from hardware design
+  bool m_Stat_handpieceRFtoDrill{ false };
+  double m_T_handpieceRFtoDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform handpiece calibration to acquire
+  bool m_Stat_patientRFtoImage{ false };
+  double m_T_patientRFtoImage[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform image registration to acquire  
+  
+
 
 };
 

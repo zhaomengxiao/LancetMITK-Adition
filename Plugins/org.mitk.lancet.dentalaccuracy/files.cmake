@@ -5,6 +5,7 @@ set(SRC_CPP_FILES
 set(INTERNAL_CPP_FILES
   org_mitk_lancet_dentalaccuracy_Activator.cpp
   DentalAccuracy.cpp
+  DentalAccuracy_navigation.cpp
 )
 
 set(UI_FILES

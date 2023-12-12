@@ -23,7 +23,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -464,19 +464,19 @@
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QPushButton" name="pushButton_calibrateDrill">
+        <widget class="QPushButton" name="pushButton_imageRegis">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
-          <string>Calibrate Dental Drill</string>
+          <string>Image Registration (Lancet way)</string>
          </property>
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QPushButton" name="pushButton_imageRegis">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
+        <widget class="QPushButton" name="pushButton_calibrateDrill">
          <property name="text">
-          <string>Image Registration (Lancet way)</string>
+          <string>Calibrate Dental Drill</string>
          </property>
         </widget>
        </item>
@@ -523,11 +523,45 @@
          <item>
           <widget class="QPushButton" name="pushButton_imageRegisNew">
            <property name="text">
-            <string>Register Image (New)</string>
+            <string>Register Image (Runyes)</string>
            </property>
           </widget>
          </item>
         </layout>
+       </item>
+       <item row="5" column="0">
+        <widget class="QSplitter" name="splitter_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string>Max error: </string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="lineEdit_maxError">
+          <property name="text">
+           <string>NaN</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_19">
+          <property name="text">
+           <string>Avg error: </string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="lineEdit_avgError">
+          <property name="text">
+           <string>NaN</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QPushButton" name="pushButton_startNavi">
+         <property name="text">
+          <string>Start navigation</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
