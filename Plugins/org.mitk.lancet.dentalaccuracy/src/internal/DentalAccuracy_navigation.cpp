@@ -165,7 +165,10 @@ void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 		double tmpMaxError = tmpLandmarkRegistrator->GetmaxLandmarkError();
 		double tmpAvgError = tmpLandmarkRegistrator->GetavgLandmarkError();
 
-		if (tmpAvgError < 2.5)
+		m_Controls.lineEdit_maxError->setText(QString::number(tmpMaxError));
+		m_Controls.lineEdit_avgError->setText(QString::number(tmpAvgError));
+
+		if (tmpMaxError < 2.5)
 		{
 			maxError = tmpMaxError;
 			avgError = tmpAvgError;
@@ -181,8 +184,7 @@ void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 	if(maxError < 2.5 && avgError < 2.5)
 	{
 		m_Controls.textBrowser->append("Image registration succeeded");
-		m_Controls.lineEdit_maxError->setText(QString::number(maxError));
-		m_Controls.lineEdit_avgError->setText(QString::number(avgError));
+		
 
 	}else
 	{
@@ -641,6 +643,7 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 	trans_handpieceRFtoDrill->Concatenate(T_handpieceRFtoCamera);
 	trans_handpieceRFtoDrill->Update();
 
+	// Todo: the matrix below should be averaged for a time span before being stored into m_T_handpieceRFtoDrill
 	auto T_handpieceRFtoDrill = trans_handpieceRFtoDrill->GetMatrix();
 
 	memcpy_s(m_T_handpieceRFtoDrill, sizeof(double) * 16, T_handpieceRFtoDrill->GetData(), sizeof(double) * 16);
