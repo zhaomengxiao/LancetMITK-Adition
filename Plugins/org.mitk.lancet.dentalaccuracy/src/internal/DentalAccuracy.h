@@ -116,7 +116,9 @@ protected:
   void on_pushButton_R_cor_clicked();
   void on_pushButton_counter_cor_clicked();
   void on_pushButton_clock_cor_clicked();
-	// Functions
+
+  // Project the implant head and tail points onto the "Panorama"
+  void ProjectImplantOntoPanorama();
 
   double CalImplantToAlveolarNerve();
 

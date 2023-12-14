@@ -6,6 +6,7 @@ set(INTERNAL_CPP_FILES
   org_mitk_lancet_dentalaccuracy_Activator.cpp
   DentalAccuracy.cpp
   DentalAccuracy_navigation.cpp
+  DentalAccuracy_planning.cpp
 )
 
 set(UI_FILES

@@ -732,7 +732,7 @@ double DentalAccuracy::CalImplantToAlveolarNerve()
 
 	if (nerveNode == nullptr)
 	{
-		m_Controls.textBrowser->append("CBCT Bounding Shape_cropped-labels_3D-interpolation is missing");
+		m_Controls.textBrowser->append("(AlveolarNerve) CBCT Bounding Shape_cropped-labels_3D-interpolation is missing");
 		return -1000;
 	}
 
@@ -2028,6 +2028,8 @@ void DentalAccuracy::on_pushButton_counter_ax_clicked()
 
 void DentalAccuracy::on_pushButton_implantFocus_clicked()
 {
+	ProjectImplantOntoPanorama();
+
 	if (GetDataStorage()->GetNamedNode("implant") == nullptr)
 	{
 		m_Controls.textBrowser->append("implant is missing");
@@ -2519,7 +2521,11 @@ void DentalAccuracy::on_pushButton_viewPano_clicked()
 
 	GetDataStorage()->GetNamedNode("Panorama")->SetVisibility(true);
 
-	
+	if(GetDataStorage()->GetNamedNode("implantOnPanorama") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("implantOnPanorama")->SetVisibility(true);
+	}
+
 	ResetView();
 	
 }
@@ -2732,7 +2738,8 @@ void DentalAccuracy::on_pushButton_splineAndPanorama_clicked()
 		//testimageData->SetDimensions( spline_PolyData->GetNumberOfPoints(), cols + 1, 1);
 
 
-		testimageData->SetSpacing(segLength, segLength, 1);
+		// testimageData->SetSpacing(segLength, segLength, 1);
+		testimageData->SetSpacing(1, 1, 1);
 		testimageData->SetOrigin(0, 0, 0);
 		testimageData->AllocateScalars(VTK_INT, 1);
 		testimageData->GetPointData()->SetScalars(tmpArray);
@@ -2747,6 +2754,7 @@ void DentalAccuracy::on_pushButton_splineAndPanorama_clicked()
 	append->Update();
 	auto appenedImage = append->GetOutput();
 	appenedImage->SetSpacing(segLength, segLength, segLength);
+	// appenedImage->SetSpacing(1, 1, 1);
 
 	auto mitkAppendedImage = mitk::Image::New();
 
