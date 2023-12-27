@@ -2338,7 +2338,7 @@ void DentalAccuracy::valueChanged_horizontalSlider()
 
 		// renderWindow->CrosshairVisibilityChanged(false);
 
-		// renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
+		renderWindow->GetSliceNavigationController()->ReorientSlices(worldPoint, a, b);
 
 		mitk::Point3D origin;
 		FillVector3D(origin, 0.0, 0.0, 0.0);
