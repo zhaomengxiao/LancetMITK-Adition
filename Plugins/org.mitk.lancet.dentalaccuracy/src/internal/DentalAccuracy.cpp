@@ -31,11 +31,15 @@ found in the LICENSE file.
 #include <vtkCleanPolyData.h>
 #include <vtkClipPolyData.h>
 #include <vtkConnectivityFilter.h>
+#include <vtkFillHolesFilter.h>
 #include <vtkImageAppend.h>
 #include <vtkImageCast.h>
 #include <vtkImageIterator.h>
 #include <vtkImplicitPolyDataDistance.h>
+#include <vtkOBBTree.h>
+#include <vtkPlane.h>
 #include <vtkPlanes.h>
+#include <vtkPlaneSource.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
@@ -110,11 +114,212 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_clock_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_clock_ax_clicked);
   connect(m_Controls.pushButton_counter_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_counter_ax_clicked);
   connect(m_Controls.pushButton_startNavi, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_startNavi_clicked);
+  connect(m_Controls.pushButton_testMoveImplant, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_testMoveImplant_clicked);
+
+}
+
+void DentalAccuracy::on_pushButton_testMoveImplant_clicked()
+{
+	// Check the availability of the input data
+	if(GetDataStorage()->GetNamedNode("implant_control_pts") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant_control_pts is missing");
+		return;
+	}
+
+	if (GetDataStorage()->GetNamedNode("implant_to_move") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant_to_move is missing");
+		return;
+	}
+
+	auto implantSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("implant_to_move")->GetData());
+	auto controlPts = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("implant_control_pts")->GetData());
+
+	// Assume the 1st point of controlPts is the exit point, the 2nd point is the entry point
+	if(controlPts->GetSize() != 2)
+	{
+		m_Controls.textBrowser->append("implant_control_pts has wrong size!");
+		return;
+	}
+
+	mitk::Point3D control_exit = controlPts->GetPoint(0);
+	mitk::Point3D control_entry = controlPts->GetPoint(1);
+
+	// Obtain the 
+
+}
+
+bool DentalAccuracy::ObtainImplantExitEntryPts(mitk::Surface::Pointer implantSurface, mitk::Point3D exitPoint, mitk::Point3D entryPoint)
+{
+	if(implantSurface->GetVtkPolyData()->GetNumberOfVerts() == 0)
+	{
+		return false;
+	}
+
+
+	// Get the OBB of implant surface
+
+	auto implantPolyData_copy = vtkPolyData::New();
+	implantPolyData_copy->DeepCopy(implantSurface->GetVtkPolyData());
+
+	vtkNew<vtkTransform> implantTransform;
+	implantTransform->SetMatrix(implantSurface->GetGeometry()->GetVtkMatrix());
+	vtkNew<vtkTransformFilter> transFilter;
+	transFilter->SetTransform(implantTransform);
+	transFilter->SetInputData(implantPolyData_copy);
+	transFilter->Update();
+
+	vtkNew<vtkPolyData> moved_implantPolyData;
+	moved_implantPolyData->DeepCopy(transFilter->GetPolyDataOutput());
+
+	// auto initialTibiaPolyData = tibiaSurface->GetVtkPolyData();
+	// vtkNew<vtkTransform> tibiaTransform;
+	// tibiaTransform->SetMatrix(tibiaSurface->GetGeometry()->GetVtkMatrix());
+	// vtkNew<vtkTransformFilter> tmpFilter;
+	// tmpFilter->SetTransform(tibiaTransform);
+	// tmpFilter->SetInputData(initialTibiaPolyData);
+	// tmpFilter->Update();
+	//
+	// vtkNew<vtkPolyData> tibiaPolyData;
+	// tibiaPolyData->DeepCopy(tmpFilter->GetPolyDataOutput());
+
+	vtkNew<vtkOBBTree> obbTree;
+	obbTree->SetDataSet(moved_implantPolyData);
+	obbTree->SetMaxLevel(2);
+	obbTree->BuildLocator();
+
+	double corner[3] = { 0.0, 0.0, 0.0 };
+	double max[3] = { 0.0, 0.0, 0.0 };
+	double mid[3] = { 0.0, 0.0, 0.0 };
+	double min[3] = { 0.0, 0.0, 0.0 };
+	double size[3] = { 0.0, 0.0, 0.0 };
+
+	obbTree->ComputeOBB(moved_implantPolyData, corner, max, mid, min, size);
+
+	vtkNew<vtkPolyData> obbPolydata;
+	obbTree->GenerateRepresentation(0, obbPolydata);
+
+	// auto tmpNode = mitk::DataNode::New();
+	// auto tmpSurface = mitk::Surface::New();
+	// tmpSurface->SetVtkPolyData(obbPolydata);
+	// tmpNode->SetData(tmpSurface);
+	// tmpNode->SetName("OBB");
+	// GetDataStorage()->Add(tmpNode);
+
+	auto cutPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
+
+	cutPlaneSource->SetOrigin(0, 0, 0);
+
+	cutPlaneSource->SetPoint1(0, 70, 0);
+	cutPlaneSource->SetPoint2(70, 0, 0);
+
+	cutPlaneSource->SetNormal(max);
+
+	// Determine the optimal plane location
+
+	vtkNew<vtkPolyData> largerSubpart_0;
+	vtkNew<vtkPolyData> smallerSubpart_0;
+	double origin_0[3]
+	{
+		corner[0] + 0.5 * (1.7 * max[0] + mid[0] + min[0]),
+		corner[1] + 0.5 * (1.7 * max[1] + mid[1] + min[1]),
+		corner[2] + 0.5 * (1.7 * max[2] + mid[2] + min[2])
+	};
+
+	vtkNew<vtkPolyData> largerSubpart_1;
+	vtkNew<vtkPolyData> smallerSubpart_1;
+	double origin_1[3]
+	{
+		corner[0] + 0.5 * (0.3 * max[0] + mid[0] + min[0]),
+		corner[1] + 0.5 * (0.3 * max[1] + mid[1] + min[1]),
+		corner[2] + 0.5 * (0.3 * max[2] + mid[2] + min[2])
+	};
+
+	CutPolyDataWithPlane(moved_implantPolyData, largerSubpart_0, smallerSubpart_0, origin_0, max);
+	CutPolyDataWithPlane(moved_implantPolyData, largerSubpart_1, smallerSubpart_1, origin_1, max);
+
+	if (smallerSubpart_0->GetNumberOfCells() >= smallerSubpart_1->GetNumberOfCells())
+	{
+		cutPlaneSource->SetCenter(origin_0);
+	}
+	else
+	{
+		cutPlaneSource->SetCenter(origin_1);
+	}
+
+
+	// cutPlaneSource->SetCenter(corner[0]+0.5*(max[0]+mid[0]+min[0]),
+	// 	corner[1] + 0.5 * (max[1] + mid[1] + min[1]),
+	// 	corner[2] + 0.5 * (max[2] + mid[2] + min[2]));
+	cutPlaneSource->Update();
+
+	auto cutSurface = mitk::Surface::New();
+	cutSurface->SetVtkPolyData(cutPlaneSource->GetOutput());
+
+	auto planeNode = mitk::DataNode::New();
+	planeNode->SetData(cutSurface);
+	planeNode->SetName("tibia cut plane");
+	GetDataStorage()->Add(planeNode);
+	return true;
+
 
 
 
 }
 
+
+bool DentalAccuracy::CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut, vtkSmartPointer<vtkPolyData> largerSubPart, vtkSmartPointer<vtkPolyData> smallerSubPart, double planeOrigin[3], double planeNormal[3])
+{
+	vtkNew<vtkPlane> implicitPlane;
+	implicitPlane->SetNormal(planeNormal);
+	implicitPlane->SetOrigin(planeOrigin);
+
+	vtkNew<vtkClipPolyData> clipper;
+	clipper->SetInputData(dataToCut);
+	clipper->GenerateClippedOutputOn();
+	clipper->SetClipFunction(implicitPlane);
+
+	clipper->Update();
+	vtkNew<vtkPolyData> tibiaPart_0;
+	tibiaPart_0->DeepCopy(clipper->GetClippedOutput());
+	int cellNum_0 = tibiaPart_0->GetNumberOfCells();
+
+	clipper->Update();
+	vtkNew<vtkPolyData> tibiaPart_1;
+	tibiaPart_1->DeepCopy(clipper->GetOutput());
+	int cellNum_1 = tibiaPart_1->GetNumberOfCells();
+
+
+	// Fill holes
+	vtkNew<vtkFillHolesFilter> holeFiller0;
+	holeFiller0->SetInputData(tibiaPart_0);
+	holeFiller0->SetHoleSize(500);
+	holeFiller0->Update();
+	vtkNew<vtkPolyData> tibia_filled_0;
+	tibia_filled_0->DeepCopy(holeFiller0->GetOutput());
+
+
+	vtkNew<vtkFillHolesFilter> holeFiller1;
+	holeFiller1->SetInputData(tibiaPart_1);
+	holeFiller1->SetHoleSize(500);
+	holeFiller1->Update();
+	vtkNew<vtkPolyData> tibia_filled_1;
+	tibia_filled_1->DeepCopy(holeFiller1->GetOutput());
+
+	if (cellNum_1 >= cellNum_0)
+	{
+		largerSubPart->DeepCopy(tibia_filled_1);
+		smallerSubPart->DeepCopy(tibia_filled_0);
+	}
+	else
+	{
+		largerSubPart->DeepCopy(tibia_filled_1);
+		smallerSubPart->DeepCopy(tibia_filled_0);
+	}
+
+	return true;
+}
 
 
 void DentalAccuracy::on_pushButton_GenSeeds_clicked()
