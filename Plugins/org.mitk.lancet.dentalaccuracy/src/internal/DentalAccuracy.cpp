@@ -115,45 +115,58 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_counter_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_counter_ax_clicked);
   connect(m_Controls.pushButton_startNavi, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_startNavi_clicked);
   connect(m_Controls.pushButton_testMoveImplant, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_testMoveImplant_clicked);
+  connect(m_Controls.pushButton_followAbutment, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_followAbutment_clicked);
+  connect(m_Controls.pushButton_followCrown, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_followCrown_clicked);
 
 }
 
-void DentalAccuracy::on_pushButton_testMoveImplant_clicked()
+// void DentalAccuracy::on_pushButton_testMoveImplant_clicked()
+// {
+// 	if (GetDataStorage()->GetNamedNode("implant_to_move") == nullptr)
+// 	{
+// 		m_Controls.textBrowser->append("implant_to_move is missing");
+// 		return;
+// 	}
+// 	auto implantSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("implant_to_move")->GetData());
+//
+// 	// Obtain the head and tail points of the implant model
+// 	auto exitEntryPts = mitk::PointSet::New();
+// 	ObtainImplantExitEntryPts(implantSurface, exitEntryPts);
+//
+// 	auto testNode = mitk::DataNode::New();
+// 	testNode->SetData(exitEntryPts);
+// 	testNode->SetName("Extracted exit-entry points");
+// 	GetDataStorage()->Add(testNode);
+//
+//
+// 	if (GetDataStorage()->GetNamedNode("implant_control_pts") == nullptr)
+// 	{
+// 		m_Controls.textBrowser->append("implant_control_pts is missing");
+// 		return;
+// 	}
+//
+// 	auto controlPts = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("implant_control_pts")->GetData());
+//
+// 	// Assume the 1st point of controlPts is the exit point, the 2nd point is the entry point
+// 	if(controlPts->GetSize() != 2)
+// 	{
+// 		m_Controls.textBrowser->append("implant_control_pts has wrong size!");
+// 		return;
+// 	}
+//
+// 	mitk::Point3D control_exit = controlPts->GetPoint(0);
+// 	mitk::Point3D control_entry = controlPts->GetPoint(1);
+//
+// 	
+// }
+
+
+
+bool DentalAccuracy::ObtainImplantExitEntryPts(mitk::Surface::Pointer implantSurface, mitk::PointSet::Pointer exitEntryPts)
 {
-	// Check the availability of the input data
-	if(GetDataStorage()->GetNamedNode("implant_control_pts") == nullptr)
+	if(implantSurface->GetVtkPolyData() == nullptr)
 	{
-		m_Controls.textBrowser->append("implant_control_pts is missing");
-		return;
-	}
-
-	if (GetDataStorage()->GetNamedNode("implant_to_move") == nullptr)
-	{
-		m_Controls.textBrowser->append("implant_to_move is missing");
-		return;
-	}
-
-	auto implantSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("implant_to_move")->GetData());
-	auto controlPts = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("implant_control_pts")->GetData());
-
-	// Assume the 1st point of controlPts is the exit point, the 2nd point is the entry point
-	if(controlPts->GetSize() != 2)
-	{
-		m_Controls.textBrowser->append("implant_control_pts has wrong size!");
-		return;
-	}
-
-	mitk::Point3D control_exit = controlPts->GetPoint(0);
-	mitk::Point3D control_entry = controlPts->GetPoint(1);
-
-	// Obtain the 
-
-}
-
-bool DentalAccuracy::ObtainImplantExitEntryPts(mitk::Surface::Pointer implantSurface, mitk::Point3D exitPoint, mitk::Point3D entryPoint)
-{
-	if(implantSurface->GetVtkPolyData()->GetNumberOfVerts() == 0)
-	{
+		m_Controls.textBrowser->append("implantSurface is empty");
 		return false;
 	}
 
@@ -207,14 +220,14 @@ bool DentalAccuracy::ObtainImplantExitEntryPts(mitk::Surface::Pointer implantSur
 	// tmpNode->SetName("OBB");
 	// GetDataStorage()->Add(tmpNode);
 
-	auto cutPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
-
-	cutPlaneSource->SetOrigin(0, 0, 0);
-
-	cutPlaneSource->SetPoint1(0, 70, 0);
-	cutPlaneSource->SetPoint2(70, 0, 0);
-
-	cutPlaneSource->SetNormal(max);
+	// auto cutPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
+	//
+	// cutPlaneSource->SetOrigin(0, 0, 0);
+	//
+	// cutPlaneSource->SetPoint1(0, 70, 0);
+	// cutPlaneSource->SetPoint2(70, 0, 0);
+	//
+	// cutPlaneSource->SetNormal(max);
 
 	// Determine the optimal plane location
 
@@ -222,45 +235,93 @@ bool DentalAccuracy::ObtainImplantExitEntryPts(mitk::Surface::Pointer implantSur
 	vtkNew<vtkPolyData> smallerSubpart_0;
 	double origin_0[3]
 	{
-		corner[0] + 0.5 * (1.7 * max[0] + mid[0] + min[0]),
-		corner[1] + 0.5 * (1.7 * max[1] + mid[1] + min[1]),
-		corner[2] + 0.5 * (1.7 * max[2] + mid[2] + min[2])
+		corner[0] + 0.5 * (1.8 * max[0] + mid[0] + min[0]),
+		corner[1] + 0.5 * (1.8 * max[1] + mid[1] + min[1]),
+		corner[2] + 0.5 * (1.8 * max[2] + mid[2] + min[2])
 	};
 
 	vtkNew<vtkPolyData> largerSubpart_1;
 	vtkNew<vtkPolyData> smallerSubpart_1;
 	double origin_1[3]
 	{
-		corner[0] + 0.5 * (0.3 * max[0] + mid[0] + min[0]),
-		corner[1] + 0.5 * (0.3 * max[1] + mid[1] + min[1]),
-		corner[2] + 0.5 * (0.3 * max[2] + mid[2] + min[2])
+		corner[0] + 0.5 * (0.2 * max[0] + mid[0] + min[0]),
+		corner[1] + 0.5 * (0.2 * max[1] + mid[1] + min[1]),
+		corner[2] + 0.5 * (0.2 * max[2] + mid[2] + min[2])
 	};
 
 	CutPolyDataWithPlane(moved_implantPolyData, largerSubpart_0, smallerSubpart_0, origin_0, max);
 	CutPolyDataWithPlane(moved_implantPolyData, largerSubpart_1, smallerSubpart_1, origin_1, max);
 
+	mitk::Point3D tmp_point_0;
+	mitk::Point3D tmp_point_1;
+
+	tmp_point_0[0] = corner[0] + 0.5 * (mid[0] + min[0]);
+	tmp_point_0[1] = corner[1] + 0.5 * (mid[1] + min[1]);
+	tmp_point_0[2] = corner[2] + 0.5 * (mid[2] + min[2]);
+
+	tmp_point_1[0] = corner[0] + 0.5 * (mid[0] + min[0]) + max[0];
+	tmp_point_1[1] = corner[1] + 0.5 * (mid[1] + min[1]) + max[1];
+	tmp_point_1[2] = corner[2] + 0.5 * (mid[2] + min[2]) + max[2];
+
+	mitk::Point3D tipSide;
+
 	if (smallerSubpart_0->GetNumberOfCells() >= smallerSubpart_1->GetNumberOfCells())
 	{
-		cutPlaneSource->SetCenter(origin_0);
+		// cutPlaneSource->SetCenter(origin_0);
+		tipSide[0] = origin_0[0];
+		tipSide[1] = origin_0[1];
+		tipSide[2] = origin_0[2];
 	}
 	else
 	{
-		cutPlaneSource->SetCenter(origin_1);
+		//cutPlaneSource->SetCenter(origin_1);
+		tipSide[0] = origin_1[0];
+		tipSide[1] = origin_1[1];
+		tipSide[2] = origin_1[2];
+	}
+
+	double tmp_dis_0 = GetPointDistance(tipSide, tmp_point_0);
+	double tmp_dis_1 = GetPointDistance(tipSide, tmp_point_1);
+
+	if(tmp_dis_0 <= tmp_dis_1)
+	{
+		exitEntryPts->SetPoint(0, tmp_point_0);
+		exitEntryPts->SetPoint(1, tmp_point_1);
+		exitEntryPts->SetPoint(2, tipSide);
+	}else
+	{
+		exitEntryPts->SetPoint(0, tmp_point_1);
+		exitEntryPts->SetPoint(1, tmp_point_0);
+		exitEntryPts->SetPoint(2, tipSide);
 	}
 
 
 	// cutPlaneSource->SetCenter(corner[0]+0.5*(max[0]+mid[0]+min[0]),
 	// 	corner[1] + 0.5 * (max[1] + mid[1] + min[1]),
 	// 	corner[2] + 0.5 * (max[2] + mid[2] + min[2]));
-	cutPlaneSource->Update();
 
-	auto cutSurface = mitk::Surface::New();
-	cutSurface->SetVtkPolyData(cutPlaneSource->GetOutput());
+	// exitEntryPts = mitk::PointSet::New();
 
-	auto planeNode = mitk::DataNode::New();
-	planeNode->SetData(cutSurface);
-	planeNode->SetName("tibia cut plane");
-	GetDataStorage()->Add(planeNode);
+	// exitEntryPts->SetPoint(0, exitPoint);
+	// exitEntryPts->SetPoint(1, entryPoint);
+
+	// auto testNode = mitk::DataNode::New();
+	// testNode->SetData(exitEntryPts);
+	// testNode->SetName("entry-exit points");
+	// GetDataStorage()->Add(testNode);
+
+
+	// cutPlaneSource->Update();
+	//
+	// auto cutSurface = mitk::Surface::New();
+	// cutSurface->SetVtkPolyData(cutPlaneSource->GetOutput());
+	//
+	// auto planeNode = mitk::DataNode::New();
+	// planeNode->SetData(cutSurface);
+	// planeNode->SetName("tibia cut plane");
+	// GetDataStorage()->Add(planeNode);
+
+
 	return true;
 
 
@@ -314,8 +375,8 @@ bool DentalAccuracy::CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut
 	}
 	else
 	{
-		largerSubPart->DeepCopy(tibia_filled_1);
-		smallerSubPart->DeepCopy(tibia_filled_0);
+		largerSubPart->DeepCopy(tibia_filled_0);
+		smallerSubPart->DeepCopy(tibia_filled_1);
 	}
 
 	return true;

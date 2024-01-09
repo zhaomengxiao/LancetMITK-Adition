@@ -52,11 +52,14 @@ protected:
 	// Slots
 
   void on_pushButton_testMoveImplant_clicked();
-  bool ObtainImplantExitEntryPts(mitk::Surface::Pointer implantSurface, mitk::Point3D exitPoint, mitk::Point3D entryPoint);
+  bool ObtainImplantExitEntryPts(mitk::Surface::Pointer implantSurface, mitk::PointSet::Pointer exitEntryPts);
   bool CutPolyDataWithPlane(vtkSmartPointer<vtkPolyData> dataToCut,
 	  vtkSmartPointer<vtkPolyData> largerSubPart,
 	  vtkSmartPointer<vtkPolyData> smallerSubPart,
 	  double planeOrigin[3], double planeNormal[3]);
+
+  void on_pushButton_followAbutment_clicked();
+  void on_pushButton_followCrown_clicked();
 
 
   void on_pushButton_planeAdjust_clicked(); // Use Gizmo

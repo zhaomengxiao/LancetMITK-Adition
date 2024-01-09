@@ -615,8 +615,8 @@
        </property>
        <property name="geometry">
         <rect>
-         <x>70</x>
-         <y>20</y>
+         <x>50</x>
+         <y>10</y>
          <width>221</width>
          <height>23</height>
         </rect>
@@ -628,8 +628,8 @@
       <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
-         <x>70</x>
-         <y>70</y>
+         <x>50</x>
+         <y>40</y>
          <width>287</width>
          <height>25</height>
         </rect>
@@ -654,37 +654,58 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QGroupBox" name="groupBox_5">
        <property name="geometry">
         <rect>
-         <x>90</x>
-         <y>170</y>
-         <width>243</width>
-         <height>40</height>
+         <x>50</x>
+         <y>100</y>
+         <width>251</width>
+         <height>101</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout_10">
-        <item row="0" column="0">
-         <widget class="QRadioButton" name="radioButton_fixExit">
-          <property name="text">
-           <string>Fix exit</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1" rowspan="2">
-         <widget class="QPushButton" name="pushButton_testMoveImplant">
-          <property name="text">
-           <string>Update implant position</string>
-          </property>
-         </widget>
+       <property name="title">
+        <string>Crown-abutment-implant linkage</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_11">
+        <item row="0" column="0" colspan="2">
+         <layout class="QGridLayout" name="gridLayout_10">
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="radioButton_fixExit">
+            <property name="text">
+             <string>Fix exit</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1" rowspan="2">
+           <widget class="QPushButton" name="pushButton_testMoveImplant">
+            <property name="text">
+             <string>Update implant position</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QRadioButton" name="radioButton_fixEntry">
+            <property name="text">
+             <string>Fix entry</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item row="1" column="0">
-         <widget class="QRadioButton" name="radioButton_fixEntry">
+         <widget class="QPushButton" name="pushButton_followCrown">
           <property name="text">
-           <string>Fix entry</string>
+           <string>follow Corwn</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="pushButton_followAbutment">
+          <property name="text">
+           <string>follow Abutment</string>
           </property>
          </widget>
         </item>
