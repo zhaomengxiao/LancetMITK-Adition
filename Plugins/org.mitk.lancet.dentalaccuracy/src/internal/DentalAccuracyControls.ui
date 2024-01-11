@@ -658,7 +658,7 @@
        <property name="geometry">
         <rect>
          <x>50</x>
-         <y>100</y>
+         <y>90</y>
          <width>251</width>
          <height>101</height>
         </rect>
@@ -710,6 +710,19 @@
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QPushButton" name="pushButton_implantTipExtract">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>220</y>
+         <width>211</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Extract implant tip points</string>
+       </property>
       </widget>
      </widget>
     </widget>

@@ -60,6 +60,7 @@ protected:
 
   void on_pushButton_followAbutment_clicked();
   void on_pushButton_followCrown_clicked();
+  void on_pushButton_implantTipExtract_clicked();
 
 
   void on_pushButton_planeAdjust_clicked(); // Use Gizmo

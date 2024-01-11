@@ -28,6 +28,7 @@ found in the LICENSE file.
 #include <vtkCamera.h>
 #include <vtkCardinalSpline.h>
 #include <vtkCellArray.h>
+#include <vtkCenterOfMass.h>
 #include <vtkCleanPolyData.h>
 #include <vtkClipPolyData.h>
 #include <vtkConnectivityFilter.h>
@@ -56,9 +57,12 @@ found in the LICENSE file.
 #include "mitkMatrixConvert.h"
 #include "mitkNavigationToolStorageDeserializer.h"
 #include "mitkPointSet.h"
+#include "mitkSurfaceToImageFilter.h"
 #include "QmitkDataStorageTreeModel.h"
 #include "QmitkRenderWindow.h"
 #include "surfaceregistraion.h"
+#include <vtkSphere.h>
+
 
 const std::string DentalAccuracy::VIEW_ID = "org.mitk.views.dentalaccuracy";
 
@@ -117,48 +121,209 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_testMoveImplant, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_testMoveImplant_clicked);
   connect(m_Controls.pushButton_followAbutment, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_followAbutment_clicked);
   connect(m_Controls.pushButton_followCrown, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_followCrown_clicked);
+  connect(m_Controls.pushButton_implantTipExtract, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_implantTipExtract_clicked);
 
 }
 
-// void DentalAccuracy::on_pushButton_testMoveImplant_clicked()
-// {
-// 	if (GetDataStorage()->GetNamedNode("implant_to_move") == nullptr)
-// 	{
-// 		m_Controls.textBrowser->append("implant_to_move is missing");
-// 		return;
-// 	}
-// 	auto implantSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("implant_to_move")->GetData());
-//
-// 	// Obtain the head and tail points of the implant model
-// 	auto exitEntryPts = mitk::PointSet::New();
-// 	ObtainImplantExitEntryPts(implantSurface, exitEntryPts);
-//
-// 	auto testNode = mitk::DataNode::New();
-// 	testNode->SetData(exitEntryPts);
-// 	testNode->SetName("Extracted exit-entry points");
-// 	GetDataStorage()->Add(testNode);
-//
-//
-// 	if (GetDataStorage()->GetNamedNode("implant_control_pts") == nullptr)
-// 	{
-// 		m_Controls.textBrowser->append("implant_control_pts is missing");
-// 		return;
-// 	}
-//
-// 	auto controlPts = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("implant_control_pts")->GetData());
-//
-// 	// Assume the 1st point of controlPts is the exit point, the 2nd point is the entry point
-// 	if(controlPts->GetSize() != 2)
-// 	{
-// 		m_Controls.textBrowser->append("implant_control_pts has wrong size!");
-// 		return;
-// 	}
-//
-// 	mitk::Point3D control_exit = controlPts->GetPoint(0);
-// 	mitk::Point3D control_entry = controlPts->GetPoint(1);
-//
-// 	
-// }
+void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
+{
+	// Check data availability
+	if(GetDataStorage()->GetNamedNode("implant") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant is missing");
+	}
+
+	// Generate a white image to apply the polydata stencil
+	auto nodeSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("implant")->GetData());
+
+	vtkNew<vtkPolyData> surfacePolyData;
+	surfacePolyData->DeepCopy(nodeSurface->GetVtkPolyData());
+
+	// fix the holes if the data has poor quality
+	vtkNew<vtkFillHolesFilter> holeFiller;
+	holeFiller->SetInputData(surfacePolyData);
+	holeFiller->SetHoleSize(10);
+	holeFiller->Update();
+	vtkNew<vtkPolyData> surfacePolyData_fixed;
+	surfacePolyData_fixed->DeepCopy(holeFiller->GetOutput());
+	
+	// Calculate the center of mass
+	vtkNew<vtkCenterOfMass> centerOfMassFilter;
+	centerOfMassFilter->SetInputData(surfacePolyData_fixed);
+	centerOfMassFilter->SetUseScalarsAsWeights(false);
+	centerOfMassFilter->Update();
+	double center[3];
+	centerOfMassFilter->GetCenter(center);
+
+	mitk::Point3D p{ center };
+	auto massCenter = mitk::PointSet::New();
+	massCenter->InsertPoint(p);
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetName("massCenter");
+
+	// add new node
+	tmpNode->SetData(massCenter);
+	GetDataStorage()->Add(tmpNode);
+
+
+	vtkNew<vtkTransformFilter> tmpTransFilter;
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(nodeSurface->GetGeometry()->GetVtkMatrix());
+	tmpTransFilter->SetTransform(tmpTransform);
+	tmpTransFilter->SetInputData(surfacePolyData_fixed);
+	tmpTransFilter->Update();
+
+	auto objectSurface = mitk::Surface::New();
+	objectSurface->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
+
+
+	// Clip the implant with a sphere at the mass center
+	vtkSmartPointer<vtkSphere> sphere = vtkSmartPointer<vtkSphere>::New();
+	sphere->SetRadius(3);
+	sphere->SetCenter(center);
+
+	vtkSmartPointer<vtkClipPolyData> clipper = vtkSmartPointer<vtkClipPolyData>::New();
+	clipper->SetInputData(tmpTransFilter->GetPolyDataOutput());
+	clipper->SetClipFunction(sphere);
+	// clipper->GenerateClipScalarsOn();
+	// clipper->InsideOutOn();
+	clipper->GenerateClippedOutputOn();
+	clipper->Update();
+
+	auto clippedImplant = clipper->GetClippedOutput();
+	auto clippedSurface = mitk::Surface::New();
+	clippedSurface->SetVtkPolyData(clippedImplant);
+
+	auto clippedNode = mitk::DataNode::New();
+	clippedNode->SetData(clippedSurface);
+	clippedNode->SetName("clipped Implant");
+	GetDataStorage()->Add(clippedNode);
+
+
+
+	vtkNew<vtkImageData> whiteImage;
+	double imageBounds[6]{ 0 };
+	double imageSpacing[3]{ 0.03, 0.03, 0.03 };
+	whiteImage->SetSpacing(imageSpacing);
+
+	auto geometry = objectSurface->GetGeometry();
+	auto surfaceBounds = geometry->GetBounds();
+	for (int n = 0; n < 6; n++)
+	{
+		imageBounds[n] = surfaceBounds[n];
+	}
+
+	int dim[3];
+	for (int i = 0; i < 3; i++)
+	{
+		dim[i] = static_cast<int>(ceil((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
+	}
+	whiteImage->SetDimensions(dim);
+	
+
+	double origin[3];
+	origin[0] = imageBounds[0] + imageSpacing[0] / 2;
+	origin[1] = imageBounds[2] + imageSpacing[1] / 2;
+	origin[2] = imageBounds[4] + imageSpacing[2] / 2;
+	whiteImage->SetOrigin(origin);
+	whiteImage->AllocateScalars(VTK_SHORT, 1);
+
+	// fill the image with foreground voxels:
+	short insideValue = 2000;
+	// short outsideValue = 0;
+	vtkIdType count = whiteImage->GetNumberOfPoints();
+	for (vtkIdType i = 0; i < count; ++i)
+	{
+		whiteImage->GetPointData()->GetScalars()->SetTuple1(i, insideValue);
+	}
+
+	auto imageToCrop = mitk::Image::New();
+	imageToCrop->Initialize(whiteImage);
+	imageToCrop->SetVolume(whiteImage->GetScalarPointer());
+
+
+	// Apply the stencil
+	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	surfaceToImageFilter->SetBackgroundValue(0);
+	surfaceToImageFilter->SetImage(imageToCrop);
+	surfaceToImageFilter->SetInput(objectSurface);
+	surfaceToImageFilter->SetReverseStencil(false);
+
+	mitk::Image::Pointer convertedImage = mitk::Image::New();
+	surfaceToImageFilter->Update();
+	convertedImage = surfaceToImageFilter->GetOutput();
+
+	// Test: set the boundary voxel of the image to 
+	auto inputVtkImage = convertedImage->GetVtkImageData();
+	int dims[3];
+	inputVtkImage->GetDimensions(dims);
+
+	int tmpRegion[6]{ 0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1 };
+
+	auto caster = vtkImageCast::New();
+	caster->SetInputData(inputVtkImage);
+	caster->SetOutputScalarTypeToInt();
+	caster->Update();
+
+	auto castVtkImage = caster->GetOutput();
+
+	// for (int z = 0; z < dims[2]; z++)
+	// {
+	// 	for (int y = 0; y < dims[1]; y++)
+	// 	{
+	// 		for (int x = 0; x < dims[0]; x++)
+	// 		{
+	// 			int x_p = ((x + 1) > (dims[0] - 1)) ? (dims[0] - 1) : (x + 1);
+	// 			int x_m = ((x - 1) < 0) ? 0 : (x - 1);
+	//
+	// 			int y_p = ((y + 1) > (dims[1] - 1)) ? (dims[1] - 1) : (y + 1);
+	// 			int y_m = ((y - 1) < 0) ? 0 : (y - 1);
+	//
+	// 			int z_p = ((z + 1) > (dims[2] - 1)) ? (dims[2] - 1) : (z + 1);
+	// 			int z_m = ((z - 1) < 0) ? z : (z - 1);
+	//
+	// 			int* n = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z));
+	// 			int* n1 = static_cast<int*>(castVtkImage->GetScalarPointer(x_m, y, z));
+	// 			int* n2 = static_cast<int*>(castVtkImage->GetScalarPointer(x_p, y, z));
+	// 			int* n3 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y_m, z));
+	// 			int* n4 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y_p, z));
+	// 			int* n5 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z_m));
+	// 			int* n6 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z_p));
+	//
+	// 			if (n[0] == 2000)
+	// 			{
+	// 				if (n1[0] == 0 || n2[0] == 0 || n3[0] == 0 || n4[0] == 0 || n5[0] == 0 || n6[0] == 0)
+	// 				{
+	// 					n[0] = 3000;
+	// 				}
+	//
+	// 				if (x == dims[0] - 1 || x == 0 || y == dims[1] - 1 || y == 0 || z == dims[2] - 1 || z == 0)
+	// 				{
+	// 					n[0] = 3000;
+	// 				}
+	// 			}
+	//
+	// 		}
+	// 	}
+	// }
+
+	auto resultMitkImage = mitk::Image::New();
+	resultMitkImage->Initialize(castVtkImage);
+	resultMitkImage->SetVolume(castVtkImage->GetScalarPointer());
+	resultMitkImage->SetGeometry(convertedImage->GetGeometry());
+
+	//-----------------------------------------------
+
+	auto newNode = mitk::DataNode::New();
+
+	newNode->SetName("implantImage");
+
+	// add new node
+	newNode->SetData(resultMitkImage);
+	GetDataStorage()->Add(newNode);
+
+}
+
 
 
 
