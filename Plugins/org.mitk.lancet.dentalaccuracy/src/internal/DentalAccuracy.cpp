@@ -28,6 +28,7 @@ found in the LICENSE file.
 #include <vtkCamera.h>
 #include <vtkCardinalSpline.h>
 #include <vtkCellArray.h>
+#include <vtkCellData.h>
 #include <vtkCenterOfMass.h>
 #include <vtkCleanPolyData.h>
 #include <vtkClipPolyData.h>
@@ -44,6 +45,7 @@ found in the LICENSE file.
 #include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
+#include <vtkPolyDataNormals.h>
 #include <vtkProbeFilter.h>
 #include <vtkRendererCollection.h>
 #include <vtkSplineFilter.h>
@@ -62,7 +64,7 @@ found in the LICENSE file.
 #include "QmitkRenderWindow.h"
 #include "surfaceregistraion.h"
 #include <vtkSphere.h>
-
+#include <mitkImageAccessByItk.h>
 
 const std::string DentalAccuracy::VIEW_ID = "org.mitk.views.dentalaccuracy";
 
@@ -164,43 +166,26 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 	// add new node
 	tmpNode->SetData(massCenter);
 	GetDataStorage()->Add(tmpNode);
-
-
-	vtkNew<vtkTransformFilter> tmpTransFilter;
-	vtkNew<vtkTransform> tmpTransform;
-	tmpTransform->SetMatrix(nodeSurface->GetGeometry()->GetVtkMatrix());
-	tmpTransFilter->SetTransform(tmpTransform);
-	tmpTransFilter->SetInputData(surfacePolyData_fixed);
-	tmpTransFilter->Update();
-
+	
 	auto objectSurface = mitk::Surface::New();
-	objectSurface->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
+	objectSurface->SetVtkPolyData(surfacePolyData_fixed);
+
+	// OBB calculation
+	vtkNew<vtkOBBTree> obbTree;
+	obbTree->SetDataSet(surfacePolyData_fixed);
+	obbTree->SetMaxLevel(2);
+	obbTree->BuildLocator();
+
+	double corner[3] = { 0.0, 0.0, 0.0 };
+	double max[3] = { 0.0, 0.0, 0.0 };
+	double mid[3] = { 0.0, 0.0, 0.0 };
+	double min[3] = { 0.0, 0.0, 0.0 };
+	double size[3] = { 0.0, 0.0, 0.0 };
+
+	obbTree->ComputeOBB(surfacePolyData_fixed, corner, max, mid, min, size);
 
 
-	// Clip the implant with a sphere at the mass center
-	vtkSmartPointer<vtkSphere> sphere = vtkSmartPointer<vtkSphere>::New();
-	sphere->SetRadius(3);
-	sphere->SetCenter(center);
-
-	vtkSmartPointer<vtkClipPolyData> clipper = vtkSmartPointer<vtkClipPolyData>::New();
-	clipper->SetInputData(tmpTransFilter->GetPolyDataOutput());
-	clipper->SetClipFunction(sphere);
-	// clipper->GenerateClipScalarsOn();
-	// clipper->InsideOutOn();
-	clipper->GenerateClippedOutputOn();
-	clipper->Update();
-
-	auto clippedImplant = clipper->GetClippedOutput();
-	auto clippedSurface = mitk::Surface::New();
-	clippedSurface->SetVtkPolyData(clippedImplant);
-
-	auto clippedNode = mitk::DataNode::New();
-	clippedNode->SetData(clippedSurface);
-	clippedNode->SetName("clipped Implant");
-	GetDataStorage()->Add(clippedNode);
-
-
-
+	//*************** Apply surfaceToImageFilter *******************
 	vtkNew<vtkImageData> whiteImage;
 	double imageBounds[6]{ 0 };
 	double imageSpacing[3]{ 0.03, 0.03, 0.03 };
@@ -219,7 +204,6 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 		dim[i] = static_cast<int>(ceil((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
 	}
 	whiteImage->SetDimensions(dim);
-	
 
 	double origin[3];
 	origin[0] = imageBounds[0] + imageSpacing[0] / 2;
@@ -249,78 +233,168 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 	surfaceToImageFilter->SetInput(objectSurface);
 	surfaceToImageFilter->SetReverseStencil(false);
 
-	mitk::Image::Pointer convertedImage = mitk::Image::New();
+	mitk::Image::Pointer stencilImage = mitk::Image::New();
 	surfaceToImageFilter->Update();
-	convertedImage = surfaceToImageFilter->GetOutput();
+	stencilImage = surfaceToImageFilter->GetOutput();
 
-	// Test: set the boundary voxel of the image to 
-	auto inputVtkImage = convertedImage->GetVtkImageData();
-	int dims[3];
-	inputVtkImage->GetDimensions(dims);
+	auto stencilNode = mitk::DataNode::New();
+	stencilNode->SetData(stencilImage);
+	stencilNode->SetName("stencilImage");
+	GetDataStorage()->Add(stencilNode);
 
-	int tmpRegion[6]{ 0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1 };
 
-	auto caster = vtkImageCast::New();
-	caster->SetInputData(inputVtkImage);
-	caster->SetOutputScalarTypeToInt();
-	caster->Update();
+	auto insidePset = mitk::PointSet::New();
 
-	auto castVtkImage = caster->GetOutput();
+	vtkIdType numberOfPoints = surfacePolyData_fixed->GetNumberOfPoints();
+	vtkSmartPointer<vtkPoints> points = surfacePolyData_fixed->GetPoints();
+	
+	for (vtkIdType pointId = 0; pointId < numberOfPoints; ++pointId)
+	{
+		auto checkPts = mitk::PointSet::New();
+		Eigen::Vector3d tmpVec;
+		tmpVec[0] = center[0] - points->GetPoint(pointId)[0];
+		tmpVec[1] = center[1] - points->GetPoint(pointId)[1];
+		tmpVec[2] = center[2] - points->GetPoint(pointId)[2];
 
-	// for (int z = 0; z < dims[2]; z++)
+		double tmpVecLenth = tmpVec.norm();
+
+		tmpVec.normalize();
+
+		mitk::Point3D tmpPoint;
+		tmpPoint[0] = points->GetPoint(pointId)[0] + tmpVec[0] * 0.3;
+		tmpPoint[1] = points->GetPoint(pointId)[1] + tmpVec[1] * 0.3;
+		tmpPoint[2] = points->GetPoint(pointId)[2] + tmpVec[2] * 0.3;
+
+		mitk::Point3D tmpPoint1;
+		tmpPoint1[0] = points->GetPoint(pointId)[0] + tmpVec[0] * tmpVecLenth / 2;
+		tmpPoint1[1] = points->GetPoint(pointId)[1] + tmpVec[1] * tmpVecLenth / 2;
+		tmpPoint1[2] = points->GetPoint(pointId)[2] + tmpVec[2] * tmpVecLenth / 2;
+
+		mitk::Point3D tmpPoint2;
+		tmpPoint2[0] = points->GetPoint(pointId)[0] + tmpVec[0] * tmpVecLenth / 3;
+		tmpPoint2[1] = points->GetPoint(pointId)[1] + tmpVec[1] * tmpVecLenth / 3;
+		tmpPoint2[2] = points->GetPoint(pointId)[2] + tmpVec[2] * tmpVecLenth / 3;
+
+		checkPts->InsertPoint(tmpPoint);
+		checkPts->InsertPoint(tmpPoint1);
+		checkPts->InsertPoint(tmpPoint2);
+		// mitk::Point3D midPoint;
+		// midPoint[0] = points->GetPoint(pointId)[0] + (center[0] - points->GetPoint(pointId)[0])/5;
+		// midPoint[1] = points->GetPoint(pointId)[1] + (center[1] - points->GetPoint(pointId)[1])/5;
+		// midPoint[2] = points->GetPoint(pointId)[2] + (center[2] - points->GetPoint(pointId)[2])/5;
+
+		// mitk::Point3D imagePoint;
+		//
+		// stencilImage->GetGeometry()->WorldToIndex(midPoint,imagePoint);
+
+		itk::Image<short, 3>::Pointer itkImage;
+		mitk::ImageToItk<itk::Image<short, 3>>::Pointer imageToItkFilter = mitk::ImageToItk<itk::Image<short, 3>>::New();
+		imageToItkFilter->SetInput(stencilImage);
+		imageToItkFilter->Update();
+		itkImage = imageToItkFilter->GetOutput();
+
+		int tag{ 0 };
+		for (int i{ 0 }; i < 3; i++)
+		{
+			// Define the XYZ coordinate you want to query
+			itk::Point<float, 3> point;
+			point[0] = checkPts->GetPoint(i)[0]; // X coordinate
+			point[1] = checkPts->GetPoint(i)[1]; // Y coordinate
+			point[2] = checkPts->GetPoint(i)[2]; // Z coordinate
+
+
+		    // Transform physical point to image index
+			itk::Index<3> index;
+			itkImage->TransformPhysicalPointToIndex(point, index);
+
+			if (itkImage->GetPixel(index) > 500)
+			{
+				tag = 1;
+				break;
+			}
+
+		}
+
+		if(tag == 0)
+		{
+			mitk::Point3D tmpPoint{ points->GetPoint(pointId) };
+			insidePset->InsertPoint(tmpPoint);
+		}
+		
+
+	}
+
+	auto pointsNode = mitk::DataNode::New();
+	pointsNode->SetData(insidePset);
+	pointsNode->SetName("pointsNode");
+	GetDataStorage()->Add(pointsNode);
+
+	// ********** Clip the implant with a sphere at the mass center ************
+	// vtkSmartPointer<vtkSphere> sphere = vtkSmartPointer<vtkSphere>::New();
+	// sphere->SetRadius((size[1]+size[2])/2 );
+	// sphere->SetCenter(center);
+	//
+	// vtkSmartPointer<vtkClipPolyData> clipper = vtkSmartPointer<vtkClipPolyData>::New();
+	// clipper->SetInputData(surfacePolyData_fixed);
+	// clipper->SetClipFunction(sphere);
+	// // clipper->GenerateClipScalarsOn();
+	// // clipper->InsideOutOn();
+	// clipper->GenerateClippedOutputOn();
+	// clipper->Update();
+	//
+	// auto clippedImplant = clipper->GetClippedOutput();
+	// auto clippedSurface = mitk::Surface::New();
+	// clippedSurface->SetVtkPolyData(clippedImplant);
+	//
+	// auto clippedNode = mitk::DataNode::New();
+	// clippedNode->SetData(clippedSurface);
+	// clippedNode->SetName("clipped Implant");
+	// GetDataStorage()->Add(clippedNode);
+
+
+	//***********  Determine inside/outside by checking the normals ******************
+	// Calculate normals for the input polydata
+	// vtkSmartPointer<vtkPolyDataNormals> normalsFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
+	// normalsFilter->SetInputData(surfacePolyData_fixed);
+	// normalsFilter->ComputePointNormalsOn();
+	// normalsFilter->ComputeCellNormalsOn();
+	// normalsFilter->Update();
+	//
+	// // Access the cell normals
+	// auto polydataWithNormals = normalsFilter->GetOutput();
+	// auto pointNormals = polydataWithNormals->GetPointData()->GetNormals();
+	// vtkSmartPointer<vtkPoints> points = polydataWithNormals->GetPoints();
+	//
+	// // Iterate through points to determine the inside faces
+	// vtkIdType numberOfPoints = polydataWithNormals->GetNumberOfPoints();
+	//
+	// auto tmpPset = mitk::PointSet::New();
+	//
+	//
+	// for (vtkIdType pointId = 0; pointId < numberOfPoints; ++pointId)
 	// {
-	// 	for (int y = 0; y < dims[1]; y++)
+	// 	// Get the normal for the current point
+	// 	double normal[3];
+	// 	pointNormals->GetTuple(pointId, normal);
+	//
+	// 	Eigen::Vector3d pointNormal{ normal };
+	//
+	// 	Eigen::Vector3d pointToCenter;
+	// 	pointToCenter[0] = center[0] - points->GetPoint(pointId)[0];
+	// 	pointToCenter[1] = center[1] - points->GetPoint(pointId)[1];
+	// 	pointToCenter[2] = center[2] - points->GetPoint(pointId)[2];
+	//
+	// 	if(pointNormal.dot(pointToCenter) > 0)
 	// 	{
-	// 		for (int x = 0; x < dims[0]; x++)
-	// 		{
-	// 			int x_p = ((x + 1) > (dims[0] - 1)) ? (dims[0] - 1) : (x + 1);
-	// 			int x_m = ((x - 1) < 0) ? 0 : (x - 1);
-	//
-	// 			int y_p = ((y + 1) > (dims[1] - 1)) ? (dims[1] - 1) : (y + 1);
-	// 			int y_m = ((y - 1) < 0) ? 0 : (y - 1);
-	//
-	// 			int z_p = ((z + 1) > (dims[2] - 1)) ? (dims[2] - 1) : (z + 1);
-	// 			int z_m = ((z - 1) < 0) ? z : (z - 1);
-	//
-	// 			int* n = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z));
-	// 			int* n1 = static_cast<int*>(castVtkImage->GetScalarPointer(x_m, y, z));
-	// 			int* n2 = static_cast<int*>(castVtkImage->GetScalarPointer(x_p, y, z));
-	// 			int* n3 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y_m, z));
-	// 			int* n4 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y_p, z));
-	// 			int* n5 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z_m));
-	// 			int* n6 = static_cast<int*>(castVtkImage->GetScalarPointer(x, y, z_p));
-	//
-	// 			if (n[0] == 2000)
-	// 			{
-	// 				if (n1[0] == 0 || n2[0] == 0 || n3[0] == 0 || n4[0] == 0 || n5[0] == 0 || n6[0] == 0)
-	// 				{
-	// 					n[0] = 3000;
-	// 				}
-	//
-	// 				if (x == dims[0] - 1 || x == 0 || y == dims[1] - 1 || y == 0 || z == dims[2] - 1 || z == 0)
-	// 				{
-	// 					n[0] = 3000;
-	// 				}
-	// 			}
-	//
-	// 		}
+	// 		mitk::Point3D tmpPoint{ points->GetPoint(pointId) };
+	// 		tmpPset->InsertPoint(tmpPoint);
 	// 	}
 	// }
-
-	auto resultMitkImage = mitk::Image::New();
-	resultMitkImage->Initialize(castVtkImage);
-	resultMitkImage->SetVolume(castVtkImage->GetScalarPointer());
-	resultMitkImage->SetGeometry(convertedImage->GetGeometry());
-
-	//-----------------------------------------------
-
-	auto newNode = mitk::DataNode::New();
-
-	newNode->SetName("implantImage");
-
-	// add new node
-	newNode->SetData(resultMitkImage);
-	GetDataStorage()->Add(newNode);
+	//
+	// auto newNode = mitk::DataNode::New();
+	// newNode->SetData(tmpPset);
+	// newNode->SetName("Inside points");
+	// GetDataStorage()->Add(newNode);
 
 }
 
@@ -839,8 +913,6 @@ mitk::NavigationData::Pointer DentalAccuracy::GetNavigationDataInRef(mitk::Navig
 	res->Compose(nd_ref->GetInverse());
 	return res;
 }
-
-
 
 
 
