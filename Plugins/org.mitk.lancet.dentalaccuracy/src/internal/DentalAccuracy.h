@@ -42,6 +42,8 @@ class DentalAccuracy : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
+  DentalAccuracy();
+
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
 
@@ -61,7 +63,8 @@ protected:
   void on_pushButton_followAbutment_clicked();
   void on_pushButton_followCrown_clicked();
   void on_pushButton_implantTipExtract_clicked();
-
+  void on_pushButton_implantToCrown_clicked();
+  void on_pushButton_abutmentToImplant_clicked();
 
   void on_pushButton_planeAdjust_clicked(); // Use Gizmo
 
@@ -82,6 +85,8 @@ protected:
   void on_pushButton_setImplant_clicked();
 
   void on_pushButton_steelballExtract_clicked();
+
+  void on_comboBox_plate_changed(int index);
 
   void on_pushButton_connectVega_clicked();
 
@@ -154,10 +159,10 @@ protected:
   void UpdateAllBallFingerPrint(mitk::PointSet::Pointer stdSteelballCenters);
   double GetPointDistance(const mitk::Point3D p0, const mitk::Point3D p1);
   bool GetCoarseSteelballCenters(double steelballVoxel);
-  void IterativeScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7]);
-  void ScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7]);
+  void IterativeScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, std::vector<int>& foundIDs);
+  void ScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, std::vector<int>& foundIDs);
   void RemoveRedundantCenters();
-  void RearrangeSteelballs(int stdNeighborNum, int foundIDs[7]);
+  void RearrangeSteelballs(int stdNeighborNum, std::vector<int>& foundIDs);
 
 
   void OnVegaVisualizeTimer();
@@ -176,71 +181,53 @@ protected:
   vtkNew<vtkMatrix4x4> m_ImageRegistrationMatrix; // image(surface) to ObjectRf matrix
   lancet::ApplySurfaceRegistratioinStaticImageFilter::Pointer m_SurfaceRegistrationStaticImageFilter;
 
-  double allBallFingerPrint[42]
+
+  // SteelBall extraction and dental splint movement 
+  std::vector<double> allBallFingerPrint;
+ 
+  std::vector<double> stdCenters;
+  std::vector<double> stdCentersA
   {
-	  0
+	  11.48, 5.06, 1.70,
+	  4.98, 5.03, 5.70,
+	  -1.52, 5.01, 0.70,
+	  -0.28, 13.93, 0.70,
+	  17.67, 13.39, 1.70,
+	  8.22, 24.49, 2.70,
+	  17, 31.87, 0.70,
+	  36.57, 23.60, 1.70,
+	  32.02, 32.03, 5.70,
+	  27.38, 40.61, 0.70
   };
 
-  double stdCenters[21]
+  std::vector<double> stdCentersB
   {
-	  0, 0, 0,
-	  10, -1.5, -5,
-	  15.5, 13.5, -3,
-	  11.8, 11, -1.5,
-	  -7, 14, 0,
-	  -13.5, 14, -4.5,
-	  -10, -2, -4
+	  11.50, 0.70, -5.02,
+	  5, 5.70, -5.02,
+	  -1.50, 1.70, -5.02,
+	  10.23, 0.70, -13.93,
+	  -7.72, 1.70, -13.33,
+	  1.70, 2.70, -24.46,
+	  -7.10, 0.70, -31.81,
+	  -17.52, 0.70, -40.51,
+	  -22.12, 5.70, -31.92,
+	  -26.65, 1.70, -23.47
   };
-
-  double iosStdCenters[21]
+  std::vector<double> stdCentersC
   {
-	  -23.930450476, -87.4997006055, 10.9484740283,
-	  -34.990049118, -89.0005671575, 9.31059563815,
-	  -38.350507198, -74.0005629566, 4.51922953965,
-	  -34.458882368, -76.5002777601, 5.4117977894,
-	  -18.196807484, -73.4994482961, 14.9632296697,
-	  -15.451925984, -73.4996695078, 22.3771091697,
-	  -18.031253332, -89.4997450515, 19.9595375081
-	  // 0, 0, 0,
-	  // 10, -1.5, -5,
-	  // 15.5, 13.5, -3,
-	  // 11.8, 11, -1.5,
-	  // -7, 14, 0,
-	  // -13.5, 14, -4.5,
-	  // -10, -2, -4
-	  // 25.36, -152.54, -21.55,
-	  // 21.88,  -155.34, -12.45,
-	  // 21.98, -151.21, -6.14,
-	  // 26.85,   -140.02, -4.47,
-	  // 20.11, -133.68, -25.36,
-	  // 17.35, -145.66, -32.41,
-	  // 18.93, -150.78, -29.20
+	  16.77, 2.30, -3.12,  //p1
+	  29.96, 3.30, -12.73, //p13
+	  5.91, 9.30, -17.44,  //p7
+	  1.02, 2.80, -9.76,   //p4
+	  -1.33, 4.30, -3.29,  //p3
+	  25.99, 2.30, -28.94, //p17
+	  8.16, 10.30, -3.61,  //p2
+	  32.33, 10.30, -21.52,//p18
+	  32.04, 3.30, -29.88, //p19
+	  12.56, 1.30, -23.12, //p10
+	  18.95, 9.30, -26.61  //p11
   };
-
-  double midStdCenters[21]
-  {
-	  -69.07, 27, -32.73,
-	-66.59, 19, -36.62,
-	-57.75, 13.5, -25.66,
-	-60.23, 17.50, -26.02,
-	-59.17, 31, -22.83,
-	-56.69, 38.50, -26.72,
-	-67.65, 33, -36.98
-  };
-
-  double modelStdCenters[21]
-  {
-	  29.97436, -76.53379, -51.15766,
-	  25.42992, -80.65884, -51.80030,
-	  8.11930, -86.60384, -47.72123,
-	  2.53530, -83.51462, -50.29480,
-	  4.02108, -68.11822,-54.55366,
-	  13.91066, -68.38903, -56.32448,
-	  21.41421, -64.86712, -55.98294
-  };
-
-  
-
+	   
 
 
   // Rewrite the image registration and navigation part without using the MITK IGT pipeline
@@ -276,6 +263,9 @@ protected:
   bool m_Stat_patientRFtoImage{ false };
   double m_T_patientRFtoImage[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform image registration to acquire  
   
+
+  int realballnumber = 10;
+  int edgenumber = realballnumber * (realballnumber - 1);
 
 
 };

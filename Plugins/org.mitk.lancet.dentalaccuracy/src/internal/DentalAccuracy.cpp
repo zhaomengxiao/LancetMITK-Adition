@@ -73,6 +73,13 @@ void DentalAccuracy::SetFocus()
   m_Controls.pushButton_planeAdjust->setFocus();
 }
 
+DentalAccuracy::DentalAccuracy()
+{
+	allBallFingerPrint.resize(edgenumber);
+	fill(allBallFingerPrint.begin(), allBallFingerPrint.end(), 0);
+	stdCenters = stdCentersA;
+}
+
 void DentalAccuracy::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
@@ -124,6 +131,11 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_followAbutment, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_followAbutment_clicked);
   connect(m_Controls.pushButton_followCrown, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_followCrown_clicked);
   connect(m_Controls.pushButton_implantTipExtract, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_implantTipExtract_clicked);
+  connect(m_Controls.comboBox_plate, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DentalAccuracy::on_comboBox_plate_changed);
+  connect(m_Controls.pushButton_implantToCrown, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_implantToCrown_clicked);
+  connect(m_Controls.pushButton_abutmentToImplant, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_abutmentToImplant_clicked);
+
+
 
 }
 
@@ -936,9 +948,10 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 {
 	// Initial preparation
 	m_Controls.textBrowser->append("------- Started steelball searching -------");
-	
+
 	auto standartSteelballCenters = mitk::PointSet::New();
-	int stdCenterNum{ 7 };
+	//int stdCenterNum{ 7 };
+	int stdCenterNum{ realballnumber };
 
 	for (int i{ 0 }; i < stdCenterNum; i++)
 	{
@@ -951,6 +964,7 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 		mitk::Point3D p(tmpArray);
 		standartSteelballCenters->InsertPoint(p);
 	}
+
 
 	// if (m_Controls.checkBox_generateStandardBallCenters->isChecked())
 	// {
@@ -1001,17 +1015,16 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 	}
 
 	int searchIterations{ 7 }; // optimal voxel value
-	tmpMaxVoxel = 15000; // tmp fix  March 03, 2023
-	tmpMinVoxel = 1500; // tmp fix  March 03, 2023
+	//tmpMaxVoxel = 15000; // tmp fix  March 03, 2023
+	//tmpMinVoxel = 1500; // tmp fix  March 03, 2023
 
 
 	double voxelThres{ tmpMaxVoxel };
 	int foundCleanCenterNum{ 0 };
 	int foundCenterNum{ 0 };
-	int foundIDs[7]{ 0 };
+	std::vector<int> foundIDs(realballnumber, 0);
+	//int foundIDs[7]{ 0 };
 
-	
-	
 
 	// Search for the best voxel value threshold
 	for (int i{ 0 }; i < (searchIterations + 1); i++)
@@ -1028,7 +1041,8 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 			break;
 		}
 
-		IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
+		IterativeScreenCoarseSteelballCenters(realballnumber - 3, realballnumber - 1, foundIDs);
+		//IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
 
 		if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() >= foundCleanCenterNum)
 		{
@@ -1036,7 +1050,8 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 			voxelThres = tmpVoxelThreshold;
 			if (foundCleanCenterNum >= stdCenterNum)
 			{
-				IterativeScreenCoarseSteelballCenters(6, 6, foundIDs);
+				IterativeScreenCoarseSteelballCenters(realballnumber - 1, realballnumber - 1, foundIDs);
+				//IterativeScreenCoarseSteelballCenters(6, 6, foundIDs);
 				if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() == stdCenterNum)
 				{
 					//m_Controls.textBrowser->append("~~All steelballs have been found~~");
@@ -1047,29 +1062,34 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 		}
 
 	}
-
-
+	
 	GetCoarseSteelballCenters(voxelThres);
 	//m_Controls.lineEdit_ballGrayValue->setText(QString::number(voxelThres));
-	IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
+	IterativeScreenCoarseSteelballCenters(realballnumber - 3, realballnumber - 1, foundIDs);
+	//IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
 
-	if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() > 7)
+	if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() > realballnumber)
+		//if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() > 7)
 	{
-		IterativeScreenCoarseSteelballCenters(6, 6, foundIDs);
+		IterativeScreenCoarseSteelballCenters(realballnumber - 1, realballnumber - 1, foundIDs);
+		//IterativeScreenCoarseSteelballCenters(6, 6, foundIDs);
 	}
 
 	if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() == 0)
 	{
 		GetCoarseSteelballCenters(voxelThres);
 		//m_Controls.lineEdit_ballGrayValue->setText(QString::number(voxelThres));
-		IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
+		IterativeScreenCoarseSteelballCenters(realballnumber - 3, realballnumber - 1, foundIDs);
+		//IterativeScreenCoarseSteelballCenters(4, 6, foundIDs);
 	}
 
-	RearrangeSteelballs(6, foundIDs); // this function is redundant ??
 
+	RearrangeSteelballs(realballnumber - 1, foundIDs);
+	//RearrangeSteelballs(6, foundIDs); // this function is redundant ??
 
 	auto partialStdPointset = mitk::PointSet::New();
-	for (int q{ 0 }; q < 7; q++) {
+	for (int q = 0; q < realballnumber; q++) {
+		//for (int q{ 0 }; q < 7; q++) {
 		if (foundIDs[q] == 1)
 		{
 			partialStdPointset->InsertPoint(standartSteelballCenters->GetPoint(q));
@@ -1084,8 +1104,6 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 	// 	GetDataStorage()->Add(tmpNode);
 	// }
 
-
-
 	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
 	landmarkRegistrator->SetLandmarksSrc(partialStdPointset);
 	landmarkRegistrator->SetLandmarksTarget(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData()));
@@ -1097,7 +1115,8 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 	m_Controls.textBrowser->append("Maximum steelball error: " + QString::number(maxError));
 	m_Controls.textBrowser->append("Average steelball error: " + QString::number(avgError));
 
-	if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() == 7)
+	if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() == realballnumber)
+		//if (dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize() == 7)
 	{
 		m_Controls.textBrowser->append("~~All steelballs have been found!~~");
 	}
@@ -1129,33 +1148,33 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 	childNode->SetName("steelball_image");
 
 
-	////////////////////// Move the dental splint surface ///////////////////////
+	//************* Move the dental splint surface **********************//
 	auto extractedBall_node = GetDataStorage()->GetNamedNode("steelball_image");
 	auto splint_node = GetDataStorage()->GetNamedNode("dentalSplint");
 	auto stdBall_node = GetDataStorage()->GetNamedNode("steelball_rf");
-
+	
 	if (extractedBall_node == nullptr)
 	{
 		m_Controls.textBrowser->append("steelball_image is missing");
 		return;
 	}
-
+	
 	if (splint_node == nullptr || stdBall_node == nullptr)
 	{
 		m_Controls.textBrowser->append("dentalSplint or std_steelball is missing");
 		return;
 	}
-
+	
 	auto extractedBall_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("steelball_image");
 	auto stdball_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("steelball_rf");
 	int extracted_num = extractedBall_pset->GetSize();
-
+	
 	if (extracted_num < stdball_pset->GetSize())
 	{
 		m_Controls.textBrowser->append("steelball_image extraction incomplete");
 		return;
 	}
-
+	
 	auto landmarkRegistrator2 = mitk::SurfaceRegistration::New();
 	landmarkRegistrator2->SetLandmarksSrc(stdball_pset);
 	landmarkRegistrator2->SetLandmarksTarget(extractedBall_pset);
@@ -1165,10 +1184,10 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 	auto result_matrix = landmarkRegistrator2->GetResult();
 
 	auto splint_surface = GetDataStorage()->GetNamedObject<mitk::Surface>("dentalSplint");
-
+	
 	splint_surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(result_matrix);
-
-	GetDataStorage()->GetNamedNode("dentalSplint")->SetVisibility(true);
+	
+	splint_surface->GetGeometry()->Modified();
 }
 
 
@@ -3752,19 +3771,28 @@ bool DentalAccuracy::GetCoarseSteelballCenters(double steelballVoxel)
 	return true;
 }
 
-void DentalAccuracy::ScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7])
+void DentalAccuracy::ScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, std::vector<int>& foundIDs)
 {
-	foundIDs[0] = 0;
-	foundIDs[1] = 0;
-	foundIDs[2] = 0;
-	foundIDs[3] = 0;
-	foundIDs[4] = 0;
-	foundIDs[5] = 0;
-	foundIDs[6] = 0;
+	fill(foundIDs.begin(), foundIDs.end(), 0);
+	//foundIDs[0] = 0;
+	//foundIDs[1] = 0;
+	//foundIDs[2] = 0;
+	//foundIDs[3] = 0;
+	//foundIDs[4] = 0;
+	//foundIDs[5] = 0;
+	//foundIDs[6] = 0;
 
 	auto inputPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
 	int inputPoinSetNum = inputPointSet->GetSize();
 	auto steelballCenters = mitk::PointSet::New();
+
+	for (int i = 0; i < inputPoinSetNum; i++)
+	{
+		MITK_INFO << "raw extracted point " + QString::number(i);
+		MITK_INFO << QString::number(inputPointSet->GetPoint(i)[0]) + ","
+			+ QString::number(inputPointSet->GetPoint(i)[1]) + ","
+			+ QString::number(inputPointSet->GetPoint(i)[2]);
+	}
 
 	int lengthOfFingerPrint = stdNeighborNum;
 	int numOfTargetSteelballs = stdNeighborNum + 1;
@@ -3772,15 +3800,20 @@ void DentalAccuracy::ScreenCoarseSteelballCenters(int requiredNeighborNum, int s
 
 	for (int q{ 0 }; q < numOfTargetSteelballs; q++)
 	{
-		double fingerPrint[6]
+		std::vector<double> fingerPrint(numOfTargetSteelballs, 0);
+		for (int i = 0; i < numOfTargetSteelballs; i++)
 		{
-			allBallFingerPrint[6 * q],
-			allBallFingerPrint[6 * q + 1],
-			allBallFingerPrint[6 * q + 2],
-			allBallFingerPrint[6 * q + 3],
-			allBallFingerPrint[6 * q + 4],
-			allBallFingerPrint[6 * q + 5],
-		};
+			fingerPrint[i] = allBallFingerPrint[stdNeighborNum * q + i];
+		}
+		//double fingerPrint[6]
+		//{
+		//	allBallFingerPrint[6 * q],
+		//	allBallFingerPrint[6 * q + 1],
+		//	allBallFingerPrint[6 * q + 2],
+		//	allBallFingerPrint[6 * q + 3],
+		//	allBallFingerPrint[6 * q + 4],
+		//	allBallFingerPrint[6 * q + 5],
+		//};
 
 
 		for (int i{ 0 }; i < inputPoinSetNum; i++)
@@ -3795,7 +3828,7 @@ void DentalAccuracy::ScreenCoarseSteelballCenters(int requiredNeighborNum, int s
 				for (int k{ 0 }; k < inputPoinSetNum; k++)
 				{
 					double tmpDistance = GetPointDistance(inputPointSet->GetPoint(i), inputPointSet->GetPoint(k));
-					if (fabs(tmpDistance - standardDistance) < 0.4)
+					if (fabs(tmpDistance - standardDistance) < 1)//to do:error to be confirmed
 					{
 						metSingleRequirement = true;
 						metric += 1;
@@ -3833,7 +3866,7 @@ void DentalAccuracy::ScreenCoarseSteelballCenters(int requiredNeighborNum, int s
 	RemoveRedundantCenters();
 }
 
-void DentalAccuracy::IterativeScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, int foundIDs[7])
+void DentalAccuracy::IterativeScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, std::vector<int>& foundIDs)
 {
 	int oldNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();
 
@@ -3864,7 +3897,6 @@ void DentalAccuracy::IterativeScreenCoarseSteelballCenters(int requiredNeighborN
 
 	RemoveRedundantCenters();
 }
-
 
 void DentalAccuracy::RemoveRedundantCenters()
 {
@@ -3899,13 +3931,14 @@ void DentalAccuracy::RemoveRedundantCenters()
 	GetDataStorage()->Add(tmpNode);
 }
 
-void DentalAccuracy::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
+void DentalAccuracy::RearrangeSteelballs(int stdNeighborNum, std::vector<int>& foundIDs)
 {
 	auto extractedPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
 
 	auto standartSteelballCenters = mitk::PointSet::New();
-	int stdCenterNum{ 7 };
-	
+
+	int stdCenterNum = realballnumber;
+	//int stdCenterNum{ 7 };
 
 	for (int i{ 0 }; i < stdCenterNum; i++)
 	{
@@ -3920,9 +3953,9 @@ void DentalAccuracy::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 	}
 
 	auto partialStdCenters = mitk::PointSet::New();
-	for(int i{0}; i < stdCenterNum; i++)
+	for (int i{ 0 }; i < stdCenterNum; i++)
 	{
-		if(foundIDs[i] == 1)
+		if (foundIDs[i] == 1)
 		{
 			partialStdCenters->InsertPoint(standartSteelballCenters->GetPoint(i));
 		}
@@ -3932,7 +3965,7 @@ void DentalAccuracy::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 	// int a[] = { 0,1,2,3,4,5,6,7,8,9 }; // in case the result of iterative search has pointNum larger than 7
 
 	std::vector<int> a;
-	for(int n{0}; n < extractedPointSet->GetSize(); n++)
+	for (int n{ 0 }; n < extractedPointSet->GetSize(); n++)
 	{
 		a.push_back(n);
 	}
@@ -3940,13 +3973,19 @@ void DentalAccuracy::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 	std::sort(a.begin(), a.end());
 
 	double errorSum = 50;
-	int b[7]{ 0,1,2,3,4,5,6 };
+	int permutation_time = 0;
+	std::vector<int> b(realballnumber, 0);
+	for (int i = 0; i < realballnumber; i++)
+	{
+		b[i] = i;
+	}
+	//int b[7]{ 0,1,2,3,4,5,6 };
 	do
 	{
 		auto newPset = mitk::PointSet::New();
 
 
-		for (int i{0}; i < extractedPointSet->GetSize(); i++)
+		for (int i{ 0 }; i < extractedPointSet->GetSize(); i++)
 		{
 			// if (a[i] < (extractedPointSet->GetSize()))
 			// {
@@ -3956,6 +3995,15 @@ void DentalAccuracy::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 			if ((newPset->GetSize()) < partialStdCenters->GetSize())
 			{
 				newPset->InsertPoint(extractedPointSet->GetPoint(a[i]));
+				MITK_INFO << "extracted point " + QString::number(i);
+				MITK_INFO << QString::number(newPset->GetPoint(i)[0]) + ","
+					+ QString::number(newPset->GetPoint(i)[1]) + ","
+					+ QString::number(newPset->GetPoint(i)[2]);
+
+				//MITK_INFO << "partialStdCenters point " + QString::number(i);
+				//MITK_INFO << QString::number(partialStdCenters->GetPoint(i)[0]) + ","
+				//	+ QString::number(partialStdCenters->GetPoint(i)[1]) + ","
+				//	+ QString::number(partialStdCenters->GetPoint(i)[2]);
 			}
 		}
 
@@ -3971,31 +4019,37 @@ void DentalAccuracy::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 		MITK_INFO << "tmpError: " << tmpError;
 		MITK_INFO << "errorSum: " << errorSum;
 
-		if(tmpError < errorSum && tmpError > 0)
+		if (tmpError < errorSum && tmpError > 0)
 		{
 			errorSum = tmpError;
-			
-			b[0] = a[0];
-			b[1] = a[1];
-			b[2] = a[2];
-			b[3] = a[3];
-			b[4] = a[4];
-			b[5] = a[5];
-			b[6] = a[6];
+
+			for (int i = 0; i < realballnumber; i++)
+			{
+				b[i] = a[i];
+			}
+			//b[0] = a[0];
+			//b[1] = a[1];
+			//b[2] = a[2];
+			//b[3] = a[3];
+			//b[4] = a[4];
+			//b[5] = a[5];
+			//b[6] = a[6];
 		}
 
-		if(tmpError < 1)
+		if (tmpError < 1)
 		{
 			break;
 		}
+		permutation_time++;
 
+	} while (std::next_permutation(a.begin(), a.end()));
 
-	}while (std::next_permutation(a.begin(), a.end()));
-
+	MITK_INFO << "permutation_time:" + QString::number(permutation_time);
 
 	auto tmpPset = mitk::PointSet::New();
 
-	for (int i{ 0 }; i < 7; i++)
+	for (int i = 0; i < realballnumber; i++)
+		//for (int i{ 0 }; i < 7; i++)
 	{
 		if (i < partialStdCenters->GetSize())
 		{
@@ -4010,4 +4064,23 @@ void DentalAccuracy::RearrangeSteelballs(int stdNeighborNum, int foundIDs[7])
 	tmpNode->SetData(tmpPset);
 	GetDataStorage()->Add(tmpNode);
 	RemoveRedundantCenters();
+}
+
+void DentalAccuracy::on_comboBox_plate_changed(int index)
+{
+	if (index == 0)
+	{
+		stdCenters = stdCentersA;
+		realballnumber = 10;
+	}
+	else if (index == 1)
+	{
+		stdCenters = stdCentersB;
+		realballnumber = 10;
+	}
+	else if (index == 2)
+	{
+		stdCenters = stdCentersC;
+		realballnumber = 11;
+	}
 }

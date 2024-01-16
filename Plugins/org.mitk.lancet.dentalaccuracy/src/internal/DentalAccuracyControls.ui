@@ -23,7 +23,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -392,6 +392,13 @@
           </widget>
          </item>
          <item>
+          <widget class="QLabel" name="label_20">
+           <property name="text">
+            <string> Splint type</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QComboBox" name="comboBox_plate">
            <property name="minimumContentsLength">
             <number>0</number>
@@ -643,14 +650,28 @@
         <rect>
          <x>50</x>
          <y>90</y>
-         <width>251</width>
-         <height>101</height>
+         <width>431</width>
+         <height>141</height>
         </rect>
        </property>
        <property name="title">
         <string>Crown-abutment-implant linkage</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_11">
+        <item row="1" column="1">
+         <widget class="QPushButton" name="pushButton_followAbutment">
+          <property name="text">
+           <string>Implant follows Abutment</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_followCrown">
+          <property name="text">
+           <string>All follow Crown</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0" colspan="2">
          <layout class="QGridLayout" name="gridLayout_10">
           <item row="0" column="0">
@@ -679,17 +700,17 @@
           </item>
          </layout>
         </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="pushButton_followCrown">
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_implantToCrown">
           <property name="text">
-           <string>follow Corwn</string>
+           <string>Implant to crown</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
-         <widget class="QPushButton" name="pushButton_followAbutment">
+        <item row="2" column="1">
+         <widget class="QPushButton" name="pushButton_abutmentToImplant">
           <property name="text">
-           <string>follow Abutment</string>
+           <string>Abutment to implant</string>
           </property>
          </widget>
         </item>
@@ -699,7 +720,7 @@
        <property name="geometry">
         <rect>
          <x>70</x>
-         <y>220</y>
+         <y>250</y>
          <width>211</width>
          <height>23</height>
         </rect>

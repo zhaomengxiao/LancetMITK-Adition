@@ -58,6 +58,256 @@ found in the LICENSE file.
 #include "surfaceregistraion.h"
 
 
+void DentalAccuracy::on_pushButton_implantToCrown_clicked()
+{
+	// Check the availability of all the data
+	if (GetDataStorage()->GetNamedNode("crown_tip_pts") == nullptr)
+	{
+		m_Controls.textBrowser->append("crown_tip_pts is missing");
+		return;
+	}
+
+	if (GetDataStorage()->GetNamedNode("implant_tip_pts") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant_tip_pts is missing");
+		return;
+	}
+
+	if (GetDataStorage()->GetNamedNode("implant_to_move") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant_to_move is missing");
+		return;
+	}
+
+	auto implantSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("implant_to_move")->GetData());
+	auto implantTipPts = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("implant_tip_pts")->GetData());
+	auto crownTipPts = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("crown_tip_pts")->GetData());
+
+
+	// Assume the 1st point of implantTipPts is the head, the 2nd point is the tail
+	// Assume the 1st point of crownTipPts is the crown_baseContactPoint, the 2nd point is the crown_occlusionPoint
+	if (implantTipPts->GetSize() != 2)
+	{
+		m_Controls.textBrowser->append("abutment_tip_pts has wrong size!");
+		return;
+	}
+
+	if (crownTipPts->GetSize() != 2)
+	{
+		m_Controls.textBrowser->append("crown_tip_pts has wrong size!");
+		return;
+	}
+
+	mitk::Point3D implant_head_old = implantTipPts->GetPoint(0);
+	mitk::Point3D implant_tail_old = implantTipPts->GetPoint(1);
+	mitk::Point3D crown_occlusionPoint = crownTipPts->GetPoint(1);
+	mitk::Point3D crown_baseContactPoint = crownTipPts->GetPoint(0);
+
+
+	// Calculate the rotation matrix
+	Eigen::Vector3d controlAxis{
+		crown_baseContactPoint[0] - crown_occlusionPoint[0],
+		crown_baseContactPoint[1] - crown_occlusionPoint[1],
+		crown_baseContactPoint[2] - crown_occlusionPoint[2]
+	};
+	controlAxis.normalize();
+
+
+	Eigen::Vector3d implantAxis_old{
+		implant_head_old[0] - implant_tail_old[0],
+		implant_head_old[1] - implant_tail_old[1],
+		implant_head_old[2] - implant_tail_old[2]
+	};
+	implantAxis_old.normalize();
+
+	Eigen::Vector3d rotAxis = implantAxis_old.cross(controlAxis);
+	rotAxis.normalize();
+
+	double rotAngle = acos(implantAxis_old.dot(controlAxis)) * 180 / 3.141593;
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->Identity();
+	tmpTrans->PostMultiply();
+	tmpTrans->RotateWXYZ(rotAngle, rotAxis[0], rotAxis[1], rotAxis[2]);
+	tmpTrans->Update();
+
+	auto rotMatrix = tmpTrans->GetMatrix();
+
+	auto implantTipPts_matrix_old = implantTipPts->GetGeometry()->GetVtkMatrix();
+
+	// Calculate the translation offset
+	auto tipPts_Trans_tmp = vtkTransform::New();
+	tipPts_Trans_tmp->Identity();
+	tipPts_Trans_tmp->PostMultiply();
+	tipPts_Trans_tmp->SetMatrix(implantTipPts_matrix_old);
+	tipPts_Trans_tmp->Concatenate(rotMatrix);
+	tipPts_Trans_tmp->Update();
+
+	implantTipPts->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tipPts_Trans_tmp->GetMatrix());
+	auto impalnt_tip_head_tmp = implantTipPts->GetPoint(0);
+	auto implant_tip_tail_tmp = implantTipPts->GetPoint(1);
+
+	double offset[3]{ 0 };
+
+	offset[0] = crown_baseContactPoint[0] - implant_tip_tail_tmp[0] + controlAxis[0] * 5;
+	offset[1] = crown_baseContactPoint[1] - implant_tip_tail_tmp[1] + controlAxis[1] * 5;
+	offset[2] = crown_baseContactPoint[2] - implant_tip_tail_tmp[2] + controlAxis[2] * 5;
+
+	rotMatrix->SetElement(0, 3, offset[0]);
+	rotMatrix->SetElement(1, 3, offset[1]);
+	rotMatrix->SetElement(2, 3, offset[2]);
+
+	auto implant_matrix_old = implantSurface->GetGeometry()->GetVtkMatrix();
+
+	auto implantTrans = vtkTransform::New();
+	implantTrans->Identity();
+	implantTrans->PostMultiply();
+	implantTrans->SetMatrix(implant_matrix_old);
+	implantTrans->Concatenate(rotMatrix);
+	implantTrans->Update();
+
+	auto tipPts_Trans = vtkTransform::New();
+	tipPts_Trans->Identity();
+	tipPts_Trans->PostMultiply();
+	tipPts_Trans->SetMatrix(tipPts_Trans_tmp->GetMatrix());
+	tipPts_Trans->Translate(offset);
+	tipPts_Trans->Update();
+
+	implantSurface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(implantTrans->GetMatrix());
+
+
+	implantTipPts->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tipPts_Trans->GetMatrix());
+	implantTipPts->GetGeometry()->Modified();
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+}
+
+void DentalAccuracy::on_pushButton_abutmentToImplant_clicked()
+{
+	// Check the availability of all the data
+	if (GetDataStorage()->GetNamedNode("abutment_tip_pts") == nullptr)
+	{
+		m_Controls.textBrowser->append("abutment_tip_pts is missing");
+		return;
+	}
+
+	if (GetDataStorage()->GetNamedNode("implant_tip_pts") == nullptr)
+	{
+		m_Controls.textBrowser->append("implant_tip_pts is missing");
+		return;
+	}
+
+	if (GetDataStorage()->GetNamedNode("abutment_to_move") == nullptr)
+	{
+		m_Controls.textBrowser->append("abutment_to_move is missing");
+		return;
+	}
+
+	auto abutmentSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("abutment_to_move")->GetData());
+	auto abutmentTipPts = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("abutment_tip_pts")->GetData());
+	auto implantTipPts = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("implant_tip_pts")->GetData());
+
+
+	// Assume the 1st point of abutmentTipPts is the implant side, the 2nd point is the crown side
+	// Assume the 1st point of implantTipPts is the implant head point, the 2nd point is the implant tail point
+	if (abutmentTipPts->GetSize() != 2)
+	{
+		m_Controls.textBrowser->append("abutment_tip_pts has wrong size!");
+		return;
+	}
+
+	if (implantTipPts->GetSize() != 2)
+	{
+		m_Controls.textBrowser->append("implant_tip_pts has wrong size!");
+		return;
+	}
+
+	mitk::Point3D abutment_implantSide_old = abutmentTipPts->GetPoint(0);
+	mitk::Point3D abutment_crownSide_old = abutmentTipPts->GetPoint(1);
+	mitk::Point3D implant_head = implantTipPts->GetPoint(0);
+	mitk::Point3D implant_tail = implantTipPts->GetPoint(1);
+
+
+	// Calculate the rotation matrix
+	Eigen::Vector3d controlAxis{
+		implant_head[0] - implant_tail[0],
+		implant_head[1] - implant_tail[1],
+		implant_head[2] - implant_tail[2]
+	};
+	controlAxis.normalize();
+
+
+	Eigen::Vector3d abutmentAxis_old{
+		abutment_implantSide_old[0] - abutment_crownSide_old[0],
+		abutment_implantSide_old[1] - abutment_crownSide_old[1],
+		abutment_implantSide_old[2] - abutment_crownSide_old[2]
+	};
+	abutmentAxis_old.normalize();
+
+	Eigen::Vector3d rotAxis = abutmentAxis_old.cross(controlAxis);
+	rotAxis.normalize();
+
+	double rotAngle = acos(abutmentAxis_old.dot(controlAxis)) * 180 / 3.141593;
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->Identity();
+	tmpTrans->PostMultiply();
+	tmpTrans->RotateWXYZ(rotAngle, rotAxis[0], rotAxis[1], rotAxis[2]);
+	tmpTrans->Update();
+
+	auto rotMatrix = tmpTrans->GetMatrix();
+
+	auto abutmentTipPts_matrix_old = abutmentTipPts->GetGeometry()->GetVtkMatrix();
+
+	// Calculate the translation offset
+	auto tipPts_Trans_tmp = vtkTransform::New();
+	tipPts_Trans_tmp->Identity();
+	tipPts_Trans_tmp->PostMultiply();
+	tipPts_Trans_tmp->SetMatrix(abutmentTipPts_matrix_old);
+	tipPts_Trans_tmp->Concatenate(rotMatrix);
+	tipPts_Trans_tmp->Update();
+
+	abutmentTipPts->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tipPts_Trans_tmp->GetMatrix());
+	auto abutmentTip_implantSide_tmp = abutmentTipPts->GetPoint(0);
+	auto abutmentTip_crownSide_tmp = abutmentTipPts->GetPoint(1);
+
+	double offset[3]{ 0 };
+
+	offset[0] = implant_tail[0] - abutmentTip_implantSide_tmp[0];
+	offset[1] = implant_tail[1] - abutmentTip_implantSide_tmp[1];
+	offset[2] = implant_tail[2] - abutmentTip_implantSide_tmp[2];
+
+	rotMatrix->SetElement(0, 3, offset[0]);
+	rotMatrix->SetElement(1, 3, offset[1]);
+	rotMatrix->SetElement(2, 3, offset[2]);
+
+	auto abutment_matrix_old = abutmentSurface->GetGeometry()->GetVtkMatrix();
+
+	auto abutmentTrans = vtkTransform::New();
+	abutmentTrans->Identity();
+	abutmentTrans->PostMultiply();
+	abutmentTrans->SetMatrix(abutment_matrix_old);
+	abutmentTrans->Concatenate(rotMatrix);
+	abutmentTrans->Update();
+
+	auto tipPts_Trans = vtkTransform::New();
+	tipPts_Trans->Identity();
+	tipPts_Trans->PostMultiply();
+	tipPts_Trans->SetMatrix(tipPts_Trans_tmp->GetMatrix());
+	tipPts_Trans->Translate(offset);
+	tipPts_Trans->Update();
+
+	abutmentSurface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(abutmentTrans->GetMatrix());
+
+
+	abutmentTipPts->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tipPts_Trans->GetMatrix());
+	abutmentTipPts->GetGeometry()->Modified();
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+
 void DentalAccuracy::on_pushButton_followAbutment_clicked()
 {
 	// Check the availability of all the data
