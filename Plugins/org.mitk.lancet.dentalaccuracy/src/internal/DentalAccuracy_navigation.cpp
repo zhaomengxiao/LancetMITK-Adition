@@ -367,13 +367,20 @@ void DentalAccuracy::on_pushButton_resetImageRegis_clicked()
 
 void DentalAccuracy::on_pushButton_collectDitch_clicked()
 {
-	if (GetDataStorage()->GetNamedNode("probePoints_cmm") == nullptr)
+
+	// m_probeDitchPset_cmm = GetDataStorage()->GetNamedObject<mitk::PointSet>("probePoints_cmm");
+
+	if(m_probeDitchPset_cmm == nullptr)
 	{
-		m_Controls.textBrowser->append("probePoints_cmm is missing.");
+		m_Controls.textBrowser->append("SteelBall extraction should be conducted first!");
 		return;
 	}
 
-	m_probeDitchPset_cmm = GetDataStorage()->GetNamedObject<mitk::PointSet>("probePoints_cmm");
+	if (m_probeDitchPset_cmm->GetSize() == 0)
+	{
+		m_Controls.textBrowser->append("SteelBall extraction should be conducted first!");
+		return;
+	}
 
 	if (m_probeDitchPset_rf == nullptr)
 	{
