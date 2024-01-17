@@ -73,12 +73,7 @@ void DentalAccuracy::SetFocus()
   m_Controls.pushButton_planeAdjust->setFocus();
 }
 
-DentalAccuracy::DentalAccuracy()
-{
-	allBallFingerPrint.resize(edgenumber);
-	fill(allBallFingerPrint.begin(), allBallFingerPrint.end(), 0);
-	stdCenters = stdCentersA;
-}
+
 
 void DentalAccuracy::CreateQtPartControl(QWidget *parent)
 {
@@ -131,7 +126,7 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_followAbutment, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_followAbutment_clicked);
   connect(m_Controls.pushButton_followCrown, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_followCrown_clicked);
   connect(m_Controls.pushButton_implantTipExtract, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_implantTipExtract_clicked);
-  connect(m_Controls.comboBox_plate, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DentalAccuracy::on_comboBox_plate_changed);
+  // connect(m_Controls.comboBox_plate, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DentalAccuracy::on_comboBox_plate_changed);
   connect(m_Controls.pushButton_implantToCrown, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_implantToCrown_clicked);
   connect(m_Controls.pushButton_abutmentToImplant, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_abutmentToImplant_clicked);
 
@@ -946,11 +941,90 @@ void DentalAccuracy::ShowToolStatus_Vega()
 
 void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 {
-	// Initial preparation
+	
 	m_Controls.textBrowser->append("------- Started steelball searching -------");
 
+	// Initial preparation
+    // Determines the A, B, C splint type
+	int splintType = m_Controls.comboBox_plate->currentIndex();
+
+	auto steelBalls_cmm = mitk::PointSet::New();
+	auto splintSurface = mitk::Surface::New();
+	auto probeDitchPset_cmm = mitk::PointSet::New();
+
+	if (splintType == 0)
+	{
+		// Check if pointSet data is available
+		if (GetDataStorage()->GetNamedNode("steelBalls_cmm_A") != nullptr && GetDataStorage()->GetNamedNode("splintSurface_A") != nullptr
+			&& GetDataStorage()->GetNamedNode("probeDitchPset_cmm_A") != nullptr)
+		{
+			steelBalls_cmm = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelBalls_cmm_A")->GetData());
+			probeDitchPset_cmm = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("probeDitchPset_cmm_A")->GetData());
+			splintSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("splintSurface_A")->GetData());
+		}
+	}
+	else if (splintType == 1)
+	{
+		// Check if pointSet data is available
+		if (GetDataStorage()->GetNamedNode("steelBalls_cmm_B") != nullptr && GetDataStorage()->GetNamedNode("splintSurface_B") != nullptr
+			&& GetDataStorage()->GetNamedNode("probeDitchPset_cmm_B") != nullptr)
+		{
+			steelBalls_cmm = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelBalls_cmm_B")->GetData());
+			probeDitchPset_cmm = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("probeDitchPset_cmm_B")->GetData());
+			splintSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("splintSurface_B")->GetData());
+		}
+	}
+	else if (splintType == 2)
+	{
+		// Check if pointSet data is available
+		if (GetDataStorage()->GetNamedNode("steelBalls_cmm_C") != nullptr && GetDataStorage()->GetNamedNode("splintSurface_C") != nullptr
+			&& GetDataStorage()->GetNamedNode("probeDitchPset_cmm_C") != nullptr)
+		{
+			steelBalls_cmm = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelBalls_cmm_C")->GetData());
+			probeDitchPset_cmm = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("probeDitchPset_cmm_C")->GetData());
+			splintSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("splintSurface_C")->GetData());
+		}
+
+	}
+
+	if (steelBalls_cmm->GetSize() == 0)
+	{
+		m_Controls.textBrowser->append("Warning! steelBalls_cmm is not available in dataStorage!");
+		return;
+	}
+
+	if (probeDitchPset_cmm->GetSize() == 0)
+	{
+		m_Controls.textBrowser->append("Warning! probeDitchPset_cmm is not available in dataStorage!");
+		return;
+	}
+
+	if (splintSurface->GetVtkPolyData() == nullptr)
+	{
+		m_Controls.textBrowser->append("Warning! splintSurface is not available in dataStorage!");
+		return;
+	}
+
+	m_steelBalls_cmm = steelBalls_cmm;
+	m_splinterSurface = splintSurface;
+	m_probeDitchPset_cmm = probeDitchPset_cmm;
+
+	std::vector<double> tmpCenters(3 * steelBalls_cmm->GetSize(), 0.0);
+
+	for (int i{ 0 }; i < 3 * steelBalls_cmm->GetSize(); i++)
+	{
+		tmpCenters[i] = steelBalls_cmm->GetPoint(i / 3)[i % 3];
+	}
+
+	stdCenters = tmpCenters;
+	realballnumber = steelBalls_cmm->GetSize();
+	edgenumber = realballnumber * (realballnumber - 1);
+
+	allBallFingerPrint.resize(edgenumber);
+	fill(allBallFingerPrint.begin(), allBallFingerPrint.end(), 0);
+	
 	auto standartSteelballCenters = mitk::PointSet::New();
-	//int stdCenterNum{ 7 };
+
 	int stdCenterNum{ realballnumber };
 
 	for (int i{ 0 }; i < stdCenterNum; i++)
@@ -965,14 +1039,6 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 		standartSteelballCenters->InsertPoint(p);
 	}
 
-
-	// if (m_Controls.checkBox_generateStandardBallCenters->isChecked())
-	// {
-	// 	auto stdSteelballNode = mitk::DataNode::New();
-	// 	stdSteelballNode->SetName("std centers (full)");
-	// 	stdSteelballNode->SetData(standartSteelballCenters);
-	// 	GetDataStorage()->Add(stdSteelballNode);
-	// }
 
 	UpdateAllBallFingerPrint(standartSteelballCenters);
 
@@ -1095,15 +1161,7 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 			partialStdPointset->InsertPoint(standartSteelballCenters->GetPoint(q));
 		}
 	}
-
-	// if (m_Controls.checkBox_generateStandardBallCenters->isChecked())
-	// {
-	// 	auto tmpNode = mitk::DataNode::New();
-	// 	tmpNode->SetName("std centers (partial)");
-	// 	tmpNode->SetData(partialStdPointset);
-	// 	GetDataStorage()->Add(tmpNode);
-	// }
-
+	
 	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
 	landmarkRegistrator->SetLandmarksSrc(partialStdPointset);
 	landmarkRegistrator->SetLandmarksTarget(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData()));
@@ -1134,11 +1192,6 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 
 	m_Controls.textBrowser->append("------- End of steelball searching -------");
 
-	// auto tmpMatrix = landmarkRegistrator->GetResult();
-	//
-	// GetDataStorage()->GetNamedNode("std_modelWithPlan")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
-
-	//auto parentNode = m_Controls.mitkNodeSelectWidget_intraopCt->GetSelectedNode();
 	auto tmpPointSet = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData());
 	auto childNode = mitk::DataNode::New();
 	childNode->SetName("Steelball centers2");
@@ -1150,8 +1203,8 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 
 	//************* Move the dental splint surface **********************//
 	auto extractedBall_node = GetDataStorage()->GetNamedNode("steelball_image");
-	auto splint_node = GetDataStorage()->GetNamedNode("dentalSplint");
-	auto stdBall_node = GetDataStorage()->GetNamedNode("steelball_rf");
+	// auto splint_node = GetDataStorage()->GetNamedNode("dentalSplint");
+	// auto stdBall_node = GetDataStorage()->GetNamedNode("steelball_rf");
 	
 	if (extractedBall_node == nullptr)
 	{
@@ -1159,35 +1212,37 @@ void DentalAccuracy::on_pushButton_steelballExtract_clicked()
 		return;
 	}
 	
-	if (splint_node == nullptr || stdBall_node == nullptr)
-	{
-		m_Controls.textBrowser->append("dentalSplint or std_steelball is missing");
-		return;
-	}
+	// if (splint_node == nullptr || stdBall_node == nullptr)
+	// {
+	// 	m_Controls.textBrowser->append("dentalSplint or std_steelball is missing");
+	// 	return;
+	// }
 	
 	auto extractedBall_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("steelball_image");
-	auto stdball_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("steelball_rf");
+	// auto stdball_pset = GetDataStorage()->GetNamedObject<mitk::PointSet>("steelball_rf");
 	int extracted_num = extractedBall_pset->GetSize();
 	
-	if (extracted_num < stdball_pset->GetSize())
+	if (extracted_num < m_steelBalls_cmm->GetSize())
 	{
 		m_Controls.textBrowser->append("steelball_image extraction incomplete");
 		return;
 	}
 	
 	auto landmarkRegistrator2 = mitk::SurfaceRegistration::New();
-	landmarkRegistrator2->SetLandmarksSrc(stdball_pset);
+	landmarkRegistrator2->SetLandmarksSrc(m_steelBalls_cmm);
 	landmarkRegistrator2->SetLandmarksTarget(extractedBall_pset);
 	
 	landmarkRegistrator2->ComputeLandMarkResult();
 	
 	auto result_matrix = landmarkRegistrator2->GetResult();
 
-	auto splint_surface = GetDataStorage()->GetNamedObject<mitk::Surface>("dentalSplint");
+	// auto splint_surface = GetDataStorage()->GetNamedObject<mitk::Surface>("dentalSplint");
 	
-	splint_surface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(result_matrix);
+	splintSurface->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(result_matrix);
 	
-	splint_surface->GetGeometry()->Modified();
+	splintSurface->GetGeometry()->Modified();
+
+	
 }
 
 
@@ -4068,19 +4123,49 @@ void DentalAccuracy::RearrangeSteelballs(int stdNeighborNum, std::vector<int>& f
 
 void DentalAccuracy::on_comboBox_plate_changed(int index)
 {
+	auto steelBalls_cmm = mitk::PointSet::New();
+
 	if (index == 0)
 	{
-		stdCenters = stdCentersA;
-		realballnumber = 10;
+		// Check if pointSet data is available
+		if (GetDataStorage()->GetNamedNode("steelBalls_cmm_A") != nullptr)
+		{
+			steelBalls_cmm = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelBalls_cmm_A")->GetData());
+		}
 	}
 	else if (index == 1)
 	{
-		stdCenters = stdCentersB;
-		realballnumber = 10;
+		// Check if pointSet data is available
+		if(GetDataStorage()->GetNamedNode("steelBalls_cmm_B") != nullptr)
+		{
+			steelBalls_cmm = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelBalls_cmm_B")->GetData());
+			
+		}
 	}
 	else if (index == 2)
 	{
-		stdCenters = stdCentersC;
-		realballnumber = 11;
+		// Check if pointSet data is available
+		if (GetDataStorage()->GetNamedNode("steelBalls_cmm_C") != nullptr)
+		{
+			steelBalls_cmm = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelBalls_cmm_C")->GetData());
+		}
+
 	}
+
+	if(steelBalls_cmm ->GetSize() == 0)
+	{
+		m_Controls.textBrowser->append("Warning! steelBalls_cmm is not available in dataStorage!");
+		return;
+	}
+
+	std::vector<double> tmpCenters(3 * steelBalls_cmm->GetSize(), 0.0);
+
+	for (int i{ 0 }; i < 3 * steelBalls_cmm->GetSize(); i++)
+	{
+		tmpCenters[i] = steelBalls_cmm->GetPoint(i / 3)[i % 3];
+	}
+
+	stdCenters = tmpCenters;
+	realballnumber = steelBalls_cmm->GetSize();
+
 }

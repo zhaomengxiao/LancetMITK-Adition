@@ -620,7 +620,7 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 
 	if (m_Stat_calibratorRFtoDrill == false)
 	{
-		m_Controls.textBrowser->append("m_T_calibratorRFtoDrill is not ready");
+		m_Controls.textBrowser->append("m_T_calibratorRFtoDrill from hardware design is not ready");
 		return;
 	}
 

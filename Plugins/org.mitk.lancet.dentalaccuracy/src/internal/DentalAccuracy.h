@@ -42,7 +42,6 @@ class DentalAccuracy : public QmitkAbstractView
 public:
   static const std::string VIEW_ID;
 
-  DentalAccuracy();
 
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
@@ -176,58 +175,20 @@ protected:
   QTimer* m_VegaVisualizeTimer{ nullptr };
   std::vector<mitk::NavigationData::Pointer> m_VegaNavigationData;
 
-  // Image registration
+  // Old style Image registration
   lancet::NavigationObject::Pointer m_NavigatedImage;
   vtkNew<vtkMatrix4x4> m_ImageRegistrationMatrix; // image(surface) to ObjectRf matrix
   lancet::ApplySurfaceRegistratioinStaticImageFilter::Pointer m_SurfaceRegistrationStaticImageFilter;
 
 
-  // SteelBall extraction and dental splint movement 
+  // ************* SteelBall extraction and dental splint movement Modified by Yuhan *******************
   std::vector<double> allBallFingerPrint;
- 
   std::vector<double> stdCenters;
-  std::vector<double> stdCentersA
-  {
-	  11.48, 5.06, 1.70,
-	  4.98, 5.03, 5.70,
-	  -1.52, 5.01, 0.70,
-	  -0.28, 13.93, 0.70,
-	  17.67, 13.39, 1.70,
-	  8.22, 24.49, 2.70,
-	  17, 31.87, 0.70,
-	  36.57, 23.60, 1.70,
-	  32.02, 32.03, 5.70,
-	  27.38, 40.61, 0.70
-  };
+  int realballnumber{0};
+  int edgenumber{0};
 
-  std::vector<double> stdCentersB
-  {
-	  11.50, 0.70, -5.02,
-	  5, 5.70, -5.02,
-	  -1.50, 1.70, -5.02,
-	  10.23, 0.70, -13.93,
-	  -7.72, 1.70, -13.33,
-	  1.70, 2.70, -24.46,
-	  -7.10, 0.70, -31.81,
-	  -17.52, 0.70, -40.51,
-	  -22.12, 5.70, -31.92,
-	  -26.65, 1.70, -23.47
-  };
-  std::vector<double> stdCentersC
-  {
-	  16.77, 2.30, -3.12,  //p1
-	  29.96, 3.30, -12.73, //p13
-	  5.91, 9.30, -17.44,  //p7
-	  1.02, 2.80, -9.76,   //p4
-	  -1.33, 4.30, -3.29,  //p3
-	  25.99, 2.30, -28.94, //p17
-	  8.16, 10.30, -3.61,  //p2
-	  32.33, 10.30, -21.52,//p18
-	  32.04, 3.30, -29.88, //p19
-	  12.56, 1.30, -23.12, //p10
-	  18.95, 9.30, -26.61  //p11
-  };
-	   
+  mitk::Surface::Pointer m_splinterSurface = mitk::Surface::New();
+  mitk::PointSet::Pointer m_steelBalls_cmm = mitk::PointSet::New();
 
 
   // Rewrite the image registration and navigation part without using the MITK IGT pipeline
@@ -264,8 +225,7 @@ protected:
   double m_T_patientRFtoImage[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform image registration to acquire  
   
 
-  int realballnumber = 10;
-  int edgenumber = realballnumber * (realballnumber - 1);
+  
 
 
 };
