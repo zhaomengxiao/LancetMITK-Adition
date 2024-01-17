@@ -612,11 +612,85 @@ void DentalAccuracy::OnVegaVisualizeTimer()
 void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 {
 	// This function is aimed to calculate m_T_handpieceRFtoDrill
+
+	// Step 1: calculate T_calibratorRFtoDrill from the
+	// PointSet probe_head_tail_mandible or probe_head_tail_maxilla in the dataStorage
+	if(GetDataStorage()->GetNamedNode("probe_head_tail_mandible") == nullptr ||
+		GetDataStorage()->GetNamedNode("probe_head_tail_maxilla") == nullptr)
+	{
+		m_Controls.textBrowser->append("probe_head_tail_mandible or probe_head_tail_maxilla is missing!");
+		return;
+	}
+
+	auto probe_head_tail_mandible = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("probe_head_tail_mandible")->GetData());
+	auto probe_head_tail_maxilla = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("probe_head_tail_maxilla")->GetData());
+
+	if(probe_head_tail_mandible->GetSize() != 2 || probe_head_tail_maxilla->GetSize() != 2)
+	{
+		m_Controls.textBrowser->append("probe_head_tail_mandible or probe_head_tail_maxilla is problematic!");
+		return;
+	}
+
+	auto probe_head_tail = mitk::PointSet::New();
+
+	if(m_Controls.radioButton_maxilla->isChecked())
+	{
+		probe_head_tail = probe_head_tail_maxilla;
+	}else
+	{
+		probe_head_tail = probe_head_tail_mandible;
+	}
+
+	auto probe_head = probe_head_tail->GetPoint(0);
+	auto probe_tail = probe_head_tail->GetPoint(1);
+
+	Eigen::Vector3d z_probeInCalibratorRF;
+	z_probeInCalibratorRF[0] = probe_tail[0] - probe_head[0];
+	z_probeInCalibratorRF[1] = probe_tail[1] - probe_head[1];
+	z_probeInCalibratorRF[2] = probe_tail[2] - probe_head[2];
+	z_probeInCalibratorRF.normalize();
+
+	Eigen::Vector3d z_std{0,0,1};
+
+	Eigen::Vector3d rotAxis = z_std.cross(z_probeInCalibratorRF);
+
+	rotAxis.normalize();
+
+	if(rotAxis.norm() < 0.00001) // in case the rotAxis becomes a zero vector
+	{
+		rotAxis[0] = 1;
+		rotAxis[1] = 0;
+		rotAxis[2] = 0;
+	}
+
+	double rotAngle = 180 * acos(z_std.dot(z_probeInCalibratorRF)) / 3.141592654;
+
+	auto trans_calibratorRFtoDrill = vtkTransform::New();
+	trans_calibratorRFtoDrill->Identity();
+	trans_calibratorRFtoDrill->PostMultiply();
+	trans_calibratorRFtoDrill->RotateWXYZ(rotAngle, rotAxis[0], rotAxis[1], rotAxis[2]);
+	trans_calibratorRFtoDrill->Update();
+
+	auto T_calibratorRFtoDrill = trans_calibratorRFtoDrill->GetMatrix();
+	T_calibratorRFtoDrill->SetElement(0, 3, probe_head[0]);
+	T_calibratorRFtoDrill->SetElement(1, 3, probe_head[1]);
+	T_calibratorRFtoDrill->SetElement(2, 3, probe_head[2]);
+
+	for (int i{ 0 }; i < 16; i++)
+	{
+		m_T_calibratorRFtoDrill[i] = T_calibratorRFtoDrill->GetData()[i];
+	}
+	
+	m_Stat_calibratorRFtoDrill = true;
+
+	// Step 2: Obtain the camera data and assemble the matrix:
+	// T_handpieceRFtoDrill = (T_cameraTohandpieceRF)^-1 * T_cameraToCalibratorRF * T_calibratorRFtoDrill
 	if (m_Stat_cameraToCalibratorRF == false || m_Stat_cameraToHandpieceRF == false)
 	{
 		m_Controls.textBrowser->append("calibratorRF or handpieceRF is invisible");
 		return;
 	}
+	   
 
 	if (m_Stat_calibratorRFtoDrill == false)
 	{

@@ -217,7 +217,7 @@ protected:
   bool m_Stat_cameraToCalibratorRF{ false };
 
   // Image registration matrix and tool calibration matrix
-  bool m_Stat_calibratorRFtoDrill{ true };
+  bool m_Stat_calibratorRFtoDrill{ false };
   double m_T_calibratorRFtoDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // from hardware design
   bool m_Stat_handpieceRFtoDrill{ false };
   double m_T_handpieceRFtoDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform handpiece calibration to acquire
