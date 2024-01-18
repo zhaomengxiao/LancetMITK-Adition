@@ -3852,22 +3852,21 @@ void DentalAccuracy::ScreenCoarseSteelballCenters(int requiredNeighborNum, int s
 	int lengthOfFingerPrint = stdNeighborNum;
 	int numOfTargetSteelballs = stdNeighborNum + 1;
 
-
 	for (int q{ 0 }; q < numOfTargetSteelballs; q++)
 	{
-		std::vector<double> fingerPrint(numOfTargetSteelballs, 0);
-		for (int i = 0; i < numOfTargetSteelballs; i++)
+		std::vector<double> fingerPrint(lengthOfFingerPrint, 0);
+		for (int i = 0; i < lengthOfFingerPrint; i++)
 		{
-			fingerPrint[i] = allBallFingerPrint[stdNeighborNum * q + i];
+			fingerPrint[i] = allBallFingerPrint[lengthOfFingerPrint * q + i];
 		}
 		//double fingerPrint[6]
 		//{
-		//	allBallFingerPrint[6 * q],
-		//	allBallFingerPrint[6 * q + 1],
-		//	allBallFingerPrint[6 * q + 2],
-		//	allBallFingerPrint[6 * q + 3],
-		//	allBallFingerPrint[6 * q + 4],
-		//	allBallFingerPrint[6 * q + 5],
+		//        allBallFingerPrint[6 * q],
+		//        allBallFingerPrint[6 * q + 1],
+		//        allBallFingerPrint[6 * q + 2],
+		//        allBallFingerPrint[6 * q + 3],
+		//        allBallFingerPrint[6 * q + 4],
+		//        allBallFingerPrint[6 * q + 5],
 		//};
 
 
@@ -3893,7 +3892,7 @@ void DentalAccuracy::ScreenCoarseSteelballCenters(int requiredNeighborNum, int s
 
 				// if (metSingleRequirement == false)
 				// {
-				// 	break;
+				//         break;
 				// }
 
 			}
@@ -3920,7 +3919,6 @@ void DentalAccuracy::ScreenCoarseSteelballCenters(int requiredNeighborNum, int s
 	GetDataStorage()->Add(tmpNode);
 	RemoveRedundantCenters();
 }
-
 void DentalAccuracy::IterativeScreenCoarseSteelballCenters(int requiredNeighborNum, int stdNeighborNum, std::vector<int>& foundIDs)
 {
 	int oldNumOfCenters = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("Steelball centers")->GetData())->GetSize();

@@ -106,16 +106,23 @@ void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 	auto tmpMatrix = landmarkRegistrator->GetResult();
 
 	// Step 2: Apply tmpMatrix to 'probePoints_cmm' to get 'probePoints_image'
-	auto probePoints_cmm = m_probeDitchPset_cmm;
+	auto probePoints_cmm = mitk::PointSet::New();
+	
+	auto probePoints_image = mitk::PointSet::New();
+
+	for (int i{ 0 }; i < m_probeDitchPset_cmm->GetSize(); i++)
+	{
+		probePoints_cmm->InsertPoint(m_probeDitchPset_cmm->GetPoint(i));
+	}
+
 	probePoints_cmm->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
 	probePoints_cmm->GetGeometry()->Modified();
-
-	auto probePoints_image = mitk::PointSet::New();
 
 	for (int i{ 0 }; i < probePoints_cmm->GetSize(); i++)
 	{
 		probePoints_image->InsertPoint(probePoints_cmm->GetPoint(i));
 	}
+
 
 	// Step 3: Check if enough probe ditch points have been collected
 	if (m_probeDitchPset_rf == nullptr)
@@ -124,7 +131,7 @@ void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 		return;
 	}
 
-	if (m_probeDitchPset_rf->GetSize() < 4)
+	if (m_probeDitchPset_rf->GetSize() < 5)
 	{
 		m_Controls.textBrowser->append("At least 5 probe ditch points should be captured");
 		return;
@@ -163,36 +170,43 @@ void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 
 		m_Controls.textBrowser->append("sorted_probeDitchPset_rf Pnum: " + QString::number(sorted_probeDitchPset_rf->GetSize()));
 
-
 		tmpLandmarkRegistrator->ComputeLandMarkResult();
 		double tmpMaxError = tmpLandmarkRegistrator->GetmaxLandmarkError();
 		double tmpAvgError = tmpLandmarkRegistrator->GetavgLandmarkError();
 
-		m_Controls.lineEdit_maxError->setText(QString::number(tmpMaxError));
-		m_Controls.lineEdit_avgError->setText(QString::number(tmpAvgError));
-
-		if (tmpMaxError < 1.5)
+		if(tmpMaxError < maxError && tmpAvgError < avgError)
 		{
 			maxError = tmpMaxError;
 			avgError = tmpAvgError;
 
+			m_Controls.lineEdit_maxError->setText(QString::number(tmpMaxError));
+			m_Controls.lineEdit_avgError->setText(QString::number(tmpAvgError));
+
 			memcpy_s(m_T_patientRFtoImage, sizeof(double) * 16, tmpLandmarkRegistrator->GetResult()->GetData(), sizeof(double) * 16);
+		}
 
-			m_Stat_patientRFtoImage = true;
-
+		if (maxError < 0.5)
+		{
 			break;
 		}
+
 	}
 
 	if(maxError < 1.5 && avgError < 1.5)
 	{
 		m_Controls.textBrowser->append("Image registration succeeded");
-		
+		m_Stat_patientRFtoImage = true;
 
 	}else
 	{
-		m_Controls.textBrowser->append("Image registration failed, please collect more points");
+		m_Controls.textBrowser->append("Image registration failed, please collect more points or reset!");
 		m_Stat_patientRFtoImage = false;
+
+		// Clear m_T_patientRFtoImage
+		auto identityMatrix = vtkMatrix4x4::New();
+		identityMatrix->Identity();
+		memcpy_s(m_T_patientRFtoImage, sizeof(double) * 16, identityMatrix->GetData(), sizeof(double) * 16);
+		
 	}
 
 	// old pipeline style
@@ -687,11 +701,19 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 	T_calibratorRFtoDrill->SetElement(1, 3, probe_head[1]);
 	T_calibratorRFtoDrill->SetElement(2, 3, probe_head[2]);
 
-	for (int i{ 0 }; i < 16; i++)
-	{
-		m_T_calibratorRFtoDrill[i] = T_calibratorRFtoDrill->GetData()[i];
-	}
-	
+	// for (int i{ 0 }; i < 16; i++)
+	// {
+	// 	m_T_calibratorRFtoDrill[i] = T_calibratorRFtoDrill->GetData()[i];
+	// }
+
+	memcpy_s(m_T_calibratorRFtoDrill, sizeof(double) * 16, T_calibratorRFtoDrill->GetData(), sizeof(double) * 16);
+
+	m_Controls.textBrowser->append("Drill tip in calibratorRF:"
+		+ QString::number(m_T_calibratorRFtoDrill[3]) + " / "
+		+ QString::number(m_T_calibratorRFtoDrill[7]) + " / "
+		+ QString::number(m_T_calibratorRFtoDrill[11]) + " / "
+		+ QString::number(m_T_calibratorRFtoDrill[15]));
+
 	m_Stat_calibratorRFtoDrill = true;
 
 	// Step 2: Obtain the camera data and assemble the matrix:
@@ -711,19 +733,17 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 
 	auto T_handpieceRFtoCamera = vtkMatrix4x4::New();
 	auto T_cameraToCalibratorRF = vtkMatrix4x4::New();
-	auto T_calibratorRFToDrill = vtkMatrix4x4::New();
+	
 
 	T_handpieceRFtoCamera->DeepCopy(m_T_cameraToHandpieceRF);
 	T_handpieceRFtoCamera->Invert();
 
 	T_cameraToCalibratorRF->DeepCopy(m_T_cameraToCalibratorRF);
 
-	T_calibratorRFToDrill->DeepCopy(m_T_calibratorRFtoDrill);
-
 	auto trans_handpieceRFtoDrill = vtkTransform::New();
 	trans_handpieceRFtoDrill->Identity();
 	trans_handpieceRFtoDrill->PostMultiply();
-	trans_handpieceRFtoDrill->SetMatrix(T_calibratorRFToDrill);
+	trans_handpieceRFtoDrill->SetMatrix(T_calibratorRFtoDrill);
 	trans_handpieceRFtoDrill->Concatenate(T_cameraToCalibratorRF);
 	trans_handpieceRFtoDrill->Concatenate(T_handpieceRFtoCamera);
 	trans_handpieceRFtoDrill->Update();
@@ -736,6 +756,12 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 	m_Stat_handpieceRFtoDrill = true;
 
 	m_Controls.textBrowser->append("Handpiece calibration succeeded!");
+
+	m_Controls.textBrowser->append("Drill tip in handpieceRF:"  
+		+ QString::number(m_T_handpieceRFtoDrill[3])+" / "
+		+ QString::number(m_T_handpieceRFtoDrill[7]) + " / "
+		+ QString::number(m_T_handpieceRFtoDrill[11])+ " / "
+		+ QString::number(m_T_handpieceRFtoDrill[15]));
 
 	// Calculate T_drillDRFtoCalibratorDRF (realization with pipeline)
 	// auto calibratorDRFindex = m_VegaToolStorage->GetToolIndexByName("calibrator");
