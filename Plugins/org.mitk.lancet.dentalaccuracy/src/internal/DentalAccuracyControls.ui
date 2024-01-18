@@ -436,6 +436,97 @@
        <string>Navigation</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_12">
+       <item row="5" column="0">
+        <widget class="QPushButton" name="pushButton_startNavi">
+         <property name="text">
+          <string>Start navigation (Fixed image)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QSplitter" name="splitter_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <widget class="QPushButton" name="pushButton_imageRegisNew">
+          <property name="text">
+           <string>Register Image (Runyes)</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string>Max error: </string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="lineEdit_maxError">
+          <property name="text">
+           <string>NaN</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_19">
+          <property name="text">
+           <string>Avg error: </string>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="lineEdit_avgError">
+          <property name="text">
+           <string>NaN</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_10">
+         <item>
+          <widget class="QPushButton" name="pushButton_collectDitch">
+           <property name="text">
+            <string>Collect ditch point</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_resetImageRegis">
+           <property name="text">
+            <string>Reset</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_9">
+           <item>
+            <widget class="QLabel" name="label_15">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string>0</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_16">
+             <property name="text">
+              <string>/ X</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="pushButton_imageRegis">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Image Registration (Lancet way regis)</string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="1" column="0">
@@ -496,16 +587,6 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
-        <widget class="QPushButton" name="pushButton_imageRegis">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Image Registration (Lancet way regis)</string>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_12">
          <item>
@@ -538,84 +619,10 @@
          </item>
         </layout>
        </item>
-       <item row="3" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_10">
-         <item>
-          <widget class="QPushButton" name="pushButton_collectDitch">
-           <property name="text">
-            <string>Collect ditch point</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_resetImageRegis">
-           <property name="text">
-            <string>Reset</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_9">
-           <item>
-            <widget class="QLabel" name="label_15">
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
-             </property>
-             <property name="text">
-              <string>0</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_16">
-             <property name="text">
-              <string>/ X</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-       <item row="4" column="0">
-        <widget class="QSplitter" name="splitter_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <widget class="QPushButton" name="pushButton_imageRegisNew">
-          <property name="text">
-           <string>Register Image (Runyes)</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_18">
-          <property name="text">
-           <string>Max error: </string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="lineEdit_maxError">
-          <property name="text">
-           <string>NaN</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_19">
-          <property name="text">
-           <string>Avg error: </string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="lineEdit_avgError">
-          <property name="text">
-           <string>NaN</string>
-          </property>
-         </widget>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QPushButton" name="pushButton_startNavi">
+       <item row="6" column="0">
+        <widget class="QPushButton" name="pushButton_startNavi_floatImage">
          <property name="text">
-          <string>Start navigation</string>
+          <string>Start navigation (Floating image)</string>
          </property>
         </widget>
        </item>

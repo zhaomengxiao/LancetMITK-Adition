@@ -60,41 +60,45 @@ found in the LICENSE file.
 
 void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 {
-	auto cmm_Ball_node = GetDataStorage()->GetNamedNode("steelball_cmm"); // steelballs from CMM
+	// auto cmm_Ball_node = GetDataStorage()->GetNamedNode("steelball_cmm"); // steelballs from CMM
 
-	auto extractedBall_node = GetDataStorage()->GetNamedNode("steelball_image"); // steelballs in image
+	// auto extractedBall_node = GetDataStorage()->GetNamedNode("steelball_image"); // steelballs in image
+	//
+	// auto cmm_ProbeDitch_node = GetDataStorage()->GetNamedNode("probePoints_cmm"); // probe ditch points from CMM
 
-	auto cmm_ProbeDitch_node = GetDataStorage()->GetNamedNode("probePoints_cmm"); // probe ditch points from CMM
+	// if (cmm_Ball_node == nullptr)
+	// {
+	// 	m_Controls.textBrowser->append("steelball_cmm is missing");
+	// 	return;
+	// }
 
-	if (cmm_Ball_node == nullptr)
+	// if (extractedBall_node == nullptr)
+	// {
+	// 	m_Controls.textBrowser->append("'steelball_image' is missing");
+	// 	return;
+	// }
+	//
+	// if (cmm_ProbeDitch_node == nullptr)
+	// {
+	// 	m_Controls.textBrowser->append("probePoints_cmm is missing");
+	// 	return;
+	// }
+
+	if(m_steelBalls_cmm == nullptr || m_probeDitchPset_cmm == nullptr || GetDataStorage()->GetNamedNode("steelball_image") == nullptr)
 	{
-		m_Controls.textBrowser->append("steelball_cmm is missing");
+		m_Controls.textBrowser->append("Image steelBall extraction should be conducted first!");
 		return;
 	}
 
-	if (extractedBall_node == nullptr)
+	if(m_steelBalls_cmm->GetSize() != dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelball_image")->GetData())->GetSize())
 	{
-		m_Controls.textBrowser->append("'steelball_image' is missing");
-		return;
-	}
-
-	if (cmm_ProbeDitch_node == nullptr)
-	{
-		m_Controls.textBrowser->append("probePoints_cmm is missing");
-		return;
-	}
-
-	if(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelball_cmm")->GetData())->GetSize() !=
-		dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelball_image")->GetData())->GetSize()
-		)
-	{
-		m_Controls.textBrowser->append("steelball_image extraction is not complete!");
+		m_Controls.textBrowser->append("Image steelBall extraction is not complete!");
 		return;
 	}
 
 	// Step 1: Calculate the transform from steelballs_cmm to steelballs_image
 	auto landmarkRegistrator = mitk::SurfaceRegistration::New();
-	landmarkRegistrator->SetLandmarksSrc(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelball_cmm")->GetData()));
+	landmarkRegistrator->SetLandmarksSrc(m_steelBalls_cmm);
 	landmarkRegistrator->SetLandmarksTarget(dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("steelball_image")->GetData()));
 
 	landmarkRegistrator->ComputeLandMarkResult();
@@ -102,8 +106,9 @@ void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 	auto tmpMatrix = landmarkRegistrator->GetResult();
 
 	// Step 2: Apply tmpMatrix to 'probePoints_cmm' to get 'probePoints_image'
-	auto probePoints_cmm = GetDataStorage()->GetNamedObject<mitk::PointSet>("probePoints_cmm");
+	auto probePoints_cmm = m_probeDitchPset_cmm;
 	probePoints_cmm->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
+	probePoints_cmm->GetGeometry()->Modified();
 
 	auto probePoints_image = mitk::PointSet::New();
 
@@ -126,8 +131,6 @@ void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 	}
 
 	// Step 4: Calculate m_T_patientRFtoImage
-	
-
 	int collectedPointNum = m_probeDitchPset_rf->GetSize();
 	int totalPointNum = probePoints_image->GetSize();
 
@@ -168,7 +171,7 @@ void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 		m_Controls.lineEdit_maxError->setText(QString::number(tmpMaxError));
 		m_Controls.lineEdit_avgError->setText(QString::number(tmpAvgError));
 
-		if (tmpMaxError < 2.5)
+		if (tmpMaxError < 1.5)
 		{
 			maxError = tmpMaxError;
 			avgError = tmpAvgError;
@@ -181,7 +184,7 @@ void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 		}
 	}
 
-	if(maxError < 2.5 && avgError < 2.5)
+	if(maxError < 1.5 && avgError < 1.5)
 	{
 		m_Controls.textBrowser->append("Image registration succeeded");
 		
@@ -189,6 +192,7 @@ void DentalAccuracy::on_pushButton_imageRegisNew_clicked()
 	}else
 	{
 		m_Controls.textBrowser->append("Image registration failed, please collect more points");
+		m_Stat_patientRFtoImage = false;
 	}
 
 	// old pipeline style
@@ -792,9 +796,9 @@ void DentalAccuracy::on_pushButton_startNavi_clicked()
 
 void DentalAccuracy::UpdateDrillVisual()
 {
-	if(GetDataStorage()->GetNamedNode("drillSurface") == nullptr)
+	if(GetDataStorage()->GetNamedNode("probeSurface") == nullptr)
 	{
-		m_Controls.textBrowser->append("drillSurface is missing");
+		m_Controls.textBrowser->append("probeSurface is missing");
 		return;
 	}
 
@@ -829,9 +833,9 @@ void DentalAccuracy::UpdateDrillVisual()
 
 	auto T_imageToDrill = tmpTrans->GetMatrix();
 
-	GetDataStorage()->GetNamedNode("drillSurface")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToDrill);
+	GetDataStorage()->GetNamedNode("probeSurface")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToDrill);
+	GetDataStorage()->GetNamedNode("probeSurface")->GetData()->GetGeometry()->Modified();
 
-	// m_Controls.textBrowser->append("drillSurface updated!");
 }
 
 
