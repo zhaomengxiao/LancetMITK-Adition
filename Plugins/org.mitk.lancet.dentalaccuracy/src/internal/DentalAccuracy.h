@@ -218,15 +218,32 @@ protected:
 
   // Image registration matrix and tool calibration matrix
   bool m_Stat_calibratorRFtoDrill{ false };
-  double m_T_calibratorRFtoDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // from hardware design
+  double m_T_calibratorRFtoDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // from hardware design, here the drill is actually the probe
+ 
   bool m_Stat_handpieceRFtoDrill{ false };
-  double m_T_handpieceRFtoDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform handpiece calibration to acquire
+  double m_T_handpieceRFtoDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform handpiece calibration to acquire,, here the drill is actually the probe
+  double m_T_handpieceRFtoInputDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // consider the actual length of the selected drill
+
   bool m_Stat_patientRFtoImage{ false };
   double m_T_patientRFtoImage[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform image registration to acquire  
   
 
-  
+  // Error deviation and navigation mode switch
+  int m_NaviMode{ 0 }; // 0 is drilling mode; 1 is implantation mode
+  double m_AngleError{ 0 };
+  double m_DrillTipTotalError{ 0 };
+  double m_DrillTipVertiError{ 0 };
+  double m_DrillTipHoriError{ 0 };
 
+  double m_EntryTotalError{ 0 };
+  double m_EntryVertiError{ 0 };
+  double m_EntryHoriError{ 0 };
+
+  double m_ApexTotalError{ 0 };
+  double m_ApexVertiError{ 0 };
+  double m_ApexHoriError{ 0 };
+
+  void CalculateDeviation();
 
 };
 

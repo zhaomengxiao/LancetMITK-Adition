@@ -708,11 +708,6 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 
 	memcpy_s(m_T_calibratorRFtoDrill, sizeof(double) * 16, T_calibratorRFtoDrill->GetData(), sizeof(double) * 16);
 
-	m_Controls.textBrowser->append("Drill tip in calibratorRF:"
-		+ QString::number(m_T_calibratorRFtoDrill[3]) + " / "
-		+ QString::number(m_T_calibratorRFtoDrill[7]) + " / "
-		+ QString::number(m_T_calibratorRFtoDrill[11]) + " / "
-		+ QString::number(m_T_calibratorRFtoDrill[15]));
 
 	m_Stat_calibratorRFtoDrill = true;
 
@@ -799,6 +794,7 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 
 }
 
+
 void DentalAccuracy::on_pushButton_startNavi_clicked()
 {
 	disconnect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DentalAccuracy::UpdateDrillVisual);
@@ -815,6 +811,37 @@ void DentalAccuracy::on_pushButton_startNavi_clicked()
 		return;
 	}
 
+	// Modify the length of the drill/probe surface and m_T_handpieceRFtoDrill 
+	double inputDrillLength = m_Controls.lineEdit_drillLength->text().toDouble();
+
+	auto probe_head_tail_mandible = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("probe_head_tail_mandible")->GetData());
+
+	double probeDrillLength = GetPointDistance(probe_head_tail_mandible->GetPoint(0), probe_head_tail_mandible->GetPoint(1));
+
+	double z_scale = inputDrillLength / probeDrillLength;
+
+	auto T_handpieceRFtoDrill_init = vtkMatrix4x4::New();
+	T_handpieceRFtoDrill_init->DeepCopy(m_T_handpieceRFtoDrill);
+
+	auto T_probeDrilltoInputDrill = vtkMatrix4x4::New();
+	T_probeDrilltoInputDrill->Identity();
+	T_probeDrilltoInputDrill->SetElement(2, 2, z_scale);
+	T_probeDrilltoInputDrill->SetElement(2, 3, probeDrillLength - inputDrillLength);
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(T_probeDrilltoInputDrill);
+	tmpTrans->Concatenate(T_handpieceRFtoDrill_init);
+	tmpTrans->Update();
+
+	auto T_handpieceRFtoDrill_new = tmpTrans->GetMatrix();
+
+	memcpy_s(m_T_handpieceRFtoInputDrill, sizeof(double) * 16, T_handpieceRFtoDrill_new->GetData(), sizeof(double) * 16);
+
+	TurnOffAllNodesVisibility();
+	GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("drillSurface")->SetVisibility(true);
+
 	connect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DentalAccuracy::UpdateDrillVisual);
 
 }
@@ -822,9 +849,9 @@ void DentalAccuracy::on_pushButton_startNavi_clicked()
 
 void DentalAccuracy::UpdateDrillVisual()
 {
-	if(GetDataStorage()->GetNamedNode("probeSurface") == nullptr)
+	if(GetDataStorage()->GetNamedNode("drillSurface") == nullptr)
 	{
-		m_Controls.textBrowser->append("probeSurface is missing");
+		m_Controls.textBrowser->append("drillSurface is missing");
 		return;
 	}
 
@@ -838,7 +865,7 @@ void DentalAccuracy::UpdateDrillVisual()
 	T_cameraToHandpieceRF->DeepCopy(m_T_cameraToHandpieceRF);
 
 	auto T_handpieceRFtoDrill = vtkMatrix4x4::New();
-	T_handpieceRFtoDrill->DeepCopy(m_T_handpieceRFtoDrill);
+	T_handpieceRFtoDrill->DeepCopy(m_T_handpieceRFtoInputDrill);
 
 	auto T_patientRFtoCamera = vtkMatrix4x4::New();
 	T_patientRFtoCamera->DeepCopy(m_T_cameraToPatientRF);
@@ -859,8 +886,8 @@ void DentalAccuracy::UpdateDrillVisual()
 
 	auto T_imageToDrill = tmpTrans->GetMatrix();
 
-	GetDataStorage()->GetNamedNode("probeSurface")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToDrill);
-	GetDataStorage()->GetNamedNode("probeSurface")->GetData()->GetGeometry()->Modified();
+	GetDataStorage()->GetNamedNode("drillSurface")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToDrill);
+	GetDataStorage()->GetNamedNode("drillSurface")->GetData()->GetGeometry()->Modified();
 
 }
 
