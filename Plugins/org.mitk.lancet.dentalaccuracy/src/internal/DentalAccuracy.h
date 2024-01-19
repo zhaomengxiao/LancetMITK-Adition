@@ -208,6 +208,9 @@ protected:
   void on_pushButton_startNavi_clicked();
   void UpdateDrillVisual();
 
+  void on_pushButton_startNaviImplant_clicked();
+  void UpdateImplantAndCarrierVisual();
+
   // Navigation data from the camera
   double m_T_cameraToHandpieceRF[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 };
   bool m_Stat_cameraToHandpieceRF{false};
@@ -223,6 +226,11 @@ protected:
   bool m_Stat_handpieceRFtoDrill{ false };
   double m_T_handpieceRFtoDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform handpiece calibration to acquire,, here the drill is actually the probe
   double m_T_handpieceRFtoInputDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // consider the actual length of the selected drill
+
+  double m_T_handpieceRFtoInputCarrier[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // consider the actual length of the selected carrier
+  double m_T_handpieceRFtoInputImplant[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // consider the actual length of the selected implant
+
+
 
   bool m_Stat_patientRFtoImage{ false };
   double m_T_patientRFtoImage[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform image registration to acquire  

@@ -794,10 +794,10 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 
 }
 
-
-void DentalAccuracy::on_pushButton_startNavi_clicked()
+void DentalAccuracy::on_pushButton_startNaviImplant_clicked()
 {
 	disconnect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DentalAccuracy::UpdateDrillVisual);
+	disconnect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DentalAccuracy::UpdateImplantAndCarrierVisual);
 
 	if (m_Stat_handpieceRFtoDrill == false)
 	{
@@ -811,7 +811,163 @@ void DentalAccuracy::on_pushButton_startNavi_clicked()
 		return;
 	}
 
-	// Modify the length of the drill/probe surface and m_T_handpieceRFtoDrill 
+	//********** Modify the length of the carrier/implant surface and m_T_handpieceRFtoDrill *********** 
+
+	auto identityMatrix = vtkMatrix4x4::New();
+	identityMatrix->Identity();
+
+	auto probe_head_tail_mandible = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("probe_head_tail_mandible")->GetData());
+
+	double probeDrillLength = GetPointDistance(probe_head_tail_mandible->GetPoint(0), probe_head_tail_mandible->GetPoint(1));
+
+	// Carrier part
+	double inputCarrierLength = m_Controls.lineEdit_carrierLength->text().toDouble();
+
+	auto carrier_tip_pts_default = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("carrier_tip_pts")->GetData());
+
+	carrier_tip_pts_default->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+
+	carrier_tip_pts_default->GetGeometry()->Modified();
+
+	double carrierDefaultLength = GetPointDistance(carrier_tip_pts_default->GetPoint(0), carrier_tip_pts_default->GetPoint(1));
+
+	double z_carrier_scale = inputCarrierLength / carrierDefaultLength;
+
+	auto T_handpieceRFtoDrill_init = vtkMatrix4x4::New();
+	T_handpieceRFtoDrill_init->DeepCopy(m_T_handpieceRFtoDrill);
+
+	auto T_probeDrilltoInputCarrier = vtkMatrix4x4::New();
+	T_probeDrilltoInputCarrier->Identity();
+	T_probeDrilltoInputCarrier->SetElement(2, 2, z_carrier_scale);
+	T_probeDrilltoInputCarrier->SetElement(2, 3, probeDrillLength - inputCarrierLength);
+
+	auto Trans_handpieceRFtoInputCarrier = vtkTransform::New();
+	Trans_handpieceRFtoInputCarrier->PostMultiply();
+	Trans_handpieceRFtoInputCarrier->SetMatrix(T_probeDrilltoInputCarrier);
+	Trans_handpieceRFtoInputCarrier->Concatenate(T_handpieceRFtoDrill_init);
+	Trans_handpieceRFtoInputCarrier->Update();
+
+	auto T_handpieceRFtoInputCarrier = Trans_handpieceRFtoInputCarrier->GetMatrix();
+
+	memcpy_s(m_T_handpieceRFtoInputCarrier, sizeof(double) * 16, T_handpieceRFtoInputCarrier->GetData(), sizeof(double) * 16);
+
+	// Implant part
+	double inputImplantLength = m_Controls.lineEdit_implantLength->text().toDouble();
+
+	auto implant_tip_pts_default = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("implant_tip_pts")->GetData());
+
+	implant_tip_pts_default->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(identityMatrix);
+
+	implant_tip_pts_default->GetGeometry()->Modified();
+
+	double implantDefaultLength = GetPointDistance(implant_tip_pts_default->GetPoint(0), implant_tip_pts_default->GetPoint(1));
+
+	double z_implant_scale = inputImplantLength / implantDefaultLength;
+
+	auto T_probeDrilltoInputImplant = vtkMatrix4x4::New();
+	T_probeDrilltoInputImplant->Identity();
+	T_probeDrilltoInputImplant->SetElement(2, 2, z_implant_scale);
+	T_probeDrilltoInputImplant->SetElement(2, 3, probeDrillLength - inputCarrierLength- inputImplantLength);
+
+	auto Trans_handpieceRFtoInputImplant = vtkTransform::New();
+	Trans_handpieceRFtoInputImplant->PostMultiply();
+	Trans_handpieceRFtoInputImplant->SetMatrix(T_probeDrilltoInputImplant);
+	Trans_handpieceRFtoInputImplant->Concatenate(T_handpieceRFtoDrill_init);
+	Trans_handpieceRFtoInputImplant->Update();
+
+	auto T_handpieceRFtoInputImplant = Trans_handpieceRFtoInputImplant->GetMatrix();
+
+	memcpy_s(m_T_handpieceRFtoInputImplant, sizeof(double) * 16, T_handpieceRFtoInputImplant->GetData(), sizeof(double) * 16);
+
+
+	TurnOffAllNodesVisibility();
+	GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("carrierSurface")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("implantSurface")->SetVisibility(true);
+
+	connect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DentalAccuracy::UpdateImplantAndCarrierVisual);
+}
+
+void DentalAccuracy::UpdateImplantAndCarrierVisual()
+{
+	if (m_Stat_cameraToHandpieceRF == false || m_Stat_cameraToPatientRF == false)
+	{
+		// m_Controls.textBrowser->append("RF is not visible!");
+		return;
+	}
+
+	auto T_cameraToHandpieceRF = vtkMatrix4x4::New();
+	T_cameraToHandpieceRF->DeepCopy(m_T_cameraToHandpieceRF);
+
+	auto T_handpieceRFtoInputCarrier = vtkMatrix4x4::New();
+	T_handpieceRFtoInputCarrier->DeepCopy(m_T_handpieceRFtoInputCarrier);
+
+	auto T_handpieceRFtoInputImplant = vtkMatrix4x4::New();
+	T_handpieceRFtoInputImplant->DeepCopy(m_T_handpieceRFtoInputImplant);
+
+	auto T_patientRFtoCamera = vtkMatrix4x4::New();
+	T_patientRFtoCamera->DeepCopy(m_T_cameraToPatientRF);
+	T_patientRFtoCamera->Invert();
+
+	auto T_imageToPatientRF = vtkMatrix4x4::New();
+	T_imageToPatientRF->DeepCopy(m_T_patientRFtoImage);
+	T_imageToPatientRF->Invert();
+
+	auto tmpTrans_carrier = vtkTransform::New();
+	tmpTrans_carrier->Identity();
+	tmpTrans_carrier->PostMultiply();
+	tmpTrans_carrier->SetMatrix(T_handpieceRFtoInputCarrier);
+	tmpTrans_carrier->Concatenate(T_cameraToHandpieceRF);
+	tmpTrans_carrier->Concatenate(T_patientRFtoCamera);
+	tmpTrans_carrier->Concatenate(T_imageToPatientRF);
+	tmpTrans_carrier->Update();
+
+	auto T_imageToInputCarrier = tmpTrans_carrier->GetMatrix();
+
+	GetDataStorage()->GetNamedNode("carrierSurface")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToInputCarrier);
+	GetDataStorage()->GetNamedNode("carrierSurface")->GetData()->GetGeometry()->Modified();
+
+	GetDataStorage()->GetNamedNode("carrier_tip_pts")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToInputCarrier);
+	GetDataStorage()->GetNamedNode("carrier_tip_pts")->GetData()->GetGeometry()->Modified();
+
+	auto tmpTrans_implant = vtkTransform::New();
+	tmpTrans_implant->Identity();
+	tmpTrans_implant->PostMultiply();
+	tmpTrans_implant->SetMatrix(T_handpieceRFtoInputImplant);
+	tmpTrans_implant->Concatenate(T_cameraToHandpieceRF);
+	tmpTrans_implant->Concatenate(T_patientRFtoCamera);
+	tmpTrans_implant->Concatenate(T_imageToPatientRF);
+	tmpTrans_implant->Update();
+
+	auto T_imageToInputImplant = tmpTrans_implant->GetMatrix();
+
+	GetDataStorage()->GetNamedNode("implantSurface")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToInputImplant);
+	GetDataStorage()->GetNamedNode("implantSurface")->GetData()->GetGeometry()->Modified();
+
+	GetDataStorage()->GetNamedNode("implant_tip_pts")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToInputImplant);
+	GetDataStorage()->GetNamedNode("implant_tip_pts")->GetData()->GetGeometry()->Modified();
+
+}
+
+
+void DentalAccuracy::on_pushButton_startNavi_clicked()
+{
+	disconnect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DentalAccuracy::UpdateDrillVisual);
+	disconnect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DentalAccuracy::UpdateImplantAndCarrierVisual);
+
+	if (m_Stat_handpieceRFtoDrill == false)
+	{
+		m_Controls.textBrowser->append("Handpiece calibration is not ready!");
+		return;
+	}
+
+	if (m_Stat_patientRFtoImage == false)
+	{
+		m_Controls.textBrowser->append("Image registration is not ready!");
+		return;
+	}
+
+	// Modify the length of the drill/probe surface and m_T_handpieceRFtoInputDrill based on the input length and m_T_handpieceRFtoDrill
 	double inputDrillLength = m_Controls.lineEdit_drillLength->text().toDouble();
 
 	auto probe_head_tail_mandible = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("probe_head_tail_mandible")->GetData());

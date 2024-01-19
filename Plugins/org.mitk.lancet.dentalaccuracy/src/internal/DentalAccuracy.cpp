@@ -122,6 +122,7 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_clock_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_clock_ax_clicked);
   connect(m_Controls.pushButton_counter_ax, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_counter_ax_clicked);
   connect(m_Controls.pushButton_startNavi, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_startNavi_clicked);
+  connect(m_Controls.pushButton_startNaviImplant, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_startNaviImplant_clicked);
   connect(m_Controls.pushButton_testMoveImplant, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_testMoveImplant_clicked);
   connect(m_Controls.pushButton_followAbutment, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_followAbutment_clicked);
   connect(m_Controls.pushButton_followCrown, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_followCrown_clicked);
