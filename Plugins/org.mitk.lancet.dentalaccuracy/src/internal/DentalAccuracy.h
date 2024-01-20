@@ -230,7 +230,7 @@ protected:
   double m_T_handpieceRFtoInputCarrier[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // consider the actual length of the selected carrier
   double m_T_handpieceRFtoInputImplant[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // consider the actual length of the selected implant
 
-
+  double m_T_imageToInputDrill[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // consider the actual length of the selected drill
 
   bool m_Stat_patientRFtoImage{ false };
   double m_T_patientRFtoImage[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 }; // Perform image registration to acquire  
@@ -251,7 +251,7 @@ protected:
   double m_ApexVertiError{ 0 };
   double m_ApexHoriError{ 0 };
 
-  void CalculateDeviation();
+  void UpdateDeviation();
 
 };
 

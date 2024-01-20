@@ -757,42 +757,142 @@ void DentalAccuracy::on_pushButton_calibrateDrill_clicked()
 		+ QString::number(m_T_handpieceRFtoDrill[7]) + " / "
 		+ QString::number(m_T_handpieceRFtoDrill[11])+ " / "
 		+ QString::number(m_T_handpieceRFtoDrill[15]));
+	
+}
 
-	// Calculate T_drillDRFtoCalibratorDRF (realization with pipeline)
-	// auto calibratorDRFindex = m_VegaToolStorage->GetToolIndexByName("calibrator");
-	// auto drillDRFindex = m_VegaToolStorage->GetToolIndexByName("drillRF");
-	// if (calibratorDRFindex == -1 || drillDRFindex == -1)
-	// {
-	// 	m_Controls.textBrowser->append("There is no 'calibrator' or 'drillDRF' in the toolStorage!");
-	// }
-	//
-	// mitk::NavigationData::Pointer nd_ndiTocalibratorDRF = m_VegaSource->GetOutput(calibratorDRFindex);
-	// mitk::NavigationData::Pointer nd_ndiTodrillDRF = m_VegaSource->GetOutput(drillDRFindex);
-	//
-	// if (nd_ndiTocalibratorDRF->IsDataValid() == 0 || nd_ndiTodrillDRF->IsDataValid() == 0)
-	// {
-	// 	m_Controls.textBrowser->append("calibrator or drillRF is missing");
-	// 	return;
-	// }
-	//
-	// mitk::NavigationData::Pointer nd_drillDRFtoCalibratorDRF = GetNavigationDataInRef(nd_ndiTocalibratorDRF, nd_ndiTodrillDRF);
-	//
-	// vtkMatrix4x4* T_drillDRFtoCalibratorDRF = vtkMatrix4x4::New();
-	// mitk::TransferItkTransformToVtkMatrix(nd_drillDRFtoCalibratorDRF->GetAffineTransform3D().GetPointer(), T_drillDRFtoCalibratorDRF);
-	//
-	// m_Controls.textBrowser->append("Drill calibration matrix");
-	// for (int i{ 0 }; i < 4; i++)
-	// {
-	// 	for (int j{ 0 }; j < 4; j++)
-	// 	{
-	// 		m_Controls.textBrowser->append(QString::number(T_drillDRFtoCalibratorDRF->GetElement(i, j)));
-	// 	}
-	// }
-	//
-	// m_VegaToolStorage->GetToolByName("drillRF")->SetToolRegistrationMatrix(nd_drillDRFtoCalibratorDRF->GetAffineTransform3D());
+void DentalAccuracy::UpdateDeviation()
+{
+	// planned entry point and apex point in image frame
+	auto plan_tip_pts = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("plan_tip_pts")->GetData());
+	mitk::Point3D apex_plan = plan_tip_pts->GetPoint(0);
+	mitk::Point3D entry_plan = plan_tip_pts->GetPoint(1);
+
+	Eigen::Vector3d axis_plan;
+	axis_plan[0] = entry_plan[0] - apex_plan[0];
+	axis_plan[1] = entry_plan[1] - apex_plan[1];
+	axis_plan[2] = entry_plan[2] - apex_plan[2];
+	axis_plan.normalize();
+
+	// T_imageToProbe
+	auto T_cameraToHandpieceRF = vtkMatrix4x4::New();
+	T_cameraToHandpieceRF->DeepCopy(m_T_cameraToHandpieceRF);
+
+	auto T_handpieceRFtoDrill = vtkMatrix4x4::New();
+	T_handpieceRFtoDrill->DeepCopy(m_T_handpieceRFtoDrill);
+
+	auto T_patientRFtoCamera = vtkMatrix4x4::New();
+	T_patientRFtoCamera->DeepCopy(m_T_cameraToPatientRF);
+	T_patientRFtoCamera->Invert();
+
+	auto T_imageToPatientRF = vtkMatrix4x4::New();
+	T_imageToPatientRF->DeepCopy(m_T_patientRFtoImage);
+	T_imageToPatientRF->Invert();
+
+	auto tmpTrans = vtkTransform::New();
+	tmpTrans->Identity();
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(T_handpieceRFtoDrill);
+	tmpTrans->Concatenate(T_cameraToHandpieceRF);
+	tmpTrans->Concatenate(T_patientRFtoCamera);
+	tmpTrans->Concatenate(T_imageToPatientRF);
+	tmpTrans->Update();
+
+	auto T_imageToProbe = tmpTrans->GetMatrix(); // image to probe actually
+
+	Eigen::Vector3d axis_probe;
+	axis_probe[0] = T_imageToProbe->GetElement(0, 2);
+	axis_probe[1] = T_imageToProbe->GetElement(1, 2);
+	axis_probe[2] = T_imageToProbe->GetElement(2, 2);
+
+	double angleDevi = 180 * acos(axis_plan.dot(axis_probe)) / 3.1415926;
+
+	m_Controls.lineEdit_angleError->setText(QString::number(angleDevi));
+
+	//******** m_NaviMode = 0 , i.e, Drilling mode, only update the Drill deviation *************
+	if(m_NaviMode == 0)
+	{
+		m_Controls.lineEdit_entryTotalError->setText("NaN");
+		m_Controls.lineEdit_entryVertError->setText("NaN");
+		m_Controls.lineEdit_entryHoriError->setText("NaN");
+		m_Controls.lineEdit_apexTotalError->setText("NaN");
+		m_Controls.lineEdit_apexVertError->setText("NaN");
+		m_Controls.lineEdit_apexHoriError->setText("NaN");
+
+		// Tip to planned apex
+		mitk::Point3D drillTip;
+		drillTip[0] = m_T_imageToInputDrill[3];
+		drillTip[1] = m_T_imageToInputDrill[7];
+		drillTip[2] = m_T_imageToInputDrill[11];
+		double tipToPlannedApex = GetPointDistance(drillTip, apex_plan);
+		m_Controls.lineEdit_drillTipTotalError->setText(QString::number(tipToPlannedApex));
+
+		// Vertical deviation
+		Eigen::Vector3d plannedApexToDrillTip;
+		plannedApexToDrillTip[0] = drillTip[0] - apex_plan[0];
+		plannedApexToDrillTip[1] = drillTip[1] - apex_plan[1];
+		plannedApexToDrillTip[2] = drillTip[2] - apex_plan[2];
+
+		double verticalDevi = plannedApexToDrillTip.dot(axis_plan);
+		m_Controls.lineEdit_drillTipVertError->setText(QString::number(verticalDevi));
+
+		// Horizontal deviation
+		double horizontalDevi = plannedApexToDrillTip.cross(axis_plan).norm();
+		m_Controls.lineEdit_drillTipHoriError->setText(QString::number(horizontalDevi));
+
+	}
+
+	//******** m_NaviMode = 1 , i.e, Implantation mode, only update the implant deviation and angle deviation *************
+	if (m_NaviMode == 1)
+	{
+		m_Controls.lineEdit_drillTipTotalError->setText("NaN");
+		m_Controls.lineEdit_drillTipVertError->setText("NaN");
+		m_Controls.lineEdit_drillTipHoriError->setText("NaN");
+
+		//******* real implant entry ************
+		// Total distance to  planned entry
+		mitk::Point3D entry_real = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("implant_tip_pts")->GetData())->GetPoint(1);
+		double totalEntryDis = GetPointDistance(entry_real, entry_plan);
+		m_Controls.lineEdit_entryTotalError->setText(QString::number(totalEntryDis));
+
+		// Vertical deviation
+		Eigen::Vector3d entry_planToReal;
+		entry_planToReal[0] = entry_real[0] - entry_plan[0];
+		entry_planToReal[1] = entry_real[1] - entry_plan[1];
+		entry_planToReal[2] = entry_real[2] - entry_plan[2];
+
+		double verticalDevi_entry = entry_planToReal.dot(axis_plan);
+		m_Controls.lineEdit_entryVertError->setText(QString::number(verticalDevi_entry));
+
+		// Horizontal deviation
+		double horizontalDevi_entry = entry_planToReal.cross(axis_plan).norm();
+		m_Controls.lineEdit_entryHoriError->setText(QString::number(horizontalDevi_entry));
+
+
+		//******* real implant apex ************
+		// Total distance to  planned apex
+		mitk::Point3D apex_real = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("implant_tip_pts")->GetData())->GetPoint(0);
+		double totalApexDis = GetPointDistance(apex_real, apex_plan);
+		m_Controls.lineEdit_apexTotalError->setText(QString::number(totalApexDis));
+
+		// Vertical deviation
+		Eigen::Vector3d apex_planToReal;
+		apex_planToReal[0] = apex_real[0] - apex_plan[0];
+		apex_planToReal[1] = apex_real[1] - apex_plan[1];
+		apex_planToReal[2] = apex_real[2] - apex_plan[2];
+
+		double verticalDevi_apex = apex_planToReal.dot(axis_plan);
+		m_Controls.lineEdit_apexVertError->setText(QString::number(verticalDevi_apex));
+
+		// Horizontal deviation
+		double horizontalDevi_apex = apex_planToReal.cross(axis_plan).norm();
+		m_Controls.lineEdit_apexHoriError->setText(QString::number(horizontalDevi_apex));
+
+	}
+
 
 
 }
+
 
 void DentalAccuracy::on_pushButton_startNaviImplant_clicked()
 {
@@ -810,6 +910,9 @@ void DentalAccuracy::on_pushButton_startNaviImplant_clicked()
 		m_Controls.textBrowser->append("Image registration is not ready!");
 		return;
 	}
+
+
+	m_NaviMode = 1;
 
 	//********** Modify the length of the carrier/implant surface and m_T_handpieceRFtoDrill *********** 
 
@@ -885,6 +988,10 @@ void DentalAccuracy::on_pushButton_startNaviImplant_clicked()
 	GetDataStorage()->GetNamedNode("carrierSurface")->SetVisibility(true);
 	GetDataStorage()->GetNamedNode("implantSurface")->SetVisibility(true);
 
+	GetDataStorage()->GetNamedNode("stdmulti.widget0.plane")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("stdmulti.widget1.plane")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("stdmulti.widget2.plane")->SetVisibility(false);
+
 	connect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DentalAccuracy::UpdateImplantAndCarrierVisual);
 }
 
@@ -947,6 +1054,8 @@ void DentalAccuracy::UpdateImplantAndCarrierVisual()
 	GetDataStorage()->GetNamedNode("implant_tip_pts")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToInputImplant);
 	GetDataStorage()->GetNamedNode("implant_tip_pts")->GetData()->GetGeometry()->Modified();
 
+
+	UpdateDeviation();
 }
 
 
@@ -966,6 +1075,9 @@ void DentalAccuracy::on_pushButton_startNavi_clicked()
 		m_Controls.textBrowser->append("Image registration is not ready!");
 		return;
 	}
+
+
+	m_NaviMode = 0;
 
 	// Modify the length of the drill/probe surface and m_T_handpieceRFtoInputDrill based on the input length and m_T_handpieceRFtoDrill
 	double inputDrillLength = m_Controls.lineEdit_drillLength->text().toDouble();
@@ -997,6 +1109,11 @@ void DentalAccuracy::on_pushButton_startNavi_clicked()
 	TurnOffAllNodesVisibility();
 	GetDataStorage()->GetNamedNode("CBCT Bounding Shape_cropped")->SetVisibility(true);
 	GetDataStorage()->GetNamedNode("drillSurface")->SetVisibility(true);
+
+	GetDataStorage()->GetNamedNode("stdmulti.widget0.plane")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("stdmulti.widget1.plane")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("stdmulti.widget2.plane")->SetVisibility(false);
+
 
 	connect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DentalAccuracy::UpdateDrillVisual);
 
@@ -1042,9 +1159,13 @@ void DentalAccuracy::UpdateDrillVisual()
 
 	auto T_imageToDrill = tmpTrans->GetMatrix();
 
+	memcpy_s(m_T_imageToInputDrill, sizeof(double) * 16, T_imageToDrill->GetData(), sizeof(double) * 16);
+	
 	GetDataStorage()->GetNamedNode("drillSurface")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToDrill);
 	GetDataStorage()->GetNamedNode("drillSurface")->GetData()->GetGeometry()->Modified();
 
+
+	UpdateDeviation();
 }
 
 
