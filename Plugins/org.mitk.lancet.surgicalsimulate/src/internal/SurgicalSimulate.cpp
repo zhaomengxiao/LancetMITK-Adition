@@ -71,7 +71,7 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   // InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_metaImageNode);
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surface_regis);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_landmark_src);
-  InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
+  // InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPoint);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetLine);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_ImageCheckPoint);
   InitPointSetSelector(m_Controls.mitkNodeSelectWidget_imageTargetPlane);
@@ -91,21 +91,18 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_applyRegistration, &QPushButton::clicked, this, &SurgicalSimulate::ApplySurfaceRegistration);
   connect(m_Controls.pushButton_collectIcp, &QPushButton::clicked, this, &SurgicalSimulate::CollectIcpProbe);
   connect(m_Controls.pushButton_startTracking, &QPushButton::clicked, this, &SurgicalSimulate::StartTracking);
-  connect(m_Controls.pushButton_captureSurgicalPlane, &QPushButton::clicked, this,
-          &SurgicalSimulate::OnCaptureProbeAsSurgicalPlane);
+  // connect(m_Controls.pushButton_captureSurgicalPlane, &QPushButton::clicked, this, &SurgicalSimulate::OnCaptureProbeAsSurgicalPlane);
   connect(m_Controls.pushButton_startAutoPosition, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoPositionStart);
+  connect(m_Controls.pushButton_gotoPlaneEdge, &QPushButton::clicked, this, &SurgicalSimulate::OnAutoPositionStart);
   connect(m_Controls.pushButton_saveRobotRegist, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
   connect(m_Controls.pushButton_usePreRobotRegit, &QPushButton::clicked, this, &SurgicalSimulate::OnUsePreRobotRegitration);
 
-  connect(m_Controls.pushButton_confirmImageTarget, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImagePoint);
   connect(m_Controls.pushButton_applyPreImageRegistration, &QPushButton::clicked, this, &SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration);
   connect(m_Controls.pushButton_applyPreImageRegistrationNew, &QPushButton::clicked, this, &SurgicalSimulate::ApplyPreexistingImageSurfaceRegistration_staticImage);
   connect(m_Controls.pushButton_applyRegistrationNew, &QPushButton::clicked, this, &SurgicalSimulate::ApplySurfaceRegistration_staticImage);
 
-	connect(m_Controls.pushButton_saveNdiTools, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
+  connect(m_Controls.pushButton_saveNdiTools, &QPushButton::clicked, this, &SurgicalSimulate::OnSaveRobotRegistraion);
 
-
-  connect(m_Controls.pushButton_setTCP, &QPushButton::clicked, this, &SurgicalSimulate::OnSetTCP);
   connect(m_Controls.pushButton_confirmImageTargetLine, &QPushButton::clicked, this, &SurgicalSimulate::InterpretImageLine);
   connect(m_Controls.pushButton_probeCheckPoint, &QPushButton::clicked, this, &SurgicalSimulate::ProbeImageCheckPoint);
 
@@ -114,8 +111,6 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   // connect(m_Controls.pushButton_touchP3, &QPushButton::clicked, this, &SurgicalSimulate::TouchProbeCalibrationPoint3);
 
   connect(m_Controls.pushButton_probeSurfaceDistance, &QPushButton::clicked, this, &SurgicalSimulate::ProbeSurface);
-
-  connect(m_Controls.pushButton_roboRegisManual, &QPushButton::clicked, this, &SurgicalSimulate::ManuallySetRobotRegistration);
   connect(m_Controls.pushButton_InitializeTcp, &QPushButton::clicked, this, &SurgicalSimulate::ResetRobotTcp);
   connect(m_Controls.pushButton_setTcpPrecisionTest, &QPushButton::clicked, this, &SurgicalSimulate::SetPrecisionTestTcp);
   connect(m_Controls.pushButton_setPlanePrecisionTestTcp, &QPushButton::clicked, this, &SurgicalSimulate::SetPlanePrecisionTestTcp);
@@ -159,7 +154,6 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 
   connect(m_Controls.pushButton_endToolPower, &QPushButton::clicked, this, &SurgicalSimulate::StartTrackingWithPowerControl);
 
-  connect(m_Controls.pushButton_calibrateDrill, &QPushButton::clicked, this, &SurgicalSimulate::On_pushButton_calibrateDrill_clicked);
 
 }
 
@@ -388,11 +382,13 @@ void SurgicalSimulate::StartTrackingWithPowerControl()
 {
 	if(m_T_robot != nullptr)
 	{
+		disconnect(m_CheckPowerStatusTimer, SIGNAL(timeout()), this, SLOT(OnCheckPowerStatusTimer()));
+
 		if (m_CheckPowerStatusTimer == nullptr)
 		{
 			m_CheckPowerStatusTimer = new QTimer(this); //create a new timer
 		}
-
+		
 		connect(m_CheckPowerStatusTimer, SIGNAL(timeout()), this, SLOT(OnCheckPowerStatusTimer()));
 		// connect the timer to the method OnTimer()
 		// connect(m_KukaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget()));
@@ -1202,139 +1198,91 @@ void SurgicalSimulate::OnUsePreRobotRegitration()
   m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "5" });
 }
 
-void SurgicalSimulate::OnSetTCP()
-{
-	QString tcpNum = m_Controls.lineEdit_tcp->text();
 
-	m_KukaTrackingDevice->RequestExecOperate("setTcpNum", { "1", tcpNum });
-	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "0" });
-}
-
-void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
-{
-  //create NavigationDataToPointSetFilter to get a point3D by probe in NDI coordinates
-  mitk::NavigationDataToPointSetFilter::Pointer probePoint = mitk::NavigationDataToPointSetFilter::New();
-  //auto probeToolIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
-  probePoint->SetInput(m_VegaSource->GetOutput("Probe"));
-  probePoint->SetOperationMode(mitk::NavigationDataToPointSetFilter::Mode3DMean);
-  probePoint->SetNumberForMean(10);
-  //run the filter
-  probePoint->Update();
-  //get output
-  mitk::PointSet::Pointer target = probePoint->GetOutput(0);
-
-  // //create a Surgical plan
-  // m_SurgicalPlan = lancet::PointPath::New();
-  //convert to robot coordinates
-  mitk::AffineTransform3D::Pointer targetMatrix = mitk::AffineTransform3D::New();
-  targetMatrix->SetOffset(target->GetPoint(0).GetDataPointer());
-  MITK_INFO << "Captured Point: " << targetMatrix;
-
-  m_T_robot = mitk::AffineTransform3D::New();
-  m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
-  m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", targetMatrix, m_T_robot);
-
-  //========
-  //convert from ndi to robot use navigationTree
-  //========
-    //build the tree
-  //NavigationTree::Pointer tree = NavigationTree::New();
-
-  //NavigationNode::Pointer ndi = NavigationNode::New();
-  //ndi->SetNavigationData(mitk::NavigationData::New());
-  //ndi->SetNodeName("ndi");
-
-  //tree->Init(ndi);
-
-  //NavigationNode::Pointer robotBaseRF = NavigationNode::New();
-  //robotBaseRF->SetNodeName("RobotBaseRF");
-  //robotBaseRF->SetNavigationData(m_VegaSource->GetOutput("RobotBaseRF"));
-
-  //tree->AddChild(robotBaseRF, ndi);
-
-  //NavigationNode::Pointer robot = NavigationNode::New();
-  //robot->SetNodeName("Robot");
-  //robot->SetNavigationData(mitk::NavigationData::New(m_RobotRegistrationMatrix));
-
-  //tree->AddChild(robot, robotBaseRF);
-
-  //  //use tree
-  //mitk::NavigationData::Pointer treeRes =  tree->GetNavigationData(mitk::NavigationData::New(targetMatrix), "ndi", "Robot");
-  //mitk::AffineTransform3D::Pointer treeResMatrix = treeRes->GetAffineTransform3D();
-
-  //m_T_robot = treeResMatrix;
-
-  //MITK_INFO << "tree res";
-  //MITK_INFO << treeResMatrix;
-  //========
-  //convert from ndi to robot use navigationTree
-  //========
-  
-  //by hand
-  //Td2e = Td2c*Tc2a*Ta2e
-	//  = Tc2d^-1 * Ta2c^-1 *Ta2e
-	//  = m_ndD^-1 * m_ndC^-1 *m_ndInput
- /* mitk::NavigationData::Pointer byhand = mitk::NavigationData::New(targetMatrix);
-  byhand->Compose(m_VegaSource->GetOutput("RobotBaseRF")->GetInverse());
-  byhand->Compose(mitk::NavigationData::New(m_RobotRegistrationMatrix)->GetInverse());
-  MITK_INFO << "by hand:";
-  MITK_INFO << byhand->GetAffineTransform3D();
-
-  MITK_INFO << "correct:";
-  MITK_INFO << m_T_robot;*/
-
-
-  //use robot matrix,not change the end tool rotation,only apply the offset from probe;
-  m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
-
-  m_Controls.textBrowser->append(QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
+// void SurgicalSimulate::OnCaptureProbeAsSurgicalPlane()
+// {
+//   //create NavigationDataToPointSetFilter to get a point3D by probe in NDI coordinates
+//   mitk::NavigationDataToPointSetFilter::Pointer probePoint = mitk::NavigationDataToPointSetFilter::New();
+//   //auto probeToolIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+//   probePoint->SetInput(m_VegaSource->GetOutput("Probe"));
+//   probePoint->SetOperationMode(mitk::NavigationDataToPointSetFilter::Mode3DMean);
+//   probePoint->SetNumberForMean(10);
+//   //run the filter
+//   probePoint->Update();
+//   //get output
+//   mitk::PointSet::Pointer target = probePoint->GetOutput(0);
+//
+//   // //create a Surgical plan
+//   // m_SurgicalPlan = lancet::PointPath::New();
+//   //convert to robot coordinates
+//   mitk::AffineTransform3D::Pointer targetMatrix = mitk::AffineTransform3D::New();
+//   targetMatrix->SetOffset(target->GetPoint(0).GetDataPointer());
+//   MITK_INFO << "Captured Point: " << targetMatrix;
+//
+//   m_T_robot = mitk::AffineTransform3D::New();
+//   m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
+//   m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", targetMatrix, m_T_robot);
+//
+//   //========
+//   //convert from ndi to robot use navigationTree
+//   //========
+//     //build the tree
+//   //NavigationTree::Pointer tree = NavigationTree::New();
+//
+//   //NavigationNode::Pointer ndi = NavigationNode::New();
+//   //ndi->SetNavigationData(mitk::NavigationData::New());
+//   //ndi->SetNodeName("ndi");
+//
+//   //tree->Init(ndi);
+//
+//   //NavigationNode::Pointer robotBaseRF = NavigationNode::New();
+//   //robotBaseRF->SetNodeName("RobotBaseRF");
+//   //robotBaseRF->SetNavigationData(m_VegaSource->GetOutput("RobotBaseRF"));
+//
+//   //tree->AddChild(robotBaseRF, ndi);
+//
+//   //NavigationNode::Pointer robot = NavigationNode::New();
+//   //robot->SetNodeName("Robot");
+//   //robot->SetNavigationData(mitk::NavigationData::New(m_RobotRegistrationMatrix));
+//
+//   //tree->AddChild(robot, robotBaseRF);
+//
+//   //  //use tree
+//   //mitk::NavigationData::Pointer treeRes =  tree->GetNavigationData(mitk::NavigationData::New(targetMatrix), "ndi", "Robot");
+//   //mitk::AffineTransform3D::Pointer treeResMatrix = treeRes->GetAffineTransform3D();
+//
+//   //m_T_robot = treeResMatrix;
+//
+//   //MITK_INFO << "tree res";
+//   //MITK_INFO << treeResMatrix;
+//   //========
+//   //convert from ndi to robot use navigationTree
+//   //========
+//   
+//   //by hand
+//   //Td2e = Td2c*Tc2a*Ta2e
+// 	//  = Tc2d^-1 * Ta2c^-1 *Ta2e
+// 	//  = m_ndD^-1 * m_ndC^-1 *m_ndInput
+//  /* mitk::NavigationData::Pointer byhand = mitk::NavigationData::New(targetMatrix);
+//   byhand->Compose(m_VegaSource->GetOutput("RobotBaseRF")->GetInverse());
+//   byhand->Compose(mitk::NavigationData::New(m_RobotRegistrationMatrix)->GetInverse());
+//   MITK_INFO << "by hand:";
+//   MITK_INFO << byhand->GetAffineTransform3D();
+//
+//   MITK_INFO << "correct:";
+//   MITK_INFO << m_T_robot;*/
+//
+//
+//   //use robot matrix,not change the end tool rotation,only apply the offset from probe;
+//   m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
+//
+//   m_Controls.textBrowser->append(QString::number(m_T_robot->GetOffset()[0]) + "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
+//
+//
+//   MITK_INFO << m_T_robot;
+// }
 
 
-  MITK_INFO << m_T_robot;
-}
-
-bool SurgicalSimulate::InterpretImagePoint()
-{
-	auto targetPoint = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetPoint->GetSelectedNode()->GetData())->GetPoint(0);
-	auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
-
-	//auto surfaceToRfMatrix = mitk::AffineTransform3D::New();
-	auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
-
-
-	auto registrationMatrix_surfaceToRF = m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix();
-	vtkNew<vtkMatrix4x4> tmpMatrix;
-	mitk::TransferItkTransformToVtkMatrix(registrationMatrix_surfaceToRF.GetPointer(), tmpMatrix);
-	tmpMatrix->Invert();
-
-	mitk::TransferVtkMatrixToItkTransform(tmpMatrix, rfToSurfaceMatrix.GetPointer());
-	
-	auto ndiToTargetMatrix = mitk::AffineTransform3D::New();
-	m_T_robot = mitk::AffineTransform3D::New();
-
-	// auto targetMatrix = mitk::AffineTransform3D::New();
-	ndiToTargetMatrix->SetOffset(targetPoint.GetDataPointer());
-	ndiToTargetMatrix->Compose(rfToSurfaceMatrix);
-	ndiToTargetMatrix->Compose(ndiToObjectRfMatrix);
-	
-	m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix, m_T_robot);
-
-	/*auto registrationMatrix_robot = m_VegaToolStorage->GetToolByName("RobotBaseRF")->GetToolRegistrationMatrix();
-	auto matrix_roboBaseToRoboBaseRF = mitk::AffineTransform3D::New();
-	vtkNew<vtkMatrix4x4> tmpMatrix2;
-	mitk::TransferItkTransformToVtkMatrix(registrationMatrix_robot.GetPointer(), tmpMatrix2);
-	tmpMatrix2->Invert();
-
-	mitk::TransferVtkMatrixToItkTransform(tmpMatrix2, matrix_roboBaseToRoboBaseRF.GetPointer());*/
-
-	//m_T_robot->Compose(matrix_roboBaseToRoboBaseRF);
-
-	m_Controls.textBrowser->append(QString::number(m_T_robot->GetOffset()[0])+ "/" + QString::number(m_T_robot->GetOffset()[1]) + "/" + QString::number(m_T_robot->GetOffset()[2]));
-
-	m_T_robot->SetMatrix(m_KukaSource->GetOutput(0)->GetAffineTransform3D()->GetMatrix());
-
-	return true;
-}
 
 bool SurgicalSimulate::InterpretImageLine()
 {
@@ -2688,31 +2636,3 @@ void SurgicalSimulate::On_pushButton_a7_p_clicked()
 	On_pushButton_updateRobotSimuPose_clicked();
 }
 
-
-void SurgicalSimulate::On_pushButton_calibrateDrill_clicked()
-{
-	// Calculate T_drillDRFtoCalibratorDRF
-	auto calibratorDRFindex = m_VegaToolStorage->GetToolIndexByName("calibratorDRF");
-	auto drillDRFindex = m_VegaToolStorage->GetToolIndexByName("drillDRF");
-	if (calibratorDRFindex == -1 || drillDRFindex == -1)
-	{
-		m_Controls.textBrowser->append("There is no 'calibratorDRF' or 'drillDRF' in the toolStorage!");
-	}
-
-	mitk::NavigationData::Pointer nd_ndiTocalibratorDRF = m_VegaSource->GetOutput(calibratorDRFindex);
-	mitk::NavigationData::Pointer nd_ndiTodrillDRF = m_VegaSource->GetOutput(drillDRFindex);
-
-	mitk::NavigationData::Pointer nd_drillDRFtoCalibratorDRF = GetNavigationDataInRef(nd_ndiTocalibratorDRF, nd_ndiTodrillDRF);
-
-	vtkMatrix4x4* T_drillDRFtoCalibratorDRF = vtkMatrix4x4::New();
-	mitk::TransferItkTransformToVtkMatrix(nd_drillDRFtoCalibratorDRF->GetAffineTransform3D().GetPointer(), T_drillDRFtoCalibratorDRF);
-
-	m_Controls.textBrowser->append("Drill calibration matrix");
-	for(int i{0}; i < 4; i++)
-	{
-		for(int j{0}; j < 4; j++)
-		{
-			m_Controls.textBrowser->append(QString::number(T_drillDRFtoCalibratorDRF->GetElement(i, j)));
-		}
-	}
-}

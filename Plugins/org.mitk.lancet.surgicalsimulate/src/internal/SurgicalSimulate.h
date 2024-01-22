@@ -72,12 +72,11 @@ public slots:
   void OnResetRobotRegistration();
   void OnSaveRobotRegistraion();
   void OnUsePreRobotRegitration();
-  void OnSetTCP();
 
   //Step3:NavigationObject Registration
 
   //Step4: Create Surgical Plane
-  void OnCaptureProbeAsSurgicalPlane();
+  // void OnCaptureProbeAsSurgicalPlane();
 
   //Step5: Run the Surgical Plane by robot auto move to position
   void OnAutoPositionStart();
@@ -204,10 +203,7 @@ protected:
 
   bool ApplySurfaceRegistration_staticImage();
   bool ApplyPreexistingImageSurfaceRegistration_staticImage();
-
-  // Get the coordinate of the image point in the robot (internal) base frame
-  bool InterpretImagePoint();
-
+	
   // Get the coordinate of the image line in the robot (internal) base frame
   bool InterpretImageLine();
 
@@ -227,8 +223,6 @@ protected:
   bool ProbeSurface();
 
 
-  // Manually set the RoboBaseRF to RoboBase registration matrix
-  bool ManuallySetRobotRegistration();
 
   bool AverageNavigationData(mitk::NavigationData::Pointer ndPtr, int timeInterval /*milisecond*/, int intervalNum, double matrixArray[16]);
   vtkMatrix4x4* getVtkMatrix4x4(mitk::NavigationData::Pointer nd);
@@ -282,8 +276,6 @@ protected:
   int m_PowerStatus{ 0 };
 
 
-  // Calibrate the dental drill
-  void On_pushButton_calibrateDrill_clicked();
 
 
 };
