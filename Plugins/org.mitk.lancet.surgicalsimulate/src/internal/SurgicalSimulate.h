@@ -94,6 +94,18 @@ public slots:
   void ShowToolStatus_Vega();
   void ShowToolStatus_Kuka();
   void UpdateToolStatusWidget();
+
+
+  // Robot tests written by Huanyu Li
+  void on_pushButton_robotCube_clicked(); // 100 mm X 100 mm X 100 mm Cube
+  void on_pushButton_robotTwoPts_clicked();
+  void on_pushButton_thaMaxSpace_clicked();
+  void on_pushButton_thaEffectiveSpace_clicked();
+  void on_pushButton_tkaMaxSpace_clicked();
+  void on_pushButton_tkaEffectiveSpace_clicked();
+  void on_pushButton_robotEmergencyBrake_clicked();
+
+
 protected:
   virtual void CreateQtPartControl(QWidget* parent) override;
 

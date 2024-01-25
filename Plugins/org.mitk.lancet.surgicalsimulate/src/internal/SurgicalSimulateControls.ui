@@ -23,7 +23,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_6">
       <attribute name="title">
@@ -792,49 +792,49 @@
        <item row="2" column="1">
         <layout class="QGridLayout" name="gridLayout_15">
          <item row="2" column="2">
-          <widget class="QPushButton" name="pushButton_8">
+          <widget class="QPushButton" name="pushButton_tkaEffectiveSpace">
            <property name="text">
             <string>TKA 有效空间</string>
            </property>
           </widget>
          </item>
          <item row="3" column="0" colspan="3">
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="pushButton_robotEmergencyBrake">
            <property name="text">
             <string>THA/TKA 急停测试（沿着重力方向上下运动）</string>
            </property>
           </widget>
          </item>
          <item row="0" column="2">
-          <widget class="QPushButton" name="pushButton_3">
+          <widget class="QPushButton" name="pushButton_robotTwoPts">
            <property name="text">
             <string>THA/TKA 位置重复性 （重复走两点）</string>
            </property>
           </widget>
          </item>
          <item row="1" column="2">
-          <widget class="QPushButton" name="pushButton_7">
+          <widget class="QPushButton" name="pushButton_thaEffectiveSpace">
            <property name="text">
             <string>THA 有效空间</string>
            </property>
           </widget>
          </item>
          <item row="2" column="0" colspan="2">
-          <widget class="QPushButton" name="pushButton_4">
+          <widget class="QPushButton" name="pushButton_tkaMaxSpace">
            <property name="text">
             <string>TKA 最大空间</string>
            </property>
           </widget>
          </item>
          <item row="0" column="0" colspan="2">
-          <widget class="QPushButton" name="pushButton_2">
+          <widget class="QPushButton" name="pushButton_robotCube">
            <property name="text">
             <string>THA/TKA 位置准确度 （走立方体）</string>
            </property>
           </widget>
          </item>
          <item row="1" column="0" colspan="2">
-          <widget class="QPushButton" name="pushButton_6">
+          <widget class="QPushButton" name="pushButton_thaMaxSpace">
            <property name="text">
             <string>THA 最大空间</string>
            </property>

@@ -154,6 +154,15 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
 
   connect(m_Controls.pushButton_endToolPower, &QPushButton::clicked, this, &SurgicalSimulate::StartTrackingWithPowerControl);
 
+  connect(m_Controls.pushButton_robotCube, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_robotCube_clicked);
+  connect(m_Controls.pushButton_robotTwoPts, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_robotTwoPts_clicked);
+  connect(m_Controls.pushButton_thaMaxSpace, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_thaMaxSpace_clicked);
+  connect(m_Controls.pushButton_thaEffectiveSpace, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_thaEffectiveSpace_clicked);
+  connect(m_Controls.pushButton_tkaMaxSpace, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_tkaMaxSpace_clicked);
+  connect(m_Controls.pushButton_tkaEffectiveSpace, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_tkaEffectiveSpace_clicked);
+  connect(m_Controls.pushButton_robotEmergencyBrake, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_robotEmergencyBrake_clicked);
+
+
 
 }
 
@@ -2636,3 +2645,46 @@ void SurgicalSimulate::On_pushButton_a7_p_clicked()
 	On_pushButton_updateRobotSimuPose_clicked();
 }
 
+
+
+void SurgicalSimulate::on_pushButton_robotCube_clicked()
+{
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "16" });
+}
+
+void SurgicalSimulate::on_pushButton_robotTwoPts_clicked()
+{
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "17" });
+}
+
+void SurgicalSimulate::on_pushButton_robotEmergencyBrake_clicked()
+{
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "18" });
+}
+
+void SurgicalSimulate::on_pushButton_thaMaxSpace_clicked()
+{
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "9" });
+}
+
+void SurgicalSimulate::on_pushButton_thaEffectiveSpace_clicked()
+{
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "8" });
+}
+
+void SurgicalSimulate::on_pushButton_tkaMaxSpace_clicked()
+{
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "13" });
+}
+
+void SurgicalSimulate::on_pushButton_tkaEffectiveSpace_clicked()
+{
+	QThread::msleep(1000);
+	m_KukaTrackingDevice->RequestExecOperate("setworkmode", { "14" });
+}
