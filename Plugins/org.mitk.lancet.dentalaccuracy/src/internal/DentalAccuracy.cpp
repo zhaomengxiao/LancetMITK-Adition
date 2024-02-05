@@ -170,6 +170,8 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 	massCenter->InsertPoint(p);
 	auto tmpNode = mitk::DataNode::New();
 	tmpNode->SetName("massCenter");
+	tmpNode->SetFloatProperty("pointsize", 0.2);
+
 
 	// add new node
 	tmpNode->SetData(massCenter);
@@ -236,7 +238,7 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 
 	// Apply the stencil
 	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
-	surfaceToImageFilter->SetBackgroundValue(0);
+	surfaceToImageFilter->SetBackgroundValue(3000);
 	surfaceToImageFilter->SetImage(imageToCrop);
 	surfaceToImageFilter->SetInput(objectSurface);
 	surfaceToImageFilter->SetReverseStencil(false);
@@ -251,11 +253,41 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 	GetDataStorage()->Add(stencilNode);
 
 
+	// Reconstruct surface with the stenciled image  
+	auto mitkRecontructedSurfaces = mitk::Surface::New();
+	mitk::ImageToSurfaceFilter::Pointer imageToSurfaceFilter = mitk::ImageToSurfaceFilter::New();
+
+	imageToSurfaceFilter->SetInput(stencilImage);
+	imageToSurfaceFilter->SetThreshold(2500);
+	mitkRecontructedSurfaces = imageToSurfaceFilter->GetOutput();
+
+	vtkNew<vtkConnectivityFilter> vtkConnectivityFilter;
+	vtkConnectivityFilter->SetInputData(mitkRecontructedSurfaces->GetVtkPolyData());
+
+	vtkConnectivityFilter->SetExtractionModeToAllRegions();
+	vtkConnectivityFilter->Update();
+	int numberOfPotentialSteelBalls = vtkConnectivityFilter->GetNumberOfExtractedRegions();
+
+
+	// draw extracted surface
+	auto reconstructedSurfaces = mitk::DataNode::New();
+	reconstructedSurfaces->SetName("reconstructedSurfaces");
+	reconstructedSurfaces->SetColor(1, 0.5, 0);
+
+	// add new node
+	reconstructedSurfaces->SetData(mitkRecontructedSurfaces);
+	GetDataStorage()->Add(reconstructedSurfaces);
+
+
+
 	auto insidePset = mitk::PointSet::New();
 
 	vtkIdType numberOfPoints = surfacePolyData_fixed->GetNumberOfPoints();
 	vtkSmartPointer<vtkPoints> points = surfacePolyData_fixed->GetPoints();
-	
+
+	auto selectedPoints = vtkPoints::New();
+
+
 	for (vtkIdType pointId = 0; pointId < numberOfPoints; ++pointId)
 	{
 		auto checkPts = mitk::PointSet::New();
@@ -264,24 +296,24 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 		tmpVec[1] = center[1] - points->GetPoint(pointId)[1];
 		tmpVec[2] = center[2] - points->GetPoint(pointId)[2];
 
-		double tmpVecLenth = tmpVec.norm();
+		double tmpVecLength = tmpVec.norm();
 
 		tmpVec.normalize();
 
 		mitk::Point3D tmpPoint;
-		tmpPoint[0] = points->GetPoint(pointId)[0] + tmpVec[0] * 0.3;
-		tmpPoint[1] = points->GetPoint(pointId)[1] + tmpVec[1] * 0.3;
-		tmpPoint[2] = points->GetPoint(pointId)[2] + tmpVec[2] * 0.3;
+		tmpPoint[0] = points->GetPoint(pointId)[0] + tmpVec[0] * 0.1;
+		tmpPoint[1] = points->GetPoint(pointId)[1] + tmpVec[1] * 0.1;
+		tmpPoint[2] = points->GetPoint(pointId)[2] + tmpVec[2] * 0.1;
 
 		mitk::Point3D tmpPoint1;
-		tmpPoint1[0] = points->GetPoint(pointId)[0] + tmpVec[0] * tmpVecLenth / 2;
-		tmpPoint1[1] = points->GetPoint(pointId)[1] + tmpVec[1] * tmpVecLenth / 2;
-		tmpPoint1[2] = points->GetPoint(pointId)[2] + tmpVec[2] * tmpVecLenth / 2;
+		tmpPoint1[0] = points->GetPoint(pointId)[0] + tmpVec[0] * tmpVecLength / 2;
+		tmpPoint1[1] = points->GetPoint(pointId)[1] + tmpVec[1] * tmpVecLength / 2;
+		tmpPoint1[2] = points->GetPoint(pointId)[2] + tmpVec[2] * tmpVecLength / 2;
 
 		mitk::Point3D tmpPoint2;
-		tmpPoint2[0] = points->GetPoint(pointId)[0] + tmpVec[0] * tmpVecLenth / 3;
-		tmpPoint2[1] = points->GetPoint(pointId)[1] + tmpVec[1] * tmpVecLenth / 3;
-		tmpPoint2[2] = points->GetPoint(pointId)[2] + tmpVec[2] * tmpVecLenth / 3;
+		tmpPoint2[0] = points->GetPoint(pointId)[0] + tmpVec[0] * tmpVecLength / 3;
+		tmpPoint2[1] = points->GetPoint(pointId)[1] + tmpVec[1] * tmpVecLength / 3;
+		tmpPoint2[2] = points->GetPoint(pointId)[2] + tmpVec[2] * tmpVecLength / 3;
 
 		checkPts->InsertPoint(tmpPoint);
 		checkPts->InsertPoint(tmpPoint1);
@@ -327,6 +359,15 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 		{
 			mitk::Point3D tmpPoint{ points->GetPoint(pointId) };
 			insidePset->InsertPoint(tmpPoint);
+
+			selectedPoints->InsertNextPoint(points->GetPoint(pointId));
+			selectedPoints->InsertNextPoint(center);
+
+			auto currentPoint = points->GetPoint(pointId);
+			currentPoint[0] = currentPoint[0] + 0.05;
+
+
+			selectedPoints->InsertNextPoint(currentPoint);
 		}
 		
 
@@ -336,6 +377,73 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 	pointsNode->SetData(insidePset);
 	pointsNode->SetName("pointsNode");
 	GetDataStorage()->Add(pointsNode);
+	pointsNode->SetFloatProperty("pointsize", 0.2);
+
+
+	// OBB calculation
+	vtkNew<vtkOBBTree> obbTree_selectedPts;
+
+	auto polyDataHolder = vtkPolyData::New();
+	auto polys = vtkCellArray::New();
+
+	for (vtkIdType i = 0; i < selectedPoints->GetNumberOfPoints(); i++)
+	{
+		if( i%3 == 0)
+		{
+			vtkIdType triangle[3]{ i,i+1,i+2 };
+			polys->InsertNextCell(3, triangle); // Each vertex has one point
+			//polys->InsertCellPoint(i, i+1);
+		}
+		
+	}
+	
+	MITK_INFO << "GetNumberOfPoints" << selectedPoints->GetNumberOfPoints();
+
+	polyDataHolder->SetPoints(selectedPoints);
+	// polyDataHolder->SetVerts(polys);
+	polyDataHolder->SetPolys(polys);
+
+	auto testSurface = mitk::Surface::New();
+	testSurface->SetVtkPolyData(polyDataHolder);
+	auto polyNode = mitk::DataNode::New();
+	polyNode->SetData(testSurface);
+	polyNode->SetName("testSurface");
+	GetDataStorage()->Add(polyNode);
+
+	obbTree_selectedPts->SetDataSet(polyDataHolder);
+	obbTree_selectedPts->SetMaxLevel(2);
+	obbTree_selectedPts->BuildLocator();
+
+	double corner_[3] = { 0.0, 0.0, 0.0 };
+	double max_[3] = { 0.0, 0.0, 0.0 };
+	double mid_[3] = { 0.0, 0.0, 0.0 };
+	double min_[3] = { 0.0, 0.0, 0.0 };
+	double size_[3] = { 0.0, 0.0, 0.0 };
+
+	obbTree_selectedPts->ComputeOBB(polyDataHolder, corner_, max_, mid_, min_, size_);
+
+	MITK_INFO << "corner_x" << corner_[0] << "/corner_y" << corner_[1] << "/corner_z" << corner_[2];
+
+	mitk::Point3D tipPoint_0;
+	mitk::Point3D tipPoint_1;
+
+	tipPoint_0[0] = corner_[0] + (mid_[0]  + min_[0] )/2;
+	tipPoint_0[1] = corner_[1] + (mid_[1]  + min_[1] )/2;
+	tipPoint_0[2] = corner_[2] + (mid_[2]  + min_[2] )/2;
+
+	tipPoint_1[0] = corner_[0] + (mid_[0] + min_[0] ) / 2 + max_[0];
+	tipPoint_1[1] = corner_[1] + (mid_[1] + min_[1] ) / 2 + max_[1];
+	tipPoint_1[2] = corner_[2] + (mid_[2] + min_[2] ) / 2 + max_[2];
+
+	auto tipPoints = mitk::PointSet::New();
+	tipPoints->InsertPoint(tipPoint_0);
+	tipPoints->InsertPoint(tipPoint_1);
+
+	auto tipNode = mitk::DataNode::New();
+	tipNode->SetData(tipPoints);
+	tipNode->SetName("tipPoints");
+	GetDataStorage()->Add(tipNode);
+	tipNode->SetFloatProperty("pointsize", 0.2);
 
 	// ********** Clip the implant with a sphere at the mass center ************
 	// vtkSmartPointer<vtkSphere> sphere = vtkSmartPointer<vtkSphere>::New();
