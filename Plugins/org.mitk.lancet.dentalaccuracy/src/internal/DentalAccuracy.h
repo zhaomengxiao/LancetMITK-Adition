@@ -75,6 +75,8 @@ protected:
 
   void valueChanged_horizontalSlider();
 
+  void valueChanged_horizontalSlider_THAslicer();
+
   void on_pushButton_CBCTreconstruct_clicked();
 
   void on_pushButton_iosCBCT_clicked();
@@ -105,6 +107,7 @@ protected:
 
   void on_pushButton_implantFocus_clicked();
 
+  void on_pushButton_stencil_clicked();
 
 	// U: up
 	// D: down

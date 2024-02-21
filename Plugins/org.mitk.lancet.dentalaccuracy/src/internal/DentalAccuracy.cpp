@@ -66,6 +66,10 @@ found in the LICENSE file.
 #include <vtkSphere.h>
 #include <mitkImageAccessByItk.h>
 
+#include "mitkLookupTable.h"
+#include "mitkLookupTableProperty.h"
+#include "mitkRenderingModeProperty.h"
+
 const std::string DentalAccuracy::VIEW_ID = "org.mitk.views.dentalaccuracy";
 
 void DentalAccuracy::SetFocus()
@@ -131,6 +135,44 @@ void DentalAccuracy::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_implantToCrown, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_implantToCrown_clicked);
   connect(m_Controls.pushButton_abutmentToImplant, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_abutmentToImplant_clicked);
 
+
+  m_Controls.horizontalSlider_THAslicer->setMinimum(0);
+  m_Controls.horizontalSlider_THAslicer->setMaximum(200);
+  connect(m_Controls.horizontalSlider_THAslicer, &QSlider::valueChanged, this, &DentalAccuracy::valueChanged_horizontalSlider_THAslicer);
+
+  connect(m_Controls.pushButton_stencil, &QPushButton::clicked, this, &DentalAccuracy::on_pushButton_stencil_clicked);
+
+
+}
+
+
+void DentalAccuracy::on_pushButton_stencil_clicked()
+{
+	if(GetDataStorage()->GetNamedNode("imageToStencil") == nullptr)
+	{
+		m_Controls.textBrowser->append("imageToStencil is missing");
+	}
+
+	if(GetDataStorage()->GetNamedNode("surface") == nullptr)
+	{
+		m_Controls.textBrowser->append("surface is missing");
+	}
+
+	// Apply the stencil
+	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	surfaceToImageFilter->SetBackgroundValue(-10000);
+	surfaceToImageFilter->SetImage(dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("imageToStencil")->GetData()));
+	surfaceToImageFilter->SetInput(dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("surface")->GetData()));
+	surfaceToImageFilter->SetReverseStencil(false);
+
+	mitk::Image::Pointer stencilImage = mitk::Image::New();
+	surfaceToImageFilter->Update();
+	stencilImage = surfaceToImageFilter->GetOutput();
+
+	auto stencilNode = mitk::DataNode::New();
+	stencilNode->SetData(stencilImage);
+	stencilNode->SetName("image");
+	GetDataStorage()->Add(stencilNode);
 
 
 }
@@ -210,6 +252,7 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 	for (int i = 0; i < 3; i++)
 	{
 		dim[i] = static_cast<int>(ceil((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
+		dim[i] = static_cast<int>(floor((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
 	}
 	whiteImage->SetDimensions(dim);
 
@@ -2805,6 +2848,93 @@ void DentalAccuracy::on_pushButton_implantFocus_clicked()
 	m_Controls.label_nerveDistance->setText(QString::number(CalImplantToAlveolarNerve()));
 }
 
+void DentalAccuracy::valueChanged_horizontalSlider_THAslicer()
+{
+	if (GetDataStorage()->GetNamedNode("surface") == nullptr)
+	{
+		m_Controls.textBrowser->append("surface is missing");
+		return;
+	}
+
+	if (GetDataStorage()->GetNamedNode("image") == nullptr)
+	{
+		m_Controls.textBrowser->append("image is missing");
+		return;
+	}
+
+	auto image = dynamic_cast<mitk::Image*>(GetDataStorage()->GetNamedNode("image")->GetData());
+	// Change the LUT
+	// Create a lookup table (LUT)
+	mitk::LookupTable::Pointer lut = mitk::LookupTable::New();
+
+	// Populate the lookup table with colors corresponding to intensity values
+	// You can set colors for specific intensity ranges or individual intensity values
+	// For example:
+	double a[4]{ 0,0,0,0 };
+	double b[4]{ 0,0,0,1 };
+	double c[4]{ 1,1,1,1 };
+	lut->SetTableValue(0,a);     // transparent for index 0
+	lut->SetTableValue(1, b);   // Red for intensity 128
+	lut->SetTableValue(255, c);   // White for intensity 255
+
+	// Create a LookupTableProperty with the lookup table
+	mitk::LookupTableProperty::Pointer lutProp = mitk::LookupTableProperty::New();
+	lutProp->SetLookupTable(lut);
+
+	// Set the LookupTableProperty to the image
+	// GetDataStorage()->GetNamedNode("image")->SetProperty("Image Rendering.Mode", mitk::RenderingModeProperty::New(mitk::RenderingModeProperty::LOOKUPTABLE_COLOR));
+	GetDataStorage()->GetNamedNode("image")->SetProperty("LookupTable", lutProp);
+
+	image->Update();
+
+	GetDataStorage()->GetNamedNode("image")->SetData(image);
+
+	auto surface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("surface")->GetData());
+	auto abb = surface->GetGeometry()->GetBoundingBox();
+	auto minPoint = abb->GetMinimum();
+	auto maxPoint = abb->GetMaximum();
+	auto center = abb->GetCenter();
+
+	auto implicitPlane = vtkPlane::New();
+	implicitPlane->SetNormal(1, 0, 0);
+	implicitPlane->SetOrigin(minPoint[0] + m_Controls.horizontalSlider_THAslicer->value()*(maxPoint[0]-minPoint[0])/m_Controls.horizontalSlider_THAslicer->maximum(),
+		center[1],
+		center[2]);
+
+	vtkNew<vtkClipPolyData> clipper;
+	clipper->SetInputData(surface->GetVtkPolyData());
+	clipper->GenerateClippedOutputOff();
+	clipper->SetClipFunction(implicitPlane);
+
+	clipper->Update();
+
+	auto partialSurface = mitk::Surface::New();
+	partialSurface->SetVtkPolyData(clipper->GetOutput());
+
+	if (GetDataStorage()->GetNamedNode("partialSurface") == nullptr)
+	{
+		auto newNode = mitk::DataNode::New();
+		newNode->SetData(partialSurface);
+		newNode->SetName("partialSurface");
+		GetDataStorage()->Add(newNode);
+	}else
+	{
+		GetDataStorage()->GetNamedNode("partialSurface")->SetData(partialSurface);
+	}
+
+	GetDataStorage()->GetNamedNode("partialSurface")->SetColor(0, 1, 0);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	auto iRenderWindowPart = GetRenderWindowPart();
+
+	mitk::Point3D slicePoint;
+	slicePoint[0] = minPoint[0] + m_Controls.horizontalSlider_THAslicer->value() * (maxPoint[0] - minPoint[0]) / m_Controls.horizontalSlider_THAslicer->maximum();
+	slicePoint[1] = minPoint[1];
+	slicePoint[2] = minPoint[2];
+
+	iRenderWindowPart->SetSelectedPosition(slicePoint);
+}
 
 
 void DentalAccuracy::valueChanged_horizontalSlider()
