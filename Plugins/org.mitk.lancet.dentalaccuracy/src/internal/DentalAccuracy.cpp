@@ -223,7 +223,7 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 	whiteImage->AllocateScalars(VTK_SHORT, 1);
 
 	// fill the image with foreground voxels:
-	short insideValue = 2000;
+	short insideValue = 1;
 	// short outsideValue = 0;
 	vtkIdType count = whiteImage->GetNumberOfPoints();
 	for (vtkIdType i = 0; i < count; ++i)
@@ -238,7 +238,7 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 
 	// Apply the stencil
 	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
-	surfaceToImageFilter->SetBackgroundValue(3000);
+	surfaceToImageFilter->SetBackgroundValue(0);
 	surfaceToImageFilter->SetImage(imageToCrop);
 	surfaceToImageFilter->SetInput(objectSurface);
 	surfaceToImageFilter->SetReverseStencil(false);
@@ -258,7 +258,7 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 	mitk::ImageToSurfaceFilter::Pointer imageToSurfaceFilter = mitk::ImageToSurfaceFilter::New();
 
 	imageToSurfaceFilter->SetInput(stencilImage);
-	imageToSurfaceFilter->SetThreshold(2500);
+	imageToSurfaceFilter->SetThreshold(0.5);
 	mitkRecontructedSurfaces = imageToSurfaceFilter->GetOutput();
 
 	vtkNew<vtkConnectivityFilter> vtkConnectivityFilter;
@@ -347,7 +347,7 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 			itk::Index<3> index;
 			itkImage->TransformPhysicalPointToIndex(point, index);
 
-			if (itkImage->GetPixel(index) > 500)
+			if (itkImage->GetPixel(index) > 0)
 			{
 				tag = 1;
 				break;
@@ -378,6 +378,60 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 	pointsNode->SetName("pointsNode");
 	GetDataStorage()->Add(pointsNode);
 	pointsNode->SetFloatProperty("pointsize", 0.2);
+
+	// PCA analysis upon insidePset
+	int insidePset_size = insidePset->GetSize();
+	Eigen::MatrixXd points_( 3, insidePset_size);
+
+	for(int i{0}; i < insidePset_size ; i++)
+	{
+		for(int j{0}; j < 3; j ++)
+		{
+			points_(j, i) = insidePset->GetPoint(i)[j];
+		}
+	}
+
+	cout << "points_ " << points_ << endl;
+
+	// Calculate the centroid
+	Eigen::Vector3d centroid = points_.rowwise().mean();
+
+	// Center the points
+	Eigen::MatrixXd centered = points_.colwise() - centroid;
+
+	// Compute covariance matrix
+	Eigen::Matrix3d covariance = (centered * centered.transpose()) / double(points_.cols() - 1);
+
+	// Perform eigen decomposition
+	Eigen::Vector3d longestAxis;
+	Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(covariance);
+	if (eigensolver.info() == Eigen::Success) {
+		cerr << "Eigen decomposition succeeded" << endl;
+
+		// Get eigenvalues and eigenvectors
+		auto eigenvalues = eigensolver.eigenvalues();
+		auto eigenvectors = eigensolver.eigenvectors();
+
+		// // Find the longest axis (the eigenvector corresponding to the largest eigenvalue)
+		// double maxEigenvalue = eigenvalues.maxCoeff();
+
+		int maxIndex = 0; // Initialize maxIndex to 0
+		double maxValue = eigenvalues(0); // Initialize maxValue to the first eigenvalue
+
+		// Loop through all eigenvalues to find the maximum one
+		for (int i = 1; i < eigenvalues.size(); ++i) {
+			if (eigenvalues(i) > maxValue) {
+				maxValue = eigenvalues(i);
+				maxIndex = i;
+			}
+		}
+
+		// Longest axis direction
+		longestAxis = eigenvectors.col(maxIndex);
+
+		cout << "Longest axis direction: " << longestAxis.transpose() << endl;
+	}
+
 
 
 	// OBB calculation
@@ -426,18 +480,47 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 
 	mitk::Point3D tipPoint_0;
 	mitk::Point3D tipPoint_1;
+	mitk::Point3D p1, p2, p3, p4;
+	
+	// tipPoint_0[0] = corner_[0] + (mid_[0]  + min_[0] )/2;
+	// tipPoint_0[1] = corner_[1] + (mid_[1]  + min_[1] )/2;
+	// tipPoint_0[2] = corner_[2] + (mid_[2]  + min_[2] )/2;
+	//
+	// tipPoint_1[0] = tipPoint_0[0] + max_[0];
+	// tipPoint_1[1] = tipPoint_0[1] + max_[1];
+	// tipPoint_1[2] = tipPoint_0[2] + max_[2];
 
-	tipPoint_0[0] = corner_[0] + (mid_[0]  + min_[0] )/2;
-	tipPoint_0[1] = corner_[1] + (mid_[1]  + min_[1] )/2;
-	tipPoint_0[2] = corner_[2] + (mid_[2]  + min_[2] )/2;
+	tipPoint_0[0] = centroid[0] + 3 * longestAxis[0];
+	tipPoint_0[1] = centroid[1] + 3 * longestAxis[1];
+	tipPoint_0[2] = centroid[2] + 3 * longestAxis[2];
+	
+	tipPoint_1[0] = centroid[0] - 3 * longestAxis[0];
+	tipPoint_1[1] = centroid[1] - 3 * longestAxis[1];
+	tipPoint_1[2] = centroid[2] - 3 * longestAxis[2];
 
-	tipPoint_1[0] = corner_[0] + (mid_[0] + min_[0] ) / 2 + max_[0];
-	tipPoint_1[1] = corner_[1] + (mid_[1] + min_[1] ) / 2 + max_[1];
-	tipPoint_1[2] = corner_[2] + (mid_[2] + min_[2] ) / 2 + max_[2];
+	p1[0] = corner_[0];
+	p1[1] = corner_[1];
+	p1[2] = corner_[2];
+
+	p2[0] = p1[0] + mid_[0];
+	p2[1] = p1[1] + mid_[1];
+	p2[2] = p1[2] + mid_[2];
+
+	p3[0] = p1[0] + min_[0];
+	p3[1] = p1[1] + min_[1];
+	p3[2] = p1[2] + min_[2];
+
+	p4[0] = p1[0] + max_[0];
+	p4[1] = p1[1] + max_[1];
+	p4[2] = p1[2] + max_[2];
 
 	auto tipPoints = mitk::PointSet::New();
 	tipPoints->InsertPoint(tipPoint_0);
 	tipPoints->InsertPoint(tipPoint_1);
+	// tipPoints->InsertPoint(p1);
+	// tipPoints->InsertPoint(p2);
+	// tipPoints->InsertPoint(p3);
+	// tipPoints->InsertPoint(p4);
 
 	auto tipNode = mitk::DataNode::New();
 	tipNode->SetData(tipPoints);
