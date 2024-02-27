@@ -327,7 +327,7 @@ void lancet::ThaEnhancedReductionObject::CalSupineCanalMatrices()
 		tmpPset->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(canalFrameToFemurFrameMatrix);
 		tmpPset->GetGeometry()->IndexToWorld(stemCOR_FemurFrame, stemCOR_tmp);
 
-		m_SupinePelvicTilt_canal_matrix_L->Identity();
+		m_SupinePelvicTilt_canal_matrix_L->DeepCopy(canalFrameToFemurFrameMatrix);
 		m_SupinePelvicTilt_canal_matrix_L->SetElement(0, 3, cupCOR_target[0] - stemCOR_tmp[0]);
 		m_SupinePelvicTilt_canal_matrix_L->SetElement(1, 3, cupCOR_target[1] - stemCOR_tmp[1]);
 		m_SupinePelvicTilt_canal_matrix_L->SetElement(2, 3, cupCOR_target[2] - stemCOR_tmp[2]);
