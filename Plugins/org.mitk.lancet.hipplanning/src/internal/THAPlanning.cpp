@@ -561,9 +561,6 @@ void THAPlanning::On_pushButton_initializeRfemurObject_clicked()
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 	m_Controls.textBrowser->append("A right femurObject has been initialized");
-
-	m_Controls.textBrowser->append("Right femur version is: " + QString::number(m_RfemurObject->GetfemurVersion()));
-
 }
 
 void THAPlanning::On_pushButton_initializeLfemurObject_clicked()
@@ -619,8 +616,6 @@ void THAPlanning::On_pushButton_initializeLfemurObject_clicked()
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 	m_Controls.textBrowser->append("A left femurObject has been initialized");
-
-	m_Controls.textBrowser->append("Left femur version is: " + QString::number(m_LfemurObject->GetfemurVersion()));
 
 }
 
@@ -1151,8 +1146,14 @@ void THAPlanning::pushButton_demoInit_clicked()
 	// Initialize m_RfemurObject
 	On_pushButton_initializeRfemurObject_clicked();
 
+	// Show native femoralversion_R
+	m_Controls.lineEdit_native_femoralVersion_R->setText(QString::number(m_RfemurObject->GetfemurVersion()));
+
 	// Initialize m_LfemurObject
 	On_pushButton_initializeLfemurObject_clicked();
+
+	// Show native femoralversion_R
+	m_Controls.lineEdit_native_femoralVersion_L->setText(QString::number(m_LfemurObject->GetfemurVersion()));
 
 	// Initialize m_CupObject and m_StemObject
 	pushButton_initCupObject_clicked();

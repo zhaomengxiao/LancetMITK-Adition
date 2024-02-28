@@ -281,6 +281,10 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToMechan
 	return coupleFrameToMechanicFrameMatrix;
 }
 
+double lancet::ThaFemurStemCouple::CalStemVersion()
+{
+	return 0;
+}
 
 
 

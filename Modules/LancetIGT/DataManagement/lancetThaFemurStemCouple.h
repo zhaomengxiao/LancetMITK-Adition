@@ -51,6 +51,11 @@ namespace lancet
 
 		vtkSmartPointer<vtkMatrix4x4> GetCoupleFrameToMechanicFrame();
 
+		/* ToDo: Calculate and return the stem version:
+		 * apply the same method of femoral version calculation
+		 * but regard the stem pillar axis as new the neck axis*/
+		double CalStemVersion();
+
 	protected:
 		ThaFemurStemCouple();
 		ThaFemurStemCouple(const ThaFemurStemCouple& other);
