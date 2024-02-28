@@ -460,6 +460,7 @@ void THAPlanning::On_pushButton_initializePelvisObject_clicked()
 	m_pelvisObject->SetNode_pset_ASIS(GetDataStorage()->GetNamedNode("ASIS"));
 	m_pelvisObject->SetNode_pset_pelvisCOR(GetDataStorage()->GetNamedNode("pelvisCOR"));
 	m_pelvisObject->SetNode_pset_midline(GetDataStorage()->GetNamedNode("midline"));
+	m_pelvisObject->SetNode_pset_pubicTubercles(GetDataStorage()->GetNamedNode("pubicTubercles"));
 
 	m_pelvisObject->SetNode_Pset_anteriorLandmark(GetDataStorage()->GetNamedNode("anteriorLandmark"));
 	m_pelvisObject->SetNode_Pset_icpPoints(GetDataStorage()->GetNamedNode("icpPoints"));

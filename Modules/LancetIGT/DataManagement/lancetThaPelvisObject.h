@@ -68,6 +68,9 @@ namespace lancet
 			itkSetMacro(pset_midline, mitk::PointSet::Pointer)
 			itkGetMacro(pset_midline, mitk::PointSet::Pointer)
 
+			itkSetMacro(pset_pubicTubercles, mitk::PointSet::Pointer)
+			itkGetMacro(pset_pubicTubercles, mitk::PointSet::Pointer)
+
 		void SetNode_image_pelvis(mitk::DataNode::Pointer node);
 		itkGetMacro(Node_image_pelvis, mitk::DataNode::Pointer);
 
@@ -85,6 +88,10 @@ namespace lancet
 
 		void SetNode_pset_midline(mitk::DataNode::Pointer node);
 		itkGetMacro(Node_pset_midline, mitk::DataNode::Pointer);
+
+		void SetNode_pset_pubicTubercles(mitk::DataNode::Pointer node);
+		itkGetMacro(Node_pset_pubicTubercles, mitk::DataNode::Pointer);
+
 
 		itkGetMacro(Node_Surface_clippedPelvis, mitk::DataNode::Pointer);
 		itkGetMacro(Node_Pset_icpPoints, mitk::DataNode::Pointer);
@@ -179,13 +186,19 @@ namespace lancet
 		// the pelvis midline point, contains one point
 		mitk::PointSet::Pointer m_pset_midline;
 
+		/* Pubic tubercles for pelvic plane calculation,
+		the pelvic plane is defined by the ASIS and the pubic tubercles,
+		point 0 is the right side, point 1 is the left side */
+		mitk::PointSet::Pointer m_pset_pubicTubercles;
+
+
 		mitk::DataNode::Pointer m_Node_image_pelvis;
 		mitk::DataNode::Pointer m_Node_surface_pelvis;
 		mitk::DataNode::Pointer m_Node_surface_pelvisFrame;
 		mitk::DataNode::Pointer m_Node_pset_ASIS;
 		mitk::DataNode::Pointer m_Node_pset_pelvisCOR;
 		mitk::DataNode::Pointer m_Node_pset_midline;
-
+		mitk::DataNode::Pointer m_Node_pset_pubicTubercles;
 
 		// Data for image registration
 		mitk::Surface::Pointer m_Surface_clippedPelvis;

@@ -195,7 +195,15 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaPelvisObject::CalculateWorldToPelvisTra
 		return worldToPelvisMatrix;
 	}
 
-	auto origin = m_pset_midline->GetPoint(0);
+	// auto origin = m_pset_midline->GetPoint(0);
+	auto tubercle_r = m_pset_pubicTubercles->GetPoint(0);
+	auto tubercle_l = m_pset_pubicTubercles->GetPoint(1);
+	mitk::Point3D origin;
+	origin[0] = (tubercle_r[0] + tubercle_l[0]) / 2;
+	origin[1] = (tubercle_r[1] + tubercle_l[1]) / 2;
+	origin[2] = (tubercle_r[2] + tubercle_l[2]) / 2;
+
+
 	auto asis_r = m_pset_ASIS->GetPoint(0);
 	auto asis_l = m_pset_ASIS->GetPoint(1);
 
@@ -402,6 +410,7 @@ bool lancet::ThaPelvisObject::AlignPelvicObjectWithWorldFrame()
 	m_pset_ASIS->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
 	m_pset_pelvisCOR->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
 	m_pset_midline->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
+	m_pset_pubicTubercles->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
 
 	m_Pset_anteriorLandmark->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
 	m_Pset_icpPoints->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(pelvicToWorldMatrix);
@@ -417,6 +426,7 @@ bool lancet::ThaPelvisObject::AlignPelvicObjectWithWorldFrame()
 	RewritePointSetWithGeometryMatrix(m_Pset_posteriorLandmark);
 	RewritePointSetWithGeometryMatrix(m_Pset_superiorLandmark);
 	RewritePointSetWithGeometryMatrix(m_Pset_verificationPoints);
+	RewritePointSetWithGeometryMatrix(m_pset_pubicTubercles);
 
 	return true;
 
@@ -497,6 +507,13 @@ void lancet::ThaPelvisObject::SetNode_pset_midline(mitk::DataNode::Pointer node)
 	m_Node_pset_midline = node;
 	m_pset_midline = dynamic_cast<mitk::PointSet*>(node->GetData());
 }
+
+void lancet::ThaPelvisObject::SetNode_pset_pubicTubercles(mitk::DataNode::Pointer node)
+{
+	m_Node_pset_pubicTubercles = node;
+	m_pset_pubicTubercles = dynamic_cast<mitk::PointSet*>(node->GetData());
+}
+
 
 void lancet::ThaPelvisObject::SetNode_Pset_anteriorLandmark(mitk::DataNode::Pointer node)
 {
