@@ -46,6 +46,7 @@ namespace lancet
 		// Convenient method of getting the stem HeadCenter in femur frame
 		mitk::Point3D GetStemHeadCenterInFemurFrame();
 
+		// Calculate and return femurStemCoupleFrame --> femurCanalFrame
 		vtkSmartPointer<vtkMatrix4x4> GetCoupleFrameToCanalFrame();
 
 		vtkSmartPointer<vtkMatrix4x4> GetCoupleFrameToMechanicFrame();

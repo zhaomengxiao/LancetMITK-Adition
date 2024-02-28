@@ -125,6 +125,10 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToCanalF
 	auto distalCanalPointInFemurFrame = m_FemurObject->Getpset_femurCanal()->GetPoint(1);
 	m_FemurObject->Getpset_femurCanal()->GetGeometry()->WorldToIndex(distalCanalPointInFemurFrame, distalCanalPointInFemurFrame);
 
+	auto femurCORinFemurFrame = m_FemurObject->Getpset_femurCOR()->GetPoint(0);
+	m_FemurObject->Getpset_femurCanal()->GetGeometry()->WorldToIndex(femurCORinFemurFrame, femurCORinFemurFrame);
+
+
 	auto stemCORinFemurFrame = GetStemHeadCenterInFemurFrame();
 
 	// z axis is distal femurCanal--> proximal femurCanal
@@ -134,23 +138,37 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToCanalF
 	z_vector[2] = 0 - distalCanalPointInFemurFrame[2];
 	z_vector.normalize();
 
-	// for right femur: y axis is the cross product of z axis and (proximal femurCanal--> femurCOR)
-	// for left femur: y axis is the cross product of  (proximal femurCanal--> femurCOR) and z axis
+	// for right femur: y axis is the cross product of z axis and (proximal femurCanal--> stemCOR)
+	// for left femur: y axis is the cross product of  (proximal femurCanal--> stemCOR) and z axis
 	Eigen::Vector3d tmpVector;
 	tmpVector[0] = stemCORinFemurFrame[0];
 	tmpVector[1] = stemCORinFemurFrame[1];
 	tmpVector[2] = stemCORinFemurFrame[2];
 	tmpVector.normalize();
 
+	Eigen::Vector3d tmpVector_femur;
+	tmpVector_femur[0] = femurCORinFemurFrame[0];
+	tmpVector_femur[1] = femurCORinFemurFrame[1];
+	tmpVector_femur[2] = femurCORinFemurFrame[2];
+
 	Eigen::Vector3d y_vector;
+	Eigen::Vector3d y_vector_femur;
 	if (m_FemurObject->GetfemurSide() == 0)
 	{
 		y_vector = z_vector.cross(tmpVector);
+		y_vector_femur = z_vector.cross(tmpVector_femur);
 	}
 	else
 	{
 		y_vector = tmpVector.cross(z_vector);
+		y_vector_femur = tmpVector_femur.cross(z_vector);
 	}
+
+	// In case the StemCOR moves to the opposite side of the original femurCOR
+	// the direction of y_vector should be corrected according the y vector of the femurObject frame (y_vector_femur)
+
+	y_vector = y_vector.dot(y_vector_femur) * y_vector;
+
 	y_vector.normalize();
 
 	Eigen::Vector3d x_vector;
@@ -175,7 +193,7 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToMechan
 	coupleFrameToMechanicFrameMatrix->Identity();
 
 	// coupleFrame is the same as the femur frame
-	// the coupleMechanicFrame should take the stem COR into consideration
+	// the coupleMechanicFrame should take the stemCOR into consideration
 
 	// mechanic frame:
 	// origin: proximal femurCanal
@@ -184,6 +202,9 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToMechan
 	// y vector: z vector X toolVector (right femur) \ toolVector X z vector (left femur)
 
 	auto stemCORinFemurFrame = GetStemHeadCenterInFemurFrame();
+
+	auto femurCORinFemurFrame = m_FemurObject->Getpset_femurCOR()->GetPoint(0);
+	m_FemurObject->Getpset_femurCanal()->GetGeometry()->WorldToIndex(femurCORinFemurFrame, femurCORinFemurFrame);
 
 	auto distalCanalPointInFemurFrame = m_FemurObject->Getpset_femurCanal()->GetPoint(1);
 	m_FemurObject->Getpset_femurCanal()->GetGeometry()->WorldToIndex(distalCanalPointInFemurFrame, distalCanalPointInFemurFrame);
@@ -210,6 +231,11 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToMechan
 	toolVector[1] = stemCORinFemurFrame[1] ;
 	toolVector[2] = stemCORinFemurFrame[2] ;
 
+	Eigen::Vector3d toolVector_femur;
+	toolVector_femur[0] = femurCORinFemurFrame[0];
+	toolVector_femur[1] = femurCORinFemurFrame[1];
+	toolVector_femur[2] = femurCORinFemurFrame[2];
+
 	Eigen::Vector3d toolVector2;
 	toolVector2[0] = -distalCanalPointInFemurFrame[0];
 	toolVector2[1] = -distalCanalPointInFemurFrame[1];
@@ -219,16 +245,26 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToMechan
 	Eigen::Vector3d toolVector3;
 	toolVector3 = toolVector - (toolVector.dot(toolVector2)) * toolVector2;
 
+	Eigen::Vector3d toolVector3_femur;
+	toolVector3_femur = toolVector_femur - (toolVector_femur.dot(toolVector2))*toolVector2;
 
 	Eigen::Vector3d y_vector;
+	Eigen::Vector3d y_vector_femur;
 	if (m_FemurObject->GetfemurSide() == 0)
 	{
 		y_vector = z_vector.cross(toolVector3);
+		y_vector_femur = z_vector.cross(toolVector3_femur);
 	}
 	else
 	{
 		y_vector = toolVector3.cross(z_vector);
+		y_vector_femur = toolVector3_femur.cross(z_vector);
 	}
+
+	// In case the StemCOR moves to the opposite side of the original femurCOR
+	// the direction of y_vector should be corrected according the y vector of the femurObject mechanical frame (y_vector_femur)
+
+	y_vector = y_vector.dot(y_vector_femur) * y_vector;
 
 	y_vector.normalize();
 
