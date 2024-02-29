@@ -366,7 +366,7 @@ void lancet::ThaPelvisCupCouple::UpdateRelativeCupCOR()
 void lancet::ThaPelvisCupCouple::SetPelvisFrameToCupFrameMatrix(vtkSmartPointer<vtkMatrix4x4> newMatrix)
 {
 	vtkNew<vtkTransform> tmpTransform;
-	tmpTransform->PostMultiply();
+	tmpTransform->PreMultiply();
 	tmpTransform->SetMatrix(m_vtkMatrix_coupleGeometry);
 	tmpTransform->Concatenate(newMatrix);
 	tmpTransform->Update();
