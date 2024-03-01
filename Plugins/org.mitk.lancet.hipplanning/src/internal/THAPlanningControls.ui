@@ -1144,7 +1144,7 @@
                     <enum>Qt::DefaultContextMenu</enum>
                    </property>
                    <property name="text">
-                    <string>术前（无假体）</string>
+                    <string>依据原生骨拼装</string>
                    </property>
                    <property name="checked">
                     <bool>true</bool>
@@ -1154,7 +1154,7 @@
                  <item row="1" column="0">
                   <widget class="QRadioButton" name="radioButton_demoIntrop">
                    <property name="text">
-                    <string>术中（有假体）</string>
+                    <string>依据假体拼装</string>
                    </property>
                   </widget>
                  </item>

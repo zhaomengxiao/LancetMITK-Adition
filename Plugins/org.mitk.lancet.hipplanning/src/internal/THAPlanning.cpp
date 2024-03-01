@@ -636,9 +636,22 @@ void THAPlanning::pushButton_noTiltCanalReduction_clicked()
 
 	m_ReductionObject->GetOriginalNoTiltCanalMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
 
-	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
-	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
-	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+	// m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+	// m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+	// m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+
+	if (m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rFemurMatrix);
+	}
+	else
+	{
+		m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(lFemurMatrix);
+	}
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
 	
 	m_Controls.textBrowser->append("right hip length:" + QString::number(m_ReductionObject->GetHipLength_supine_R()));
 	m_Controls.textBrowser->append("left hip length:" + QString::number(m_ReductionObject->GetHipLength_supine_L()));
@@ -664,9 +677,22 @@ void THAPlanning::pushButton_noTiltMechanicReduction_clicked()
 
 	m_ReductionObject->GetOriginalNoTiltMechanicMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
 
-	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
-	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
-	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+	// m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+	// m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+	// m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+
+	if (m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rFemurMatrix);
+	}
+	else
+	{
+		m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(lFemurMatrix);
+	}
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -687,9 +713,22 @@ void THAPlanning::pushButton_supineCanalReduction_clicked()
 
 	m_ReductionObject->GetOriginalSupineTiltCanalMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
 
-	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
-	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
-	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+	// m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+	// m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+	// m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+
+	if (m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rFemurMatrix);
+	}
+	else
+	{
+		m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(lFemurMatrix);
+	}
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -710,9 +749,22 @@ void THAPlanning::pushButton_supineMechanicReduction_clicked()
 
 	m_ReductionObject->GetOriginalSupineTiltMechanicMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
 
-	m_RfemurObject->SetGroupGeometry(rFemurMatrix);
-	m_LfemurObject->SetGroupGeometry(lFemurMatrix);
-	m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+	// m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+	// m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+	// m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+
+	if (m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rFemurMatrix);
+	}
+	else
+	{
+		m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(lFemurMatrix);
+	}
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -1278,7 +1330,7 @@ void THAPlanning::pushButton_demoReduce_clicked()
 
 	if(m_Controls.radioButton_demoPreop->isChecked())
 	{
-		ShowImplants(false);
+		ShowImplants(true);
 		m_Controls.lineEdit_demoIntraHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
 		m_Controls.lineEdit_demoIntraHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
 		m_Controls.lineEdit_demoIntraOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
