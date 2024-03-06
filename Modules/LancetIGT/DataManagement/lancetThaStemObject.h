@@ -64,6 +64,22 @@ namespace lancet
 		void SetNode_Pset_headCenter(mitk::DataNode::Pointer node);
 		void SetNode_Surface_stemFrame(mitk::DataNode::Pointer node);
 
+		//stem pointset
+		//void SetNode_Pset_stemLine(mitk::DataNode::Pointer node);
+		//void SetNode_Pset_stemNormal(mitk::DataNode::Pointer node);
+		//void SetNode_Pset_headAxis(mitk::DataNode::Pointer node);
+
+		//void SetPset_stemLine(mitk::PointSet::Pointer point);
+		//void SetPset_stemNormal(mitk::PointSet::Pointer point);
+		//void SetPset_headAxis(mitk::PointSet::Pointer point);
+
+		//itkGetMacro(Node_Pset_stemLine, mitk::DataNode::Pointer);
+		//itkGetMacro(Node_Pset_stemNormal, mitk::DataNode::Pointer);
+		//itkGetMacro(Node_Pset_headAxis, mitk::DataNode::Pointer);
+		//itkGetMacro(Pset_stemLine, mitk::PointSet::Pointer);
+		//itkGetMacro(Pset_stemNormal, mitk::PointSet::Pointer);
+		//itkGetMacro(Pset_headAxis, mitk::PointSet::Pointer);
+
 		/*
 		 * Move all the data components except for the stemFrame
 		 * which is created at the world frame position,
@@ -106,6 +122,15 @@ namespace lancet
 		mitk::DataNode::Pointer m_Node_Surface_head;
 		mitk::DataNode::Pointer m_Node_Pset_headCenter;
 		mitk::DataNode::Pointer m_Node_Surface_stemFrame;
+
+		////stem pointset
+		//mitk::DataNode::Pointer m_Node_Pset_stemLine;
+		//mitk::PointSet::Pointer m_Pset_stemLine;
+		//mitk::DataNode::Pointer m_Node_Pset_stemNormal;
+		//mitk::PointSet::Pointer m_Pset_stemNormal;
+		////head pointset
+		//mitk::DataNode::Pointer m_Node_Pset_headAxis;
+		//mitk::PointSet::Pointer m_Pset_headAxis;
 
 	};
 }

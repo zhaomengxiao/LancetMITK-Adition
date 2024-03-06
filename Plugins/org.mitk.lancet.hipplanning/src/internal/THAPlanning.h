@@ -189,6 +189,8 @@ protected:
   void pushButton_demoDRR_clicked();
   void ShowImplants(bool showOrHide);
   
+  void pushButton_changeStem_clicked();
+  void pushButton_changeHead_clicked();
 
 	//---------- Tool functions --------------
 

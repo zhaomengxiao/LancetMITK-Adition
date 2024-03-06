@@ -101,6 +101,8 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_demoMoveStem, &QPushButton::clicked, this, &THAPlanning::pushButton_demoMoveStem_clicked);
   connect(m_Controls.pushButton_demoDRR, &QPushButton::clicked, this, &THAPlanning::pushButton_demoDRR_clicked);
 
+  connect(m_Controls.pushButton_changehead, &QPushButton::clicked, this, &THAPlanning::pushButton_changeHead_clicked);
+  connect(m_Controls.pushButton_changestem, &QPushButton::clicked, this, &THAPlanning::pushButton_changeStem_clicked);
 }
 
 void THAPlanning::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -781,6 +783,7 @@ void THAPlanning::pushButton_initCupObject_clicked()
 
 	m_CupObject->SetNode_Surface_cup(GetDataStorage()->GetNamedNode("cup"));
 	m_CupObject->SetNode_Surface_liner(GetDataStorage()->GetNamedNode("liner"));
+	//m_CupObject->SetNode_Point_cupline(GetDataStorage()->GetNamedNode("cupLine"));
 
 	if(m_Controls.radioButton_implantObject_R->isChecked())
 	{
@@ -822,8 +825,11 @@ void THAPlanning::pushButton_initStemObject_clicked()
 	// m_StemObject->SetHeadCenter(stemCOR);
 
 	m_StemObject->SetNode_Surface_stem(GetDataStorage()->GetNamedNode("stem"));
-	m_StemObject->SetNode_Pset_headCenter(GetDataStorage()->GetNamedNode("stemCOR"));
+	m_StemObject->SetNode_Pset_headCenter(GetDataStorage()->GetNamedNode("headCOR_28"));
 	m_StemObject->SetNode_Surface_head(GetDataStorage()->GetNamedNode("head_28"));
+	//m_StemObject->SetNode_Pset_headAxis(GetDataStorage()->GetNamedNode("headAxis"));
+	//m_StemObject->SetNode_Pset_stemLine(GetDataStorage()->GetNamedNode("stemLine"));
+	//m_StemObject->SetNode_Pset_stemNormal(GetDataStorage()->GetNamedNode("stemNormal"));
 
 	if(m_Controls.radioButton_implantObject_R->isChecked())
 	{
@@ -1210,14 +1216,16 @@ void THAPlanning::pushButton_demoInit_clicked()
 
 	// Initialize m_CupObject and m_StemObject
 	pushButton_initCupObject_clicked();
-	pushButton_initStemObject_clicked();
 
+	pushButton_initStemObject_clicked();
+	
 	// Initialize m_PelvisCupCouple
 	pushButton_initPelvisCupCouple_clicked();
 
 	// Initialize m_FemurStemCouple
 	pushButton_initFemurStemCouple_clicked();
 
+	
 	// Initialize m_EnhancedReductionObject
 	pushButton_initEnhancedReduce_clicked();
 	pushButton_noTiltCanal_enhancedReduce_clicked();
@@ -1261,8 +1269,7 @@ void THAPlanning::pushButton_demoInit_clicked()
 	GetDataStorage()->GetNamedNode("pelvisFrame")->SetVisibility(false);
 	GetDataStorage()->GetNamedNode("femurFrame_R")->SetVisibility(false);
 	GetDataStorage()->GetNamedNode("femurFrame_L")->SetVisibility(false);
-
-
+	
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 }
@@ -1450,6 +1457,31 @@ void THAPlanning::ShowImplants(bool showOrHide)
 		m_CupObject->GetNode_Surface_cupFrame()->SetVisibility(0);
 		m_CupObject->GetNode_Surface_liner()->SetVisibility(0);
 	}
+}
+
+void THAPlanning::pushButton_changeStem_clicked()
+{
+	auto newStem = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("stem_5")->GetData());
+
+	m_FemurStemCouple->ChangeStem(newStem);
+	auto oldStemNode = GetDataStorage()->GetNamedNode("stem");
+	oldStemNode->SetVisibility(false);
+	auto newStemNode = GetDataStorage()->GetNamedNode("stem_5");
+	newStemNode->SetVisibility(true);
+	
+}
+
+void THAPlanning::pushButton_changeHead_clicked()
+{
+	auto newHead = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("head_32")->GetData());
+	auto newHeadCenter = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("headCOR_32")->GetData());
+
+	m_FemurStemCouple->ChangeHead(newHead, newHeadCenter);
+
+	auto oldHeadNode = GetDataStorage()->GetNamedNode("head_28");
+	oldHeadNode->SetVisibility(false);
+	auto newHeadNode = GetDataStorage()->GetNamedNode("head_32");
+	newHeadNode->SetVisibility(true);
 }
 
 void THAPlanning::pushButton_demoConfirmImplant_clicked()

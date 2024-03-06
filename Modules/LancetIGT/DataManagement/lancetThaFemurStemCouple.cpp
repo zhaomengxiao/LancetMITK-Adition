@@ -85,7 +85,7 @@ void lancet::ThaFemurStemCouple::InitializeFemurFrameToStemFrameMatrix()
 	{
 		tmpTransform->RotateZ(180);
 	}
-
+	/*
 	// the stem is then translated upward so that the stemCOR and the femurCOR is aligned in z-dimension
 	auto femurCOR = m_FemurObject->Getpset_femurCOR()->GetPoint(0);
 	auto stemCOR = m_StemObject->GetPset_headCenter()->GetPoint(0);
@@ -97,7 +97,45 @@ void lancet::ThaFemurStemCouple::InitializeFemurFrameToStemFrameMatrix()
 	m_vtkMatrix_femurFrameToStemFrame->DeepCopy(tmpTransform->GetMatrix());
 
 	SetCoupleGeometry(m_FemurObject->GetvtkMatrix_groupGeometry());
+	*/
+	//TO DO:
 
+	auto femurCor = m_FemurObject->Getpset_femurCOR()->GetPoint(0);
+	auto femurProximal = m_FemurObject->Getpset_neckCenter()->GetPoint(0);
+	
+	//auto stemAssemblyCenter = m_StemObject->GetPset_stemLine()->GetPoint(0);
+	//auto stemLineEnd = m_StemObject->GetPset_stemLine()->GetPoint(1);
+	auto headCenter = m_StemObject->GetPset_headCenter()->GetPoint(0);
+
+	double femurNeckAxis[3] = { femurCor[0] - femurProximal[0],femurCor[1] - femurProximal[1],femurCor[2] - femurProximal[2] };
+	double stemLine[3] = { 0,0,1 };
+
+	double RotAngle = 0;
+	double stemAxisNorm = sqrt(femurNeckAxis[0] * femurNeckAxis[0] + femurNeckAxis[1] * femurNeckAxis[1] + femurNeckAxis[2] * femurNeckAxis[2]);
+	double headAxisNorm = sqrt(stemLine[0] * stemLine[0] + stemLine[1] * stemLine[1] + stemLine[2] * stemLine[2]);
+	if (stemAxisNorm != 0 || headAxisNorm != 0)
+	{
+		RotAngle = std::acos((femurNeckAxis[0] * stemLine[0] + femurNeckAxis[1] * stemLine[1] + femurNeckAxis[2] * stemLine[2]) /
+			(stemAxisNorm * headAxisNorm)) / vtkMath::Pi() * 180;
+	}
+	double RotAxis[3] = {0,1,0};
+	//vtkMath::Cross(stemLine, femurNeckAxis, RotAxis);
+	
+	tmpTransform->RotateWXYZ(-45, RotAxis);
+	tmpTransform->Update();
+
+	double tmpheadCenter[3] = { headCenter[0], headCenter[1], headCenter[2] };
+	tmpTransform->TransformPoint(tmpheadCenter, tmpheadCenter);
+
+	vtkNew<vtkTransform> TargetTransform;
+	TargetTransform->PostMultiply();
+	TargetTransform->SetMatrix(tmpTransform->GetMatrix());
+	TargetTransform->Translate(femurCor[0] - tmpheadCenter[0], femurCor[1] - tmpheadCenter[1], femurCor[2] - tmpheadCenter[2]);
+	TargetTransform->Update();
+
+	m_vtkMatrix_femurFrameToStemFrame->DeepCopy(TargetTransform->GetMatrix());
+	//m_vtkMatrix_femurFrameToStemFrame
+	SetCoupleGeometry(m_FemurObject->GetvtkMatrix_groupGeometry());
 }
 
 mitk::Point3D lancet::ThaFemurStemCouple::GetStemHeadCenterInFemurFrame()
@@ -284,6 +322,53 @@ vtkSmartPointer<vtkMatrix4x4> lancet::ThaFemurStemCouple::GetCoupleFrameToMechan
 double lancet::ThaFemurStemCouple::CalStemVersion()
 {
 	return 0;
+}
+
+void lancet::ThaFemurStemCouple::ChangeHead(mitk::Surface::Pointer head,mitk::PointSet::Pointer point)
+{
+	//calculate final transformlation
+	auto headCenter = m_StemObject->GetPset_headCenter()->GetPoint(0);
+	MITK_INFO << "HEAD CENTER:" << headCenter[0] << ","
+		<< headCenter[1] << ","
+		<< headCenter[2];
+	MITK_INFO << "================================";
+
+	auto newHeadCenter = point->GetPoint(0);
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(m_vtkMatrix_femurFrameToStemFrame);
+	tmpTransform->Update();
+
+	mitk::Point3D tmpNewHeadCenter;
+	//double tmpNewHeadCenter[3] = { newHeadCenter[0],newHeadCenter[1],newHeadCenter[2] };
+	m_StemObject->GetPset_headCenter()->GetGeometry()->IndexToWorld(newHeadCenter, tmpNewHeadCenter);
+	//tmpTransform->TransformPoint(tmpNewHeadCenter, tmpNewHeadCenter);
+
+	vtkNew<vtkTransform> TargetTransform;
+	TargetTransform->PostMultiply();
+	TargetTransform->SetMatrix(m_vtkMatrix_femurFrameToStemFrame);
+	TargetTransform->Translate(headCenter[0] - tmpNewHeadCenter[0], headCenter[1] - tmpNewHeadCenter[1], headCenter[2] - tmpNewHeadCenter[2]);
+	TargetTransform->Update();
+
+	m_vtkMatrix_femurFrameToStemFrame->DeepCopy(TargetTransform->GetMatrix());
+	//m_vtkMatrix_femurFrameToStemFrame
+	SetCoupleGeometry(m_FemurObject->GetvtkMatrix_groupGeometry());
+
+	//assume that new surface are always align with the world coordinate
+	//1¡¢change m_StemObject head
+	m_StemObject->SetHeadSurface(head);
+	
+	//2¡¢change m_StemObject head center
+	m_StemObject->SetHeadCenter(point);
+	//3¡¢change FemurToStemMatrix
+	m_vtkMatrix_femurFrameToStemFrame->DeepCopy(TargetTransform->GetMatrix());
+	SetCoupleGeometry(m_FemurObject->GetvtkMatrix_groupGeometry());
+
+
+}
+
+void lancet::ThaFemurStemCouple::ChangeStem(mitk::Surface::Pointer stem)
+{
+	m_StemObject->SetStemSurface(stem);
 }
 
 

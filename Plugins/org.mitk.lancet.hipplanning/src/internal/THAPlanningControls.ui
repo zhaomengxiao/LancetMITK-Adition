@@ -1066,6 +1066,20 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_changehead">
+              <property name="text">
+               <string>更换球头</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_changestem">
+              <property name="text">
+               <string>更换股骨柄</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>

@@ -56,6 +56,10 @@ namespace lancet
 		 * but regard the stem pillar axis as new the neck axis*/
 		double CalStemVersion();
 
+		void ChangeHead(mitk::Surface::Pointer head,mitk::PointSet::Pointer point);
+
+		void ChangeStem(mitk::Surface::Pointer stem);
+
 	protected:
 		ThaFemurStemCouple();
 		ThaFemurStemCouple(const ThaFemurStemCouple& other);
