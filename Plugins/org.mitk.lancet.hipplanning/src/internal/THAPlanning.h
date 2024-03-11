@@ -194,6 +194,15 @@ protected:
   bool isStem5 = false;
   bool isHead32 = false;
 
+
+  void on_pushButton_extrinsicCounter_clicked();
+  void on_pushButton_extrinsicClock_clicked();
+  void on_pushButton_extrinsicUp_clicked();
+  void on_pushButton_extrinsicDown_clicked();
+  void on_pushButton_extrinsicLeft_clicked();
+  void on_pushButton_extrinsicRight_clicked();
+
+
 	//---------- Tool functions --------------
 
 	// retrieve a 4x4 vtkMatrix from the UI

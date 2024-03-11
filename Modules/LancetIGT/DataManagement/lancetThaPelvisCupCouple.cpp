@@ -391,6 +391,176 @@ mitk::Point3D lancet::ThaPelvisCupCouple::GetCupCenterInPelvisFrame()
 }
 
 
+void lancet::ThaPelvisCupCouple::AppendExtrinsicMatrixToCupObject(vtkSmartPointer<vtkMatrix4x4> newMatrix)
+{
+	vtkNew<vtkMatrix4x4> T_coupleFrameToWorldFrame;
+	T_coupleFrameToWorldFrame->DeepCopy(m_vtkMatrix_coupleGeometry);
+	T_coupleFrameToWorldFrame->Invert();
 
+	vtkNew<vtkTransform> Trans_pelvisFrameToCupFrame;
+	Trans_pelvisFrameToCupFrame->Identity();
+	Trans_pelvisFrameToCupFrame->PostMultiply();
+	Trans_pelvisFrameToCupFrame->SetMatrix(m_vtkMatrix_pelvisFrameToCupFrame);
+	Trans_pelvisFrameToCupFrame->Concatenate(m_vtkMatrix_coupleGeometry);
+	Trans_pelvisFrameToCupFrame->Concatenate(newMatrix);
+	Trans_pelvisFrameToCupFrame->Concatenate(T_coupleFrameToWorldFrame);
+	Trans_pelvisFrameToCupFrame->Update();
 
+	SetPelvisFrameToCupFrameMatrix(Trans_pelvisFrameToCupFrame->GetMatrix());
 
+}
+
+void lancet::ThaPelvisCupCouple::MoveCupUp(int step, ViewType view)
+{
+	vtkNew<vtkMatrix4x4> newMatrix;
+	newMatrix->Identity();
+
+	if(view == ViewType::Axial)
+	{
+		newMatrix->SetElement(1, 3, -step);
+	}
+	if(view == ViewType::Saggital)
+	{
+		newMatrix->SetElement(2, 3, step);
+	}
+	if(view == ViewType::Coronal)
+	{
+		newMatrix->SetElement(2, 3, step);
+	}
+
+	AppendExtrinsicMatrixToCupObject(newMatrix);
+
+}
+
+void lancet::ThaPelvisCupCouple::MoveCupDown(int step, ViewType view)
+{
+	vtkNew<vtkMatrix4x4> newMatrix;
+	newMatrix->Identity();
+
+	if (view == ViewType::Axial)
+	{
+		newMatrix->SetElement(1, 3, step);
+	}
+	if (view == ViewType::Saggital)
+	{
+		newMatrix->SetElement(2, 3, -step);
+	}
+	if (view == ViewType::Coronal)
+	{
+		newMatrix->SetElement(2, 3, -step);
+	}
+
+	AppendExtrinsicMatrixToCupObject(newMatrix);
+}
+
+void lancet::ThaPelvisCupCouple::MoveCupLeft(int step, ViewType view)
+{
+	vtkNew<vtkMatrix4x4> newMatrix;
+	newMatrix->Identity();
+
+	if (view == ViewType::Axial)
+	{
+		newMatrix->SetElement(0, 3, -step);
+	}
+	if (view == ViewType::Saggital)
+	{
+		newMatrix->SetElement(1, 3, -step);
+	}
+	if (view == ViewType::Coronal)
+	{
+		newMatrix->SetElement(0, 3, -step);
+	}
+
+	AppendExtrinsicMatrixToCupObject(newMatrix);
+}
+
+void lancet::ThaPelvisCupCouple::MoveCupRight(int step, ViewType view)
+{
+	vtkNew<vtkMatrix4x4> newMatrix;
+	newMatrix->Identity();
+
+	if (view == ViewType::Axial)
+	{
+		newMatrix->SetElement(0, 3, step);
+	}
+	if (view == ViewType::Saggital)
+	{
+		newMatrix->SetElement(1, 3, step);
+	}
+	if (view == ViewType::Coronal)
+	{
+		newMatrix->SetElement(0, 3, step);
+	}
+
+	AppendExtrinsicMatrixToCupObject(newMatrix);
+}
+
+void lancet::ThaPelvisCupCouple::RotateCupClockwise(int step, ViewType view)
+{
+	vtkNew<vtkTransform> trans_worldToCup_old;
+	trans_worldToCup_old->Identity();
+	trans_worldToCup_old->PostMultiply();
+	trans_worldToCup_old->SetMatrix(m_vtkMatrix_pelvisFrameToCupFrame);
+	trans_worldToCup_old->Concatenate(m_vtkMatrix_coupleGeometry);
+	trans_worldToCup_old->Update();
+	auto T_worldToCup_old = trans_worldToCup_old->GetMatrix();
+
+	vtkNew<vtkTransform> trans_append;
+	trans_append->Identity();
+	trans_append->PostMultiply();
+	trans_append->Translate(-T_worldToCup_old->GetElement(0,3), -T_worldToCup_old->GetElement(1, 3), -T_worldToCup_old->GetElement(2, 3));
+
+	if (view == ViewType::Axial)
+	{
+		trans_append->RotateZ(step);
+	}
+	if (view == ViewType::Saggital)
+	{
+		trans_append->RotateX(-step);
+	}
+	if (view == ViewType::Coronal)
+	{
+		trans_append->RotateY(step);
+	}
+
+	trans_append->Translate(T_worldToCup_old->GetElement(0, 3), T_worldToCup_old->GetElement(1, 3), T_worldToCup_old->GetElement(2, 3));
+
+	trans_append->Update();
+
+	AppendExtrinsicMatrixToCupObject(trans_append->GetMatrix());
+}
+
+void lancet::ThaPelvisCupCouple::RotateCupCounterClockwise(int step, ViewType view)
+{
+	vtkNew<vtkTransform> trans_worldToCup_old;
+	trans_worldToCup_old->Identity();
+	trans_worldToCup_old->PostMultiply();
+	trans_worldToCup_old->SetMatrix(m_vtkMatrix_pelvisFrameToCupFrame);
+	trans_worldToCup_old->Concatenate(m_vtkMatrix_coupleGeometry);
+	trans_worldToCup_old->Update();
+	auto T_worldToCup_old = trans_worldToCup_old->GetMatrix();
+
+	vtkNew<vtkTransform> trans_append;
+	trans_append->Identity();
+	trans_append->PostMultiply();
+	trans_append->Translate(-T_worldToCup_old->GetElement(0, 3), -T_worldToCup_old->GetElement(1, 3), -T_worldToCup_old->GetElement(2, 3));
+
+	if (view == ViewType::Axial)
+	{
+		trans_append->RotateZ(-step);
+	}
+	if (view == ViewType::Saggital)
+	{
+		trans_append->RotateX(step);
+	}
+	if (view == ViewType::Coronal)
+	{
+		trans_append->RotateY(-step);
+	}
+
+	trans_append->Translate(T_worldToCup_old->GetElement(0, 3), T_worldToCup_old->GetElement(1, 3), T_worldToCup_old->GetElement(2, 3));
+
+	trans_append->Update();
+
+	AppendExtrinsicMatrixToCupObject(trans_append->GetMatrix());
+}

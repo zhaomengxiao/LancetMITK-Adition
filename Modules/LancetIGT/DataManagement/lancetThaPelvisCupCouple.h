@@ -17,11 +17,13 @@
 
 namespace lancet
 {
-	/**Documentation
-	  * \brief 
-	  *
-	  * \ingroup IGT
-	  */
+	enum class ViewType
+	{
+		Axial = 0,
+		Saggital = 1,
+		Coronal = 2
+	};
+
 	class MITKLANCETIGT_EXPORT ThaPelvisCupCouple : public itk::DataObject
 	{
 	public:
@@ -82,6 +84,24 @@ namespace lancet
 		// Convenient method of getting the cup center in pelvisFrame
 		mitk::Point3D GetCupCenterInPelvisFrame();
 
+
+		// Cup (liner) adjustment in different views
+		void MoveCupUp(int step, ViewType view);
+		// Cup (liner) adjustment in different views
+		void MoveCupDown(int step, ViewType view);
+		// Cup (liner) adjustment in different views
+		void MoveCupLeft(int step, ViewType view);
+		// Cup (liner) adjustment in different views
+		void MoveCupRight(int step, ViewType view);
+		// Cup (liner) adjustment in different views
+		void RotateCupClockwise(int step, ViewType view);
+		// Cup (liner) adjustment in different views
+		void RotateCupCounterClockwise(int step, ViewType view);
+
+		// Append an extrinsic transform in world frame to the cupObject
+		// and rewrite the corresponding m_PelvisFrameToCupFrameMatrix
+		// which stores the cup planning information
+		void AppendExtrinsicMatrixToCupObject(vtkSmartPointer<vtkMatrix4x4> newMatrix);
 
 	protected:
 

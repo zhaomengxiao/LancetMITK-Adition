@@ -103,6 +103,124 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_changehead, &QPushButton::clicked, this, &THAPlanning::pushButton_changeHead_clicked);
   connect(m_Controls.pushButton_changestem, &QPushButton::clicked, this, &THAPlanning::pushButton_changeStem_clicked);
+
+  connect(m_Controls.pushButton_extrinsicClock, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicClock_clicked);
+  connect(m_Controls.pushButton_extrinsicCounter, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicCounter_clicked);
+  connect(m_Controls.pushButton_extrinsicUp, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicUp_clicked);
+  connect(m_Controls.pushButton_extrinsicDown, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicDown_clicked);
+  connect(m_Controls.pushButton_extrinsicLeft, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicLeft_clicked);
+  connect(m_Controls.pushButton_extrinsicRight, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicRight_clicked);
+
+
+}
+
+
+void THAPlanning::on_pushButton_extrinsicClock_clicked()
+{
+	if(m_Controls.radioButton_axial->isChecked())
+	{
+		m_PelvisCupCouple->RotateCupClockwise(2, lancet::ViewType::Axial);
+	}
+	if (m_Controls.radioButton_sagittal->isChecked())
+	{
+		m_PelvisCupCouple->RotateCupClockwise(2, lancet::ViewType::Saggital);
+	}
+	if (m_Controls.radioButton_coronal->isChecked())
+	{
+		m_PelvisCupCouple->RotateCupClockwise(2, lancet::ViewType::Coronal);
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::on_pushButton_extrinsicCounter_clicked()
+{
+	if (m_Controls.radioButton_axial->isChecked())
+	{
+		m_PelvisCupCouple->RotateCupCounterClockwise(2, lancet::ViewType::Axial);
+	}
+	if (m_Controls.radioButton_sagittal->isChecked())
+	{
+		m_PelvisCupCouple->RotateCupCounterClockwise(2, lancet::ViewType::Saggital);
+	}
+	if (m_Controls.radioButton_coronal->isChecked())
+	{
+		m_PelvisCupCouple->RotateCupCounterClockwise(2, lancet::ViewType::Coronal);
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::on_pushButton_extrinsicUp_clicked()
+{
+	if (m_Controls.radioButton_axial->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupUp(2, lancet::ViewType::Axial);
+	}
+	if (m_Controls.radioButton_sagittal->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupUp(2, lancet::ViewType::Saggital);
+	}
+	if (m_Controls.radioButton_coronal->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupUp(2, lancet::ViewType::Coronal);
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::on_pushButton_extrinsicDown_clicked()
+{
+	if (m_Controls.radioButton_axial->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupDown(2, lancet::ViewType::Axial);
+	}
+	if (m_Controls.radioButton_sagittal->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupDown(2, lancet::ViewType::Saggital);
+	}
+	if (m_Controls.radioButton_coronal->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupDown(2, lancet::ViewType::Coronal);
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::on_pushButton_extrinsicLeft_clicked()
+{
+	if (m_Controls.radioButton_axial->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupLeft(2, lancet::ViewType::Axial);
+	}
+	if (m_Controls.radioButton_sagittal->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupLeft(2, lancet::ViewType::Saggital);
+	}
+	if (m_Controls.radioButton_coronal->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupLeft(2, lancet::ViewType::Coronal);
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::on_pushButton_extrinsicRight_clicked()
+{
+	if (m_Controls.radioButton_axial->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupRight(2, lancet::ViewType::Axial);
+	}
+	if (m_Controls.radioButton_sagittal->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupRight(2, lancet::ViewType::Saggital);
+	}
+	if (m_Controls.radioButton_coronal->isChecked())
+	{
+		m_PelvisCupCouple->MoveCupRight(2, lancet::ViewType::Coronal);
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void THAPlanning::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
