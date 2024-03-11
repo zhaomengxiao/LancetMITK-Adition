@@ -64,6 +64,22 @@ namespace lancet
 		void SetNode_Pset_headCenter(mitk::DataNode::Pointer node);
 		void SetNode_Surface_stemFrame(mitk::DataNode::Pointer node);
 
+		//stem cutplane
+		void SetNode_Pset_StemCutPlane(mitk::DataNode::Pointer node);
+		void SetPsetStemCutPlane(mitk::PointSet::Pointer point);
+		void GenerateStemCutPlaneSurface();
+
+		itkGetMacro(Node_Pset_StemCutPlane, mitk::DataNode::Pointer);
+		itkGetMacro(Pset_StemCutPlane, mitk::PointSet::Pointer);
+		itkGetMacro(Node_Surface_StemCutPlane, mitk::DataNode::Pointer);
+		itkGetMacro(Surface_StemCutPlane, mitk::Surface::Pointer);
+
+		itkSetMacro(vtkMatrix_CutPlaneMatrix, vtkSmartPointer<vtkMatrix4x4>);
+		itkGetMacro(vtkMatrix_CutPlaneMatrix, vtkSmartPointer<vtkMatrix4x4>);
+		//itkGetMacro(Node_Surface_StemCutPlane, mitk::DataNode::Pointer node);
+		//itkGetMacro(Surface_StemCutPlane, mitk::Surface::Pointer surface);
+
+
 		//stem pointset
 		//void SetNode_Pset_stemLine(mitk::DataNode::Pointer node);
 		//void SetNode_Pset_stemNormal(mitk::DataNode::Pointer node);
@@ -91,6 +107,9 @@ namespace lancet
 		// Check if all the necessary data are ready 
 		bool CheckDataAvailability();
 
+		void SetStemNeckAngle(double angle);
+
+		double GetStemNeckAngle();
 	protected:
 
 		ThaStemObject();
@@ -123,15 +142,16 @@ namespace lancet
 		mitk::DataNode::Pointer m_Node_Pset_headCenter;
 		mitk::DataNode::Pointer m_Node_Surface_stemFrame;
 
-		////stem pointset
-		//mitk::DataNode::Pointer m_Node_Pset_stemLine;
-		//mitk::PointSet::Pointer m_Pset_stemLine;
-		//mitk::DataNode::Pointer m_Node_Pset_stemNormal;
-		//mitk::PointSet::Pointer m_Pset_stemNormal;
-		////head pointset
-		//mitk::DataNode::Pointer m_Node_Pset_headAxis;
-		//mitk::PointSet::Pointer m_Pset_headAxis;
+		//stem neck angle
+		double m_StemNeckAngle = 135;
 
+		//stem cutplane
+		mitk::DataNode::Pointer m_Node_Pset_StemCutPlane;
+		mitk::PointSet::Pointer m_Pset_StemCutPlane;
+		mitk::DataNode::Pointer m_Node_Surface_StemCutPlane;
+		mitk::Surface::Pointer m_Surface_StemCutPlane;
+
+		vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_CutPlaneMatrix;
 	};
 }
 

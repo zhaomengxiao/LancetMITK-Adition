@@ -827,6 +827,7 @@ void THAPlanning::pushButton_initStemObject_clicked()
 	m_StemObject->SetNode_Surface_stem(GetDataStorage()->GetNamedNode("stem"));
 	m_StemObject->SetNode_Pset_headCenter(GetDataStorage()->GetNamedNode("headCOR_28"));
 	m_StemObject->SetNode_Surface_head(GetDataStorage()->GetNamedNode("head_28"));
+	m_StemObject->SetNode_Pset_StemCutPlane(GetDataStorage()->GetNamedNode("stemCutPlane"));
 	//m_StemObject->SetNode_Pset_headAxis(GetDataStorage()->GetNamedNode("headAxis"));
 	//m_StemObject->SetNode_Pset_stemLine(GetDataStorage()->GetNamedNode("stemLine"));
 	//m_StemObject->SetNode_Pset_stemNormal(GetDataStorage()->GetNamedNode("stemNormal"));
@@ -840,6 +841,13 @@ void THAPlanning::pushButton_initStemObject_clicked()
 	}
 	
 	m_StemObject->AlignStemObjectWithWorldFrame();
+
+	//m_StemObject->GenerateStemCutPlaneSurface();
+
+	auto NodeSurface = m_StemObject->GetNode_Surface_StemCutPlane();
+	NodeSurface->SetName("stemCutPlaneSurface");
+	NodeSurface->SetColor(0, 1, 0);
+	GetDataStorage()->Add(NodeSurface);
 
 	auto stemFrameSurface = m_StemObject->GetSurface_stemFrame();
 
@@ -1461,18 +1469,54 @@ void THAPlanning::ShowImplants(bool showOrHide)
 
 void THAPlanning::pushButton_changeStem_clicked()
 {
-	auto newStem = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("stem_5")->GetData());
+	mitk::Surface* newStem;
+	mitk::PointSet* newStemCutPlane;
+	mitk::DataNode* oldStemNode;
+	mitk::DataNode* oldStemCutPlaneNode;
+	mitk::DataNode* newStemNode;
+	mitk::DataNode* newStemCutPlaneNode;
+	if (isStem5)
+	{
+		newStem = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("stem")->GetData());
+		newStemCutPlane = GetDataStorage()->GetNamedObject<mitk::PointSet>("stemCutPlane");
+		newStemNode = GetDataStorage()->GetNamedNode("stem");
+		newStemCutPlaneNode = GetDataStorage()->GetNamedNode("stemCutPlane");
+		oldStemNode = GetDataStorage()->GetNamedNode("stem_5");
+		oldStemCutPlaneNode = GetDataStorage()->GetNamedNode("stemCutPlane_5");
+		isStem5 = false;
+	}
+	else
+	{
+		newStem = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("stem_5")->GetData());
+		newStemCutPlane = GetDataStorage()->GetNamedObject<mitk::PointSet>("stemCutPlane_5");
+		newStemNode = GetDataStorage()->GetNamedNode("stem_5");
+		newStemCutPlaneNode = GetDataStorage()->GetNamedNode("stemCutPlane_5");
+		oldStemNode = GetDataStorage()->GetNamedNode("stem");
+		oldStemCutPlaneNode = GetDataStorage()->GetNamedNode("stemCutPlane");
+		isStem5 = true;
+	}
+	
+	//auto newStemCutPlane = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("stemCutPlane_5"));
+	
+	m_FemurStemCouple->ChangeStem(newStem,newStemCutPlane);
 
-	m_FemurStemCouple->ChangeStem(newStem);
-	auto oldStemNode = GetDataStorage()->GetNamedNode("stem");
+
+	//auto oldStemNode = GetDataStorage()->GetNamedNode("stem");
 	oldStemNode->SetVisibility(false);
-	auto newStemNode = GetDataStorage()->GetNamedNode("stem_5");
+	oldStemCutPlaneNode->SetVisibility(false);
+	//auto newStemNode = GetDataStorage()->GetNamedNode("stem_5");
 	newStemNode->SetVisibility(true);
+	newStemCutPlaneNode->SetVisibility(true);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 	
 }
 
 void THAPlanning::pushButton_changeHead_clicked()
 {
+	//mitk::Surface* newHead;
+	//mitk::PointSet* newHeadCenter;
+	//mitk::DataNode* 
 	auto newHead = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("head_32")->GetData());
 	auto newHeadCenter = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("headCOR_32")->GetData());
 
@@ -1482,6 +1526,8 @@ void THAPlanning::pushButton_changeHead_clicked()
 	oldHeadNode->SetVisibility(false);
 	auto newHeadNode = GetDataStorage()->GetNamedNode("head_32");
 	newHeadNode->SetVisibility(true);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void THAPlanning::pushButton_demoConfirmImplant_clicked()

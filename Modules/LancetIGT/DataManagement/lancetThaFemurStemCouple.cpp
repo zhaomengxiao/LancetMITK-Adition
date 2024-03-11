@@ -118,10 +118,17 @@ void lancet::ThaFemurStemCouple::InitializeFemurFrameToStemFrameMatrix()
 		RotAngle = std::acos((femurNeckAxis[0] * stemLine[0] + femurNeckAxis[1] * stemLine[1] + femurNeckAxis[2] * stemLine[2]) /
 			(stemAxisNorm * headAxisNorm)) / vtkMath::Pi() * 180;
 	}
-	double RotAxis[3] = {0,1,0};
-	//vtkMath::Cross(stemLine, femurNeckAxis, RotAxis);
-	
-	tmpTransform->RotateWXYZ(-45, RotAxis);
+	double RotAxis[3]{0.0001,1.0,0.0};//TO DO:crash if rotate around Y
+	//double RotAxis[3];
+	//vtkMath::Cross(stemLine, femurNeckAxis,RotAxis);
+	RotAngle = 180 - m_StemObject->GetStemNeckAngle();
+	if (operationSide == 1)
+	{
+		RotAngle = -RotAngle;
+	}
+	//RotAngle = 45.0;
+	tmpTransform->RotateWXYZ(RotAngle, RotAxis);
+	//tmpTransform->RotateY(RotAngle);
 	tmpTransform->Update();
 
 	double tmpheadCenter[3] = { headCenter[0], headCenter[1], headCenter[2] };
@@ -328,10 +335,6 @@ void lancet::ThaFemurStemCouple::ChangeHead(mitk::Surface::Pointer head,mitk::Po
 {
 	//calculate final transformlation
 	auto headCenter = m_StemObject->GetPset_headCenter()->GetPoint(0);
-	MITK_INFO << "HEAD CENTER:" << headCenter[0] << ","
-		<< headCenter[1] << ","
-		<< headCenter[2];
-	MITK_INFO << "================================";
 
 	auto newHeadCenter = point->GetPoint(0);
 	vtkNew<vtkTransform> tmpTransform;
@@ -343,32 +346,97 @@ void lancet::ThaFemurStemCouple::ChangeHead(mitk::Surface::Pointer head,mitk::Po
 	m_StemObject->GetPset_headCenter()->GetGeometry()->IndexToWorld(newHeadCenter, tmpNewHeadCenter);
 	//tmpTransform->TransformPoint(tmpNewHeadCenter, tmpNewHeadCenter);
 
+	auto currentCoupleMatrix_invert = vtkMatrix4x4::New();
+	currentCoupleMatrix_invert->DeepCopy(m_vtkMatrix_coupleGeometry);
+	currentCoupleMatrix_invert->Invert();
+
 	vtkNew<vtkTransform> TargetTransform;
 	TargetTransform->PostMultiply();
 	TargetTransform->SetMatrix(m_vtkMatrix_femurFrameToStemFrame);
+	TargetTransform->Concatenate(m_vtkMatrix_coupleGeometry);
 	TargetTransform->Translate(headCenter[0] - tmpNewHeadCenter[0], headCenter[1] - tmpNewHeadCenter[1], headCenter[2] - tmpNewHeadCenter[2]);
+	TargetTransform->Concatenate(currentCoupleMatrix_invert);
 	TargetTransform->Update();
 
-	m_vtkMatrix_femurFrameToStemFrame->DeepCopy(TargetTransform->GetMatrix());
+	//m_vtkMatrix_femurFrameToStemFrame->DeepCopy(TargetTransform->GetMatrix());
 	//m_vtkMatrix_femurFrameToStemFrame
-	SetCoupleGeometry(m_FemurObject->GetvtkMatrix_groupGeometry());
+	//SetCoupleGeometry(m_FemurObject->GetvtkMatrix_groupGeometry());
 
 	//assume that new surface are always align with the world coordinate
-	//1¡¢change m_StemObject head
+	//1.change m_StemObject head
 	m_StemObject->SetHeadSurface(head);
 	
-	//2¡¢change m_StemObject head center
+	//2.change m_StemObject head center
 	m_StemObject->SetHeadCenter(point);
-	//3¡¢change FemurToStemMatrix
+	//3.change FemurToStemMatrix
 	m_vtkMatrix_femurFrameToStemFrame->DeepCopy(TargetTransform->GetMatrix());
 	SetCoupleGeometry(m_FemurObject->GetvtkMatrix_groupGeometry());
-
 
 }
 
-void lancet::ThaFemurStemCouple::ChangeStem(mitk::Surface::Pointer stem)
+void lancet::ThaFemurStemCouple::ChangeStem(mitk::Surface::Pointer stem,mitk::PointSet::Pointer cutplane)
 {
+	
+	//auto currentCutPlane = m_StemObject->GetPset_StemCutPlane();
+	//
+	//auto currentOrigin = currentCutPlane->GetPoint(0);
+	//auto currentEnd = currentCutPlane->GetPoint(1);
+	//auto newOrigin = cutplane->GetPoint(0);
+	//auto newEnd = cutplane->GetPoint(1);
+
+	//mitk::Point3D tmpNewOrigin;
+	//mitk::Point3D tmpNewEnd;
+
+	//currentCutPlane->GetGeometry()->IndexToWorld(newOrigin, tmpNewOrigin);
+	//currentCutPlane->GetGeometry()->IndexToWorld(newEnd, tmpNewEnd);
+
+	//double currentNormal[3] = { currentEnd[0] - currentOrigin[0],
+	//	currentEnd[1] - currentOrigin[1],
+	//	currentEnd[2] - currentOrigin[2] };
+
+	//double newNormal[3] = { tmpNewEnd[0] - tmpNewOrigin[0],
+	//	tmpNewEnd[1] - tmpNewOrigin[1],
+	//	tmpNewEnd[2] - tmpNewOrigin[2] };
+
+	//double RotAngle = 0;
+	//double currentNorm = sqrt(currentNormal[0] * currentNormal[0] + currentNormal[1] * currentNormal[1] + currentNormal[2] * currentNormal[2]);
+	//double newNorm = sqrt(newNormal[0] * newNormal[0] + newNormal[1] * newNormal[1] + newNormal[2] * newNormal[2]);
+	//if (currentNorm != 0 || newNorm != 0)
+	//{
+	//	RotAngle = std::acos((currentNormal[0] * newNormal[0] + currentNormal[1] * newNormal[1] + currentNormal[2] * newNormal[2]) /
+	//		(currentNorm * newNorm)) / vtkMath::Pi() * 180;
+	//}
+	//double RotAxis[3]; 
+	//vtkMath::Cross(currentNormal, newNormal, RotAxis);
+
+	//vtkNew<vtkTransform> CutPlaneTransform;
+	//CutPlaneTransform->RotateWXYZ(RotAngle, RotAxis);
+	//CutPlaneTransform->Update();
+
+	//double TransOrigin[3] = { currentOrigin[0],currentOrigin[1],currentOrigin[2] };
+	//CutPlaneTransform->TransformPoint(TransOrigin, TransOrigin);
+
+	//vtkNew<vtkTransform> TargetTransform;
+	//TargetTransform->PostMultiply();
+	////TargetTransform->SetMatrix(m_vtkMatrix_femurFrameToStemFrame);
+	////TargetTransform->SetMatrix(m_vtkMatrix_coupleGeometry);
+	////TargetTransform->Concatenate(CutPlaneTransform->GetMatrix());
+	////TargetTransform->Translate(tmpNewOrigin[0] - TransOrigin[0], tmpNewOrigin[1] - TransOrigin[1], tmpNewOrigin[2] - TransOrigin[2]);
+	////TargetTransform->Concatenate(currentCoupleMatrix_invert);
+	////TargetTransform->Update();
+
+	//TargetTransform->SetMatrix(CutPlaneTransform->GetMatrix());
+	//TargetTransform->Translate(tmpNewOrigin[0] - TransOrigin[0], tmpNewOrigin[1] - TransOrigin[1], tmpNewOrigin[2] - TransOrigin[2]);
+	//TargetTransform->Update();
+
+	////change stem surface
 	m_StemObject->SetStemSurface(stem);
+	////change stem cut plane normal
+	m_StemObject->SetPsetStemCutPlane(cutplane);
+	m_StemObject->GenerateStemCutPlaneSurface();
+	////transform stem cur plane surface
+	//m_StemObject->SetvtkMatrix_CutPlaneMatrix(TargetTransform->GetMatrix());
+	SetCoupleGeometry(m_FemurObject->GetvtkMatrix_groupGeometry());
 }
 
 

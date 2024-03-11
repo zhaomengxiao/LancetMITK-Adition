@@ -58,7 +58,7 @@ namespace lancet
 
 		void ChangeHead(mitk::Surface::Pointer head,mitk::PointSet::Pointer point);
 
-		void ChangeStem(mitk::Surface::Pointer stem);
+		void ChangeStem(mitk::Surface::Pointer stem,mitk::PointSet::Pointer cutplane);
 
 	protected:
 		ThaFemurStemCouple();
@@ -76,7 +76,6 @@ namespace lancet
 		vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_coupleFrameToCanalFrame;
 
 		vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_coupleFrameToMechanicFrame;
-
 
 	};
 }

@@ -191,6 +191,8 @@ protected:
   
   void pushButton_changeStem_clicked();
   void pushButton_changeHead_clicked();
+  bool isStem5 = false;
+  bool isHead32 = false;
 
 	//---------- Tool functions --------------
 
