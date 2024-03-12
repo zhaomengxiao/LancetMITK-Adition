@@ -17,11 +17,23 @@
 
 namespace lancet
 {
-	/**Documentation
-	  * \brief 
-	  *
-	  * \ingroup IGT
-	  */
+	enum class PlanMode
+	{
+		NativeBoneReduction = 0,
+		CupPlan = 1,
+		StemPlan = 2,
+		ImplantReduction = 3
+	};
+
+	enum class ViewMode
+	{
+		threeD = 0,
+		Reaming = 1,
+		CT = 2,
+		Slicer = 3,
+		Xray = 4
+	};
+
 	class MITKLANCETIGT_EXPORT ThaEnhancedReductionObject : public itk::DataObject
 	{
 	public:
@@ -65,6 +77,10 @@ namespace lancet
 
 		// Update all component matrices
 		void CalReductionMatrices();
+
+		// Turn on/off the dataNodes according to the designated mode
+		void SetPlanDisplayMode(PlanMode planMode, ViewMode viewMode);
+
 
 	protected:
 		ThaEnhancedReductionObject();
