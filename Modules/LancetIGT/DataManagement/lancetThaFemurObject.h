@@ -48,27 +48,19 @@ namespace lancet
 			itkSetMacro(femurVersion, double)
 
 			itkGetMacro(image_femur, mitk::Image::Pointer)
-			itkSetMacro(image_femur, mitk::Image::Pointer)
-
+			
 			itkGetMacro(surface_femur, mitk::Surface::Pointer)
-			itkSetMacro(surface_femur, mitk::Surface::Pointer)
-
+			
 			itkGetMacro(surface_femurFrame, mitk::Surface::Pointer)
-			itkSetMacro(surface_femurFrame, mitk::Surface::Pointer)
-
-			itkSetMacro(pset_neckCenter, mitk::PointSet::Pointer)
+			
 			itkGetMacro(pset_neckCenter, mitk::PointSet::Pointer)
-
-			itkSetMacro(pset_lesserTrochanter, mitk::PointSet::Pointer)
+			
 			itkGetMacro(pset_lesserTrochanter, mitk::PointSet::Pointer)
 
-			itkSetMacro(pset_femurCOR, mitk::PointSet::Pointer)
 			itkGetMacro(pset_femurCOR, mitk::PointSet::Pointer)
-
-			itkSetMacro(pset_femurCanal, mitk::PointSet::Pointer)
+			
 			itkGetMacro(pset_femurCanal, mitk::PointSet::Pointer)
-
-			itkSetMacro(pset_epicondyles, mitk::PointSet::Pointer)
+			
 			itkGetMacro(pset_epicondyles, mitk::PointSet::Pointer)
 
 			itkGetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
@@ -125,6 +117,22 @@ namespace lancet
 
 		// Create an internal frame
 		void CreateInternalFrame();
+
+		itkSetMacro(image_femur, mitk::Image::Pointer);
+
+		itkSetMacro(surface_femur, mitk::Surface::Pointer);
+
+		itkSetMacro(surface_femurFrame, mitk::Surface::Pointer);
+		
+		itkSetMacro(pset_neckCenter, mitk::PointSet::Pointer);
+
+		itkSetMacro(pset_lesserTrochanter, mitk::PointSet::Pointer);
+
+		itkSetMacro(pset_femurCOR, mitk::PointSet::Pointer);
+
+		itkSetMacro(pset_femurCanal, mitk::PointSet::Pointer);
+
+		itkSetMacro(pset_epicondyles, mitk::PointSet::Pointer);
 
 		/*
 		 * Establish a femur coordinate with the proximal femurCanal point as the origin O,

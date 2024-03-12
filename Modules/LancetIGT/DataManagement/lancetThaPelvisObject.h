@@ -50,25 +50,18 @@ namespace lancet
 			// itkSetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 			itkGetMacro(vtkMatrix_groupGeometry, vtkSmartPointer<vtkMatrix4x4>)
 
-			itkSetMacro(image_pelvis, mitk::Image::Pointer)
 			itkGetMacro(image_pelvis, mitk::Image::Pointer)
 
-			itkSetMacro(surface_pelvis, mitk::Surface::Pointer)
 			itkGetMacro(surface_pelvis, mitk::Surface::Pointer)
 
-			itkSetMacro(surface_pelvisFrame, mitk::Surface::Pointer)
 			itkGetMacro(surface_pelvisFrame, mitk::Surface::Pointer)
 
-			itkSetMacro(pset_ASIS, mitk::PointSet::Pointer)
 			itkGetMacro(pset_ASIS, mitk::PointSet::Pointer)
 
-			itkSetMacro(pset_pelvisCOR, mitk::PointSet::Pointer)
 			itkGetMacro(pset_pelvisCOR, mitk::PointSet::Pointer)
 
-			itkSetMacro(pset_midline, mitk::PointSet::Pointer)
 			itkGetMacro(pset_midline, mitk::PointSet::Pointer)
 
-			itkSetMacro(pset_pubicTubercles, mitk::PointSet::Pointer)
 			itkGetMacro(pset_pubicTubercles, mitk::PointSet::Pointer)
 
 		void SetNode_image_pelvis(mitk::DataNode::Pointer node);
@@ -155,6 +148,16 @@ namespace lancet
 
 		// Create an internal frame
 		void CreateInternalFrame();
+
+		itkSetMacro(image_pelvis, mitk::Image::Pointer);
+		itkSetMacro(surface_pelvis, mitk::Surface::Pointer);
+		itkSetMacro(surface_pelvisFrame, mitk::Surface::Pointer);
+		itkSetMacro(pset_ASIS, mitk::PointSet::Pointer);
+		itkSetMacro(pset_pelvisCOR, mitk::PointSet::Pointer);
+		itkSetMacro(pset_midline, mitk::PointSet::Pointer);
+		itkSetMacro(pset_pubicTubercles, mitk::PointSet::Pointer);
+
+
 
 		// the geometry matrix of the pelvis group object
 		vtkSmartPointer<vtkMatrix4x4> m_vtkMatrix_groupGeometry;

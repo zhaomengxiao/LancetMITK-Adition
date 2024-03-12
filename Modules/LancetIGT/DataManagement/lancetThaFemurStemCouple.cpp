@@ -331,12 +331,12 @@ double lancet::ThaFemurStemCouple::CalStemVersion()
 	return 0;
 }
 
-void lancet::ThaFemurStemCouple::ChangeHead(mitk::Surface::Pointer head,mitk::PointSet::Pointer point)
+void lancet::ThaFemurStemCouple::ChangeHead(mitk::DataNode::Pointer headSurface, mitk::DataNode::Pointer headCenterPoint)
 {
 	//calculate final transformlation
 	auto headCenter = m_StemObject->GetPset_headCenter()->GetPoint(0);
 
-	auto newHeadCenter = point->GetPoint(0);
+	auto newHeadCenter = dynamic_cast<mitk::PointSet*>(headCenterPoint->GetData())->GetPoint(0);
 	vtkNew<vtkTransform> tmpTransform;
 	tmpTransform->SetMatrix(m_vtkMatrix_femurFrameToStemFrame);
 	tmpTransform->Update();
@@ -364,17 +364,16 @@ void lancet::ThaFemurStemCouple::ChangeHead(mitk::Surface::Pointer head,mitk::Po
 
 	//assume that new surface are always align with the world coordinate
 	//1.change m_StemObject head
-	m_StemObject->SetHeadSurface(head);
-	
+	m_StemObject->SetNode_Surface_head(headSurface);
 	//2.change m_StemObject head center
-	m_StemObject->SetHeadCenter(point);
+	m_StemObject->SetNode_Pset_headCenter(headCenterPoint);
 	//3.change FemurToStemMatrix
 	m_vtkMatrix_femurFrameToStemFrame->DeepCopy(TargetTransform->GetMatrix());
 	SetCoupleGeometry(m_FemurObject->GetvtkMatrix_groupGeometry());
 
 }
 
-void lancet::ThaFemurStemCouple::ChangeStem(mitk::Surface::Pointer stem,mitk::PointSet::Pointer cutplane)
+void lancet::ThaFemurStemCouple::ChangeStem(mitk::DataNode::Pointer stemSurface, mitk::DataNode::Pointer cutplaneNormalPoint)
 {
 	
 	//auto currentCutPlane = m_StemObject->GetPset_StemCutPlane();
@@ -430,13 +429,159 @@ void lancet::ThaFemurStemCouple::ChangeStem(mitk::Surface::Pointer stem,mitk::Po
 	//TargetTransform->Update();
 
 	////change stem surface
-	m_StemObject->SetStemSurface(stem);
+	m_StemObject->SetNode_Surface_stem(stemSurface);
 	////change stem cut plane normal
-	m_StemObject->SetPsetStemCutPlane(cutplane);
+	m_StemObject->SetNode_Pset_StemCutPlane(cutplaneNormalPoint);
+
 	m_StemObject->GenerateStemCutPlaneSurface();
 	////transform stem cur plane surface
 	//m_StemObject->SetvtkMatrix_CutPlaneMatrix(TargetTransform->GetMatrix());
 	SetCoupleGeometry(m_FemurObject->GetvtkMatrix_groupGeometry());
+}
+
+void lancet::ThaFemurStemCouple::MoveStemUp(double step, ViewType view)
+{
+	vtkNew<vtkTransform> tmpTransform;
+	switch (view)
+	{
+	case ViewType::Axial:
+		tmpTransform->Translate(0, -step, 0);
+		break;
+	case ViewType::Saggital:
+		tmpTransform->Translate(0, 0, step);
+		break;
+	case ViewType::Coronal:
+		tmpTransform->Translate(0, 0, step);
+		break;
+	}
+	tmpTransform->Update();
+	AppendExtrinsicMatrixToStemObject(tmpTransform->GetMatrix());
+}
+
+void lancet::ThaFemurStemCouple::MoveStemDown(double step, ViewType view)
+{
+	vtkNew<vtkTransform> tmpTransform;
+	switch (view)
+	{
+	case ViewType::Axial:
+		tmpTransform->Translate(0, step, 0);
+		break;
+	case ViewType::Saggital:
+		tmpTransform->Translate(0, 0, -step);
+		break;
+	case ViewType::Coronal:
+		tmpTransform->Translate(0, 0, -step);
+		break;
+	}
+	tmpTransform->Update();
+	AppendExtrinsicMatrixToStemObject(tmpTransform->GetMatrix());
+}
+
+void lancet::ThaFemurStemCouple::MoveStemLeft(double step, ViewType view)
+{
+	vtkNew<vtkTransform> tmpTransform;
+	switch (view)
+	{
+	case ViewType::Axial:
+		tmpTransform->Translate(-step, 0, 0);
+		break;
+	case ViewType::Saggital:
+		tmpTransform->Translate(0, -step, 0);
+		break;
+	case ViewType::Coronal:
+		tmpTransform->Translate(-step, 0, 0);
+		break;
+	}
+	tmpTransform->Update();
+	AppendExtrinsicMatrixToStemObject(tmpTransform->GetMatrix());
+}
+
+void lancet::ThaFemurStemCouple::MoveStemRight(double step, ViewType view)
+{
+	vtkNew<vtkTransform> tmpTransform;
+	switch (view)
+	{
+	case ViewType::Axial:
+		tmpTransform->Translate(step, 0, 0);
+		break;
+	case ViewType::Saggital:
+		tmpTransform->Translate(0, step, 0);
+		break;
+	case ViewType::Coronal:
+		tmpTransform->Translate(step, 0, 0);
+		break;
+	}
+	tmpTransform->Update();
+	AppendExtrinsicMatrixToStemObject(tmpTransform->GetMatrix());
+}
+
+void lancet::ThaFemurStemCouple::RotateStemClockwise(double step, ViewType view)
+{
+	auto headCenter = m_StemObject->GetPset_headCenter()->GetPoint(0);
+
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->PostMultiply();
+	tmpTransform->Translate(-headCenter[0], -headCenter[1], -headCenter[2]);
+	switch (view)
+	{
+	case ViewType::Axial:
+		tmpTransform->RotateZ(step);
+		break;
+	case ViewType::Saggital:
+		tmpTransform->RotateX(-step);
+		break;
+	case ViewType::Coronal:
+		tmpTransform->RotateY(step);
+		break;
+	}
+	tmpTransform->Translate(headCenter[0], headCenter[1], headCenter[2]);
+	tmpTransform->Update();
+	AppendExtrinsicMatrixToStemObject(tmpTransform->GetMatrix());
+}
+
+void lancet::ThaFemurStemCouple::RotateStemCounterClockwise(double step, ViewType view)
+{
+	auto headCenter = m_StemObject->GetPset_headCenter()->GetPoint(0);
+
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->PostMultiply();
+	tmpTransform->Translate(-headCenter[0], -headCenter[1], -headCenter[2]);
+	switch (view)
+	{
+	case ViewType::Axial:
+		tmpTransform->RotateZ(-step);
+		break;
+	case ViewType::Saggital:
+		tmpTransform->RotateX(step);
+		break;
+	case ViewType::Coronal:
+		tmpTransform->RotateY(-step);
+		break;
+	}
+	tmpTransform->Translate(headCenter[0], headCenter[1], headCenter[2]);
+	tmpTransform->Update();
+	AppendExtrinsicMatrixToStemObject(tmpTransform->GetMatrix());
+}
+
+void lancet::ThaFemurStemCouple::AppendExtrinsicMatrixToStemObject(vtkSmartPointer<vtkMatrix4x4> Matrix)
+{
+	vtkNew<vtkMatrix4x4> newMatrix;
+	newMatrix->DeepCopy(Matrix);
+
+	vtkNew<vtkMatrix4x4> WorldToFemur_Invert;
+	WorldToFemur_Invert->DeepCopy(m_vtkMatrix_coupleGeometry);
+	WorldToFemur_Invert->Invert();
+
+	vtkNew<vtkTransform> tmpTransform; // worldFrameToFemurFrame Transform
+
+	tmpTransform->PostMultiply();
+	tmpTransform->Concatenate(m_vtkMatrix_femurFrameToStemFrame);
+	tmpTransform->Concatenate(m_vtkMatrix_coupleGeometry);
+	tmpTransform->Concatenate(newMatrix);
+	tmpTransform->Concatenate(WorldToFemur_Invert);
+	tmpTransform->Update();
+
+	SetFemurFrameToStemFrameMatrix(tmpTransform->GetMatrix());
 }
 
 

@@ -39,21 +39,12 @@ namespace lancet
 		void SetGroupGeometry(vtkSmartPointer<vtkMatrix4x4> newMatrix);
 
 		itkGetMacro(Surface_stem, mitk::Surface::Pointer)
-		// set stem surface and apply the group geometry
-		void SetStemSurface(mitk::Surface::Pointer stemSurface);
 
-		itkSetMacro(Surface_stemFrame, mitk::Surface::Pointer)
 		itkGetMacro(Surface_stemFrame, mitk::Surface::Pointer)
 
 		itkGetMacro(Pset_headCenter, mitk::PointSet::Pointer)
-		// set headCenter and apply the group geometry, and move the head surface
-		void SetHeadCenter(mitk::PointSet::Pointer headCenterPset_stemFrame_new);
-
 		itkGetMacro(Surface_head, mitk::Surface::Pointer);
-		// set head surface and apply the group geometry considering the headCenter
-		void SetHeadSurface(mitk::Surface::Pointer headSurface);
-
-
+		
 		itkGetMacro(Node_Surface_stem, mitk::DataNode::Pointer);
 		itkGetMacro(Node_Surface_head, mitk::DataNode::Pointer);
 		itkGetMacro(Node_Pset_headCenter, mitk::DataNode::Pointer);
@@ -66,7 +57,6 @@ namespace lancet
 
 		//stem cutplane
 		void SetNode_Pset_StemCutPlane(mitk::DataNode::Pointer node);
-		void SetPsetStemCutPlane(mitk::PointSet::Pointer point);
 		void GenerateStemCutPlaneSurface();
 
 		itkGetMacro(Node_Pset_StemCutPlane, mitk::DataNode::Pointer);
@@ -118,6 +108,17 @@ namespace lancet
 		
 		// Create an internal frame
 		void CreateInternalFrame();
+
+		// set stem surface and apply the group geometry
+		void SetStemSurface(mitk::Surface::Pointer stemSurface);
+		//set stem cut plane normal point
+		void SetPsetStemCutPlane(mitk::PointSet::Pointer point);
+		// set head surface and apply the group geometry considering the headCenter
+		void SetHeadSurface(mitk::Surface::Pointer headSurface);
+		// set headCenter and apply the group geometry, and move the head surface
+		void SetHeadCenter(mitk::PointSet::Pointer headCenterPset_stemFrame_new);
+
+		itkSetMacro(Surface_stemFrame, mitk::Surface::Pointer);
 
 		// operation side: right(0), left(1)
 		int m_OperationSide{ 0 };

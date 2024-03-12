@@ -11,6 +11,7 @@
 
 #include "lancetThaStemObject.h"
 #include "lancetThaFemurObject.h"
+#include "lancetThaPelvisCupCouple.h"
 #include "mitkDataNode.h"
 #include "mitkPointSet.h"
 #include "mitkSurface.h"
@@ -56,9 +57,24 @@ namespace lancet
 		 * but regard the stem pillar axis as new the neck axis*/
 		double CalStemVersion();
 
-		void ChangeHead(mitk::Surface::Pointer head,mitk::PointSet::Pointer point);
+		void ChangeHead(mitk::DataNode::Pointer headSurface,mitk::DataNode::Pointer headCenterPoint);
 
-		void ChangeStem(mitk::Surface::Pointer stem,mitk::PointSet::Pointer cutplane);
+		void ChangeStem(mitk::DataNode::Pointer stemSurface,mitk::DataNode::Pointer cutplaneNormalPoint);
+
+		//stem adjustment in different view
+		void MoveStemUp(double step, ViewType view);
+
+		void MoveStemDown(double step, ViewType view);
+
+		void MoveStemLeft(double step, ViewType view);
+
+		void MoveStemRight(double step, ViewType view);
+
+		void RotateStemClockwise(double step, ViewType view);
+
+		void RotateStemCounterClockwise(double step, ViewType view);
+
+		void AppendExtrinsicMatrixToStemObject(vtkSmartPointer<vtkMatrix4x4> Matrix);
 
 	protected:
 		ThaFemurStemCouple();

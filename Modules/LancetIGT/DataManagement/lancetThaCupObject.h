@@ -39,14 +39,9 @@ namespace lancet
 		void SetGroupGeometry(vtkSmartPointer<vtkMatrix4x4> newMatrix);
 
 		itkGetMacro(Surface_cup, mitk::Surface::Pointer)
-		// set cup surface and apply the group geometry
-		void SetCupSurface(mitk::Surface::Pointer cupSurface);
 
 		itkGetMacro(Surface_liner, mitk::Surface::Pointer)
-		// set liner surface and apply the group geometry
-		void SetLinerSurface(mitk::Surface::Pointer linerSurface);
-
-		itkSetMacro(Surface_cupFrame, mitk::Surface::Pointer)
+		
 		itkGetMacro(Surface_cupFrame, mitk::Surface::Pointer)
 
 		void SetNode_Surface_cup(mitk::DataNode::Pointer node);
@@ -76,6 +71,13 @@ namespace lancet
 
 		// Create an internal frame
 		void CreateInternalFrame();
+
+		// set cup surface and apply the group geometry
+		void SetCupSurface(mitk::Surface::Pointer cupSurface);
+		// set liner surface and apply the group geometry
+		void SetLinerSurface(mitk::Surface::Pointer linerSurface);
+
+		itkSetMacro(Surface_cupFrame, mitk::Surface::Pointer);
 
 		// operation side: right(0), left(1)
 		int m_OperationSide{0};

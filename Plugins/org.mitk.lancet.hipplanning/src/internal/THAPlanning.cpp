@@ -23,7 +23,10 @@
 #include "vtkPointData.h"
 #include "vtkDataArray.h"
 
+#include "qbuttongroup.h"
+
 const std::string THAPlanning::VIEW_ID = "org.mitk.views.thaplanning";
+QButtonGroup* group_implant;
 
 void THAPlanning::SetFocus()
 {
@@ -111,23 +114,43 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_extrinsicLeft, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicLeft_clicked);
   connect(m_Controls.pushButton_extrinsicRight, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicRight_clicked);
 
-
+  group_implant = new QButtonGroup(parent);
+  group_implant->addButton(m_Controls.radioButton_Cup,0);
+  group_implant->addButton(m_Controls.radioButton_Stem, 1);
 }
 
 
 void THAPlanning::on_pushButton_extrinsicClock_clicked()
 {
-	if(m_Controls.radioButton_axial->isChecked())
+	if (m_Controls.radioButton_Cup->isChecked())
 	{
-		m_PelvisCupCouple->RotateCupClockwise(2, lancet::ViewType::Axial);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_PelvisCupCouple->RotateCupClockwise(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_PelvisCupCouple->RotateCupClockwise(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_PelvisCupCouple->RotateCupClockwise(2, lancet::ViewType::Coronal);
+		}
 	}
-	if (m_Controls.radioButton_sagittal->isChecked())
+	else
 	{
-		m_PelvisCupCouple->RotateCupClockwise(2, lancet::ViewType::Saggital);
-	}
-	if (m_Controls.radioButton_coronal->isChecked())
-	{
-		m_PelvisCupCouple->RotateCupClockwise(2, lancet::ViewType::Coronal);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_FemurStemCouple->RotateStemClockwise(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_FemurStemCouple->RotateStemClockwise(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_FemurStemCouple->RotateStemClockwise(2, lancet::ViewType::Coronal);
+		}
 	}
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
@@ -135,35 +158,71 @@ void THAPlanning::on_pushButton_extrinsicClock_clicked()
 
 void THAPlanning::on_pushButton_extrinsicCounter_clicked()
 {
-	if (m_Controls.radioButton_axial->isChecked())
+	if (m_Controls.radioButton_Cup->isChecked())
 	{
-		m_PelvisCupCouple->RotateCupCounterClockwise(2, lancet::ViewType::Axial);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_PelvisCupCouple->RotateCupCounterClockwise(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_PelvisCupCouple->RotateCupCounterClockwise(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_PelvisCupCouple->RotateCupCounterClockwise(2, lancet::ViewType::Coronal);
+		}
 	}
-	if (m_Controls.radioButton_sagittal->isChecked())
+	else
 	{
-		m_PelvisCupCouple->RotateCupCounterClockwise(2, lancet::ViewType::Saggital);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_FemurStemCouple->RotateStemCounterClockwise(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_FemurStemCouple->RotateStemCounterClockwise(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_FemurStemCouple->RotateStemCounterClockwise(2, lancet::ViewType::Coronal);
+		}
 	}
-	if (m_Controls.radioButton_coronal->isChecked())
-	{
-		m_PelvisCupCouple->RotateCupCounterClockwise(2, lancet::ViewType::Coronal);
-	}
-
+	
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void THAPlanning::on_pushButton_extrinsicUp_clicked()
 {
-	if (m_Controls.radioButton_axial->isChecked())
+	if (m_Controls.radioButton_Cup->isChecked())
 	{
-		m_PelvisCupCouple->MoveCupUp(2, lancet::ViewType::Axial);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupUp(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupUp(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupUp(2, lancet::ViewType::Coronal);
+		}
 	}
-	if (m_Controls.radioButton_sagittal->isChecked())
+	else
 	{
-		m_PelvisCupCouple->MoveCupUp(2, lancet::ViewType::Saggital);
-	}
-	if (m_Controls.radioButton_coronal->isChecked())
-	{
-		m_PelvisCupCouple->MoveCupUp(2, lancet::ViewType::Coronal);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_FemurStemCouple->MoveStemUp(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_FemurStemCouple->MoveStemUp(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_FemurStemCouple->MoveStemUp(2, lancet::ViewType::Coronal);
+		}
 	}
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
@@ -171,17 +230,35 @@ void THAPlanning::on_pushButton_extrinsicUp_clicked()
 
 void THAPlanning::on_pushButton_extrinsicDown_clicked()
 {
-	if (m_Controls.radioButton_axial->isChecked())
+	if (m_Controls.radioButton_Cup->isChecked())
 	{
-		m_PelvisCupCouple->MoveCupDown(2, lancet::ViewType::Axial);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupDown(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupDown(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupDown(2, lancet::ViewType::Coronal);
+		}
 	}
-	if (m_Controls.radioButton_sagittal->isChecked())
+	else
 	{
-		m_PelvisCupCouple->MoveCupDown(2, lancet::ViewType::Saggital);
-	}
-	if (m_Controls.radioButton_coronal->isChecked())
-	{
-		m_PelvisCupCouple->MoveCupDown(2, lancet::ViewType::Coronal);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_FemurStemCouple->MoveStemDown(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_FemurStemCouple->MoveStemDown(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_FemurStemCouple->MoveStemDown(2, lancet::ViewType::Coronal);
+		}
 	}
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
@@ -189,36 +266,74 @@ void THAPlanning::on_pushButton_extrinsicDown_clicked()
 
 void THAPlanning::on_pushButton_extrinsicLeft_clicked()
 {
-	if (m_Controls.radioButton_axial->isChecked())
+	if (m_Controls.radioButton_Cup->isChecked())
 	{
-		m_PelvisCupCouple->MoveCupLeft(2, lancet::ViewType::Axial);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupLeft(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupLeft(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupLeft(2, lancet::ViewType::Coronal);
+		}
 	}
-	if (m_Controls.radioButton_sagittal->isChecked())
+	else
 	{
-		m_PelvisCupCouple->MoveCupLeft(2, lancet::ViewType::Saggital);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_FemurStemCouple->MoveStemLeft(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_FemurStemCouple->MoveStemLeft(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_FemurStemCouple->MoveStemLeft(2, lancet::ViewType::Coronal);
+		}
 	}
-	if (m_Controls.radioButton_coronal->isChecked())
-	{
-		m_PelvisCupCouple->MoveCupLeft(2, lancet::ViewType::Coronal);
-	}
+
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void THAPlanning::on_pushButton_extrinsicRight_clicked()
 {
-	if (m_Controls.radioButton_axial->isChecked())
+	if (m_Controls.radioButton_Cup->isChecked())
 	{
-		m_PelvisCupCouple->MoveCupRight(2, lancet::ViewType::Axial);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupRight(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupRight(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_PelvisCupCouple->MoveCupRight(2, lancet::ViewType::Coronal);
+		}
 	}
-	if (m_Controls.radioButton_sagittal->isChecked())
+	else
 	{
-		m_PelvisCupCouple->MoveCupRight(2, lancet::ViewType::Saggital);
+		if (m_Controls.radioButton_axial->isChecked())
+		{
+			m_FemurStemCouple->MoveStemRight(2, lancet::ViewType::Axial);
+		}
+		if (m_Controls.radioButton_sagittal->isChecked())
+		{
+			m_FemurStemCouple->MoveStemRight(2, lancet::ViewType::Saggital);
+		}
+		if (m_Controls.radioButton_coronal->isChecked())
+		{
+			m_FemurStemCouple->MoveStemRight(2, lancet::ViewType::Coronal);
+		}
 	}
-	if (m_Controls.radioButton_coronal->isChecked())
-	{
-		m_PelvisCupCouple->MoveCupRight(2, lancet::ViewType::Coronal);
-	}
+
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -1019,15 +1134,15 @@ void THAPlanning::pushButton_moveStemObject_clicked()
 
 void THAPlanning::pushButton_changeCupObject_clicked()
 {
-	auto newCupSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("cup_50");
-	m_CupObject->SetCupSurface(newCupSurface);
+	auto newCupSurface = GetDataStorage()->GetNamedNode("cup_50");
+	m_CupObject->SetNode_Surface_cup(newCupSurface);
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void THAPlanning::pushButton_changeStemObject_clicked()
 {
-	auto newStemSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("stem_5");
-	m_StemObject->SetStemSurface(newStemSurface);
+	auto newStemSurface = GetDataStorage()->GetNamedNode("stem_5");
+	m_StemObject->SetNode_Surface_stem(newStemSurface);
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
@@ -1587,16 +1702,12 @@ void THAPlanning::ShowImplants(bool showOrHide)
 
 void THAPlanning::pushButton_changeStem_clicked()
 {
-	mitk::Surface* newStem;
-	mitk::PointSet* newStemCutPlane;
 	mitk::DataNode* oldStemNode;
 	mitk::DataNode* oldStemCutPlaneNode;
 	mitk::DataNode* newStemNode;
 	mitk::DataNode* newStemCutPlaneNode;
 	if (isStem5)
 	{
-		newStem = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("stem")->GetData());
-		newStemCutPlane = GetDataStorage()->GetNamedObject<mitk::PointSet>("stemCutPlane");
 		newStemNode = GetDataStorage()->GetNamedNode("stem");
 		newStemCutPlaneNode = GetDataStorage()->GetNamedNode("stemCutPlane");
 		oldStemNode = GetDataStorage()->GetNamedNode("stem_5");
@@ -1605,8 +1716,6 @@ void THAPlanning::pushButton_changeStem_clicked()
 	}
 	else
 	{
-		newStem = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("stem_5")->GetData());
-		newStemCutPlane = GetDataStorage()->GetNamedObject<mitk::PointSet>("stemCutPlane_5");
 		newStemNode = GetDataStorage()->GetNamedNode("stem_5");
 		newStemCutPlaneNode = GetDataStorage()->GetNamedNode("stemCutPlane_5");
 		oldStemNode = GetDataStorage()->GetNamedNode("stem");
@@ -1616,8 +1725,7 @@ void THAPlanning::pushButton_changeStem_clicked()
 	
 	//auto newStemCutPlane = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("stemCutPlane_5"));
 	
-	m_FemurStemCouple->ChangeStem(newStem,newStemCutPlane);
-
+	m_FemurStemCouple->ChangeStem(newStemNode, newStemCutPlaneNode);
 
 	//auto oldStemNode = GetDataStorage()->GetNamedNode("stem");
 	oldStemNode->SetVisibility(false);
@@ -1635,8 +1743,8 @@ void THAPlanning::pushButton_changeHead_clicked()
 	//mitk::Surface* newHead;
 	//mitk::PointSet* newHeadCenter;
 	//mitk::DataNode* 
-	auto newHead = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("head_32")->GetData());
-	auto newHeadCenter = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("headCOR_32")->GetData());
+	auto newHead = GetDataStorage()->GetNamedNode("head_32");
+	auto newHeadCenter = GetDataStorage()->GetNamedNode("headCOR_32");
 
 	m_FemurStemCouple->ChangeHead(newHead, newHeadCenter);
 
