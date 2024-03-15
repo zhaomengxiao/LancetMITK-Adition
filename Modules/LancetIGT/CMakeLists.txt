@@ -10,7 +10,7 @@ endif()
 mitk_create_module(LancetIGT
 INCLUDE_DIRS
     PUBLIC ${ADDITIONAL_INCLUDE_DIRS} Algorithms Common DataManagement ExceptionHandling IO Rendering TrackingDevices TestingHelper
-  DEPENDS PUBLIC MitkSceneSerialization MitkIGTBase MitkIGT MitkLancetRobot MitkLancetRegistration
+  DEPENDS PUBLIC MitkSceneSerialization MitkCLUtilities MitkIGTBase MitkIGT MitkLancetRobot MitkLancetRegistration 
   PACKAGE_DEPENDS
     PRIVATE ITK VTK 
     PUBLIC ${qt5_depends}

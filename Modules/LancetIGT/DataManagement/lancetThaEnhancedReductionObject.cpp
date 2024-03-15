@@ -11,6 +11,20 @@
 
 #include "surfaceregistraion.h"
 
+#include "mitkLookupTable.h"
+#include "mitkLookupTableProperty.h"
+#include "mitkProperties.h"
+#include "mitkTransferFunction.h"
+#include "mitkTransferFunctionPropertySerializer.h"
+
+#include "mitkSurfaceToImageFilter.h"
+//#include "vtkImageCast.h"
+//#include "vtkImageData.h"
+//#include "mitkCLUtil.h"
+//#include "vtkDiscreteFlyingEdges3D.h"
+//#include "vtkWindowedSincPolyDataFilter.h"
+//#include "vtkPolyDataMapper.h"
+
 lancet::ThaEnhancedReductionObject::ThaEnhancedReductionObject():
 	m_PelvisCupCouple(lancet::ThaPelvisCupCouple::New()),
 	m_FemurStemCouple(lancet::ThaFemurStemCouple::New()),
@@ -24,7 +38,9 @@ lancet::ThaEnhancedReductionObject::ThaEnhancedReductionObject():
 	m_SupinePelvicTilt_canal_matrix_R(vtkMatrix4x4::New()),
 	m_SupinePelvicTilt_canal_matrix_L(vtkMatrix4x4::New()),
 	m_SupinePelvicTilt_mechanic_matrix_R(vtkMatrix4x4::New()),
-	m_SupinePelvicTilt_mechanic_matrix_L(vtkMatrix4x4::New())
+	m_SupinePelvicTilt_mechanic_matrix_L(vtkMatrix4x4::New()),
+	m_PelvisCupStencilObject(lancet::ThaPelvisCupStencilObject::New()),
+	m_ReamingImage(mitk::DataNode::New())
 {
 	
 }
@@ -453,6 +469,473 @@ void lancet::ThaEnhancedReductionObject::CalReductionMatrices()
 	CalSupineHipLengths();
 	CalSupineCombinedOffsets();
 }
+
+void lancet::ThaEnhancedReductionObject::SetPlanDisplayMode(PlanMode planMode, ViewMode viewMode)
+{
+	switch (planMode)
+	{
+	case PlanMode::NativeBoneReduction:
+		SetNativeBoneReductionInView(viewMode);
+		break;
+	case PlanMode::CupPlan:
+		SetCupPlanModeInView(viewMode);
+		break;
+	case PlanMode::StemPlan:
+		SetStemPlanInView(viewMode);
+		break;
+	case PlanMode::ImplantReduction:
+		SetImplantReductionInView(viewMode);
+		break;
+	}
+}
+
+void lancet::ThaEnhancedReductionObject::GenerateImplantStencilPelvis(mitk::DataNode::Pointer PelvisImageNode, mitk::DataNode::Pointer PelvisSurfaceNode,
+	mitk::DataNode::Pointer CupSurfaceNode, std::string VolumeRenderingConfigFile)
+{
+	auto PelvisImage = dynamic_cast<mitk::Image*>(PelvisImageNode->GetData());
+	auto PelvisSurface = dynamic_cast<mitk::Surface*>(PelvisSurfaceNode->GetData());
+	auto CupSurface = dynamic_cast<mitk::Surface*>(CupSurfaceNode->GetData());
+	//m_PelvisCupStencilObject = lancet::ThaPelvisCupStencilObject::New();
+	m_ReductionObject = lancet::ThaReductionObject::New();
+	m_ReamingImage = m_PelvisCupStencilObject->GenerateReamingImage(PelvisImage, PelvisSurface, CupSurface, VolumeRenderingConfigFile);
+}
+
+mitk::DataNode::Pointer lancet::ThaEnhancedReductionObject::GetNode_Image_reaming()
+{
+	return m_ReamingImage;
+}
+
+void lancet::ThaEnhancedReductionObject::SetNativeBoneReductionInView(ViewMode viewMode)
+{
+	SetBoneReduction();
+	SetFemurImageTransparency(false);
+	SetPelvisFemurImageVolumeRendering(false);
+	switch (viewMode)
+	{
+	case ViewMode::threeD:
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_surface_pelvis()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_midline()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_ASIS()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		break;
+	case ViewMode::CT:
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_surface_pelvis()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_midline()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_ASIS()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_image_pelvis()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_image_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_image_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		SetFemurImageTransparency(true);
+		break;
+	case ViewMode::Xray:
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_midline()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_ASIS()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_image_pelvis()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_image_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_image_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		SetPelvisFemurImageVolumeRendering(true);
+		break;
+	}
+}
+
+void lancet::ThaEnhancedReductionObject::SetCupPlanModeInView(ViewMode viewMode)
+{
+	SetBoneReduction();
+	SetFemurImageTransparency(false);
+	SetPelvisFemurImageVolumeRendering(false);
+	switch (viewMode)
+	{
+	case ViewMode::threeD:
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_surface_pelvis()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_pelvisCOR()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Surface_cup()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Pset_cupCenter()->SetVisibility(true);
+		break;
+	case ViewMode::CT:
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_surface_pelvis()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_pelvisCOR()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_image_pelvis()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Surface_cup()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Pset_cupCenter()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_image_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_image_femur()->SetVisibility(true);
+		SetFemurImageTransparency(true);
+		break;
+	case ViewMode::Xray:
+		m_PelvisCupCouple->GetCupObject()->GetNode_Surface_cup()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Pset_cupCenter()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_pelvisCOR()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_image_pelvis()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_image_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_image_femur()->SetVisibility(true);
+		SetPelvisFemurImageVolumeRendering(true);
+		break;
+	case ViewMode::Reaming:
+		//GenerateImplantStencilPelvis();
+		m_PelvisCupCouple->GetCupObject()->GetNode_Pset_cupCenter()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_pelvisCOR()->SetVisibility(true);
+		break;
+	}
+}
+
+void lancet::ThaEnhancedReductionObject::SetStemPlanInView(ViewMode viewMode)
+{
+	SetBoneReduction();
+	SetFemurImageTransparency(false);
+	SetPelvisFemurImageVolumeRendering(false);
+	switch (viewMode)
+	{
+	case ViewMode::threeD:
+		m_FemurObject->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_stem()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_StemCutPlane()->SetVisibility(true);	
+		m_FemurStemCouple->GetFemurObject()->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Pset_headCenter()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Pset_cupCenter()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_pelvisCOR()->SetVisibility(true);	
+		break;
+	case ViewMode::CT:
+		m_FemurObject->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurObject->GetNode_image_femur()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_stem()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_StemCutPlane()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Pset_headCenter()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_surface_femur()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Pset_cupCenter()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_pelvisCOR()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_image_pelvis()->SetVisibility(true);
+		SetFemurImageTransparency(true);
+		break;
+	case ViewMode::Xray:
+		m_FemurObject->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurObject->GetNode_image_femur()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_stem()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_StemCutPlane()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Pset_headCenter()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_surface_femur()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Pset_cupCenter()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_pelvisCOR()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_image_pelvis()->SetVisibility(true);
+		SetPelvisFemurImageVolumeRendering(true);
+	}
+}
+
+void lancet::ThaEnhancedReductionObject::SetImplantReductionInView(ViewMode viewMode)
+{
+	SetImplantReduction();
+	SetFemurImageTransparency(false);
+	SetPelvisFemurImageVolumeRendering(false);
+	switch (viewMode)
+	{
+	case ViewMode::threeD:
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_surface_pelvis()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_ASIS()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_midline()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Surface_cup()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Surface_liner()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_head()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_stem()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurObject->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		break;
+	case ViewMode::CT:
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_surface_pelvis()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_ASIS()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_midline()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Surface_cup()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Surface_liner()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_image_pelvis()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_head()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_stem()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_image_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_surface_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurObject->GetNode_image_femur()->SetVisibility(true);
+		SetFemurImageTransparency(true);
+		break;
+	case ViewMode::Xray:
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_ASIS()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_pset_midline()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Surface_cup()->SetVisibility(true);
+		m_PelvisCupCouple->GetCupObject()->GetNode_Surface_liner()->SetVisibility(true);
+		m_PelvisCupCouple->GetPelvisObject()->GetNode_image_pelvis()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_head()->SetVisibility(true);
+		m_FemurStemCouple->GetStemObject()->GetNode_Surface_stem()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurStemCouple->GetFemurObject()->GetNode_image_femur()->SetVisibility(true);
+		m_FemurObject->GetNode_pset_lesserTrochanter()->SetVisibility(true);
+		m_FemurObject->GetNode_image_femur()->SetVisibility(true);
+		SetPelvisFemurImageVolumeRendering(true);
+		break;
+	}
+}
+
+void lancet::ThaEnhancedReductionObject::SetBoneReduction()
+{
+	m_ReductionObject = lancet::ThaReductionObject::New();
+
+	m_ReductionObject->SetPelvisObject(m_PelvisCupCouple->GetPelvisObject());
+	
+	if (m_FemurObject->GetfemurSide() == 0)
+	{
+		m_ReductionObject->SetFemurObject_R(m_FemurObject);
+		m_ReductionObject->SetFemurObject_L(m_FemurStemCouple->GetFemurObject());
+	}
+	else
+	{
+		m_ReductionObject->SetFemurObject_R(m_FemurStemCouple->GetFemurObject());
+		m_ReductionObject->SetFemurObject_L(m_FemurObject);
+	}
+
+	vtkNew<vtkMatrix4x4> rFemurMatrix;
+	vtkNew<vtkMatrix4x4> lFemurMatrix;
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+
+	m_ReductionObject->GetOriginalNoTiltCanalMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
+
+	// m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+	// m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+	// m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+	if (m_FemurObject->GetfemurSide() == 0)
+	{
+		m_FemurObject->SetGroupGeometry(rFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(lFemurMatrix);
+	}
+	else
+	{
+		m_FemurObject->SetGroupGeometry(lFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rFemurMatrix);
+	}
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
+}
+
+void lancet::ThaEnhancedReductionObject::SetImplantReduction()
+{
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+	vtkNew<vtkMatrix4x4> rightFemurMatrix;
+	vtkNew<vtkMatrix4x4> leftFemurMatrix;
+
+	this->GetNoTiltCanalMatrices(pelvisMatrix, rightFemurMatrix, leftFemurMatrix);
+	if (m_FemurObject->GetfemurSide() == 0)
+	{
+		m_FemurObject->SetGroupGeometry(rightFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(leftFemurMatrix);
+	}
+	else
+	{
+		m_FemurObject->SetGroupGeometry(leftFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rightFemurMatrix);
+	}
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
+}
+
+void lancet::ThaEnhancedReductionObject::SetImageBackGroudTransparentOn(mitk::DataNode::Pointer ImageNode, bool isOn)
+{
+	if (isOn)
+	{
+		auto image = dynamic_cast<mitk::Image*>(ImageNode->GetData());
+		// Change the LUT
+		// Create a lookup table (LUT)
+		mitk::LookupTable::Pointer lut = mitk::LookupTable::New();
+
+		// Populate the lookup table with colors corresponding to intensity values
+		// You can set colors for specific intensity ranges or individual intensity values
+		// For example:
+		double a[4]{ 0,0,0,0 };
+		double b[4]{ 0,0,0,1 };
+		double c[4]{ 1,1,1,1 };
+		lut->SetTableValue(0, a);     // transparent for index 0
+		lut->SetTableValue(1, b);   // Red for intensity 128
+		lut->SetTableValue(255, c);   // White for intensity 255
+
+		// Create a LookupTableProperty with the lookup table
+		mitk::LookupTableProperty::Pointer lutProp = mitk::LookupTableProperty::New();
+		lutProp->SetLookupTable(lut);
+
+		// Set the LookupTableProperty to the image
+		// GetDataStorage()->GetNamedNode("image")->SetProperty("Image Rendering.Mode", mitk::RenderingModeProperty::New(mitk::RenderingModeProperty::LOOKUPTABLE_COLOR));
+		ImageNode->SetProperty("LookupTable", lutProp);
+		//image->Update();
+		//ImageNode->SetData(image);
+	}
+	else
+	{
+		ImageNode->RemoveProperty("LookupTable");
+	}
+	
+}
+
+void lancet::ThaEnhancedReductionObject::SetImageVolumeRenderingOn(mitk::DataNode::Pointer ImageNode, bool isOn)
+{
+	if (isOn)
+	{
+		ImageNode->SetProperty("volumerendering", mitk::BoolProperty::New(true));
+		ImageNode->SetProperty("volumerendering.blendmode", mitk::IntProperty::New(4));    //使用混合形式的投影
+		ImageNode->SetProperty("volumerendering.usegpu", mitk::BoolProperty::New(true));   //使用GPU进行渲染
+
+		// Create a transfer function to assign optical properties (color and opacity) to grey-values of the data
+		std::string xmlFilePath = "E:/Mimics_XRay5.xml";
+		mitk::TransferFunction::Pointer tf = mitk::TransferFunctionPropertySerializer::DeserializeTransferFunction(xmlFilePath.c_str());
+		if (tf.IsNotNull())
+		{
+			//tf->InitializeByMitkImage(static_cast<mitk::Image*>(addimageNode->GetData()));
+			ImageNode->SetProperty("TransferFunction", mitk::TransferFunctionProperty::New(tf.GetPointer()));
+		}
+	}
+	else
+	{
+		ImageNode->SetProperty("volumerendering", mitk::BoolProperty::New(false));
+	}
+
+}
+
+void lancet::ThaEnhancedReductionObject::SetFemurImageTransparency(bool isOn)
+{
+	SetImageBackGroudTransparentOn(m_FemurStemCouple->GetFemurObject()->GetNode_image_femur(), isOn);
+	SetImageBackGroudTransparentOn(m_FemurObject->GetNode_image_femur(), isOn);
+}
+
+void lancet::ThaEnhancedReductionObject::SetPelvisFemurImageVolumeRendering(bool isOn)
+{
+	SetImageVolumeRenderingOn(m_PelvisCupCouple->GetPelvisObject()->GetNode_image_pelvis(), isOn);
+	SetImageVolumeRenderingOn(m_FemurStemCouple->GetFemurObject()->GetNode_image_femur(), isOn);
+	SetImageVolumeRenderingOn(m_FemurObject->GetNode_image_femur(), isOn);
+}
+
+//mitk::DataNode::Pointer lancet::ThaEnhancedReductionObject::GenerateImplantStencilPelvis(mitk::DataNode::Pointer PelvisImage, mitk::DataNode::Pointer ReamerSurface)
+//{
+//	//generate implant image
+//	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+//	surfaceToImageFilter->SetBackgroundValue(0);
+//	surfaceToImageFilter->SetImage(dynamic_cast<mitk::Image*>(PelvisImage->GetData()));
+//	surfaceToImageFilter->SetInput(dynamic_cast<mitk::Surface*>(ReamerSurface->GetData()));
+//	surfaceToImageFilter->SetReverseStencil(false);
+//	surfaceToImageFilter->Update();
+//
+//	mitk::Image::Pointer convertedImage = surfaceToImageFilter->GetOutput();
+//
+//	// Test: set the boundary voxel of the image to 
+//	auto inputVtkImage = convertedImage->GetVtkImageData();
+//	int dims[3];
+//	inputVtkImage->GetDimensions(dims);
+//
+//	int tmpRegion[6]{ 0, dims[0] - 1, 0, dims[1] - 1, 0, dims[2] - 1 };
+//	auto caster = vtkImageCast::New();
+//	caster->SetInputData(inputVtkImage);
+//	caster->SetOutputScalarTypeToInt();
+//	caster->Update();
+//
+//	auto implantStencilImage = caster->GetOutput();//Implant的image
+//	auto boneMitkImage = dynamic_cast<mitk::Image*>(PelvisImage->GetData());
+//	auto boneVtkImage = boneMitkImage->GetVtkImageData();//骨头的image
+//
+//	for (int z = 0; z < dims[2]; z++)
+//	{
+//		for (int y = 0; y < dims[1]; y++)
+//		{
+//			for (int x = 0; x < dims[0]; x++)
+//			{
+//				int* n = static_cast<int*>(implantStencilImage->GetScalarPointer(x, y, z));
+//				int* m = static_cast<int*>(boneVtkImage->GetScalarPointer(x, y, z));
+//
+//				if (m[0] > 0 && n[0] != 0)
+//				{
+//					m[0] = 2;
+//				}
+//			}
+//		}
+//	}//将骨头与假体相交的地方置2
+//
+//	vtkNew<vtkImageData> whiteLayer_image;
+//	whiteLayer_image->DeepCopy(boneVtkImage);
+//
+//	vtkNew<vtkImageData> greenPart_image;
+//	greenPart_image->DeepCopy(boneVtkImage);
+//
+//	for (int z = 0; z < dims[2]; z++)
+//	{
+//		for (int y = 0; y < dims[1]; y++)
+//		{
+//			for (int x = 0; x < dims[0]; x++)
+//			{
+//				int* n = static_cast<int*>(boneVtkImage->GetScalarPointer(x, y, z));
+//				int* w = static_cast<int*>(whiteLayer_image->GetScalarPointer(x, y, z));
+//				int* g = static_cast<int*>(greenPart_image->GetScalarPointer(x, y, z));
+//
+//				if (n[0] == 3000)
+//				{
+//					g[0] = 1700;
+//				}
+//
+//				if (n[0] == 2000)
+//				{
+//					w[0] = 3000;
+//					g[0] = 1700;
+//				}
+//
+//				if (n[0] == 1000)
+//				{
+//					w[0] = 2600;
+//				}
+//
+//				if (n[0] == 0)
+//				{
+//					w[0] = 2600;
+//					g[0] = 1700;
+//				}
+//			}
+//		}
+//	}//为每张图设置颜色
+//
+//	auto whiteMitkImage = mitk::Image::New();
+//	whiteMitkImage->Initialize(whiteLayer_image);
+//	whiteMitkImage->SetVolume(whiteLayer_image->GetScalarPointer());
+//	whiteMitkImage->SetGeometry(boneMitkImage->GetGeometry());
+//
+//	auto whiteMitkImage_smoothed = mitk::Image::New();
+//	mitk::CLUtil::GaussianFilter(whiteMitkImage, whiteMitkImage_smoothed, 0.1);
+//
+//	auto whiteNode = mitk::DataNode::New();
+//	whiteNode->SetName("whiteLayer");
+//	whiteNode->SetData(whiteMitkImage_smoothed);
+//
+//	auto greenMitkImage = mitk::Image::New();
+//	greenMitkImage->Initialize(greenPart_image);
+//	greenMitkImage->SetVolume(greenPart_image->GetScalarPointer());
+//	greenMitkImage->SetGeometry(boneMitkImage->GetGeometry());
+//
+//	auto greenMitkImage_smoothed = mitk::Image::New();
+//	mitk::CLUtil::GaussianFilter(greenMitkImage, greenMitkImage_smoothed, 0.1);
+//
+//	auto greenNode = mitk::DataNode::New();
+//	greenNode->SetName("greenLayer");
+//	greenNode->SetData(greenMitkImage_smoothed);
+//
+//	mitk::DataNode::Pointer resultNode = mitk::DataNode::New();
+//	//resultNode->SetData(resultSurface);
+//	return resultNode;
+//}
 
 void lancet::ThaEnhancedReductionObject::CalSupineHipLengths()
 {

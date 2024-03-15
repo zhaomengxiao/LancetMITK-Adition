@@ -24,6 +24,7 @@
 #include "vtkDataArray.h"
 
 #include "qbuttongroup.h"
+#include "lancetThaPelvisCupStencilObject.h"
 
 const std::string THAPlanning::VIEW_ID = "org.mitk.views.thaplanning";
 QButtonGroup* group_implant;
@@ -113,6 +114,8 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_extrinsicDown, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicDown_clicked);
   connect(m_Controls.pushButton_extrinsicLeft, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicLeft_clicked);
   connect(m_Controls.pushButton_extrinsicRight, &QPushButton::clicked, this, &THAPlanning::on_pushButton_extrinsicRight_clicked);
+
+  connect(m_Controls.pushButton_SetDisplayMode, &QPushButton::clicked, this, &THAPlanning::on_pushButton_SetDisplayMode_clicked);
 
   group_implant = new QButtonGroup(parent);
   group_implant->addButton(m_Controls.radioButton_Cup,0);
@@ -335,6 +338,70 @@ void THAPlanning::on_pushButton_extrinsicRight_clicked()
 	}
 
 
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void THAPlanning::on_pushButton_SetDisplayMode_clicked()
+{
+	////TO DO:
+	//lancet::ThaPelvisCupStencilObject::Pointer stencilFilter = lancet::ThaPelvisCupStencilObject::New();
+	//auto cupSurfaceNode = GetDataStorage()->GetNamedNode("cup");
+	//auto pelvisImageNode = GetDataStorage()->GetNamedNode("pelvis_overlay_right");
+	//auto pelvisSurfaceNode = GetDataStorage()->GetNamedNode("pelvis_clipped_right");
+	//auto cupSurface = dynamic_cast<mitk::Surface*>(cupSurfaceNode->GetData());
+	//auto pelvisImage = dynamic_cast<mitk::Image*>(pelvisImageNode->GetData());
+	//auto pelvisSurface = dynamic_cast<mitk::Surface*>(pelvisSurfaceNode->GetData());
+
+	//std::string configPath = "E:/smoothedImageTransferFunction.xml";
+
+	//auto stencilImage = stencilFilter->GenerateReamingImage(pelvisImage, pelvisSurface, cupSurface, configPath);
+	//stencilImage->SetName("stencilImage");
+	//GetDataStorage()->Add(stencilImage);
+	//mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	//return;
+
+	auto dataNodes = GetDataStorage()->GetAll();
+	for (auto item = dataNodes->begin(); item != dataNodes->end(); ++item)
+	{
+		(*item)->SetVisibility(false);
+	}
+	GetDataStorage()->GetNamedNode("stdmulti.widget0.plane")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("stdmulti.widget1.plane")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("stdmulti.widget2.plane")->SetVisibility(true);
+
+	lancet::PlanMode planMode;
+	lancet::ViewMode viewMode;
+	if (m_Controls.radioButton_BoneReduction->isChecked())
+	{
+		planMode = lancet::PlanMode::NativeBoneReduction;
+	}
+	else if (m_Controls.radioButton_CupPlan->isChecked())
+	{
+		planMode = lancet::PlanMode::CupPlan;
+	}
+	else if (m_Controls.radioButton_StemPlan->isChecked())
+	{
+		planMode = lancet::PlanMode::StemPlan;
+	}
+	else if (m_Controls.radioButton_ImplantReduction->isChecked())
+	{
+		planMode = lancet::PlanMode::ImplantReduction;
+	}
+
+	if (m_Controls.radioButton_threeDMode->isChecked())
+	{
+		viewMode = lancet::ViewMode::threeD;
+	}
+	else if (m_Controls.radioButton_CTMode->isChecked())
+	{
+		viewMode = lancet::ViewMode::CT;
+	}
+	else if (m_Controls.radioButton_XRayMode->isChecked())
+	{
+		viewMode = lancet::ViewMode::Xray;
+	}
+
+	m_EnhancedReductionObject->SetPlanDisplayMode(planMode, viewMode);
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
@@ -1016,6 +1083,8 @@ void THAPlanning::pushButton_initCupObject_clicked()
 
 	m_CupObject->SetNode_Surface_cup(GetDataStorage()->GetNamedNode("cup"));
 	m_CupObject->SetNode_Surface_liner(GetDataStorage()->GetNamedNode("liner"));
+	m_CupObject->SetNode_Pset_cupCenter(GetDataStorage()->GetNamedNode("cupCenter"));
+
 	//m_CupObject->SetNode_Point_cupline(GetDataStorage()->GetNamedNode("cupLine"));
 
 	if(m_Controls.radioButton_implantObject_R->isChecked())

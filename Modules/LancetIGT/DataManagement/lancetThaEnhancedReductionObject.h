@@ -14,6 +14,8 @@
 #include "mitkDataNode.h"
 #include "mitkPointSet.h"
 #include "mitkSurface.h"
+#include "lancetThaReductionObject.h"
+#include "lancetThaPelvisCupStencilObject.h"
 
 namespace lancet
 {
@@ -28,10 +30,10 @@ namespace lancet
 	enum class ViewMode
 	{
 		threeD = 0,
-		Reaming = 1,
-		CT = 2,
-		Slicer = 3,
-		Xray = 4
+		CT = 1,
+		Slicer = 2,
+		Xray = 3,
+		Reaming = 4
 	};
 
 	class MITKLANCETIGT_EXPORT ThaEnhancedReductionObject : public itk::DataObject
@@ -81,7 +83,10 @@ namespace lancet
 		// Turn on/off the dataNodes according to the designated mode
 		void SetPlanDisplayMode(PlanMode planMode, ViewMode viewMode);
 
+		void GenerateImplantStencilPelvis(mitk::DataNode::Pointer PelvisImageNode, mitk::DataNode::Pointer PelvisSurfaceNode,
+			mitk::DataNode::Pointer CupSurfaceNode,std::string VolumeRenderingConfigFile);
 
+		mitk::DataNode::Pointer GetNode_Image_reaming();
 	protected:
 		ThaEnhancedReductionObject();
 		ThaEnhancedReductionObject(const ThaEnhancedReductionObject& other);
@@ -110,6 +115,31 @@ namespace lancet
 
 		// Update matrices for supine-pelvicTilt femurMechanic alignment
 		void CalSupineMechanicMatrices();
+
+		// Set Nodes visibility according to native bone reduction mode
+		void SetNativeBoneReductionInView(ViewMode viewMode);
+		// Set Nodes visibility according to cup plan mode
+		void SetCupPlanModeInView(ViewMode viewMode);
+		// Set Nodes visibility according to stem plan mode
+		void SetStemPlanInView(ViewMode viewMode);
+		// Set Nodes visibility according to implant reduction mode
+		void SetImplantReductionInView(ViewMode viewMode);
+		// Assemble PelvisCupCouple and FemurStemCouple according to bone alignment
+		void SetBoneReduction();
+		// Assemble PelvisCupCouple and FemurStemCouple according to Implant alignment
+		void SetImplantReduction();
+
+		//set mitk Image background transparent
+		void SetImageBackGroudTransparentOn(mitk::DataNode::Pointer ImageNode, bool isOn);
+		//set mitk Image volume rendering
+		void SetImageVolumeRenderingOn(mitk::DataNode::Pointer ImageNode, bool isOn);
+
+		//set femur image transparency state
+		void SetFemurImageTransparency(bool isOn);
+		//set pelvis and femur image volume rendering state
+		void SetPelvisFemurImageVolumeRendering(bool isOn);
+		//generate pelvis region to ream
+		
 
 		// Hip lengths with supine pelvic tilt 
 		double m_HipLength_supine_R{ 0 };
@@ -158,6 +188,11 @@ namespace lancet
 		// left femur matrix with femur mechanic axis alignment with supine pelvicTilt
 		vtkSmartPointer<vtkMatrix4x4> m_SupinePelvicTilt_mechanic_matrix_L;
 
+		ThaReductionObject::Pointer m_ReductionObject;
+
+		ThaPelvisCupStencilObject::Pointer m_PelvisCupStencilObject;
+
+		mitk::DataNode::Pointer m_ReamingImage;
 	};
 }
 

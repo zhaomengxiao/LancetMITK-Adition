@@ -202,6 +202,7 @@ protected:
   void on_pushButton_extrinsicLeft_clicked();
   void on_pushButton_extrinsicRight_clicked();
 
+  void on_pushButton_SetDisplayMode_clicked();
 
 	//---------- Tool functions --------------
 

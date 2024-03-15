@@ -11,6 +11,7 @@ set(H_FILES
   DataManagement/lancetThaPelvisCupCouple.h
   DataManagement/lancetThaFemurStemCouple.h
   DataManagement/lancetTha3DimageGenerator.h
+  DataManagement/lancetThaPelvisCupStencilObject.h
   
   IO/lancetNavigationObjectWriter.h
 
@@ -42,6 +43,7 @@ set(CPP_FILES
   DataManagement/lancetThaPelvisCupCouple.cpp
   DataManagement/lancetThaFemurStemCouple.cpp
   DataManagement/lancetTha3DimageGenerator.cpp
+  DataManagement/lancetThaPelvisCupStencilObject.cpp
   
   IO/lancetNavigationObjectWriter.cpp
   
