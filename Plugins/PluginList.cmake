@@ -19,4 +19,5 @@ set(MITK_PLUGINS
   org.mitk.lancet.dentalAccuracy:ON
   org.mitk.lancet.panorama:ON
   org.mitk.lancet.spinedemo:ON
+  org.mitk.lancet.lhytest:ON
 )
