@@ -30,7 +30,7 @@ found in the LICENSE file.
 #include "lancetPathPoint.h"
 #include "mitkTrackingDeviceSource.h"
 #include "robotRegistration.h"
-
+#include "QmitkSingleNodeSelectionWidget.h"
 
 /**
   \brief LhyTest
@@ -51,6 +51,8 @@ public:
 
   LhyTest();
 public slots:
+
+	// Connect Staubli
 	void OnConnected();
 	void OnDisConnected();
 	void OnPowerOn();
@@ -58,12 +60,53 @@ public slots:
 	void OnSendCommand();
 	void OnUpdateToolPosition(QString, LToolAttitudeMessage);
 
+	// Connect Vega
+	void on_pushButton_connectVega_clicked();
+	void OnVegaVisualizeTimer();
+	void ShowToolStatus_Vega();
 
+	// Staubli registration
+	void on_pushButton_captureRobot_clicked();
+	void on_pushButton_resetRobotReg_clicked();
+	void on_pushButton_saveRobotRegist_clicked();
+	void on_pushButton_usePreRobotRegit_clicked();
+
+    // Image registration
+	bool on_pushButton_assembleNavigationObject_clicked();
+	bool on_pushButton_applyPreImageRegistrationNew_clicked();
+	bool on_pushButton_collectLandmark_clicked();
+	bool on_pushButton_collectIcp_clicked();
+	bool on_pushButton_applyRegistrationNew_clicked();
+
+
+    // Set line accuracy TCP
+	bool on_pushButton_setTcpPrecisionTest_clicked();
+
+	// Confirm target line
+	bool on_pushButton_confirmImageTargetLine_clicked();
+
+    // Go to target position
+	bool on_pushButton_startAutoPosition_clicked();
+
+	// show flange position
+	void on_pushButton_showFlange_clicked();
+
+	// show tool position
+	void on_pushButton_showTool_clicked();
+
+
+	void UpdateToolVisual();
+	void UpdateFlangeVisual();
 protected:
-	// Move Staubli robot
-	vtkMatrix4x4* m_initial_robotBaseToFlange;
-	bool RecordInitial();
-	bool GoToInitial();
+
+	void InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget);
+	void InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget);
+
+
+	void on_pushButton_recordInitial_clicked();
+	void on_pushButton_goToInitial_clicked();
+	
+
 	bool InterpretMovementAsInBaseSpace(vtkMatrix4x4* rawMovementMatrix, vtkMatrix4x4* movementMatrixInRobotBase);
 	/// Staubli translation
 	bool TranslateX_plus();
@@ -80,32 +123,61 @@ protected:
 	bool RotateX_minus();
 	bool RotateY_minus();
 	bool RotateZ_minus();
-protected:
 
-  virtual void CreateQtPartControl(QWidget *parent) override;
+	virtual void CreateQtPartControl(QWidget* parent) override;
 
-  virtual void SetFocus() override;
+	virtual void SetFocus() override;
 
-  /// \brief called by QmitkFunctionality when DataManager's selection has changed
-  virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
-                                  const QList<mitk::DataNode::Pointer> &nodes) override;
+	/// \brief called by QmitkFunctionality when DataManager's selection has changed
+	virtual void OnSelectionChanged(berry::IWorkbenchPart::Pointer source,
+		const QList<mitk::DataNode::Pointer>& nodes) override;
 
-  /// \brief Called when the user clicks the GUI button
-  void DoImageProcessing();
 
-  Ui::LhyTestControls m_Controls;
+	Ui::LhyTestControls m_Controls;
 
-  //Staubli trackingDeviceSource
-  mitk::TrackingDeviceSource::Pointer m_StaubliSource;
+	//Staubli trackingDeviceSource
+	mitk::TrackingDeviceSource::Pointer m_StaubliSource;
 
-protected:
+
 	lancet::StaubliRobotDevice::Pointer m_StaubliTrackingDevice;
 	Ui::LhyTestControls m_StaubliControls;
 
-	bool SetPrecisionTestTcp();
 	QString sFootAllowed = "0";
 
-	vtkNew<vtkMatrix4x4> m_RobotPosition;
+	vtkNew<vtkMatrix4x4> m_RobotPosition; // current robot base to flange matrix
+	vtkNew<vtkMatrix4x4> m_BaseToFlange_target; // target robot pose
+
+
+	mitk::NavigationToolStorage::Pointer m_VegaToolStorage;
+	mitk::TrackingDeviceSource::Pointer m_VegaSource;
+	lancet::NavigationObjectVisualizationFilter::Pointer m_VegaVisualizer;
+	QTimer* m_VegaVisualizeTimer{ nullptr };
+	std::vector<mitk::NavigationData::Pointer> m_VegaNavigationData;
+
+	// Robot registration
+	void CapturePose(bool translationOnly);
+
+
+	unsigned int m_IndexOfRobotCapture{ 0 };
+	std::array<vtkMatrix4x4*, 10> m_AutoPoses{};
+	vtkNew<vtkMatrix4x4> m_RobotRegistrationMatrix; // from robot base RF to robot base
+	vtkNew<vtkMatrix4x4> m_FlangeToToolMatrix; // TCP matrix
+
+	RobotRegistration m_RobotRegistration;
+
+	bool AverageNavigationData(mitk::NavigationData::Pointer ndPtr, int timeInterval /*milisecond*/, int intervalNum, double matrixArray[16]);
+
+	vtkMatrix4x4* getVtkMatrix4x4(mitk::NavigationData::Pointer nd);
+
+	mitk::NavigationData::Pointer GetNavigationDataInRef(mitk::NavigationData::Pointer nd,
+		mitk::NavigationData::Pointer nd_ref);
+
+	// Image registration
+	lancet::NavigationObject::Pointer m_NavigatedImage;
+	vtkNew<vtkMatrix4x4> m_ImageRegistrationMatrix; // image(surface) to ObjectRf matrix
+	lancet::ApplySurfaceRegistratioinStaticImageFilter::Pointer m_SurfaceRegistrationStaticImageFilter;
+
+
 };
 
 #endif // LhyTest_h
