@@ -653,10 +653,9 @@ void LhyTest::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_saveNdiTools, &QPushButton::clicked, this, &LhyTest::on_pushButton_saveRobotRegist_clicked);
   connect(m_Controls.pushButton_setTcpPrecisionTest, &QPushButton::clicked, this, &LhyTest::on_pushButton_setTcpPrecisionTest_clicked);
   connect(m_Controls.pushButton_confirmImageTargetLine, &QPushButton::clicked, this, &LhyTest::on_pushButton_confirmImageTargetLine_clicked);
-  connect(m_Controls.pushButton_startAutoPosition, &QPushButton::clicked, this, &LhyTest::on_pushButton_startAutoPosition_clicked);
+  connect(m_Controls.pushButton_confirmImageInitTargetLine, &QPushButton::clicked, this, &LhyTest::on_pushButton_confirmImageInitTargetLine_clicked);connect(m_Controls.pushButton_startAutoPosition, &QPushButton::clicked, this, &LhyTest::on_pushButton_startAutoPosition_clicked);
   connect(m_Controls.pushButton_showFlange, &QPushButton::clicked, this, &LhyTest::on_pushButton_showFlange_clicked);
   connect(m_Controls.pushButton_showTool, &QPushButton::clicked, this, &LhyTest::on_pushButton_showTool_clicked);
-  connect(m_Controls.pushButton_showFlange, &QPushButton::clicked, this, &LhyTest::on_pushButton_showFlange_clicked);
   connect(m_Controls.pushButton_recordInitial, &QPushButton::clicked, this, &LhyTest::on_pushButton_recordInitial_clicked);
   connect(m_Controls.pushButton_goToInitial, &QPushButton::clicked, this, &LhyTest::on_pushButton_goToInitial_clicked);
    
@@ -1392,6 +1391,154 @@ bool LhyTest::on_pushButton_confirmImageTargetLine_clicked()
 	return true;
 }
 
+
+bool LhyTest::on_pushButton_confirmImageInitTargetLine_clicked()
+{
+	auto targetLinePoints = dynamic_cast<mitk::PointSet*>(m_Controls.mitkNodeSelectWidget_imageTargetLine->GetSelectedNode()->GetData());
+	auto targetPoint_0 = targetLinePoints->GetPoint(0); // TCP frame origin should move to this point
+	auto targetPoint_1 = targetLinePoints->GetPoint(1);
+
+	Eigen::Vector3d initOffsetVec;
+	initOffsetVec[0] = targetPoint_1[0] - targetPoint_0[0];
+	initOffsetVec[1] = targetPoint_1[1] - targetPoint_0[1];
+	initOffsetVec[2] = targetPoint_1[2] - targetPoint_0[2];
+	initOffsetVec.normalize();
+
+	targetPoint_0[0] = targetPoint_0[0] + initOffsetVec[0] * 30;
+	targetPoint_0[1] = targetPoint_0[1] + initOffsetVec[1] * 30;
+	targetPoint_0[2] = targetPoint_0[2] + initOffsetVec[2] * 30;
+
+
+	// Interpret targetPoint_0 from image frame to robot (internal) base frame
+	// do some average
+	double targetPointUnderBase_0[3]{ 0 };
+	double targetPointUnderBase_1[3]{ 0 };
+	for (int i{ 0 }; i < 20; i++) {
+		m_VegaSource->Update();
+		auto ndiToObjectRfMatrix = m_VegaSource->GetOutput("ObjectRf")->GetAffineTransform3D();
+
+		auto rfToSurfaceMatrix = mitk::AffineTransform3D::New();
+
+		auto registrationMatrix_surfaceToRF = m_VegaToolStorage->GetToolByName("ObjectRf")->GetToolRegistrationMatrix();
+		vtkNew<vtkMatrix4x4> tmpMatrix;
+		mitk::TransferItkTransformToVtkMatrix(registrationMatrix_surfaceToRF.GetPointer(), tmpMatrix);
+		tmpMatrix->Invert();
+
+		mitk::TransferVtkMatrixToItkTransform(tmpMatrix, rfToSurfaceMatrix.GetPointer());
+
+		auto ndiToTargetMatrix_0 = mitk::AffineTransform3D::New();
+		ndiToTargetMatrix_0->SetOffset(targetPoint_0.GetDataPointer());
+		ndiToTargetMatrix_0->Compose(rfToSurfaceMatrix);
+		ndiToTargetMatrix_0->Compose(ndiToObjectRfMatrix);
+		auto targetUnderBase_0 = mitk::AffineTransform3D::New();
+		m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_0, targetUnderBase_0);
+		auto targetPointUnderBase_tmp0 = targetUnderBase_0->GetOffset();
+
+		auto ndiToTargetMatrix_1 = mitk::AffineTransform3D::New();
+		ndiToTargetMatrix_1->SetOffset(targetPoint_1.GetDataPointer());
+		ndiToTargetMatrix_1->Compose(rfToSurfaceMatrix);
+		ndiToTargetMatrix_1->Compose(ndiToObjectRfMatrix);
+		auto targetUnderBase_1 = mitk::AffineTransform3D::New();
+		m_VegaSource->TransferCoordsFromTrackingDeviceToTrackedObject("RobotBaseRF", ndiToTargetMatrix_1, targetUnderBase_1);
+		auto targetPointUnderBase_tmp1 = targetUnderBase_1->GetOffset();
+
+		targetPointUnderBase_0[0] += targetPointUnderBase_tmp0[0];
+		targetPointUnderBase_0[1] += targetPointUnderBase_tmp0[1];
+		targetPointUnderBase_0[2] += targetPointUnderBase_tmp0[2];
+
+		targetPointUnderBase_1[0] += targetPointUnderBase_tmp1[0];
+		targetPointUnderBase_1[1] += targetPointUnderBase_tmp1[1];
+		targetPointUnderBase_1[2] += targetPointUnderBase_tmp1[2];
+
+		MITK_INFO << "tmp target Point:" << targetPointUnderBase_tmp0[0];
+	}
+
+	targetPointUnderBase_0[0] = targetPointUnderBase_0[0] / 20;
+	targetPointUnderBase_0[1] = targetPointUnderBase_0[1] / 20;
+	targetPointUnderBase_0[2] = targetPointUnderBase_0[2] / 20;
+
+	targetPointUnderBase_1[0] = targetPointUnderBase_1[0] / 20;
+	targetPointUnderBase_1[1] = targetPointUnderBase_1[1] / 20;
+	targetPointUnderBase_1[2] = targetPointUnderBase_1[2] / 20;
+
+	vtkNew<vtkMatrix4x4> vtkCurrentPoseUnderBase;
+
+	auto vtkTrans = vtkTransform::New();
+	vtkTrans->PostMultiply();
+	vtkTrans->Identity();
+	vtkTrans->SetMatrix(m_FlangeToToolMatrix);
+	vtkTrans->Concatenate(m_RobotPosition);
+	vtkTrans->Update();
+
+	vtkCurrentPoseUnderBase->DeepCopy(vtkTrans->GetMatrix());
+
+	Eigen::Vector3d currentXunderBase;
+	currentXunderBase[0] = vtkCurrentPoseUnderBase->GetElement(0, 0);
+	currentXunderBase[1] = vtkCurrentPoseUnderBase->GetElement(1, 0);
+	currentXunderBase[2] = vtkCurrentPoseUnderBase->GetElement(2, 0);
+	currentXunderBase.normalize();
+	MITK_INFO << "currentXunderBase" << currentXunderBase;
+
+	Eigen::Vector3d targetXunderBase;
+	targetXunderBase[0] = targetPointUnderBase_1[0] - targetPointUnderBase_0[0];
+	targetXunderBase[1] = targetPointUnderBase_1[1] - targetPointUnderBase_0[1];
+	targetXunderBase[2] = targetPointUnderBase_1[2] - targetPointUnderBase_0[2];
+
+	targetXunderBase.normalize();
+
+	MITK_INFO << "targetXunderBase" << targetXunderBase;
+
+	Eigen::Vector3d rotationAxis;
+	rotationAxis = currentXunderBase.cross(targetXunderBase);
+	rotationAxis;
+
+	double rotationAngle;
+	if (currentXunderBase.dot(targetXunderBase) > 0) {
+		rotationAngle = 180 * asin(rotationAxis.norm()) / 3.1415926;
+	}
+	else {
+		rotationAngle = 180 - 180 * asin(rotationAxis.norm()) / 3.1415926;
+	}
+
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->PostMultiply();
+	tmpTransform->Identity();
+	tmpTransform->SetMatrix(vtkCurrentPoseUnderBase);
+	tmpTransform->RotateWXYZ(rotationAngle, rotationAxis[0], rotationAxis[1], rotationAxis[2]);
+	tmpTransform->Update();
+
+	auto testMatrix = tmpTransform->GetMatrix();
+
+	auto targetPoseUnderBase = mitk::AffineTransform3D::New();
+	mitk::TransferVtkMatrixToItkTransform(tmpTransform->GetMatrix(), targetPoseUnderBase.GetPointer());
+
+	auto vtkBaseToTool = vtkMatrix4x4::New();
+	vtkBaseToTool->DeepCopy(testMatrix);
+	vtkBaseToTool->SetElement(0, 3, targetPointUnderBase_0[0]);
+	vtkBaseToTool->SetElement(1, 3, targetPointUnderBase_0[1]);
+	vtkBaseToTool->SetElement(2, 3, targetPointUnderBase_0[2]);
+
+	m_Controls.textBrowser->append("Result Line target point:" + QString::number(targetPointUnderBase_0[0])
+		+ "/" + QString::number(targetPointUnderBase_0[1])
+		+ "/" + QString::number(targetPointUnderBase_0[2]));
+
+	auto vtkToolToFlange = vtkMatrix4x4::New();
+	vtkToolToFlange->DeepCopy(m_FlangeToToolMatrix);
+	vtkToolToFlange->Invert();
+
+	auto vtkTransform = vtkTransform::New();
+	vtkTransform->PostMultiply();
+	vtkTransform->Identity();
+	vtkTransform->SetMatrix(vtkToolToFlange);
+	vtkTransform->Concatenate(vtkBaseToTool);
+	vtkTransform->Update();
+
+	m_BaseToFlange_target->DeepCopy(vtkTransform->GetMatrix());
+
+	return true;
+}
+
+
 bool LhyTest::on_pushButton_startAutoPosition_clicked()
 {
 	double tmpArray[9];
@@ -1491,12 +1638,14 @@ void LhyTest::UpdateToolVisual()
 void LhyTest::on_pushButton_showFlange_clicked()
 {
 	disconnect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolVisual()));
+	disconnect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateFlangeVisual()));
 	connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateFlangeVisual()));
 }
 
 void LhyTest::on_pushButton_showTool_clicked()
 {
-	connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolVisual()));
+	disconnect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolVisual()));
 	disconnect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateFlangeVisual()));
+	connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolVisual()));
 }
 

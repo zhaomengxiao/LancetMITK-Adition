@@ -956,9 +956,9 @@
       <widget class="QGroupBox" name="groupBox_9">
        <property name="geometry">
         <rect>
-         <x>40</x>
+         <x>26</x>
          <y>20</y>
-         <width>327</width>
+         <width>421</width>
          <height>196</height>
         </rect>
        </property>
@@ -1057,12 +1057,19 @@
            <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imageTargetLine" native="true"/>
           </item>
           <item>
+           <widget class="QPushButton" name="pushButton_confirmImageInitTargetLine">
+            <property name="text">
+             <string>确认目标线（初始位）</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="pushButton_confirmImageTargetLine">
             <property name="enabled">
              <bool>true</bool>
             </property>
             <property name="text">
-             <string>确认目标线</string>
+             <string>确认目标线(边界)</string>
             </property>
            </widget>
           </item>
@@ -1073,20 +1080,20 @@
       <widget class="QPushButton" name="pushButton_startAutoPosition">
        <property name="geometry">
         <rect>
-         <x>380</x>
+         <x>460</x>
          <y>80</y>
          <width>151</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
-        <string>前往目标位置（边界）</string>
+        <string>前往目标位</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_showFlange">
        <property name="geometry">
         <rect>
-         <x>380</x>
+         <x>460</x>
          <y>20</y>
          <width>151</width>
          <height>23</height>
@@ -1099,7 +1106,7 @@
       <widget class="QPushButton" name="pushButton_showTool">
        <property name="geometry">
         <rect>
-         <x>380</x>
+         <x>460</x>
          <y>50</y>
          <width>151</width>
          <height>23</height>

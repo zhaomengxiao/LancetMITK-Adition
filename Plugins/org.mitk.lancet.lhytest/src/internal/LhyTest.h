@@ -82,8 +82,11 @@ public slots:
     // Set line accuracy TCP
 	bool on_pushButton_setTcpPrecisionTest_clicked();
 
-	// Confirm target line
+	// Confirm target line (extreme boundary)
 	bool on_pushButton_confirmImageTargetLine_clicked();
+
+	// Confirm target line (initial position)
+	bool on_pushButton_confirmImageInitTargetLine_clicked();
 
     // Go to target position
 	bool on_pushButton_startAutoPosition_clicked();
