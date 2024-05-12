@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>717</width>
-    <height>611</height>
+    <height>640</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -71,7 +71,7 @@
    <item row="2" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -368,6 +368,13 @@
            <widget class="QPushButton" name="pushButton_addGizmo">
             <property name="text">
              <string>Enable/Disable Gizmo</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="pushButton_getCameraAngle">
+            <property name="text">
+             <string>Get 3D camera angle </string>
             </property>
            </widget>
           </item>
@@ -1068,13 +1075,52 @@
        <property name="geometry">
         <rect>
          <x>240</x>
-         <y>180</y>
+         <y>150</y>
          <width>111</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
         <string>generate CPR</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_testStencil">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>190</y>
+         <width>111</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>test Stencil</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_gen5planes">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>250</y>
+         <width>121</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Generate 5 planes</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_testIntersect">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>300</y>
+         <width>121</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Test intersection</string>
        </property>
       </widget>
      </widget>

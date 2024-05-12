@@ -25,6 +25,7 @@ found in the LICENSE file.
 #include <mitkCLUtil.h>
 #include <mitkImage.h>
 #include <vtkAppendPolyData.h>
+#include <vtkCamera.h>
 #include <vtkCardinalSpline.h>
 #include <vtkSplineFilter.h>
 #include <vtkProbeFilter.h>
@@ -38,7 +39,13 @@ found in the LICENSE file.
 #include <vtkDataSetMapper.h>
 #include <vtkImageCast.h>
 #include <vtkImplicitPolyDataDistance.h>
+#include <vtkLine.h>
+#include <vtkLineSource.h>
+#include <vtkOBBTree.h>
+#include <vtkPlaneSource.h>
 #include <vtkPointData.h>
+#include <vtkRendererCollection.h>
+#include <vtkTriangleFilter.h>
 
 #include "mitkApplyTransformMatrixOperation.h"
 #include "mitkInteractionConst.h"
@@ -57,8 +64,10 @@ found in the LICENSE file.
 #include "QmitkRenderWindow.h"
 #include "surfaceregistraion.h"
 #include <vtkWindowLevelLookupTable.h>
-
+#include "QmitkRenderWindow.h"
 #include "mitkSmartPointerProperty.h"
+#include "vtkIntersectionPolyDataFilter.h"
+
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
 
 
@@ -135,7 +144,571 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_testCPR, &QPushButton::clicked, this, &MoveData::on_pushButton_testCPR_clicked);
 
+  connect(m_Controls.pushButton_getCameraAngle, &QPushButton::clicked, this, &MoveData::on_pushButton_getCameraAngle_clicked);
+
+  connect(m_Controls.pushButton_testStencil, &QPushButton::clicked, this, &MoveData::on_pushButton_testStencil_clicked);
+
+  connect(m_Controls.pushButton_gen5planes, &QPushButton::clicked, this, &MoveData::on_pushButton_gen5planes_clicked);
+
+  connect(m_Controls.pushButton_testIntersect, &QPushButton::clicked, this, &MoveData::on_pushButton_testIntersect_clicked);
+
 }
+
+bool MoveData::GeneratePlaneWithPset(mitk::PointSet::Pointer ptsOnPlane, double planeSize, vtkSmartPointer<vtkPolyData> generatedPlane, double planeNormal[3])
+{
+	if(ptsOnPlane->GetSize() < 3 || planeSize <= 0)
+	{
+		return false;
+	}
+
+	// Get the pset's AABB center as the plane center
+	auto psetCenter = ptsOnPlane->GetGeometry()->GetCenter();
+	double planeCenter[3]{psetCenter[0],psetCenter[1],psetCenter[2]};
+
+	// Get the planeNormal
+	Eigen::Vector3d v0{ ptsOnPlane->GetPoint(0)[0], ptsOnPlane->GetPoint(0)[1],ptsOnPlane->GetPoint(0)[2] };
+	Eigen::Vector3d v1{ ptsOnPlane->GetPoint(1)[0], ptsOnPlane->GetPoint(1)[1],ptsOnPlane->GetPoint(1)[2] };
+	Eigen::Vector3d v2{ ptsOnPlane->GetPoint(2)[0], ptsOnPlane->GetPoint(2)[1],ptsOnPlane->GetPoint(2)[2] };
+
+	Eigen::Vector3d normal = (v0 - v1).cross(v0 - v2);
+	normal.normalize();
+
+	planeNormal[0] = normal[0];
+	planeNormal[1] = normal[1];
+	planeNormal[2] = normal[2];
+
+	// Generate the plane vtkPolyData
+	auto planeSource = vtkPlaneSource::New();
+	planeSource->SetOrigin(0, 0, 0);
+	planeSource->SetPoint1(planeSize, 0, 0);
+	planeSource->SetPoint2(0, planeSize, 0);
+	planeSource->SetCenter(planeCenter);
+	planeSource->SetNormal(planeNormal);
+
+	planeSource->Update();
+
+	// Triangulate the plane if not vtk plane-plane intersection filter will fail
+	vtkNew<vtkTriangleFilter> triangleFilter;
+	triangleFilter->SetInputData(planeSource->GetOutput());
+	triangleFilter->Update();
+
+	generatedPlane->DeepCopy(triangleFilter->GetOutput());
+
+	return true;
+}
+
+
+void MoveData::on_pushButton_testIntersect_clicked()
+{
+	// Create the anterior plane surface
+	auto anteriorPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("anterior");
+	auto anteriorPlane = vtkPolyData::New();
+	double anteriorNormal[3];
+	
+	if(GeneratePlaneWithPset(anteriorPset, 70, anteriorPlane, anteriorNormal) == false)
+	{
+		MITK_ERROR << "anterior Pset is problematic";
+		return;
+	}
+
+	auto anteriorSurface = mitk::Surface::New();
+	anteriorSurface->SetVtkPolyData(anteriorPlane);
+	
+	auto anteriorNode = mitk::DataNode::New();
+	anteriorNode->SetData(anteriorSurface);
+	anteriorNode->SetName("AnteriorCutPlane");
+	GetDataStorage()->Add(anteriorNode);
+
+	// Create the anteriorChamfer plane surface
+	auto anteriorChamferPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("anteriorChamfer");
+	auto anteriorChamferPlane = vtkPolyData::New();
+	double anteriorChamferNormal[3];
+
+	if (GeneratePlaneWithPset(anteriorChamferPset, 70, anteriorChamferPlane, anteriorChamferNormal) == false)
+	{
+		MITK_ERROR << "anteriorChamfer Pset is problematic";
+		return;
+	}
+
+	auto anteriorChamferSurface = mitk::Surface::New();
+	anteriorChamferSurface->SetVtkPolyData(anteriorChamferPlane);
+
+	auto anteriorChamferNode = mitk::DataNode::New();
+	anteriorChamferNode->SetData(anteriorChamferSurface);
+	anteriorChamferNode->SetName("AnteriorChamferCutPlane");
+	GetDataStorage()->Add(anteriorChamferNode);
+
+	// Create the posterior plane surface
+	auto posteriorPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("posterior");
+	auto posteriorPlane = vtkPolyData::New();
+	double posteriorNormal[3];
+
+	if (GeneratePlaneWithPset(posteriorPset, 70, posteriorPlane, posteriorNormal) == false)
+	{
+		MITK_ERROR << "posterior Pset is problematic";
+		return;
+	}
+
+	auto posteriorSurface = mitk::Surface::New();
+	posteriorSurface->SetVtkPolyData(posteriorPlane);
+
+	auto posteriorNode = mitk::DataNode::New();
+	posteriorNode->SetData(posteriorSurface);
+	posteriorNode->SetName("PosteriorCutPlane");
+	GetDataStorage()->Add(posteriorNode);
+
+	// Create the posteriorChamfer plane surface
+	auto posteriorChamferPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("posteriorChamfer");
+	auto posteriorChamferPlane = vtkPolyData::New();
+	double posteriorChamferNormal[3];
+
+	if (GeneratePlaneWithPset(posteriorChamferPset, 70, posteriorChamferPlane, posteriorChamferNormal) == false)
+	{
+		MITK_ERROR << "posteriorChamfer Pset is problematic";
+		return;
+	}
+
+	auto posteriorChamferSurface = mitk::Surface::New();
+	posteriorChamferSurface->SetVtkPolyData(posteriorChamferPlane);
+
+	auto posteriorChamferNode = mitk::DataNode::New();
+	posteriorChamferNode->SetData(posteriorChamferSurface);
+	posteriorChamferNode->SetName("PosteriorChamferCutPlane");
+	GetDataStorage()->Add(posteriorChamferNode);
+
+	// Create the distal plane surface
+	auto distalPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("distal");
+	auto distalPlane = vtkPolyData::New();
+	double distalNormal[3];
+
+	if (GeneratePlaneWithPset(distalPset, 70, distalPlane, distalNormal) == false)
+	{
+		MITK_ERROR << "distal Pset is problematic";
+		return;
+	}
+
+	auto distalSurface = mitk::Surface::New();
+	distalSurface->SetVtkPolyData(distalPlane);
+
+	auto distalNode = mitk::DataNode::New();
+	distalNode->SetData(distalSurface);
+	distalNode->SetName("DistalCutPlane");
+	GetDataStorage()->Add(distalNode);
+
+
+	// anteriorChamfer & distal intersection line
+	vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+	intersectionFilter->SetInputData(0, distalPlane);
+	intersectionFilter->SetInputData(1, anteriorChamferPlane);
+	
+	intersectionFilter->Update();
+	
+	auto intersect_an = mitk::Surface::New();
+	intersect_an->SetVtkPolyData(intersectionFilter->GetOutput());
+	
+	auto intersectNode_an = mitk::DataNode::New();
+	intersectNode_an->SetData(intersect_an);
+	intersectNode_an->SetName("intersect_an");
+	intersectNode_an->SetColor(1,0,0);
+	GetDataStorage()->Add(intersectNode_an);
+
+	// posteriorChamfer & distal intersection line
+	vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter1 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+	intersectionFilter1->SetInputData(0, distalPlane);
+	intersectionFilter1->SetInputData(1, posteriorChamferPlane);
+
+	intersectionFilter1->Update();
+
+	auto intersect_po = mitk::Surface::New();
+	intersect_po->SetVtkPolyData(intersectionFilter1->GetOutput());
+
+	auto intersectNode_po = mitk::DataNode::New();
+	intersectNode_po->SetData(intersect_po);
+	intersectNode_po->SetName("intersect_po");
+	intersectNode_po->SetColor(1, 0, 0);
+	GetDataStorage()->Add(intersectNode_po);
+
+	auto intersect_po_data = intersectionFilter1->GetOutput();
+	int pnum = intersect_po_data->GetNumberOfPoints();
+	auto intersectPoints_po = mitk::PointSet::New();
+	for(int i{0}; i < pnum; i++)
+	{
+		mitk::Point3D a;
+		a[0] = intersect_po_data->GetPoint(i)[0];
+		a[1] = intersect_po_data->GetPoint(i)[1];
+		a[2] = intersect_po_data->GetPoint(i)[2];
+
+		intersectPoints_po->InsertPoint(a);
+	}
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(intersectPoints_po);
+	tmpNode->SetName("intersectPoints_po");
+	tmpNode->SetColor(1, 0, 0);
+	GetDataStorage()->Add(tmpNode);
+
+	// auto prosSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("pros");
+	// // auto prosSurface2 = GetDataStorage()->GetNamedObject<mitk::Surface>("pros2");
+	// auto testLinePts = GetDataStorage()->GetNamedObject<mitk::PointSet>("PointSet");
+	// //
+	// auto p1 = testLinePts->GetPoint(0);
+	// auto p2 = testLinePts->GetPoint(1);
+	//
+	auto distalPlaneCenter = distalSurface->GetGeometry()->GetCenter();
+	auto posteriorPlaneCenter = posteriorSurface->GetGeometry()->GetCenter();
+
+	Eigen::Vector3d helperVector{distalPlaneCenter[0]-posteriorPlaneCenter[0],
+	distalPlaneCenter[1] - posteriorPlaneCenter[1],
+	distalPlaneCenter[2] - posteriorPlaneCenter[2]};
+
+	Eigen::Vector3d distalNormalVec{distalNormal[0],
+	distalNormal[1],
+	distalNormal[2]};
+
+	if(distalNormalVec.dot(helperVector) < 0)
+	{
+		distalNormalVec = -distalNormalVec;
+	}
+
+	double lineP1[3]{ intersectPoints_po->GetPoint(0)[0]-distalNormalVec[0]*2
+		, intersectPoints_po->GetPoint(0)[1] - distalNormalVec[1] * 2,
+		intersectPoints_po->GetPoint(0)[2] - distalNormalVec[2] * 2 };
+	double lineP2[3]{ intersectPoints_po->GetPoint(3)[0] - distalNormalVec[0] * 2
+		, intersectPoints_po->GetPoint(3)[1] - distalNormalVec[1] * 2,
+		intersectPoints_po->GetPoint(3)[2] - distalNormalVec[2] * 2 };
+	//
+	// Create the locator
+	vtkSmartPointer<vtkOBBTree> tree =
+		vtkSmartPointer<vtkOBBTree>::New();
+	tree->SetDataSet(GetDataStorage()->GetNamedObject<mitk::Surface>("pros")->GetVtkPolyData());
+	tree->BuildLocator();
+	
+	vtkSmartPointer<vtkPoints> intersectPoints =
+		vtkSmartPointer<vtkPoints>::New();
+	
+	tree->IntersectWithLine(lineP1, lineP2, intersectPoints, NULL);
+	
+	auto Pset = mitk::PointSet::New();
+	
+	int intersectNum = intersectPoints->GetNumberOfPoints();
+	
+	for(int i{0}; i < intersectNum; i++)
+	{
+		mitk::Point3D tmpPoint;
+		tmpPoint[0] = intersectPoints->GetPoint(i)[0] + distalNormalVec[0] * 2;
+		tmpPoint[1] = intersectPoints->GetPoint(i)[1] + distalNormalVec[1] * 2;
+		tmpPoint[2] = intersectPoints->GetPoint(i)[2] + distalNormalVec[2] * 2;
+	
+		Pset->InsertPoint(tmpPoint);
+	}
+	
+	auto intersectNode = mitk::DataNode::New();
+	intersectNode->SetData(Pset);
+	intersectNode->SetName("intersect_implants");
+	GetDataStorage()->Add(intersectNode);
+
+	//
+	// vtkSmartPointer<vtkLineSource> line = vtkSmartPointer<vtkLineSource>::New();
+	// line->SetPoint1(p1[0], p1[1], p1[2]);  
+	// line->SetPoint2(p2[0], p2[1], p2[2]);
+	// line->Update();
+
+	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+	// intersectionFilter->SetInputData(0, prosSurface2->GetVtkPolyData());
+	// intersectionFilter->SetInputData(1, prosSurface->GetVtkPolyData());
+	//
+	// intersectionFilter->Update();
+	//
+	// auto intersect = mitk::Surface::New();
+	// intersect->SetVtkPolyData(intersectionFilter->GetOutput());
+	//
+	// auto intersectNode = mitk::DataNode::New();
+	// intersectNode->SetData(intersect);
+	// intersectNode->SetName("intersect");
+	// GetDataStorage()->Add(intersectNode);
+}
+
+
+void MoveData::on_pushButton_gen5planes_clicked()
+{
+	auto tmpPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("PointSet");
+
+	auto p1 = tmpPset->GetPoint(0);
+	auto p2 = tmpPset->GetPoint(1);
+	auto p3 = tmpPset->GetPoint(2);
+
+	Eigen::Vector3d v1;
+	v1[0] = p1[0] - p2[0];
+	v1[1] = p1[1] - p2[1];
+	v1[2] = p1[2] - p2[2];
+
+	Eigen::Vector3d v2; 
+	v2[0] = p3[0] - p2[0];
+	v2[1] = p3[1] - p2[1];
+	v2[2] = p3[2] - p2[2];
+
+	auto v3 = v1.cross(v2);
+	v3.normalize();
+	m_Controls.textBrowser_moveData->append("/X: " + QString::number(v3[0]) + "/Y: " + QString::number(v3[1]) + "/Z: " + QString::number(v3[2]));
+
+	// Anterior
+	double anteriorNormal[3]{-0.01, -0.5, -0.87};
+	double anteriorCenter[3]{3034.19, 1804.66, -427.50};
+	auto anteriorPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
+	
+	anteriorPlaneSource->SetOrigin(0, 0, 0);
+	
+	anteriorPlaneSource->SetPoint1(0, 70, 0);
+	anteriorPlaneSource->SetPoint2(70, 0, 0);
+	
+	anteriorPlaneSource->SetNormal(anteriorNormal);
+	
+	anteriorPlaneSource->SetCenter(anteriorCenter);
+
+	anteriorPlaneSource->Update();
+
+	auto anterirorPlaneSurface = mitk::Surface::New();
+	anterirorPlaneSurface->SetVtkPolyData(anteriorPlaneSource->GetOutput());
+
+	auto anterirorPlaneNode = mitk::DataNode::New();
+	anterirorPlaneNode->SetData(anterirorPlaneSurface);
+	anterirorPlaneNode->SetName("anterirorPlane");
+	GetDataStorage()->Add(anterirorPlaneNode);
+
+	// Posterior
+	double posteriorNormal[3]{ 0.01, 0.61, 0.79 };
+	double posteriorCenter[3]{ 3025.34, 1766.80, -447.32 };
+	auto posteriorPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
+
+	posteriorPlaneSource->SetOrigin(0, 0, 0);
+
+	posteriorPlaneSource->SetPoint1(0, 70, 0);
+	posteriorPlaneSource->SetPoint2(70, 0, 0);
+
+	posteriorPlaneSource->SetNormal(posteriorNormal);
+
+	posteriorPlaneSource->SetCenter(posteriorCenter);
+
+	posteriorPlaneSource->Update();
+
+	auto posteriorPlaneSurface = mitk::Surface::New();
+	posteriorPlaneSurface->SetVtkPolyData(posteriorPlaneSource->GetOutput());
+
+	auto posteriorPlaneNode = mitk::DataNode::New();
+	posteriorPlaneNode->SetData(posteriorPlaneSurface);
+	posteriorPlaneNode->SetName("posteriorPlane");
+	GetDataStorage()->Add(posteriorPlaneNode);
+
+	// anteriorChamfer
+	double anteriorChamferNormal[3]{ -0.09, 0.13, -0.99 };
+	double anteriorChamferCenter[3]{ 3035.53, 1787.15, -461.69 };
+	auto anteriorChamferPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
+
+	anteriorChamferPlaneSource->SetOrigin(0, 0, 0);
+
+	anteriorChamferPlaneSource->SetPoint1(0, 70, 0);
+	anteriorChamferPlaneSource->SetPoint2(70, 0, 0);
+
+	anteriorChamferPlaneSource->SetNormal(anteriorChamferNormal);
+
+	anteriorChamferPlaneSource->SetCenter(anteriorChamferCenter);
+
+	anteriorChamferPlaneSource->Update();
+
+	auto anteriorChamferPlaneSurface = mitk::Surface::New();
+	anteriorChamferPlaneSurface->SetVtkPolyData(anteriorChamferPlaneSource->GetOutput());
+
+	auto anteriorChamferPlaneNode = mitk::DataNode::New();
+	anteriorChamferPlaneNode->SetData(anteriorChamferPlaneSurface);
+	anteriorChamferPlaneNode->SetName("anteriorChamferPlane");
+	GetDataStorage()->Add(anteriorChamferPlaneNode);
+
+	// PosteriorChamfer
+	double posteriorChamferNormal[3]{ -0.07, 0.99, 0.13 };
+	double posteriorChamferCenter[3]{ 3042.12, 1806.93, -429.48 };
+	auto posteriorChamferPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
+
+	posteriorChamferPlaneSource->SetOrigin(0, 0, 0);
+
+	posteriorChamferPlaneSource->SetPoint1(0, 70, 0);
+	posteriorChamferPlaneSource->SetPoint2(70, 0, 0);
+
+	posteriorChamferPlaneSource->SetNormal(posteriorChamferNormal);
+
+	posteriorChamferPlaneSource->SetCenter(posteriorChamferCenter);
+
+	posteriorChamferPlaneSource->Update();
+
+	auto posteriorChamferPlaneSurface = mitk::Surface::New();
+	posteriorChamferPlaneSurface->SetVtkPolyData(posteriorChamferPlaneSource->GetOutput());
+
+	auto posteriorChamferPlaneNode = mitk::DataNode::New();
+	posteriorChamferPlaneNode->SetData(posteriorChamferPlaneSurface);
+	posteriorChamferPlaneNode->SetName("posteriorChamferPlane");
+	GetDataStorage()->Add(posteriorChamferPlaneNode);
+
+	// Distal
+	double distalNormal[3]{ -0.12, 0.79, -0.61 };
+	double distalCenter[3]{ 3013.36, 1847.36, -421.03 };
+	auto distalPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
+
+	distalPlaneSource->SetOrigin(0, 0, 0);
+
+	distalPlaneSource->SetPoint1(0, 70, 0);
+	distalPlaneSource->SetPoint2(70, 0, 0);
+
+	distalPlaneSource->SetNormal(distalNormal);
+
+	distalPlaneSource->SetCenter(distalCenter);
+
+	distalPlaneSource->Update();
+
+	auto distalPlaneSurface = mitk::Surface::New();
+	distalPlaneSurface->SetVtkPolyData(distalPlaneSource->GetOutput());
+
+	auto distalPlaneNode = mitk::DataNode::New();
+	distalPlaneNode->SetData(distalPlaneSurface);
+	distalPlaneNode->SetName("distalPlane");
+	GetDataStorage()->Add(distalPlaneNode);
+
+}
+
+
+void MoveData::on_pushButton_testStencil_clicked()
+{
+	auto imageToStencil = GetDataStorage()->GetNamedObject<mitk::Image>("image");
+	auto stencil = GetDataStorage()->GetNamedObject<mitk::Surface>("implant");
+
+	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	surfaceToImageFilter->SetBackgroundValue(6000);
+	surfaceToImageFilter->SetImage(imageToStencil);
+	surfaceToImageFilter->SetInput(stencil);
+	surfaceToImageFilter->SetReverseStencil(true);
+
+	mitk::Image::Pointer convertedImage = mitk::Image::New();
+	surfaceToImageFilter->Update();
+	convertedImage = surfaceToImageFilter->GetOutput();
+
+	auto newNode = mitk::DataNode::New();
+	newNode->SetName("newNode");
+	newNode->SetData(convertedImage);
+	GetDataStorage()->Add(newNode);
+}
+
+
+void MoveData::on_pushButton_getCameraAngle_clicked()
+{
+	auto iRenderWindowPart = GetRenderWindowPart();
+
+	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetActiveQmitkRenderWindow();
+
+	auto camera = renderWindow->GetVtkRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+
+	auto viewTrans = camera->GetViewTransformMatrix();
+
+	vtkNew<vtkMatrix4x4> worldToCameraTrans;
+	worldToCameraTrans->DeepCopy(viewTrans);
+	worldToCameraTrans->Invert();
+
+	vtkNew<vtkMatrix4x4> rotationMatrix;
+	rotationMatrix->DeepCopy(worldToCameraTrans);
+	rotationMatrix->SetElement(0, 3, 0);
+	rotationMatrix->SetElement(1, 3, 0);
+	rotationMatrix->SetElement(2, 3, 0);
+
+
+	// Visualize the camera matrix
+	//GetDataStorage()->GetNamedNode("cameraCoord")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(worldToCameraTrans);
+
+	m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(0,0))+" / "+
+		QString::number(viewTrans->GetElement(0, 1)) + " / "+
+		QString::number(viewTrans->GetElement(0, 2)) + " / "+
+		QString::number(viewTrans->GetElement(0, 3)) + " / ");
+
+	m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(1, 0)) + " / " +
+		QString::number(viewTrans->GetElement(1, 1)) + " / " +
+		QString::number(viewTrans->GetElement(1, 2)) + " / " +
+		QString::number(viewTrans->GetElement(1, 3)) + " / ");
+
+	m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(2, 0)) + " / " +
+		QString::number(viewTrans->GetElement(2, 1)) + " / " +
+		QString::number(viewTrans->GetElement(2, 2)) + " / " +
+		QString::number(viewTrans->GetElement(2, 3)) + " / ");
+
+	m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(3, 0)) + " / " +
+		QString::number(viewTrans->GetElement(3, 1)) + " / " +
+		QString::number(viewTrans->GetElement(3, 2)) + " / " +
+		QString::number(viewTrans->GetElement(3, 3)) + " / ");
+
+	m_Controls.textBrowser_moveData->append("---------------------");
+
+	// Get the OBB center of the object
+	auto objectSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("object");
+
+	auto objectCenter = objectSurface->GetGeometry()->GetCenter();
+
+	double scaleFactor = sqrt(pow(worldToCameraTrans->GetElement(0, 3)- objectCenter[0], 2) +
+		pow(worldToCameraTrans->GetElement(1, 3) - objectCenter[1], 2) +
+		pow(worldToCameraTrans->GetElement(2, 3) - objectCenter[2], 2)) / 600;
+
+	double lengthFactor = scaleFactor * 40;
+
+	// the up cone transform
+	auto upTrans = vtkTransform::New();
+	upTrans->PostMultiply();
+	upTrans->Scale(scaleFactor, scaleFactor, scaleFactor);
+	upTrans->Concatenate(rotationMatrix);
+	upTrans->Translate(objectCenter[0], objectCenter[1], objectCenter[2]);
+	upTrans->Translate(lengthFactor*rotationMatrix->GetElement(0, 1), 
+		lengthFactor * rotationMatrix->GetElement(1, 1), 
+		lengthFactor * rotationMatrix->GetElement(2, 1));
+	upTrans->Update();
+
+	GetDataStorage()->GetNamedNode("upcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(upTrans->GetMatrix());
+
+	// the down cone transform
+	auto downTrans = vtkTransform::New();
+	downTrans->PostMultiply();
+	downTrans->Scale(scaleFactor, scaleFactor, scaleFactor);
+	downTrans->Concatenate(rotationMatrix);
+	downTrans->Translate(objectCenter[0], objectCenter[1], objectCenter[2]);
+	downTrans->Translate(-lengthFactor * rotationMatrix->GetElement(0, 1),
+		-lengthFactor * rotationMatrix->GetElement(1, 1),
+		-lengthFactor * rotationMatrix->GetElement(2, 1));
+	downTrans->Update();
+
+	GetDataStorage()->GetNamedNode("downcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(downTrans->GetMatrix());
+
+	// the right cone transform
+	auto rightTrans = vtkTransform::New();
+	rightTrans->PostMultiply();
+	rightTrans->Scale(scaleFactor, scaleFactor, scaleFactor);
+	rightTrans->Concatenate(rotationMatrix);
+	rightTrans->Translate(objectCenter[0], objectCenter[1], objectCenter[2]);
+	rightTrans->Translate(lengthFactor * rotationMatrix->GetElement(0, 0),
+		lengthFactor * rotationMatrix->GetElement(1, 0),
+		lengthFactor * rotationMatrix->GetElement(2, 0));
+	rightTrans->Update();
+
+	GetDataStorage()->GetNamedNode("rightcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(rightTrans->GetMatrix());
+
+	// the left cone transform
+	auto leftTrans = vtkTransform::New();
+	leftTrans->PostMultiply();
+	leftTrans->Scale(scaleFactor, scaleFactor, scaleFactor);
+	leftTrans->Concatenate(rotationMatrix);
+	leftTrans->Translate(objectCenter[0], objectCenter[1], objectCenter[2]);
+	leftTrans->Translate(-lengthFactor * rotationMatrix->GetElement(0, 0),
+		-lengthFactor * rotationMatrix->GetElement(1, 0),
+		-lengthFactor * rotationMatrix->GetElement(2, 0));
+	leftTrans->Update();
+
+	GetDataStorage()->GetNamedNode("leftcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(leftTrans->GetMatrix());
+
+
+	this->RequestRenderWindowUpdate();
+}
+
 
 void MoveData::InitPointSetSelector(QmitkSingleNodeSelectionWidget* widget)
 {

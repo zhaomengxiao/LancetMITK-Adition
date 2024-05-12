@@ -22,6 +22,7 @@ found in the LICENSE file.
 #include "QmitkSingleNodeSelectionWidget.h"
 #include "ui_MoveDataControls.h"
 #include "mitkGizmo.h"
+#include "mitkPointSet.h"
 
 
 /**
@@ -146,6 +147,16 @@ protected:
   void horizontalSlider_testCrosshair_value_changed();
 
   void on_pushButton_testCPR_clicked();
+
+  void on_pushButton_getCameraAngle_clicked();
+
+  void on_pushButton_testStencil_clicked();
+
+  void on_pushButton_gen5planes_clicked();
+
+  void on_pushButton_testIntersect_clicked();
+	// Generate a plane vtkPolyData centered at the Pset's center with the given size
+  bool GeneratePlaneWithPset(mitk::PointSet::Pointer ptsOnPlane, double planeSize, vtkSmartPointer<vtkPolyData> generatedPlane, double planeNormal[3]);
 
 };
 
