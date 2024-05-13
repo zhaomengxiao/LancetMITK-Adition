@@ -161,9 +161,25 @@ bool MoveData::GeneratePlaneWithPset(mitk::PointSet::Pointer ptsOnPlane, double 
 		return false;
 	}
 
-	// Get the pset's AABB center as the plane center
+	// // Get the pset's AABB center as the plane center
+
 	auto psetCenter = ptsOnPlane->GetGeometry()->GetCenter();
-	double planeCenter[3]{psetCenter[0],psetCenter[1],psetCenter[2]};
+
+	double planeCenter[3]{ psetCenter[0],psetCenter[1],psetCenter[2] };
+
+	//double planeCenter[3]{0};
+
+	// for(int i{0}; i < ptsOnPlane->GetSize(); i++)
+	// {
+	// 	planeCenter[0] += ptsOnPlane->GetPoint(i)[0];
+	// 	planeCenter[1] += ptsOnPlane->GetPoint(i)[1];
+	// 	planeCenter[2] += ptsOnPlane->GetPoint(i)[2];
+	// }
+	//
+	// planeCenter[0] = planeCenter[0] / ptsOnPlane->GetSize();
+	// planeCenter[1] = planeCenter[1] / ptsOnPlane->GetSize();
+	// planeCenter[2] = planeCenter[2] / ptsOnPlane->GetSize();
+
 
 	// Get the planeNormal
 	Eigen::Vector3d v0{ ptsOnPlane->GetPoint(0)[0], ptsOnPlane->GetPoint(0)[1],ptsOnPlane->GetPoint(0)[2] };
@@ -295,23 +311,6 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	distalNode->SetName("DistalCutPlane");
 	GetDataStorage()->Add(distalNode);
 
-
-	// anteriorChamfer & distal intersection line
-	vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	intersectionFilter->SetInputData(0, distalPlane);
-	intersectionFilter->SetInputData(1, anteriorChamferPlane);
-	
-	intersectionFilter->Update();
-	
-	auto intersect_an = mitk::Surface::New();
-	intersect_an->SetVtkPolyData(intersectionFilter->GetOutput());
-	
-	auto intersectNode_an = mitk::DataNode::New();
-	intersectNode_an->SetData(intersect_an);
-	intersectNode_an->SetName("intersect_an");
-	intersectNode_an->SetColor(1,0,0);
-	GetDataStorage()->Add(intersectNode_an);
-
 	// posteriorChamfer & distal intersection line
 	vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter1 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
 	intersectionFilter1->SetInputData(0, distalPlane);
@@ -347,13 +346,6 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	tmpNode->SetColor(1, 0, 0);
 	GetDataStorage()->Add(tmpNode);
 
-	// auto prosSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("pros");
-	// // auto prosSurface2 = GetDataStorage()->GetNamedObject<mitk::Surface>("pros2");
-	// auto testLinePts = GetDataStorage()->GetNamedObject<mitk::PointSet>("PointSet");
-	// //
-	// auto p1 = testLinePts->GetPoint(0);
-	// auto p2 = testLinePts->GetPoint(1);
-	//
 	auto distalPlaneCenter = distalSurface->GetGeometry()->GetCenter();
 	auto posteriorPlaneCenter = posteriorSurface->GetGeometry()->GetCenter();
 
@@ -370,12 +362,21 @@ void MoveData::on_pushButton_testIntersect_clicked()
 		distalNormalVec = -distalNormalVec;
 	}
 
-	double lineP1[3]{ intersectPoints_po->GetPoint(0)[0]-distalNormalVec[0]*2
-		, intersectPoints_po->GetPoint(0)[1] - distalNormalVec[1] * 2,
-		intersectPoints_po->GetPoint(0)[2] - distalNormalVec[2] * 2 };
-	double lineP2[3]{ intersectPoints_po->GetPoint(3)[0] - distalNormalVec[0] * 2
-		, intersectPoints_po->GetPoint(3)[1] - distalNormalVec[1] * 2,
-		intersectPoints_po->GetPoint(3)[2] - distalNormalVec[2] * 2 };
+	// Get 2 points, the line between which definitely crosses the implant
+	Eigen::Vector3d tmpVec{
+		intersectPoints_po->GetPoint(0)[0] - intersectPoints_po->GetPoint(1)[0],
+		intersectPoints_po->GetPoint(0)[1] - intersectPoints_po->GetPoint(1)[1],
+		intersectPoints_po->GetPoint(0)[2] - intersectPoints_po->GetPoint(1)[2],
+	};
+
+	tmpVec.normalize();
+
+	double lineP1[3]{ intersectPoints_po->GetPoint(0)[0]-distalNormalVec[0]*2 + tmpVec[0]*200
+		, intersectPoints_po->GetPoint(0)[1] - distalNormalVec[1] * 2 + tmpVec[1] * 200,
+		intersectPoints_po->GetPoint(0)[2] - distalNormalVec[2] * 2 + tmpVec[2] * 200 };
+	double lineP2[3]{ intersectPoints_po->GetPoint(3)[0] - distalNormalVec[0] * 2 - tmpVec[0] * 200
+		, intersectPoints_po->GetPoint(3)[1] - distalNormalVec[1] * 2 - tmpVec[1] * 200,
+		intersectPoints_po->GetPoint(3)[2] - distalNormalVec[2] * 2 - tmpVec[2] * 200 };
 	//
 	// Create the locator
 	vtkSmartPointer<vtkOBBTree> tree =
@@ -401,31 +402,150 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	
 		Pset->InsertPoint(tmpPoint);
 	}
+	Pset->Update();
 	
 	auto intersectNode = mitk::DataNode::New();
 	intersectNode->SetData(Pset);
-	intersectNode->SetName("intersect_implants");
+	intersectNode->SetName("intersect_implants_po");
 	GetDataStorage()->Add(intersectNode);
 
-	//
-	// vtkSmartPointer<vtkLineSource> line = vtkSmartPointer<vtkLineSource>::New();
-	// line->SetPoint1(p1[0], p1[1], p1[2]);  
-	// line->SetPoint2(p2[0], p2[1], p2[2]);
-	// line->Update();
+	// anteriorChamfer & distal intersection line
+	vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+	intersectionFilter->SetInputData(0, distalPlane);
+	intersectionFilter->SetInputData(1, anteriorChamferPlane);
 
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter->SetInputData(0, prosSurface2->GetVtkPolyData());
-	// intersectionFilter->SetInputData(1, prosSurface->GetVtkPolyData());
+	intersectionFilter->Update();
+
+	auto intersect_an = mitk::Surface::New();
+	intersect_an->SetVtkPolyData(intersectionFilter->GetOutput());
+
+	auto intersectNode_an = mitk::DataNode::New();
+	intersectNode_an->SetData(intersect_an);
+	intersectNode_an->SetName("intersect_an");
+	intersectNode_an->SetColor(1, 0, 0);
+	GetDataStorage()->Add(intersectNode_an);
+
+	auto intersect_an_data = intersectionFilter->GetOutput();
+	int pnum_an = intersect_an_data->GetNumberOfPoints();
+	auto intersectPoints_an = mitk::PointSet::New();
+	for (int i{ 0 }; i < pnum; i++)
+	{
+		mitk::Point3D a;
+		a[0] = intersect_an_data->GetPoint(i)[0];
+		a[1] = intersect_an_data->GetPoint(i)[1];
+		a[2] = intersect_an_data->GetPoint(i)[2];
+
+		intersectPoints_an->InsertPoint(a);
+	}
+
+	auto tmpNode1 = mitk::DataNode::New();
+	tmpNode1->SetData(intersectPoints_an);
+	tmpNode1->SetName("intersectPoints_an");
+	tmpNode1->SetColor(1, 0, 0);
+	GetDataStorage()->Add(tmpNode1);
+	
+	// Get 2 points, the line between which definitely crosses the implant
+	Eigen::Vector3d tmpVec1{
+		intersectPoints_an->GetPoint(0)[0] - intersectPoints_an->GetPoint(1)[0],
+		intersectPoints_an->GetPoint(0)[1] - intersectPoints_an->GetPoint(1)[1],
+		intersectPoints_an->GetPoint(0)[2] - intersectPoints_an->GetPoint(1)[2],
+	};
+
+	tmpVec1.normalize();
+
+	double lineP3[3]{ intersectPoints_an->GetPoint(0)[0] - distalNormalVec[0] * 2 + tmpVec1[0] * 200
+		, intersectPoints_an->GetPoint(0)[1] - distalNormalVec[1] * 2 + tmpVec1[1] * 200,
+		intersectPoints_an->GetPoint(0)[2] - distalNormalVec[2] * 2 + tmpVec1[2] * 200 };
+	double lineP4[3]{ intersectPoints_an->GetPoint(3)[0] - distalNormalVec[0] * 2 - tmpVec1[0] * 200
+		, intersectPoints_an->GetPoint(3)[1] - distalNormalVec[1] * 2 - tmpVec1[1] * 200,
+		intersectPoints_an->GetPoint(3)[2] - distalNormalVec[2] * 2 - tmpVec1[2] * 200 };
 	//
-	// intersectionFilter->Update();
+	// Create the locator
+	vtkSmartPointer<vtkOBBTree> tree1 =
+		vtkSmartPointer<vtkOBBTree>::New();
+	tree1->SetDataSet(GetDataStorage()->GetNamedObject<mitk::Surface>("pros")->GetVtkPolyData());
+	tree1->BuildLocator();
+
+	vtkSmartPointer<vtkPoints> intersectPoints_tmp =
+		vtkSmartPointer<vtkPoints>::New();
+
+	tree->IntersectWithLine(lineP3, lineP4, intersectPoints_tmp, NULL);
+
+	auto Pset1 = mitk::PointSet::New();
+
+	int intersectNum1 = intersectPoints_tmp->GetNumberOfPoints();
+
+	for (int i{ 0 }; i < intersectNum1; i++)
+	{
+		mitk::Point3D tmpPoint;
+		tmpPoint[0] = intersectPoints_tmp->GetPoint(i)[0] + distalNormalVec[0] * 2;
+		tmpPoint[1] = intersectPoints_tmp->GetPoint(i)[1] + distalNormalVec[1] * 2;
+		tmpPoint[2] = intersectPoints_tmp->GetPoint(i)[2] + distalNormalVec[2] * 2;
+
+		Pset1->InsertPoint(tmpPoint);
+	}
+	Pset1->Update();
+
+	auto intersectNode1 = mitk::DataNode::New();
+	intersectNode1->SetData(Pset1);
+	intersectNode1->SetName("intersect_implants_an");
+	GetDataStorage()->Add(intersectNode1);
+
+	// Calculate the femur prosthesis frame 
+	auto anCenter = Pset1->GetGeometry()->GetBoundingBox()->GetCenter();
+	auto poCenter = Pset->GetGeometry()->GetBoundingBox()->GetCenter();
+
+	// double poCenter[3]{ 0 };
+	// double anCenter[3]{ 0 };
+	// for(int i{0}; i < Pset1->GetSize(); i++)
+	// {
+	// 	anCenter[0] += Pset1->GetPoint(i)[0];
+	// 	anCenter[1] += Pset1->GetPoint(i)[1];
+	// 	anCenter[2] += Pset1->GetPoint(i)[2];
+	// }
 	//
-	// auto intersect = mitk::Surface::New();
-	// intersect->SetVtkPolyData(intersectionFilter->GetOutput());
+	// anCenter[0] = anCenter[0] / Pset1->GetSize();
+	// anCenter[1] = anCenter[1] / Pset1->GetSize();
+	// anCenter[2] = anCenter[2] / Pset1->GetSize();
 	//
-	// auto intersectNode = mitk::DataNode::New();
-	// intersectNode->SetData(intersect);
-	// intersectNode->SetName("intersect");
-	// GetDataStorage()->Add(intersectNode);
+	// for (int i{ 0 }; i < Pset->GetSize(); i++)
+	// {
+	// 	poCenter[0] += Pset->GetPoint(i)[0];
+	// 	poCenter[1] += Pset->GetPoint(i)[1];
+	// 	poCenter[2] += Pset->GetPoint(i)[2];
+	// }
+	//
+	// poCenter[0] = poCenter[0] / Pset->GetSize();
+	// poCenter[1] = poCenter[1] / Pset->GetSize();
+	// poCenter[2] = poCenter[2] / Pset->GetSize();
+
+	// frame origin
+	Eigen::Vector3d frameOrigin{ (anCenter[0] + poCenter[0])/2.0,
+	(anCenter[1] + poCenter[1]) / 2.0,
+	(anCenter[2] + poCenter[2]) / 2.0 };
+
+	Eigen::Vector3d frame_y{ (anCenter[0] - poCenter[0]),
+	(anCenter[1] - poCenter[1]),
+	(anCenter[2] - poCenter[2])};
+	frame_y.normalize();
+
+	Eigen::Vector3d frame_z = -distalNormalVec;
+
+	Eigen::Vector3d frame_x = frame_y.cross(frame_z);
+
+	auto offsetMatrix = vtkMatrix4x4::New();
+	offsetMatrix->Identity();
+	for(int i{0}; i<3; i++)
+	{
+		offsetMatrix->SetElement(i, 0, frame_x[i]);
+		offsetMatrix->SetElement(i, 1, frame_y[i]);
+		offsetMatrix->SetElement(i, 2, frame_z[i]);
+		offsetMatrix->SetElement(i, 3, frameOrigin[i]);
+	}
+
+	offsetMatrix->Invert(offsetMatrix, offsetMatrix);
+	GetDataStorage()->GetNamedNode("pros")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(offsetMatrix);
+
 }
 
 
