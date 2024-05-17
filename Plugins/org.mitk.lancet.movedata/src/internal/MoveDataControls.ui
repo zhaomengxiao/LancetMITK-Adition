@@ -87,7 +87,14 @@
           <item>
            <widget class="QLabel" name="label_21">
             <property name="text">
-             <string>0. 将股骨假体数据命名为“pros”</string>
+             <string>0. 将股骨假体数据命名为“pros”,并按下面按钮</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButto_interpolation">
+            <property name="text">
+             <string>改变显示模式</string>
             </property>
            </widget>
           </item>

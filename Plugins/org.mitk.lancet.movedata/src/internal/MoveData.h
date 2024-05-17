@@ -158,6 +158,8 @@ protected:
 	// Generate a plane vtkPolyData centered at the Pset's center with the given size
   bool GeneratePlaneWithPset(mitk::PointSet::Pointer ptsOnPlane, double planeSize, vtkSmartPointer<vtkPolyData> generatedPlane, double planeNormal[3]);
 
+  void on_pushButto_interpolation_clicked();
+
 };
 
 #endif // MoveData_h

@@ -71,6 +71,7 @@ found in the LICENSE file.
 #include <vtkWindowLevelLookupTable.h>
 #include "QmitkRenderWindow.h"
 #include "mitkSmartPointerProperty.h"
+#include "mitkVtkInterpolationProperty.h"
 #include "vtkIntersectionPolyDataFilter.h"
 
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
@@ -156,8 +157,26 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_gen5planes, &QPushButton::clicked, this, &MoveData::on_pushButton_gen5planes_clicked);
 
   connect(m_Controls.pushButton_testIntersect, &QPushButton::clicked, this, &MoveData::on_pushButton_testIntersect_clicked);
+  connect(m_Controls.pushButto_interpolation, &QPushButton::clicked, this, &MoveData::on_pushButto_interpolation_clicked);
 
 }
+
+void MoveData::on_pushButto_interpolation_clicked()
+{
+	if(GetDataStorage()->GetNamedNode("pros") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("pros is missing");
+	}
+
+	mitk::VtkInterpolationProperty::Pointer interpolationProp0;
+	GetDataStorage()->GetNamedNode("pros")->GetProperty(interpolationProp0, "material.interpolation");
+	interpolationProp0->SetInterpolationToFlat();
+	GetDataStorage()->GetNamedNode("pros")->SetProperty("material.interpolation", interpolationProp0);
+
+	
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
 
 bool MoveData::GeneratePlaneWithPset(mitk::PointSet::Pointer ptsOnPlane, double planeSize, vtkSmartPointer<vtkPolyData> generatedPlane, double planeNormal[3])
 {
@@ -227,6 +246,7 @@ void MoveData::on_pushButton_testIntersect_clicked()
 		return;
 	}
 
+	
 	auto inputPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("PointSet");
 	auto pset0 = mitk::PointSet::New();
 	auto pset1 = mitk::PointSet::New();
@@ -266,7 +286,7 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	auto anteriorPlane = vtkPolyData::New();
 	double anteriorNormal[3];
 	
-	if(GeneratePlaneWithPset(anteriorPset, 70, anteriorPlane, anteriorNormal) == false)
+	if(GeneratePlaneWithPset(anteriorPset, 100, anteriorPlane, anteriorNormal) == false)
 	{
 		MITK_ERROR << "anterior Pset is problematic";
 		return;
@@ -304,7 +324,7 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	auto posteriorPlane = vtkPolyData::New();
 	double posteriorNormal[3];
 
-	if (GeneratePlaneWithPset(posteriorPset, 70, posteriorPlane, posteriorNormal) == false)
+	if (GeneratePlaneWithPset(posteriorPset, 100, posteriorPlane, posteriorNormal) == false)
 	{
 		MITK_ERROR << "posterior Pset is problematic";
 		return;
@@ -323,7 +343,7 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	auto posteriorChamferPlane = vtkPolyData::New();
 	double posteriorChamferNormal[3];
 
-	if (GeneratePlaneWithPset(posteriorChamferPset, 70, posteriorChamferPlane, posteriorChamferNormal) == false)
+	if (GeneratePlaneWithPset(posteriorChamferPset, 100, posteriorChamferPlane, posteriorChamferNormal) == false)
 	{
 		MITK_ERROR << "posteriorChamfer Pset is problematic";
 		return;
@@ -342,7 +362,7 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	auto distalPlane = vtkPolyData::New();
 	double distalNormal[3];
 
-	if (GeneratePlaneWithPset(distalPset, 70, distalPlane, distalNormal) == false)
+	if (GeneratePlaneWithPset(distalPset, 100, distalPlane, distalNormal) == false)
 	{
 		MITK_ERROR << "distal Pset is problematic";
 		return;
@@ -377,11 +397,21 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	plane_posteriorChamfer_0->SetNormal(posteriorChamferNormal);
 
 	// posteriorChamfer & distal intersection line
-	vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter1 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	intersectionFilter1->SetInputData(0, distalPlane);
-	intersectionFilter1->SetInputData(1, posteriorChamferPlane);
+	// vtkNew<vtkIntersectionPolyDataFilter> intersectionFilter1;
+	// intersectionFilter1->SetInputData(0,distalPlane);
+	// intersectionFilter1->SetInputData(1,posteriorChamferPlane);
+
+	vtkNew<vtkCutter> intersectionFilter1;
+	intersectionFilter1->SetCutFunction(plane_distal_0);
+	intersectionFilter1->SetInputData(posteriorChamferPlane);
 
 	intersectionFilter1->Update();
+
+	// vtkNew<vtkCutter> cutter_anterior_0;
+	// cutter_anterior_0->SetCutFunction(plane_anterior);
+	// cutter_anterior_0->SetInputData(warp_0->GetPolyDataOutput());
+	// cutter_anterior_0->Update();
+
 
 	auto intersect_po = mitk::Surface::New();
 	intersect_po->SetVtkPolyData(intersectionFilter1->GetOutput());
@@ -411,6 +441,8 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	tmpNode->SetColor(1, 0, 0);
 	GetDataStorage()->Add(tmpNode);
 
+	//return;
+
 	auto distalPlaneCenter = distalSurface->GetGeometry()->GetCenter();
 	auto posteriorPlaneCenter = posteriorSurface->GetGeometry()->GetCenter();
 
@@ -436,12 +468,12 @@ void MoveData::on_pushButton_testIntersect_clicked()
 
 	tmpVec.normalize();
 
-	double lineP1[3]{ intersectPoints_po->GetPoint(0)[0]-distalNormalVec[0]*2 + tmpVec[0]*200
-		, intersectPoints_po->GetPoint(0)[1] - distalNormalVec[1] * 2 + tmpVec[1] * 200,
-		intersectPoints_po->GetPoint(0)[2] - distalNormalVec[2] * 2 + tmpVec[2] * 200 };
-	double lineP2[3]{ intersectPoints_po->GetPoint(3)[0] - distalNormalVec[0] * 2 - tmpVec[0] * 200
-		, intersectPoints_po->GetPoint(3)[1] - distalNormalVec[1] * 2 - tmpVec[1] * 200,
-		intersectPoints_po->GetPoint(3)[2] - distalNormalVec[2] * 2 - tmpVec[2] * 200 };
+	double lineP1[3]{ intersectPoints_po->GetPoint(0)[0]-distalNormalVec[0]*2 + tmpVec[0]*20000
+		, intersectPoints_po->GetPoint(0)[1] - distalNormalVec[1] * 2 + tmpVec[1] * 20000,
+		intersectPoints_po->GetPoint(0)[2] - distalNormalVec[2] * 2 + tmpVec[2] * 20000 };
+	double lineP2[3]{ intersectPoints_po->GetPoint(1)[0] - distalNormalVec[0] * 2 - tmpVec[0] * 20000
+		, intersectPoints_po->GetPoint(1)[1] - distalNormalVec[1] * 2 - tmpVec[1] * 20000,
+		intersectPoints_po->GetPoint(1)[2] - distalNormalVec[2] * 2 - tmpVec[2] * 20000 };
 	//
 	// Create the locator
 
@@ -480,6 +512,8 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	intersectNode->SetData(Pset);
 	intersectNode->SetName("intersect_implants_po");
 	GetDataStorage()->Add(intersectNode);
+
+	//return;
 
 	// anteriorChamfer & distal intersection line
 	vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
@@ -525,12 +559,12 @@ void MoveData::on_pushButton_testIntersect_clicked()
 
 	tmpVec1.normalize();
 
-	double lineP3[3]{ intersectPoints_an->GetPoint(0)[0] - distalNormalVec[0] * 2 + tmpVec1[0] * 200
-		, intersectPoints_an->GetPoint(0)[1] - distalNormalVec[1] * 2 + tmpVec1[1] * 200,
-		intersectPoints_an->GetPoint(0)[2] - distalNormalVec[2] * 2 + tmpVec1[2] * 200 };
-	double lineP4[3]{ intersectPoints_an->GetPoint(3)[0] - distalNormalVec[0] * 2 - tmpVec1[0] * 200
-		, intersectPoints_an->GetPoint(3)[1] - distalNormalVec[1] * 2 - tmpVec1[1] * 200,
-		intersectPoints_an->GetPoint(3)[2] - distalNormalVec[2] * 2 - tmpVec1[2] * 200 };
+	double lineP3[3]{ intersectPoints_an->GetPoint(0)[0] - distalNormalVec[0] * 2 + tmpVec1[0] * 20000
+		, intersectPoints_an->GetPoint(0)[1] - distalNormalVec[1] * 2 + tmpVec1[1] * 20000,
+		intersectPoints_an->GetPoint(0)[2] - distalNormalVec[2] * 2 + tmpVec1[2] * 20000 };
+	double lineP4[3]{ intersectPoints_an->GetPoint(1)[0] - distalNormalVec[0] * 2 - tmpVec1[0] * 20000
+		, intersectPoints_an->GetPoint(1)[1] - distalNormalVec[1] * 2 - tmpVec1[1] * 20000,
+		intersectPoints_an->GetPoint(1)[2] - distalNormalVec[2] * 2 - tmpVec1[2] * 20000 };
 	//
 	// Create the locator
 	vtkSmartPointer<vtkOBBTree> tree1 =
@@ -634,8 +668,8 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	// Generate yz plane
 	auto planeSource = vtkPlaneSource::New();
 	planeSource->SetOrigin(0, 0, 0);
-	planeSource->SetPoint1(100, 0, 0);
-	planeSource->SetPoint2(0, 100, 0);
+	planeSource->SetPoint1(200, 0, 0);
+	planeSource->SetPoint2(0, 200, 0);
 	planeSource->SetCenter(0,0,0);
 	planeSource->SetNormal(1,0,0);
 
@@ -1048,7 +1082,7 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	warpedNode_0->SetData(warpedSurface_0);
 	warpedNode_0->SetColor(1, 1, 0);
 	warpedNode_0->SetName("warped_3");
-	GetDataStorage()->Add(warpedNode_0);
+	//GetDataStorage()->Add(warpedNode_0);
 
 	// Warp using the normals
 	vtkNew<vtkWarpVector> warp_1;
@@ -1064,7 +1098,7 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	warpedNode_1->SetData(warpedSurface_1);
 	warpedNode_1->SetColor(1, 0, 0);
 	warpedNode_1->SetName("warped_6");
-	GetDataStorage()->Add(warpedNode_1);
+	//GetDataStorage()->Add(warpedNode_1);
 
 	vtkNew<vtkPlane> plane_anterior;
 	plane_anterior->SetOrigin(GetDataStorage()->GetNamedObject<mitk::Surface>("AnteriorCutPlane")->GetVtkPolyData()->GetCenter());
@@ -1223,149 +1257,14 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	warpDistalCutNode_1->SetName("Distal_b2");
 	warpDistalCutNode_1->SetColor(1, 1, 1);
 	GetDataStorage()->Add(warpDistalCutNode_1, GetDataStorage()->GetNamedNode("DistalCutPlane"));
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter_0 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter_0->SetInputData(0, warp_0->GetPolyDataOutput());
-	// intersectionFilter_0->SetInputData(1, GetDataStorage()->GetNamedObject<mitk::Surface>("AnteriorCutPlane")->GetVtkPolyData());
-	// intersectionFilter_0->Update();
-	//
-	// auto warpAnteriorCut_0 = mitk::Surface::New();
-	// warpAnteriorCut_0->SetVtkPolyData(intersectionFilter_0->GetOutput());
-	// auto warpAnteriorCutNode_0 = mitk::DataNode::New();
-	// warpAnteriorCutNode_0->SetData(warpAnteriorCut_0);
-	// warpAnteriorCutNode_0->SetName("Anterior_b1");
-	// warpAnteriorCutNode_0->SetColor(0, 1, 0);
-	// GetDataStorage()->Add(warpAnteriorCutNode_0,GetDataStorage()->GetNamedNode("AnteriorCutPlane"));
-	// GetDataStorage()->GetNamedNode("AnteriorCutPlane")->SetColor(0, 0, 0.5);
-	//
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter_1 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter_1->SetInputData(0, warp_0->GetPolyDataOutput());
-	// intersectionFilter_1->SetInputData(1, GetDataStorage()->GetNamedObject<mitk::Surface>("AnteriorChamferCutPlane")->GetVtkPolyData());
-	// intersectionFilter_1->Update();
-	//
-	// auto warpAnteriorChamferCut_0 = mitk::Surface::New();
-	// warpAnteriorChamferCut_0->SetVtkPolyData(intersectionFilter_1->GetOutput());
-	// auto warpAnteriorChamferCutNode_0 = mitk::DataNode::New();
-	// warpAnteriorChamferCutNode_0->SetData(warpAnteriorChamferCut_0);
-	// warpAnteriorChamferCutNode_0->SetName("AnteriorChamfer_b1");
-	// warpAnteriorChamferCutNode_0->SetColor(0, 1, 0);
-	// GetDataStorage()->Add(warpAnteriorChamferCutNode_0, GetDataStorage()->GetNamedNode("AnteriorChamferCutPlane"));
-	// GetDataStorage()->GetNamedNode("AnteriorChamferCutPlane")->SetColor(0, 0, 0.5);
-	//
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter_2 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter_2->SetInputData(0, warp_0->GetPolyDataOutput());
-	// intersectionFilter_2->SetInputData(1, GetDataStorage()->GetNamedObject<mitk::Surface>("DistalCutPlane")->GetVtkPolyData());
-	// intersectionFilter_2->Update();
-	//
-	// auto warpDistalCut_0 = mitk::Surface::New();
-	// warpDistalCut_0->SetVtkPolyData(intersectionFilter_2->GetOutput());
-	// auto warpDistalCutNode_0 = mitk::DataNode::New();
-	// warpDistalCutNode_0->SetData(warpDistalCut_0);
-	// warpDistalCutNode_0->SetName("Distal_b1");
-	// warpDistalCutNode_0->SetColor(0, 1, 0);
-	// GetDataStorage()->Add(warpDistalCutNode_0, GetDataStorage()->GetNamedNode("DistalCutPlane"));
-	// GetDataStorage()->GetNamedNode("DistalCutPlane")->SetColor(0, 0, 0.5);
-	//
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter_3 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter_3->SetInputData(0, warp_0->GetPolyDataOutput());
-	// intersectionFilter_3->SetInputData(1, GetDataStorage()->GetNamedObject<mitk::Surface>("PosteriorChamferCutPlane")->GetVtkPolyData());
-	// intersectionFilter_3->Update();
-	//
-	// auto warpPosteriorChamferCut_0 = mitk::Surface::New();
-	// warpPosteriorChamferCut_0->SetVtkPolyData(intersectionFilter_3->GetOutput());
-	// auto warpPosteriorChamferCutNode_0 = mitk::DataNode::New();
-	// warpPosteriorChamferCutNode_0->SetData(warpPosteriorChamferCut_0);
-	// warpPosteriorChamferCutNode_0->SetName("PosteriorChamfer_b1");
-	// warpPosteriorChamferCutNode_0->SetColor(0, 1, 0);
-	// GetDataStorage()->Add(warpPosteriorChamferCutNode_0, GetDataStorage()->GetNamedNode("PosteriorChamferCutPlane"));
-	// GetDataStorage()->GetNamedNode("PosteriorChamferCutPlane")->SetColor(0, 0, 0.5);
-	//
-	//
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter_4 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter_4->SetInputData(0, warp_0->GetPolyDataOutput());
-	// intersectionFilter_4->SetInputData(1, GetDataStorage()->GetNamedObject<mitk::Surface>("PosteriorCutPlane")->GetVtkPolyData());
-	// intersectionFilter_4->Update();
-	//
-	// auto warpPosteriorCut_0 = mitk::Surface::New();
-	// warpPosteriorCut_0->SetVtkPolyData(intersectionFilter_4->GetOutput());
-	// auto warpPosteriorCutNode_0 = mitk::DataNode::New();
-	// warpPosteriorCutNode_0->SetData(warpPosteriorCut_0);
-	// warpPosteriorCutNode_0->SetName("Posterior_b1");
-	// warpPosteriorCutNode_0->SetColor(0, 1, 0);
-	// GetDataStorage()->Add(warpPosteriorCutNode_0, GetDataStorage()->GetNamedNode("PosteriorCutPlane"));
-	// GetDataStorage()->GetNamedNode("PosteriorCutPlane")->SetColor(0, 0, 0.5);
-	//
-	//
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter_5 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter_5->SetInputData(0, warp_1->GetPolyDataOutput());
-	// intersectionFilter_5->SetInputData(1, GetDataStorage()->GetNamedObject<mitk::Surface>("AnteriorCutPlane")->GetVtkPolyData());
-	// intersectionFilter_5->Update();
-	//
-	// auto warpAnteriorCut_1 = mitk::Surface::New();
-	// warpAnteriorCut_1->SetVtkPolyData(intersectionFilter_5->GetOutput());
-	// auto warpAnteriorCutNode_1 = mitk::DataNode::New();
-	// warpAnteriorCutNode_1->SetData(warpAnteriorCut_1);
-	// warpAnteriorCutNode_1->SetName("Anterior_b2");
-	// warpAnteriorCutNode_1->SetColor(1, 0, 0);
-	// GetDataStorage()->Add(warpAnteriorCutNode_1, GetDataStorage()->GetNamedNode("AnteriorCutPlane"));
-	// //GetDataStorage()->GetNamedNode("AnteriorCutPlane")->SetColor(0, 0, 0.5);
-	//
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter_6 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter_6->SetInputData(0, warp_1->GetPolyDataOutput());
-	// intersectionFilter_6->SetInputData(1, GetDataStorage()->GetNamedObject<mitk::Surface>("AnteriorChamferCutPlane")->GetVtkPolyData());
-	// intersectionFilter_6->Update();
-	//
-	// auto warpAnteriorChamferCut_1 = mitk::Surface::New();
-	// warpAnteriorChamferCut_1->SetVtkPolyData(intersectionFilter_6->GetOutput());
-	// auto warpAnteriorChamferCutNode_1 = mitk::DataNode::New();
-	// warpAnteriorChamferCutNode_1->SetData(warpAnteriorChamferCut_1);
-	// warpAnteriorChamferCutNode_1->SetName("AnteriorChamfer_b2");
-	// warpAnteriorChamferCutNode_1->SetColor(1, 0, 0);
-	// GetDataStorage()->Add(warpAnteriorChamferCutNode_1, GetDataStorage()->GetNamedNode("AnteriorChamferCutPlane"));
-	// //GetDataStorage()->GetNamedNode("AnteriorChamferCutPlane")->SetColor(0, 0, 0.5);
-	//
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter_7 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter_7->SetInputData(0, warp_1->GetPolyDataOutput());
-	// intersectionFilter_7->SetInputData(1, GetDataStorage()->GetNamedObject<mitk::Surface>("DistalCutPlane")->GetVtkPolyData());
-	// intersectionFilter_7->Update();
-	//
-	// auto warpDistalCut_1 = mitk::Surface::New();
-	// warpDistalCut_1->SetVtkPolyData(intersectionFilter_7->GetOutput());
-	// auto warpDistalCutNode_1 = mitk::DataNode::New();
-	// warpDistalCutNode_1->SetData(warpDistalCut_1);
-	// warpDistalCutNode_1->SetName("Distal_b2");
-	// warpDistalCutNode_1->SetColor(1, 0, 0);
-	// GetDataStorage()->Add(warpDistalCutNode_1, GetDataStorage()->GetNamedNode("DistalCutPlane"));
-	// // GetDataStorage()->GetNamedNode("DistalCutPlane")->SetColor(0, 0, 0.5);
-	//
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter_8 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter_8->SetInputData(0, warp_1->GetPolyDataOutput());
-	// intersectionFilter_8->SetInputData(1, GetDataStorage()->GetNamedObject<mitk::Surface>("PosteriorChamferCutPlane")->GetVtkPolyData());
-	// intersectionFilter_8->Update();
-	//
-	// auto warpPosteriorChamferCut_1 = mitk::Surface::New();
-	// warpPosteriorChamferCut_1->SetVtkPolyData(intersectionFilter_8->GetOutput());
-	// auto warpPosteriorChamferCutNode_1 = mitk::DataNode::New();
-	// warpPosteriorChamferCutNode_1->SetData(warpPosteriorChamferCut_1);
-	// warpPosteriorChamferCutNode_1->SetName("PosteriorChamfer_b1");
-	// warpPosteriorChamferCutNode_1->SetColor(1, 0, 0);
-	// GetDataStorage()->Add(warpPosteriorChamferCutNode_1, GetDataStorage()->GetNamedNode("PosteriorChamferCutPlane"));
-	// //GetDataStorage()->GetNamedNode("PosteriorChamferCutPlane")->SetColor(0, 0, 0.5);
-	//
-	//
-	// vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionFilter_9 = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-	// intersectionFilter_9->SetInputData(0, warp_1->GetPolyDataOutput());
-	// intersectionFilter_9->SetInputData(1, GetDataStorage()->GetNamedObject<mitk::Surface>("PosteriorCutPlane")->GetVtkPolyData());
-	// intersectionFilter_9->Update();
-	//
-	// auto warpPosteriorCut_1 = mitk::Surface::New();
-	// warpPosteriorCut_1->SetVtkPolyData(intersectionFilter_9->GetOutput());
-	// auto warpPosteriorCutNode_1 = mitk::DataNode::New();
-	// warpPosteriorCutNode_1->SetData(warpPosteriorCut_1);
-	// warpPosteriorCutNode_1->SetName("Posterior_b2");
-	// warpPosteriorCutNode_1->SetColor(1, 0, 0);
-	// GetDataStorage()->Add(warpPosteriorCutNode_1, GetDataStorage()->GetNamedNode("PosteriorCutPlane"));
-	// // GetDataStorage()->GetNamedNode("PosteriorCutPlane")->SetColor(0, 0, 0.5);
+
+
+	
+	
+
 }
+
+
 
 
 void MoveData::on_pushButton_gen5planes_clicked()
