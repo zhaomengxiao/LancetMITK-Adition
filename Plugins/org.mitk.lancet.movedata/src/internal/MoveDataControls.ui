@@ -77,56 +77,63 @@
       <attribute name="title">
        <string>TKA 假体制作</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_15">
+      <layout class="QGridLayout" name="gridLayout_17">
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox_2">
          <property name="title">
           <string>股骨假体制作</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
+         <layout class="QGridLayout" name="gridLayout_15">
+          <item row="0" column="0">
            <widget class="QLabel" name="label_21">
             <property name="text">
              <string>0. 将股骨假体数据命名为“pros”,并按下面按钮</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="1" column="0">
            <widget class="QPushButton" name="pushButto_interpolation">
             <property name="text">
              <string>改变显示模式</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="2" column="0">
            <widget class="QLabel" name="label_18">
             <property name="text">
              <string>1. 利用“Point Set Interaction”插件新建一个空点集命名为“PointSet”</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="3" column="0">
            <widget class="QLabel" name="label_17">
             <property name="text">
              <string>2. 往“PointSet”中，依次在前切、前斜、远端、后斜、后切平面上依序各点取4个点</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="4" column="0">
            <widget class="QLabel" name="label_19">
             <property name="text">
              <string>3. 点击下方按钮</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="5" column="0">
+           <widget class="QRadioButton" name="radioButton_invertNormal">
+            <property name="text">
+             <string>反转模型正反面（当生成边界线有明显问题时，才需要勾选）</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
            <widget class="QPushButton" name="pushButton_testIntersect">
             <property name="text">
              <string>股骨假体预制备</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="7" column="0">
            <widget class="QLabel" name="label_20">
             <property name="text">
              <string>4. 在各切面上借助辅助线，点取切割边界点集</string>
@@ -1173,6 +1180,19 @@
        </property>
        <property name="text">
         <string>Generate 5 planes</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_testClip">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>310</y>
+         <width>111</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Test clip</string>
        </property>
       </widget>
      </widget>

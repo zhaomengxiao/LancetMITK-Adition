@@ -73,6 +73,7 @@ found in the LICENSE file.
 #include "mitkSmartPointerProperty.h"
 #include "mitkVtkInterpolationProperty.h"
 #include "vtkIntersectionPolyDataFilter.h"
+#include "vtkClipClosedSurface.h"
 
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
 
@@ -159,7 +160,61 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_testIntersect, &QPushButton::clicked, this, &MoveData::on_pushButton_testIntersect_clicked);
   connect(m_Controls.pushButto_interpolation, &QPushButton::clicked, this, &MoveData::on_pushButto_interpolation_clicked);
 
+  connect(m_Controls.pushButton_testClip, &QPushButton::clicked, this, &MoveData::on_pushButton_testClip_clicked);
+
+
 }
+
+void MoveData::on_pushButton_testClip_clicked()
+{
+	if(GetDataStorage()->GetNamedNode("bone") == nullptr || GetDataStorage()->GetNamedNode("saw") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("bone or saw is missing");
+		return; 
+	}
+
+	// get the bone polyData
+	auto bonePolyData = GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->GetVtkPolyData();
+
+	// get the saw polyData
+	auto sawpolyData = GetDataStorage()->GetNamedObject<mitk::Surface>("saw")->GetVtkPolyData();
+	auto sawMatrix = GetDataStorage()->GetNamedObject<mitk::Surface>("saw")->GetGeometry()->GetVtkMatrix();
+	auto sawTrans = vtkTransform::New();
+	sawTrans->SetMatrix(sawMatrix);
+
+	// apply the transform
+	auto tmpTransFilter = vtkTransformPolyDataFilter::New();
+	tmpTransFilter->SetTransform(sawTrans);
+	tmpTransFilter->SetInputData(sawpolyData);
+	tmpTransFilter->Update();
+
+	auto sawMovedPolyData = tmpTransFilter->GetOutput();
+
+	// vtkNew<vtkClipClosedSurface> clipper;
+	// clipper->SetInputData(sawMovedPolyData);
+	// clipper->SetClippingPlanes()
+
+	clock_t start = clock();
+	
+
+	// Implicit function that will be used to slice the mesh.
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+	implicitPolyDataDistance->SetInput(sawMovedPolyData);
+
+	vtkNew<vtkClipPolyData> clipper;
+	clipper->SetInputData(bonePolyData);
+	clipper->GenerateClippedOutputOn();
+	clipper->SetClipFunction(implicitPolyDataDistance);
+
+	clipper->Update();
+	vtkNew<vtkPolyData> clippedOutput;
+	clippedOutput->DeepCopy(clipper->GetOutput());
+	
+	GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->SetVtkPolyData(clippedOutput);
+
+	MITK_WARN << "Test.Interface.time.TestClip" << (clock() - start);
+}
+
 
 void MoveData::on_pushButto_interpolation_clicked()
 {
@@ -1066,6 +1121,14 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	vtkNew<vtkPolyDataNormals> normals;
 	normals->SetInputData(prosSurface);
 	normals->SplittingOff();
+
+	if(m_Controls.radioButton_invertNormal->isChecked())
+	{
+		normals->SetFlipNormals(true);
+	}
+	
+	//normals->SplittingOn();
+
 	normals->Update();
 
 	// Warp using the normals
@@ -1683,6 +1746,7 @@ void MoveData::Rotate(double center[3], double direction[3], double counterclock
 		normalizedDirection[1] = direction[1] / directionLength;
 		normalizedDirection[2] = direction[2] / directionLength;
 
+	
 
 		mitk::Point3D rotateCenter{ center };
 		mitk::Vector3D rotateAxis{ normalizedDirection };
@@ -2120,6 +2184,7 @@ void MoveData::AppendOffsetMatrix()
 			tmpVtkTransform->Concatenate(ObtainVtkMatrixFromUi());
 
 			m_baseDataToMove->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpVtkTransform->GetMatrix());
+			m_baseDataToMove->GetGeometry()->Modified();
 			mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 		}

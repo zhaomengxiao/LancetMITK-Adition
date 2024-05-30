@@ -160,6 +160,8 @@ protected:
 
   void on_pushButto_interpolation_clicked();
 
+  void on_pushButton_testClip_clicked();
+
 };
 
 #endif // MoveData_h
