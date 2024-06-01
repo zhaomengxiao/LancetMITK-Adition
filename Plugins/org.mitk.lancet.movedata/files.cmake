@@ -5,6 +5,9 @@ set(SRC_CPP_FILES
 set(INTERNAL_CPP_FILES
   org_mitk_lancet_movedata_Activator.cpp
   MoveData.cpp
+  Utilities.cxx
+  vtkPolyDataBooleanFilter.cxx
+  vtkPolyDataContactFilter.cxx
 )
 
 set(UI_FILES
@@ -14,6 +17,10 @@ set(UI_FILES
 set(MOC_H_FILES
   src/internal/org_mitk_lancet_movedata_Activator.h
   src/internal/MoveData.h
+  src/internal/Utilities.h
+  src/internal/vtkPolyDataBooleanFilter.h
+  src/internal/vtkPolyDataContactFilter.h
+  
 )
 
 # list of resource files which can be used by the plug-in

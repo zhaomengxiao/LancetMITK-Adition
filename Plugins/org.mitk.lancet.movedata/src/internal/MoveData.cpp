@@ -38,6 +38,7 @@ found in the LICENSE file.
 #include <vtkClipPolyData.h>
 #include <vtkCutter.h>
 #include <vtkDataSetMapper.h>
+#include <vtkFillHolesFilter.h>
 #include <vtkImageCast.h>
 #include <vtkImplicitPolyDataDistance.h>
 #include <vtkLine.h>
@@ -74,6 +75,8 @@ found in the LICENSE file.
 #include "mitkVtkInterpolationProperty.h"
 #include "vtkIntersectionPolyDataFilter.h"
 #include "vtkClipClosedSurface.h"
+
+#include "vtkPolyDataBooleanFilter.h"
 
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
 
@@ -162,8 +165,75 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_testClip, &QPushButton::clicked, this, &MoveData::on_pushButton_testClip_clicked);
 
+  connect(m_Controls.pushButton_vtkBool, &QPushButton::clicked, this, &MoveData::on_pushButton_vtkBool_clicked);
 
 }
+
+void MoveData::on_pushButton_vtkBool_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("bone") == nullptr || GetDataStorage()->GetNamedNode("saw") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("bone or saw is missing");
+		return;
+	}
+
+	// get the bone polyData
+	auto bonePolyData = GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->GetVtkPolyData();
+
+	// vtkNew<vtkFillHolesFilter> holeFiller0;
+	// holeFiller0->SetInputData(bonePolyData);
+	// holeFiller0->SetHoleSize(10);
+	// holeFiller0->Update();
+	// vtkNew<vtkPolyData> bonePolyDataFix;
+	// bonePolyDataFix->DeepCopy(holeFiller0->GetOutput());
+
+	// vtkNew<vtkPolyDataNormals> normals_bone;
+	// normals_bone->SetInputData(bonePolyDataFix);
+	// normals_bone->ComputePointNormalsOn();
+	// normals_bone->ComputeCellNormalsOn();
+	// normals_bone->SetFeatureAngle(20);
+	// normals_bone->FlipNormalsOn();
+	// normals_bone->SplittingOn();
+	// normals_bone->Update();
+
+
+
+
+	// get the saw polyData
+	auto sawpolyData = GetDataStorage()->GetNamedObject<mitk::Surface>("saw")->GetVtkPolyData();
+	auto sawMatrix = GetDataStorage()->GetNamedObject<mitk::Surface>("saw")->GetGeometry()->GetVtkMatrix();
+	auto sawTrans = vtkTransform::New();
+	sawTrans->SetMatrix(sawMatrix);
+
+	// apply the transform
+	auto tmpTransFilter = vtkTransformPolyDataFilter::New();
+	tmpTransFilter->SetTransform(sawTrans);
+	tmpTransFilter->SetInputData(sawpolyData);
+	tmpTransFilter->Update();
+
+	auto sawMovedPolyData = tmpTransFilter->GetOutput();
+
+	clock_t start = clock();
+
+	auto bf = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	bf->SetInputData(0, bonePolyData);
+	bf->SetInputData(1, sawMovedPolyData);
+	bf->SetOperModeToDifference();
+	bf->Update();
+
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(bf->GetOutput());
+	normals->ComputePointNormalsOn();
+	normals->ComputeCellNormalsOn();
+	normals->SetFeatureAngle(20);
+	normals->SplittingOn();
+	normals->Update();
+
+	GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->SetVtkPolyData(normals->GetOutput());
+
+	MITK_WARN << "Test.Interface.time.TestClip" << (clock() - start);
+}
+
 
 void MoveData::on_pushButton_testClip_clicked()
 {

@@ -162,6 +162,8 @@ protected:
 
   void on_pushButton_testClip_clicked();
 
+  void on_pushButton_vtkBool_clicked();
+
 };
 
 #endif // MoveData_h

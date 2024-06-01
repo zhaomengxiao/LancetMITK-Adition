@@ -71,7 +71,7 @@
    <item row="2" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
@@ -1185,14 +1185,27 @@
       <widget class="QPushButton" name="pushButton_testClip">
        <property name="geometry">
         <rect>
-         <x>240</x>
-         <y>310</y>
-         <width>111</width>
+         <x>190</x>
+         <y>300</y>
+         <width>221</width>
          <height>31</height>
         </rect>
        </property>
        <property name="text">
-        <string>Test clip</string>
+        <string>Test clip (implicit distance)</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_vtkBool">
+       <property name="geometry">
+        <rect>
+         <x>220</x>
+         <y>350</y>
+         <width>171</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Test vtk bool</string>
        </property>
       </widget>
      </widget>
