@@ -49,6 +49,7 @@ found in the LICENSE file.
 #include <vtkPointData.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkRendererCollection.h>
+#include <vtkSmoothPolyDataFilter.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTriangleFilter.h>
 #include <vtkWarpVector.h>
@@ -98,6 +99,14 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   InitNodeSelector(m_Controls.mitkNodeSelectWidget_MovingObject);
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_srcSurface);
   InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_targetSurface);
+
+  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_inverNormal);
+  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_fixHole);
+  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_normalWarp);
+  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surfaceboolA);
+  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_surfaceboolB);
+  InitSurfaceSelector(m_Controls.mitkNodeSelectWidget_smooth);
+
 
   m_NodetreeModel = new QmitkDataStorageTreeModel(this->GetDataStorage());
 
@@ -167,7 +176,424 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_vtkBool, &QPushButton::clicked, this, &MoveData::on_pushButton_vtkBool_clicked);
 
+  connect(m_Controls.pushButton_inverNormal, &QPushButton::clicked, this, &MoveData::on_pushButton_inverNormal_clicked);
+  connect(m_Controls.pushButton_fixhole, &QPushButton::clicked, this, &MoveData::on_pushButton_fixhole_clicked);
+  connect(m_Controls.pushButton_smooth, &QPushButton::clicked, this, &MoveData::on_pushButton_smooth_clicked);
+  connect(m_Controls.pushButton_warp, &QPushButton::clicked, this, &MoveData::on_pushButton_warp_clicked);
+  connect(m_Controls.pushButton_intersect, &QPushButton::clicked, this, &MoveData::on_pushButton_intersect_clicked);
+  connect(m_Controls.pushButton_union, &QPushButton::clicked, this, &MoveData::on_pushButton_union_clicked);
+  connect(m_Controls.pushButton_diff, &QPushButton::clicked, this, &MoveData::on_pushButton_diff_clicked);
+  connect(m_Controls.pushButton_implicitClip, &QPushButton::clicked, this, &MoveData::on_pushButton_implicitClip_clicked);
+
+
 }
+
+void MoveData::on_pushButton_inverNormal_clicked()
+{
+	auto inputSurfaceNode = m_Controls.mitkNodeSelectWidget_inverNormal->GetSelectedNode();
+
+	if(inputSurfaceNode == nullptr)
+	{
+		return;
+	}
+
+	auto inputSurface = dynamic_cast<mitk::Surface*>(inputSurfaceNode->GetData());
+
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(inputSurface->GetVtkPolyData());
+	normals->ComputePointNormalsOn();
+	normals->ComputeCellNormalsOn();
+	//normals->SetFeatureAngle(20);
+	normals->FlipNormalsOn();
+	normals->SplittingOn();
+	normals->Update();
+	
+	inputSurface->SetVtkPolyData(normals->GetOutput());
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void MoveData::on_pushButton_fixhole_clicked()
+{
+	auto inputSurfaceNode = m_Controls.mitkNodeSelectWidget_fixHole->GetSelectedNode();
+
+	if (inputSurfaceNode == nullptr)
+	{
+		return;
+	}
+
+	auto inputSurface = dynamic_cast<mitk::Surface*>(inputSurfaceNode->GetData());
+
+	vtkNew<vtkFillHolesFilter> holeFiller;
+	holeFiller->SetInputData(inputSurface->GetVtkPolyData());
+	holeFiller->SetHoleSize(m_Controls.lineEdit_holeSize->text().toDouble());
+	holeFiller->Update();
+	vtkNew<vtkPolyData> fixedPolyData;
+	fixedPolyData->DeepCopy(holeFiller->GetOutput());
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(fixedPolyData);
+	newNode->SetName(inputSurfaceNode->GetName() +"_fixed");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode,inputSurfaceNode);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void MoveData::on_pushButton_smooth_clicked()
+{
+	auto inputSurfaceNode = m_Controls.mitkNodeSelectWidget_smooth->GetSelectedNode();
+
+	if (inputSurfaceNode == nullptr)
+	{
+		return;
+	}
+
+	auto inputSurface = dynamic_cast<mitk::Surface*>(inputSurfaceNode->GetData());
+
+	auto smoother = vtkSmoothPolyDataFilter::New();
+
+	smoother->SetInputData(inputSurface->GetVtkPolyData());
+	smoother->SetRelaxationFactor(m_Controls.lineEdit_smoothFactor->text().toDouble());
+	smoother->SetNumberOfIterations(m_Controls.lineEdit_warpFactor_smoothIter->text().toInt());
+	smoother->Update();
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(smoother->GetOutput());
+	newNode->SetName(inputSurfaceNode->GetName() + "_smoothed");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode, inputSurfaceNode);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void MoveData::on_pushButton_warp_clicked()
+{
+	auto inputSurfaceNode = m_Controls.mitkNodeSelectWidget_normalWarp->GetSelectedNode();
+
+	if (inputSurfaceNode == nullptr)
+	{
+		return;
+	}
+
+	auto inputSurface = dynamic_cast<mitk::Surface*>(inputSurfaceNode->GetData());
+
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(inputSurface->GetVtkPolyData());
+	normals->SplittingOn();
+
+	double warpFactor = m_Controls.lineEdit_warpFactor->text().toDouble();
+
+	if (warpFactor < 0)
+	{
+		normals->SetFlipNormals(true);
+	}
+	
+	normals->Update();
+
+	// Warp using the normals
+	vtkNew<vtkWarpVector> warper;
+	warper->SetInputData(normals->GetOutput());
+	warper->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+		vtkDataSetAttributes::NORMALS);
+	warper->SetScaleFactor(abs(warpFactor));
+	warper->Update();
+
+	vtkNew<vtkPolyDataNormals> normals_;
+	normals_->SetInputData(warper->GetPolyDataOutput());
+	normals_->Update();
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(normals_->GetOutput());
+	newNode->SetName(inputSurfaceNode->GetName() + "_warped");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode, inputSurfaceNode);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void MoveData::on_pushButton_intersect_clicked()
+{
+	auto inputSurfaceNode_a = m_Controls.mitkNodeSelectWidget_surfaceboolA->GetSelectedNode();
+	if (inputSurfaceNode_a == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
+
+	auto inputSurfaceNode_b = m_Controls.mitkNodeSelectWidget_surfaceboolB->GetSelectedNode();
+	if (inputSurfaceNode_b == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
+
+	auto inputpolyData_a = inputSurface_a->GetVtkPolyData();
+	auto inputMatrix_a = inputSurface_a->GetGeometry()->GetVtkMatrix();
+	auto trans_a = vtkTransform::New();
+	trans_a->SetMatrix(inputMatrix_a);
+
+	auto transFilter_a = vtkTransformPolyDataFilter::New();
+	transFilter_a->SetTransform(trans_a);
+	transFilter_a->SetInputData(inputpolyData_a);
+	transFilter_a->Update();
+
+	auto movedPolyData_a = transFilter_a->GetOutput();
+
+	auto inputpolyData_b = inputSurface_b->GetVtkPolyData();
+	auto inputMatrix_b = inputSurface_b->GetGeometry()->GetVtkMatrix();
+	auto trans_b = vtkTransform::New();
+	trans_b->SetMatrix(inputMatrix_b);
+
+	auto transFilter_b = vtkTransformPolyDataFilter::New();
+	transFilter_b->SetTransform(trans_b);
+	transFilter_b->SetInputData(inputpolyData_b);
+	transFilter_b->Update();
+
+	auto movedPolyData_b = transFilter_b->GetOutput();
+
+	clock_t start = clock();
+
+	auto bf = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	bf->SetInputData(0, movedPolyData_a);
+	bf->SetInputData(1, movedPolyData_b);
+	bf->SetOperModeToIntersection();
+	bf->Update();
+
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(bf->GetOutput());
+	normals->ComputePointNormalsOn();
+	normals->ComputeCellNormalsOn();
+	normals->SetFeatureAngle(20);
+	normals->SplittingOn();
+	normals->Update();
+
+	MITK_WARN << "vtkbool time: " << (clock() - start);
+
+	if (normals->GetOutput()->GetNumberOfCells() > 0)
+	{
+		auto newNode = mitk::DataNode::New();
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(normals->GetOutput());
+		newNode->SetName(inputSurfaceNode_a->GetName() + "_intersection");
+		newNode->SetData(newSurface);
+		GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void MoveData::on_pushButton_union_clicked()
+{
+	auto inputSurfaceNode_a = m_Controls.mitkNodeSelectWidget_surfaceboolA->GetSelectedNode();
+	if (inputSurfaceNode_a == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
+
+	auto inputSurfaceNode_b = m_Controls.mitkNodeSelectWidget_surfaceboolB->GetSelectedNode();
+	if (inputSurfaceNode_b == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
+
+	auto inputpolyData_a = inputSurface_a->GetVtkPolyData();
+	auto inputMatrix_a = inputSurface_a->GetGeometry()->GetVtkMatrix();
+	auto trans_a = vtkTransform::New();
+	trans_a->SetMatrix(inputMatrix_a);
+
+	auto transFilter_a = vtkTransformPolyDataFilter::New();
+	transFilter_a->SetTransform(trans_a);
+	transFilter_a->SetInputData(inputpolyData_a);
+	transFilter_a->Update();
+
+	auto movedPolyData_a = transFilter_a->GetOutput();
+
+	auto inputpolyData_b = inputSurface_b->GetVtkPolyData();
+	auto inputMatrix_b = inputSurface_b->GetGeometry()->GetVtkMatrix();
+	auto trans_b = vtkTransform::New();
+	trans_b->SetMatrix(inputMatrix_b);
+
+	auto transFilter_b = vtkTransformPolyDataFilter::New();
+	transFilter_b->SetTransform(trans_b);
+	transFilter_b->SetInputData(inputpolyData_b);
+	transFilter_b->Update();
+
+	auto movedPolyData_b = transFilter_b->GetOutput();
+
+	clock_t start = clock();
+
+	auto bf = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	bf->SetInputData(0, movedPolyData_a);
+	bf->SetInputData(1, movedPolyData_b);
+	bf->SetOperModeToUnion();
+	bf->Update();
+
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(bf->GetOutput());
+	normals->ComputePointNormalsOn();
+	normals->ComputeCellNormalsOn();
+	normals->SetFeatureAngle(20);
+	normals->SplittingOn();
+	normals->Update();
+
+	MITK_WARN << "vtkbool time: " << (clock() - start);
+
+	if (normals->GetOutput()->GetNumberOfCells() > 0)
+	{
+		auto newNode = mitk::DataNode::New();
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(normals->GetOutput());
+		newNode->SetName(inputSurfaceNode_a->GetName() + "_union");
+		newNode->SetData(newSurface);
+		GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void MoveData::on_pushButton_diff_clicked()
+{
+	auto inputSurfaceNode_a = m_Controls.mitkNodeSelectWidget_surfaceboolA->GetSelectedNode();
+	if (inputSurfaceNode_a == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
+
+	auto inputSurfaceNode_b = m_Controls.mitkNodeSelectWidget_surfaceboolB->GetSelectedNode();
+	if (inputSurfaceNode_b == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
+
+	auto inputpolyData_a = inputSurface_a->GetVtkPolyData();
+	auto inputMatrix_a = inputSurface_a->GetGeometry()->GetVtkMatrix();
+	auto trans_a = vtkTransform::New();
+	trans_a->SetMatrix(inputMatrix_a);
+
+	auto transFilter_a = vtkTransformPolyDataFilter::New();
+	transFilter_a->SetTransform(trans_a);
+	transFilter_a->SetInputData(inputpolyData_a);
+	transFilter_a->Update();
+
+	auto movedPolyData_a = transFilter_a->GetOutput();
+
+	auto inputpolyData_b = inputSurface_b->GetVtkPolyData();
+	auto inputMatrix_b = inputSurface_b->GetGeometry()->GetVtkMatrix();
+	auto trans_b = vtkTransform::New();
+	trans_b->SetMatrix(inputMatrix_b);
+
+	auto transFilter_b = vtkTransformPolyDataFilter::New();
+	transFilter_b->SetTransform(trans_b);
+	transFilter_b->SetInputData(inputpolyData_b);
+	transFilter_b->Update();
+
+	auto movedPolyData_b = transFilter_b->GetOutput();
+
+	clock_t start = clock();
+
+	auto bf = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	bf->SetInputData(0, movedPolyData_a);
+	bf->SetInputData(1, movedPolyData_b);
+	bf->SetOperModeToDifference();
+	bf->Update();
+
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(bf->GetOutput());
+	normals->ComputePointNormalsOn();
+	normals->ComputeCellNormalsOn();
+	normals->SetFeatureAngle(20);
+	normals->SplittingOn();
+	normals->Update();
+
+	MITK_WARN << "vtkbool time: " << (clock() - start);
+
+	if (normals->GetOutput()->GetNumberOfCells() > 0)
+	{
+		auto newNode = mitk::DataNode::New();
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(normals->GetOutput());
+		newNode->SetName(inputSurfaceNode_a->GetName() + "_difference");
+		newNode->SetData(newSurface);
+		GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void MoveData::on_pushButton_implicitClip_clicked()
+{
+	auto inputSurfaceNode_a = m_Controls.mitkNodeSelectWidget_surfaceboolA->GetSelectedNode();
+	if (inputSurfaceNode_a == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
+
+	auto inputSurfaceNode_b = m_Controls.mitkNodeSelectWidget_surfaceboolB->GetSelectedNode();
+	if (inputSurfaceNode_b == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
+
+	auto inputpolyData_a = inputSurface_a->GetVtkPolyData();
+	auto inputMatrix_a = inputSurface_a->GetGeometry()->GetVtkMatrix();
+	auto trans_a = vtkTransform::New();
+	trans_a->SetMatrix(inputMatrix_a);
+
+	auto transFilter_a = vtkTransformPolyDataFilter::New();
+	transFilter_a->SetTransform(trans_a);
+	transFilter_a->SetInputData(inputpolyData_a);
+	transFilter_a->Update();
+
+	auto movedPolyData_a = transFilter_a->GetOutput();
+
+	auto inputpolyData_b = inputSurface_b->GetVtkPolyData();
+	auto inputMatrix_b = inputSurface_b->GetGeometry()->GetVtkMatrix();
+	auto trans_b = vtkTransform::New();
+	trans_b->SetMatrix(inputMatrix_b);
+
+	auto transFilter_b = vtkTransformPolyDataFilter::New();
+	transFilter_b->SetTransform(trans_b);
+	transFilter_b->SetInputData(inputpolyData_b);
+	transFilter_b->Update();
+
+	auto movedPolyData_b = transFilter_b->GetOutput();
+
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+	implicitPolyDataDistance->SetInput(movedPolyData_b);
+
+	vtkNew<vtkClipPolyData> clipper;
+	clipper->SetInputData(movedPolyData_a);
+	clipper->GenerateClippedOutputOn();
+	clipper->SetClipFunction(implicitPolyDataDistance);
+
+	clipper->Update();
+	vtkNew<vtkPolyData> clippedOutput;
+	clippedOutput->DeepCopy(clipper->GetOutput());
+
+	if (clippedOutput->GetNumberOfCells() > 0)
+	{
+		auto newNode = mitk::DataNode::New();
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(clippedOutput);
+		newNode->SetName(inputSurfaceNode_a->GetName() + "_clipped");
+		newNode->SetData(newSurface);
+		GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+
 
 void MoveData::on_pushButton_vtkBool_clicked()
 {
@@ -229,7 +655,10 @@ void MoveData::on_pushButton_vtkBool_clicked()
 	normals->SplittingOn();
 	normals->Update();
 
-	GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->SetVtkPolyData(normals->GetOutput());
+	if(normals->GetOutput()->GetNumberOfCells() > 0)
+	{
+		GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->SetVtkPolyData(normals->GetOutput());
+	}
 
 	MITK_WARN << "Test.Interface.time.TestClip" << (clock() - start);
 }

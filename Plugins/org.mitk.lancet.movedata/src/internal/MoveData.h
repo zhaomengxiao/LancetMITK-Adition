@@ -164,6 +164,22 @@ protected:
 
   void on_pushButton_vtkBool_clicked();
 
+  void on_pushButton_inverNormal_clicked();
+
+  void on_pushButton_fixhole_clicked();
+
+  void on_pushButton_smooth_clicked();
+
+  void on_pushButton_warp_clicked();
+
+  void on_pushButton_intersect_clicked();
+
+  void on_pushButton_union_clicked();
+
+  void on_pushButton_diff_clicked();
+
+  void on_pushButton_implicitClip_clicked();
+
 };
 
 #endif // MoveData_h
