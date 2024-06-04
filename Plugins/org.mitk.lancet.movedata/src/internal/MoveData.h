@@ -182,6 +182,8 @@ protected:
 
   void on_pushButton_initTHAcutting_clicked();
 
+  void on_pushButton_testCut_clicked();
+
 };
 
 #endif // MoveData_h
