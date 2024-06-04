@@ -185,8 +185,73 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_diff, &QPushButton::clicked, this, &MoveData::on_pushButton_diff_clicked);
   connect(m_Controls.pushButton_implicitClip, &QPushButton::clicked, this, &MoveData::on_pushButton_implicitClip_clicked);
 
+  connect(m_Controls.pushButton_initTHAcutting, &QPushButton::clicked, this, &MoveData::on_pushButton_initTHAcutting_clicked);
 
 }
+
+void MoveData::on_pushButton_initTHAcutting_clicked()
+{
+	if(GetDataStorage()->GetNamedNode("cup") == nullptr || GetDataStorage()->GetNamedNode("cup+") == nullptr ||
+		GetDataStorage()->GetNamedNode("bone") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("cup, cup+ or bone is missing");
+		return;
+	}
+
+	// Generate the green part
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cup"));
+	on_pushButton_intersect_clicked();
+	GetDataStorage()->GetNamedNode("bone_intersection")->SetFloatProperty("material.specularCoefficient", 0.1);
+	GetDataStorage()->GetNamedNode("bone_intersection")->SetColor(0, 1, 0);
+	GetDataStorage()->GetNamedNode("bone_intersection")->SetName("Green");
+
+	// Generate the white buffer zone
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cup+"));
+	on_pushButton_intersect_clicked();
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone_intersection"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Green"));
+	on_pushButton_diff_clicked();
+	GetDataStorage()->GetNamedNode("bone_intersection_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+	GetDataStorage()->GetNamedNode("bone_intersection_difference")->SetColor(1, 1, 1);
+	GetDataStorage()->GetNamedNode("bone_intersection_difference")->SetName("Buffer");
+
+	// Generate the red core
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cup+"));
+	on_pushButton_diff_clicked();
+	GetDataStorage()->GetNamedNode("bone_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+	GetDataStorage()->GetNamedNode("bone_difference")->SetColor(1, 0, 0);
+	GetDataStorage()->GetNamedNode("bone_difference")->SetName("Red");
+
+	// Generate the white shell
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cup+"));
+	on_pushButton_diff_clicked();
+	GetDataStorage()->GetNamedNode("bone_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+	GetDataStorage()->GetNamedNode("bone_difference")->SetColor(1, 1, 1);
+	GetDataStorage()->GetNamedNode("bone_difference")->SetName("White");
+
+	// Turn off all node visibility
+	auto dataNodes = GetDataStorage()->GetAll();
+	for (auto item = dataNodes->begin(); item != dataNodes->end(); ++item)
+	{
+		(*item)->SetVisibility(false);
+	}
+	GetDataStorage()->GetNamedNode("stdmulti.widget0.plane")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("stdmulti.widget1.plane")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("stdmulti.widget2.plane")->SetVisibility(true);
+
+	GetDataStorage()->GetNamedNode("White")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("Red")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("Buffer")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("Green")->SetVisibility(true);
+
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
 
 void MoveData::on_pushButton_inverNormal_clicked()
 {
@@ -305,9 +370,13 @@ void MoveData::on_pushButton_warp_clicked()
 	normals_->SetInputData(warper->GetPolyDataOutput());
 	normals_->Update();
 
+	vtkNew<vtkTriangleFilter> triangles;
+	triangles->SetInputData(normals_->GetOutput());
+	triangles->Update();
+
 	auto newNode = mitk::DataNode::New();
 	auto newSurface = mitk::Surface::New();
-	newSurface->SetVtkPolyData(normals_->GetOutput());
+	newSurface->SetVtkPolyData(triangles->GetOutput());
 	newNode->SetName(inputSurfaceNode->GetName() + "_warped");
 	newNode->SetData(newSurface);
 	GetDataStorage()->Add(newNode, inputSurfaceNode);

@@ -180,6 +180,8 @@ protected:
 
   void on_pushButton_implicitClip_clicked();
 
+  void on_pushButton_initTHAcutting_clicked();
+
 };
 
 #endif // MoveData_h
