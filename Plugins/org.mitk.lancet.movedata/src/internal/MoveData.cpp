@@ -634,19 +634,19 @@ void MoveData::on_pushButton_union_clicked()
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
-void MoveData::on_pushButton_diff_clicked()
+int MoveData::on_pushButton_diff_clicked()
 {
 	auto inputSurfaceNode_a = m_Controls.mitkNodeSelectWidget_surfaceboolA->GetSelectedNode();
 	if (inputSurfaceNode_a == nullptr)
 	{
-		return;
+		return 2;
 	}
 	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
 
 	auto inputSurfaceNode_b = m_Controls.mitkNodeSelectWidget_surfaceboolB->GetSelectedNode();
 	if (inputSurfaceNode_b == nullptr)
 	{
-		return;
+		return 2;
 	}
 	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
 
@@ -682,6 +682,11 @@ void MoveData::on_pushButton_diff_clicked()
 	bf->SetOperModeToDifference();
 	bf->Update();
 
+	if(bf->CheckHasContact() == 0)
+	{
+		return 1;
+	}
+
 	vtkNew<vtkPolyDataNormals> normals;
 	normals->SetInputData(bf->GetOutput());
 	normals->ComputePointNormalsOn();
@@ -700,9 +705,13 @@ void MoveData::on_pushButton_diff_clicked()
 		newNode->SetName(inputSurfaceNode_a->GetName() + "_difference");
 		newNode->SetData(newSurface);
 		GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+
+		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+		return 0;
 	}
 
-	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	return 3;
 }
 
 void MoveData::on_pushButton_implicitClip_clicked()

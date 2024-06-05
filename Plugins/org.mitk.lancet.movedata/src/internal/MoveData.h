@@ -176,7 +176,7 @@ protected:
 
   void on_pushButton_union_clicked();
 
-  void on_pushButton_diff_clicked();
+  int on_pushButton_diff_clicked(); // 0: has result ; 1: no contact ; 2: input missing ; 3: other vtkbool error
 
   void on_pushButton_implicitClip_clicked();
 
