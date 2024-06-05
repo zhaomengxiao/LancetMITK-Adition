@@ -698,12 +698,12 @@ void vtkPolyDataContactFilter::InterPolys (vtkIdType idA, vtkIdType idB) {
     dB = vtkMath::Dot(nB, ptB);
 
     if (!CheckNormal(newPdA->GetPoints(), numA, polyA, nA, dA)) {
-        aborted = true;
+        //aborted = true;
         return;
     }
 
     if (!CheckNormal(newPdB->GetPoints(), numB, polyB, nB, dB)) {
-        aborted = true;
+        //aborted = true;
         return;
     }
 
@@ -757,12 +757,12 @@ void vtkPolyDataContactFilter::InterPolys (vtkIdType idA, vtkIdType idB) {
     InterPtsType intersA, intersB;
 
     if (!vtkPolyDataContactFilter::InterPolyLine(intersA, newPdA, numA, polyA, r, s, Src::A, nA)) {
-        aborted = true;
+        //aborted = true;
         return;
     }
 
     if (!vtkPolyDataContactFilter::InterPolyLine(intersB, newPdB, numB, polyB, r, s, Src::B, nB)) {
-        aborted = true;
+        //aborted = true;
         return;
     }
 

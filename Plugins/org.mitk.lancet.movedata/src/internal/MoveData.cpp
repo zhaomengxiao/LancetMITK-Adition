@@ -286,6 +286,10 @@ void MoveData::on_pushButton_testCut_clicked()
 		
 	}
 
+	// GetDataStorage()->GetNamedNode("White")->SetVisibility(false);
+	// GetDataStorage()->GetNamedNode("Buffer")->SetVisibility(false);
+	// GetDataStorage()->GetNamedNode("Red_warped")->SetVisibility(false);
+
 }
 
 
