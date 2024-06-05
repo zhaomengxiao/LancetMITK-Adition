@@ -195,9 +195,10 @@ void MoveData::on_pushButton_testCut_clicked()
 	if (GetDataStorage()->GetNamedNode("White") == nullptr || GetDataStorage()->GetNamedNode("Buffer") == nullptr ||
 		GetDataStorage()->GetNamedNode("Red") == nullptr ||
 		GetDataStorage()->GetNamedNode("Green") == nullptr ||
-		GetDataStorage()->GetNamedNode("cutter") == nullptr)
+		GetDataStorage()->GetNamedNode("cutter") == nullptr ||
+		GetDataStorage()->GetNamedNode("Red_warped") == nullptr)
 	{
-		m_Controls.textBrowser_moveData->append("White, Buffer, Red, cutter or Green is missing");
+		m_Controls.textBrowser_moveData->append("White, Buffer, Red, Red_warped, cutter or Green is missing");
 		return;
 	}
 
@@ -205,51 +206,85 @@ void MoveData::on_pushButton_testCut_clicked()
 	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Green"));
 	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
 	on_pushButton_diff_clicked();
-	GetDataStorage()->GetNamedNode("Green_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
-	GetDataStorage()->GetNamedNode("Green_difference")->SetColor(0, 1, 0);
-	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Green"));
-	GetDataStorage()->GetNamedNode("Green_difference")->SetName("Green");
+
+	if(GetDataStorage()->GetNamedNode("Green_difference") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("Green_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+		GetDataStorage()->GetNamedNode("Green_difference")->SetColor(0, 1, 0);
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Green"));
+		GetDataStorage()->GetNamedNode("Green_difference")->SetName("Green");
+	}else
+	{
+		m_Controls.textBrowser_moveData->append("Green cutting failed");
+		
+	}
+
+	
 
 	// Update the buffer part
 	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Buffer"));
 	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
 	on_pushButton_diff_clicked();
-	GetDataStorage()->GetNamedNode("Buffer_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
-	GetDataStorage()->GetNamedNode("Buffer_difference")->SetColor(1, 1, 1);
-	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Buffer"));
-	GetDataStorage()->GetNamedNode("Buffer_difference")->SetName("Buffer");
 
-	// // Update the red part
-	// m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Red"));
-	// m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
-	// on_pushButton_diff_clicked();
-	// GetDataStorage()->GetNamedNode("Red_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
-	// GetDataStorage()->GetNamedNode("Red_difference")->SetColor(1, 0, 0);
-	// GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Red"));
-	// GetDataStorage()->GetNamedNode("Red_difference")->SetName("Red");
-	//
-	// m_Controls.mitkNodeSelectWidget_normalWarp->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Red"));
-	// m_Controls.lineEdit_warpFactor->setText("-0.02");
-	//
-	// if(GetDataStorage()->GetNamedNode("Red_warped") !=nullptr)
-	// {
-	// 	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Red_warped"));
-	// }
-	//
-	// on_pushButton_warp_clicked();
-	// GetDataStorage()->GetNamedNode("Red_warped")->SetFloatProperty("material.specularCoefficient", 0.1);
-	// GetDataStorage()->GetNamedNode("Red_warped")->SetColor(1, 0, 0);
-	// GetDataStorage()->GetNamedNode("Red")->SetVisibility(false);
+	if(GetDataStorage()->GetNamedNode("Buffer_difference") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("Buffer_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+		GetDataStorage()->GetNamedNode("Buffer_difference")->SetColor(1, 1, 1);
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Buffer"));
+		GetDataStorage()->GetNamedNode("Buffer_difference")->SetName("Buffer");
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("Buffer cutting failed");
+		
+	}
 
+	
+
+	// Update the red part
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Red"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
+	on_pushButton_diff_clicked();
+
+	if(GetDataStorage()->GetNamedNode("Red_difference") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("Red_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+		GetDataStorage()->GetNamedNode("Red_difference")->SetColor(1, 0, 0);
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Red"));
+		GetDataStorage()->GetNamedNode("Red_difference")->SetName("Red");
+
+		m_Controls.mitkNodeSelectWidget_normalWarp->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Red"));
+		m_Controls.lineEdit_warpFactor->setText("-0.02");
+
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Red_warped"));
+
+		on_pushButton_warp_clicked();
+		GetDataStorage()->GetNamedNode("Red_warped")->SetFloatProperty("material.specularCoefficient", 0.1);
+		GetDataStorage()->GetNamedNode("Red_warped")->SetColor(1, 0, 0);
+		GetDataStorage()->GetNamedNode("Red")->SetVisibility(false);
+
+	}else
+	{
+		m_Controls.textBrowser_moveData->append("Red cutting failed");
+		
+	}
 
 	// Update the white part
 	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("White"));
 	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
 	on_pushButton_implicitClip_clicked();
-	GetDataStorage()->GetNamedNode("White_clipped")->SetFloatProperty("material.specularCoefficient", 0.1);
-	GetDataStorage()->GetNamedNode("White_clipped")->SetColor(1, 1, 1);
-	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("White"));
-	GetDataStorage()->GetNamedNode("White_clipped")->SetName("White");
+
+	if(GetDataStorage()->GetNamedNode("White_clipped") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("White_clipped")->SetFloatProperty("material.specularCoefficient", 0.1);
+		GetDataStorage()->GetNamedNode("White_clipped")->SetColor(1, 1, 1);
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("White"));
+		GetDataStorage()->GetNamedNode("White_clipped")->SetName("White");
+	}else
+	{
+		m_Controls.textBrowser_moveData->append("White cutting failed");
+		
+	}
 
 }
 
@@ -290,6 +325,14 @@ void MoveData::on_pushButton_initTHAcutting_clicked()
 	GetDataStorage()->GetNamedNode("bone_difference")->SetColor(1, 0, 0);
 	GetDataStorage()->GetNamedNode("bone_difference")->SetName("Red");
 
+	m_Controls.mitkNodeSelectWidget_normalWarp->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Red"));
+	m_Controls.lineEdit_warpFactor->setText("-0.02");
+	
+	on_pushButton_warp_clicked();
+	GetDataStorage()->GetNamedNode("Red_warped")->SetFloatProperty("material.specularCoefficient", 0.1);
+	GetDataStorage()->GetNamedNode("Red_warped")->SetColor(1, 0, 0);
+
+
 	// Generate the white shell
 	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
 	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cup+"));
@@ -309,7 +352,7 @@ void MoveData::on_pushButton_initTHAcutting_clicked()
 	GetDataStorage()->GetNamedNode("stdmulti.widget2.plane")->SetVisibility(true);
 
 	GetDataStorage()->GetNamedNode("White")->SetVisibility(true);
-	GetDataStorage()->GetNamedNode("Red")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("Red_warped")->SetVisibility(true);
 	GetDataStorage()->GetNamedNode("Buffer")->SetVisibility(true);
 	GetDataStorage()->GetNamedNode("Green")->SetVisibility(true);
 
