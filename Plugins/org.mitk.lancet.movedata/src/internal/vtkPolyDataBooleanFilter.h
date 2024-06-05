@@ -289,6 +289,8 @@ class VTK_EXPORT vtkPolyDataBooleanFilter : public vtkPolyDataAlgorithm {
 
     int OperMode;
 
+	int HasContact{ 1 };
+
 public:
     vtkTypeMacro(vtkPolyDataBooleanFilter, vtkPolyDataAlgorithm);
     static vtkPolyDataBooleanFilter* New ();
@@ -301,6 +303,7 @@ public:
     void SetOperModeToIntersection () { OperMode = OPER_INTERSECTION; Modified(); }
     void SetOperModeToDifference () { OperMode = OPER_DIFFERENCE; Modified(); }
     void SetOperModeToDifference2 () { OperMode = OPER_DIFFERENCE2; Modified(); }
+	int CheckHasContact();
 
 protected:
     vtkPolyDataBooleanFilter ();

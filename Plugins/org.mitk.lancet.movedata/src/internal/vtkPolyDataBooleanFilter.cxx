@@ -59,6 +59,12 @@ limitations under the License.
 
 vtkStandardNewMacro(vtkPolyDataBooleanFilter);
 
+int vtkPolyDataBooleanFilter::CheckHasContact()
+{
+	return HasContact;
+}
+
+
 vtkPolyDataBooleanFilter::vtkPolyDataBooleanFilter () {
 
     SetNumberOfInputPorts(2);
@@ -221,6 +227,7 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
 
             if (CleanStrips()) {
                 vtkErrorMacro("There is no contact.");
+				HasContact = 0;
                 return 1;
             }
 
