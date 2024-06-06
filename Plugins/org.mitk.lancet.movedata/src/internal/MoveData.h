@@ -178,7 +178,7 @@ protected:
 
   int on_pushButton_diff_clicked(); // 0: has result ; 1: no contact ; 2: input missing ; 3: other vtkbool error
 
-  void on_pushButton_implicitClip_clicked();
+  int on_pushButton_implicitClip_clicked(); // 0: has contact and clipped something ; 1: has no contact ; 2: input missing
 
   void on_pushButton_initTHAcutting_clicked();
 

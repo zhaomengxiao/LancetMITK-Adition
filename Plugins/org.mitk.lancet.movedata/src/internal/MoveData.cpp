@@ -224,67 +224,81 @@ void MoveData::on_pushButton_testCut_clicked()
 	// Update the buffer part
 	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Buffer"));
 	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
-	on_pushButton_diff_clicked();
-
-	if(GetDataStorage()->GetNamedNode("Buffer_difference") != nullptr)
+	int error_buffer = on_pushButton_diff_clicked();
+	// m_Controls.textBrowser_moveData->append("Buffer cutting error:" + QString::number(error_buffer));
+	if(error_buffer != 1)
 	{
-		GetDataStorage()->GetNamedNode("Buffer_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
-		GetDataStorage()->GetNamedNode("Buffer_difference")->SetColor(1, 1, 1);
-		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Buffer"));
-		GetDataStorage()->GetNamedNode("Buffer_difference")->SetName("Buffer");
-	}
-	else
-	{
-		m_Controls.textBrowser_moveData->append("Buffer cutting failed");
-		
-	}
+		if (GetDataStorage()->GetNamedNode("Buffer_difference") != nullptr)
+		{
+			GetDataStorage()->GetNamedNode("Buffer_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+			GetDataStorage()->GetNamedNode("Buffer_difference")->SetColor(1, 1, 1);
+			GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Buffer"));
+			GetDataStorage()->GetNamedNode("Buffer_difference")->SetName("Buffer");
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("Buffer cutting failed");
 
+		}
+	}
+	
 	
 
 	// Update the red part
 	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Red"));
 	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
-	on_pushButton_diff_clicked();
 
-	if(GetDataStorage()->GetNamedNode("Red_difference") != nullptr)
+	int error_red = on_pushButton_diff_clicked();
+	// m_Controls.textBrowser_moveData->append("Red cutting error:" + QString::number(error_red));
+	if (error_red != 1)
 	{
-		GetDataStorage()->GetNamedNode("Red_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
-		GetDataStorage()->GetNamedNode("Red_difference")->SetColor(1, 0, 0);
-		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Red"));
-		GetDataStorage()->GetNamedNode("Red_difference")->SetName("Red");
+		if (GetDataStorage()->GetNamedNode("Red_difference") != nullptr)
+		{
+			GetDataStorage()->GetNamedNode("Red_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+			GetDataStorage()->GetNamedNode("Red_difference")->SetColor(1, 0, 0);
+			GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Red"));
+			GetDataStorage()->GetNamedNode("Red_difference")->SetName("Red");
 
-		m_Controls.mitkNodeSelectWidget_normalWarp->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Red"));
-		m_Controls.lineEdit_warpFactor->setText("-0.02");
+			m_Controls.mitkNodeSelectWidget_normalWarp->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Red"));
+			m_Controls.lineEdit_warpFactor->setText("-0.02");
 
-		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Red_warped"));
+			GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Red_warped"));
 
-		on_pushButton_warp_clicked();
-		GetDataStorage()->GetNamedNode("Red_warped")->SetFloatProperty("material.specularCoefficient", 0.1);
-		GetDataStorage()->GetNamedNode("Red_warped")->SetColor(1, 0, 0);
-		GetDataStorage()->GetNamedNode("Red")->SetVisibility(false);
+			on_pushButton_warp_clicked();
+			GetDataStorage()->GetNamedNode("Red_warped")->SetFloatProperty("material.specularCoefficient", 0.1);
+			GetDataStorage()->GetNamedNode("Red_warped")->SetColor(1, 0, 0);
+			GetDataStorage()->GetNamedNode("Red")->SetVisibility(false);
 
-	}else
-	{
-		m_Controls.textBrowser_moveData->append("Red cutting failed");
-		
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("Red cutting failed");
+
+		}
 	}
+
+	
 
 	// Update the white part
 	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("White"));
 	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
-	on_pushButton_implicitClip_clicked();
+	if(on_pushButton_implicitClip_clicked() != 2)
+	{
+		if (GetDataStorage()->GetNamedNode("White_clipped") != nullptr)
+		{
+			GetDataStorage()->GetNamedNode("White_clipped")->SetFloatProperty("material.specularCoefficient", 0.1);
+			GetDataStorage()->GetNamedNode("White_clipped")->SetColor(1, 1, 1);
+			GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("White"));
+			GetDataStorage()->GetNamedNode("White_clipped")->SetName("White");
+		}
+		else
+		{
+			m_Controls.textBrowser_moveData->append("White cutting failed");
 
-	if(GetDataStorage()->GetNamedNode("White_clipped") != nullptr)
-	{
-		GetDataStorage()->GetNamedNode("White_clipped")->SetFloatProperty("material.specularCoefficient", 0.1);
-		GetDataStorage()->GetNamedNode("White_clipped")->SetColor(1, 1, 1);
-		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("White"));
-		GetDataStorage()->GetNamedNode("White_clipped")->SetName("White");
-	}else
-	{
-		m_Controls.textBrowser_moveData->append("White cutting failed");
-		
+		}
 	}
+
+	
 
 	// GetDataStorage()->GetNamedNode("White")->SetVisibility(false);
 	// GetDataStorage()->GetNamedNode("Buffer")->SetVisibility(false);
@@ -686,8 +700,11 @@ int MoveData::on_pushButton_diff_clicked()
 	bf->SetOperModeToDifference();
 	bf->Update();
 
+	// m_Controls.textBrowser_moveData->append("Diff: "+ QString::number(bf->CheckHasContact()));
+
 	if(bf->CheckHasContact() == 0)
 	{
+		// m_Controls.textBrowser_moveData->append("Diff: no contact");
 		return 1;
 	}
 
@@ -718,19 +735,21 @@ int MoveData::on_pushButton_diff_clicked()
 	return 3;
 }
 
-void MoveData::on_pushButton_implicitClip_clicked()
+int MoveData::on_pushButton_implicitClip_clicked()
 {
 	auto inputSurfaceNode_a = m_Controls.mitkNodeSelectWidget_surfaceboolA->GetSelectedNode();
 	if (inputSurfaceNode_a == nullptr)
 	{
-		return;
+		// m_Controls.textBrowser_moveData->append("Clip: input missing");
+		return 2;
 	}
 	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
 
 	auto inputSurfaceNode_b = m_Controls.mitkNodeSelectWidget_surfaceboolB->GetSelectedNode();
 	if (inputSurfaceNode_b == nullptr)
 	{
-		return;
+		// m_Controls.textBrowser_moveData->append("Clip: input missing");
+		return 2;
 	}
 	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
 
@@ -767,20 +786,28 @@ void MoveData::on_pushButton_implicitClip_clicked()
 	clipper->SetClipFunction(implicitPolyDataDistance);
 
 	clipper->Update();
-	vtkNew<vtkPolyData> clippedOutput;
-	clippedOutput->DeepCopy(clipper->GetOutput());
+	vtkNew<vtkPolyData> tmpOutput;
+	tmpOutput->DeepCopy(clipper->GetOutput());
 
-	if (clippedOutput->GetNumberOfCells() > 0)
+	
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(tmpOutput);
+	newNode->SetName(inputSurfaceNode_a->GetName() + "_clipped");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+
+	if (clipper->GetClippedOutput()->GetNumberOfCells() > 0)
 	{
-		auto newNode = mitk::DataNode::New();
-		auto newSurface = mitk::Surface::New();
-		newSurface->SetVtkPolyData(clippedOutput);
-		newNode->SetName(inputSurfaceNode_a->GetName() + "_clipped");
-		newNode->SetData(newSurface);
-		GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+		// m_Controls.textBrowser_moveData->append("Clip: has contact and clipped something");
+		return 0;
 	}
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	// m_Controls.textBrowser_moveData->append("Clip: has no contact");
+	return 1;
+
 }
 
 

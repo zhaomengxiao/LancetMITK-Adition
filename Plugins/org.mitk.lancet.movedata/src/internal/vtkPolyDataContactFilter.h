@@ -116,12 +116,16 @@ class VTK_EXPORT vtkPolyDataContactFilter : public vtkPolyDataAlgorithm {
 
     bool aborted;
 
+	int HasContact{ 1 };
+
 public:
     vtkTypeMacro(vtkPolyDataContactFilter, vtkPolyDataAlgorithm);
 
     static vtkPolyDataContactFilter* New();
 
     static int InterOBBNodes (vtkOBBNode *nodeA, vtkOBBNode *nodeB, vtkMatrix4x4 *mat, void *caller);
+
+	int CheckHasContact();
 
 protected:
     vtkPolyDataContactFilter ();

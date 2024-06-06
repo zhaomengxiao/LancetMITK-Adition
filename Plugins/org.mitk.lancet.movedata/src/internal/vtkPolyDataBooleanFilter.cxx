@@ -151,6 +151,11 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
             cl->SetInputConnection(1, cleanB->GetOutputPort());
             cl->Update();
 
+			if(cl->CheckHasContact() == 0)
+			{
+				HasContact = 0;
+			}
+
             times.push_back(clock::now()-start);
 
             contLines->DeepCopy(cl->GetOutput());
