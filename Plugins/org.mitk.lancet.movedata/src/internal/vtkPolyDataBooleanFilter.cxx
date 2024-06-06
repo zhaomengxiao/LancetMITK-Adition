@@ -194,8 +194,8 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
                 contLines->GetPointCells(i, cells);
 
                 if (cells->GetNumberOfIds() == 1) {
-                    vtkErrorMacro("Contact ends suddenly.");
-                    return 1;
+                    // vtkErrorMacro("Contact ends suddenly.");
+                    // return 1;
                 }
 
             }
@@ -224,8 +224,8 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
             if (GetPolyStrips(modPdA, contsA, sourcesA, polyStripsA) ||
                 GetPolyStrips(modPdB, contsB, sourcesB, polyStripsB)) {
 
-                vtkErrorMacro("Strips are invalid.");
-                return 1;
+                // vtkErrorMacro("Strips are invalid.");
+                // return 1;
             }
 
             // löscht bestimmte strips
@@ -245,8 +245,8 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
             if (CutCells(modPdA, polyStripsA) ||
                 CutCells(modPdB, polyStripsB)) {
 
-                vtkErrorMacro("CutCells failed.");
-                return 1;
+                // vtkErrorMacro("CutCells failed.");
+                // return 1;
             }
 
             times.push_back(clock::now()-start);
@@ -342,8 +342,8 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
         start = clock::now();
 
         if (CombineRegions()) {
-            vtkErrorMacro("Boolean operation failed.");
-            return 1;
+            // vtkErrorMacro("Boolean operation failed.");
+            // return 1;
         }
 
         times.push_back(clock::now()-start);

@@ -205,21 +205,41 @@ void MoveData::on_pushButton_testCut_clicked()
 	// Update the green part
 	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Green"));
 	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
-	on_pushButton_diff_clicked();
-
-	if(GetDataStorage()->GetNamedNode("Green_difference") != nullptr)
+	int error_Green = on_pushButton_diff_clicked();
+	
+	if (error_Green == 0)
 	{
 		GetDataStorage()->GetNamedNode("Green_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
 		GetDataStorage()->GetNamedNode("Green_difference")->SetColor(0, 1, 0);
 		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Green"));
 		GetDataStorage()->GetNamedNode("Green_difference")->SetName("Green");
-	}else
-	{
-		m_Controls.textBrowser_moveData->append("Green cutting failed");
-		
 	}
 
-	
+	if (error_Green == 1)
+	{
+		int error_Green_clip = on_pushButton_implicitClip_clicked();
+		if(error_Green_clip == 0)
+		{
+			GetDataStorage()->GetNamedNode("Green_clipped")->SetFloatProperty("material.specularCoefficient", 0.1);
+			GetDataStorage()->GetNamedNode("Green_clipped")->SetColor(0, 1, 0);
+			GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Green"));
+			GetDataStorage()->GetNamedNode("Green_clipped")->SetName("Green");
+			m_Controls.textBrowser_moveData->append("Green clipping is used in stead of boolean!");
+		}
+
+		if (error_Green_clip == 1)
+		{
+			GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Green_clipped"));
+		}
+
+	}
+
+	if (error_Green == 3)
+	{
+		m_Controls.textBrowser_moveData->append("Green cutting error:" + QString::number(error_Green));
+		m_Controls.textBrowser_moveData->append("Green cutting failed");
+	}
+
 
 	// Update the buffer part
 	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Buffer"));
@@ -237,6 +257,7 @@ void MoveData::on_pushButton_testCut_clicked()
 		}
 		else
 		{
+			m_Controls.textBrowser_moveData->append("Buffer cutting error:" + QString::number(error_buffer));
 			m_Controls.textBrowser_moveData->append("Buffer cutting failed");
 
 		}
@@ -272,6 +293,7 @@ void MoveData::on_pushButton_testCut_clicked()
 		}
 		else
 		{
+			m_Controls.textBrowser_moveData->append("Red cutting error:" + QString::number(error_red));
 			m_Controls.textBrowser_moveData->append("Red cutting failed");
 
 		}
@@ -800,12 +822,12 @@ int MoveData::on_pushButton_implicitClip_clicked()
 	if (clipper->GetClippedOutput()->GetNumberOfCells() > 0)
 	{
 		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-		// m_Controls.textBrowser_moveData->append("Clip: has contact and clipped something");
+		//m_Controls.textBrowser_moveData->append("Clip: has contact and clipped something");
 		return 0;
 	}
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-	// m_Controls.textBrowser_moveData->append("Clip: has no contact");
+	//m_Controls.textBrowser_moveData->append("Clip: has no contact");
 	return 1;
 
 }
