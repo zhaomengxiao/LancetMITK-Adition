@@ -39,6 +39,7 @@ found in the LICENSE file.
 #include <vtkCutter.h>
 #include <vtkDataSetMapper.h>
 #include <vtkFillHolesFilter.h>
+#include <vtkFloatArray.h>
 #include <vtkImageCast.h>
 #include <vtkImplicitPolyDataDistance.h>
 #include <vtkLine.h>
@@ -216,11 +217,19 @@ void MoveData::on_pushButton_colorPolyData_clicked()
 	vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
 	vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
 
+	vtkSmartPointer<vtkFloatArray> scalars = vtkSmartPointer<vtkFloatArray>::New();
+	scalars->SetNumberOfComponents(1);
+	scalars->SetName("Scalars");
+
 	for (vtkIdType i = 0; i < bone->GetNumberOfPoints(); ++i)
 	{
 		if (selectEnclosedPoints->IsInside(i))
 		{
 			insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(500);
+		}else
+		{
+			scalars->InsertNextValue(0);
 		}
 	}
 
@@ -248,11 +257,11 @@ void MoveData::on_pushButton_colorPolyData_clicked()
 	}
 
 	// insidePolydata->SetPolys(insideCells);
-	
+	bone->GetPointData()->SetScalars(scalars);
 
 	auto newNode = mitk::DataNode::New();
 	auto newSurface = mitk::Surface::New();
-	newSurface->SetVtkPolyData(insidePolydata);
+	newSurface->SetVtkPolyData(bone);
 	newNode->SetName("Testing");
 	newNode->SetData(newSurface);
 	GetDataStorage()->Add(newNode);
