@@ -23,7 +23,7 @@ found in the LICENSE file.
 #include "ui_MoveDataControls.h"
 #include "mitkGizmo.h"
 #include "mitkPointSet.h"
-
+#include "vtkSelectEnclosedPoints.h"
 
 /**
   \brief MoveData
@@ -183,6 +183,12 @@ protected:
   void on_pushButton_initTHAcutting_clicked();
 
   void on_pushButton_testCut_clicked();
+
+  void on_pushButton_gen3Region_clicked();
+
+  void on_pushButton_testCutV2_clicked();
+
+  void on_pushButton_colorPolyData_clicked(); 
 
 };
 

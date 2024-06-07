@@ -151,13 +151,13 @@ int vtkPolyDataContactFilter::RequestData (vtkInformation *request, vtkInformati
         }
 
         if (invalidA) {
-            vtkErrorMacro("First input has non-manifold edges.");
-            return 1;
+            //vtkErrorMacro("First input has non-manifold edges.");
+            //return 1;
         }
 
         if (invalidB) {
             vtkErrorMacro("Second input has non-manifold edges.");
-            return 1;
+        	return 1;
         }
 
         if (contLines->GetNumberOfCells() == 0) {

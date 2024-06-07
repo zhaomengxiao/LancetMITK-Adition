@@ -188,6 +188,103 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_initTHAcutting, &QPushButton::clicked, this, &MoveData::on_pushButton_initTHAcutting_clicked);
   connect(m_Controls.pushButton_testCut, &QPushButton::clicked, this, &MoveData::on_pushButton_testCut_clicked);
 
+  connect(m_Controls.pushButton_gen3Region, &QPushButton::clicked, this, &MoveData::on_pushButton_gen3Region_clicked);
+  connect(m_Controls.pushButton_testCutV2, &QPushButton::clicked, this, &MoveData::on_pushButton_testCutV2_clicked);
+
+  connect(m_Controls.pushButton_colorPolyData, &QPushButton::clicked, this, &MoveData::on_pushButton_colorPolyData_clicked);
+
+
+}
+
+void MoveData::on_pushButton_colorPolyData_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("Green") == nullptr ||
+		GetDataStorage()->GetNamedNode("bone") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Green or bone is missing");
+		return;
+	}
+
+	auto bone = GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->GetVtkPolyData();
+	auto greenRegion = GetDataStorage()->GetNamedObject<mitk::Surface>("Green")->GetVtkPolyData();
+
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints->SetInputData(bone);
+	selectEnclosedPoints->SetSurfaceData(greenRegion);
+	selectEnclosedPoints->Update();
+
+	vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
+	vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
+
+	for (vtkIdType i = 0; i < bone->GetNumberOfPoints(); ++i)
+	{
+		if (selectEnclosedPoints->IsInside(i))
+		{
+			insidePoints->InsertNextPoint(bone->GetPoint(i));
+		}
+	}
+
+	vtkSmartPointer<vtkPolyData> insidePolydata = vtkSmartPointer<vtkPolyData>::New();
+	insidePolydata->SetPoints(insidePoints);
+
+
+	// Extract the cells (polygons) of polydata_A that have all their points inside polydata_B
+	for (vtkIdType i = 0; i < bone->GetNumberOfCells(); ++i)
+	{
+		vtkCell* cell = bone->GetCell(i);
+		bool inside = true;
+		for (vtkIdType j = 0; j < cell->GetNumberOfPoints(); ++j)
+		{
+			if (!selectEnclosedPoints->IsInside(cell->GetPointId(j)))
+			{
+				inside = false;
+				break;
+			}
+		}
+		if (inside)
+		{
+			insideCells->InsertNextCell(cell);
+		}
+	}
+
+	// insidePolydata->SetPolys(insideCells);
+	
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(insidePolydata);
+	newNode->SetName("Testing");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+}
+
+void MoveData::on_pushButton_gen3Region_clicked()
+{
+	
+}
+
+void MoveData::on_pushButton_testCutV2_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("cup") == nullptr || GetDataStorage()->GetNamedNode("cup+") == nullptr ||
+		GetDataStorage()->GetNamedNode("bone") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("cup, cup+ or bone is missing");
+		return;
+	}
+
+	// Generate the green part
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cup"));
+	on_pushButton_intersect_clicked();
+	GetDataStorage()->GetNamedNode("bone_intersection")->SetFloatProperty("material.specularCoefficient", 0.1);
+	GetDataStorage()->GetNamedNode("bone_intersection")->SetColor(0, 1, 0);
+	GetDataStorage()->GetNamedNode("bone_intersection")->SetName("Green_region");
+
+	
+
 }
 
 void MoveData::on_pushButton_testCut_clicked()
@@ -246,21 +343,37 @@ void MoveData::on_pushButton_testCut_clicked()
 	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
 	int error_buffer = on_pushButton_diff_clicked();
 	// m_Controls.textBrowser_moveData->append("Buffer cutting error:" + QString::number(error_buffer));
-	if(error_buffer != 1)
+	if (error_buffer == 0)
 	{
-		if (GetDataStorage()->GetNamedNode("Buffer_difference") != nullptr)
-		{
-			GetDataStorage()->GetNamedNode("Buffer_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
-			GetDataStorage()->GetNamedNode("Buffer_difference")->SetColor(1, 1, 1);
-			GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Buffer"));
-			GetDataStorage()->GetNamedNode("Buffer_difference")->SetName("Buffer");
-		}
-		else
-		{
-			m_Controls.textBrowser_moveData->append("Buffer cutting error:" + QString::number(error_buffer));
-			m_Controls.textBrowser_moveData->append("Buffer cutting failed");
+		GetDataStorage()->GetNamedNode("Buffer_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+		GetDataStorage()->GetNamedNode("Buffer_difference")->SetColor(1, 1, 1);
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Buffer"));
+		GetDataStorage()->GetNamedNode("Buffer_difference")->SetName("Buffer");
+	}
 
+	if (error_buffer == 1)
+	{
+		int error_buffer_clip = on_pushButton_implicitClip_clicked();
+		if (error_buffer_clip == 0)
+		{
+			GetDataStorage()->GetNamedNode("Buffer_clipped")->SetFloatProperty("material.specularCoefficient", 0.1);
+			GetDataStorage()->GetNamedNode("Buffer_clipped")->SetColor(1, 1, 1);
+			GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Buffer"));
+			GetDataStorage()->GetNamedNode("Buffer_clipped")->SetName("Buffer");
+			m_Controls.textBrowser_moveData->append("Buffer clipping is used in stead of boolean!");
 		}
+
+		if (error_buffer_clip == 1)
+		{
+			GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Buffer_clipped"));
+		}
+
+	}
+
+	if (error_buffer == 3)
+	{
+		m_Controls.textBrowser_moveData->append("Buffer cutting error:" + QString::number(error_buffer));
+		m_Controls.textBrowser_moveData->append("Buffer cutting failed");
 	}
 	
 	
@@ -470,6 +583,7 @@ void MoveData::on_pushButton_smooth_clicked()
 	smoother->SetInputData(inputSurface->GetVtkPolyData());
 	smoother->SetRelaxationFactor(m_Controls.lineEdit_smoothFactor->text().toDouble());
 	smoother->SetNumberOfIterations(m_Controls.lineEdit_warpFactor_smoothIter->text().toInt());
+	smoother->BoundarySmoothingOn();
 	smoother->Update();
 
 	auto newNode = mitk::DataNode::New();
@@ -806,6 +920,7 @@ int MoveData::on_pushButton_implicitClip_clicked()
 	clipper->SetInputData(movedPolyData_a);
 	clipper->GenerateClippedOutputOn();
 	clipper->SetClipFunction(implicitPolyDataDistance);
+	
 
 	clipper->Update();
 	vtkNew<vtkPolyData> tmpOutput;
@@ -815,6 +930,7 @@ int MoveData::on_pushButton_implicitClip_clicked()
 	auto newNode = mitk::DataNode::New();
 	auto newSurface = mitk::Surface::New();
 	newSurface->SetVtkPolyData(tmpOutput);
+	// newSurface->SetVtkPolyData(clipper->GetClippedOutput());
 	newNode->SetName(inputSurfaceNode_a->GetName() + "_clipped");
 	newNode->SetData(newSurface);
 	GetDataStorage()->Add(newNode, inputSurfaceNode_a);
