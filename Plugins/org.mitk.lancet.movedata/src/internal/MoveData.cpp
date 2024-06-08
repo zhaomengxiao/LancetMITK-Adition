@@ -36,6 +36,7 @@ found in the LICENSE file.
 #include <ep/include/vtk-9.1/vtkTransformFilter.h>
 #include <vtkCleanPolyData.h>
 #include <vtkClipPolyData.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkCutter.h>
 #include <vtkDataSetMapper.h>
 #include <vtkFillHolesFilter.h>
@@ -48,6 +49,7 @@ found in the LICENSE file.
 #include <vtkPlane.h>
 #include <vtkPlaneSource.h>
 #include <vtkPointData.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkRendererCollection.h>
 #include <vtkSmoothPolyDataFilter.h>
@@ -72,9 +74,14 @@ found in the LICENSE file.
 #include "QmitkRenderWindow.h"
 #include "surfaceregistraion.h"
 #include <vtkWindowLevelLookupTable.h>
+
+#include "mitkMapper.h"
 #include "QmitkRenderWindow.h"
 #include "mitkSmartPointerProperty.h"
+#include "mitkSurfaceVtkMapper3D.h"
+#include "mitkTransferFunctionProperty.h"
 #include "mitkVtkInterpolationProperty.h"
+#include "mitkVtkMapper.h"
 #include "vtkIntersectionPolyDataFilter.h"
 #include "vtkClipClosedSurface.h"
 
@@ -200,22 +207,35 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 void MoveData::on_pushButton_colorPolyData_clicked()
 {
 	if (GetDataStorage()->GetNamedNode("Green") == nullptr ||
-		GetDataStorage()->GetNamedNode("bone") == nullptr)
+		GetDataStorage()->GetNamedNode("bone") == nullptr ||
+		GetDataStorage()->GetNamedNode("Red_warped") == nullptr)
 	{
-		m_Controls.textBrowser_moveData->append("Green or bone is missing");
+		m_Controls.textBrowser_moveData->append("Red_warped, Green or bone is missing");
 		return;
 	}
 
 	auto bone = GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->GetVtkPolyData();
 	auto greenRegion = GetDataStorage()->GetNamedObject<mitk::Surface>("Green")->GetVtkPolyData();
+	auto redRegion = GetDataStorage()->GetNamedObject<mitk::Surface>("Red_warped")->GetVtkPolyData();
 
-	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
-	selectEnclosedPoints->SetInputData(bone);
-	selectEnclosedPoints->SetSurfaceData(greenRegion);
-	selectEnclosedPoints->Update();
+	vtkNew<vtkPolyData> bone_copy;
+	bone_copy->DeepCopy(bone);
 
-	vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
-	vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
+	vtkNew<vtkPolyData> bone_back;
+	bone_back->DeepCopy(bone);
+
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_G = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_G->SetInputData(bone);
+	selectEnclosedPoints_G->SetSurfaceData(greenRegion);
+	selectEnclosedPoints_G->Update();
+
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_R = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_R->SetInputData(bone_copy);
+	selectEnclosedPoints_R->SetSurfaceData(redRegion);
+	selectEnclosedPoints_R->Update();
+
+	// vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
+	// vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
 
 	vtkSmartPointer<vtkFloatArray> scalars = vtkSmartPointer<vtkFloatArray>::New();
 	scalars->SetNumberOfComponents(1);
@@ -223,48 +243,83 @@ void MoveData::on_pushButton_colorPolyData_clicked()
 
 	for (vtkIdType i = 0; i < bone->GetNumberOfPoints(); ++i)
 	{
-		if (selectEnclosedPoints->IsInside(i))
+		if (selectEnclosedPoints_G->IsInside(i))
 		{
-			insidePoints->InsertNextPoint(bone->GetPoint(i));
-			scalars->InsertNextValue(500);
-		}else
-		{
-			scalars->InsertNextValue(0);
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(100);
+			continue;
 		}
+
+		if (selectEnclosedPoints_R->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(250);
+			continue;
+		}
+		
+		scalars->InsertNextValue(0);
+		
 	}
 
-	vtkSmartPointer<vtkPolyData> insidePolydata = vtkSmartPointer<vtkPolyData>::New();
-	insidePolydata->SetPoints(insidePoints);
+	// vtkSmartPointer<vtkPolyData> insidePolydata = vtkSmartPointer<vtkPolyData>::New();
+	// insidePolydata->SetPoints(insidePoints);
 
 
 	// Extract the cells (polygons) of polydata_A that have all their points inside polydata_B
-	for (vtkIdType i = 0; i < bone->GetNumberOfCells(); ++i)
-	{
-		vtkCell* cell = bone->GetCell(i);
-		bool inside = true;
-		for (vtkIdType j = 0; j < cell->GetNumberOfPoints(); ++j)
-		{
-			if (!selectEnclosedPoints->IsInside(cell->GetPointId(j)))
-			{
-				inside = false;
-				break;
-			}
-		}
-		if (inside)
-		{
-			insideCells->InsertNextCell(cell);
-		}
-	}
+	// for (vtkIdType i = 0; i < bone->GetNumberOfCells(); ++i)
+	// {
+	// 	vtkCell* cell = bone->GetCell(i);
+	// 	bool inside = true;
+	// 	for (vtkIdType j = 0; j < cell->GetNumberOfPoints(); ++j)
+	// 	{
+	// 		if (!selectEnclosedPoints_G->IsInside(cell->GetPointId(j)))
+	// 		{
+	// 			inside = false;
+	// 			break;
+	// 		}
+	// 	}
+	// 	if (inside)
+	// 	{
+	// 		insideCells->InsertNextCell(cell);
+	// 	}
+	// }
 
 	// insidePolydata->SetPolys(insideCells);
-	bone->GetPointData()->SetScalars(scalars);
+	bone_back->GetPointData()->SetScalars(scalars);
 
 	auto newNode = mitk::DataNode::New();
 	auto newSurface = mitk::Surface::New();
-	newSurface->SetVtkPolyData(bone);
+	newSurface->SetVtkPolyData(bone_back);
 	newNode->SetName("Testing");
 	newNode->SetData(newSurface);
 	GetDataStorage()->Add(newNode);
+
+	mitk::TransferFunctionProperty::Pointer transferProp0;
+	GetDataStorage()->GetNamedNode("Testing")->GetProperty(transferProp0, "Surface.TransferFunction");
+	// transferProp0->SetInterpolationToFlat();
+	// GetDataStorage()->GetNamedNode("pros")->SetProperty("material.interpolation", interpolationProp0);
+	
+	// Create a transfer function
+	mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
+	
+	// Modify the transfer function (add control points, adjust properties, etc.)
+	// For example, you can add control points for opacity and color:
+	transferFunction->AddRGBPoint(0, 1.0, 1.0, 1.0);
+	transferFunction->AddRGBPoint(100, 0.0, 1.0, 0.0);
+	transferFunction->AddRGBPoint(255, 1.0, 0.0, 0.0);
+
+	if(transferProp0 != nullptr)
+	{
+		transferProp0->SetValue(transferFunction);
+	}
+	else
+	{
+		transferProp0 = mitk::TransferFunctionProperty::New();
+		transferProp0->SetValue(transferFunction);
+	}
+
+
+	GetDataStorage()->GetNamedNode("Testing")->SetProperty("Surface.TransferFunction", transferProp0);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
