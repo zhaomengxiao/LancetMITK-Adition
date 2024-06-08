@@ -321,16 +321,15 @@ void MoveData::on_pushButton_colorPolyData_clicked()
 
 	GetDataStorage()->GetNamedNode("Testing")->SetProperty("Surface.TransferFunction", transferProp0);
 
+	GetDataStorage()->GetNamedNode("Testing")->SetBoolProperty("scalar visibility", true);
+
+	GetDataStorage()->GetNamedNode("Testing")->SetFloatProperty("material.specularCoefficient", 0);
+
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 }
 
 void MoveData::on_pushButton_gen3Region_clicked()
-{
-	
-}
-
-void MoveData::on_pushButton_testCutV2_clicked()
 {
 	if (GetDataStorage()->GetNamedNode("cup") == nullptr || GetDataStorage()->GetNamedNode("cup+") == nullptr ||
 		GetDataStorage()->GetNamedNode("bone") == nullptr)
@@ -345,9 +344,233 @@ void MoveData::on_pushButton_testCutV2_clicked()
 	on_pushButton_intersect_clicked();
 	GetDataStorage()->GetNamedNode("bone_intersection")->SetFloatProperty("material.specularCoefficient", 0.1);
 	GetDataStorage()->GetNamedNode("bone_intersection")->SetColor(0, 1, 0);
-	GetDataStorage()->GetNamedNode("bone_intersection")->SetName("Green_region");
+	GetDataStorage()->GetNamedNode("bone_intersection")->SetName("Green");
 
+
+	// Generate the white buffer zone
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cup+"));
+	on_pushButton_intersect_clicked();
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone_intersection"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Green"));
+	on_pushButton_diff_clicked();
+	GetDataStorage()->GetNamedNode("bone_intersection_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+	GetDataStorage()->GetNamedNode("bone_intersection_difference")->SetColor(1, 1, 1);
+	GetDataStorage()->GetNamedNode("bone_intersection_difference")->SetName("Buffer");
+
+	// Generate the red core
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cup+"));
+	on_pushButton_diff_clicked();
+	GetDataStorage()->GetNamedNode("bone_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+	GetDataStorage()->GetNamedNode("bone_difference")->SetColor(1, 0, 0);
+	GetDataStorage()->GetNamedNode("bone_difference")->SetName("Red");
+
+	m_Controls.mitkNodeSelectWidget_normalWarp->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Red"));
+	m_Controls.lineEdit_warpFactor->setText("-0.02");
+
+	on_pushButton_warp_clicked();
+	GetDataStorage()->GetNamedNode("Red_warped")->SetFloatProperty("material.specularCoefficient", 0.1);
+	GetDataStorage()->GetNamedNode("Red_warped")->SetColor(1, 0, 0);
+
+
+	// Generate the white shell
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cup+"));
+	on_pushButton_diff_clicked();
+	GetDataStorage()->GetNamedNode("bone_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+	GetDataStorage()->GetNamedNode("bone_difference")->SetColor(1, 1, 1);
+	GetDataStorage()->GetNamedNode("bone_difference")->SetName("White");
+
+	// Turn off all node visibility
+	auto dataNodes = GetDataStorage()->GetAll();
+	for (auto item = dataNodes->begin(); item != dataNodes->end(); ++item)
+	{
+		(*item)->SetVisibility(false);
+	}
+	GetDataStorage()->GetNamedNode("stdmulti.widget0.plane")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("stdmulti.widget1.plane")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("stdmulti.widget2.plane")->SetVisibility(true);
+
+	GetDataStorage()->GetNamedNode("White")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("Red_warped")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("Buffer")->SetVisibility(true);
+	GetDataStorage()->GetNamedNode("Green")->SetVisibility(true);
+
+
+	m_Controls.mitkNodeSelectWidget_normalWarp->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("Green"));
+	m_Controls.lineEdit_warpFactor->setText("0.02");
+	on_pushButton_warp_clicked();
+	GetDataStorage()->GetNamedNode("Green_warped")->SetFloatProperty("material.specularCoefficient", 0);
+	GetDataStorage()->GetNamedNode("Green_warped")->SetColor(0, 1, 0);
+	GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("Green"));
+	GetDataStorage()->GetNamedNode("Green_warped")->SetName("Green");
+
+
+	m_Controls.mitkNodeSelectWidget_normalWarp->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
+	m_Controls.lineEdit_warpFactor->setText("0.01");
+	on_pushButton_warp_clicked();
+	GetDataStorage()->GetNamedNode("bone_warped")->SetFloatProperty("material.specularCoefficient", 0);
+	GetDataStorage()->GetNamedNode("bone_warped")->SetColor(1, 1, 1);
 	
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void MoveData::on_pushButton_testCutV2_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("bone_warped") == nullptr || GetDataStorage()->GetNamedNode("Green") == nullptr ||
+		GetDataStorage()->GetNamedNode("Red") == nullptr ||
+		GetDataStorage()->GetNamedNode("bone") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("bone, bone_warp, Green or Red is missing");
+		return;
+	}
+
+	// Cut "bone"
+	// Update the green part
+	m_Controls.mitkNodeSelectWidget_surfaceboolA->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone"));
+	m_Controls.mitkNodeSelectWidget_surfaceboolB->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("cutter"));
+	int error_bone = on_pushButton_diff_clicked();
+
+	if (error_bone == 0)
+	{
+		GetDataStorage()->GetNamedNode("bone_difference")->SetFloatProperty("material.specularCoefficient", 0.1);
+		m_Controls.mitkNodeSelectWidget_normalWarp->SetCurrentSelectedNode(GetDataStorage()->GetNamedNode("bone_difference"));
+		m_Controls.lineEdit_warpFactor->setText("0.01");
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("bone_warped"));
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("bone"));
+		on_pushButton_warp_clicked();
+		GetDataStorage()->GetNamedNode("bone_difference_warped")->SetFloatProperty("material.specularCoefficient", 0);
+		GetDataStorage()->GetNamedNode("bone_difference_warped")->SetColor(1, 1, 1);
+		GetDataStorage()->GetNamedNode("bone_difference_warped")->SetName("bone_warped");
+		GetDataStorage()->GetNamedNode("bone_difference")->SetName("bone");
+	}
+
+	if (error_bone == 1)
+	{
+		int error_bone_clip = on_pushButton_implicitClip_clicked();
+		if (error_bone_clip == 0)
+		{
+			m_Controls.textBrowser_moveData->append("Has intersection but bone cutting failed!");
+		}
+
+		if (error_bone_clip == 1)
+		{
+			GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("bone_clipped"));
+		}
+
+	}
+
+	if (error_bone == 3)
+	{
+		m_Controls.textBrowser_moveData->append("bone cutting error:" + QString::number(error_bone));
+		m_Controls.textBrowser_moveData->append("bone cutting failed");
+	}
+
+	//-------------------------------- Coloring----------------------------------------
+	if (GetDataStorage()->GetNamedNode("Green") == nullptr ||
+		GetDataStorage()->GetNamedNode("bone_warped") == nullptr ||
+		GetDataStorage()->GetNamedNode("Red") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Coloring: Red_warped, Green or bone is missing");
+		return;
+	}
+
+	auto bone = GetDataStorage()->GetNamedObject<mitk::Surface>("bone_warped")->GetVtkPolyData();
+	auto greenRegion = GetDataStorage()->GetNamedObject<mitk::Surface>("Green")->GetVtkPolyData();
+	auto redRegion = GetDataStorage()->GetNamedObject<mitk::Surface>("Red")->GetVtkPolyData();
+
+	vtkNew<vtkPolyData> bone_copy;
+	bone_copy->DeepCopy(bone);
+
+	vtkNew<vtkPolyData> bone_back;
+	bone_back->DeepCopy(bone);
+
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_G = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_G->SetInputData(bone);
+	selectEnclosedPoints_G->SetSurfaceData(greenRegion);
+	selectEnclosedPoints_G->Update();
+
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_R = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_R->SetInputData(bone_copy);
+	selectEnclosedPoints_R->SetSurfaceData(redRegion);
+	selectEnclosedPoints_R->Update();
+
+	// vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
+	// vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
+
+	vtkSmartPointer<vtkFloatArray> scalars = vtkSmartPointer<vtkFloatArray>::New();
+	scalars->SetNumberOfComponents(1);
+	scalars->SetName("Scalars");
+
+	for (vtkIdType i = 0; i < bone->GetNumberOfPoints(); ++i)
+	{
+		if (selectEnclosedPoints_G->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(100);
+			continue;
+		}
+
+		if (selectEnclosedPoints_R->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(250);
+			continue;
+		}
+
+		scalars->InsertNextValue(0);
+
+	}
+
+
+	bone->GetPointData()->SetScalars(scalars);
+
+	// auto newNode = mitk::DataNode::New();
+	// auto newSurface = mitk::Surface::New();
+	// newSurface->SetVtkPolyData(bone_back);
+	// newNode->SetName("Testing");
+	// newNode->SetData(newSurface);
+	// GetDataStorage()->Add(newNode);
+
+	mitk::TransferFunctionProperty::Pointer transferProp0;
+	GetDataStorage()->GetNamedNode("bone_warped")->GetProperty(transferProp0, "Surface.TransferFunction");
+
+	// Create a transfer function
+	mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
+
+	// Modify the transfer function (add control points, adjust properties, etc.)
+	// For example, you can add control points for opacity and color:
+	transferFunction->AddRGBPoint(0, 1.0, 1.0, 1.0);
+	transferFunction->AddRGBPoint(100, 0.0, 1.0, 0.0);
+	transferFunction->AddRGBPoint(255, 1.0, 0.0, 0.0);
+
+	if (transferProp0 != nullptr)
+	{
+		transferProp0->SetValue(transferFunction);
+	}
+	else
+	{
+		transferProp0 = mitk::TransferFunctionProperty::New();
+		transferProp0->SetValue(transferFunction);
+	}
+
+
+	GetDataStorage()->GetNamedNode("bone_warped")->SetProperty("Surface.TransferFunction", transferProp0);
+
+	GetDataStorage()->GetNamedNode("bone_warped")->SetBoolProperty("scalar visibility", true);
+
+	GetDataStorage()->GetNamedNode("bone_warped")->SetFloatProperty("material.specularCoefficient", 0);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	// Turn off all node visibility
+	GetDataStorage()->GetNamedNode("White")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("Red_warped")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("Buffer")->SetVisibility(false);
+	GetDataStorage()->GetNamedNode("Green")->SetVisibility(false);
+
+	GetDataStorage()->GetNamedNode("bone_warped")->SetVisibility(true);
 
 }
 
@@ -673,7 +896,7 @@ void MoveData::on_pushButton_warp_clicked()
 
 	vtkNew<vtkPolyDataNormals> normals;
 	normals->SetInputData(inputSurface->GetVtkPolyData());
-	normals->SplittingOn();
+	normals->SplittingOff();
 
 	double warpFactor = m_Controls.lineEdit_warpFactor->text().toDouble();
 
