@@ -201,7 +201,63 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_colorPolyData, &QPushButton::clicked, this, &MoveData::on_pushButton_colorPolyData_clicked);
 
+  connect(m_Controls.pushButton_debugRenderer, &QPushButton::clicked, this, &MoveData::on_pushButton_debugRenderer_clicked);
 
+}
+
+void MoveData::on_pushButton_debugRenderer_clicked()
+{
+	
+	auto polyData = GetDataStorage()->GetNamedObject<mitk::Surface>("probe")->GetVtkPolyData();
+
+	
+
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputData(polyData);
+	mapper->SetResolveCoincidentTopologyToPolygonOffset();
+	mapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(0, -36000);
+
+	vtkSmartPointer<vtkActor>  actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+	actor->GetProperty()->SetSpecular(0);
+	actor->GetProperty()->SetAmbient(1);
+
+	auto iRenderWindowPart = GetRenderWindowPart();
+
+	QmitkRenderWindow* mitkRenderWindow = iRenderWindowPart->GetQmitkRenderWindow("3d");
+
+	auto renderWindow = mitkRenderWindow->GetVtkRenderWindow();
+
+	auto testMapper = GetDataStorage()->GetNamedNode("probe")->GetMapper(mitkRenderWindow->GetRenderer()->GetMapperID());
+	//
+	mitk::VtkMapper* vtkMapper = dynamic_cast<mitk::VtkMapper*>(mapper.GetPointer());
+	if (!vtkMapper) {
+		std::cerr << "The mapper is not a VTK mapper" << std::endl;
+	}
+
+
+	vtkSmartPointer<vtkRenderer> renderer;
+
+	renderer = renderWindow->GetRenderers()->GetFirstRenderer();
+
+	m_Controls.textBrowser_moveData->append("Num of renders: " + QString::number(renderWindow->GetRenderers()->GetNumberOfItems()));
+
+
+	// renderWindow->SetAlphaBitPlanes(1);
+	// renderWindow->SetMultiSamples(0);
+	//
+	// renderer->UseDepthPeelingOn();
+	// renderer->UseDepthPeelingForVolumesOn();
+	renderer->RemoveActor(renderer->GetActors()->GetLastActor());
+
+	renderer->AddActor(actor);
+	
+	// renderer->SetBackground(255, 255, 255);
+
+	m_Controls.textBrowser_moveData->append("Num of actors: " + QString::number(renderer->GetActors()->GetNumberOfItems()));
+
+	//renderer->GetActors()->GetLastActor()->GetMapper()->SetResolveCoincidentTopologyToPolygonOffset();
+	//renderer->GetActors()->GetLastActor()->GetMapper()->SetRelativeCoincidentTopologyPolygonOffsetParameters(1, -100);
 }
 
 void MoveData::on_pushButton_colorPolyData_clicked()
@@ -239,6 +295,7 @@ void MoveData::on_pushButton_colorPolyData_clicked()
 
 	vtkSmartPointer<vtkFloatArray> scalars = vtkSmartPointer<vtkFloatArray>::New();
 	scalars->SetNumberOfComponents(1);
+	// scalars->GetNumberOfComponents();
 	scalars->SetName("Scalars");
 
 	for (vtkIdType i = 0; i < bone->GetNumberOfPoints(); ++i)
@@ -285,7 +342,14 @@ void MoveData::on_pushButton_colorPolyData_clicked()
 	// }
 
 	// insidePolydata->SetPolys(insideCells);
+
+	vtkSmartPointer<vtkDataArray> tmpScalars = bone_copy->GetPointData()->GetNormals();
+	// vtkSmartPointer<vtkDataArray> testArray ;
+	// testArray->Initialize();
+	// testArray->DeepCopy(tmpScalars);
 	bone_back->GetPointData()->SetScalars(scalars);
+	bone_back->GetPointData()->SetNormals(tmpScalars);
+	
 
 	auto newNode = mitk::DataNode::New();
 	auto newSurface = mitk::Surface::New();

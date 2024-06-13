@@ -190,6 +190,8 @@ protected:
 
   void on_pushButton_colorPolyData_clicked(); 
 
+  void on_pushButton_debugRenderer_clicked();
+
 };
 
 #endif // MoveData_h
