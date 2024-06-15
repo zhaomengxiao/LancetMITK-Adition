@@ -87,6 +87,10 @@ found in the LICENSE file.
 
 #include "vtkPolyDataBooleanFilter.h"
 
+#include <vtkExtractSurface.h>
+#include <vtkPCANormalEstimation.h>
+#include <vtkSignedDistance.h>
+
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
 
 
@@ -203,7 +207,42 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_debugRenderer, &QPushButton::clicked, this, &MoveData::on_pushButton_debugRenderer_clicked);
 
+  connect(m_Controls.pushButton_surfaceReconstruct, &QPushButton::clicked, this, &MoveData::on_pushButton_surfaceReconstruct_clicked);
+
 }
+
+void MoveData::on_pushButton_surfaceReconstruct_clicked()
+{
+	auto pointPolyData = GetDataStorage()->GetNamedObject<mitk::Surface>("points")->GetVtkPolyData();
+
+	vtkNew<vtkSignedDistance> distance;
+
+	vtkNew<vtkPCANormalEstimation> normals;
+	normals->SetInputData(pointPolyData);
+	normals->SetSampleSize(10);
+	normals->SetNormalOrientationToGraphTraversal();
+	normals->FlipNormalsOn();
+	distance->SetInputConnection(normals->GetOutputPort());
+
+	double radius{ 100 };
+
+	distance->SetRadius(radius);
+
+	vtkNew<vtkExtractSurface> surface;
+	surface->SetInputConnection(distance->GetOutputPort());
+	surface->SetRadius(radius);
+	surface->Update();
+
+	auto outputPolyData = surface->GetOutput();
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(outputPolyData);
+	newNode->SetName("Testing");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode);
+}
+
 
 void MoveData::on_pushButton_debugRenderer_clicked()
 {

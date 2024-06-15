@@ -192,6 +192,8 @@ protected:
 
   void on_pushButton_debugRenderer_clicked();
 
+  void on_pushButton_surfaceReconstruct_clicked();
+
 };
 
 #endif // MoveData_h
