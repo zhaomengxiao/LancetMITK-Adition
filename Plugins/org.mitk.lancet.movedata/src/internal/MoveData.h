@@ -194,6 +194,17 @@ protected:
 
   void on_pushButton_surfaceReconstruct_clicked();
 
+  int on_pushButton_clipAway_clicked();
+
+  void on_pushButton_append_clicked();
+
+  void on_pushButton_diff_type2_clicked();
+
+  void on_pushButton_gen2Stencils_clicked();
+
+  void on_pushButton_testCutV3_clicked();
+
+
 };
 
 #endif // MoveData_h

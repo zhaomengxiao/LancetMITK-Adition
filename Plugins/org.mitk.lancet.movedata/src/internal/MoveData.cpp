@@ -196,6 +196,9 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_union, &QPushButton::clicked, this, &MoveData::on_pushButton_union_clicked);
   connect(m_Controls.pushButton_diff, &QPushButton::clicked, this, &MoveData::on_pushButton_diff_clicked);
   connect(m_Controls.pushButton_implicitClip, &QPushButton::clicked, this, &MoveData::on_pushButton_implicitClip_clicked);
+  connect(m_Controls.pushButton_clipAway, &QPushButton::clicked, this, &MoveData::on_pushButton_clipAway_clicked);
+  connect(m_Controls.pushButton_append, &QPushButton::clicked, this, &MoveData::on_pushButton_append_clicked);
+
 
   connect(m_Controls.pushButton_initTHAcutting, &QPushButton::clicked, this, &MoveData::on_pushButton_initTHAcutting_clicked);
   connect(m_Controls.pushButton_testCut, &QPushButton::clicked, this, &MoveData::on_pushButton_testCut_clicked);
@@ -208,8 +211,440 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_debugRenderer, &QPushButton::clicked, this, &MoveData::on_pushButton_debugRenderer_clicked);
 
   connect(m_Controls.pushButton_surfaceReconstruct, &QPushButton::clicked, this, &MoveData::on_pushButton_surfaceReconstruct_clicked);
+  connect(m_Controls.pushButton_diff_type2, &QPushButton::clicked, this, &MoveData::on_pushButton_diff_type2_clicked);
+
+  connect(m_Controls.pushButton_gen2Stencils, &QPushButton::clicked, this, &MoveData::on_pushButton_gen2Stencils_clicked);
+  connect(m_Controls.pushButton_testCutV3, &QPushButton::clicked, this, &MoveData::on_pushButton_testCutV3_clicked);
 
 }
+
+void MoveData::on_pushButton_gen2Stencils_clicked()
+{
+	// Step 0: Check data availability
+	if(GetDataStorage()->GetNamedNode("cup") == nullptr ||
+		GetDataStorage()->GetNamedNode("cup+") == nullptr ||
+		GetDataStorage()->GetNamedNode("bone") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("bone, cup or cup+ is missing");
+		return;
+	}
+		
+	auto surface_cup = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup")->GetData());
+	auto surface_cupPlus = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup+")->GetData());
+	auto surface_bone = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("bone")->GetData());
+
+	auto polyData_cup = surface_cup->GetVtkPolyData();
+	auto matrix_cup = surface_cup->GetGeometry()->GetVtkMatrix();
+	auto trans_cup = vtkTransform::New();
+	trans_cup->SetMatrix(matrix_cup);
+
+	auto transFilter_cup = vtkTransformPolyDataFilter::New();
+	transFilter_cup->SetTransform(trans_cup);
+	transFilter_cup->SetInputData(polyData_cup);
+	transFilter_cup->Update();
+
+	auto movedPolyData_cup = transFilter_cup->GetOutput();
+
+	auto polyData_cupPlus = surface_cupPlus->GetVtkPolyData();
+	auto matrix_cupPlus = surface_cupPlus->GetGeometry()->GetVtkMatrix();
+	auto trans_cupPlus = vtkTransform::New();
+	trans_cupPlus->SetMatrix(matrix_cupPlus);
+
+	auto transFilter_cupPlus = vtkTransformPolyDataFilter::New();
+	transFilter_cupPlus->SetTransform(trans_cupPlus);
+	transFilter_cupPlus->SetInputData(polyData_cupPlus);
+	transFilter_cupPlus->Update();
+
+	auto movedPolyData_cupPlus = transFilter_cupPlus->GetOutput();
+
+	auto polyData_bone = surface_bone->GetVtkPolyData();
+	auto matrix_bone = surface_bone->GetGeometry()->GetVtkMatrix();
+	auto trans_bone = vtkTransform::New();
+	trans_bone->SetMatrix(matrix_bone);
+
+	auto transFilter_bone = vtkTransformPolyDataFilter::New();
+	transFilter_bone->SetTransform(trans_bone);
+	transFilter_bone->SetInputData(polyData_bone);
+	transFilter_bone->Update();
+
+	auto movedPolyData_bone = transFilter_bone->GetOutput();
+
+	// Step 1: Generate the green stencil
+	auto bf_green = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	bf_green->SetInputData(0, movedPolyData_bone);
+	bf_green->SetInputData(1, movedPolyData_cup);
+	bf_green->SetOperModeToIntersection();
+	bf_green->Update();
+
+	vtkNew<vtkPolyDataNormals> normals_green;
+	normals_green->SetInputData(bf_green->GetOutput());
+	normals_green->ComputePointNormalsOn();
+	normals_green->ComputeCellNormalsOn();
+	normals_green->SetFeatureAngle(20);
+	normals_green->Update();
+
+	// Step 2: Generate the red stencil
+	auto bf_red = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	bf_red->SetInputData(0, movedPolyData_bone);
+	bf_red->SetInputData(1, movedPolyData_cupPlus);
+	bf_red->SetOperModeToDifference();
+	bf_red->Update();
+
+	vtkNew<vtkPolyDataNormals> normals_red;
+	normals_red->SetInputData(bf_red->GetOutput());
+	normals_red->ComputePointNormalsOn();
+	normals_red->ComputeCellNormalsOn();
+	normals_red->SetFeatureAngle(20);
+	normals_red->Update();
+
+	
+
+	if (normals_green->GetOutput()->GetNumberOfCells() > 0 && normals_red->GetOutput()->GetNumberOfCells() > 0)
+	{
+		vtkNew<vtkWarpVector> warper_G;
+		warper_G->SetInputData(normals_green->GetOutput());
+		warper_G->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+			vtkDataSetAttributes::NORMALS);
+		warper_G->SetScaleFactor(0.04);
+		warper_G->Update();
+
+		auto newNode = mitk::DataNode::New();
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(warper_G->GetPolyDataOutput());
+		newNode->SetName("Green_stencil");
+		newNode->SetData(newSurface);
+		GetDataStorage()->Add(newNode);
+
+		vtkNew<vtkWarpVector> warper_R;
+		warper_R->SetInputData(normals_red->GetOutput());
+		warper_R->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+			vtkDataSetAttributes::NORMALS);
+		warper_R->SetScaleFactor(-0.1);
+		warper_R->Update();
+
+		auto newNode_ = mitk::DataNode::New();
+		auto newSurface_ = mitk::Surface::New();
+		newSurface_->SetVtkPolyData(warper_R->GetPolyDataOutput());
+		newNode_->SetName("Red_stencil");
+		newNode_->SetData(newSurface_);
+		GetDataStorage()->Add(newNode_);
+
+	}else
+	{
+		m_Controls.textBrowser_moveData->append("No intersection between the implant and the bone!");
+		return;
+	}
+
+	// Step 3 (optional): Do the coloring
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_G = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_G->SetInputData(polyData_bone);
+	selectEnclosedPoints_G->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Green_stencil")->GetVtkPolyData());
+	// selectEnclosedPoints_G->SetTolerance(1);
+	selectEnclosedPoints_G->Update();
+
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_R = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_R->SetInputData(polyData_bone);
+	selectEnclosedPoints_R->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Red_stencil")->GetVtkPolyData());
+	selectEnclosedPoints_R->Update();
+
+	// vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
+	// vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
+
+	vtkSmartPointer<vtkFloatArray> scalars = vtkSmartPointer<vtkFloatArray>::New();
+	scalars->SetNumberOfComponents(1);
+	scalars->SetName("Scalars");
+
+	for (vtkIdType i = 0; i < polyData_bone->GetNumberOfPoints(); ++i)
+	{
+		if (selectEnclosedPoints_G->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(100);
+			continue;
+		}
+
+		if (selectEnclosedPoints_R->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(250);
+			continue;
+		}
+
+		scalars->InsertNextValue(0);
+
+	}
+
+	polyData_bone->GetPointData()->SetScalars(scalars);
+
+	mitk::TransferFunctionProperty::Pointer transferProp0;
+	GetDataStorage()->GetNamedNode("bone")->GetProperty(transferProp0, "Surface.TransferFunction");
+
+	// Create a transfer function
+	mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
+
+	// Modify the transfer function (add control points, adjust properties, etc.)
+	// For example, you can add control points for opacity and color:
+	transferFunction->AddRGBPoint(0, 1.0, 1.0, 1.0);
+	transferFunction->AddRGBPoint(100, 0.0, 1.0, 0.0);
+	transferFunction->AddRGBPoint(255, 1.0, 0.0, 0.0);
+
+	if (transferProp0 != nullptr)
+	{
+		transferProp0->SetValue(transferFunction);
+	}
+	else
+	{
+		transferProp0 = mitk::TransferFunctionProperty::New();
+		transferProp0->SetValue(transferFunction);
+	}
+
+	GetDataStorage()->GetNamedNode("bone")->SetProperty("Surface.TransferFunction", transferProp0);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
+void MoveData::on_pushButton_testCutV3_clicked()
+{
+	
+}
+
+void MoveData::on_pushButton_diff_type2_clicked()
+{
+	// Both inputs' normal vectors should be outward !!
+	auto inputSurfaceNode_a = m_Controls.mitkNodeSelectWidget_surfaceboolA->GetSelectedNode();
+	if (inputSurfaceNode_a == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
+
+	auto inputSurfaceNode_b = m_Controls.mitkNodeSelectWidget_surfaceboolB->GetSelectedNode();
+	if (inputSurfaceNode_b == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
+
+	auto inputpolyData_a = inputSurface_a->GetVtkPolyData();
+	auto inputMatrix_a = inputSurface_a->GetGeometry()->GetVtkMatrix();
+	auto trans_a = vtkTransform::New();
+	trans_a->SetMatrix(inputMatrix_a);
+
+	auto transFilter_a = vtkTransformPolyDataFilter::New();
+	transFilter_a->SetTransform(trans_a);
+	transFilter_a->SetInputData(inputpolyData_a);
+	transFilter_a->Update();
+
+	auto movedPolyData_a = transFilter_a->GetOutput();
+
+	auto inputpolyData_b = inputSurface_b->GetVtkPolyData();
+	auto inputMatrix_b = inputSurface_b->GetGeometry()->GetVtkMatrix();
+	auto trans_b = vtkTransform::New();
+	trans_b->SetMatrix(inputMatrix_b);
+
+	auto transFilter_b = vtkTransformPolyDataFilter::New();
+	transFilter_b->SetTransform(trans_b);
+	transFilter_b->SetInputData(inputpolyData_b);
+	transFilter_b->Update();
+
+	auto movedPolyData_b = transFilter_b->GetOutput();
+
+	//--------- Step 1: Use B to pierce through A, and get the broken part of A---------
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance_b;
+	implicitPolyDataDistance_b->SetInput(movedPolyData_b);
+
+	vtkNew<vtkClipPolyData> clipper_0;
+	clipper_0->SetInputData(movedPolyData_a);
+	// clipper_0->GenerateClippedOutputOn();
+	clipper_0->SetClipFunction(implicitPolyDataDistance_b);
+
+	clipper_0->Update();
+	vtkNew<vtkPolyData> pierced_A;
+	pierced_A->DeepCopy(clipper_0->GetOutput());
+
+	//------- Step 2: Use A to crop B, and get the cropped away part of B-------------
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance_a;
+	implicitPolyDataDistance_a->SetInput(movedPolyData_a);
+
+	vtkNew<vtkClipPolyData> clipper_1;
+	clipper_1->SetInputData(movedPolyData_b);
+	clipper_1->GenerateClippedOutputOn();
+	clipper_1->SetClipFunction(implicitPolyDataDistance_a);
+
+	clipper_1->Update();
+	vtkNew<vtkPolyData> cropped_B;
+	cropped_B->DeepCopy(clipper_1->GetClippedOutput());
+
+	//--------- Step 3: The normal vectors of the cropped away part of B should be inverted before combining--------
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(cropped_B);
+	normals->ComputePointNormalsOn();
+	normals->ComputeCellNormalsOn();
+	// normals->SetFeatureAngle(20);
+	normals->FlipNormalsOn();
+	// normals->SplittingOn();
+	normals->Update();
+
+	vtkNew<vtkPolyData> croppedNormalInverted_B;
+	croppedNormalInverted_B->DeepCopy(normals->GetOutput());
+
+	//--------- Step 4: Append and clean the polyData------------
+	auto appender = vtkAppendPolyData::New();
+	appender->AddInputData(croppedNormalInverted_B);
+	appender->AddInputData(pierced_A);
+	appender->Update();
+
+	auto cleaner = vtkCleanPolyData::New();
+	cleaner->SetInputData(appender->GetOutput());
+	cleaner->Update();
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(cleaner->GetOutput());
+	newNode->SetName(inputSurfaceNode_a->GetName() + "_diffType2");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+
+	
+
+}
+
+
+void MoveData::on_pushButton_append_clicked()
+{
+	auto inputSurfaceNode_a = m_Controls.mitkNodeSelectWidget_surfaceboolA->GetSelectedNode();
+	if (inputSurfaceNode_a == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
+
+	auto inputSurfaceNode_b = m_Controls.mitkNodeSelectWidget_surfaceboolB->GetSelectedNode();
+	if (inputSurfaceNode_b == nullptr)
+	{
+		return;
+	}
+	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
+
+	auto inputpolyData_a = inputSurface_a->GetVtkPolyData();
+	auto inputMatrix_a = inputSurface_a->GetGeometry()->GetVtkMatrix();
+	auto trans_a = vtkTransform::New();
+	trans_a->SetMatrix(inputMatrix_a);
+
+	auto transFilter_a = vtkTransformPolyDataFilter::New();
+	transFilter_a->SetTransform(trans_a);
+	transFilter_a->SetInputData(inputpolyData_a);
+	transFilter_a->Update();
+
+	auto movedPolyData_a = transFilter_a->GetOutput();
+
+	auto inputpolyData_b = inputSurface_b->GetVtkPolyData();
+	auto inputMatrix_b = inputSurface_b->GetGeometry()->GetVtkMatrix();
+	auto trans_b = vtkTransform::New();
+	trans_b->SetMatrix(inputMatrix_b);
+
+	auto transFilter_b = vtkTransformPolyDataFilter::New();
+	transFilter_b->SetTransform(trans_b);
+	transFilter_b->SetInputData(inputpolyData_b);
+	transFilter_b->Update();
+
+	auto movedPolyData_b = transFilter_b->GetOutput();
+
+	auto appender = vtkAppendPolyData::New();
+	appender->AddInputData(movedPolyData_a);
+	appender->AddInputData(movedPolyData_b);
+	appender->Update();
+
+	auto cleaner = vtkCleanPolyData::New();
+	cleaner->SetInputData(appender->GetOutput());
+	cleaner->Update();
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(cleaner->GetOutput());
+	newNode->SetName(inputSurfaceNode_a->GetName() + "Appended");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+
+}
+
+int MoveData::on_pushButton_clipAway_clicked()
+{
+	auto inputSurfaceNode_a = m_Controls.mitkNodeSelectWidget_surfaceboolA->GetSelectedNode();
+	if (inputSurfaceNode_a == nullptr)
+	{
+		// m_Controls.textBrowser_moveData->append("Clip: input missing");
+		return 2;
+	}
+	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
+
+	auto inputSurfaceNode_b = m_Controls.mitkNodeSelectWidget_surfaceboolB->GetSelectedNode();
+	if (inputSurfaceNode_b == nullptr)
+	{
+		// m_Controls.textBrowser_moveData->append("Clip: input missing");
+		return 2;
+	}
+	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
+
+	auto inputpolyData_a = inputSurface_a->GetVtkPolyData();
+	auto inputMatrix_a = inputSurface_a->GetGeometry()->GetVtkMatrix();
+	auto trans_a = vtkTransform::New();
+	trans_a->SetMatrix(inputMatrix_a);
+
+	auto transFilter_a = vtkTransformPolyDataFilter::New();
+	transFilter_a->SetTransform(trans_a);
+	transFilter_a->SetInputData(inputpolyData_a);
+	transFilter_a->Update();
+
+	auto movedPolyData_a = transFilter_a->GetOutput();
+
+	auto inputpolyData_b = inputSurface_b->GetVtkPolyData();
+	auto inputMatrix_b = inputSurface_b->GetGeometry()->GetVtkMatrix();
+	auto trans_b = vtkTransform::New();
+	trans_b->SetMatrix(inputMatrix_b);
+
+	auto transFilter_b = vtkTransformPolyDataFilter::New();
+	transFilter_b->SetTransform(trans_b);
+	transFilter_b->SetInputData(inputpolyData_b);
+	transFilter_b->Update();
+
+	auto movedPolyData_b = transFilter_b->GetOutput();
+
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+	implicitPolyDataDistance->SetInput(movedPolyData_b);
+
+	vtkNew<vtkClipPolyData> clipper;
+	clipper->SetInputData(movedPolyData_a);
+	clipper->GenerateClippedOutputOn();
+	clipper->SetClipFunction(implicitPolyDataDistance);
+
+
+	clipper->Update();
+	vtkNew<vtkPolyData> tmpOutput;
+	tmpOutput->DeepCopy(clipper->GetOutput());
+
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	// newSurface->SetVtkPolyData(tmpOutput);
+	newSurface->SetVtkPolyData(clipper->GetClippedOutput());
+	newNode->SetName(inputSurfaceNode_a->GetName() + "_clippedAway");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+
+	if (clipper->GetClippedOutput()->GetNumberOfCells() > 0)
+	{
+		mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+		//m_Controls.textBrowser_moveData->append("Clip: has contact and clipped something");
+		return 0;
+	}
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+	//m_Controls.textBrowser_moveData->append("Clip: has no contact");
+	return 1;
+
+}
+
 
 void MoveData::on_pushButton_surfaceReconstruct_clicked()
 {
@@ -219,18 +654,18 @@ void MoveData::on_pushButton_surfaceReconstruct_clicked()
 
 	vtkNew<vtkPCANormalEstimation> normals;
 	normals->SetInputData(pointPolyData);
-	normals->SetSampleSize(10);
+	normals->SetSampleSize(3);
 	normals->SetNormalOrientationToGraphTraversal();
 	normals->FlipNormalsOn();
 	distance->SetInputConnection(normals->GetOutputPort());
 
-	double radius{ 100 };
+	// double radius{ 100 };
 
-	distance->SetRadius(radius);
+	distance->SetRadius(2);
 
 	vtkNew<vtkExtractSurface> surface;
 	surface->SetInputConnection(distance->GetOutputPort());
-	surface->SetRadius(radius);
+	surface->SetRadius(3);
 	surface->Update();
 
 	auto outputPolyData = surface->GetOutput();
@@ -242,7 +677,6 @@ void MoveData::on_pushButton_surfaceReconstruct_clicked()
 	newNode->SetData(newSurface);
 	GetDataStorage()->Add(newNode);
 }
-
 
 void MoveData::on_pushButton_debugRenderer_clicked()
 {
@@ -831,7 +1265,6 @@ void MoveData::on_pushButton_testCut_clicked()
 
 }
 
-
 void MoveData::on_pushButton_initTHAcutting_clicked()
 {
 	if(GetDataStorage()->GetNamedNode("cup") == nullptr || GetDataStorage()->GetNamedNode("cup+") == nullptr ||
@@ -902,7 +1335,6 @@ void MoveData::on_pushButton_initTHAcutting_clicked()
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
-
 
 void MoveData::on_pushButton_inverNormal_clicked()
 {

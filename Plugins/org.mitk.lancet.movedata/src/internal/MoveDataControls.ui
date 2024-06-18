@@ -71,7 +71,7 @@
    <item row="2" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>5</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
@@ -1132,6 +1132,13 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="pushButton_gen2Stencils">
+         <property name="text">
+          <string>Generate 2 stencils</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="0">
         <widget class="QPushButton" name="pushButton_testCut">
          <property name="text">
@@ -1139,85 +1146,21 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0" colspan="2">
-        <widget class="QGroupBox" name="groupBox_11">
-         <property name="title">
-          <string>Invert surface normal</string>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="pushButton_testCutV2">
+         <property name="text">
+          <string>Cut v.2</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_18">
-          <item row="0" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_15">
-            <item>
-             <widget class="QLabel" name="label_24">
-              <property name="text">
-               <string>Selected surface:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_inverNormal" native="true"/>
-            </item>
-           </layout>
-          </item>
-          <item row="0" column="1">
-           <widget class="QPushButton" name="pushButton_inverNormal">
-            <property name="text">
-             <string>Invert normal</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </widget>
        </item>
-       <item row="3" column="0" colspan="2">
-        <widget class="QGroupBox" name="groupBox_14">
-         <property name="title">
-          <string>Fix hole</string>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="pushButton_testCutV3">
+         <property name="text">
+          <string>Cut v.3</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_21">
-          <item row="0" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_20">
-            <item>
-             <widget class="QLabel" name="label_29">
-              <property name="text">
-               <string>Selected surface:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_fixHole" native="true"/>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_21">
-            <item>
-             <widget class="QLabel" name="label_30">
-              <property name="text">
-               <string>Max hole size: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_holeSize">
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="0" column="1" rowspan="2">
-           <widget class="QPushButton" name="pushButton_fixhole">
-            <property name="text">
-             <string>Fix hole</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </widget>
        </item>
-       <item row="4" column="0" colspan="2">
+       <item row="4" column="0" colspan="3">
         <widget class="QGroupBox" name="groupBox_15">
          <property name="title">
           <string>Smooth</string>
@@ -1283,7 +1226,171 @@
          </layout>
         </widget>
        </item>
-       <item row="5" column="0" colspan="2">
+       <item row="6" column="0" colspan="3">
+        <widget class="QGroupBox" name="groupBox_13">
+         <property name="title">
+          <string>Surface bool</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_20">
+          <item row="0" column="0" colspan="4">
+           <layout class="QHBoxLayout" name="horizontalLayout_18">
+            <item>
+             <widget class="QLabel" name="label_27">
+              <property name="text">
+               <string>Surface A:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surfaceboolA" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="4" colspan="4">
+           <layout class="QHBoxLayout" name="horizontalLayout_19">
+            <item>
+             <widget class="QLabel" name="label_28">
+              <property name="text">
+               <string>Surface B:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surfaceboolB" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_intersect">
+            <property name="text">
+             <string>Intersection</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="pushButton_union">
+            <property name="text">
+             <string>Union</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QPushButton" name="pushButton_diff">
+            <property name="text">
+             <string>Difference</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="6">
+           <widget class="QPushButton" name="pushButton_append">
+            <property name="text">
+             <string>Append</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="7">
+           <widget class="QPushButton" name="pushButton_diff_type2">
+            <property name="text">
+             <string>Diff </string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QPushButton" name="pushButton_implicitClip">
+            <property name="text">
+             <string>Clip</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4" colspan="2">
+           <widget class="QPushButton" name="pushButton_clipAway">
+            <property name="text">
+             <string>Clipped away</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="3">
+        <widget class="QGroupBox" name="groupBox_11">
+         <property name="title">
+          <string>Invert surface normal</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_18">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_15">
+            <item>
+             <widget class="QLabel" name="label_24">
+              <property name="text">
+               <string>Selected surface:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_inverNormal" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="pushButton_inverNormal">
+            <property name="text">
+             <string>Invert normal</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="3" column="0" colspan="3">
+        <widget class="QGroupBox" name="groupBox_14">
+         <property name="title">
+          <string>Fix hole</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_21">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_20">
+            <item>
+             <widget class="QLabel" name="label_29">
+              <property name="text">
+               <string>Selected surface:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_fixHole" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_21">
+            <item>
+             <widget class="QLabel" name="label_30">
+              <property name="text">
+               <string>Max hole size: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_holeSize">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1" rowspan="2">
+           <widget class="QPushButton" name="pushButton_fixhole">
+            <property name="text">
+             <string>Fix hole</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="5" column="0" colspan="3">
         <widget class="QGroupBox" name="groupBox_12">
          <property name="title">
           <string>Warp along normal</string>
@@ -1329,78 +1436,6 @@
            </widget>
           </item>
          </layout>
-        </widget>
-       </item>
-       <item row="6" column="0" colspan="2">
-        <widget class="QGroupBox" name="groupBox_13">
-         <property name="title">
-          <string>Surface bool</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_20">
-          <item row="1" column="1">
-           <widget class="QPushButton" name="pushButton_union">
-            <property name="text">
-             <string>Union</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="pushButton_intersect">
-            <property name="text">
-             <string>Intersection</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="2">
-           <layout class="QHBoxLayout" name="horizontalLayout_18">
-            <item>
-             <widget class="QLabel" name="label_27">
-              <property name="text">
-               <string>Surface A:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surfaceboolA" native="true"/>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="4">
-           <widget class="QPushButton" name="pushButton_implicitClip">
-            <property name="text">
-             <string>Implicit clip</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3" colspan="2">
-           <layout class="QHBoxLayout" name="horizontalLayout_19">
-            <item>
-             <widget class="QLabel" name="label_28">
-              <property name="text">
-               <string>Surface B:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surfaceboolB" native="true"/>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="3">
-           <widget class="QPushButton" name="pushButton_diff">
-            <property name="text">
-             <string>Difference</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="pushButton_testCutV2">
-         <property name="text">
-          <string>Cut v.2</string>
-         </property>
         </widget>
        </item>
       </layout>
