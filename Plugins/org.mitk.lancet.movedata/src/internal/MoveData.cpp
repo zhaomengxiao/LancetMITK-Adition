@@ -232,6 +232,7 @@ void MoveData::on_pushButton_gen2Stencils_clicked()
 	auto surface_cup = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup")->GetData());
 	auto surface_cupPlus = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup+")->GetData());
 	auto surface_bone = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("bone")->GetData());
+	GetDataStorage()->GetNamedNode("bone")->SetVisibility(false);
 
 	auto polyData_cup = surface_cup->GetVtkPolyData();
 	auto matrix_cup = surface_cup->GetGeometry()->GetVtkMatrix();
@@ -305,7 +306,7 @@ void MoveData::on_pushButton_gen2Stencils_clicked()
 		warper_G->SetInputData(normals_green->GetOutput());
 		warper_G->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
 			vtkDataSetAttributes::NORMALS);
-		warper_G->SetScaleFactor(0.04);
+		warper_G->SetScaleFactor(0.07);
 		warper_G->Update();
 
 		auto newNode = mitk::DataNode::New();
@@ -314,20 +315,22 @@ void MoveData::on_pushButton_gen2Stencils_clicked()
 		newNode->SetName("Green_stencil");
 		newNode->SetData(newSurface);
 		GetDataStorage()->Add(newNode);
+		newNode->SetVisibility(false);
 
-		vtkNew<vtkWarpVector> warper_R;
-		warper_R->SetInputData(normals_red->GetOutput());
-		warper_R->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
-			vtkDataSetAttributes::NORMALS);
-		warper_R->SetScaleFactor(-0.1);
-		warper_R->Update();
+		// vtkNew<vtkWarpVector> warper_R;
+		// warper_R->SetInputData(normals_red->GetOutput());
+		// warper_R->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+		// 	vtkDataSetAttributes::NORMALS);
+		// warper_R->SetScaleFactor(-0.1);
+		// warper_R->Update();
 
 		auto newNode_ = mitk::DataNode::New();
 		auto newSurface_ = mitk::Surface::New();
-		newSurface_->SetVtkPolyData(warper_R->GetPolyDataOutput());
+		newSurface_->SetVtkPolyData(normals_red->GetOutput());
 		newNode_->SetName("Red_stencil");
 		newNode_->SetData(newSurface_);
 		GetDataStorage()->Add(newNode_);
+		newNode_->SetVisibility(false);
 
 	}else
 	{
@@ -335,15 +338,41 @@ void MoveData::on_pushButton_gen2Stencils_clicked()
 		return;
 	}
 
-	// Step 3 (optional): Do the coloring
+	// Generate the bone to display
+	vtkNew<vtkWarpVector> warper_bone;
+	warper_bone->SetInputData(polyData_bone);
+	warper_bone->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+		vtkDataSetAttributes::NORMALS);
+	warper_bone->SetScaleFactor(0.05);
+	warper_bone->Update();
+
+	vtkNew<vtkPolyDataNormals> normals_warped_bone;
+	normals_warped_bone->SetInputData(warper_bone->GetPolyDataOutput());
+	normals_warped_bone->ComputePointNormalsOn();
+	normals_warped_bone->ComputeCellNormalsOn();
+	normals_warped_bone->SetFeatureAngle(20);
+	normals_warped_bone->Update();
+
+	auto warped_bone = normals_warped_bone->GetOutput();
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(warped_bone);
+	newNode->SetName("bone_display");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode);
+	
+
+
+	// Step 4 (optional): Do the coloring
 	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_G = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
-	selectEnclosedPoints_G->SetInputData(polyData_bone);
+	selectEnclosedPoints_G->SetInputData(warped_bone);
 	selectEnclosedPoints_G->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Green_stencil")->GetVtkPolyData());
 	// selectEnclosedPoints_G->SetTolerance(1);
 	selectEnclosedPoints_G->Update();
 
 	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_R = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
-	selectEnclosedPoints_R->SetInputData(polyData_bone);
+	selectEnclosedPoints_R->SetInputData(warped_bone);
 	selectEnclosedPoints_R->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Red_stencil")->GetVtkPolyData());
 	selectEnclosedPoints_R->Update();
 
@@ -354,7 +383,7 @@ void MoveData::on_pushButton_gen2Stencils_clicked()
 	scalars->SetNumberOfComponents(1);
 	scalars->SetName("Scalars");
 
-	for (vtkIdType i = 0; i < polyData_bone->GetNumberOfPoints(); ++i)
+	for (vtkIdType i = 0; i < warped_bone->GetNumberOfPoints(); ++i)
 	{
 		if (selectEnclosedPoints_G->IsInside(i))
 		{
@@ -374,10 +403,10 @@ void MoveData::on_pushButton_gen2Stencils_clicked()
 
 	}
 
-	polyData_bone->GetPointData()->SetScalars(scalars);
+	warped_bone->GetPointData()->SetScalars(scalars);
 
 	mitk::TransferFunctionProperty::Pointer transferProp0;
-	GetDataStorage()->GetNamedNode("bone")->GetProperty(transferProp0, "Surface.TransferFunction");
+	GetDataStorage()->GetNamedNode("bone_display")->GetProperty(transferProp0, "Surface.TransferFunction");
 
 	// Create a transfer function
 	mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
@@ -398,14 +427,157 @@ void MoveData::on_pushButton_gen2Stencils_clicked()
 		transferProp0->SetValue(transferFunction);
 	}
 
-	GetDataStorage()->GetNamedNode("bone")->SetProperty("Surface.TransferFunction", transferProp0);
+	GetDataStorage()->GetNamedNode("bone_display")->SetProperty("Surface.TransferFunction", transferProp0);
+	GetDataStorage()->GetNamedNode("bone_display")->SetBoolProperty("scalar visibility", true);
+	GetDataStorage()->GetNamedNode("bone_display")->SetFloatProperty("material.specularCoefficient", 0);
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void MoveData::on_pushButton_testCutV3_clicked()
 {
-	
+	// Both inputs' normal vectors should be outward !!
+	auto inputSurfaceNode_a = GetDataStorage()->GetNamedNode("bone_display");
+	if (inputSurfaceNode_a == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("bone_display is missing!");
+		return;
+	}
+	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
+
+	auto inputSurfaceNode_b = GetDataStorage()->GetNamedNode("cutter");
+	if (inputSurfaceNode_b == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("cutter is missing!");
+		return;
+	}
+	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
+
+	auto inputpolyData_a = inputSurface_a->GetVtkPolyData();
+	auto inputMatrix_a = inputSurface_a->GetGeometry()->GetVtkMatrix();
+	auto trans_a = vtkTransform::New();
+	trans_a->SetMatrix(inputMatrix_a);
+
+	auto transFilter_a = vtkTransformPolyDataFilter::New();
+	transFilter_a->SetTransform(trans_a);
+	transFilter_a->SetInputData(inputpolyData_a);
+	transFilter_a->Update();
+
+	auto movedPolyData_a = transFilter_a->GetOutput();
+
+	auto inputpolyData_b = inputSurface_b->GetVtkPolyData();
+	auto inputMatrix_b = inputSurface_b->GetGeometry()->GetVtkMatrix();
+	auto trans_b = vtkTransform::New();
+	trans_b->SetMatrix(inputMatrix_b);
+
+	auto transFilter_b = vtkTransformPolyDataFilter::New();
+	transFilter_b->SetTransform(trans_b);
+	transFilter_b->SetInputData(inputpolyData_b);
+	transFilter_b->Update();
+
+	auto movedPolyData_b = transFilter_b->GetOutput();
+
+	//--------- Step 1: Use B to pierce through A, and get the broken part of A---------
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance_b;
+	implicitPolyDataDistance_b->SetInput(movedPolyData_b);
+
+	vtkNew<vtkClipPolyData> clipper_0;
+	clipper_0->SetInputData(movedPolyData_a);
+	// clipper_0->GenerateClippedOutputOn();
+	clipper_0->SetClipFunction(implicitPolyDataDistance_b);
+
+	clipper_0->Update();
+	vtkNew<vtkPolyData> pierced_A;
+	pierced_A->DeepCopy(clipper_0->GetOutput());
+
+	//------- Step 2: Use A to crop B, and get the cropped away part of B-------------
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance_a;
+	implicitPolyDataDistance_a->SetInput(movedPolyData_a);
+
+	vtkNew<vtkClipPolyData> clipper_1;
+	clipper_1->SetInputData(movedPolyData_b);
+	clipper_1->GenerateClippedOutputOn();
+	clipper_1->SetClipFunction(implicitPolyDataDistance_a);
+
+	clipper_1->Update();
+	vtkNew<vtkPolyData> cropped_B;
+	cropped_B->DeepCopy(clipper_1->GetClippedOutput());
+
+	//--------- Step 3: The normal vectors of the cropped away part of B should be inverted before combining--------
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(cropped_B);
+	normals->ComputePointNormalsOn();
+	normals->ComputeCellNormalsOn();
+	// normals->SetFeatureAngle(20);
+	normals->FlipNormalsOn();
+	// normals->SplittingOn();
+	normals->Update();
+
+	vtkNew<vtkPolyData> croppedNormalInverted_B;
+	croppedNormalInverted_B->DeepCopy(normals->GetOutput());
+
+	//--------- Step 4: Append and clean the polyData------------
+	auto appender = vtkAppendPolyData::New();
+	appender->AddInputData(croppedNormalInverted_B);
+	appender->AddInputData(pierced_A);
+	appender->Update();
+
+	auto cleaner = vtkCleanPolyData::New();
+	cleaner->SetInputData(appender->GetOutput());
+	cleaner->Update();
+
+	auto warped_bone = cleaner->GetOutput();
+
+	// -----------Step 5: Coloring------------
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_G = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_G->SetInputData(warped_bone);
+	selectEnclosedPoints_G->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Green_stencil")->GetVtkPolyData());
+	// selectEnclosedPoints_G->SetTolerance(1);
+	selectEnclosedPoints_G->Update();
+
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_R = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_R->SetInputData(warped_bone);
+	selectEnclosedPoints_R->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Red_stencil")->GetVtkPolyData());
+	selectEnclosedPoints_R->Update();
+
+	// vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
+	// vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
+
+	vtkSmartPointer<vtkFloatArray> scalars = vtkSmartPointer<vtkFloatArray>::New();
+	scalars->SetNumberOfComponents(1);
+	scalars->SetName("Scalars");
+
+	for (vtkIdType i = 0; i < warped_bone->GetNumberOfPoints(); ++i)
+	{
+		if (selectEnclosedPoints_G->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(100);
+			continue;
+		}
+
+		if (selectEnclosedPoints_R->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(250);
+			continue;
+		}
+
+		scalars->InsertNextValue(0);
+
+	}
+
+	warped_bone->GetPointData()->SetScalars(scalars);
+
+	dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData())->SetVtkPolyData(warped_bone);
+	// auto newNode = mitk::DataNode::New();
+	// auto newSurface = mitk::Surface::New();
+	// newSurface->SetVtkPolyData(cleaner->GetOutput());
+	// newNode->SetName(inputSurfaceNode_a->GetName() + "_diffType2");
+	// newNode->SetData(newSurface);
+	// GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void MoveData::on_pushButton_diff_type2_clicked()
