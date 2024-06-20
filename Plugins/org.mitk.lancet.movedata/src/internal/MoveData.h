@@ -204,6 +204,8 @@ protected:
 
   void on_pushButton_testCutV3_clicked();
 
+	// Check if all the edge points of the cap is within the thres distance to the given polyData
+  bool CheckCapCoverage(vtkSmartPointer<vtkPolyData> cap, vtkSmartPointer<vtkPolyData> polyData, double thres);
 
 };
 

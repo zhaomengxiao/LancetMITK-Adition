@@ -37,6 +37,7 @@ found in the LICENSE file.
 #include <vtkCleanPolyData.h>
 #include <vtkClipPolyData.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkConnectivityFilter.h>
 #include <vtkCutter.h>
 #include <vtkDataSetMapper.h>
 #include <vtkFillHolesFilter.h>
@@ -88,6 +89,7 @@ found in the LICENSE file.
 #include "vtkPolyDataBooleanFilter.h"
 
 #include <vtkExtractSurface.h>
+#include <vtkFeatureEdges.h>
 #include <vtkPCANormalEstimation.h>
 #include <vtkSignedDistance.h>
 
@@ -217,6 +219,73 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_testCutV3, &QPushButton::clicked, this, &MoveData::on_pushButton_testCutV3_clicked);
 
 }
+
+bool MoveData::CheckCapCoverage(vtkSmartPointer<vtkPolyData> cap, vtkSmartPointer<vtkPolyData> polyData, double thres)
+{
+	auto boundaryEdges = vtkSmartPointer<vtkFeatureEdges>::New();
+	boundaryEdges->BoundaryEdgesOn();
+	boundaryEdges->FeatureEdgesOff();
+	boundaryEdges->ManifoldEdgesOff();
+	boundaryEdges->NonManifoldEdgesOff();
+	boundaryEdges->SetInputData(cap);
+	boundaryEdges->Update();
+
+	auto edges = boundaryEdges->GetOutput();
+
+	// Set up a KD-tree locator for polydata B
+	auto kdTree = vtkSmartPointer<vtkKdTreePointLocator>::New();
+	kdTree->SetDataSet(polyData);
+	kdTree->BuildLocator();
+
+	// Iterate over edge points and check the distance
+
+	// auto tmpPset = mitk::PointSet::New();
+
+	int totalEdgeNum = edges->GetPoints()->GetNumberOfPoints();
+	double outlierNum{ 0 };
+
+	for (vtkIdType i = 0; i < edges->GetPoints()->GetNumberOfPoints(); ++i) {
+		double pointA[3];
+		edges->GetPoints()->GetPoint(i, pointA);
+
+		// mitk::Point3D a;
+		// a[0] = pointA[0];
+		// a[1] = pointA[1];
+		// a[2] = pointA[2];
+		// tmpPset->InsertPoint(a);
+
+		vtkIdType closestPointId = kdTree->FindClosestPoint(pointA);
+
+		double pointB[3];
+		polyData->GetPoints()->GetPoint(closestPointId, pointB);
+
+		// Compute the distance
+		double distance = vtkMath::Distance2BetweenPoints(pointA, pointB);
+		if (distance > thres) {
+
+			// auto tmpNode = mitk::DataNode::New();
+			// tmpNode->SetData(tmpPset);
+			// tmpNode->SetName("debugPset");
+			// GetDataStorage()->Add(tmpNode);
+
+			//return false;
+			outlierNum += 1;
+		}
+	}
+
+	// auto tmpNode = mitk::DataNode::New();
+	// tmpNode->SetData(tmpPset);
+	// tmpNode->SetName("debugPset");
+	// GetDataStorage()->Add(tmpNode);
+
+	if( outlierNum/totalEdgeNum < 0.1)
+	{
+		return true;
+	}
+	return false;
+
+}
+
 
 void MoveData::on_pushButton_gen2Stencils_clicked()
 {
@@ -477,6 +546,8 @@ void MoveData::on_pushButton_testCutV3_clicked()
 
 	auto movedPolyData_b = transFilter_b->GetOutput();
 
+	clock_t start = clock();
+
 	//--------- Step 1: Use B to pierce through A, and get the broken part of A---------
 	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance_b;
 	implicitPolyDataDistance_b->SetInput(movedPolyData_b);
@@ -500,8 +571,66 @@ void MoveData::on_pushButton_testCutV3_clicked()
 	clipper_1->SetClipFunction(implicitPolyDataDistance_a);
 
 	clipper_1->Update();
+
+	auto testsurface_debug = mitk::Surface::New();
+	testsurface_debug->SetVtkPolyData(clipper_1->GetClippedOutput());
+	auto testNode_debug = mitk::DataNode::New();
+	testNode_debug->SetData(testsurface_debug);
+	testNode_debug->SetName("without connectivity");
+	GetDataStorage()->Add(testNode_debug);
+
+	// ------------- Check if the cropped away part of the cutter has contact with the bone and only keep the contacting part -------------
+	vtkNew<vtkCleanPolyData> cleaner_test;
+	cleaner_test->SetInputData(clipper_1->GetClippedOutput());
+	cleaner_test->Update();
+	
+	vtkNew<vtkCleanPolyData> cleaner_test_;
+	cleaner_test_->SetInputData(pierced_A);
+	cleaner_test_->Update();
+
+	vtkNew<vtkPolyData> cropped_B_;
+	vtkNew<vtkAppendPolyData> tmpAppender;
+	vtkNew<vtkConnectivityFilter> vtkConnectivityFilter;
+	vtkConnectivityFilter->SetInputData(cleaner_test->GetOutput());
+	vtkConnectivityFilter->SetExtractionModeToAllRegions();
+
+	vtkConnectivityFilter->Update();
+	int numOfSubparts = vtkConnectivityFilter->GetNumberOfExtractedRegions();
+
+	// vtkConnectivityFilter->SetExtractionModeToLargestRegion();
+	vtkConnectivityFilter->SetExtractionModeToSpecifiedRegions();
+
+	for(int i{0}; i < numOfSubparts; i++)
+	{
+		vtkConnectivityFilter->InitializeSpecifiedRegionList();
+		vtkConnectivityFilter->AddSpecifiedRegion(i);
+		vtkConnectivityFilter->Update();
+		auto tmpPolydata = vtkPolyData::New();
+		tmpPolydata->DeepCopy(vtkConnectivityFilter->GetPolyDataOutput());
+
+		// tmpPolydata->Print(std::cout);
+
+		////////
+		// auto testsurface = mitk::Surface::New();
+		// testsurface->SetVtkPolyData(tmpPolydata);
+		// auto testNode = mitk::DataNode::New();
+		// testNode->SetData(testsurface);
+		// testNode->SetName("clipped subpart");
+		// GetDataStorage()->Add(testNode);
+		////////
+
+		if(CheckCapCoverage(tmpPolydata, cleaner_test_->GetOutput(), 2))
+		{
+			tmpAppender->AddInputData(tmpPolydata);
+		}
+
+	}
+
+	tmpAppender->Update();
+
 	vtkNew<vtkPolyData> cropped_B;
-	cropped_B->DeepCopy(clipper_1->GetClippedOutput());
+	cropped_B->DeepCopy(tmpAppender->GetOutput());
+	//cropped_B->DeepCopy(clipper_1->GetClippedOutput());
 
 	//--------- Step 3: The normal vectors of the cropped away part of B should be inverted before combining--------
 	vtkNew<vtkPolyDataNormals> normals;
@@ -527,6 +656,10 @@ void MoveData::on_pushButton_testCutV3_clicked()
 	cleaner->Update();
 
 	auto warped_bone = cleaner->GetOutput();
+
+	clock_t cuttingEnd = clock();
+
+	m_Controls.textBrowser_moveData->append("Cutting time: " + QString::number(cuttingEnd - start) + "ms");
 
 	// -----------Step 5: Coloring------------
 	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_G = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
@@ -576,6 +709,10 @@ void MoveData::on_pushButton_testCutV3_clicked()
 	// newNode->SetName(inputSurfaceNode_a->GetName() + "_diffType2");
 	// newNode->SetData(newSurface);
 	// GetDataStorage()->Add(newNode, inputSurfaceNode_a);
+
+	clock_t colorEnd = clock();
+
+	m_Controls.textBrowser_moveData->append("Coloring time: " + QString::number(colorEnd - cuttingEnd) + "ms");
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -855,7 +992,6 @@ void MoveData::on_pushButton_debugRenderer_clicked()
 	
 	auto polyData = GetDataStorage()->GetNamedObject<mitk::Surface>("probe")->GetVtkPolyData();
 
-	
 
 	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputData(polyData);
@@ -866,6 +1002,12 @@ void MoveData::on_pushButton_debugRenderer_clicked()
 	actor->SetMapper(mapper);
 	actor->GetProperty()->SetSpecular(0);
 	actor->GetProperty()->SetAmbient(1);
+	// actor->GetProperty()->SetAmbient(0.05);
+
+	actor->GetProperty()->EdgeVisibilityOn();
+	actor->GetProperty()->BackfaceCullingOn();
+	actor->GetProperty()->SetOpacity(0.5);
+	//actor->GetProperty()->SetRepresentationToWireframe();
 
 	auto iRenderWindowPart = GetRenderWindowPart();
 
