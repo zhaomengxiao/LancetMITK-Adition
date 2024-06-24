@@ -218,7 +218,253 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_gen2Stencils, &QPushButton::clicked, this, &MoveData::on_pushButton_gen2Stencils_clicked);
   connect(m_Controls.pushButton_testCutV3, &QPushButton::clicked, this, &MoveData::on_pushButton_testCutV3_clicked);
 
+  connect(m_Controls.pushButton_cutInitV4, &QPushButton::clicked, this, &MoveData::on_pushButton_cutInitV4_clicked);
+  connect(m_Controls.pushButton_cutV4, &QPushButton::clicked, this, &MoveData::on_pushButton_cutV4_clicked);
+
+
 }
+
+void MoveData::on_pushButton_cutInitV4_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("cup") == nullptr || GetDataStorage()->GetNamedNode("cup+") == nullptr ||
+		GetDataStorage()->GetNamedNode("bone") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("cup, cup+ or bone is missing");
+		return;
+	}
+
+	//--------- Retrieve the data ----------------
+	auto surface_cup = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup")->GetData());
+	auto surface_cupPlus = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup+")->GetData());
+	auto surface_bone = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("bone")->GetData());
+	GetDataStorage()->GetNamedNode("bone")->SetVisibility(false);
+
+	auto polyData_cup = surface_cup->GetVtkPolyData();
+	auto matrix_cup = surface_cup->GetGeometry()->GetVtkMatrix();
+	auto trans_cup = vtkTransform::New();
+	trans_cup->SetMatrix(matrix_cup);
+
+	auto transFilter_cup = vtkTransformPolyDataFilter::New();
+	transFilter_cup->SetTransform(trans_cup);
+	transFilter_cup->SetInputData(polyData_cup);
+	transFilter_cup->Update();
+
+	auto movedPolyData_cup = transFilter_cup->GetOutput();
+
+	auto polyData_cupPlus = surface_cupPlus->GetVtkPolyData();
+	auto matrix_cupPlus = surface_cupPlus->GetGeometry()->GetVtkMatrix();
+	auto trans_cupPlus = vtkTransform::New();
+	trans_cupPlus->SetMatrix(matrix_cupPlus);
+
+	auto transFilter_cupPlus = vtkTransformPolyDataFilter::New();
+	transFilter_cupPlus->SetTransform(trans_cupPlus);
+	transFilter_cupPlus->SetInputData(polyData_cupPlus);
+	transFilter_cupPlus->Update();
+
+	auto movedPolyData_cupPlus = transFilter_cupPlus->GetOutput();
+
+	auto polyData_bone = surface_bone->GetVtkPolyData();
+	auto matrix_bone = surface_bone->GetGeometry()->GetVtkMatrix();
+	auto trans_bone = vtkTransform::New();
+	trans_bone->SetMatrix(matrix_bone);
+
+	auto transFilter_bone = vtkTransformPolyDataFilter::New();
+	transFilter_bone->SetTransform(trans_bone);
+	transFilter_bone->SetInputData(polyData_bone);
+	transFilter_bone->Update();
+
+	auto movedPolyData_bone = transFilter_bone->GetOutput();
+
+
+	//--------- Generate the green part using vtkbool-----------------
+	auto bf_green = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	bf_green->SetInputData(0, movedPolyData_bone);
+	bf_green->SetInputData(1, movedPolyData_cup);
+	bf_green->SetOperModeToIntersection();
+	bf_green->Update();
+
+	if (bf_green->CheckHasContact() == 0)
+	{
+		m_Controls.textBrowser_moveData->append("Green generation failed");
+		return;
+	}
+
+	vtkNew<vtkPolyDataNormals> normals_green;
+	normals_green->SetInputData(bf_green->GetOutput());
+	normals_green->ComputePointNormalsOn();
+	normals_green->ComputeCellNormalsOff();
+	// normals_green->SetFeatureAngle(20);
+	// normals_green->SplittingOn();
+	normals_green->Update();
+
+	// vtkNew<vtkWarpVector> warper_green;
+	// warper_green->SetInputData(normals_green->GetOutput());
+	// warper_green->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+	// 	vtkDataSetAttributes::NORMALS);
+	// warper_green->SetScaleFactor(0);
+	// warper_green->Update();
+	//
+	// vtkNew<vtkPolyDataNormals> normals_green_;
+	// normals_green_->SetInputData(warper_green->GetPolyDataOutput());
+	// normals_green_->ComputePointNormalsOn();
+	// normals_green_->ComputeCellNormalsOff();
+	// // normals_green->SetFeatureAngle(20);
+	// // normals_green->SplittingOn();
+	// normals_green_->Update();
+
+	if (normals_green->GetOutput()->GetNumberOfCells() > 0)
+	{
+		auto newNode = mitk::DataNode::New();
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(normals_green->GetOutput());
+		newNode->SetName("Green region");
+		newNode->SetData(newSurface);
+		newNode->SetFloatProperty("material.specularCoefficient", 0);
+		newNode->SetColor(0, 1, 0);
+		GetDataStorage()->Add(newNode);
+	}
+
+
+	//--------- Generate the white buffer zone using vtkbool----------
+	auto bf_buffer = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	bf_buffer->SetInputData(0, movedPolyData_bone);
+	bf_buffer->SetInputData(1, movedPolyData_cupPlus);
+	bf_buffer->SetOperModeToIntersection();
+	bf_buffer->Update();
+
+	if (bf_buffer->CheckHasContact() == 0)
+	{
+		m_Controls.textBrowser_moveData->append("Green generation failed");
+		return;
+	}
+
+	vtkNew<vtkPolyDataNormals> normals_buffer;
+	normals_buffer->SetInputData(bf_buffer->GetOutput());
+	normals_buffer->ComputePointNormalsOn();
+	normals_buffer->ComputeCellNormalsOff();
+	// normals_green->SetFeatureAngle(20);
+	// normals_green->SplittingOn();
+	normals_buffer->Update();
+	
+	if (normals_buffer->GetOutput()->GetNumberOfCells() > 0)
+	{
+		vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+		implicitPolyDataDistance->SetInput(movedPolyData_cup);
+
+		vtkNew<vtkClipPolyData> clipper;
+		clipper->SetInputData(normals_buffer->GetOutput());
+		// clipper_green->GenerateClippedOutputOn();
+		clipper->SetClipFunction(implicitPolyDataDistance);
+		clipper->Update();
+
+		auto newNode = mitk::DataNode::New();
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(clipper->GetOutput());
+		newNode->SetName("Buffer region");
+		newNode->SetData(newSurface);
+		newNode->SetFloatProperty("material.specularCoefficient", 0);
+		GetDataStorage()->Add(newNode);
+	}
+
+	//--------- Generate the red shell using clipping ---------
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+	implicitPolyDataDistance->SetInput(movedPolyData_cupPlus);
+
+	vtkNew<vtkClipPolyData> clipper;
+	clipper->SetInputData(movedPolyData_bone);
+	clipper->GenerateClippedOutputOn();
+	clipper->SetClipFunction(implicitPolyDataDistance);
+	clipper->Update();
+
+	vtkNew<vtkPolyData> tmpOutput;
+	tmpOutput->DeepCopy(clipper->GetOutput());
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(tmpOutput);
+	// newSurface->SetVtkPolyData(clipper->GetClippedOutput());
+	newNode->SetName("Red core");
+	newNode->SetData(newSurface);
+	newNode->SetFloatProperty("material.specularCoefficient", 0);
+	newNode->SetFloatProperty("material.diffuseCoefficient", 0);
+	newNode->SetFloatProperty("material.ambientCoefficient", 1);
+	newNode->SetColor(0.6, 0, 0);
+	GetDataStorage()->Add(newNode);
+
+
+	//--------- Generate the white shell using clipping ---------
+	auto newNode_ = mitk::DataNode::New();
+	// newSurface->SetVtkPolyData(clipper->GetClippedOutput());
+	newNode_->SetName("White shell");
+	newNode_->SetData(newSurface);
+	newNode_->SetFloatProperty("material.specularCoefficient", 0);
+	newNode_->SetColor(1, 1, 1);
+	newNode_->SetBoolProperty("Backface Culling", true);
+	GetDataStorage()->Add(newNode_);
+
+}
+
+void MoveData::on_pushButton_cutV4_clicked()
+{
+	clock_t start = clock();
+
+	if (GetDataStorage()->GetNamedNode("cutter") == nullptr || GetDataStorage()->GetNamedNode("Buffer region") == nullptr ||
+		GetDataStorage()->GetNamedNode("Red core") == nullptr || GetDataStorage()->GetNamedNode("Green region") == nullptr
+		|| GetDataStorage()->GetNamedNode("White shell") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("cutter, Red core, Buffer region, Green region or White shell is missing");
+		return;
+	}
+
+	//--------- Retrieve the data --------------
+	auto surface_cutter = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cutter")->GetData());
+	auto surface_green = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("Green region")->GetData());
+	auto surface_red = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("Red core")->GetData());
+	auto surface_buffer = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("Buffer region")->GetData());
+	auto surface_white = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("White shell")->GetData());
+
+	auto polyData_cutter = surface_cutter->GetVtkPolyData();
+	auto matrix_cutter = surface_cutter->GetGeometry()->GetVtkMatrix();
+	auto trans_cutter = vtkTransform::New();
+	trans_cutter->SetMatrix(matrix_cutter);
+
+	auto transFilter_cutter = vtkTransformPolyDataFilter::New();
+	transFilter_cutter->SetTransform(trans_cutter);
+	transFilter_cutter->SetInputData(polyData_cutter);
+	transFilter_cutter->Update();
+
+	auto movedPolyData_cutter = transFilter_cutter->GetOutput();
+
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+	implicitPolyDataDistance->SetInput(movedPolyData_cutter);
+
+	//--------- Cut the Green part -------------
+	vtkNew<vtkClipPolyData> clipper_green;
+	clipper_green->SetInputData(surface_green->GetVtkPolyData());
+	// clipper_green->GenerateClippedOutputOn();
+	clipper_green->SetClipFunction(implicitPolyDataDistance);
+	clipper_green->Update();
+
+	surface_green->SetVtkPolyData(clipper_green->GetOutput());
+
+	//--------- Cut the buffer zone -------------
+	vtkNew<vtkClipPolyData> clipper_buffer;
+	clipper_buffer->SetInputData(surface_buffer->GetVtkPolyData());
+	// clipper_green->GenerateClippedOutputOn();
+	clipper_buffer->SetClipFunction(implicitPolyDataDistance);
+	clipper_buffer->Update();
+
+	surface_buffer->SetVtkPolyData(clipper_buffer->GetOutput());
+
+
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	clock_t endTimer = clock();
+
+	m_Controls.textBrowser_moveData->append("Cutting time: " + QString::number(endTimer - start) + "ms");
+}
+
 
 bool MoveData::CheckCapCoverage(vtkSmartPointer<vtkPolyData> cap, vtkSmartPointer<vtkPolyData> polyData, double distanceThres, double outLierpercentageThres)
 {
