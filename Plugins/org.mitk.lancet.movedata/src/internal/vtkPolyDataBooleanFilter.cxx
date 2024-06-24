@@ -64,6 +64,10 @@ int vtkPolyDataBooleanFilter::CheckHasContact()
 	return HasContact;
 }
 
+void vtkPolyDataBooleanFilter::SetNeglectingMode(bool status)
+{
+	NeglectingModeStatus = status;
+}
 
 vtkPolyDataBooleanFilter::vtkPolyDataBooleanFilter () {
 
@@ -194,8 +198,11 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
                 contLines->GetPointCells(i, cells);
 
                 if (cells->GetNumberOfIds() == 1) {
-                    //vtkErrorMacro("Contact ends suddenly.");
-                    //return 1;
+                    vtkErrorMacro("Contact ends suddenly.");
+					if (!NeglectingModeStatus)
+					{
+						return 1;
+					}
                 }
 
             }
@@ -225,7 +232,10 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
                 GetPolyStrips(modPdB, contsB, sourcesB, polyStripsB)) {
 
                 vtkErrorMacro("Strips are invalid.");
-                return 1;
+				if (!NeglectingModeStatus)
+				{
+					return 1;
+				}
             }
 
             // löscht bestimmte strips
@@ -233,7 +243,9 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
             if (CleanStrips()) {
                 vtkErrorMacro("There is no contact.");
 				HasContact = 0;
-                return 1;
+			
+            	return 1;
+			
             }
 
             times.push_back(clock::now()-start);
@@ -246,7 +258,10 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
                 CutCells(modPdB, polyStripsB)) {
 
                 vtkErrorMacro("CutCells failed.");
-                return 1;
+				if (!NeglectingModeStatus)
+				{
+					return 1;
+				}
             }
 
             times.push_back(clock::now()-start);
@@ -343,7 +358,10 @@ int vtkPolyDataBooleanFilter::RequestData(vtkInformation *request, vtkInformatio
 
         if (CombineRegions()) {
             vtkErrorMacro("Boolean operation failed.");
-            return 1;
+			if (!NeglectingModeStatus)
+			{
+				return 1;
+			}
         }
 
         times.push_back(clock::now()-start);

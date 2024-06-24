@@ -220,7 +220,7 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
 }
 
-bool MoveData::CheckCapCoverage(vtkSmartPointer<vtkPolyData> cap, vtkSmartPointer<vtkPolyData> polyData, double thres)
+bool MoveData::CheckCapCoverage(vtkSmartPointer<vtkPolyData> cap, vtkSmartPointer<vtkPolyData> polyData, double distanceThres, double outLierpercentageThres)
 {
 	auto boundaryEdges = vtkSmartPointer<vtkFeatureEdges>::New();
 	boundaryEdges->BoundaryEdgesOn();
@@ -261,7 +261,7 @@ bool MoveData::CheckCapCoverage(vtkSmartPointer<vtkPolyData> cap, vtkSmartPointe
 
 		// Compute the distance
 		double distance = vtkMath::Distance2BetweenPoints(pointA, pointB);
-		if (distance > thres) {
+		if (distance > distanceThres) {
 
 			// auto tmpNode = mitk::DataNode::New();
 			// tmpNode->SetData(tmpPset);
@@ -278,7 +278,7 @@ bool MoveData::CheckCapCoverage(vtkSmartPointer<vtkPolyData> cap, vtkSmartPointe
 	// tmpNode->SetName("debugPset");
 	// GetDataStorage()->Add(tmpNode);
 
-	if( outlierNum/totalEdgeNum < 0.1)
+	if( outlierNum/totalEdgeNum < outLierpercentageThres)
 	{
 		return true;
 	}
@@ -562,13 +562,55 @@ void MoveData::on_pushButton_testCutV3_clicked()
 	pierced_A->DeepCopy(clipper_0->GetOutput());
 
 	//------- Step 2: Use A to crop B, and get the cropped away part of B-------------
+	//-------------- 0621 backup -----------------
+	// vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance_a;
+	// implicitPolyDataDistance_a->SetInput(movedPolyData_a);
+	//
+	// vtkNew<vtkClipPolyData> clipper_1;
+	// clipper_1->SetInputData(movedPolyData_b);
+	// clipper_1->GenerateClippedOutputOn();
+	// clipper_1->SetClipFunction(implicitPolyDataDistance_a);
+
+	//-------------- 0621 trial  ------------------
+	// vtkNew<vtkPolyDataNormals> normals;
+	// normals->SetInputData(movedPolyData_a);
+	// normals->SplittingOff();
+	//
+	// double warpFactor = m_Controls.lineEdit_warpFactor->text().toDouble();
+	//
+	// if (warpFactor < 0)
+	// {
+	// 	normals->SetFlipNormals(true);
+	// }
+	//
+	// normals->Update();
+
+	// Warp using the normals
+	vtkNew<vtkWarpVector> warper;
+	warper->SetInputData(movedPolyData_a);
+	warper->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+		vtkDataSetAttributes::NORMALS);
+	warper->SetScaleFactor(abs(0.04));
+	warper->Update();
+
+	vtkNew<vtkPolyDataNormals> normals_;
+	normals_->SetInputData(warper->GetPolyDataOutput());
+	normals_->Update();
+
+	vtkNew<vtkTriangleFilter> triangles;
+	triangles->SetInputData(normals_->GetOutput());
+	triangles->Update();
+
+
 	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance_a;
-	implicitPolyDataDistance_a->SetInput(movedPolyData_a);
+	implicitPolyDataDistance_a->SetInput(triangles->GetOutput());
 
 	vtkNew<vtkClipPolyData> clipper_1;
 	clipper_1->SetInputData(movedPolyData_b);
 	clipper_1->GenerateClippedOutputOn();
 	clipper_1->SetClipFunction(implicitPolyDataDistance_a);
+
+	// --------------------------------------------
 
 	clipper_1->Update();
 
@@ -619,7 +661,7 @@ void MoveData::on_pushButton_testCutV3_clicked()
 		// GetDataStorage()->Add(testNode);
 		////////
 
-		if(CheckCapCoverage(tmpPolydata, cleaner_test_->GetOutput(), 2))
+		if(CheckCapCoverage(tmpPolydata, cleaner_test_->GetOutput(), 0.2, 0.2))
 		{
 			tmpAppender->AddInputData(tmpPolydata);
 		}

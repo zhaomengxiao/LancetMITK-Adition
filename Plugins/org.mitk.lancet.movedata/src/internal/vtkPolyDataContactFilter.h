@@ -117,6 +117,7 @@ class VTK_EXPORT vtkPolyDataContactFilter : public vtkPolyDataAlgorithm {
     bool aborted;
 
 	int HasContact{ 1 };
+	bool NeglectingModeStatus{ 0 }; // 1: neglect all errors
 
 public:
     vtkTypeMacro(vtkPolyDataContactFilter, vtkPolyDataAlgorithm);
@@ -126,6 +127,7 @@ public:
     static int InterOBBNodes (vtkOBBNode *nodeA, vtkOBBNode *nodeB, vtkMatrix4x4 *mat, void *caller);
 
 	int CheckHasContact();
+	void SetNeglectingMode(bool status);
 
 protected:
     vtkPolyDataContactFilter ();

@@ -290,6 +290,7 @@ class VTK_EXPORT vtkPolyDataBooleanFilter : public vtkPolyDataAlgorithm {
     int OperMode;
 
 	int HasContact{ 1 };
+	bool NeglectingModeStatus{ 0 }; // 1: neglect all errors
 
 public:
     vtkTypeMacro(vtkPolyDataBooleanFilter, vtkPolyDataAlgorithm);
@@ -304,6 +305,7 @@ public:
     void SetOperModeToDifference () { OperMode = OPER_DIFFERENCE; Modified(); }
     void SetOperModeToDifference2 () { OperMode = OPER_DIFFERENCE2; Modified(); }
 	int CheckHasContact();
+	void SetNeglectingMode(bool status);
 
 protected:
     vtkPolyDataBooleanFilter ();

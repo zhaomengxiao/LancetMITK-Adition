@@ -57,6 +57,11 @@ int vtkPolyDataContactFilter::CheckHasContact()
 	return HasContact;
 }
 
+void vtkPolyDataContactFilter::SetNeglectingMode(bool status)
+{
+	 NeglectingModeStatus = status;
+}
+
 vtkPolyDataContactFilter::vtkPolyDataContactFilter () {
     SetNumberOfInputPorts(2);
     SetNumberOfOutputPorts(3);
@@ -147,23 +152,34 @@ int vtkPolyDataContactFilter::RequestData (vtkInformation *request, vtkInformati
 
         if (aborted) {
             vtkErrorMacro("Bad shaped cells detected.");
-            return 1;
+			if(!NeglectingModeStatus)
+			{
+				return 1;
+			}
         }
 
         if (invalidA) {
-            //vtkErrorMacro("First input has non-manifold edges.");
-            //return 1;
+            vtkErrorMacro("First input has non-manifold edges.");
+			if (!NeglectingModeStatus)
+			{
+				return 1;
+			}
         }
 
         if (invalidB) {
             vtkErrorMacro("Second input has non-manifold edges.");
-        	return 1;
+			if (!NeglectingModeStatus)
+			{
+				return 1;
+			}
         }
 
         if (contLines->GetNumberOfCells() == 0) {
 			HasContact = 0;
             vtkErrorMacro("There is no contact.");
-            return 1;
+		
+        	return 1;
+		
         }
 
         contLines->GetCellData()->AddArray(contA);
@@ -704,12 +720,12 @@ void vtkPolyDataContactFilter::InterPolys (vtkIdType idA, vtkIdType idB) {
     dB = vtkMath::Dot(nB, ptB);
 
     if (!CheckNormal(newPdA->GetPoints(), numA, polyA, nA, dA)) {
-        //aborted = true;
+        aborted = true;
         return;
     }
 
     if (!CheckNormal(newPdB->GetPoints(), numB, polyB, nB, dB)) {
-        //aborted = true;
+        aborted = true;
         return;
     }
 
@@ -763,12 +779,12 @@ void vtkPolyDataContactFilter::InterPolys (vtkIdType idA, vtkIdType idB) {
     InterPtsType intersA, intersB;
 
     if (!vtkPolyDataContactFilter::InterPolyLine(intersA, newPdA, numA, polyA, r, s, Src::A, nA)) {
-        //aborted = true;
+        aborted = true;
         return;
     }
 
     if (!vtkPolyDataContactFilter::InterPolyLine(intersB, newPdB, numB, polyB, r, s, Src::B, nB)) {
-        //aborted = true;
+        aborted = true;
         return;
     }
 
