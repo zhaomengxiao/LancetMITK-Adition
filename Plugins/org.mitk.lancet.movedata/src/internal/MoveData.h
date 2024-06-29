@@ -17,6 +17,7 @@ found in the LICENSE file.
 #include <berryISelectionListener.h>
 
 #include <QmitkAbstractView.h>
+#include <MRMesh/MRMesh.h>
 
 #include "QmitkDataStorageTreeModel.h"
 #include "QmitkSingleNodeSelectionWidget.h"
@@ -210,6 +211,10 @@ protected:
   void on_pushButton_cutInitV4_clicked();
 
   void on_pushButton_cutV4_clicked();
+
+  void on_pushButton_meshlibTest_clicked();
+  MR::Mesh bone;
+  MR::Mesh cutter;
 
 };
 

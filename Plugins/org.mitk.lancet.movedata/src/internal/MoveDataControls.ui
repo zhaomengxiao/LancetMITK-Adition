@@ -71,7 +71,7 @@
    <item row="2" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>4</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
@@ -1630,6 +1630,19 @@
        </property>
        <property name="text">
         <string>Reconstruct surface</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_meshlibTest">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>370</y>
+         <width>141</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Test MeshLib</string>
        </property>
       </widget>
      </widget>
