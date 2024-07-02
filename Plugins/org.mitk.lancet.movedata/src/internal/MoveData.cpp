@@ -328,8 +328,7 @@ void MoveData::on_pushButton_meshlibTest_clicked()
 {
 	clock_t start_0 = clock();
 
-	// Load mesh
-
+	//-------------- Load mesh ----------------------
 	if(bone.topology.getAllTriVerts().size() == 0)
 	{
 		bone = MR::MeshLoad::fromAnySupportedFormat("E:/tmp/bone.stl").value();
@@ -339,33 +338,38 @@ void MoveData::on_pushButton_meshlibTest_clicked()
 	
 	clock_t start = clock();
 
-	// apply transformation to the cutter
+	//-------------- Apply translation to the cutter ------------------------
 	auto cutterMatrix = GetDataStorage()->GetNamedNode("cutter")->GetData()->GetGeometry()->GetVtkMatrix();
 	MR::AffineXf3f translation = MR::AffineXf3f::translation(MR::Vector3f(cutterMatrix->GetElement(0,3),
 		cutterMatrix->GetElement(1, 3) 
 		, cutterMatrix->GetElement(2, 3)));
 
-	MR::AffineXf3f translation_minus = MR::AffineXf3f::translation(MR::Vector3f(-cutterMatrix->GetElement(0, 3),
-		-cutterMatrix->GetElement(1, 3)
-		, -cutterMatrix->GetElement(2, 3)));
+	
 
 	cutter.transform(translation);
 
-	// perform boolean operation
+	//------------- Perform boolean operation ----------------------------
 	MR::BooleanResult result_cut = MR::boolean(bone, cutter, MR::BooleanOperation::DifferenceAB);
 	MR::Mesh resultMesh_cut = *result_cut;
 	if (!result_cut.valid())
+	{
 		std::cerr << result_cut.errorString << "\n";
+		return;
+	}
 
 	bone = resultMesh_cut;
+
+	//------------ Move the cutter to the initial place ------------------
+	MR::AffineXf3f translation_minus = MR::AffineXf3f::translation(MR::Vector3f(-cutterMatrix->GetElement(0, 3),
+		-cutterMatrix->GetElement(1, 3)
+		, -cutterMatrix->GetElement(2, 3)));
 
 	cutter.transform(translation_minus);
 
 	clock_t cutEnd = clock();
 
-	// save result to STL file
-	// MR::MeshSave::toAnySupportedFormat(resultMesh_cut, "E:/tmp/result.stl");
-
+	
+	//------------- Convert the cut result to vtkPolyData for display purpose ---------------
 	// all vertices of valid triangles
 	const std::vector<std::array<MR::VertId, 3>> triangles = resultMesh_cut.topology.getAllTriVerts();
 
@@ -381,8 +385,6 @@ void MoveData::on_pushButton_meshlibTest_clicked()
 	// triangle vertices as tripples of ints (pointing to elements in points vector)
 	const int* vertexTripples = reinterpret_cast<const int*>(triangles.data());
 
-	////////////////////
-
 	// Step 1: Create points
 	auto vtkPoints = vtkPoints::New();
 
@@ -391,9 +393,11 @@ void MoveData::on_pushButton_meshlibTest_clicked()
 		vtkPoints->InsertNextPoint(points[i].x, points[i].y, points[i].z);
 	}
 
+
+	// Step 2: Create a triangle and collect all the triangles
+
 	auto vtkTriangles = vtkCellArray::New();
 
-	// Step 2: Create a triangle
 	for (int i{ 0 }; i < cellNum; i++)
 	{
 		auto vtkTriangle = vtkTriangle::New();
@@ -404,39 +408,122 @@ void MoveData::on_pushButton_meshlibTest_clicked()
 		vtkTriangles->InsertNextCell(vtkTriangle);
 	}
 
-	//
-	// // Step 3: Create a cell array to store the triangle in
-	// vtkSmartPointer<vtkCellArray> triangles = vtkSmartPointer<vtkCellArray>::New();
-	// triangles->InsertNextCell(triangle);
-	//
-	// Step 4: Create a polydata object and add the points and triangles to it
+	// Step 3: Create a polydata object and add the points and triangles to it
 	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints(vtkPoints);
 	polyData->SetPolys(vtkTriangles);
 
 	clock_t convertEnd = clock();
 
+	// ------------------- Apply normal filter for Gouraud display --------------------
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(polyData);
+	normals->Update();
+
+	vtkNew<vtkWarpVector> warper;
+	warper->SetInputData(normals->GetOutput());
+	warper->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+		vtkDataSetAttributes::NORMALS);
+	warper->SetScaleFactor(0.04);
+	warper->Update();
+
+	vtkNew<vtkPolyDataNormals> normals_;
+	normals_->SetInputData(warper->GetPolyDataOutput());
+	normals_->Update();
+
+	auto cutResult = normals_->GetOutput();
+
+	//------------------- Coloring --------------------------
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_G = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_G->SetInputData(cutResult);
+	selectEnclosedPoints_G->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Green_stencil")->GetVtkPolyData());
+	// selectEnclosedPoints_G->SetTolerance(1);
+	selectEnclosedPoints_G->Update();
+
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_R = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_R->SetInputData(cutResult);
+	selectEnclosedPoints_R->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Red_stencil")->GetVtkPolyData());
+	selectEnclosedPoints_R->Update();
+
+	// vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
+	// vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
+
+	vtkSmartPointer<vtkFloatArray> scalars = vtkSmartPointer<vtkFloatArray>::New();
+	scalars->SetNumberOfComponents(1);
+	scalars->SetName("Scalars");
+
+	for (vtkIdType i = 0; i < cutResult->GetNumberOfPoints(); ++i)
+	{
+		if (selectEnclosedPoints_G->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(100);
+			continue;
+		}
+
+		if (selectEnclosedPoints_R->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(250);
+			continue;
+		}
+
+		scalars->InsertNextValue(0);
+
+	}
+
+	cutResult->GetPointData()->SetScalars(scalars);
+
+	//------------------- Coloring End ----------------------
+
+
+
 	if(GetDataStorage()->GetNamedNode("Test")==nullptr)
 	{
 		auto newNode = mitk::DataNode::New();
 		auto newSurface = mitk::Surface::New();
-		newSurface->SetVtkPolyData(polyData);
+		newSurface->SetVtkPolyData(cutResult);
 		newNode->SetName("Test");
 		newNode->SetData(newSurface);
 		GetDataStorage()->Add(newNode);
+
+		mitk::TransferFunctionProperty::Pointer transferProp0;
+		newNode->GetProperty(transferProp0, "Surface.TransferFunction");
+
+		// Create a transfer function
+		mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
+
+		// Modify the transfer function (add control points, adjust properties, etc.)
+		// For example, you can add control points for opacity and color:
+		transferFunction->AddRGBPoint(0, 1.0, 1.0, 1.0);
+		transferFunction->AddRGBPoint(100, 0.0, 1.0, 0.0);
+		transferFunction->AddRGBPoint(255, 1.0, 0.0, 0.0);
+
+		if (transferProp0 != nullptr)
+		{
+			transferProp0->SetValue(transferFunction);
+		}
+		else
+		{
+			transferProp0 = mitk::TransferFunctionProperty::New();
+			transferProp0->SetValue(transferFunction);
+		}
+
+		newNode->SetProperty("Surface.TransferFunction", transferProp0);
+		newNode->SetBoolProperty("scalar visibility", true);
+		newNode->SetFloatProperty("material.specularCoefficient", 0);
+
 	}else
 	{
-		GetDataStorage()->GetNamedObject<mitk::Surface>("Test")->SetVtkPolyData(polyData);
+		GetDataStorage()->GetNamedObject<mitk::Surface>("Test")->SetVtkPolyData(cutResult);
 	}
-	
 
 	m_Controls.textBrowser_moveData->append("Read time: " + QString::number(start - start_0));
 	m_Controls.textBrowser_moveData->append("Cutting time: " + QString::number(cutEnd - start));
 	m_Controls.textBrowser_moveData->append("Convert time: " + QString::number(convertEnd - cutEnd));
 
 
-	MR::AffineXf3f xf = MR::AffineXf3f::translation(MR::Vector3f(0.7f, 0.0f, 0.0f));
-
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
 void MoveData::on_pushButton_cutInitV4_clicked()
