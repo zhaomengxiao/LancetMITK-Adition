@@ -104,6 +104,7 @@ found in the LICENSE file.
 #include "MRMesh/MRMeshBoolean.h"
 #include "MRMesh/MRMeshSave.h"
 #include "MRMesh/MRMeshLoad.h"
+#include "MRMesh/MRMeshDecimate.h"
 
 const std::string MoveData::VIEW_ID = "org.mitk.views.movedata";
 
@@ -419,6 +420,61 @@ void MoveData::on_pushButton_cutInitV5_clicked()
 
 }
                       
+void MoveData::TurnMRMeshIntoPolyDataDebug(MR::Mesh MRMesh, vtkSmartPointer<vtkPolyData> PolyData)
+{
+	//------------- Convert the cut result to vtkPolyData for display purpose ---------------
+	// all vertices of valid triangles
+	const std::vector<std::array<MR::VertId, 3>> triangles = MRMesh.topology.getAllTriVerts();
+
+	size_t cellNum = triangles.size();
+	// m_Controls.textBrowser_moveData->append("Cell num:" + QString::number(cellNum));
+
+	// all point coordinates
+	const std::vector<MR::Vector3f>& points = MRMesh.points.vec_;
+
+	size_t ptNum = points.size();
+	// m_Controls.textBrowser_moveData->append("Point num:" + QString::number(ptNum));
+
+	// triangle vertices as tripples of ints (pointing to elements in points vector)
+	const int* vertexTripples = reinterpret_cast<const int*>(triangles.data());
+
+	// Step 1: Create points
+	vtkNew<vtkPoints> vtkPoints;
+
+	for (int i{ 0 }; i < ptNum; i++)
+	{
+		vtkPoints->InsertNextPoint(points[i].x, points[i].y, points[i].z);
+	}
+
+
+	// Step 2: Create a triangle and collect all the triangles
+
+	vtkNew<vtkCellArray> vtkTriangles;
+
+	for (int i{ 0 }; i < cellNum; i++)
+	{
+		vtkNew<vtkTriangle> vtkTriangle;
+		for (int j{ 0 }; j < 3; j++)
+		{
+			vtkTriangle->GetPointIds()->SetId(j, vertexTripples[3 * i + j]);
+		}
+		vtkTriangles->InsertNextCell(vtkTriangle);
+	}
+
+	// Step 3: Create a polydata object and add the points and triangles to it
+	vtkNew<vtkPolyData> newPolyData;
+	newPolyData->SetPoints(vtkPoints);
+	newPolyData->SetPolys(vtkTriangles);
+
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(newPolyData);
+	normals->Update();
+
+	// PolyData->DeepCopy(normals->GetOutput());
+
+	
+}
+
 void MoveData::TurnMRMeshIntoPolyData(MR::Mesh MRMesh, vtkSmartPointer<vtkPolyData> PolyData)
 {
 	//------------- Convert the cut result to vtkPolyData for display purpose ---------------
@@ -438,7 +494,7 @@ void MoveData::TurnMRMeshIntoPolyData(MR::Mesh MRMesh, vtkSmartPointer<vtkPolyDa
 	const int* vertexTripples = reinterpret_cast<const int*>(triangles.data());
 
 	// Step 1: Create points
-	vtkSmartPointer<vtkPoints> vtkPoints = vtkPoints::New();
+	vtkNew<vtkPoints> vtkPoints;
 
 	for (int i{ 0 }; i < ptNum; i++)
 	{
@@ -448,11 +504,11 @@ void MoveData::TurnMRMeshIntoPolyData(MR::Mesh MRMesh, vtkSmartPointer<vtkPolyDa
 
 	// Step 2: Create a triangle and collect all the triangles
 
-	vtkSmartPointer<vtkCellArray> vtkTriangles = vtkCellArray::New();
+	vtkNew<vtkCellArray> vtkTriangles;
 
 	for (int i{ 0 }; i < cellNum; i++)
 	{
-		auto vtkTriangle = vtkTriangle::New();
+		vtkNew<vtkTriangle> vtkTriangle;
 		for (int j{ 0 }; j < 3; j++)
 		{
 			vtkTriangle->GetPointIds()->SetId(j, vertexTripples[3 * i + j]);
@@ -461,7 +517,7 @@ void MoveData::TurnMRMeshIntoPolyData(MR::Mesh MRMesh, vtkSmartPointer<vtkPolyDa
 	}
 
 	// Step 3: Create a polydata object and add the points and triangles to it
-	vtkSmartPointer<vtkPolyData> newPolyData = vtkSmartPointer<vtkPolyData>::New();
+	vtkNew<vtkPolyData> newPolyData;
 	newPolyData->SetPoints(vtkPoints);
 	newPolyData->SetPolys(vtkTriangles);
 
@@ -471,8 +527,8 @@ void MoveData::TurnMRMeshIntoPolyData(MR::Mesh MRMesh, vtkSmartPointer<vtkPolyDa
 
 	PolyData->DeepCopy(normals->GetOutput());
 
-}
 
+}
 
 void MoveData::on_pushButton_cutV5_clicked()
 {
@@ -493,11 +549,14 @@ void MoveData::on_pushButton_cutV5_clicked()
 	MR::Vector3f t(cutterMatrix->GetElement(0, 3), cutterMatrix->GetElement(1, 3), cutterMatrix->GetElement(2, 3));
 	MR::Matrix3f r(x,y,z);
 	MR::AffineXf3f T(r, t);
-	MR::AffineXf3f T_invert = T.inverse();
 
 	m_Cutter_mesh.transform(T);
 
 	clock_t start = clock();
+
+	// MR::DecimateSettings settings;
+	// settings.maxError = 0.2f;
+
 	//------------ MeshLib Boolean -------------------
 	//------------ Green -----------
 	if(GetDataStorage()->GetNamedObject<mitk::Surface>("green")->GetVtkPolyData()->GetPoints()->GetNumberOfPoints() > 0)
@@ -506,14 +565,17 @@ void MoveData::on_pushButton_cutV5_clicked()
 
 		MR::Mesh tmp_mesh = *booleanResult;
 
-		// if(tmp_mesh.points.vec_.size() > 0)
+
+		 //if(tmp_mesh.points.vec_.size() > 0)
 		{
 			m_Green_mesh = tmp_mesh;
-			vtkSmartPointer<vtkPolyData> greenPolyData = vtkPolyData::New();
+			vtkNew<vtkPolyData> greenPolyData;
 			TurnMRMeshIntoPolyData(m_Green_mesh, greenPolyData);
-			auto tmpSurface = mitk::Surface::New();
-			tmpSurface->SetVtkPolyData(greenPolyData);
-			GetDataStorage()->GetNamedNode("green")->SetData(tmpSurface);
+			// auto tmpSurface = mitk::Surface::New();
+			// tmpSurface->SetVtkPolyData(greenPolyData);
+			// GetDataStorage()->GetNamedNode("green")->SetData(tmpSurface);
+			GetDataStorage()->GetNamedObject<mitk::Surface>("green")->ReleaseData();
+			GetDataStorage()->GetNamedObject<mitk::Surface>("green")->SetVtkPolyData(greenPolyData);
 			
 		}
 		
@@ -523,7 +585,7 @@ void MoveData::on_pushButton_cutV5_clicked()
 	if (GetDataStorage()->GetNamedObject<mitk::Surface>("shell")->GetVtkPolyData()->GetPoints()->GetNumberOfPoints() > 0)
 	{
 		m_Shell_mesh = *(MR::boolean(m_Shell_mesh, m_Cutter_mesh, MR::BooleanOperation::OutsideA));
-		auto shellPolyData = vtkPolyData::New();
+		vtkNew<vtkPolyData> shellPolyData;
 		TurnMRMeshIntoPolyData(m_Shell_mesh, shellPolyData);
 		GetDataStorage()->GetNamedObject<mitk::Surface>("shell")->ReleaseData();
 		GetDataStorage()->GetNamedObject<mitk::Surface>("shell")->SetVtkPolyData(shellPolyData);
@@ -533,7 +595,7 @@ void MoveData::on_pushButton_cutV5_clicked()
 	if (GetDataStorage()->GetNamedObject<mitk::Surface>("red")->GetVtkPolyData()->GetPoints()->GetNumberOfPoints() > 0)
 	{
 		m_Red_mesh = *(MR::boolean(m_Red_mesh, m_Cutter_mesh, MR::BooleanOperation::DifferenceAB));
-		auto RedPolyData = vtkPolyData::New();
+		vtkNew<vtkPolyData> RedPolyData;
 		TurnMRMeshIntoPolyData(m_Red_mesh, RedPolyData);
 		GetDataStorage()->GetNamedObject<mitk::Surface>("red")->ReleaseData();
 		GetDataStorage()->GetNamedObject<mitk::Surface>("red")->SetVtkPolyData(RedPolyData);
@@ -543,13 +605,14 @@ void MoveData::on_pushButton_cutV5_clicked()
 	if (GetDataStorage()->GetNamedObject<mitk::Surface>("buffer")->GetVtkPolyData()->GetPoints()->GetNumberOfPoints() > 0)
 	{
 		m_Buffer_mesh = *(MR::boolean(m_Buffer_mesh, m_Cutter_mesh, MR::BooleanOperation::DifferenceAB));
-		auto BufferPolyData = vtkPolyData::New();
+		vtkNew<vtkPolyData>  BufferPolyData;
 		TurnMRMeshIntoPolyData(m_Buffer_mesh, BufferPolyData);
 		GetDataStorage()->GetNamedObject<mitk::Surface>("buffer")->ReleaseData();
 		GetDataStorage()->GetNamedObject<mitk::Surface>("buffer")->SetVtkPolyData(BufferPolyData);
 	}
 
 	//------------- Move the cutter back to initial --------------
+	MR::AffineXf3f T_invert = T.inverse();
 	m_Cutter_mesh.transform(T_invert);
 
 	clock_t end = clock();
