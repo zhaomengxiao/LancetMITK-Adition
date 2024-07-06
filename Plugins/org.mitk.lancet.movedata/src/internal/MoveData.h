@@ -212,9 +212,20 @@ protected:
 
   void on_pushButton_cutV4_clicked();
 
+  // MeshLib rudimentary trial
   void on_pushButton_meshlibTest_clicked();
   MR::Mesh bone;
   MR::Mesh cutter;
+
+  // Use MeshLib to realize THA reaming
+  void on_pushButton_cutInitV5_clicked();
+  void on_pushButton_cutV5_clicked();
+  void TurnMRMeshIntoPolyData(MR::Mesh MRMesh, vtkSmartPointer<vtkPolyData> PolyData);
+  MR::Mesh m_Green_mesh;
+  MR::Mesh m_Buffer_mesh;
+  MR::Mesh m_Shell_mesh;
+  MR::Mesh m_Red_mesh;
+  MR::Mesh m_Cutter_mesh;
 
 };
 
