@@ -94,11 +94,17 @@ found in the LICENSE file.
 #include <vtkSignedDistance.h>
 
 #include <iostream>
+#include <vtkCellData.h>
+#include <vtkConeSource.h>
+#include <vtkCylinderSource.h>
+#include <vtkPolygon.h>
+#include <vtkSphereSource.h>
 #include <vtkSTLReader.h>
 #include <vtkSTLWriter.h>
 #include <vtkTriangle.h>
 #include <MRMesh/MRVector3.h>
 
+#include "mitkVtkMapper3D.h"
 #include "MRMesh/MRMesh.h"
 #include "MRMesh/MRUVSphere.h"
 #include "MRMesh/MRMeshBoolean.h"
@@ -194,14 +200,8 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_testStencil, &QPushButton::clicked, this, &MoveData::on_pushButton_testStencil_clicked);
 
-  connect(m_Controls.pushButton_gen5planes, &QPushButton::clicked, this, &MoveData::on_pushButton_gen5planes_clicked);
-
   connect(m_Controls.pushButton_testIntersect, &QPushButton::clicked, this, &MoveData::on_pushButton_testIntersect_clicked);
   connect(m_Controls.pushButto_interpolation, &QPushButton::clicked, this, &MoveData::on_pushButto_interpolation_clicked);
-
-  connect(m_Controls.pushButton_testClip, &QPushButton::clicked, this, &MoveData::on_pushButton_testClip_clicked);
-
-  connect(m_Controls.pushButton_vtkBool, &QPushButton::clicked, this, &MoveData::on_pushButton_vtkBool_clicked);
 
   connect(m_Controls.pushButton_inverNormal, &QPushButton::clicked, this, &MoveData::on_pushButton_inverNormal_clicked);
   connect(m_Controls.pushButton_fixhole, &QPushButton::clicked, this, &MoveData::on_pushButton_fixhole_clicked);
@@ -214,16 +214,13 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_clipAway, &QPushButton::clicked, this, &MoveData::on_pushButton_clipAway_clicked);
   connect(m_Controls.pushButton_append, &QPushButton::clicked, this, &MoveData::on_pushButton_append_clicked);
 
-
   connect(m_Controls.pushButton_initTHAcutting, &QPushButton::clicked, this, &MoveData::on_pushButton_initTHAcutting_clicked);
   connect(m_Controls.pushButton_testCut, &QPushButton::clicked, this, &MoveData::on_pushButton_testCut_clicked);
 
   connect(m_Controls.pushButton_gen3Region, &QPushButton::clicked, this, &MoveData::on_pushButton_gen3Region_clicked);
   connect(m_Controls.pushButton_testCutV2, &QPushButton::clicked, this, &MoveData::on_pushButton_testCutV2_clicked);
 
-  connect(m_Controls.pushButton_colorPolyData, &QPushButton::clicked, this, &MoveData::on_pushButton_colorPolyData_clicked);
-
-  connect(m_Controls.pushButton_debugRenderer, &QPushButton::clicked, this, &MoveData::on_pushButton_debugRenderer_clicked);
+  connect(m_Controls.pushButton_elevateSurface, &QPushButton::clicked, this, &MoveData::on_pushButton_elevateSurface_clicked);
 
   connect(m_Controls.pushButton_surfaceReconstruct, &QPushButton::clicked, this, &MoveData::on_pushButton_surfaceReconstruct_clicked);
   connect(m_Controls.pushButton_diff_type2, &QPushButton::clicked, this, &MoveData::on_pushButton_diff_type2_clicked);
@@ -234,11 +231,10 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_cutInitV4, &QPushButton::clicked, this, &MoveData::on_pushButton_cutInitV4_clicked);
   connect(m_Controls.pushButton_cutV4, &QPushButton::clicked, this, &MoveData::on_pushButton_cutV4_clicked);
 
-  connect(m_Controls.pushButton_meshlibTest, &QPushButton::clicked, this, &MoveData::on_pushButton_meshlibTest_clicked);
-
   connect(m_Controls.pushButton_cutInitV5, &QPushButton::clicked, this, &MoveData::on_pushButton_cutInitV5_clicked);
   connect(m_Controls.pushButton_cutV5, &QPushButton::clicked, this, &MoveData::on_pushButton_cutV5_clicked);
 
+  connect(m_Controls.pushButton_generateReamer, &QPushButton::clicked, this, &MoveData::on_pushButton_generateReamer_clicked);
 
 }
 
@@ -709,213 +705,6 @@ void MoveData::on_pushButton_cutV5_clicked()
 	clock_t end = clock();
 
 	m_Controls.textBrowser_moveData->append("Cutting time: " + QString::number(end - start));
-
-	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
-}
-
-
-void MoveData::on_pushButton_meshlibTest_clicked()
-{
-	clock_t start_0 = clock();
-
-	//-------------- Load mesh ----------------------
-	if(bone.topology.getAllTriVerts().size() == 0)
-	{
-		bone = MR::MeshLoad::fromAnySupportedFormat("E:/tmp/bone.stl").value();
-		cutter = MR::MeshLoad::fromAnySupportedFormat("E:/tmp/cutter.stl").value();
-	}
-
-	
-	clock_t start = clock();
-
-	//-------------- Apply translation to the cutter ------------------------
-	auto cutterMatrix = GetDataStorage()->GetNamedNode("cutter")->GetData()->GetGeometry()->GetVtkMatrix();
-	MR::AffineXf3f translation = MR::AffineXf3f::translation(MR::Vector3f(cutterMatrix->GetElement(0,3),
-		cutterMatrix->GetElement(1, 3) 
-		, cutterMatrix->GetElement(2, 3)));
-
-	
-
-	cutter.transform(translation);
-
-	//------------- Perform boolean operation ----------------------------
-	MR::BooleanResult result_cut = MR::boolean(bone, cutter, MR::BooleanOperation::DifferenceAB);
-	MR::Mesh resultMesh_cut = *result_cut;
-	if (!result_cut.valid())
-	{
-		std::cerr << result_cut.errorString << "\n";
-		return;
-	}
-
-	bone = resultMesh_cut;
-
-	//------------ Move the cutter to the initial place ------------------
-	MR::AffineXf3f translation_minus = MR::AffineXf3f::translation(MR::Vector3f(-cutterMatrix->GetElement(0, 3),
-		-cutterMatrix->GetElement(1, 3)
-		, -cutterMatrix->GetElement(2, 3)));
-
-	cutter.transform(translation_minus);
-
-
-	clock_t cutEnd = clock();
-
-	
-	//------------- Convert the cut result to vtkPolyData for display purpose ---------------
-	// all vertices of valid triangles
-	const std::vector<std::array<MR::VertId, 3>> triangles = resultMesh_cut.topology.getAllTriVerts();
-
-	size_t cellNum = triangles.size();
-	// m_Controls.textBrowser_moveData->append("Cell num:" + QString::number(cellNum));
-
-	// all point coordinates
-	const std::vector<MR::Vector3f>& points = resultMesh_cut.points.vec_;
-
-	size_t ptNum = points.size();
-	// m_Controls.textBrowser_moveData->append("Point num:" + QString::number(ptNum));
-
-	// triangle vertices as tripples of ints (pointing to elements in points vector)
-	const int* vertexTripples = reinterpret_cast<const int*>(triangles.data());
-
-	// Step 1: Create points
-	auto vtkPoints = vtkPoints::New();
-
-	for (int i{ 0 }; i < ptNum; i++)
-	{
-		vtkPoints->InsertNextPoint(points[i].x, points[i].y, points[i].z);
-	}
-
-
-	// Step 2: Create a triangle and collect all the triangles
-
-	auto vtkTriangles = vtkCellArray::New();
-
-	for (int i{ 0 }; i < cellNum; i++)
-	{
-		auto vtkTriangle = vtkTriangle::New();
-		for (int j{ 0 }; j < 3; j++)
-		{
-			vtkTriangle->GetPointIds()->SetId(j, vertexTripples[3 * i + j]);
-		}
-		vtkTriangles->InsertNextCell(vtkTriangle);
-	}
-
-	// Step 3: Create a polydata object and add the points and triangles to it
-	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
-	polyData->SetPoints(vtkPoints);
-	polyData->SetPolys(vtkTriangles);
-
-	clock_t convertEnd = clock();
-
-
-    //------------------- Coloring --------------------------
-	// ------------------- Apply normal filter for Gouraud display --------------------
-	vtkNew<vtkPolyDataNormals> normals;
-	normals->SetInputData(polyData);
-	normals->Update();
-
-	vtkNew<vtkWarpVector> warper;
-	warper->SetInputData(normals->GetOutput());
-	warper->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
-		vtkDataSetAttributes::NORMALS);
-	warper->SetScaleFactor(0.04);
-	warper->Update();
-
-	vtkNew<vtkPolyDataNormals> normals_;
-	normals_->SetInputData(warper->GetPolyDataOutput());
-	normals_->Update();
-
-	auto cutResult = normals_->GetOutput();
-
-	
-	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_G = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
-	selectEnclosedPoints_G->SetInputData(cutResult);
-	selectEnclosedPoints_G->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Green_stencil")->GetVtkPolyData());
-	// selectEnclosedPoints_G->SetTolerance(1);
-	selectEnclosedPoints_G->Update();
-
-	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_R = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
-	selectEnclosedPoints_R->SetInputData(cutResult);
-	selectEnclosedPoints_R->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Red_stencil")->GetVtkPolyData());
-	selectEnclosedPoints_R->Update();
-
-	// vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
-	// vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
-
-	vtkSmartPointer<vtkFloatArray> scalars = vtkSmartPointer<vtkFloatArray>::New();
-	scalars->SetNumberOfComponents(1);
-	scalars->SetName("Scalars");
-
-	for (vtkIdType i = 0; i < cutResult->GetNumberOfPoints(); ++i)
-	{
-		if (selectEnclosedPoints_G->IsInside(i))
-		{
-			// insidePoints->InsertNextPoint(bone->GetPoint(i));
-			scalars->InsertNextValue(100);
-			continue;
-		}
-
-		if (selectEnclosedPoints_R->IsInside(i))
-		{
-			// insidePoints->InsertNextPoint(bone->GetPoint(i));
-			scalars->InsertNextValue(250);
-			continue;
-		}
-
-		scalars->InsertNextValue(0);
-
-	}
-
-	cutResult->GetPointData()->SetScalars(scalars);
-
-	//------------------- Coloring End ----------------------
-
-	clock_t colorEnd = clock();
-
-	if(GetDataStorage()->GetNamedNode("Test")==nullptr)
-	{
-		auto newNode = mitk::DataNode::New();
-		auto newSurface = mitk::Surface::New();
-		newSurface->SetVtkPolyData(cutResult);
-		newNode->SetName("Test");
-		newNode->SetData(newSurface);
-		GetDataStorage()->Add(newNode);
-
-		mitk::TransferFunctionProperty::Pointer transferProp0;
-		newNode->GetProperty(transferProp0, "Surface.TransferFunction");
-
-		// Create a transfer function
-		mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
-
-		// Modify the transfer function (add control points, adjust properties, etc.)
-		// For example, you can add control points for opacity and color:
-		transferFunction->AddRGBPoint(0, 1.0, 1.0, 1.0);
-		transferFunction->AddRGBPoint(100, 0.0, 1.0, 0.0);
-		transferFunction->AddRGBPoint(255, 1.0, 0.0, 0.0);
-
-		if (transferProp0 != nullptr)
-		{
-			transferProp0->SetValue(transferFunction);
-		}
-		else
-		{
-			transferProp0 = mitk::TransferFunctionProperty::New();
-			transferProp0->SetValue(transferFunction);
-		}
-
-		newNode->SetProperty("Surface.TransferFunction", transferProp0);
-		newNode->SetBoolProperty("scalar visibility", true);
-		newNode->SetFloatProperty("material.specularCoefficient", 0);
-
-	}else
-	{
-		GetDataStorage()->GetNamedObject<mitk::Surface>("Test")->SetVtkPolyData(cutResult);
-	}
-
-	m_Controls.textBrowser_moveData->append("Read time: " + QString::number(start - start_0));
-	m_Controls.textBrowser_moveData->append("Cutting time: " + QString::number(cutEnd - start));
-	m_Controls.textBrowser_moveData->append("Convert time: " + QString::number(convertEnd - cutEnd));
-	m_Controls.textBrowser_moveData->append("Color time: " + QString::number(colorEnd - convertEnd));
-
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -1427,6 +1216,8 @@ void MoveData::on_pushButton_gen2Stencils_clicked()
 	transferFunction->AddRGBPoint(0, 1.0, 1.0, 1.0);
 	transferFunction->AddRGBPoint(100, 0.0, 1.0, 0.0);
 	transferFunction->AddRGBPoint(255, 1.0, 0.0, 0.0);
+	transferFunction->AddScalarOpacityPoint(0,  0);
+
 
 	if (transferProp0 != nullptr)
 	{
@@ -1914,13 +1705,16 @@ int MoveData::on_pushButton_clipAway_clicked()
 
 	clipper->Update();
 	vtkNew<vtkPolyData> tmpOutput;
-	tmpOutput->DeepCopy(clipper->GetOutput());
+	tmpOutput->DeepCopy(clipper->GetClippedOutput());
 
+	auto cleaner = vtkCleanPolyData::New();
+	cleaner->SetInputData(tmpOutput);
+	cleaner->Update();
 
 	auto newNode = mitk::DataNode::New();
 	auto newSurface = mitk::Surface::New();
 	// newSurface->SetVtkPolyData(tmpOutput);
-	newSurface->SetVtkPolyData(clipper->GetClippedOutput());
+	newSurface->SetVtkPolyData(cleaner->GetOutput());
 	newNode->SetName(inputSurfaceNode_a->GetName() + "_clippedAway");
 	newNode->SetData(newSurface);
 	GetDataStorage()->Add(newNode, inputSurfaceNode_a);
@@ -1971,198 +1765,328 @@ void MoveData::on_pushButton_surfaceReconstruct_clicked()
 	GetDataStorage()->Add(newNode);
 }
 
-void MoveData::on_pushButton_debugRenderer_clicked()
+void MoveData::on_pushButton_elevateSurface_clicked()
 {
-	
-	auto polyData = GetDataStorage()->GetNamedObject<mitk::Surface>("probe")->GetVtkPolyData();
-
-
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputData(polyData);
-	mapper->SetResolveCoincidentTopologyToPolygonOffset();
-	mapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(0, -36000);
-
-	vtkSmartPointer<vtkActor>  actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(mapper);
-	actor->GetProperty()->SetSpecular(0);
-	actor->GetProperty()->SetAmbient(1);
-	// actor->GetProperty()->SetAmbient(0.05);
-
-	actor->GetProperty()->EdgeVisibilityOn();
-	actor->GetProperty()->BackfaceCullingOn();
-	actor->GetProperty()->SetOpacity(0.5);
-	//actor->GetProperty()->SetRepresentationToWireframe();
-
-	auto iRenderWindowPart = GetRenderWindowPart();
-
-	QmitkRenderWindow* mitkRenderWindow = iRenderWindowPart->GetQmitkRenderWindow("3d");
-
-	auto renderWindow = mitkRenderWindow->GetVtkRenderWindow();
-
-	auto testMapper = GetDataStorage()->GetNamedNode("probe")->GetMapper(mitkRenderWindow->GetRenderer()->GetMapperID());
-	//
-	mitk::VtkMapper* vtkMapper = dynamic_cast<mitk::VtkMapper*>(mapper.GetPointer());
-	if (!vtkMapper) {
-		std::cerr << "The mapper is not a VTK mapper" << std::endl;
-	}
-
-
-	vtkSmartPointer<vtkRenderer> renderer;
-
-	renderer = renderWindow->GetRenderers()->GetFirstRenderer();
-
-	m_Controls.textBrowser_moveData->append("Num of renders: " + QString::number(renderWindow->GetRenderers()->GetNumberOfItems()));
-
-
-	// renderWindow->SetAlphaBitPlanes(1);
-	// renderWindow->SetMultiSamples(0);
-	//
-	// renderer->UseDepthPeelingOn();
-	// renderer->UseDepthPeelingForVolumesOn();
-	renderer->RemoveActor(renderer->GetActors()->GetLastActor());
-
-	renderer->AddActor(actor);
-	
-	// renderer->SetBackground(255, 255, 255);
-
-	m_Controls.textBrowser_moveData->append("Num of actors: " + QString::number(renderer->GetActors()->GetNumberOfItems()));
-
-	//renderer->GetActors()->GetLastActor()->GetMapper()->SetResolveCoincidentTopologyToPolygonOffset();
-	//renderer->GetActors()->GetLastActor()->GetMapper()->SetRelativeCoincidentTopologyPolygonOffsetParameters(1, -100);
-}
-
-void MoveData::on_pushButton_colorPolyData_clicked()
-{
-	if (GetDataStorage()->GetNamedNode("Green") == nullptr ||
-		GetDataStorage()->GetNamedNode("bone") == nullptr ||
-		GetDataStorage()->GetNamedNode("Red_warped") == nullptr)
+	if(m_currentSelectedNode == nullptr)
 	{
-		m_Controls.textBrowser_moveData->append("Red_warped, Green or bone is missing");
 		return;
 	}
 
-	auto bone = GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->GetVtkPolyData();
-	auto greenRegion = GetDataStorage()->GetNamedObject<mitk::Surface>("Green")->GetVtkPolyData();
-	auto redRegion = GetDataStorage()->GetNamedObject<mitk::Surface>("Red_warped")->GetVtkPolyData();
-
-	vtkNew<vtkPolyData> bone_copy;
-	bone_copy->DeepCopy(bone);
-
-	vtkNew<vtkPolyData> bone_back;
-	bone_back->DeepCopy(bone);
-
-	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_G = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
-	selectEnclosedPoints_G->SetInputData(bone);
-	selectEnclosedPoints_G->SetSurfaceData(greenRegion);
-	selectEnclosedPoints_G->Update();
-
-	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_R = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
-	selectEnclosedPoints_R->SetInputData(bone_copy);
-	selectEnclosedPoints_R->SetSurfaceData(redRegion);
-	selectEnclosedPoints_R->Update();
-
-	// vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
-	// vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
-
-	vtkSmartPointer<vtkFloatArray> scalars = vtkSmartPointer<vtkFloatArray>::New();
-	scalars->SetNumberOfComponents(1);
-	// scalars->GetNumberOfComponents();
-	scalars->SetName("Scalars");
-
-	for (vtkIdType i = 0; i < bone->GetNumberOfPoints(); ++i)
+	mitk::Mapper::Pointer mapper = m_currentSelectedNode->GetMapper(mitk::BaseRenderer::Standard3D);
+	mitk::SurfaceVtkMapper3D::Pointer vtkMapper = dynamic_cast<mitk::SurfaceVtkMapper3D*>(mapper.GetPointer());
+	if (!vtkMapper)
 	{
-		if (selectEnclosedPoints_G->IsInside(i))
-		{
-			// insidePoints->InsertNextPoint(bone->GetPoint(i));
-			scalars->InsertNextValue(100);
-			continue;
-		}
-
-		if (selectEnclosedPoints_R->IsInside(i))
-		{
-			// insidePoints->InsertNextPoint(bone->GetPoint(i));
-			scalars->InsertNextValue(250);
-			continue;
-		}
-		
-		scalars->InsertNextValue(0);
-		
+		std::cerr << "No vtkMapper3D found for the DataNode!" << std::endl;
+		return;
 	}
 
-	// vtkSmartPointer<vtkPolyData> insidePolydata = vtkSmartPointer<vtkPolyData>::New();
-	// insidePolydata->SetPoints(insidePoints);
+	auto iRenderWindowPart = GetRenderWindowPart();
+	QmitkRenderWindow* mitkRenderWindow = iRenderWindowPart->GetQmitkRenderWindow("3d");
 
+	vtkActor* actor = dynamic_cast<vtkActor*>(vtkMapper->GetVtkProp(mitkRenderWindow->GetRenderer()));
 
-	// Extract the cells (polygons) of polydata_A that have all their points inside polydata_B
-	// for (vtkIdType i = 0; i < bone->GetNumberOfCells(); ++i)
-	// {
-	// 	vtkCell* cell = bone->GetCell(i);
-	// 	bool inside = true;
-	// 	for (vtkIdType j = 0; j < cell->GetNumberOfPoints(); ++j)
-	// 	{
-	// 		if (!selectEnclosedPoints_G->IsInside(cell->GetPointId(j)))
-	// 		{
-	// 			inside = false;
-	// 			break;
-	// 		}
-	// 	}
-	// 	if (inside)
-	// 	{
-	// 		insideCells->InsertNextCell(cell);
-	// 	}
-	// }
-
-	// insidePolydata->SetPolys(insideCells);
-
-	vtkSmartPointer<vtkDataArray> tmpScalars = bone_copy->GetPointData()->GetNormals();
-	// vtkSmartPointer<vtkDataArray> testArray ;
-	// testArray->Initialize();
-	// testArray->DeepCopy(tmpScalars);
-	bone_back->GetPointData()->SetScalars(scalars);
-	bone_back->GetPointData()->SetNormals(tmpScalars);
-	
-
-	auto newNode = mitk::DataNode::New();
-	auto newSurface = mitk::Surface::New();
-	newSurface->SetVtkPolyData(bone_back);
-	newNode->SetName("Testing");
-	newNode->SetData(newSurface);
-	GetDataStorage()->Add(newNode);
-
-	mitk::TransferFunctionProperty::Pointer transferProp0;
-	GetDataStorage()->GetNamedNode("Testing")->GetProperty(transferProp0, "Surface.TransferFunction");
-	// transferProp0->SetInterpolationToFlat();
-	// GetDataStorage()->GetNamedNode("pros")->SetProperty("material.interpolation", interpolationProp0);
-	
-	// Create a transfer function
-	mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
-	
-	// Modify the transfer function (add control points, adjust properties, etc.)
-	// For example, you can add control points for opacity and color:
-	transferFunction->AddRGBPoint(0, 1.0, 1.0, 1.0);
-	transferFunction->AddRGBPoint(100, 0.0, 1.0, 0.0);
-	transferFunction->AddRGBPoint(255, 1.0, 0.0, 0.0);
-
-	if(transferProp0 != nullptr)
+	if (!actor)
 	{
-		transferProp0->SetValue(transferFunction);
+		std::cerr << "No vtkActor found for the mitk::Surface!" << std::endl;
+		return;
+	}
+
+	auto polyDataMapper = dynamic_cast<vtkPolyDataMapper*>(actor->GetMapper());
+
+	double factor, units;
+	polyDataMapper->GetRelativeCoincidentTopologyPolygonOffsetParameters(factor, units);
+
+	if(abs(units) < 0.01)
+	{
+		polyDataMapper->SetResolveCoincidentTopologyToPolygonOffset();
+		polyDataMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(0, -36000);
 	}
 	else
 	{
-		transferProp0 = mitk::TransferFunctionProperty::New();
-		transferProp0->SetValue(transferFunction);
+		polyDataMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(0, 0);
 	}
 
-
-	GetDataStorage()->GetNamedNode("Testing")->SetProperty("Surface.TransferFunction", transferProp0);
-
-	GetDataStorage()->GetNamedNode("Testing")->SetBoolProperty("scalar visibility", true);
-
-	GetDataStorage()->GetNamedNode("Testing")->SetFloatProperty("material.specularCoefficient", 0);
-
+	
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 
 }
+
+
+void MoveData::on_pushButton_generateReamer_clicked()
+{
+	// ----------- Step 0: Retrieve the parameters from UI ----------
+	double radius = m_Controls.lineEdit_reamerRadius->text().toDouble();
+	double postLen = m_Controls.lineEdit_reamerPostLen->text().toDouble();
+	double meshThicknessRatio = m_Controls.lineEdit_reamerMeshThick->text().toDouble();
+
+	int longitudeDivNum{ 32 };
+	int latitudeDivNum{ 32 };
+
+	//------------ Step 1: draw a sphere and hide it ------------------
+	vtkNew<vtkSphereSource> sphereSource;
+	sphereSource->SetCenter(0.0, 0.0, 0.0);
+	sphereSource->SetThetaResolution(longitudeDivNum);
+	sphereSource->SetPhiResolution(latitudeDivNum);
+	sphereSource->SetRadius(radius);
+	sphereSource->Update();
+
+	auto sphereSurface = mitk::Surface::New();
+	sphereSurface->SetVtkPolyData(sphereSource->GetOutput());
+
+	auto sphereNode = mitk::DataNode::New();
+	QString sphereNodeName = QString("sphere_") + m_Controls.lineEdit_reamerRadius->text();
+	sphereNode->SetData(sphereSurface);
+	sphereNode->SetName(sphereNodeName.toStdString().c_str());
+	sphereNode->SetVisibility(0);
+	GetDataStorage()->Add(sphereNode);
+
+	//------------ Step 2: clip the sphere with a vtkPlane ------------------
+	auto clippingPlane = vtkSmartPointer<vtkPlane>::New();
+	clippingPlane->SetNormal(0.0, 0.0, 1.0);
+	clippingPlane->SetOrigin(0.0, 0.0, 0.0);
+
+	// Clip the sphere
+	auto clipper = vtkSmartPointer<vtkClipPolyData>::New();
+	clipper->SetInputConnection(sphereSource->GetOutputPort());
+	clipper->SetClipFunction(clippingPlane);
+	clipper->Update();
+
+	vtkNew<vtkTriangleFilter> triFilter;
+	triFilter->SetInputData(clipper->GetOutput());
+	triFilter->Update();
+
+	auto polyData = triFilter->GetOutput();
+
+	int initCellNum = polyData->GetNumberOfCells();
+
+	vtkNew<vtkCellArray> cells;
+	vtkNew<vtkPoints> points;
+	for (vtkIdType i{ 0 }; i < initCellNum; i++)
+	{
+		// Insert the first 2 points into the new "points"
+		double firstPt[3];
+		int firstPointID = polyData->GetCell(i)->GetPointId(0);
+		polyData->GetPoints()->GetPoint(firstPointID, firstPt);
+
+		double secondPt[3];
+		int secondPointID = polyData->GetCell(i)->GetPointId(1);
+		polyData->GetPoints()->GetPoint(secondPointID, secondPt);
+
+		double thirdPt[3];
+		int thirdPointID = polyData->GetCell(i)->GetPointId(2);
+		polyData->GetPoints()->GetPoint(thirdPointID, thirdPt);
+
+		double center[3]
+		{
+			(firstPt[0] + secondPt[0] + thirdPt[0]) / 3,
+			(firstPt[1] + secondPt[1] + thirdPt[1]) / 3,
+			(firstPt[2] + secondPt[2] + thirdPt[2]) / 3
+		};
+
+		double firstPt_new[3]
+		{
+			firstPt[0] + meshThicknessRatio * (center[0] - firstPt[0]),
+			firstPt[1] + meshThicknessRatio * (center[1] - firstPt[1]),
+			firstPt[2] + meshThicknessRatio * (center[2] - firstPt[2])
+		};
+
+		double secondPt_new[3]
+		{
+			secondPt[0] + meshThicknessRatio * (center[0] - secondPt[0]),
+			secondPt[1] + meshThicknessRatio * (center[1] - secondPt[1]),
+			secondPt[2] + meshThicknessRatio * (center[2] - secondPt[2])
+		};
+
+		double thirdPt_new[3]
+		{
+			thirdPt[0] + meshThicknessRatio * (center[0] - thirdPt[0]),
+			thirdPt[1] + meshThicknessRatio * (center[1] - thirdPt[1]),
+			thirdPt[2] + meshThicknessRatio * (center[2] - thirdPt[2])
+		};
+
+		points->InsertNextPoint(firstPt);
+		points->InsertNextPoint(firstPt_new);
+		points->InsertNextPoint(secondPt);
+		points->InsertNextPoint(secondPt_new);
+		points->InsertNextPoint(thirdPt);
+		points->InsertNextPoint(thirdPt_new);
+
+		vtkNew<vtkPolygon> poly;
+		poly->GetPointIds()->SetNumberOfIds(4);
+		poly->GetPointIds()->SetId(0, 6 * i);
+		poly->GetPointIds()->SetId(1, 6 * i + 1);
+		poly->GetPointIds()->SetId(2, 6 * i + 5);
+		poly->GetPointIds()->SetId(3, 6 * i + 4);
+
+		vtkNew<vtkPolygon> poly_1;
+		poly_1->GetPointIds()->SetNumberOfIds(4);
+		poly_1->GetPointIds()->SetId(0, 6 * i + 2);
+		poly_1->GetPointIds()->SetId(1, 6 * i + 3);
+		poly_1->GetPointIds()->SetId(2, 6 * i + 1);
+		poly_1->GetPointIds()->SetId(3, 6 * i);
+
+		vtkNew<vtkPolygon> poly_2;
+		poly_2->GetPointIds()->SetNumberOfIds(4);
+		poly_2->GetPointIds()->SetId(0, 6 * i + 4);
+		poly_2->GetPointIds()->SetId(1, 6 * i + 5);
+		poly_2->GetPointIds()->SetId(2, 6 * i + 3);
+		poly_2->GetPointIds()->SetId(3, 6 * i + 2);
+
+		cells->InsertNextCell(poly);
+		cells->InsertNextCell(poly_1);
+		cells->InsertNextCell(poly_2);
+	}
+
+	vtkNew<vtkPolyData> hemispherePoly;
+
+	hemispherePoly->SetPoints(points);
+	hemispherePoly->SetPolys(cells);
+
+	auto hemisphereSurface = mitk::Surface::New();
+	hemisphereSurface->SetVtkPolyData(hemispherePoly);
+
+	auto hemisphereNode = mitk::DataNode::New();
+	QString hemisphereNodeName = QString("hemisphere_") + m_Controls.lineEdit_reamerRadius->text();
+	hemisphereNode->SetData(hemisphereSurface);
+	hemisphereNode->SetName(hemisphereNodeName.toStdString().c_str());
+	hemisphereNode->SetVisibility(1);
+	hemisphereNode->SetBoolProperty("Backface Culling", true);
+	hemisphereNode->SetFloatProperty("material.specularCoefficient", 0.0);
+	hemisphereNode->SetColor(0, 0, 1);
+	GetDataStorage()->Add(hemisphereNode, sphereNode);
+	
+	//------------ Step 3: generate the post ------------------
+	vtkNew<vtkCylinderSource> cylinderSource;
+
+	cylinderSource->SetRadius(0.5);    // Radius of the cylinder
+	cylinderSource->SetHeight(postLen);    // Height of the cylinder
+	cylinderSource->SetResolution(32); // Number of sides of the cylinder (smoothness)
+	cylinderSource->Update();
+
+	vtkNew<vtkTransform> transform;
+	transform->Translate(0, 0, -postLen / 2);
+	transform->RotateX(90.0);
+
+	auto transformFilter = vtkSmartPointer<vtkTransformFilter>::New();
+	transformFilter->SetInputConnection(cylinderSource->GetOutputPort());
+	transformFilter->SetTransform(transform);
+	transformFilter->Update();
+
+
+	auto cylinderSurface = mitk::Surface::New();
+	cylinderSurface->SetVtkPolyData(transformFilter->GetPolyDataOutput());
+
+	auto cylinderNode = mitk::DataNode::New();
+	QString cylinderNodeName = QString("cylinder_") + m_Controls.lineEdit_reamerRadius->text();
+	cylinderNode->SetData(cylinderSurface);
+	cylinderNode->SetName(cylinderNodeName.toStdString().c_str());
+	cylinderNode->SetVisibility(1);
+	cylinderNode->SetBoolProperty("Backface Culling", true);
+	cylinderNode->SetFloatProperty("material.specularCoefficient", 0.0);
+	cylinderNode->SetColor(0, 0, 1);
+	GetDataStorage()->Add(cylinderNode, sphereNode);
+
+
+	//------------ Step 4: generate the cap ------------------
+
+
+
+	// auto polyData_ = GetDataStorage()->GetNamedObject<mitk::Surface>("probe")->GetVtkPolyData();
+	//
+	// vtkNew<vtkPolyData> polyData;
+	// polyData->DeepCopy(polyData_);
+	//
+	// vtkNew<vtkPolyData> polyData_New;
+	//
+	// int initCellNum = polyData_->GetNumberOfCells();
+	//
+	// vtkNew<vtkCellArray> cells;
+	// vtkNew<vtkPoints> points;
+	// for(vtkIdType i{0}; i < initCellNum; i++)
+	// {
+	// 	// Insert the first 2 points into the new "points"
+	// 	double firstPt[3];
+	// 	int firstPointID = polyData->GetCell(i)->GetPointId(0);
+	// 	polyData->GetPoints()->GetPoint(firstPointID, firstPt);
+	//
+	// 	double secondPt[3];
+	// 	int secondPointID = polyData->GetCell(i)->GetPointId(1);
+	// 	polyData->GetPoints()->GetPoint(secondPointID, secondPt);
+	//
+	// 	double thirdPt[3];
+	// 	int thirdPointID = polyData->GetCell(i)->GetPointId(2);
+	// 	polyData->GetPoints()->GetPoint(thirdPointID, thirdPt);
+	//
+	// 	double center[3]
+	// 	{
+	// 		(firstPt[0]+ secondPt[0]+thirdPt[0])/3,
+	// 		(firstPt[1] + secondPt[1] + thirdPt[1]) / 3,
+	// 		(firstPt[2] + secondPt[2] + thirdPt[2]) / 3
+	// 	};
+	//
+	// 	double firstPt_new[3]
+	// 	{
+	// 		firstPt[0] + 0.1 * (center[0] - firstPt[0]),
+	// 		firstPt[1] + 0.1 * (center[1] - firstPt[1]),
+	// 		firstPt[2] + 0.1 * (center[2] - firstPt[2])
+	// 	};
+	//
+	// 	double secondPt_new[3]
+	// 	{
+	// 		secondPt[0] + 0.1 * (center[0] - secondPt[0]),
+	// 		secondPt[1] + 0.1 * (center[1] - secondPt[1]),
+	// 		secondPt[2] + 0.1 * (center[2] - secondPt[2])
+	// 	};
+	//
+	// 	double thirdPt_new[3]
+	// 	{
+	// 		thirdPt[0] + 0.1 * (center[0] - thirdPt[0]),
+	// 		thirdPt[1] + 0.1 * (center[1] - thirdPt[1]),
+	// 		thirdPt[2] + 0.1 * (center[2] - thirdPt[2])
+	// 	};
+	//
+	// 	points->InsertNextPoint(firstPt);
+	// 	points->InsertNextPoint(firstPt_new);
+	// 	points->InsertNextPoint(secondPt);
+	// 	points->InsertNextPoint(secondPt_new);
+	// 	points->InsertNextPoint(thirdPt);
+	// 	points->InsertNextPoint(thirdPt_new);
+	//
+	// 	vtkNew<vtkPolygon> poly;
+	// 	poly->GetPointIds()->SetNumberOfIds(4);
+	// 	poly->GetPointIds()->SetId(0, 6*i);
+	// 	poly->GetPointIds()->SetId(1, 6 * i + 1);
+	// 	poly->GetPointIds()->SetId(2, 6 * i + 5);
+	// 	poly->GetPointIds()->SetId(3, 6 * i + 4);
+	//
+	// 	vtkNew<vtkPolygon> poly_1;
+	// 	poly_1->GetPointIds()->SetNumberOfIds(4);
+	// 	poly_1->GetPointIds()->SetId(0, 6 * i + 2);
+	// 	poly_1->GetPointIds()->SetId(1, 6 * i + 3);
+	// 	poly_1->GetPointIds()->SetId(2, 6 * i + 1);
+	// 	poly_1->GetPointIds()->SetId(3, 6 * i);
+	//
+	// 	vtkNew<vtkPolygon> poly_2;
+	// 	poly_2->GetPointIds()->SetNumberOfIds(4);
+	// 	poly_2->GetPointIds()->SetId(0, 6 * i + 4);
+	// 	poly_2->GetPointIds()->SetId(1, 6 * i + 5);
+	// 	poly_2->GetPointIds()->SetId(2, 6 * i + 3);
+	// 	poly_2->GetPointIds()->SetId(3, 6 * i + 2);
+	//
+	// 	cells->InsertNextCell(poly);
+	// 	cells->InsertNextCell(poly_1);
+	// 	cells->InsertNextCell(poly_2);
+	// }
+	//
+	// polyData_New->SetPoints(points);
+	// polyData_New->SetPolys(cells);
+	//
+	//
+	// GetDataStorage()->GetNamedObject<mitk::Surface>("probe")->SetVtkPolyData(polyData_New);
+
+}
+
+
 
 void MoveData::on_pushButton_gen3Region_clicked()
 {
@@ -3048,11 +2972,15 @@ int MoveData::on_pushButton_implicitClip_clicked()
 	vtkNew<vtkPolyData> tmpOutput;
 	tmpOutput->DeepCopy(clipper->GetOutput());
 
+	auto cleaner = vtkCleanPolyData::New();
+	cleaner->SetInputData(tmpOutput);
+	cleaner->Update();
+
 	clock_t end = clock();
 
 	auto newNode = mitk::DataNode::New();
 	auto newSurface = mitk::Surface::New();
-	newSurface->SetVtkPolyData(tmpOutput);
+	newSurface->SetVtkPolyData(cleaner->GetOutput());
 	// newSurface->SetVtkPolyData(clipper->GetClippedOutput());
 	newNode->SetName(inputSurfaceNode_a->GetName() + "_clipped");
 	newNode->SetData(newSurface);
@@ -3074,128 +3002,6 @@ int MoveData::on_pushButton_implicitClip_clicked()
 	return 1;
 
 }
-
-
-
-void MoveData::on_pushButton_vtkBool_clicked()
-{
-	if (GetDataStorage()->GetNamedNode("bone") == nullptr || GetDataStorage()->GetNamedNode("saw") == nullptr)
-	{
-		m_Controls.textBrowser_moveData->append("bone or saw is missing");
-		return;
-	}
-
-	// get the bone polyData
-	auto bonePolyData = GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->GetVtkPolyData();
-
-	// vtkNew<vtkFillHolesFilter> holeFiller0;
-	// holeFiller0->SetInputData(bonePolyData);
-	// holeFiller0->SetHoleSize(10);
-	// holeFiller0->Update();
-	// vtkNew<vtkPolyData> bonePolyDataFix;
-	// bonePolyDataFix->DeepCopy(holeFiller0->GetOutput());
-
-	// vtkNew<vtkPolyDataNormals> normals_bone;
-	// normals_bone->SetInputData(bonePolyDataFix);
-	// normals_bone->ComputePointNormalsOn();
-	// normals_bone->ComputeCellNormalsOn();
-	// normals_bone->SetFeatureAngle(20);
-	// normals_bone->FlipNormalsOn();
-	// normals_bone->SplittingOn();
-	// normals_bone->Update();
-
-
-
-
-	// get the saw polyData
-	auto sawpolyData = GetDataStorage()->GetNamedObject<mitk::Surface>("saw")->GetVtkPolyData();
-	auto sawMatrix = GetDataStorage()->GetNamedObject<mitk::Surface>("saw")->GetGeometry()->GetVtkMatrix();
-	auto sawTrans = vtkTransform::New();
-	sawTrans->SetMatrix(sawMatrix);
-
-	// apply the transform
-	auto tmpTransFilter = vtkTransformPolyDataFilter::New();
-	tmpTransFilter->SetTransform(sawTrans);
-	tmpTransFilter->SetInputData(sawpolyData);
-	tmpTransFilter->Update();
-
-	auto sawMovedPolyData = tmpTransFilter->GetOutput();
-
-	clock_t start = clock();
-
-	auto bf = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
-	bf->SetInputData(0, bonePolyData);
-	bf->SetInputData(1, sawMovedPolyData);
-	bf->SetOperModeToDifference();
-	bf->Update();
-
-	vtkNew<vtkPolyDataNormals> normals;
-	normals->SetInputData(bf->GetOutput());
-	normals->ComputePointNormalsOn();
-	normals->ComputeCellNormalsOn();
-	normals->SetFeatureAngle(20);
-	normals->SplittingOn();
-	normals->Update();
-
-	if(normals->GetOutput()->GetNumberOfCells() > 0)
-	{
-		GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->SetVtkPolyData(normals->GetOutput());
-	}
-
-	MITK_WARN << "Test.Interface.time.TestClip" << (clock() - start);
-}
-
-
-void MoveData::on_pushButton_testClip_clicked()
-{
-	if(GetDataStorage()->GetNamedNode("bone") == nullptr || GetDataStorage()->GetNamedNode("saw") == nullptr)
-	{
-		m_Controls.textBrowser_moveData->append("bone or saw is missing");
-		return; 
-	}
-
-	// get the bone polyData
-	auto bonePolyData = GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->GetVtkPolyData();
-
-	// get the saw polyData
-	auto sawpolyData = GetDataStorage()->GetNamedObject<mitk::Surface>("saw")->GetVtkPolyData();
-	auto sawMatrix = GetDataStorage()->GetNamedObject<mitk::Surface>("saw")->GetGeometry()->GetVtkMatrix();
-	auto sawTrans = vtkTransform::New();
-	sawTrans->SetMatrix(sawMatrix);
-
-	// apply the transform
-	auto tmpTransFilter = vtkTransformPolyDataFilter::New();
-	tmpTransFilter->SetTransform(sawTrans);
-	tmpTransFilter->SetInputData(sawpolyData);
-	tmpTransFilter->Update();
-
-	auto sawMovedPolyData = tmpTransFilter->GetOutput();
-
-	// vtkNew<vtkClipClosedSurface> clipper;
-	// clipper->SetInputData(sawMovedPolyData);
-	// clipper->SetClippingPlanes()
-
-	clock_t start = clock();
-	
-
-	// Implicit function that will be used to slice the mesh.
-	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
-	implicitPolyDataDistance->SetInput(sawMovedPolyData);
-
-	vtkNew<vtkClipPolyData> clipper;
-	clipper->SetInputData(bonePolyData);
-	clipper->GenerateClippedOutputOn();
-	clipper->SetClipFunction(implicitPolyDataDistance);
-
-	clipper->Update();
-	vtkNew<vtkPolyData> clippedOutput;
-	clippedOutput->DeepCopy(clipper->GetOutput());
-	
-	GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->SetVtkPolyData(clippedOutput);
-
-	MITK_WARN << "Test.Interface.time.TestClip" << (clock() - start);
-}
-
 
 void MoveData::on_pushButto_interpolation_clicked()
 {
@@ -4309,153 +4115,6 @@ void MoveData::on_pushButton_testIntersect_clicked()
 }
 
 
-
-
-void MoveData::on_pushButton_gen5planes_clicked()
-{
-	auto tmpPset = GetDataStorage()->GetNamedObject<mitk::PointSet>("PointSet");
-
-	auto p1 = tmpPset->GetPoint(0);
-	auto p2 = tmpPset->GetPoint(1);
-	auto p3 = tmpPset->GetPoint(2);
-
-	Eigen::Vector3d v1;
-	v1[0] = p1[0] - p2[0];
-	v1[1] = p1[1] - p2[1];
-	v1[2] = p1[2] - p2[2];
-
-	Eigen::Vector3d v2; 
-	v2[0] = p3[0] - p2[0];
-	v2[1] = p3[1] - p2[1];
-	v2[2] = p3[2] - p2[2];
-
-	auto v3 = v1.cross(v2);
-	v3.normalize();
-	m_Controls.textBrowser_moveData->append("/X: " + QString::number(v3[0]) + "/Y: " + QString::number(v3[1]) + "/Z: " + QString::number(v3[2]));
-
-	// Anterior
-	double anteriorNormal[3]{-0.01, -0.5, -0.87};
-	double anteriorCenter[3]{3034.19, 1804.66, -427.50};
-	auto anteriorPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
-	
-	anteriorPlaneSource->SetOrigin(0, 0, 0);
-	
-	anteriorPlaneSource->SetPoint1(0, 70, 0);
-	anteriorPlaneSource->SetPoint2(70, 0, 0);
-	
-	anteriorPlaneSource->SetNormal(anteriorNormal);
-	
-	anteriorPlaneSource->SetCenter(anteriorCenter);
-
-	anteriorPlaneSource->Update();
-
-	auto anterirorPlaneSurface = mitk::Surface::New();
-	anterirorPlaneSurface->SetVtkPolyData(anteriorPlaneSource->GetOutput());
-
-	auto anterirorPlaneNode = mitk::DataNode::New();
-	anterirorPlaneNode->SetData(anterirorPlaneSurface);
-	anterirorPlaneNode->SetName("anterirorPlane");
-	GetDataStorage()->Add(anterirorPlaneNode);
-
-	// Posterior
-	double posteriorNormal[3]{ 0.01, 0.61, 0.79 };
-	double posteriorCenter[3]{ 3025.34, 1766.80, -447.32 };
-	auto posteriorPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
-
-	posteriorPlaneSource->SetOrigin(0, 0, 0);
-
-	posteriorPlaneSource->SetPoint1(0, 70, 0);
-	posteriorPlaneSource->SetPoint2(70, 0, 0);
-
-	posteriorPlaneSource->SetNormal(posteriorNormal);
-
-	posteriorPlaneSource->SetCenter(posteriorCenter);
-
-	posteriorPlaneSource->Update();
-
-	auto posteriorPlaneSurface = mitk::Surface::New();
-	posteriorPlaneSurface->SetVtkPolyData(posteriorPlaneSource->GetOutput());
-
-	auto posteriorPlaneNode = mitk::DataNode::New();
-	posteriorPlaneNode->SetData(posteriorPlaneSurface);
-	posteriorPlaneNode->SetName("posteriorPlane");
-	GetDataStorage()->Add(posteriorPlaneNode);
-
-	// anteriorChamfer
-	double anteriorChamferNormal[3]{ -0.09, 0.13, -0.99 };
-	double anteriorChamferCenter[3]{ 3035.53, 1787.15, -461.69 };
-	auto anteriorChamferPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
-
-	anteriorChamferPlaneSource->SetOrigin(0, 0, 0);
-
-	anteriorChamferPlaneSource->SetPoint1(0, 70, 0);
-	anteriorChamferPlaneSource->SetPoint2(70, 0, 0);
-
-	anteriorChamferPlaneSource->SetNormal(anteriorChamferNormal);
-
-	anteriorChamferPlaneSource->SetCenter(anteriorChamferCenter);
-
-	anteriorChamferPlaneSource->Update();
-
-	auto anteriorChamferPlaneSurface = mitk::Surface::New();
-	anteriorChamferPlaneSurface->SetVtkPolyData(anteriorChamferPlaneSource->GetOutput());
-
-	auto anteriorChamferPlaneNode = mitk::DataNode::New();
-	anteriorChamferPlaneNode->SetData(anteriorChamferPlaneSurface);
-	anteriorChamferPlaneNode->SetName("anteriorChamferPlane");
-	GetDataStorage()->Add(anteriorChamferPlaneNode);
-
-	// PosteriorChamfer
-	double posteriorChamferNormal[3]{ -0.07, 0.99, 0.13 };
-	double posteriorChamferCenter[3]{ 3042.12, 1806.93, -429.48 };
-	auto posteriorChamferPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
-
-	posteriorChamferPlaneSource->SetOrigin(0, 0, 0);
-
-	posteriorChamferPlaneSource->SetPoint1(0, 70, 0);
-	posteriorChamferPlaneSource->SetPoint2(70, 0, 0);
-
-	posteriorChamferPlaneSource->SetNormal(posteriorChamferNormal);
-
-	posteriorChamferPlaneSource->SetCenter(posteriorChamferCenter);
-
-	posteriorChamferPlaneSource->Update();
-
-	auto posteriorChamferPlaneSurface = mitk::Surface::New();
-	posteriorChamferPlaneSurface->SetVtkPolyData(posteriorChamferPlaneSource->GetOutput());
-
-	auto posteriorChamferPlaneNode = mitk::DataNode::New();
-	posteriorChamferPlaneNode->SetData(posteriorChamferPlaneSurface);
-	posteriorChamferPlaneNode->SetName("posteriorChamferPlane");
-	GetDataStorage()->Add(posteriorChamferPlaneNode);
-
-	// Distal
-	double distalNormal[3]{ -0.12, 0.79, -0.61 };
-	double distalCenter[3]{ 3013.36, 1847.36, -421.03 };
-	auto distalPlaneSource = vtkSmartPointer<vtkPlaneSource>::New();
-
-	distalPlaneSource->SetOrigin(0, 0, 0);
-
-	distalPlaneSource->SetPoint1(0, 70, 0);
-	distalPlaneSource->SetPoint2(70, 0, 0);
-
-	distalPlaneSource->SetNormal(distalNormal);
-
-	distalPlaneSource->SetCenter(distalCenter);
-
-	distalPlaneSource->Update();
-
-	auto distalPlaneSurface = mitk::Surface::New();
-	distalPlaneSurface->SetVtkPolyData(distalPlaneSource->GetOutput());
-
-	auto distalPlaneNode = mitk::DataNode::New();
-	distalPlaneNode->SetData(distalPlaneSurface);
-	distalPlaneNode->SetName("distalPlane");
-	GetDataStorage()->Add(distalPlaneNode);
-
-}
-
-
 void MoveData::on_pushButton_testStencil_clicked()
 {
 	auto imageToStencil = GetDataStorage()->GetNamedObject<mitk::Image>("image");
@@ -4480,6 +4139,11 @@ void MoveData::on_pushButton_testStencil_clicked()
 
 void MoveData::on_pushButton_getCameraAngle_clicked()
 {
+	if(m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	auto iRenderWindowPart = GetRenderWindowPart();
 
 	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetActiveQmitkRenderWindow();
@@ -4498,43 +4162,53 @@ void MoveData::on_pushButton_getCameraAngle_clicked()
 	rotationMatrix->SetElement(1, 3, 0);
 	rotationMatrix->SetElement(2, 3, 0);
 
-
 	// Visualize the camera matrix
-	//GetDataStorage()->GetNamedNode("cameraCoord")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(worldToCameraTrans);
+	if(GetDataStorage()->GetNamedNode("cameraCoord") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("cameraCoord")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(worldToCameraTrans);
+	}
+	
+	// m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(0,0))+" / "+
+	// 	QString::number(viewTrans->GetElement(0, 1)) + " / "+
+	// 	QString::number(viewTrans->GetElement(0, 2)) + " / "+
+	// 	QString::number(viewTrans->GetElement(0, 3)) + " / ");
+	//
+	// m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(1, 0)) + " / " +
+	// 	QString::number(viewTrans->GetElement(1, 1)) + " / " +
+	// 	QString::number(viewTrans->GetElement(1, 2)) + " / " +
+	// 	QString::number(viewTrans->GetElement(1, 3)) + " / ");
+	//
+	// m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(2, 0)) + " / " +
+	// 	QString::number(viewTrans->GetElement(2, 1)) + " / " +
+	// 	QString::number(viewTrans->GetElement(2, 2)) + " / " +
+	// 	QString::number(viewTrans->GetElement(2, 3)) + " / ");
+	//
+	// m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(3, 0)) + " / " +
+	// 	QString::number(viewTrans->GetElement(3, 1)) + " / " +
+	// 	QString::number(viewTrans->GetElement(3, 2)) + " / " +
+	// 	QString::number(viewTrans->GetElement(3, 3)) + " / ");
+	//
+	// m_Controls.textBrowser_moveData->append("---------------------");
 
-	m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(0,0))+" / "+
-		QString::number(viewTrans->GetElement(0, 1)) + " / "+
-		QString::number(viewTrans->GetElement(0, 2)) + " / "+
-		QString::number(viewTrans->GetElement(0, 3)) + " / ");
+	// Get the center of the object
+	// auto objectSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("object");
+	//
+	// auto objectCenter = objectSurface->GetGeometry()->GetCenter();
 
-	m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(1, 0)) + " / " +
-		QString::number(viewTrans->GetElement(1, 1)) + " / " +
-		QString::number(viewTrans->GetElement(1, 2)) + " / " +
-		QString::number(viewTrans->GetElement(1, 3)) + " / ");
+	if(m_currentSelectedNode->GetData() == nullptr)
+	{
+		return;
+	}
+	
 
-	m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(2, 0)) + " / " +
-		QString::number(viewTrans->GetElement(2, 1)) + " / " +
-		QString::number(viewTrans->GetElement(2, 2)) + " / " +
-		QString::number(viewTrans->GetElement(2, 3)) + " / ");
-
-	m_Controls.textBrowser_moveData->append(QString::number(viewTrans->GetElement(3, 0)) + " / " +
-		QString::number(viewTrans->GetElement(3, 1)) + " / " +
-		QString::number(viewTrans->GetElement(3, 2)) + " / " +
-		QString::number(viewTrans->GetElement(3, 3)) + " / ");
-
-	m_Controls.textBrowser_moveData->append("---------------------");
-
-	// Get the OBB center of the object
-	auto objectSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("object");
-
-	auto objectCenter = objectSurface->GetGeometry()->GetCenter();
-
+	auto objectCenter = m_currentSelectedNode->GetData()->GetGeometry()->GetCenter();
+	
 	double scaleFactor = sqrt(pow(worldToCameraTrans->GetElement(0, 3)- objectCenter[0], 2) +
 		pow(worldToCameraTrans->GetElement(1, 3) - objectCenter[1], 2) +
 		pow(worldToCameraTrans->GetElement(2, 3) - objectCenter[2], 2)) / 600;
-
+	
 	double lengthFactor = scaleFactor * 40;
-
+	
 	// the up cone transform
 	auto upTrans = vtkTransform::New();
 	upTrans->PostMultiply();
@@ -4545,9 +4219,32 @@ void MoveData::on_pushButton_getCameraAngle_clicked()
 		lengthFactor * rotationMatrix->GetElement(1, 1), 
 		lengthFactor * rotationMatrix->GetElement(2, 1));
 	upTrans->Update();
+	if(GetDataStorage()->GetNamedNode("upcone") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("upcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(upTrans->GetMatrix());
+	}else
+	{
+		vtkSmartPointer<vtkConeSource> coneSource = vtkSmartPointer<vtkConeSource>::New();
+		coneSource->SetCenter(0.0, 0.0, 0.0);
+		coneSource->SetDirection(0.0, 1.0, 0.0); 
+		coneSource->SetHeight(20.0);
+		coneSource->SetRadius(10.0);
+		coneSource->SetResolution(50);
+		coneSource->Update();
 
-	GetDataStorage()->GetNamedNode("upcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(upTrans->GetMatrix());
+		vtkNew<vtkPolyData> upCone;
+		upCone->DeepCopy(coneSource->GetOutput());
 
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(upCone);
+		auto newNode = mitk::DataNode::New();
+		newNode->SetName("upcone");
+		newNode->SetData(newSurface);
+		newNode->SetColor(1, 0, 0);
+		GetDataStorage()->Add(newNode);
+		GetDataStorage()->GetNamedNode("upcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(upTrans->GetMatrix());
+	}
+	
 	// the down cone transform
 	auto downTrans = vtkTransform::New();
 	downTrans->PostMultiply();
@@ -4558,9 +4255,34 @@ void MoveData::on_pushButton_getCameraAngle_clicked()
 		-lengthFactor * rotationMatrix->GetElement(1, 1),
 		-lengthFactor * rotationMatrix->GetElement(2, 1));
 	downTrans->Update();
+	
+	if (GetDataStorage()->GetNamedNode("downcone") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("downcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(downTrans->GetMatrix());
+	}
+	else
+	{
+		vtkSmartPointer<vtkConeSource> coneSource = vtkSmartPointer<vtkConeSource>::New();
+		coneSource->SetCenter(0.0, 0.0, 0.0);
+		coneSource->SetDirection(0.0, -1.0, 0.0);
+		coneSource->SetHeight(20.0);
+		coneSource->SetRadius(10.0);
+		coneSource->SetResolution(50);
+		coneSource->Update();
 
-	GetDataStorage()->GetNamedNode("downcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(downTrans->GetMatrix());
+		vtkNew<vtkPolyData> downCone;
+		downCone->DeepCopy(coneSource->GetOutput());
 
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(downCone);
+		auto newNode = mitk::DataNode::New();
+		newNode->SetName("downcone");
+		newNode->SetData(newSurface);
+		newNode->SetColor(0, 0, 1);
+		GetDataStorage()->Add(newNode);
+		GetDataStorage()->GetNamedNode("downcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(downTrans->GetMatrix());
+
+	}
 	// the right cone transform
 	auto rightTrans = vtkTransform::New();
 	rightTrans->PostMultiply();
@@ -4571,9 +4293,34 @@ void MoveData::on_pushButton_getCameraAngle_clicked()
 		lengthFactor * rotationMatrix->GetElement(1, 0),
 		lengthFactor * rotationMatrix->GetElement(2, 0));
 	rightTrans->Update();
+	
+	if (GetDataStorage()->GetNamedNode("rightcone") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("rightcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(rightTrans->GetMatrix());
+	}
+	else
+	{
+		vtkSmartPointer<vtkConeSource> coneSource = vtkSmartPointer<vtkConeSource>::New();
+		coneSource->SetCenter(0.0, 0.0, 0.0);
+		coneSource->SetDirection(1.0, 0.0, 0); // Pointing towards z+
+		coneSource->SetHeight(20.0);
+		coneSource->SetRadius(10.0);
+		coneSource->SetResolution(50);
+		coneSource->Update();
 
-	GetDataStorage()->GetNamedNode("rightcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(rightTrans->GetMatrix());
+		vtkNew<vtkPolyData> downCone;
+		downCone->DeepCopy(coneSource->GetOutput());
 
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(downCone);
+		auto newNode = mitk::DataNode::New();
+		newNode->SetName("rightcone");
+		newNode->SetData(newSurface);
+		newNode->SetColor(0, 1, 0);
+		GetDataStorage()->Add(newNode);
+		GetDataStorage()->GetNamedNode("rightcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(rightTrans->GetMatrix());
+
+	}
 	// the left cone transform
 	auto leftTrans = vtkTransform::New();
 	leftTrans->PostMultiply();
@@ -4584,9 +4331,34 @@ void MoveData::on_pushButton_getCameraAngle_clicked()
 		-lengthFactor * rotationMatrix->GetElement(1, 0),
 		-lengthFactor * rotationMatrix->GetElement(2, 0));
 	leftTrans->Update();
+	
+	if (GetDataStorage()->GetNamedNode("leftcone") != nullptr)
+	{
+		GetDataStorage()->GetNamedNode("leftcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(leftTrans->GetMatrix());
+	}
+	else
+	{
+		vtkSmartPointer<vtkConeSource> coneSource = vtkSmartPointer<vtkConeSource>::New();
+		coneSource->SetCenter(0.0, 0.0, 0.0);
+		coneSource->SetDirection(-1.0, 0.0, 0); 
+		coneSource->SetHeight(20.0);
+		coneSource->SetRadius(10.0);
+		coneSource->SetResolution(50);
+		coneSource->Update();
 
-	GetDataStorage()->GetNamedNode("leftcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(leftTrans->GetMatrix());
+		vtkNew<vtkPolyData> leftCone;
+		leftCone->DeepCopy(coneSource->GetOutput());
 
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(leftCone);
+		auto newNode = mitk::DataNode::New();
+		newNode->SetName("leftcone");
+		newNode->SetData(newSurface);
+		newNode->SetColor(0, 1, 1);
+		GetDataStorage()->Add(newNode);
+		GetDataStorage()->GetNamedNode("leftcone")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(leftTrans->GetMatrix());
+
+	}
 
 	this->RequestRenderWindowUpdate();
 }
@@ -4754,6 +4526,11 @@ void MoveData::Rotate(double center[3], double direction[3], double counterclock
 
 void MoveData::TranslateMinusX()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	double direction[3]{ -1,0,0 };
 
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
@@ -4778,6 +4555,11 @@ void MoveData::TranslateMinusX()
 }
 void MoveData::TranslateMinusY()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	double direction[3]{ 0,-1,0 };
 
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
@@ -4803,6 +4585,11 @@ void MoveData::TranslateMinusY()
 }
 void MoveData::TranslateMinusZ()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	double direction[3]{ 0,0,-1 };
 
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
@@ -4828,6 +4615,11 @@ void MoveData::TranslateMinusZ()
 }
 void MoveData::TranslatePlusX()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	double direction[3]{ 1,0,0 };
 
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
@@ -4853,6 +4645,11 @@ void MoveData::TranslatePlusX()
 }
 void MoveData::TranslatePlusY()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	double direction[3]{ 0,1,0 };
 
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
@@ -4878,6 +4675,11 @@ void MoveData::TranslatePlusY()
 }
 void MoveData::TranslatePlusZ()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	double direction[3]{ 0,0,1 };
 
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
@@ -4903,6 +4705,11 @@ void MoveData::TranslatePlusZ()
 }
 void MoveData::RotatePlusX()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	if (m_baseDataToMove==nullptr)
 	{
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
@@ -4937,6 +4744,11 @@ void MoveData::RotatePlusX()
 }
 void MoveData::RotatePlusY()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	if (m_baseDataToMove == nullptr)
 	{
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
@@ -4970,6 +4782,11 @@ void MoveData::RotatePlusY()
 }
 void MoveData::RotatePlusZ()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	if (m_baseDataToMove == nullptr)
 	{
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
@@ -5003,6 +4820,11 @@ void MoveData::RotatePlusZ()
 }
 void MoveData::RotateMinusX()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	if (m_baseDataToMove == nullptr)
 	{
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
@@ -5036,6 +4858,11 @@ void MoveData::RotateMinusX()
 }
 void MoveData::RotateMinusY()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	if (m_baseDataToMove == nullptr)
 	{
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
@@ -5069,6 +4896,11 @@ void MoveData::RotateMinusY()
 }
 void MoveData::RotateMinusZ()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	if (m_baseDataToMove == nullptr)
 	{
 		m_Controls.textBrowser_moveData->append("Empty input. Please select a node ~");
@@ -5104,6 +4936,11 @@ void MoveData::RotateMinusZ()
 
 void MoveData::OverwriteOffsetMatrix()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
 
 	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
@@ -5140,6 +4977,11 @@ void MoveData::OverwriteOffsetMatrix()
 
 void MoveData::AppendOffsetMatrix()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
 
 	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
@@ -5181,6 +5023,11 @@ void MoveData::AppendOffsetMatrix()
 
 void MoveData::TranslatePlus()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
 
 	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
@@ -5223,6 +5070,11 @@ void MoveData::TranslatePlus()
 
 void MoveData::TranslateMinus()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
 
 	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
@@ -5264,6 +5116,11 @@ void MoveData::TranslateMinus()
 
 void MoveData::RotatePlus()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
 
 	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
@@ -5318,6 +5175,11 @@ void MoveData::RotatePlus()
 
 void MoveData::RotateMinus()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
 
 	int parentRowCount = m_NodetreeModel->rowCount(parentIndex);
@@ -5372,6 +5234,10 @@ void MoveData::RotateMinus()
 
 void MoveData::RealignImage()
 {
+	if (m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
 
 	QModelIndex parentIndex = m_NodetreeModel->GetIndex(m_currentSelectedNode);
 
@@ -6423,6 +6289,11 @@ void MoveData::on_pushButton_combine_clicked()
 
 void MoveData::on_pushButton_hardenData_clicked()
 {
+	if(m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
+
 	if(dynamic_cast<mitk::Surface*>(m_currentSelectedNode->GetData()) != nullptr)
 	{
 		vtkNew<vtkTransformFilter> tmpTransFilter;
@@ -6456,6 +6327,10 @@ void MoveData::on_pushButton_hardenData_clicked()
 
 void MoveData::on_pushButton_addGizmo_clicked()
 {
+	if(m_currentSelectedNode == nullptr)
+	{
+		return;
+	}
 
 	if(mitk::Gizmo::HasGizmoAttached(m_currentSelectedNode, GetDataStorage()) == 1)
 	{

@@ -71,99 +71,14 @@
    <item row="2" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>4</number>
+      <number>5</number>
      </property>
-     <widget class="QWidget" name="tab_5">
-      <attribute name="title">
-       <string>TKA 假体制作</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_17">
-       <item row="0" column="0">
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>股骨假体制作</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_15">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_21">
-            <property name="text">
-             <string>0. 将股骨假体数据命名为“pros”,并按下面按钮</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="pushButto_interpolation">
-            <property name="text">
-             <string>改变显示模式</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_18">
-            <property name="text">
-             <string>1. 利用“Point Set Interaction”插件新建一个空点集命名为“PointSet”</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_17">
-            <property name="text">
-             <string>2. 往“PointSet”中，依次在前切、前斜、远端、后斜、后切平面上依序各点取4个点</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_19">
-            <property name="text">
-             <string>3. 点击下方按钮</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QRadioButton" name="radioButton_invertNormal">
-            <property name="text">
-             <string>反转模型正反面（当生成边界线有明显问题时，才需要勾选）</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QPushButton" name="pushButton_testIntersect">
-            <property name="text">
-             <string>股骨假体预制备</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0">
-           <widget class="QLabel" name="label_20">
-            <property name="text">
-             <string>4. 在各切面上借助辅助线，点取切割边界点集</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QWidget" name="tab">
       <attribute name="title">
        <string>Intuitive</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_8">
-       <item row="5" column="0">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="3" column="0">
+       <item row="2" column="0">
         <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
           <string>Movement along the given direction</string>
@@ -276,29 +191,26 @@
          </layout>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_15">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
+       <item row="4" column="0">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="text">
-          <string>Please select a DataNode by clicking in the Data Manager</string>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
          </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
+        </spacer>
        </item>
-       <item row="2" column="0">
+       <item row="1" column="0">
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
           <string>Movement by λ mm or degrees: (extrinsic rotation along X/Y/Z around object center)</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="0">
+          <item row="0" column="0" colspan="2">
            <layout class="QGridLayout" name="gridLayout_7">
             <item row="0" column="6">
              <widget class="QPushButton" name="pushButton_rxm">
@@ -436,66 +348,50 @@
             </item>
            </layout>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
+           <widget class="QPushButton" name="pushButton_getCameraAngle">
+            <property name="text">
+             <string>Draw 3D camera angle </string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QPushButton" name="pushButton_elevateSurface">
+            <property name="text">
+             <string>Elevate/lower the surface display</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
            <widget class="QPushButton" name="pushButton_addGizmo">
             <property name="text">
              <string>Enable/Disable Gizmo</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="pushButton_getCameraAngle">
-            <property name="text">
-             <string>Get 3D camera angle </string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
-       <item row="1" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QRadioButton" name="radioButton_testCutting">
-           <property name="text">
-            <string>Test Cutting</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_ApplyStencil">
-           <property name="text">
-            <string>Bone stencil</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_implantStencil">
-           <property name="text">
-            <string>Implant stencil</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_level">
-           <property name="text">
-            <string>Segregate and Gaussian</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_combine">
-           <property name="text">
-            <string>Combine</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="4" column="0">
+       <item row="3" column="0">
         <widget class="QPushButton" name="pushButton_hardenData">
          <property name="text">
           <string>Harden the PointSet or Surface </string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_15">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Please select a DataNode by clicking in the Data Manager</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -1115,80 +1011,10 @@
      </widget>
      <widget class="QWidget" name="tab_6">
       <attribute name="title">
-       <string>Surface bool</string>
+       <string>Surface operation</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_23">
-       <item row="0" column="1">
-        <widget class="QPushButton" name="pushButton_gen3Region">
-         <property name="text">
-          <string>Generate 3 color regions</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QPushButton" name="pushButton_cutInitV4">
-         <property name="text">
-          <string>Init v.4</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QPushButton" name="pushButton_testCutV3">
-         <property name="text">
-          <string>Cut v.3</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QPushButton" name="pushButton_gen2Stencils">
-         <property name="text">
-          <string>Generate 2 stencils</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QPushButton" name="pushButton_cutV4">
-         <property name="text">
-          <string>Cut v.4</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="pushButton_testCutV2">
-         <property name="text">
-          <string>Cut v.2</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QPushButton" name="pushButton_initTHAcutting">
-         <property name="text">
-          <string>Initialize THA cutting scene</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QPushButton" name="pushButton_testCut">
-         <property name="text">
-          <string>Cut</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="4">
-        <widget class="QPushButton" name="pushButton_cutInitV5">
-         <property name="text">
-          <string>Init v.5</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="4">
-        <widget class="QPushButton" name="pushButton_cutV5">
-         <property name="text">
-          <string>Cut v.5</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0" colspan="5">
+       <item row="0" column="0" colspan="2">
         <widget class="QGroupBox" name="groupBox_11">
          <property name="title">
           <string>Invert surface normal</string>
@@ -1218,7 +1044,7 @@
          </layout>
         </widget>
        </item>
-       <item row="3" column="0" colspan="5">
+       <item row="1" column="0" colspan="2">
         <widget class="QGroupBox" name="groupBox_14">
          <property name="title">
           <string>Fix hole</string>
@@ -1266,7 +1092,141 @@
          </layout>
         </widget>
        </item>
-       <item row="4" column="0" colspan="5">
+       <item row="3" column="0" colspan="2">
+        <widget class="QGroupBox" name="groupBox_12">
+         <property name="title">
+          <string>Warp along normal</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_19">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_16">
+            <item>
+             <widget class="QLabel" name="label_25">
+              <property name="text">
+               <string>Selected surface:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_normalWarp" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_17">
+            <item>
+             <widget class="QLabel" name="label_26">
+              <property name="text">
+               <string>Warp factor: </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_warpFactor">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1" rowspan="2">
+           <widget class="QPushButton" name="pushButton_warp">
+            <property name="text">
+             <string>Warp</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="4" column="0" colspan="2">
+        <widget class="QGroupBox" name="groupBox_13">
+         <property name="title">
+          <string>Surface bool</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_20">
+          <item row="0" column="0" colspan="4">
+           <layout class="QHBoxLayout" name="horizontalLayout_18">
+            <item>
+             <widget class="QLabel" name="label_27">
+              <property name="text">
+               <string>Surface A:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surfaceboolA" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="4" colspan="4">
+           <layout class="QHBoxLayout" name="horizontalLayout_19">
+            <item>
+             <widget class="QLabel" name="label_28">
+              <property name="text">
+               <string>Surface B:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surfaceboolB" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="pushButton_intersect">
+            <property name="text">
+             <string>Intersection</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="pushButton_union">
+            <property name="text">
+             <string>Union</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QPushButton" name="pushButton_diff">
+            <property name="text">
+             <string>Diff</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="6">
+           <widget class="QPushButton" name="pushButton_append">
+            <property name="text">
+             <string>Append</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="7">
+           <widget class="QPushButton" name="pushButton_diff_type2">
+            <property name="text">
+             <string>Diff by clip</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QPushButton" name="pushButton_implicitClip">
+            <property name="text">
+             <string>Clip</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4" colspan="2">
+           <widget class="QPushButton" name="pushButton_clipAway">
+            <property name="text">
+             <string>Clipped away</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="2">
         <widget class="QGroupBox" name="groupBox_15">
          <property name="title">
           <string>Smooth</string>
@@ -1332,134 +1292,72 @@
          </layout>
         </widget>
        </item>
-       <item row="5" column="0" colspan="5">
-        <widget class="QGroupBox" name="groupBox_12">
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_5">
+      <attribute name="title">
+       <string>TKA 假体制作(硬件)</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_17">
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_2">
          <property name="title">
-          <string>Warp along normal</string>
+          <string>股骨假体制作</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_19">
+         <layout class="QGridLayout" name="gridLayout_15">
           <item row="0" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_16">
-            <item>
-             <widget class="QLabel" name="label_25">
-              <property name="text">
-               <string>Selected surface:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_normalWarp" native="true"/>
-            </item>
-           </layout>
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>0. 将股骨假体数据命名为“pros”,并按下面按钮</string>
+            </property>
+           </widget>
           </item>
           <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_17">
-            <item>
-             <widget class="QLabel" name="label_26">
-              <property name="text">
-               <string>Warp factor: </string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_warpFactor">
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="0" column="1" rowspan="2">
-           <widget class="QPushButton" name="pushButton_warp">
+           <widget class="QPushButton" name="pushButto_interpolation">
             <property name="text">
-             <string>Warp</string>
+             <string>改变显示模式</string>
             </property>
            </widget>
           </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="6" column="0" colspan="5">
-        <widget class="QGroupBox" name="groupBox_13">
-         <property name="title">
-          <string>Surface bool</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_20">
-          <item row="0" column="0" colspan="4">
-           <layout class="QHBoxLayout" name="horizontalLayout_18">
-            <item>
-             <widget class="QLabel" name="label_27">
-              <property name="text">
-               <string>Surface A:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surfaceboolA" native="true"/>
-            </item>
-           </layout>
-          </item>
-          <item row="0" column="4" colspan="4">
-           <layout class="QHBoxLayout" name="horizontalLayout_19">
-            <item>
-             <widget class="QLabel" name="label_28">
-              <property name="text">
-               <string>Surface B:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surfaceboolB" native="true"/>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="pushButton_intersect">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_18">
             <property name="text">
-             <string>Intersection</string>
+             <string>1. 利用“Point Set Interaction”插件新建一个空点集命名为“PointSet”</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QPushButton" name="pushButton_union">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_17">
             <property name="text">
-             <string>Union</string>
+             <string>2. 往“PointSet”中，依次在前切、前斜、远端、后斜、后切平面上依序各点取4个点</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QPushButton" name="pushButton_diff">
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_19">
             <property name="text">
-             <string>Difference</string>
+             <string>3. 点击下方按钮</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="6">
-           <widget class="QPushButton" name="pushButton_append">
+          <item row="5" column="0">
+           <widget class="QRadioButton" name="radioButton_invertNormal">
             <property name="text">
-             <string>Append</string>
+             <string>反转模型正反面（当生成边界线有明显问题时，才需要勾选）</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="7">
-           <widget class="QPushButton" name="pushButton_diff_type2">
+          <item row="6" column="0">
+           <widget class="QPushButton" name="pushButton_testIntersect">
             <property name="text">
-             <string>Diff </string>
+             <string>股骨假体预制备</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="3">
-           <widget class="QPushButton" name="pushButton_implicitClip">
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_20">
             <property name="text">
-             <string>Clip</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="4" colspan="2">
-           <widget class="QPushButton" name="pushButton_clipAway">
-            <property name="text">
-             <string>Clipped away</string>
+             <string>4. 在各切面上借助辅助线，点取切割边界点集</string>
             </property>
            </widget>
           </item>
@@ -1470,26 +1368,26 @@
      </widget>
      <widget class="QWidget" name="tab_4">
       <attribute name="title">
-       <string>Test CPR</string>
+       <string>Testing</string>
       </attribute>
       <widget class="QPushButton" name="pushButton_testCrosshair">
        <property name="geometry">
         <rect>
-         <x>210</x>
-         <y>20</y>
-         <width>151</width>
-         <height>23</height>
+         <x>100</x>
+         <y>10</y>
+         <width>191</width>
+         <height>31</height>
         </rect>
        </property>
        <property name="text">
-        <string>Generate Spline</string>
+        <string>Generate Spline from a Pset</string>
        </property>
       </widget>
       <widget class="QSlider" name="horizontalSlider_testCrosshair">
        <property name="geometry">
         <rect>
-         <x>110</x>
-         <y>60</y>
+         <x>100</x>
+         <y>50</y>
          <width>401</width>
          <height>22</height>
         </rect>
@@ -1501,10 +1399,10 @@
       <widget class="QPushButton" name="pushButton_testCPR">
        <property name="geometry">
         <rect>
-         <x>120</x>
-         <y>100</y>
-         <width>111</width>
-         <height>23</height>
+         <x>290</x>
+         <y>10</y>
+         <width>121</width>
+         <height>31</height>
         </rect>
        </property>
        <property name="text">
@@ -1514,150 +1412,239 @@
       <widget class="QPushButton" name="pushButton_testStencil">
        <property name="geometry">
         <rect>
-         <x>250</x>
-         <y>100</y>
-         <width>111</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>test Stencil</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_gen5planes">
-       <property name="geometry">
-        <rect>
-         <x>380</x>
-         <y>100</y>
-         <width>121</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Generate 5 planes</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_testClip">
-       <property name="geometry">
-        <rect>
-         <x>240</x>
-         <y>160</y>
-         <width>221</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Test clip (implicit distance)</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_vtkBool">
-       <property name="geometry">
-        <rect>
-         <x>360</x>
-         <y>220</y>
+         <x>110</x>
+         <y>70</y>
          <width>171</width>
          <height>31</height>
         </rect>
        </property>
        <property name="text">
-        <string>Test vtk bool</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_colorPolyData">
-       <property name="geometry">
-        <rect>
-         <x>190</x>
-         <y>260</y>
-         <width>161</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>polyData coloring</string>
-       </property>
-      </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>30</x>
-         <y>220</y>
-         <width>151</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_13">
-        <item>
-         <widget class="QLabel" name="label_22">
-          <property name="text">
-           <string>Source surface:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_srcSurface_2" native="true"/>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="layoutWidget_2">
-       <property name="geometry">
-        <rect>
-         <x>190</x>
-         <y>220</y>
-         <width>151</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_14">
-        <item>
-         <widget class="QLabel" name="label_23">
-          <property name="text">
-           <string>Source surface:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_srcSurface_3" native="true"/>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QPushButton" name="pushButton_debugRenderer">
-       <property name="geometry">
-        <rect>
-         <x>210</x>
-         <y>290</y>
-         <width>121</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Debug renderer</string>
+        <string>Image Stencil with surface</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_surfaceReconstruct">
        <property name="geometry">
         <rect>
-         <x>190</x>
-         <y>330</y>
-         <width>151</width>
+         <x>310</x>
+         <y>70</y>
+         <width>251</width>
          <height>31</height>
         </rect>
        </property>
        <property name="text">
-        <string>Reconstruct surface</string>
+        <string>Reconstruct surface from Pset</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pushButton_meshlibTest">
+      <widget class="QGroupBox" name="groupBox_16">
        <property name="geometry">
         <rect>
-         <x>200</x>
-         <y>370</y>
-         <width>141</width>
-         <height>31</height>
+         <x>40</x>
+         <y>110</y>
+         <width>571</width>
+         <height>101</height>
         </rect>
        </property>
-       <property name="text">
-        <string>Test MeshLib</string>
+       <property name="title">
+        <string>Surface based reaming</string>
        </property>
+       <layout class="QGridLayout" name="gridLayout_24">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pushButton_initTHAcutting">
+          <property name="text">
+           <string>Initialize THA cutting scene</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="pushButton_gen3Region">
+          <property name="text">
+           <string>Generate 3 color regions</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="pushButton_gen2Stencils">
+          <property name="text">
+           <string>Generate 2 stencils</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QPushButton" name="pushButton_cutInitV4">
+          <property name="text">
+           <string>Init v.4</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="4">
+         <widget class="QPushButton" name="pushButton_cutInitV5">
+          <property name="text">
+           <string>Init v.5</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_testCut">
+          <property name="text">
+           <string>Cut</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="pushButton_testCutV2">
+          <property name="text">
+           <string>Cut v.2</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QPushButton" name="pushButton_testCutV3">
+          <property name="text">
+           <string>Cut v.3</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QPushButton" name="pushButton_cutV4">
+          <property name="text">
+           <string>Cut v.4</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="4">
+         <widget class="QPushButton" name="pushButton_cutV5">
+          <property name="text">
+           <string>Cut v.5</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_17">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>220</y>
+         <width>561</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Volume based reaming</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_25">
+        <item row="0" column="0">
+         <widget class="QRadioButton" name="radioButton_testCutting">
+          <property name="text">
+           <string>Test Cutting</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="pushButton_ApplyStencil">
+          <property name="text">
+           <string>Bone stencil</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="pushButton_implantStencil">
+          <property name="text">
+           <string>Implant stencil</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QPushButton" name="pushButton_level">
+          <property name="text">
+           <string>Segregate and Gaussian</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="4">
+         <widget class="QPushButton" name="pushButton_combine">
+          <property name="text">
+           <string>Combine</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_18">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>290</y>
+         <width>434</width>
+         <height>91</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Generate a reamer model</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_26">
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Radius: </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_reamerRadius">
+            <property name="text">
+             <string>20</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="1" colspan="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_13">
+          <item>
+           <widget class="QLabel" name="label_23">
+            <property name="text">
+             <string>Post length: </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_reamerPostLen">
+            <property name="text">
+             <string>25</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_14">
+          <item>
+           <widget class="QLabel" name="label_34">
+            <property name="text">
+             <string>Mesh thickness ratio: </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_reamerMeshThick">
+            <property name="text">
+             <string>0.1</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="2">
+         <widget class="QPushButton" name="pushButton_generateReamer">
+          <property name="text">
+           <string>Generate reamer</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </widget>

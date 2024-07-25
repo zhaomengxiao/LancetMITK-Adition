@@ -153,17 +153,12 @@ protected:
 
   void on_pushButton_testStencil_clicked();
 
-  void on_pushButton_gen5planes_clicked();
 
   void on_pushButton_testIntersect_clicked();
 	// Generate a plane vtkPolyData centered at the Pset's center with the given size
   bool GeneratePlaneWithPset(mitk::PointSet::Pointer ptsOnPlane, double planeSize, vtkSmartPointer<vtkPolyData> generatedPlane, double planeNormal[3]);
 
   void on_pushButto_interpolation_clicked();
-
-  void on_pushButton_testClip_clicked();
-
-  void on_pushButton_vtkBool_clicked();
 
   void on_pushButton_inverNormal_clicked();
 
@@ -189,9 +184,7 @@ protected:
 
   void on_pushButton_testCutV2_clicked();
 
-  void on_pushButton_colorPolyData_clicked(); 
-
-  void on_pushButton_debugRenderer_clicked();
+  void on_pushButton_elevateSurface_clicked();
 
   void on_pushButton_surfaceReconstruct_clicked();
 
@@ -212,11 +205,10 @@ protected:
 
   void on_pushButton_cutV4_clicked();
 
-  // MeshLib rudimentary trial
-  void on_pushButton_meshlibTest_clicked();
-  MR::Mesh bone;
-  MR::Mesh cutter;
 
+  // Generate a reamer model
+  void on_pushButton_generateReamer_clicked();
+  
   // Use MeshLib to realize THA reaming
   void on_pushButton_cutInitV5_clicked();
   void on_pushButton_cutV5_clicked();
