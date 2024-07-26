@@ -1811,48 +1811,10 @@ void MoveData::on_pushButton_elevateSurface_clicked()
 
 }
 
-
-void MoveData::on_pushButton_generateReamer_clicked()
+void MoveData::HollowSurface(vtkSmartPointer<vtkPolyData> inputPolyData, vtkSmartPointer<vtkPolyData> outputPolyData, double meshEdgeThickness)
 {
-	// ----------- Step 0: Retrieve the parameters from UI ----------
-	double radius = m_Controls.lineEdit_reamerRadius->text().toDouble();
-	double postLen = m_Controls.lineEdit_reamerPostLen->text().toDouble();
-	double meshThicknessRatio = m_Controls.lineEdit_reamerMeshThick->text().toDouble();
-
-	int longitudeDivNum{ 32 };
-	int latitudeDivNum{ 32 };
-
-	//------------ Step 1: draw a sphere and hide it ------------------
-	vtkNew<vtkSphereSource> sphereSource;
-	sphereSource->SetCenter(0.0, 0.0, 0.0);
-	sphereSource->SetThetaResolution(longitudeDivNum);
-	sphereSource->SetPhiResolution(latitudeDivNum);
-	sphereSource->SetRadius(radius);
-	sphereSource->Update();
-
-	auto sphereSurface = mitk::Surface::New();
-	sphereSurface->SetVtkPolyData(sphereSource->GetOutput());
-
-	auto sphereNode = mitk::DataNode::New();
-	QString sphereNodeName = QString("sphere_") + m_Controls.lineEdit_reamerRadius->text();
-	sphereNode->SetData(sphereSurface);
-	sphereNode->SetName(sphereNodeName.toStdString().c_str());
-	sphereNode->SetVisibility(0);
-	GetDataStorage()->Add(sphereNode);
-
-	//------------ Step 2: clip the sphere with a vtkPlane ------------------
-	auto clippingPlane = vtkSmartPointer<vtkPlane>::New();
-	clippingPlane->SetNormal(0.0, 0.0, 1.0);
-	clippingPlane->SetOrigin(0.0, 0.0, 0.0);
-
-	// Clip the sphere
-	auto clipper = vtkSmartPointer<vtkClipPolyData>::New();
-	clipper->SetInputConnection(sphereSource->GetOutputPort());
-	clipper->SetClipFunction(clippingPlane);
-	clipper->Update();
-
 	vtkNew<vtkTriangleFilter> triFilter;
-	triFilter->SetInputData(clipper->GetOutput());
+	triFilter->SetInputData(inputPolyData);
 	triFilter->Update();
 
 	auto polyData = triFilter->GetOutput();
@@ -1867,44 +1829,60 @@ void MoveData::on_pushButton_generateReamer_clicked()
 		double firstPt[3];
 		int firstPointID = polyData->GetCell(i)->GetPointId(0);
 		polyData->GetPoints()->GetPoint(firstPointID, firstPt);
+		Eigen::Vector3d A{ firstPt[0],firstPt[1],firstPt[2] };
 
 		double secondPt[3];
 		int secondPointID = polyData->GetCell(i)->GetPointId(1);
 		polyData->GetPoints()->GetPoint(secondPointID, secondPt);
+        Eigen::Vector3d B{secondPt[0], secondPt[1],secondPt[2] };
 
 		double thirdPt[3];
 		int thirdPointID = polyData->GetCell(i)->GetPointId(2);
 		polyData->GetPoints()->GetPoint(thirdPointID, thirdPt);
+		Eigen::Vector3d C{ thirdPt[0],thirdPt[1],thirdPt[2] };
 
+		double a = std::sqrt(vtkMath::Distance2BetweenPoints(secondPt, thirdPt));
+		double b = std::sqrt(vtkMath::Distance2BetweenPoints(firstPt, thirdPt));
+		double c = std::sqrt(vtkMath::Distance2BetweenPoints(secondPt, firstPt));
+
+		// calculate the incenter of the triangle
 		double center[3]
 		{
-			(firstPt[0] + secondPt[0] + thirdPt[0]) / 3,
-			(firstPt[1] + secondPt[1] + thirdPt[1]) / 3,
-			(firstPt[2] + secondPt[2] + thirdPt[2]) / 3
+			(a * firstPt[0] + b * secondPt[0] + c * thirdPt[0]) / (a + b + c),
+			(a * firstPt[1] + b * secondPt[1] + c * thirdPt[1]) / (a + b + c),
+			(a * firstPt[2] + b * secondPt[2] + c * thirdPt[2]) / (a + b + c)
 		};
+
+		Eigen::Vector3d O{ center[0], center[1],center[2] };
+
+		Eigen::Vector3d vec_AO = O - A;
+		Eigen::Vector3d vec_AB = B - A;
+
+		double meshEdgeThicknessFactor =
+			abs((meshEdgeThickness / vec_AO.norm()) * vec_AO.norm() * vec_AB.norm() / (vec_AO.cross(vec_AB).norm())) / 2;
 
 		double firstPt_new[3]
 		{
-			firstPt[0] + meshThicknessRatio * (center[0] - firstPt[0]),
-			firstPt[1] + meshThicknessRatio * (center[1] - firstPt[1]),
-			firstPt[2] + meshThicknessRatio * (center[2] - firstPt[2])
+			firstPt[0] + meshEdgeThicknessFactor * (center[0] - firstPt[0]),
+			firstPt[1] + meshEdgeThicknessFactor * (center[1] - firstPt[1]),
+			firstPt[2] + meshEdgeThicknessFactor * (center[2] - firstPt[2])
 		};
 
 		double secondPt_new[3]
 		{
-			secondPt[0] + meshThicknessRatio * (center[0] - secondPt[0]),
-			secondPt[1] + meshThicknessRatio * (center[1] - secondPt[1]),
-			secondPt[2] + meshThicknessRatio * (center[2] - secondPt[2])
+			secondPt[0] + meshEdgeThicknessFactor * (center[0] - secondPt[0]),
+			secondPt[1] + meshEdgeThicknessFactor * (center[1] - secondPt[1]),
+			secondPt[2] + meshEdgeThicknessFactor * (center[2] - secondPt[2])
 		};
 
 		double thirdPt_new[3]
 		{
-			thirdPt[0] + meshThicknessRatio * (center[0] - thirdPt[0]),
-			thirdPt[1] + meshThicknessRatio * (center[1] - thirdPt[1]),
-			thirdPt[2] + meshThicknessRatio * (center[2] - thirdPt[2])
+			thirdPt[0] + meshEdgeThicknessFactor * (center[0] - thirdPt[0]),
+			thirdPt[1] + meshEdgeThicknessFactor * (center[1] - thirdPt[1]),
+			thirdPt[2] + meshEdgeThicknessFactor * (center[2] - thirdPt[2])
 		};
 
-		points->InsertNextPoint(firstPt);
+		points->InsertNextPoint(firstPt); 
 		points->InsertNextPoint(firstPt_new);
 		points->InsertNextPoint(secondPt);
 		points->InsertNextPoint(secondPt_new);
@@ -1932,30 +1910,95 @@ void MoveData::on_pushButton_generateReamer_clicked()
 		poly_2->GetPointIds()->SetId(2, 6 * i + 3);
 		poly_2->GetPointIds()->SetId(3, 6 * i + 2);
 
-		cells->InsertNextCell(poly);
-		cells->InsertNextCell(poly_1);
-		cells->InsertNextCell(poly_2);
+		Eigen::Vector3d X = A.cross(C);
+		X.normalize();
+
+		Eigen::Vector3d Y = A.cross(B);
+		Y.normalize();
+
+		Eigen::Vector3d Z = B.cross(C);
+		Z.normalize();
+
+		if(abs(X[2]) < 0.001 || abs((A-C)[2]) < 0.001)
+		{
+			cells->InsertNextCell(poly);
+		}
+		if (abs(Y[2] )< 0.001 || abs((A - B)[2]) < 0.001)
+		{
+			cells->InsertNextCell(poly_1);
+		}
+		if (abs(Z[2]) < 0.001 || abs((B - C)[2]) < 0.001)
+		{
+			cells->InsertNextCell(poly_2);
+		}
+		
 	}
 
-	vtkNew<vtkPolyData> hemispherePoly;
+	vtkNew<vtkPolyData> tmpPoly;
 
-	hemispherePoly->SetPoints(points);
-	hemispherePoly->SetPolys(cells);
+	tmpPoly->SetPoints(points);
+	tmpPoly->SetPolys(cells);
+
+	outputPolyData->DeepCopy(tmpPoly);
+}
+
+void MoveData::GenerateReamerModel(double radius, double longiSliceNum, double latiSliceNum, double postStcikLen, double meshThickness)
+{
+	double postLen = postStcikLen;
+	int longitudeDivNum = longiSliceNum;
+	int latitudeDivNum = latiSliceNum;
+
+	//------------ Step 1: draw a sphere and hide it ------------------
+	vtkNew<vtkSphereSource> sphereSource;
+	sphereSource->SetCenter(0.0, 0.0, 0.0);
+	sphereSource->SetThetaResolution(longitudeDivNum);
+	sphereSource->SetPhiResolution(latitudeDivNum);
+	sphereSource->SetRadius(radius);
+	sphereSource->Update();
+
+	auto sphereSurface = mitk::Surface::New();
+	sphereSurface->SetVtkPolyData(sphereSource->GetOutput());
+
+	auto sphereNode = mitk::DataNode::New();
+	QString sphereNodeName = QString("cutter"); // +QString::number(radius);
+	sphereNode->SetData(sphereSurface);
+	sphereNode->SetName(sphereNodeName.toStdString().c_str());
+	sphereNode->SetVisibility(0);
+	GetDataStorage()->Add(sphereNode);
+
+	//------------ Step 2: clip the sphere with a vtkPlane ------------------
+	auto clippingPlane = vtkSmartPointer<vtkPlane>::New();
+	clippingPlane->SetNormal(0.0, 0.0, 1.0);
+	clippingPlane->SetOrigin(0.0, 0.0, 0.0);
+
+	// Clip the sphere
+	auto clipper = vtkSmartPointer<vtkClipPolyData>::New();
+	clipper->SetInputConnection(sphereSource->GetOutputPort());
+	clipper->SetClipFunction(clippingPlane);
+	clipper->Update();
+
+	//------------ Step 3: Hollow the hemisphere surface ------------------
+	vtkNew<vtkTriangleFilter> triFilter;
+	triFilter->SetInputData(clipper->GetOutput());
+	triFilter->Update();
+
+	vtkNew<vtkPolyData> hemispherePoly;
+	HollowSurface(triFilter->GetOutput(), hemispherePoly, meshThickness);
 
 	auto hemisphereSurface = mitk::Surface::New();
 	hemisphereSurface->SetVtkPolyData(hemispherePoly);
 
 	auto hemisphereNode = mitk::DataNode::New();
-	QString hemisphereNodeName = QString("hemisphere_") + m_Controls.lineEdit_reamerRadius->text();
+	QString hemisphereNodeName = QString("hemisphere_") + QString::number(radius);
 	hemisphereNode->SetData(hemisphereSurface);
 	hemisphereNode->SetName(hemisphereNodeName.toStdString().c_str());
 	hemisphereNode->SetVisibility(1);
 	hemisphereNode->SetBoolProperty("Backface Culling", true);
 	hemisphereNode->SetFloatProperty("material.specularCoefficient", 0.0);
 	hemisphereNode->SetColor(0, 0, 1);
-	GetDataStorage()->Add(hemisphereNode, sphereNode);
-	
-	//------------ Step 3: generate the post ------------------
+	// GetDataStorage()->Add(hemisphereNode, sphereNode);
+
+	//------------ Step 4: generate the post ------------------
 	vtkNew<vtkCylinderSource> cylinderSource;
 
 	cylinderSource->SetRadius(0.5);    // Radius of the cylinder
@@ -1977,113 +2020,96 @@ void MoveData::on_pushButton_generateReamer_clicked()
 	cylinderSurface->SetVtkPolyData(transformFilter->GetPolyDataOutput());
 
 	auto cylinderNode = mitk::DataNode::New();
-	QString cylinderNodeName = QString("cylinder_") + m_Controls.lineEdit_reamerRadius->text();
+	QString cylinderNodeName = QString("cylinder_") + QString::number(radius);
 	cylinderNode->SetData(cylinderSurface);
 	cylinderNode->SetName(cylinderNodeName.toStdString().c_str());
 	cylinderNode->SetVisibility(1);
 	cylinderNode->SetBoolProperty("Backface Culling", true);
 	cylinderNode->SetFloatProperty("material.specularCoefficient", 0.0);
 	cylinderNode->SetColor(0, 0, 1);
-	GetDataStorage()->Add(cylinderNode, sphereNode);
+	//GetDataStorage()->Add(cylinderNode, sphereNode);
 
 
-	//------------ Step 4: generate the cap ------------------
+	//------------ Step 5 generate the cap ------------------
+	vtkNew<vtkConeSource> coneSource;
+
+	coneSource->SetRadius(radius);
+	coneSource->SetHeight(30);
+	coneSource->SetResolution(32);
+	coneSource->Update();
+
+	vtkNew<vtkTransform> transform_cone_tmp;
+	transform_cone_tmp->PostMultiply();
+	transform_cone_tmp->RotateY(90.0);
+	transform_cone_tmp->Translate(0, 0, -15 + 0.01);
+	vtkNew<vtkMatrix4x4> transMatrix;
+	transMatrix->Identity();
+	transMatrix->SetElement(2, 2, 0.01);
+	transform_cone_tmp->Concatenate(transMatrix);
+
+	auto transformFilter_cone = vtkSmartPointer<vtkTransformFilter>::New();
+	transformFilter_cone->SetInputConnection(coneSource->GetOutputPort());
+	transformFilter_cone->SetTransform(transform_cone_tmp);
+	transformFilter_cone->Update();
+
+
+	// Clip the cone
+	auto clipper_cone = vtkSmartPointer<vtkClipPolyData>::New();
+	clipper_cone->SetInputData(transformFilter_cone->GetPolyDataOutput());
+	clipper_cone->SetClipFunction(clippingPlane);
+	clipper_cone->InsideOutOn();
+	clipper_cone->Update();
+
+
+	vtkNew<vtkPolyData> hallowCone;
+	HollowSurface(clipper_cone->GetOutput(), hallowCone, meshThickness);
+
+	auto coneSurface = mitk::Surface::New();
+	coneSurface->SetVtkPolyData(hallowCone);
+
+	auto coneNode = mitk::DataNode::New();
+	QString coneNodeName = QString("cap_") + QString::number(radius);
+	coneNode->SetData(coneSurface);
+	coneNode->SetName(coneNodeName.toStdString().c_str());
+	coneNode->SetVisibility(1);
+	coneNode->SetBoolProperty("Backface Culling", true);
+	coneNode->SetFloatProperty("material.specularCoefficient", 0.0);
+	coneNode->SetColor(0, 0, 1);
+	// GetDataStorage()->Add(coneNode, sphereNode);
+
+	vtkNew<vtkAppendPolyData> appender;
+	appender->AddInputData(coneSurface->GetVtkPolyData());
+	appender->AddInputData(cylinderSurface->GetVtkPolyData());
+	appender->AddInputData(hemisphereSurface->GetVtkPolyData());
+	appender->Update();
+
+	auto reamerSurface = mitk::Surface::New();
+	reamerSurface->SetVtkPolyData(appender->GetOutput());
+
+	auto reamerNode = mitk::DataNode::New();
+	QString reamerNodeName = QString("reamer_") + QString::number(radius);
+	reamerNode->SetData(reamerSurface);
+	reamerNode->SetName(reamerNodeName.toStdString().c_str());
+	reamerNode->SetVisibility(1);
+	reamerNode->SetBoolProperty("Backface Culling", true);
+	reamerNode->SetFloatProperty("material.specularCoefficient", 0.0);
+	reamerNode->SetColor(0, 0, 1);
+	GetDataStorage()->Add(reamerNode, sphereNode);
+}
 
 
 
-	// auto polyData_ = GetDataStorage()->GetNamedObject<mitk::Surface>("probe")->GetVtkPolyData();
-	//
-	// vtkNew<vtkPolyData> polyData;
-	// polyData->DeepCopy(polyData_);
-	//
-	// vtkNew<vtkPolyData> polyData_New;
-	//
-	// int initCellNum = polyData_->GetNumberOfCells();
-	//
-	// vtkNew<vtkCellArray> cells;
-	// vtkNew<vtkPoints> points;
-	// for(vtkIdType i{0}; i < initCellNum; i++)
-	// {
-	// 	// Insert the first 2 points into the new "points"
-	// 	double firstPt[3];
-	// 	int firstPointID = polyData->GetCell(i)->GetPointId(0);
-	// 	polyData->GetPoints()->GetPoint(firstPointID, firstPt);
-	//
-	// 	double secondPt[3];
-	// 	int secondPointID = polyData->GetCell(i)->GetPointId(1);
-	// 	polyData->GetPoints()->GetPoint(secondPointID, secondPt);
-	//
-	// 	double thirdPt[3];
-	// 	int thirdPointID = polyData->GetCell(i)->GetPointId(2);
-	// 	polyData->GetPoints()->GetPoint(thirdPointID, thirdPt);
-	//
-	// 	double center[3]
-	// 	{
-	// 		(firstPt[0]+ secondPt[0]+thirdPt[0])/3,
-	// 		(firstPt[1] + secondPt[1] + thirdPt[1]) / 3,
-	// 		(firstPt[2] + secondPt[2] + thirdPt[2]) / 3
-	// 	};
-	//
-	// 	double firstPt_new[3]
-	// 	{
-	// 		firstPt[0] + 0.1 * (center[0] - firstPt[0]),
-	// 		firstPt[1] + 0.1 * (center[1] - firstPt[1]),
-	// 		firstPt[2] + 0.1 * (center[2] - firstPt[2])
-	// 	};
-	//
-	// 	double secondPt_new[3]
-	// 	{
-	// 		secondPt[0] + 0.1 * (center[0] - secondPt[0]),
-	// 		secondPt[1] + 0.1 * (center[1] - secondPt[1]),
-	// 		secondPt[2] + 0.1 * (center[2] - secondPt[2])
-	// 	};
-	//
-	// 	double thirdPt_new[3]
-	// 	{
-	// 		thirdPt[0] + 0.1 * (center[0] - thirdPt[0]),
-	// 		thirdPt[1] + 0.1 * (center[1] - thirdPt[1]),
-	// 		thirdPt[2] + 0.1 * (center[2] - thirdPt[2])
-	// 	};
-	//
-	// 	points->InsertNextPoint(firstPt);
-	// 	points->InsertNextPoint(firstPt_new);
-	// 	points->InsertNextPoint(secondPt);
-	// 	points->InsertNextPoint(secondPt_new);
-	// 	points->InsertNextPoint(thirdPt);
-	// 	points->InsertNextPoint(thirdPt_new);
-	//
-	// 	vtkNew<vtkPolygon> poly;
-	// 	poly->GetPointIds()->SetNumberOfIds(4);
-	// 	poly->GetPointIds()->SetId(0, 6*i);
-	// 	poly->GetPointIds()->SetId(1, 6 * i + 1);
-	// 	poly->GetPointIds()->SetId(2, 6 * i + 5);
-	// 	poly->GetPointIds()->SetId(3, 6 * i + 4);
-	//
-	// 	vtkNew<vtkPolygon> poly_1;
-	// 	poly_1->GetPointIds()->SetNumberOfIds(4);
-	// 	poly_1->GetPointIds()->SetId(0, 6 * i + 2);
-	// 	poly_1->GetPointIds()->SetId(1, 6 * i + 3);
-	// 	poly_1->GetPointIds()->SetId(2, 6 * i + 1);
-	// 	poly_1->GetPointIds()->SetId(3, 6 * i);
-	//
-	// 	vtkNew<vtkPolygon> poly_2;
-	// 	poly_2->GetPointIds()->SetNumberOfIds(4);
-	// 	poly_2->GetPointIds()->SetId(0, 6 * i + 4);
-	// 	poly_2->GetPointIds()->SetId(1, 6 * i + 5);
-	// 	poly_2->GetPointIds()->SetId(2, 6 * i + 3);
-	// 	poly_2->GetPointIds()->SetId(3, 6 * i + 2);
-	//
-	// 	cells->InsertNextCell(poly);
-	// 	cells->InsertNextCell(poly_1);
-	// 	cells->InsertNextCell(poly_2);
-	// }
-	//
-	// polyData_New->SetPoints(points);
-	// polyData_New->SetPolys(cells);
-	//
-	//
-	// GetDataStorage()->GetNamedObject<mitk::Surface>("probe")->SetVtkPolyData(polyData_New);
+void MoveData::on_pushButton_generateReamer_clicked()
+{
+	// ----------- Step 0: Retrieve the parameters from UI ----------
+	double radius = m_Controls.lineEdit_reamerRadius->text().toDouble();
+	double postLen = m_Controls.lineEdit_reamerPostLen->text().toDouble();
+	double meshThickness = m_Controls.lineEdit_reamerMeshThick->text().toDouble();
 
+	int longitudeDivNum{ 32 };
+	int latitudeDivNum{ 64 };
+
+	GenerateReamerModel(radius, longitudeDivNum, latitudeDivNum, postLen, meshThickness);
 }
 
 

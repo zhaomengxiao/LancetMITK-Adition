@@ -208,7 +208,16 @@ protected:
 
   // Generate a reamer model
   void on_pushButton_generateReamer_clicked();
-  
+  void GenerateReamerModel(double radius, 
+	  double longiSliceNum, 
+	  double latiSliceNum, 
+	  double postStcikLen, 
+	  double meshThickness /*in mm*/);
+  void HollowSurface(vtkSmartPointer<vtkPolyData> inputPolyData, 
+	  vtkSmartPointer<vtkPolyData> outputPolyData,
+	  double meshEdgeThickness /*in mm*/);
+
+
   // Use MeshLib to realize THA reaming
   void on_pushButton_cutInitV5_clicked();
   void on_pushButton_cutV5_clicked();
