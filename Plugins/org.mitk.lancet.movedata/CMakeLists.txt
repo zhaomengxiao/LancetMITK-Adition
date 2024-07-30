@@ -7,3 +7,51 @@ mitk_create_plugin(
   MitkCore MitkCLCore MitkCommandLine MitkCLUtilities
   PACKAGE_DEPENDS PRIVATE ITK VTK VTK|CommonComputationalGeometry VTK|FiltersGeneral VTK|FiltersSources VTK|FiltersExtraction VTK|FiltersFlowPaths VTK|FiltersModeling VTK|FiltersPoints
 )
+
+set(LANCET_MESHLIB "${MITK_LOCAL_EP_PATH}/MeshLibDist_v2.4.2.30")
+
+set(LANCET_MESHLIB_INCLUDE "")
+set(LANCET_MESHLIB_LIB_DEBUG "")
+set(LANCET_MESHLIB_LIB_RELEASE "")
+set(LANCET_MESHLIB_LIB "")
+set(LANCET_MESHLIB_BIN "")
+set(LANCET_MESHLIB_DLLS_DEBUG "")
+set(LANCET_MESHLIB_DLLS_RELEASE "")
+
+set(LANCET_ARCHITECTURE_BIT "")
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(LANCET_ARCHITECTURE_BIT "X64")
+else()
+  set(LANCET_ARCHITECTURE_BIT "X86")
+endif()
+
+set(LANCET_MESHLIB_INCLUDE "${LANCET_MESHLIB}/install/include")
+include_directories(${LANCET_MESHLIB_INCLUDE})
+
+set(LANCET_MESHLIB_BIN "${LANCET_MESHLIB}/install/app")
+set(LANCET_MESHLIB_LIB "${LANCET_MESHLIB}/install/lib")
+
+file(GLOB LANCET_MESHLIB_LIB_DEBUG "${LANCET_MESHLIB_LIB}/Debug/*.lib")
+file(GLOB LANCET_MESHLIB_LIB_RELEASE "${LANCET_MESHLIB_LIB}/Release/*.lib")
+
+file(GLOB LANCET_MESHLIB_DLLS "${LANCET_MESHLIB_BIN}/Debug/*.dll")
+file(GLOB LANCET_MESHLIB_DLLS "${LANCET_MESHLIB_BIN}/Release/*.dll")
+
+foreach(lib ${LANCET_MESHLIB_LIB_DEBUG})
+    target_link_libraries(org_mitk_lancet_movedata PRIVATE
+$<$<CONFIG:Debug>:${lib}>)
+endforeach()
+
+foreach(lib ${LANCET_MESHLIB_LIB_RELEASE})
+    target_link_libraries(org_mitk_lancet_movedata PRIVATE
+$<$<CONFIG:Release>:${lib}>)
+endforeach()
+
+message("LANCET_MESHLIB_LIB_DEBUG: ${LANCET_MESHLIB_LIB_DEBUG}")
+message("LANCET_MESHLIB_LIB_RELEASE: ${LANCET_MESHLIB_LIB_RELEASE}")
+
+
+#target_link_libraries(${PLUGIN_TARGET} PUBLIC ${LANCET_MESHLIB_LIB_RELEASE})
+
+file(COPY ${LANCET_MESHLIB_DLLS_DEBUG} DESTINATION "${MITK_BINARY_DIR}/bin/plugins/Debug")  
+file(COPY ${LANCET_MESHLIB_DLLS_RELEASE} DESTINATION "${MITK_BINARY_DIR}/bin/plugins/Release")
