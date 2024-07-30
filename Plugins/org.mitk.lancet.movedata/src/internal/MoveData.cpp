@@ -309,28 +309,28 @@ void MoveData::on_pushButton_cutInitV5_clicked()
 	//---------- Convert the vtkPolyData to MR::Mesh by .stl intermediate -----------------
 	// --------- save the .stl files --------------
 	vtkNew<vtkSTLWriter> stlWriter;
-	stlWriter->SetFileName("E:/tmp/test/bone.stl");
+	stlWriter->SetFileName("D:/bone.stl");
 	stlWriter->SetInputData(movedPolyData_bone);
 	stlWriter->Write();
 
-	stlWriter->SetFileName("E:/tmp/test/cup.stl");
+	stlWriter->SetFileName("D:/cup.stl");
 	stlWriter->SetInputData(movedPolyData_cup);
 	stlWriter->Write();
 
-	stlWriter->SetFileName("E:/tmp/test/cup+.stl");
+	stlWriter->SetFileName("D:/cup+.stl");
 	stlWriter->SetInputData(movedPolyData_cupPlus);
 	stlWriter->Write();
 
-	stlWriter->SetFileName("E:/tmp/test/cutter.stl");
+	stlWriter->SetFileName("D:/cutter.stl");
 	stlWriter->SetInputData(movedPolyData_cutter);
 	stlWriter->Write();
 
 	// --------- load the .stl files --------------
-	MR::Mesh boneMesh = MR::MeshLoad::fromAnySupportedFormat("E:/tmp/test/bone.stl").value();
-	MR::Mesh cupMesh = MR::MeshLoad::fromAnySupportedFormat("E:/tmp/test/cup.stl").value();
-	MR::Mesh cupPlusMesh = MR::MeshLoad::fromAnySupportedFormat("E:/tmp/test/cup+.stl").value();
+	MR::Mesh boneMesh = MR::MeshLoad::fromAnySupportedFormat("D:/bone.stl").value();
+	MR::Mesh cupMesh = MR::MeshLoad::fromAnySupportedFormat("D:/cup.stl").value();
+	MR::Mesh cupPlusMesh = MR::MeshLoad::fromAnySupportedFormat("D:/cup+.stl").value();
 
-	m_Cutter_mesh = MR::MeshLoad::fromAnySupportedFormat("E:/tmp/test/cutter.stl").value();
+	m_Cutter_mesh = MR::MeshLoad::fromAnySupportedFormat("D:/cutter.stl").value();
 
 	clock_t meshSrcReady = clock();
 
@@ -350,11 +350,11 @@ void MoveData::on_pushButton_cutInitV5_clicked()
 	vtkNew<vtkPolyData> vicinity;
 	TurnMRMeshIntoPolyData(b, vicinity);
 
-	stlWriter->SetFileName("E:/tmp/test/center.stl");
+	stlWriter->SetFileName("D:/center.stl");
 	stlWriter->SetInputData(center);
 	stlWriter->Write();
 
-	stlWriter->SetFileName("E:/tmp/test/vicinity.stl");
+	stlWriter->SetFileName("D:/vicinity.stl");
 	stlWriter->SetInputData(vicinity);
 	stlWriter->Write();
 
@@ -396,19 +396,19 @@ void MoveData::on_pushButton_cutInitV5_clicked()
 	clock_t polyDataReady = clock();
 
 	//----------- Add mitk data Nodes and save the polydata---------------
-	stlWriter->SetFileName("E:/tmp/test/green.stl");
+	stlWriter->SetFileName("D:/green.stl");
 	stlWriter->SetInputData(greenPolyData);
 	stlWriter->Write();
 
-	stlWriter->SetFileName("E:/tmp/test/shell.stl");
+	stlWriter->SetFileName("D:/shell.stl");
 	stlWriter->SetInputData(shellPolyData);
 	stlWriter->Write();
 
-	stlWriter->SetFileName("E:/tmp/test/buffer.stl");
+	stlWriter->SetFileName("D:/buffer.stl");
 	stlWriter->SetInputData(bufferPolyData);
 	stlWriter->Write();
 
-	stlWriter->SetFileName("E:/tmp/test/red.stl");
+	stlWriter->SetFileName("D:/red.stl");
 	stlWriter->SetInputData(redPolyData);
 	stlWriter->Write();
 
