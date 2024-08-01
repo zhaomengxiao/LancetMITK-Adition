@@ -16,15 +16,21 @@ target_compile_definitions(org_mitk_lancet_movedata
     PRIVATE $<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=0>
 )
 
-set(ZIP_FILE "${MITK_LOCAL_EP_PATH}/MeshLibDist_v2.4.2.30.zip")
+# Don't use the zip file downloaded directly from github, it may fail to be unzipped
+# Unzipping the file from github and then rezipping the file will solve the problem
+set(ZIP_FILE "${MITK_LOCAL_EP_PATH}/MeshLibDist_v2.4.2.198.zip")
 set(OUTPUT_DIR ${MITK_BINARY_DIR})
+
+message("MeshLib unzip OUTPUT_DIR: ${MITK_BINARY_DIR}")
+
 
 execute_process(
     COMMAND tar -xvf ${ZIP_FILE} -C ${OUTPUT_DIR}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-set(LANCET_MESHLIB "${MITK_BINARY_DIR}/MeshLibDist_v2.4.2.30")
+
+set(LANCET_MESHLIB "${MITK_BINARY_DIR}/MeshLibDist_v2.4.2.198")
 
 set(LANCET_MESHLIB_INCLUDE "")
 set(LANCET_MESHLIB_LIB_DEBUG "")
