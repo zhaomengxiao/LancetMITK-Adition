@@ -4143,23 +4143,31 @@ void MoveData::on_pushButton_testIntersect_clicked()
 
 void MoveData::on_pushButton_testStencil_clicked()
 {
-	auto imageToStencil = GetDataStorage()->GetNamedObject<mitk::Image>("image");
-	auto stencil = GetDataStorage()->GetNamedObject<mitk::Surface>("implant");
+	if(GetDataStorage()->GetNamedNode("imageToStencil") == nullptr || 
+		GetDataStorage()->GetNamedNode("stencil") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("imageToStencil or stencil is missing");
+	}
+
+	auto imageToStencil = GetDataStorage()->GetNamedObject<mitk::Image>("imageToStencil");
+	auto stencil = GetDataStorage()->GetNamedObject<mitk::Surface>("stencil");
 
 	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
-	surfaceToImageFilter->SetBackgroundValue(-600);
+	surfaceToImageFilter->SetBackgroundValue(m_Controls.lineEdit_stencilBackground->text().toDouble());
 	surfaceToImageFilter->SetImage(imageToStencil);
 	surfaceToImageFilter->SetInput(stencil);
-	surfaceToImageFilter->SetReverseStencil(true);
-
+	if(m_Controls.radioButton_reverseStencil->isChecked())
+	{
+		surfaceToImageFilter->SetReverseStencil(true);
+	}
 	mitk::Image::Pointer convertedImage = mitk::Image::New();
 	surfaceToImageFilter->Update();
 	convertedImage = surfaceToImageFilter->GetOutput();
 
 	auto newNode = mitk::DataNode::New();
-	newNode->SetName("newNode");
+	newNode->SetName("stencilResult");
 	newNode->SetData(convertedImage);
-	GetDataStorage()->Add(newNode);
+	GetDataStorage()->Add(newNode, GetDataStorage()->GetNamedNode("imageToStencil"));
 }
 
 

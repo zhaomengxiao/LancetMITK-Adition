@@ -1386,8 +1386,8 @@
       <widget class="QSlider" name="horizontalSlider_testCrosshair">
        <property name="geometry">
         <rect>
-         <x>100</x>
-         <y>50</y>
+         <x>70</x>
+         <y>40</y>
          <width>401</width>
          <height>22</height>
         </rect>
@@ -1409,24 +1409,11 @@
         <string>generate CPR</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pushButton_testStencil">
-       <property name="geometry">
-        <rect>
-         <x>110</x>
-         <y>70</y>
-         <width>171</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Image Stencil with surface</string>
-       </property>
-      </widget>
       <widget class="QPushButton" name="pushButton_surfaceReconstruct">
        <property name="geometry">
         <rect>
-         <x>310</x>
-         <y>70</y>
+         <x>420</x>
+         <y>60</y>
          <width>251</width>
          <height>31</height>
         </rect>
@@ -1438,8 +1425,8 @@
       <widget class="QGroupBox" name="groupBox_16">
        <property name="geometry">
         <rect>
-         <x>40</x>
-         <y>110</y>
+         <x>50</x>
+         <y>160</y>
          <width>571</width>
          <height>101</height>
         </rect>
@@ -1524,7 +1511,7 @@
        <property name="geometry">
         <rect>
          <x>50</x>
-         <y>220</y>
+         <y>260</y>
          <width>561</width>
          <height>61</height>
         </rect>
@@ -1574,7 +1561,7 @@
        <property name="geometry">
         <rect>
          <x>50</x>
-         <y>290</y>
+         <y>330</y>
          <width>434</width>
          <height>91</height>
         </rect>
@@ -1641,6 +1628,53 @@
          <widget class="QPushButton" name="pushButton_generateReamer">
           <property name="text">
            <string>Generate reamer</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_19">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>50</y>
+         <width>331</width>
+         <height>101</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Surface stencil</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_27">
+        <item row="1" column="0" rowspan="2" colspan="2">
+         <layout class="QHBoxLayout" name="horizontalLayout_25">
+          <item>
+           <widget class="QLabel" name="label_35">
+            <property name="text">
+             <string>Background:  </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_stencilBackground">
+            <property name="text">
+             <string>0</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="3" column="0">
+         <widget class="QPushButton" name="pushButton_testStencil">
+          <property name="text">
+           <string>Image Stencil with surface</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QRadioButton" name="radioButton_reverseStencil">
+          <property name="text">
+           <string>Reverse stencil</string>
           </property>
          </widget>
         </item>
