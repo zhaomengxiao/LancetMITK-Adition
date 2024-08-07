@@ -33,6 +33,11 @@ found in the LICENSE file.
 #include <mitkNavigationDataToPointSetFilter.h>
 #include <lancetPathPoint.h>
 #include <vtkQuaternion.h>
+#include <vtkSelectEnclosedPoints.h>
+#include <vtkCellLocator.h>
+#include <vtkPoints.h>
+#include <vtkGenericCell.h>
+#include <vtkImplicitPolyDataDistance.h>
 
 #include "lancetTrackingDeviceSourceConfigurator.h"
 #include "mitkNavigationToolStorageDeserializer.h"
@@ -162,26 +167,356 @@ void SurgicalSimulate::CreateQtPartControl(QWidget* parent)
   connect(m_Controls.pushButton_tkaEffectiveSpace, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_tkaEffectiveSpace_clicked);
   connect(m_Controls.pushButton_robotEmergencyBrake, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_robotEmergencyBrake_clicked);
 
+  // THA registration optimization
+  connect(m_Controls.pushButton_initThaRegis, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_initThaRegis_clicked);
+  connect(m_Controls.pushButton_tha_crest, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_tha_crest_clicked);
+  connect(m_Controls.pushButton_tha_articular, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_tha_articular_clicked);
+  connect(m_Controls.pushButton_tha_posHorn, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_tha_posHorn_clicked);
+  connect(m_Controls.pushButton_tha_antHorn, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_tha_antHorn_clicked);
+  connect(m_Controls.pushButton_tha_extraArticular, &QPushButton::clicked, this, &SurgicalSimulate::on_pushButton_tha_extraArticular_clicked);
 
 
 }
 
+void SurgicalSimulate::ThaSwitchStateMachine()
+{
+	// Initialization is not ready
+	if(m_Surface_thaBoneSurface->GetVtkPolyData() == nullptr || m_Pset_thaBoneLandmark->GetSize() == 0)
+	{
+		m_Controls.pushButton_tha_crest->setDisabled(true);
+		m_Controls.pushButton_tha_articular->setDisabled(true);
+		m_Controls.pushButton_tha_posHorn->setDisabled(true);
+		m_Controls.pushButton_tha_antHorn->setDisabled(true);
+		m_Controls.pushButton_tha_extraArticular->setDisabled(true);
+		return;
+	}
+
+	// Registration attempt
+	ThaRegister();
+
+	// m_Pset_thaPosHorn_rf is not ready or m_Pset_thaPosHorn_rf is problematic
+	if (ThaCheckLandmarkQuality() == 1 || m_Pset_thaPosHorn_rf->GetSize() == 0)
+	{
+		m_Controls.pushButton_tha_crest->setDisabled(true);
+		m_Controls.pushButton_tha_articular->setDisabled(true);
+		m_Controls.pushButton_tha_posHorn->setDisabled(false);
+		m_Controls.pushButton_tha_antHorn->setDisabled(true);
+		m_Controls.pushButton_tha_extraArticular->setDisabled(true);
+		return;
+	}
+
+	// m_Pset_thaAntHorn_rf is not ready or m_Pset_thaAntHorn_rf is problematic
+	if (ThaCheckLandmarkQuality() == 2 || m_Pset_thaAntHorn_rf->GetSize() == 0)
+	{
+		m_Controls.pushButton_tha_crest->setDisabled(true);
+		m_Controls.pushButton_tha_articular->setDisabled(true);
+		m_Controls.pushButton_tha_posHorn->setDisabled(true);
+		m_Controls.pushButton_tha_antHorn->setDisabled(false);
+		m_Controls.pushButton_tha_extraArticular->setDisabled(true);
+		return;
+	}
+
+	// m_Pset_thaArtiSurface_rf is not ready
+	if (m_Pset_thaArtiSurface_rf->GetSize() < 15)
+	{
+		m_Controls.pushButton_tha_crest->setDisabled(true);
+		m_Controls.pushButton_tha_articular->setDisabled(false);
+		m_Controls.pushButton_tha_posHorn->setDisabled(true);
+		m_Controls.pushButton_tha_antHorn->setDisabled(true);
+		m_Controls.pushButton_tha_extraArticular->setDisabled(true);
+		return;
+	}
+
+	// m_Pset_thaExArtiSurface_rf is not ready
+	if (m_Pset_thaExArtiSurface_rf->GetSize() < 15)
+	{
+		m_Controls.pushButton_tha_crest->setDisabled(true);
+		m_Controls.pushButton_tha_articular->setDisabled(true);
+		m_Controls.pushButton_tha_posHorn->setDisabled(true);
+		m_Controls.pushButton_tha_antHorn->setDisabled(true);
+		m_Controls.pushButton_tha_extraArticular->setDisabled(false);
+		return;
+	}
+
+	m_Controls.pushButton_tha_crest->setDisabled(true);
+	m_Controls.pushButton_tha_articular->setDisabled(true);
+	m_Controls.pushButton_tha_posHorn->setDisabled(true);
+	m_Controls.pushButton_tha_antHorn->setDisabled(true);
+	m_Controls.pushButton_tha_extraArticular->setDisabled(true);
+
+	ThaDisplayIcpPts();
+
+}
+
+void SurgicalSimulate::ThaDisplayIcpPts()
+{
+	// Remove the existing green/yellow/red icp points
+	if(GetDataStorage()->GetNamedNode("green ICP") != nullptr)
+	{
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("green ICP"));
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("yellow ICP"));
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("red ICP"));
+	}
+
+	auto redPts = mitk::PointSet::New();
+	auto yellowPts = mitk::PointSet::New();
+	auto greenPts = mitk::PointSet::New();
+
+	double highThres = 1.0;
+	double lowThres = 0.5;
+
+	// Apply m_ObjectRfToImageMatrix_tha to m_Pset_thaExArtiSurface_rf & m_Pset_thaArtiSurface_rf
+	auto combinedIcpPts = mitk::PointSet::New();
+	for(int i{0}; i < 15;  i++)
+	{
+		combinedIcpPts->InsertPoint(m_Pset_thaExArtiSurface_rf->GetPoint(i));
+		combinedIcpPts->InsertPoint(m_Pset_thaArtiSurface_rf->GetPoint(i));
+	}
+
+	vtkNew<vtkMatrix4x4> imageToObjectRfMatrix;
+	imageToObjectRfMatrix->DeepCopy(m_ObjectRfToImageMatrix_tha);
+	imageToObjectRfMatrix->Invert();
+	combinedIcpPts->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(imageToObjectRfMatrix);
+
+	auto movedCombinedIcpPts = mitk::PointSet::New();
+	for (int i{ 0 }; i < 30; i++)
+	{
+		movedCombinedIcpPts->InsertPoint(combinedIcpPts->GetPoint(i));
+	}
+
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+	implicitPolyDataDistance->SetInput(m_Surface_thaBoneSurface->GetVtkPolyData());
+
+	for(int i{0}; i < 30 ; i++)
+	{
+		double tmpPoint[3];
+		tmpPoint[0] = movedCombinedIcpPts->GetPoint(i)[0];
+		tmpPoint[1] = movedCombinedIcpPts->GetPoint(i)[1];
+		tmpPoint[2] = movedCombinedIcpPts->GetPoint(i)[2];
+		double currentError = implicitPolyDataDistance->EvaluateFunction(tmpPoint);
+		if(currentError >= highThres)
+		{
+			redPts->InsertPoint(movedCombinedIcpPts->GetPoint(i));
+		}
+
+		if (currentError <= lowThres)
+		{
+			greenPts->InsertPoint(movedCombinedIcpPts->GetPoint(i));
+		}
+
+		if (currentError > lowThres && currentError < highThres)
+		{
+			yellowPts->InsertPoint(movedCombinedIcpPts->GetPoint(i));
+		}
+
+	}
+
+	auto greenNode = mitk::DataNode::New();
+	greenNode->SetName("green ICP");
+	greenNode->SetData(greenPts);
+	greenNode->SetColor(0, 1, 0);
+	GetDataStorage()->Add(greenNode);
+	auto redNode = mitk::DataNode::New();
+	redNode->SetName("red ICP");
+	redNode->SetData(redPts);
+	redNode->SetColor(1, 0, 0);
+	GetDataStorage()->Add(redNode);
+	auto yellowNode = mitk::DataNode::New();
+	yellowNode->SetName("yellow ICP");
+	yellowNode->SetData(yellowPts);
+	yellowNode->SetColor(1, 1, 0);
+	GetDataStorage()->Add(yellowNode);
+
+}
+
+
+void SurgicalSimulate::on_pushButton_initThaRegis_clicked()
+{
+	// Set up the surface and the image landmark
+	if(GetDataStorage()->GetNamedNode("boneSurface") == nullptr||
+		GetDataStorage()->GetNamedNode("landmark_image") == nullptr)
+	{
+		m_Controls.textBrowser->append("boneSurface or landmark_image is missing");
+		return;
+	}
+
+	m_Surface_thaBoneSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("boneSurface");
+	m_Pset_thaBoneLandmark = GetDataStorage()->GetNamedObject<mitk::PointSet>("landmark_image");
+
+	m_Controls.label_tha_crestNum->setText("0");
+	m_Controls.label_tha_articuNum->setText("0");
+	m_Controls.label_tha_postNum->setText("0");
+	m_Controls.label_tha_antNum->setText("0");
+	m_Controls.label_tha_extraArticuNum->setText("0");
+
+	m_Controls.textBrowser->append("THA init succeeded");
+}
+
+void SurgicalSimulate::on_pushButton_tha_crest_clicked()
+{
+	// Check the camera prerequisites: connection & tool storage 
+	if (m_VegaToolStorage == nullptr)
+	{
+		m_Controls.textBrowser->append("NDI hasn't been set up yet!");
+		return;
+	}
+
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto objectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+
+	if (probeIndex == -1 || objectRfIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ObjectRf' in the toolStorage!");
+		return;
+	}
+
+	// Check the availability of the optic tools in the FOV
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToObjectRf = m_VegaSource->GetOutput(objectRfIndex);
+
+	if (nd_ndiToObjectRf->IsDataValid() == 0 || nd_ndiToProbe->IsDataValid() == 0)
+	{
+		return;
+	}
+
+	// Update m_Pset_thaCrest_rf
+	mitk::NavigationData::Pointer nd_rfToProbe = GetNavigationDataInRef(nd_ndiToProbe, nd_ndiToObjectRf);
+
+	mitk::Point3D probeTipPointUnderRf = nd_rfToProbe->GetPosition();
+
+	m_Pset_thaCrest_rf->RemovePointAtEnd();
+
+	m_Pset_thaCrest_rf->InsertPoint(probeTipPointUnderRf);
+
+	// Update the UI
+	m_Controls.label_tha_crestNum->setText("1");
+
+	// Enable the button of the next step
+	m_Controls.pushButton_tha_articular->setEnabled(true);
+
+}
+
+void SurgicalSimulate::on_pushButton_tha_articular_clicked()
+{
+	
+}
+
+void SurgicalSimulate::on_pushButton_tha_antHorn_clicked()
+{
+	// Check the camera prerequisites: connection & tool storage 
+	if (m_VegaToolStorage == nullptr)
+	{
+		m_Controls.textBrowser->append("NDI hasn't been set up yet!");
+		return;
+	}
+
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto objectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+
+	if (probeIndex == -1 || objectRfIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ObjectRf' in the toolStorage!");
+		return;
+	}
+
+	// Check the availability of the optic tools in the FOV
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToObjectRf = m_VegaSource->GetOutput(objectRfIndex);
+
+	if (nd_ndiToObjectRf->IsDataValid() == 0 || nd_ndiToProbe->IsDataValid() == 0)
+	{
+		return;
+	}
+
+	// Update m_Pset_thaAntHorn_rf
+	mitk::NavigationData::Pointer nd_rfToProbe = GetNavigationDataInRef(nd_ndiToProbe, nd_ndiToObjectRf);
+
+	mitk::Point3D probeTipPointUnderRf = nd_rfToProbe->GetPosition();
+
+	m_Pset_thaAntHorn_rf->RemovePointAtEnd();
+
+	m_Pset_thaAntHorn_rf->InsertPoint(probeTipPointUnderRf);
+
+	// Update the UI
+	m_Controls.label_tha_antNum->setText("1");
+
+	// Enable the button of the next step
+	m_Controls.pushButton_tha_extraArticular->setEnabled(true);
+
+}
+
+void SurgicalSimulate::on_pushButton_tha_posHorn_clicked()
+{
+	// Check the camera prerequisites: connection & tool storage 
+	if (m_VegaToolStorage == nullptr)
+	{
+		m_Controls.textBrowser->append("NDI hasn't been set up yet!");
+		return;
+	}
+
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto objectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+
+	if (probeIndex == -1 || objectRfIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ObjectRf' in the toolStorage!");
+		return;
+	}
+
+	// Check the availability of the optic tools in the FOV
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToObjectRf = m_VegaSource->GetOutput(objectRfIndex);
+
+	if (nd_ndiToObjectRf->IsDataValid() == 0 || nd_ndiToProbe->IsDataValid() == 0)
+	{
+		return;
+	}
+
+	// Update m_Pset_thaPosHorn_rf
+	mitk::NavigationData::Pointer nd_rfToProbe = GetNavigationDataInRef(nd_ndiToProbe, nd_ndiToObjectRf);
+
+	mitk::Point3D probeTipPointUnderRf = nd_rfToProbe->GetPosition();
+
+	m_Pset_thaPosHorn_rf->RemovePointAtEnd();
+
+	m_Pset_thaPosHorn_rf->InsertPoint(probeTipPointUnderRf);
+
+	// Update the UI
+	m_Controls.label_tha_postNum->setText("1");
+
+	// Enable the button of the next step
+	m_Controls.pushButton_tha_antHorn->setEnabled(true);
+
+}
+
+void SurgicalSimulate::on_pushButton_tha_extraArticular_clicked()
+{
+	
+}
+
+bool SurgicalSimulate::ThaRegister()
+{
+	return false;
+}
+
+int SurgicalSimulate::ThaCheckLandmarkQuality()
+{
+	return 0;
+}
+
+void SurgicalSimulate::ThaDisplayProblematicLandmark()
+{
+	
+}
+
+
+
+
+
 void SurgicalSimulate::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
                                           const QList<mitk::DataNode::Pointer>& nodes)
 {
-  // iterate all selected objects, adjust warning visibility
-  // foreach (mitk::DataNode::Pointer node, nodes)
-  // {
-  //   if (node.IsNotNull() && dynamic_cast<mitk::Image *>(node->GetData()))
-  //   {
-  //     m_Controls.labelWarning->setVisible(false);
-  //     m_Controls.buttonPerformImageProcessing->setEnabled(true);
-  //     return;
-  //   }
-  // }
-  //
-  // m_Controls.labelWarning->setVisible(true);
-  // m_Controls.buttonPerformImageProcessing->setEnabled(false);
+  
 }
 
 void SurgicalSimulate::UseVega()

@@ -105,6 +105,8 @@ public slots:
   void on_pushButton_tkaEffectiveSpace_clicked();
   void on_pushButton_robotEmergencyBrake_clicked();
 
+  // 2024.08.06 THA image registration optimization
+
 
 protected:
   virtual void CreateQtPartControl(QWidget* parent) override;
@@ -288,8 +290,41 @@ protected:
   int m_PowerStatus{ 0 };
 
 
+  // THA registration optimization 2024.08.06
+  mitk::PointSet::Pointer m_Pset_thaCrest_rf = mitk::PointSet::New();
+  mitk::PointSet::Pointer m_Pset_thaPosHorn_rf = mitk::PointSet::New();
+  mitk::PointSet::Pointer m_Pset_thaAntHorn_rf = mitk::PointSet::New();
+  mitk::PointSet::Pointer m_Pset_thaArtiSurface_rf = mitk::PointSet::New();
+  mitk::PointSet::Pointer m_Pset_thaExArtiSurface_rf = mitk::PointSet::New();
 
+  mitk::PointSet::Pointer m_Pset_thaBoneLandmark = mitk::PointSet::New();
+  mitk::Surface::Pointer m_Surface_thaBoneSurface = mitk::Surface::New();
 
+  vtkNew<vtkMatrix4x4> m_ObjectRfToImageMatrix_tha;
+
+  void on_pushButton_initThaRegis_clicked();
+  void on_pushButton_tha_crest_clicked();
+  void on_pushButton_tha_articular_clicked();
+  void on_pushButton_tha_posHorn_clicked();
+  void on_pushButton_tha_antHorn_clicked();
+  void on_pushButton_tha_extraArticular_clicked();
+  // void on_pushButton_tha_regisReset_clicked();
+
+  void ThaSwitchStateMachine();
+
+  bool ThaRegister(); /* Do following tasks:
+	- check icp & landmark & surface availability, return false if all data are not ready
+	- Calculate registration, update m_ObjectRfToImageMatrix_tha and return true; */
+
+  int ThaCheckLandmarkQuality();/* Check landmark quality:
+	- Return 0 if both pos & ant horn are okay
+	- Return 1 if pos horn is problematic
+	- Return 2 if only ant horn is problematic
+	- Return 3 if ThaRegister() failed*/
+
+  void ThaDisplayProblematicLandmark(); /* Display the problematic landmark with its image counterpart */
+
+  void ThaDisplayIcpPts();
 };
 
 #endif // SurgicalSimulate_h
