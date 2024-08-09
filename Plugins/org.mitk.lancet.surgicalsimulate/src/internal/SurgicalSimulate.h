@@ -322,7 +322,10 @@ protected:
 	- Return 2 if only ant horn is problematic
 	- Return 3 if ThaRegister() failed*/
 
-  void ThaDisplayProblematicLandmark(); /* Display the problematic landmark with its image counterpart */
+  void ThaDisplayProblematicLandmark(int landmarkIndex); /* Display the problematic landmark with its image counterpart:
+	1: posterior horn
+	2: anterior horn
+	this function co-works with ThaCheckLandmarkQuality()*/
 
   void ThaDisplayIcpPts();
 };
