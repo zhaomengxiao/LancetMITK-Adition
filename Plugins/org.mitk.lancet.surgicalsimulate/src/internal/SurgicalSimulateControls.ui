@@ -1473,14 +1473,18 @@
          </layout>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_47">
+         <layout class="QHBoxLayout" name="horizontalLayout_41">
           <item>
-           <widget class="QPushButton" name="pushButton_tha_regisReset">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
+           <widget class="QLabel" name="label_10">
             <property name="text">
-             <string>Clear and reset</string>
+             <string>Probe tip to surface: </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_thaProbeTipToSurface">
+            <property name="text">
+             <string>NaN</string>
             </property>
            </widget>
           </item>

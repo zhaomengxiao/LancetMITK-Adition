@@ -202,6 +202,18 @@ void SurgicalSimulate::ThaSwitchStateMachine()
 		ThaDisplayProblematicLandmark(landmarkQuality);
 	}
 
+	// m_Pset_thaCrest_rf is not ready
+	if (m_Pset_thaCrest_rf->GetSize() == 0)
+	{
+		m_Controls.pushButton_tha_crest->setDisabled(false);
+		m_Controls.pushButton_tha_articular->setDisabled(true);
+		m_Controls.pushButton_tha_posHorn->setDisabled(true);
+		m_Controls.pushButton_tha_antHorn->setDisabled(true);
+		m_Controls.pushButton_tha_extraArticular->setDisabled(true);
+		return;
+	}
+
+
 	// m_Pset_thaPosHorn_rf is not ready or m_Pset_thaPosHorn_rf is problematic
 	if (landmarkQuality == 1 || m_Pset_thaPosHorn_rf->GetSize() == 0)
 	{
@@ -345,17 +357,22 @@ void SurgicalSimulate::ThaDisplayIcpPts()
 	greenNode->SetName("green ICP");
 	greenNode->SetData(greenPts);
 	greenNode->SetColor(0, 1, 0);
+	greenNode->SetFloatProperty("pointsize", 2);
 	GetDataStorage()->Add(greenNode);
 	auto redNode = mitk::DataNode::New();
 	redNode->SetName("red ICP");
 	redNode->SetData(redPts);
 	redNode->SetColor(1, 0, 0);
+	redNode->SetFloatProperty("pointsize", 2);
 	GetDataStorage()->Add(redNode);
 	auto yellowNode = mitk::DataNode::New();
 	yellowNode->SetName("yellow ICP");
 	yellowNode->SetData(yellowPts);
 	yellowNode->SetColor(1, 1, 0);
+	yellowNode->SetFloatProperty("pointsize", 2);
 	GetDataStorage()->Add(yellowNode);
+
+	GetDataStorage()->GetNamedNode("Probe_forVisual")->SetVisibility(true);
 
 }
 
@@ -404,7 +421,7 @@ void SurgicalSimulate::on_pushButton_initThaRegis_clicked()
 	m_Controls.label_tha_postNum->setText("0");
 	m_Controls.label_tha_antNum->setText("0");
 	m_Controls.label_tha_extraArticuNum->setText("0");
-
+	m_Controls.label_thaProbeTipToSurface->setText("NaN");
 	m_Controls.textBrowser->append("THA init succeeded");
 
 	ThaSwitchStateMachine();
@@ -648,27 +665,101 @@ bool SurgicalSimulate::ThaRegister()
 
 	// Calculate T_imageToObjectRf
 	auto combinedRegistrator = mitk::SurfaceRegistration::New();
-	combinedRegistrator->SetLandmarksTarget(m_Pset_thaBoneLandmark);
-	combinedRegistrator->SetLandmarksSrc(landmark_rf);
+	// combinedRegistrator->SetLandmarksTarget(m_Pset_thaBoneLandmark);
+	// combinedRegistrator->SetLandmarksSrc(landmark_rf);
+	combinedRegistrator->SetLandmarksSrc(m_Pset_thaBoneLandmark);
+	combinedRegistrator->SetLandmarksTarget(landmark_rf);
 	combinedRegistrator->SetIcpPoints(icp_rf);
 	combinedRegistrator->SetSurfaceSrc(m_Surface_thaBoneSurface);
 	combinedRegistrator->ComputeLandMarkResult();
 	combinedRegistrator->ComputeIcpResult();
 
-	auto T_imageToObjectRF = combinedRegistrator->GetResult();
+	// auto T_imageToObjectRF = combinedRegistrator->GetResult();
 
-	m_ObjectRfToImageMatrix_tha->DeepCopy(T_imageToObjectRF);
-	m_ObjectRfToImageMatrix_tha->Invert();
+	m_ObjectRfToImageMatrix_tha->DeepCopy(combinedRegistrator->GetResult());
+	// m_ObjectRfToImageMatrix_tha->Invert();
+
+	m_Controls.textBrowser->append("ThaRegister() proceeded");
+
+
+	if (m_ThaPrboeUpdateTimer == nullptr)
+	{
+		m_ThaPrboeUpdateTimer = new QTimer(this); //create a new timer
+	}
+	disconnect(m_ThaPrboeUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateThaProbe()));
+
+	connect(m_ThaPrboeUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateThaProbe()));
+
+	m_ThaPrboeUpdateTimer->start(100);
+
 
 	return true;
 
 }
 
+void SurgicalSimulate::UpdateThaProbe()
+{
+	if(GetDataStorage()->GetNamedNode("Probe_forVisual")== nullptr)
+	{
+		return;
+	}
+
+	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
+	auto objectRfIndex = m_VegaToolStorage->GetToolIndexByName("ObjectRf");
+
+	if (probeIndex == -1 || objectRfIndex == -1)
+	{
+		m_Controls.textBrowser->append("There is no 'Probe' or 'ObjectRf' in the toolStorage!");
+		return;
+	}
+
+	// Check the availability of the optic tools in the FOV
+	mitk::NavigationData::Pointer nd_ndiToProbe = m_VegaSource->GetOutput(probeIndex);
+	mitk::NavigationData::Pointer nd_ndiToObjectRf = m_VegaSource->GetOutput(objectRfIndex);
+
+	if (nd_ndiToObjectRf->IsDataValid() == 0 || nd_ndiToProbe->IsDataValid() == 0)
+	{
+		return;
+	}
+
+	mitk::NavigationData::Pointer nd_rfToProbe = GetNavigationDataInRef(nd_ndiToProbe, nd_ndiToObjectRf);
+
+	vtkNew<vtkMatrix4x4> vtkMatrix_rfToProbe;
+	mitk::TransferItkTransformToVtkMatrix(nd_rfToProbe->GetAffineTransform3D().GetPointer(), vtkMatrix_rfToProbe);
+
+	vtkNew<vtkMatrix4x4> imageToRfMatrix;
+	imageToRfMatrix->DeepCopy(m_ObjectRfToImageMatrix_tha);
+	imageToRfMatrix->Invert();
+
+	vtkNew<vtkTransform> tmpTrans;
+	tmpTrans->PostMultiply();
+	tmpTrans->SetMatrix(vtkMatrix_rfToProbe);
+	tmpTrans->Concatenate(imageToRfMatrix);
+	tmpTrans->Update();
+
+	GetDataStorage()->GetNamedNode("Probe_forVisual")->GetData()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpTrans->GetMatrix());
+	GetDataStorage()->GetNamedNode("Probe_forVisual")->GetData()->GetGeometry()->Modified();
+	
+
+	vtkNew<vtkImplicitPolyDataDistance> implicitPolyDataDistance;
+	implicitPolyDataDistance->SetInput(m_Surface_thaBoneSurface->GetVtkPolyData());
+
+	double tmpPoint[3];
+	tmpPoint[0] = tmpTrans->GetMatrix()->GetElement(0, 3);
+	tmpPoint[1] = tmpTrans->GetMatrix()->GetElement(1, 3);
+	tmpPoint[2] = tmpTrans->GetMatrix()->GetElement(2, 3);
+	double currentError = abs(implicitPolyDataDistance->EvaluateFunction(tmpPoint));
+
+	m_Controls.label_thaProbeTipToSurface->setText(QString::number(currentError)); 
+		
+}
+
+
 int SurgicalSimulate::ThaCheckLandmarkQuality()
 {
 	double posHornDis{ 1000.0 };
 	double antHornDis{ 1000.0 };
-	double thres{ 5 };
+	double thres{ 7 };
 
 
 	auto posAntHorn_rf = mitk::PointSet::New();
@@ -712,7 +803,56 @@ int SurgicalSimulate::ThaCheckLandmarkQuality()
 
 void SurgicalSimulate::ThaDisplayProblematicLandmark(int landmarkIndex)
 {
-	
+	// Remove the last round display
+	if(GetDataStorage()->GetNamedNode("problematic pick") != nullptr)
+	{
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("problematic pick"));
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("corresponding image landmark"));
+	}
+
+	auto posAntHorn_rf = mitk::PointSet::New();
+	posAntHorn_rf->InsertPoint(m_Pset_thaPosHorn_rf->GetPoint(0));
+	posAntHorn_rf->InsertPoint(m_Pset_thaAntHorn_rf->GetPoint(0));
+
+	auto T_imageToObjectRf = vtkMatrix4x4::New();
+	T_imageToObjectRf->DeepCopy(m_ObjectRfToImageMatrix_tha);
+	T_imageToObjectRf->Invert();
+
+	posAntHorn_rf->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(T_imageToObjectRf);
+
+	auto problemPick = mitk::PointSet::New();
+	auto correspondPt = mitk::PointSet::New();
+
+	if(landmarkIndex == 1)
+	{
+		problemPick->InsertPoint(posAntHorn_rf->GetPoint(0));
+		correspondPt->InsertPoint(m_Pset_thaBoneLandmark->GetPoint(1));
+	}
+
+	if (landmarkIndex == 2)
+	{
+		problemPick->InsertPoint(posAntHorn_rf->GetPoint(1));
+		correspondPt->InsertPoint(m_Pset_thaBoneLandmark->GetPoint(2));
+	}
+
+	GetDataStorage()->GetNamedNode("landmark_image")->SetVisibility(false);
+
+	auto problemPickNode = mitk::DataNode::New();
+	problemPickNode->SetData(problemPick);
+	problemPickNode->SetName("problematic pick");
+	problemPickNode->SetFloatProperty("pointsize", 5);
+	problemPickNode->SetColor(1, 0, 0);
+	GetDataStorage()->Add(problemPickNode);
+
+	auto correspondNode = mitk::DataNode::New();
+	correspondNode->SetData(correspondPt);
+	correspondNode->SetName("corresponding image landmark");
+	correspondNode->SetFloatProperty("pointsize", 5);
+	correspondNode->SetColor(0, 0, 1);
+	GetDataStorage()->Add(correspondNode,problemPickNode);
+
+	GetDataStorage()->GetNamedNode("Probe_forVisual")->SetVisibility(true);
+
 }
 
 

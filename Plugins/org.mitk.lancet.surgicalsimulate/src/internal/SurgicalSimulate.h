@@ -106,7 +106,7 @@ public slots:
   void on_pushButton_robotEmergencyBrake_clicked();
 
   // 2024.08.06 THA image registration optimization
-
+  void UpdateThaProbe();
 
 protected:
   virtual void CreateQtPartControl(QWidget* parent) override;
@@ -328,6 +328,10 @@ protected:
 	this function co-works with ThaCheckLandmarkQuality()*/
 
   void ThaDisplayIcpPts();
+
+  QTimer* m_ThaPrboeUpdateTimer{ nullptr };
+  
+
 };
 
 #endif // SurgicalSimulate_h
