@@ -213,6 +213,17 @@ void SurgicalSimulate::ThaSwitchStateMachine()
 		return;
 	}
 
+	// m_Pset_thaArtiSurface_rf is not ready
+	if (m_Pset_thaArtiSurface_rf->GetSize() < 15)
+	{
+		m_Controls.pushButton_tha_crest->setDisabled(true);
+		m_Controls.pushButton_tha_articular->setDisabled(false);
+		m_Controls.pushButton_tha_posHorn->setDisabled(true);
+		m_Controls.pushButton_tha_antHorn->setDisabled(true);
+		m_Controls.pushButton_tha_extraArticular->setDisabled(true);
+		return;
+	}
+
 
 	// m_Pset_thaPosHorn_rf is not ready or m_Pset_thaPosHorn_rf is problematic
 	if (landmarkQuality == 1 || m_Pset_thaPosHorn_rf->GetSize() == 0)
@@ -252,16 +263,6 @@ void SurgicalSimulate::ThaSwitchStateMachine()
 	GetDataStorage()->GetNamedNode("boneSurface")->SetVisibility(true);
 	GetDataStorage()->GetNamedNode("landmark_image")->SetVisibility(true);
 
-	// m_Pset_thaArtiSurface_rf is not ready
-	if (m_Pset_thaArtiSurface_rf->GetSize() < 15)
-	{
-		m_Controls.pushButton_tha_crest->setDisabled(true);
-		m_Controls.pushButton_tha_articular->setDisabled(false);
-		m_Controls.pushButton_tha_posHorn->setDisabled(true);
-		m_Controls.pushButton_tha_antHorn->setDisabled(true);
-		m_Controls.pushButton_tha_extraArticular->setDisabled(true);
-		return;
-	}
 
 	// m_Pset_thaExArtiSurface_rf is not ready
 	if (m_Pset_thaExArtiSurface_rf->GetSize() < 15)
@@ -679,7 +680,7 @@ bool SurgicalSimulate::ThaRegister()
 	m_ObjectRfToImageMatrix_tha->DeepCopy(combinedRegistrator->GetResult());
 	// m_ObjectRfToImageMatrix_tha->Invert();
 
-	m_Controls.textBrowser->append("ThaRegister() proceeded");
+	// m_Controls.textBrowser->append("ThaRegister() proceeded");
 
 
 	if (m_ThaPrboeUpdateTimer == nullptr)
@@ -759,7 +760,7 @@ int SurgicalSimulate::ThaCheckLandmarkQuality()
 {
 	double posHornDis{ 1000.0 };
 	double antHornDis{ 1000.0 };
-	double thres{ 7 };
+	double thres{ 4.0 };
 
 
 	auto posAntHorn_rf = mitk::PointSet::New();
