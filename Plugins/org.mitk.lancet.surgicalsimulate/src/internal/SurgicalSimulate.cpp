@@ -503,10 +503,32 @@ void SurgicalSimulate::on_pushButton_tha_articular_clicked()
 
 	mitk::Point3D probeTipPointUnderRf = nd_rfToProbe->GetPosition();
 
-	m_Pset_thaArtiSurface_rf->InsertPoint(probeTipPointUnderRf);
+	double disThres{ 4.0 };
+
+	if(m_Pset_thaArtiSurface_rf->GetSize() < 1)
+	{
+		m_Pset_thaArtiSurface_rf->InsertPoint(probeTipPointUnderRf);
+	}
+	else
+	{
+		auto p = m_Pset_thaArtiSurface_rf->GetPoint(m_Pset_thaArtiSurface_rf->GetSize() - 1);
+		double tmpDis = sqrt(pow(p[0] - probeTipPointUnderRf[0], 2)+
+			pow(p[1] - probeTipPointUnderRf[1], 2)+
+			pow(p[2] - probeTipPointUnderRf[2], 2));
+
+		if(tmpDis > disThres)
+		{
+			m_Pset_thaArtiSurface_rf->InsertPoint(probeTipPointUnderRf);
+		}
+		else
+		{
+			m_Controls.textBrowser->append("Current ICP point is too close to the previous one");
+		}
+	}
+
 
 	// Update the UI
-	m_Controls.label_tha_articuNum->setText(QString::number(m_Controls.label_tha_articuNum->text().toInt() + 1));
+	m_Controls.label_tha_articuNum->setText(QString::number(m_Pset_thaArtiSurface_rf->GetSize()));
 
 	ThaSwitchStateMachine();
 }
@@ -629,10 +651,33 @@ void SurgicalSimulate::on_pushButton_tha_extraArticular_clicked()
 
 	mitk::Point3D probeTipPointUnderRf = nd_rfToProbe->GetPosition();
 
-	m_Pset_thaExArtiSurface_rf->InsertPoint(probeTipPointUnderRf);
+	// m_Pset_thaExArtiSurface_rf->InsertPoint(probeTipPointUnderRf);
+
+	double disThres{ 4.0 };
+
+	if (m_Pset_thaExArtiSurface_rf->GetSize() < 1)
+	{
+		m_Pset_thaExArtiSurface_rf->InsertPoint(probeTipPointUnderRf);
+	}
+	else
+	{
+		auto p = m_Pset_thaExArtiSurface_rf->GetPoint(m_Pset_thaExArtiSurface_rf->GetSize() - 1);
+		double tmpDis = sqrt(pow(p[0] - probeTipPointUnderRf[0], 2) +
+			pow(p[1] - probeTipPointUnderRf[1], 2) +
+			pow(p[2] - probeTipPointUnderRf[2], 2));
+
+		if (tmpDis > disThres)
+		{
+			m_Pset_thaExArtiSurface_rf->InsertPoint(probeTipPointUnderRf);
+		}
+		else
+		{
+			m_Controls.textBrowser->append("Current ICP point is too close to the previous one");
+		}
+	}
 
 	// Update the UI
-	m_Controls.label_tha_extraArticuNum->setText(QString::number(m_Controls.label_tha_extraArticuNum->text().toInt() + 1));
+	m_Controls.label_tha_extraArticuNum->setText(QString::number(m_Pset_thaExArtiSurface_rf->GetSize()));
 
 	ThaSwitchStateMachine();
 }
