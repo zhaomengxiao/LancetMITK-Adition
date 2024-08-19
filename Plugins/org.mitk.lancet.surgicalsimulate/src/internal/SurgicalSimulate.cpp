@@ -205,6 +205,22 @@ void SurgicalSimulate::ThaSwitchStateMachine()
 	// m_Pset_thaCrest_rf is not ready
 	if (m_Pset_thaCrest_rf->GetSize() == 0)
 	{
+		if(GetDataStorage()->GetNamedNode("crest point") == nullptr)
+		{
+			auto correspondPt = mitk::PointSet::New();
+			correspondPt->InsertPoint(GetDataStorage()->GetNamedObject<mitk::PointSet>("landmark_image")->GetPoint(0));
+			auto correspondNode = mitk::DataNode::New();
+			correspondNode->SetData(correspondPt);
+			correspondNode->SetName("crest point");
+			correspondNode->SetFloatProperty("pointsize", 5);
+			correspondNode->SetColor(0, 0, 1);
+			GetDataStorage()->Add(correspondNode);
+		}
+		else
+		{
+			GetDataStorage()->GetNamedNode("crest point")->SetVisibility(true);
+		}
+
 		m_Controls.pushButton_tha_crest->setDisabled(false);
 		m_Controls.pushButton_tha_articular->setDisabled(true);
 		m_Controls.pushButton_tha_posHorn->setDisabled(true);
@@ -212,6 +228,8 @@ void SurgicalSimulate::ThaSwitchStateMachine()
 		m_Controls.pushButton_tha_extraArticular->setDisabled(true);
 		return;
 	}
+
+	GetDataStorage()->GetNamedNode("crest point")->SetVisibility(false);
 
 	// m_Pset_thaArtiSurface_rf is not ready
 	if (m_Pset_thaArtiSurface_rf->GetSize() < 15)
@@ -228,6 +246,23 @@ void SurgicalSimulate::ThaSwitchStateMachine()
 	// m_Pset_thaPosHorn_rf is not ready or m_Pset_thaPosHorn_rf is problematic
 	if (landmarkQuality == 1 || m_Pset_thaPosHorn_rf->GetSize() == 0)
 	{
+		if(GetDataStorage()->GetNamedNode("posterior horn")==nullptr)
+		{
+			auto correspondPt = mitk::PointSet::New();
+			correspondPt->InsertPoint(GetDataStorage()->GetNamedObject<mitk::PointSet>("landmark_image")->GetPoint(1));
+			auto correspondNode = mitk::DataNode::New();
+			correspondNode->SetData(correspondPt);
+			correspondNode->SetName("posterior horn");
+			correspondNode->SetFloatProperty("pointsize", 5);
+			correspondNode->SetColor(0, 0, 1);
+			GetDataStorage()->Add(correspondNode);
+		}
+		else
+		{
+			GetDataStorage()->GetNamedNode("posterior horn")->SetVisibility(true);
+		}
+		
+
 		m_Controls.pushButton_tha_crest->setDisabled(true);
 		m_Controls.pushButton_tha_articular->setDisabled(true);
 		m_Controls.pushButton_tha_posHorn->setDisabled(false);
@@ -236,9 +271,28 @@ void SurgicalSimulate::ThaSwitchStateMachine()
 		return;
 	}
 
+	GetDataStorage()->GetNamedNode("posterior horn")->SetVisibility(false);
+
 	// m_Pset_thaAntHorn_rf is not ready or m_Pset_thaAntHorn_rf is problematic
 	if (landmarkQuality == 2 || m_Pset_thaAntHorn_rf->GetSize() == 0)
 	{
+		if(GetDataStorage()->GetNamedNode("anterior horn")==nullptr)
+		{
+			auto correspondPt = mitk::PointSet::New();
+			correspondPt->InsertPoint(GetDataStorage()->GetNamedObject<mitk::PointSet>("landmark_image")->GetPoint(2));
+			auto correspondNode = mitk::DataNode::New();
+			correspondNode->SetData(correspondPt);
+			correspondNode->SetName("anterior horn");
+			correspondNode->SetFloatProperty("pointsize", 5);
+			correspondNode->SetColor(0, 0, 1);
+			GetDataStorage()->Add(correspondNode);
+		}
+		else
+		{
+			GetDataStorage()->GetNamedNode("anterior horn")->SetVisibility(true);
+		}
+		
+
 		m_Controls.pushButton_tha_crest->setDisabled(true);
 		m_Controls.pushButton_tha_articular->setDisabled(true);
 		m_Controls.pushButton_tha_posHorn->setDisabled(true);
@@ -247,6 +301,7 @@ void SurgicalSimulate::ThaSwitchStateMachine()
 		return;
 	}
 
+	GetDataStorage()->GetNamedNode("anterior horn")->SetVisibility(false);
 
 	// Turn off the visibility of all nodes but for the boneSurface and landmark_image
 	mitk::DataStorage::SetOfObjects::ConstPointer allNodes = GetDataStorage()->GetAll();
@@ -261,7 +316,7 @@ void SurgicalSimulate::ThaSwitchStateMachine()
 	}
 
 	GetDataStorage()->GetNamedNode("boneSurface")->SetVisibility(true);
-	GetDataStorage()->GetNamedNode("landmark_image")->SetVisibility(true);
+	// GetDataStorage()->GetNamedNode("landmark_image")->SetVisibility(true);
 
 
 	// m_Pset_thaExArtiSurface_rf is not ready
@@ -412,7 +467,7 @@ void SurgicalSimulate::on_pushButton_initThaRegis_clicked()
 	}
 
 	GetDataStorage()->GetNamedNode("boneSurface")->SetVisibility(true);
-	GetDataStorage()->GetNamedNode("landmark_image")->SetVisibility(true);
+	// GetDataStorage()->GetNamedNode("landmark_image")->SetVisibility(true);
 
 	m_Surface_thaBoneSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("boneSurface");
 	m_Pset_thaBoneLandmark = GetDataStorage()->GetNamedObject<mitk::PointSet>("landmark_image");
