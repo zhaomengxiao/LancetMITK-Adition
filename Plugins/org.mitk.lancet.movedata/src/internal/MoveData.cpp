@@ -200,6 +200,8 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_testStencil, &QPushButton::clicked, this, &MoveData::on_pushButton_testStencil_clicked);
 
+  connect(m_Controls.pushButton_surfaceToImage, &QPushButton::clicked, this, &MoveData::on_pushButton_surfaceToImage_clicked);
+
   connect(m_Controls.pushButton_testIntersect, &QPushButton::clicked, this, &MoveData::on_pushButton_testIntersect_clicked);
   connect(m_Controls.pushButto_interpolation, &QPushButton::clicked, this, &MoveData::on_pushButto_interpolation_clicked);
 
@@ -4139,6 +4141,101 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	
 
 }
+
+void MoveData::on_pushButton_surfaceToImage_clicked()
+{
+	if(GetDataStorage()->GetNamedNode("surface") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("surface is missing");
+		return;
+	}
+
+	auto inputSurface = GetDataStorage()->GetNamedObject<mitk::Surface>("surface");
+
+	vtkNew<vtkPolyData> surfacePolyData;
+	surfacePolyData->DeepCopy(inputSurface->GetVtkPolyData());
+
+	vtkNew<vtkTransformFilter> tmpTransFilter;
+	vtkNew<vtkTransform> tmpTransform;
+	tmpTransform->SetMatrix(inputSurface->GetGeometry()->GetVtkMatrix());
+	tmpTransFilter->SetTransform(tmpTransform);
+	tmpTransFilter->SetInputData(surfacePolyData);
+	tmpTransFilter->Update();
+
+	auto objectSurface = mitk::Surface::New();
+	objectSurface->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
+
+	vtkNew<vtkImageData> whiteImage;
+	double imageBounds[6]{ 0 };
+	double imageSpacing[3]{ 0.2, 0.2, 0.2 };
+	whiteImage->SetSpacing(imageSpacing);
+
+	auto geometry = objectSurface->GetGeometry();
+	auto surfaceBounds = geometry->GetBounds();
+	for (int n = 0; n < 6; n++)
+	{
+		imageBounds[n] = surfaceBounds[n];
+	}
+
+	int dim[3];
+	for (int i = 0; i < 3; i++)
+	{
+		dim[i] = static_cast<int>(ceil((imageBounds[i * 2 + 1] - imageBounds[i * 2]) / imageSpacing[i]));
+	}
+	whiteImage->SetDimensions(dim);
+	whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+
+	double origin[3];
+	origin[0] = imageBounds[0] + imageSpacing[0] / 2;
+	origin[1] = imageBounds[2] + imageSpacing[1] / 2;
+	origin[2] = imageBounds[4] + imageSpacing[2] / 2;
+	whiteImage->SetOrigin(origin);
+	whiteImage->AllocateScalars(VTK_SHORT, 1);
+
+	// fill the image with foreground voxels:
+	short insideValue = 1;
+	// short outsideValue = 0;
+	vtkIdType count = whiteImage->GetNumberOfPoints();
+	for (vtkIdType i = 0; i < count; ++i)
+	{
+		whiteImage->GetPointData()->GetScalars()->SetTuple1(i, insideValue);
+	}
+
+	auto imageToCrop = mitk::Image::New();
+	imageToCrop->Initialize(whiteImage);
+	imageToCrop->SetVolume(whiteImage->GetScalarPointer());
+
+
+	// Apply the stencil
+	mitk::SurfaceToImageFilter::Pointer surfaceToImageFilter = mitk::SurfaceToImageFilter::New();
+	surfaceToImageFilter->SetImage(imageToCrop);
+	surfaceToImageFilter->SetInput(objectSurface);
+	surfaceToImageFilter->SetBackgroundValue(0);
+	surfaceToImageFilter->SetReverseStencil(false);
+
+	mitk::Image::Pointer convertedImage = mitk::Image::New();
+	surfaceToImageFilter->Update();
+	convertedImage = surfaceToImageFilter->GetOutput();
+
+	mitk::Color selectedColor;
+	selectedColor.SetRed(0.0);  // Red component
+	selectedColor.SetGreen(1.0);  // Green component
+	selectedColor.SetBlue(0.0);  // Blue component
+
+	
+
+	auto newNode = mitk::DataNode::New();
+	newNode->SetName("binaryImage");
+	newNode->SetData(convertedImage);
+	newNode->SetColor(0, 1, 0);
+	newNode->SetOpacity(1);
+	newNode->SetProperty("binaryimage.selectedcolor", mitk::ColorProperty::New(selectedColor));
+	newNode->Update();
+
+	GetDataStorage()->Add(newNode,GetDataStorage()->GetNamedNode("surface"));
+
+}
+
 
 
 void MoveData::on_pushButton_testStencil_clicked()

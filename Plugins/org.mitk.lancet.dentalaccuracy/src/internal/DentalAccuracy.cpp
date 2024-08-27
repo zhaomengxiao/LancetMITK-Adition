@@ -183,6 +183,7 @@ void DentalAccuracy::on_pushButton_implantTipExtract_clicked()
 	if(GetDataStorage()->GetNamedNode("implant") == nullptr)
 	{
 		m_Controls.textBrowser->append("implant is missing");
+		return;
 	}
 
 	// Generate a white image to apply the polydata stencil

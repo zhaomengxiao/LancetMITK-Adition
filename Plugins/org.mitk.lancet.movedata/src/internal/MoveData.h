@@ -153,6 +153,7 @@ protected:
 
   void on_pushButton_testStencil_clicked();
 
+  void on_pushButton_surfaceToImage_clicked();
 
   void on_pushButton_testIntersect_clicked();
 	// Generate a plane vtkPolyData centered at the Pset's center with the given size
