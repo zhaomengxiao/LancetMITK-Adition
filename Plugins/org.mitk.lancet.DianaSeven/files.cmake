@@ -6,6 +6,8 @@ set(INTERNAL_CPP_FILES
   org_mitk_lancet_DianaSeven_Activator.cpp
   DianaSeven.cpp
   DianaAimHardwareService.cpp
+  SystemPrecision.cpp
+  PrecisionTab.cpp
 )
 
 set(UI_FILES
@@ -16,6 +18,8 @@ set(MOC_H_FILES
   src/internal/org_mitk_lancet_DianaSeven_Activator.h
   src/internal/DianaSeven.h
   src/internal/DianaAimHardwareService.h
+  src/internal/SystemPrecision.h
+  src/internal/PrecisionTab.h
 )
 
 # list of resource files which can be used by the plug-in

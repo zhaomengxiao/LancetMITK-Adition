@@ -21,6 +21,7 @@
 #include "DianaAPIDef.h"
 #include "Environment.h"
 #include "FunctionOptDef.h"
+#include "PrintDataHelper.h"
 
 namespace lancetAlgorithm
 {
@@ -70,13 +71,18 @@ namespace lancetAlgorithm
 		std::vector<std::vector<double>> GetJointsPositionRange();
 		std::vector<double> GetJointAngles();
 		bool SetJointAngles(double* angles);
+		vtkSmartPointer<vtkMatrix4x4> GetPositionPosByJointAngles(double* aDirection, double aLength);
 	public:
 		void CapturePose(bool translationOnly);
 		bool AverageNavigationData(vtkMatrix4x4* TCamera2RF, int timeInterval, int intervalNum, double matrixArray[16]);
 		int CaptureRobot();
 		int ResetRobotRegistration();
 		void RobotAutoRegistration();
+		vtkSmartPointer<vtkMatrix4x4> GetBaseRF2BaseMatrix();
+		vtkSmartPointer<vtkMatrix4x4> GetEnd2EndRFMatrix();
 
+	signals:
+		void CameraUpdateClock();
 	private:
 		T_AimToolDataResult* GetNewToolData();
 		/*
@@ -106,6 +112,7 @@ namespace lancetAlgorithm
 		bool m_ProbeValidity = false;
 		double m_InitialPos[6] = { 0,0,0,0,0,0 };
 		RobotRegistration m_RobotRegistration;
+
 	private:
 		const char* m_RobotIpAddress = "192.168.10.75";
 		vtkSmartPointer<vtkMatrix4x4> m_TBaseRF2Base;
@@ -113,6 +120,7 @@ namespace lancetAlgorithm
 		std::map<std::string, vtkSmartPointer<vtkMatrix4x4>> m_ReferenceMap;
 		std::map<std::string, Eigen::Vector3d> m_ToolTipMap;
 		std::map<std::string, QLabel*> m_LabelMap;
+		double* m_RobotJointAngles;
 	};
 }
 

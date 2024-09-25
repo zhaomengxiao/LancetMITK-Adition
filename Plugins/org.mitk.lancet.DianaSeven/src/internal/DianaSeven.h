@@ -44,6 +44,7 @@ found in the LICENSE file.
 #include "DianaAimHardwareService.h"
 //#include "PrintDataHelper.h"
 #include "ui_DianaSevenControls.h"
+#include "PrecisionTab.h"
 
 /**
   \brief DianaSeven
@@ -110,6 +111,7 @@ public:
   void PowerOffBtnClicked();
   void ConnectCameraClicked();
   void UpdateCameraBtnClicked();
+  void HandleUpdateRenderRequest();
 
   void ReadRobotJointAnglesBtnClicked();
   void SetRobotJointAnglesBtnClicked();
@@ -182,7 +184,8 @@ public:
 
 	double activeTcpPose[6] = { -113.079,145.354,-97.1639,57.4587,-87.4711,-26.5523 };
 
-  Ui::DianaSevenControls m_Controls;
+	Ui::DianaSevenControls m_Controls;
+	PrecisionTab* m_PrecisionTab;
 };
 
 #endif // DianaSeven_h

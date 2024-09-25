@@ -40,7 +40,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>4</number>
+      <number>7</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -2970,6 +2970,336 @@
        </property>
       </widget>
      </widget>
+     <widget class="QWidget" name="PrecisionTab">
+      <attribute name="title">
+       <string>页</string>
+      </attribute>
+      <widget class="QPushButton" name="CollectICPBtn">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>540</x>
+         <y>150</y>
+         <width>121</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>采集精配准点</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_189">
+       <property name="geometry">
+        <rect>
+         <x>520</x>
+         <y>70</y>
+         <width>21</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>/6</string>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_10">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>50</y>
+         <width>327</width>
+         <height>271</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="title">
+        <string>选择影像数据： </string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_13">
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_16">
+          <item>
+           <widget class="QLabel" name="label_187">
+            <property name="text">
+             <string>影像粗配准点:  </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QmitkSingleNodeSelectionWidget" name="LandmarkPointRegSelectWidget" native="true"/>
+          </item>
+         </layout>
+        </item>
+        <item row="5" column="0">
+         <widget class="QPushButton" name="ReuseImageRegBtn">
+          <property name="text">
+           <string>复用上次影像配准</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QPushButton" name="ResetImageRegBtn">
+          <property name="text">
+           <string>重新配准</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QPushButton" name="SaveImageRegBtn">
+          <property name="text">
+           <string>保存图像配准矩阵</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_25">
+          <item>
+           <widget class="QLabel" name="label_188">
+            <property name="text">
+             <string>STL表面:  </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QmitkSingleNodeSelectionWidget" name="SurfaceRegSelectWidget" native="true"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="ICPRegistrationBtn">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>190</y>
+         <width>211</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ICP配准</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="CollectLandmarkLineEdit">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>69</y>
+         <width>61</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="AddICPBtn">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>230</y>
+         <width>211</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>融合</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="CollectedICPLineEdit">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>150</y>
+         <width>61</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="CollectLandmarkBtn">
+       <property name="geometry">
+        <rect>
+         <x>540</x>
+         <y>70</y>
+         <width>121</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>采集粗配准点</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_190">
+       <property name="geometry">
+        <rect>
+         <x>520</x>
+         <y>150</y>
+         <width>21</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>/6</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="UpdateDeviationBtn">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>270</y>
+         <width>211</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>更新影像</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="LandmarkRegistrationBtn">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>110</y>
+         <width>211</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>LandMark配准</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="DisplayPrecisionToolBtn">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>350</y>
+         <width>181</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>显示手指工装</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="DisplayProbeBtn">
+       <property name="geometry">
+        <rect>
+         <x>330</x>
+         <y>350</y>
+         <width>161</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>显示探针</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="SetGoLineTCPBtn">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>400</y>
+         <width>171</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>设置走线测试TCP</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_7">
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>434</y>
+         <width>321</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_11">
+        <item>
+         <widget class="QLabel" name="label_84">
+          <property name="text">
+           <string>目标线选择: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QmitkSingleNodeSelectionWidget" name="ImageTargetLineSelectWidget" native="true"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="GoLineBtn">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>前往目标线</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="GoPlaneBtn">
+          <property name="text">
+           <string>走面</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="SetGoPlaneTCPBtn">
+       <property name="geometry">
+        <rect>
+         <x>330</x>
+         <y>400</y>
+         <width>141</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>设置走面TCP</string>
+       </property>
+      </widget>
+     </widget>
     </widget>
    </item>
    <item>
@@ -2997,6 +3327,12 @@
    <class>QmitkToolTrackingStatusWidget</class>
    <extends>QWidget</extends>
    <header location="global">QmitkToolTrackingStatusWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QmitkSingleNodeSelectionWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QmitkSingleNodeSelectionWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
