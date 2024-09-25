@@ -38,8 +38,10 @@ void DianaSeven::CreateQtPartControl(QWidget* parent)
 {
 	// create GUI widgets from the Qt Designer's .ui file
 	m_Controls.setupUi(parent);
+	
 	InitGlobalVariable();
 	m_DianaAimHardwareService = new lancetAlgorithm::DianaAimHardwareService();
+	m_PrecisionTab = new PrecisionTab(m_Controls, this->GetDataStorage(), m_DianaAimHardwareService, parent);
 	connect(m_Controls.pushButton_initDiana, &QPushButton::clicked, this, &DianaSeven::initDianaNet);
 	connect(m_Controls.pushButton_stopDiana, &QPushButton::clicked, this, &DianaSeven::StopDiana);
 	connect(m_Controls.pushButton_initDiana_2, &QPushButton::clicked, this, &DianaSeven::initDianaNet);
@@ -559,6 +561,7 @@ void DianaSeven::InitHardwareDeviceTabConnection()
 	connect(m_Controls.PowerOffBtn, &QPushButton::clicked, this, &DianaSeven::PowerOffBtnClicked);
 	connect(m_Controls.ConnectNDIBtn, &QPushButton::clicked, this, &DianaSeven::ConnectCameraClicked);
 	connect(m_Controls.UpdateCameraBtn, &QPushButton::clicked, this, &DianaSeven::UpdateCameraBtnClicked);
+	connect(m_DianaAimHardwareService, &lancetAlgorithm::DianaAimHardwareService::CameraUpdateClock, this, &DianaSeven::HandleUpdateRenderRequest);
 }
 
 void DianaSeven::InitRobotRegistrationTabConnection()
@@ -715,7 +718,6 @@ void DianaSeven::PowerOffBtnClicked()
 	m_DianaAimHardwareService->RobotPowerOff();
 }
 
-
 void DianaSeven::ConnectCameraClicked()
 {
 	m_DianaAimHardwareService->ConnectCamera();
@@ -726,17 +728,23 @@ void DianaSeven::UpdateCameraBtnClicked()
 	std::cout << "UpdateCameraBtnClicked" << std::endl;
 	std::vector<QLabel*>* lables = new std::vector<QLabel*>();
 	lables->push_back(m_Controls.PKARobotBaseRF);
-	lables->push_back(m_Controls.PKAFemurRF);
+	//lables->push_back(m_Controls.PKAFemurRF);
 	lables->push_back(m_Controls.PKATibiaRF);
-	lables->push_back(m_Controls.BluntProbe);
+	//lables->push_back(m_Controls.BluntProbe);
 	lables->push_back(m_Controls.PKARobotEndRF);
 	lables->push_back(m_Controls.PKAProbe);
-	lables->push_back(m_Controls.PKADrill);
+	//lables->push_back(m_Controls.PKADrill);
 
-	std::vector<std::string> toolsName = {"RobotBaseRF", "PKAFemurRF", "PKATibiaRF", "BluntProbe", "RobotEndRF", "PKAProbe", "PKADrill"};
+	/*std::vector<std::string> toolsName = {"RobotBaseRF", "PKAFemurRF", "PKATibiaRF", "BluntProbe", "RobotEndRF", "PKAProbe", "PKADrill"};*/
+	std::vector<std::string> toolsName = { "RobotBaseRF",  "VerificationBlock", "RobotEndRF", "Probe"};
 	m_DianaAimHardwareService->InitToolsName(toolsName, std::move(lables));
 	m_DianaAimHardwareService->StartCamera();
 	//m_DianaAimHardwareService->UpdateCamera();
+}
+
+void DianaSeven::HandleUpdateRenderRequest()
+{
+	this->RequestRenderWindowUpdate();
 }
 
 void DianaSeven::ReadRobotJointAnglesBtnClicked()

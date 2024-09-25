@@ -120,6 +120,7 @@ void lancetAlgorithm::DianaAimHardwareService::UpdateCamera()
 	{
 		delete prlt;
 	}
+	emit CameraUpdateClock();
 }
 
 void lancetAlgorithm::DianaAimHardwareService::InitToolsName(std::vector<std::string> toolsName, std::vector<QLabel*>* labels)
@@ -206,30 +207,21 @@ void lancetAlgorithm::DianaAimHardwareService::RecordIntialPos()
 
 void lancetAlgorithm::DianaAimHardwareService::Translate(const double x, const double y, const double z)
 {
-	double pose[6] = {};
-	getTcpPos(pose, m_RobotIpAddress);
-	printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
-	double matrix[16] = {};
-	pose2Homogeneous(pose, matrix);//Öá½Ç×ªÆë´Î±ä»»¾ØÕó
-
+	double pose[6] = {0.0};
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-	vtkMatrix->DeepCopy(matrix);
-	vtkMatrix->Transpose();
-	Eigen::Vector3d moveMent = Eigen::Vector3d(x / 1000, y / 1000, z / 1000);
+
+	PrintDataHelper::CoutMatrix("Current Base2TCP Matrix:", vtkMatrix);
+	vtkMatrix->DeepCopy(this->GetBase2TCP());
+
 	transform->SetMatrix(vtkMatrix);
-	transform->Translate(moveMent.data());
+	transform->Translate(x, y, z);
 
 	vtkSmartPointer<vtkMatrix4x4> setMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	transform->Update();
 	transform->GetMatrix(setMatrix);
-	setMatrix->Transpose();
-	homogeneous2Pose(setMatrix->GetData(), pose);
-	double joints_final[7]{};
-	inverse(pose, joints_final, nullptr, m_RobotIpAddress);
 
-	moveJToTarget(joints_final, 0.2, 0.4);
-	WaitMove(m_RobotIpAddress);
+	this->RobotTransformInBase(setMatrix->GetData());
 }
 
 void lancetAlgorithm::DianaAimHardwareService::Translate(const double axis[3], double length)
@@ -240,14 +232,10 @@ void lancetAlgorithm::DianaAimHardwareService::Translate(const double axis[3], d
 void lancetAlgorithm::DianaAimHardwareService::Rotate(double x, double y, double z, double angle)
 {
 	double pose[6] = {};
-	getTcpPos(pose, m_RobotIpAddress);
-	printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
-	double matrix[16] = {};
-	pose2Homogeneous(pose, matrix);//Öá½Ç×ªÆë´Î±ä»»¾ØÕó
 
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-	vtkMatrix->DeepCopy(matrix);
+	vtkMatrix->DeepCopy(this->GetBase2TCP());
 	vtkMatrix->Transpose();
 	transform->SetMatrix(vtkMatrix);
 	transform->RotateWXYZ(angle, x, y, z);
@@ -255,13 +243,8 @@ void lancetAlgorithm::DianaAimHardwareService::Rotate(double x, double y, double
 	vtkSmartPointer<vtkMatrix4x4> setMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	transform->Update();
 	transform->GetMatrix(setMatrix);
-	setMatrix->Transpose();
-	homogeneous2Pose(setMatrix->GetData(), pose);
-	double joints_final[7]{};
-	inverse(pose, joints_final, nullptr, m_RobotIpAddress);
-
-	moveJToTarget(joints_final, 0.2, 0.4);
-	WaitMove(m_RobotIpAddress);
+	
+	this->RobotTransformInBase(setMatrix->GetData());
 }
 
 void lancetAlgorithm::DianaAimHardwareService::Rotate(const double axis[3], double angle)
@@ -291,33 +274,20 @@ void lancetAlgorithm::DianaAimHardwareService::WaitMove(const char* m_RobotIpAdd
 void lancetAlgorithm::DianaAimHardwareService::RobotTransformInTCP(const double* matrix)
 {
 	double pose[6] = {};
-	getTcpPos(pose, m_RobotIpAddress);
-	printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
-	double matrixArray[16] = {};
-	pose2Homogeneous(pose, matrixArray);//Öá½Ç×ªÆë´Î±ä»»¾ØÕó  »ñµÃbaseToTCP
 	vtkSmartPointer<vtkMatrix4x4> TBase2Tcp = vtkSmartPointer<vtkMatrix4x4>::New();
-	TBase2Tcp->DeepCopy(matrixArray);
-	TBase2Tcp->Transpose();
+	TBase2Tcp->DeepCopy(this->GetBase2TCP());
+	PrintDataHelper::CoutMatrix("Current Base2TCP Matrix:", TBase2Tcp);
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	transform->PreMultiply();
 	transform->SetMatrix(TBase2Tcp);
 	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
 	vtkMatrix->DeepCopy(matrix);
-	vtkMatrix->SetElement(0, 3, vtkMatrix->GetElement(0, 3) / 1000);
-	vtkMatrix->SetElement(1, 3, vtkMatrix->GetElement(1, 3) / 1000);
-	vtkMatrix->SetElement(2, 3, vtkMatrix->GetElement(2, 3) / 1000);
 	transform->Concatenate(vtkMatrix);
 
 	vtkSmartPointer<vtkMatrix4x4> newBase2TCP = vtkSmartPointer<vtkMatrix4x4>::New();
 	transform->GetMatrix(newBase2TCP);
-	newBase2TCP->Transpose();
-	homogeneous2Pose(newBase2TCP->GetData(), pose);
-	double joints_final[7]{};
-	inverse(pose, joints_final, nullptr, m_RobotIpAddress);
-
-	moveJToTarget(joints_final, 0.2, 0.4);
-	WaitMove(m_RobotIpAddress);
+	this->RobotTransformInBase(newBase2TCP->GetData());
 }
 
 void lancetAlgorithm::DianaAimHardwareService::RobotTransformInBase(const double* matrix)
@@ -547,6 +517,33 @@ bool lancetAlgorithm::DianaAimHardwareService::SetJointAngles(double* angles)
 	return true;
 }
 
+vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::DianaAimHardwareService::GetPositionPosByJointAngles(double* aDirection, double aLength)
+{
+	double pose[6] = {0.0};
+	forward(m_RobotJointAngles, pose);
+	double matrix[16] = {};
+	pose2Homogeneous(pose, matrix);
+
+	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	vtkMatrix->DeepCopy(matrix);
+	vtkMatrix->Transpose();
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	transform->SetMatrix(matrix);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		aDirection[i] = aDirection[i] * aLength / 1000;
+	}
+
+	transform->Translate(aDirection);
+
+	vtkSmartPointer<vtkMatrix4x4> ret = vtkSmartPointer<vtkMatrix4x4>::New();
+	transform->GetMatrix(ret);
+	
+	this->RobotTransformInBase(ret->GetData());
+	return ret;
+}
+
 void lancetAlgorithm::DianaAimHardwareService::CapturePose(bool translationOnly)
 {
 	double pose[6] = {};
@@ -745,6 +742,20 @@ void lancetAlgorithm::DianaAimHardwareService::RobotAutoRegistration()
 	m_TBaseRF2Base->DeepCopy(TBaseRF2Base);
 
 	std::cout << "Registration RMS: " << m_RobotRegistration.RMS() << std::endl;
+}
+
+vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::DianaAimHardwareService::GetBaseRF2BaseMatrix()
+{
+	vtkSmartPointer<vtkMatrix4x4> ret = vtkSmartPointer<vtkMatrix4x4>::New();
+	ret->DeepCopy(m_TBaseRF2Base);
+	return ret;
+}
+
+vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::DianaAimHardwareService::GetEnd2EndRFMatrix()
+{
+	vtkSmartPointer<vtkMatrix4x4> ret = vtkSmartPointer<vtkMatrix4x4>::New();
+	ret->DeepCopy(m_TFlange2EndRF);
+	return ret;
 }
 
 T_AimToolDataResult* lancetAlgorithm::DianaAimHardwareService::GetNewToolData()

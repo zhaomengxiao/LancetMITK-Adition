@@ -3,23 +3,17 @@ set(SRC_CPP_FILES
 )
 
 set(INTERNAL_CPP_FILES
-  org_mitk_lancet_DianaSeven_Activator.cpp
-  DianaSeven.cpp
-  DianaAimHardwareService.cpp
-  SystemPrecision.cpp
-  PrecisionTab.cpp
+  org_mitk_lancet_hansrobot_Activator.cpp
+  HansRobot.cpp
 )
 
 set(UI_FILES
-  src/internal/DianaSevenControls.ui
+  src/internal/HansRobotControls.ui
 )
 
 set(MOC_H_FILES
-  src/internal/org_mitk_lancet_DianaSeven_Activator.h
-  src/internal/DianaSeven.h
-  src/internal/DianaAimHardwareService.h
-  src/internal/SystemPrecision.h
-  src/internal/PrecisionTab.h
+  src/internal/org_mitk_lancet_hansrobot_Activator.h
+  src/internal/HansRobot.h
 )
 
 # list of resource files which can be used by the plug-in
