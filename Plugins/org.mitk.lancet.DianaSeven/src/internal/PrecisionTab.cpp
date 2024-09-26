@@ -8,7 +8,7 @@ PrecisionTab::PrecisionTab(Ui::DianaSevenControls ui,mitk::DataStorage* aDataSto
 	if (!m_dataStorage)
 	{
 		std::cout << "m_dataStorage is nullptr" << std::endl;
-	}
+	}//here
 	m_SystemPrecision = new lancetAlgorithm::SystemPrecision(m_dataStorage, m_DianaAimHardwareService);
 	InitSurfaceSelector(m_dataStorage, m_ui.SurfaceRegSelectWidget);
 	InitPointSetSelector(m_dataStorage, m_ui.LandmarkPointRegSelectWidget);

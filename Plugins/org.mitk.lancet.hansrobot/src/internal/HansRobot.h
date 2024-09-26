@@ -17,9 +17,10 @@ found in the LICENSE file.
 #include <berryISelectionListener.h>
 
 #include <QmitkAbstractView.h>
-
+#include "AimCamera.h"
 #include "ui_HansRobotControls.h"
 #include <LancetHansRobot.h>
+#include "ConnectionTab.h"
 
 /**
   \brief HansRobot
@@ -53,6 +54,9 @@ protected:
   void DoImageProcessing();
 
   Ui::HansRobotControls m_Controls;
+  LancetHansRobot* m_Robot;
+  AimCamera* m_Camera;
+  ConnectionTab* m_ConnectionTab;
 };
 
 #endif // HansRobot_h

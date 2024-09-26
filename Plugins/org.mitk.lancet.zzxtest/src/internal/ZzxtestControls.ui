@@ -78,7 +78,7 @@ QTabBar QToolButton:hover {
 </string>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab1">
       <attribute name="title">
@@ -285,7 +285,7 @@ QTabBar QToolButton:hover {
         <rect>
          <x>470</x>
          <y>370</y>
-         <width>75</width>
+         <width>141</width>
          <height>23</height>
         </rect>
        </property>
@@ -1375,7 +1375,7 @@ QPushButton:pressed {
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>20</x>
