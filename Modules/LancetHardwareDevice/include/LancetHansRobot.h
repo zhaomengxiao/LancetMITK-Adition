@@ -54,6 +54,10 @@ public:
 	bool SetCartDampParams(std::vector<double> aDamp) override;
 
 	std::vector<std::vector<double>> GetJointAngleLimits() override;
+
+	bool SetVelocity(double aVelocity) override;
+
+	void WaitMove() override;
 private:
 	Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
 	vtkSmartPointer<vtkMatrix4x4> GetMatrixByRotationAndTranslation(Eigen::Matrix3d aRotation, Eigen::Vector3d aTranslation);
