@@ -22,8 +22,8 @@ found in the LICENSE file.
 #include <eigen3/Eigen/Dense>
 #include <QApplication>
 #include <QThread>
-//#include <MitkLancetHardwareDeviceExports.h>
-class  AbstractRobot : public QObject
+#include <MitkLancetHardwareDeviceExports.h>
+class MITKLANCETHARDWAREDEVICE_EXPORT AbstractRobot : public QObject
 {
 public:
 	//AbstractRobot()// : m_InitialPos(vtkSmartPointer<vtkMatrix4x4>::New())
@@ -46,7 +46,7 @@ public:
 	virtual bool SetTCP(vtkMatrix4x4* aMatrix) = 0;
 
 	virtual std::vector<double> GetJointAngles() = 0;
-	virtual void SetJointAngles(double* aJointAngles) = 0;
+	virtual void SetJointAngles(std::vector<double> aJointAngles) = 0;
 
 	virtual vtkSmartPointer<vtkMatrix4x4> GetBaseToTCP() = 0;
 	virtual vtkSmartPointer<vtkMatrix4x4> GetFlangeToTCP() = 0;
@@ -55,8 +55,10 @@ public:
 	virtual void RobotTransformInBase(double* aMatrix) = 0;
 	virtual void RobotTransformInTCP(double* aMatrix) = 0;
 
-	virtual std::vector<double> GetCartImpeda() = 0;
-	virtual bool SetCartImpeda(double* aImpeda) = 0;
+	virtual std::vector<double> GetCartDampParams() = 0;
+	virtual bool SetCartDampParams(std::vector<double> aDampParams) = 0;
+	virtual std::vector<double> GetCartStiffParams() = 0;
+	virtual bool SetCartStiffParams(std::vector<double> aStiffParams) = 0;
 
 	virtual bool SetVelocity(double aVelocity) = 0;
 

@@ -232,4 +232,5 @@ void AimCamera::UpdateData()
 	{
 		delete prlt;
 	}
+	emit CameraUpdateClock();
 }
