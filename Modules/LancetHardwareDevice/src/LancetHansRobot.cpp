@@ -253,6 +253,32 @@ std::vector<std::vector<double>> LancetHansRobot::GetJointAngleLimits()
 	return std::vector<std::vector<double>>();
 }
 
+bool LancetHansRobot::SetVelocity(double aVelocity)
+{
+	dVelocity = aVelocity;
+	return true;
+}
+
+void LancetHansRobot::WaitMove()
+{
+	bool status;
+	QThread::msleep(20);
+	while (true)
+	{
+		int nRet = HRIF_IsMotionDone(0, 0, status);
+		if (status != 0)
+		{
+			break;
+		}
+		else
+		{
+			QThread::msleep(1);
+			QApplication::processEvents();
+		}
+	}
+	HRIF_GrpStop(0, 0);
+}
+
 Eigen::Matrix3d LancetHansRobot::GetRotationMatrixByEuler(double rx, double ry, double rz)
 {
 	Eigen::Matrix3d rotationMatrix;
