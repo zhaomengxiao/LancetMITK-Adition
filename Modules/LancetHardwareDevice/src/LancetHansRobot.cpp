@@ -71,13 +71,21 @@ void LancetHansRobot::GoToInitialPos()
 	auto rotation = this->GetEulerByMatrix(m_InitialPos);
 	auto translation = this->GetTranslationPartByMatrix(m_InitialPos);
 
-	// 定义关节目标位置
 	double dJ1 = 0; double dJ2 = 0; double dJ3 = 0;
 	double dJ4 = 0; double dJ5 = 0; double dJ6 = 0;
-	nIsUseJoint = 0;
+	auto joints = this->CalculateInverse(translation, rotation);
+
+	auto tcpTranslation = this->GetTranslationPartByMatrix(this->GetFlangeToTCP());
+	auto tcpEuler = this->GetEulerByMatrix(this->GetFlangeToTCP());
+
+	// 定义用户坐标变量
+	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
+	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
 	// 执行路点运动
-	int nRet = HRIF_MoveJ(0, 0, translation[0], translation[1], translation[2], rotation[0], rotation[1], rotation[2], dJ1, dJ2, dJ3, dJ4, dJ5, dJ6, sTcpName, sUcsName,
-		dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit, nIOState, strCmdID);
+	int nRet = HRIF_WayPointEx(0, 0, nMoveType, translation[0], translation[1], translation[2], rotation[0], rotation[1], rotation[2],
+		joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
+		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz, dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit,
+		nIOState, strCmdID);
 }
 
 void LancetHansRobot::SetTCPToFlange()
@@ -97,7 +105,7 @@ bool LancetHansRobot::SetTCP(vtkMatrix4x4* aMatrix)
 	auto trans = this->GetTranslationPartByMatrix(aMatrix);
 
 	m_FlangeToTCP->DeepCopy(aMatrix);
-
+	//Config TCP(MATRIX , TCPName)
 	int nRet = HRIF_SetTCP(0, 0, trans[0], trans[1], trans[2], euler[3], euler[4], euler[5]);
 	//set tcp to robot
 
@@ -123,16 +131,24 @@ std::vector<double> LancetHansRobot::GetJointAngles()
 	return ret;
 }
 
-void LancetHansRobot::SetJointAngles(double* aJointAngles)
+void LancetHansRobot::SetJointAngles(std::vector<double> aJointAngles)
 {
-	// 定义关节目标位置
-	double dX = 0; double dY = 0; double dZ = 0;
-	double dRX = 0; double dRY = 0; double dRZ = 0;
-	nIsUseJoint = 1;
+	if (aJointAngles.size() != 6)
+		return;
+	
+	auto targetPosition = this->CalculateForward(aJointAngles);
+
+	auto tcpTrans = this->GetTranslationPartByMatrix(this->GetFlangeToTCP());
+	auto tcpEuler = this->GetEulerByMatrix(this->GetFlangeToTCP());
+	// 定义用户坐标变量
+	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
+	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
 	// 执行路点运动
-	int nRet = HRIF_MoveJ(0, 0, dX, dY, dZ, dRX, dRY, dRZ,
-		aJointAngles[0], aJointAngles[1], aJointAngles[2], aJointAngles[3], aJointAngles[4], aJointAngles[5], sTcpName, sUcsName,
-		dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit, nIOState, strCmdID);
+	int nRet = HRIF_WayPointEx(0, 0, nMoveType, targetPosition[0], targetPosition[1], targetPosition[2], targetPosition[3], targetPosition[4], targetPosition[5],
+		aJointAngles[0], aJointAngles[1], aJointAngles[2], aJointAngles[3], aJointAngles[4], aJointAngles[5],
+		tcpTrans[0], tcpTrans[1], tcpTrans[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
+		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz, dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit,
+		nIOState, strCmdID);
 }
 
 vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetBaseToTCP()
@@ -173,11 +189,19 @@ void LancetHansRobot::RobotTransformInBase(double* aMatrix)
 
 	double dJ1 = 0; double dJ2 = 0; double dJ3 = 0;
 	double dJ4 = 0; double dJ5 = 0; double dJ6 = 0;
+	auto joints = this->CalculateInverse(translation, euler);
 
+	auto tcpTranslation = this->GetTranslationPartByMatrix(this->GetFlangeToTCP());
+	auto tcpEuler = this->GetEulerByMatrix(this->GetFlangeToTCP());
+
+	// 定义用户坐标变量
+	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
+	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
 	// 执行路点运动
-	nIsUseJoint = 0;
-	int nRet = HRIF_MoveJ(0, 0, translation[0], translation[1], translation[2], euler[0], euler[1], euler[2], dJ1, dJ2, dJ3, dJ4, dJ5, dJ6, sTcpName, sUcsName,
-		dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit, nIOState, strCmdID);
+	int nRet = HRIF_WayPointEx(0, 0, nMoveType, translation[0], translation[1], translation[2], euler[0], euler[1], euler[2],
+		joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
+		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz, dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit,
+		nIOState, strCmdID);
 }
 
 void LancetHansRobot::RobotTransformInTCP(double* aMatrix)
@@ -194,8 +218,38 @@ void LancetHansRobot::RobotTransformInTCP(double* aMatrix)
 	RobotTransformInBase(baseToTarget->GetData());
 }
 
+std::vector<double> LancetHansRobot::GetCartStiffParams()
+{
+	std::cout << "Hans Robot did not support get Stiff Params" << std::endl;
+	return std::vector<double>();
+}
+
+bool LancetHansRobot::SetCartStiffParams(std::vector<double> aStiff)
+{
+	if (aStiff.size() != 6)
+		return false;
+	// 设置刚度参数
+	int nRet = HRIF_SetStiffParams(0, 0, aStiff[0], aStiff[1], aStiff[2], aStiff[3], aStiff[4], aStiff[5]);
+	return nRet == 0 ? true : false;
+}
+
+std::vector<double> LancetHansRobot::GetCartDampParams()
+{
+	std::cout << "Hans Robot did not support get Damp Params" << std::endl;
+	return std::vector<double>();
+}
+
+bool LancetHansRobot::SetCartDampParams(std::vector<double> aDamp)
+{
+	if (aDamp.size() != 6)
+		return false;
+	int nRet = HRIF_SetDampParams(0, 0, aDamp[0], aDamp[1], aDamp[2], aDamp[3], aDamp[4], aDamp[5]);
+	return nRet == 0 ? true : false;
+}
+
 std::vector<std::vector<double>> LancetHansRobot::GetJointAngleLimits()
 {
+	std::cout << "Hans Robot did not support get JointAngleLimits" << std::endl;
 	return std::vector<std::vector<double>>();
 }
 
@@ -260,5 +314,49 @@ Eigen::Vector3d LancetHansRobot::CalculateZYXEulerByRotation(Eigen::Matrix3d m)
 	ret[0] = 180 * eulerAngle[2] / vtkMath::Pi(); // Z (yaw)
 	ret[1] = 180 * eulerAngle[1] / vtkMath::Pi(); // Y (pitch)
 	ret[2] = 180 * eulerAngle[0] / vtkMath::Pi(); // X (roll)
+	return ret;
+}
+
+std::vector<double> LancetHansRobot::CalculateInverse(Eigen::Vector3d aTranslation, Eigen::Vector3d aEulerAngle)
+{
+	auto flange2TCP = this->GetFlangeToTCP();
+	auto tcpTranslation = this->GetTranslationPartByMatrix(flange2TCP);
+	auto flange2TCPEuler = this->GetEulerByMatrix(flange2TCP);
+	// 定义工具坐标变量
+	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
+	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
+	// 定义参考关节位置变量
+	double dJ1 = 0; double dJ2 = 0; double dJ3 = 0;
+		double dJ4 = 0; double dJ5 = 0; double dJ6 = 0;
+	// 定义转换结果
+	double dTargetJ1 = 0; double dTargetJ2 = 0; double dTargetJ3 = 90;
+	double dTargetJ4 = 0; double dTargetJ5 = 90; double dTargetJ6 = 0;
+
+	auto joints = this->GetJointAngles();
+	// 求逆解
+	int nRet = HRIF_GetInverseKin(0, 0, aTranslation[0], aTranslation[1], aTranslation[2], aEulerAngle[0], aEulerAngle[1], aEulerAngle[2],
+		tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], flange2TCPEuler[0], flange2TCPEuler[1], flange2TCPEuler[2],
+		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz,
+		joints[0], joints[1], joints[2], joints[3], joints[4], joints[5],
+		dTargetJ1, dTargetJ2, dTargetJ3, dTargetJ4, dTargetJ5, dTargetJ6);
+	std::vector<double> ret{ dTargetJ1, dTargetJ2, dTargetJ3, dTargetJ4, dTargetJ5, dTargetJ6 };
+	return ret;
+}
+
+std::vector<double> LancetHansRobot::CalculateForward(std::vector<double> aJointAngles)
+{
+	auto tcpTranslation = this->GetTranslationPartByMatrix(this->GetFlangeToTCP());
+	auto tcpEuler = this->GetEulerByMatrix(this->GetFlangeToTCP());
+	// 定义用户坐标变量
+	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
+	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
+	// 定义转换后的空间位置结果
+	double dTarget_X = 0; double dTarget_Y = 0; double dTarget_Z = 0;
+	double dTarget_Rx = 0; double dTarget_Ry = 0; double dTarget_Rz = 0;
+	// 求正解
+	int nRet = HRIF_GetForwardKin(0, 0, aJointAngles[0], aJointAngles[1], aJointAngles[2], aJointAngles[3], aJointAngles[4], aJointAngles[5],
+		tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], tcpEuler[0], tcpEuler[1], tcpEuler[2], dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz,
+		dTarget_X, dTarget_Y, dTarget_Z, dTarget_Rx, dTarget_Ry, dTarget_Rz);
+	std::vector<double> ret = { dTarget_X, dTarget_Y, dTarget_Z, dTarget_Rx, dTarget_Ry, dTarget_Rz };
 	return ret;
 }

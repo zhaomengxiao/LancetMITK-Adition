@@ -168,18 +168,23 @@ std::vector<double> DianaRobot::GetJointAngles()
 	return angleVec;
 }
 
-void DianaRobot::SetJointAngles(double* aJointAngles)
+void DianaRobot::SetJointAngles(std::vector<double> aJointAngles)
 {
+	if (aJointAngles.size() != 7)
+		return;
 	auto range = this->GetJointAngleLimits();
+	double angles[7] = { 0.0 };
 	for (int i = 0; i < range[0].size(); ++i)
 	{
 		if (aJointAngles[i] < range[0][i] || aJointAngles[i] > range[1][i])
 		{
 			std::cout << "Joint Angle is beyond the limit" << std::endl;
+			angles[i] = aJointAngles[i];
 			return;
 		}
 	}
-	moveJToTarget(aJointAngles, 0.2, 0.4);
+
+	moveJToTarget(angles, 0.2, 0.4);
 }
 
 vtkSmartPointer<vtkMatrix4x4> DianaRobot::GetBaseToTCP()
@@ -270,6 +275,69 @@ void DianaRobot::RobotTransformInTCP(double* aMatrix)
 	this->RobotTransformInBase(newBase2TCP->GetData());
 }
 
+std::vector<double> DianaRobot::GetCartDampParams()
+{
+	double arrStiff[6] = {};
+	double dblDamp = 0;
+	std::vector<double> ret;
+	if (getCartImpeda(arrStiff, &dblDamp) < 0)
+	{
+		std::cout << "Get CartImpeda Failed" << std::endl;
+		return std::vector<double>();
+	}
+	for (int i = 0; i < 6; ++i)
+	{
+		ret.push_back(dblDamp);
+	}
+	return ret;
+}
+
+bool DianaRobot::SetCartDampParams(std::vector<double> aDampParams)
+{
+	auto arrStiffVec = GetCartStiffParams();
+	double arrStiff[6] = { 0.0 };
+	for (int i = 0; i < arrStiffVec.size(); ++i)
+	{
+		arrStiff[i] = arrStiffVec[i];
+	}
+	double currentDamp = aDampParams[0];
+	int ret = setCartImpeda(arrStiff, currentDamp);
+	return ret < 0 ? false : true;
+}
+
+std::vector<double> DianaRobot::GetCartStiffParams()
+{
+	double arrStiff[6] = {};
+	double dblDamp = 0;
+	std::vector<double> ret;
+	if (getCartImpeda(arrStiff, &dblDamp) < 0)
+	{
+		std::cout << "Get CartImpeda Failed" << std::endl;
+		return std::vector<double>();
+	}
+	for (int i = 0; i < 6; ++i)
+	{
+		ret.push_back(arrStiff[i]);
+	}
+	return ret;
+}
+
+bool DianaRobot::SetCartStiffParams(std::vector<double> aStiffParams)
+{
+	if (aStiffParams.size() != 6)
+		return false;
+
+	double params[6] = { 0.0 };
+	for (int i = 0; i < aStiffParams.size(); ++i)
+	{
+		params[i] = aStiffParams[i];
+	}
+	double damp = this->GetCartDampParams()[0];
+	int ret = setCartImpeda(params, damp);
+
+	return ret < 0 ? false : true;
+}
+
 std::vector<double> DianaRobot::GetCartImpeda()
 {
 	std::vector<double> Impeda;
@@ -289,7 +357,7 @@ std::vector<double> DianaRobot::GetCartImpeda()
 	return Impeda;
 }
 
-bool DianaRobot::SetCartImpeda(double* aImpeda)
+bool DianaRobot::SetCartImpeda(std::vector<double> aImpeda)
 {
 	double arrstiff[6] = {};
 	double dblDamp = 0;

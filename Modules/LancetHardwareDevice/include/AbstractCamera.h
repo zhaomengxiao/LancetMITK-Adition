@@ -13,7 +13,7 @@
 #include <eigen3/Eigen/Dense>
 #include <QObject>
 #include "MitkLancetHardwareDeviceExports.h"
-class  AbstractCamera : public QObject
+class MITKLANCETHARDWAREDEVICE_EXPORT AbstractCamera : public QObject
 {
 	Q_OBJECT
 public:
@@ -38,7 +38,10 @@ public:
 		m_ToolTipMap.clear();
 		m_ToolLabelMap.clear();
 	}
-
+public slots:
+	virtual void UpdateData() = 0;
+signals:
+	void CameraUpdateClock();
 protected:
 	vtkSmartPointer<vtkMatrix4x4> GetMatrixByRotationAndTranslation(Eigen::Matrix3d rotation, Eigen::Vector3d translation)
 	{
@@ -56,8 +59,8 @@ protected:
 		matrix->SetElement(2, 3, translation[2]);
 		return matrix;
 	}
-protected slots:
-	virtual void UpdateData() = 0;
+
+
 protected:
 	QTimer* m_CameraUpdateTimer;
 	std::map<std::string, vtkSmartPointer<vtkMatrix4x4>> m_ToolMatrixMap;

@@ -33,7 +33,7 @@ public:
 
 	std::vector<double> GetJointAngles() override;
 
-	void SetJointAngles(double* aJointAngles) override;
+	void SetJointAngles(std::vector<double> aJointAngles) override;
 
 	vtkSmartPointer<vtkMatrix4x4> GetBaseToTCP() override;
 
@@ -45,13 +45,13 @@ public:
 
 	void RobotTransformInTCP(double* aMatrix) override;
 
-	//std::vector<double> GetCartStiffParams();
+	std::vector<double> GetCartStiffParams() override;
 
-	//void SetCartStiffParams(double* aStiff);
+	bool SetCartStiffParams(std::vector<double> aStiff) override;
 
-	//std::vector<double> GetCartDampParams();
+	std::vector<double> GetCartDampParams() override;
 
-	//void SetCartDampParams(double* aStiff);
+	bool SetCartDampParams(std::vector<double> aDamp) override;
 
 	std::vector<std::vector<double>> GetJointAngleLimits() override;
 private:
@@ -62,23 +62,14 @@ private:
 	Eigen::Matrix3d GetRotationPartByMatrix(vtkMatrix4x4* m);
 	Eigen::Vector3d GetTranslationPartByMatrix(vtkMatrix4x4* m);
 	Eigen::Vector3d CalculateZYXEulerByRotation(Eigen::Matrix3d m);
+
+	std::vector<double> CalculateInverse(Eigen::Vector3d aTranslation, Eigen::Vector3d aEulerAngle);
+
+	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
 private:
 	vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
 	vtkSmartPointer<vtkMatrix4x4> m_FlangeToTCP;
 private:
-	// 定义需要转换的空间位置变量
-	double dCoord_X = 0; double dCoord_Y = 0; double dCoord_Z = 0;
-	double dCoord_Rx = 0; double dCoord_Ry = 0; double dCoord_Rz = 0;
-	// 定义工具坐标变量
-	double dTcp_X = 0; double dTcp_Y = 0; double dTcp_Z = 0;
-	double dTcp_Rx = 0; double dTcp_Ry = 0; double dTcp_Rz = 0;
-	// 定义用户坐标变量
-	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
-	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
-	// 定义转换后的空间位置结果
-	double dTarget_X = 0; double dTarget_Y = 0; double dTarget_Z = 90;
-	double dTarget_Rx = 0; double dTarget_Ry = 90; double dTarget_Rz = 0;
-
 	// 定义工具坐标变量
 	string sTcpName = "TCP";
 	// 定义用户坐标变量
@@ -90,7 +81,7 @@ private:
 	// 定义过渡半径
 	double dRadius = 50;
 	// 定义是否使用关节角度
-	int nIsUseJoint = 0;
+	int nIsUseJoint = 1;
 	// 定义是否使用检测 DI 停止
 	int nIsSeek = 0;
 	// 定义检测的 DI 索引
@@ -99,6 +90,8 @@ private:
 	int nIOState = 0;
 	// 定义路点 ID 
 	string strCmdID = "0";
+
+	int nMoveType = 0;
 };
 
 #endif

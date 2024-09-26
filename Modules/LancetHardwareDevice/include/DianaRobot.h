@@ -36,7 +36,7 @@ public:
 	std::vector<std::vector<double>> GetJointAngleLimits() override;
 	std::vector<double> GetJointAngles() override;
 
-	void SetJointAngles(double* aJointAngles) override;
+	void SetJointAngles(std::vector<double> aJointAngles) override;
 
 	vtkSmartPointer<vtkMatrix4x4> GetBaseToTCP() override;
 	vtkSmartPointer<vtkMatrix4x4> GetFlangeToTCP() override;
@@ -45,8 +45,12 @@ public:
 	void RobotTransformInBase(double* aMatrix) override;
 	void RobotTransformInTCP(double* aMatrix) override;
 
-	std::vector<double> GetCartImpeda() override;
-	bool SetCartImpeda(double* aImpeda) override;
+	std::vector<double> GetCartDampParams() override;
+	bool SetCartDampParams(std::vector<double> aDampParams) override;
+	std::vector<double> GetCartStiffParams() override;
+	bool SetCartStiffParams(std::vector<double> aStiffParams) override;
+	std::vector<double> GetCartImpeda();
+	bool SetCartImpeda(std::vector<double> aImpeda);
 
 	bool SetVelocity(double aVelocity) override;
 
