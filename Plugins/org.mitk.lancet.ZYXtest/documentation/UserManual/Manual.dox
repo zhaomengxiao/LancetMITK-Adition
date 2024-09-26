@@ -1,0 +1,17 @@
+/**
+\page org_mitk_lancet_ZYXtest The ZYXtest
+
+\imageMacro{icon.png,"Icon of ZYXtest",2.00}
+
+\tableofcontents
+
+\section org_mitk_lancet_ZYXtestOverview Overview
+Describe the features of your awesome plugin here
+<ul>
+<li>Increases productivity
+<li>Creates beautiful images
+<li>Generates PhD thesis
+<li>Brings world peace
+</ul>
+
+*/

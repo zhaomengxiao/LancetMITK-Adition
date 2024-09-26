@@ -28,14 +28,12 @@ const std::string HansRobot::VIEW_ID = "org.mitk.views.hansrobot";
 
 void HansRobot::SetFocus()
 {
- 
 }
 
 void HansRobot::CreateQtPartControl(QWidget *parent)
 {
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
-  
 }
 
 void HansRobot::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
@@ -56,5 +54,4 @@ void HansRobot::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
   //m_Controls.buttonPerformImageProcessing->setEnabled(false);
 
 	//Suhang test git
-
 }
