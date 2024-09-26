@@ -8,4 +8,9 @@ set(MITK_MODULES
   LancetNCC
   LancetIGT
   LancetIGTUI
+  LancetPrintDataHelper
+  LancetFileIO
+  LancetHardwareDevice
+  #LancetSingleNodeWidgetInitor
+  #LancetModelControl
 )
