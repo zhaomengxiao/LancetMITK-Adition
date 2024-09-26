@@ -54,4 +54,6 @@ void HansRobot::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
 
   //m_Controls.labelWarning->setVisible(true);
   //m_Controls.buttonPerformImageProcessing->setEnabled(false);
+
+	//Suhang test git
 }
