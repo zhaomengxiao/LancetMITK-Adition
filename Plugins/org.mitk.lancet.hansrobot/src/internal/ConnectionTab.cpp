@@ -30,28 +30,49 @@ void ConnectionTab::powerOn()
 {
 	m_Robot->PowerOn();
 }
-void ConnectionTab::flashLable(Eigen::Vector3d tempTip,QLabel* lable)
+
+/**
+ * @brief 
+ * @param tempTip 
+ * @param label 
+*/
+void ConnectionTab::flashLable(Eigen::Vector3d tempTip,QLabel* label)
 {
-	if (lable != nullptr)
+	if (tempTip[0]==0 && tempTip[1] == 0 && tempTip[2] == 0)
 	{
-		QString str = "x:" + QString::number(tempTip[0]) + " "
-			+ "y:" + QString::number(tempTip[1]) + " "
-			+ "z:" + QString::number(tempTip[2]);
-		lable->setText(str);
-		lable->setStyleSheet("QLabel { color : green; }");
-		/*std::cout << str << std::endl;*/
+		if (label != nullptr)
+		{
+			QString str = "x:0  y:0 z:0";
+			label->setText(str);
+			/*std::cout << str << std::endl;*/
+			label->setStyleSheet("QLabel { color : red; }");
+		}
 	}
+	else 
+	{
+		if (label != nullptr)
+		{
+			QString str = "x:" + QString::number(tempTip[0]) + " "
+				+ "y:" + QString::number(tempTip[1]) + " "
+				+ "z:" + QString::number(tempTip[2]);
+			label->setText(str);
+			label->setStyleSheet("QLabel { color : green; }");
+			/*std::cout << str << std::endl;*/
+		}
+	}
+	
 }
 void ConnectionTab::upDateUi()
 {
 	//AimCamera::GetToolMatrixByName
+	
 
-	flashLable(m_Camera->GetToolTipByName("HTO_RobotBaseRF"),m_ui.Spine_RobotBaseRFDataLabel_3);
-	flashLable(m_Camera->GetToolTipByName("HTO_RobotEndRF"), m_ui.Spine_RobotEndRFDataLabel_3);
-	flashLable(m_Camera->GetToolTipByName("HTO_PatientRF"), m_ui.Spine_PatientRFDataLabel_3);
-	flashLable(m_Camera->GetToolTipByName("HTO_Probe"), m_ui.Spine_ProbeDataLabel_3);
+
+	flashLable(m_Camera->GetToolTipByName("RobotBaseRF"),m_ui.Spine_RobotBaseRFDataLabel_3);
+	flashLable(m_Camera->GetToolTipByName("RobotEndRF"), m_ui.Spine_RobotEndRFDataLabel_3);
+	flashLable(m_Camera->GetToolTipByName("PatientRF"), m_ui.Spine_PatientRFDataLabel_3);
+	flashLable(m_Camera->GetToolTipByName("Probe"), m_ui.Spine_ProbeDataLabel_3);
 }
-
 
 
 
@@ -66,5 +87,12 @@ void ConnectionTab::connectCamera()
 }
 void ConnectionTab::updateData()
 {
+	std::vector<std::string> tempToolsName = {
+	"RobotBaseRF",
+	"RobotEndRF",
+	"PatientRF",
+	"Probe"
+	};
+	m_Camera->InitToolsName(tempToolsName);
 	m_Camera->Start();
 }

@@ -45,5 +45,5 @@ private:
 	mitk::DataStorage* m_dataStorage;
 	AbstractCamera* m_Camera;
 
-	void flashLable(Eigen::Vector3d tempTip, QLabel* lable);
+	void flashLable(Eigen::Vector3d tempTip, QLabel* label);
 };
