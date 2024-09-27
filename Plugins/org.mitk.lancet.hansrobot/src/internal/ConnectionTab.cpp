@@ -34,11 +34,11 @@ void ConnectionTab::powerOn()
 }
 
 
-/// <summary>
-/// Flashes the lable.
-/// </summary>
-/// <param name="tempTip">The temporary tip.</param>
-/// <param name="label">The label.</param>
+/**
+ * @brief 
+ * @param tempTip 
+ * @param label 
+*/
 void ConnectionTab::flashLable(Eigen::Vector3d tempTip, QLabel* label)
 {
 	if (tempTip[0]==0 && tempTip[1] == 0 && tempTip[2] == 0)
@@ -61,6 +61,7 @@ void ConnectionTab::flashLable(Eigen::Vector3d tempTip, QLabel* label)
 			label->setText(str);
 			label->setStyleSheet("QLabel { color : green; }");
 			/*std::cout << str << std::endl;*/
+			
 		}
 	}
 	
