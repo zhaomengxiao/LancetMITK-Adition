@@ -7,6 +7,7 @@ set(INTERNAL_CPP_FILES
   HansRobot.cpp
   PrecisionTab.cpp
   ConnectionTab.cpp
+  RobotArmRegistrationTab.cpp
 )
 
 set(UI_FILES
@@ -18,6 +19,7 @@ set(MOC_H_FILES
   src/internal/HansRobot.h
   src/internal/PrecisionTab.h
   src/internal/ConnectionTab.h
+  src/internal/RobotArmRegistrationTab.h
 )
 
 # list of resource files which can be used by the plug-in

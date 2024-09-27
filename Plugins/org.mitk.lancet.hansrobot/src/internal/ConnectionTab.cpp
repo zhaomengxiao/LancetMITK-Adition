@@ -19,8 +19,12 @@ ConnectionTab::ConnectionTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataS
 void ConnectionTab::InitConnection()
 {
 	connect(m_ui.pushButton_connectArm_3, &QPushButton::clicked, this, &ConnectionTab::connectRobot);
-	connect(m_ui.pushButton_powerOn_3, &QPushButton::clicked, this, &ConnectionTab::connectRobot);
+	connect(m_ui.pushButton_powerOn_3, &QPushButton::clicked, this, &ConnectionTab::powerOn);
+	connect(m_ui.pushButton_powerOff_3, &QPushButton::clicked, this, &ConnectionTab::powerOff);
+	connect(m_ui.pushButton_connectCamrea_3, &QPushButton::clicked, this, &ConnectionTab::connectCamera);
 	connect(m_Camera, &AimCamera::CameraUpdateClock, this, &ConnectionTab::upDateUi);
+	connect(m_ui.pushButton_updataData_3, &QPushButton::clicked, this, &ConnectionTab::updateData);
+
 }
 
 
@@ -32,6 +36,7 @@ void ConnectionTab::powerOn()
 {
 	m_Robot->PowerOn();
 }
+
 
 
 /**

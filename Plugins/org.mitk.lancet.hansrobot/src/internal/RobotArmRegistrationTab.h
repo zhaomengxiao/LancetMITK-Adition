@@ -17,25 +17,30 @@
 #include <mitkNodePredicateOr.h>
 #include <mitkColorProperty.h>
 
-class ConnectionTab : public QWidget
+class RobotArmRegistrationTab : public QWidget
 {
 
 	Q_OBJECT
 public:
-	explicit ConnectionTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataStorage, AbstractRobot* aRobot, AbstractCamera* aCamera, QWidget* parent = nullptr);
+	explicit RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataStorage, AbstractRobot* aRobot, AbstractCamera* aCamera, QWidget* parent = nullptr);
 
 public slots:
-	void InitConnection();
-	void connectRobot();
-	void connectCamera();
-	void updateData();
-	void powerOff();
-	void powerOn();
-	void upDateUi();
+	
 
 	//void flashLable(Ui::HansRobotControls* lable);
 private:
-
+	void xp();
+	void yp();
+	void zp();
+	void xm();
+	void ym();
+	void zm();
+	void rxp();
+	void ryp();
+	void rzp();
+	void rxm();
+	void rym();
+	void rzm();
 
 private:
 	QWidget* m_TabPage;
