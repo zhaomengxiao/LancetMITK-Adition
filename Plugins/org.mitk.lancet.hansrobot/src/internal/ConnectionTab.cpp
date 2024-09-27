@@ -15,12 +15,14 @@ ConnectionTab::ConnectionTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataS
 	InitConnection();
 }
 
+
 void ConnectionTab::InitConnection()
 {
 	connect(m_ui.pushButton_connectArm_3, &QPushButton::clicked, this, &ConnectionTab::connectRobot);
 	connect(m_ui.pushButton_powerOn_3, &QPushButton::clicked, this, &ConnectionTab::connectRobot);
 	connect(m_Camera, &AimCamera::CameraUpdateClock, this, &ConnectionTab::upDateUi);
 }
+
 
 void ConnectionTab::connectRobot()
 {
@@ -31,12 +33,13 @@ void ConnectionTab::powerOn()
 	m_Robot->PowerOn();
 }
 
-/**
- * @brief 
- * @param tempTip 
- * @param label 
-*/
-void ConnectionTab::flashLable(Eigen::Vector3d tempTip,QLabel* label)
+
+/// <summary>
+/// Flashes the lable.
+/// </summary>
+/// <param name="tempTip">The temporary tip.</param>
+/// <param name="label">The label.</param>
+void ConnectionTab::flashLable(Eigen::Vector3d tempTip, QLabel* label)
 {
 	if (tempTip[0]==0 && tempTip[1] == 0 && tempTip[2] == 0)
 	{
