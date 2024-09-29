@@ -21,7 +21,7 @@ found in the LICENSE file.
 #include "ui_HansRobotControls.h"
 #include <LancetHansRobot.h>
 #include "ConnectionTab.h"
-
+#include "RoboArmRegistrationTab.h"
 /**
   \brief HansRobot
 
@@ -40,10 +40,10 @@ public:
   static const std::string VIEW_ID;
 
 public slots:
-
+    
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
-
+ 
   virtual void SetFocus() override;
 
   /// \brief called by QmitkFunctionality when DataManager's selection has changed
@@ -57,6 +57,8 @@ protected:
   LancetHansRobot* m_Robot;
   AimCamera* m_Camera;
   ConnectionTab* m_ConnectionTab;
+  RoboArmRegistrationTab* m_RoboArmRegistrationTab;
+  //std::shared_ptr<RobotArmRegistrationTab> mRobotArmRegistrationTab;
 };
 
 #endif // HansRobot_h
