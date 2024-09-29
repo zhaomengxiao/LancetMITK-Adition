@@ -5,6 +5,10 @@ set(SRC_CPP_FILES
 set(INTERNAL_CPP_FILES
   org_mitk_lancet_hansrobot_Activator.cpp
   HansRobot.cpp
+  PrecisionTab.cpp
+  ConnectionTab.cpp
+  #RobotArmRegistrationTab.cpp
+  RoboArmRegistrationTab.cpp
 )
 
 set(UI_FILES
@@ -14,6 +18,10 @@ set(UI_FILES
 set(MOC_H_FILES
   src/internal/org_mitk_lancet_hansrobot_Activator.h
   src/internal/HansRobot.h
+  src/internal/PrecisionTab.h
+  src/internal/ConnectionTab.h
+  #src/internal/RobotArmRegistrationTab.h
+  src/internal/RoboArmRegistrationTab.h
 )
 
 # list of resource files which can be used by the plug-in

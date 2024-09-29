@@ -17,10 +17,11 @@ found in the LICENSE file.
 #include <berryISelectionListener.h>
 
 #include <QmitkAbstractView.h>
-
+#include "AimCamera.h"
 #include "ui_HansRobotControls.h"
 #include <LancetHansRobot.h>
-
+#include "ConnectionTab.h"
+#include "RoboArmRegistrationTab.h"
 /**
   \brief HansRobot
 
@@ -39,10 +40,10 @@ public:
   static const std::string VIEW_ID;
 
 public slots:
-
+    
 protected:
   virtual void CreateQtPartControl(QWidget *parent) override;
-
+ 
   virtual void SetFocus() override;
 
   /// \brief called by QmitkFunctionality when DataManager's selection has changed
@@ -53,6 +54,11 @@ protected:
   void DoImageProcessing();
 
   Ui::HansRobotControls m_Controls;
+  LancetHansRobot* m_Robot;
+  AimCamera* m_Camera;
+  ConnectionTab* m_ConnectionTab;
+  RoboArmRegistrationTab* m_RoboArmRegistrationTab;
+  //std::shared_ptr<RobotArmRegistrationTab> mRobotArmRegistrationTab;
 };
 
 #endif // HansRobot_h

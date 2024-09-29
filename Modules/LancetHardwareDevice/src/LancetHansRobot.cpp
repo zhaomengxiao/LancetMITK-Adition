@@ -160,7 +160,9 @@ vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetBaseToTCP()
 
 	Eigen::Matrix3d rotation = GetRotationMatrixByEuler(dX, dY, dZ);
 	Eigen::Vector3d translation(dRx, dRy, dRz);
-	return GetMatrixByRotationAndTranslation(rotation, translation);
+	auto ret = GetMatrixByRotationAndTranslation(rotation, translation);
+	PrintDataHelper::CoutMatrix("GetBaseToTCP", ret);
+	return ret;
 }
 
 vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetFlangeToTCP()
@@ -186,6 +188,7 @@ void LancetHansRobot::RobotTransformInBase(double* aMatrix)
 	baseToTarget->DeepCopy(aMatrix);
 	auto euler = this->GetEulerByMatrix(baseToTarget);
 	auto translation = this->GetTranslationPartByMatrix(baseToTarget);
+	PrintDataHelper::CoutMatrix("RobotTransformInBase",baseToTarget);
 
 	double dJ1 = 0; double dJ2 = 0; double dJ3 = 0;
 	double dJ4 = 0; double dJ5 = 0; double dJ6 = 0;

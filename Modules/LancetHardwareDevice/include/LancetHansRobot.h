@@ -6,6 +6,7 @@
 #include <HR_Pro.h>
 #include <vtkMath.h>
 #include "MitkLancetHardwareDeviceExports.h"
+#include "PrintDataHelper.h"
 class MITKLANCETHARDWAREDEVICE_EXPORT LancetHansRobot : public AbstractRobot
 {
 	//Q_OBJECT
