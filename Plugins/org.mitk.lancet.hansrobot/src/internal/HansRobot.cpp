@@ -26,6 +26,11 @@ found in the LICENSE file.
 
 const std::string HansRobot::VIEW_ID = "org.mitk.views.hansrobot";
 
+void HansRobot::callUpdate()
+{
+	m_ConnectionTab->upDateUi();
+}
+
 void HansRobot::SetFocus()
 {
 }
@@ -38,8 +43,8 @@ void HansRobot::CreateQtPartControl(QWidget *parent)
   m_Robot = new LancetHansRobot();
   m_Camera = new AimCamera();
   m_ConnectionTab = new ConnectionTab(m_Controls, this->GetDataStorage(), m_Robot, m_Camera);
-
-  m_RobotArmRegistrationTab= new RobotArmRegistrationTab(m_Controls, this->GetDataStorage(), m_Robot, m_Camera );
+  m_ConnectionTab->upDateUi();
+  //m_RobotArmRegistrationTab= new RobotArmRegistrationTab(m_Controls, this->GetDataStorage(), m_Robot, m_Camera );
   //mRobotArmRegistrationTab = make_shared<RobotArmRegistrationTab>();
 }
 

@@ -22,6 +22,8 @@ found in the LICENSE file.
 #include <LancetHansRobot.h>
 #include "ConnectionTab.h"
 #include "RobotArmRegistrationTab.h"
+
+
 /**
   \brief HansRobot
 
@@ -38,7 +40,7 @@ class HansRobot : public QmitkAbstractView
 
 public:
   static const std::string VIEW_ID;
-
+  void callUpdate();
 public slots:
     
 protected:
@@ -58,6 +60,7 @@ protected:
   AimCamera* m_Camera;
   ConnectionTab* m_ConnectionTab;
   RobotArmRegistrationTab* m_RobotArmRegistrationTab;
+  
   //std::shared_ptr<RobotArmRegistrationTab> mRobotArmRegistrationTab;
 };
 

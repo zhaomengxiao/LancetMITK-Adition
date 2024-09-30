@@ -16,6 +16,8 @@
 #include <mitkNodePredicateDataType.h>
 #include <mitkNodePredicateOr.h>
 #include <mitkColorProperty.h>
+#include "robotRegistration.h"
+#include <vtkMatrix4x4.h>
 
 class RobotArmRegistrationTab : public QWidget
 {
@@ -42,6 +44,10 @@ private:
 	void rym();
 	void rzm();
 
+	void captureRobot();
+	void CapturePose(bool);
+	void waitMove();
+	void autoCollection();
 private:
 	QWidget* m_TabPage;
 	Ui::HansRobotControls m_ui;
@@ -49,6 +55,7 @@ private:
 	LancetHansRobot* m_Robot;
 	mitk::DataStorage* m_dataStorage;
 	AbstractCamera* m_Camera;
-
-	void flashLable(Eigen::Vector3d tempTip, QLabel* label);
+	RobotRegistration m_RobotRegistration;
+	bool isAutoCollectionFlag;
+	//void flashLable(Eigen::Vector3d tempTip, QLabel* label);
 };

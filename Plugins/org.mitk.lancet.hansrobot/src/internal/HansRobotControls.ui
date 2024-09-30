@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1047</width>
-    <height>944</height>
+    <width>829</width>
+    <height>880</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -921,6 +921,16 @@ QPushButton:pressed {
        </property>
        <property name="text">
         <string>运动检测开启后无法执行相对运动</string>
+       </property>
+      </widget>
+      <widget class="QTextBrowser" name="textBrowser_hans">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>440</y>
+         <width>651</width>
+         <height>192</height>
+        </rect>
        </property>
       </widget>
      </widget>
