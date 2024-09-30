@@ -21,7 +21,7 @@ found in the LICENSE file.
 #include "ui_HansRobotControls.h"
 #include <LancetHansRobot.h>
 #include "ConnectionTab.h"
-#include "RoboArmRegistrationTab.h"
+#include "RobotArmRegistrationTab.h"
 /**
   \brief HansRobot
 
@@ -57,7 +57,7 @@ protected:
   LancetHansRobot* m_Robot;
   AimCamera* m_Camera;
   ConnectionTab* m_ConnectionTab;
-  RoboArmRegistrationTab* m_RoboArmRegistrationTab;
+  RobotArmRegistrationTab* m_RobotArmRegistrationTab;
   //std::shared_ptr<RobotArmRegistrationTab> mRobotArmRegistrationTab;
 };
 

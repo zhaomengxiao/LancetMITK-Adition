@@ -39,7 +39,7 @@ void HansRobot::CreateQtPartControl(QWidget *parent)
   m_Camera = new AimCamera();
   m_ConnectionTab = new ConnectionTab(m_Controls, this->GetDataStorage(), m_Robot, m_Camera);
 
-  m_RoboArmRegistrationTab= new RoboArmRegistrationTab(/*m_Controls, this->GetDataStorage(), m_Robot, m_Camera */ );
+  m_RobotArmRegistrationTab= new RobotArmRegistrationTab(m_Controls, this->GetDataStorage(), m_Robot, m_Camera );
   //mRobotArmRegistrationTab = make_shared<RobotArmRegistrationTab>();
 }
 
