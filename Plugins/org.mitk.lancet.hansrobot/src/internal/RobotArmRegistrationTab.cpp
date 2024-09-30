@@ -34,13 +34,17 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 	//Åä×¼
 	connect(m_ui.pushButton_setTCPToFlange_2, &QPushButton::clicked, this, [this]() {
 			m_Robot->SetTCPToFlange();
+			m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_setInitialPoint_2, &QPushButton::clicked, this, [this]() {
 			m_Robot->RecordInitialPos();
+			m_ui.textBrowser_hans->append(QString("RecordInitialPos"));
 		});
 	connect(m_ui.pushButton_goToInitial_2, &QPushButton::clicked, this, [this]() {
 			m_Robot->GoToInitialPos();
+			m_ui.textBrowser_hans->append(QString("GoToInitialPos"));
 		});
+	
 }
 
 void RobotArmRegistrationTab::xp()
@@ -49,6 +53,7 @@ void RobotArmRegistrationTab::xp()
 	double Distance = static_cast<double>(intValue);
 	double templeArray[3] = { 1, 0.0, 0.0 };
 	m_Robot->Translate(templeArray, Distance);
+	m_ui.textBrowser_hans->append(QString("xp"));
 }
 void RobotArmRegistrationTab::yp()
 {
@@ -56,6 +61,7 @@ void RobotArmRegistrationTab::yp()
 	double Distance = static_cast<double>(intValue);
 	double templeArray[3] = { 0.0, 1, 0.0 };
 	m_Robot->Translate(templeArray, Distance);
+	m_ui.textBrowser_hans->append(QString("yp"));
 }
 void RobotArmRegistrationTab::zp()
 {
@@ -136,7 +142,7 @@ void RobotArmRegistrationTab::rzm()
 
 void RobotArmRegistrationTab::captureRobot()
 {
-
+	m_ui.textBrowser_hans->append(QString("captureRobot"));
 
 	if (m_RobotRegistration.PoseCount() < 5) //The first five translations, 
 	{
@@ -162,6 +168,7 @@ void RobotArmRegistrationTab::captureRobot()
 
 void RobotArmRegistrationTab::CapturePose(bool translationOnly)
 {
+	m_ui.textBrowser_hans->append(QString("CapturePose"));
 	//get T_BaseToFlanger
 	vtkSmartPointer<vtkMatrix4x4>T_BaseToFlange= m_Robot->GetBaseToFlange();
 	//get T_CameraToEnd
@@ -179,6 +186,7 @@ void RobotArmRegistrationTab::CapturePose(bool translationOnly)
 
 void RobotArmRegistrationTab::waitMove()
 {
+	m_ui.textBrowser_hans->append(QString("waitMove"));
 	bool bDone = false;
 	while (!bDone)
 	{
@@ -200,6 +208,7 @@ void RobotArmRegistrationTab::waitMove()
 
 void RobotArmRegistrationTab::autoCollection()
 {
+	m_ui.textBrowser_hans->append(QString("autoCollection"));
 	
 	if (HRIF_IsConnected(0))
 	{

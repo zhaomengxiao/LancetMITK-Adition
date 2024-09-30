@@ -20,7 +20,7 @@ set(MITK_PLUGINS
   #org.mitk.lancet.panorama:ON
   org.mitk.lancet.spinedemo:ON
   org.mitk.lancet.ZYXtest:ON
-  org.mitk.lancet.CZXtest:ON
+  #org.mitk.lancet.CZXtest:ON
   org.mitk.lancet.DianaSeven:ON
   org.mitk.lancet.NeurosurgicalPunctureRobot:ON
   org.mitk.lancet.zzxtest:ON
