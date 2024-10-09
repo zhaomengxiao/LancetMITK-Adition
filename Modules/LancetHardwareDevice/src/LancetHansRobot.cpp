@@ -108,7 +108,7 @@ bool LancetHansRobot::SetTCP(vtkMatrix4x4* aMatrix)
 
 	m_FlangeToTCP->DeepCopy(aMatrix);
 	//Config TCP(MATRIX , TCPName)
-	int nRet = HRIF_SetTCP(0, 0, trans[0], trans[1], trans[2], euler[3], euler[4], euler[5]);
+	int nRet = HRIF_SetTCP(0, 0, trans[0], trans[1], trans[2], euler[0], euler[1], euler[2]);
 	//set tcp to robot
 
 	if (nRet == 0) {
