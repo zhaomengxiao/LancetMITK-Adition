@@ -1,17 +1,21 @@
 #pragma once
-#ifndef LANCETHANSROBOT_h
-#define LANCETHANSROBOT_h
+#ifndef LANCETJAKAROBOT_h
+#define LANCETJAKAROBOT_h
 
 #include "AbstractRobot.h"
 #include <HR_Pro.h>
 #include <vtkMath.h>
+#include <string>
 #include "MitkLancetHardwareDeviceExports.h"
 #include "PrintDataHelper.h"
-class MITKLANCETHARDWAREDEVICE_EXPORT LancetHansRobot : public AbstractRobot
+//JAKA
+
+
+class MITKLANCETHARDWAREDEVICE_EXPORT LancetJakaRobot : public AbstractRobot
 {
 	//Q_OBJECT
 public:
-	LancetHansRobot();
+	LancetJakaRobot();
 	void Connect() override;
 
 	void PowerOn() override;
@@ -61,7 +65,7 @@ public:
 	void WaitMove() override;
 
 private:
-	Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
+	/*Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
 	vtkSmartPointer<vtkMatrix4x4> GetMatrixByRotationAndTranslation(Eigen::Matrix3d aRotation, Eigen::Vector3d aTranslation);
 	Eigen::Vector3d GetEulerByMatrix(vtkMatrix4x4* m);
 
@@ -73,7 +77,7 @@ private:
 
 	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
 
-	string GetErrorCodeString(int errorCode);
+	std::string GetErrorCodeString(int errorCode);*/
 private:
 	vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
 	vtkSmartPointer<vtkMatrix4x4> m_FlangeToTCP;
@@ -97,7 +101,7 @@ private:
 	// 定义检测的 DI 状态
 	int nIOState = 0;
 	// 定义路点 ID 
-	string strCmdID = "0";
+	std::string strCmdID = "0";
 
 	int nMoveType = 0;
 };

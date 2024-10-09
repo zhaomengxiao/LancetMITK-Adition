@@ -54,6 +54,7 @@ void RobotArmRegistrationTab::xp()
 	double templeArray[3] = { 1, 0.0, 0.0 };
 	m_Robot->Translate(templeArray, Distance);
 	m_ui.textBrowser_hans->append(QString("xp"));
+
 }
 void RobotArmRegistrationTab::yp()
 {
@@ -62,6 +63,7 @@ void RobotArmRegistrationTab::yp()
 	double templeArray[3] = { 0.0, 1, 0.0 };
 	m_Robot->Translate(templeArray, Distance);
 	m_ui.textBrowser_hans->append(QString("yp"));
+
 }
 void RobotArmRegistrationTab::zp()
 {
@@ -69,6 +71,7 @@ void RobotArmRegistrationTab::zp()
 	double Distance = static_cast<double>(intValue);
 	double templeArray[3] = { 0.0, 0.0, 1 };
 	m_Robot->Translate(templeArray, Distance);
+
 }
 void RobotArmRegistrationTab::xm()
 {
@@ -76,6 +79,8 @@ void RobotArmRegistrationTab::xm()
 	 double Distance = -static_cast<double>(intValue);
 	 double templeArray[3] = { 1, 0.0, 0.0 };
 	 m_Robot->Translate(templeArray, Distance);
+
+
 }
 
 void RobotArmRegistrationTab::ym()
@@ -85,6 +90,7 @@ void RobotArmRegistrationTab::ym()
 	 double Distance = -static_cast<double>(intValue);
 	 double templeArray[3] = { 0.0, 1, 0.0 };
 	 m_Robot->Translate(templeArray, Distance);
+
 }
 void RobotArmRegistrationTab::zm()
 {
@@ -93,6 +99,7 @@ void RobotArmRegistrationTab::zm()
 	 double templeArray[3] = { 0.0, 0.0, 1 };
 	 m_Robot->Translate(templeArray, Distance);
 
+
 }
 void RobotArmRegistrationTab::rxp()
 {
@@ -100,6 +107,7 @@ void RobotArmRegistrationTab::rxp()
 	double Angle = static_cast<double>(intValue);
 	double templeArray[3] = { 1, 0.0, 0.0 };
 	m_Robot->Rotate(templeArray, Angle);
+
 }
 void RobotArmRegistrationTab::ryp()
 {
@@ -107,6 +115,7 @@ void RobotArmRegistrationTab::ryp()
 	double Angle = static_cast<double>(intValue);
 	double templeArray[3] = { 0.0, 1, 0.0 };
 	m_Robot->Rotate(templeArray, Angle);
+
 }
 void RobotArmRegistrationTab::rzp()
 {
@@ -123,6 +132,7 @@ void RobotArmRegistrationTab::rxm()
 	 double templeArray[3] = { 1, 0.0, 0.0 };
 	 m_Robot->Rotate(templeArray, Angle);
 
+
 }
 void RobotArmRegistrationTab::rym()
 {
@@ -131,6 +141,8 @@ void RobotArmRegistrationTab::rym()
 	 double templeArray[3] = { 0.0, 1, 0.0 };
 	 m_Robot->Rotate(templeArray, Angle);
 
+
+
 }
 void RobotArmRegistrationTab::rzm()
 {
@@ -138,6 +150,8 @@ void RobotArmRegistrationTab::rzm()
 	double Angle = -static_cast<double>(intValue);
 	double templeArray[3] = { 0.0, 0.0, 1 };
 	m_Robot->Rotate(templeArray, Angle);
+
+	
 }
 
 void RobotArmRegistrationTab::captureRobot()
