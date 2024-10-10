@@ -41,19 +41,19 @@ void LancetRobotRegistration::zp()
 
 void LancetRobotRegistration::xm()
 {
-	double templeArray[3] = { 1, 0.0, 0.0 };
+	double templeArray[3] = { -1, 0.0, 0.0 };
 	m_Robot->Translate(templeArray, Distance);
 }
 
 void LancetRobotRegistration::ym()
 {
-	double templeArray[3] = { 0.0, 1, 0.0 };
+	double templeArray[3] = { 0.0, -1, 0.0 };
 	m_Robot->Translate(templeArray, Distance);
 }
 
 void LancetRobotRegistration::zm()
 {
-	double templeArray[3] = { 0.0, 0.0, 1 };
+	double templeArray[3] = { 0.0, 0.0, -1 };
 	m_Robot->Translate(templeArray, Distance);
 }
 
@@ -77,19 +77,19 @@ void LancetRobotRegistration::rzp()
 
 void LancetRobotRegistration::rxm()
 {
-	double templeArray[3] = { 1, 0.0, 0.0 };
+	double templeArray[3] = { -1, 0.0, 0.0 };
 	m_Robot->Rotate(templeArray, Angle);
 }
 
 void LancetRobotRegistration::rym()
 {
-	double templeArray[3] = { 0.0, 1, 0.0 };
+	double templeArray[3] = { 0.0, -1, 0.0 };
 	m_Robot->Rotate(templeArray, Angle);
 }
 
 void LancetRobotRegistration::rzm()
 {
-	double templeArray[3] = { 0.0, 0.0, 1 };
+	double templeArray[3] = { 0.0, 0.0, -1 };
 	m_Robot->Rotate(templeArray, Angle);
 }
 
