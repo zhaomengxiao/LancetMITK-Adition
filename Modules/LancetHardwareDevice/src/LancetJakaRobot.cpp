@@ -70,11 +70,8 @@ void LancetJakaRobot::GoToInitialPos()
 {
 	auto rotation = this->GetEulerByMatrix(m_InitialPos);
 	auto translation = this->GetTranslationPartByMatrix(m_InitialPos);
-
-	double dJ1 = 0; double dJ2 = 0; double dJ3 = 0;
-	double dJ4 = 0; double dJ5 = 0; double dJ6 = 0;
 	std::vector<double> joints = this->CalculateInverse(translation, rotation);
-	JointValue* joint_pos;
+	JointValue* joint_pos = new JointValue();
 	for (int i = 0; i < 6; i++)
 	{
 		joint_pos->jVal[i]= joints[i];
@@ -84,11 +81,8 @@ void LancetJakaRobot::GoToInitialPos()
 	auto tcpTranslation = this->GetTranslationPartByMatrix(this->GetFlangeToTCP());
 	auto tcpEuler = this->GetEulerByMatrix(this->GetFlangeToTCP());
 
-	// 定义用户坐标变量
-	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
-	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
-	// 执行路点运动
 	m_Robot.joint_move(joint_pos, move_mode, is_block, dJointVel, dJointAcc, dJointErr, nullptr);
+	delete joint_pos;
 }
 
 void LancetJakaRobot::SetTCPToFlange()
@@ -103,6 +97,7 @@ void LancetJakaRobot::SetTCPToFlange()
 	toolTcp->tran.y= 0;
 	toolTcp->tran.z= 0;
 	m_Robot.set_tool_data(id, toolTcp, toolName);
+	delete toolTcp;
 }
 
 bool LancetJakaRobot::SetTCP(vtkMatrix4x4* aMatrix)
@@ -113,7 +108,7 @@ bool LancetJakaRobot::SetTCP(vtkMatrix4x4* aMatrix)
 	m_FlangeToTCP->DeepCopy(aMatrix);
 	//Config TCP(MATRIX , TCPName)
 	int id = 0;
-	CartesianPose* toolTcp;
+	CartesianPose* toolTcp = new CartesianPose();
 	const char* toolName = "Flange";
 	
 	toolTcp->tran.x = trans[0];
@@ -128,6 +123,7 @@ bool LancetJakaRobot::SetTCP(vtkMatrix4x4* aMatrix)
 		std::cout << "set tool data failed" << std::endl;
 		return false;
 	}
+	delete toolTcp;
 	return true;
 }
 
@@ -142,7 +138,7 @@ void LancetJakaRobot::SetJointAngles(std::vector<double> aJointAngles)
 
 vtkSmartPointer<vtkMatrix4x4> LancetJakaRobot::GetBaseToTCP()
 {
-	CartesianPose* tcp_position;
+	CartesianPose* tcp_position = new CartesianPose();
 	// 基座坐标转换为用户坐标
 	m_Robot.get_tcp_position(tcp_position);
 	
@@ -153,6 +149,7 @@ vtkSmartPointer<vtkMatrix4x4> LancetJakaRobot::GetBaseToTCP()
 	Eigen::Vector3d translation(tcp_position->tran.x, tcp_position->tran.y, tcp_position->tran.z);
 	auto ret = GetMatrixByRotationAndTranslation(rotation, translation);
 	PrintDataHelper::CoutMatrix("GetBaseToTCP", ret);
+	delete tcp_position;
 	return ret;
 }
 
@@ -178,9 +175,6 @@ void LancetJakaRobot::RobotTransformInBase(double* aMatrix)
 	PrintDataHelper::CoutArray(euler, "euler");
 	PrintDataHelper::CoutArray(translation, "translation");
 
-	double dJ1 = 0;double dJ2 = 0;double dJ3 = 0;
-	double dJ4 = 0;double dJ5 = 0;double dJ6 = 0;
-
 	// 计算关节角度
 	auto joints = this->CalculateInverse(translation, euler);
 	PrintDataHelper::CoutVector(joints, "joints");
@@ -191,14 +185,9 @@ void LancetJakaRobot::RobotTransformInBase(double* aMatrix)
 	PrintDataHelper::CoutArray(tcpTranslation, "tcpTranslation");
 	PrintDataHelper::CoutArray(tcpEuler, "tcpEuler");
 
-	// 定义用户坐标变量
-	double dUcs_X = 0;double dUcs_Y = 0;double dUcs_Z = 0;
-	double dUcs_Rx = 0;double dUcs_Ry = 0;double dUcs_Rz = 0;
-
 	// 设置运动模式和其他参数
 	MoveMode move_mode = ABS; // 运动模式（假设使用绝对运动）
 	BOOL is_block = FALSE; // 是否阻塞
-
 
 	// 执行关节运动
 	JointValue* joint_pos = new JointValue(); // 创建关节位置对象
@@ -352,19 +341,9 @@ std::vector<double> LancetJakaRobot::CalculateInverse(Eigen::Vector3d aTranslati
 	auto flange2TCP = this->GetFlangeToTCP();
 	auto tcpTranslation = this->GetTranslationPartByMatrix(flange2TCP);
 	auto flange2TCPEuler = this->GetEulerByMatrix(flange2TCP);
-	// 定义工具坐标变量
-	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
-	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
-	// 定义参考关节位置变量
-	double dJ1 = 0; double dJ2 = 0; double dJ3 = 0;
-	double dJ4 = 0; double dJ5 = 0; double dJ6 = 0;
-	// 定义转换结果
-	double dTargetJ1 = 0; double dTargetJ2 = 0; double dTargetJ3 = 90;
-	double dTargetJ4 = 0; double dTargetJ5 = 90; double dTargetJ6 = 0;
-
 	auto joints = this->GetJointAngles();
 	// 求逆解
-	JointValue* ref_pos;
+	JointValue* ref_pos=new JointValue();
 	m_Robot.get_joint_position(ref_pos);//读取当前关节位置，作为参考位置
 	CartesianPose* tcp_pos;
 	tcp_pos->tran.x = aTranslation[0];
@@ -373,11 +352,12 @@ std::vector<double> LancetJakaRobot::CalculateInverse(Eigen::Vector3d aTranslati
 	tcp_pos->rpy.rx = aEulerAngle[0];
 	tcp_pos->rpy.ry = aEulerAngle[1];
 	tcp_pos->rpy.rz = aEulerAngle[2];
-	JointValue* joint_pos;
+	JointValue* joint_pos=new JointValue();
 	m_Robot.kine_inverse(ref_pos, tcp_pos, joint_pos);
 
 	std::vector<double> ret{ joint_pos->jVal[0], joint_pos->jVal[1], joint_pos->jVal[2], joint_pos->jVal[3], joint_pos->jVal[4], joint_pos->jVal[5] };
-
+	delete ref_pos;
+	delete joint_pos;
 	return ret;
 }
 

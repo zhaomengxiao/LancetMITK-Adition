@@ -74,19 +74,6 @@ public:
 	void WaitMove() override;
 
 private:
-	/*Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
-	vtkSmartPointer<vtkMatrix4x4> GetMatrixByRotationAndTranslation(Eigen::Matrix3d aRotation, Eigen::Vector3d aTranslation);
-	Eigen::Vector3d GetEulerByMatrix(vtkMatrix4x4* m);
-
-	Eigen::Matrix3d GetRotationPartByMatrix(vtkMatrix4x4* m);
-	Eigen::Vector3d GetTranslationPartByMatrix(vtkMatrix4x4* m);
-	Eigen::Vector3d CalculateZYXEulerByRotation(Eigen::Matrix3d m);
-
-	std::vector<double> CalculateInverse(Eigen::Vector3d aTranslation, Eigen::Vector3d aEulerAngle);
-
-	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
-
-	std::string GetErrorCodeString(int errorCode);*/
 	Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
 	vtkSmartPointer<vtkMatrix4x4> GetMatrixByRotationAndTranslation(Eigen::Matrix3d aRotation, Eigen::Vector3d aTranslation);
 	Eigen::Vector3d GetEulerByMatrix(vtkMatrix4x4* m);
@@ -124,28 +111,6 @@ private:
 private:
 	//声明对象
 	JAKAZuRobot m_Robot;
-	// 定义工具坐标变量
-	std::string sTcpName = "TCP";
-	// 定义用户坐标变量
-	std::string sUcsName = "Base";
-	// 定义运动速度
-	double dVelocity = 30;
-	// 定义运动加速度
-	double dAcc = 50;
-	// 定义过渡半径
-	double dRadius = 50;
-	// 定义是否使用关节角度
-	int nIsUseJoint = 1;
-	// 定义是否使用检测 DI 停止
-	int nIsSeek = 0;
-	// 定义检测的 DI 索引
-	int nIOBit = 0;
-	// 定义检测的 DI 状态
-	int nIOState = 0;
-	// 定义路点 ID 
-	std::string strCmdID = "0";
-
-	int nMoveType = 0;
 	//定义关节角速度 rad/s
 	double dJointVel = 0.2;
 	//定义关节加速度 rad/s^2

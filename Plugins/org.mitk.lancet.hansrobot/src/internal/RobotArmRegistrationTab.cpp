@@ -71,15 +71,15 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 		});
 	//Åä×¼
 	connect(m_ui.pushButton_setTCPToFlange_2, &QPushButton::clicked, this, [this]() {
-		m_LancetRobotRegistration->SetTCPToFlange();
+		m_LancetRobotRegistration->setTCPToFlange();
 		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_setInitialPoint_2, &QPushButton::clicked, this, [this]() {
-		m_LancetRobotRegistration->RecordInitialPos();
+		m_LancetRobotRegistration->recordInitialPos();
 		m_ui.textBrowser_hans->append(QString("RecordInitialPos"));
 		});
 	connect(m_ui.pushButton_goToInitial_2, &QPushButton::clicked, this, [this]() {
-		m_LancetRobotRegistration->GoToInitialPos();
+		m_LancetRobotRegistration->goToInitialPos();
 		m_ui.textBrowser_hans->append(QString("GoToInitialPos"));
 		});
 	connect(m_ui.pushButton_captureRobot_2, &QPushButton::clicked, this, [this]() {

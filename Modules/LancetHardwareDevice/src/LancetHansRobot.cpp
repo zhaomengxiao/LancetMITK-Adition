@@ -27,17 +27,6 @@ void LancetHansRobot::PowerOff()
 void LancetHansRobot::Translate(double x, double y, double z)
 {
 	vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-	/*matrix->DeepCopy(GetBaseToTCP());
-	PrintDataHelper::CoutMatrix("baseToTcp",matrix);
-	auto euler = this->GetEulerByMatrix(matrix);
-	PrintDataHelper::CoutArray(euler, "original_tcpEuler");
-	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-	transform->SetMatrix(matrix);
-	matrix->SetElement(0, 3, matrix->GetElement(0, 3) + x);
-	matrix->SetElement(1, 3, matrix->GetElement(1, 3) + y);
-	matrix->SetElement(2, 3, matrix->GetElement(2, 3) + z);
-	RobotTransformInBase(matrix->GetData());
-	PrintDataHelper::CoutMatrix("baseToTcp2", matrix);*/
 	matrix->Identity();
 	matrix->SetElement(0, 3, x);
 	matrix->SetElement(1, 3, y);
@@ -56,17 +45,6 @@ void LancetHansRobot::Translate(double* aDirection, double aLength)
 void LancetHansRobot::Rotate(double* aDirection, double aAngle)
 {
 	vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-	/*matrix->DeepCopy(GetBaseToTCP());
-
-	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-	transform->SetMatrix(matrix);
-
-	transform->RotateWXYZ(aAngle, aDirection);
-
-	vtkSmartPointer<vtkMatrix4x4> retMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-	transform->GetMatrix(retMatrix);
-
-	RobotTransformInBase(retMatrix->GetData());*/
 	matrix->Identity();
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	transform->SetMatrix(matrix);

@@ -6,17 +6,17 @@ LancetRobotRegistration::LancetRobotRegistration(AbstractRobot* aRobot, Abstract
 	m_Camera = aCamera; 
 }
 
-void LancetRobotRegistration::SetTCPToFlange()
+void LancetRobotRegistration::setTCPToFlange()
 {
 	m_Robot->SetTCPToFlange();
 }
 
-void LancetRobotRegistration::RecordInitialPos()
+void LancetRobotRegistration::recordInitialPos()
 {
 	m_Robot->RecordInitialPos();
 }
 
-void LancetRobotRegistration::GoToInitialPos()
+void LancetRobotRegistration::goToInitialPos()
 {
 	m_Robot->GoToInitialPos();
 }
@@ -97,11 +97,11 @@ int LancetRobotRegistration::captureRobot()
 {
 	if (m_RobotRegistration.PoseCount() < 5) //The first five translations, 
 	{
-		CapturePose(true);
+		capturePose(true);
 	}
 	else if (m_RobotRegistration.PoseCount() >= 5 && m_RobotRegistration.PoseCount() < 10)
 	{
-		CapturePose(false);
+		capturePose(false);
 	}
 	else
 	{
@@ -113,7 +113,7 @@ int LancetRobotRegistration::captureRobot()
 	return m_RobotRegistration.PoseCount();
 }
 
-void LancetRobotRegistration::CapturePose(bool translationOnly)
+void LancetRobotRegistration::capturePose(bool translationOnly)
 {
 	std::cout << "CapturePose" <<std::endl;
 	//get T_BaseToFlanger

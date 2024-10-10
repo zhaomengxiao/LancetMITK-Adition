@@ -13,9 +13,9 @@ class MITKLANCETROBOTREGISTRATION_EXPORT LancetRobotRegistration
 {
 public:
 	LancetRobotRegistration(AbstractRobot* aRobot, AbstractCamera* aCamera);
-	void SetTCPToFlange();
-	void RecordInitialPos();
-	void GoToInitialPos();
+	void setTCPToFlange();
+	void recordInitialPos();
+	void goToInitialPos();
 	void xp();
 	void yp();
 	void zp();
@@ -29,7 +29,7 @@ public:
 	void rym();
 	void rzm();
 	int captureRobot();
-	void CapturePose(bool);
+	void capturePose(bool);
 	void waitMove();
 	void autoCollection();
 	void setDistance(int);
