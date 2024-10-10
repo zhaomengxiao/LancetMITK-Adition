@@ -249,3 +249,13 @@ void LancetRobotRegistration::autoCollection()
 	}
 }
 
+void LancetRobotRegistration::setDistance(int aDistance)
+{
+	Distance = aDistance;
+}
+
+void LancetRobotRegistration::setAngle(int aAngle)
+{
+	Angle = aAngle;
+}
+

@@ -19,6 +19,7 @@
 #include "robotRegistration.h"
 #include <vtkMatrix4x4.h>
 
+#include "LancetRobotRegistration.h"
 class RobotArmRegistrationTab : public QWidget
 {
 
@@ -58,4 +59,6 @@ private:
 	RobotRegistration m_RobotRegistration;
 	bool isAutoCollectionFlag;
 	//void flashLable(Eigen::Vector3d tempTip, QLabel* label);
+
+	LancetRobotRegistration* m_LancetRobotRegistration;
 };

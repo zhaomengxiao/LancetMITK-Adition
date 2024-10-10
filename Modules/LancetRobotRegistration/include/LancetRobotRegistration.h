@@ -1,14 +1,14 @@
 #pragma once
 #ifndef LANCETROBOTREGISTRATION_h
 #define LANCETROBOTREGISTRATION_h
-#endif
+#include "MitkLancetRobotRegistrationExports.h"
 
 #include "AbstractCamera.h"
 #include "AbstractRobot.h"
 #include "AimCamera.h"
 #include "LancetHansRobot.h"
 #include "robotRegistration.h"
-class LancetRobotRegistration 
+class MITKLANCETROBOTREGISTRATION_EXPORT LancetRobotRegistration
 {
 public:
 	LancetRobotRegistration(AbstractRobot* aRobot, AbstractCamera* aCamera);
@@ -31,12 +31,16 @@ public:
 	void CapturePose(bool);
 	void waitMove();
 	void autoCollection();
+	void setDistance(int);
+	void setAngle(int);
 public:
-	int Distance = 50;
-	int Angle = 15;
+	
 private:
 	AbstractRobot* m_Robot;
 	AbstractCamera* m_Camera;
 	RobotRegistration m_RobotRegistration;
 	bool isAutoCollectionFlag;
+	int Distance = 50;
+	int Angle = 15;
 };
+#endif
