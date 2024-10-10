@@ -192,7 +192,9 @@ vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetFlangeToTCP()
 vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetBaseToFlange()
 {
 	auto TBase2TCP = this->GetBaseToTCP();
+	PrintDataHelper::CoutMatrix("TBase2TCP_GetBaseToFlange()", TBase2TCP);
 	auto TTCP2Flange = this->GetFlangeToTCP();
+	PrintDataHelper::CoutMatrix("TTCP2Flange_GetBaseToFlange()", TTCP2Flange);
 	TTCP2Flange->Invert();
 	vtkSmartPointer<vtkMatrix4x4> ret = vtkSmartPointer<vtkMatrix4x4>::New();
 	vtkMatrix4x4::Multiply4x4(TBase2TCP, TTCP2Flange, ret);

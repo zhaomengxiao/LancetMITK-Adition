@@ -27,7 +27,7 @@ public:
 	void rxm();
 	void rym();
 	void rzm();
-	void captureRobot();
+	int captureRobot();
 	void CapturePose(bool);
 	void waitMove();
 	void autoCollection();

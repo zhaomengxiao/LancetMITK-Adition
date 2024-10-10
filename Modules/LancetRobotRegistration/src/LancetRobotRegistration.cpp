@@ -93,7 +93,7 @@ void LancetRobotRegistration::rzm()
 	m_Robot->Rotate(templeArray, Angle);
 }
 
-void LancetRobotRegistration::captureRobot()
+int LancetRobotRegistration::captureRobot()
 {
 	if (m_RobotRegistration.PoseCount() < 5) //The first five translations, 
 	{
@@ -110,6 +110,7 @@ void LancetRobotRegistration::captureRobot()
 		robotEndToFlangeMatrix->Invert();
 		std::cout << "Registration RMS: " << m_RobotRegistration.RMS() << std::endl;
 	}
+	return m_RobotRegistration.PoseCount();
 }
 
 void LancetRobotRegistration::CapturePose(bool translationOnly)
@@ -117,16 +118,21 @@ void LancetRobotRegistration::CapturePose(bool translationOnly)
 	std::cout << "CapturePose" <<std::endl;
 	//get T_BaseToFlanger
 	vtkSmartPointer<vtkMatrix4x4>T_BaseToFlange = m_Robot->GetBaseToFlange();
+	PrintDataHelper::CoutMatrix("T_BaseToFlange", T_BaseToFlange);
 	//get T_CameraToEnd
 	vtkSmartPointer<vtkMatrix4x4>T_CameraToEnd = m_Camera->GetToolMatrixByName("RobotEndRF");
+	PrintDataHelper::CoutMatrix("T_CameraToEnd", T_CameraToEnd);
 	//get T_BaseRFToCamera
-	vtkSmartPointer<vtkMatrix4x4>T_BaseRFToCamera;
-	vtkMatrix4x4::Invert(m_Camera->GetToolMatrixByName("RobotBaseRF"), T_BaseRFToCamera);
+	vtkSmartPointer<vtkMatrix4x4>T_BaseRFToCamera= m_Camera->GetToolMatrixByName("RobotBaseRF");
+	T_BaseRFToCamera->Invert();
+
+	PrintDataHelper::CoutMatrix("T_BaseRFToCamera", T_BaseRFToCamera);
 	//get T_BaseRFToEnd
-	vtkSmartPointer<vtkMatrix4x4> T_BaseRFToEnd;
+	vtkSmartPointer<vtkMatrix4x4> T_BaseRFToEnd= vtkSmartPointer<vtkMatrix4x4> ::New();
 
 	vtkMatrix4x4::Multiply4x4(T_BaseRFToCamera, T_CameraToEnd, T_BaseRFToEnd);
-	//Robotic arm registration
+
+	////Robotic arm registration
 	m_RobotRegistration.AddPoseWithVtkMatrix(T_BaseToFlange, T_BaseRFToEnd, translationOnly);
 }
 

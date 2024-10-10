@@ -83,9 +83,9 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 		m_ui.textBrowser_hans->append(QString("GoToInitialPos"));
 		});
 	connect(m_ui.pushButton_captureRobot_2, &QPushButton::clicked, this, [this]() {
-		m_LancetRobotRegistration->captureRobot();
+		
 		m_ui.textBrowser_hans->append(QString("captureRobot"));
-		m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(m_RobotRegistration.PoseCount()));
+		m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(m_LancetRobotRegistration->captureRobot()));
 		});
 	//old version 
 	//connect(m_ui.pushButton_xp_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::xp);
