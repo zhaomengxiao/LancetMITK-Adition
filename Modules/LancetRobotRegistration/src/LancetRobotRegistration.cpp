@@ -157,7 +157,14 @@ void LancetRobotRegistration::waitMove()
 		}
 	}
 }
+void LancetRobotRegistration::Sleep(int msec)
+{
+	QTime dieTime = QTime::currentTime().addMSecs(msec);
 
+	while (QTime::currentTime() < dieTime)
+
+		QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+}
 void LancetRobotRegistration::autoCollection()
 {
 	std::cout << "Starting automatic registration!" << std::endl;
@@ -176,77 +183,77 @@ void LancetRobotRegistration::autoCollection()
 		case 1:
 			xp();
 			waitMove();
-			QThread::msleep(200);
-
+			Sleep(500);
+			m_Camera->UpdateData();
 			captureRobot();
 			break;
 		case 2:
 			yp();
 			waitMove();
-			QThread::msleep(200);
-
+			Sleep(500);
+			m_Camera->UpdateData();
 			captureRobot();
 			break;
 		case 3:
 			zp();
 			waitMove();
-			QThread::msleep(200);
-
+			Sleep(500);
+			m_Camera->UpdateData();
 			captureRobot();
 			break;
 		case 4:
 			xm();
 			waitMove();
-			QThread::msleep(200);
-
+			Sleep(500);
+			m_Camera->UpdateData();
 			captureRobot();
 			break;
 		case 5:
 			ym();
 			waitMove();
-			QThread::msleep(200);
-
+			Sleep(500);
+			m_Camera->UpdateData();
 			captureRobot();
 			break;
 		case 6:
 			rxp();
 			waitMove();
-			QThread::msleep(200);
-
+			Sleep(500);
+			m_Camera->UpdateData();
 			captureRobot();
 			break;
 		case 7:
 			ryp();
 			waitMove();
-			QThread::msleep(200);
-
+			Sleep(500);
+			m_Camera->UpdateData();
 			captureRobot();
 			break;
 		case 8:
 			rzp();
 			waitMove();
-			QThread::msleep(200);
-
+			Sleep(500);
+			m_Camera->UpdateData();
 			captureRobot();
 			break;
 		case 9:
 			rxm();
 			waitMove();
-			QThread::msleep(200);
-
+			Sleep(500);
+			m_Camera->UpdateData();
 			captureRobot();
 			break;
 		case 10:
 			rym();
 			waitMove();
-			QThread::msleep(200);
-
+			Sleep(500);
+			m_Camera->UpdateData();
 			captureRobot();
 			break;
 		default:
 			return;
 		}
-		QThread::msleep(200);
+		Sleep(500);
 		moveCount++;
 	}
 	if (m_RobotRegistration.PoseCount() == 10)

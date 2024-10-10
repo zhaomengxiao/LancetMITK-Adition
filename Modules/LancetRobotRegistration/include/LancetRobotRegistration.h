@@ -8,6 +8,7 @@
 #include "AimCamera.h"
 #include "LancetHansRobot.h"
 #include "robotRegistration.h"
+#include "qdatetime.h"
 class MITKLANCETROBOTREGISTRATION_EXPORT LancetRobotRegistration
 {
 public:
@@ -42,5 +43,7 @@ private:
 	bool isAutoCollectionFlag;
 	int Distance = 50;
 	int Angle = 15;
+private:
+	void Sleep(int);
 };
 #endif

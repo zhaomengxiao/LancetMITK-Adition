@@ -83,37 +83,9 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 		m_ui.textBrowser_hans->append(QString("GoToInitialPos"));
 		});
 	connect(m_ui.pushButton_captureRobot_2, &QPushButton::clicked, this, [this]() {
-		
 		m_ui.textBrowser_hans->append(QString("captureRobot"));
 		m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(m_LancetRobotRegistration->captureRobot()));
 		});
-	//old version 
-	//connect(m_ui.pushButton_xp_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::xp);
-	//connect(m_ui.pushButton_yp_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::yp);
-	//connect(m_ui.pushButton_zp_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::zp);
-	//connect(m_ui.pushButton_xm_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::xm);
-	//connect(m_ui.pushButton_ym_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::ym);
-	//connect(m_ui.pushButton_zm_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::zm);
-	//connect(m_ui.pushButton_rxp_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::rxp);
-	//connect(m_ui.pushButton_ryp_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::ryp);
-	//connect(m_ui.pushButton_rzp_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::rzp);
-	//connect(m_ui.pushButton_rxm_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::rxm);
-	//connect(m_ui.pushButton_rym_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::rym);
-	//connect(m_ui.pushButton_rzm_2, &QPushButton::clicked, this, &RobotArmRegistrationTab::rzm);
-	////Åä×¼
-	//connect(m_ui.pushButton_setTCPToFlange_2, &QPushButton::clicked, this, [this]() {
-	//		m_Robot->SetTCPToFlange();
-	//		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
-	//	});
-	//connect(m_ui.pushButton_setInitialPoint_2, &QPushButton::clicked, this, [this]() {
-	//		m_Robot->RecordInitialPos();
-	//		m_ui.textBrowser_hans->append(QString("RecordInitialPos"));
-	//	});
-	//connect(m_ui.pushButton_goToInitial_2, &QPushButton::clicked, this, [this]() {
-	//		m_Robot->GoToInitialPos();
-	//		m_ui.textBrowser_hans->append(QString("GoToInitialPos"));
-	//	});
-	
 }
 
 //void RobotArmRegistrationTab::xp()
