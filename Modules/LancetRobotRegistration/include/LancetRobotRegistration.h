@@ -35,6 +35,8 @@ public:
 	void setDistance(int);
 	void setAngle(int);
 	void replaceRegistration();
+	void reuseArmMatrix();
+	void saveArmMatrix();
 public:
 	
 private:
@@ -44,6 +46,10 @@ private:
 	bool isAutoCollectionFlag;
 	int Distance = 50;
 	int Angle = 15;
+
+	//机械臂配准数据
+	double T_BaseToBaseRF[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 };
+	double T_FlangeToEndRF[16]{ 1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1 };
 private:
 	void Sleep(int);
 };

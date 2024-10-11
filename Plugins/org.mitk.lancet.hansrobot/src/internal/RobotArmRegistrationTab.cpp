@@ -83,9 +83,25 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 		m_ui.textBrowser_hans->append(QString("GoToInitialPos"));
 		});
 	connect(m_ui.pushButton_captureRobot_2, &QPushButton::clicked, this, [this]() {
+		m_LancetRobotRegistration->captureRobot();
 		m_ui.textBrowser_hans->append(QString("captureRobot"));
 		m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(m_LancetRobotRegistration->captureRobot()));
 		});
+	connect(m_ui.pushButton_replaceRegistration_2, &QPushButton::clicked, this, [this]() {
+		m_LancetRobotRegistration->replaceRegistration();
+		m_ui.textBrowser_hans->append(QString("Replace Registration"));
+		m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(m_LancetRobotRegistration->captureRobot()));
+		});
+	connect(m_ui.pushButton_saveArmMatrix_2, &QPushButton::clicked, this, [this]() {
+		m_LancetRobotRegistration->saveArmMatrix();
+		m_ui.textBrowser_hans->append(QString("Save ArmMatrix"));
+		});
+	connect(m_ui.pushButton_reuseArmMatrix_2, &QPushButton::clicked, this, [this]() {
+		m_LancetRobotRegistration->reuseArmMatrix();
+		m_ui.textBrowser_hans->append(QString("Reuse ArmMatrix"));
+		m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(10));
+		});
+
 }
 
 
