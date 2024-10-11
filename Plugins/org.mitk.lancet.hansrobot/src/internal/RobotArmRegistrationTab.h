@@ -19,7 +19,7 @@
 #include "robotRegistration.h"
 #include <vtkMatrix4x4.h>
 
-#include "LancetRobotRegistration.h"
+#include <LancetRobotRegistration.h>
 class RobotArmRegistrationTab : public QWidget
 {
 
@@ -28,7 +28,7 @@ public:
 	RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataStorage, AbstractRobot* aRobot, AbstractCamera* aCamera, QWidget* parent = nullptr);
 
 public slots:
-	
+	void updateUiCaputreCount(int cnt);
 
 	//void flashLable(Ui::HansRobotControls* lable);
 private:
@@ -49,6 +49,7 @@ private:
 	void CapturePose(bool);
 	void waitMove();
 	void autoCollection();
+	
 private:
 	QWidget* m_TabPage;
 	Ui::HansRobotControls m_ui;

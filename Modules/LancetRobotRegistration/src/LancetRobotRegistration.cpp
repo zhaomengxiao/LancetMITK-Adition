@@ -134,6 +134,7 @@ void LancetRobotRegistration::capturePose(bool translationOnly)
 
 	////Robotic arm registration
 	m_RobotRegistration.AddPoseWithVtkMatrix(T_BaseToFlange, T_BaseRFToEnd, translationOnly);
+	emit countPose(m_RobotRegistration.PoseCount());
 }
 
 void LancetRobotRegistration::waitMove()
@@ -167,6 +168,9 @@ void LancetRobotRegistration::Sleep(int msec)
 }
 void LancetRobotRegistration::autoCollection()
 {
+	replaceRegistration();
+	setTCPToFlange();
+	recordInitialPos();
 	std::cout << "Starting automatic registration!" << std::endl;
 	int moveCount = 1;
 	m_RobotRegistration.RemoveAllPose();
@@ -182,82 +186,50 @@ void LancetRobotRegistration::autoCollection()
 		switch (moveCount) {
 		case 1:
 			xp();
-			waitMove();
-			Sleep(500);
-			m_Camera->UpdateData();
-			captureRobot();
 			break;
 		case 2:
 			yp();
-			waitMove();
-			Sleep(500);
-			m_Camera->UpdateData();
-			captureRobot();
 			break;
 		case 3:
 			zp();
-			waitMove();
-			Sleep(500);
-			m_Camera->UpdateData();
-			captureRobot();
 			break;
 		case 4:
 			xm();
-			waitMove();
-			Sleep(500);
-			m_Camera->UpdateData();
-			captureRobot();
 			break;
 		case 5:
 			ym();
-			waitMove();
-			Sleep(500);
-			m_Camera->UpdateData();
-			captureRobot();
 			break;
 		case 6:
 			rxp();
-			waitMove();
-			Sleep(500);
-			m_Camera->UpdateData();
-			captureRobot();
 			break;
 		case 7:
 			ryp();
-			waitMove();
-			Sleep(500);
-			m_Camera->UpdateData();
-			captureRobot();
 			break;
 		case 8:
 			rzp();
-			waitMove();
-			Sleep(500);
-			m_Camera->UpdateData();
-			captureRobot();
 			break;
 		case 9:
 			rxm();
-			waitMove();
-			Sleep(500);
-			m_Camera->UpdateData();
-			captureRobot();
 			break;
 		case 10:
 			rym();
-			waitMove();
-			Sleep(500);
-			m_Camera->UpdateData();
-			captureRobot();
 			break;
 		default:
 			return;
 		}
-		Sleep(500);
+		waitMove();
+		Sleep(1000);
+		m_Camera->UpdateData();
+		captureRobot();
+		Sleep(1000);
 		moveCount++;
 	}
 	if (m_RobotRegistration.PoseCount() == 10)
 	{
+		m_Robot->GoToInitialPos();
+		vtkNew<vtkMatrix4x4> robotEndToFlangeMatrix;
+		m_RobotRegistration.GetTCPmatrix(robotEndToFlangeMatrix);
+		std::cout << "Registration RMS: " << m_RobotRegistration.RMS() << std::endl;
 		std::cout << "Fully automatic registration successed!" << std::endl;
 	}
 }
@@ -411,5 +383,4 @@ void LancetRobotRegistration::reuseArmMatrix()
 	// Print T_FlangeToEndRF
 	PrintDataHelper::CoutMatrix("T_FlangeToEndRF", T_FlangeToEndRF);
 }
-
 

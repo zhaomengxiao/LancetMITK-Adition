@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>893</width>
+    <width>702</width>
     <height>868</height>
    </rect>
   </property>
@@ -488,7 +488,7 @@ QPushButton:pressed {
         </rect>
        </property>
        <property name="text">
-        <string>自动移动</string>
+        <string>自动配准</string>
        </property>
       </widget>
       <widget class="QWidget" name="layoutWidget_9">

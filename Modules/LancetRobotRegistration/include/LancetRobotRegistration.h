@@ -9,8 +9,10 @@
 #include "LancetHansRobot.h"
 #include "robotRegistration.h"
 #include "qdatetime.h"
-class MITKLANCETROBOTREGISTRATION_EXPORT LancetRobotRegistration
+#include "qobject.h"
+class MITKLANCETROBOTREGISTRATION_EXPORT LancetRobotRegistration :public QObject
 {
+	Q_OBJECT
 public:
 	LancetRobotRegistration(AbstractRobot* aRobot, AbstractCamera* aCamera);
 	void setTCPToFlange();
@@ -37,7 +39,9 @@ public:
 	void replaceRegistration();
 	void reuseArmMatrix();
 	void saveArmMatrix();
-public:
+	
+	signals:
+		void countPose(int cnt); 
 	
 private:
 	AbstractRobot* m_Robot;

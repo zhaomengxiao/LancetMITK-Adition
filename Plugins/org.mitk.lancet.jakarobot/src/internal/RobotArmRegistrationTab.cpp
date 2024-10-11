@@ -1,3 +1,4 @@
+#include "..\..\..\org.mitk.lancet.hansrobot\src\internal\RobotArmRegistrationTab.h"
 #include "RobotArmRegistrationTab.h"/// <summary>
 
 /// Robots the arm registration tab.
@@ -330,6 +331,7 @@ void RobotArmRegistrationTab::autoCollection()
 	}
 
 }
+
 
 void RobotArmRegistrationTab::RepeatPositionTest()
 {
