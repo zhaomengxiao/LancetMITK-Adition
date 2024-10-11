@@ -33,14 +33,12 @@ public slots:
 	void powerOn();
 	void upDateUi();
 
-	//void flashLable(Ui::HansRobotControls* lable);
 private:
 
 
 private:
 	QWidget* m_TabPage;
 	Ui::HansRobotControls m_ui;
-	//AbstractRobot* m_Robot;
 	LancetHansRobot* m_Robot;
 	mitk::DataStorage* m_dataStorage;
 	AbstractCamera* m_Camera;

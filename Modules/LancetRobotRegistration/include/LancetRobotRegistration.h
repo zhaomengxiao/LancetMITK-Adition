@@ -34,6 +34,7 @@ public:
 	void autoCollection();
 	void setDistance(int);
 	void setAngle(int);
+	void replaceRegistration();
 public:
 	
 private:

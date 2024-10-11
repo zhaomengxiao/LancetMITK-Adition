@@ -17,6 +17,7 @@ set(MOC_H_FILES
   include/LancetHansRobot.h
   include/NDICamera.h
   include/LancetJakaRobot.h
+  include/AbstractUi.h
 )
 
 set(H_FILES
@@ -27,6 +28,7 @@ set(H_FILES
   include/LancetHansRobot.h
   include/NDICamera.h
   include/LancetJakaRobot.h
+  include/AbstractUi.h
 )
 
 set(RESOURCE_FILES

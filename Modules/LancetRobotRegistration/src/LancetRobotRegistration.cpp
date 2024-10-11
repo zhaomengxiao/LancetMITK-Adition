@@ -272,3 +272,12 @@ void LancetRobotRegistration::setAngle(int aAngle)
 	Angle = aAngle;
 }
 
+void LancetRobotRegistration::replaceRegistration()
+{
+	/*m_Controls.textBrowser->append("Replace Registration");
+	m_RobotRegistration.RemoveAllPose();
+	m_IndexOfRobotCapture = 0;
+	m_Controls.lineEdit_collectedRoboPose->setText(QString::number(0));
+	auto_move_index = 0;*/
+}
+
