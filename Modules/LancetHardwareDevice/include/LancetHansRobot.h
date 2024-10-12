@@ -82,6 +82,7 @@ private:
 
 private:
 	vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
+	vector<double> m_InitialJointAngle;
 	vtkSmartPointer<vtkMatrix4x4> m_FlangeToTCP;
 private:
 	// 定义工具坐标变量
