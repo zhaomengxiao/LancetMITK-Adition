@@ -63,6 +63,8 @@ public:
 	void ResetRegistration();
 
 	void ReuseRegistration();
+	//test 
+	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
 private:
 	Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
 	vtkSmartPointer<vtkMatrix4x4> GetMatrixByRotationAndTranslation(Eigen::Matrix3d aRotation, Eigen::Vector3d aTranslation);
@@ -74,7 +76,7 @@ private:
 
 	std::vector<double> CalculateInverse(Eigen::Vector3d aTranslation, Eigen::Vector3d aEulerAngle);
 
-	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
+	//std::vector<double> CalculateForward(std::vector<double> aJointAngles);
 
 	string GetErrorCodeString(int errorCode);
 
