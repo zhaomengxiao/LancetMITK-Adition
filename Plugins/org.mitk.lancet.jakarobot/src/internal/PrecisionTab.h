@@ -17,31 +17,24 @@
 #include <mitkNodePredicateOr.h>
 #include <mitkColorProperty.h>
 
-class ConnectionTab : public QWidget
+class PrecisionTab :  public QWidget
 {
-
 	Q_OBJECT
 public:
-	explicit ConnectionTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataStorage, AbstractRobot* aRobot, AbstractCamera* aCamera, QWidget* parent = nullptr);
+	explicit PrecisionTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataStorage, LancetHansRobot* HansRobotHardwareService,AimCamera* AimCameraHardwareService, QWidget* parent = nullptr);
 
 public slots:
 	void InitConnection();
-	void connectRobot();
-	void connectCamera();
-	void updateData();
-	void powerOff();
-	void powerOn();
-	void upDateUi();
+
 
 private:
-
+	
 
 private:
 	QWidget* m_TabPage;
 	Ui::HansRobotControls m_ui;
-	LancetHansRobot* m_Robot;
+	//lancetAlgorithm::SystemPrecision* m_SystemPrecision;
+	LancetHansRobot* m_HansRobotHardwareService;
 	mitk::DataStorage* m_dataStorage;
-	AbstractCamera* m_Camera;
 
-	void flashLable(Eigen::Vector3d tempTip, QLabel* label);
 };

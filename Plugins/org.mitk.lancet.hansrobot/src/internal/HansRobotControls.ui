@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1047</width>
-    <height>944</height>
+    <width>702</width>
+    <height>868</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -481,14 +481,14 @@ QPushButton:pressed {
       <widget class="QPushButton" name="pushButton_AutoMoveJ_2">
        <property name="geometry">
         <rect>
-         <x>300</x>
-         <y>370</y>
+         <x>430</x>
+         <y>300</y>
          <width>141</width>
          <height>31</height>
         </rect>
        </property>
        <property name="text">
-        <string>自动移动</string>
+        <string>自动配准</string>
        </property>
       </widget>
       <widget class="QWidget" name="layoutWidget_9">
@@ -921,6 +921,16 @@ QPushButton:pressed {
        </property>
        <property name="text">
         <string>运动检测开启后无法执行相对运动</string>
+       </property>
+      </widget>
+      <widget class="QTextBrowser" name="textBrowser_hans">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>340</y>
+         <width>651</width>
+         <height>192</height>
+        </rect>
        </property>
       </widget>
      </widget>

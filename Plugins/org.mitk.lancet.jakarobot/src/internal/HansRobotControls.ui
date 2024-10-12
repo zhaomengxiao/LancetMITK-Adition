@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ZzxtestControls</class>
- <widget class="QWidget" name="ZzxtestControls">
+ <class>HansRobotControls</class>
+ <widget class="QWidget" name="HansRobotControls">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>839</width>
-    <height>944</height>
+    <width>829</width>
+    <height>880</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -23,58 +23,8 @@
    <string notr="true"/>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
-   <item row="1" column="0">
-    <widget class="QPushButton" name="pushButton_SuddenStop">
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-     <property name="text">
-      <string>Stop</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QPushButton" name="pushButton_cleantext">
-     <property name="styleSheet">
-      <string notr="true">QPushButton {
-    background-color: #F0F8FF;    /* 设置背景颜色 */
-    color: #1E90FF;               /* 设置文字颜色 */
-    border: 2px solid #87CEFA;    /* 设置边框颜色 */
-    border-radius: 8px;           /* 设置圆角 */
-    padding: 5px 15px;            /* 设置内边距 */
-}
-
-QPushButton:hover {
-    background-color: #E0F7FF;    /* 鼠标悬停时背景颜色变化 */
-    color: #4682B4;               /* 鼠标悬停时文字颜色 */
-}
-
-QPushButton:pressed {
-    background-color: #B0E0E6;    /* 按下按钮时背景颜色 */
-    color: #1C86EE;               /* 按下按钮时文字颜色 */
-    border: 2px solid #4682B4;    /* 按下按钮时边框颜色 */
-}
-</string>
-     </property>
-     <property name="text">
-      <string>Clear</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0" colspan="2">
-    <widget class="QTextBrowser" name="textBrowser">
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QTabWidget" name="tabWidget">
+   <item row="0" column="1">
+    <widget class="QTabWidget" name="tabWidget_2">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -128,13 +78,13 @@ QTabBar QToolButton:hover {
 </string>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
-     <widget class="QWidget" name="tab1">
+     <widget class="QWidget" name="tab1_2">
       <attribute name="title">
        <string>启动选项</string>
       </attribute>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="label_27">
        <property name="geometry">
         <rect>
          <x>210</x>
@@ -147,7 +97,7 @@ QTabBar QToolButton:hover {
         <string/>
        </property>
       </widget>
-      <widget class="QGroupBox" name="groupBox">
+      <widget class="QGroupBox" name="groupBox_5">
        <property name="geometry">
         <rect>
          <x>310</x>
@@ -159,18 +109,18 @@ QTabBar QToolButton:hover {
        <property name="title">
         <string>camera</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_2">
+       <layout class="QGridLayout" name="gridLayout_10">
         <item row="2" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_129">
+         <layout class="QHBoxLayout" name="horizontalLayout_133">
           <item>
-           <widget class="QLabel" name="Spine_PatineRFTextLabel">
+           <widget class="QLabel" name="Spine_PatineRFTextLabel_3">
             <property name="text">
              <string>PatineRF</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="Spine_PatientRFDataLabel">
+           <widget class="QLabel" name="Spine_PatientRFDataLabel_3">
             <property name="minimumSize">
              <size>
               <width>350</width>
@@ -185,16 +135,16 @@ QTabBar QToolButton:hover {
          </layout>
         </item>
         <item row="1" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <layout class="QHBoxLayout" name="horizontalLayout_19">
           <item>
-           <widget class="QLabel" name="Spine_RobotEndRFTextLabel">
+           <widget class="QLabel" name="Spine_RobotEndRFTextLabel_3">
             <property name="text">
              <string>EndRF:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="Spine_RobotEndRFDataLabel">
+           <widget class="QLabel" name="Spine_RobotEndRFDataLabel_3">
             <property name="minimumSize">
              <size>
               <width>350</width>
@@ -209,16 +159,16 @@ QTabBar QToolButton:hover {
          </layout>
         </item>
         <item row="3" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_130">
+         <layout class="QHBoxLayout" name="horizontalLayout_134">
           <item>
-           <widget class="QLabel" name="Spine_ProbeTextLabel">
+           <widget class="QLabel" name="Spine_ProbeTextLabel_3">
             <property name="text">
              <string>Probe:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="Spine_ProbeDataLabel">
+           <widget class="QLabel" name="Spine_ProbeDataLabel_3">
             <property name="minimumSize">
              <size>
               <width>350</width>
@@ -233,16 +183,16 @@ QTabBar QToolButton:hover {
          </layout>
         </item>
         <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="horizontalLayout_26">
           <item>
-           <widget class="QLabel" name="Spine_RobotBaseRFTextLabel">
+           <widget class="QLabel" name="Spine_RobotBaseRFTextLabel_3">
             <property name="text">
              <string>BaseRF:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="Spine_RobotBaseRFDataLabel">
+           <widget class="QLabel" name="Spine_RobotBaseRFDataLabel_3">
             <property name="minimumSize">
              <size>
               <width>350</width>
@@ -258,7 +208,7 @@ QTabBar QToolButton:hover {
         </item>
        </layout>
       </widget>
-      <widget class="QGroupBox" name="groupBox_2">
+      <widget class="QGroupBox" name="groupBox_6">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -270,11 +220,11 @@ QTabBar QToolButton:hover {
        <property name="title">
         <string>Robot</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_4">
+       <layout class="QGridLayout" name="gridLayout_11">
         <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <layout class="QHBoxLayout" name="horizontalLayout_27">
           <item>
-           <widget class="QLabel" name="label_Robot_TCP_value">
+           <widget class="QLabel" name="label_Robot_TCP_value_3">
             <property name="minimumSize">
              <size>
               <width>350</width>
@@ -289,16 +239,16 @@ QTabBar QToolButton:hover {
          </layout>
         </item>
         <item row="1" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <layout class="QHBoxLayout" name="horizontalLayout_28">
           <item>
-           <widget class="QLabel" name="label_3">
+           <widget class="QLabel" name="label_28">
             <property name="text">
              <string>Connect</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_Robot_isConnect">
+           <widget class="QLabel" name="label_Robot_isConnect_3">
             <property name="minimumSize">
              <size>
               <width>350</width>
@@ -314,7 +264,7 @@ QTabBar QToolButton:hover {
         </item>
        </layout>
       </widget>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="label_29">
        <property name="geometry">
         <rect>
          <x>470</x>
@@ -330,7 +280,7 @@ QTabBar QToolButton:hover {
         <string>Robot_TCP</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pushButton_start_thread">
+      <widget class="QPushButton" name="pushButton_start_thread_3">
        <property name="geometry">
         <rect>
          <x>470</x>
@@ -343,7 +293,7 @@ QTabBar QToolButton:hover {
         <string>start thread</string>
        </property>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QWidget" name="layoutWidget_8">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -352,9 +302,9 @@ QTabBar QToolButton:hover {
          <height>261</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout">
+       <layout class="QGridLayout" name="gridLayout_12">
         <item row="0" column="0">
-         <widget class="QPushButton" name="pushButton_connectArm">
+         <widget class="QPushButton" name="pushButton_connectArm_3">
           <property name="styleSheet">
            <string notr="true">QPushButton {
     background-color: #F0F8FF;    /* 设置背景颜色 */
@@ -379,13 +329,10 @@ QPushButton:pressed {
           <property name="text">
            <string>Robot connection</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="5" column="0">
-         <widget class="QPushButton" name="pushButton_selfCheck">
+         <widget class="QPushButton" name="pushButton_selfCheck_3">
           <property name="styleSheet">
            <string notr="true">QPushButton {
     background-color: #F0F8FF;    /* 设置背景颜色 */
@@ -410,13 +357,10 @@ QPushButton:pressed {
           <property name="text">
            <string>print matrix</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QPushButton" name="pushButton_powerOn">
+         <widget class="QPushButton" name="pushButton_powerOn_3">
           <property name="styleSheet">
            <string notr="true">QPushButton {
     background-color: #F0F8FF;    /* 设置背景颜色 */
@@ -441,13 +385,10 @@ QPushButton:pressed {
           <property name="text">
            <string>power on</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QPushButton" name="pushButton_connectCamrea">
+         <widget class="QPushButton" name="pushButton_connectCamrea_3">
           <property name="styleSheet">
            <string notr="true">QPushButton {
     background-color: #F0F8FF;    /* 设置背景颜色 */
@@ -472,13 +413,10 @@ QPushButton:pressed {
           <property name="text">
            <string>Camera connection</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QPushButton" name="pushButton_powerOff">
+         <widget class="QPushButton" name="pushButton_powerOff_3">
           <property name="styleSheet">
            <string notr="true">QPushButton {
     background-color: #F0F8FF;    /* 设置背景颜色 */
@@ -503,13 +441,10 @@ QPushButton:pressed {
           <property name="text">
            <string>power off</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="4" column="0">
-         <widget class="QPushButton" name="pushButton_updataData">
+         <widget class="QPushButton" name="pushButton_updataData_3">
           <property name="styleSheet">
            <string notr="true">QPushButton {
     background-color: #F0F8FF;    /* 设置背景颜色 */
@@ -534,23 +469,20 @@ QPushButton:pressed {
           <property name="text">
            <string>updataData</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
        </layout>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="tab_5">
       <attribute name="title">
        <string>机械臂配准</string>
       </attribute>
-      <widget class="QPushButton" name="pushButton_AutoMoveJ">
+      <widget class="QPushButton" name="pushButton_AutoMoveJ_2">
        <property name="geometry">
         <rect>
-         <x>300</x>
-         <y>370</y>
+         <x>430</x>
+         <y>300</y>
          <width>141</width>
          <height>31</height>
         </rect>
@@ -558,11 +490,8 @@ QPushButton:pressed {
        <property name="text">
         <string>自动移动</string>
        </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QWidget" name="layoutWidget_9">
        <property name="geometry">
         <rect>
          <x>360</x>
@@ -571,130 +500,94 @@ QPushButton:pressed {
          <height>131</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout_14">
+       <layout class="QGridLayout" name="gridLayout_16">
         <item row="3" column="4">
-         <widget class="QPushButton" name="pushButton_ryp">
+         <widget class="QPushButton" name="pushButton_ryp_2">
           <property name="text">
            <string>RY+</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="3" column="5">
-         <widget class="QPushButton" name="pushButton_rym">
+         <widget class="QPushButton" name="pushButton_rym_2">
           <property name="text">
            <string>RY-</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="3" column="3">
-         <widget class="QPushButton" name="pushButton_ym">
+         <widget class="QPushButton" name="pushButton_ym_2">
           <property name="text">
            <string>Y-</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="1" column="5">
-         <widget class="QPushButton" name="pushButton_rxm">
+         <widget class="QPushButton" name="pushButton_rxm_2">
           <property name="text">
            <string>RX-</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="1" column="4">
-         <widget class="QPushButton" name="pushButton_rxp">
+         <widget class="QPushButton" name="pushButton_rxp_2">
           <property name="text">
            <string>RX+</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="3" column="2">
-         <widget class="QPushButton" name="pushButton_yp">
+         <widget class="QPushButton" name="pushButton_yp_2">
           <property name="text">
            <string>Y+</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="4" column="5">
-         <widget class="QPushButton" name="pushButton_rzm">
+         <widget class="QPushButton" name="pushButton_rzm_2">
           <property name="text">
            <string>RZ-</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="4" column="2">
-         <widget class="QPushButton" name="pushButton_zp">
+         <widget class="QPushButton" name="pushButton_zp_2">
           <property name="text">
            <string>Z+</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="4" column="3">
-         <widget class="QPushButton" name="pushButton_zm">
+         <widget class="QPushButton" name="pushButton_zm_2">
           <property name="text">
            <string>Z-</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QPushButton" name="pushButton_xp">
+         <widget class="QPushButton" name="pushButton_xp_2">
           <property name="text">
            <string>X+</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="4" column="4">
-         <widget class="QPushButton" name="pushButton_rzp">
+         <widget class="QPushButton" name="pushButton_rzp_2">
           <property name="text">
            <string>RZ+</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
         <item row="1" column="3">
-         <widget class="QPushButton" name="pushButton_xm">
+         <widget class="QPushButton" name="pushButton_xm_2">
           <property name="text">
            <string>X-</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
        </layout>
       </widget>
-      <widget class="QLabel" name="label_14">
+      <widget class="QLabel" name="label_30">
        <property name="geometry">
         <rect>
          <x>300</x>
@@ -714,7 +607,7 @@ QPushButton:pressed {
         <string>机械臂运动控制</string>
        </property>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QWidget" name="layoutWidget_10">
        <property name="geometry">
         <rect>
          <x>360</x>
@@ -723,9 +616,9 @@ QPushButton:pressed {
          <height>22</height>
         </rect>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <layout class="QHBoxLayout" name="horizontalLayout_29">
         <item>
-         <widget class="QLabel" name="label_16">
+         <widget class="QLabel" name="label_31">
           <property name="layoutDirection">
            <enum>Qt::LeftToRight</enum>
           </property>
@@ -735,14 +628,14 @@ QPushButton:pressed {
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_intuitiveValue">
+         <widget class="QLineEdit" name="lineEdit_intuitiveValue_2">
           <property name="text">
            <string>50</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_15">
+         <widget class="QLabel" name="label_32">
           <property name="text">
            <string>(mm )</string>
           </property>
@@ -759,7 +652,7 @@ QPushButton:pressed {
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_intuitiveValue_degree">
+         <widget class="QLineEdit" name="lineEdit_intuitiveValue_degree_2">
           <property name="text">
            <string>15</string>
           </property>
@@ -774,7 +667,7 @@ QPushButton:pressed {
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QWidget" name="layoutWidget_11">
        <property name="geometry">
         <rect>
          <x>370</x>
@@ -783,18 +676,18 @@ QPushButton:pressed {
          <height>79</height>
         </rect>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <layout class="QHBoxLayout" name="horizontalLayout_30">
           <item>
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="label_38">
             <property name="text">
              <string>运动模式</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="comboBox_robotMoveType">
+           <widget class="QComboBox" name="comboBox_robotMoveType_2">
             <item>
              <property name="text">
               <string>move_p</string>
@@ -810,25 +703,22 @@ QPushButton:pressed {
          </layout>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="QLineEdit" name="lineEdit_4">
           <property name="text">
            <string>0,0,0,0,0,0</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_JiontAngleMotion">
+         <widget class="QPushButton" name="pushButton_JiontAngleMotion_2">
           <property name="text">
            <string>运动</string>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">buttonGroup</string>
-          </attribute>
          </widget>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QWidget" name="layoutWidget_12">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -837,18 +727,18 @@ QPushButton:pressed {
          <height>247</height>
         </rect>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <layout class="QHBoxLayout" name="horizontalLayout_31">
           <item>
-           <widget class="QLabel" name="label_18">
+           <widget class="QLabel" name="label_40">
             <property name="text">
              <string>运动坐标系：</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="comboBox_robotMoveType_select">
+           <widget class="QComboBox" name="comboBox_robotMoveType_select_2">
             <item>
              <property name="text">
               <string>TCP</string>
@@ -864,39 +754,30 @@ QPushButton:pressed {
          </layout>
         </item>
         <item>
-         <layout class="QGridLayout" name="gridLayout_5">
+         <layout class="QGridLayout" name="gridLayout_18">
           <item row="5" column="1" colspan="3">
-           <widget class="QPushButton" name="pushButton_replaceRegistration">
+           <widget class="QPushButton" name="pushButton_replaceRegistration_2">
             <property name="text">
              <string>Replace registration</string>
             </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
-            </attribute>
            </widget>
           </item>
           <item row="1" column="1" colspan="3">
-           <widget class="QPushButton" name="pushButton_setInitialPoint">
+           <widget class="QPushButton" name="pushButton_setInitialPoint_2">
             <property name="text">
              <string>Set Initial Point</string>
             </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
-            </attribute>
            </widget>
           </item>
           <item row="2" column="1" colspan="3">
-           <widget class="QPushButton" name="pushButton_goToInitial">
+           <widget class="QPushButton" name="pushButton_goToInitial_2">
             <property name="text">
              <string> Goto Initial Point</string>
             </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
-            </attribute>
            </widget>
           </item>
           <item row="4" column="0" colspan="4">
-           <widget class="QLabel" name="label_9">
+           <widget class="QLabel" name="label_41">
             <property name="font">
              <font>
               <pointsize>9</pointsize>
@@ -910,54 +791,42 @@ QPushButton:pressed {
            </widget>
           </item>
           <item row="6" column="1" colspan="3">
-           <widget class="QPushButton" name="pushButton_saveArmMatrix">
+           <widget class="QPushButton" name="pushButton_saveArmMatrix_2">
             <property name="text">
              <string>Save matrix</string>
             </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
-            </attribute>
            </widget>
           </item>
           <item row="3" column="2">
-           <widget class="QLabel" name="label_10">
+           <widget class="QLabel" name="label_42">
             <property name="text">
              <string>/10</string>
             </property>
            </widget>
           </item>
           <item row="7" column="1" colspan="3">
-           <widget class="QPushButton" name="pushButton_reuseArmMatrix">
+           <widget class="QPushButton" name="pushButton_reuseArmMatrix_2">
             <property name="text">
              <string>Reuse matrix</string>
             </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
-            </attribute>
            </widget>
           </item>
           <item row="0" column="1" colspan="3">
-           <widget class="QPushButton" name="pushButton_setTCPToFlange">
+           <widget class="QPushButton" name="pushButton_setTCPToFlange_2">
             <property name="text">
              <string>Set TCP to flange</string>
             </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
-            </attribute>
            </widget>
           </item>
           <item row="3" column="3">
-           <widget class="QPushButton" name="pushButton_captureRobot">
+           <widget class="QPushButton" name="pushButton_captureRobot_2">
             <property name="text">
              <string>机械臂捕获</string>
             </property>
-            <attribute name="buttonGroup">
-             <string notr="true">buttonGroup</string>
-            </attribute>
            </widget>
           </item>
           <item row="3" column="0" colspan="2">
-           <widget class="QLineEdit" name="lineEdit_collectedRoboPose">
+           <widget class="QLineEdit" name="lineEdit_collectedRoboPose_2">
             <property name="layoutDirection">
              <enum>Qt::LeftToRight</enum>
             </property>
@@ -970,42 +839,42 @@ QPushButton:pressed {
            </widget>
           </item>
           <item row="5" column="0">
-           <widget class="QLabel" name="label_12">
+           <widget class="QLabel" name="label_43">
             <property name="text">
              <string>重置配准矩阵：</string>
             </property>
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="label_8">
+           <widget class="QLabel" name="label_44">
             <property name="text">
              <string>前往初始点：</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_7">
+           <widget class="QLabel" name="label_47">
             <property name="text">
              <string>设置初始点：</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QLabel" name="label_6">
+           <widget class="QLabel" name="label_48">
             <property name="text">
              <string>TCP 初始化：</string>
             </property>
            </widget>
           </item>
           <item row="7" column="0">
-           <widget class="QLabel" name="label_13">
+           <widget class="QLabel" name="label_49">
             <property name="text">
              <string>复用之前结果：</string>
             </property>
            </widget>
           </item>
           <item row="6" column="0">
-           <widget class="QLabel" name="label_11">
+           <widget class="QLabel" name="label_50">
             <property name="text">
              <string>保存配准矩阵：</string>
             </property>
@@ -1015,7 +884,7 @@ QPushButton:pressed {
         </item>
        </layout>
       </widget>
-      <widget class="QPushButton" name="pushButton_openIsMoving">
+      <widget class="QPushButton" name="pushButton_openIsMoving_2">
        <property name="geometry">
         <rect>
          <x>180</x>
@@ -1028,7 +897,7 @@ QPushButton:pressed {
         <string>开启运动检测</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pushButton_CloseIsMoving">
+      <widget class="QPushButton" name="pushButton_CloseIsMoving_2">
        <property name="geometry">
         <rect>
          <x>300</x>
@@ -1041,7 +910,7 @@ QPushButton:pressed {
         <string>关闭运动检测</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_4">
+      <widget class="QLabel" name="label_51">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -1054,12 +923,48 @@ QPushButton:pressed {
         <string>运动检测开启后无法执行相对运动</string>
        </property>
       </widget>
+      <widget class="QTextBrowser" name="textBrowser_hans">
+       <property name="geometry">
+        <rect>
+         <x>-10</x>
+         <y>340</y>
+         <width>421</width>
+         <height>192</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_repeat_position">
+       <property name="geometry">
+        <rect>
+         <x>430</x>
+         <y>350</y>
+         <width>111</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>重复定位精度测试</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_aboslute_position">
+       <property name="geometry">
+        <rect>
+         <x>550</x>
+         <y>350</y>
+         <width>111</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>绝对定位精度测试</string>
+       </property>
+      </widget>
      </widget>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="tab_6">
       <attribute name="title">
        <string>系统精度测试</string>
       </attribute>
-      <widget class="QGroupBox" name="groupBox_11">
+      <widget class="QGroupBox" name="groupBox_14">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -1076,59 +981,59 @@ QPushButton:pressed {
        <property name="title">
         <string>选择影像数据： </string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_15">
+       <layout class="QGridLayout" name="gridLayout_20">
         <item row="1" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_17">
+         <layout class="QHBoxLayout" name="horizontalLayout_32">
           <item>
-           <widget class="QLabel" name="label_187">
+           <widget class="QLabel" name="label_191">
             <property name="text">
              <string>影像粗配准点:  </string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_landmark_src" native="true"/>
+           <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_landmark_src_2" native="true"/>
           </item>
          </layout>
         </item>
         <item row="5" column="0">
-         <widget class="QPushButton" name="pushButton_reuseImageMatrix">
+         <widget class="QPushButton" name="pushButton_reuseImageMatrix_2">
           <property name="text">
            <string>复用上次影像配准</string>
           </property>
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QPushButton" name="pushButton_ResetImageConfiguration">
+         <widget class="QPushButton" name="pushButton_ResetImageConfiguration_2">
           <property name="text">
            <string>重新配准</string>
           </property>
          </widget>
         </item>
         <item row="4" column="0">
-         <widget class="QPushButton" name="pushButton_saveImageMatrix">
+         <widget class="QPushButton" name="pushButton_saveImageMatrix_2">
           <property name="text">
            <string>保存图像配准矩阵</string>
           </property>
          </widget>
         </item>
         <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_25">
+         <layout class="QHBoxLayout" name="horizontalLayout_33">
           <item>
-           <widget class="QLabel" name="label_188">
+           <widget class="QLabel" name="label_192">
             <property name="text">
              <string>STL表面:  </string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surface_regis" native="true"/>
+           <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_surface_regis_2" native="true"/>
           </item>
          </layout>
         </item>
        </layout>
       </widget>
-      <widget class="QGroupBox" name="groupBox_10">
+      <widget class="QGroupBox" name="groupBox_15">
        <property name="geometry">
         <rect>
          <x>370</x>
@@ -1140,16 +1045,16 @@ QPushButton:pressed {
        <property name="title">
         <string>走面测试 (TKA模拟精度/TKA安全边界限制)</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_13">
+       <layout class="QGridLayout" name="gridLayout_21">
         <item row="6" column="1">
-         <widget class="QPushButton" name="pushButton_gotoPlaneEdge">
+         <widget class="QPushButton" name="pushButton_gotoPlaneEdge_2">
           <property name="text">
            <string>前往目标位置（边界）</string>
           </property>
          </widget>
         </item>
         <item row="4" column="0" colspan="2">
-         <widget class="QPushButton" name="pushButton_setPlanePrecisionTestTcp">
+         <widget class="QPushButton" name="pushButton_setPlanePrecisionTestTcp_2">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -1159,30 +1064,30 @@ QPushButton:pressed {
          </widget>
         </item>
         <item row="2" column="0" colspan="2">
-         <layout class="QHBoxLayout" name="horizontalLayout_23">
+         <layout class="QHBoxLayout" name="horizontalLayout_34">
           <item>
-           <widget class="QLabel" name="label_37">
+           <widget class="QLabel" name="label_52">
             <property name="text">
              <string>P2: </string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_plane_p3_x">
+           <widget class="QLineEdit" name="lineEdit_plane_p3_x_2">
             <property name="text">
              <string>38.268</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_plane_p3_y">
+           <widget class="QLineEdit" name="lineEdit_plane_p3_y_2">
             <property name="text">
              <string>-92.388</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_plane_p3_z">
+           <widget class="QLineEdit" name="lineEdit_plane_p3_z_2">
             <property name="text">
              <string>140</string>
             </property>
@@ -1191,30 +1096,30 @@ QPushButton:pressed {
          </layout>
         </item>
         <item row="1" column="0" colspan="2">
-         <layout class="QHBoxLayout" name="horizontalLayout_22">
+         <layout class="QHBoxLayout" name="horizontalLayout_35">
           <item>
-           <widget class="QLabel" name="label_33">
+           <widget class="QLabel" name="label_53">
             <property name="text">
              <string>P1: </string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_plane_p2_x">
+           <widget class="QLineEdit" name="lineEdit_plane_p2_x_2">
             <property name="text">
              <string>52.328</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_plane_p2_y">
+           <widget class="QLineEdit" name="lineEdit_plane_p2_y_2">
             <property name="text">
              <string>-27.033</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_plane_p2_z">
+           <widget class="QLineEdit" name="lineEdit_plane_p2_z_2">
             <property name="text">
              <string>140</string>
             </property>
@@ -1223,19 +1128,19 @@ QPushButton:pressed {
          </layout>
         </item>
         <item row="5" column="0" colspan="2">
-         <layout class="QHBoxLayout" name="horizontalLayout_16">
+         <layout class="QHBoxLayout" name="horizontalLayout_36">
           <item>
-           <widget class="QLabel" name="label_35">
+           <widget class="QLabel" name="label_54">
             <property name="text">
              <string>目标平面选择: </string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imageTargetPlane" native="true"/>
+           <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imageTargetPlane_2" native="true"/>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_confirmImageTargetPlane">
+           <widget class="QPushButton" name="pushButton_confirmImageTargetPlane_2">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -1247,37 +1152,37 @@ QPushButton:pressed {
          </layout>
         </item>
         <item row="0" column="0" colspan="2">
-         <widget class="QLineEdit" name="lineEdit_3">
+         <widget class="QLineEdit" name="lineEdit_5">
           <property name="text">
            <string>https://gn1phhht53.feishu.cn/wiki/wikcnAYrihLnKdt5kqGYIwmZACh?table=tblk7ke86l8RyAoN&amp;view=vew1Kd7wVv</string>
           </property>
          </widget>
         </item>
         <item row="3" column="0" colspan="2">
-         <layout class="QHBoxLayout" name="horizontalLayout_24">
+         <layout class="QHBoxLayout" name="horizontalLayout_37">
           <item>
-           <widget class="QLabel" name="label_38">
+           <widget class="QLabel" name="label_55">
             <property name="text">
              <string>P3: </string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_plane_p4_x">
+           <widget class="QLineEdit" name="lineEdit_plane_p4_x_2">
             <property name="text">
              <string>-30.821</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_plane_p4_y">
+           <widget class="QLineEdit" name="lineEdit_plane_p4_y_2">
             <property name="text">
              <string>-61.474</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_plane_p4_z">
+           <widget class="QLineEdit" name="lineEdit_plane_p4_z_2">
             <property name="text">
              <string>140</string>
             </property>
@@ -1286,21 +1191,21 @@ QPushButton:pressed {
          </layout>
         </item>
         <item row="6" column="0">
-         <widget class="QPushButton" name="pushButton_goToFakePlane">
+         <widget class="QPushButton" name="pushButton_goToFakePlane_2">
           <property name="text">
            <string>前往目标位置（初始）</string>
           </property>
          </widget>
         </item>
         <item row="7" column="1">
-         <widget class="QPushButton" name="pushButton_adjust">
+         <widget class="QPushButton" name="pushButton_adjust_2">
           <property name="text">
            <string>目标位置偏置</string>
           </property>
          </widget>
         </item>
         <item row="7" column="0">
-         <widget class="QLineEdit" name="lineEdit_adjust">
+         <widget class="QLineEdit" name="lineEdit_adjust_2">
           <property name="text">
            <string>0</string>
           </property>
@@ -1308,7 +1213,7 @@ QPushButton:pressed {
         </item>
        </layout>
       </widget>
-      <widget class="QGroupBox" name="groupBox_12">
+      <widget class="QGroupBox" name="groupBox_16">
        <property name="geometry">
         <rect>
          <x>370</x>
@@ -1320,32 +1225,32 @@ QPushButton:pressed {
        <property name="title">
         <string>走线测试 （系统精度）</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_19">
+       <layout class="QGridLayout" name="gridLayout_22">
         <item row="2" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_18">
+         <layout class="QHBoxLayout" name="horizontalLayout_38">
           <item>
-           <widget class="QLabel" name="label_73">
+           <widget class="QLabel" name="label_79">
             <property name="text">
              <string>P3: </string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_p3_x">
+           <widget class="QLineEdit" name="lineEdit_p3_x_2">
             <property name="text">
              <string>-30.821</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_p3_y">
+           <widget class="QLineEdit" name="lineEdit_p3_y_2">
             <property name="text">
              <string>-61.474</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_p3_z">
+           <widget class="QLineEdit" name="lineEdit_p3_z_2">
             <property name="text">
              <string>140</string>
             </property>
@@ -1354,19 +1259,19 @@ QPushButton:pressed {
          </layout>
         </item>
         <item row="4" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_10">
+         <layout class="QHBoxLayout" name="horizontalLayout_39">
           <item>
-           <widget class="QLabel" name="label_84">
+           <widget class="QLabel" name="label_85">
             <property name="text">
              <string>目标线选择: </string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imageTargetLine" native="true"/>
+           <widget class="QmitkSingleNodeSelectionWidget" name="mitkNodeSelectWidget_imageTargetLine_2" native="true"/>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_confirmImageTargetLine">
+           <widget class="QPushButton" name="pushButton_confirmImageTargetLine_2">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -1378,30 +1283,30 @@ QPushButton:pressed {
          </layout>
         </item>
         <item row="1" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <layout class="QHBoxLayout" name="horizontalLayout_40">
           <item>
-           <widget class="QLabel" name="label_74">
+           <widget class="QLabel" name="label_80">
             <property name="text">
              <string>P2:坐标原点 </string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_p2_x">
+           <widget class="QLineEdit" name="lineEdit_p2_x_2">
             <property name="text">
              <string>38.268</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_p2_y">
+           <widget class="QLineEdit" name="lineEdit_p2_y_2">
             <property name="text">
              <string>-92.388</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit_p2_z">
+           <widget class="QLineEdit" name="lineEdit_p2_z_2">
             <property name="text">
              <string>140</string>
             </property>
@@ -1410,14 +1315,14 @@ QPushButton:pressed {
          </layout>
         </item>
         <item row="3" column="0">
-         <widget class="QPushButton" name="pushButton_setTcpPrecisionTest">
+         <widget class="QPushButton" name="pushButton_setTcpPrecisionTest_2">
           <property name="text">
            <string>设置走线测试TCP</string>
           </property>
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QLineEdit" name="lineEdit_2">
+         <widget class="QLineEdit" name="lineEdit_6">
           <property name="text">
            <string>https://gn1phhht53.feishu.cn/wiki/X1IYwy2npicJtRkIqWzcVF1ZnAg?from=from_copylink</string>
           </property>
@@ -1425,7 +1330,7 @@ QPushButton:pressed {
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="layoutWidget">
+      <widget class="QWidget" name="layoutWidget_13">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -1434,9 +1339,9 @@ QPushButton:pressed {
          <height>171</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout_6">
+       <layout class="QGridLayout" name="gridLayout_23">
         <item row="0" column="0">
-         <widget class="QLineEdit" name="lineEdit_collectedLandmark">
+         <widget class="QLineEdit" name="lineEdit_collectedLandmark_2">
           <property name="font">
            <font>
             <pointsize>11</pointsize>
@@ -1454,7 +1359,7 @@ QPushButton:pressed {
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLabel" name="label_190">
+         <widget class="QLabel" name="label_193">
           <property name="font">
            <font>
             <pointsize>11</pointsize>
@@ -1466,21 +1371,21 @@ QPushButton:pressed {
          </widget>
         </item>
         <item row="1" column="0" colspan="3">
-         <widget class="QPushButton" name="pushButton_landmarkRegistration">
+         <widget class="QPushButton" name="pushButton_landmarkRegistration_2">
           <property name="text">
            <string>LandMark配准</string>
           </property>
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QPushButton" name="pushButton_collectLandmark">
+         <widget class="QPushButton" name="pushButton_collectLandmark_2">
           <property name="text">
            <string>采集粗配准点</string>
           </property>
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QPushButton" name="pushButton_collectICP">
+         <widget class="QPushButton" name="pushButton_collectICP_2">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -1490,7 +1395,7 @@ QPushButton:pressed {
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLineEdit" name="lineEdit_collectedICP">
+         <widget class="QLineEdit" name="lineEdit_collectedICP_2">
           <property name="font">
            <font>
             <pointsize>12</pointsize>
@@ -1508,14 +1413,14 @@ QPushButton:pressed {
          </widget>
         </item>
         <item row="3" column="0" colspan="3">
-         <widget class="QPushButton" name="pushButton_ICPRegistration">
+         <widget class="QPushButton" name="pushButton_ICPRegistration_2">
           <property name="text">
            <string>ICP配准</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QLabel" name="label_189">
+         <widget class="QLabel" name="label_194">
           <property name="font">
            <font>
             <pointsize>11</pointsize>
@@ -1544,7 +1449,4 @@ QPushButton:pressed {
  </customwidgets>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="buttonGroup"/>
- </buttongroups>
 </ui>
