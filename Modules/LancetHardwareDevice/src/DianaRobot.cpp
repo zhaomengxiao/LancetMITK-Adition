@@ -13,6 +13,7 @@ void DianaRobot::Connect()
 	pinfo->LocHeartbeatPort = 0;
 	pinfo->LocRobotStatePort = 0;
 	pinfo->LocSrvPort = 0;
+	destroySrv(m_IpAddress);
 	int ret = initSrv(nullptr, nullptr, pinfo);
 	if (ret < 0)
 	{
