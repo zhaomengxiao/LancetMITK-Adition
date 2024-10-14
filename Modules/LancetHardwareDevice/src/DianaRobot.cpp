@@ -74,15 +74,12 @@ void DianaRobot::Rotate(double* aDirection, double aLength)
 
 void DianaRobot::RecordInitialPos()
 {
-	getTcpPos(m_InitialPos, m_IpAddress);
+	getJointPos(m_jointsPos, m_IpAddress);
 }
 
 void DianaRobot::GoToInitialPos()
 {
-	double joints_final[7]{};
-	inverse(m_InitialPos, joints_final, nullptr, m_IpAddress);
-
-	moveJToTarget(joints_final, 0.2, 0.4);
+	moveJToTarget(m_jointsPos, 0.2, 0.4);
 	WaitMove();
 }
 

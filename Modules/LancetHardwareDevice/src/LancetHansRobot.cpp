@@ -80,11 +80,6 @@ void LancetHansRobot::GoToInitialPos()
 	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
 	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
 	// 执行路点运动
-
-	/*int nRet = HRIF_WayPointEx(0, 0, nMoveType, translation[0], translation[1], translation[2], rotation[0], rotation[1], rotation[2],
-		joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
-		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz, dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit,
-		nIOState, strCmdID);*/
 	int nRet = HRIF_WayPointEx(0, 0, nMoveType, translation[0], translation[1], translation[2], rotation[0], rotation[1], rotation[2],
 		m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
 		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz, dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit,
