@@ -21,7 +21,7 @@ public:
 	{
 	}
 	virtual void Connect() = 0;
-
+	virtual void Disconnect() = 0;
 	virtual void Start() = 0;
 
 	virtual void Stop() = 0;

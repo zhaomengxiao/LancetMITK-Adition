@@ -11,7 +11,7 @@ class MITKLANCETHARDWAREDEVICE_EXPORT AimCamera : public AbstractCamera
 	Q_OBJECT
 public:
 	void Connect() override;
-
+	void Disconnect() override;
 	void Start() override;
 	void Stop() override;
 	Eigen::Vector3d GetToolTipByName(std::string aToolName) override;
