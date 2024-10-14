@@ -41,6 +41,7 @@
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
       <number>7</number>
+
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">

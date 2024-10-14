@@ -15,7 +15,6 @@ PrecisionTab::PrecisionTab(Ui::DianaSevenControls ui,mitk::DataStorage* aDataSto
 	InitSurfaceSelector(m_dataStorage, m_ui.SurfaceRegSelectWidget);
 	InitPointSetSelector(m_dataStorage, m_ui.LandmarkPointRegSelectWidget);
 	InitPointSetSelector(m_dataStorage, m_ui.ImageTargetLineSelectWidget);
-	
 	InitConnection();
 }
 

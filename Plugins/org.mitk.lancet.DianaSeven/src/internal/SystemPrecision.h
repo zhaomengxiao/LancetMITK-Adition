@@ -123,6 +123,7 @@ namespace lancetAlgorithm
 		vtkSmartPointer<vtkAxesActor> m_FlangeActor;
 		vtkSmartPointer<vtkMatrix4x4> m_TCamera2RobotTCP;
 		vtkSmartPointer<vtkMatrix4x4> m_Image2Camera;
+
 		bool m_IsDisplayPrecisionTool = false;
 		bool m_IsDisplayProbe = false;
 		mitk::PointSet::Pointer m_LandmarkPoints;

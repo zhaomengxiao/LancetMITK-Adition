@@ -76,6 +76,7 @@ namespace lancetAlgorithm
 		void CapturePose(bool translationOnly);
 		bool AverageNavigationData(std::string aRFName, int timeInterval, int intervalNum, double matrixArray[16]);
 		void AverageNavigationData(double camera2EndRF[16], double camera2BaseRF[16], int timeInterval = 100, int intervalNum = 20);
+
 		int CaptureRobot();
 		int ResetRobotRegistration();
 		void RobotAutoRegistration();
@@ -83,16 +84,17 @@ namespace lancetAlgorithm
 		vtkSmartPointer<vtkMatrix4x4> GetEnd2EndRFMatrix();
 		void SetBaseRF2BaseMatrix(vtkMatrix4x4* aMatrix);
 		void SetEnd2EndRFMatrix(vtkMatrix4x4* aMatrix);
+
 	signals:
 		void CameraUpdateClock();
 	private:
 		T_AimToolDataResult* GetNewToolData();
 		/*
-		* @berief ¸üĞÂÏà»úµ½¹¤¾ß¾ØÕó
-		* @param ToolData ¹¤¾ßÊı¾İÖ¸Õë
-		* @param Name ¹¤¾ßÃû³Æ
-		* @param aCamera2Tool Ïà»úµ½¹¤¾ß¾ØÕó
-		* @param label ±êÇ©Ö¸Õë
+		* @berief æ›´æ–°ç›¸æœºåˆ°å·¥å…·çŸ©é˜µ
+		* @param ToolData å·¥å…·æ•°æ®æŒ‡é’ˆ
+		* @param Name å·¥å…·åç§°
+		* @param aCamera2Tool ç›¸æœºåˆ°å·¥å…·çŸ©é˜µ
+		* @param label æ ‡ç­¾æŒ‡é’ˆ
 		*/
 		bool UpdateCameraToToolMatrix(T_AimToolDataResult* ToolData, const std::string Name);
 

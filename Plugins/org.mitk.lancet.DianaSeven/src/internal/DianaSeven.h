@@ -27,7 +27,7 @@ found in the LICENSE file.
 
 //QT
 #include <QTimer>
-#include <cstring> // 包含memcpy_s函数的头文件
+#include <cstring> // 鍖呭惈memcpy_s鍑芥暟鐨勫ご鏂囦欢
 #include <chrono>
 #include <thread>
 #include "qstring.h"
@@ -35,6 +35,7 @@ found in the LICENSE file.
 //vega
 #include <QtWidgets\qfiledialog.h>
 #include <mitkIRenderWindowPartListener.h>
+
 //Matrix
 #include <mitkMatrixConvert.h>
 #include "mitkTrackingDeviceSource.h"
@@ -52,7 +53,9 @@ found in the LICENSE file.
   \sa QmitkAbstractView
   \ingroup ${plugin_target}_internal
 */
+
 class DianaSeven : public QmitkAbstractView, public mitk::IRenderWindowPartListener
+
 {
   // this is needed for all Qt objects that should have a Qt meta-object
   // (everything that derives from QObject and wants to have signal/slots)
@@ -62,6 +65,7 @@ public:
   static const std::string VIEW_ID;
   void RenderWindowPartActivated(mitk::IRenderWindowPart* renderWindowPart) override;
   void RenderWindowPartDeactivated(mitk::IRenderWindowPart* renderWindowPart) override;
+
   //Diana Robot
   void initDianaNet();
   void StopDiana();
@@ -151,7 +155,7 @@ protected:
   vtkSmartPointer<vtkMatrix4x4> m_probeToProbeNewMatrix;
   vtkSmartPointer<vtkMatrix4x4> m_init_robotMatrix;
 
-  // 定义空间位置变量
+  // 瀹氫箟绌洪棿浣嶇疆鍙橀噺
   double dX = 0; double dY = 0; double dZ = 0;
   double dRx = 0; double dRy = 0; double dRz = 0;
   std::vector<double> dCoord = { dX, dY, dZ, dRx, dRy, dRz };
@@ -175,7 +179,7 @@ public:
 
 	double pose[6] = {};
 
-	double forward_Matrix[16];//正解解出来的矩阵
+	double forward_Matrix[16];//姝ｈВ瑙ｅ嚭鏉ョ殑鐭╅樀
 	double radians = 0;
 	double joints_final[7] = {0.0};
 

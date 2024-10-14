@@ -17,11 +17,11 @@
 #include <mitkNodePredicateOr.h>
 #include <mitkColorProperty.h>
 #include <mitkIRenderWindowPart.h>
+
 class PrecisionTab :  public QWidget//, public Ui_DianaSevenControls
 {
 	Q_OBJECT
 public:
-
 	explicit PrecisionTab(Ui::DianaSevenControls ui,mitk::DataStorage* aDataStorage, 
 		lancetAlgorithm::DianaAimHardwareService* aDianaAimHardwareService, QWidget* parent = nullptr);
 public slots:
@@ -45,6 +45,7 @@ public slots:
 	void DisplayFlangeAxesActorBtnClicked();
 	void PrintTCPInCameraBtnClicked();
 	void GoLineByRobotBtnClicked();
+
 private:
 	void InitSurfaceSelector(mitk::DataStorage* dataStorage, QmitkSingleNodeSelectionWidget* widget);
 
@@ -60,6 +61,7 @@ private:
 	lancetAlgorithm::SystemPrecision* m_SystemPrecision;
 	lancetAlgorithm::DianaAimHardwareService* m_DianaAimHardwareService;
 	mitk::IRenderWindowPart* m_IRenderWindowPart;
+
 	mitk::DataStorage* m_dataStorage;
 
 };
