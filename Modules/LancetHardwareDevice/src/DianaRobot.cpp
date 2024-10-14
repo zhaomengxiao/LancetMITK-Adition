@@ -58,8 +58,9 @@ void DianaRobot::Translate(double x, double y, double z)
 	setMatrix->Transpose();
 	homogeneous2Pose(setMatrix->GetData(), pose);
 	double joints_final[7]{};
-	inverse(pose, joints_final, nullptr);
-
+	double temp_jointAngles[6] = { 0,0,0,0,0,0 };
+	getJointPos(temp_jointAngles, m_IpAddress);
+	inverse_ext(temp_jointAngles, pose, joints_final, nullptr);
 	moveJToTarget(joints_final, 0.2, 0.4);
 	WaitMove();
 }
@@ -156,8 +157,9 @@ std::vector<double> DianaRobot::GetJointAngles()
 	double pose[6] = {};
 	getTcpPos(pose);
 	double angles[7] = { 0.0 };
-
-	inverse(pose, angles, nullptr);
+	double temp_jointAngles[6] = { 0,0,0,0,0,0 };
+	getJointPos(temp_jointAngles, m_IpAddress);
+	inverse_ext(temp_jointAngles, pose, angles, nullptr);
 	std::vector<double> angleVec;
 	for (int i = 0; i < 7; ++i)
 	{
@@ -249,7 +251,9 @@ void DianaRobot::RobotTransformInBase(double* aMatrix)
 	vtkMatrix->Transpose();
 	homogeneous2Pose(vtkMatrix->GetData(), pose);
 	double joints_final[7]{};
-	inverse(pose, joints_final, nullptr);
+	double temp_jointAngles[6] = { 0,0,0,0,0,0 };
+	getJointPos(temp_jointAngles, m_IpAddress);
+	inverse_ext(temp_jointAngles, pose, joints_final, nullptr);
 	moveJToTarget(joints_final, 0.2, 0.4);
 	WaitMove();
 }
