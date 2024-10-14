@@ -31,6 +31,18 @@ set(Jaka_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/JakaRobotDll/include")
 file(GLOB Jaka_LIB_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/JakaRobotDll/Release/*.lib")
 #file(GLOB Jaka_DLL_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/JakaRobotDll/Release/*.dll")
 
+######################################################################################
+set(ARIEMEDI_INCLUDE "")
+set(ARIEMEDI_LIB_RELEASE "")
+
+set(ARIEMEDI_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/AriemediDll/include")
+file(GLOB ARIEMEDI_LIB_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/AriemediDll/Release/*.lib")
+
+add_definitions(-DARMDCOMBINEDAPI_EXPORTS)
+
+mitk_create_module(
+  INCLUDE_DIRS
+     PUBLIC ${ARIEMEDI_INCLUDE}
 ############################################################################33
 mitk_create_module(
   INCLUDE_DIRS
@@ -42,6 +54,7 @@ mitk_create_module(
   DEPENDS MitkLancetPrintDataHelper
   PACKAGE_DEPENDS VTK
   PACKAGE_DEPENDS Qt5|Core+Widgets
+  ADDITIONAL_LIBS PUBLIC "${ARIEMEDI_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${AIMOOE_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Diana_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Hans_LIB_RELEASE}"
