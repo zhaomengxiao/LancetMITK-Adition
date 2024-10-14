@@ -108,11 +108,44 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 		});
 	connect(m_LancetRobotRegistration, &LancetRobotRegistration::countPose,
 		this, &RobotArmRegistrationTab::updateUiCaputreCount);
+
+	connect(m_ui.pushButton_RepeatPositionTest, &QPushButton::clicked, this, &RobotArmRegistrationTab::RepeatPositionTest);
+	connect(m_ui.pushButton_AboslutePositionTest, &QPushButton::clicked, this, &RobotArmRegistrationTab::AboslutePositionTest);
 }
 
 void RobotArmRegistrationTab::updateUiCaputreCount(int cnt)
 { 
 	m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(cnt));
+}
+
+void RobotArmRegistrationTab::RepeatPositionTest()
+{
+	m_Robot->RecordInitialPos();
+	m_Robot->Translate(50, 0, 0);//xyz
+	m_Robot->GoToInitialPos();
+}
+
+void RobotArmRegistrationTab::AboslutePositionTest()
+{
+	double cube_length = 300.0; // 立方体边长，单位：mm
+
+	// 沿 X 轴移动
+	m_Robot->Translate(cube_length, 0, 0); // 从 (0, 0, 0) 移动到 (300, 0, 0)
+
+	// 沿 Y 轴移动
+	m_Robot->Translate(0, cube_length, 0); // 从 (300, 0, 0) 移动到 (300, 300, 0)
+
+	// 沿 Z 轴移动
+	m_Robot->Translate(0, 0, cube_length); // 从 (300, 300, 0) 移动到 (300, 300, 300)
+
+	// 沿 -X 轴移动
+	m_Robot->Translate(-cube_length, 0, 0); // 从 (300, 300, 300) 移动到 (0, 300, 300)
+
+	// 沿 -Y 轴移动
+	m_Robot->Translate(0, -cube_length, 0); // 从 (0, 300, 300) 移动到 (0, 0, 300)
+
+	// 沿 -Z 轴移动
+	m_Robot->Translate(0, 0, -cube_length); // 从 (0, 0, 300) 移动到 (0, 0, 0)
 }
 
 

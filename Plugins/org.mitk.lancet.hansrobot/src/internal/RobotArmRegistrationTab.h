@@ -50,6 +50,8 @@ private:
 	void waitMove();
 	void autoCollection();
 	
+	void RepeatPositionTest();
+	void AboslutePositionTest();
 private:
 	QWidget* m_TabPage;
 	Ui::HansRobotControls m_ui;
