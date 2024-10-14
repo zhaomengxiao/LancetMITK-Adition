@@ -288,14 +288,7 @@ void LancetHansRobot::WaitMove()
 	HRIF_GrpStop(0, 0);
 }
 
-void LancetHansRobot::ResetRegistration()
-{
 
-}
-
-void LancetHansRobot::ReuseRegistration()
-{
-}
 
 Eigen::Matrix3d LancetHansRobot::GetRotationMatrixByEuler(double rx, double ry, double rz)
 {

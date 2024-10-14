@@ -11,7 +11,7 @@
 RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataStorage, AbstractRobot* aRobot, AbstractCamera* aCamera, QWidget* parent)
 {
 	m_ui = ui;
-	m_Robot = dynamic_cast<LancetHansRobot*>(aRobot);
+	m_Robot = dynamic_cast<DianaRobot*>(aRobot);
 	m_Camera = aCamera;
 	m_dataStorage = aDataStorage;
 	if (!m_dataStorage)
@@ -124,11 +124,13 @@ void RobotArmRegistrationTab::RepeatPositionTest()
 	m_Robot->Translate(50, 0, 0);//xyz
 	m_Robot->GoToInitialPos();
 }
-
+int a;
 void RobotArmRegistrationTab::AboslutePositionTest()
 {
-	double cube_length = 300.0; // 立方体边长，单位：mm
-
+	double cube_length = 100; // 立方体边长，单位：mm
+	double moveMent[][3] = {
+		{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {0, -1, 0}, {0,0,1}
+	};
 	// 沿 X 轴移动
 	m_Robot->Translate(cube_length, 0, 0); // 从 (0, 0, 0) 移动到 (300, 0, 0)
 
