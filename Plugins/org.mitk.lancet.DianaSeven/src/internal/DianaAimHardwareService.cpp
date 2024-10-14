@@ -61,7 +61,7 @@ void lancetAlgorithm::DianaAimHardwareService::ConnectCamera()
 			for (int i = 0; i < size; i++)
 			{
 				/*		char* ptool = toolarr[i].name;
-						QString toolInfo = QString("Tool Name£∫") + QString::fromLocal8Bit(ptool);
+						QString toolInfo = QString("Tool NameÔºö") + QString::fromLocal8Bit(ptool);
 						m_Controls.textBrowser->append(toolInfo);*/
 			}
 		}
@@ -102,7 +102,7 @@ void lancetAlgorithm::DianaAimHardwareService::UpdateCamera()
 	std::vector<std::string> toolidarr;
 
 	auto prlt = GetNewToolData();
-	if (rlt == AIMOOE_OK)//≈–∂œ «∑Ò≤…ºØ≥…π¶
+	if (rlt == AIMOOE_OK)//Âà§Êñ≠ÊòØÂê¶ÈááÈõÜÊàêÂäü
 	{
 		do
 		{
@@ -164,6 +164,7 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::DianaAimHardwareService::GetMatri
 
 void lancetAlgorithm::DianaAimHardwareService::ConnectRobot()
 {
+	destroySrv();
 	srv_net_st* pinfo = new srv_net_st();
 	memset(pinfo->SrvIp, 0x00, sizeof(pinfo->SrvIp));
 	memcpy(pinfo->SrvIp, m_RobotIpAddress, strlen(m_RobotIpAddress));
@@ -211,7 +212,10 @@ void lancetAlgorithm::DianaAimHardwareService::Translate(const double x, const d
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 
+
+	vtkMatrix->DeepCopy(this->GetBase2TCP());
 	PrintDataHelper::CoutMatrix("Current Base2TCP Matrix:", vtkMatrix);
+
 	vtkMatrix->DeepCopy(this->GetBase2TCP());
 
 	transform->SetMatrix(vtkMatrix);
@@ -236,6 +240,9 @@ void lancetAlgorithm::DianaAimHardwareService::Rotate(double x, double y, double
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	vtkMatrix->DeepCopy(this->GetBase2TCP());
+
+	PrintDataHelper::CoutMatrix("Current Base2TCP Matrix:", vtkMatrix);
+
 	vtkMatrix->Transpose();
 	transform->SetMatrix(vtkMatrix);
 	transform->RotateWXYZ(angle, x, y, z);
@@ -302,6 +309,8 @@ void lancetAlgorithm::DianaAimHardwareService::RobotTransformInBase(const double
 	homogeneous2Pose(vtkMatrix->GetData(), pose);
 	double joints_final[7]{};
 	inverse(pose, joints_final, nullptr, m_RobotIpAddress);
+
+	PrintDataHelper::CoutArray(joints_final, 7, "RobotTransformInBase joints_final");
 	moveJToTarget(joints_final, 0.2, 0.4);
 	WaitMove(m_RobotIpAddress);
 }
@@ -387,9 +396,10 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::DianaAimHardwareService::GetBase2
 {
 	double pose[6] = {};
 	getTcpPos(pose, m_RobotIpAddress);
-	printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
+
+	//printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
 	double matrixArray[16] = {};
-	pose2Homogeneous(pose, matrixArray);//÷·Ω«◊™∆Î¥Œ±‰ªªæÿ’Û  ªÒµ√baseToTCP
+	pose2Homogeneous(pose, matrixArray);//ËΩ¥ËßíËΩ¨ÈΩêÊ¨°ÂèòÊç¢Áü©Èòµ  Ëé∑ÂæóbaseToTCP
 	vtkSmartPointer<vtkMatrix4x4> TBase2Tcp = vtkSmartPointer<vtkMatrix4x4>::New();
 	TBase2Tcp->DeepCopy(matrixArray);
 	TBase2Tcp->Transpose();
@@ -546,27 +556,17 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::DianaAimHardwareService::GetPosit
 
 void lancetAlgorithm::DianaAimHardwareService::CapturePose(bool translationOnly)
 {
-	double pose[6] = {};
-	getTcpPos(pose, m_RobotIpAddress);
-	double matrix[16] = {};
-	pose2Homogeneous(pose, matrix);
 	vtkSmartPointer<vtkMatrix4x4> TBase2Flange = vtkSmartPointer<vtkMatrix4x4>::New();
-	TBase2Flange->DeepCopy(matrix);
-	TBase2Flange->Transpose();
-
-	double x = TBase2Flange->GetElement(0, 3);
-	double y = TBase2Flange->GetElement(1, 3);
-	double z = TBase2Flange->GetElement(2, 3);
-	TBase2Flange->SetElement(0, 3, x * 1000);
-	TBase2Flange->SetElement(1, 3, y * 1000);
-	TBase2Flange->SetElement(2, 3, z * 1000);
+	
+	TBase2Flange->DeepCopy(this->GetRobotBase2RobotEnd());
 
 	double cameraToRoboEndArrayAvg[16];
 	double cameraToBaseRFarrayAvg[16];
-	auto tCamera2EndRF = m_ReferenceMap["RobotEndRF"];
-	auto tCamera2BaseRF = m_ReferenceMap["RobotBaseRF"];
-	AverageNavigationData(tCamera2EndRF, 30, 20, cameraToRoboEndArrayAvg);
-	AverageNavigationData(tCamera2BaseRF, 30, 20, cameraToBaseRFarrayAvg);
+
+	/*AverageNavigationData("RobotEndRF", 100, 20, cameraToRoboEndArrayAvg);
+	AverageNavigationData("RobotBaseRF", 100, 20, cameraToBaseRFarrayAvg);*/
+
+	AverageNavigationData(cameraToRoboEndArrayAvg, cameraToBaseRFarrayAvg);
 
 	vtkNew<vtkMatrix4x4> vtkNdiToRoboEndMatrix;
 	vtkNew<vtkMatrix4x4> vtkBaseRFToNdiMatrix;
@@ -585,7 +585,7 @@ void lancetAlgorithm::DianaAimHardwareService::CapturePose(bool translationOnly)
 	m_RobotRegistration.AddPoseWithVtkMatrix(TBase2Flange, vtkBaseRFtoRoboEndMatrix, translationOnly);
 }
 
-bool lancetAlgorithm::DianaAimHardwareService::AverageNavigationData(vtkMatrix4x4* TCamera2RF, int timeInterval, int intervalNum, double matrixArray[16])
+bool lancetAlgorithm::DianaAimHardwareService::AverageNavigationData(std::string aRFName, int timeInterval, int intervalNum, double matrixArray[16])
 {
 	// The frame rate of Vega ST is 60 Hz, so the timeInterval should be larger than 16.7 ms
 	if (timeInterval <= 16) {
@@ -598,9 +598,9 @@ bool lancetAlgorithm::DianaAimHardwareService::AverageNavigationData(vtkMatrix4x
 	Eigen::Vector3d tmp_translation = Eigen::Vector3d::Zero();
 
 	for (int i = 0; i < intervalNum; ++i) {
-		//ndPtr->Update();
+		this->UpdateCamera();
 		vtkSmartPointer<vtkMatrix4x4> camera2RF = vtkSmartPointer<vtkMatrix4x4>::New();
-		camera2RF->DeepCopy(TCamera2RF);
+		camera2RF->DeepCopy(this->GetMatrixByName(aRFName));
 
 		tmp_x[0] += camera2RF->GetElement(0, 0);
 		tmp_x[1] += camera2RF->GetElement(1, 0);
@@ -637,9 +637,96 @@ bool lancetAlgorithm::DianaAimHardwareService::AverageNavigationData(vtkMatrix4x
 	return true;
 }
 
+void lancetAlgorithm::DianaAimHardwareService::AverageNavigationData(double camera2EndRF[16], double camera2BaseRF[16], int timeInterval, int intervalNum)
+{
+	if (timeInterval <= 16) {
+		std::cout << "Time interval should be larger than 16.7 ms for 60 Hz frame rate." << std::endl;
+		return;
+	}
+
+	Eigen::Vector3d endRFtmp_x = Eigen::Vector3d::Zero();
+	Eigen::Vector3d endRFtmp_y = Eigen::Vector3d::Zero();
+	Eigen::Vector3d endRFtmp_translation = Eigen::Vector3d::Zero();
+
+	Eigen::Vector3d baseRFtmp_x = Eigen::Vector3d::Zero();
+	Eigen::Vector3d baseRFtmp_y = Eigen::Vector3d::Zero();
+	Eigen::Vector3d baseRFtmp_translation = Eigen::Vector3d::Zero();
+
+	for (int i = 0; i < intervalNum; ++i) {
+		this->UpdateCamera();
+		vtkSmartPointer<vtkMatrix4x4> camera2endRF = vtkSmartPointer<vtkMatrix4x4>::New();
+		vtkSmartPointer<vtkMatrix4x4> camera2baseRF = vtkSmartPointer<vtkMatrix4x4>::New();
+		camera2endRF->DeepCopy(this->GetMatrixByName("RobotEndRF"));
+		camera2baseRF->DeepCopy(this->GetMatrixByName("RobotBaseRF"));
+
+		endRFtmp_x[0] += camera2endRF->GetElement(0, 0);
+		endRFtmp_x[1] += camera2endRF->GetElement(1, 0);
+		endRFtmp_x[2] += camera2endRF->GetElement(2, 0);
+
+		endRFtmp_y[0] += camera2endRF->GetElement(0, 1);
+		endRFtmp_y[1] += camera2endRF->GetElement(1, 1);
+		endRFtmp_y[2] += camera2endRF->GetElement(2, 1);
+
+		endRFtmp_translation[0] += camera2endRF->GetElement(0, 3);
+		endRFtmp_translation[1] += camera2endRF->GetElement(1, 3);
+		endRFtmp_translation[2] += camera2endRF->GetElement(2, 3);
+
+		/********************************************************************************************/
+
+		baseRFtmp_x[0] += camera2baseRF->GetElement(0, 0);
+		baseRFtmp_x[1] += camera2baseRF->GetElement(1, 0);
+		baseRFtmp_x[2] += camera2baseRF->GetElement(2, 0);
+					
+		baseRFtmp_y[0] += camera2baseRF->GetElement(0, 1);
+		baseRFtmp_y[1] += camera2baseRF->GetElement(1, 1);
+		baseRFtmp_y[2] += camera2baseRF->GetElement(2, 1);
+		
+		baseRFtmp_translation[0] += camera2baseRF->GetElement(0, 3);
+		baseRFtmp_translation[1] += camera2baseRF->GetElement(1, 3);
+		baseRFtmp_translation[2] += camera2baseRF->GetElement(2, 3);
+
+		QThread::msleep(timeInterval);
+	}
+
+	endRFtmp_x /= intervalNum;
+	endRFtmp_y /= intervalNum;
+	endRFtmp_translation /= intervalNum;
+
+	Eigen::Vector3d endRF_x = endRFtmp_x.normalized();
+	Eigen::Vector3d endRF_h = endRFtmp_y.normalized();
+	Eigen::Vector3d endRF_z = endRF_x.cross(endRF_h).normalized();
+	Eigen::Vector3d endRF_y = endRF_z.cross(endRF_x).normalized();
+
+	std::array<double, 16> endRFArray{
+		endRF_x[0], endRF_y[0], endRF_z[0], endRFtmp_translation[0],
+		endRF_x[1], endRF_y[1], endRF_z[1], endRFtmp_translation[1],
+		endRF_x[2], endRF_y[2], endRF_z[2], endRFtmp_translation[2],
+		0,    0,    0,    1
+	};
+	std::copy(endRFArray.begin(), endRFArray.end(), camera2EndRF);
+	/*******************************************************************************************/
+	baseRFtmp_x /= intervalNum;
+	baseRFtmp_y /= intervalNum;
+	baseRFtmp_translation /= intervalNum;
+
+	Eigen::Vector3d baseRF_x = baseRFtmp_x.normalized();
+	Eigen::Vector3d baseRF_h = baseRFtmp_y.normalized();
+	Eigen::Vector3d baseRF_z = baseRF_x.cross(baseRF_h).normalized();
+	Eigen::Vector3d baseRF_y = baseRF_z.cross(baseRF_x).normalized();
+
+	std::array<double, 16> baseRFArray{
+		baseRF_x[0], baseRF_y[0], baseRF_z[0], baseRFtmp_translation[0],
+		baseRF_x[1], baseRF_y[1], baseRF_z[1], baseRFtmp_translation[1],
+		baseRF_x[2], baseRF_y[2], baseRF_z[2], baseRFtmp_translation[2],
+		0,    0,    0,    1
+	};
+
+	std::copy(baseRFArray.begin(), baseRFArray.end(), camera2BaseRF);
+}
+
 int lancetAlgorithm::DianaAimHardwareService::CaptureRobot()
 {
-	// ‘ˆº”≤∂ªÒ◊ÀÃ¨∫Õ∏¸–¬UIµƒ∑Ω∑®
+	// Â¢ûÂä†ÊçïËé∑ÂßøÊÄÅÂíåÊõ¥Êñ∞UIÁöÑÊñπÊ≥ï
 	auto captureAndUpdateUI = [this](bool isTranslation) {
 		CapturePose(isTranslation);
 		int m_IndexOfRobotCapture = m_RobotRegistration.PoseCount();
@@ -648,10 +735,10 @@ int lancetAlgorithm::DianaAimHardwareService::CaptureRobot()
 	};
 
 	if (m_RobotRegistration.PoseCount() < 5) {
-		captureAndUpdateUI(true); // «∞ŒÂ¥Œ≤∂ªÒ∆Ω“∆◊ÀÃ¨
+		captureAndUpdateUI(true); // Ââç‰∫îÊ¨°ÊçïËé∑Âπ≥ÁßªÂßøÊÄÅ
 	}
 	else if (m_RobotRegistration.PoseCount() < 10) {
-		captureAndUpdateUI(false); // ∫ÛŒÂ¥Œ≤∂ªÒ–˝◊™◊ÀÃ¨
+		captureAndUpdateUI(false); // Âêé‰∫îÊ¨°ÊçïËé∑ÊóãËΩ¨ÂßøÊÄÅ
 	}
 	else {
 		//MITK_INFO << "OnRobotCapture finish: " << m_IndexOfRobotCapture;
@@ -707,6 +794,8 @@ void lancetAlgorithm::DianaAimHardwareService::RobotAutoRegistration()
 			GoToInitPos();
 			QThread::msleep(200);
 			QApplication::processEvents();
+			WaitMove(m_RobotIpAddress);
+
 		}
 		if (m_RobotRegistration.PoseCount() < 5)
 		{
@@ -714,6 +803,7 @@ void lancetAlgorithm::DianaAimHardwareService::RobotAutoRegistration()
 			std::cout << "RobotMove " << count << " Down" << std::endl;
 			QThread::msleep(200);
 			QApplication::processEvents();
+			WaitMove(m_RobotIpAddress);
 
 			CapturePose(true);
 			std::cout << "Capture " << count << " Down" << std::endl;
@@ -725,6 +815,7 @@ void lancetAlgorithm::DianaAimHardwareService::RobotAutoRegistration()
 			std::cout << "RobotMove " << count << " Down" << std::endl;
 			QThread::msleep(200);
 			QApplication::processEvents();
+			WaitMove(m_RobotIpAddress);
 
 			CapturePose(false);
 			std::cout << "Capture " << count << " Down" << std::endl;
@@ -734,6 +825,8 @@ void lancetAlgorithm::DianaAimHardwareService::RobotAutoRegistration()
 		QApplication::processEvents();
 	}
 	//Calculate Registration Data
+	this->GoToInitPos();
+
 	vtkNew<vtkMatrix4x4> TFlange2EndRF;
 	m_RobotRegistration.GetTCPmatrix(TFlange2EndRF);
 	m_TFlange2EndRF->DeepCopy(TFlange2EndRF);
@@ -758,6 +851,16 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::DianaAimHardwareService::GetEnd2E
 	return ret;
 }
 
+void lancetAlgorithm::DianaAimHardwareService::SetBaseRF2BaseMatrix(vtkMatrix4x4* aMatrix)
+{
+	m_TBaseRF2Base->DeepCopy(aMatrix);
+}
+
+void lancetAlgorithm::DianaAimHardwareService::SetEnd2EndRFMatrix(vtkMatrix4x4* aMatrix)
+{
+	m_TFlange2EndRF->DeepCopy(aMatrix);
+}
+
 T_AimToolDataResult* lancetAlgorithm::DianaAimHardwareService::GetNewToolData()
 {
 	rlt = Aim_GetMarkerAndStatusFromHardware(m_AimHandle, I_ETHERNET, markerSt, statusSt);
@@ -765,12 +868,12 @@ T_AimToolDataResult* lancetAlgorithm::DianaAimHardwareService::GetNewToolData()
 	{
 		std::cout << "camera get data failed";
 	}
-	T_AimToolDataResult* mtoolsrlt = new T_AimToolDataResult;//–¬Ω®“ª∏ˆ÷µ÷∏£¨Ω´÷∏’Î«Âø’”√”⁄¥Ê ˝æ›
+	T_AimToolDataResult* mtoolsrlt = new T_AimToolDataResult;//Êñ∞Âª∫‰∏Ä‰∏™ÂÄºÊåáÔºåÂ∞ÜÊåáÈíàÊ∏ÖÁ©∫Áî®‰∫éÂ≠òÊï∞ÊçÆ
 	mtoolsrlt->next = NULL;
 	mtoolsrlt->validflag = false;
 
-	rlt = Aim_FindToolInfo(m_AimHandle, markerSt, mtoolsrlt, 0);//ªÒ»° ˝æ›
-	T_AimToolDataResult* prlt = mtoolsrlt;//Ω´ªÒ»°ÕÍ ˝æ›µƒ¥”mtoolsrlt∏¯prlt÷∏’Î
+	rlt = Aim_FindToolInfo(m_AimHandle, markerSt, mtoolsrlt, 0);//Ëé∑ÂèñÊï∞ÊçÆ
+	T_AimToolDataResult* prlt = mtoolsrlt;//Â∞ÜËé∑ÂèñÂÆåÊï∞ÊçÆÁöÑ‰ªémtoolsrltÁªôprltÊåáÈíà
 
 	return prlt;
 }
@@ -782,7 +885,7 @@ bool lancetAlgorithm::DianaAimHardwareService::UpdateCameraToToolMatrix(T_AimToo
 		auto label = m_LabelMap[Name];
 		if (ToolData->validflag)
 		{
-			//ªÒ»°œ‡ª˙ ˝æ›
+			//Ëé∑ÂèñÁõ∏Êú∫Êï∞ÊçÆ
 			Eigen::Vector3d camera2ToolTranslation;
 			Eigen::Matrix3d camera2ToolRotation;
 			camera2ToolTranslation[0] = ToolData->Tto[0];
@@ -795,7 +898,7 @@ bool lancetAlgorithm::DianaAimHardwareService::UpdateCameraToToolMatrix(T_AimToo
 					camera2ToolRotation(i, j) = (double)ToolData->Rto[i][j];
 				}
 			}
-			//∆¥Ω”æÿ’Û
+			//ÊãºÊé•Áü©Èòµ
 			auto matrix = m_ReferenceMap[Name];
 			
 			matrix->DeepCopy(GetMatrixByRotationAndTranslation(camera2ToolRotation, camera2ToolTranslation));
