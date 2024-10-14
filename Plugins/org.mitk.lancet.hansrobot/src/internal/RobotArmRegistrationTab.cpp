@@ -124,30 +124,57 @@ void RobotArmRegistrationTab::RepeatPositionTest()
 	m_Robot->Translate(50, 0, 0);//xyz
 	m_Robot->GoToInitialPos();
 }
-int a;
+
 void RobotArmRegistrationTab::AboslutePositionTest()
 {
-	double cube_length = 100; // 立方体边长，单位：mm
-	double moveMent[][3] = {
-		{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {0, -1, 0}, {0,0,1}
-	};
-	// 沿 X 轴移动
-	m_Robot->Translate(cube_length, 0, 0); // 从 (0, 0, 0) 移动到 (300, 0, 0)
+	// 立方体的边长，单位：mm
+	double cube_length = 100;
 
-	// 沿 Y 轴移动
-	m_Robot->Translate(0, cube_length, 0); // 从 (300, 0, 0) 移动到 (300, 300, 0)
+	// 定义点的名称
+	const char* pointNames[] = { "a", "b", "c", "d", "e", "f", "g", "h" };
 
-	// 沿 Z 轴移动
-	m_Robot->Translate(0, 0, cube_length); // 从 (300, 300, 0) 移动到 (300, 300, 300)
+	// 选择要移动到的点
+	switch (countNum)
+	{
+	case 0:
+		m_Robot->Translate(cube_length, 0, 0); // 初始点
+		std::cout << "移动到初始点: " << pointNames[0] << std::endl; // 打印点名称
+		break;
+	case 1:
+		m_Robot->Translate(0, cube_length, 0); // 移动到顶点 1
+		std::cout << "移动到点: " << pointNames[1] << std::endl; // 打印点名称
+		break;
+	case 2:
+		m_Robot->Translate(-cube_length, 0, 0); // 移动到顶点 2
+		std::cout << "移动到点: " << pointNames[2] << std::endl; // 打印点名称
+		break;
+	case 3:
+		m_Robot->Translate(0, 0, cube_length); // 移动到顶点 3
+		std::cout << "移动到点: " << pointNames[3] << std::endl; // 打印点名称
+		break;
+	case 4:
+		m_Robot->Translate(0, -cube_length, 0); // 移动到顶点 4
+		std::cout << "移动到点: " << pointNames[4] << std::endl; // 打印点名称
+		break;
+	case 5:
+		m_Robot->Translate(cube_length, 0, 0); // 移动到顶点 5
+		std::cout << "移动到点: " << pointNames[5] << std::endl; // 打印点名称
+		break;
+	case 6:
+		m_Robot->Translate(0, cube_length, 0); // 移动到顶点 6
+		std::cout << "移动到点: " << pointNames[6] << std::endl; // 打印点名称
+		break;
+	case 7:
+		m_Robot->Translate(-cube_length, 0, 0); // 移动到顶点 7
+		std::cout << "移动到点: " << pointNames[7] << std::endl; // 打印点名称
+		break;
+	default:
+		// 如果 countNum 超过 7，重置为 0
+		countNum = 0; 
+		return; 
+	}
 
-	// 沿 -X 轴移动
-	m_Robot->Translate(-cube_length, 0, 0); // 从 (300, 300, 300) 移动到 (0, 300, 300)
-
-	// 沿 -Y 轴移动
-	m_Robot->Translate(0, -cube_length, 0); // 从 (0, 300, 300) 移动到 (0, 0, 300)
-
-	// 沿 -Z 轴移动
-	m_Robot->Translate(0, 0, -cube_length); // 从 (0, 0, 300) 移动到 (0, 0, 0)
+	countNum++; // 增加 countNum，准备下一次移动
 }
 
 
