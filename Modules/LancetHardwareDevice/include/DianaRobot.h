@@ -9,6 +9,7 @@
 #include "Environment.h"
 #include "FunctionOptDef.h"
 #include "MitkLancetHardwareDeviceExports.h"
+template<size_t N>
 class MITKLANCETHARDWAREDEVICE_EXPORT DianaRobot : public AbstractRobot
 {
 public:
