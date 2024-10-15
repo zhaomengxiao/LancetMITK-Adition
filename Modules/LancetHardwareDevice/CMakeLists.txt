@@ -44,8 +44,6 @@ mitk_create_module(
   INCLUDE_DIRS
      PUBLIC ${ARIEMEDI_INCLUDE}
 ############################################################################33
-mitk_create_module(
-  INCLUDE_DIRS
      PUBLIC ${AIMOOE_INCLUDE}
      PUBLIC ${Diana_INCLUDE}
      PUBLIC ${Hans_INCLUDE}
