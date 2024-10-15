@@ -70,8 +70,16 @@ void DianaRobot::Translate(double* aDirection, double aLength)
 	Translate(aDirection[0] * aLength, aDirection[1] * aLength, aDirection[2] * aLength);
 }
 
-void DianaRobot::Rotate(double* aDirection, double aLength)
+void DianaRobot::Rotate(double* aDirection, double aAngle)
 {
+	vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	matrix->Identity();
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	transform->SetMatrix(matrix);
+	transform->RotateWXYZ(aAngle, aDirection);
+	vtkSmartPointer<vtkMatrix4x4> retMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	transform->GetMatrix(retMatrix);
+	RobotTransformInTCP(retMatrix->GetData());
 }
 
 void DianaRobot::RecordInitialPos()
