@@ -40,24 +40,22 @@ file(GLOB ARIEMEDI_LIB_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/AriemediDll/Release/
 
 add_definitions(-DARMDCOMBINEDAPI_EXPORTS)
 
-mitk_create_module(
-  INCLUDE_DIRS
-     PUBLIC ${ARIEMEDI_INCLUDE}
-############################################################################33
+#######################################################################
 mitk_create_module(
   INCLUDE_DIRS
      PUBLIC ${AIMOOE_INCLUDE}
      PUBLIC ${Diana_INCLUDE}
      PUBLIC ${Hans_INCLUDE}
+     PUBLIC ${ARIEMEDI_INCLUDE}
      PUBLIC ${Jaka_INCLUDE}
   DEPENDS PUBLIC MitkCore 
   DEPENDS MitkLancetPrintDataHelper
   PACKAGE_DEPENDS VTK
   PACKAGE_DEPENDS Qt5|Core+Widgets
-  ADDITIONAL_LIBS PUBLIC "${ARIEMEDI_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${AIMOOE_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Diana_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Hans_LIB_RELEASE}"
+  ADDITIONAL_LIBS PUBLIC "${ARIEMEDI_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Jaka_LIB_RELEASE}"
 )
 
