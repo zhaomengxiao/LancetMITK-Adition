@@ -18,6 +18,11 @@ void LancetHansRobot::Connect()
 	int nRet = HRIF_Connect(boxID, m_IpAddress, nPort);
 }
 
+void LancetHansRobot::Disconnect()
+{
+	HRIF_DisConnect(0);
+}
+
 void LancetHansRobot::PowerOn()
 {
 	int nGrpEnable = HRIF_GrpEnable(0, 0);

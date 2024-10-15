@@ -15,6 +15,8 @@ public:
 	DianaRobot();
 	void Connect() override;
 
+	void Disconnect() override;
+
 	void PowerOn() override;
 
 	void PowerOff() override;

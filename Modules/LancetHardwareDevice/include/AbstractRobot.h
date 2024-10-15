@@ -30,6 +30,7 @@ public:
 	//{
 	//}
 	virtual void Connect() = 0;
+	virtual void Disconnect() = 0;
 	virtual void PowerOn() = 0;
 	virtual void PowerOff() = 0;
 	void SetRobotIpAddress(const char* aIP)

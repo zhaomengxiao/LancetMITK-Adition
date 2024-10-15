@@ -1,9 +1,11 @@
 #include "SystemPrecision.h"
 
-lancetAlgorithm::SystemPrecision::SystemPrecision(mitk::DataStorage* aDataStorage, DianaAimHardwareService* aDianaAimHardwareService)
+lancetAlgorithm::SystemPrecision::SystemPrecision(mitk::DataStorage* aDataStorage, DianaAimHardwareService* aDianaAimHardwareService, mitk::IRenderWindowPart* aIRenderWindowPart)
 {
 	m_dataStorage = aDataStorage;
 	m_DianaAimHardwareService = aDianaAimHardwareService;
+	m_IRenderWindowPart = aIRenderWindowPart;
+	std::cout << "SystemPrecision" << std::endl;
 	m_LandmarkRegistrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	m_ICPRegistrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	m_FinalRegistrationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -12,6 +14,9 @@ lancetAlgorithm::SystemPrecision::SystemPrecision(mitk::DataStorage* aDataStorag
 	m_LandmarkPoints = mitk::PointSet::New();
 	Reset();
 	connect(m_DianaAimHardwareService, &lancetAlgorithm::DianaAimHardwareService::CameraUpdateClock, this, &SystemPrecision::Update);
+	m_TCamera2RobotTCP = vtkSmartPointer<vtkMatrix4x4>::New();
+	m_Image2Camera = vtkSmartPointer<vtkMatrix4x4>::New();
+
 }
 
 void lancetAlgorithm::SystemPrecision::DisplayPrecisionTool()
@@ -71,16 +76,7 @@ void lancetAlgorithm::SystemPrecision::ICPRegistration(mitk::Surface* surface)
 	icpRegistrator->SetSurfaceSrc(surface);
 	icpRegistrator->ComputeIcpResult();
 	m_ICPRegistrationMatrix->DeepCopy(icpRegistrator->GetResult());
-	//Eigen::Matrix4d tmpRegistrationResult{ icpRegistrator->GetResult()->GetData() };
-	//tmpRegistrationResult.transposeInPlace();
-	//
-	//for (int row = 0; row < 4; ++row)
-	//{
-	//	for (int col = 0; col < 4; ++col)
-	//	{
-	//		m_ICPRegistrationMatrix->SetElement(row, col, tmpRegistrationResult(row, col));
-	//	}
-	//}
+
 	PrintDataHelper::CoutMatrix("m_ICPRegistrationMatrix: ", m_ICPRegistrationMatrix);
 	m_FinalRegistrationMatrix->DeepCopy(PostConcatenateMatrixs(m_LandmarkRegistrationMatrix, m_ICPRegistrationMatrix));  //box2LandMark * landMark2BoxRF
 	PrintDataHelper::CoutMatrix("m_FinalRegistrationMatrix: ", m_FinalRegistrationMatrix);
@@ -99,11 +95,12 @@ void lancetAlgorithm::SystemPrecision::UpdatePrecisionTestKit()
 {
 	vtkSmartPointer<vtkMatrix4x4> TCamera2PrecisionTool = vtkSmartPointer<vtkMatrix4x4>::New();
 	TCamera2PrecisionTool->DeepCopy(m_DianaAimHardwareService->GetMatrixByName(m_RobotEndRF));
-
+	//PrintDataHelper::CoutMatrix("TCamera2PrecisionTool", TCamera2PrecisionTool);
 	vtkSmartPointer<vtkMatrix4x4> TPrecisionBoxRF2Camera = vtkSmartPointer<vtkMatrix4x4>::New();
 	TPrecisionBoxRF2Camera->DeepCopy(m_DianaAimHardwareService->GetMatrixByName(m_VerificationBlockStr));
 	TPrecisionBoxRF2Camera->Invert();
-	
+	//PrintDataHelper::CoutMatrix("TPrecisionBoxRF2Camera", TPrecisionBoxRF2Camera);
+
 	vtkSmartPointer<vtkMatrix4x4> TBox2BoxRF = vtkSmartPointer<vtkMatrix4x4>::New();
 	TBox2BoxRF->DeepCopy(m_FinalRegistrationMatrix);
 	auto geo = m_dataStorage->GetNamedNode(m_PrecisionToolModelStr)->GetData()->GetGeometry();
@@ -145,6 +142,67 @@ void lancetAlgorithm::SystemPrecision::UpdateProbe()
 	}
 	geo->SetIndexToWorldTransformByVtkMatrix(modelMatrix);
 }
+
+void lancetAlgorithm::SystemPrecision::UpdateTCPActor()
+{
+	if (!m_TCPActor)
+		return;
+	vtkSmartPointer<vtkMatrix4x4> TBaseToTCP = vtkSmartPointer<vtkMatrix4x4>::New();
+	TBaseToTCP->DeepCopy(m_DianaAimHardwareService->GetBase2TCP());
+
+	vtkSmartPointer<vtkMatrix4x4> TImage2Base = vtkSmartPointer<vtkMatrix4x4>::New(); 
+	TImage2Base->DeepCopy(CalculateBase2Image());
+	TImage2Base->Invert();
+
+	vtkSmartPointer<vtkMatrix4x4> TImage2TCP = vtkSmartPointer<vtkMatrix4x4>::New();
+	TImage2TCP->DeepCopy(PreConcatenateMatrixs(TImage2Base, TBaseToTCP));
+
+	if (m_IsUseImageReg)
+	{
+		m_TCPActor->SetUserMatrix(TImage2TCP);
+		//PrintDataHelper::CoutMatrix("TImage2TCP", TImage2TCP);
+	}
+	else
+	{
+		m_TCPActor->SetUserMatrix(TBaseToTCP);
+	}
+}
+
+void lancetAlgorithm::SystemPrecision::UpdateTCPInRF()
+{
+	if (!m_dataStorage->GetNamedNode(m_PrecisionToolModelStr))
+		return;
+	if (!m_TCPInRFActor)
+		return;
+	auto geoMatrix = m_dataStorage->GetNamedNode(m_PrecisionToolModelStr)->GetData()->GetGeometry()->GetVtkMatrix();
+
+	vtkSmartPointer<vtkMatrix4x4> TMarkerTCP = vtkSmartPointer<vtkMatrix4x4>::New();
+
+	TMarkerTCP->DeepCopy(PreConcatenateMatrixs(geoMatrix, m_Marker2TCPMatrix));
+
+	m_TCPInRFActor->SetUserMatrix(TMarkerTCP);
+}
+
+void lancetAlgorithm::SystemPrecision::UpdateFlange()
+{
+	if (!m_FlangeActor)
+		return;
+
+	auto node = m_dataStorage->GetNamedNode(m_PrecisionToolModelStr);
+	if (!node)
+		return;
+	vtkSmartPointer<vtkMatrix4x4> TEndRF2Flange = vtkSmartPointer<vtkMatrix4x4>::New();
+	TEndRF2Flange->DeepCopy(m_DianaAimHardwareService->GetEnd2EndRFMatrix());
+	TEndRF2Flange->Invert();
+
+	auto geoMatrix = node->GetData()->GetGeometry()->GetVtkMatrix();
+	vtkSmartPointer<vtkMatrix4x4> TImage2FlangeTCP = vtkSmartPointer<vtkMatrix4x4>::New();
+
+	TImage2FlangeTCP->DeepCopy(PreConcatenateMatrixs(geoMatrix, TEndRF2Flange));
+
+	m_FlangeActor->SetUserMatrix(TImage2FlangeTCP);
+}
+
 
 std::pair<Eigen::Vector3d, Eigen::Vector3d> lancetAlgorithm::SystemPrecision::AveragePointInBase(Eigen::Vector3d aPointA, Eigen::Vector3d aPointB)
 {
@@ -206,41 +264,90 @@ std::pair<Eigen::Vector3d, Eigen::Vector3d> lancetAlgorithm::SystemPrecision::Av
 	return std::pair(retA, retB);
 }
 
+vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::SystemPrecision::CalculateLineTargetInBase(Eigen::Vector3d point0, Eigen::Vector3d point1)
+{
+	PrintDataHelper::CoutArray(point0, "GoLine Point0");
+	PrintDataHelper::CoutArray(point1, "GoLine Point1");
+	auto points = AveragePointInBase(point0, point1);
+	PrintDataHelper::CoutArray(points.first, "GoLine point0 in Base");
+	PrintDataHelper::CoutArray(points.second, "GoLine point1 in Base");
+	Eigen::Vector3d targetXUnderBase = points.first - points.second;
+	targetXUnderBase.normalize();
+
+	vtkSmartPointer<vtkMatrix4x4> TBase2Flange = vtkSmartPointer<vtkMatrix4x4>::New();
+	TBase2Flange->DeepCopy(m_DianaAimHardwareService->GetRobotBase2RobotEnd());
+	PrintDataHelper::CoutMatrix("TBase2TCP", m_DianaAimHardwareService->GetBase2TCP());
+	PrintDataHelper::CoutMatrix("TBase2Flange", TBase2Flange);
+	auto TBase2FlangeArray = TBase2Flange->GetData();
+	Eigen::Vector3d currentZUnderBase(TBase2FlangeArray[0], TBase2FlangeArray[4], TBase2FlangeArray[8]);//3711  159 048
+	currentZUnderBase.normalize();
+
+	Eigen::Vector3d  rotationAxis;
+	rotationAxis = currentZUnderBase.cross(targetXUnderBase);
+
+	double rotationAngle;//å®šä¹‰æ—‹è½¬è§’
+	if (currentZUnderBase.dot(targetXUnderBase) > 0) //å¦‚æœå‘é‡çš„å†…ç§¯å¤§äº0ï¼Œcoså¤§äº0ï¼ˆé”è§’ï¼‰
+	{
+		rotationAngle = 180 * asin(rotationAxis.norm()) / 3.1415926;//æ±‚å‘é‡çš„æ¨¡é•¿ï¼ˆsin[rotationAngle]ï¼‰,å†å–åä¸‰è§’
+	}
+	else //å¦‚æœå‘é‡çš„å†…ç§¯å°äº0ï¼Œcoså°äº0ï¼ˆé’è§’ï¼‰
+	{
+		rotationAngle = 180 - 180 * asin(rotationAxis.norm()) / 3.1415926;
+	}
+
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+
+	transform->PostMultiply();
+	transform->Identity();
+	transform->SetMatrix(TBase2Flange);
+	// T_TCPtoBase
+	transform->RotateWXYZ(rotationAngle, rotationAxis[0], rotationAxis[1], rotationAxis[2]);//æ—‹è½¬è§’åº¦ï¼Œå’Œæ—‹è½¬å‘é‡
+	transform->Update();
+
+	vtkSmartPointer<vtkMatrix4x4> pointMatrixInBase = vtkSmartPointer<vtkMatrix4x4>::New();
+	pointMatrixInBase = transform->GetMatrix();
+	pointMatrixInBase->SetElement(0, 3, points.second.x());
+	pointMatrixInBase->SetElement(1, 3, points.second.y());
+	pointMatrixInBase->SetElement(2, 3, points.second.z());
+	PrintDataHelper::CoutMatrix("pointMatrixInBase", pointMatrixInBase);
+	DisplayTargetActor(pointMatrixInBase);
+	return pointMatrixInBase;
+}
 
 /// <summary>
-/// »ñµÃÌ½ÕëÏÂµÄµã  È»ºó×ª»»µ½ boxRFÏÂ »òÕßÊÇ ×ª»»ºóµÄlandmarkÏÂ
+/// è·å¾—æ¢é’ˆä¸‹çš„ç‚¹  ç„¶åè½¬æ¢åˆ° boxRFä¸‹ æˆ–è€…æ˜¯ è½¬æ¢åçš„landmarkä¸‹
 /// </summary>
 /// <param name="aPoints"></param>
 /// <param name="aMatrix"></param>
 void lancetAlgorithm::SystemPrecision::TransformPoints(mitk::PointSet* aPoints, vtkMatrix4x4* aMatrix)
 {
-	// ¼ì²éÊäÈëµÄ PointSet ºÍ ±ä»»¾ØÕóÊÇ·ñÎª¿Õ
+	// æ£€æŸ¥è¾“å…¥çš„ PointSet å’Œ å˜æ¢çŸ©é˜µæ˜¯å¦ä¸ºç©º
 	if (!aPoints || !aMatrix)
 	{
 		std::cerr << "Invalid PointSet or Transform Matrix!" << std::endl;
 		return;
 	}
 
-	// ±éÀú PointSet ÖĞµÄËùÓĞµã
+	// éå† PointSet ä¸­çš„æ‰€æœ‰ç‚¹
 	for (unsigned int i = 0; i < aPoints->GetSize(); ++i)
 	{
-		// »ñÈ¡Ô­Ê¼µã
+		// è·å–åŸå§‹ç‚¹
 		mitk::Point3D originalPoint = aPoints->GetPoint(i);
 
-		// ¶¨ÒåÒ»¸ö VTK µÄ×ø±êµã
+		// å®šä¹‰ä¸€ä¸ª VTK çš„åæ ‡ç‚¹
 		double vtkPoint[4] = { originalPoint[0], originalPoint[1], originalPoint[2], 1.0 };
 
-		// ±ä»»×ø±êµã
+		// å˜æ¢åæ ‡ç‚¹
 		double transformedVtkPoint[4];
 		aMatrix->MultiplyPoint(vtkPoint, transformedVtkPoint);
 
-		// ½«±ä»»ºóµÄ×ø±êÓ¦ÓÃµ½ MITK µÄ Point3D
+		// å°†å˜æ¢åçš„åæ ‡åº”ç”¨åˆ° MITK çš„ Point3D
 		mitk::Point3D transformedPoint;
 		transformedPoint[0] = transformedVtkPoint[0];
 		transformedPoint[1] = transformedVtkPoint[1];
 		transformedPoint[2] = transformedVtkPoint[2];
 
-		// ¸üĞÂ PointSet ÖĞµÄµã
+		// æ›´æ–° PointSet ä¸­çš„ç‚¹
 		aPoints->SetPoint(i, transformedPoint);
 	}
 }
@@ -249,7 +356,8 @@ void lancetAlgorithm::SystemPrecision::TransformPoints(mitk::PointSet* aPoints, 
 vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::SystemPrecision::CalculateBase2Image()
 {
 	vtkSmartPointer<vtkMatrix4x4> TBaseRF2Camera = vtkSmartPointer<vtkMatrix4x4>::New();
-	TBaseRF2Camera->DeepCopy(m_DianaAimHardwareService->GetMatrixByName("RobotBaseRF"));
+	TBaseRF2Camera->DeepCopy(m_DianaAimHardwareService->GetMatrixByName(m_RobotBaseRF));
+
 	TBaseRF2Camera->Invert();
 
 	vtkSmartPointer<vtkMatrix4x4> TBase2BaseRF = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -261,9 +369,12 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::SystemPrecision::CalculateBase2Im
 
 	vtkSmartPointer<vtkMatrix4x4> TBoxRF2Image = vtkSmartPointer<vtkMatrix4x4>::New();
 	TBoxRF2Image->DeepCopy(m_FinalRegistrationMatrix);
+	TBoxRF2Image->Invert();
 	vtkSmartPointer<vtkMatrix4x4> TBase2Image = vtkSmartPointer<vtkMatrix4x4>::New();
 
 	TBase2Image->DeepCopy(PreConcatenateMatrixs(TBase2BaseRF, TBaseRF2Camera, TCamera2BoxRF, TBoxRF2Image));
+	//PrintDataHelper::CoutMatrix("TBase2Image", TBase2Image);
+
 	return TBase2Image;
 }
 
@@ -315,7 +426,7 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::SystemPrecision::CalculateLandmar
 Eigen::Vector3d lancetAlgorithm::SystemPrecision::TransformByMatrix(Eigen::Vector3d in, vtkMatrix4x4* matrix)
 {
 	Eigen::Vector4d v_homogeneous(in[0], in[1], in[2], 1.0);
-	// ½« vtkMatrix4x4 ×ª»»Îª Eigen::Matrix4d
+	// å°† vtkMatrix4x4 è½¬æ¢ä¸º Eigen::Matrix4d
 	Eigen::Matrix4d M_eigen;
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
@@ -323,10 +434,10 @@ Eigen::Vector3d lancetAlgorithm::SystemPrecision::TransformByMatrix(Eigen::Vecto
 		}
 	}
 
-	// Ö´ĞĞ¾ØÕó³Ë·¨
+	// æ‰§è¡ŒçŸ©é˜µä¹˜æ³•
 	Eigen::Vector4d result_homogeneous = M_eigen * v_homogeneous;
 
-	// ×ª»»»Ø 3D ÏòÁ¿
+	// è½¬æ¢å› 3D å‘é‡
 	Eigen::Vector3d result(result_homogeneous[0] / result_homogeneous[3],
 		result_homogeneous[1] / result_homogeneous[3],
 		result_homogeneous[2] / result_homogeneous[3]);
@@ -337,6 +448,30 @@ Eigen::Vector3d lancetAlgorithm::SystemPrecision::TransformByMatrix(Eigen::Vecto
 	auto out = mMatrix->MultiplyDoublePoint(vec);
 	result = Eigen::Vector3d(out[0], out[1], out[2]);
 	return result;
+}
+
+vtkSmartPointer<vtkAxesActor> lancetAlgorithm::SystemPrecision::GenerateAxesActor(double axexLength)
+{
+	vtkSmartPointer<vtkAxesActor> axesActor = vtkSmartPointer<vtkAxesActor>::New();
+	//axesActor->SetConeRadius(100);
+	//axesActor->SetCylinderRadius(50);
+	axesActor->SetTotalLength(axexLength, axexLength, axexLength);
+	axesActor->SetAxisLabels(false);
+	axesActor->Modified();
+
+	return axesActor;
+}
+
+void lancetAlgorithm::SystemPrecision::AddAxesActor(vtkAxesActor* aActor)
+{
+	QmitkRenderWindow* mitkRenderWindow = m_IRenderWindowPart->GetQmitkRenderWindow("3d");
+
+	vtkRenderWindow* renderWindow = mitkRenderWindow->GetVtkRenderWindow();
+
+	vtkSmartPointer<vtkRenderer> renderer;
+
+	renderer = renderWindow->GetRenderers()->GetFirstRenderer();
+	renderer->AddActor(aActor);
 }
 
 int lancetAlgorithm::SystemPrecision::CollectLandMarkPoints()
@@ -403,15 +538,98 @@ void lancetAlgorithm::SystemPrecision::SetBoxRF2BoxMatrix(vtkMatrix4x4* matrix)
 	m_FinalRegistrationMatrix->DeepCopy(matrix);
 }
 
+void lancetAlgorithm::SystemPrecision::DisplayTCPActor()
+{
+	if (m_TCPActor)
+		return;
+	m_TCPActor = this->GenerateAxesActor();
+	AddAxesActor(m_TCPActor);
+
+	connect(m_DianaAimHardwareService, &lancetAlgorithm::DianaAimHardwareService::CameraUpdateClock, this, &SystemPrecision::UpdateTCPActor);
+}
+
+void lancetAlgorithm::SystemPrecision::DisplayTargetActor(vtkMatrix4x4* aBaseToTarget)
+{
+	if (!m_TargetPosActor)
+	{
+		m_TargetPosActor = GenerateAxesActor();
+		AddAxesActor(m_TargetPosActor);
+	}
+	vtkSmartPointer<vtkMatrix4x4> TImage2Base = vtkSmartPointer<vtkMatrix4x4>::New();
+	TImage2Base->DeepCopy(this->CalculateBase2Image());
+	TImage2Base->Invert();
+
+	vtkSmartPointer<vtkMatrix4x4> TImage2Target = vtkSmartPointer<vtkMatrix4x4>::New();
+	TImage2Target->DeepCopy(PreConcatenateMatrixs(TImage2Base, aBaseToTarget));
+	m_TargetPosActor->SetUserMatrix(TImage2Target);
+}
+
+void lancetAlgorithm::SystemPrecision::DisplayTCPInRF()
+{
+	if (!m_TCPInRFActor)
+	{
+		m_TCPInRFActor = GenerateAxesActor();
+		AddAxesActor(m_TCPInRFActor);
+	}
+
+	PrintDataHelper::CoutMatrix("m_Marker2TCPMatrix", m_Marker2TCPMatrix);
+	connect(m_DianaAimHardwareService, &lancetAlgorithm::DianaAimHardwareService::CameraUpdateClock, this, &SystemPrecision::UpdateTCPInRF);
+}
+
+void lancetAlgorithm::SystemPrecision::DisplayFlangeAxesActor()
+{
+	if (m_FlangeActor)
+		return;
+	m_FlangeActor = GenerateAxesActor();
+	AddAxesActor(m_FlangeActor);
+
+	connect(m_DianaAimHardwareService, &lancetAlgorithm::DianaAimHardwareService::CameraUpdateClock, this, &SystemPrecision::UpdateFlange);
+}
+
+void lancetAlgorithm::SystemPrecision::PrintTCPInCamera(QTextBrowser* browser)
+{
+	vtkSmartPointer<vtkMatrix4x4> TCamera2EndRF = vtkSmartPointer<vtkMatrix4x4>::New();
+	TCamera2EndRF->DeepCopy(m_DianaAimHardwareService->GetMatrixByName(m_RobotEndRF));
+
+	vtkSmartPointer<vtkMatrix4x4> TEndRF2TCP = vtkSmartPointer<vtkMatrix4x4>::New();
+	TEndRF2TCP->DeepCopy(m_Marker2TCPMatrix);
+
+	vtkSmartPointer<vtkMatrix4x4> TBase2TCP = vtkSmartPointer<vtkMatrix4x4>::New();
+	TBase2TCP->DeepCopy(m_DianaAimHardwareService->GetBase2TCP());
+
+	vtkSmartPointer<vtkMatrix4x4> TCamera2BaseRF = vtkSmartPointer<vtkMatrix4x4>::New();
+	TCamera2BaseRF->DeepCopy(m_DianaAimHardwareService->GetMatrixByName(m_RobotBaseRF));
+
+	vtkSmartPointer<vtkMatrix4x4> TBaseRF2Base = vtkSmartPointer<vtkMatrix4x4>::New();
+	TBaseRF2Base->DeepCopy(m_DianaAimHardwareService->GetBaseRF2BaseMatrix());
+
+	vtkSmartPointer<vtkMatrix4x4> TCamera2TCP = vtkSmartPointer<vtkMatrix4x4>::New();
+	TCamera2TCP->DeepCopy(PreConcatenateMatrixs(TCamera2EndRF, TEndRF2TCP));
+	vtkSmartPointer<vtkMatrix4x4> TCamera2RobotTCP = vtkSmartPointer<vtkMatrix4x4>::New();
+	TCamera2RobotTCP->DeepCopy(PreConcatenateMatrixs(TCamera2BaseRF, TBaseRF2Base, TBase2TCP));
+
+	PrintDataHelper::AppendTextBrowserMatrix(browser, "TCamera2TCP", TCamera2TCP);
+
+	PrintDataHelper::AppendTextBrowserMatrix(browser, "TCamera2RobotTCP", TCamera2RobotTCP);
+	PrintDataHelper::AppendTextBrowserMatrix(browser, "m_TCamera2RobotTCP", m_TCamera2RobotTCP);
+	PrintDataHelper::AppendTextBrowserMatrix(browser, "m_Image2Camera", m_Image2Camera);
+
+
+	PrintDataHelper::AppendTextBrowserMatrix(browser, "Camera2ImageTCP", m_TCPInRFActor->GetUserMatrix());
+
+	PrintDataHelper::AppendTextBrowserMatrix(browser, "Camera2ImageRobotTCP", m_TCPActor->GetUserMatrix());
+}
+
+
 void lancetAlgorithm::SystemPrecision::SetGoLinePrecisionTCP(/*Eigen::Vector3d pointA, Eigen::Vector3d pointB*/)
 {
-	Eigen::Vector3d pointA(-52.508, -43, -23.8);
-	Eigen::Vector3d pointB(2.492, -43, 28.2);
+	Eigen::Vector3d pointB(-52.508, -43, -23.8);
+	Eigen::Vector3d pointA(2.492, -43, 28.2);
 
 	Eigen::Vector3d xDirection = pointB - pointA;
 	xDirection.normalize();
 
-	Eigen::Vector3d zFlange(0.0, 0.0, 1.0);
+	Eigen::Vector3d zFlange(0.0, -1.0, 0.0);
 
 	Eigen::Vector3d yDirection = zFlange.cross(xDirection);
 	yDirection.normalize();
@@ -436,11 +654,14 @@ void lancetAlgorithm::SystemPrecision::SetGoLinePrecisionTCP(/*Eigen::Vector3d p
 	TMarker2PrecisionTCP->SetElement(1, 3, pointA.y());
 	TMarker2PrecisionTCP->SetElement(2, 3, pointA.z());
 	m_Marker2TCPMatrix->DeepCopy(TMarker2PrecisionTCP);
+	PrintDataHelper::CoutMatrix("m_Marker2TCPMatrix", m_Marker2TCPMatrix);
 
 	vtkSmartPointer<vtkMatrix4x4> TFlange2TCP = vtkSmartPointer<vtkMatrix4x4>::New();
 	vtkSmartPointer<vtkMatrix4x4> TEnd2EndRF = vtkSmartPointer<vtkMatrix4x4>::New();
 	TEnd2EndRF->DeepCopy(m_DianaAimHardwareService->GetEnd2EndRFMatrix());
 	TFlange2TCP->DeepCopy(PreConcatenateMatrixs(TEnd2EndRF, m_Marker2TCPMatrix));
+	PrintDataHelper::CoutMatrix("TFlange2TCP", TFlange2TCP);
+
 	m_DianaAimHardwareService->SetTCP(TFlange2TCP);
 }
 
@@ -450,18 +671,21 @@ void lancetAlgorithm::SystemPrecision::SetGoPlanePrecisionTCP()
 	Eigen::Vector3d pointB(2.492, -43, 28.2);
 	Eigen::Vector3d pointC(2.492, -43, -61.8);
 
-	Eigen::Vector3d BA = pointA - pointB;
-	Eigen::Vector3d CA = pointA - pointC;
+	// è®¡ç®—Xè½´ï¼ˆBæŒ‡å‘Cçš„å•ä½å‘é‡ï¼‰
+	Eigen::Vector3d xDirection = (pointC - pointB).normalized();
 
-	BA.normalize();
-	Eigen::Vector3d xDirection = BA;
+	// è®¡ç®—Aç›¸å¯¹äºBçš„æ–¹å‘
+	Eigen::Vector3d AB = pointA - pointB;
 
-	Eigen::Vector3d z_flange(0, 0, 1);
+	// è®¡ç®—Aåœ¨Xè½´æ–¹å‘ä¸Šçš„æŠ•å½±
+	Eigen::Vector3d A_proj_on_X = AB.dot(xDirection) * xDirection;
 
-	Eigen::Vector3d yDirection = xDirection.cross(z_flange);
-	yDirection.normalize();
+	// è®¡ç®—Yè½´ï¼ˆAæ–¹å‘åœ¨BCå¹³é¢ä¸Šçš„æŠ•å½±ï¼Œå¹¶å½’ä¸€åŒ–ï¼‰
+	Eigen::Vector3d yDirection = (AB - A_proj_on_X).normalized();
 
-	Eigen::Vector3d zDirection = xDirection.cross(yDirection);
+	// è®¡ç®—Zè½´ï¼ˆXè½´å’ŒYè½´çš„å¤–ç§¯ï¼Œå¹¶å½’ä¸€åŒ–ï¼‰
+	Eigen::Vector3d zDirection = xDirection.cross(yDirection).normalized();
+
 
 	vtkSmartPointer<vtkMatrix4x4> TMarker2PrecisionTCP = vtkSmartPointer<vtkMatrix4x4>::New();
 	TMarker2PrecisionTCP->Identity();
@@ -477,9 +701,10 @@ void lancetAlgorithm::SystemPrecision::SetGoPlanePrecisionTCP()
 	TMarker2PrecisionTCP->SetElement(1, 2, zDirection.y());
 	TMarker2PrecisionTCP->SetElement(2, 2, zDirection.z());
 
-	TMarker2PrecisionTCP->SetElement(0, 3, pointA.x());
-	TMarker2PrecisionTCP->SetElement(1, 3, pointA.y());
-	TMarker2PrecisionTCP->SetElement(2, 3, pointA.z());
+	TMarker2PrecisionTCP->SetElement(0, 3, pointB.x());
+	TMarker2PrecisionTCP->SetElement(1, 3, pointB.y());
+	TMarker2PrecisionTCP->SetElement(2, 3, pointB.z());
+	m_Marker2TCPMatrix->DeepCopy(TMarker2PrecisionTCP);
 
 	vtkSmartPointer<vtkMatrix4x4> TFlange2TCP = vtkSmartPointer<vtkMatrix4x4>::New();
 	vtkSmartPointer<vtkMatrix4x4> TEnd2EndRF = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -490,44 +715,24 @@ void lancetAlgorithm::SystemPrecision::SetGoPlanePrecisionTCP()
 
 void lancetAlgorithm::SystemPrecision::GoLine(Eigen::Vector3d point0, Eigen::Vector3d point1)
 {
-	auto points = AveragePointInBase(point0, point1);
-	
-	Eigen::Vector3d targetZUnderBase = points.second - points.first;
-	targetZUnderBase.normalize(); 
-
-	vtkSmartPointer<vtkMatrix4x4> TBase2Flange = vtkSmartPointer<vtkMatrix4x4>::New();
-	TBase2Flange->DeepCopy(m_DianaAimHardwareService->GetRobotBase2RobotEnd());
-	auto TBase2FlangeArray = TBase2Flange->GetData();
-	Eigen::Vector3d currentZUnderBase(TBase2FlangeArray[2], TBase2FlangeArray[6], TBase2FlangeArray[10]);
-	currentZUnderBase.normalize();
-
-	Eigen::Vector3d  rotationAxis;
-	rotationAxis = currentZUnderBase.cross(targetZUnderBase);
-
-	double rotationAngle;//¶¨ÒåĞı×ª½Ç
-	if (currentZUnderBase.dot(targetZUnderBase) > 0) //Èç¹ûÏòÁ¿µÄÄÚ»ı´óÓÚ0£¬cos´óÓÚ0£¨Èñ½Ç£©
-	{
-		rotationAngle = 180 * asin(rotationAxis.norm()) / 3.1415926;//ÇóÏòÁ¿µÄÄ£³¤£¨sin[rotationAngle]£©,ÔÙÈ¡·´Èı½Ç
-	}
-	else //Èç¹ûÏòÁ¿µÄÄÚ»ıĞ¡ÓÚ0£¬cosĞ¡ÓÚ0£¨¶Û½Ç£©
-	{
-		rotationAngle = 180 - 180 * asin(rotationAxis.norm()) / 3.1415926;
-	}
-
-	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-
-	transform->PostMultiply();
-	transform->Identity();
-	transform->SetMatrix(TBase2Flange);
-	// T_TCPtoBase
-	transform->RotateWXYZ(rotationAngle, rotationAxis[0], rotationAxis[1], rotationAxis[2]);//Ğı×ª½Ç¶È£¬ºÍĞı×ªÏòÁ¿
-	transform->Update();
-
 	vtkSmartPointer<vtkMatrix4x4> pointMatrixInBase = vtkSmartPointer<vtkMatrix4x4>::New();
-	pointMatrixInBase = transform->GetMatrix();
-	pointMatrixInBase->SetElement(0, 3, points.first.x());
-	pointMatrixInBase->SetElement(1, 3, points.first.y());
-	pointMatrixInBase->SetElement(2, 3, points.first.z());
+	pointMatrixInBase->DeepCopy(CalculateLineTargetInBase(point0, point1));
+
+	vtkSmartPointer<vtkMatrix4x4> tcp2Target = vtkSmartPointer<vtkMatrix4x4>::New();
+
+	auto TCP2ImageMatrix = m_TCPInRFActor->GetUserMatrix();  //Image2TCP
+	TCP2ImageMatrix->Invert();
+	auto Image2TargetMatrix = m_TargetPosActor->GetUserMatrix();
+	tcp2Target->DeepCopy(PreConcatenateMatrixs(TCP2ImageMatrix, Image2TargetMatrix));
+	PrintDataHelper::CoutMatrix("GoLineCamera tcp2Target", tcp2Target);
+	m_DianaAimHardwareService->RobotTransformInTCP(tcp2Target->GetData());
+}
+
+void lancetAlgorithm::SystemPrecision::GoLineByRobot(Eigen::Vector3d point0, Eigen::Vector3d point1)
+{
+	vtkSmartPointer<vtkMatrix4x4> pointMatrixInBase = vtkSmartPointer<vtkMatrix4x4>::New();
+	pointMatrixInBase->DeepCopy(CalculateLineTargetInBase(point0, point1));
+	PrintDataHelper::CoutMatrix("GoLineByRobot base2Target", pointMatrixInBase);
 
 	m_DianaAimHardwareService->RobotTransformInBase(pointMatrixInBase->GetData());
 }
@@ -542,15 +747,20 @@ void lancetAlgorithm::SystemPrecision::GoPlane(Eigen::Vector3d point0, Eigen::Ve
 	PrintDataHelper::CoutArray(tmpPoint0, "GoPlane tmpPoint0: ");
 	PrintDataHelper::CoutArray(tmpPoint1, "GoPlane tmpPoint1: ");
 	PrintDataHelper::CoutArray(tmpPoint2, "GoPlane tmpPoint2: ");
-	Eigen::Vector3d xDirection = tmpPoint2 - tmpPoint0;
-	xDirection.normalize();
-	Eigen::Vector3d tmpY = tmpPoint0 - tmpPoint1;
-	tmpY.normalize();
 
-	Eigen::Vector3d zDirection = xDirection.cross(tmpY);
-	zDirection.normalize();
+	Eigen::Vector3d xDirection = (tmpPoint0 - tmpPoint1).normalized();
 
-	Eigen::Vector3d yDirection = zDirection.cross(xDirection);
+	// 2. è®¡ç®— tmpPoint2 ç›¸å¯¹äº tmpPoint1 çš„æ–¹å‘
+	Eigen::Vector3d P12 = tmpPoint2 - tmpPoint1;
+
+	// 3. è®¡ç®— tmpPoint2 åœ¨ X è½´æ–¹å‘çš„æŠ•å½±
+	Eigen::Vector3d P12_proj_on_X = P12.dot(xDirection) * xDirection;
+
+	// 4. è®¡ç®—Yè½´ï¼ˆå»æ‰Xè½´åˆ†é‡ï¼Œå¹¶å½’ä¸€åŒ–ï¼‰
+	Eigen::Vector3d yDirection = (P12 - P12_proj_on_X).normalized();
+
+	// 5. è®¡ç®—Zè½´ï¼ˆXè½´å’ŒYè½´çš„å¤–ç§¯ï¼Œå¹¶å½’ä¸€åŒ–ï¼‰
+	Eigen::Vector3d zDirection = xDirection.cross(yDirection).normalized();
 
 	vtkSmartPointer<vtkMatrix4x4> targetInBase = vtkSmartPointer<vtkMatrix4x4>::New();
 	targetInBase->Identity();
@@ -566,13 +776,21 @@ void lancetAlgorithm::SystemPrecision::GoPlane(Eigen::Vector3d point0, Eigen::Ve
 	targetInBase->SetElement(1, 2, zDirection.y());
 	targetInBase->SetElement(2, 2, zDirection.z());
 
-	targetInBase->SetElement(0, 3, tmpPoint0.x());
-	targetInBase->SetElement(1, 3, tmpPoint0.y());
-	targetInBase->SetElement(2, 3, tmpPoint0.z());
+	targetInBase->SetElement(0, 3, tmpPoint1.x());
+	targetInBase->SetElement(1, 3, tmpPoint1.y());
+	targetInBase->SetElement(2, 3, tmpPoint1.z());
 
 	PrintDataHelper::CoutMatrix("GoPlane targetInBase: ", targetInBase);
+	DisplayTargetActor(targetInBase);
+	vtkSmartPointer<vtkMatrix4x4> tcp2Target = vtkSmartPointer<vtkMatrix4x4>::New();
 
-	m_DianaAimHardwareService->RobotTransformInBase(targetInBase->GetData());
+	auto TCP2ImageMatrix = m_TCPInRFActor->GetUserMatrix();  //Image2TCP
+	TCP2ImageMatrix->Invert();
+	auto Image2TargetMatrix = m_TargetPosActor->GetUserMatrix();
+	tcp2Target->DeepCopy(PreConcatenateMatrixs(TCP2ImageMatrix, Image2TargetMatrix));
+	PrintDataHelper::CoutMatrix("tcp2Target", tcp2Target);
+	m_DianaAimHardwareService->RobotTransformInTCP(tcp2Target->GetData());
+	//m_DianaAimHardwareService->RobotTransformInBase(targetInBase->GetData());
 }
 
 void lancetAlgorithm::SystemPrecision::LoadSingleMitkFile(mitk::DataStorage* dataStorage, std::string filePath, std::string nodeName)

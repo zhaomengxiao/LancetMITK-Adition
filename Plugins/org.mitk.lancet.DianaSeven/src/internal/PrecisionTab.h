@@ -16,12 +16,14 @@
 #include <mitkNodePredicateDataType.h>
 #include <mitkNodePredicateOr.h>
 #include <mitkColorProperty.h>
+#include <mitkIRenderWindowPart.h>
+
 class PrecisionTab :  public QWidget//, public Ui_DianaSevenControls
 {
 	Q_OBJECT
 public:
-
-	explicit PrecisionTab(Ui::DianaSevenControls ui,mitk::DataStorage* aDataStorage, lancetAlgorithm::DianaAimHardwareService* aDianaAimHardwareService,  QWidget* parent = nullptr);
+	explicit PrecisionTab(Ui::DianaSevenControls ui,mitk::DataStorage* aDataStorage, 
+		lancetAlgorithm::DianaAimHardwareService* aDianaAimHardwareService, QWidget* parent = nullptr);
 public slots:
 	void InitConnection();
 	void DisplayPrecisionToolBtnClicked();
@@ -37,6 +39,12 @@ public slots:
 	void ResetImageRegBtnClicked();
 	void SaveImageRegBtnClicked();
 	void ReuseImageRegBtnClicked();
+	void DisplayTCPAxesActorBtnClicked();
+	void SetIRenderWindowPart(mitk::IRenderWindowPart* aPart);
+	void DisplayTCPInRFBtnClicked();
+	void DisplayFlangeAxesActorBtnClicked();
+	void PrintTCPInCameraBtnClicked();
+	void GoLineByRobotBtnClicked();
 
 private:
 	void InitSurfaceSelector(mitk::DataStorage* dataStorage, QmitkSingleNodeSelectionWidget* widget);
@@ -52,6 +60,8 @@ private:
 	Ui::DianaSevenControls m_ui;
 	lancetAlgorithm::SystemPrecision* m_SystemPrecision;
 	lancetAlgorithm::DianaAimHardwareService* m_DianaAimHardwareService;
+	mitk::IRenderWindowPart* m_IRenderWindowPart;
+
 	mitk::DataStorage* m_dataStorage;
 
 };

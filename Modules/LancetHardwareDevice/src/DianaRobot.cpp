@@ -26,6 +26,15 @@ void DianaRobot::Connect()
 	}
 }
 
+void DianaRobot::Disconnect()
+{
+	int ret = destroySrv(m_IpAddress);
+	if (ret < 0)
+	{
+		printf("destroySrv failed! Return value = %d\n", ret);
+	}
+}
+
 void DianaRobot::PowerOn()
 {
 	releaseBrake();

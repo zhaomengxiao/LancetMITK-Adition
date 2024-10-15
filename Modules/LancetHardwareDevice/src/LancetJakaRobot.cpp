@@ -14,6 +14,12 @@ void LancetJakaRobot::Connect()
 	CHECK_ERROR_AND_RETURN(m_Robot.login_in(m_IpAddress));
 }
 
+void LancetJakaRobot::Disconnect()
+{
+	//TODO
+	std::cout << "TODO Disconnect" << std::endl;
+}
+
 void LancetJakaRobot::PowerOn()
 {
 	CHECK_ERROR_AND_RETURN(m_Robot.enable_robot());
