@@ -39,11 +39,12 @@ set(ARIEMEDI_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/AriemediDll/include")
 file(GLOB ARIEMEDI_LIB_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/AriemediDll/Release/*.lib")
 
 add_definitions(-DARMDCOMBINEDAPI_EXPORTS)
+############################################################################
+
 
 mitk_create_module(
   INCLUDE_DIRS
      PUBLIC ${ARIEMEDI_INCLUDE}
-############################################################################33
      PUBLIC ${AIMOOE_INCLUDE}
      PUBLIC ${Diana_INCLUDE}
      PUBLIC ${Hans_INCLUDE}
