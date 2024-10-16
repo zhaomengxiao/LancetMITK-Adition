@@ -11,14 +11,18 @@
 #include "surfaceregistraion.h"
 #include "DianaAimHardwareService.h"
 #include <PrintDataHelper.h>
-
+#include <mitkIRenderWindowPart.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowCollection.h>
+#include <QmitkRenderWindow.h>
+#include <vtkRendererCollection.h>
 namespace lancetAlgorithm
 {
 	class SystemPrecision : public QObject
 	{
 		Q_OBJECT
 	public:
-		SystemPrecision(mitk::DataStorage* aDataStorage, DianaAimHardwareService* aDianaAimHardwareService);
+		SystemPrecision(mitk::DataStorage* aDataStorage, DianaAimHardwareService* aDianaAimHardwareService, mitk::IRenderWindowPart* aIRenderWindowPart);
 		void DisplayPrecisionTool();
 		void DisplayProbe();
 		
@@ -27,6 +31,7 @@ namespace lancetAlgorithm
 		void SetGoLinePrecisionTCP(/*Eigen::Vector3d pointA, Eigen::Vector3d pointB*/);
 		void SetGoPlanePrecisionTCP();
 		void GoLine(Eigen::Vector3d point0, Eigen::Vector3d point1);
+		void GoLineByRobot(Eigen::Vector3d point0, Eigen::Vector3d point1);
 		void GoPlane(Eigen::Vector3d point0, Eigen::Vector3d point1, Eigen::Vector3d point2);
 		int CollectLandMarkPoints();
 		int CollectICPPoints();
@@ -34,6 +39,11 @@ namespace lancetAlgorithm
 		void UpdateDeviation();
 		vtkSmartPointer<vtkMatrix4x4> GetBoxRF2BoxMatrix();
 		void SetBoxRF2BoxMatrix(vtkMatrix4x4* matrix);
+		void DisplayTCPActor();
+		void DisplayTargetActor(vtkMatrix4x4* aMatrix);
+		void DisplayTCPInRF();
+		void DisplayFlangeAxesActor();
+		void PrintTCPInCamera(QTextBrowser* browser);
 	private slots:
 		void Update();
 	private:
@@ -41,9 +51,13 @@ namespace lancetAlgorithm
 		void UpdatePrecisionTestKit();
 
 		void UpdateProbe();
+		void UpdateTCPActor();
+		void UpdateTCPInRF();
+		void UpdateFlange();
 		std::pair<Eigen::Vector3d, Eigen::Vector3d> AveragePointInBase(Eigen::Vector3d aPointA, Eigen::Vector3d aPointB);
 		std::tuple<Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d> AveragePointInBase(Eigen::Vector3d aPointA, Eigen::Vector3d aPointB, Eigen::Vector3d aPointC);
 		std::pair<Eigen::Vector3d, Eigen::Vector3d> AveragePointInTCP(Eigen::Vector3d aPointA, Eigen::Vector3d aPointB);
+		vtkSmartPointer<vtkMatrix4x4> CalculateLineTargetInBase(Eigen::Vector3d point0, Eigen::Vector3d point1);
 		template<typename... Args>
 		static vtkSmartPointer<vtkMatrix4x4> PreConcatenateMatrixs(vtkMatrix4x4* m1, Args&... args)
 		{
@@ -85,9 +99,13 @@ namespace lancetAlgorithm
 		vtkSmartPointer<vtkMatrix4x4> CalculateBoxRF2Camera();
 		vtkSmartPointer<vtkMatrix4x4> CalculateLandmartBox2Camera();
 		static Eigen::Vector3d TransformByMatrix(Eigen::Vector3d in, vtkMatrix4x4* matrix);
+
+		vtkSmartPointer<vtkAxesActor> GenerateAxesActor(double axexLength = 30);
+		void AddAxesActor(vtkAxesActor*);
 	private:
 		mitk::DataStorage* m_dataStorage;
 		DianaAimHardwareService* m_DianaAimHardwareService;
+		mitk::IRenderWindowPart* m_IRenderWindowPart;
 		std::string m_PrecisionToolModelStr = "PrecisionTool";
 		std::string m_RobotEndRF = "RobotEndRF";
 		std::string m_RobotBaseRF = "RobotBaseRF";
@@ -97,8 +115,15 @@ namespace lancetAlgorithm
 		std::string m_VerificationBlockStr = "VerificationBlock";
 		vtkSmartPointer<vtkMatrix4x4> m_LandmarkRegistrationMatrix;  //box2BoxRF
 		vtkSmartPointer<vtkMatrix4x4> m_ICPRegistrationMatrix;
-		vtkSmartPointer<vtkMatrix4x4> m_FinalRegistrationMatrix;  //boxRF2box
+		vtkSmartPointer<vtkMatrix4x4> m_FinalRegistrationMatrix;  //box2boxRF
 		vtkSmartPointer<vtkMatrix4x4> m_Marker2TCPMatrix;
+		vtkSmartPointer<vtkAxesActor> m_TCPActor;
+		vtkSmartPointer<vtkAxesActor> m_TargetPosActor;
+		vtkSmartPointer<vtkAxesActor> m_TCPInRFActor;
+		vtkSmartPointer<vtkAxesActor> m_FlangeActor;
+		vtkSmartPointer<vtkMatrix4x4> m_TCamera2RobotTCP;
+		vtkSmartPointer<vtkMatrix4x4> m_Image2Camera;
+
 		bool m_IsDisplayPrecisionTool = false;
 		bool m_IsDisplayProbe = false;
 		mitk::PointSet::Pointer m_LandmarkPoints;

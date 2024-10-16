@@ -47,7 +47,6 @@ void DianaSeven::CreateQtPartControl(QWidget* parent)
 	connect(m_Controls.pushButton_initDiana_2, &QPushButton::clicked, this, &DianaSeven::initDianaNet);
 	connect(m_Controls.pushButton_cleanErrorInfo, &QPushButton::clicked, this, &DianaSeven::cleanAllErrorInfo);
 	//vega
-	connect(m_Controls.pushButton_connectVega, &QPushButton::clicked, this, &DianaSeven::UseVega);
 	connect(m_Controls.reciveData, &QPushButton::clicked, this, &DianaSeven::ReciveRobotData);
 	connect(m_Controls.servopOn, &QPushButton::clicked, this, &DianaSeven::ServoP);
 	//connect(m_Controls.closeServopOFF, &QPushButton::clicked, this, &DianaSeven::closeServopOff);
@@ -72,6 +71,19 @@ void DianaSeven::CreateQtPartControl(QWidget* parent)
 
 	InitHardwareDeviceTabConnection();
 	InitRobotRegistrationTabConnection();
+	auto renderWindowPart = this->GetRenderWindowPart();
+	if (nullptr != renderWindowPart)
+		this->RenderWindowPartActivated(renderWindowPart);
+}
+
+void DianaSeven::RenderWindowPartActivated(mitk::IRenderWindowPart* renderWindowPart)
+{
+	m_PrecisionTab->SetIRenderWindowPart(renderWindowPart);
+}
+
+void DianaSeven::RenderWindowPartDeactivated(mitk::IRenderWindowPart* renderWindowPart)
+{
+
 }
 
 void DianaSeven::initDianaNet()
@@ -102,11 +114,11 @@ void DianaSeven::StopDiana()
 	stop(m_RobotIpAddress);
 }
 
-void DianaSeven::PosAccuracy()//¾Å¸öµã
+void DianaSeven::PosAccuracy()//ä¹ä¸ªç‚¹
 {
 }
 
-void DianaSeven::PosRepeatability()//Á½¸öµãÀ´»Ø¶¯
+void DianaSeven::PosRepeatability()//ä¸¤ä¸ªç‚¹æ¥å›åŠ¨
 {
 }
 
@@ -114,24 +126,24 @@ void DianaSeven::PosRepeatability()//Á½¸öµãÀ´»Ø¶¯
 
 void DianaSeven::move_zzj()
 {
-	/*ÕûÌåË¼Â·£º¶ÁÈ¡»úĞµ±Ûµ±Ç°¹Ø½ÚÎ»ÖÃDJ1-7£»->×ª»¯ÎªÖá½Ç->Öá½Ç×ªÆë´Î±ä»»¾ØÕóA£¨µ±Ç°Î»×ËÏÂ£©
-	->ÓÒ³ËÒ»¸öÒÆ¶¯¾ØÕóB£¨Æ½ÒÆ£©-¡·µÃµ½¿ØÖÆ»úĞµ±ÛÔË¶¯µÄ¾ØÕó£¨Ä¿±êÎ»×Ë£©T-¡·
-		Æë´Î±ä»»¾ØÕóT×ªÄ¿±êÖá½Ç-¡·¶ÁÈ¡Ä¿±êÖá½Ç²¢ÔË¶¯µ½¸ÃÖá½Ç*/
+	/*æ•´ä½“æ€è·¯ï¼šè¯»å–æœºæ¢°è‡‚å½“å‰å…³èŠ‚ä½ç½®DJ1-7ï¼›->è½¬åŒ–ä¸ºè½´è§’->è½´è§’è½¬é½æ¬¡å˜æ¢çŸ©é˜µAï¼ˆå½“å‰ä½å§¿ä¸‹ï¼‰
+	->å³ä¹˜ä¸€ä¸ªç§»åŠ¨çŸ©é˜µBï¼ˆå¹³ç§»ï¼‰-ã€‹å¾—åˆ°æ§åˆ¶æœºæ¢°è‡‚è¿åŠ¨çš„çŸ©é˜µï¼ˆç›®æ ‡ä½å§¿ï¼‰T-ã€‹
+		é½æ¬¡å˜æ¢çŸ©é˜µTè½¬ç›®æ ‡è½´è§’-ã€‹è¯»å–ç›®æ ‡è½´è§’å¹¶è¿åŠ¨åˆ°è¯¥è½´è§’*/
 
-	//getJointPos(joints, strIpAddress);//¶ÁÈ¡DJ1-7
+	//getJointPos(joints, strIpAddress);//è¯»å–DJ1-7
 	//printf("getJointPos: %f ,%f, %f, %f, %f, %f, %f\n", joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6]);
 	//
-	//forward(joints, pose, nullptr, strIpAddress);//Dj11-7×ªx y z Rx Ry RzÖá½Ç
+	//forward(joints, pose, nullptr, strIpAddress);//Dj11-7è½¬x y z Rx Ry Rzè½´è§’
 	//printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
 
 	getTcpPos(pose, m_RobotIpAddress);
 	printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
 
-	pose2Homogeneous(pose, forward_Matrix);//Öá½Ç×ªÆë´Î±ä»»¾ØÕó
+	pose2Homogeneous(pose, forward_Matrix);//è½´è§’è½¬é½æ¬¡å˜æ¢çŸ©é˜µ
 	//PrintDataHelper::CoutMatrix("forward_Matrix", forward_Matrix);
 	//PrintDataHelper::PrintMatrix("forward_Matrix", forward_Matrix);
 
-	//forward_Matrix->ÓÒ³ËÒ»¸öÒÆ¶¯¾ØÕó->µÃµ½Ò»¸öT_newtargetMatrix
+	//forward_Matrix->å³ä¹˜ä¸€ä¸ªç§»åŠ¨çŸ©é˜µ->å¾—åˆ°ä¸€ä¸ªT_newtargetMatrix
 	double x = m_Controls.lineEdit_X->text().toDouble() / 1000;
 	double y = m_Controls.lineEdit_Y->text().toDouble() / 1000;
 	double z = m_Controls.lineEdit_Z->text().toDouble() / 1000;
@@ -171,17 +183,17 @@ void DianaSeven::move_zzj()
 
 void DianaSeven::move_test()
 {
-	//getJointPos(joints, strIpAddress);//¶ÁÈ¡DJ1-7
+	//getJointPos(joints, strIpAddress);//è¯»å–DJ1-7
 	//printf("getJointPos: %f ,%f, %f, %f, %f, %f, %f\n", joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6]);
 
-	//forward(joints, pose, nullptr, strIpAddress);//Dj11-7×ªx y z Rx Ry RzÖá½Ç
+	//forward(joints, pose, nullptr, strIpAddress);//Dj11-7è½¬x y z Rx Ry Rzè½´è§’
 	//printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
 
-	//pose2Homogeneous(pose, forward_Matrix);//Öá½Ç×ªÆë´Î±ä»»¾ØÕó
+	//pose2Homogeneous(pose, forward_Matrix);//è½´è§’è½¬é½æ¬¡å˜æ¢çŸ©é˜µ
 	////PrintDataHelper::CoutMatrix("forward_Matrix", forward_Matrix);
 	////PrintDataHelper::PrintMatrix("forward_Matrix", forward_Matrix);
 
-	////forward_Matrix->ÓÒ³ËÒ»¸öÒÆ¶¯¾ØÕó->µÃµ½Ò»¸öT_newtargetMatrix
+	////forward_Matrix->å³ä¹˜ä¸€ä¸ªç§»åŠ¨çŸ©é˜µ->å¾—åˆ°ä¸€ä¸ªT_newtargetMatrix
 	//double x = m_Controls.lineEdit_X->text().toDouble();
 	//double y = m_Controls.lineEdit_Y->text().toDouble();
 	//double z = m_Controls.lineEdit_Z->text().toDouble();
@@ -220,34 +232,34 @@ void DianaSeven::move_test()
 
 void DianaSeven::Refmove()
 {
-	//getJointPos(joints, strIpAddress);//¶ÁÈ¡DJ1-7
+	//getJointPos(joints, strIpAddress);//è¯»å–DJ1-7
 	//printf("getJointPos: %f ,%f, %f, %f, %f, %f, %f\n", joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6]);
 
-	//forward(joints, pose, nullptr, strIpAddress);//Dj11-7×ªx y z Rx Ry RzÖá½Ç
+	//forward(joints, pose, nullptr, strIpAddress);//Dj11-7è½¬x y z Rx Ry Rzè½´è§’
 	//printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
 
-	//pose2Homogeneous(pose, forward_Matrix);//Öá½Ç×ªÆë´Î±ä»»¾ØÕó
+	//pose2Homogeneous(pose, forward_Matrix);//è½´è§’è½¬é½æ¬¡å˜æ¢çŸ©é˜µ
 	////PrintDataHelper::CoutMatrix("forward_Matrix", forward_Matrix);
 	////PrintDataHelper::PrintMatrix("forward_Matrix", forward_Matrix);
 
-	////forward_Matrix->ÓÒ³ËÒ»¸öÒÆ¶¯¾ØÕó->µÃµ½Ò»¸öT_newtargetMatrix
+	////forward_Matrix->å³ä¹˜ä¸€ä¸ªç§»åŠ¨çŸ©é˜µ->å¾—åˆ°ä¸€ä¸ªT_newtargetMatrix
 	//double x = m_Controls.lineEdit_X->text().toDouble();
 	//double y = m_Controls.lineEdit_Y->text().toDouble();
 	//double z = m_Controls.lineEdit_Z->text().toDouble();
 
 	//vtkNew<vtkTransform> tmpTrans;
-	//tmpTrans->PostMultiply();//ÉèÖÃÓÒ³Ë
-	//tmpTrans->SetMatrix(forward_Matrix); // ÉèÖÃµ±Ç°µÄÆë´Î¾ØÕó
-	//tmpTrans->Translate(x, y, z); // Ó¦ÓÃÆ½ÒÆ±ä»»
-	//tmpTrans->Update(); // ¸üĞÂ±ä»»
+	//tmpTrans->PostMultiply();//è®¾ç½®å³ä¹˜
+	//tmpTrans->SetMatrix(forward_Matrix); // è®¾ç½®å½“å‰çš„é½æ¬¡çŸ©é˜µ
+	//tmpTrans->Translate(x, y, z); // åº”ç”¨å¹³ç§»å˜æ¢
+	//tmpTrans->Update(); // æ›´æ–°å˜æ¢
 
-	//// »ñÈ¡±ä»»¾ØÕó²¢½øĞĞ×ªÖÃ
+	//// è·å–å˜æ¢çŸ©é˜µå¹¶è¿›è¡Œè½¬ç½®
 	//vtkMatrix4x4* matrix = tmpTrans->GetMatrix();
 	//vtkNew<vtkMatrix4x4> transposedMatrix;
 	//transposedMatrix->DeepCopy(matrix);
 	//transposedMatrix->Transpose();
 	////PrintDataHelper::PrintMatrix("transposedMatrix", transposedMatrix);
-	//// ½«×ªÖÃ¾ØÕóµÄÊı¾İ¸´ÖÆµ½doubleÊı×éÖĞ
+	//// å°†è½¬ç½®çŸ©é˜µçš„æ•°æ®å¤åˆ¶åˆ°doubleæ•°ç»„ä¸­
 	//double T_newtargetMatrix[16];
 	//for (int i = 0; i < 16; ++i) {
 	//	T_newtargetMatrix[i] = transposedMatrix->GetElement(i / 4, i % 4);
@@ -359,132 +371,9 @@ void DianaSeven::setTcp()
 
 }
 
-void DianaSeven::UseVega()
-{
-	m_Controls.pushButton_connectVega->setText("Vega Connecting...");
-	//read in filename
-	QString filename = QFileDialog::getOpenFileName(nullptr, tr("Open Tool Storage"), "/C:/Users/lancet/Desktop/fx",
-		tr("Tool Storage Files (*.IGTToolStorage)"));
-	if (filename.isNull()) return;
-
-	mitk::NavigationToolStorageDeserializer::Pointer myDeserializer = mitk::NavigationToolStorageDeserializer::New(
-		GetDataStorage());
-	m_VegaToolStorage = myDeserializer->Deserialize(filename.toStdString());
-	m_VegaToolStorage->SetName(filename.toStdString());
-
-	MITK_INFO << "Vega tracking";
-	//QMessageBox::warning(nullptr, "Warning", "You have to set the parameters for the NDITracking device inside the code (QmitkIGTTutorialView::OnStartIGT()) before you can use it.");
-	lancet::NDIVegaTrackingDevice::Pointer vegaTrackingDevice = lancet::NDIVegaTrackingDevice::New(); //instantiate
-
-	//Create Navigation Data Source with the factory class, and the visualize filter.
-	lancet::TrackingDeviceSourceConfiguratorLancet::Pointer vegaSourceFactory =
-		lancet::TrackingDeviceSourceConfiguratorLancet::New(m_VegaToolStorage, vegaTrackingDevice);
-
-	m_VegaSource = vegaSourceFactory->CreateTrackingDeviceSource(m_VegaVisualizer);
-	m_VegaSource->SetToolMetaDataCollection(m_VegaToolStorage);
-	m_VegaSource->Connect();
-
-	m_VegaSource->StartTracking();
-
-
-	//update visualize filter by timer
-	if (m_VegaVisualizeTimer == nullptr)
-	{
-		m_VegaVisualizeTimer = new QTimer(this); //create a new timer
-	}
-	connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(OnVegaVisualizeTimer()));
-	//connect the timer to the method OnTimer()
-	connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateToolStatusWidget()));
-	connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(CalculatePositionAverage(mitk::AffineTransform3D::Pointer  m_ProbeRealTimePose)));
-
-	connect(m_VegaVisualizeTimer, &QTimer::timeout, this, &DianaSeven::ComputeProbeToProbeNewMatrix);
-
-	//connect(m_VegaVisualizeTimer, SIGNAL(timeout()), this, SLOT(TargetPointData()));
-
-	// m_probeToProbeNewMatrix = ComputeProbeToProbeNewMatrix(dCoord);
-	// TargetPointData();
-
-
-	//connect the timer to the method OnTimer()
-	ShowToolStatus_Vega();
-	m_VegaVisualizeTimer->start(10); //Every 100ms the method OnTimer() is called. -> 10fps
-
-
-	auto probeindex = m_VegaToolStorage->GetToolIndexByName("Probe");
-
-	MITK_INFO << "probeindex:" << probeindex;
-
-	mitk::NavigationData::Pointer const InitNavigationData = m_VegaSource->GetOutput(probeindex)->Clone();
-
-	mitk::TransferItkTransformToVtkMatrix(InitNavigationData->GetAffineTransform3D().GetPointer(), m_ndiToprobe);
-
-	m_ndiToprobe->Print(std::cout);
-
-	MITK_INFO << "Center:" << InitNavigationData->GetAffineTransform3D()->GetCenter()[0];
-
-
-	auto geo = this->GetDataStorage()->ComputeBoundingGeometry3D(this->GetDataStorage()->GetAll());
-	mitk::RenderingManager::GetInstance()->InitializeViews(geo);
-
-	//use navigation scene filter
-	cout << "Vega Connected Successfully!" << std::endl;
-	m_Controls.pushButton_connectVega->setText("Vega Connected Successfully!");
-}
-
-void DianaSeven::OnVegaVisualizeTimer()
-{
-	if (m_VegaVisualizer.IsNotNull())
-	{
-		m_VegaVisualizer->Update();
-		this->RequestRenderWindowUpdate();
-		//update probe pose
-		auto  probe = m_VegaSource->GetOutput("Probe")->GetAffineTransform3D(); //F_NDI_Probe
-		auto objectRf = m_VegaSource->GetOutput("ObjectRf");
-		if (probe != nullptr && objectRf != nullptr)
-		{
-			probe->Compose(m_VegaSource->GetOutput("ObjectRf")->GetInverse()->GetAffineTransform3D());  //F_ObjectRf_NDI
-		}
-	}
-}
-
-void DianaSeven::UpdateToolStatusWidget()
-{
-	m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
-}
-
-void DianaSeven::ShowToolStatus_Vega()
-{
-	m_VegaNavigationData.clear();
-	for (std::size_t i = 0; i < m_VegaSource->GetNumberOfOutputs(); i++)
-	{
-		m_VegaNavigationData.push_back(m_VegaSource->GetOutput(i));
-	}
-	//initialize widget
-	m_Controls.m_StatusWidgetVegaToolToShow->RemoveStatusLabels();
-	m_Controls.m_StatusWidgetVegaToolToShow->SetShowPositions(true);
-	m_Controls.m_StatusWidgetVegaToolToShow->SetTextAlignment(Qt::AlignLeft);
-	m_Controls.m_StatusWidgetVegaToolToShow->SetNavigationDatas(&m_VegaNavigationData);
-	m_Controls.m_StatusWidgetVegaToolToShow->ShowStatusLabels();
-}
-
-void DianaSeven::on_pushButton_getProbeInit_clicked()
-{
-	auto probeindex = m_VegaToolStorage->GetToolIndexByName("Probe");
-
-	MITK_INFO << "probeindex:" << probeindex;
-
-	mitk::NavigationData::Pointer const InitNavigationData = m_VegaSource->GetOutput(probeindex)->Clone();
-
-	mitk::TransferItkTransformToVtkMatrix(InitNavigationData->GetAffineTransform3D().GetPointer(), m_ndiToprobe);
-
-	m_ndiToprobe->Print(std::cout);
-
-	MITK_INFO << "Center:" << InitNavigationData->GetAffineTransform3D()->GetCenter()[0];
-}
-
 void DianaSeven::ReciveRobotData()
 {
-	getJointPos(joints, m_RobotIpAddress);//¶ÁÈ¡DJ1-7
+	getJointPos(joints, m_RobotIpAddress);//è¯»å–DJ1-7
 	printf("getJointPos: %f ,%f, %f, %f, %f, %f, %f\n", joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6]);
 
 	dCoord = { dX, dY, dZ, dRx, dRy, dRz };
@@ -498,7 +387,7 @@ void DianaSeven::ServoP()
 	}
 	else
 	{
-		double* TargetPose = dTargetPoint.data();//Ê¹ÓÃdata£¨£©·½·¨½«vector±äÁ¿×ª»¯Îªdouble
+		double* TargetPose = dTargetPoint.data();//ä½¿ç”¨dataï¼ˆï¼‰æ–¹æ³•å°†vectorå˜é‡è½¬åŒ–ä¸ºdouble
 
 		int StartServo = servoJ_ex(TargetPose, 0.002, 0.08, 150, false, m_RobotIpAddress);
 		MITK_INFO << "TargetPose:" << TargetPose[0] << "," << TargetPose[1] << "," << TargetPose[2] << "," << TargetPose[3]
@@ -513,9 +402,9 @@ void DianaSeven::ServoP()
 void DianaSeven::OnServoPSendCommand()
 {
 	clock_t start;
-	start = clock();//²âÁ¿Ê±¼ä¡¢¶¨Ê±Æ÷
+	start = clock();//æµ‹é‡æ—¶é—´ã€å®šæ—¶å™¨
 
-	double* TargetPose = dTargetPoint.data();//Ê¹ÓÃdata£¨£©·½·¨½«vector±äÁ¿×ª»¯Îªdouble
+	double* TargetPose = dTargetPoint.data();//ä½¿ç”¨dataï¼ˆï¼‰æ–¹æ³•å°†vectorå˜é‡è½¬åŒ–ä¸ºdouble
 
 	servoJ_ex(TargetPose, 0.002, 0.08, 150, false,m_RobotIpAddress);
 	//servoL_ex(dTargetPoint, 0.02, 0.08, 150, false);
@@ -539,9 +428,9 @@ void DianaSeven::TargetPointData()//?
 		m_probeToProbeNewMatrix->GetElement(2, 0), m_probeToProbeNewMatrix->GetElement(2, 1), m_probeToProbeNewMatrix->GetElement(2, 2);
 
 	Eigen::Vector3d eulerAngle = m_probeToprobeNew.eulerAngles(0, 1, 2);
-	// ×ª»»Îª½Ç¶È
+	// è½¬æ¢ä¸ºè§’åº¦
 	eulerAngle = eulerAngle * (180.0 / PI);
-	//Ğı×ªË³Ğòz-y-x
+	//æ—‹è½¬é¡ºåºz-y-x
 	dTargetPoint.clear();
 	dTargetPoint.push_back(m_probeToProbeNewMatrix->GetElement(0, 3));
 	dTargetPoint.push_back(m_probeToProbeNewMatrix->GetElement(1, 3));
@@ -626,8 +515,35 @@ void DianaSeven::InitRobotRegistrationTabConnection()
 	connect(m_Controls.RobotAutoRegistationBtn, &QPushButton::clicked, this, [this]() {m_DianaAimHardwareService->RobotAutoRegistration(); } );
 	connect(m_Controls.ResetRobotRegistrationBtn, &QPushButton::clicked, this, [this]()
 		{m_Controls.CaptureCountLineEdit->setText(QString::number(m_DianaAimHardwareService->ResetRobotRegistration())); });
-	connect(m_Controls.SaveRobotRegistrationBtn, &QPushButton::clicked, this, [this]() {std::cout << "save" << std::endl; });
-	connect(m_Controls.ReuseRobotRegistationBtn, &QPushButton::clicked, this, [this]() {std::cout << "Reuse" << std::endl; });
+
+	connect(m_Controls.SaveRobotRegistrationBtn, &QPushButton::clicked, this, [this]() 
+		{
+			std::cout << "save" << std::endl; 
+			QString filename = QFileDialog::getExistingDirectory(nullptr, "Select the Tools store folder", "");
+			if (filename.isNull()) return;
+			std::string baseRF2ToBaseFileName = "T_BaseRFToBase.txt";
+			std::string flangeToEndRFFileName = "T_FlangeToEndRF.txt";
+
+			FileIO::SaveMatrix2File(FileIO::CombinePath(filename.toStdString(), baseRF2ToBaseFileName).string(), m_DianaAimHardwareService->GetBaseRF2BaseMatrix());
+			FileIO::SaveMatrix2File(FileIO::CombinePath(filename.toStdString(), flangeToEndRFFileName).string(), m_DianaAimHardwareService->GetEnd2EndRFMatrix());
+		});
+	connect(m_Controls.ReuseRobotRegistationBtn, &QPushButton::clicked, this, [this]() 
+		{
+			std::cout << "Reuse" << std::endl; 
+			QString filename = QFileDialog::getExistingDirectory(nullptr, "Select the Tools store folder", "");
+			if (filename.isNull()) return;
+			std::string baseToBaseRFFileName = "T_BaseRFToBase.txt";
+			std::string flangeToEndRFFileName = "T_FlangeToEndRF.txt";
+			vtkSmartPointer<vtkMatrix4x4> baseRFToBase = vtkSmartPointer<vtkMatrix4x4>::New();
+			vtkSmartPointer<vtkMatrix4x4> flangeToEndRF = vtkSmartPointer<vtkMatrix4x4>::New();
+			FileIO::ReadTextFileAsvtkMatrix(FileIO::CombinePath(filename.toStdString(), baseToBaseRFFileName).string(), baseRFToBase);
+			FileIO::ReadTextFileAsvtkMatrix(FileIO::CombinePath(filename.toStdString(), flangeToEndRFFileName).string(), flangeToEndRF);
+			m_DianaAimHardwareService->SetBaseRF2BaseMatrix(baseRFToBase);
+			m_DianaAimHardwareService->SetEnd2EndRFMatrix(flangeToEndRF);
+			PrintDataHelper::CoutMatrix("TBaseRF2Base", baseRFToBase);
+			PrintDataHelper::CoutMatrix("TFlange2EndRF", flangeToEndRF);
+		});
+
 	connect(m_Controls.StopRobotMoveBtn, &QPushButton::clicked, this, [this]() {m_DianaAimHardwareService->StopMove(); });
 	connect(m_Controls.ClearRobotErrorInfoBtn, &QPushButton::clicked, this, [this]() {m_DianaAimHardwareService->CleanRobotErrorInfo(); });
 
@@ -656,51 +572,6 @@ bool DianaSeven::Rotate(const double axis[3])
 {
 	m_DianaAimHardwareService->Rotate(axis, m_Controls.RotateAngleLineEdit->text().toDouble());
 	return true;
-}
-
-void DianaSeven::ComputeProbeToProbeNewMatrix()
-{
-	// »ñÈ¡,probeµÄindex, ²¢»ñÈ¡µ±Ç°Ê±¼äµãµÄ NavigationData
-	auto probeIndex = m_VegaToolStorage->GetToolIndexByName("Probe");
-	mitk::NavigationData::Pointer const currentNavigationData = m_VegaSource->GetOutput(probeIndex)->Clone();
-
-	m_currentProbeMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-
-	// Navigationdata ×ª»»Îª4x4¾ØÕó
-
-	mitk::TransferItkTransformToVtkMatrix(currentNavigationData->GetAffineTransform3D().GetPointer(), m_currentProbeMatrix);
-	//MITK_INFO << "probe runtime";
-	//m_currentProbeMatrix->Print(std::cout);
-	// Convert Euler angle and Tranlate to 4x4 Translation Matrix
-	auto tmpTrans = vtkTransform::New();
-	tmpTrans->Identity(); // initialize
-	tmpTrans->PostMultiply(); // tmpTrans->Premultiply();
-	tmpTrans->RotateZ(dCoord[3]);
-	tmpTrans->RotateY(dCoord[4]);
-	tmpTrans->RotateX(dCoord[5]);
-
-	double translation[3] = { dCoord[0], dCoord[1], dCoord[2] };
-
-	tmpTrans->Translate(translation);
-	tmpTrans->Update();
-	m_init_robotMatrix = tmpTrans->GetMatrix();
-
-
-
-	// ¼ÆËãFprobeµ½Fprobe_newµÄ±ä»»¾ØÕó
-	vtkSmartPointer<vtkMatrix4x4> probeToprobeNew = vtkSmartPointer<vtkMatrix4x4>::New();
-	vtkMatrix4x4::Invert(m_ndiToprobe, probeToprobeNew); // ¼ÆËã m_ndiToprobe µÄÄæ¾ØÕó²¢´æ´¢ÔÚ resultMatrix ÖĞ
-	//MITK_INFO << "m_ndiToprobe";
-	//m_ndiToprobe->Print(std::cout);
-
-	vtkMatrix4x4::Multiply4x4(probeToprobeNew, m_currentProbeMatrix, probeToprobeNew); // ¼ÆËãÄæ¾ØÕóÓë m_ndiToprobe_new µÄ³Ë»ı²¢¸üĞÂ resultMatrix
-	//MITK_INFO << "m_ndiToprobe_new";
-	//probeToprobeNew->Print(std::cout);
-	vtkMatrix4x4::Multiply4x4(m_init_robotMatrix, probeToprobeNew, probeToprobeNew); // ¼ÆËãÄæ¾ØÕóÓë T_robot µÄ³Ë»ı²¢¸üĞÂ resultMatrix
-
-	m_probeToProbeNewMatrix = probeToprobeNew;
-
-	TargetPointData();
 }
 
 void DianaSeven::ConnectRobotBtnClicked()
@@ -854,43 +725,6 @@ void DianaSeven::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,
 
 void DianaSeven::DoImageProcessing()
 {
-  //QList<mitk::DataNode::Pointer> nodes = this->GetDataManagerSelection();
-  //if (nodes.empty())
-  //  return;
-
-  //mitk::DataNode *node = nodes.front();
-
-  //if (!node)
-  //{
-  //  // Nothing selected. Inform the user and return
-  //  QMessageBox::information(nullptr, "Template", "Please load and select an image before starting image processing.");
-  //  return;
-  //}
-
-  //// here we have a valid mitk::DataNode
-
-  //// a node itself is not very useful, we need its data item (the image)
-  //mitk::BaseData *data = node->GetData();
-  //if (data)
-  //{
-  //  // test if this data item is an image or not (could also be a surface or something totally different)
-  //  mitk::Image *image = dynamic_cast<mitk::Image *>(data);
-  //  if (image)
-  //  {
-  //    std::stringstream message;
-  //    std::string name;
-  //    message << "Performing image processing for image ";
-  //    if (node->GetName(name))
-  //    {
-  //      // a property called "name" was found for this DataNode
-  //      message << "'" << name << "'";
-  //    }
-  //    message << ".";
-  //    MITK_INFO << message.str();
-
-  //    // actually do something here...
-  //  }
-  //}
 }
 
 void DianaSeven::InitGlobalVariable()
@@ -911,27 +745,5 @@ void DianaSeven::InitGlobalVariable()
 	m_ImpedaLineEdits.push_back(m_Controls.arrStiffRZLineEdit);
 	m_ImpedaLineEdits.push_back(m_Controls.DampingRatioLineEdit);
 }
-
-//int main()
-//{
-//	std::cout << "Hello World!\n";
-//	srv_net_st* pinfo = new srv_net_st();
-//	memset(pinfo->SrvIp, 0x00, sizeof(pinfo->SrvIp));
-//	memcpy(pinfo->SrvIp, "192.168.10.75", strlen("192.168.10.75"));
-//	pinfo->LocHeartbeatPort = 0;
-//	pinfo->LocRobotStatePort = 0;
-//	pinfo->LocSrvPort = 0;
-//	int ret = initSrv(nullptr, nullptr, pinfo);
-//	if (ret < 0)
-//	{
-//		printf("192.168.10.75 initSrv failed! Return value = %d\n", ret);
-//	}
-//	if (pinfo)
-//	{
-//		delete pinfo;
-//		pinfo = nullptr;
-//	}
-//	releaseBrake();
-//}
 
 

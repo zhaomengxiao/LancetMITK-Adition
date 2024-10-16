@@ -1,15 +1,17 @@
 #include "PrecisionTab.h"
 
-PrecisionTab::PrecisionTab(Ui::DianaSevenControls ui,mitk::DataStorage* aDataStorage, lancetAlgorithm::DianaAimHardwareService* aDianaAimHardwareService, QWidget*  parent) : QWidget(parent)
+PrecisionTab::PrecisionTab(Ui::DianaSevenControls ui,mitk::DataStorage* aDataStorage,
+	lancetAlgorithm::DianaAimHardwareService* aDianaAimHardwareService, QWidget*  parent) : QWidget(parent)
 {
 	m_ui = ui;
 	m_DianaAimHardwareService = aDianaAimHardwareService;
 	m_dataStorage = aDataStorage;
+	//m_IRenderWindowPart = aIRenderWindowPart;
 	if (!m_dataStorage)
 	{
 		std::cout << "m_dataStorage is nullptr" << std::endl;
-	}//here
-	m_SystemPrecision = new lancetAlgorithm::SystemPrecision(m_dataStorage, m_DianaAimHardwareService);
+	}
+	
 	InitSurfaceSelector(m_dataStorage, m_ui.SurfaceRegSelectWidget);
 	InitPointSetSelector(m_dataStorage, m_ui.LandmarkPointRegSelectWidget);
 	InitPointSetSelector(m_dataStorage, m_ui.ImageTargetLineSelectWidget);
@@ -51,6 +53,11 @@ void PrecisionTab::InitConnection()
 	connect(m_ui.SaveImageRegBtn, &QPushButton::clicked, this, &PrecisionTab::SaveImageRegBtnClicked);
 	connect(m_ui.ReuseImageRegBtn, &QPushButton::clicked, this, &PrecisionTab::ReuseImageRegBtnClicked);
 	connect(m_ui.SetGoPlaneTCPBtn, &QPushButton::clicked, this, &PrecisionTab::SetGoPlaneTCPBtnClicked);
+	connect(m_ui.DisplayTCPAxesActorBtn, &QPushButton::clicked, this, &PrecisionTab::DisplayTCPAxesActorBtnClicked);
+	connect(m_ui.DisplayTCPInRFBtn, &QPushButton::clicked, this, &PrecisionTab::DisplayTCPInRFBtnClicked);
+	connect(m_ui.DisplayFlangeAxesActorBtn, &QPushButton::clicked, this, &PrecisionTab::DisplayFlangeAxesActorBtnClicked);
+	connect(m_ui.PrintTCPInCameraBtn, &QPushButton::clicked, this, &PrecisionTab::PrintTCPInCameraBtnClicked);
+	connect(m_ui.GoLineByRobotBtn, &QPushButton::clicked, this, &PrecisionTab::GoLineByRobotBtnClicked);
 }
 
 void PrecisionTab::DisplayPrecisionToolBtnClicked()
@@ -129,8 +136,45 @@ void PrecisionTab::ReuseImageRegBtnClicked()
 
 	vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	FileIO::ReadTextFileAsvtkMatrix(path, matrix);
-
+	PrintDataHelper::CoutMatrix("ReuseImageRegBtnClicked", matrix);
 	m_SystemPrecision->SetBoxRF2BoxMatrix(matrix);
+}
+
+void PrecisionTab::DisplayTCPAxesActorBtnClicked()
+{
+	std::cout << "DisplayTCPAxesActorBtnClicked" << std::endl;
+	m_SystemPrecision->DisplayTCPActor();
+}
+
+void PrecisionTab::SetIRenderWindowPart(mitk::IRenderWindowPart* aPart)
+{
+	m_IRenderWindowPart = aPart;
+	m_SystemPrecision = new lancetAlgorithm::SystemPrecision(m_dataStorage, m_DianaAimHardwareService, m_IRenderWindowPart);
+}
+
+void PrecisionTab::DisplayTCPInRFBtnClicked()
+{
+	m_SystemPrecision->DisplayTCPInRF();
+}
+
+void PrecisionTab::DisplayFlangeAxesActorBtnClicked()
+{
+	m_SystemPrecision->DisplayFlangeAxesActor();
+}
+
+void PrecisionTab::PrintTCPInCameraBtnClicked()
+{
+	m_SystemPrecision->PrintTCPInCamera(m_ui.textBrowser);
+}
+
+void PrecisionTab::GoLineByRobotBtnClicked()
+{
+	auto targetLinePoints = dynamic_cast<mitk::PointSet*>(m_ui.ImageTargetLineSelectWidget->GetSelectedNode()->GetData());
+	auto targetPoint_0 = targetLinePoints->GetPoint(0); // TCP frame origin should move to this point
+	auto targetPoint_1 = targetLinePoints->GetPoint(1);
+	Eigen::Vector3d point0(targetPoint_0[0], targetPoint_0[1], targetPoint_0[2]);
+	Eigen::Vector3d point1(targetPoint_1[0], targetPoint_1[1], targetPoint_1[2]);
+	m_SystemPrecision->GoLineByRobot(point0, point1);
 }
 
 void PrecisionTab::InitSurfaceSelector(mitk::DataStorage* dataStorage, QmitkSingleNodeSelectionWidget* widget)
