@@ -3,7 +3,7 @@
 LancetHansRobot::LancetHansRobot()
 {
 	m_InitialPos = vtkSmartPointer<vtkMatrix4x4>::New();
-	m_InitialJointAngle = { 0,0,0,0,0,0 };
+	m_initJoints = { 0,0,0,0,0,0 };
 	m_FlangeToTCP = vtkSmartPointer<vtkMatrix4x4>::New();
 	m_FlangeToTCP->Identity();
 	PrintDataHelper::CoutMatrix("m_FlangeToTCP_Identity_matrix", m_FlangeToTCP);
@@ -65,7 +65,7 @@ void LancetHansRobot::Rotate(double* aDirection, double aAngle)
 
 void LancetHansRobot::RecordInitialPos()
 {
-	int ret = HRIF_ReadActJointPos(0,0, m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0]);
+	int ret = HRIF_ReadActJointPos(0,0, m_initJoints[0], m_initJoints[1], m_initJoints[2], m_initJoints[3], m_initJoints[4], m_initJoints[5]);
 	PrintDataHelper::CoutMatrix("RecordInitialPos", m_InitialPos);
 }
 
@@ -86,7 +86,7 @@ void LancetHansRobot::GoToInitialPos()
 	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
 	// 执行路点运动
 	int nRet = HRIF_WayPointEx(0, 0, nMoveType, translation[0], translation[1], translation[2], rotation[0], rotation[1], rotation[2],
-		m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], m_InitialJointAngle[0], tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
+		m_initJoints[0], m_initJoints[1], m_initJoints[2], m_initJoints[3], m_initJoints[4], m_initJoints[5], tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
 		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz, dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit,
 		nIOState, strCmdID);
 }

@@ -9,7 +9,7 @@
 #include "Environment.h"
 #include "FunctionOptDef.h"
 #include "MitkLancetHardwareDeviceExports.h"
-template<size_t N>
+
 class MITKLANCETHARDWAREDEVICE_EXPORT DianaRobot : public AbstractRobot
 {
 public:
@@ -61,6 +61,6 @@ public:
 
 private:
 	double m_InitialPos[6] = { 0,0,0,0,0,0 };
-	double m_jointsPos [6] = { 0,0,0,0,0,0 };
+	//double m_jointsPos [6] = { 0,0,0,0,0,0 };
 };
 #endif

@@ -93,12 +93,20 @@ void DianaRobot::Rotate(double* aDirection, double aAngle)
 
 void DianaRobot::RecordInitialPos()
 {
-	getJointPos(m_jointsPos, m_IpAddress);
+	
+	int num = m_initJoints.size();
+	double* initjointAngles = new double[num];
+	getJointPos(initjointAngles, m_IpAddress);
+	for (int i = 0; i < num; ++i)
+	{
+		m_initJoints[i]=(initjointAngles[i]);
+	}
+	delete[] initjointAngles;
 }
 
 void DianaRobot::GoToInitialPos()
 {
-	moveJToTarget(m_jointsPos, 0.2, 0.4);
+	SetJointAngles(m_initJoints);
 	WaitMove();
 }
 
@@ -187,7 +195,7 @@ std::vector<double> DianaRobot::GetJointAngles()
 
 void DianaRobot::SetJointAngles(std::vector<double> aJointAngles)
 {
-	if (aJointAngles.size() != 7)
+	if (aJointAngles.size() != m_initJoints.size())
 		return;
 	auto range = this->GetJointAngleLimits();
 	double angles[7] = { 0.0 };

@@ -23,15 +23,10 @@ found in the LICENSE file.
 #include <QApplication>
 #include <QThread>
 #include <MitkLancetHardwareDeviceExports.h>
-template<size_t N>
+
 class MITKLANCETHARDWAREDEVICE_EXPORT AbstractRobot : public QObject
 {
 public:
-	AbstractRobot() {
-		for (size_t i = 0; i < N; ++i) {
-			joints[i] = 0.0;
-		}
-	}
 	virtual void Connect() = 0;
 	virtual void Disconnect() = 0;
 	virtual void PowerOn() = 0;
@@ -72,7 +67,7 @@ public:
 
 protected:
 	const char* m_IpAddress;
-	double m_initialJoints[N];
+	std::vector<double> m_initJoints;
 };
 
 #endif
