@@ -40,7 +40,7 @@ void HansRobot::CreateQtPartControl(QWidget *parent)
   // create GUI widgets from the Qt Designer's .ui file
   m_Controls.setupUi(parent);
 
-  m_Robot = new LancetHansRobot();
+  m_Robot = new DianaRobot();
   m_Camera = new AimCamera();
   m_ConnectionTab = new ConnectionTab(m_Controls, this->GetDataStorage(), m_Robot, m_Camera);
 

@@ -61,10 +61,9 @@ public:
 	bool SetVelocity(double aVelocity) override;
 
 	void WaitMove() override;
-
-	void ResetRegistration();
-
-	void ReuseRegistration();
+  
+	//test 
+	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
 private:
 	Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
 	vtkSmartPointer<vtkMatrix4x4> GetMatrixByRotationAndTranslation(Eigen::Matrix3d aRotation, Eigen::Vector3d aTranslation);
@@ -84,25 +83,25 @@ private:
 	vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
 	vtkSmartPointer<vtkMatrix4x4> m_FlangeToTCP;
 private:
-	// ¶¨Òå¹¤¾ß×ø±ê±äÁ¿
+	// å®šä¹‰å·¥å…·åæ ‡å˜é‡
 	std::string sTcpName = "TCP";
-	// ¶¨ÒåÓÃ»§×ø±ê±äÁ¿
+	// å®šä¹‰ç”¨æˆ·åæ ‡å˜é‡
 	std::string sUcsName = "Base";
-	// ¶¨ÒåÔË¶¯ËÙ¶È
+	// å®šä¹‰è¿åŠ¨é€Ÿåº¦
 	double dVelocity = 30;
-	// ¶¨ÒåÔË¶¯¼ÓËÙ¶È
+	// å®šä¹‰è¿åŠ¨åŠ é€Ÿåº¦
 	double dAcc = 50;
-	// ¶¨Òå¹ı¶É°ë¾¶
+	// å®šä¹‰è¿‡æ¸¡åŠå¾„
 	double dRadius = 50;
-	// ¶¨ÒåÊÇ·ñÊ¹ÓÃ¹Ø½Ú½Ç¶È
+	// å®šä¹‰æ˜¯å¦ä½¿ç”¨å…³èŠ‚è§’åº¦
 	int nIsUseJoint = 1;
-	// ¶¨ÒåÊÇ·ñÊ¹ÓÃ¼ì²â DI Í£Ö¹
+	// å®šä¹‰æ˜¯å¦ä½¿ç”¨æ£€æµ‹ DI åœæ­¢
 	int nIsSeek = 0;
-	// ¶¨Òå¼ì²âµÄ DI Ë÷Òı
+	// å®šä¹‰æ£€æµ‹çš„ DI ç´¢å¼•
 	int nIOBit = 0;
-	// ¶¨Òå¼ì²âµÄ DI ×´Ì¬
+	// å®šä¹‰æ£€æµ‹çš„ DI çŠ¶æ€
 	int nIOState = 0;
-	// ¶¨ÒåÂ·µã ID 
+	// å®šä¹‰è·¯ç‚¹ ID 
 	string strCmdID = "0";
 
 	int nMoveType = 0;
