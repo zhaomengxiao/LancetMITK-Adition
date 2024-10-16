@@ -216,5 +216,4 @@ void AriemediCamera::UpdateData()
 	UpdateImageData();
 
 	emit CameraUpdateClock();
-
 }

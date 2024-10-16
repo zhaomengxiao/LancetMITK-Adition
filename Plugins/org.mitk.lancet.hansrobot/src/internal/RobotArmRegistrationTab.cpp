@@ -23,51 +23,51 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 
 	connect(m_ui.pushButton_xp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->xp();
-		m_ui.textBrowser_hans->append(QString("xp"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_yp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->yp();
-		m_ui.textBrowser_hans->append(QString("yp"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_zp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->zp();
-		m_ui.textBrowser_hans->append(QString("zp"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_xm_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->xm();
-		m_ui.textBrowser_hans->append(QString("xm"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_ym_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->ym();
-		m_ui.textBrowser_hans->append(QString("ym"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_zm_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->zm();
-		m_ui.textBrowser_hans->append(QString("zm"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_rxp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->rxp();
-		m_ui.textBrowser_hans->append(QString("rxp"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_ryp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->ryp();
-		m_ui.textBrowser_hans->append(QString("ryp"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_rzp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->rzp();
-		m_ui.textBrowser_hans->append(QString("rzp"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_rxm_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->rxm();
-		m_ui.textBrowser_hans->append(QString("rxm"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_rym_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->rym();
-		m_ui.textBrowser_hans->append(QString("rym"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	connect(m_ui.pushButton_rzm_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->rzm();
-		m_ui.textBrowser_hans->append(QString("rzm"));
+		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
 		});
 	//Åä×¼
 	connect(m_ui.pushButton_setTCPToFlange_2, &QPushButton::clicked, this, [this]() {
