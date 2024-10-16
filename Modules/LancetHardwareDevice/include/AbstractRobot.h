@@ -27,6 +27,10 @@ found in the LICENSE file.
 class MITKLANCETHARDWAREDEVICE_EXPORT AbstractRobot : public QObject
 {
 public:
+	AbstractRobot(int N = 6)
+	{
+		m_initJoints.resize(N);
+	}
 	virtual void Connect() = 0;
 	virtual void Disconnect() = 0;
 	virtual void PowerOn() = 0;

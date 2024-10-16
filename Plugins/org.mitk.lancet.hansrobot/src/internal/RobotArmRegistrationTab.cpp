@@ -126,7 +126,7 @@ void RobotArmRegistrationTab::RepeatPositionTest()
 void RobotArmRegistrationTab::AboslutePositionTest()
 {
 	// 立方体的边长，单位：mm
-	double cube_length = 100;
+	double cube_length = 300;
 
 	// 定义点的名称
 	const char* pointNames[] = { "a", "b", "c", "d", "e", "f", "g", "h" };
