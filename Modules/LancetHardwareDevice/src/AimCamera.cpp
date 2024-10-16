@@ -62,6 +62,11 @@ void AimCamera::Connect()
 	rlt = AIMOOE_OK;
 }
 
+void AimCamera::Disconnect()
+{
+	Aim_API_Close(m_AimHandle);
+}
+
 void AimCamera::Start()
 {
 	if (rlt != AIMOOE_OK)
@@ -210,9 +215,6 @@ bool AimCamera::UpdateCameraToToolMatrix(T_AimToolDataResult* aToolData, const s
 
 void AimCamera::UpdateData()
 {
-	QString position_text;
-	std::vector<std::string> toolidarr;
-
 	auto prlt = GetNewToolData();
 	if (rlt == AIMOOE_OK)//判断是否采集成功
 	{

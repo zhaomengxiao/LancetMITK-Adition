@@ -7,12 +7,15 @@
 #include <vtkMath.h>
 #include "MitkLancetHardwareDeviceExports.h"
 #include "PrintDataHelper.h"
+
 class MITKLANCETHARDWAREDEVICE_EXPORT LancetHansRobot : public AbstractRobot
 {
 	//Q_OBJECT
 public:
 	LancetHansRobot();
 	void Connect() override;
+
+	void Disconnect() override;
 
 	void PowerOn() override;
 
@@ -80,7 +83,7 @@ private:
 
 private:
 	vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
-	vector<double> m_InitialJointAngle;
+	//vector<double> m_InitialJointAngle;
 	vtkSmartPointer<vtkMatrix4x4> m_FlangeToTCP;
 private:
 	// 定义工具坐标变量

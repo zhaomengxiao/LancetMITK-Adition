@@ -40,7 +40,8 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>5</number>
+      <number>7</number>
+
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -94,16 +95,6 @@
        <property name="title">
         <string>NDI</string>
        </property>
-       <widget class="QmitkToolTrackingStatusWidget" name="m_StatusWidgetVegaToolToShow" native="true">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>20</y>
-          <width>211</width>
-          <height>41</height>
-         </rect>
-        </property>
-       </widget>
        <widget class="QPushButton" name="pushButton_connectVega">
         <property name="geometry">
          <rect>
@@ -1046,7 +1037,7 @@
          <item>
           <widget class="QLabel" name="label_33">
            <property name="text">
-            <string>PKATibiaRF:</string>
+            <string>BoxRF:</string>
            </property>
           </widget>
          </item>
@@ -3250,9 +3241,9 @@
       <widget class="QWidget" name="layoutWidget_7">
        <property name="geometry">
         <rect>
-         <x>130</x>
+         <x>10</x>
          <y>434</y>
-         <width>321</width>
+         <width>491</width>
          <height>41</height>
         </rect>
        </property>
@@ -3273,7 +3264,7 @@
            <bool>true</bool>
           </property>
           <property name="text">
-           <string>前往目标线</string>
+           <string>前往目标线相机</string>
           </property>
          </widget>
         </item>
@@ -3297,6 +3288,71 @@
        </property>
        <property name="text">
         <string>设置走面TCP</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="DisplayTCPAxesActorBtn">
+       <property name="geometry">
+        <rect>
+         <x>520</x>
+         <y>350</y>
+         <width>93</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>显示TCP</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="DisplayTCPInRFBtn">
+       <property name="geometry">
+        <rect>
+         <x>520</x>
+         <y>400</y>
+         <width>93</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>显示RF下TCP</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="DisplayFlangeAxesActorBtn">
+       <property name="geometry">
+        <rect>
+         <x>520</x>
+         <y>450</y>
+         <width>101</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>显示法兰坐标</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="PrintTCPInCameraBtn">
+       <property name="geometry">
+        <rect>
+         <x>670</x>
+         <y>350</y>
+         <width>131</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>打印相机下TCP数据</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="GoLineByRobotBtn">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>480</y>
+         <width>141</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>前往目标线机械臂</string>
        </property>
       </widget>
      </widget>
@@ -3323,12 +3379,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>QmitkToolTrackingStatusWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">QmitkToolTrackingStatusWidget.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>QmitkSingleNodeSelectionWidget</class>
    <extends>QWidget</extends>

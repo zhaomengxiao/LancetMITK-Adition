@@ -9,11 +9,14 @@
 #include "Environment.h"
 #include "FunctionOptDef.h"
 #include "MitkLancetHardwareDeviceExports.h"
+
 class MITKLANCETHARDWAREDEVICE_EXPORT DianaRobot : public AbstractRobot
 {
 public:
 	DianaRobot();
 	void Connect() override;
+
+	void Disconnect() override;
 
 	void PowerOn() override;
 
@@ -58,6 +61,6 @@ public:
 
 private:
 	double m_InitialPos[6] = { 0,0,0,0,0,0 };
-	double m_jointsPos [6] = { 0,0,0,0,0,0 };
+	//double m_jointsPos [6] = { 0,0,0,0,0,0 };
 };
 #endif

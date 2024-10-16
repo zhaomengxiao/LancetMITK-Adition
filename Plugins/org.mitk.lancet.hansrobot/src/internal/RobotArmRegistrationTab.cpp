@@ -85,7 +85,6 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 	connect(m_ui.pushButton_captureRobot_2, &QPushButton::clicked, this, [this]() {
 		m_ui.textBrowser_hans->append(QString("captureRobot"));
 		m_LancetRobotRegistration->captureRobot();
-		//m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(m_LancetRobotRegistration->captureRobot()));
 		});
 	connect(m_ui.pushButton_replaceRegistration_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->replaceRegistration();
@@ -104,7 +103,6 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 	connect(m_ui.pushButton_AutoMoveJ_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->autoCollection();
 		m_ui.textBrowser_hans->append(QString("Auto Collection"));
-		//m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(m_LancetRobotRegistration->countPose()));
 		});
 	connect(m_LancetRobotRegistration, &LancetRobotRegistration::countPose,
 		this, &RobotArmRegistrationTab::updateUiCaputreCount);

@@ -23,13 +23,12 @@ found in the LICENSE file.
 #include <QApplication>
 #include <QThread>
 #include <MitkLancetHardwareDeviceExports.h>
+
 class MITKLANCETHARDWAREDEVICE_EXPORT AbstractRobot : public QObject
 {
 public:
-	//AbstractRobot()// : m_InitialPos(vtkSmartPointer<vtkMatrix4x4>::New())
-	//{
-	//}
 	virtual void Connect() = 0;
+	virtual void Disconnect() = 0;
 	virtual void PowerOn() = 0;
 	virtual void PowerOff() = 0;
 	void SetRobotIpAddress(const char* aIP)
@@ -67,8 +66,8 @@ public:
 	virtual void WaitMove() = 0;
 
 protected:
-	//vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
 	const char* m_IpAddress;
+	std::vector<double> m_initJoints;
 };
 
 #endif
