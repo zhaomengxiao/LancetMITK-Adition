@@ -7,7 +7,6 @@
 #include <vtkMath.h>
 #include "MitkLancetHardwareDeviceExports.h"
 #include "PrintDataHelper.h"
-
 class MITKLANCETHARDWAREDEVICE_EXPORT LancetHansRobot : public AbstractRobot
 {
 	//Q_OBJECT
@@ -63,9 +62,9 @@ public:
 
 	void WaitMove() override;
 
+	void ResetRegistration();
 
-	//test 
-	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
+	void ReuseRegistration();
 private:
 	Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
 	vtkSmartPointer<vtkMatrix4x4> GetMatrixByRotationAndTranslation(Eigen::Matrix3d aRotation, Eigen::Vector3d aTranslation);
@@ -77,13 +76,12 @@ private:
 
 	std::vector<double> CalculateInverse(Eigen::Vector3d aTranslation, Eigen::Vector3d aEulerAngle);
 
-	//std::vector<double> CalculateForward(std::vector<double> aJointAngles);
+	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
 
 	string GetErrorCodeString(int errorCode);
 
 private:
 	vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
-	//vector<double> m_InitialJointAngle;
 	vtkSmartPointer<vtkMatrix4x4> m_FlangeToTCP;
 private:
 	// 定义工具坐标变量
