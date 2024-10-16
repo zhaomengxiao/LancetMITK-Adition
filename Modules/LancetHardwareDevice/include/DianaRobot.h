@@ -59,8 +59,5 @@ public:
 
 	void WaitMove() override;
 
-private:
-	double m_InitialPos[6] = { 0,0,0,0,0,0 };
-	//double m_jointsPos [6] = { 0,0,0,0,0,0 };
 };
 #endif
