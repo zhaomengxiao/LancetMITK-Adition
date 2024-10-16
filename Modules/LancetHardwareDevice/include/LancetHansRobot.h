@@ -63,9 +63,7 @@ public:
 
 	void WaitMove() override;
 
-	void ResetRegistration();
 
-	void ReuseRegistration();
 	//test 
 	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
 private:
