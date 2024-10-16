@@ -43,9 +43,7 @@ void HansRobot::CreateQtPartControl(QWidget *parent)
   m_Robot = new LancetHansRobot();
   m_Camera = new AimCamera();
   m_ConnectionTab = new ConnectionTab(m_Controls, this->GetDataStorage(), m_Robot, m_Camera);
-
   m_RobotArmRegistrationTab= new RobotArmRegistrationTab(m_Controls, this->GetDataStorage(), m_Robot, m_Camera );
- 
 }
 
 void HansRobot::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*source*/,

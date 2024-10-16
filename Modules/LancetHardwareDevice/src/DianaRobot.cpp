@@ -13,6 +13,7 @@ void DianaRobot::Connect()
 	pinfo->LocHeartbeatPort = 0;
 	pinfo->LocRobotStatePort = 0;
 	pinfo->LocSrvPort = 0;
+	destroySrv(m_IpAddress);
 	int ret = initSrv(nullptr, nullptr, pinfo);
 	if (ret < 0)
 	{
@@ -23,6 +24,7 @@ void DianaRobot::Connect()
 		delete pinfo;
 		pinfo = nullptr;
 	}
+	delete pinfo;
 }
 
 void DianaRobot::Disconnect()
@@ -63,11 +65,13 @@ void DianaRobot::Translate(double x, double y, double z)
 	vtkSmartPointer<vtkMatrix4x4> setMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	transform->Update();
 	transform->GetMatrix(setMatrix);
+
 	setMatrix->Transpose();
 	homogeneous2Pose(setMatrix->GetData(), pose);
 	double joints_final[7]{};
-	inverse(pose, joints_final, nullptr);
-
+	double temp_jointAngles[6] = { 0,0,0,0,0,0 };
+	getJointPos(temp_jointAngles, m_IpAddress);
+	inverse_ext(temp_jointAngles, pose, joints_final, nullptr);
 	moveJToTarget(joints_final, 0.2, 0.4);
 	WaitMove();
 }
@@ -77,21 +81,34 @@ void DianaRobot::Translate(double* aDirection, double aLength)
 	Translate(aDirection[0] * aLength, aDirection[1] * aLength, aDirection[2] * aLength);
 }
 
-void DianaRobot::Rotate(double* aDirection, double aLength)
+void DianaRobot::Rotate(double* aDirection, double aAngle)
 {
+	vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	matrix->Identity();
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	transform->SetMatrix(matrix);
+	transform->RotateWXYZ(aAngle, aDirection);
+	vtkSmartPointer<vtkMatrix4x4> retMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+	transform->GetMatrix(retMatrix);
+	RobotTransformInTCP(retMatrix->GetData());
 }
 
 void DianaRobot::RecordInitialPos()
 {
-	getTcpPos(m_InitialPos, m_IpAddress);
+	
+	int num = m_initJoints.size();
+	double* initjointAngles = new double[num];
+	getJointPos(initjointAngles, m_IpAddress);
+	for (int i = 0; i < num; ++i)
+	{
+		m_initJoints[i]=(initjointAngles[i]);
+	}
+	delete[] initjointAngles;
 }
 
 void DianaRobot::GoToInitialPos()
 {
-	double joints_final[7]{};
-	inverse(m_InitialPos, joints_final, nullptr, m_IpAddress);
-
-	moveJToTarget(joints_final, 0.2, 0.4);
+	SetJointAngles(m_initJoints);
 	WaitMove();
 }
 
@@ -167,8 +184,9 @@ std::vector<double> DianaRobot::GetJointAngles()
 	double pose[6] = {};
 	getTcpPos(pose);
 	double angles[7] = { 0.0 };
-
-	inverse(pose, angles, nullptr);
+	double temp_jointAngles[6] = { 0,0,0,0,0,0 };
+	getJointPos(temp_jointAngles, m_IpAddress);
+	inverse_ext(temp_jointAngles, pose, angles, nullptr);
 	std::vector<double> angleVec;
 	for (int i = 0; i < 7; ++i)
 	{
@@ -179,7 +197,7 @@ std::vector<double> DianaRobot::GetJointAngles()
 
 void DianaRobot::SetJointAngles(std::vector<double> aJointAngles)
 {
-	if (aJointAngles.size() != 7)
+	if (aJointAngles.size() != m_initJoints.size())
 		return;
 	auto range = this->GetJointAngleLimits();
 	double angles[7] = { 0.0 };
@@ -260,7 +278,9 @@ void DianaRobot::RobotTransformInBase(double* aMatrix)
 	vtkMatrix->Transpose();
 	homogeneous2Pose(vtkMatrix->GetData(), pose);
 	double joints_final[7]{};
-	inverse(pose, joints_final, nullptr);
+	double temp_jointAngles[6] = { 0,0,0,0,0,0 };
+	getJointPos(temp_jointAngles, m_IpAddress);
+	inverse_ext(temp_jointAngles, pose, joints_final, nullptr);
 	moveJToTarget(joints_final, 0.2, 0.4);
 	WaitMove();
 }
