@@ -139,24 +139,7 @@ void LancetRobotRegistration::capturePose(bool translationOnly)
 
 void LancetRobotRegistration::waitMove()
 {
-	std::cout << "waitMove" << std::endl;
-	bool bDone = false;
-	while (!bDone)
-	{
-		int nRet = HRIF_IsMotionDone(0, 0, bDone);
-		if (bDone == false)
-		{
-			QThread::msleep(10);
-			QApplication::processEvents();
-			std::cout << "is still moving" << std::endl;
-		}
-		else
-		{
-			int ret = HRIF_GrpStop(0, 0);
-			std::cout << "robot is stop please continue" << std::endl;
-			return;
-		}
-	}
+	m_Robot->WaitMove();
 }
 void LancetRobotRegistration::Sleep(int msec)
 {
