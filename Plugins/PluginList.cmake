@@ -24,6 +24,6 @@ set(MITK_PLUGINS
   org.mitk.lancet.DianaSeven:ON
   org.mitk.lancet.NeurosurgicalPunctureRobot:ON
   org.mitk.lancet.zzxtest:ON
-  org.mitk.lancet.hansrobot:ON
+  #org.mitk.lancet.hansrobot:ON
   #org.mitk.lancet.jakarobot:ON
 )
