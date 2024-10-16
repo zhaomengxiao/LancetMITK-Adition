@@ -61,10 +61,19 @@ void DianaRobot::Translate(double x, double y, double z)
 	Eigen::Vector3d moveMent = Eigen::Vector3d(x / 1000, y / 1000, z / 1000);
 	transform->SetMatrix(vtkMatrix);
 	transform->Translate(moveMent.data());
+
 	vtkSmartPointer<vtkMatrix4x4> setMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	transform->Update();
 	transform->GetMatrix(setMatrix);
-	RobotTransformInBase(setMatrix->GetData());	
+
+	setMatrix->Transpose();
+	homogeneous2Pose(setMatrix->GetData(), pose);
+	double joints_final[7]{};
+	double temp_jointAngles[6] = { 0,0,0,0,0,0 };
+	getJointPos(temp_jointAngles, m_IpAddress);
+	inverse_ext(temp_jointAngles, pose, joints_final, nullptr);
+	moveJToTarget(joints_final, 0.2, 0.4);
+	WaitMove();
 }
 
 void DianaRobot::Translate(double* aDirection, double aLength)
