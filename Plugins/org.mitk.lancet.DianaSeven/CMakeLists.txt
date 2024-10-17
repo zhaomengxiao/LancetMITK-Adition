@@ -1,3 +1,4 @@
+
 project(org_mitk_lancet_DianaSeven)
 
 mitk_create_plugin(

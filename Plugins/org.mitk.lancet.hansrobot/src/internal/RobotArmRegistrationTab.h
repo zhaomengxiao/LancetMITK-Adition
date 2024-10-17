@@ -3,6 +3,7 @@
 #include <qobject.h>
 #include "ui_HansRobotControls.h"
 #include "LancetHansRobot.h"
+#include "DianaRobot.h"
 #include "FileIO.h"
 #include "AimCamera.h"
 
@@ -24,6 +25,8 @@ class RobotArmRegistrationTab : public QWidget
 {
 
 	Q_OBJECT
+public:
+	int countNum;
 public:
 	RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataStorage, AbstractRobot* aRobot, AbstractCamera* aCamera, QWidget* parent = nullptr);
 
@@ -50,11 +53,13 @@ private:
 	void waitMove();
 	void autoCollection();
 	
+	void RepeatPositionTest();
+	void AboslutePositionTest();
 private:
 	QWidget* m_TabPage;
 	Ui::HansRobotControls m_ui;
 	//AbstractRobot* m_Robot;
-	LancetHansRobot* m_Robot;
+	DianaRobot* m_Robot;
 	mitk::DataStorage* m_dataStorage;
 	AbstractCamera* m_Camera;
 	RobotRegistration m_RobotRegistration;
