@@ -57,6 +57,7 @@ mitk_create_module(
   ADDITIONAL_LIBS PUBLIC "${AIMOOE_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Diana_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Hans_LIB_RELEASE}"
+  ADDITIONAL_LIBS PUBLIC "${ARIEMEDI_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Jaka_LIB_RELEASE}"
 
    # Do not automatically create CppMicroServices initialization code.
