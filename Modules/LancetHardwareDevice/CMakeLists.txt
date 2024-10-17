@@ -4,7 +4,7 @@ set(AIMOOE_DLLS_RELEASE "")
 
 set(AIMOOE_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/AimPosDll/include")
 file(GLOB AIMOOE_LIB_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/AimPosDll/Release/*.lib")
-#file(GLOB AIMOOE_DLL_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/AimPosDll/Release/*.dll")
+file(GLOB AIMOOE_DLL_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/AimPosDll/Release/*.dll")
 ###############################################################################################
 
 set(Diana_INCLUDE "")
@@ -57,7 +57,6 @@ mitk_create_module(
   ADDITIONAL_LIBS PUBLIC "${AIMOOE_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Diana_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Hans_LIB_RELEASE}"
-  ADDITIONAL_LIBS PUBLIC "${ARIEMEDI_LIB_RELEASE}"
   ADDITIONAL_LIBS PUBLIC "${Jaka_LIB_RELEASE}"
 
    # Do not automatically create CppMicroServices initialization code.
