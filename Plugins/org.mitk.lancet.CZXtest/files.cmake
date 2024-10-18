@@ -5,7 +5,6 @@ set(SRC_CPP_FILES
 set(INTERNAL_CPP_FILES
   org_mitk_lancet_CZXtest_Activator.cpp
   CzxTest.cpp
-  PrintDataHelper.cpp
   ModelRegistration.cpp
   AngleCalculationHelper.cpp
   PKARenderHelper.cpp
@@ -16,7 +15,6 @@ set(INTERNAL_CPP_FILES
   ChunLiXKImplant.cpp
   PKAEnum.h
   JsonSerailizeHelper.h
-  FileIO.cpp
   PKAHardwareDevice.cpp
   ChunLITray.cpp
   PKADianaAimHardwareDevice.cpp
@@ -50,7 +48,6 @@ set(UI_FILES
 set(MOC_H_FILES
   src/internal/org_mitk_lancet_CZXtest_Activator.h
   src/internal/CzxTest.h
-  src/internal/PrintDataHelper.h
   src/internal/ModelRegistration.h
   src/internal/AngleCalculationHelper.h
   src/internal/PKARenderHelper.h
@@ -59,7 +56,6 @@ set(MOC_H_FILES
   src/internal/CalculationHelper.h
   src/internal/ChunLiXGImplant.h
   src/internal/ChunLiXKImplant.h
-  src/internal/FileIO.h
   src/internal/PKAHardwareDevice.h
   src/internal/ChunLITray.h
   src/internal/PKADianaAimHardwareDevice.h
@@ -80,10 +76,6 @@ set(MOC_H_FILES
   #src/internal/PKADataBase.h
   #src/internal/PKAProthesisModel.h
   #src/internal/PKAEnum.h
-  #src/internal/ModelUserControl.h
-  #src/internal/ModelInteractor.h
-  #src/internal/ModelMapper2D.h
-  #src/internal/ModelInterFactory.h
 )
 
 # list of resource files which can be used by the plug-in

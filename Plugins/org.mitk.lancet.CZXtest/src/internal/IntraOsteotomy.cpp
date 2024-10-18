@@ -1,10 +1,10 @@
 #include "IntraOsteotomy.h"
 
-lancetAlgorithm::IntraOsteotomy::IntraOsteotomy(mitk::DataStorage* dataStorage, PKADianaAimHardwareDevice* pkaDianaAimHardwareDevice,
+lancetAlgorithm::IntraOsteotomy::IntraOsteotomy(mitk::DataStorage* dataStorage, AimCamera* aCamera,
 	ChunLiXGImplant* aChunLiXGImplant, ChunLiTray* aChunLITray)
 {
 	m_DataStorage = dataStorage;
-	m_PKADianaAimHardwareDevice = pkaDianaAimHardwareDevice;
+	m_Camera = aCamera;
 	m_LastRoundMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	m_ChunLiTray = aChunLITray;
 	m_ChunLiXGImplant = aChunLiXGImplant;
@@ -477,7 +477,8 @@ void lancetAlgorithm::IntraOsteotomy::Drill(CutPlane aCutPlane)
 
 double lancetAlgorithm::IntraOsteotomy::GetDrillTip2FemurDrillPlaneDistance(Eigen::Vector3d planePoint, Eigen::Vector3d planeNormal, vtkMatrix4x4* TFemur2Tibia)
 {
-	Eigen::Vector3d tipPos = m_PKADianaAimHardwareDevice->GetDrillEndInCamera();
+	Eigen::Vector3d tipPos = m_Camera->GetToolTipByName(to_string(PKAMarker::PKADrill));
+
 	vtkSmartPointer<vtkMatrix4x4> TCamera2Drill = vtkSmartPointer<vtkMatrix4x4>::New();
 	vtkSmartPointer<vtkMatrix4x4> TCamera2DrillTip = vtkSmartPointer<vtkMatrix4x4>::New();
 	TCamera2Drill->DeepCopy(PKAData::m_TCamera2Drill);
@@ -510,7 +511,7 @@ double lancetAlgorithm::IntraOsteotomy::GetDrillTip2FemurDrillPlaneDistance(Eige
 
 double lancetAlgorithm::IntraOsteotomy::GetDrillTip2TibiaDrillPlaneDistance(Eigen::Vector3d planePoint, Eigen::Vector3d planeNormal)
 {
-	Eigen::Vector3d tipPos = m_PKADianaAimHardwareDevice->GetDrillEndInCamera();
+	Eigen::Vector3d tipPos = m_Camera->GetToolTipByName(to_string(PKAMarker::PKADrill));
 	vtkSmartPointer<vtkMatrix4x4> TCamera2Drill = vtkSmartPointer<vtkMatrix4x4>::New();
 	vtkSmartPointer<vtkMatrix4x4> TCamera2DrillTip = vtkSmartPointer<vtkMatrix4x4>::New();
 	TCamera2Drill->DeepCopy(PKAData::m_TCamera2Drill);

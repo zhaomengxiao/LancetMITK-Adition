@@ -157,7 +157,7 @@ void CzxTest::RenderWindowPartActivated(mitk::IRenderWindowPart* renderWindowPar
 	m_Controls.poinSetListWidget->AddSliceNavigationController(renderWindowPart->GetQmitkRenderWindow("sagittal")->GetSliceNavigationController());
 	m_Controls.poinSetListWidget->AddSliceNavigationController(renderWindowPart->GetQmitkRenderWindow("coronal")->GetSliceNavigationController());
 	
-	m_PreoPreparation = new PreoPreparation(m_PKADianaAimHardwareDevice);
+	m_PreoPreparation = new PreoPreparation();
 	m_WorldAxes = PKARenderHelper::GenerateAxesActor();
 	vtkSmartPointer<vtkMatrix4x4> worldAxesMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
 	worldAxesMatrix->Identity();
@@ -188,7 +188,7 @@ void CzxTest::RenderWindowPartDeactivated(mitk::IRenderWindowPart* renderWindowP
 
 void CzxTest::ConnectRobotBtnClicked()
 {
-	m_PKADianaAimHardwareDevice->ConnectRobot();
+	m_Robot->Connect();
 	//m_PKAHardwareDevice->ConnectKuka();
 	//m_PKAHardwareDevice->StartKukaTracking(m_Controls.m_StatusWidgetKukaToolToShow);
 }
@@ -197,36 +197,36 @@ void CzxTest::ConnectCameraClicked()
 {
 	std::filesystem::path currentPath = std::filesystem::current_path();
 	std::cout << "Current working directory is: " << currentPath << std::endl;
-	m_PKADianaAimHardwareDevice->ConnectCamera();
+	m_Camera->Connect();
 
 	//m_PKAHardwareDevice->ConnectNDI(m_Controls.m_StatusWidgetVegaToolToShow);
 }
 
 void CzxTest::UpdateCameraBtnClicked()
 {
-	if (m_AimoeVisualizeTimer == nullptr)
-	{
-		m_AimoeVisualizeTimer = new QTimer(this);
-	}
-	std::vector<QLabel*> labels{ m_Controls.PKARobotBaseRF,m_Controls.PKARobotEndRF, m_Controls.PKAFemurRF,m_Controls.PKAProbe, m_Controls.PKATibiaRF, m_Controls.PKADrill };
-	m_PKADianaAimHardwareDevice->InitQLabels(labels);
-	connect(m_AimoeVisualizeTimer, &QTimer::timeout, [this]() {
-		m_PKADianaAimHardwareDevice->UpdateCamera();
-		m_ToolDisplayHelper->UpdateTool();
-		});
-	m_AimoeVisualizeTimer->start(100);
+	//std::vector<QLabel*> labels{ m_Controls.PKARobotBaseRF,m_Controls.PKARobotEndRF, m_Controls.PKAFemurRF,m_Controls.PKAProbe, m_Controls.PKATibiaRF, m_Controls.PKADrill };
+	//m_Camera->InitQLabels(labels);
+	std::vector<std::string> toolsName{
+		to_string(PKAMarker::PKARobotBaseRF),
+		to_string(PKAMarker::PKARobotEndRF) ,
+		to_string(PKAMarker::PKAFemurRF) ,
+	to_string(PKAMarker::PKAProbe) ,to_string(PKAMarker::PKATibiaRF),
+	to_string(PKAMarker::PKADrill) };
+	m_Camera->InitToolsName(toolsName);
+	m_Camera->Start();
+	//m_ToolDisplayHelper->UpdateTool();
 }
 
 void CzxTest::PowerOffBtnClicked()
 {
-	if (m_PKADianaAimHardwareDevice)
-		m_PKADianaAimHardwareDevice->RobotPowerOff();
+	if (m_Robot)
+		m_Robot->PowerOff();
 }
 
 void CzxTest::PowerOnBtnClicked()
 {
-	if (m_PKADianaAimHardwareDevice)
-		m_PKADianaAimHardwareDevice->RobotPowerOn();
+	if (m_Robot)
+		m_Robot->PowerOn();
 }
 
 void CzxTest::SelfCheckBtnClicked()
@@ -234,16 +234,16 @@ void CzxTest::SelfCheckBtnClicked()
 	m_PKAHardwareDevice->KukaSelfCheck();
 }
 
-bool CzxTest::Translate(const double axis[3])
+bool CzxTest::Translate(double axis[3])
 {
-	m_PKADianaAimHardwareDevice->Translate(axis, m_Controls.TranslateDistanceLineEdit->text().toDouble());
+	m_Robot->Translate(axis, m_Controls.TranslateDistanceLineEdit->text().toDouble());
 	return true;
 	//return m_PKAHardwareDevice->Translate(axis, m_Controls.TranslateDistanceLineEdit->text().toDouble(), m_Controls.RobotMoveType->currentIndex());
 }
 
-bool CzxTest::Rotate(const double axis[3])
+bool CzxTest::Rotate(double axis[3])
 {
-	m_PKADianaAimHardwareDevice->Rotate(axis, m_Controls.RotateAngleLineEdit->text().toDouble());
+	m_Robot->Rotate(axis, m_Controls.RotateAngleLineEdit->text().toDouble());
 	return true;
 	//return m_PKAHardwareDevice->Rotate(axis, m_Controls.RotateAngleLineEdit->text().toDouble(), m_Controls.RobotMoveType->currentIndex());
 }
@@ -252,7 +252,7 @@ bool CzxTest::Rotate(const double axis[3])
 void CzxTest::RobotAutoRegistationBtnClicked()
 {
 	//m_PKAHardwareDevice->AutoRobotRegistration();
-	m_PKADianaAimHardwareDevice->RobotAutoRegistration();
+	//m_PKADianaAimHardwareDevice->RobotAutoRegistration();
 }
 
 void CzxTest::automoveBtnClicked()
@@ -262,20 +262,19 @@ void CzxTest::automoveBtnClicked()
 
 void CzxTest::StopRobotMoveBtnClicked()
 {
-	m_PKADianaAimHardwareDevice->StopMove();
+	//m_Robot->StopMove();
 }
 
 void CzxTest::ClearRobotErrorInfoBtnClicked()
 {
-	m_PKADianaAimHardwareDevice->CleanRobotErrorInfo();
+	//m_PKADianaAimHardwareDevice->CleanRobotErrorInfo();
 }
 
 //TCamera2Base TBase2End  TEnd2Flange  
 double CzxTest::VerifyKneeModelAccuracy(KneeModel modelType)
 {
 	//make sure robot flange is toolEnd
-	m_PKADianaAimHardwareDevice->GetProbeTip();
-	auto probePos = m_PKADianaAimHardwareDevice->GetProbeTip();
+	m_Camera->GetToolTipByName(to_string(PKAMarker::PKAProbe));
 	if (modelType == KneeModel::Femur)
 	{
 		//获取探针点
@@ -291,39 +290,36 @@ double CzxTest::VerifyKneeModelAccuracy(KneeModel modelType)
 
 void CzxTest::DrillEndAccuracyVerifyBtnClicked()
 {
-	Eigen::Vector3d probeTip = m_PKADianaAimHardwareDevice->GetProbeTip();
-	Eigen::Vector3d drillEnd = m_PKADianaAimHardwareDevice->GetDrillEndInCamera();
+	Eigen::Vector3d probeTip = m_Camera->GetToolTipByName(to_string(PKAMarker::PKAProbe));;
+	Eigen::Vector3d drillEnd; //= m_PKADianaAimHardwareDevice->GetDrillEndInCamera();
 	double result = CalculationHelper::CalculateTwoPointsDistance(probeTip, drillEnd);
 	m_Controls.DrillEndAccuracyResultLineEdit->setText(QString::number(result));
 }
 
 void CzxTest::SetTcpToFlangeBtnClicked()
 {
-	m_PKADianaAimHardwareDevice->SetTCP2Flange();
-	//m_PKAHardwareDevice->SetTcpToFlange();
+	m_Robot->SetTCPToFlange();
 }
 
 void CzxTest::RecordInitPosBtnClicked()
 {
-	m_PKADianaAimHardwareDevice->RecordIntialPos();
-	//m_PKAHardwareDevice->RecordInitPos();
+	m_Robot->RecordInitialPos();
 }
 
 void CzxTest::GoToInitPosBtnClicked()
 {
-	m_PKADianaAimHardwareDevice->GoToInitPos();
-	//m_PKAHardwareDevice->GoToInitPos();
+	m_Robot->GoToInitialPos();
 }
 
 void CzxTest::CaptureRobotBtnClicked()
 {
-	m_Controls.CaptureCountLineEdit->setText(QString::number(m_PKADianaAimHardwareDevice->CaptureRobot()));
+	//m_Controls.CaptureCountLineEdit->setText(QString::number(m_PKADianaAimHardwareDevice->CaptureRobot()));
 	//m_PKAHardwareDevice->CaptureRobot();
 }
 
 void CzxTest::ResetRobotRegistrationBtnClicked()
 {
-	m_Controls.CaptureCountLineEdit->setText(QString::number(m_PKADianaAimHardwareDevice->ResetRobotRegistration()));
+	//m_Controls.CaptureCountLineEdit->setText(QString::number(m_PKADianaAimHardwareDevice->ResetRobotRegistration()));
 	//m_Controls.CaptureCountLineEdit->setText(QString::number(m_PKAHardwareDevice->ResetRobotRegistration()));
 }
 
@@ -357,7 +353,7 @@ void CzxTest::ReuseRobotRegistationBtnClicked()
 
 void CzxTest::ReadRobotJointAnglesBtnClicked()
 {
-	auto angles = m_PKADianaAimHardwareDevice->GetJointAngles();
+	auto angles = m_Robot->GetJointAngles();
 	for (int i = 0; i < angles.size(); ++i)
 	{
 		m_RobotJointAngleLineEdits[i]->setText(QString::number(angles[i] * 180 / PI));
@@ -366,18 +362,18 @@ void CzxTest::ReadRobotJointAnglesBtnClicked()
 
 void CzxTest::SetRobotJointAnglesBtnClicked()
 {
-	double angles[7] = { 0.0 };
+	std::vector<double> angles;
 	for (int i = 0; i < m_RobotJointAngleLineEdits.size(); ++i)
 	{
-		angles[i] = m_RobotJointAngleLineEdits[i]->text().toDouble() / 180 * PI;
+		angles.push_back(m_RobotJointAngleLineEdits[i]->text().toDouble() / 180 * PI);
 	}
 
-	bool ret = m_PKADianaAimHardwareDevice->SetJointAngles(angles);
+	m_Robot->SetJointAngles(angles);
 }
 
 void CzxTest::GetRobotJointsLimitBtnClicked()
 {
-	auto range = m_PKADianaAimHardwareDevice->GetJointsPositionRange();
+	auto range = m_Robot->GetJointAngleLimits();
 	for (int i = 0; i < range[0].size(); ++i)
 	{
 		range[0][i] = range[0][i] * 180 / PI;
@@ -389,7 +385,7 @@ void CzxTest::GetRobotJointsLimitBtnClicked()
 
 void CzxTest::SetRobotPositionModeBtnClicked()
 {
-	bool ret = m_PKADianaAimHardwareDevice->SetPositionMode();
+	bool ret = m_Robot->SetPositionMode();
 	if (ret)
 	{
 		m_Controls.textBrowser->append(QString::fromLocal8Bit("设置为位置模式"));
@@ -402,7 +398,7 @@ void CzxTest::SetRobotPositionModeBtnClicked()
 
 void CzxTest::SetRobotJointsImpedanceModelBtnClicked()
 {
-	bool ret = m_PKADianaAimHardwareDevice->SetJointImpendanceMode();
+	bool ret = m_Robot->SetJointImpendanceMode();
 	if (ret)
 	{
 		m_Controls.textBrowser->append(QString::fromLocal8Bit("设置为关节空间阻抗模式"));
@@ -415,7 +411,7 @@ void CzxTest::SetRobotJointsImpedanceModelBtnClicked()
 
 void CzxTest::SetRobotCartImpedanceModeBtnClicked()
 {
-	bool ret = m_PKADianaAimHardwareDevice->SetCartImpendanceMode();
+	bool ret = m_Robot->SetCartImpendanceMode();
 	if (ret)
 	{
 		m_Controls.textBrowser->append(QString::fromLocal8Bit("设置为笛卡尔空间阻抗模式"));
@@ -467,36 +463,35 @@ void CzxTest::GetProbeEndPos(TCPRegistraionMethod method)
 
 void CzxTest::SetDrillEndTCPBtnClicked()
 {
-	if (!m_PKADianaAimHardwareDevice)
+	if (!m_Robot)
 		return;
-	m_PKADianaAimHardwareDevice->SetTCP(m_PKADianaAimHardwareDevice->CalculateFlangeToDrillEnd());
+	//m_Robot->SetTCP(m_PKADianaAimHardwareDevice->CalculateFlangeToDrillEnd());
 }
 
 void CzxTest::DisplayCameraToTCPAxesBtnClicked()
 {
-	auto renderpart = this->GetRenderWindowPart();
-	if (!m_IsDisplayTCP)
-	{
-		m_IsDisplayTCP = !m_IsDisplayTCP;
+	//auto renderpart = this->GetRenderWindowPart();
+	//if (!m_IsDisplayTCP)
+	//{
+	//	m_IsDisplayTCP = !m_IsDisplayTCP;
 
-		m_PKADianaAimHardwareDevice->DisplayBase2TCP(renderpart);
-		connect(m_AimoeVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateTCPAxesActor()));
-	}
-	else
-	{
-		m_IsDisplayTCP = !m_IsDisplayTCP;
-		disconnect(m_AimoeVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateTCPAxesActor()));
-		m_PKADianaAimHardwareDevice->HideBase2Tcp(renderpart);
-	}
+	//	m_PKADianaAimHardwareDevice->DisplayBase2TCP(renderpart);
+	//	connect(m_AimoeVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateTCPAxesActor()));
+	//}
+	//else
+	//{
+	//	m_IsDisplayTCP = !m_IsDisplayTCP;
+	//	disconnect(m_AimoeVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateTCPAxesActor()));
+	//	m_PKADianaAimHardwareDevice->HideBase2Tcp(renderpart);
+	//}
 }
 
 void CzxTest::SetTCPByProbeTipBtnClicked()
 {
 	vtkSmartPointer<vtkMatrix4x4> TBase2Flange = vtkSmartPointer<vtkMatrix4x4>::New();
-	TBase2Flange->DeepCopy(m_PKADianaAimHardwareDevice->GetBase2TCP());
+	TBase2Flange->DeepCopy(m_Robot->GetBaseToTCP());
 
-	//auto rotation = CalculationHelper::GetRotationFromMatrix4x4(TBase2Flange);
-	auto probeTipInCamera = m_PKADianaAimHardwareDevice->GetProbeTip();
+	auto probeTipInCamera = m_Camera->GetToolTipByName(to_string(PKAMarker::PKAProbe));
 
 	vtkSmartPointer<vtkMatrix4x4> TCamera2BaseRF = vtkSmartPointer<vtkMatrix4x4>::New();
 	vtkSmartPointer<vtkMatrix4x4> TBaseRF2Base = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -513,12 +508,12 @@ void CzxTest::SetTCPByProbeTipBtnClicked()
 	vtkSmartPointer<vtkMatrix4x4> newTCP = vtkSmartPointer<vtkMatrix4x4>::New();
 
 	newTCPTransform->GetMatrix(newTCP);
-	m_PKADianaAimHardwareDevice->SetTCP(newTCP);
+	m_Robot->SetTCP(newTCP);
 }
 
 void CzxTest::ReadRobotImpedaBtnClicked()
 {
-	auto Impeda = m_PKADianaAimHardwareDevice->GetRobotImpeda();
+	auto Impeda = m_Robot->GetRobotImpeda();
 	m_Controls.arrStiffXLineEdit->setText(QString::number(Impeda[0]));
 	m_Controls.arrStiffYLineEdit->setText(QString::number(Impeda[1]));
 	m_Controls.arrStiffZLineEdit->setText(QString::number(Impeda[2]));
@@ -530,7 +525,7 @@ void CzxTest::ReadRobotImpedaBtnClicked()
 
 void CzxTest::SetRobotImpedaBtnClicked()
 {
-	double data[7] = {
+	std::vector<double> data = {
 		m_Controls.arrStiffXLineEdit->text().toDouble(),
 	m_Controls.arrStiffYLineEdit->text().toDouble(),
 	m_Controls.arrStiffZLineEdit->text().toDouble(),
@@ -539,45 +534,7 @@ void CzxTest::SetRobotImpedaBtnClicked()
 	m_Controls.arrStiffRZLineEdit->text().toDouble(),
 	m_Controls.DampingRatioLineEdit->text().toDouble()
 	};
-	m_PKADianaAimHardwareDevice->SetRobotImpeda(data);
-}
-
-void CzxTest::SaveImageRegistrationResultBtnClicked()
-{
-	if (PKAData::m_VegaToolStorage.IsNotNull())
-	{
-		QFileDialog* fileDialog = new QFileDialog;
-		fileDialog->setDefaultSuffix("IGTToolStorage");
-		QString suffix = "IGT Tool Storage (*.IGTToolStorage)";
-
-		// 获取用户桌面的路径
-		QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
-
-		// 设置默认文件名为桌面路径加上存储对象的名称
-		QString defaultFileName = desktopPath + "/" + QString::fromStdString(PKAData::m_VegaToolStorage->GetName());
-		QString filename = fileDialog->getSaveFileName(nullptr, tr("Save Navigation Tool Storage"), defaultFileName, suffix, &suffix);
-
-		if (filename.isEmpty()) return; // 用户取消保存操作
-
-		// 检查文件后缀
-		QFileInfo file(filename);
-		if (file.suffix().isEmpty()) filename += ".IGTToolStorage";
-
-		// 序列化工具存储对象
-		mitk::NavigationToolStorageSerializer::Pointer mySerializer = mitk::NavigationToolStorageSerializer::New();
-
-		try
-		{
-			mySerializer->Serialize(filename.toStdString(), PKAData::m_VegaToolStorage);
-		}
-		catch (const mitk::IGTIOException& e)
-		{
-			m_Controls.textBrowser->append(QString::fromStdString("Error: " + std::string(e.GetDescription())));
-			return;
-		}
-
-		m_Controls.textBrowser->append(QString::fromStdString(PKAData::m_VegaToolStorage->GetName() + " saved"));
-	}
+	m_Robot->SetRobotImpeda(data);
 }
 
 void CzxTest::VerifyImageRegistrationAccuracyBtnClicked()
@@ -739,7 +696,7 @@ void CzxTest::UseRegistrationBtnClicked()
 void CzxTest::CapturVerifyBtnClicked()
 {
 	vtkSmartPointer<vtkMatrix4x4> TRF2Camera = vtkSmartPointer<vtkMatrix4x4>::New();
-	Eigen::Vector3d probePos = m_PKADianaAimHardwareDevice->GetProbeTip();
+	Eigen::Vector3d probePos = m_Camera->GetToolTipByName(to_string(PKAMarker::PKAProbe));
 	if (m_Controls.FemurVerifyPointBtn->isChecked())
 	{
 		TRF2Camera->DeepCopy(PKAData::m_TCamera2FemurRF);
@@ -771,13 +728,13 @@ void CzxTest::ClearVerifyPointBtnClicked()
 void CzxTest::VerifyPointBtnClicked()
 {
 	double distance = 0.0;
-	Eigen::Vector3d verifyPointInRF = m_PKADianaAimHardwareDevice->GetProbeTip();
+	Eigen::Vector3d verifyPointInRF = m_Camera->GetToolTipByName(to_string(PKAMarker::PKAProbe));
 	vtkSmartPointer<vtkMatrix4x4> TRF2Camera = vtkSmartPointer<vtkMatrix4x4>::New();
 	if (m_Controls.FemurVerifyPointBtn->isChecked() && m_IsCaptureFemurVerifyPoint)
 	{
 		TRF2Camera->DeepCopy(PKAData::m_TCamera2FemurRF);
 		TRF2Camera->Invert();
-		verifyPointInRF = CalculationHelper::TransformByMatrix(m_PKADianaAimHardwareDevice->GetProbeTip(), TRF2Camera);
+		verifyPointInRF = CalculationHelper::TransformByMatrix(verifyPointInRF, TRF2Camera);
 		distance = CalculationHelper::CalculateTwoPointsDistance(PKAData::m_FemurVerifyPointInFemurRF, verifyPointInRF);
 	}
 
@@ -785,7 +742,7 @@ void CzxTest::VerifyPointBtnClicked()
 	{
 		TRF2Camera->DeepCopy(PKAData::m_TCamera2TibiaRF);
 		TRF2Camera->Invert();
-		verifyPointInRF = CalculationHelper::TransformByMatrix(m_PKADianaAimHardwareDevice->GetProbeTip(), TRF2Camera);
+		verifyPointInRF = CalculationHelper::TransformByMatrix(verifyPointInRF, TRF2Camera);
 		distance = CalculationHelper::CalculateTwoPointsDistance(PKAData::m_TibiaVerifyPointInTibiaRF, verifyPointInRF);
 	}
 	m_Controls.VerifyPointDistanceLabel->setText(QString::number(distance));
@@ -793,7 +750,7 @@ void CzxTest::VerifyPointBtnClicked()
 
 void CzxTest::RegisterMalleolus(MalleolusPoint malleolusPoint)
 {
-	auto pos = m_PKADianaAimHardwareDevice->GetProbeTip();
+	auto pos = m_Camera->GetToolTipByName(to_string(PKAMarker::PKAProbe));
 	vtkSmartPointer<vtkMatrix4x4> TTibiaRF2Camera = vtkSmartPointer<vtkMatrix4x4>::New();
 	TTibiaRF2Camera->DeepCopy(PKAData::m_TCamera2TibiaRF);
 	TTibiaRF2Camera->Invert();
@@ -815,7 +772,7 @@ void CzxTest::SelectRegistrationPointBtnClicked()
 {
 	std::cout << "SelectRegistrationPointBtnClicked" << std::endl;
 	KneeModel registrationType = m_Controls.ImageRegistrationTypeComboBox->currentText() == "Femur" ? KneeModel::Femur : KneeModel::Tibia;
-	Eigen::Vector3d pointData = m_PKADianaAimHardwareDevice->GetProbeTip();
+	Eigen::Vector3d pointData = m_Camera->GetToolTipByName(to_string(PKAMarker::PKAProbe));
 	int size = m_SelectedRegistrationPoint->GetSize();
 	std::cout << "m_SelectedRegistrationPoint->GetSize()" << m_SelectedRegistrationPoint->GetSize() << std::endl;
 	mitk::PointSet::PointType pt;
@@ -1495,7 +1452,8 @@ void CzxTest::InitIntraOsteotomyTabConnection()
 void CzxTest::InitGlobalVariable()
 {
 	m_PKAHardwareDevice = new PKAKukaVegaHardwareDevice(this->GetDataStorage());
-	m_PKADianaAimHardwareDevice = new PKADianaAimHardwareDevice();
+	m_Camera = new AimCamera();
+	m_Robot = new DianaRobot();
 	m_AngleCalculationHelper = new AngleCalculationHelper(this->GetDataStorage());
 
 	PKAData::m_SurgicalSide = PKASurgicalSide::Left;
@@ -1510,7 +1468,7 @@ void CzxTest::InitGlobalVariable()
 	m_VaRadioBtnGroup->addButton(m_Controls.VarusRadioBtn, 1);
 	m_SelectedRegistrationPoint = mitk::PointSet::New();
 	m_ModelRegistration = new ModelRegistration();
-	m_ToolDisplayHelper = new ToolDisplayHelper(this->GetDataStorage(), this->GetRenderWindowPart(), m_PKADianaAimHardwareDevice);
+	m_ToolDisplayHelper = new ToolDisplayHelper(this->GetDataStorage(), this->GetRenderWindowPart(), m_Camera);
 
 	m_IntraProsGroup = new QButtonGroup(this);
 	m_IntraProsGroup->addButton(m_Controls.IntraFemurImplantRadioBtn, 0);
@@ -1619,7 +1577,7 @@ void CzxTest::OnTabChanged(int aIndex)
 	if (aIndex == 8)
 	{
 		std::cout << "Structural IntraOsteotomy Class" << std::endl;
-		m_IntraOsteotomy = new IntraOsteotomy(this->GetDataStorage(), m_PKADianaAimHardwareDevice, m_FemoralImplant, m_TibiaTray);
+		m_IntraOsteotomy = new IntraOsteotomy(this->GetDataStorage(), m_Camera, m_FemoralImplant, m_TibiaTray);
 	}
 }
 
@@ -3084,7 +3042,7 @@ void CzxTest::OnBoxModified(vtkObject* caller, long unsigned int evetnId, void* 
 
 void CzxTest::UpdateTCPAxesActor()
 {
-	m_PKADianaAimHardwareDevice->UpdateTCPAxesActor();
+	//m_PKADianaAimHardwareDevice->UpdateTCPAxesActor();
 }
 
 void CzxTest::InitalOsteotomyModelBtnClicked(std::string drillEndName, std::string prosNodeName, std::string boneNodeName)
@@ -3293,7 +3251,7 @@ void CzxTest::RobotMoveToFemurDistalBtnClicked()
 	PrintDataHelper::CoutArray(distalDirection, "distalDirection: ");
 	auto matrix = m_IntraOsteotomy->CalculateFemurDrillEndVerticalPlane(distalPointInFemur, distalDirection);
 
-	m_PKADianaAimHardwareDevice->RobotTransformInTCP(matrix->GetData());
+	m_Robot->RobotTransformInTCP(matrix->GetData());
 }
 
 void CzxTest::RobotMoveToFemurPosteriorChamferBtnClicked()
@@ -3303,7 +3261,7 @@ void CzxTest::RobotMoveToFemurPosteriorChamferBtnClicked()
 
 	auto matrix = m_IntraOsteotomy->CalculateFemurDrillEndVerticalPlane(posteriorChamferPoint, posteriorChamferDirection);
 
-	m_PKADianaAimHardwareDevice->RobotTransformInTCP(matrix->GetData());
+	m_Robot->RobotTransformInTCP(matrix->GetData());
 }
 
 void CzxTest::RobotMoveToFemurPosteriorBtnClicked()
@@ -3313,7 +3271,7 @@ void CzxTest::RobotMoveToFemurPosteriorBtnClicked()
 
 	auto matrix = m_IntraOsteotomy->CalculateFemurDrillEndVerticalPlane(posteriorPoint, posteriorDirection);
 
-	m_PKADianaAimHardwareDevice->RobotTransformInTCP(matrix->GetData());
+	m_Robot->RobotTransformInTCP(matrix->GetData());
 }
 
 void CzxTest::RobotMoveToTibiaProximalBtnClicked()
@@ -3322,7 +3280,7 @@ void CzxTest::RobotMoveToTibiaProximalBtnClicked()
 	auto proximalDirection = m_TibiaTray->GetProximalDirection();
 
 	auto matrix = m_IntraOsteotomy->CalculateTibiaDrillEndVerticalPlane(proximalPointInTibia, proximalDirection);
-	m_PKADianaAimHardwareDevice->RobotTransformInTCP(matrix->GetData());
+	m_Robot->RobotTransformInTCP(matrix->GetData());
 }
 
 void CzxTest::SwitchNodeNameBtnClicked()
@@ -3676,7 +3634,7 @@ void CzxTest::ReadJsonBtnClicked()
 	std::string jsonPath = m_Controls.WriteJsonPahtLineEdit->text().toStdString();
 	std::filesystem::path m_jsonPath = FileIO::CombinePath(jsonPath, "config.json");
 
-	FileIO::ReadPKAImplantJson(m_jsonPath);
+	//FileIO::ReadPKAImplantJson(m_jsonPath);
 }
 
 void CzxTest::SelectJsonPathBtnClicked()
