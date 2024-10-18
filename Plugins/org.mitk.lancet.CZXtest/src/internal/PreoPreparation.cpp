@@ -1,8 +1,7 @@
 #include "PreoPreparation.h"
 
-lancetAlgorithm::PreoPreparation::PreoPreparation(PKADianaAimHardwareDevice* pkaDianaAimHardwareDevice)
+lancetAlgorithm::PreoPreparation::PreoPreparation()
 {
-	m_PKADianaAimHardwareDevice = pkaDianaAimHardwareDevice;
 }
 
 /// <summary>

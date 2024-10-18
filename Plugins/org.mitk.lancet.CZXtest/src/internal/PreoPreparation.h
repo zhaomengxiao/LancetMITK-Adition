@@ -18,7 +18,7 @@ namespace lancetAlgorithm
 	class PreoPreparation : public QObject
 	{
 	public:
-		PreoPreparation(PKADianaAimHardwareDevice* pkaDianaAimHardwareDevice);
+		PreoPreparation();
 		void SelectFemurPositions(QProgressBar* bar, double& error);
 		void VerifyProbe(QPushButton* button, QProgressBar* bar, QLabel* label);
 	private:
@@ -40,7 +40,6 @@ namespace lancetAlgorithm
 
 	private:
 		std::vector<Eigen::Vector3d> FemurPositions;
-		PKADianaAimHardwareDevice* m_PKADianaAimHardwareDevice;
 		bool m_IsVerifyProbe = false;
 		QTimer* m_ProbeVerifyTimer{ nullptr };
 		std::vector<Eigen::Vector3d> m_ProbePosVec;
