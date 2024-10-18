@@ -42,27 +42,16 @@ void DianaSeven::CreateQtPartControl(QWidget* parent)
 	InitGlobalVariable();
 	m_DianaAimHardwareService = new lancetAlgorithm::DianaAimHardwareService();
 	m_PrecisionTab = new PrecisionTab(m_Controls, this->GetDataStorage(), m_DianaAimHardwareService, parent);
-	connect(m_Controls.pushButton_initDiana, &QPushButton::clicked, this, &DianaSeven::initDianaNet);
-	connect(m_Controls.pushButton_stopDiana, &QPushButton::clicked, this, &DianaSeven::StopDiana);
+
 	connect(m_Controls.pushButton_initDiana_2, &QPushButton::clicked, this, &DianaSeven::initDianaNet);
-	connect(m_Controls.pushButton_cleanErrorInfo, &QPushButton::clicked, this, &DianaSeven::cleanAllErrorInfo);
-	//vega
-	connect(m_Controls.reciveData, &QPushButton::clicked, this, &DianaSeven::ReciveRobotData);
-	connect(m_Controls.servopOn, &QPushButton::clicked, this, &DianaSeven::ServoP);
-	//connect(m_Controls.closeServopOFF, &QPushButton::clicked, this, &DianaSeven::closeServopOff);
-	connect(&m_ServoPTimer, &QTimer::timeout, this, &DianaSeven::OnServoPSendCommand);
-	connect(m_Controls.pushButton_setTcp, &QPushButton::clicked, this, &DianaSeven::setTcp);
-	
-
-	connect(m_Controls.pushButton_PosAccuracy, &QPushButton::clicked, this, &DianaSeven::PosAccuracy);
-	connect(m_Controls.pushButton_PosRepeaibility, &QPushButton::clicked, this, &DianaSeven::PosRepeatability);
-
 	connect(m_Controls.pushButton_MoveZZJ, &QPushButton::clicked, this, &DianaSeven::move_zzj);
-	connect(m_Controls.pushButton_MoveTest, &QPushButton::clicked, this, &DianaSeven::move_test);
 	connect(m_Controls.pushButton_Initial, &QPushButton::clicked, this, &DianaSeven::GoInitial);
 	connect(m_Controls.pushButton_1, &QPushButton::clicked, this, &DianaSeven::Position1);
 	connect(m_Controls.pushButton_2, &QPushButton::clicked, this, &DianaSeven::Position2);
 	connect(m_Controls.pushButton_4, &QPushButton::clicked, this, &DianaSeven::Position3);
+
+	connect(m_Controls.pushButton_AccuracyPosition, &QPushButton::clicked, this, &DianaSeven::PositionAccuracy);
+	connect(m_Controls.pushButton_Repeatability, &QPushButton::clicked, this, &DianaSeven::PositionRepeatability);
 
 	connect(m_Controls.pushButton_openFreeDriving, &QPushButton::clicked, this, &DianaSeven::OpenHandGuiding);
 	connect(m_Controls.pushButton_closeFreeDriving, &QPushButton::clicked, this, &DianaSeven::closeHandGuiding);
@@ -107,19 +96,6 @@ void DianaSeven::initDianaNet()
 		pinfo = nullptr;
 	}
 	releaseBrake();
-}
-
-void DianaSeven::StopDiana()
-{
-	stop(m_RobotIpAddress);
-}
-
-void DianaSeven::PosAccuracy()//九个点
-{
-}
-
-void DianaSeven::PosRepeatability()//两个点来回动
-{
 }
 
 
@@ -179,55 +155,6 @@ void DianaSeven::move_zzj()
 	moveJToTarget(joints_final, 0.2, 0.4);
 
 	wait_move(m_RobotIpAddress);
-}
-
-void DianaSeven::move_test()
-{
-	//getJointPos(joints, strIpAddress);//读取DJ1-7
-	//printf("getJointPos: %f ,%f, %f, %f, %f, %f, %f\n", joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6]);
-
-	//forward(joints, pose, nullptr, strIpAddress);//Dj11-7转x y z Rx Ry Rz轴角
-	//printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
-
-	//pose2Homogeneous(pose, forward_Matrix);//轴角转齐次变换矩阵
-	////PrintDataHelper::CoutMatrix("forward_Matrix", forward_Matrix);
-	////PrintDataHelper::PrintMatrix("forward_Matrix", forward_Matrix);
-
-	////forward_Matrix->右乘一个移动矩阵->得到一个T_newtargetMatrix
-	//double x = m_Controls.lineEdit_X->text().toDouble();
-	//double y = m_Controls.lineEdit_Y->text().toDouble();
-	//double z = m_Controls.lineEdit_Z->text().toDouble();
-
-	//vtkNew<vtkTransform> tmpTrans;
-	//tmpTrans->PostMultiply();
-	//tmpTrans->SetMatrix(forward_Matrix);
-	//vtkNew<vtkMatrix4x4> transposedMatrix1;
-	//transposedMatrix1->DeepCopy(tmpTrans->GetMatrix());
-	//transposedMatrix1->Transpose();
-	//tmpTrans->SetMatrix(transposedMatrix1);
-	//tmpTrans->Translate(x, y, z);
-	//vtkNew<vtkMatrix4x4> transposedMatrix2;
-	//transposedMatrix2->DeepCopy(tmpTrans->GetMatrix());
-	//transposedMatrix2->Transpose();
-	//tmpTrans->SetMatrix(transposedMatrix2);
-	//tmpTrans->Update();
-
-	//std::cout << std::fixed << std::setprecision(5);
-	//tmpTrans->Print(std::cout);
-
-	//vtkMatrix4x4* matrix = tmpTrans->GetMatrix();
-	//auto T_newtargetMatrix = matrix->GetData();
-	////PrintDataHelper::CoutMatrix("T_newtargetMatrix", T_newtargetMatrix);
-	////PrintDataHelper::PrintMatrix("T_newtargetMatrix", T_newtargetMatrix);
-
-	//homogeneous2Pose(T_newtargetMatrix, pose);
-	//printf("Diana API homogeneous2Pose got: %f, %f, %f, %f, %f, %f\n", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
-
-	//inverse_ext(ref_joints, pose, joints, nullptr, strIpAddress);
-	//printf("inverse_ext: %f ,%f, %f, %f, %f, %f, %f\n", joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6]);
-	//moveLToTarget(joints, vel, acc, zv_shaper_order, zv_shaper_frequency, zv_shaper_damping_ratio);
-	//wait_move(strIpAddress);
-
 }
 
 void DianaSeven::Refmove()
@@ -351,71 +278,15 @@ void DianaSeven::changeToJointImpendance()
 	changeControlMode(T_MODE_JOINT_IMPEDANCE, m_RobotIpAddress);
 }
 
-void DianaSeven::cleanAllErrorInfo()
-{
-	int p=cleanErrorInfo(m_RobotIpAddress);
-	if (p < 0)
-	{
-		MITK_INFO << "cleanErrorInfo failed!";
-		printf("cleanErrorInfo failed!\n");
-	}
-
-}
-
-void DianaSeven::setTcp()
-{
-	setDefaultActiveTcpPose(activeTcpPose, m_RobotIpAddress);
-	//setDefaultActiveTcp(nowActiveTcp,strIpAddress);
-	//double RTf2t[3] = { -113.079,145.354,-97.1639 };
-	//setFla2TcpRT(RTf2t, strIpAddress);
-
-}
-
-void DianaSeven::ReciveRobotData()
-{
-	getJointPos(joints, m_RobotIpAddress);//读取DJ1-7
-	printf("getJointPos: %f ,%f, %f, %f, %f, %f, %f\n", joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6]);
-
-	dCoord = { dX, dY, dZ, dRx, dRy, dRz };
-}
-
-void DianaSeven::ServoP()
-{
-	if (this->m_ServoPTimer.isActive())
-	{
-		this->m_ServoPTimer.stop();
-	}
-	else
-	{
-		double* TargetPose = dTargetPoint.data();//使用data（）方法将vector变量转化为double
-
-		int StartServo = servoJ_ex(TargetPose, 0.002, 0.08, 150, false, m_RobotIpAddress);
-		MITK_INFO << "TargetPose:" << TargetPose[0] << "," << TargetPose[1] << "," << TargetPose[2] << "," << TargetPose[3]
-			<< "," << TargetPose[4] << "," << TargetPose[5];
-		if (StartServo==0)
-		{
-			this->m_ServoPTimer.start(80);
-		}
-	}
-}
-
-void DianaSeven::OnServoPSendCommand()
-{
-	clock_t start;
-	start = clock();//测量时间、定时器
-
-	double* TargetPose = dTargetPoint.data();//使用data（）方法将vector变量转化为double
-
-	servoJ_ex(TargetPose, 0.002, 0.08, 150, false,m_RobotIpAddress);
-	//servoL_ex(dTargetPoint, 0.02, 0.08, 150, false);
-	MITK_INFO << "TargetPose:" << TargetPose[0] << "," << TargetPose[1] << "," << TargetPose[2] << "," << TargetPose[3]
-		<< "," << TargetPose[4] << "," << TargetPose[5];
-}
-
-void DianaSeven::closeServopOff()
+void DianaSeven::PositionAccuracy()
 {
 
 }
+
+void DianaSeven::PositionRepeatability()
+{
+}
+
 
 void DianaSeven::TargetPointData()//?
 {
