@@ -4,7 +4,7 @@ set(AIMOOE_DLLS_RELEASE "")
 
 set(AIMOOE_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/AimPosDll/include")
 file(GLOB AIMOOE_LIB_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/AimPosDll/Release/*.lib")
-#file(GLOB AIMOOE_DLL_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/AimPosDll/Release/*.dll")
+file(GLOB AIMOOE_DLL_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/AimPosDll/Release/*.dll")
 ###############################################################################################
 
 set(Diana_INCLUDE "")

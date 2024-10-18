@@ -1,4 +1,4 @@
-	/**
+﻿	/**
 	* @last update Nov 30 2021 
 	* @sdkversion 2.1.2.3_dev
 	* @Maintenance star@jaka
@@ -65,14 +65,15 @@ typedef struct
 	CartesianTran z; ///< z轴列分量
 } RotMatrix;
 
-/**
-* @brief 程序运行状态枚举类型
-*/
+///**
+//* @brief 程序运行状态枚举类型
+//*/
+
 typedef enum
 {
 	PROGRAM_IDLE,	 ///< 机器人停止运行
 	PROGRAM_RUNNING, ///< 机器人正在运行
-	PROGRAM_PAUSED	 ///< 机器人暂停
+	PROGRAM_PAUSED   ///< 机器人暂停
 } ProgramState;
 
 /**
