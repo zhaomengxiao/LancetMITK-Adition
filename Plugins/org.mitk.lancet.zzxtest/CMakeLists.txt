@@ -1,0 +1,7 @@
+project(org_mitk_lancet_zzxtest)
+
+mitk_create_plugin(
+  EXPORT_DIRECTIVE ZZXTEST_EXPORT
+  EXPORTED_INCLUDE_SUFFIXES src
+  MODULE_DEPENDS MitkQtWidgetsExt MitkLancetRegistration  MitkCore MitkLancetIGT MitkCLCore MitkIGTUI MitkBoundingShape MitkRemeshing MitkDICOM MitkLancetAlgo MitkLancetGeoUtil MitkLancetRobot MitkGizmo MitkLancetHardwareDevice MitkLancetRobot MitkLancetRobotRegistration
+)

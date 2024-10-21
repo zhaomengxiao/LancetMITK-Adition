@@ -1,0 +1,7 @@
+project(org_mitk_lancet_ZYXtest)
+
+mitk_create_plugin(
+  EXPORT_DIRECTIVE ZYXTEST_EXPORT
+  EXPORTED_INCLUDE_SUFFIXES src
+  MODULE_DEPENDS MitkQtWidgetsExt MitkIGTUI MitkLancetIGT MitkLancetRobot MitkLancetAlgo MitkLancetHardwareDevice MitkLancetRobot MitkLancetRobotRegistration
+)

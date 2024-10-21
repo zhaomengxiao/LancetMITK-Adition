@@ -121,7 +121,7 @@ std::vector<std::string> FileIO::GetPathFilesWithFileType(std::filesystem::path 
 	std::vector<std::string> files;
 
 	if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
-		std::cout << "Ä¿Â¼²»´æÔÚ»ò²»ÊÇÄ¿Â¼: " << path << std::endl;
+		std::cout << "ç›®å½•ä¸å­˜åœ¨æˆ–ä¸æ˜¯ç›®å½•: " << path << std::endl;
 		return files;
 	}
 
@@ -160,33 +160,33 @@ std::string FileIO::GetLastCharaters(const std::filesystem::path path, size_t n)
 {
 	std::string filePathStr = path.string();
 	if (n >= filePathStr.size()) {
-		return filePathStr; // Èç¹û x ´óÓÚµÈÓÚÂ·¾¶³¤¶È£¬·µ»ØÕû¸öÂ·¾¶
+		return filePathStr; // å¦‚æžœ x å¤§äºŽç­‰äºŽè·¯å¾„é•¿åº¦ï¼Œè¿”å›žæ•´ä¸ªè·¯å¾„
 	}
 	else {
-		return filePathStr.substr(filePathStr.size() - n); // ·µ»ØÄ©Î² X ¸ö×Ö·û
+		return filePathStr.substr(filePathStr.size() - n); // è¿”å›žæœ«å°¾ X ä¸ªå­—ç¬¦
 	}
 }
 
 std::string FileIO::getFileNameWithoutExtension(const std::string& filePath)
 {
 	std::filesystem::path path(filePath);
-	std::string filename = path.stem().string(); // »ñÈ¡Ã»ÓÐÀ©Õ¹ÃûµÄÎÄ¼þÃû
+	std::string filename = path.stem().string(); // èŽ·å–æ²¡æœ‰æ‰©å±•åçš„æ–‡ä»¶å
 	return filename;
 }
 
 void FileIO::SaveMatrix2File(std::string filePath, vtkMatrix4x4* matrix)
 {
-	//´æCameraToImage
+	//å­˜CameraToImage
 	auto data = matrix->GetData();
 	std::ofstream robotMatrixFile(filePath);
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
 			robotMatrixFile << data[i * 4 + j];
 			if (j != 3) {
-				robotMatrixFile << " "; // Ã¿¸öÔªËØÖ®¼ä¼Ó¿Õ¸ñ
+				robotMatrixFile << " "; // æ¯ä¸ªå…ƒç´ ä¹‹é—´åŠ ç©ºæ ¼
 			}
 		}
-		robotMatrixFile << std::endl; // Ã¿ÐÐ½áÊøºó»»ÐÐ
+		robotMatrixFile << std::endl; // æ¯è¡Œç»“æŸåŽæ¢è¡Œ
 	}
 	robotMatrixFile.close();
 	std::cout << "save matrix in " + filePath << std::endl;
