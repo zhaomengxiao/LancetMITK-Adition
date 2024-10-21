@@ -190,39 +190,6 @@ bool DianaRobot::SetCartImpendanceMode()
 	return ret < 0 ? false : true;
 }
 
-bool DianaRobot::SetRobotImpeda(std::vector<double> aImpeda)
-{
-	double arrstiff[6] = {};
-	double dblDamp = 0;
-	for (int i = 0; i < 6; ++i)
-	{
-		arrstiff[i] = aImpeda[i];
-	}
-	dblDamp = aImpeda[6];
-	int ret = setCartImpeda(arrstiff, dblDamp);
-
-	return ret < 0 ? false : true;
-}
-
-std::vector<double> DianaRobot::GetRobotImpeda()
-{
-	std::vector<double> ret;
-	double arrStiff[6] = {};
-	double dblDamp = 0;
-
-	if (getCartImpeda(arrStiff, &dblDamp) < 0)
-	{
-		std::cout << "Get CartImpeda Failed" << std::endl;
-	}
-
-	for (int i = 0; i < 6; i++)
-	{
-		ret.push_back(arrStiff[i]);
-	}
-	ret.push_back(dblDamp);
-	return ret;
-}
-
 std::vector<double> DianaRobot::GetJointAngles()
 {
 	double* angles = new double[m_initJoints.size()];

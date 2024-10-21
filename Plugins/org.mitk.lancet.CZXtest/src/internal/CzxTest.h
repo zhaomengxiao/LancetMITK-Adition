@@ -146,6 +146,8 @@ found in the LICENSE file.
 #include "RobotFrame.h"
 #include "BoundingBoxInteraction.h"
 #include "RobotFrame2.h"
+#include <DianaRobot.h>
+#include <AimCamera.h>
 
 //#include "mitkGizmoInteractor.h"
 //#include "ObserveTransCommand.h"
@@ -189,8 +191,8 @@ public:
   void SelfCheckBtnClicked();
 
  //Robot Movement
-  bool Translate(const double axis[3]);
-  bool Rotate(const double axis[3]);
+  bool Translate(double axis[3]);
+  bool Rotate(double axis[3]);
   void RobotAutoRegistationBtnClicked();
   void automoveBtnClicked();
   void StopRobotMoveBtnClicked();
@@ -412,7 +414,7 @@ private slots:
 private:
   Ui::CzxTestControls m_Controls;
   mitk::BoundingShapeInteractor::Pointer m_BoundingShapeInteractor;
-  PKAKukaVegaHardwareDevice* m_PKAHardwareDevice;
+  //PKAKukaVegaHardwareDevice* m_PKAHardwareDevice;
   IntraOsteotomy* m_IntraOsteotomy;
   QTimer* m_RequestRenderTimer{ nullptr };
   bool m_IsRotateTibia = false;
@@ -452,7 +454,8 @@ private:
   QButtonGroup* m_IntraProsGroup;
   bool isDisplayBoneAxes = false;
   KneeModel m_AngleCalculationTypeComboBoxSelectedKneeModel = KneeModel::Femur;
-  PKADianaAimHardwareDevice* m_PKADianaAimHardwareDevice = nullptr;
+  DianaRobot* m_Robot;
+  AimCamera* m_Camera;
   QTimer* m_AimoeVisualizeTimer{ nullptr };
   mitk::PointSet::Pointer m_SelectedRegistrationPoint;
   ModelRegistration* m_ModelRegistration;

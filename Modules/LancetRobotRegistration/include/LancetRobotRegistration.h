@@ -39,7 +39,6 @@ public:
 	void replaceRegistration();
 	void reuseArmMatrix();
 	void saveArmMatrix();
-	
 	signals:
 		void countPose(int cnt); 
 	
