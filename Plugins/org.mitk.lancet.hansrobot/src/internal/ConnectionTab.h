@@ -5,7 +5,7 @@
 #include "LancetHansRobot.h"
 #include "LancetDianaRobot.h"
 #include "FileIO.h"
-#include "AimCamera.h"
+#include "LancetAimCamera.h"
 
 #include <QmitkSingleNodeSelectionWidget.h>
 #include <mitkNodePredicateAnd.h>

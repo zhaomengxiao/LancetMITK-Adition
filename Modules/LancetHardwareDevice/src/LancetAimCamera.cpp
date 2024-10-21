@@ -1,6 +1,6 @@
-#include "AimCamera.h"
+#include "LancetAimCamera.h"
 
-void AimCamera::Connect()
+void LancetAimCamera::Connect()
 {
 	T_AIMPOS_DATAPARA mPosDataPara;
 	Aim_API_Initial(m_AimHandle);
@@ -62,12 +62,12 @@ void AimCamera::Connect()
 	rlt = AIMOOE_OK;
 }
 
-void AimCamera::Disconnect()
+void LancetAimCamera::Disconnect()
 {
 	Aim_API_Close(m_AimHandle);
 }
 
-void AimCamera::Start()
+void LancetAimCamera::Start()
 {
 	if (rlt != AIMOOE_OK)
 	{
@@ -82,12 +82,12 @@ void AimCamera::Start()
 		m_CameraUpdateTimer = new QTimer();
 	}
 
-	connect(m_CameraUpdateTimer, &QTimer::timeout, this, &AimCamera::UpdateData);
+	connect(m_CameraUpdateTimer, &QTimer::timeout, this, &LancetAimCamera::UpdateData);
 
 	m_CameraUpdateTimer->start(100);
 }
 
-void AimCamera::Stop()
+void LancetAimCamera::Stop()
 {
 	if (m_CameraUpdateTimer && m_CameraUpdateTimer->isActive())
 	{
@@ -95,11 +95,11 @@ void AimCamera::Stop()
 		m_CameraUpdateTimer->stop();
 
 		// 断开定时器的信号连接
-		disconnect(m_CameraUpdateTimer, &QTimer::timeout, this, &AimCamera::UpdateData);
+		disconnect(m_CameraUpdateTimer, &QTimer::timeout, this, &LancetAimCamera::UpdateData);
 	}
 }
 
-Eigen::Vector3d AimCamera::GetToolTipByName(std::string aToolName)
+Eigen::Vector3d LancetAimCamera::GetToolTipByName(std::string aToolName)
 {
 	if (m_ToolTipMap.count(aToolName) > 0)
 	{
@@ -109,7 +109,7 @@ Eigen::Vector3d AimCamera::GetToolTipByName(std::string aToolName)
 	return Eigen::Vector3d(0,0,0);
 }
 
-vtkSmartPointer<vtkMatrix4x4> AimCamera::GetToolMatrixByName(std::string aToolName)
+vtkSmartPointer<vtkMatrix4x4> LancetAimCamera::GetToolMatrixByName(std::string aToolName)
 {
 	if (m_ToolTipMap.count(aToolName) > 0)
 	{
@@ -119,7 +119,7 @@ vtkSmartPointer<vtkMatrix4x4> AimCamera::GetToolMatrixByName(std::string aToolNa
 	return vtkSmartPointer<vtkMatrix4x4>();
 }
 
-void AimCamera::InitToolsName(std::vector<std::string> aToolsName)
+void LancetAimCamera::InitToolsName(std::vector<std::string> aToolsName)
 {
 	this->ResetTools();
 	for (int i = 0; i < aToolsName.size(); ++i)
@@ -133,7 +133,7 @@ void AimCamera::InitToolsName(std::vector<std::string> aToolsName)
 	}
 }
 
-T_AimToolDataResult* AimCamera::GetNewToolData()
+T_AimToolDataResult* LancetAimCamera::GetNewToolData()
 {
 	rlt = Aim_GetMarkerAndStatusFromHardware(m_AimHandle, I_ETHERNET, markerSt, statusSt);
 	if (rlt == AIMOOE_NOT_REFLASH)
@@ -150,7 +150,7 @@ T_AimToolDataResult* AimCamera::GetNewToolData()
 	return prlt;
 }
 
-bool AimCamera::UpdateCameraToToolMatrix(T_AimToolDataResult* aToolData, const std::string aName)
+bool LancetAimCamera::UpdateCameraToToolMatrix(T_AimToolDataResult* aToolData, const std::string aName)
 {
 	QLabel* label = nullptr;
 	if (aToolData->toolname == aName)
@@ -205,7 +205,7 @@ bool AimCamera::UpdateCameraToToolMatrix(T_AimToolDataResult* aToolData, const s
 	return false;
 }
 
-void AimCamera::UpdateData()
+void LancetAimCamera::UpdateData()
 {
 	auto prlt = GetNewToolData();
 	if (rlt == AIMOOE_OK)//判断是否采集成功

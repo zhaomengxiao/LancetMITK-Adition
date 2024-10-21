@@ -1,8 +1,8 @@
 set(CPP_FILES
-  AimCamera.cpp
+  LancetAimCamera.cpp
   LancetDianaRobot.cpp
   LancetHansRobot.cpp
-  NDICamera.cpp
+  LancetNDICamera.cpp
   LancetJakaRobot.cpp
   #AriemediCamera.cpp
   LancetThorRobot.cpp
@@ -14,12 +14,11 @@ set(UI_FILES
 set(MOC_H_FILES
   include/AbstractRobot.h
   include/AbstractCamera.h
-  include/AimCamera.h
+  include/LancetAimCamera.h
   include/LancetDianaRobot.h
   include/LancetHansRobot.h
-  include/NDICamera.h
+  include/LancetNDICamera.h
   include/LancetJakaRobot.h
-  include/AbstractUi.h
   #include/AriemediCamera.h
   include/LancetThorRobot.h
 )
@@ -27,12 +26,11 @@ set(MOC_H_FILES
 set(H_FILES
   include/AbstractRobot.h
   include/AbstractCamera.h
-  include/AimCamera.h
+  include/LancetAimCamera.h
   include/LancetDianaRobot.h
   include/LancetHansRobot.h
-  include/NDICamera.h
+  include/LancetNDICamera.h
   include/LancetJakaRobot.h
-  include/AbstractUi.h
   #include/AriemediCamera.h
   include/LancetThorRobot.h
 )

@@ -1452,7 +1452,7 @@ void CzxTest::InitIntraOsteotomyTabConnection()
 void CzxTest::InitGlobalVariable()
 {
 	//m_PKAHardwareDevice = new PKAKukaVegaHardwareDevice(this->GetDataStorage());
-	m_Camera = new AimCamera();
+	m_Camera = new LancetAimCamera();
 	m_Robot = new LancetDianaRobot();
 	m_AngleCalculationHelper = new AngleCalculationHelper(this->GetDataStorage());
 

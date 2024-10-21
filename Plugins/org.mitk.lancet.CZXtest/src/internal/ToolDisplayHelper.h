@@ -13,7 +13,7 @@
 //#include <AimPositionAPI.h>
 #include "FileIO.h"
 #include "PrintDataHelper.h"
-#include <AimCamera.h>
+#include <LancetAimCamera.h>
 //#include "PKADianaAimHardwareDevice.h"
 
 namespace lancetAlgorithm
@@ -22,7 +22,7 @@ namespace lancetAlgorithm
 	{
 		//Q_OBJECT
 	public:
-		ToolDisplayHelper(mitk::DataStorage* dataStorage, mitk::IRenderWindowPart* iRenderWindowPart, AimCamera* aCamera);
+		ToolDisplayHelper(mitk::DataStorage* dataStorage, mitk::IRenderWindowPart* iRenderWindowPart, LancetAimCamera* aCamera);
 
 		void AddModle(PKAMarker p, mitk::IRenderWindowPart* renderWindowPart);
 		void RemoveModel(PKAMarker p);
@@ -46,7 +46,7 @@ namespace lancetAlgorithm
 		mitk::IRenderWindowPart* m_IRenderWindowPart;
 		bool m_IsUseFemurRegistration = false;
 		bool m_IsUseTibiaRegistration = false;
-		AimCamera* m_Camera;
+		LancetAimCamera* m_Camera;
 	};
 }
 

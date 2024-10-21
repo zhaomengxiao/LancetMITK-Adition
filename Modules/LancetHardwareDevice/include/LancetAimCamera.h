@@ -1,12 +1,12 @@
 #pragma once
-#ifndef AIMCAMERA_h
-#define AIMCAMERA_h
+#ifndef LANCETAIMCAMERA_h
+#define LANCETAIMCAMERA_h
 #include "MitkLancetHardwareDeviceExports.h"
 #include "AbstractCamera.h"
 
 #include "AimPositionAPI.h"
 
-class MITKLANCETHARDWAREDEVICE_EXPORT AimCamera : public AbstractCamera
+class MITKLANCETHARDWAREDEVICE_EXPORT LancetAimCamera : public AbstractCamera
 {
 	Q_OBJECT
 public:

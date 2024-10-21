@@ -1,6 +1,6 @@
 #include "IntraOsteotomy.h"
 
-lancetAlgorithm::IntraOsteotomy::IntraOsteotomy(mitk::DataStorage* dataStorage, AimCamera* aCamera,
+lancetAlgorithm::IntraOsteotomy::IntraOsteotomy(mitk::DataStorage* dataStorage, LancetAimCamera* aCamera,
 	ChunLiXGImplant* aChunLiXGImplant, ChunLiTray* aChunLITray)
 {
 	m_DataStorage = dataStorage;
