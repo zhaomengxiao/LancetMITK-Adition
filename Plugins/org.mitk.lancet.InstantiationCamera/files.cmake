@@ -7,6 +7,7 @@ set(INTERNAL_CPP_FILES
   InstantiationCamera.cpp
   CameraConnectionTab.cpp
   CameraTransTab.cpp
+  CameraRectLabel.cpp
 )
 
 set(UI_FILES
@@ -18,6 +19,7 @@ set(MOC_H_FILES
   src/internal/InstantiationCamera.h
   src/internal/CameraConnectionTab.h
   src/internal/CameraTransTab.h
+  src/internal/CameraRectLabel.h
 )
 
 # list of resource files which can be used by the plug-in
