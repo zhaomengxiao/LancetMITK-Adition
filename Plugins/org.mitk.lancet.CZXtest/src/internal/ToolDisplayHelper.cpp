@@ -1,12 +1,13 @@
 #include "ToolDisplayHelper.h"
 
+
 lancetAlgorithm::ToolDisplayHelper::ToolDisplayHelper(mitk::DataStorage* dataStorage, mitk::IRenderWindowPart* iRenderWindowPart,
-	PKADianaAimHardwareDevice* PKADianaAimHardwareDevice)
+	AimCamera* aCamera)
 {
 	m_DataStorage = dataStorage;
 	m_IRenderWindowPart = iRenderWindowPart;
 	m_DrillEndMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-	m_PKADianaAimHardwareDevice = PKADianaAimHardwareDevice;
+	m_Camera = aCamera;
 }
 
 void lancetAlgorithm::ToolDisplayHelper::Start()
@@ -118,9 +119,6 @@ void lancetAlgorithm::ToolDisplayHelper::UpdateTool()
 			vtkSmartPointer<vtkMatrix4x4> TImage2ProbeTip = vtkSmartPointer<vtkMatrix4x4>::New();
 
 			TCamera2Probe->DeepCopy(PKAData::m_TCamera2Probe);
-			//Eigen::Vector3d probeTip = m_PKADianaAimHardwareDevice->GetProbeTip();
-			//auto probeRotation = CalculationHelper::GetRotationFromMatrix4x4(TCamera2Probe);
-			//auto probeTipMatrix = CalculationHelper::GetMatrixByRotationAndTranslation(probeRotation, probeTip);
 			originAxesActor = m_AxesMapper.at(tool);
 			if(m_IsUseFemurRegistration)
 			{

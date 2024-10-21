@@ -10,10 +10,11 @@
 #include <vtkAxesActor.h>
 #include "CalculationHelper.h"
 #include <mitkIRenderWindowPart.h>
-#include <AimPositionAPI.h>
+//#include <AimPositionAPI.h>
 #include "FileIO.h"
 #include "PrintDataHelper.h"
-#include "PKADianaAimHardwareDevice.h"
+#include <AimCamera.h>
+//#include "PKADianaAimHardwareDevice.h"
 
 namespace lancetAlgorithm
 {
@@ -21,7 +22,7 @@ namespace lancetAlgorithm
 	{
 		//Q_OBJECT
 	public:
-		ToolDisplayHelper(mitk::DataStorage* dataStorage, mitk::IRenderWindowPart* iRenderWindowPart, PKADianaAimHardwareDevice* PKADianaAimHardwareDevice);
+		ToolDisplayHelper(mitk::DataStorage* dataStorage, mitk::IRenderWindowPart* iRenderWindowPart, AimCamera* aCamera);
 
 		void AddModle(PKAMarker p, mitk::IRenderWindowPart* renderWindowPart);
 		void RemoveModel(PKAMarker p);
@@ -45,7 +46,7 @@ namespace lancetAlgorithm
 		mitk::IRenderWindowPart* m_IRenderWindowPart;
 		bool m_IsUseFemurRegistration = false;
 		bool m_IsUseTibiaRegistration = false;
-		PKADianaAimHardwareDevice* m_PKADianaAimHardwareDevice;
+		AimCamera* m_Camera;
 	};
 }
 

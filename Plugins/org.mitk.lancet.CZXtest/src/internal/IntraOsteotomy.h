@@ -11,10 +11,11 @@
 #include "PrintDataHelper.h"
 #include "AngleCalculationHelper.h"
 #include "PKAData.h"
-#include "PKADianaAimHardwareDevice.h"
+//#include "PKADianaAimHardwareDevice.h"
 #include "ChunLiXGImplant.h"
 #include "ChunLITray.h"
 #include "PKAEnum.h"
+#include <AimCamera.h>
 
 //meshlib
 #include <MRMesh/MRMesh.h>
@@ -29,7 +30,7 @@ namespace lancetAlgorithm
 	{
 		//Q_OBJECT
 	public:
-		IntraOsteotomy(mitk::DataStorage* dataStorage,  PKADianaAimHardwareDevice* pkaDianaAimHardwareDevice,
+		IntraOsteotomy(mitk::DataStorage* dataStorage, AimCamera* aCamera,
 			ChunLiXGImplant* aChunLiXGImplant, ChunLiTray* aChunLITray);
 
 		vtkSmartPointer<vtkMatrix4x4>  CalculateTDrillEnd2FemurImage(/*Eigen::Vector3d pointInImage*/);
@@ -110,7 +111,7 @@ namespace lancetAlgorithm
 
 	private:
 		mitk::DataStorage* m_DataStorage;
-		PKADianaAimHardwareDevice* m_PKADianaAimHardwareDevice;
+		AimCamera* m_Camera;
 		MR::Mesh m_GreenMesh;
 		MR::Mesh m_BufferMesh;
 		MR::Mesh m_ShellMesh;
