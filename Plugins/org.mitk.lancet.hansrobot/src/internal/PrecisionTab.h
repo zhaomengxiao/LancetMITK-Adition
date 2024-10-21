@@ -4,7 +4,7 @@
 #include "ui_HansRobotControls.h"
 #include "LancetHansRobot.h"
 #include "FileIO.h"
-#include "AimCamera.h"
+#include "LancetAimCamera.h"
 
 #include <QmitkSingleNodeSelectionWidget.h>
 #include <mitkNodePredicateAnd.h>
@@ -21,7 +21,7 @@ class PrecisionTab :  public QWidget
 {
 	Q_OBJECT
 public:
-	explicit PrecisionTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataStorage, LancetHansRobot* HansRobotHardwareService,AimCamera* AimCameraHardwareService, QWidget* parent = nullptr);
+	explicit PrecisionTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataStorage, LancetHansRobot* HansRobotHardwareService,LancetAimCamera* AimCameraHardwareService, QWidget* parent = nullptr);
 
 public slots:
 	void InitConnection();

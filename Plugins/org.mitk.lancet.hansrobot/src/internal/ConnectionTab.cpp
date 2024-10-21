@@ -3,7 +3,7 @@
 ConnectionTab::ConnectionTab(Ui::HansRobotControls ui, mitk::DataStorage* aDataStorage, AbstractRobot* aRobot, AbstractCamera* aCamera, QWidget* parent)
 {
 	m_ui = ui;
-	m_Robot = dynamic_cast<DianaRobot*>( aRobot);
+	m_Robot = dynamic_cast<LancetDianaRobot*>( aRobot);
 	m_Camera = aCamera;
 	m_dataStorage = aDataStorage;
 	if (!m_dataStorage)
@@ -20,7 +20,7 @@ void ConnectionTab::InitConnection()
 	connect(m_ui.pushButton_powerOn_3, &QPushButton::clicked, this, &ConnectionTab::powerOn);
 	connect(m_ui.pushButton_powerOff_3, &QPushButton::clicked, this, &ConnectionTab::powerOff);
 	connect(m_ui.pushButton_connectCamrea_3, &QPushButton::clicked, this, &ConnectionTab::connectCamera);
-	connect(m_Camera, &AimCamera::CameraUpdateClock, this, &ConnectionTab::upDateUi);
+	connect(m_Camera, &LancetAimCamera::CameraUpdateClock, this, &ConnectionTab::upDateUi);
 	connect(m_ui.pushButton_updataData_3, &QPushButton::clicked, this, &ConnectionTab::updateData);
 }
 

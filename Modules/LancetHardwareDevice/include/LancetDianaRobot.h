@@ -1,6 +1,6 @@
 #pragma once
-#ifndef DIANAROBOT_h
-#define DIANAROBOT_h
+#ifndef LANCETDIANAROBOT_h
+#define LANCETDIANAROBOT_h
 
 #include <AbstractRobot.h>
 #include <PrintDataHelper.h>
@@ -9,10 +9,10 @@
 #include "Environment.h"
 #include "FunctionOptDef.h"
 #include "MitkLancetHardwareDeviceExports.h"
-class MITKLANCETHARDWAREDEVICE_EXPORT DianaRobot : public AbstractRobot
+class MITKLANCETHARDWAREDEVICE_EXPORT LancetDianaRobot : public AbstractRobot
 {
 public:
-	DianaRobot();
+	LancetDianaRobot();
 	void Connect() override;
 
 	void Disconnect() override;

@@ -2,7 +2,7 @@
 
 
 lancetAlgorithm::ToolDisplayHelper::ToolDisplayHelper(mitk::DataStorage* dataStorage, mitk::IRenderWindowPart* iRenderWindowPart,
-	AimCamera* aCamera)
+	LancetAimCamera* aCamera)
 {
 	m_DataStorage = dataStorage;
 	m_IRenderWindowPart = iRenderWindowPart;

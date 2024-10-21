@@ -3,9 +3,9 @@
 #include <qobject.h>
 #include "ui_HansRobotControls.h"
 #include "LancetHansRobot.h"
-#include "DianaRobot.h"
+#include "LancetDianaRobot.h"
 #include "FileIO.h"
-#include "AimCamera.h"
+#include "LancetAimCamera.h"
 
 #include <QmitkSingleNodeSelectionWidget.h>
 #include <mitkNodePredicateAnd.h>
@@ -40,7 +40,7 @@ private:
 private:
 	QWidget* m_TabPage;
 	Ui::HansRobotControls m_ui;
-	DianaRobot* m_Robot;
+	LancetDianaRobot* m_Robot;
 	mitk::DataStorage* m_dataStorage;
 	AbstractCamera* m_Camera;
 

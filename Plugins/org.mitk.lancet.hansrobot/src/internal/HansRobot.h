@@ -17,13 +17,13 @@ found in the LICENSE file.
 #include <berryISelectionListener.h>
 
 #include <QmitkAbstractView.h>
-#include "AimCamera.h"
+#include "LancetAimCamera.h"
 #include "ui_HansRobotControls.h"
 #include <LancetHansRobot.h>
 #include "ConnectionTab.h"
 #include "RobotArmRegistrationTab.h"
 
-#include "DianaRobot.h"
+#include "LancetDianaRobot.h"
 
 /**
   \brief HansRobot
@@ -58,8 +58,8 @@ protected:
 
   Ui::HansRobotControls m_Controls;
   //LancetHansRobot* m_Robot;
-  DianaRobot* m_Robot;
-  AimCamera* m_Camera;
+  LancetDianaRobot* m_Robot;
+  LancetAimCamera* m_Camera;
   ConnectionTab* m_ConnectionTab;
   RobotArmRegistrationTab* m_RobotArmRegistrationTab;
   

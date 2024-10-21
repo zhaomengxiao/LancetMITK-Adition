@@ -5,7 +5,7 @@
 
 #include "AbstractCamera.h"
 #include "AbstractRobot.h"
-#include "AimCamera.h"
+#include "LancetAimCamera.h"
 #include "LancetHansRobot.h"
 #include "robotRegistration.h"
 #include "qdatetime.h"
