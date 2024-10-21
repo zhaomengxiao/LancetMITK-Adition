@@ -5,6 +5,7 @@ set(CPP_FILES
   NDICamera.cpp
   LancetJakaRobot.cpp
   #AriemediCamera.cpp
+  LancetThorRobot.cpp
  )
 
 set(UI_FILES
@@ -20,6 +21,7 @@ set(MOC_H_FILES
   include/LancetJakaRobot.h
   include/AbstractUi.h
   #include/AriemediCamera.h
+  include/LancetThorRobot.h
 )
 
 set(H_FILES
@@ -32,6 +34,7 @@ set(H_FILES
   include/LancetJakaRobot.h
   include/AbstractUi.h
   #include/AriemediCamera.h
+  include/LancetThorRobot.h
 )
 
 set(RESOURCE_FILES
