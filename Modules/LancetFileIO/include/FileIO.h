@@ -56,6 +56,7 @@ public:
     static void WritePolyDataAsSTL(vtkPolyData* polyData, std::string fileName);
 
     static void SaveDataNodeAsSTL(mitk::DataNode* aDataNode, std::string aFileName);
+
 };
 #endif
 

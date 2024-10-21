@@ -4,7 +4,7 @@ mitk_create_plugin(
   EXPORT_DIRECTIVE CZXTEST_EXPORT
   EXPORTED_INCLUDE_SUFFIXES src
   MODULE_DEPENDS MitkQtWidgetsExt MitkIGTUI MitkLancetIGT MitkLancetRobot MitkLancetAlgo MitkGizmo MitkBoundingShape
-  MODULE_DEPENDS MitkLancetPrintDataHelper MitkLancetFileIO MitkLancetHardwareDevice
+  MODULE_DEPENDS MitkLancetHardwareDevice MitkLancetRobotRegistration MitkLancetPrintDataHelper MitkLancetFileIO
   PACKAGE_DEPENDS PRIVATE VTK|FiltersFlowPaths
 )
 
@@ -82,3 +82,4 @@ endforeach()
 
 #file(COPY ${LANCET_MESHLIB_DLLS_DEBUG} DESTINATION "${MITK_BINARY_DIR}/bin/plugins/Debug")  
 #file(COPY ${LANCET_MESHLIB_DLLS_RELEASE} DESTINATION "${MITK_BINARY_DIR}/bin/plugins/Release")
+

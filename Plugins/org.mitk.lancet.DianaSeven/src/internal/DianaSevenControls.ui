@@ -40,840 +40,11 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>7</number>
-
+      <number>2</number>
      </property>
-     <widget class="QWidget" name="tab">
-      <attribute name="title">
-       <string>初始化</string>
-      </attribute>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>251</width>
-         <height>100</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QPushButton" name="buttonPerformImageProcessing">
-          <property name="toolTip">
-           <string>Do image processing</string>
-          </property>
-          <property name="text">
-           <string>Do Something</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_initDiana">
-          <property name="text">
-           <string>初始化</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_stopDiana">
-          <property name="text">
-           <string>停止运动</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QGroupBox" name="groupBox_3">
-       <property name="geometry">
-        <rect>
-         <x>400</x>
-         <y>0</y>
-         <width>251</width>
-         <height>151</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>NDI</string>
-       </property>
-       <widget class="QPushButton" name="pushButton_connectVega">
-        <property name="geometry">
-         <rect>
-          <x>80</x>
-          <y>80</y>
-          <width>111</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="toolTip">
-         <string>Do image processing</string>
-        </property>
-        <property name="text">
-         <string>连接NDI</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_getProbeInit">
-        <property name="geometry">
-         <rect>
-          <x>80</x>
-          <y>110</y>
-          <width>111</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>获取探针初始</string>
-        </property>
-       </widget>
-      </widget>
-      <widget class="QGroupBox" name="groupBox_2">
-       <property name="geometry">
-        <rect>
-         <x>40</x>
-         <y>130</y>
-         <width>291</width>
-         <height>171</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>SmartServoP</string>
-       </property>
-       <widget class="QSplitter" name="splitter">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>221</width>
-          <height>151</height>
-         </rect>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <widget class="QPushButton" name="reciveData">
-         <property name="text">
-          <string>获取ROBOT实时位置</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="targetPoint">
-         <property name="text">
-          <string>计算目标位置</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="servopOn">
-         <property name="text">
-          <string>开启随动</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="closeServopOFF">
-         <property name="text">
-          <string>关闭随动</string>
-         </property>
-        </widget>
-       </widget>
-      </widget>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>Diana Test</string>
-      </attribute>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>410</x>
-         <y>0</y>
-         <width>287</width>
-         <height>173</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="font">
-               <font>
-                <pointsize>14</pointsize>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>X</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_X">
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>(mm)</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QLabel" name="label_3">
-              <property name="font">
-               <font>
-                <pointsize>14</pointsize>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Y</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_Y">
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>(mm)</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="label_5">
-              <property name="font">
-               <font>
-                <pointsize>14</pointsize>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Z</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_Z">
-              <property name="text">
-               <string>0</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>(mm)</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_MoveZZJ">
-          <property name="font">
-           <font>
-            <pointsize>15</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Move_ZZJ</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_MoveTest">
-          <property name="font">
-           <font>
-            <pointsize>14</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Move_test</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>410</x>
-         <y>180</y>
-         <width>281</width>
-         <height>135</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
-        <item>
-         <widget class="QPushButton" name="pushButton_openFreeDriving">
-          <property name="text">
-           <string>打开自由驱动</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_JointImpendance">
-          <property name="text">
-           <string>关节阻抗模式</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_CartImpendance">
-          <property name="text">
-           <string>笛卡尔阻抗模式</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_closeFreeDriving">
-          <property name="text">
-           <string>关闭自由驱动</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QPushButton" name="pushButton_cleanErrorInfo">
-       <property name="geometry">
-        <rect>
-         <x>30</x>
-         <y>290</y>
-         <width>221</width>
-         <height>28</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Clear All Error Info </string>
-       </property>
-      </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>10</y>
-         <width>155</width>
-         <height>135</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_9">
-        <item>
-         <widget class="QPushButton" name="pushButton_PosRepeaibility">
-          <property name="text">
-           <string>位置重复性</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_PosAccuracy">
-          <property name="text">
-           <string>位置准确性</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_Initial">
-          <property name="text">
-           <string>初始位 Initialtion</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_setTcp">
-          <property name="text">
-           <string>set Tcp To EndTool</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>230</x>
-         <y>10</y>
-         <width>95</width>
-         <height>135</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_10">
-        <item>
-         <widget class="QPushButton" name="pushButton_4">
-          <property name="text">
-           <string>Position 3</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_1">
-          <property name="text">
-           <string>Position 1</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_2">
-          <property name="text">
-           <string>Position 2</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_3">
-          <property name="text">
-           <string>Position 4</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>170</y>
-         <width>195</width>
-         <height>100</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="0">
-         <widget class="QPushButton" name="pushButton_moveTcpXplus">
-          <property name="text">
-           <string>moveTcpX+</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QPushButton" name="pushButton_moveTcpXplus_2">
-          <property name="text">
-           <string>moveTcpX-</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="pushButton_6">
-          <property name="text">
-           <string>moveTcpY+</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QPushButton" name="pushButton_8">
-          <property name="text">
-           <string>moveTcpY-</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QPushButton" name="pushButton_7">
-          <property name="text">
-           <string>moveTcpZ+</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QPushButton" name="pushButton_9">
-          <property name="text">
-           <string>moveTcpZ-</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </widget>
-     <widget class="QWidget" name="tab_3">
-      <attribute name="title">
-       <string>servoJ_ex from Diana</string>
-      </attribute>
-      <widget class="QWidget" name="layoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>70</x>
-         <y>50</y>
-         <width>131</width>
-         <height>211</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_6">
-        <item>
-         <widget class="QPushButton" name="run_send">
-          <property name="text">
-           <string>run_send</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="get_tcppos">
-          <property name="text">
-           <string>获取TCP位置</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_5">
-          <property name="text">
-           <string>停止</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </widget>
-     <widget class="QWidget" name="tab_4">
-      <attribute name="title">
-       <string>机械臂配准</string>
-      </attribute>
-      <widget class="QLineEdit" name="lineEdit_intuitiveValue_2">
-       <property name="geometry">
-        <rect>
-         <x>110</x>
-         <y>40</y>
-         <width>181</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>50</string>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="lineEdit_intuitiveValue_5">
-       <property name="geometry">
-        <rect>
-         <x>440</x>
-         <y>40</y>
-         <width>181</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="layoutDirection">
-        <enum>Qt::RightToLeft</enum>
-       </property>
-       <property name="text">
-        <string>15</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_19">
-       <property name="geometry">
-        <rect>
-         <x>300</x>
-         <y>40</y>
-         <width>61</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>(mm )</string>
-       </property>
-      </widget>
-      <widget class="QWidget" name="layoutWidget_3">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>60</y>
-         <width>681</width>
-         <height>141</height>
-        </rect>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_15">
-        <item row="3" column="4">
-         <widget class="QPushButton" name="pushButton_ryp_2">
-          <property name="text">
-           <string>RY+</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="5">
-         <widget class="QPushButton" name="pushButton_rym_2">
-          <property name="text">
-           <string>RY-</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="3">
-         <widget class="QPushButton" name="pushButton_ym_2">
-          <property name="text">
-           <string>Y-</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="5">
-         <widget class="QPushButton" name="pushButton_rxm_2">
-          <property name="text">
-           <string>RX-</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="4">
-         <widget class="QPushButton" name="pushButton_rxp_2">
-          <property name="text">
-           <string>RX+</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QPushButton" name="pushButton_yp_2">
-          <property name="text">
-           <string>Y+</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="5">
-         <widget class="QPushButton" name="pushButton_rzm_2">
-          <property name="text">
-           <string>RZ-</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="2">
-         <widget class="QPushButton" name="pushButton_zp_2">
-          <property name="text">
-           <string>Z+</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="3">
-         <widget class="QPushButton" name="pushButton_zm_2">
-          <property name="text">
-           <string>Z-</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QPushButton" name="pushButton_xp_2">
-          <property name="text">
-           <string>X+</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="4">
-         <widget class="QPushButton" name="pushButton_rzp_2">
-          <property name="text">
-           <string>RZ+</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QPushButton" name="pushButton_xm_2">
-          <property name="text">
-           <string>X-</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QLabel" name="label_18">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>10</y>
-         <width>171</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>机械臂运动控制</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_17">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>40</y>
-         <width>71</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="text">
-        <string>平移 =</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_34">
-       <property name="geometry">
-        <rect>
-         <x>630</x>
-         <y>40</y>
-         <width>41</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>(°)</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_36">
-       <property name="geometry">
-        <rect>
-         <x>370</x>
-         <y>40</y>
-         <width>71</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="text">
-        <string>角度 =</string>
-       </property>
-      </widget>
-      <widget class="QWidget" name="layoutWidget_5">
-       <property name="geometry">
-        <rect>
-         <x>11</x>
-         <y>200</y>
-         <width>107</width>
-         <height>131</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_7">
-        <item>
-         <widget class="QLabel" name="label_13">
-          <property name="text">
-           <string>重置配准矩阵：</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_20">
-          <property name="text">
-           <string>保存配准矩阵：</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_21">
-          <property name="text">
-           <string>复用之前结果：</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="layoutWidget_4">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>200</y>
-         <width>171</width>
-         <height>131</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_8">
-        <item>
-         <widget class="QPushButton" name="pushButton_replaceMatrix">
-          <property name="text">
-           <string>replace registration</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_saveMatrix">
-          <property name="text">
-           <string>Save registration</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_reuseMatrix">
-          <property name="text">
-           <string>resue registration</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <zorder>label_19</zorder>
-      <zorder>layoutWidget_3</zorder>
-      <zorder>label_18</zorder>
-      <zorder>label_17</zorder>
-      <zorder>label_34</zorder>
-      <zorder>label_36</zorder>
-      <zorder>layoutWidget_5</zorder>
-      <zorder>layoutWidget_4</zorder>
-      <zorder>lineEdit_intuitiveValue_2</zorder>
-      <zorder>lineEdit_intuitiveValue_5</zorder>
-     </widget>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">
-       <string>页</string>
+       <string>初始化</string>
       </attribute>
       <widget class="QWidget" name="widget_2" native="true">
        <property name="geometry">
@@ -1282,7 +453,7 @@
      </widget>
      <widget class="QWidget" name="tab_6">
       <attribute name="title">
-       <string>页</string>
+       <string>机械臂配准</string>
       </attribute>
       <widget class="QWidget" name="horizontalLayoutWidget_2">
        <property name="geometry">
@@ -2488,9 +1659,404 @@
        </property>
       </widget>
      </widget>
+     <widget class="QWidget" name="PrecisionTab">
+      <attribute name="title">
+       <string>影像配准</string>
+      </attribute>
+      <widget class="QPushButton" name="CollectICPBtn">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>540</x>
+         <y>150</y>
+         <width>121</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>采集精配准点</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_189">
+       <property name="geometry">
+        <rect>
+         <x>520</x>
+         <y>70</y>
+         <width>21</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>/6</string>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_10">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>50</y>
+         <width>327</width>
+         <height>271</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="title">
+        <string>选择影像数据： </string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_13">
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_16">
+          <item>
+           <widget class="QLabel" name="label_187">
+            <property name="text">
+             <string>影像粗配准点:  </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QmitkSingleNodeSelectionWidget" name="LandmarkPointRegSelectWidget" native="true"/>
+          </item>
+         </layout>
+        </item>
+        <item row="5" column="0">
+         <widget class="QPushButton" name="ReuseImageRegBtn">
+          <property name="text">
+           <string>复用上次影像配准</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QPushButton" name="ResetImageRegBtn">
+          <property name="text">
+           <string>重新配准</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QPushButton" name="SaveImageRegBtn">
+          <property name="text">
+           <string>保存图像配准矩阵</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_25">
+          <item>
+           <widget class="QLabel" name="label_188">
+            <property name="text">
+             <string>STL表面:  </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QmitkSingleNodeSelectionWidget" name="SurfaceRegSelectWidget" native="true"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="ICPRegistrationBtn">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>190</y>
+         <width>211</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ICP配准</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="CollectLandmarkLineEdit">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>69</y>
+         <width>61</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="AddICPBtn">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>230</y>
+         <width>211</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>融合</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="CollectedICPLineEdit">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>150</y>
+         <width>61</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="CollectLandmarkBtn">
+       <property name="geometry">
+        <rect>
+         <x>540</x>
+         <y>70</y>
+         <width>121</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>采集粗配准点</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_190">
+       <property name="geometry">
+        <rect>
+         <x>520</x>
+         <y>150</y>
+         <width>21</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>/6</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="UpdateDeviationBtn">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>270</y>
+         <width>211</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>更新影像</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="LandmarkRegistrationBtn">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>110</y>
+         <width>211</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>LandMark配准</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="DisplayPrecisionToolBtn">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>350</y>
+         <width>181</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>显示手指工装</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="DisplayProbeBtn">
+       <property name="geometry">
+        <rect>
+         <x>330</x>
+         <y>350</y>
+         <width>161</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>显示探针</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="SetGoLineTCPBtn">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>400</y>
+         <width>171</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>设置走线测试TCP</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_7">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>434</y>
+         <width>491</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_11">
+        <item>
+         <widget class="QLabel" name="label_84">
+          <property name="text">
+           <string>目标线选择: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QmitkSingleNodeSelectionWidget" name="ImageTargetLineSelectWidget" native="true"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="GoLineBtn">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>前往目标线相机</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="GoPlaneBtn">
+          <property name="text">
+           <string>走面</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="SetGoPlaneTCPBtn">
+       <property name="geometry">
+        <rect>
+         <x>330</x>
+         <y>400</y>
+         <width>141</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>设置走面TCP</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="DisplayTCPAxesActorBtn">
+       <property name="geometry">
+        <rect>
+         <x>520</x>
+         <y>350</y>
+         <width>93</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>显示TCP</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="DisplayTCPInRFBtn">
+       <property name="geometry">
+        <rect>
+         <x>520</x>
+         <y>400</y>
+         <width>93</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>显示RF下TCP</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="DisplayFlangeAxesActorBtn">
+       <property name="geometry">
+        <rect>
+         <x>520</x>
+         <y>450</y>
+         <width>101</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>显示法兰坐标</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="PrintTCPInCameraBtn">
+       <property name="geometry">
+        <rect>
+         <x>670</x>
+         <y>350</y>
+         <width>131</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>打印相机下TCP数据</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="GoLineByRobotBtn">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>480</y>
+         <width>141</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>前往目标线机械臂</string>
+       </property>
+      </widget>
+     </widget>
      <widget class="QWidget" name="tab_7">
       <attribute name="title">
-       <string>页</string>
+       <string>工作模式</string>
       </attribute>
       <widget class="QWidget" name="verticalLayoutWidget_13">
        <property name="geometry">
@@ -2892,8 +2458,8 @@
       <widget class="QComboBox" name="ToolNameComboBox">
        <property name="geometry">
         <rect>
-         <x>400</x>
-         <y>50</y>
+         <x>250</x>
+         <y>70</y>
          <width>131</width>
          <height>31</height>
         </rect>
@@ -2937,8 +2503,8 @@
       <widget class="QPushButton" name="AppendToolTipBtn">
        <property name="geometry">
         <rect>
-         <x>400</x>
-         <y>120</y>
+         <x>250</x>
+         <y>130</y>
          <width>131</width>
          <height>31</height>
         </rect>
@@ -2950,8 +2516,8 @@
       <widget class="QPushButton" name="AppendToolMatrixBtn">
        <property name="geometry">
         <rect>
-         <x>400</x>
-         <y>180</y>
+         <x>250</x>
+         <y>190</y>
          <width>131</width>
          <height>31</height>
         </rect>
@@ -2960,400 +2526,242 @@
         <string>打印矩阵</string>
        </property>
       </widget>
+      <widget class="QWidget" name="layoutWidget_8">
+       <property name="geometry">
+        <rect>
+         <x>530</x>
+         <y>360</y>
+         <width>281</width>
+         <height>135</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QPushButton" name="pushButton_openFreeDriving">
+          <property name="text">
+           <string>打开自由驱动</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_JointImpendance">
+          <property name="text">
+           <string>关节阻抗模式</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_CartImpendance">
+          <property name="text">
+           <string>笛卡尔阻抗模式</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_closeFreeDriving">
+          <property name="text">
+           <string>关闭自由驱动</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="layoutWidget_9">
+       <property name="geometry">
+        <rect>
+         <x>530</x>
+         <y>180</y>
+         <width>287</width>
+         <height>173</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="font">
+               <font>
+                <pointsize>14</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>X</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_X">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>(mm)</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QLabel" name="label_3">
+              <property name="font">
+               <font>
+                <pointsize>14</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Y</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_Y">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>(mm)</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="font">
+               <font>
+                <pointsize>14</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Z</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_Z">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>(mm)</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_MoveZZJ">
+          <property name="font">
+           <font>
+            <pointsize>15</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Move_ZZJ</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
-     <widget class="QWidget" name="PrecisionTab">
+     <widget class="QWidget" name="tab_2">
       <attribute name="title">
-       <string>页</string>
+       <string>Diana Test</string>
       </attribute>
-      <widget class="QPushButton" name="CollectICPBtn">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
-         <x>540</x>
-         <y>150</y>
-         <width>121</width>
-         <height>31</height>
+         <x>20</x>
+         <y>10</y>
+         <width>155</width>
+         <height>135</height>
         </rect>
        </property>
-       <property name="text">
-        <string>采集精配准点</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_189">
-       <property name="geometry">
-        <rect>
-         <x>520</x>
-         <y>70</y>
-         <width>21</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>/6</string>
-       </property>
-      </widget>
-      <widget class="QGroupBox" name="groupBox_10">
-       <property name="geometry">
-        <rect>
-         <x>100</x>
-         <y>50</y>
-         <width>327</width>
-         <height>271</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="title">
-        <string>选择影像数据： </string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_13">
-        <item row="1" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_16">
-          <item>
-           <widget class="QLabel" name="label_187">
-            <property name="text">
-             <string>影像粗配准点:  </string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QmitkSingleNodeSelectionWidget" name="LandmarkPointRegSelectWidget" native="true"/>
-          </item>
-         </layout>
-        </item>
-        <item row="5" column="0">
-         <widget class="QPushButton" name="ReuseImageRegBtn">
-          <property name="text">
-           <string>复用上次影像配准</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QPushButton" name="ResetImageRegBtn">
-          <property name="text">
-           <string>重新配准</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QPushButton" name="SaveImageRegBtn">
-          <property name="text">
-           <string>保存图像配准矩阵</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_25">
-          <item>
-           <widget class="QLabel" name="label_188">
-            <property name="text">
-             <string>STL表面:  </string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QmitkSingleNodeSelectionWidget" name="SurfaceRegSelectWidget" native="true"/>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QPushButton" name="ICPRegistrationBtn">
-       <property name="geometry">
-        <rect>
-         <x>450</x>
-         <y>190</y>
-         <width>211</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>ICP配准</string>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="CollectLandmarkLineEdit">
-       <property name="geometry">
-        <rect>
-         <x>450</x>
-         <y>69</y>
-         <width>61</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-        </font>
-       </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="text">
-        <string>0</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="AddICPBtn">
-       <property name="geometry">
-        <rect>
-         <x>450</x>
-         <y>230</y>
-         <width>211</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>融合</string>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="CollectedICPLineEdit">
-       <property name="geometry">
-        <rect>
-         <x>450</x>
-         <y>150</y>
-         <width>61</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>12</pointsize>
-        </font>
-       </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="text">
-        <string>0</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="CollectLandmarkBtn">
-       <property name="geometry">
-        <rect>
-         <x>540</x>
-         <y>70</y>
-         <width>121</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>采集粗配准点</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_190">
-       <property name="geometry">
-        <rect>
-         <x>520</x>
-         <y>150</y>
-         <width>21</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>/6</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="UpdateDeviationBtn">
-       <property name="geometry">
-        <rect>
-         <x>450</x>
-         <y>270</y>
-         <width>211</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>更新影像</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="LandmarkRegistrationBtn">
-       <property name="geometry">
-        <rect>
-         <x>450</x>
-         <y>110</y>
-         <width>211</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>LandMark配准</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="DisplayPrecisionToolBtn">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>350</y>
-         <width>181</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>显示手指工装</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="DisplayProbeBtn">
-       <property name="geometry">
-        <rect>
-         <x>330</x>
-         <y>350</y>
-         <width>161</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>显示探针</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="SetGoLineTCPBtn">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>400</y>
-         <width>171</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>设置走线测试TCP</string>
-       </property>
-      </widget>
-      <widget class="QWidget" name="layoutWidget_7">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>434</y>
-         <width>491</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_11">
+       <layout class="QVBoxLayout" name="verticalLayout_9">
         <item>
-         <widget class="QLabel" name="label_84">
+         <widget class="QPushButton" name="pushButton_AccuracyPosition">
           <property name="text">
-           <string>目标线选择: </string>
+           <string>位置准确度</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QmitkSingleNodeSelectionWidget" name="ImageTargetLineSelectWidget" native="true"/>
-        </item>
-        <item>
-         <widget class="QPushButton" name="GoLineBtn">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
+         <widget class="QPushButton" name="pushButton_Repeatability">
           <property name="text">
-           <string>前往目标线相机</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="GoPlaneBtn">
-          <property name="text">
-           <string>走面</string>
+           <string>位置重复性</string>
           </property>
          </widget>
         </item>
        </layout>
       </widget>
-      <widget class="QPushButton" name="SetGoPlaneTCPBtn">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
-         <x>330</x>
-         <y>400</y>
-         <width>141</width>
-         <height>21</height>
+         <x>230</x>
+         <y>10</y>
+         <width>95</width>
+         <height>135</height>
         </rect>
        </property>
-       <property name="text">
-        <string>设置走面TCP</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="DisplayTCPAxesActorBtn">
-       <property name="geometry">
-        <rect>
-         <x>520</x>
-         <y>350</y>
-         <width>93</width>
-         <height>28</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>显示TCP</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="DisplayTCPInRFBtn">
-       <property name="geometry">
-        <rect>
-         <x>520</x>
-         <y>400</y>
-         <width>93</width>
-         <height>28</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>显示RF下TCP</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="DisplayFlangeAxesActorBtn">
-       <property name="geometry">
-        <rect>
-         <x>520</x>
-         <y>450</y>
-         <width>101</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>显示法兰坐标</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="PrintTCPInCameraBtn">
-       <property name="geometry">
-        <rect>
-         <x>670</x>
-         <y>350</y>
-         <width>131</width>
-         <height>28</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>打印相机下TCP数据</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="GoLineByRobotBtn">
-       <property name="geometry">
-        <rect>
-         <x>240</x>
-         <y>480</y>
-         <width>141</width>
-         <height>28</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>前往目标线机械臂</string>
-       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_10">
+        <item>
+         <widget class="QPushButton" name="pushButton_4">
+          <property name="text">
+           <string>Position 3</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_1">
+          <property name="text">
+           <string>Position 1</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_2">
+          <property name="text">
+           <string>Position 2</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_3">
+          <property name="text">
+           <string>Position 4</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </widget>
@@ -3376,6 +2784,10 @@
     </widget>
    </item>
   </layout>
+  <zorder>tabWidget</zorder>
+  <zorder>labelWarning</zorder>
+  <zorder>pushButton_initDiana_2</zorder>
+  <zorder>textBrowser</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
