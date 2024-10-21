@@ -600,6 +600,14 @@ void  Zzxtest::setTCPToFlange()
 	std::array<double, 6>TCP = { 0,0,0,0,0,0 };
 	this->Robot->setTCP(TCP, error);
 }
+void Zzxtest::configTCP2Flange()
+{
+	std::string error;
+	std::array<double, 6>TCP = { 0,0,0,0,0,0 };
+	std::string TCP_Name = "TCP_1";
+	this->Robot->configTcp(TCP, TCP_Name, error);
+
+}
 void Zzxtest::setInitialPoint()
 {
 	std::string error;

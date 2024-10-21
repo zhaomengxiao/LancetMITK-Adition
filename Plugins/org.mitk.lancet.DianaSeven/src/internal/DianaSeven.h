@@ -19,7 +19,7 @@ found in the LICENSE file.
 //Agile Robots Diana7
 #include "DianaAPI.h"
 #include "DianaAPIDef.h"
-#include "Environment.h"
+#include "Environment.h" 
 #include "FunctionOptDef.h"
 
 //Eigen
@@ -68,45 +68,23 @@ public:
 
   //Diana Robot
   void initDianaNet();
-  void StopDiana();
-
-  void PosAccuracy();
-  void PosRepeatability();
 
   void move_zzj();
-  void move_test();
-  void Refmove();
+
   void wait_move(const char* m_RobotIpAddress);
 
   void GoInitial();
   void Position1();
   void Position2();
   void Position3();
-  void Position4();
 
   void OpenHandGuiding();
   void closeHandGuiding();
   void changeToCartImpendance();
   void changeToJointImpendance();
 
-  void cleanAllErrorInfo();
-
-  void setTcp();
-
-  //Vega
-  void UseVega();
-  void OnVegaVisualizeTimer();
-  void UpdateToolStatusWidget();
-  void ShowToolStatus_Vega();
-  void on_pushButton_getProbeInit_clicked();
-
-  void ReciveRobotData();
-  void ServoP();
-  void OnServoPSendCommand();
-  void closeServopOff();
-
-  void ComputeProbeToProbeNewMatrix();
-
+  void PositionAccuracy();
+  void PositionRepeatability();
 
   /////////////////////////////////////////////////////
   void ConnectRobotBtnClicked();
