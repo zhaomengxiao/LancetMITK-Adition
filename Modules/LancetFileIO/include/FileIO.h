@@ -22,7 +22,6 @@ found in the LICENSE file.
 #include <mitkSurface.h>
 #include <mitkIOUtil.h>
 
-
 class MITKLANCETFILEIO_EXPORT FileIO
 {
 public:
@@ -56,7 +55,7 @@ public:
 
     static void WritePolyDataAsSTL(vtkPolyData* polyData, std::string fileName);
 
-    static void FileIO::SaveDataNodeAsSTL(mitk::DataNode* aDataNode, std::string aFileName);
+    static void SaveDataNodeAsSTL(mitk::DataNode* aDataNode, std::string aFileName);
 
 };
 #endif

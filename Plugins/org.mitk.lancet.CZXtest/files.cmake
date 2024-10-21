@@ -15,9 +15,7 @@ set(INTERNAL_CPP_FILES
   ChunLiXKImplant.cpp
   PKAEnum.h
   JsonSerailizeHelper.h
-  PKAHardwareDevice.cpp
   ChunLITray.cpp
-  PKADianaAimHardwareDevice.cpp
   ToolDisplayHelper.cpp
   IntraOsteotomy.cpp
   PreoPreparation.cpp
@@ -27,17 +25,6 @@ set(INTERNAL_CPP_FILES
   RobotBase.cpp
   BoundingBoxInteraction.cpp
   RobotFrame2.cpp
-  DianaAimHardwareService.cpp
-  #PrePlanData.h
-  #IntraBone.cpp
-  #PKAProthesisModel.cpp
-  #PKADataBase.cpp
-  #PKACalculator.cpp
-  #PKAModel.cpp
-  #ModelUserControl.cpp
-  #ModelInteractor.cpp
-  #ModelMapper2D.cpp
-  #ModelInterFactory.cpp
   #us_init.cpp
 )
 
@@ -56,9 +43,7 @@ set(MOC_H_FILES
   src/internal/CalculationHelper.h
   src/internal/ChunLiXGImplant.h
   src/internal/ChunLiXKImplant.h
-  src/internal/PKAHardwareDevice.h
   src/internal/ChunLITray.h
-  src/internal/PKADianaAimHardwareDevice.h
   src/internal/ToolDisplayHelper.h
   src/internal/IntraOsteotomy.h
   src/internal/PreoPreparation.h
@@ -68,14 +53,6 @@ set(MOC_H_FILES
   src/internal/RobotBase.h
   src/internal/BoundingBoxInteraction.h
   src/internal/RobotFrame2.h
-  src/internal/DianaAimHardwareService.h
-  #src/internal/IntraBone.h
-  #src/internal/PrePlanData.cpp
-  #src/internal/PKAModel.h
-  #src/internal/PKACalculator.h
-  #src/internal/PKADataBase.h
-  #src/internal/PKAProthesisModel.h
-  #src/internal/PKAEnum.h
 )
 
 # list of resource files which can be used by the plug-in

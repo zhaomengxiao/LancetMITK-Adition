@@ -64,10 +64,6 @@ public:
 
 	bool SetCartImpendanceMode();
 
-	bool SetRobotImpeda(std::vector<double> aImpeda);
-
-	std::vector<double> GetRobotImpeda();
-
 private:
 	double m_InitialPos[6] = { 0,0,0,0,0,0 };
 };
