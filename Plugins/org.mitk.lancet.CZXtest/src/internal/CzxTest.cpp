@@ -2171,8 +2171,8 @@ void CzxTest::CalculateAxisBtnClicked()
 
 	if (!isDisplayBoneAxes)
 	{
-		//PKARenderHelper::AddActor(GetRenderWindowPart(), m_FemurBoneModel->GetBoneAxes());
-		//PKARenderHelper::AddActor(GetRenderWindowPart(), m_TibiaBoneModel->GetBoneAxes());
+		PKARenderHelper::AddActor(GetRenderWindowPart(), m_FemurBoneModel->GetBoneAxes());
+		PKARenderHelper::AddActor(GetRenderWindowPart(), m_TibiaBoneModel->GetBoneAxes());
 		isDisplayBoneAxes = !isDisplayBoneAxes;
 	}
 }
@@ -2412,7 +2412,7 @@ void CzxTest::CalculateProsBtnClicked()
 		auto mechanical = m_FemoralImplant->GetMechanicalAxis();
 		PrintDataHelper::AppendTextBrowserArray(m_Controls.textBrowser, mechanical, "Femur mechanical");
 	}
-	else if (m_TibiaBoneModel)
+	else if (m_TibiaTray)
 	{
 		m_TibiaTray->UpdateTray(trans->GetMatrix());
 		auto mechanical = m_TibiaBoneModel->GetMechanicalAxis();
@@ -2512,7 +2512,20 @@ void CzxTest::ApplyRotationAngleBtnClicked()
 	double angle = m_Controls.ProsRotationLineEdit->text().toDouble();
 	ProsRotation prosRotation = m_Controls.InternalRotationRadioBtn->isChecked() ? ProsRotation::IntenalRotation : ProsRotation::ExternalRotation;
 	angle -= PKAData::m_FemurProsRotationAngle;
-	m_AngleCalculationHelper->SetProsRotationAngle(prosRotation, angle, m_AngleCalculationTypeComboBoxSelectedKneeModel);
+	auto calMatrix = m_AngleCalculationHelper->SetProsRotationAngle(prosRotation, angle, m_AngleCalculationTypeComboBoxSelectedKneeModel);
+	mitk::BaseGeometry* geo;
+	if (m_AngleCalculationTypeComboBoxSelectedKneeModel == KneeModel::Femur)
+	{
+		geo = this->GetDataStorage()->GetNamedNode(PKAData::m_FemurImplantNodeName.toStdString())->GetData()->GetGeometry();
+		geo->SetIndexToWorldTransformByVtkMatrix(calMatrix);
+		m_FemoralImplant->UpdateImplant(calMatrix);
+	}
+	else
+	{
+		geo = this->GetDataStorage()->GetNamedNode(PKAData::m_TibiaTrayNodeName.toStdString())->GetData()->GetGeometry();
+		geo->SetIndexToWorldTransformByVtkMatrix(calMatrix);
+		m_TibiaTray->UpdateTray(calMatrix);
+	}
 }
 
 void CzxTest::ApplyVaAngleBtnClicked()
@@ -2520,7 +2533,20 @@ void CzxTest::ApplyVaAngleBtnClicked()
 	double angle = m_Controls.ProsVaLineEdit->text().toDouble();
 	Va va = m_Controls.VarusRadioBtn->isChecked() ? Va::Varus : Va::Valgus;
 	angle -= PKAData::m_FemurVaAngle;
-	m_AngleCalculationHelper->SetVaAngle(va, angle, m_AngleCalculationTypeComboBoxSelectedKneeModel);
+	auto calMatrix = m_AngleCalculationHelper->SetVaAngle(va, angle, m_AngleCalculationTypeComboBoxSelectedKneeModel);
+	mitk::BaseGeometry* geo;
+	if (m_AngleCalculationTypeComboBoxSelectedKneeModel == KneeModel::Femur)
+	{
+		geo = this->GetDataStorage()->GetNamedNode(PKAData::m_FemurImplantNodeName.toStdString())->GetData()->GetGeometry();
+		geo->SetIndexToWorldTransformByVtkMatrix(calMatrix);
+		m_FemoralImplant->UpdateImplant(calMatrix);
+	}
+	else
+	{
+		geo = this->GetDataStorage()->GetNamedNode(PKAData::m_TibiaTrayNodeName.toStdString())->GetData()->GetGeometry();
+		geo->SetIndexToWorldTransformByVtkMatrix(calMatrix);
+		m_TibiaTray->UpdateTray(calMatrix);
+	}
 }
 
 void CzxTest::ApplyProudDistanceBtnClicked()
@@ -2620,8 +2646,8 @@ void CzxTest::UpdateAngle(KneeModel kneeModel)
 		auto xy = m_AngleCalculationHelper->CalculateRotation(kneeModel);
 		PKAData::FemurProsRotation = xy.first;
 		PKAData::m_FemurProsRotationAngle = xy.second;
-		//m_Controls.textBrowser->append("xy: " + QString::fromStdString(to_string(xy.first)) + QString::number(xy.second));
-		//std::cout << "CalculateRotation Done" << std::endl;
+		////m_Controls.textBrowser->append("xy: " + QString::fromStdString(to_string(xy.first)) + QString::number(xy.second));
+		////std::cout << "CalculateRotation Done" << std::endl;
 		PKAData::m_FemurProudDistance = m_AngleCalculationHelper->CalculateProud(kneeModel);
 	}
 	else

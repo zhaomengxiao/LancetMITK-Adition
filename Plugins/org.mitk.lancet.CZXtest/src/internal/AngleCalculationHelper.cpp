@@ -52,7 +52,7 @@ std::pair<Tilt, double> AngleCalculationHelper::CalculateTilt(KneeModel kneeMode
 	// 将弧度转换为角度
 	angle = angle * 180.0 / PI;
 	Tilt tilt = (vYZ.x() >= 0) ? Tilt::FrontTilt : Tilt::BackTilt;
-	return { tilt,std::abs(angle) };
+	return { tilt,angle = std::abs(angle) >90? 180- std::abs(angle):std::abs(angle) };
 }
 
 std::pair<Va, double> lancetAlgorithm::AngleCalculationHelper::CalculateVa(KneeModel kneeModel)
@@ -80,8 +80,17 @@ std::pair<Va, double> lancetAlgorithm::AngleCalculationHelper::CalculateVa(KneeM
 
 	// 将角度转换为度数（可选）
 	angle = angle * 180.0 / PI;
-	Va va = (vXZ.x() > 0) ? Va::Valgus : Va::Varus;
-	return { va,std::abs(angle) };
+	Va va;
+	if (PKAData::m_SurgicalSide == PKASurgicalSide::Right)
+	{
+		va = (vXZ.x() > 0) ? Va::Valgus : Va::Varus;
+	}
+	else
+	{
+		va = (vXZ.x() <= 0) ? Va::Valgus : Va::Varus;
+	}
+
+	return { va, angle = std::abs(angle) >90 ? 180-std::abs(angle):std::abs(angle) };
 }
 
 std::pair<ProsRotation, double> lancetAlgorithm::AngleCalculationHelper::CalculateRotation(KneeModel kneeModel)
@@ -109,8 +118,16 @@ std::pair<ProsRotation, double> lancetAlgorithm::AngleCalculationHelper::Calcula
 
 	// 将角度转换为度数（可选）
 	angle = angle * 180.0 / PI;
-	ProsRotation prosRotation = vXY.x() > 0 ? ProsRotation::IntenalRotation : ProsRotation::ExternalRotation;
-	return { prosRotation, std::abs(angle) };
+	ProsRotation prosRotation;
+	if (PKAData::m_SurgicalSide == PKASurgicalSide::Right)
+	{
+		prosRotation = vXY.x() > 0 ? ProsRotation::IntenalRotation : ProsRotation::ExternalRotation;
+	}
+	else
+	{
+		prosRotation = vXY.x() <= 0 ? ProsRotation::IntenalRotation : ProsRotation::ExternalRotation;
+	}
+	return { prosRotation, angle =  std::abs(angle) > 90 ? 180 - std::abs(angle) : std::abs(angle) };
 }
 
 double lancetAlgorithm::AngleCalculationHelper::CalculateIntraplanProsGap()
