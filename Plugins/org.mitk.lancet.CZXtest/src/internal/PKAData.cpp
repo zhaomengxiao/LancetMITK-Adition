@@ -96,8 +96,8 @@ QString PKAData::m_FemurRegistrationNodeName = "FemurRegistrationPoints";
 QString PKAData::m_TibiaVerifyPointNodeName = "TibiaVerifyPoint";
 QString PKAData::m_FemurVerifyPointNodeName = "FemurVerifyPoint";
 
-QString PKAData::m_FemurSurfaceNodeName = "femurSurface";
-QString PKAData::m_TibiaSurfaceNodeName = "tibiaSurface";
+QString PKAData::m_FemurSurfaceNodeName = "FemurSurface";
+QString PKAData::m_TibiaSurfaceNodeName = "TibiaSurface";
 QString PKAData::m_TibiaRegistrationVerifyNodeName = "TibiaRegistrationVerifyNodeName";
 QString PKAData::m_FemurRegistrationVerifyNodeName = "FemurRegistrationVerifyNodeName";
 

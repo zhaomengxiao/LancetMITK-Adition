@@ -414,7 +414,6 @@ private slots:
 private:
   Ui::CzxTestControls m_Controls;
   mitk::BoundingShapeInteractor::Pointer m_BoundingShapeInteractor;
-  //PKAKukaVegaHardwareDevice* m_PKAHardwareDevice;
   IntraOsteotomy* m_IntraOsteotomy;
   QTimer* m_RequestRenderTimer{ nullptr };
   bool m_IsRotateTibia = false;
