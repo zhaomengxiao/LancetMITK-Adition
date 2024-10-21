@@ -18,6 +18,10 @@ found in the LICENSE file.
 #include <filesystem>
 #include <eigen3/Eigen/Dense>
 #include <vtkMatrix4x4.h>
+#include <mitkDataNode.h>
+#include <mitkSurface.h>
+#include <mitkIOUtil.h>
+
 
 class MITKLANCETFILEIO_EXPORT FileIO
 {
@@ -51,6 +55,9 @@ public:
     static void SaveMatrix2File(std::string filePath, vtkMatrix4x4* matrix);
 
     static void WritePolyDataAsSTL(vtkPolyData* polyData, std::string fileName);
+
+    static void FileIO::SaveDataNodeAsSTL(mitk::DataNode* aDataNode, std::string aFileName);
+
 };
 #endif
 
