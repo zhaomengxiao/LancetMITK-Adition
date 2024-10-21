@@ -45,7 +45,7 @@ void DianaSeven::CreateQtPartControl(QWidget* parent)
 
 	connect(m_Controls.pushButton_initDiana_2, &QPushButton::clicked, this, &DianaSeven::initDianaNet);
 	connect(m_Controls.pushButton_MoveZZJ, &QPushButton::clicked, this, &DianaSeven::move_zzj);
-	connect(m_Controls.pushButton_Initial, &QPushButton::clicked, this, &DianaSeven::GoInitial);
+ 
 	connect(m_Controls.pushButton_1, &QPushButton::clicked, this, &DianaSeven::Position1);
 	connect(m_Controls.pushButton_2, &QPushButton::clicked, this, &DianaSeven::Position2);
 	connect(m_Controls.pushButton_4, &QPushButton::clicked, this, &DianaSeven::Position3);
@@ -157,50 +157,6 @@ void DianaSeven::move_zzj()
 	wait_move(m_RobotIpAddress);
 }
 
-void DianaSeven::Refmove()
-{
-	//getJointPos(joints, strIpAddress);//读取DJ1-7
-	//printf("getJointPos: %f ,%f, %f, %f, %f, %f, %f\n", joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6]);
-
-	//forward(joints, pose, nullptr, strIpAddress);//Dj11-7转x y z Rx Ry Rz轴角
-	//printf(" forward succeed! Pose: %f, %f, %f, %f, %f, %f\n ", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
-
-	//pose2Homogeneous(pose, forward_Matrix);//轴角转齐次变换矩阵
-	////PrintDataHelper::CoutMatrix("forward_Matrix", forward_Matrix);
-	////PrintDataHelper::PrintMatrix("forward_Matrix", forward_Matrix);
-
-	////forward_Matrix->右乘一个移动矩阵->得到一个T_newtargetMatrix
-	//double x = m_Controls.lineEdit_X->text().toDouble();
-	//double y = m_Controls.lineEdit_Y->text().toDouble();
-	//double z = m_Controls.lineEdit_Z->text().toDouble();
-
-	//vtkNew<vtkTransform> tmpTrans;
-	//tmpTrans->PostMultiply();//设置右乘
-	//tmpTrans->SetMatrix(forward_Matrix); // 设置当前的齐次矩阵
-	//tmpTrans->Translate(x, y, z); // 应用平移变换
-	//tmpTrans->Update(); // 更新变换
-
-	//// 获取变换矩阵并进行转置
-	//vtkMatrix4x4* matrix = tmpTrans->GetMatrix();
-	//vtkNew<vtkMatrix4x4> transposedMatrix;
-	//transposedMatrix->DeepCopy(matrix);
-	//transposedMatrix->Transpose();
-	////PrintDataHelper::PrintMatrix("transposedMatrix", transposedMatrix);
-	//// 将转置矩阵的数据复制到double数组中
-	//double T_newtargetMatrix[16];
-	//for (int i = 0; i < 16; ++i) {
-	//	T_newtargetMatrix[i] = transposedMatrix->GetElement(i / 4, i % 4);
-	//}
-	////PrintDataHelper::PrintMatrix("T_newtargetMatrix", T_newtargetMatrix);
-	//homogeneous2Pose(T_newtargetMatrix, pose);
-	//printf("Diana API homogeneous2Pose got: %f, %f, %f, %f, %f, %f\n", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5]);
-
-	//inverse_ext(ref_joints, pose, joints, nullptr, strIpAddress);
-	//printf("inverse_ext: %f ,%f, %f, %f, %f, %f, %f\n", joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], joints[6]);
-	//moveLToTarget(joints, vel, acc, zv_shaper_order, zv_shaper_frequency, zv_shaper_damping_ratio);
-	//wait_move(strIpAddress);
-
-}
 
 void DianaSeven::wait_move(const char* m_RobotIpAddress)
 {

@@ -63,6 +63,7 @@ bool Robot_Hans::PowerOff(string& error)
 bool Robot_Hans::setTCP(const std::array<double, 6>& TCP, string& error)
 {
 	int nRet = HRIF_SetTCP(boxID, rbtID, TCP[0], TCP[1], TCP[2], TCP[3], TCP[4], TCP[5]);
+
 	printError(nRet, error, "set tcp");
 	if (!nRet)
 	{
@@ -76,6 +77,30 @@ bool Robot_Hans::setTCP(const std::array<double, 6>& TCP, string& error)
 		return false;
 	}
 }
+
+bool Robot_Hans::configTcp(const std::array<double, 6>& TCP, string TCP_Name, string& error)
+{
+	int nRet = HRIF_ConfigTCP(boxID, rbtID, TCP_Name, TCP[0], TCP[1], TCP[2], TCP[3], TCP[4], TCP[5]);
+	nRet = HRIF_SetTCPByName(boxID, rbtID, TCP_Name);
+	nRet = HRIF_SetToolMotion(boxID, rbtID, 1);
+	nRet = HRIF_SetToolMotion(boxID, rbtID, 0);
+	nRet = HRIF_SetToolMotion(boxID, rbtID, 1);
+	nRet = HRIF_SetTCPByName(boxID, rbtID, TCP_Name);
+	nRet = HRIF_SetTCP(boxID, rbtID, TCP[0], TCP[1], TCP[2], TCP[3], TCP[4], TCP[5]);
+	printError(nRet, error, "config tcp");
+	if (!nRet)
+	{
+		set_tcp = TCP;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+
 
 /**
  * @brief  [±®¥Ì¥Ú”°]

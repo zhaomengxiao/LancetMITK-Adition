@@ -133,6 +133,9 @@ public:
 	bool PowerOn(string& error);
 	bool PowerOff(string& error);
 	bool setTCP(const std::array<double, 6>& TCP,string &error);
+
+	bool configTcp(const std::array<double,6>& TCP,string TCP_Name,string &error);
+
 	bool movej(const std::array<double, 6>& joint_value,string &error);
 	bool moveP(const std::array<double, 6>& TCP_value, string& error);
 	void printError(int nRet, string &error,string behavior);

@@ -151,6 +151,7 @@ public slots:
 	void openIsMoing();
 	void CloseIsMoving();
 	void setTCPToFlange();
+	void configTCP2Flange();
 	void setInitialPoint();
 	void goToInitial();
 	void replaceRegistration();
@@ -188,7 +189,7 @@ private:
 	QTimer* QTimer_IsMoving{ nullptr };
 	bool movingstatue;
 	bool lastMovingstatue=false;
-	
+
 	//坐标选择默认值
 	int nToolMotion=1;
 	//初始点（关节角度值）

@@ -73,7 +73,7 @@ QPushButton:pressed {
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="2" column="0" colspan="2">
     <widget class="QTabWidget" name="tabWidget">
      <property name="minimumSize">
       <size>
@@ -128,7 +128,7 @@ QTabBar QToolButton:hover {
 </string>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab1">
       <attribute name="title">
@@ -546,22 +546,6 @@ QPushButton:pressed {
       <attribute name="title">
        <string>机械臂配准</string>
       </attribute>
-      <widget class="QPushButton" name="pushButton_AutoMoveJ">
-       <property name="geometry">
-        <rect>
-         <x>300</x>
-         <y>370</y>
-         <width>141</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>自动移动</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
       <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
@@ -720,7 +704,7 @@ QPushButton:pressed {
          <x>360</x>
          <y>30</y>
          <width>431</width>
-         <height>22</height>
+         <height>25</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -780,7 +764,7 @@ QPushButton:pressed {
          <x>370</x>
          <y>200</y>
          <width>411</width>
-         <height>79</height>
+         <height>114</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -826,6 +810,16 @@ QPushButton:pressed {
           </attribute>
          </widget>
         </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_AutoMoveJ">
+          <property name="text">
+           <string>自动配准</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup</string>
+          </attribute>
+         </widget>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="layoutWidget">
@@ -834,7 +828,7 @@ QPushButton:pressed {
          <x>20</x>
          <y>60</y>
          <width>304</width>
-         <height>247</height>
+         <height>250</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1018,7 +1012,7 @@ QPushButton:pressed {
       <widget class="QPushButton" name="pushButton_openIsMoving">
        <property name="geometry">
         <rect>
-         <x>180</x>
+         <x>250</x>
          <y>310</y>
          <width>111</width>
          <height>23</height>
@@ -1031,7 +1025,7 @@ QPushButton:pressed {
       <widget class="QPushButton" name="pushButton_CloseIsMoving">
        <property name="geometry">
         <rect>
-         <x>300</x>
+         <x>370</x>
          <y>310</y>
          <width>101</width>
          <height>23</height>
@@ -1044,9 +1038,9 @@ QPushButton:pressed {
       <widget class="QLabel" name="label_4">
        <property name="geometry">
         <rect>
-         <x>0</x>
+         <x>20</x>
          <y>310</y>
-         <width>171</width>
+         <width>251</width>
          <height>21</height>
         </rect>
        </property>

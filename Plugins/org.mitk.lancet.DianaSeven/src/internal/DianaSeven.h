@@ -71,7 +71,6 @@ public:
 
   void move_zzj();
 
-  void Refmove();
   void wait_move(const char* m_RobotIpAddress);
 
   void GoInitial();
