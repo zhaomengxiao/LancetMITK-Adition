@@ -23,7 +23,7 @@ found in the LICENSE file.
 #include "ConnectionTab.h"
 #include "RobotArmRegistrationTab.h"
 
-#include "DianaRobot.h"
+#include "LancetDianaRobot.h"
 
 /**
   \brief HansRobot
@@ -58,7 +58,7 @@ protected:
 
   Ui::HansRobotControls m_Controls;
   //LancetHansRobot* m_Robot;
-  DianaRobot* m_Robot;
+  LancetDianaRobot* m_Robot;
   AimCamera* m_Camera;
   ConnectionTab* m_ConnectionTab;
   RobotArmRegistrationTab* m_RobotArmRegistrationTab;

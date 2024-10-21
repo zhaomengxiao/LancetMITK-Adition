@@ -1,6 +1,6 @@
 set(CPP_FILES
   AimCamera.cpp
-  DianaRobot.cpp
+  LancetDianaRobot.cpp
   LancetHansRobot.cpp
   NDICamera.cpp
   LancetJakaRobot.cpp
@@ -15,7 +15,7 @@ set(MOC_H_FILES
   include/AbstractRobot.h
   include/AbstractCamera.h
   include/AimCamera.h
-  include/DianaRobot.h
+  include/LancetDianaRobot.h
   include/LancetHansRobot.h
   include/NDICamera.h
   include/LancetJakaRobot.h
@@ -28,7 +28,7 @@ set(H_FILES
   include/AbstractRobot.h
   include/AbstractCamera.h
   include/AimCamera.h
-  include/DianaRobot.h
+  include/LancetDianaRobot.h
   include/LancetHansRobot.h
   include/NDICamera.h
   include/LancetJakaRobot.h

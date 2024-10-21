@@ -146,7 +146,7 @@ found in the LICENSE file.
 #include "RobotFrame.h"
 #include "BoundingBoxInteraction.h"
 #include "RobotFrame2.h"
-#include <DianaRobot.h>
+#include <LancetDianaRobot.h>
 #include <AimCamera.h>
 
 //#include "mitkGizmoInteractor.h"
@@ -454,7 +454,7 @@ private:
   QButtonGroup* m_IntraProsGroup;
   bool isDisplayBoneAxes = false;
   KneeModel m_AngleCalculationTypeComboBoxSelectedKneeModel = KneeModel::Femur;
-  DianaRobot* m_Robot;
+  LancetDianaRobot* m_Robot;
   AimCamera* m_Camera;
   QTimer* m_AimoeVisualizeTimer{ nullptr };
   mitk::PointSet::Pointer m_SelectedRegistrationPoint;

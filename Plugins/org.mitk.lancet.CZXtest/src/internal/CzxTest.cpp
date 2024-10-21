@@ -1453,7 +1453,7 @@ void CzxTest::InitGlobalVariable()
 {
 	//m_PKAHardwareDevice = new PKAKukaVegaHardwareDevice(this->GetDataStorage());
 	m_Camera = new AimCamera();
-	m_Robot = new DianaRobot();
+	m_Robot = new LancetDianaRobot();
 	m_AngleCalculationHelper = new AngleCalculationHelper(this->GetDataStorage());
 
 	PKAData::m_SurgicalSide = PKASurgicalSide::Left;

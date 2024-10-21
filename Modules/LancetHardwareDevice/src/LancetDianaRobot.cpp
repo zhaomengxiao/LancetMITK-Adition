@@ -1,11 +1,11 @@
-#include "DianaRobot.h"
+#include "LancetDianaRobot.h"
 
-DianaRobot::DianaRobot()
+LancetDianaRobot::LancetDianaRobot()
 {
 	this->SetRobotIpAddress("192.168.10.75");
 }
 
-void DianaRobot::Connect()
+void LancetDianaRobot::Connect()
 {
 	srv_net_st* pinfo = new srv_net_st();
 	memset(pinfo->SrvIp, 0x00, sizeof(pinfo->SrvIp));
@@ -27,7 +27,7 @@ void DianaRobot::Connect()
 	m_initJoints.resize(jointCount);
 }
 
-void DianaRobot::Disconnect()
+void LancetDianaRobot::Disconnect()
 {
 	int ret = destroySrv(m_IpAddress);
 	if (ret < 0)
@@ -36,17 +36,17 @@ void DianaRobot::Disconnect()
 	}
 }
 
-void DianaRobot::PowerOn()
+void LancetDianaRobot::PowerOn()
 {
 	releaseBrake();
 }
 
-void DianaRobot::PowerOff()
+void LancetDianaRobot::PowerOff()
 {
 	holdBrake();
 }
 
-void DianaRobot::Translate(double x, double y, double z)
+void LancetDianaRobot::Translate(double x, double y, double z)
 {
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -63,12 +63,12 @@ void DianaRobot::Translate(double x, double y, double z)
 	this->RobotTransformInBase(setMatrix->GetData());
 }
 
-void DianaRobot::Translate(double* aDirection, double aLength)
+void LancetDianaRobot::Translate(double* aDirection, double aLength)
 {
 	Translate(aDirection[0] * aLength, aDirection[1] * aLength, aDirection[2] * aLength);
 }
 
-void DianaRobot::Rotate(double* aDirection, double aAngles)
+void LancetDianaRobot::Rotate(double* aDirection, double aAngles)
 {
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -87,12 +87,12 @@ void DianaRobot::Rotate(double* aDirection, double aAngles)
 	this->RobotTransformInBase(setMatrix->GetData());
 }
 
-void DianaRobot::RecordInitialPos()
+void LancetDianaRobot::RecordInitialPos()
 {
 	m_initJoints = this->GetJointAngles();
 }
 
-void DianaRobot::GoToInitialPos()
+void LancetDianaRobot::GoToInitialPos()
 {
 	int count = getJointCount();
 	double* joints_final = new double[count];
@@ -105,7 +105,7 @@ void DianaRobot::GoToInitialPos()
 	delete[] joints_final;
 }
 
-void DianaRobot::SetTCPToFlange()
+void LancetDianaRobot::SetTCPToFlange()
 {
 	double pose[6] = { 0,0,0,0,0,0 };
 	setDefaultActiveTcpPose(pose, m_IpAddress);
@@ -113,7 +113,7 @@ void DianaRobot::SetTCPToFlange()
 	getTcpPos(pose, m_IpAddress);
 }
 
-bool DianaRobot::SetTCP(vtkMatrix4x4* aMatrix)
+bool LancetDianaRobot::SetTCP(vtkMatrix4x4* aMatrix)
 {
 	double pose[6] = {};
 	getTcpPos(pose, m_IpAddress);
@@ -136,7 +136,7 @@ bool DianaRobot::SetTCP(vtkMatrix4x4* aMatrix)
 	return true;
 }
 
-std::vector<std::vector<double>> DianaRobot::GetJointAngleLimits()
+std::vector<std::vector<double>> LancetDianaRobot::GetJointAngleLimits()
 {
 	double dblMinPos[7] = { 0 }, dblMaxPos[7] = { 0 };
 	int ret = getJointsPositionRange(dblMinPos, dblMaxPos);
@@ -153,7 +153,7 @@ std::vector<std::vector<double>> DianaRobot::GetJointAngleLimits()
 	return range;
 }
 
-void DianaRobot::WaitMove()
+void LancetDianaRobot::WaitMove()
 {
 	QThread::msleep(20);
 	while (true)
@@ -172,25 +172,25 @@ void DianaRobot::WaitMove()
 	stop();
 }
 
-bool DianaRobot::SetPositionMode()
+bool LancetDianaRobot::SetPositionMode()
 {
 	int ret = changeControlMode(T_MODE_POSITION);
 	return ret < 0 ? false : true;
 }
 
-bool DianaRobot::SetJointImpendanceMode()
+bool LancetDianaRobot::SetJointImpendanceMode()
 {
 	int ret = changeControlMode(T_MODE_JOINT_IMPEDANCE);
 	return ret < 0 ? false : true;
 }
 
-bool DianaRobot::SetCartImpendanceMode()
+bool LancetDianaRobot::SetCartImpendanceMode()
 {
 	int ret = changeControlMode(T_MODE_CART_IMPEDANCE);
 	return ret < 0 ? false : true;
 }
 
-std::vector<double> DianaRobot::GetJointAngles()
+std::vector<double> LancetDianaRobot::GetJointAngles()
 {
 	double* angles = new double[m_initJoints.size()];
 	std::vector<double> angleVec;
@@ -204,7 +204,7 @@ std::vector<double> DianaRobot::GetJointAngles()
 	return angleVec;
 }
 
-void DianaRobot::SetJointAngles(std::vector<double> aJointAngles)
+void LancetDianaRobot::SetJointAngles(std::vector<double> aJointAngles)
 {
 	if (aJointAngles.size() != m_initJoints.size())
 		return;
@@ -225,7 +225,7 @@ void DianaRobot::SetJointAngles(std::vector<double> aJointAngles)
 	delete[] angles;
 }
 
-vtkSmartPointer<vtkMatrix4x4> DianaRobot::GetBaseToTCP()
+vtkSmartPointer<vtkMatrix4x4> LancetDianaRobot::GetBaseToTCP()
 {
 	double pose[6] = {};
 	getTcpPos(pose, m_IpAddress);
@@ -242,7 +242,7 @@ vtkSmartPointer<vtkMatrix4x4> DianaRobot::GetBaseToTCP()
 	return TBase2Tcp;
 }
 
-vtkSmartPointer<vtkMatrix4x4> DianaRobot::GetFlangeToTCP()
+vtkSmartPointer<vtkMatrix4x4> LancetDianaRobot::GetFlangeToTCP()
 {
 	vtkSmartPointer<vtkMatrix4x4> TEnd2Base = vtkSmartPointer<vtkMatrix4x4>::New();
 	TEnd2Base->DeepCopy(this->GetBaseToFlange());
@@ -261,7 +261,7 @@ vtkSmartPointer<vtkMatrix4x4> DianaRobot::GetFlangeToTCP()
 	return TEnd2TCP;
 }
 
-vtkSmartPointer<vtkMatrix4x4> DianaRobot::GetBaseToFlange()
+vtkSmartPointer<vtkMatrix4x4> LancetDianaRobot::GetBaseToFlange()
 {
 	double joints[7] = { 0.0 };
 	int ret = getJointPos(joints, m_IpAddress);
@@ -278,7 +278,7 @@ vtkSmartPointer<vtkMatrix4x4> DianaRobot::GetBaseToFlange()
 	return base2End;
 }
 
-void DianaRobot::RobotTransformInBase(double* aMatrix)
+void LancetDianaRobot::RobotTransformInBase(double* aMatrix)
 {
 	double pose[6] = {};
 	vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -294,7 +294,7 @@ void DianaRobot::RobotTransformInBase(double* aMatrix)
 	WaitMove();
 }
 
-void DianaRobot::RobotTransformInTCP(double* aMatrix)
+void LancetDianaRobot::RobotTransformInTCP(double* aMatrix)
 {
 	double pose[6] = {};
 	vtkSmartPointer<vtkMatrix4x4> TBase2Tcp = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -313,7 +313,7 @@ void DianaRobot::RobotTransformInTCP(double* aMatrix)
 	this->RobotTransformInBase(newBase2TCP->GetData());
 }
 
-std::vector<double> DianaRobot::GetCartDampParams()
+std::vector<double> LancetDianaRobot::GetCartDampParams()
 {
 	double arrStiff[6] = {};
 	double dblDamp = 0;
@@ -330,7 +330,7 @@ std::vector<double> DianaRobot::GetCartDampParams()
 	return ret;
 }
 
-bool DianaRobot::SetCartDampParams(std::vector<double> aDampParams)
+bool LancetDianaRobot::SetCartDampParams(std::vector<double> aDampParams)
 {
 	auto arrStiffVec = GetCartStiffParams();
 	double arrStiff[6] = { 0.0 };
@@ -343,7 +343,7 @@ bool DianaRobot::SetCartDampParams(std::vector<double> aDampParams)
 	return ret < 0 ? false : true;
 }
 
-std::vector<double> DianaRobot::GetCartStiffParams()
+std::vector<double> LancetDianaRobot::GetCartStiffParams()
 {
 	double arrStiff[6] = {};
 	double dblDamp = 0;
@@ -360,7 +360,7 @@ std::vector<double> DianaRobot::GetCartStiffParams()
 	return ret;
 }
 
-bool DianaRobot::SetCartStiffParams(std::vector<double> aStiffParams)
+bool LancetDianaRobot::SetCartStiffParams(std::vector<double> aStiffParams)
 {
 	if (aStiffParams.size() != 6)
 		return false;
@@ -376,7 +376,7 @@ bool DianaRobot::SetCartStiffParams(std::vector<double> aStiffParams)
 	return ret < 0 ? false : true;
 }
 
-std::vector<double> DianaRobot::GetCartImpeda()
+std::vector<double> LancetDianaRobot::GetCartImpeda()
 {
 	std::vector<double> Impeda;
 	double arrStiff[6] = {};
@@ -395,7 +395,7 @@ std::vector<double> DianaRobot::GetCartImpeda()
 	return Impeda;
 }
 
-bool DianaRobot::SetCartImpeda(std::vector<double> aImpeda)
+bool LancetDianaRobot::SetCartImpeda(std::vector<double> aImpeda)
 {
 	double arrstiff[6] = {};
 	double dblDamp = 0;
@@ -409,7 +409,7 @@ bool DianaRobot::SetCartImpeda(std::vector<double> aImpeda)
 	return ret < 0 ? false : true;
 }
 
-bool DianaRobot::SetVelocity(double aVelocity)
+bool LancetDianaRobot::SetVelocity(double aVelocity)
 {
 	return false;
 }
