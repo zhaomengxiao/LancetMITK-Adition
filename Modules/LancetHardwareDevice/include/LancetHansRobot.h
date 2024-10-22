@@ -16,9 +16,19 @@ public:
 
 	void Disconnect() override;
 
+	void Stop() override;
+
 	void PowerOn() override;
 
 	void PowerOff() override;
+
+	void Reset()  override;
+	void SetFreeDrag()  override;
+	void StopFreeDrag()  override;
+	bool SetToolMotion()  override;
+	bool SetBaseMotion()  override;
+	bool ForceFreeDrive() ;
+	bool ForceFreeDrive() ;
 
 	void Translate(double x, double y, double z) override;
 
@@ -34,6 +44,10 @@ public:
 
 	bool SetTCP(vtkMatrix4x4* aMatrix) override;
 
+	bool SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME = "") override;
+
+	bool ConfigTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME = "");
+
 	std::vector<double> GetJointAngles() override;
 
 	void SetJointAngles(std::vector<double> aJointAngles) override;
@@ -43,6 +57,8 @@ public:
 	vtkSmartPointer<vtkMatrix4x4> GetFlangeToTCP() override;
 
 	vtkSmartPointer<vtkMatrix4x4> GetBaseToFlange() override;
+
+	std::vector<double> CalculateInverse(Eigen::Vector3d aTranslation, Eigen::Vector3d aEulerAngle) override;
 
 	void RobotTransformInBase(double* aMatrix) override;
 
@@ -60,6 +76,9 @@ public:
 
 	bool SetVelocity(double aVelocity) override;
 
+	bool SetAcceleration(double aVelocity) override;
+	bool SetRadius(double aVelocity) override;
+
 	void WaitMove() override;
   
 private:
@@ -71,7 +90,6 @@ private:
 	Eigen::Vector3d GetTranslationPartByMatrix(vtkMatrix4x4* m);
 	Eigen::Vector3d CalculateZYXEulerByRotation(Eigen::Matrix3d m);
 
-	std::vector<double> CalculateInverse(Eigen::Vector3d aTranslation, Eigen::Vector3d aEulerAngle);
 
 	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
 
@@ -79,7 +97,6 @@ private:
 
 private:
 	vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
-	vtkSmartPointer<vtkMatrix4x4> m_FlangeToTCP;
 private:
 	// 定义工具坐标变量
 	std::string sTcpName = "TCP";
@@ -103,6 +120,9 @@ private:
 	string strCmdID = "0";
 
 	int nMoveType = 0;
+
+	const unsigned int boxID = 0;
+	const unsigned int rbtID = 0;
 };
 
 #endif

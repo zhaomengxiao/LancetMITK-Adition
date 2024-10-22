@@ -1,4 +1,4 @@
-#include "AngleCalculationHelper.h"
+ï»¿#include "AngleCalculationHelper.h"
 
 using namespace lancetAlgorithm;
 AngleCalculationHelper::AngleCalculationHelper(mitk::DataStorage* in)
@@ -29,7 +29,7 @@ std::pair<Tilt, double> AngleCalculationHelper::CalculateTilt(KneeModel kneeMode
 	{
 		TLocal2Image->DeepCopy(m_FemurModel->GetBoneModelCoordinate());
 		TLocal2Image->Invert();
-		//½«Í¼Ïñ×ø±êÏµÏÂµÄÁ¦ÏßÏòÁ¿×ª»»µ½¾Ö²¿×ø±êÏµÏÂ Ö»ÓÃ×ªmatrix
+		//ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ Ö»ï¿½ï¿½×ªmatrix
 		localV = CalculationHelper::CalculateInCoordinate(m_FemurImplant->GetMechanicalAxis(), TLocal2Image);
 		PrintDataHelper::CoutArray(m_FemurImplant->GetMechanicalAxis(), "m_Implant->GetMechanicalAxis(): ");
 	}
@@ -37,19 +37,19 @@ std::pair<Tilt, double> AngleCalculationHelper::CalculateTilt(KneeModel kneeMode
 	{
 		TLocal2Image->DeepCopy(m_TibiaModel->GetBoneModelCoordinate());
 		TLocal2Image->Invert();
-		//½«Í¼Ïñ×ø±êÏµÏÂµÄÁ¦ÏßÏòÁ¿×ª»»µ½¾Ö²¿×ø±êÏµÏÂ Ö»ÓÃ×ªmatrix
+		//ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ Ö»ï¿½ï¿½×ªmatrix
 		localV = CalculationHelper::CalculateInCoordinate(m_TibiaTray->GetProximalDirection(), TLocal2Image);
 		//PrintDataHelper::CoutArray(m_TibiaModel->GetFemurMechanicalAxis(), "m_TibiaModel->GetMechanicalAxis(): ");
 	}
 	PrintDataHelper::CoutArray(localV, "CalculateTilt localV: ");
 	localV.normalize();
-	// ÏòÁ¿ÔÚYZÆ½ÃæµÄÍ¶Ó°
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½YZÆ½ï¿½ï¿½ï¿½Í¶Ó°
 	vYZ = Eigen::Vector2d(localV.y(), localV.z());
-	// ¼ÆËãÍ¶Ó°ÏòÁ¿ÓëZÖáµÄ¼Ð½Ç
+	// ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½Ä¼Ð½ï¿½
 	angle = std::atan2(vYZ.x(), vYZ.y());
 	std::cout << "CalculateTilt Angle:" << angle << std::endl;
 
-	// ½«»¡¶È×ª»»Îª½Ç¶È
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Îªï¿½Ç¶ï¿½
 	angle = angle * 180.0 / PI;
 	Tilt tilt = (vYZ.x() >= 0) ? Tilt::FrontTilt : Tilt::BackTilt;
 	return { tilt,angle = std::abs(angle) >90? 180- std::abs(angle):std::abs(angle) };
@@ -72,13 +72,13 @@ std::pair<Va, double> lancetAlgorithm::AngleCalculationHelper::CalculateVa(KneeM
 		localV = CalculationHelper::CalculateInCoordinate(m_TibiaTray->GetProximalDirection(), TLocal2Image);
 	}
 	localV.normalize();
-	// ÏòÁ¿ÔÚXZÆ½ÃæµÄÍ¶Ó°
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½XZÆ½ï¿½ï¿½ï¿½Í¶Ó°
 	Eigen::Vector2d vXZ(localV.x(), localV.z());
 
-	// ¼ÆËãÍ¶Ó°ÏòÁ¿ÓëZÖáµÄ¼Ð½Ç
+	// ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½Ä¼Ð½ï¿½
 	double angle = std::atan2(vXZ.x(), vXZ.y());
 
-	// ½«½Ç¶È×ª»»Îª¶ÈÊý£¨¿ÉÑ¡£©
+	// ï¿½ï¿½ï¿½Ç¶ï¿½×ªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½
 	angle = angle * 180.0 / PI;
 	Va va;
 	if (PKAData::m_SurgicalSide == PKASurgicalSide::Right)
@@ -110,13 +110,13 @@ std::pair<ProsRotation, double> lancetAlgorithm::AngleCalculationHelper::Calcula
 		localV = CalculationHelper::CalculateInCoordinate(m_TibiaTray->GetOrientation(), TLocal2Image);
 	}
 	localV.normalize();
-	// ÏòÁ¿ÔÚXYÆ½ÃæµÄÍ¶Ó°
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½XYÆ½ï¿½ï¿½ï¿½Í¶Ó°
 	Eigen::Vector2d vXY(localV.x(), localV.y());
 
-	// ¼ÆËãÍ¶Ó°ÏòÁ¿ÓëXÖáµÄ¼Ð½Ç
+	// ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½ï¿½Ä¼Ð½ï¿½
 	double angle = std::atan2(vXY.y(), vXY.x());
 
-	// ½«½Ç¶È×ª»»Îª¶ÈÊý£¨¿ÉÑ¡£©
+	// ï¿½ï¿½ï¿½Ç¶ï¿½×ªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½
 	angle = angle * 180.0 / PI;
 	ProsRotation prosRotation;
 	if (PKAData::m_SurgicalSide == PKASurgicalSide::Right)
@@ -132,13 +132,13 @@ std::pair<ProsRotation, double> lancetAlgorithm::AngleCalculationHelper::Calcula
 
 double lancetAlgorithm::AngleCalculationHelper::CalculateIntraplanProsGap()
 {
-	//»ñµÃëÖ¹ÇproudÔÚÍ¼Ïñ×ø±êÏµÏÂµÄÎ»ÖÃ
+	//ï¿½ï¿½ï¿½ï¿½Ö¹ï¿½proudï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½Âµï¿½Î»ï¿½ï¿½
 	vtkSmartPointer<vtkMatrix4x4> TImage2Tibia = vtkSmartPointer<vtkMatrix4x4>::New();
 	TImage2Tibia->DeepCopy(CalculateTFemur2Tibia());
 	
 	Eigen::Vector3d tibiaProudInImage = CalculationHelper::TransformByMatrix(m_TibiaTray->GetProudPoint(),TImage2Tibia);
 
-	//»ñµÃ¹É¹Çgap points ÔÚÍ¼Ïñ×ø±êÏµÏÂµÄÎ»ÖÃ Í¼Ïñ×ø±êÏµÏÂëÖ¹ÇµÄÎ»ÖÃÊ±I
+	//ï¿½ï¿½Ã¹É¹ï¿½gap points ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½Âµï¿½Î»ï¿½ï¿½ Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½Ö¹Çµï¿½Î»ï¿½ï¿½Ê±I
 	auto points = m_FemurImplant->GetGapPoints();
 	double minDistance = std::numeric_limits<double>::max();
 	double index = 0;
@@ -331,12 +331,12 @@ double lancetAlgorithm::AngleCalculationHelper::CalculateProud(KneeModel kneeMod
 	{
 		m_dataStorage->Remove(node);
 	}
-	// ¼ÆËãÉäÏßµÄÖÕµã
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ßµï¿½ï¿½Õµï¿½
 	double point1[3], point2[3];
 	point1[0] = proudPoint[0] - proudDirection[0] * 500;
 	point1[1] = proudPoint[1] - proudDirection[1] * 500;
 	point1[2] = proudPoint[2] - proudDirection[2] * 500;
-	point2[0] = proudPoint[0] + proudDirection[0] * 500; // È·±£Ïß×ã¹»³¤
+	point2[0] = proudPoint[0] + proudDirection[0] * 500; // È·ï¿½ï¿½ï¿½ï¿½ï¿½ã¹»ï¿½ï¿½
 	point2[1] = proudPoint[1] + proudDirection[1] * 500;
 	point2[2] = proudPoint[2] + proudDirection[2] * 500;
 	//PrintDataHelper::CoutArray(point1, 3, "point1:");
@@ -351,14 +351,14 @@ double lancetAlgorithm::AngleCalculationHelper::CalculateProud(KneeModel kneeMod
 	bspTree->Update();
 	bspTree->BuildLocator();
 
-	// ´æ´¢½»µãµÄÊý×é
+	// ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	vtkSmartPointer<vtkPoints> intersectionPoints = vtkSmartPointer<vtkPoints>::New();
 	vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
 
-	// ½øÐÐ½»µã²éÑ¯
+	// ï¿½ï¿½ï¿½Ð½ï¿½ï¿½ï¿½ï¿½Ñ¯
 	int numIntersections = bspTree->IntersectWithLine(point1, point2, 0.001, intersectionPoints, cellIds);/*(point1, point2, 0.001, intersectionPoints, cellIds, cell);*/
 
-	// Êä³ö½á¹û
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	std::cout << "Number of intersections: " << numIntersections << std::endl;
 
 	for (vtkIdType i = 0; i < intersectionPoints->GetNumberOfPoints(); i++)
@@ -442,24 +442,24 @@ std::pair<double, double> lancetAlgorithm::AngleCalculationHelper::CalculateLimb
 
 	Eigen::Vector3d origin(0, 0, 0);
 	
-	//Í¶Ó°ÔÚYZÃæÉÏ 
+	//Í¶Ó°ï¿½ï¿½YZï¿½ï¿½ï¿½ï¿½ 
 	Eigen::Vector2d tibiaMechanicalYZ = Eigen::Vector2d(tibiaMechanicalAxisInFemur.y(), tibiaMechanicalAxisInFemur.z());
-	// ¼ÆËãÍ¶Ó°ÏòÁ¿ÓëZÖáµÄ¼Ð½Ç
+	// ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½Ä¼Ð½ï¿½
 	double ququ = std::atan2(tibiaMechanicalYZ.x(), tibiaMechanicalYZ.y());
 	//std::cout << "CalculateTilt Angle:" << ququ << std::endl;
 
-	// ½«»¡¶È×ª»»Îª½Ç¶È
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Îªï¿½Ç¶ï¿½
 	ququ = ququ * 180.0 / PI;
-	//ÏÂÖ«ÇüÇú
+	//ï¿½ï¿½Ö«ï¿½ï¿½ï¿½ï¿½
 	//std::cout << "xia zhi qu qu : " << ququ;
 
-	//ÏÂÖ«ÄÚÍâ·­
-	//Í¶Ó°ÔÚXZÃæÉÏ 
+	//ï¿½ï¿½Ö«ï¿½ï¿½ï¿½â·­
+	//Í¶Ó°ï¿½ï¿½XZï¿½ï¿½ï¿½ï¿½ 
 	Eigen::Vector2d tibiaMechanicalXZ = Eigen::Vector2d(tibiaMechanicalAxisInFemur.x(), tibiaMechanicalAxisInFemur.y());
-	// ¼ÆËãÍ¶Ó°ÏòÁ¿ÓëZÖáµÄ¼Ð½Ç
+	// ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½Ä¼Ð½ï¿½
 	double va = std::atan2(tibiaMechanicalXZ.x(), tibiaMechanicalXZ.y());
 
-	// ½«½Ç¶È×ª»»Îª¶ÈÊý£¨¿ÉÑ¡£©
+	// ï¿½ï¿½ï¿½Ç¶ï¿½×ªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½
 	va = va * 180.0 / PI;
 	//Va va = (tibiaMechanicalXZ.x() > 0) ? Va::Valgus : Va::Varus;
 	//std::cout << "xia zhi nei wai fan: " << va;
@@ -498,15 +498,15 @@ std::pair<Tilt, double> lancetAlgorithm::AngleCalculationHelper::CalculateLimbFl
 
 	Eigen::Vector3d femurSagittalPlaneNormal = m_FemurModel->GetBoneSagittalPlaneNormal();
 	//PrintDataHelper::CoutArray(femurSagittalPlaneNormal, "CalculateLimbFlexion: ");
-	//Í¶Ó°ÔÚYZÃæÉÏ 
+	//Í¶Ó°ï¿½ï¿½YZï¿½ï¿½ï¿½ï¿½ 
 	Eigen::Vector2d tibiaMechanicalYZ = Eigen::Vector2d(tibiaMechanicalAxisInFemur.y(), tibiaMechanicalAxisInFemur.z());
-	// ¼ÆËãÍ¶Ó°ÏòÁ¿ÓëZÖáµÄ¼Ð½Ç
+	// ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½Ä¼Ð½ï¿½
 	double rad = std::atan2(tibiaMechanicalYZ.x(), tibiaMechanicalYZ.y());
 
-	// ½«»¡¶È×ª»»Îª½Ç¶È
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Îªï¿½Ç¶ï¿½
 	double angle = rad * 180.0 / PI;
 	//std::cout << "angle: " << angle << std::endl;
-	//ÏÂÖ«ÇüÇú
+	//ï¿½ï¿½Ö«ï¿½ï¿½ï¿½ï¿½
 	Tilt tilt = tibiaMechanicalYZ.x() > 0 ? Tilt::FrontTilt : Tilt::BackTilt;
 	return{ tilt, std::abs( angle) };
 }
@@ -542,13 +542,13 @@ std::pair<Va, double> lancetAlgorithm::AngleCalculationHelper::CalculateLimbVaru
 
 	femurSagittalPlaneNormal = m_FemurModel->GetBoneSagittalPlaneNormal();
 
-	//ÏÂÖ«ÄÚÍâ·­
-	//Í¶Ó°ÔÚXYÃæÉÏ 
+	//ï¿½ï¿½Ö«ï¿½ï¿½ï¿½â·­
+	//Í¶Ó°ï¿½ï¿½XYï¿½ï¿½ï¿½ï¿½ 
 	Eigen::Vector2d tibiaMechanicalXZ = Eigen::Vector2d(tibiaMechanicalAxisInFemur.x(), tibiaMechanicalAxisInFemur.y());
-	// ¼ÆËãÍ¶Ó°ÏòÁ¿ÓëZÖáµÄ¼Ð½Ç
+	// ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½Ä¼Ð½ï¿½
 	double rad = std::atan2(tibiaMechanicalXZ.x(), tibiaMechanicalXZ.y());
 
-	// ½«½Ç¶È×ª»»Îª¶ÈÊý£¨¿ÉÑ¡£©
+	// ï¿½ï¿½ï¿½Ç¶ï¿½×ªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½
 	double angle = rad * 180.0 / PI;
 	Va va = (tibiaMechanicalXZ.y() > 0) ? Va::Valgus : Va::Varus;
 	//std::cout << "xia zhi nei wai fan: " << angle;
@@ -574,13 +574,13 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::AngleCalculationHelper::Calculate
 	vtkSmartPointer<vtkMatrix4x4> TTibiaRF2Tibia = vtkSmartPointer<vtkMatrix4x4>::New();
 	TTibiaRF2Tibia->DeepCopy(PKAData::m_TTibiaRF2TibiaImage);
 
-	//×îºóµÃµ½Femur µ½TibiaµÄ×ª»»¹ØÏµ
+	//ï¿½ï¿½ï¿½Ãµï¿½Femur ï¿½ï¿½Tibiaï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½Ïµ
 	TFemur2Tibia->DeepCopy(CalculationHelper::PreConcatenateMatrixs(TFemur2FemurRF, TFemurRF2Camera, TCamera2TibiaRF, TTibiaRF2Tibia));
 	return TFemur2Tibia;
 }
 
 /// <summary>
-/// ÏÔÊ¾±»¼ÙÌåÇÐ¸îºóµÄÄ£ÐÍ
+/// ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½Ä£ï¿½ï¿½
 /// </summary>
 void lancetAlgorithm::AngleCalculationHelper::ClipFemur()
 {
@@ -591,7 +591,7 @@ void lancetAlgorithm::AngleCalculationHelper::ClipTibia()
 {
 }
 
-//½«¼ÙÌå¶¼×ª»»µ½¹É¹ÇÍ¼Ïñ×ø±êÏµÏÂ
+//ï¿½ï¿½ï¿½ï¿½ï¿½å¶¼×ªï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½
 double lancetAlgorithm::AngleCalculationHelper::CalculateCutPlaneDistance()
 {
 	if (!m_FemurImplant || !m_TibiaTray)
@@ -606,7 +606,7 @@ double lancetAlgorithm::AngleCalculationHelper::CalculateCutPlaneDistance()
 	Eigen::Vector3d tibiaTrayProximalVectorInFemurImage = CalculationHelper::CalculateDirection(tibiaTrayProximalCutInFemurImage, tibiaTrayProximalCutNormalInFemurImage);
 	if (PKAData::m_LimbTiltAngle >= 85 &&PKAData::m_LimbTiltAngle <= 95)
 	{
-		//»ñµÃ¹É¹ÇÍ¼ÏñÖÐºó¶ËµãµÄÎ»ÖÃ
+		//ï¿½ï¿½Ã¹É¹ï¿½Í¼ï¿½ï¿½ï¿½Ðºï¿½Ëµï¿½ï¿½Î»ï¿½ï¿½
 		Eigen::Vector3d femurPosteriorCut = m_FemurImplant->GetPosteriorCut();
 		Eigen::Vector3d femurPosteriorCutDirection = CalculationHelper::CalculateDirection(femurPosteriorCut, m_FemurImplant->GetPosteriorCutNormal());
 
@@ -615,7 +615,7 @@ double lancetAlgorithm::AngleCalculationHelper::CalculateCutPlaneDistance()
 	}
 	else if(PKAData::m_LimbTiltAngle>=175 && PKAData::m_LimbTiltAngle <= 185)
 	{
-		//¼ÆËãÉìÖ± 
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö± 
 		Eigen::Vector3d femurDistalCut = m_FemurImplant->GetDistalCut();
 		Eigen::Vector3d femurDistalCutDirection = m_FemurImplant->GetMechanicalAxis();
 		

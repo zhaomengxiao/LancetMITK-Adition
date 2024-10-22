@@ -1,4 +1,4 @@
-/*============================================================================
+ï»¿/*============================================================================
 
 The Medical Imaging Interaction Toolkit (MITK)
 
@@ -239,11 +239,11 @@ public:
   void ClearVerifyPointBtnClicked();
   void VerifyPointBtnClicked();
   /// <summary>
-  /// Ëæ»ú²úÉú100¸öµã²¢½øÐÐ¹ýÂË£¬UIÓÃ½ø¶ÈÌõÕ¹Ê¾
+  /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½100ï¿½ï¿½ï¿½ã²¢ï¿½ï¿½ï¿½Ð¹ï¿½ï¿½Ë£ï¿½UIï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹Ê¾
   /// </summary>
   void LocateHipCenterBtnClicked();
 
-  //¼ÆËã×·×Ùµãµ½×·×ÙÕóÁÐµÄ·½Ïò
+  //ï¿½ï¿½ï¿½ï¿½×·ï¿½Ùµãµ½×·ï¿½ï¿½ï¿½ï¿½ï¿½ÐµÄ·ï¿½ï¿½ï¿½
   double VerifyKneeModelAccuracy(KneeModel modelType);
   void DrillEndAccuracyVerifyBtnClicked();
   //Test

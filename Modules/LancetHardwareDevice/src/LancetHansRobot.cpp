@@ -3,20 +3,23 @@
 LancetHansRobot::LancetHansRobot()
 {
 	m_InitialPos = vtkSmartPointer<vtkMatrix4x4>::New();
-	m_FlangeToTCP = vtkSmartPointer<vtkMatrix4x4>::New();
 }
 
 void LancetHansRobot::Connect()
 {
 	this->SetRobotIpAddress("192.168.0.10");
-	unsigned int boxID = 0;
 	unsigned short nPort = 10003;
 	int nRet = HRIF_Connect(boxID, m_IpAddress, nPort);
 }
 
 void LancetHansRobot::Disconnect()
 {
-	HRIF_DisConnect(0);
+	HRIF_DisConnect(boxID);
+}
+
+void LancetHansRobot::Stop() 
+{
+	HRIF_GrpStop(boxID, rbtID);
 }
 
 void LancetHansRobot::PowerOn()
@@ -101,11 +104,8 @@ bool LancetHansRobot::SetTCP(vtkMatrix4x4* aMatrix)
 {
 	auto euler = this->GetEulerByMatrix(aMatrix);
 	auto trans = this->GetTranslationPartByMatrix(aMatrix);
-
-	m_FlangeToTCP->DeepCopy(aMatrix);
-	//Config TCP(MATRIX , TCPName)
+	
 	int nRet = HRIF_SetTCP(0, 0, trans[0], trans[1], trans[2], euler[0], euler[1], euler[2]);
-	//set tcp to robot
 
 	if (nRet == 0) {
 		std::cout << "line  TCP Set succeed" << std::endl;
@@ -115,6 +115,17 @@ bool LancetHansRobot::SetTCP(vtkMatrix4x4* aMatrix)
 		std::cout << "line TCP Set failed" << std::endl;
 		return false;
 	}
+}
+
+bool LancetHansRobot::SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME)
+{
+	return false;
+}
+
+
+bool LancetHansRobot::ConfigTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME)
+{
+	return false;
 }
 
 std::vector<double> LancetHansRobot::GetJointAngles()
@@ -167,10 +178,11 @@ vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetBaseToTCP()
 
 vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetFlangeToTCP()
 {
-	vtkSmartPointer<vtkMatrix4x4> ret = vtkSmartPointer<vtkMatrix4x4>::New();
-	ret->DeepCopy(m_FlangeToTCP);
-	return ret;
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	return vtkSmartPointer<vtkMatrix4x4>();
 }
+
+
 
 vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetBaseToFlange()
 {
@@ -413,6 +425,7 @@ std::vector<double> LancetHansRobot::CalculateForward(std::vector<double> aJoint
 	PrintDataHelper::CoutVector(ret,"ret");
 	return ret;
 }
+
 string LancetHansRobot::GetErrorCodeString(int errorCode)
 {
 	int nRet = 0;

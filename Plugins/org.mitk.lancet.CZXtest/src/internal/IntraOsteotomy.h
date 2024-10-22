@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <qobject.h>
 #include <mitkImage.h>
 #include <mitkDataStorage.h>
@@ -40,9 +40,9 @@ namespace lancetAlgorithm
 		vtkSmartPointer<vtkMatrix4x4> CalculateTBase2DrillEnd();
 
 		/// <summary>
-		/// ¼ÆËã½«Ä¥×êÄ©¶ËÒÆ¶¯µ½Æ½ÃæÉÏµÄµã£¬²¢ÇÒÄ¥×êµÄXYÆ½ÃæÓëÆ½Ãæ·¨ÏòÁ¿´¹Ö±
-		/// TODO Ä¥×êÄ©¶ËÈôÒÆ¶¯µ½³õÊ¼Î»ÖÃ  Ó¦¸ÃÊ¹µÃXÓëY·½Ïò¼õ20mm
-		/// ÕâÖÖ·½·¨ÏÂ£¬Ö»ÐèÒªXY·½ÏòÍÆ¶¯Ä¥×ê£¬Ðè¹Ø±ÕZ·½ÏòÁ¦¿Ø   ÔÝÊ±ÆúÓÃ
+		/// ï¿½ï¿½ï¿½ã½«Ä¥ï¿½ï¿½Ä©ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½ÏµÄµã£¬ï¿½ï¿½ï¿½ï¿½Ä¥ï¿½ï¿½ï¿½XYÆ½ï¿½ï¿½ï¿½ï¿½Æ½ï¿½æ·¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö±
+		/// TODO Ä¥ï¿½ï¿½Ä©ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼Î»ï¿½ï¿½  Ó¦ï¿½ï¿½Ê¹ï¿½ï¿½Xï¿½ï¿½Yï¿½ï¿½ï¿½ï¿½ï¿½20mm
+		/// ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½Â£ï¿½Ö»ï¿½ï¿½ÒªXYï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½Ä¥ï¿½ê£¬ï¿½ï¿½Ø±ï¿½Zï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½   ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½
 		/// </summary>
 		/// <param name="pointInPlane"></param>
 		/// <param name="planeNormal"></param>
@@ -50,9 +50,9 @@ namespace lancetAlgorithm
 		vtkSmartPointer<vtkMatrix4x4>  CalculateDrillEndHorizontalPlane(Eigen::Vector3d pointInPlane, Eigen::Vector3d planeNormal);
 
 		/// <summary>
-		/// ¼ÆËã½«Ä¥×êÄ©¶ËÒÆ¶¯µ½Æ½ÃæµÄµãÉÏ£¬²¢ÇÒÄ¥×êXÖáÓëÆ½Ãæ·¨ÏòÁ¿Æ½ÐÐ
-		/// TODO Ä¥×êÄ©¶ËÈôÒÆ¶¯µ½³õÊ¼Î»ÖÃ ÐèÒªXÖá -20mm
-		/// ÕâÖÖ·½Ê½ÏÂ  Ä¥×êÐèÒªÏÈÄ¥£¬È»ºóÄ¥ÍêµÚÒ»¸öÎ»ÖÃÖ®ºó£¬¿ªÆôYZ·½ÏòµÄÁ¦¿Ø
+		/// ï¿½ï¿½ï¿½ã½«Ä¥ï¿½ï¿½Ä©ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½Æ½ï¿½ï¿½Äµï¿½ï¿½Ï£ï¿½ï¿½ï¿½ï¿½ï¿½Ä¥ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½Æ½ï¿½æ·¨ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½
+		/// TODO Ä¥ï¿½ï¿½Ä©ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼Î»ï¿½ï¿½ ï¿½ï¿½ÒªXï¿½ï¿½ -20mm
+		/// ï¿½ï¿½ï¿½Ö·ï¿½Ê½ï¿½ï¿½  Ä¥ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ä¥ï¿½ï¿½È»ï¿½ï¿½Ä¥ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Î»ï¿½ï¿½Ö®ï¿½ó£¬¿ï¿½ï¿½ï¿½YZï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		/// </summary>
 		/// <param name="pointInPlane"></param>
 		/// <param name="planeNormal"></param>
@@ -63,7 +63,7 @@ namespace lancetAlgorithm
 
 
 		/// <summary>
-		/// ·ÂÕæ ³õÊ¼»¯Ä¥×êÍ·µ½Ö¸¶¨Î»×Ë
+		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ê¼ï¿½ï¿½Ä¥ï¿½ï¿½Í·ï¿½ï¿½Ö¸ï¿½ï¿½Î»ï¿½ï¿½
 		/// </summary>
 		/// <param name="pointInPlane"></param>
 		/// <param name="planeNormal"></param>

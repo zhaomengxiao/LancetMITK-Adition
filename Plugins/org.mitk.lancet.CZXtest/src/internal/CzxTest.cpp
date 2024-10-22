@@ -1,4 +1,4 @@
-/*============================================================================
+ï»¿/*============================================================================
 
 The Medical Imaging Interaction Toolkit (MITK)
 
@@ -277,13 +277,13 @@ double CzxTest::VerifyKneeModelAccuracy(KneeModel modelType)
 	m_Camera->GetToolTipByName(to_string(PKAMarker::PKAProbe));
 	if (modelType == KneeModel::Femur)
 	{
-		//»ñÈ¡Ì½Õëµã
-		//»ñµÃÓ°ÏñÖÐ ¹É¹ÇÑéÖ¤µãµÄÎ»ÖÃ
+		//ï¿½ï¿½È¡Ì½ï¿½ï¿½ï¿½
+		//ï¿½ï¿½ï¿½Ó°ï¿½ï¿½ï¿½ï¿½ ï¿½É¹ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 	}
 	else
 	{
-		//»ñÈ¡Ì½Õëµã
-		//»ñµÃÓ°ÏñÖÐ ¹É¹ÇÑéÖ¤µãµÄÎ»ÖÃ
+		//ï¿½ï¿½È¡Ì½ï¿½ï¿½ï¿½
+		//ï¿½ï¿½ï¿½Ó°ï¿½ï¿½ï¿½ï¿½ ï¿½É¹ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 	}
 	return 0.0;
 }
@@ -388,11 +388,11 @@ void CzxTest::SetRobotPositionModeBtnClicked()
 	bool ret = m_Robot->SetPositionMode();
 	if (ret)
 	{
-		m_Controls.textBrowser->append(QString::fromLocal8Bit("ÉèÖÃÎªÎ»ÖÃÄ£Ê½"));
+		m_Controls.textBrowser->append(QString::fromLocal8Bit("ï¿½ï¿½ï¿½ï¿½ÎªÎ»ï¿½ï¿½Ä£Ê½"));
 	}
 	else
 	{
-		m_Controls.textBrowser->append(QString::fromLocal8Bit("ÉèÖÃÊ§°Ü"));
+		m_Controls.textBrowser->append(QString::fromLocal8Bit("ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½"));
 	}
 }
 
@@ -401,11 +401,11 @@ void CzxTest::SetRobotJointsImpedanceModelBtnClicked()
 	bool ret = m_Robot->SetJointImpendanceMode();
 	if (ret)
 	{
-		m_Controls.textBrowser->append(QString::fromLocal8Bit("ÉèÖÃÎª¹Ø½Ú¿Õ¼ä×è¿¹Ä£Ê½"));
+		m_Controls.textBrowser->append(QString::fromLocal8Bit("ï¿½ï¿½ï¿½ï¿½Îªï¿½Ø½Ú¿Õ¼ï¿½ï¿½è¿¹Ä£Ê½"));
 	}
 	else
 	{
-		m_Controls.textBrowser->append(QString::fromLocal8Bit("ÉèÖÃÊ§°Ü"));
+		m_Controls.textBrowser->append(QString::fromLocal8Bit("ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½"));
 	}
 }
 
@@ -414,11 +414,11 @@ void CzxTest::SetRobotCartImpedanceModeBtnClicked()
 	bool ret = m_Robot->SetCartImpendanceMode();
 	if (ret)
 	{
-		m_Controls.textBrowser->append(QString::fromLocal8Bit("ÉèÖÃÎªµÑ¿¨¶û¿Õ¼ä×è¿¹Ä£Ê½"));
+		m_Controls.textBrowser->append(QString::fromLocal8Bit("ï¿½ï¿½ï¿½ï¿½Îªï¿½Ñ¿ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½è¿¹Ä£Ê½"));
 	}
 	else
 	{
-		m_Controls.textBrowser->append(QString::fromLocal8Bit("ÉèÖÃÊ§°Ü"));
+		m_Controls.textBrowser->append(QString::fromLocal8Bit("ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½"));
 	}
 }
 
@@ -432,8 +432,8 @@ void CzxTest::GetProbeEndPos(TCPRegistraionMethod method)
 	if (currentCount == maxCount)
 	{
 		QMessageBox msgBox;
-		msgBox.setText(QString::fromLocal8Bit("¾¯¸æ"));
-		msgBox.setInformativeText(QString::fromLocal8Bit("²É¼¯ÊýÁ¿ÒÑ´ïÉÏÏÞ£¬ÇëÖØÖÃ"));
+		msgBox.setText(QString::fromLocal8Bit("ï¿½ï¿½ï¿½ï¿½"));
+		msgBox.setInformativeText(QString::fromLocal8Bit("ï¿½É¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½ï¿½ï¿½ï¿½Þ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"));
 		msgBox.setStandardButtons(QMessageBox::Ok);
 		msgBox.setDefaultButton(QMessageBox::Ok);
 		msgBox.exec();
@@ -560,7 +560,7 @@ void CzxTest::VerifyImageRegistrationAccuracyBtnClicked()
 	//auto verifyNode = this->GetDataStorage()->GetNamedNode(mNodeName_FemurRegistrationVerify.toLatin1());
 	//verifyNode->SetVisibility(true);
 
-	////´´½¨SphereµÄÇò£¬È»ºó¼ÓÈë
+	////ï¿½ï¿½ï¿½ï¿½Sphereï¿½ï¿½ï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½
 	////auto mitkRenderWindow = multiWidget->GetRenderWindow("3d");
 	//mitk::PointSetVtkMapper3D::Pointer vtk3DMapper =
 	//	dynamic_cast<mitk::PointSetVtkMapper3D*>(verifyNode->GetMapper(2));
@@ -619,7 +619,7 @@ void CzxTest::VerifyImageRegistrationAccuracyBtnClicked()
 	//qDebug() << "Validate point number: " << count;
 	//if (rms > 2.0)
 	//{
-	//	QMessageBox::information(NULL, tr("ÌáÊ¾"), tr("Îó²î½Ï´ó£¬½¨ÒéÖØÐÂÅä×¼£¬µã»÷\"Çå³ýËùÓÐµã\"\nÇë°´ÕÕÀ¶É«µÄµãÑ­Ðò½øÐÐÅä×¼£¡"), tr("¹Ø±Õ"));
+	//	QMessageBox::information(NULL, tr("ï¿½ï¿½Ê¾"), tr("ï¿½ï¿½ï¿½Ï´ó£¬½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½\"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½\"\nï¿½ë°´ï¿½ï¿½ï¿½ï¿½É«ï¿½Äµï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¼ï¿½ï¿½"), tr("ï¿½Ø±ï¿½"));
 	//}
 }
 
@@ -755,7 +755,7 @@ void CzxTest::RegisterMalleolus(MalleolusPoint malleolusPoint)
 	TTibiaRF2Camera->DeepCopy(PKAData::m_TCamera2TibiaRF);
 	TTibiaRF2Camera->Invert();
 	pos = CalculationHelper::TransformByMatrix(pos, TTibiaRF2Camera);
-	//TODO  ¶ÁÈ¡Ì½ÕëÄ©¶ËÐÅÏ¢ ×ª»»µ½tibiaRF×ø±êÏµÏÂ
+	//TODO  ï¿½ï¿½È¡Ì½ï¿½ï¿½Ä©ï¿½ï¿½ï¿½ï¿½Ï¢ ×ªï¿½ï¿½ï¿½ï¿½tibiaRFï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½
 	if (malleolusPoint == MalleolusPoint::MalleolusMedialis)
 	{
 		PKAData::m_IntraMedialMalleolusInTibiaRF = pos;
@@ -825,7 +825,7 @@ void CzxTest::OnMitkNodeSelectWidget_landmark_srcChanged()
 	m_Controls.TotalRegistrationCountLineEdit->setText(QString::number(points->GetSize()));
 }
 
-//½«Ïà»úÏÂµÄµãµÄ×ø±ê×ª»»µ½¹ÇÍ·RenferenceÏÂ µÃµ½FemurRF2FemurImage¹ØÏµ
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÂµÄµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·Renferenceï¿½ï¿½ ï¿½Ãµï¿½FemurRF2FemurImageï¿½ï¿½Ïµ
 void CzxTest::RegisterImageBtnClicked()
 {
 	KneeModel registrationType = m_Controls.ImageRegistrationTypeComboBox->currentText() == "Femur" ? KneeModel::Femur : KneeModel::Tibia;
@@ -933,7 +933,7 @@ void CzxTest::StartSelectPointBtnClicked()
 
 	this->GetDataStorage()->Add(m_CopyRegistrationPointDataNode);
 
-	//´´½¨SphereµÄÇò£¬È»ºó¼ÓÈë
+	//ï¿½ï¿½ï¿½ï¿½Sphereï¿½ï¿½ï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½
 	mitk::PointSetVtkMapper3D::Pointer vtk3DMapper = dynamic_cast<mitk::PointSetVtkMapper3D*>(m_CopyRegistrationPointDataNode->GetMapper(2));
 	auto iRenderWindowPart = GetRenderWindowPart();
 	QmitkRenderWindow* renderWindow = iRenderWindowPart->GetQmitkRenderWindow("3d");
@@ -1025,7 +1025,7 @@ void CzxTest::LocateHipCenterBtnClicked()
 	{
 		QMessageBox msgBox;
 		msgBox.setText(QString::fromLocal8Bit("Tip"));
-		msgBox.setInformativeText(QString::fromLocal8Bit("²É¼¯ÊýÁ¿ÒÑ´ïÉÏÏÞ£¬ÇëÖØÖÃ"));
+		msgBox.setInformativeText(QString::fromLocal8Bit("ï¿½É¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½ï¿½ï¿½ï¿½Þ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"));
 		msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
 		msgBox.setDefaultButton(QMessageBox::Cancel);
 		int ret = msgBox.exec();
@@ -1608,7 +1608,7 @@ void CzxTest::SetLandmarkPointBtnClicked()
 	{
 		QMessageBox msgBox;
 		msgBox.setText(QString::fromLocal8Bit("Warning"));
-		msgBox.setInformativeText(QString::fromLocal8Bit("ÇëÉèÖÃPoint Set Name"));
+		msgBox.setInformativeText(QString::fromLocal8Bit("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Point Set Name"));
 		msgBox.setStandardButtons(QMessageBox::Ok);
 		msgBox.setDefaultButton(QMessageBox::Ok);
 		msgBox.exec();
@@ -1650,7 +1650,7 @@ void CzxTest::CalcualtePointSetCenterBtnClicked()
 	mitk::PointSet::Pointer pointSet = dynamic_cast<mitk::PointSet*>(node->GetData());
 	if (pointSet.IsNotNull())
 	{
-		// »ñÈ¡µãµÄÊýÁ¿
+		// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		mitk::PointSet::PointsIterator it = pointSet->Begin();
 		mitk::PointSet::PointsIterator end = pointSet->End();
 		Eigen::Vector3d pointSum;
@@ -1685,7 +1685,7 @@ void CzxTest::RotateTibiaByCenterBtnClicked()
 		return;
 	}
 	mitk::DataNode::Pointer node = this->GetDataStorage()->GetNamedNode("tibiaSurface");
-	// »ñÈ¡µ±Ç°Ä£ÐÍµÄ±ä»»¾ØÕó
+	// ï¿½ï¿½È¡ï¿½ï¿½Ç°Ä£ï¿½ÍµÄ±ä»»ï¿½ï¿½ï¿½ï¿½
 	mitk::BaseData::Pointer modelData = node->GetData();
 
 	if (!m_TibiaRotateTimer)
@@ -1776,7 +1776,7 @@ void CzxTest::OnPrePlanViewTypeChanged(int index)
 	if (selectedText == to_string(ViewType::Axial))
 	{
 		m_PrePlanViewType = ViewType::Axial;
-		// ÔÚºá¶ÏÃæÉÏµÄ²Ù×÷
+		// ï¿½Úºï¿½ï¿½ï¿½ï¿½ï¿½ÏµÄ²ï¿½ï¿½ï¿½
 	}
 	else if (selectedText == to_string(ViewType::Sagittal))
 	{
@@ -2219,7 +2219,7 @@ void CzxTest::OnBrandComboBoxChanged()
 	}
 }
 
-//Ñ¡Ôñtuo»òÕßke
+//Ñ¡ï¿½ï¿½tuoï¿½ï¿½ï¿½ï¿½ke
 void CzxTest::OnProsthesisTypeComboxBoxChanged()
 {
 	std::filesystem::path prosPath = FileIO::CombinePath(m_ModelPath.string(), m_Controls.BrandComboBox->currentText().toStdString(), m_Controls.ProsthesisTypeComboBox->currentText().toStdString());
@@ -2721,25 +2721,25 @@ void CzxTest::StartIntraBtnClicked()
 	if (!isStartIntra)
 	{
 		connect(m_AimoeVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateBoneIntraDisplay()));
-		m_Controls.StartIntraBtn->setText(QString::fromLocal8Bit("Í£Ö¹ÊõÖÐ"));
+		m_Controls.StartIntraBtn->setText(QString::fromLocal8Bit("Í£Ö¹ï¿½ï¿½ï¿½ï¿½"));
 		isStartIntra = !isStartIntra;
 	}
 	else
 	{
 		disconnect(m_AimoeVisualizeTimer, SIGNAL(timeout()), this, SLOT(UpdateBoneIntraDisplay()));
-		m_Controls.StartIntraBtn->setText(QString::fromLocal8Bit("¿ªÊ¼ÊõÖÐ"));
+		m_Controls.StartIntraBtn->setText(QString::fromLocal8Bit("ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½"));
 		isStartIntra = !isStartIntra;
 	}
 }
 
 void CzxTest::SaveIntraDataBtnClicked()
 {
-	//»ñµÃÍ¼Ïñ×ø±êÏµÏÂµÄ Implant ºÍ Tray Matrix
+	//ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½Âµï¿½ Implant ï¿½ï¿½ Tray Matrix
 	auto TImage2Implant = this->GetDataStorage()->GetNamedNode(PKAData::m_FemurImplantNodeName.toStdString())->GetData()->GetGeometry()->GetVtkMatrix();
 	auto TImage2TrayMatrix = this->GetDataStorage()->GetNamedNode(PKAData::m_TibiaTrayNodeName.toStdString())->GetData()->GetGeometry()->GetVtkMatrix();
 	PrintDataHelper::CoutMatrix("SaveIntraDataBtnClicked TImage2Implant: ", TImage2Implant);
 	PrintDataHelper::CoutMatrix("SaveIntraDataBtnClicked TImage2TrayMatrix: ", TImage2TrayMatrix);
-	//»ñµÃÍ¼Ïñ×ø±êÏµµ½¹ÇÍ·×ø±êÏµµÄ¹ØÏµ
+	//ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½Ïµï¿½Ä¹ï¿½Ïµ
 	vtkSmartPointer<vtkMatrix4x4> TTibia2Image = vtkSmartPointer<vtkMatrix4x4>::New();
 	vtkSmartPointer<vtkMatrix4x4> TFemur2Image = vtkSmartPointer<vtkMatrix4x4>::New();
 	TTibia2Image->DeepCopy(this->GetDataStorage()->GetNamedNode(PKAData::m_TibiaClippedSurfaceNodeName.toStdString())->GetData()->GetGeometry()->GetVtkMatrix());
@@ -2761,7 +2761,7 @@ void CzxTest::SaveIntraDataBtnClicked()
 
 	PrintDataHelper::CoutMatrix("SaveIntraDataBtnClicked TTibia2Tray: ", TTibia2Tray);
 	PrintDataHelper::CoutMatrix("SaveIntraDataBtnClicked TFemur2Implant: ", TFemur2Implant);
-	//×îºóµÃµ½  ¹ÇÍ·µ½¼ÙÌåµÄÁ½¸ö¾ØÕó
+	//ï¿½ï¿½ï¿½Ãµï¿½  ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	FileIO::SaveMatrix2File(m_TFemur2FemurImplantSavePath, TFemur2Implant);
 	FileIO::SaveMatrix2File(m_TTibia2TibiaTraySavePath, TTibia2Tray);
 }
@@ -2773,7 +2773,7 @@ void CzxTest::OnIntraPlanViewTypeChanged(int index)
 	if (selectedText == to_string(ViewType::Axial))
 	{
 		m_IntraPlanViewType = ViewType::Axial;
-		// ÔÚºá¶ÏÃæÉÏµÄ²Ù×÷
+		// ï¿½Úºï¿½ï¿½ï¿½ï¿½ï¿½ÏµÄ²ï¿½ï¿½ï¿½
 	}
 	else if (selectedText == to_string(ViewType::Sagittal))
 	{
@@ -2801,9 +2801,9 @@ void CzxTest::TranslateIntraPros(Direction direction)
 	vtkSmartPointer<vtkTransform> trans = vtkSmartPointer<vtkTransform>::New();
 	if (m_Controls.IntraTibiaTrayRadioBtn->isChecked())
 	{
-		//¼ÙÌåÖÐ±£´æµÄÊÇ¹ÇÍ·×ø±êÏµµ½¼ÙÌåµÄÎ»×Ë¹ØÏµ
-		//Òò´Ë¼ÙÌåÒÆ¶¯ÊÇ¹ÇÍ·×ø±êÏµÏÂÒÆ¶¯  ¼´TTibiaBone2TibiaTray
-		//»ñµÃ¼ÙÌåµÄÎ»×Ë
+		//ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½Ç¹ï¿½Í·ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ë¹ï¿½Ïµ
+		//ï¿½ï¿½Ë¼ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½Ç¹ï¿½Í·ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½Æ¶ï¿½  ï¿½ï¿½TTibiaBone2TibiaTray
+		//ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 		vtkSmartPointer<vtkMatrix4x4> TTibiaBone2TibiaTray = vtkSmartPointer<vtkMatrix4x4>::New();
 		TTibiaBone2TibiaTray->DeepCopy(m_TibiaTray->GetTrayMatrix());
 
@@ -3017,7 +3017,7 @@ void CzxTest::UpdateBoneIntraDisplay()
 
 	m_TibiaBoneModel->UpdateBoneAxesActor(TfemurImage2TIbiaLocal);
 
-	//¼ÆËãÍÐ 
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
 	auto tibiaTrayGeo = this->GetDataStorage()->GetNamedNode(PKAData::m_TibiaTrayNodeName.toStdString())->GetData()->GetGeometry();
 	vtkSmartPointer<vtkMatrix4x4> TTibiaImage2TibiaTray = vtkSmartPointer<vtkMatrix4x4>::New();
 	TTibiaImage2TibiaTray->DeepCopy(m_TibiaTray->GetTrayMatrix());
@@ -3270,7 +3270,7 @@ void CzxTest::GoToTibiaProximalInitialPosBtnClicked()
 
 void CzxTest::RobotMoveToFemurDistalBtnClicked()
 {
-	//Ê×ÏÈ»ñµÃ¹É¹ÇÍ¼Ïñ×ø±êÏµÖÐµÄ   ·¨ÏòÁ¿Óëµã
+	//ï¿½ï¿½ï¿½È»ï¿½Ã¹É¹ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½Ðµï¿½   ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	auto distalPointInFemur = m_FemoralImplant->GetDistalCut();
 	auto distalDirection = CalculationHelper::CalculateDirection(distalPointInFemur, m_FemoralImplant->GetDistalCutNormal());
 	PrintDataHelper::CoutArray(distalPointInFemur, "distalPointInFemur: ");
@@ -3742,10 +3742,10 @@ void CzxTest::WriteTuoJsonBtnClicked()
 			std::string lastNumber;
 			if (std::regex_search(number, match, re)) {
 				lastNumber = match.str(0);
-				std::cout << "×îºóÒ»´®Êý×ÖÊÇ: " << lastNumber << std::endl;
+				std::cout << "ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: " << lastNumber << std::endl;
 			}
 			else {
-				std::cout << "Î´ÕÒµ½Êý×Ö¡£" << std::endl;
+				std::cout << "Î´ï¿½Òµï¿½ï¿½ï¿½ï¿½Ö¡ï¿½" << std::endl;
 			}
 
 			
