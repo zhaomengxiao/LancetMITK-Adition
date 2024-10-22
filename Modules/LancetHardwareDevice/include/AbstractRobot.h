@@ -81,7 +81,6 @@ public:
 	virtual void WaitMove() = 0;
 
 protected:
-	//vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
 	const char* m_IpAddress;
 	std::vector<double> m_initJoints;
 };
