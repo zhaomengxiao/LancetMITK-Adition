@@ -65,6 +65,6 @@ public:
 	bool SetCartImpendanceMode();
 
 private:
-	double m_InitialPos[6] = { 0,0,0,0,0,0 };
+	double m_InitialPos[7] = { 0,0,0,0,0,0,0 };
 };
 #endif

@@ -36,9 +36,11 @@ public:
 	void autoCollection();
 	void setDistance(int);
 	void setAngle(int);
-	void replaceRegistration();
+	int replaceRegistration();
 	void reuseArmMatrix();
 	void saveArmMatrix();
+	const double* getBaseToBaseRF() const;
+	const double* getFlangeToEndRF() const;
 	signals:
 		void countPose(int cnt); 
 	

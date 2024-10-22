@@ -244,10 +244,13 @@ void LancetRobotRegistration::setAngle(int aAngle)
 	Angle = aAngle;
 }
 
-void LancetRobotRegistration::replaceRegistration()
+int LancetRobotRegistration::replaceRegistration()
 {
 	m_RobotRegistration.RemoveAllPose();
-	//m_Controls.lineEdit_collectedRoboPose->setText(QString::number(0));
+	emit countPose(m_RobotRegistration.PoseCount());
+	int num=0;
+	countPose(num);
+	return num;
 }
 
 void LancetRobotRegistration::saveArmMatrix()
@@ -316,6 +319,16 @@ void LancetRobotRegistration::saveArmMatrix()
 	}
 
 	std::cout << "saveArmMatrix operation completed." << std::endl; // Indicate completion
+}
+
+const double* LancetRobotRegistration::getBaseToBaseRF() const
+{
+	return T_BaseToBaseRF;
+}
+
+const double* LancetRobotRegistration::getFlangeToEndRF() const
+{
+	return T_FlangeToEndRF;
 }
 
 
