@@ -247,6 +247,7 @@ void LancetRobotRegistration::setAngle(int aAngle)
 int LancetRobotRegistration::replaceRegistration()
 {
 	m_RobotRegistration.RemoveAllPose();
+	emit countPose(m_RobotRegistration.PoseCount());
 	int num=0;
 	countPose(num);
 	return num;
