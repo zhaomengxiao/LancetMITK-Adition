@@ -23,51 +23,51 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 
 	connect(m_ui.pushButton_xp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->xp();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("xp"));
 		});
 	connect(m_ui.pushButton_yp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->yp();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("yp"));
 		});
 	connect(m_ui.pushButton_zp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->zp();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("zp"));
 		});
 	connect(m_ui.pushButton_xm_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->xm();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("xm"));
 		});
 	connect(m_ui.pushButton_ym_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->ym();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("ym"));
 		});
 	connect(m_ui.pushButton_zm_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->zm();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("zm"));
 		});
 	connect(m_ui.pushButton_rxp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->rxp();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("rxp"));
 		});
 	connect(m_ui.pushButton_ryp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->ryp();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("ryp"));
 		});
 	connect(m_ui.pushButton_rzp_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->rzp();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("rzp"));
 		});
 	connect(m_ui.pushButton_rxm_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->rxm();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("rxm"));
 		});
 	connect(m_ui.pushButton_rym_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->rym();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("rym"));
 		});
 	connect(m_ui.pushButton_rzm_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->rzm();
-		m_ui.textBrowser_hans->append(QString("SetTCPToFlange"));
+		m_ui.textBrowser_hans->append(QString("rzm"));
 		});
 	//Åä×¼
 	connect(m_ui.pushButton_setTCPToFlange_2, &QPushButton::clicked, this, [this]() {
@@ -87,9 +87,8 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 		m_LancetRobotRegistration->captureRobot();
 		});
 	connect(m_ui.pushButton_replaceRegistration_2, &QPushButton::clicked, this, [this]() {
-		m_LancetRobotRegistration->replaceRegistration();
 		m_ui.textBrowser_hans->append(QString("Replace Registration"));
-		m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(0));
+		m_ui.lineEdit_collectedRoboPose_2->setText(QString::number(m_LancetRobotRegistration->replaceRegistration()));
 		});
 	connect(m_ui.pushButton_saveArmMatrix_2, &QPushButton::clicked, this, [this]() {
 		m_LancetRobotRegistration->saveArmMatrix();
@@ -104,9 +103,7 @@ RobotArmRegistrationTab::RobotArmRegistrationTab(Ui::HansRobotControls ui, mitk:
 		m_LancetRobotRegistration->autoCollection();
 		m_ui.textBrowser_hans->append(QString("Auto Collection"));
 		});
-	connect(m_LancetRobotRegistration, &LancetRobotRegistration::countPose,
-		this, &RobotArmRegistrationTab::updateUiCaputreCount);
-
+	connect(m_LancetRobotRegistration, &LancetRobotRegistration::countPose, this, &RobotArmRegistrationTab::updateUiCaputreCount);
 	connect(m_ui.pushButton_RepeatPositionTest, &QPushButton::clicked, this, &RobotArmRegistrationTab::RepeatPositionTest);
 	connect(m_ui.pushButton_AboslutePositionTest, &QPushButton::clicked, this, &RobotArmRegistrationTab::AboslutePositionTest);
 }

@@ -378,7 +378,8 @@ void RobotRegistration::calculateRe()
 		B.block(3 * i, 0, 3, 3) = R0.transpose() * Rn[i + m_numberOfFixR];
 	}
 	//std::cout << "B:\n" << B << std::endl;
-	Re = (A.transpose() * A).inverse() * A.transpose() * B;
+	//Re = (A.transpose() * A).inverse() * A.transpose() * B;
+	Re = A.colPivHouseholderQr().solve(B);
 	//std::cout << "Re:\n" << Re << std::endl;
 
 
