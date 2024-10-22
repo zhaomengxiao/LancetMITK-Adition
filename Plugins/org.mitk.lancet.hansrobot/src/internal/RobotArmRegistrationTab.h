@@ -58,11 +58,11 @@ private:
 private:
 	QWidget* m_TabPage;
 	Ui::HansRobotControls m_ui;
-	//AbstractRobot* m_Robot;
-	LancetDianaRobot* m_Robot;
+	AbstractRobot* m_Robot;
+	//LancetDianaRobot* m_Robot;
 	mitk::DataStorage* m_dataStorage;
 	AbstractCamera* m_Camera;
-	RobotRegistration m_RobotRegistration;
+	//RobotRegistration m_RobotRegistration;
 	bool isAutoCollectionFlag;
 	//void flashLable(Eigen::Vector3d tempTip, QLabel* label);
 

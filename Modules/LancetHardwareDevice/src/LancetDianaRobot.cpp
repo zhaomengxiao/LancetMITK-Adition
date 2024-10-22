@@ -7,6 +7,7 @@ LancetDianaRobot::LancetDianaRobot()
 
 void LancetDianaRobot::Connect()
 {
+	Disconnect();
 	srv_net_st* pinfo = new srv_net_st();
 	memset(pinfo->SrvIp, 0x00, sizeof(pinfo->SrvIp));
 	memcpy(pinfo->SrvIp, m_IpAddress, strlen(m_IpAddress));

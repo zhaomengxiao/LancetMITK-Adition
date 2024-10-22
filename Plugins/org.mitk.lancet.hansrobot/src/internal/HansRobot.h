@@ -57,9 +57,10 @@ protected:
   void DoImageProcessing();
 
   Ui::HansRobotControls m_Controls;
-  //LancetHansRobot* m_Robot;
-  LancetDianaRobot* m_Robot;
-  LancetAimCamera* m_Camera;
+  //LancetDianaRobot* m_Robot;
+  AbstractRobot *m_Robot;
+  AbstractCamera* m_Camera;
+  //LancetAimCamera* m_Camera;
   ConnectionTab* m_ConnectionTab;
   RobotArmRegistrationTab* m_RobotArmRegistrationTab;
   
