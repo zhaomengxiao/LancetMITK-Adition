@@ -5,7 +5,7 @@
 
 #include "AbstractCamera.h"
 #include "AbstractRobot.h"
-#include "AimCamera.h"
+#include "LancetAimCamera.h"
 #include "LancetHansRobot.h"
 #include "robotRegistration.h"
 #include "qdatetime.h"
@@ -39,7 +39,6 @@ public:
 	void replaceRegistration();
 	void reuseArmMatrix();
 	void saveArmMatrix();
-	
 	signals:
 		void countPose(int cnt); 
 	

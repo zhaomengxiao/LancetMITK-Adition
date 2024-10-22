@@ -15,7 +15,7 @@
 #include "ChunLiXGImplant.h"
 #include "ChunLITray.h"
 #include "PKAEnum.h"
-#include <AimCamera.h>
+#include <LancetAimCamera.h>
 
 //meshlib
 #include <MRMesh/MRMesh.h>
@@ -30,7 +30,7 @@ namespace lancetAlgorithm
 	{
 		//Q_OBJECT
 	public:
-		IntraOsteotomy(mitk::DataStorage* dataStorage, AimCamera* aCamera,
+		IntraOsteotomy(mitk::DataStorage* dataStorage, LancetAimCamera* aCamera,
 			ChunLiXGImplant* aChunLiXGImplant, ChunLiTray* aChunLITray);
 
 		vtkSmartPointer<vtkMatrix4x4>  CalculateTDrillEnd2FemurImage(/*Eigen::Vector3d pointInImage*/);
@@ -111,7 +111,7 @@ namespace lancetAlgorithm
 
 	private:
 		mitk::DataStorage* m_DataStorage;
-		AimCamera* m_Camera;
+		LancetAimCamera* m_Camera;
 		MR::Mesh m_GreenMesh;
 		MR::Mesh m_BufferMesh;
 		MR::Mesh m_ShellMesh;

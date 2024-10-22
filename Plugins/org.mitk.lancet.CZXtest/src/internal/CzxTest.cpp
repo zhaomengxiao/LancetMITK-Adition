@@ -231,7 +231,7 @@ void CzxTest::PowerOnBtnClicked()
 
 void CzxTest::SelfCheckBtnClicked()
 {
-	m_PKAHardwareDevice->KukaSelfCheck();
+	//m_PKAHardwareDevice->KukaSelfCheck();
 }
 
 bool CzxTest::Translate(double axis[3])
@@ -513,7 +513,7 @@ void CzxTest::SetTCPByProbeTipBtnClicked()
 
 void CzxTest::ReadRobotImpedaBtnClicked()
 {
-	auto Impeda = m_Robot->GetRobotImpeda();
+	auto Impeda = m_Robot->GetCartImpeda();
 	m_Controls.arrStiffXLineEdit->setText(QString::number(Impeda[0]));
 	m_Controls.arrStiffYLineEdit->setText(QString::number(Impeda[1]));
 	m_Controls.arrStiffZLineEdit->setText(QString::number(Impeda[2]));
@@ -534,7 +534,7 @@ void CzxTest::SetRobotImpedaBtnClicked()
 	m_Controls.arrStiffRZLineEdit->text().toDouble(),
 	m_Controls.DampingRatioLineEdit->text().toDouble()
 	};
-	m_Robot->SetRobotImpeda(data);
+	m_Robot->SetCartImpeda(data);
 }
 
 void CzxTest::VerifyImageRegistrationAccuracyBtnClicked()
@@ -1451,9 +1451,9 @@ void CzxTest::InitIntraOsteotomyTabConnection()
 
 void CzxTest::InitGlobalVariable()
 {
-	m_PKAHardwareDevice = new PKAKukaVegaHardwareDevice(this->GetDataStorage());
-	m_Camera = new AimCamera();
-	m_Robot = new DianaRobot();
+	//m_PKAHardwareDevice = new PKAKukaVegaHardwareDevice(this->GetDataStorage());
+	m_Camera = new LancetAimCamera();
+	m_Robot = new LancetDianaRobot();
 	m_AngleCalculationHelper = new AngleCalculationHelper(this->GetDataStorage());
 
 	PKAData::m_SurgicalSide = PKASurgicalSide::Left;
@@ -2171,8 +2171,8 @@ void CzxTest::CalculateAxisBtnClicked()
 
 	if (!isDisplayBoneAxes)
 	{
-		//PKARenderHelper::AddActor(GetRenderWindowPart(), m_FemurBoneModel->GetBoneAxes());
-		//PKARenderHelper::AddActor(GetRenderWindowPart(), m_TibiaBoneModel->GetBoneAxes());
+		PKARenderHelper::AddActor(GetRenderWindowPart(), m_FemurBoneModel->GetBoneAxes());
+		PKARenderHelper::AddActor(GetRenderWindowPart(), m_TibiaBoneModel->GetBoneAxes());
 		isDisplayBoneAxes = !isDisplayBoneAxes;
 	}
 }
@@ -2412,7 +2412,7 @@ void CzxTest::CalculateProsBtnClicked()
 		auto mechanical = m_FemoralImplant->GetMechanicalAxis();
 		PrintDataHelper::AppendTextBrowserArray(m_Controls.textBrowser, mechanical, "Femur mechanical");
 	}
-	else if (m_TibiaBoneModel)
+	else if (m_TibiaTray)
 	{
 		m_TibiaTray->UpdateTray(trans->GetMatrix());
 		auto mechanical = m_TibiaBoneModel->GetMechanicalAxis();
@@ -2512,7 +2512,20 @@ void CzxTest::ApplyRotationAngleBtnClicked()
 	double angle = m_Controls.ProsRotationLineEdit->text().toDouble();
 	ProsRotation prosRotation = m_Controls.InternalRotationRadioBtn->isChecked() ? ProsRotation::IntenalRotation : ProsRotation::ExternalRotation;
 	angle -= PKAData::m_FemurProsRotationAngle;
-	m_AngleCalculationHelper->SetProsRotationAngle(prosRotation, angle, m_AngleCalculationTypeComboBoxSelectedKneeModel);
+	auto calMatrix = m_AngleCalculationHelper->SetProsRotationAngle(prosRotation, angle, m_AngleCalculationTypeComboBoxSelectedKneeModel);
+	mitk::BaseGeometry* geo;
+	if (m_AngleCalculationTypeComboBoxSelectedKneeModel == KneeModel::Femur)
+	{
+		geo = this->GetDataStorage()->GetNamedNode(PKAData::m_FemurImplantNodeName.toStdString())->GetData()->GetGeometry();
+		geo->SetIndexToWorldTransformByVtkMatrix(calMatrix);
+		m_FemoralImplant->UpdateImplant(calMatrix);
+	}
+	else
+	{
+		geo = this->GetDataStorage()->GetNamedNode(PKAData::m_TibiaTrayNodeName.toStdString())->GetData()->GetGeometry();
+		geo->SetIndexToWorldTransformByVtkMatrix(calMatrix);
+		m_TibiaTray->UpdateTray(calMatrix);
+	}
 }
 
 void CzxTest::ApplyVaAngleBtnClicked()
@@ -2520,7 +2533,20 @@ void CzxTest::ApplyVaAngleBtnClicked()
 	double angle = m_Controls.ProsVaLineEdit->text().toDouble();
 	Va va = m_Controls.VarusRadioBtn->isChecked() ? Va::Varus : Va::Valgus;
 	angle -= PKAData::m_FemurVaAngle;
-	m_AngleCalculationHelper->SetVaAngle(va, angle, m_AngleCalculationTypeComboBoxSelectedKneeModel);
+	auto calMatrix = m_AngleCalculationHelper->SetVaAngle(va, angle, m_AngleCalculationTypeComboBoxSelectedKneeModel);
+	mitk::BaseGeometry* geo;
+	if (m_AngleCalculationTypeComboBoxSelectedKneeModel == KneeModel::Femur)
+	{
+		geo = this->GetDataStorage()->GetNamedNode(PKAData::m_FemurImplantNodeName.toStdString())->GetData()->GetGeometry();
+		geo->SetIndexToWorldTransformByVtkMatrix(calMatrix);
+		m_FemoralImplant->UpdateImplant(calMatrix);
+	}
+	else
+	{
+		geo = this->GetDataStorage()->GetNamedNode(PKAData::m_TibiaTrayNodeName.toStdString())->GetData()->GetGeometry();
+		geo->SetIndexToWorldTransformByVtkMatrix(calMatrix);
+		m_TibiaTray->UpdateTray(calMatrix);
+	}
 }
 
 void CzxTest::ApplyProudDistanceBtnClicked()
@@ -2620,8 +2646,8 @@ void CzxTest::UpdateAngle(KneeModel kneeModel)
 		auto xy = m_AngleCalculationHelper->CalculateRotation(kneeModel);
 		PKAData::FemurProsRotation = xy.first;
 		PKAData::m_FemurProsRotationAngle = xy.second;
-		//m_Controls.textBrowser->append("xy: " + QString::fromStdString(to_string(xy.first)) + QString::number(xy.second));
-		//std::cout << "CalculateRotation Done" << std::endl;
+		////m_Controls.textBrowser->append("xy: " + QString::fromStdString(to_string(xy.first)) + QString::number(xy.second));
+		////std::cout << "CalculateRotation Done" << std::endl;
 		PKAData::m_FemurProudDistance = m_AngleCalculationHelper->CalculateProud(kneeModel);
 	}
 	else
@@ -3867,10 +3893,10 @@ void CzxTest::OnRotateTibia()
 
 void CzxTest::RenderViewAndWidget()
 {
-	if (m_PKAHardwareDevice)
+	/*if (m_PKAHardwareDevice)
 	{
 		m_PKAHardwareDevice->UpdateHardware();
-	}
+	}*/
 	m_Controls.m_StatusWidgetVegaToolToShow->Refresh();
 	m_Controls.m_StatusWidgetKukaToolToShow->Refresh();
 	this->RequestRenderWindowUpdate();

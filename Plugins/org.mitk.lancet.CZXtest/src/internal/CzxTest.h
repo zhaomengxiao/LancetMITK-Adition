@@ -146,8 +146,8 @@ found in the LICENSE file.
 #include "RobotFrame.h"
 #include "BoundingBoxInteraction.h"
 #include "RobotFrame2.h"
-#include <DianaRobot.h>
-#include <AimCamera.h>
+#include <LancetDianaRobot.h>
+#include <LancetAimCamera.h>
 
 //#include "mitkGizmoInteractor.h"
 //#include "ObserveTransCommand.h"
@@ -414,7 +414,6 @@ private slots:
 private:
   Ui::CzxTestControls m_Controls;
   mitk::BoundingShapeInteractor::Pointer m_BoundingShapeInteractor;
-  PKAKukaVegaHardwareDevice* m_PKAHardwareDevice;
   IntraOsteotomy* m_IntraOsteotomy;
   QTimer* m_RequestRenderTimer{ nullptr };
   bool m_IsRotateTibia = false;
@@ -454,8 +453,8 @@ private:
   QButtonGroup* m_IntraProsGroup;
   bool isDisplayBoneAxes = false;
   KneeModel m_AngleCalculationTypeComboBoxSelectedKneeModel = KneeModel::Femur;
-  DianaRobot* m_Robot;
-  AimCamera* m_Camera;
+  LancetDianaRobot* m_Robot;
+  LancetAimCamera* m_Camera;
   QTimer* m_AimoeVisualizeTimer{ nullptr };
   mitk::PointSet::Pointer m_SelectedRegistrationPoint;
   ModelRegistration* m_ModelRegistration;
