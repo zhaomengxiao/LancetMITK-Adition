@@ -3324,7 +3324,7 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	distalNormal[1],
 	distalNormal[2]};
 
-	if(distalNormalVec.dot(helperVector) < 0)
+	if(distalNormalVec.dot(helperVector) > 0)
 	{
 		distalNormalVec = -distalNormalVec;
 	}
