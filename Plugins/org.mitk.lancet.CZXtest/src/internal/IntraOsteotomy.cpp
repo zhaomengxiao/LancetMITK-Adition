@@ -1,4 +1,4 @@
-ï»¿#include "IntraOsteotomy.h"
+#include "IntraOsteotomy.h"
 
 lancetAlgorithm::IntraOsteotomy::IntraOsteotomy(mitk::DataStorage* dataStorage, LancetAimCamera* aCamera,
 	ChunLiXGImplant* aChunLiXGImplant, ChunLiTray* aChunLITray)
@@ -15,8 +15,8 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::IntraOsteotomy::CalculateTDrillEn
 	vtkSmartPointer<vtkMatrix4x4> TDrillEnd2FemurImage = vtkSmartPointer<vtkMatrix4x4>::New();
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 
-	//ï¿½Ó»ï¿½Ðµï¿½Û³ï¿½ï¿½ï¿½Ãµï¿½Ç°Ä©ï¿½Ëµï¿½Î»ï¿½ï¿½
-	vtkSmartPointer<vtkMatrix4x4> TDrillEnd2Base = vtkSmartPointer<vtkMatrix4x4>::New();  //Ä©ï¿½ï¿½tcpï¿½ï¿½Î»ï¿½ï¿½
+	//´Ó»úÐµ±Û³ö»ñµÃµ±Ç°Ä©¶ËµÄÎ»×Ë
+	vtkSmartPointer<vtkMatrix4x4> TDrillEnd2Base = vtkSmartPointer<vtkMatrix4x4>::New();  //Ä©¶ËtcpµÄÎ»ÖÃ
 	TDrillEnd2Base->DeepCopy(CalculateTBase2DrillEnd());
 	TDrillEnd2Base->Invert();
 	
@@ -100,7 +100,7 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::IntraOsteotomy::CalculateTBase2Dr
 	TBaseRF2Camera->DeepCopy(PKAData::m_TCamera2BaseRF);
 	TBaseRF2Camera->Invert();
 
-	//ï¿½ï¿½Ðµï¿½ï¿½Ä©ï¿½Ë²Î¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½×¼ï¿½Î¿ï¿½ï¿½ï¿½ï¿½ï¿½Í¬
+	//»úÐµ±ÛÄ©¶Ë²Î¿¼¼ÜÓë »úÐµ±ÛÅä×¼²Î¿¼¼ÜÏàÍ¬
 	vtkSmartPointer<vtkMatrix4x4> TCamera2EndRF = vtkSmartPointer<vtkMatrix4x4>::New();
 	TCamera2EndRF->DeepCopy(PKAData::m_TCamera2Drill);
 
@@ -126,8 +126,8 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::IntraOsteotomy::CalculateTBase2Dr
 /// <summary>
 /// 
 /// </summary>
-/// <param name="pointInPlane">ï¿½É¹ï¿½Í¼ï¿½ï¿½ï¿½ÐµÄµï¿½ï¿½Î»ï¿½ï¿½ </param>
-/// <param name="planeNormal">ï¿½É¹ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½Ä·ï¿½ï¿½ï¿½ï¿½ï¿½</param>
+/// <param name="pointInPlane">¹É¹ÇÍ¼ÏñÖÐµÄµãµÄÎ»ÖÃ </param>
+/// <param name="planeNormal">¹É¹ÇÍ¼ÏñÖÐÆ½ÃæµÄ·¨ÏòÁ¿</param>
 vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::IntraOsteotomy::CalculateDrillEndHorizontalPlane(Eigen::Vector3d pointPlaneInImage, Eigen::Vector3d planeNormalInImage)
 {
 	vtkSmartPointer<vtkMatrix4x4> tDrillEnd2FemurImage = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -138,7 +138,7 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::IntraOsteotomy::CalculateDrillEnd
 
 	planeNormalInDrill.normalize();
 
-	//ï¿½ï¿½Ãµï¿½Ç°tcpï¿½ï¿½ xyz rx ry rz
+	//»ñµÃµ±Ç°tcpµÄ xyz rx ry rz
 	vtkSmartPointer<vtkMatrix4x4> TBase2DrillEnd = vtkSmartPointer<vtkMatrix4x4>::New();
 
 	Eigen::Vector3d originZAxis(0, 0, 1);
@@ -220,7 +220,7 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::IntraOsteotomy::CalculateTibiaDri
 }
 
 /// <summary>
-/// ï¿½ï¿½ï¿½ï¿½É¹ï¿½Í¼ï¿½ï¿½ï¿½ÏµÄµï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½
+/// ÊäÈë¹É¹ÇÍ¼ÏñÉÏµÄµãºÍ·¨ÏòÁ¿
 /// </summary>
 /// <param name="pointInPlane"></param>
 /// <param name="planeNormal"></param>
@@ -228,30 +228,30 @@ vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::IntraOsteotomy::CalculateTibiaDri
 vtkSmartPointer<vtkMatrix4x4> lancetAlgorithm::IntraOsteotomy::CalculateFemurDrillEndTipPos( 
 	Eigen::Vector3d pointInPlane, Eigen::Vector3d planeNormal)
 {
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ÔµÃµï¿½ X ï¿½á·½ï¿½ï¿½
+	// ½«·¨ÏòÁ¿¹éÒ»»¯ÒÔµÃµ½ X Öá·½Ïò
 	Eigen::Vector3d xAxis = planeNormal.normalized();
 
-	// ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ÏµÔ­ï¿½ã£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ 50 ï¿½ï¿½ï¿½ï¿½
-	Eigen::Vector3d origin = pointInPlane - xAxis * 50.0; // 50 ï¿½ï¿½ï¿½ï¿½ = 0.05 ï¿½ï¿½
+	// ¼ÆËã¾Ö²¿×ø±êÏµÔ­µã£¬Ïò·¨ÏòÁ¿¸º·½ÏòÒÆ¶¯ 50 ºÁÃ×
+	Eigen::Vector3d origin = pointInPlane - xAxis * 50.0; // 50 ºÁÃ× = 0.05 Ã×
 
-	// È·ï¿½ï¿½ Y ï¿½á·½ï¿½ï¿½Ñ¡ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ë·¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð²ï¿½ï¿½
-	Eigen::Vector3d arbitraryVector(0.0, 1.0, 0.0); // ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Y ï¿½ï¿½
+	// È·¶¨ Y Öá·½Ïò£ºÑ¡ÔñÒ»¸öÓë·¨ÏòÁ¿²»Æ½ÐÐµÄÏòÁ¿½øÐÐ²æ³Ë
+	Eigen::Vector3d arbitraryVector(0.0, 1.0, 0.0); // ¼ÙÉèÒ»¸öÈÎÒâÏòÁ¿ Y Öá
 	if (fabs(xAxis.dot(arbitraryVector)) > 0.99) {
-		// ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë·¨ï¿½ï¿½ï¿½ï¿½ï¿½Ó½ï¿½Æ½ï¿½Ð£ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		// Èç¹û¼Ù¶¨ÏòÁ¿Óë·¨ÏòÁ¿½Ó½üÆ½ÐÐ£¬Ñ¡ÔñÁíÒ»¸öÏòÁ¿
 		arbitraryVector = Eigen::Vector3d(1.0, 0.0, 0.0);
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ Y ï¿½á£ºÑ¡ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ËµÃµï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ñ¡ Z ï¿½ï¿½
+	// ¼ÆËã Y Öá£ºÑ¡ÔñÒ»¸ö²»Æ½ÐÐÏòÁ¿²æ³ËµÃµ½Ò»¸öºòÑ¡ Z Öá
 	Eigen::Vector3d zAxis = xAxis.cross(arbitraryVector).normalized();
 
-	// ï¿½ï¿½ï¿½ï¿½ Z ï¿½ï¿½
-	Eigen::Vector3d yAxis = zAxis.cross(xAxis).normalized(); // Í¨ï¿½ï¿½ï¿½ï¿½ X ï¿½ï¿½ï¿½ËµÃµï¿½ï¿½ï¿½ï¿½ï¿½ Y ï¿½ï¿½
+	// ¼ÆËã Z Öá
+	Eigen::Vector3d yAxis = zAxis.cross(xAxis).normalized(); // Í¨¹ýÓë X Öá²æ³ËµÃµ½Õý½» Y Öá
 
-	// ï¿½ï¿½×°ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½Í±ä»»ï¿½ï¿½ï¿½ï¿½
+	// ×é×°¾Ö²¿×ø±êÏµµÄÐý×ª¾ØÕóºÍ±ä»»¾ØÕó
 	vtkSmartPointer<vtkMatrix4x4> localCoordinateSystem = vtkSmartPointer<vtkMatrix4x4>::New();
-	localCoordinateSystem->Identity(); // ï¿½ï¿½Ê¼ï¿½ï¿½Îªï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½
+	localCoordinateSystem->Identity(); // ³õÊ¼»¯Îªµ¥Î»¾ØÕó
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ó²¿·ï¿½
+	// ÉèÖÃÐý×ª¾ØÕó²¿·Ö
 	CalculationHelper::SetMatrixXAxis(xAxis, localCoordinateSystem);
 	CalculationHelper::SetMatrixYAxis(yAxis, localCoordinateSystem);
 	CalculationHelper::SetMatrixZAxis(zAxis, localCoordinateSystem);
@@ -494,7 +494,7 @@ double lancetAlgorithm::IntraOsteotomy::GetDrillTip2FemurDrillPlaneDistance(Eige
 	TFemurRF2Camera->Invert();
 
 	TFemur2DrillTip->DeepCopy(CalculationHelper::PreConcatenateMatrixs(TFemur2FemurRF, TFemurRF2Camera, TCamera2DrillTip));
-	//×ªï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½
+	//×ª»»µ½¹É¹ÇÍ¼Ïñ×ø±êÏµÏÂ
 	Eigen::Vector3d tipPosInFemurImage = CalculationHelper::GetTranslationFromMatrix4x4(TFemur2DrillTip);
 	Eigen::Vector3d tipPosDirectionInFemurImage = CalculationHelper::GetXAxisFromVTKMatrix(TFemur2DrillTip);
 	Eigen::Vector3d planePointInFemur = planePoint;
@@ -527,7 +527,7 @@ double lancetAlgorithm::IntraOsteotomy::GetDrillTip2TibiaDrillPlaneDistance(Eige
 	TTibiaRF2Camera->Invert();
 
 	TFemur2DrillTip->DeepCopy(CalculationHelper::PreConcatenateMatrixs(TTibia2TibiaRF, TTibiaRF2Camera, TCamera2DrillTip));
-	//×ªï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½
+	//×ª»»µ½¹É¹ÇÍ¼Ïñ×ø±êÏµÏÂ
 	Eigen::Vector3d tipPosInTibiaImage = CalculationHelper::GetTranslationFromMatrix4x4(TFemur2DrillTip);
 	Eigen::Vector3d tipPosDirectionInTibiaImage = CalculationHelper::GetXAxisFromVTKMatrix(TFemur2DrillTip);
 	Eigen::Vector3d planePointInFemur = planePoint;
@@ -598,10 +598,10 @@ bool lancetAlgorithm::IntraOsteotomy::IsDrillInSecurityBoundary(CutPlane aCutPla
 
 	PrintDataHelper::CoutArray(projectedPoint, "projectedPoint");
 
-	double closestPoint[3];  // ï¿½ï¿½ï¿½ï¿½ï¿½
-	double dist2;             // ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½
-	vtkIdType cellId;         // ï¿½ï¿½Ôª ID
-	int subId;                // ï¿½Óµï¿½Ôª ID
+	double closestPoint[3];  // ×î½üµã
+	double dist2;             // ¾àÀëÆ½·½
+	vtkIdType cellId;         // µ¥Ôª ID
+	int subId;                // ×Óµ¥Ôª ID
 	cellLocator->FindClosestPoint(projectedPoint.data(), closestPoint, cellId, subId, dist2);
 	const double epsilon = 1e-2;
 	if (dist2 < epsilon) {
@@ -686,34 +686,34 @@ void lancetAlgorithm::IntraOsteotomy::InitalOsteotomyModel(std::string drillEndN
 		std::string prosPlusPath = m_DesktopPKAIntraOsteotomyFilePath + prosNodeName + "Plus.stl";
 		std::string bonePath = m_DesktopPKAIntraOsteotomyFilePath + boneNodeName + ".stl";
 
-		//ï¿½ï¿½ï¿½ï¿½Ä¥ï¿½ï¿½Í·
+		//±£´æÄ¥×êÍ·
 		auto drillEndTipSurface = dynamic_cast<mitk::Surface*>(m_DataStorage->GetNamedNode(drillEndName)->GetData());
 		auto drillEndTipPolyData = drillEndTipSurface->GetVtkPolyData();
 		FileIO::WritePolyDataAsSTL(drillEndTipPolyData, drillTipFilePath);
 
-		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		//±£´æ¼ÙÌå
 		SaveIntialNodePolyDataWithTransform(prosNodeName, prosFilePath);
 
-		//ï¿½ï¿½ï¿½ï¿½Å´ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+		//±£´æ·Å´óºóµÄ¼ÙÌå
 		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 		transform->Scale(1.1, 1.1, 1.1);
 		transform->Update();
 		SaveIntialNodePolyDataWithTransform(prosNodeName, prosPlusPath, transform);
 
-		//ï¿½ï¿½ï¿½ï¿½É¹ï¿½Ä£ï¿½ï¿½
+		//±£´æ¹É¹ÇÄ£ÐÍ
 		SaveIntialNodePolyDataWithTransform(boneNodeName, bonePath);
 
-		//ï¿½ï¿½È¡ÎªMR::Mesh
+		//¶ÁÈ¡ÎªMR::Mesh
 		MR::Mesh boneMesh = MR::MeshLoad::fromAnySupportedFormat(bonePath).value();
 		MR::Mesh prosMesh = MR::MeshLoad::fromAnySupportedFormat(prosFilePath).value();
 		MR::Mesh prosPlusMesh = MR::MeshLoad::fromAnySupportedFormat(prosPlusPath).value();
 		m_DrillTipMesh = MR::MeshLoad::fromAnySupportedFormat(drillTipFilePath).value();
 
-		//Ô¤ï¿½ï¿½ï¿½ï¿½
-		m_GreenMesh = *(MR::boolean(boneMesh, prosMesh, MR::BooleanOperation::Intersection)); //ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à½»ï¿½ï¿½ï¿½ï¿½
+		//Ô¤´¦Àí
+		m_GreenMesh = *(MR::boolean(boneMesh, prosMesh, MR::BooleanOperation::Intersection)); //¹ÇÍ·Óë¼ÙÌåÏà½»²¿·Ö
 		m_RedMesh = *(MR::boolean(boneMesh, prosPlusMesh, MR::BooleanOperation::DifferenceAB)); //A-B
-		m_ShellMesh = *(MR::boolean(boneMesh, prosPlusMesh, MR::BooleanOperation::OutsideA));   //ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½  ï¿½à½» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½Ä²ï¿½ï¿½ï¿½
-		MR::Mesh tmp_mesh = *(MR::boolean(boneMesh, prosPlusMesh, MR::BooleanOperation::Intersection)); //ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½à½»ï¿½Ä²ï¿½ï¿½ï¿½
+		m_ShellMesh = *(MR::boolean(boneMesh, prosPlusMesh, MR::BooleanOperation::OutsideA));   //¹ÇÍ·ÓëÍâ²ãÄ£ÐÍ  Ïà½» ²»°üÀ¨¹ÇÍ·µÄ²¿·Ö
+		MR::Mesh tmp_mesh = *(MR::boolean(boneMesh, prosPlusMesh, MR::BooleanOperation::Intersection)); //¹ÇÍ·ÓëÍâ²ãÄ£ÐÍÏà½»µÄ²¿·Ö
 		m_BufferMesh = *(MR::boolean(tmp_mesh, prosMesh, MR::BooleanOperation::DifferenceAB));   //A-B
 
 		vtkSmartPointer<vtkPolyData> greenPolyData = vtkSmartPointer<vtkPolyData>::New();
