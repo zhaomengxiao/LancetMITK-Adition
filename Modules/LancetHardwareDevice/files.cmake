@@ -1,10 +1,10 @@
-set(CPP_FILES
+ set(CPP_FILES
   LancetAimCamera.cpp
   LancetDianaRobot.cpp
   LancetHansRobot.cpp
   LancetNDICamera.cpp
   LancetJakaRobot.cpp
-  #AriemediCamera.cpp
+  AriemediCamera.cpp
   LancetThorRobot.cpp
  )
 
@@ -19,7 +19,7 @@ set(MOC_H_FILES
   include/LancetHansRobot.h
   include/LancetNDICamera.h
   include/LancetJakaRobot.h
-  #include/AriemediCamera.h
+  include/AriemediCamera.h
   include/LancetThorRobot.h
 )
 
@@ -31,7 +31,7 @@ set(H_FILES
   include/LancetHansRobot.h
   include/LancetNDICamera.h
   include/LancetJakaRobot.h
-  #include/AriemediCamera.h
+  include/AriemediCamera.h
   include/LancetThorRobot.h
 )
 

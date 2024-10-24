@@ -135,13 +135,6 @@ void AriemediCamera::run()
 		UpdateData();
 		UpdateImageData();
 	}
-	//QTimer fastTimer;
-	//connect(&fastTimer, &QTimer::timeout, this, &AriemediCamera::UpdateImageData);
-	//connect(m_CameraUpdateTimer, &QTimer::timeout, this, &AriemediCamera::UpdateData);
-
-	//fastTimer.start(1);
-	//m_CameraUpdateTimer->start(100);
-	//exec();
 }
 
 void AriemediCamera::UpdateImageData()

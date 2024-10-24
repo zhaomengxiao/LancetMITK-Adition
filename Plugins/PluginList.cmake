@@ -24,5 +24,6 @@ set(MITK_PLUGINS
   org.mitk.lancet.DianaSeven:ON
   org.mitk.lancet.hansrobot:ON
   #org.mitk.lancet.jakarobot:ON
+  org.mitk.lancet.InstantiationCamera:ON
   org.mitk.lancet.neurosurgery:ON
 )
