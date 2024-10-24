@@ -7,6 +7,9 @@
 #include <vtkMath.h>
 #include "MitkLancetHardwareDeviceExports.h"
 #include "PrintDataHelper.h"
+#include <Qtimer.h>
+#include <qdatetime.h>
+
 class MITKLANCETHARDWAREDEVICE_EXPORT LancetHansRobot : public AbstractRobot
 {
 	//Q_OBJECT
@@ -25,10 +28,10 @@ public:
 	void Reset()  override;
 	void SetFreeDrag()  override;
 	void StopFreeDrag()  override;
-	bool SetToolMotion()  override;
-	bool SetBaseMotion()  override;
-	bool ForceFreeDrive() ;
-	bool ForceFreeDrive() ;
+	void SetToolMotion() ;
+	void SetBaseMotion() ;
+	void SetForceFreeDrive() ;
+	void StopForceFreeDrive() ;
 
 	void Translate(double x, double y, double z) override;
 
@@ -42,11 +45,9 @@ public:
 
 	void SetTCPToFlange() override;
 
-	bool SetTCP(vtkMatrix4x4* aMatrix) override;
+	void SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME = "") override;
 
-	bool SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME = "") override;
-
-	bool ConfigTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME = "");
+	void ConfigTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME);
 
 	std::vector<double> GetJointAngles() override;
 
@@ -59,6 +60,7 @@ public:
 	vtkSmartPointer<vtkMatrix4x4> GetBaseToFlange() override;
 
 	std::vector<double> CalculateInverse(Eigen::Vector3d aTranslation, Eigen::Vector3d aEulerAngle) override;
+	std::vector<double> CalculateForward(std::vector<double> aJointAngles) override;
 
 	void RobotTransformInBase(double* aMatrix) override;
 
@@ -80,6 +82,10 @@ public:
 	bool SetRadius(double aVelocity) override;
 
 	void WaitMove() override;
+
+	void Sleep(int msec) override;
+
+	inline std::string to_string(int error_code) override;
   
 private:
 	Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
@@ -89,11 +95,6 @@ private:
 	Eigen::Matrix3d GetRotationPartByMatrix(vtkMatrix4x4* m);
 	Eigen::Vector3d GetTranslationPartByMatrix(vtkMatrix4x4* m);
 	Eigen::Vector3d CalculateZYXEulerByRotation(Eigen::Matrix3d m);
-
-
-	std::vector<double> CalculateForward(std::vector<double> aJointAngles);
-
-	string GetErrorCodeString(int errorCode);
 
 private:
 	vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
@@ -120,6 +121,8 @@ private:
 	string strCmdID = "0";
 
 	int nMoveType = 0;
+
+	int ToolMotion = 0;
 
 	const unsigned int boxID = 0;
 	const unsigned int rbtID = 0;

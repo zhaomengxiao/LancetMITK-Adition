@@ -10,15 +10,6 @@
 #include "PrintDataHelper.h"
 //JAKA
 // 定义一个宏，用于检查函数返回值是否为成功
-#define CHECK_ERROR_AND_RETURN(func_call) \
-    do { \
-        int error_code = (func_call); \
-        if (error_code != ERR_SUCC) { \
-            printf("Error: %s\n", to_string(error_code)); \
-            return; \
-        } \
-    } while(0)
-
 
 class MITKLANCETHARDWAREDEVICE_EXPORT LancetJakaRobot : public AbstractRobot
 {
@@ -45,7 +36,7 @@ public:
 
 	void SetTCPToFlange() override;
 
-	bool SetTCP(vtkMatrix4x4* aMatrix) override;
+	void SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME = "") override;
 
 	std::vector<double> GetJointAngles() override;
 
@@ -75,15 +66,7 @@ public:
 
 	void WaitMove() override;
 
-private:
-	Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
-	vtkSmartPointer<vtkMatrix4x4> GetMatrixByRotationAndTranslation(Eigen::Matrix3d aRotation, Eigen::Vector3d aTranslation);
-	Eigen::Vector3d GetEulerByMatrix(vtkMatrix4x4* m);
-	Eigen::Vector3d CalculateXYZEulerByRotation(Eigen::Matrix3d m);
-	Eigen::Matrix3d GetRotationPartByMatrix(vtkMatrix4x4* m);
-	Eigen::Vector3d GetTranslationPartByMatrix(vtkMatrix4x4* m);
-	std::vector<double> CalculateInverse(Eigen::Vector3d aTranslation, Eigen::Vector3d aEulerAngle);
-	inline const char* to_string(int error_code)
+	inline std::string to_string(int error_code)
 	{
 		switch (error_code)
 		{
@@ -106,6 +89,16 @@ private:
 		default:                      return "Unknown error";
 		}
 	}
+
+private:
+	Eigen::Matrix3d GetRotationMatrixByEuler(double rx, double ry, double rz);
+	vtkSmartPointer<vtkMatrix4x4> GetMatrixByRotationAndTranslation(Eigen::Matrix3d aRotation, Eigen::Vector3d aTranslation);
+	Eigen::Vector3d GetEulerByMatrix(vtkMatrix4x4* m);
+	Eigen::Vector3d CalculateXYZEulerByRotation(Eigen::Matrix3d m);
+	Eigen::Matrix3d GetRotationPartByMatrix(vtkMatrix4x4* m);
+	Eigen::Vector3d GetTranslationPartByMatrix(vtkMatrix4x4* m);
+	std::vector<double> CalculateInverse(Eigen::Vector3d aTranslation, Eigen::Vector3d aEulerAngle);
+
 private:
 	vtkSmartPointer<vtkMatrix4x4> m_InitialPos;
 	vtkSmartPointer<vtkMatrix4x4> m_FlangeToTCP;

@@ -23,6 +23,11 @@ found in the LICENSE file.
 #include <QApplication>
 #include <QThread>
 #include <MitkLancetHardwareDeviceExports.h>
+
+#define CHECK_ERROR_AND_RETURN(func_call) \
+        int error_code = (func_call); \
+        std::cout << to_string(error_code) << std::endl; \
+
 class MITKLANCETHARDWAREDEVICE_EXPORT AbstractRobot : public QObject
 {
 public:
@@ -38,8 +43,6 @@ public:
 	virtual void Reset() = 0;
 	virtual void SetFreeDrag() = 0;
 	virtual void StopFreeDrag() = 0;
-	virtual bool SetToolMotion() = 0;
-	virtual bool SetBaseMotion() = 0;
 
 	void SetRobotIpAddress(const char* aIP)
 	{
@@ -52,8 +55,7 @@ public:
 	virtual void RecordInitialPos() = 0;
 	virtual void GoToInitialPos() = 0;
 	virtual void SetTCPToFlange() = 0;
-	virtual bool SetTCP(vtkMatrix4x4* aMatrix) = 0;
-	virtual bool SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME = "") = 0;
+	virtual void SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME = "") = 0;
 	
 
 	virtual std::vector<double> GetJointAngles() = 0;
@@ -79,6 +81,12 @@ public:
 	virtual std::vector<std::vector<double>> GetJointAngleLimits() = 0;
 
 	virtual void WaitMove() = 0;
+
+	virtual void Sleep(int msec) = 0;
+
+	virtual inline std::string to_string(int error_code) = 0;
+
+	virtual std::vector<double> CalculateForward(std::vector<double> aJointAngles) = 0;
 
 protected:
 	const char* m_IpAddress;

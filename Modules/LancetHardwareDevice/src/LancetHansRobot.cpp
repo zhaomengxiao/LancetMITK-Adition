@@ -9,27 +9,59 @@ void LancetHansRobot::Connect()
 {
 	this->SetRobotIpAddress("192.168.0.10");
 	unsigned short nPort = 10003;
-	int nRet = HRIF_Connect(boxID, m_IpAddress, nPort);
+	CHECK_ERROR_AND_RETURN(HRIF_Connect(boxID, m_IpAddress, nPort));
 }
 
 void LancetHansRobot::Disconnect()
 {
-	HRIF_DisConnect(boxID);
+	CHECK_ERROR_AND_RETURN(HRIF_DisConnect(boxID));
 }
 
 void LancetHansRobot::Stop() 
 {
-	HRIF_GrpStop(boxID, rbtID);
+	CHECK_ERROR_AND_RETURN(HRIF_GrpStop(boxID, rbtID));
 }
 
 void LancetHansRobot::PowerOn()
 {
-	int nGrpEnable = HRIF_GrpEnable(0, 0);
+	CHECK_ERROR_AND_RETURN(HRIF_GrpEnable(boxID, rbtID));
 }
 
 void LancetHansRobot::PowerOff()
 {
-	int nGrpDisable = HRIF_GrpDisable(0, 0);
+	CHECK_ERROR_AND_RETURN(HRIF_GrpDisable(boxID, rbtID));
+}
+
+void LancetHansRobot::Reset()
+{
+	CHECK_ERROR_AND_RETURN(HRIF_GrpReset(boxID, rbtID));
+}
+
+void LancetHansRobot::SetFreeDrag() 
+{
+	CHECK_ERROR_AND_RETURN(HRIF_GrpOpenFreeDriver(boxID, rbtID));
+}
+void LancetHansRobot::StopFreeDrag() 
+{
+	CHECK_ERROR_AND_RETURN(HRIF_GrpCloseFreeDriver(boxID, rbtID));
+}
+void LancetHansRobot::SetToolMotion()
+{
+	ToolMotion = 1;
+	CHECK_ERROR_AND_RETURN(HRIF_SetToolMotion(boxID, rbtID, ToolMotion));
+}
+void LancetHansRobot::SetBaseMotion()
+{
+	ToolMotion = 0;
+	CHECK_ERROR_AND_RETURN(HRIF_SetToolMotion(boxID, rbtID, ToolMotion));
+}
+void LancetHansRobot::SetForceFreeDrive()
+{
+	CHECK_ERROR_AND_RETURN(HRIF_SetForceFreeDriveMode(boxID, rbtID, 1));
+}
+void LancetHansRobot::StopForceFreeDrive()
+{
+	CHECK_ERROR_AND_RETURN(HRIF_SetForceFreeDriveMode(boxID, rbtID, 0));
 }
 
 void LancetHansRobot::Translate(double x, double y, double z)
@@ -83,7 +115,7 @@ void LancetHansRobot::GoToInitialPos()
 	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
 	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
 	// 执行路点运动
-	int nRet = HRIF_WayPointEx(0, 0, nMoveType, translation[0], translation[1], translation[2], rotation[0], rotation[1], rotation[2],
+	int nRet = HRIF_WayPointEx(boxID, rbtID, nMoveType, translation[0], translation[1], translation[2], rotation[0], rotation[1], rotation[2],
 		joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
 		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz, dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit,
 		nIOState, strCmdID);
@@ -100,32 +132,29 @@ void LancetHansRobot::SetTCPToFlange()
 	int nRet = HRIF_SetTCP(0, 0, dTcp_X, dTcp_Y, dTcp_Z, dTcp_Rx, dTcp_Ry, dTcp_Rz);
 }
 
-bool LancetHansRobot::SetTCP(vtkMatrix4x4* aMatrix)
+
+void LancetHansRobot::SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME)
 {
 	auto euler = this->GetEulerByMatrix(aMatrix);
 	auto trans = this->GetTranslationPartByMatrix(aMatrix);
-	
-	int nRet = HRIF_SetTCP(0, 0, trans[0], trans[1], trans[2], euler[0], euler[1], euler[2]);
 
-	if (nRet == 0) {
-		std::cout << "line  TCP Set succeed" << std::endl;
-		return true;
+	if (TCP_NAME.compare("") != 0) {
+		CHECK_ERROR_AND_RETURN(HRIF_SetTCPByName(boxID, rbtID, TCP_NAME));
 	}
-	else {
-		std::cout << "line TCP Set failed" << std::endl;
-		return false;
-	}
-}
+	CHECK_ERROR_AND_RETURN(HRIF_SetTCP(boxID, rbtID, trans[0], trans[1], trans[2], euler[0], euler[1], euler[2]));
 
-bool LancetHansRobot::SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME)
-{
-	return false;
 }
 
 
-bool LancetHansRobot::ConfigTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME)
+void LancetHansRobot::ConfigTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME)
 {
-	return false;
+	auto euler = this->GetEulerByMatrix(aMatrix);
+	auto trans = this->GetTranslationPartByMatrix(aMatrix);
+
+	CHECK_ERROR_AND_RETURN(HRIF_ConfigTCP(boxID, rbtID, TCP_NAME, trans[0], trans[1], trans[2], euler[0], euler[1], euler[2]));
+	this->SetTCP(aMatrix, TCP_NAME);
+	this->SetBaseMotion();
+	this->SetToolMotion();
 }
 
 std::vector<double> LancetHansRobot::GetJointAngles()
@@ -134,9 +163,8 @@ std::vector<double> LancetHansRobot::GetJointAngles()
 	double dJ1 = 0; double dJ2 = 0; double dJ3 = 0;
 	double dJ4 = 0; double dJ5 = 0; double dJ6 = 0;
 	// 读取关节实际位置
-	int nRet = HRIF_ReadActJointPos(0, 0, dJ1, dJ2, dJ3, dJ4, dJ5, dJ6);
+	CHECK_ERROR_AND_RETURN(HRIF_ReadActJointPos(boxID, rbtID, dJ1, dJ2, dJ3, dJ4, dJ5, dJ6));
 	std::vector<double> ret = { dJ1, dJ2, dJ3, dJ4, dJ5, dJ6 };
-	
 	return ret;
 }
 
@@ -153,11 +181,11 @@ void LancetHansRobot::SetJointAngles(std::vector<double> aJointAngles)
 	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
 	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
 	// 执行路点运动
-	int nRet = HRIF_WayPointEx(0, 0, nMoveType, targetPosition[0], targetPosition[1], targetPosition[2], targetPosition[3], targetPosition[4], targetPosition[5],
+	CHECK_ERROR_AND_RETURN(HRIF_WayPointEx(boxID, rbtID, nMoveType, targetPosition[0], targetPosition[1], targetPosition[2], targetPosition[3], targetPosition[4], targetPosition[5],
 		aJointAngles[0], aJointAngles[1], aJointAngles[2], aJointAngles[3], aJointAngles[4], aJointAngles[5],
 		tcpTrans[0], tcpTrans[1], tcpTrans[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
 		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz, dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit,
-		nIOState, strCmdID);
+		nIOState, strCmdID));
 }
 
 vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetBaseToTCP()
@@ -165,7 +193,7 @@ vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetBaseToTCP()
 	double dX = 0; double dY = 0; double dZ = 0;
 	double dRx = 0; double dRy = 0; double dRz = 0;
 	// 基座坐标转换为用户坐标
-	int nRet = HRIF_ReadActTcpPos(0, 0, dX, dY, dZ, dRx, dRy, dRz);
+	CHECK_ERROR_AND_RETURN(HRIF_ReadActTcpPos(boxID, rbtID, dX, dY, dZ, dRx, dRy, dRz));
 	std::cout << " dX:" << dX << " dy:" << dY << " dZ:" << dZ << " dRx:" << dRx << " dRy:" << dRy << " dRz:" << dRz << std::endl;
 	//auto angles = CalculateForward(GetJointAngles());
 
@@ -178,8 +206,18 @@ vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetBaseToTCP()
 
 vtkSmartPointer<vtkMatrix4x4> LancetHansRobot::GetFlangeToTCP()
 {
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	return vtkSmartPointer<vtkMatrix4x4>();
+	double dX = 0; double dY = 0; double dZ = 0;
+	double dRx = 0; double dRy = 0; double dRz = 0;
+	// 基座坐标转换为用户坐标
+	CHECK_ERROR_AND_RETURN(HRIF_ReadCurTCP(boxID, rbtID, dX, dY, dZ, dRx, dRy, dRz));
+	std::cout << " dX:" << dX << " dy:" << dY << " dZ:" << dZ << " dRx:" << dRx << " dRy:" << dRy << " dRz:" << dRz << std::endl;
+	//auto angles = CalculateForward(GetJointAngles());
+
+	Eigen::Matrix3d rotation = GetRotationMatrixByEuler(dRx, dRy, dRz);
+	Eigen::Vector3d translation(dX, dY, dZ);
+	auto ret = GetMatrixByRotationAndTranslation(rotation, translation);
+	PrintDataHelper::CoutMatrix("GetBaseToTCP", ret);
+	return ret;
 }
 
 
@@ -203,7 +241,6 @@ void LancetHansRobot::RobotTransformInBase(double* aMatrix)
 	auto euler = this->GetEulerByMatrix(baseToTarget);
 	auto translation = this->GetTranslationPartByMatrix(baseToTarget);
 	
-	
 
 	PrintDataHelper::CoutMatrix("RobotTransformInBase",baseToTarget);
 	PrintDataHelper::CoutArray(euler, "euler");
@@ -220,11 +257,10 @@ void LancetHansRobot::RobotTransformInBase(double* aMatrix)
 	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
 	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
 	// 执行路点运动
-	int nRet = HRIF_WayPointEx(0, 0, nMoveType, translation[0], translation[1], translation[2], euler[0], euler[1], euler[2],
+	CHECK_ERROR_AND_RETURN(HRIF_WayPointEx(boxID, rbtID, nMoveType, translation[0], translation[1], translation[2], euler[0], euler[1], euler[2],
 		joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
 		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz, dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit,
-		nIOState, strCmdID);
-	cout <<"Robot Arm error code:"<< nRet << endl;
+		nIOState, strCmdID));
 }
 
 void LancetHansRobot::RobotTransformInTCP(double* aMatrix)
@@ -282,10 +318,22 @@ bool LancetHansRobot::SetVelocity(double aVelocity)
 	return true;
 }
 
+bool LancetHansRobot::SetAcceleration(double aAcceleration)
+{
+	dAcc = aAcceleration;
+	return true;
+}
+bool LancetHansRobot::SetRadius(double aRadius)
+{
+	dRadius = aRadius;
+	return true;
+}
+
+
 void LancetHansRobot::WaitMove()
 {
 	bool status;
-	QThread::msleep(20);
+	this->Sleep(100);
 	while (true)
 	{
 		int nRet = HRIF_IsMotionDone(0, 0, status);
@@ -295,14 +343,11 @@ void LancetHansRobot::WaitMove()
 		}
 		else
 		{
-			QThread::msleep(1);
-			QApplication::processEvents();
+			this->Sleep(10);
 		}
 	}
 	HRIF_GrpStop(0, 0);
 }
-
-
 
 Eigen::Matrix3d LancetHansRobot::GetRotationMatrixByEuler(double rx, double ry, double rz)
 {
@@ -358,8 +403,6 @@ Eigen::Vector3d LancetHansRobot::GetTranslationPartByMatrix(vtkMatrix4x4* m)
 
 Eigen::Vector3d LancetHansRobot::CalculateZYXEulerByRotation(Eigen::Matrix3d m)
 {
-
-
 	Eigen::Vector3d eulerAngle = m.eulerAngles(2, 1, 0); //zyx
 
 	Eigen::Vector3d ret;
@@ -426,10 +469,55 @@ std::vector<double> LancetHansRobot::CalculateForward(std::vector<double> aJoint
 	return ret;
 }
 
-string LancetHansRobot::GetErrorCodeString(int errorCode)
+
+void LancetHansRobot::Sleep(int msec)
 {
-	int nRet = 0;
-	string tmpstr;
-	nRet =HRIF_GetErrorCodeStr(0,errorCode,tmpstr);
-	return tmpstr;
+	QTime dieTime = QTime::currentTime().addMSecs(msec);
+
+	while (QTime::currentTime() < dieTime)
+
+		QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+}
+
+inline std::string LancetHansRobot::to_string(int error_code) 
+{
+	if (error_code == 0) {
+		return "Success";
+	}
+	if (error_code == 39500)
+	{
+		return "Please check the connection of the robot arm";
+	}
+	if (error_code == 40025)
+	{
+		return "The robot is not in a state of readiness";
+	}
+	if (error_code == 20031) {
+		return  "the target cant arrived" + std::to_string(error_code);
+	}
+	if (error_code >= 40000 && error_code <= 40500)
+	{
+		return "CDS executed command with error: " + std::to_string(error_code);
+	}
+	else if (error_code >= 10000 && error_code <= 10015)
+	{
+		return  "Robot servo drive reported fault code: " + std::to_string(error_code);
+	}
+	else if (error_code >= 10016 && error_code <= 11000)
+	{
+		return  "Robot collaboration algorithm detected fault: " + std::to_string(error_code);
+	}
+	else if (error_code >= 15000 && error_code <= 16000)
+	{
+		return  "Robot control module detected fault: " + std::to_string(error_code);
+	}
+	else if (error_code >= 30001 && error_code <= 30016)
+	{
+		return  "Modbus module error during command execution: " + std::to_string(error_code);
+	}
+	else if (error_code >= 20000 && error_code <= 39999)
+	{
+		return  "CPS executed command with error: " + std::to_string(error_code);
+	}
+	return "Unknow Error" + std::to_string(error_code);
 }

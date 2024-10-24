@@ -113,7 +113,7 @@ void LancetThorRobot::SetTCPToFlange()
 	getTcpPos(pose, m_IpAddress);
 }
 
-bool LancetThorRobot::SetTCP(vtkMatrix4x4* aMatrix)
+void LancetThorRobot::SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME)
 {
 	double pose[6] = {};
 	getTcpPos(pose, m_IpAddress);
@@ -133,7 +133,7 @@ bool LancetThorRobot::SetTCP(vtkMatrix4x4* aMatrix)
 	std::cout << str << std::endl;
 
 	getTcpPos(pose);
-	return true;
+	//return true;
 }
 
 std::vector<std::vector<double>> LancetThorRobot::GetJointAngleLimits()

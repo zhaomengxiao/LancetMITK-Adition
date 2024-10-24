@@ -33,7 +33,7 @@ public:
 
 	void SetTCPToFlange() override;
 
-	bool SetTCP(vtkMatrix4x4* aMatrix) override;
+	void SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME = "") override;
 
 	std::vector<std::vector<double>> GetJointAngleLimits() override;
 	std::vector<double> GetJointAngles() override;

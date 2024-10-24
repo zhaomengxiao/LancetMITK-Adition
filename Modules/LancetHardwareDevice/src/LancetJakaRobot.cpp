@@ -106,7 +106,7 @@ void LancetJakaRobot::SetTCPToFlange()
 	delete toolTcp;
 }
 
-bool LancetJakaRobot::SetTCP(vtkMatrix4x4* aMatrix)
+void  LancetJakaRobot::SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME)
 {
 	auto euler = this->GetEulerByMatrix(aMatrix);
 	auto trans = this->GetTranslationPartByMatrix(aMatrix);
@@ -124,13 +124,13 @@ bool LancetJakaRobot::SetTCP(vtkMatrix4x4* aMatrix)
 	toolTcp->rpy.ry = euler[1];
 	toolTcp->rpy.rz = euler[2];
 	errno_t ret = m_Robot.set_tool_data(id, toolTcp, toolName);
-	if (ret != 0)
-	{
-		std::cout << "set tool data failed" << std::endl;
-		return false;
-	}
-	delete toolTcp;
-	return true;
+	//if (ret != 0)
+	//{
+	//	std::cout << "set tool data failed" << std::endl;
+	//	return false;
+	//}
+	//delete toolTcp;
+	//return true;
 }
 
 std::vector<double> LancetJakaRobot::GetJointAngles()
