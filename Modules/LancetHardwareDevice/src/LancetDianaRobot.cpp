@@ -126,7 +126,7 @@ void LancetDianaRobot::SetTCPToFlange()
 	getTcpPos(pose, m_IpAddress);
 }
 
-bool LancetDianaRobot::SetTCP(vtkMatrix4x4* aMatrix)
+void LancetDianaRobot::SetTCP(vtkMatrix4x4* aMatrix, std::string TCP_NAME)
 {
 	double pose[6] = {};
 	getTcpPos(pose, m_IpAddress);
@@ -146,7 +146,7 @@ bool LancetDianaRobot::SetTCP(vtkMatrix4x4* aMatrix)
 	std::cout << str << std::endl;
 
 	getTcpPos(pose);
-	return true;
+	//return true;
 }
 
 std::vector<std::vector<double>> LancetDianaRobot::GetJointAngleLimits()
