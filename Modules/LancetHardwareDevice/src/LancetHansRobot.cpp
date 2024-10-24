@@ -115,10 +115,10 @@ void LancetHansRobot::GoToInitialPos()
 	double dUcs_X = 0; double dUcs_Y = 0; double dUcs_Z = 0;
 	double dUcs_Rx = 0; double dUcs_Ry = 0; double dUcs_Rz = 0;
 	// 执行路点运动
-	int nRet = HRIF_WayPointEx(boxID, rbtID, nMoveType, translation[0], translation[1], translation[2], rotation[0], rotation[1], rotation[2],
+	CHECK_ERROR_AND_RETURN(HRIF_WayPointEx(boxID, rbtID, nMoveType, translation[0], translation[1], translation[2], rotation[0], rotation[1], rotation[2],
 		joints[0], joints[1], joints[2], joints[3], joints[4], joints[5], tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], tcpEuler[0], tcpEuler[1], tcpEuler[2],
 		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz, dVelocity, dAcc, dRadius, nIsUseJoint, nIsSeek, nIOBit,
-		nIOState, strCmdID);
+		nIOState, strCmdID));
 }
 
 void LancetHansRobot::SetTCPToFlange()
@@ -288,8 +288,8 @@ bool LancetHansRobot::SetCartStiffParams(std::vector<double> aStiff)
 	if (aStiff.size() != 6)
 		return false;
 	// 设置刚度参数
-	int nRet = HRIF_SetStiffParams(0, 0, aStiff[0], aStiff[1], aStiff[2], aStiff[3], aStiff[4], aStiff[5]);
-	return nRet == 0 ? true : false;
+	CHECK_ERROR_AND_RETURN(HRIF_SetStiffParams(0, 0, aStiff[0], aStiff[1], aStiff[2], aStiff[3], aStiff[4], aStiff[5]));
+	return error_code == 0 ? true : false;
 }
 
 std::vector<double> LancetHansRobot::GetCartDampParams()
@@ -302,8 +302,8 @@ bool LancetHansRobot::SetCartDampParams(std::vector<double> aDamp)
 {
 	if (aDamp.size() != 6)
 		return false;
-	int nRet = HRIF_SetDampParams(0, 0, aDamp[0], aDamp[1], aDamp[2], aDamp[3], aDamp[4], aDamp[5]);
-	return nRet == 0 ? true : false;
+	CHECK_ERROR_AND_RETURN(HRIF_SetDampParams(0, 0, aDamp[0], aDamp[1], aDamp[2], aDamp[3], aDamp[4], aDamp[5]));
+	return error_code == 0 ? true : false;
 }
 
 std::vector<std::vector<double>> LancetHansRobot::GetJointAngleLimits()
@@ -433,11 +433,11 @@ std::vector<double> LancetHansRobot::CalculateInverse(Eigen::Vector3d aTranslati
 
 	auto joints = this->GetJointAngles();
 	// 求逆解
-	int nRet = HRIF_GetInverseKin(0, 0, aTranslation[0], aTranslation[1], aTranslation[2], aEulerAngle[0], aEulerAngle[1], aEulerAngle[2],
+	CHECK_ERROR_AND_RETURN(HRIF_GetInverseKin(0, 0, aTranslation[0], aTranslation[1], aTranslation[2], aEulerAngle[0], aEulerAngle[1], aEulerAngle[2],
 		tcpTranslation[0], tcpTranslation[1], tcpTranslation[2], flange2TCPEuler[0], flange2TCPEuler[1], flange2TCPEuler[2],
 		dUcs_X, dUcs_Y, dUcs_Z, dUcs_Rx, dUcs_Ry, dUcs_Rz,
 		joints[0], joints[1], joints[2], joints[3], joints[4], joints[5],
-		dTargetJ1, dTargetJ2, dTargetJ3, dTargetJ4, dTargetJ5, dTargetJ6);
+		dTargetJ1, dTargetJ2, dTargetJ3, dTargetJ4, dTargetJ5, dTargetJ6));
 	std::vector<double> ret{ dTargetJ1, dTargetJ2, dTargetJ3, dTargetJ4, dTargetJ5, dTargetJ6 };
 
 	return ret;
