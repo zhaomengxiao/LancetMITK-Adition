@@ -4,11 +4,7 @@ CameraTransTab::CameraTransTab(Ui::InstantiationCameraControls ui, AriemediCamer
 {
 	m_UI = ui;
 	m_Camera = aAriemediCamera;
-	m_UI.RightImageLabel->setFixedSize(1920, 1200);
-	m_UI.RightImageLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	InitConnection();
-	
-	m_RightVideoLabel = new VideoLabel(m_UI.RightImageLabel);
 	
 	LoadData();
 }
@@ -50,7 +46,7 @@ void CameraTransTab::SelectARomPathBtnClicked()
 
 void CameraTransTab::UpdateImage()
 {
-	m_RightVideoLabel->SetImage(m_Camera->GetRightImage(), 1920, 1200);
+	//m_RightVideoLabel->SetImage(m_Camera->GetRightImage(), 1920, 1200);
 }
 
 void CameraTransTab::LoadData()

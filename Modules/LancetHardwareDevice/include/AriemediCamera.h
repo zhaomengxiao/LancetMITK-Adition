@@ -16,6 +16,7 @@ class MITKLANCETHARDWAREDEVICE_EXPORT AriemediCamera : public AbstractCamera
 	Q_OBJECT
 public:
 	AriemediCamera();
+	~AriemediCamera();
 	void Connect() override;
 
 	void Disconnect() override;
@@ -49,7 +50,10 @@ public slots:
 	void UpdateData() override;
 
 signals:
-	void ImageUpdateClock();
+	void ImageUpdateClock(char* leftImage, char* rightImage, double row,double col);
+
+protected:
+	void run() override;
 
 private:
 	void UpdateImageData(/*std::unique_ptr<char[]>& aLeftImage, std::unique_ptr<char[]>& aRightImage*/);
@@ -59,10 +63,13 @@ private:
 	mitk::DataNode::Pointer GetCameraPointCloudDataNode(std::vector<std::vector<float>> aPointCloud);
 
 	void RequestUpdateImage();
+	void RequestUpdateTracking();
 private:
 	std::shared_ptr<char[]> m_LeftImage;
 	std::shared_ptr<char[]> m_RightImage;
 	size_t m_PreviousImageSize = 0;
 	QTimer* m_ImageUpdateTimer;
+	ARMDCombinedAPI* m_Tracker;
+	bool m_IsStart = false;
 };
 

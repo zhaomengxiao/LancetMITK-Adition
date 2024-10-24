@@ -29,7 +29,7 @@ private slots:
 
 private:
 	void UpdateUIToolsData();
-	void UpdateUIImages();
+	void UpdateUIImages(char* leftImage, char* rightImage, double row,double col);
 	void InitUI();
 	void GetAndUpdateToolTip(Eigen::Vector3d tempTip, QLabel* label);
 	void UpdateSingleImage(char* aImage, QLabel* aLabel);

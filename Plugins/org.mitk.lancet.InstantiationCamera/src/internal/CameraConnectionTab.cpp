@@ -6,14 +6,7 @@ CameraConnectionTab::CameraConnectionTab(Ui::InstantiationCameraControls ui, mit
 	m_UI = ui;
 	m_DataStorage = aDataStorage;
 	m_Camera = aAriemediCamera;
-	//m_UI.RightImageLabel->setMouseTracking(true);
-	//m_UI.RightImageLabel->setScaledContents(true);
-	//m_UI.RightImageWidget->setScaleContents(true);
-	//m_CameraRectLabel = new CameraRectLabel(m_UI.RightImageLabel);
 
-	m_RightVideoWidget = new VideoWidget(m_UI.RightImageWidget);
-	//m_UI.LeftImageLabel->setAttribute(Qt::WA_TransparentForMouseEvents, true);
-	//m_UI.LeftImageLabel->setMouseTracking(true);
 	InitConnection();
 }
 
@@ -44,14 +37,8 @@ void CameraConnectionTab::CameraStartBtnClicked()
 	m_Camera->InitToolsName(toolsName);
 	m_Camera->Start();
 	auto imageSize = m_Camera->GetImageSize();
-	m_ImageWidth = imageSize.first;
-	m_ImageHeight = imageSize.second;
-	//m_UI.LeftImageLabel->setFixedSize(m_ImageWidth/2.0, m_ImageHeight/2.0);
-	//m_UI.RightImageLabel->setFixedSize(m_ImageWidth, m_ImageHeight);
-	//m_UI.RightImageLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	m_UI.RightImageWidget->setFixedSize(m_ImageWidth, m_ImageHeight);
-	m_UI.RightImageWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	m_Camera->SetAreaDisplay(10, 20, 20, 40);
+
+	m_Camera->SetAreaDisplay(10, 20, 10, 20, 500, 500);
 	std::cout << "m_ImageWidth: " << m_ImageWidth << std::endl;
 	std::cout << "m_ImageHeight: " << m_ImageHeight << std::endl;
 }
@@ -63,23 +50,30 @@ void CameraConnectionTab::DrawRectBtnClicked()
 
 void CameraConnectionTab::UpdateUIDisplay()
 {
-	//std::cout << "catch signals" << std::endl;
 	UpdateUIToolsData();
-	//UpdateUIImages();
 }
 
 void CameraConnectionTab::UpdateUIToolsData()
 {
-	//PrintDataHelper::CoutArray(m_Camera->GetToolTipByName("PKADrill"), "drill");
 	GetAndUpdateToolTip(m_Camera->GetToolTipByName("PKADrill"), m_UI.label_2);
 }
 
-void CameraConnectionTab::UpdateUIImages()
+void CameraConnectionTab::UpdateUIImages(char* leftImage, char* rightImage, double cols, double rows)
 {
-	//auto images = m_Camera->GetImageData();
-	//UpdateSingleImage(images.first, m_UI.LeftImageLabel);
-	//UpdateSingleImage(m_Camera->GetRightImage(), m_UI.RightImageLabel);
-	m_RightVideoWidget->RenderVideo(m_Camera->GetRightImage(), m_ImageWidth, m_ImageHeight);
+	if (leftImage != nullptr)
+	{
+		QImage leftimg((const uchar*)leftImage, cols, rows, cols, QImage::Format_Indexed8);
+		m_UI.LeftImageLabel->setPixmap(QPixmap::fromImage(leftimg));
+		m_UI.LeftImageLabel->setScaledContents(true);
+		m_UI.LeftImageLabel->setAlignment(Qt::AlignCenter);
+	}
+	if (rightImage != nullptr)
+	{
+		QImage rightimg((const uchar*)rightImage, cols, rows, cols, QImage::Format_Indexed8);
+		m_UI.RightImageLabel->setPixmap(QPixmap::fromImage(rightimg));
+		m_UI.RightImageLabel->setScaledContents(true);
+		m_UI.RightImageLabel->setAlignment(Qt::AlignCenter);
+	}
 }
 
 void CameraConnectionTab::InitUI()
@@ -112,7 +106,6 @@ void CameraConnectionTab::GetAndUpdateToolTip(Eigen::Vector3d tempTip, QLabel* l
 
 		}
 	}
-
 }
 
 void CameraConnectionTab::UpdateSingleImage(char* aImage, QLabel* aLabel)
