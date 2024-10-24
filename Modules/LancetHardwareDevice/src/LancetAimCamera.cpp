@@ -228,3 +228,8 @@ void LancetAimCamera::UpdateData()
 	}
 	emit CameraUpdateClock();
 }
+
+void LancetAimCamera::run()
+{
+
+}
