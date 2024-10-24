@@ -346,8 +346,6 @@ Eigen::Vector3d LancetHansRobot::GetTranslationPartByMatrix(vtkMatrix4x4* m)
 
 Eigen::Vector3d LancetHansRobot::CalculateZYXEulerByRotation(Eigen::Matrix3d m)
 {
-
-
 	Eigen::Vector3d eulerAngle = m.eulerAngles(2, 1, 0); //zyx
 
 	Eigen::Vector3d ret;
