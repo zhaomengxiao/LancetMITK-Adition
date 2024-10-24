@@ -33,7 +33,15 @@ public:
 	virtual void Connect() = 0;
 	virtual void Disconnect() = 0;
 	virtual void PowerOn() = 0;
-	virtual void PowerOff() = 0;
+	virtual void PowerOff() = 0;	
+	// 
+	virtual void Stop() = 0;
+	virtual void Reset() = 0;
+	virtual void SetFreeDrag() = 0;
+	virtual void StopFreeDrag() = 0;
+
+	//
+
 	void SetRobotIpAddress(const char* aIP)
 	{
 		m_IpAddress = aIP;
@@ -63,7 +71,7 @@ public:
 	virtual bool SetCartStiffParams(std::vector<double> aStiffParams) = 0;
 
 	virtual bool SetVelocity(double aVelocity) = 0;
-
+	virtual bool SetAcceleration(double aVelocity) = 0;
 	virtual std::vector<std::vector<double>> GetJointAngleLimits() = 0;
 
 	virtual void WaitMove() = 0;
@@ -71,6 +79,7 @@ public:
 protected:
 	const char* m_IpAddress;
 	std::vector<double> m_initJoints;
+
 };
 
 #endif
