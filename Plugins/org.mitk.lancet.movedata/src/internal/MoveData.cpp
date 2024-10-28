@@ -3482,7 +3482,7 @@ void MoveData::on_pushButton_testIntersect_clicked()
 	(anCenter[2] - poCenter[2])};
 	frame_y.normalize();
 
-	Eigen::Vector3d frame_z = -distalNormalVec;
+	Eigen::Vector3d frame_z = distalNormalVec;
 
 	Eigen::Vector3d frame_x = frame_y.cross(frame_z);
 
