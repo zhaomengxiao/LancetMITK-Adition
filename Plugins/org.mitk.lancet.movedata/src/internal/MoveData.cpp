@@ -3338,12 +3338,12 @@ void MoveData::on_pushButton_testIntersect_clicked()
 
 	tmpVec.normalize();
 
-	double lineP1[3]{ intersectPoints_po->GetPoint(0)[0]-distalNormalVec[0]*2 + tmpVec[0]*20000
-		, intersectPoints_po->GetPoint(0)[1] - distalNormalVec[1] * 2 + tmpVec[1] * 20000,
-		intersectPoints_po->GetPoint(0)[2] - distalNormalVec[2] * 2 + tmpVec[2] * 20000 };
+	double lineP1[3]{ intersectPoints_po->GetPoint(0)[0]-distalNormalVec[0]*4 + tmpVec[0]*20000
+		, intersectPoints_po->GetPoint(0)[1] - distalNormalVec[1] * 4 + tmpVec[1] * 20000,
+		intersectPoints_po->GetPoint(0)[2] - distalNormalVec[2] * 4 + tmpVec[2] * 20000 };
 	double lineP2[3]{ intersectPoints_po->GetPoint(1)[0] - distalNormalVec[0] * 2 - tmpVec[0] * 20000
-		, intersectPoints_po->GetPoint(1)[1] - distalNormalVec[1] * 2 - tmpVec[1] * 20000,
-		intersectPoints_po->GetPoint(1)[2] - distalNormalVec[2] * 2 - tmpVec[2] * 20000 };
+		, intersectPoints_po->GetPoint(1)[1] - distalNormalVec[1] * 4 - tmpVec[1] * 20000,
+		intersectPoints_po->GetPoint(1)[2] - distalNormalVec[2] * 4 - tmpVec[2] * 20000 };
 	//
 	// Create the locator
 
@@ -3429,12 +3429,12 @@ void MoveData::on_pushButton_testIntersect_clicked()
 
 	tmpVec1.normalize();
 
-	double lineP3[3]{ intersectPoints_an->GetPoint(0)[0] - distalNormalVec[0] * 2 + tmpVec1[0] * 20000
-		, intersectPoints_an->GetPoint(0)[1] - distalNormalVec[1] * 2 + tmpVec1[1] * 20000,
-		intersectPoints_an->GetPoint(0)[2] - distalNormalVec[2] * 2 + tmpVec1[2] * 20000 };
-	double lineP4[3]{ intersectPoints_an->GetPoint(1)[0] - distalNormalVec[0] * 2 - tmpVec1[0] * 20000
-		, intersectPoints_an->GetPoint(1)[1] - distalNormalVec[1] * 2 - tmpVec1[1] * 20000,
-		intersectPoints_an->GetPoint(1)[2] - distalNormalVec[2] * 2 - tmpVec1[2] * 20000 };
+	double lineP3[3]{ intersectPoints_an->GetPoint(0)[0] - distalNormalVec[0] * 4 + tmpVec1[0] * 20000
+		, intersectPoints_an->GetPoint(0)[1] - distalNormalVec[1] * 4 + tmpVec1[1] * 20000,
+		intersectPoints_an->GetPoint(0)[2] - distalNormalVec[2] * 4 + tmpVec1[2] * 20000 };
+	double lineP4[3]{ intersectPoints_an->GetPoint(1)[0] - distalNormalVec[0] * 4 - tmpVec1[0] * 20000
+		, intersectPoints_an->GetPoint(1)[1] - distalNormalVec[1] * 4 - tmpVec1[1] * 20000,
+		intersectPoints_an->GetPoint(1)[2] - distalNormalVec[2] * 4 - tmpVec1[2] * 20000 };
 	//
 	// Create the locator
 	vtkSmartPointer<vtkOBBTree> tree1 =
