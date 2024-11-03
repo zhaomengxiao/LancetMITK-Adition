@@ -1,0 +1,4 @@
+AimPositionAPI.h
+AimPositionDef.h
+stdafx.h
+targetver.h

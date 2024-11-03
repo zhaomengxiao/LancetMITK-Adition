@@ -16,7 +16,14 @@ set(MITK_PLUGINS
   org.mitk.lancet.kukarobotcontrol:ON
   org.mitk.lancet.hipplanning:ON
   org.mitk.lancet.cameratest:ON
+  #org.mitk.lancet.cameratest:ON
   org.mitk.lancet.dentalAccuracy:ON
-  org.mitk.lancet.panorama:ON
+  #org.mitk.lancet.panorama:ON
   org.mitk.lancet.spinedemo:ON
+  #org.mitk.lancet.CZXtest:ON
+  org.mitk.lancet.DianaSeven:ON
+  #org.mitk.lancet.hansrobot:ON
+  #org.mitk.lancet.jakarobot:ON
+  #org.mitk.lancet.InstantiationCamera:ON
+  org.mitk.lancet.neurosurgery:ON
 )
