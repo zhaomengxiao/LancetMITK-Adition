@@ -155,6 +155,8 @@ protected:
 
   void on_pushButton_surfaceToImage_clicked();
 
+  std::array<double, 3> ProjonLine(std::array<double, 3> line1, std::array<double, 3> line2, std::array<double, 3> p);
+
   void on_pushButton_testIntersect_clicked();
 	// Generate a plane vtkPolyData centered at the Pset's center with the given size
   bool GeneratePlaneWithPset(mitk::PointSet::Pointer ptsOnPlane, double planeSize, vtkSmartPointer<vtkPolyData> generatedPlane, double planeNormal[3]);
