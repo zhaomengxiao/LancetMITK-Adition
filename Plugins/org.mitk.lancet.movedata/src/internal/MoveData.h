@@ -129,9 +129,7 @@ protected:
   mitk::DataNode::Pointer m_growingCutterNode{nullptr};
   void TestCut();
 
-  void TestCut2();
-
-  void TestCut3();
+  void TestCut2(); // THA volume based reaming rendering
 
   void on_pushButton_ApplyStencil_clicked();
 
@@ -179,13 +177,6 @@ protected:
 
   int on_pushButton_implicitClip_clicked(); // 0: has contact and clipped something ; 1: has no contact ; 2: input missing
 
-  void on_pushButton_initTHAcutting_clicked();
-
-  void on_pushButton_testCut_clicked();
-
-  void on_pushButton_gen3Region_clicked();
-
-  void on_pushButton_testCutV2_clicked();
 
   void on_pushButton_elevateSurface_clicked();
 
@@ -197,17 +188,8 @@ protected:
 
   void on_pushButton_diff_type2_clicked();
 
-  void on_pushButton_gen2Stencils_clicked();
-
-  void on_pushButton_testCutV3_clicked();
-
 	// Check if all the edge points of the cap is within the thres distance to the given polyData
   bool CheckCapCoverage(vtkSmartPointer<vtkPolyData> cap, vtkSmartPointer<vtkPolyData> polyData, double distanceThres, double percentageThres);
-
-  void on_pushButton_cutInitV4_clicked();
-
-  void on_pushButton_cutV4_clicked();
-
 
   // Generate a reamer model
   void on_pushButton_generateReamer_clicked();
@@ -222,8 +204,8 @@ protected:
 
 
   // Use MeshLib to realize THA reaming
-  void on_pushButton_cutInitV5_clicked();
-  void on_pushButton_cutV5_clicked();
+  void on_pushButton_cutInitV5_clicked(); // initialize Mesh based THA reaming
+  void on_pushButton_cutV5_clicked(); // THA reaming with MeshLib
   void TurnMRMeshIntoPolyData(MR::Mesh MRMesh, vtkSmartPointer<vtkPolyData> PolyData);
 
   vtkNew<vtkMatrix4x4> m_LastRoundMatrix;
