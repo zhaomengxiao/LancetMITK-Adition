@@ -227,7 +227,253 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_generateReamer, &QPushButton::clicked, this, &MoveData::on_pushButton_generateReamer_clicked);
 
+  connect(m_Controls.pushButton_meshLib_union, &QPushButton::clicked, this, &MoveData::on_pushButton_meshLib_union_clicked);
+  connect(m_Controls.pushButton_meshLib_intersect, &QPushButton::clicked, this, &MoveData::on_pushButton_meshLib_intersect_clicked);
+  connect(m_Controls.pushButton_meshLib_diff, &QPushButton::clicked, this, &MoveData::on_pushButton_meshLib_diff_clicked);
+  connect(m_Controls.pushButton_meshLib_insideA, &QPushButton::clicked, this, &MoveData::on_pushButton_meshLib_insideA_clicked);
+  connect(m_Controls.pushButton_meshLib_outsideA, &QPushButton::clicked, this, &MoveData::on_pushButton_meshLib_outsideA_clicked);
+
 }
+
+bool MoveData::RetrieveBooleanSurfaceFromUI(vtkSmartPointer<vtkPolyData> polyDataA, vtkSmartPointer<vtkPolyData> polyDataB)
+{
+	auto inputSurfaceNode_a = m_Controls.mitkNodeSelectWidget_surfaceboolA->GetSelectedNode();
+	if (inputSurfaceNode_a == nullptr)
+	{
+		return false;
+	}
+	auto inputSurface_a = dynamic_cast<mitk::Surface*>(inputSurfaceNode_a->GetData());
+
+	auto inputSurfaceNode_b = m_Controls.mitkNodeSelectWidget_surfaceboolB->GetSelectedNode();
+	if (inputSurfaceNode_b == nullptr)
+	{
+		return false;
+	}
+	auto inputSurface_b = dynamic_cast<mitk::Surface*>(inputSurfaceNode_b->GetData());
+
+	auto inputpolyData_a = inputSurface_a->GetVtkPolyData();
+	auto inputMatrix_a = inputSurface_a->GetGeometry()->GetVtkMatrix();
+	auto trans_a = vtkTransform::New();
+	trans_a->SetMatrix(inputMatrix_a);
+
+	auto transFilter_a = vtkTransformPolyDataFilter::New();
+	transFilter_a->SetTransform(trans_a);
+	transFilter_a->SetInputData(inputpolyData_a);
+	transFilter_a->Update();
+
+	polyDataA->DeepCopy(transFilter_a->GetOutput());
+
+	auto inputpolyData_b = inputSurface_b->GetVtkPolyData();
+	auto inputMatrix_b = inputSurface_b->GetGeometry()->GetVtkMatrix();
+	auto trans_b = vtkTransform::New();
+	trans_b->SetMatrix(inputMatrix_b);
+
+	auto transFilter_b = vtkTransformPolyDataFilter::New();
+	transFilter_b->SetTransform(trans_b);
+	transFilter_b->SetInputData(inputpolyData_b);
+	transFilter_b->Update();
+
+	polyDataB->DeepCopy(transFilter_b->GetOutput());
+
+	return true;
+}
+
+
+void MoveData::on_pushButton_meshLib_union_clicked()
+{
+	vtkNew<vtkPolyData> polyData_A;
+	vtkNew<vtkPolyData> polyData_B;
+	if(RetrieveBooleanSurfaceFromUI(polyData_A, polyData_B) == 0)
+	{
+		m_Controls.textBrowser_moveData->append("Surface data are not ready!");
+	}
+
+	// Convert vtkPolyData to MR::Mesh using .stl files as intermediates
+	vtkNew<vtkSTLWriter> stlWriter;
+	stlWriter->SetFileName("D:/surfaceA.stl");
+	stlWriter->SetInputData(polyData_A);
+	stlWriter->Write();
+
+	stlWriter->SetFileName("D:/surfaceB.stl");
+	stlWriter->SetInputData(polyData_B);
+	stlWriter->Write();
+
+	MR::Mesh meshA = MR::MeshLoad::fromAnySupportedFormat("D:/surfaceA.stl").value();
+	MR::Mesh meshB = MR::MeshLoad::fromAnySupportedFormat("D:/surfaceB.stl").value();
+
+	// Conduct boolean operation
+	MR::Mesh meshUnion = *(MR::boolean(meshA, meshB, MR::BooleanOperation::Union));
+	
+
+	// Convert MR::Mesh back to vtkPolyData for rendering  purpose
+	vtkNew<vtkPolyData> polyData_bool;
+	TurnMRMeshIntoPolyData(meshUnion, polyData_bool);
+
+	// Load into MITK
+	auto booleanSurface = mitk::Surface::New();
+	booleanSurface->SetVtkPolyData(polyData_bool);
+	auto boolNode = mitk::DataNode::New();
+	boolNode->SetData(booleanSurface);
+	boolNode->SetName("Union");
+	GetDataStorage()->Add(boolNode);
+}
+
+void MoveData::on_pushButton_meshLib_intersect_clicked()
+{
+	vtkNew<vtkPolyData> polyData_A;
+	vtkNew<vtkPolyData> polyData_B;
+	if (RetrieveBooleanSurfaceFromUI(polyData_A, polyData_B) == 0)
+	{
+		m_Controls.textBrowser_moveData->append("Surface data are not ready!");
+	}
+
+	// Convert vtkPolyData to MR::Mesh using .stl files as intermediates
+	vtkNew<vtkSTLWriter> stlWriter;
+	stlWriter->SetFileName("D:/surfaceA.stl");
+	stlWriter->SetInputData(polyData_A);
+	stlWriter->Write();
+
+	stlWriter->SetFileName("D:/surfaceB.stl");
+	stlWriter->SetInputData(polyData_B);
+	stlWriter->Write();
+
+	MR::Mesh meshA = MR::MeshLoad::fromAnySupportedFormat("D:/surfaceA.stl").value();
+	MR::Mesh meshB = MR::MeshLoad::fromAnySupportedFormat("D:/surfaceB.stl").value();
+
+	// Conduct boolean operation
+	MR::Mesh meshUnion = *(MR::boolean(meshA, meshB, MR::BooleanOperation::Intersection));
+
+
+	// Convert MR::Mesh back to vtkPolyData for rendering  purpose
+	vtkNew<vtkPolyData> polyData_bool;
+	TurnMRMeshIntoPolyData(meshUnion, polyData_bool);
+
+	// Load into MITK
+	auto booleanSurface = mitk::Surface::New();
+	booleanSurface->SetVtkPolyData(polyData_bool);
+	auto boolNode = mitk::DataNode::New();
+	boolNode->SetData(booleanSurface);
+	boolNode->SetName("Intersection");
+	GetDataStorage()->Add(boolNode);
+}
+
+void MoveData::on_pushButton_meshLib_diff_clicked()
+{
+	vtkNew<vtkPolyData> polyData_A;
+	vtkNew<vtkPolyData> polyData_B;
+	if (RetrieveBooleanSurfaceFromUI(polyData_A, polyData_B) == 0)
+	{
+		m_Controls.textBrowser_moveData->append("Surface data are not ready!");
+	}
+
+	// Convert vtkPolyData to MR::Mesh using .stl files as intermediates
+	vtkNew<vtkSTLWriter> stlWriter;
+	stlWriter->SetFileName("D:/surfaceA.stl");
+	stlWriter->SetInputData(polyData_A);
+	stlWriter->Write();
+
+	stlWriter->SetFileName("D:/surfaceB.stl");
+	stlWriter->SetInputData(polyData_B);
+	stlWriter->Write();
+
+	MR::Mesh meshA = MR::MeshLoad::fromAnySupportedFormat("D:/surfaceA.stl").value();
+	MR::Mesh meshB = MR::MeshLoad::fromAnySupportedFormat("D:/surfaceB.stl").value();
+
+	// Conduct boolean operation
+	MR::Mesh meshUnion = *(MR::boolean(meshA, meshB, MR::BooleanOperation::DifferenceAB));
+
+
+	// Convert MR::Mesh back to vtkPolyData for rendering  purpose
+	vtkNew<vtkPolyData> polyData_bool;
+	TurnMRMeshIntoPolyData(meshUnion, polyData_bool);
+
+	// Load into MITK
+	auto booleanSurface = mitk::Surface::New();
+	booleanSurface->SetVtkPolyData(polyData_bool);
+	auto boolNode = mitk::DataNode::New();
+	boolNode->SetData(booleanSurface);
+	boolNode->SetName("Difference");
+	GetDataStorage()->Add(boolNode);
+}
+
+void MoveData::on_pushButton_meshLib_insideA_clicked()
+{
+	vtkNew<vtkPolyData> polyData_A;
+	vtkNew<vtkPolyData> polyData_B;
+	if (RetrieveBooleanSurfaceFromUI(polyData_A, polyData_B) == 0)
+	{
+		m_Controls.textBrowser_moveData->append("Surface data are not ready!");
+	}
+
+	// Convert vtkPolyData to MR::Mesh using .stl files as intermediates
+	vtkNew<vtkSTLWriter> stlWriter;
+	stlWriter->SetFileName("D:/surfaceA.stl");
+	stlWriter->SetInputData(polyData_A);
+	stlWriter->Write();
+
+	stlWriter->SetFileName("D:/surfaceB.stl");
+	stlWriter->SetInputData(polyData_B);
+	stlWriter->Write();
+
+	MR::Mesh meshA = MR::MeshLoad::fromAnySupportedFormat("D:/surfaceA.stl").value();
+	MR::Mesh meshB = MR::MeshLoad::fromAnySupportedFormat("D:/surfaceB.stl").value();
+
+	// Conduct boolean operation
+	MR::Mesh meshUnion = *(MR::boolean(meshA, meshB, MR::BooleanOperation::InsideA));
+
+
+	// Convert MR::Mesh back to vtkPolyData for rendering  purpose
+	vtkNew<vtkPolyData> polyData_bool;
+	TurnMRMeshIntoPolyData(meshUnion, polyData_bool);
+
+	// Load into MITK
+	auto booleanSurface = mitk::Surface::New();
+	booleanSurface->SetVtkPolyData(polyData_bool);
+	auto boolNode = mitk::DataNode::New();
+	boolNode->SetData(booleanSurface);
+	boolNode->SetName("Inside");
+	GetDataStorage()->Add(boolNode);
+}
+
+void MoveData::on_pushButton_meshLib_outsideA_clicked()
+{
+	vtkNew<vtkPolyData> polyData_A;
+	vtkNew<vtkPolyData> polyData_B;
+	if (RetrieveBooleanSurfaceFromUI(polyData_A, polyData_B) == 0)
+	{
+		m_Controls.textBrowser_moveData->append("Surface data are not ready!");
+	}
+
+	// Convert vtkPolyData to MR::Mesh using .stl files as intermediates
+	vtkNew<vtkSTLWriter> stlWriter;
+	stlWriter->SetFileName("D:/surfaceA.stl");
+	stlWriter->SetInputData(polyData_A);
+	stlWriter->Write();
+
+	stlWriter->SetFileName("D:/surfaceB.stl");
+	stlWriter->SetInputData(polyData_B);
+	stlWriter->Write();
+
+	MR::Mesh meshA = MR::MeshLoad::fromAnySupportedFormat("D:/surfaceA.stl").value();
+	MR::Mesh meshB = MR::MeshLoad::fromAnySupportedFormat("D:/surfaceB.stl").value();
+
+	// Conduct boolean operation
+	MR::Mesh meshUnion = *(MR::boolean(meshA, meshB, MR::BooleanOperation::OutsideA));
+
+
+	// Convert MR::Mesh back to vtkPolyData for rendering  purpose
+	vtkNew<vtkPolyData> polyData_bool;
+	TurnMRMeshIntoPolyData(meshUnion, polyData_bool);
+
+	// Load into MITK
+	auto booleanSurface = mitk::Surface::New();
+	booleanSurface->SetVtkPolyData(polyData_bool);
+	auto boolNode = mitk::DataNode::New();
+	boolNode->SetData(booleanSurface);
+	boolNode->SetName("Outside");
+	GetDataStorage()->Add(boolNode);
+}
+
 
 void MoveData::on_pushButton_cutInitV5_clicked()
 {

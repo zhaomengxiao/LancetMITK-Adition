@@ -1146,17 +1146,24 @@
           <string>Surface bool</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_20">
-          <item row="1" column="3">
-           <widget class="QPushButton" name="pushButton_implicitClip">
+          <item row="2" column="1">
+           <widget class="QPushButton" name="pushButton_meshLib_union">
             <property name="text">
-             <string>Clip</string>
+             <string>Union</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="4" colspan="2">
-           <widget class="QPushButton" name="pushButton_clipAway">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_36">
             <property name="text">
-             <string>Clipped away</string>
+             <string>MeshLib boolean:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="7" colspan="2">
+           <widget class="QPushButton" name="pushButton_meshLib_outsideA">
+            <property name="text">
+             <string>Part of A that is outside B</string>
             </property>
            </widget>
           </item>
@@ -1167,14 +1174,21 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="7">
-           <widget class="QPushButton" name="pushButton_diff_type2">
+          <item row="2" column="4" colspan="2">
+           <widget class="QPushButton" name="pushButton_meshLib_insideA">
             <property name="text">
-             <string>Diff by clip</string>
+             <string>Part of A that is inside B</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="0" colspan="4">
+          <item row="2" column="2">
+           <widget class="QPushButton" name="pushButton_meshLib_diff">
+            <property name="text">
+             <string>Diff (A - B)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="5">
            <layout class="QHBoxLayout" name="horizontalLayout_18">
             <item>
              <widget class="QLabel" name="label_27">
@@ -1188,7 +1202,7 @@
             </item>
            </layout>
           </item>
-          <item row="0" column="4" colspan="4">
+          <item row="0" column="5" colspan="4">
            <layout class="QHBoxLayout" name="horizontalLayout_19">
             <item>
              <widget class="QLabel" name="label_28">
@@ -1216,45 +1230,38 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="6">
+          <item row="2" column="3">
+           <widget class="QPushButton" name="pushButton_meshLib_intersect">
+            <property name="text">
+             <string>Intersection</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QPushButton" name="pushButton_implicitClip">
+            <property name="text">
+             <string>Clip</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4">
+           <widget class="QPushButton" name="pushButton_clipAway">
+            <property name="text">
+             <string>Clipped away</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="5">
            <widget class="QPushButton" name="pushButton_append">
             <property name="text">
              <string>Append</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_36">
+          <item row="1" column="7">
+           <widget class="QPushButton" name="pushButton_diff_type2">
             <property name="text">
-             <string>MeshLib</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QPushButton" name="pushButton">
-            <property name="text">
-             <string>Union</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QPushButton" name="pushButton_2">
-            <property name="text">
-             <string>Diff</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="3">
-           <widget class="QPushButton" name="pushButton_3">
-            <property name="text">
-             <string>Inside A</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="4">
-           <widget class="QPushButton" name="pushButton_4">
-            <property name="text">
-             <string>Outside A</string>
+             <string>Diff by clip</string>
             </property>
            </widget>
           </item>

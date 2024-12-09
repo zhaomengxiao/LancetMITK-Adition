@@ -203,6 +203,16 @@ protected:
 	  double meshEdgeThickness /*in mm*/);
 
 
+  // MeshLib Boolean operation
+  bool RetrieveBooleanSurfaceFromUI(vtkSmartPointer<vtkPolyData> polyDataA,
+	  vtkSmartPointer<vtkPolyData> polyDataB);
+  void on_pushButton_meshLib_union_clicked(); // Union surface of two meshes (outside parts)
+  void on_pushButton_meshLib_intersect_clicked(); // Intersection surface of two meshes (inside parts)
+  void on_pushButton_meshLib_diff_clicked(); // Surface of mesh `B` - surface of mesh `A` (outside `B` - inside `A`)
+  void on_pushButton_meshLib_insideA_clicked(); // Part of mesh `A` that is inside of mesh `B`
+  void on_pushButton_meshLib_outsideA_clicked();// Part of mesh `A` that is outside of mesh `B`
+
+
   // Use MeshLib to realize THA reaming
   void on_pushButton_cutInitV5_clicked(); // initialize Mesh based THA reaming
   void on_pushButton_cutV5_clicked(); // THA reaming with MeshLib
