@@ -938,10 +938,52 @@ void THAPlanning::pushButton_noTiltCanalReduction_clicked()
 
 	m_ReductionObject->GetOriginalNoTiltCanalMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
 
-	// m_RfemurObject->SetGroupGeometry(rFemurMatrix);
-	// m_LfemurObject->SetGroupGeometry(lFemurMatrix);
-	// m_pelvisObject->SetGroupGeometry(pelvisMatrix);
+	// Try FAI modulation
+	int femurSide{ 0 }; // R: 0, L: 1
+	double flexion{ 20 }; // Flexion: +, extension: -
+	double exRot{ 10 }; // external rotation: +, internal rotation: -
+	double abduction{ 40 }; // abduction: +, adduction: -
 
+	auto tmpTrans = vtkTransform::New();
+	auto tmpMatrix = vtkMatrix4x4::New();
+	tmpMatrix->Identity();
+
+	if(femurSide == 0)
+	{
+		tmpMatrix->DeepCopy(rFemurMatrix);
+		tmpTrans->PostMultiply();
+		tmpTrans->SetMatrix(tmpMatrix);
+		tmpTrans->RotateZ(-exRot);
+		tmpTrans->RotateX(-flexion);
+		tmpTrans->RotateY(abduction);
+		tmpTrans->Update();
+		auto tmpResult = tmpTrans->GetMatrix();
+		m_RfemurObject->Getpset_femurCOR()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpResult);
+		m_RfemurObject->Getpset_femurCOR()->Update();
+		tmpResult->SetElement(0, 3, -m_RfemurObject->Getpset_femurCOR()->GetPoint(0)[0] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(0)[0]+ tmpResult->GetElement(0,3));
+		tmpResult->SetElement(1, 3, -m_RfemurObject->Getpset_femurCOR()->GetPoint(0)[1] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(0)[1] + tmpResult->GetElement(1, 3));
+		tmpResult->SetElement(2, 3, -m_RfemurObject->Getpset_femurCOR()->GetPoint(0)[2] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(0)[2] + tmpResult->GetElement(2, 3));
+		rFemurMatrix->DeepCopy(tmpResult);
+	}
+
+	if (femurSide == 1)
+	{
+		tmpMatrix->DeepCopy(lFemurMatrix);
+		tmpTrans->PostMultiply();
+		tmpTrans->SetMatrix(tmpMatrix);
+		tmpTrans->RotateZ(exRot);
+		tmpTrans->RotateX(-flexion);
+		tmpTrans->RotateY(-abduction);
+		tmpTrans->Update();
+		auto tmpResult = tmpTrans->GetMatrix();
+		tmpResult->SetElement(0, 3, lFemurMatrix->GetElement(0, 3));
+		tmpResult->SetElement(1, 3, lFemurMatrix->GetElement(1, 3));
+		tmpResult->SetElement(2, 3, lFemurMatrix->GetElement(2, 3));
+		lFemurMatrix->DeepCopy(tmpResult);
+	}
+
+
+	//-----------------------------------------------------------------------
 	if (m_Controls.radioButton_implantObject_R->isChecked())
 	{
 		m_LfemurObject->SetGroupGeometry(lFemurMatrix);
