@@ -1647,7 +1647,7 @@ void THAPlanning::pushButton_demoReduce_clicked()
 
 	if(m_Controls.radioButton_demoPreop->isChecked())
 	{
-		ShowImplants(true);
+		ShowImplants(false);
 		m_Controls.lineEdit_demoIntraHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
 		m_Controls.lineEdit_demoIntraHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
 		m_Controls.lineEdit_demoIntraOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
@@ -1694,52 +1694,11 @@ void THAPlanning::ShowImplants(bool showOrHide)
 {
 	if(showOrHide == true) // show the correct implant surfaces
 	{
-		// GetDataStorage()->GetNamedNode("stemFrame")->SetVisibility(true);
-		// GetDataStorage()->GetNamedNode("cupFrame")->SetVisibility(true);
-		// if(m_Controls.comboBox_demoCup->currentIndex() == 0)
-		// {
-		// 	GetDataStorage()->GetNamedNode("cup")->SetVisibility(true);
-		// }
-		//
-		// if (m_Controls.comboBox_demoCup->currentIndex() == 1)
-		// {
-		// 	GetDataStorage()->GetNamedNode("cup_50")->SetVisibility(true);
-		// }
-		//
-		// if (m_Controls.comboBox_demoLiner->currentIndex() == 0)
-		// {
-		// 	GetDataStorage()->GetNamedNode("liner")->SetVisibility(true);
-		// }
-		//
-		// if (m_Controls.comboBox_demoLiner->currentIndex() == 1)
-		// {
-		// 	GetDataStorage()->GetNamedNode("liner_50")->SetVisibility(true);
-		// }
-		//
-		// if (m_Controls.comboBox_demoStem->currentIndex() == 0)
-		// {
-		// 	GetDataStorage()->GetNamedNode("stem")->SetVisibility(true);
-		// }
-		//
-		// if (m_Controls.comboBox_demoStem->currentIndex() == 1)
-		// {
-		// 	GetDataStorage()->GetNamedNode("stem_5")->SetVisibility(true);
-		// }
-		//
-		// if (m_Controls.comboBox_demoHead->currentIndex() == 0)
-		// {
-		// 	GetDataStorage()->GetNamedNode("head_28")->SetVisibility(true);
-		// }
-		//
-		// if (m_Controls.comboBox_demoHead->currentIndex() == 1)
-		// {
-		// 	GetDataStorage()->GetNamedNode("head_32")->SetVisibility(true);
-		// }
-
 		m_StemObject->GetNode_Pset_headCenter()->SetVisibility(1);
 		m_StemObject->GetNode_Surface_head()->SetVisibility(1);
 		m_StemObject->GetNode_Surface_stem()->SetVisibility(1);
 		m_StemObject->GetNode_Surface_stemFrame()->SetVisibility(1);
+		m_StemObject->GetNode_Surface_StemCutPlane()->SetVisibility(1);
 
 		m_CupObject->GetNode_Surface_cup()->SetVisibility(1);
 		m_CupObject->GetNode_Surface_cupFrame()->SetVisibility(1);
@@ -1747,21 +1706,11 @@ void THAPlanning::ShowImplants(bool showOrHide)
 
 	}else // hide the correct implant surfaces
 	{
-		// GetDataStorage()->GetNamedNode("stemFrame")->SetVisibility(false);
-		// GetDataStorage()->GetNamedNode("cupFrame")->SetVisibility(false);
-		// GetDataStorage()->GetNamedNode("cup")->SetVisibility(false);
-		// GetDataStorage()->GetNamedNode("cup_50")->SetVisibility(false);
-		// GetDataStorage()->GetNamedNode("liner")->SetVisibility(false);
-		// GetDataStorage()->GetNamedNode("liner_50")->SetVisibility(false);
-		// GetDataStorage()->GetNamedNode("stem")->SetVisibility(false);
-		// GetDataStorage()->GetNamedNode("stem_5")->SetVisibility(false);
-		// GetDataStorage()->GetNamedNode("head_28")->SetVisibility(false);
-		// GetDataStorage()->GetNamedNode("head_32")->SetVisibility(false);
-
 		m_StemObject->GetNode_Pset_headCenter()->SetVisibility(0);
 		m_StemObject->GetNode_Surface_head()->SetVisibility(0);
 		m_StemObject->GetNode_Surface_stem()->SetVisibility(0);
 		m_StemObject->GetNode_Surface_stemFrame()->SetVisibility(0);
+		m_StemObject->GetNode_Surface_StemCutPlane()->SetVisibility(0);
 
 		m_CupObject->GetNode_Surface_cup()->SetVisibility(0);
 		m_CupObject->GetNode_Surface_cupFrame()->SetVisibility(0);
