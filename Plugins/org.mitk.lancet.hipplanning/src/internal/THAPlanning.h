@@ -204,6 +204,8 @@ protected:
 
   void on_pushButton_SetDisplayMode_clicked();
 
+  void on_spinBox_femurFlex_valueChanged(int value);
+
 	//---------- Tool functions --------------
 
 	// retrieve a 4x4 vtkMatrix from the UI

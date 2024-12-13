@@ -117,9 +117,120 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_SetDisplayMode, &QPushButton::clicked, this, &THAPlanning::on_pushButton_SetDisplayMode_clicked);
 
+  connect(m_Controls.spinBox_femurFlex, QOverload<int>::of(&QSpinBox::valueChanged), this, &THAPlanning::on_spinBox_femurFlex_valueChanged);
+  connect(m_Controls.spinBox_femurExRot, QOverload<int>::of(&QSpinBox::valueChanged), this, &THAPlanning::on_spinBox_femurFlex_valueChanged);
+  connect(m_Controls.spinBox_femurAbduct, QOverload<int>::of(&QSpinBox::valueChanged), this, &THAPlanning::on_spinBox_femurFlex_valueChanged);
+
+
   group_implant = new QButtonGroup(parent);
   group_implant->addButton(m_Controls.radioButton_Cup,0);
   group_implant->addButton(m_Controls.radioButton_Stem, 1);
+}
+
+void THAPlanning::on_spinBox_femurFlex_valueChanged(int value)
+{
+	m_ReductionObject = lancet::ThaReductionObject::New();
+
+	m_ReductionObject->SetPelvisObject(m_pelvisObject);
+
+	m_ReductionObject->SetFemurObject_R(m_RfemurObject);
+
+	m_ReductionObject->SetFemurObject_L(m_LfemurObject);
+
+	vtkNew<vtkMatrix4x4> rFemurMatrix;
+	vtkNew<vtkMatrix4x4> lFemurMatrix;
+	vtkNew<vtkMatrix4x4> pelvisMatrix;
+
+	m_ReductionObject->GetOriginalNoTiltCanalMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
+
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
+
+	// Try FAI modulation
+	int femurSide{m_Controls.radioButton_FAIside_R ->isChecked()}; // R: 0, L: 1
+	double flexion{ static_cast<double>(m_Controls.spinBox_femurFlex->value())}; // Flexion: +, extension: -
+	double exRot{ static_cast<double>(m_Controls.spinBox_femurExRot->value()) }; // external rotation: +, internal rotation: -
+	double abduction{ static_cast<double>(m_Controls.spinBox_femurAbduct->value()) }; // abduction: +, adduction: -
+
+	//m_Controls.textBrowser->append("Triggered"+QString::number(flexion));
+
+	auto tmpTrans = vtkTransform::New();
+	auto tmpMatrix = vtkMatrix4x4::New();
+	tmpMatrix->Identity();
+
+	if (femurSide == 1)
+	{
+		tmpMatrix->DeepCopy(rFemurMatrix);
+		tmpTrans->PostMultiply();
+		tmpTrans->SetMatrix(tmpMatrix);
+		tmpTrans->RotateZ(-exRot);
+		tmpTrans->RotateX(-flexion);
+		tmpTrans->RotateY(abduction);
+		tmpTrans->Update();
+		auto tmpResult = tmpTrans->GetMatrix();
+		m_RfemurObject->Getpset_femurCOR()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpResult);
+		m_RfemurObject->Getpset_femurCOR()->Update();
+		tmpResult->SetElement(0, 3, -m_RfemurObject->Getpset_femurCOR()->GetPoint(0)[0] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(0)[0] + tmpResult->GetElement(0, 3));
+		tmpResult->SetElement(1, 3, -m_RfemurObject->Getpset_femurCOR()->GetPoint(0)[1] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(0)[1] + tmpResult->GetElement(1, 3));
+		tmpResult->SetElement(2, 3, -m_RfemurObject->Getpset_femurCOR()->GetPoint(0)[2] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(0)[2] + tmpResult->GetElement(2, 3));
+		rFemurMatrix->DeepCopy(tmpResult);
+	}
+
+	if (femurSide == 0)
+	{
+		tmpMatrix->DeepCopy(lFemurMatrix);
+		tmpTrans->PostMultiply();
+		tmpTrans->SetMatrix(tmpMatrix);
+		tmpTrans->RotateZ(exRot);
+		tmpTrans->RotateX(-flexion);
+		tmpTrans->RotateY(-abduction);
+		tmpTrans->Update();
+		auto tmpResult = tmpTrans->GetMatrix();
+		m_LfemurObject->Getpset_femurCOR()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpResult);
+		m_LfemurObject->Getpset_femurCOR()->Update();
+		tmpResult->SetElement(0, 3, -m_LfemurObject->Getpset_femurCOR()->GetPoint(0)[0] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(1)[0] + tmpResult->GetElement(0, 3));
+		tmpResult->SetElement(1, 3, -m_LfemurObject->Getpset_femurCOR()->GetPoint(0)[1] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(1)[1] + tmpResult->GetElement(1, 3));
+		tmpResult->SetElement(2, 3, -m_LfemurObject->Getpset_femurCOR()->GetPoint(0)[2] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(1)[2] + tmpResult->GetElement(2, 3));
+		lFemurMatrix->DeepCopy(tmpResult);
+	}
+
+
+	//-----------------------------------------------------------------------
+	if (m_Controls.radioButton_implantObject_R->isChecked())
+	{
+		m_LfemurObject->SetGroupGeometry(lFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(rFemurMatrix);
+	}
+	else
+	{
+		m_RfemurObject->SetGroupGeometry(rFemurMatrix);
+		m_FemurStemCouple->SetCoupleGeometry(lFemurMatrix);
+	}
+
+	// m_Controls.textBrowser->append("right hip length:" + QString::number(m_ReductionObject->GetHipLength_supine_R()));
+	// m_Controls.textBrowser->append("left hip length:" + QString::number(m_ReductionObject->GetHipLength_supine_L()));
+	// m_Controls.textBrowser->append("right combined offset:" + QString::number(m_ReductionObject->GetCombinedOffset_supine_R()));
+	// m_Controls.textBrowser->append("left combined offset:" + QString::number(m_ReductionObject->GetCombinedOffset_supine_L()));
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+	if (m_Controls.radioButton_demoPreop->isChecked())
+	{
+		ShowImplants(false);
+		m_Controls.lineEdit_demoIntraHiplen_R->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_R()));
+		m_Controls.lineEdit_demoIntraHiplen_L->setText(QString::number(m_EnhancedReductionObject->GetHipLength_supine_L()));
+		m_Controls.lineEdit_demoIntraOffset_R->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_R()));
+		m_Controls.lineEdit_demoIntraOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
+
+		m_Controls.lineEdit_demoSupineVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_supine()));
+		m_Controls.lineEdit_demoSupineInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_supine()));
+
+		m_Controls.lineEdit_demoNoTiltVersion->setText(QString::number(m_PelvisCupCouple->GetCupVersion_noTilt()));
+		m_Controls.lineEdit_demoNoTiltInclin->setText(QString::number(m_PelvisCupCouple->GetCupInclination_noTilt()));
+
+		m_Controls.lineEdit_demoCupSI_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_SI_supine()));
+		m_Controls.lineEdit_demoCupML_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_ML_supine()));
+		m_Controls.lineEdit_demoCupAP_supine->setText(QString::number(m_PelvisCupCouple->GetCupCOR_AP_supine()));
+	}
 }
 
 
@@ -938,50 +1049,7 @@ void THAPlanning::pushButton_noTiltCanalReduction_clicked()
 
 	m_ReductionObject->GetOriginalNoTiltCanalMatrices(pelvisMatrix, rFemurMatrix, lFemurMatrix);
 
-	// Try FAI modulation
-	int femurSide{ 0 }; // R: 0, L: 1
-	double flexion{ 20 }; // Flexion: +, extension: -
-	double exRot{ 10 }; // external rotation: +, internal rotation: -
-	double abduction{ 40 }; // abduction: +, adduction: -
-
-	auto tmpTrans = vtkTransform::New();
-	auto tmpMatrix = vtkMatrix4x4::New();
-	tmpMatrix->Identity();
-
-	if(femurSide == 0)
-	{
-		tmpMatrix->DeepCopy(rFemurMatrix);
-		tmpTrans->PostMultiply();
-		tmpTrans->SetMatrix(tmpMatrix);
-		tmpTrans->RotateZ(-exRot);
-		tmpTrans->RotateX(-flexion);
-		tmpTrans->RotateY(abduction);
-		tmpTrans->Update();
-		auto tmpResult = tmpTrans->GetMatrix();
-		m_RfemurObject->Getpset_femurCOR()->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpResult);
-		m_RfemurObject->Getpset_femurCOR()->Update();
-		tmpResult->SetElement(0, 3, -m_RfemurObject->Getpset_femurCOR()->GetPoint(0)[0] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(0)[0]+ tmpResult->GetElement(0,3));
-		tmpResult->SetElement(1, 3, -m_RfemurObject->Getpset_femurCOR()->GetPoint(0)[1] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(0)[1] + tmpResult->GetElement(1, 3));
-		tmpResult->SetElement(2, 3, -m_RfemurObject->Getpset_femurCOR()->GetPoint(0)[2] + m_pelvisObject->Getpset_pelvisCOR()->GetPoint(0)[2] + tmpResult->GetElement(2, 3));
-		rFemurMatrix->DeepCopy(tmpResult);
-	}
-
-	if (femurSide == 1)
-	{
-		tmpMatrix->DeepCopy(lFemurMatrix);
-		tmpTrans->PostMultiply();
-		tmpTrans->SetMatrix(tmpMatrix);
-		tmpTrans->RotateZ(exRot);
-		tmpTrans->RotateX(-flexion);
-		tmpTrans->RotateY(-abduction);
-		tmpTrans->Update();
-		auto tmpResult = tmpTrans->GetMatrix();
-		tmpResult->SetElement(0, 3, lFemurMatrix->GetElement(0, 3));
-		tmpResult->SetElement(1, 3, lFemurMatrix->GetElement(1, 3));
-		tmpResult->SetElement(2, 3, lFemurMatrix->GetElement(2, 3));
-		lFemurMatrix->DeepCopy(tmpResult);
-	}
-
+	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
 
 	//-----------------------------------------------------------------------
 	if (m_Controls.radioButton_implantObject_R->isChecked())
@@ -995,8 +1063,6 @@ void THAPlanning::pushButton_noTiltCanalReduction_clicked()
 		m_FemurStemCouple->SetCoupleGeometry(lFemurMatrix);
 	}
 
-	m_PelvisCupCouple->SetCoupleGeometry(pelvisMatrix);
-	
 	m_Controls.textBrowser->append("right hip length:" + QString::number(m_ReductionObject->GetHipLength_supine_R()));
 	m_Controls.textBrowser->append("left hip length:" + QString::number(m_ReductionObject->GetHipLength_supine_L()));
 	m_Controls.textBrowser->append("right combined offset:" + QString::number(m_ReductionObject->GetCombinedOffset_supine_R()));

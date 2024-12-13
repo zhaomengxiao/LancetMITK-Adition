@@ -1574,10 +1574,7 @@
      <property name="title">
       <string>假体移动（Extrinsic）</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_18">
-      <item row="0" column="1" rowspan="4">
-       <widget class="QTextBrowser" name="textBrowser"/>
-      </item>
+     <layout class="QGridLayout" name="gridLayout_27">
       <item row="0" column="0">
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
@@ -1624,34 +1621,78 @@
         </item>
        </layout>
       </item>
-      <item row="3" column="0">
-       <layout class="QHBoxLayout" name="horizontalLayout_21">
-        <item>
-         <widget class="QRadioButton" name="radioButton_Cup">
-          <property name="text">
-           <string>Cup</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-          <property name="autoExclusive">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="radioButton_Stem">
-          <property name="text">
-           <string>Stem</string>
-          </property>
-          <property name="autoExclusive">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
+      <item row="0" column="1" rowspan="3">
+       <widget class="QTextBrowser" name="textBrowser"/>
       </item>
-      <item row="1" column="0" rowspan="2">
+      <item row="0" column="2" rowspan="2">
+       <widget class="QGroupBox" name="groupBox_23">
+        <property name="title">
+         <string>FAI simulation</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_18">
+         <item row="1" column="1">
+          <widget class="QSpinBox" name="spinBox_femurFlex">
+           <property name="minimum">
+            <number>-99</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QSpinBox" name="spinBox_femurAbduct">
+           <property name="minimum">
+            <number>-99</number>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QRadioButton" name="radioButton_FAIside_L">
+           <property name="text">
+            <string>Left</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QRadioButton" name="radioButton_FAIside_R">
+           <property name="text">
+            <string>Right</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_femurAbductStatus">
+           <property name="text">
+            <string>Abduction</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_femurFlexionStatus">
+           <property name="text">
+            <string>Flexion</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_femurExRotStatus">
+           <property name="text">
+            <string>External rotation</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QSpinBox" name="spinBox_femurExRot">
+           <property name="minimum">
+            <number>-99</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
          <widget class="QRadioButton" name="radioButton_axial">
@@ -1674,6 +1715,33 @@
          <widget class="QRadioButton" name="radioButton_coronal">
           <property name="text">
            <string>Coronal</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="0">
+       <layout class="QHBoxLayout" name="horizontalLayout_21">
+        <item>
+         <widget class="QRadioButton" name="radioButton_Cup">
+          <property name="text">
+           <string>Cup</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="autoExclusive">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_Stem">
+          <property name="text">
+           <string>Stem</string>
+          </property>
+          <property name="autoExclusive">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
