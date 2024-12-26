@@ -179,6 +179,7 @@ protected:
   // ------------------ Test DRR generation --------------------
   void pushButton_testDRR_clicked();
   void pushButton_testStencil_clicked();
+  void pushButton_DRRtest_clicked();
 
 	// -------------- Demonstration ---------------------
   void pushButton_demoInit_clicked();

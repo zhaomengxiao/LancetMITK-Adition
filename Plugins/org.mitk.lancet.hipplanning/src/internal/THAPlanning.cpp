@@ -25,6 +25,8 @@
 
 #include "qbuttongroup.h"
 #include "lancetThaPelvisCupStencilObject.h"
+#include "mitkSurfaceVtkMapper3D.h"
+#include "QmitkRenderWindow.h"
 
 const std::string THAPlanning::VIEW_ID = "org.mitk.views.thaplanning";
 QButtonGroup* group_implant;
@@ -94,6 +96,7 @@ void THAPlanning::CreateQtPartControl(QWidget *parent)
   // ------------- DRR test ----------------
   connect(m_Controls.pushButton_testDRR, &QPushButton::clicked, this, &THAPlanning::pushButton_testDRR_clicked);
   connect(m_Controls.pushButton_testStencil, &QPushButton::clicked, this, &THAPlanning::pushButton_testStencil_clicked);
+  connect(m_Controls.pushButton_DRRtest, &QPushButton::clicked, this, &THAPlanning::pushButton_DRRtest_clicked);
 
 
 
@@ -2005,6 +2008,38 @@ void THAPlanning::pushButton_demoMoveStem_clicked()
 	m_Controls.lineEdit_demoIntraOffset_L->setText(QString::number(m_EnhancedReductionObject->GetCombinedOffset_supine_L()));
 
 }
+
+void THAPlanning::pushButton_DRRtest_clicked()
+{
+	auto dataNode = GetDataStorage()->GetNamedNode("cup");
+	mitk::Mapper::Pointer mapper = dataNode->GetMapper(mitk::BaseRenderer::Standard3D);
+	mitk::SurfaceVtkMapper3D::Pointer vtkMapper = dynamic_cast<mitk::SurfaceVtkMapper3D*>(mapper.GetPointer());
+	if (!vtkMapper)
+	{
+		std::cerr << "No vtkMapper3D found for the DataNode!" << std::endl;
+		return;
+	}
+
+	auto iRenderWindowPart = GetRenderWindowPart();
+	QmitkRenderWindow* mitkRenderWindow = iRenderWindowPart->GetQmitkRenderWindow("3d");
+
+	vtkActor* actor = dynamic_cast<vtkActor*>(vtkMapper->GetVtkProp(mitkRenderWindow->GetRenderer()));
+
+	if (!actor)
+	{
+		std::cerr << "No vtkActor found for the mitk::Surface!" << std::endl;
+		return;
+	}
+
+	auto polyDataMapper = dynamic_cast<vtkPolyDataMapper*>(actor->GetMapper());
+
+	polyDataMapper->SetResolveCoincidentTopologyToPolygonOffset();
+	polyDataMapper->SetRelativeCoincidentTopologyPolygonOffsetParameters(0, -36000);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+}
+
 
 void THAPlanning::pushButton_testDRR_clicked()
 {
