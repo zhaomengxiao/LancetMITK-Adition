@@ -21,4 +21,6 @@ set(MITK_PLUGINS
   org.mitk.lancet.spinedemo:ON
   org.mitk.lancet.lhytest:ON
   org.mitk.lancet.aimooetoolcoordtransform:ON
+  org.mitk.lancet.ImageCropperNew:ON
+
 )

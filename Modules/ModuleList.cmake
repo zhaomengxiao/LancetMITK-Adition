@@ -10,4 +10,6 @@ set(MITK_MODULES
   LancetIGTUI
   LancetTeethLhy
   LancetStaubliRobot
+  MoveObject
+  Gizmo_noscale
 )
