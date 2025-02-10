@@ -40,6 +40,7 @@ found in the LICENSE file.
 
 // others
 #include <tuple>
+#include <vtkTransformPolyDataFilter.h>
 
 const std::string ImageCropperNew::VIEW_ID = "org.mitk.views.imagecroppernew";
 ImageCropperNew::ImageCropperNew(QObject*)
@@ -130,33 +131,90 @@ std::tuple<std::array<int, 6>, mitk::Point3D, mitk::Point3D> ImageCropperNew::Ca
 	mitk::FillVector3D(minPoint, bounds[0], bounds[2], bounds[4]);
 	mitk::FillVector3D(maxPoint, bounds[1], bounds[3], bounds[5]);
 
-	//转换物理坐标到图像坐标
-	image->GetGeometry()->WorldToIndex(minPoint, startIndex);
-	image->GetGeometry()->WorldToIndex(maxPoint, endIndex);
+	// Corner pts of the bounding box
+	mitk::Point3D p0,p1,p2,p3,p4,p5,p6,p7;
+	mitk::FillVector3D(p0, bounds[0], bounds[2], bounds[4]);
+	mitk::FillVector3D(p1, bounds[0], bounds[2], bounds[5]);
+	mitk::FillVector3D(p2, bounds[0], bounds[3], bounds[4]);
+	mitk::FillVector3D(p3, bounds[1], bounds[2], bounds[4]);
+	mitk::FillVector3D(p4, bounds[0], bounds[3], bounds[5]);
+	mitk::FillVector3D(p5, bounds[1], bounds[2], bounds[5]);
+	mitk::FillVector3D(p6, bounds[1], bounds[3], bounds[4]);
+	mitk::FillVector3D(p7, bounds[1], bounds[3], bounds[5]);
 
-	for (int i = 0; i < 3; ++i) {
-		if (startIndex[i] < 0) startIndex[i] = 0;
-		if (endIndex[i] >= image->GetDimension(i)) endIndex[i] = image->GetDimension(i) - 1;
-		if (startIndex[i] > endIndex[i]) std::swap(startIndex[i], endIndex[i]);  // 确保顺序正确
+	// Convert the corner pts into the image index space
+	mitk::Image::IndexType i0, i1, i2, i3, i4, i5, i6, i7, minIndex, maxIndex;
+	image->GetGeometry()->WorldToIndex(p0, minIndex);
+	image->GetGeometry()->WorldToIndex(p1, maxIndex);
+	image->GetGeometry()->WorldToIndex(p0, i0);
+	image->GetGeometry()->WorldToIndex(p1, i1);
+	image->GetGeometry()->WorldToIndex(p2, i2);
+	image->GetGeometry()->WorldToIndex(p3, i3);
+	image->GetGeometry()->WorldToIndex(p4, i4);
+	image->GetGeometry()->WorldToIndex(p5, i5);
+	image->GetGeometry()->WorldToIndex(p6, i6);
+	image->GetGeometry()->WorldToIndex(p7, i7);
+
+	// Construct an AABB in the index space
+	for(int i{0}; i < 3; i++)
+	{
+		if (minIndex[i] > i0[i]) minIndex[i] = i0[i];
+		if (minIndex[i] > i1[i]) minIndex[i] = i1[i];
+		if (minIndex[i] > i2[i]) minIndex[i] = i2[i];
+		if (minIndex[i] > i3[i]) minIndex[i] = i3[i];
+		if (minIndex[i] > i4[i]) minIndex[i] = i4[i];
+		if (minIndex[i] > i5[i]) minIndex[i] = i5[i];
+		if (minIndex[i] > i6[i]) minIndex[i] = i6[i];
+		if (minIndex[i] > i7[i]) minIndex[i] = i7[i];
+
+		if (maxIndex[i] < i0[i]) maxIndex[i] = i0[i];
+		if (maxIndex[i] < i1[i]) maxIndex[i] = i1[i];
+		if (maxIndex[i] < i2[i]) maxIndex[i] = i2[i];
+		if (maxIndex[i] < i3[i]) maxIndex[i] = i3[i];
+		if (maxIndex[i] < i4[i]) maxIndex[i] = i4[i];
+		if (maxIndex[i] < i5[i]) maxIndex[i] = i5[i];
+		if (maxIndex[i] < i6[i]) maxIndex[i] = i6[i];
+		if (maxIndex[i] < i7[i]) maxIndex[i] = i7[i];
+
+		if (minIndex[i] < 0) minIndex[i] = 0;
+		if (maxIndex[i] >= image->GetDimension(i)) maxIndex[i] = image->GetDimension(i) - 1;
 	}
-	int Xmin = static_cast<int>(startIndex[0]);
-	int Ymin = static_cast<int>(startIndex[1]);
-	int Zmin = static_cast<int>(startIndex[2]);
-	int Xmax = static_cast<int>(endIndex[0]);
-	int Ymax = static_cast<int>(endIndex[1]);
-	int Zmax = static_cast<int>(endIndex[2]);
 
-	// Xmin, Xmax, Ymin, Ymax, Zmin, Zmax are the diagonal indices of the image, but they are problematic, since
-	// // the corner pts of the AABB in the world space don't necessarily correspond to the AABB corner pts in the image space -- 20250207
+	// Convert the minIndex and maxIndex pts into the world space
+	mitk::Point3D minPoint_convert, maxPoint_convert;
+	image->GetGeometry()->IndexToWorld(minIndex,minPoint_convert);
+	image->GetGeometry()->IndexToWorld(maxIndex, maxPoint_convert);
 
-	return std::make_tuple(std::array<int, 6>{Xmin, Xmax, Ymin, Ymax, Zmin, Zmax}, minPoint, maxPoint);
+	int Xmin = static_cast<int>(minIndex[0]);
+	int Ymin = static_cast<int>(minIndex[1]);
+	int Zmin = static_cast<int>(minIndex[2]);
+	int Xmax = static_cast<int>(maxIndex[0]);
+	int Ymax = static_cast<int>(maxIndex[1]);
+	int Zmax = static_cast<int>(maxIndex[2]);
+
+	return std::make_tuple(std::array<int, 6>{Xmin, Xmax, Ymin, Ymax, Zmin, Zmax}, minPoint_convert, maxPoint_convert);
+
 }
 
 mitk::Image::Pointer ImageCropperNew::ConvertVtkToMitk(vtkImageData* vtkImage)
 {
+	auto vtkImageOrigin = vtkImage->GetOrigin();
+
+	auto image_node = m_Controls.imageSelectionWidget->GetSelectedNode();
+	auto image_clip = dynamic_cast<mitk::Image*>(image_node->GetData());
+
+	auto mitkImageGeo = image_clip->GetGeometry();
+
+	auto tmpMatrix = vtkMatrix4x4::New();
+	tmpMatrix->DeepCopy(mitkImageGeo->GetVtkMatrix());
+	tmpMatrix->SetElement(0, 3, vtkImageOrigin[0]);
+	tmpMatrix->SetElement(1, 3, vtkImageOrigin[1]);
+	tmpMatrix->SetElement(2, 3, vtkImageOrigin[2]);
+
 	mitk::Image::Pointer mitkImage = mitk::Image::New();
 	mitkImage->Initialize(vtkImage);
 	mitkImage->SetVolume(vtkImage->GetScalarPointer());
+	mitkImage->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(tmpMatrix);
 	return mitkImage;
 }
 
@@ -169,26 +227,19 @@ vtkSmartPointer<vtkImageData> ImageCropperNew::ExtractImageRegionByBound(vtkSmar
 	extractVOI->Update();
 	vtkSmartPointer<vtkImageData> extractedImage = extractVOI->GetOutput();
 
-	// 计算新的原点
-	double originalOrigin[3];
-	inputImage->GetOrigin(originalOrigin);  // 原始图像的原点
-	double spacing[3];
-	inputImage->GetSpacing(spacing);  // 原始图像的像素间距
+	// The mitk::Image's spacing is not necessarily stored in the corresponding vtkImageData, there's a latency 
+	auto image_node = m_Controls.imageSelectionWidget->GetSelectedNode();
+	auto image_clip = dynamic_cast<mitk::Image*>(image_node->GetData());
+	auto spacing_ = image_clip->GetGeometry()->GetSpacing();
 
-	// 根据 VOI 起始位置计算新原点
-	double clipedOrigin[3];
-	extractedImage->GetOrigin(clipedOrigin);
+	double spacing[3]{spacing_[0],spacing_[1],spacing_[2]};
 
 	double newOrigin[3];
 	newOrigin[0] = minPoint[0];
 	newOrigin[1] = minPoint[1];
 	newOrigin[2] = minPoint[2];
 
-	//newOrigin[0] = originalOrigin[0] + xmin * spacing[0];
-	//newOrigin[1] = originalOrigin[1] + ymin * spacing[1];
-	//newOrigin[2] = originalOrigin[2] + zmin * spacing[2];
-
-	// 设置提取图像的新原点和间距，使物理位置一致
+	// Match the fix point
 	extractedImage->SetOrigin(newOrigin);
 	extractedImage->SetSpacing(spacing);
 	return extractedImage;
@@ -207,13 +258,12 @@ void ImageCropperNew::on_pushButton_ImageCropper_clicked() {
 	auto surface_clip = dynamic_cast<mitk::Surface*>(surface_node->GetData());
 	auto image_clip = dynamic_cast<mitk::Image*>(image_node->GetData());
 
-	//1.找到重合区域的Xmin,Ymin,Zmin,Xmax,Ymax,Zmax
 	auto [bound, minPoint, maxPoint] = CalculateOverlapImageBound(image_clip, surface_clip);
-	//2.使用extractVOI,裁剪图像
+
 	vtkSmartPointer<vtkImageData> vtkImageToReam = image_clip->GetVtkImageData();
 	vtkSmartPointer<vtkImageData> croppedImage = ExtractImageRegionByBound(vtkImageToReam,
 		bound[0], bound[1], bound[2], bound[3], bound[4], bound[5], minPoint, maxPoint);
-	//3.vtkImage转换为mitkImage
+
 	mitk::Image::Pointer mitkCroppedImage = ConvertVtkToMitk(croppedImage);
 
 	mitk::DataNode::Pointer imageNode = mitk::DataNode::New();
@@ -269,7 +319,7 @@ void ImageCropperNew::CreateMoveableBoundingBox() {
 	auto geometry = image->GetGeometry();
 	mitk::Point3D origin = geometry->GetOrigin(); 
 	mitk::Vector3D spacing = geometry->GetSpacing(); 
-	mitk::Vector3D extent = geometry->GetExtentInMM(0); // 图像的物理尺寸
+	mitk::Vector3D extent = geometry->GetExtentInMM(0);
 	mitk::BoundingBox::BoundsArrayType bounds = geometry->GetBounds();
 
 	mitk::Image::IndexType startIndex, endIndex;
@@ -278,19 +328,13 @@ void ImageCropperNew::CreateMoveableBoundingBox() {
 	mitk::FillVector3D(minPoint, bounds[0], bounds[2], bounds[4]);
 	mitk::FillVector3D(maxPoint, bounds[1], bounds[3], bounds[5]);
 
-	//double halfSize[3];
-	//halfSize[0] = std::abs((minPoint[0] - maxPoint[0]) / 4.0); // 长
-	//halfSize[1] = std::abs((minPoint[1] - maxPoint[1]) / 4.0); // 宽
-	//halfSize[2] = std::abs((minPoint[2] - maxPoint[2]) / 4.0); // 高
-
 	double halfSize[3];
-	halfSize[0] = extent[0] / 1.0; // 长
-	halfSize[1] = extent[1] / 1.0; // 宽
-	halfSize[2] = extent[2] / 1.0; // 高
+	halfSize[0] = extent[0] / 1.0; 
+	halfSize[1] = extent[1] / 1.0; 
+	halfSize[2] = extent[2] / 1.0; 
 
 	mitk::Point3D center = geometry->GetCenter(); 
 
-	// 使用 VTK 生成切割用长方体
 	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 	cubeSource->SetXLength(halfSize[0]); 
 	cubeSource->SetYLength(halfSize[1]); 
@@ -304,7 +348,7 @@ void ImageCropperNew::CreateMoveableBoundingBox() {
 	mitk::DataNode::Pointer cubeNode = mitk::DataNode::New();
 	cubeNode->SetData(surface);
 	cubeNode->SetName("Crop Box"); 
-	//cubeNode->SetProperty("color", mitk::ColorProperty::New(1.0, 0.0, 0.0)); // 设置颜色为红色
+
 	cubeNode->SetProperty("opacity", mitk::FloatProperty::New(0.5)); 
 
 	GetDataStorage()->Add(cubeNode);

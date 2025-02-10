@@ -65,6 +65,7 @@ protected:
 
   void ResetView();
 
+  // <int, 6> is the diagonal pts in the index space, the 2 mitk::Point3Ds are the corresponding pts in the world space  
   std::tuple<std::array<int, 6>, mitk::Point3D, mitk::Point3D> CalculateOverlapImageBound(const mitk::Image::Pointer& image, const mitk::Surface::Pointer& surface);
 
   mitk::Image::Pointer ConvertVtkToMitk(vtkImageData* vtkImage);
