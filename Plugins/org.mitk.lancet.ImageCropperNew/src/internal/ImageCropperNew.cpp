@@ -40,7 +40,10 @@ found in the LICENSE file.
 
 // others
 #include <tuple>
+#include <vtkCellData.h>
 #include <vtkTransformPolyDataFilter.h>
+
+#include "mitkImageWriteAccessor.h"
 
 const std::string ImageCropperNew::VIEW_ID = "org.mitk.views.imagecroppernew";
 ImageCropperNew::ImageCropperNew(QObject*)
@@ -80,8 +83,128 @@ void ImageCropperNew::CreateQtPartControl(QWidget *parent)
   //connect(m_Controls.surfaceSelectionWidget, &QmitkSingleNodeSelectionWidget::CurrentSelectionChanged, this, &ImageCropperNew::SurfaceIcpSourceChanged);
   connect(m_Controls.pushButton_FastImageCrop, &QPushButton::clicked, this, &ImageCropperNew::on_pushButton_ImageCropper_clicked);
   connect(m_Controls.buttonCreateNewBoundingBox, &QPushButton::clicked, this, &ImageCropperNew::on_pushButton_ImageCropper_showboundingshape_clicked);
+  connect(m_Controls.pushButton_resample, &QPushButton::clicked, this, &ImageCropperNew::on_pushButton_resample_clicked);
+
 }
 
+void ImageCropperNew::on_pushButton_resample_clicked()
+{
+	// ------ Retrieve the spacing -----------
+	double outputSpacing[3];
+	outputSpacing[0] = m_Controls.lineEdit_x_step->text().toDouble();
+	outputSpacing[1] = m_Controls.lineEdit_y_step->text().toDouble();
+	outputSpacing[2] = m_Controls.lineEdit_z_step->text().toDouble();
+
+	//------- Construct a blank mitk::Image that occupies the AABB of the input mitk::Image -------------
+	auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.imageSelectionWidget->GetSelectedNode()->GetData());
+	auto inputVtkImage = inputImage->GetVtkImageData();
+	auto inputImageDim = inputImage->GetDimensions();
+	auto inputGeometry = inputImage->GetGeometry();
+
+	mitk::Point3D a0, a1, a2, a3, a4, a5, a6, a7, p0, p1, p2, p3, p4, p5, p6, p7;
+	mitk::FillVector3D(a0, 0, 0, 0);
+	mitk::FillVector3D(a1, inputImageDim[0], 0, 0);
+	mitk::FillVector3D(a2, 0, inputImageDim[1], 0);
+	mitk::FillVector3D(a3, 0, 0, inputImageDim[2]);
+	mitk::FillVector3D(a4, inputImageDim[0], inputImageDim[1], 0);
+	mitk::FillVector3D(a5, inputImageDim[0], 0, inputImageDim[2]);
+	mitk::FillVector3D(a6, 0, inputImageDim[1], inputImageDim[2]);
+	mitk::FillVector3D(a7, inputImageDim[0], inputImageDim[1], inputImageDim[2]);
+
+	inputGeometry->IndexToWorld(a0, p0);
+	inputGeometry->IndexToWorld(a1, p1);
+	inputGeometry->IndexToWorld(a2, p2);
+	inputGeometry->IndexToWorld(a3, p3);
+	inputGeometry->IndexToWorld(a4, p4);
+	inputGeometry->IndexToWorld(a5, p5);
+	inputGeometry->IndexToWorld(a6, p6);
+	inputGeometry->IndexToWorld(a7, p7);
+
+	MITK_INFO << p0;
+
+	double outputLowerBounds[3]{ p0[0], p0[1], p0[2] };
+	double outputUpperBounds[3]{ p0[0], p0[1], p0[2] };
+
+	for (int i{ 0 }; i < 3; i++)
+	{
+		if (outputLowerBounds[i] > p0[i]) outputLowerBounds[i] = p0[i];
+		if (outputLowerBounds[i] > p1[i]) outputLowerBounds[i] = p1[i];
+		if (outputLowerBounds[i] > p2[i]) outputLowerBounds[i] = p2[i];
+		if (outputLowerBounds[i] > p3[i]) outputLowerBounds[i] = p3[i];
+		if (outputLowerBounds[i] > p4[i]) outputLowerBounds[i] = p4[i];
+		if (outputLowerBounds[i] > p5[i]) outputLowerBounds[i] = p5[i];
+		if (outputLowerBounds[i] > p6[i]) outputLowerBounds[i] = p6[i];
+		if (outputLowerBounds[i] > p7[i]) outputLowerBounds[i] = p7[i];
+
+		if (outputUpperBounds[i] < p0[i]) outputUpperBounds[i] = p0[i];
+		if (outputUpperBounds[i] < p1[i]) outputUpperBounds[i] = p1[i];
+		if (outputUpperBounds[i] < p2[i]) outputUpperBounds[i] = p2[i];
+		if (outputUpperBounds[i] < p3[i]) outputUpperBounds[i] = p3[i];
+		if (outputUpperBounds[i] < p4[i]) outputUpperBounds[i] = p4[i];
+		if (outputUpperBounds[i] < p5[i]) outputUpperBounds[i] = p5[i];
+		if (outputUpperBounds[i] < p6[i]) outputUpperBounds[i] = p6[i];
+		if (outputUpperBounds[i] < p7[i]) outputUpperBounds[i] = p7[i];
+	}
+
+	int outputDim[3];
+	for (int i = 0; i < 3; i++)
+	{
+		outputDim[i] = static_cast<int>(ceil((outputUpperBounds[i] - outputLowerBounds[i]) / outputSpacing[i]));
+	}
+
+	auto imageData = vtkImageData::New();
+	imageData->SetDimensions(outputDim);
+	imageData->SetSpacing(outputSpacing);
+
+	imageData->AllocateScalars(VTK_INT, 1);  // 1 component (scalar value)
+
+	int* data = static_cast<int*>(imageData->GetScalarPointer());
+	int numVoxels = outputDim[0] * outputDim[1] * outputDim[2];
+
+	std::fill_n(data, numVoxels, m_Controls.lineEdit_fringeValue->text().toInt());
+
+	imageData->SetOrigin(outputLowerBounds);
+
+	auto mitkImage = mitk::Image::New();
+
+	mitkImage->Initialize(imageData);
+
+	auto outputGeo = mitkImage->GetGeometry();
+
+	// Resampling
+	for(int z{0}; z < outputDim[2]; z++)
+	{
+		for (int y{ 0 }; y < outputDim[1]; y++)
+		{
+			for (int x{ 0 }; x < outputDim[0]; x++)
+			{
+				mitk::Point3D tmpPoint, worldPoint, inputPoint;
+				mitk::FillVector3D(tmpPoint, x, y, z);
+				outputGeo->IndexToWorld(tmpPoint, worldPoint);
+				inputGeometry->WorldToIndex(worldPoint, inputPoint);
+
+				if (inputPoint[0] < 0) continue;
+				if (inputPoint[0] >= inputImageDim[0]) continue;
+				if (inputPoint[1] < 0) continue;
+				if (inputPoint[1] >= inputImageDim[1]) continue;
+				if (inputPoint[2] < 0) continue;
+				if (inputPoint[2] >= inputImageDim[2]) continue;
+
+				int* voxel = static_cast<int*>(imageData->GetScalarPointer(x, y, z));
+				int* voxel_target = static_cast<int*>(inputVtkImage->GetScalarPointer(inputPoint[0], inputPoint[1], inputPoint[2]));
+				voxel[0] = voxel_target[0];
+			}
+		}
+	}
+
+	mitkImage->SetVolume(imageData->GetScalarPointer());
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(mitkImage);
+	tmpNode->SetName("resampled");
+
+	GetDataStorage()->Add(tmpNode, m_Controls.imageSelectionWidget->GetSelectedNode());
+}
 
 
 void ImageCropperNew::InitSurfaceSelector(QmitkSingleNodeSelectionWidget* widget)

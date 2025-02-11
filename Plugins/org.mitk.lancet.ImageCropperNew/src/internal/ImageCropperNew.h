@@ -82,6 +82,8 @@ protected:
 
   void on_pushButton_AddInteractor_clicked();
 
+  void on_pushButton_resample_clicked();
+
   Ui::ImageCropperNewControls m_Controls;
 };
 
