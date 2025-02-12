@@ -84,6 +84,11 @@ protected:
 
   void on_pushButton_resample_clicked();
 
+  template <typename ITKImageType>
+  mitk::Image::Pointer ResampleITKImage(typename ITKImageType::Pointer itkImage);
+
+  void on_pushButton_resample_type2_clicked();
+
   Ui::ImageCropperNewControls m_Controls;
 };
 

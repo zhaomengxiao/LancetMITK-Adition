@@ -39,10 +39,12 @@ found in the LICENSE file.
 #include <vtkCubeSource.h>
 
 // others
+#include <itkResampleImageFilter.h>
 #include <tuple>
 #include <vtkCellData.h>
 #include <vtkTransformPolyDataFilter.h>
 
+#include "mitkImageCast.h"
 #include "mitkImageWriteAccessor.h"
 
 const std::string ImageCropperNew::VIEW_ID = "org.mitk.views.imagecroppernew";
@@ -84,8 +86,78 @@ void ImageCropperNew::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_FastImageCrop, &QPushButton::clicked, this, &ImageCropperNew::on_pushButton_ImageCropper_clicked);
   connect(m_Controls.buttonCreateNewBoundingBox, &QPushButton::clicked, this, &ImageCropperNew::on_pushButton_ImageCropper_showboundingshape_clicked);
   connect(m_Controls.pushButton_resample, &QPushButton::clicked, this, &ImageCropperNew::on_pushButton_resample_clicked);
+  connect(m_Controls.pushButton_resample_type2, &QPushButton::clicked, this, &ImageCropperNew::on_pushButton_resample_type2_clicked);
 
 }
+
+template <typename ITKImageType>
+mitk::Image::Pointer ImageCropperNew::ResampleITKImage(typename ITKImageType::Pointer itkImage)
+{
+	// Step 1: Define the rotation transform (in this case, an affine transform)
+	typedef itk::AffineTransform<double, ITKImageType::ImageDimension> TransformType;
+	typename TransformType::Pointer transform = TransformType::New();
+
+	// Step 2: Set up rotation
+	// Rotate around the center of the image
+	typename ITKImageType::PointType center;
+	itk::Vector<double, 3> axis;
+	axis[0] = 1;
+	axis[1] = 0;
+	axis[2] = 0;
+	//itkImage->TransformIndexToPhysicalPoint(itkImage->GetLargestPossibleRegion().GetIndex(), center);
+	//transform->Translate(-center);  // Move the origin to the center
+	transform->Rotate3D(axis, 45 * itk::Math::pi / 180.0, false);  // Rotate around the center (2D rotation)
+	// transform->Translate(center);  // Move the origin back to the original position
+
+	// Step 3: Set up the resample filter
+	typedef itk::ResampleImageFilter<ITKImageType, ITKImageType> ResampleFilterType;
+	typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
+
+	resampleFilter->SetTransform(transform);
+	resampleFilter->SetInput(itkImage);
+	resampleFilter->SetSize(itkImage->GetLargestPossibleRegion().GetSize()); // Maintain the original size
+	resampleFilter->SetOutputSpacing(itkImage->GetSpacing());
+	resampleFilter->SetOutputOrigin(itkImage->GetOrigin());
+	resampleFilter->SetOutputDirection(itkImage->GetDirection());
+	resampleFilter->SetDefaultPixelValue(-1000);  // Background value
+
+	// Step 4: Perform the resampling
+	resampleFilter->Update();
+
+	// Step 5: Convert the rotated ITK image back to an MITK image
+	mitk::Image::Pointer mitkImage = mitk::Image::New();
+	mitk::CastToMitkImage(resampleFilter->GetOutput(), mitkImage);
+
+	return mitkImage;
+}
+
+
+void ImageCropperNew::on_pushButton_resample_type2_clicked()
+{
+	// ------ Retrieve the spacing and the fringe value-----------
+	double outputSpacing[3];
+	outputSpacing[0] = m_Controls.lineEdit_x_step->text().toDouble();
+	outputSpacing[1] = m_Controls.lineEdit_y_step->text().toDouble();
+	outputSpacing[2] = m_Controls.lineEdit_z_step->text().toDouble();
+
+	int fringeValue = m_Controls.lineEdit_fringeValue->text().toInt();
+
+	auto inputMitkImage = dynamic_cast<mitk::Image*>(m_Controls.imageSelectionWidget->GetSelectedNode()->GetData());
+
+	typedef itk::Image<int, 3> ITKImageType;
+	auto inputItkImage = ITKImageType::New();
+	mitk::CastToItkImage(inputMitkImage, inputItkImage);
+
+	auto outputMitkImage = ResampleITKImage<ITKImageType>(inputItkImage);
+
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(outputMitkImage);
+	tmpNode->SetName("Resampled");
+
+	GetDataStorage()->Add(tmpNode, m_Controls.imageSelectionWidget->GetSelectedNode());
+
+}
+
 
 void ImageCropperNew::on_pushButton_resample_clicked()
 {
