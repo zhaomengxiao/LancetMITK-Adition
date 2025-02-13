@@ -46,6 +46,7 @@ found in the LICENSE file.
 
 #include "mitkImageCast.h"
 #include "mitkImageWriteAccessor.h"
+#include "mitkMatrixConvert.h"
 
 const std::string ImageCropperNew::VIEW_ID = "org.mitk.views.imagecroppernew";
 ImageCropperNew::ImageCropperNew(QObject*)
@@ -87,6 +88,140 @@ void ImageCropperNew::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.buttonCreateNewBoundingBox, &QPushButton::clicked, this, &ImageCropperNew::on_pushButton_ImageCropper_showboundingshape_clicked);
   connect(m_Controls.pushButton_resample, &QPushButton::clicked, this, &ImageCropperNew::on_pushButton_resample_clicked);
   connect(m_Controls.pushButton_resample_type2, &QPushButton::clicked, this, &ImageCropperNew::on_pushButton_resample_type2_clicked);
+
+}
+
+bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk::Image::Pointer outputMitkImage)
+{
+	/* In general, an affine transform can be described as Y = M * X + T, where T is translation,
+	 * M = R * S * H, R is rotation, S is pure diagonal scaling, H is shearing
+	 * R and S are commutative, S and H are not commutative
+	 * Since we rarely handle image with shearing in MITK, we will neglect shearing in the following to simplify the code
+	 * Only 3D images are accepted by this function while 2D images are not accepted 
+	 */
+
+	if(inputMitkImage->GetDimension() < 2)
+	{
+		return false;
+	}
+
+	//-------0. Obtain the scaling and the rotation part of the input image geometry---------
+	auto inputGeo = inputMitkImage->GetGeometry();
+	auto inputVtkMatrix = inputGeo->GetVtkMatrix();
+	auto inputSpacing = inputGeo->GetSpacing();
+	auto inputImageDim = inputMitkImage->GetDimensions();
+	auto inputOffset = inputGeo->GetIndexToWorldTransform()->GetOffset();
+
+	typedef itk::Image<short, 3> ITKImageType; // requires further extension to process different pixType
+	auto inputItkImage = ITKImageType::New();
+	mitk::CastToItkImage(inputMitkImage, inputItkImage);
+
+	auto vtkScaleMatrix = vtkMatrix4x4::New();
+	vtkScaleMatrix->Identity();
+	vtkScaleMatrix->SetElement(0, 0, inputSpacing[0]);
+	vtkScaleMatrix->SetElement(1, 1, inputSpacing[1]);
+	vtkScaleMatrix->SetElement(2, 2, inputSpacing[2]);
+
+	auto vtkScaleMatrixInverse = vtkMatrix4x4::New();
+	vtkScaleMatrixInverse->Identity();
+	vtkScaleMatrixInverse->SetElement(0, 0, 1 / inputSpacing[0]);
+	vtkScaleMatrixInverse->SetElement(1, 1, 1 / inputSpacing[1]);
+	vtkScaleMatrixInverse->SetElement(2, 2, 1 / inputSpacing[2]);
+
+	auto vtkRotTrans = vtkTransform::New();
+	vtkRotTrans->PreMultiply();
+	vtkRotTrans->Identity();
+	vtkRotTrans->SetMatrix(inputVtkMatrix);
+	vtkRotTrans->Concatenate(vtkScaleMatrixInverse);
+	vtkRotTrans->Update();
+
+	// the matrix of Rotation with translation
+	auto vtkRotMatrix = vtkRotTrans->GetMatrix();
+
+	//-------1. Make a copy of the inputImage and remove its rotation and translation -------------
+	auto helperMitkImage = mitk::Image::New();
+	mitk::CastToMitkImage(inputItkImage, helperMitkImage);
+
+	helperMitkImage->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkScaleMatrix);
+	helperMitkImage->Update();
+	
+
+	//-------2. Calculate the AABB bounds of the inputMitkImage in world space ----------------
+	mitk::Point3D a0, a1, a2, a3, a4, a5, a6, a7, p0, p1, p2, p3, p4, p5, p6, p7;
+	mitk::FillVector3D(a0, 0, 0, 0);
+	mitk::FillVector3D(a1, inputImageDim[0], 0, 0);
+	mitk::FillVector3D(a2, 0, inputImageDim[1], 0);
+	mitk::FillVector3D(a3, 0, 0, inputImageDim[2]);
+	mitk::FillVector3D(a4, inputImageDim[0], inputImageDim[1], 0);
+	mitk::FillVector3D(a5, inputImageDim[0], 0, inputImageDim[2]);
+	mitk::FillVector3D(a6, 0, inputImageDim[1], inputImageDim[2]);
+	mitk::FillVector3D(a7, inputImageDim[0], inputImageDim[1], inputImageDim[2]);
+
+	inputGeo->IndexToWorld(a0, p0);
+	inputGeo->IndexToWorld(a1, p1);
+	inputGeo->IndexToWorld(a2, p2);
+	inputGeo->IndexToWorld(a3, p3);
+	inputGeo->IndexToWorld(a4, p4);
+	inputGeo->IndexToWorld(a5, p5);
+	inputGeo->IndexToWorld(a6, p6);
+	inputGeo->IndexToWorld(a7, p7);
+
+	double inputAABBLowerBounds[3]{ p0[0], p0[1], p0[2] };
+	double inputAABBUpperBounds[3]{ p0[0], p0[1], p0[2] };
+
+	for (int i{ 0 }; i < 3; i++)
+	{
+		if (inputAABBLowerBounds[i] > p0[i]) inputAABBLowerBounds[i] = p0[i];
+		if (inputAABBLowerBounds[i] > p1[i]) inputAABBLowerBounds[i] = p1[i];
+		if (inputAABBLowerBounds[i] > p2[i]) inputAABBLowerBounds[i] = p2[i];
+		if (inputAABBLowerBounds[i] > p3[i]) inputAABBLowerBounds[i] = p3[i];
+		if (inputAABBLowerBounds[i] > p4[i]) inputAABBLowerBounds[i] = p4[i];
+		if (inputAABBLowerBounds[i] > p5[i]) inputAABBLowerBounds[i] = p5[i];
+		if (inputAABBLowerBounds[i] > p6[i]) inputAABBLowerBounds[i] = p6[i];
+		if (inputAABBLowerBounds[i] > p7[i]) inputAABBLowerBounds[i] = p7[i];
+
+		if (inputAABBUpperBounds[i] < p0[i]) inputAABBUpperBounds[i] = p0[i];
+		if (inputAABBUpperBounds[i] < p1[i]) inputAABBUpperBounds[i] = p1[i];
+		if (inputAABBUpperBounds[i] < p2[i]) inputAABBUpperBounds[i] = p2[i];
+		if (inputAABBUpperBounds[i] < p3[i]) inputAABBUpperBounds[i] = p3[i];
+		if (inputAABBUpperBounds[i] < p4[i]) inputAABBUpperBounds[i] = p4[i];
+		if (inputAABBUpperBounds[i] < p5[i]) inputAABBUpperBounds[i] = p5[i];
+		if (inputAABBUpperBounds[i] < p6[i]) inputAABBUpperBounds[i] = p6[i];
+		if (inputAABBUpperBounds[i] < p7[i]) inputAABBUpperBounds[i] = p7[i];
+	}
+
+	//--------3. Resample the itkImage contained in the helperMitkImage with the rotation and the translation
+	auto helperItkImage = ITKImageType::New();
+	mitk::CastToItkImage(helperMitkImage, helperItkImage);
+
+
+	typedef itk::AffineTransform<double, 3> TransformType;
+	TransformType* itkTransform = TransformType::New();
+
+	mitk::TransferVtkMatrixToItkTransform(vtkRotMatrix, itkTransform);
+
+	ITKImageType::SizeType outputSize;
+	outputSize[0] = static_cast<int>(ceil((inputAABBUpperBounds[0] - inputAABBLowerBounds[0]) / inputSpacing[0]));
+	outputSize[1] = static_cast<int>(ceil((inputAABBUpperBounds[1] - inputAABBLowerBounds[1]) / inputSpacing[1]));
+	outputSize[2] = static_cast<int>(ceil((inputAABBUpperBounds[2] - inputAABBLowerBounds[2]) / inputSpacing[2]));
+	
+	double outputOrigin[3]{ inputAABBLowerBounds[0], inputAABBLowerBounds[1], inputAABBLowerBounds[2] };
+	
+	typedef itk::ResampleImageFilter<ITKImageType, ITKImageType> ResampleFilterType;
+	ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
+	
+	resampleFilter->SetTransform(itkTransform);
+	resampleFilter->SetInput(helperItkImage);
+	resampleFilter->SetSize(inputItkImage->GetLargestPossibleRegion().GetSize()); // Maintain the original size
+	resampleFilter->SetOutputSpacing(inputItkImage->GetSpacing());
+	resampleFilter->SetOutputOrigin(outputOrigin);
+	resampleFilter->SetOutputDirection(helperItkImage->GetDirection());
+	resampleFilter->SetDefaultPixelValue(-1000);  // Background value
+	resampleFilter->Update();
+	
+	mitk::CastToMitkImage(resampleFilter->GetOutput(), outputMitkImage);
+
+	return true;
 
 }
 
@@ -134,28 +269,21 @@ mitk::Image::Pointer ImageCropperNew::ResampleITKImage(typename ITKImageType::Po
 
 void ImageCropperNew::on_pushButton_resample_type2_clicked()
 {
-	// ------ Retrieve the spacing and the fringe value-----------
-	double outputSpacing[3];
-	outputSpacing[0] = m_Controls.lineEdit_x_step->text().toDouble();
-	outputSpacing[1] = m_Controls.lineEdit_y_step->text().toDouble();
-	outputSpacing[2] = m_Controls.lineEdit_z_step->text().toDouble();
-
-	int fringeValue = m_Controls.lineEdit_fringeValue->text().toInt();
-
 	auto inputMitkImage = dynamic_cast<mitk::Image*>(m_Controls.imageSelectionWidget->GetSelectedNode()->GetData());
 
 	typedef itk::Image<int, 3> ITKImageType;
 	auto inputItkImage = ITKImageType::New();
 	mitk::CastToItkImage(inputMitkImage, inputItkImage);
 
-	auto outputMitkImage = ResampleITKImage<ITKImageType>(inputItkImage);
+	// auto outputMitkImage = ResampleITKImage<ITKImageType>(inputItkImage);
+	auto outputMitkImage = mitk::Image::New();
+	GetHardenedImage(inputMitkImage, outputMitkImage);
 
 	auto tmpNode = mitk::DataNode::New();
 	tmpNode->SetData(outputMitkImage);
 	tmpNode->SetName("Resampled");
 
 	GetDataStorage()->Add(tmpNode, m_Controls.imageSelectionWidget->GetSelectedNode());
-
 }
 
 
@@ -192,7 +320,7 @@ void ImageCropperNew::on_pushButton_resample_clicked()
 	inputGeometry->IndexToWorld(a6, p6);
 	inputGeometry->IndexToWorld(a7, p7);
 
-	MITK_INFO << p0;
+	// MITK_INFO << p0;
 
 	double outputLowerBounds[3]{ p0[0], p0[1], p0[2] };
 	double outputUpperBounds[3]{ p0[0], p0[1], p0[2] };

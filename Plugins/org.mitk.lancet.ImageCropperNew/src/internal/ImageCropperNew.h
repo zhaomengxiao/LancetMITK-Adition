@@ -87,6 +87,9 @@ protected:
   template <typename ITKImageType>
   mitk::Image::Pointer ResampleITKImage(typename ITKImageType::Pointer itkImage);
 
+  // Harden the given mitk image while retaining the initial spacing
+  bool GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk::Image::Pointer outputMitkImage);
+
   void on_pushButton_resample_type2_clicked();
 
   Ui::ImageCropperNewControls m_Controls;
