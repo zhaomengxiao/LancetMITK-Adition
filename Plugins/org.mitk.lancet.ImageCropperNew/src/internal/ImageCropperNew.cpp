@@ -195,8 +195,23 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 	mitk::CastToItkImage(helperMitkImage, helperItkImage);
 
 
+	////////// Debug
+	auto tmpNode = mitk::DataNode::New();
+	tmpNode->SetData(helperMitkImage);
+	tmpNode->SetName("Debug");
+
+	GetDataStorage()->Add(tmpNode, m_Controls.imageSelectionWidget->GetSelectedNode());
+	// return true;
+	////////// Debug
+
 	typedef itk::AffineTransform<double, 3> TransformType;
 	TransformType* itkTransform = TransformType::New();
+
+	// itk::Vector<double, 3> axis;
+	// axis[0] = 0;
+	// axis[1] = 0;
+	// axis[2] = 1;
+	// itkTransform->Rotate3D(axis, 0 * itk::Math::pi / 180.0, false);
 
 	mitk::TransferVtkMatrixToItkTransform(vtkRotMatrix, itkTransform);
 
@@ -212,9 +227,12 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 	
 	resampleFilter->SetTransform(itkTransform);
 	resampleFilter->SetInput(helperItkImage);
-	resampleFilter->SetSize(inputItkImage->GetLargestPossibleRegion().GetSize()); // Maintain the original size
-	resampleFilter->SetOutputSpacing(inputItkImage->GetSpacing());
+	// resampleFilter->SetSize(inputItkImage->GetLargestPossibleRegion().GetSize()); // Maintain the original size
+	resampleFilter->SetSize(outputSize);
+	resampleFilter->SetOutputSpacing(helperItkImage->GetSpacing());
+	// resampleFilter->SetOutputOrigin(inputItkImage->GetOrigin());
 	resampleFilter->SetOutputOrigin(outputOrigin);
+	// resampleFilter->SetOutputDirection(inputItkImage->GetDirection());
 	resampleFilter->SetOutputDirection(helperItkImage->GetDirection());
 	resampleFilter->SetDefaultPixelValue(-1000);  // Background value
 	resampleFilter->Update();
