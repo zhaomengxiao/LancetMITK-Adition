@@ -137,6 +137,7 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 
 	// the matrix of Rotation with translation
 	auto vtkRotMatrix = vtkRotTrans->GetMatrix();
+	//vtkRotMatrix->Identity();
 
 	//-------1. Make a copy of the inputImage and remove its rotation and translation -------------
 	auto helperMitkImage = mitk::Image::New();
@@ -205,7 +206,7 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 	////////// Debug
 
 	typedef itk::AffineTransform<double, 3> TransformType;
-	TransformType* itkTransform = TransformType::New();
+	TransformType::Pointer itkTransform = TransformType::New();
 
 	// itk::Vector<double, 3> axis;
 	// axis[0] = 0;
@@ -213,7 +214,16 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 	// axis[2] = 1;
 	// itkTransform->Rotate3D(axis, 0 * itk::Math::pi / 180.0, false);
 
-	mitk::TransferVtkMatrixToItkTransform(vtkRotMatrix, itkTransform);
+	// mitk::TransferVtkMatrixToItkTransform(vtkRotMatrix, itkTransform);
+
+	// auto itkTransform = mitk::AffineTransform3D::New();
+
+	auto idMatrix = vtkMatrix4x4::New();
+	idMatrix->Identity();
+
+	mitk::TransferVtkMatrixToItkTransform(vtkRotMatrix, itkTransform.GetPointer());
+
+	MITK_INFO << "itkTransform:" << itkTransform;
 
 	ITKImageType::SizeType outputSize;
 	outputSize[0] = static_cast<int>(ceil((inputAABBUpperBounds[0] - inputAABBLowerBounds[0]) / inputSpacing[0]));
@@ -227,8 +237,8 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 	
 	resampleFilter->SetTransform(itkTransform);
 	resampleFilter->SetInput(helperItkImage);
-	// resampleFilter->SetSize(inputItkImage->GetLargestPossibleRegion().GetSize()); // Maintain the original size
-	resampleFilter->SetSize(outputSize);
+	resampleFilter->SetSize(inputItkImage->GetLargestPossibleRegion().GetSize()); // Maintain the original size
+	// resampleFilter->SetSize(outputSize);
 	resampleFilter->SetOutputSpacing(helperItkImage->GetSpacing());
 	// resampleFilter->SetOutputOrigin(inputItkImage->GetOrigin());
 	resampleFilter->SetOutputOrigin(outputOrigin);
