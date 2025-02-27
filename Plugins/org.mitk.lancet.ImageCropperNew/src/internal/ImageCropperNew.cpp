@@ -42,6 +42,7 @@ found in the LICENSE file.
 #include <itkResampleImageFilter.h>
 #include <tuple>
 #include <vtkCellData.h>
+#include <vtkPointData.h>
 #include <vtkTransformPolyDataFilter.h>
 
 #include "mitkImageCast.h"
@@ -110,9 +111,8 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 	auto inputVtkMatrix = inputGeo->GetVtkMatrix();
 	auto inputSpacing = inputGeo->GetSpacing();
 	auto inputImageDim = inputMitkImage->GetDimensions();
-	auto inputOffset = inputGeo->GetIndexToWorldTransform()->GetOffset();
 
-	typedef itk::Image<short, 3> ITKImageType; // requires further extension to process different pixType
+	typedef itk::Image<short, 3> ITKImageType; // needs further extension to process different pixType
 	auto inputItkImage = ITKImageType::New();
 	mitk::CastToItkImage(inputMitkImage, inputItkImage);
 
@@ -133,11 +133,11 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 	vtkRotTrans->Identity();
 	vtkRotTrans->SetMatrix(inputVtkMatrix);
 	vtkRotTrans->Concatenate(vtkScaleMatrixInverse);
+	vtkRotTrans->Inverse();
 	vtkRotTrans->Update();
 
-	// the matrix of Rotation with translation
+	// the inverse matrix of (Rotation with translation)
 	auto vtkRotMatrix = vtkRotTrans->GetMatrix();
-	//vtkRotMatrix->Identity();
 
 	//-------1. Make a copy of the inputImage and remove its rotation and translation -------------
 	auto helperMitkImage = mitk::Image::New();
@@ -145,7 +145,6 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 
 	helperMitkImage->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkScaleMatrix);
 	helperMitkImage->Update();
-	
 
 	//-------2. Calculate the AABB bounds of the inputMitkImage in world space ----------------
 	mitk::Point3D a0, a1, a2, a3, a4, a5, a6, a7, p0, p1, p2, p3, p4, p5, p6, p7;
@@ -195,35 +194,10 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 	auto helperItkImage = ITKImageType::New();
 	mitk::CastToItkImage(helperMitkImage, helperItkImage);
 
-
-	////////// Debug
-	auto tmpNode = mitk::DataNode::New();
-	tmpNode->SetData(helperMitkImage);
-	tmpNode->SetName("Debug");
-
-	GetDataStorage()->Add(tmpNode, m_Controls.imageSelectionWidget->GetSelectedNode());
-	// return true;
-	////////// Debug
-
 	typedef itk::AffineTransform<double, 3> TransformType;
 	TransformType::Pointer itkTransform = TransformType::New();
 
-	// itk::Vector<double, 3> axis;
-	// axis[0] = 0;
-	// axis[1] = 0;
-	// axis[2] = 1;
-	// itkTransform->Rotate3D(axis, 0 * itk::Math::pi / 180.0, false);
-
-	// mitk::TransferVtkMatrixToItkTransform(vtkRotMatrix, itkTransform);
-
-	// auto itkTransform = mitk::AffineTransform3D::New();
-
-	auto idMatrix = vtkMatrix4x4::New();
-	idMatrix->Identity();
-
 	mitk::TransferVtkMatrixToItkTransform(vtkRotMatrix, itkTransform.GetPointer());
-
-	MITK_INFO << "itkTransform:" << itkTransform;
 
 	ITKImageType::SizeType outputSize;
 	outputSize[0] = static_cast<int>(ceil((inputAABBUpperBounds[0] - inputAABBLowerBounds[0]) / inputSpacing[0]));
@@ -235,16 +209,26 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 	typedef itk::ResampleImageFilter<ITKImageType, ITKImageType> ResampleFilterType;
 	ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
 	
-	resampleFilter->SetTransform(itkTransform);
+	resampleFilter->SetTransform(itkTransform); // the transform from the index space of the target image to the world space
 	resampleFilter->SetInput(helperItkImage);
-	resampleFilter->SetSize(inputItkImage->GetLargestPossibleRegion().GetSize()); // Maintain the original size
-	// resampleFilter->SetSize(outputSize);
+	resampleFilter->SetSize(outputSize);
 	resampleFilter->SetOutputSpacing(helperItkImage->GetSpacing());
-	// resampleFilter->SetOutputOrigin(inputItkImage->GetOrigin());
 	resampleFilter->SetOutputOrigin(outputOrigin);
-	// resampleFilter->SetOutputDirection(inputItkImage->GetDirection());
 	resampleFilter->SetOutputDirection(helperItkImage->GetDirection());
-	resampleFilter->SetDefaultPixelValue(-1000);  // Background value
+
+	// Get the minimum pixel value of the image and set as the background
+	auto helperVtkImage = helperMitkImage->GetVtkImageData();
+	vtkDataArray* scalars = helperVtkImage->GetPointData()->GetScalars();
+
+	double minGrayValue = std::numeric_limits<double>::max();
+	for (vtkIdType i = 0; i < scalars->GetNumberOfTuples(); i++) {
+		double value = scalars->GetComponent(i, 0);
+		if (value < minGrayValue) {
+			minGrayValue = value;
+		}
+	}
+
+	resampleFilter->SetDefaultPixelValue(static_cast<short>(minGrayValue));  // Background value
 	resampleFilter->Update();
 	
 	mitk::CastToMitkImage(resampleFilter->GetOutput(), outputMitkImage);
@@ -253,81 +237,47 @@ bool ImageCropperNew::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk
 
 }
 
-template <typename ITKImageType>
-mitk::Image::Pointer ImageCropperNew::ResampleITKImage(typename ITKImageType::Pointer itkImage)
-{
-	// Step 1: Define the rotation transform (in this case, an affine transform)
-	typedef itk::AffineTransform<double, ITKImageType::ImageDimension> TransformType;
-	typename TransformType::Pointer transform = TransformType::New();
-
-	// Step 2: Set up rotation
-	// Rotate around the center of the image
-	typename ITKImageType::PointType center;
-	itk::Vector<double, 3> axis;
-	axis[0] = 1;
-	axis[1] = 0;
-	axis[2] = 0;
-	//itkImage->TransformIndexToPhysicalPoint(itkImage->GetLargestPossibleRegion().GetIndex(), center);
-	//transform->Translate(-center);  // Move the origin to the center
-	transform->Rotate3D(axis, 45 * itk::Math::pi / 180.0, false);  // Rotate around the center (2D rotation)
-	// transform->Translate(center);  // Move the origin back to the original position
-
-	// Step 3: Set up the resample filter
-	typedef itk::ResampleImageFilter<ITKImageType, ITKImageType> ResampleFilterType;
-	typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
-
-	resampleFilter->SetTransform(transform);
-	resampleFilter->SetInput(itkImage);
-	resampleFilter->SetSize(itkImage->GetLargestPossibleRegion().GetSize()); // Maintain the original size
-	resampleFilter->SetOutputSpacing(itkImage->GetSpacing());
-	resampleFilter->SetOutputOrigin(itkImage->GetOrigin());
-	resampleFilter->SetOutputDirection(itkImage->GetDirection());
-	resampleFilter->SetDefaultPixelValue(-1000);  // Background value
-
-	// Step 4: Perform the resampling
-	resampleFilter->Update();
-
-	// Step 5: Convert the rotated ITK image back to an MITK image
-	mitk::Image::Pointer mitkImage = mitk::Image::New();
-	mitk::CastToMitkImage(resampleFilter->GetOutput(), mitkImage);
-
-	return mitkImage;
-}
-
-
 void ImageCropperNew::on_pushButton_resample_type2_clicked()
 {
 	auto inputMitkImage = dynamic_cast<mitk::Image*>(m_Controls.imageSelectionWidget->GetSelectedNode()->GetData());
 
-	typedef itk::Image<int, 3> ITKImageType;
-	auto inputItkImage = ITKImageType::New();
-	mitk::CastToItkImage(inputMitkImage, inputItkImage);
-
-	// auto outputMitkImage = ResampleITKImage<ITKImageType>(inputItkImage);
 	auto outputMitkImage = mitk::Image::New();
-	GetHardenedImage(inputMitkImage, outputMitkImage);
+	if(GetHardenedImage(inputMitkImage, outputMitkImage))
+	{
+		auto tmpNode = mitk::DataNode::New();
+		tmpNode->SetData(outputMitkImage);
+		tmpNode->SetName("Resampled");
 
-	auto tmpNode = mitk::DataNode::New();
-	tmpNode->SetData(outputMitkImage);
-	tmpNode->SetName("Resampled");
-
-	GetDataStorage()->Add(tmpNode, m_Controls.imageSelectionWidget->GetSelectedNode());
+		GetDataStorage()->Add(tmpNode, m_Controls.imageSelectionWidget->GetSelectedNode());
+	}
 }
 
 
 void ImageCropperNew::on_pushButton_resample_clicked()
 {
-	// ------ Retrieve the spacing -----------
-	double outputSpacing[3];
-	outputSpacing[0] = m_Controls.lineEdit_x_step->text().toDouble();
-	outputSpacing[1] = m_Controls.lineEdit_y_step->text().toDouble();
-	outputSpacing[2] = m_Controls.lineEdit_z_step->text().toDouble();
-
 	//------- Construct a blank mitk::Image that occupies the AABB of the input mitk::Image -------------
 	auto inputImage = dynamic_cast<mitk::Image*>(m_Controls.imageSelectionWidget->GetSelectedNode()->GetData());
 	auto inputVtkImage = inputImage->GetVtkImageData();
 	auto inputImageDim = inputImage->GetDimensions();
 	auto inputGeometry = inputImage->GetGeometry();
+
+	// ------ Retrieve the spacing -----------
+	double outputSpacing[3];
+	outputSpacing[0] = inputImage->GetGeometry()->GetSpacing()[0];
+	outputSpacing[1] = inputImage->GetGeometry()->GetSpacing()[1];
+	outputSpacing[2] = inputImage->GetGeometry()->GetSpacing()[2];
+
+	// Get the minimum pixel value of the image and set as the background
+	auto helperVtkImage = inputImage->GetVtkImageData();
+	vtkDataArray* scalars = helperVtkImage->GetPointData()->GetScalars();
+
+	double minGrayValue = std::numeric_limits<double>::max();
+	for (vtkIdType i = 0; i < scalars->GetNumberOfTuples(); i++) {
+		double value = scalars->GetComponent(i, 0);
+		if (value < minGrayValue) {
+			minGrayValue = value;
+		}
+	}
 
 	mitk::Point3D a0, a1, a2, a3, a4, a5, a6, a7, p0, p1, p2, p3, p4, p5, p6, p7;
 	mitk::FillVector3D(a0, 0, 0, 0);
@@ -347,8 +297,6 @@ void ImageCropperNew::on_pushButton_resample_clicked()
 	inputGeometry->IndexToWorld(a5, p5);
 	inputGeometry->IndexToWorld(a6, p6);
 	inputGeometry->IndexToWorld(a7, p7);
-
-	// MITK_INFO << p0;
 
 	double outputLowerBounds[3]{ p0[0], p0[1], p0[2] };
 	double outputUpperBounds[3]{ p0[0], p0[1], p0[2] };
@@ -384,12 +332,12 @@ void ImageCropperNew::on_pushButton_resample_clicked()
 	imageData->SetDimensions(outputDim);
 	imageData->SetSpacing(outputSpacing);
 
-	imageData->AllocateScalars(VTK_INT, 1);  // 1 component (scalar value)
+	imageData->AllocateScalars(VTK_SHORT, 1);  // 1 component (scalar value)
 
-	int* data = static_cast<int*>(imageData->GetScalarPointer());
+	short* data = static_cast<short*>(imageData->GetScalarPointer());
 	int numVoxels = outputDim[0] * outputDim[1] * outputDim[2];
 
-	std::fill_n(data, numVoxels, m_Controls.lineEdit_fringeValue->text().toInt());
+	std::fill_n(data, numVoxels, static_cast<short>(minGrayValue));
 
 	imageData->SetOrigin(outputLowerBounds);
 
@@ -418,8 +366,8 @@ void ImageCropperNew::on_pushButton_resample_clicked()
 				if (inputPoint[2] < 0) continue;
 				if (inputPoint[2] >= inputImageDim[2]) continue;
 
-				int* voxel = static_cast<int*>(imageData->GetScalarPointer(x, y, z));
-				int* voxel_target = static_cast<int*>(inputVtkImage->GetScalarPointer(inputPoint[0], inputPoint[1], inputPoint[2]));
+				short* voxel = static_cast<short*>(imageData->GetScalarPointer(x, y, z));
+				short* voxel_target = static_cast<short*>(inputVtkImage->GetScalarPointer(inputPoint[0], inputPoint[1], inputPoint[2]));
 				voxel[0] = voxel_target[0];
 			}
 		}

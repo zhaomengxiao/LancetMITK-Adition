@@ -23,6 +23,7 @@ found in the LICENSE file.
 #include "QmitkSingleNodeSelectionWidget.h"
 #include "ui_MoveDataControls.h"
 #include "mitkGizmo.h"
+#include "mitkImage.h"
 #include "mitkPointSet.h"
 #include "vtkSelectEnclosedPoints.h"
 
@@ -122,6 +123,8 @@ protected:
   void AppendRegistrationMatrix();
 
   void SurfaceToSurfaceIcp();
+
+  bool GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk::Image::Pointer outputMitkImage);
 
   void on_pushButton_hardenData_clicked();
 

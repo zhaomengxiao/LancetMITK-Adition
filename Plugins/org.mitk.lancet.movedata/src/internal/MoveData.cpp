@@ -94,6 +94,7 @@ found in the LICENSE file.
 #include <vtkSignedDistance.h>
 
 #include <iostream>
+#include <itkResampleImageFilter.h>
 #include <vtkCellData.h>
 #include <vtkConeSource.h>
 #include <vtkCylinderSource.h>
@@ -105,6 +106,7 @@ found in the LICENSE file.
 #include <MRMesh/MRVector3.h>
 
 #include "mitkIOUtil.h"
+#include "mitkMatrixConvert.h"
 #include "mitkVtkMapper3D.h"
 #include "MRMesh/MRMesh.h"
 #include "MRMesh/MRUVSphere.h"
@@ -5518,6 +5520,150 @@ void MoveData::on_pushButton_combine_clicked()
 
 }
 
+bool MoveData::GetHardenedImage(mitk::Image::Pointer inputMitkImage, mitk::Image::Pointer outputMitkImage)
+{
+	/* In general, an affine transform can be described as Y = M * X + T, where T is translation,
+	 * M = R * S * H, R is rotation, S is pure diagonal scaling, H is shearing
+	 * R and S are commutative, S and H are not commutative
+	 * Since we rarely handle image with shearing in MITK, we will neglect shearing in the following to simplify the code
+	 * Only 3D images are accepted by this function while 2D images are not accepted
+	 */
+
+	if (inputMitkImage->GetDimension() < 2)
+	{
+		return false;
+	}
+
+	//-------0. Obtain the scaling and the rotation part of the input image geometry---------
+	auto inputGeo = inputMitkImage->GetGeometry();
+	auto inputVtkMatrix = inputGeo->GetVtkMatrix();
+	auto inputSpacing = inputGeo->GetSpacing();
+	auto inputImageDim = inputMitkImage->GetDimensions();
+
+	typedef itk::Image<short, 3> ITKImageType; // needs further extension to process different pixType
+	auto inputItkImage = ITKImageType::New();
+	mitk::CastToItkImage(inputMitkImage, inputItkImage);
+
+	auto vtkScaleMatrix = vtkMatrix4x4::New();
+	vtkScaleMatrix->Identity();
+	vtkScaleMatrix->SetElement(0, 0, inputSpacing[0]);
+	vtkScaleMatrix->SetElement(1, 1, inputSpacing[1]);
+	vtkScaleMatrix->SetElement(2, 2, inputSpacing[2]);
+
+	auto vtkScaleMatrixInverse = vtkMatrix4x4::New();
+	vtkScaleMatrixInverse->Identity();
+	vtkScaleMatrixInverse->SetElement(0, 0, 1 / inputSpacing[0]);
+	vtkScaleMatrixInverse->SetElement(1, 1, 1 / inputSpacing[1]);
+	vtkScaleMatrixInverse->SetElement(2, 2, 1 / inputSpacing[2]);
+
+	auto vtkRotTrans = vtkTransform::New();
+	vtkRotTrans->PreMultiply();
+	vtkRotTrans->Identity();
+	vtkRotTrans->SetMatrix(inputVtkMatrix);
+	vtkRotTrans->Concatenate(vtkScaleMatrixInverse);
+	vtkRotTrans->Inverse();
+	vtkRotTrans->Update();
+
+	// the inverse matrix of (Rotation with translation)
+	auto vtkRotMatrix = vtkRotTrans->GetMatrix();
+
+	//-------1. Make a copy of the inputImage and remove its rotation and translation -------------
+	auto helperMitkImage = mitk::Image::New();
+	mitk::CastToMitkImage(inputItkImage, helperMitkImage);
+
+	helperMitkImage->GetGeometry()->SetIndexToWorldTransformByVtkMatrix(vtkScaleMatrix);
+	helperMitkImage->Update();
+
+	//-------2. Calculate the AABB bounds of the inputMitkImage in world space ----------------
+	mitk::Point3D a0, a1, a2, a3, a4, a5, a6, a7, p0, p1, p2, p3, p4, p5, p6, p7;
+	mitk::FillVector3D(a0, 0, 0, 0);
+	mitk::FillVector3D(a1, inputImageDim[0], 0, 0);
+	mitk::FillVector3D(a2, 0, inputImageDim[1], 0);
+	mitk::FillVector3D(a3, 0, 0, inputImageDim[2]);
+	mitk::FillVector3D(a4, inputImageDim[0], inputImageDim[1], 0);
+	mitk::FillVector3D(a5, inputImageDim[0], 0, inputImageDim[2]);
+	mitk::FillVector3D(a6, 0, inputImageDim[1], inputImageDim[2]);
+	mitk::FillVector3D(a7, inputImageDim[0], inputImageDim[1], inputImageDim[2]);
+
+	inputGeo->IndexToWorld(a0, p0);
+	inputGeo->IndexToWorld(a1, p1);
+	inputGeo->IndexToWorld(a2, p2);
+	inputGeo->IndexToWorld(a3, p3);
+	inputGeo->IndexToWorld(a4, p4);
+	inputGeo->IndexToWorld(a5, p5);
+	inputGeo->IndexToWorld(a6, p6);
+	inputGeo->IndexToWorld(a7, p7);
+
+	double inputAABBLowerBounds[3]{ p0[0], p0[1], p0[2] };
+	double inputAABBUpperBounds[3]{ p0[0], p0[1], p0[2] };
+
+	for (int i{ 0 }; i < 3; i++)
+	{
+		if (inputAABBLowerBounds[i] > p0[i]) inputAABBLowerBounds[i] = p0[i];
+		if (inputAABBLowerBounds[i] > p1[i]) inputAABBLowerBounds[i] = p1[i];
+		if (inputAABBLowerBounds[i] > p2[i]) inputAABBLowerBounds[i] = p2[i];
+		if (inputAABBLowerBounds[i] > p3[i]) inputAABBLowerBounds[i] = p3[i];
+		if (inputAABBLowerBounds[i] > p4[i]) inputAABBLowerBounds[i] = p4[i];
+		if (inputAABBLowerBounds[i] > p5[i]) inputAABBLowerBounds[i] = p5[i];
+		if (inputAABBLowerBounds[i] > p6[i]) inputAABBLowerBounds[i] = p6[i];
+		if (inputAABBLowerBounds[i] > p7[i]) inputAABBLowerBounds[i] = p7[i];
+
+		if (inputAABBUpperBounds[i] < p0[i]) inputAABBUpperBounds[i] = p0[i];
+		if (inputAABBUpperBounds[i] < p1[i]) inputAABBUpperBounds[i] = p1[i];
+		if (inputAABBUpperBounds[i] < p2[i]) inputAABBUpperBounds[i] = p2[i];
+		if (inputAABBUpperBounds[i] < p3[i]) inputAABBUpperBounds[i] = p3[i];
+		if (inputAABBUpperBounds[i] < p4[i]) inputAABBUpperBounds[i] = p4[i];
+		if (inputAABBUpperBounds[i] < p5[i]) inputAABBUpperBounds[i] = p5[i];
+		if (inputAABBUpperBounds[i] < p6[i]) inputAABBUpperBounds[i] = p6[i];
+		if (inputAABBUpperBounds[i] < p7[i]) inputAABBUpperBounds[i] = p7[i];
+	}
+
+	//--------3. Resample the itkImage contained in the helperMitkImage with the rotation and the translation
+	auto helperItkImage = ITKImageType::New();
+	mitk::CastToItkImage(helperMitkImage, helperItkImage);
+
+	typedef itk::AffineTransform<double, 3> TransformType;
+	TransformType::Pointer itkTransform = TransformType::New();
+
+	mitk::TransferVtkMatrixToItkTransform(vtkRotMatrix, itkTransform.GetPointer());
+
+	ITKImageType::SizeType outputSize;
+	outputSize[0] = static_cast<int>(ceil((inputAABBUpperBounds[0] - inputAABBLowerBounds[0]) / inputSpacing[0]));
+	outputSize[1] = static_cast<int>(ceil((inputAABBUpperBounds[1] - inputAABBLowerBounds[1]) / inputSpacing[1]));
+	outputSize[2] = static_cast<int>(ceil((inputAABBUpperBounds[2] - inputAABBLowerBounds[2]) / inputSpacing[2]));
+
+	double outputOrigin[3]{ inputAABBLowerBounds[0], inputAABBLowerBounds[1], inputAABBLowerBounds[2] };
+
+	typedef itk::ResampleImageFilter<ITKImageType, ITKImageType> ResampleFilterType;
+	ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
+
+	resampleFilter->SetTransform(itkTransform); // the transform from the index space of the target image to the world space
+	resampleFilter->SetInput(helperItkImage);
+	resampleFilter->SetSize(outputSize);
+	resampleFilter->SetOutputSpacing(helperItkImage->GetSpacing());
+	resampleFilter->SetOutputOrigin(outputOrigin);
+	resampleFilter->SetOutputDirection(helperItkImage->GetDirection());
+
+	// Get the minimum pixel value of the image and set as the background
+	auto helperVtkImage = helperMitkImage->GetVtkImageData();
+	vtkDataArray* scalars = helperVtkImage->GetPointData()->GetScalars();
+
+	double minGrayValue = std::numeric_limits<double>::max();
+	for (vtkIdType i = 0; i < scalars->GetNumberOfTuples(); i++) {
+		double value = scalars->GetComponent(i, 0);
+		if (value < minGrayValue) {
+			minGrayValue = value;
+		}
+	}
+
+	resampleFilter->SetDefaultPixelValue(static_cast<short>(minGrayValue));  // Background value
+	resampleFilter->Update();
+
+	mitk::CastToMitkImage(resampleFilter->GetOutput(), outputMitkImage);
+
+	return true;
+}
+
 
 void MoveData::on_pushButton_hardenData_clicked()
 {
@@ -5538,6 +5684,7 @@ void MoveData::on_pushButton_hardenData_clicked()
 		auto tmpSurface = mitk::Surface::New();
 		tmpSurface->SetVtkPolyData(tmpTransFilter->GetPolyDataOutput());
 		m_currentSelectedNode->SetData(tmpSurface);
+		return;
 	}
 
 	if (dynamic_cast<mitk::PointSet*>(m_currentSelectedNode->GetData()) != nullptr)
@@ -5553,7 +5700,23 @@ void MoveData::on_pushButton_hardenData_clicked()
 		}
 
 		m_currentSelectedNode->SetData(newPset);
+		return;
 	}
+
+	if(dynamic_cast<mitk::Image*>(m_currentSelectedNode->GetData()) != nullptr)
+	{
+		auto inputImage = dynamic_cast<mitk::Image*>(m_currentSelectedNode->GetData());
+		auto outputImage = mitk::Image::New();
+
+		if(GetHardenedImage(inputImage,outputImage))
+		{
+			auto tmpNode = mitk::DataNode::New();
+			tmpNode->SetData(outputImage);
+			tmpNode->SetName("Hardened image");
+			GetDataStorage()->Add(tmpNode, m_currentSelectedNode);
+		}
+	}
+
 }
 
 
