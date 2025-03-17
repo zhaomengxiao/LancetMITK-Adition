@@ -221,6 +221,11 @@ protected:
   void on_pushButton_cutV5_clicked(); // THA reaming with MeshLib
   void TurnMRMeshIntoPolyData(MR::Mesh MRMesh, vtkSmartPointer<vtkPolyData> PolyData);
 
+  // Use MeshLib to realize TKA cutting
+  void on_pushButton_tkaCutInit_clicked(); // initialize Mesh based TKA cutting
+  void on_pushButton_tkaCut_clicked(); // TKA cutting with MeshLib
+
+
   vtkNew<vtkMatrix4x4> m_LastRoundMatrix;
   MR::Mesh m_Green_mesh;
   MR::Mesh m_Buffer_mesh;

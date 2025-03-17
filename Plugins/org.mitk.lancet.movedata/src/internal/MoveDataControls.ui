@@ -1607,6 +1607,73 @@
         <string>Direct Surface to image (binary)</string>
        </property>
       </widget>
+      <widget class="QGroupBox" name="groupBox_20">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>160</y>
+         <width>441</width>
+         <height>99</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>TKA surface based cutting</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_28">
+        <item row="0" column="1">
+         <widget class="QRadioButton" name="radioButton_distal">
+          <property name="text">
+           <string>Distal</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QRadioButton" name="radioButton_post">
+          <property name="text">
+           <string>Posterior</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QRadioButton" name="radioButton_antChamfer">
+          <property name="text">
+           <string>AnteriorChamfer</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QRadioButton" name="radioButton_ant">
+          <property name="text">
+           <string>Anterior</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QPushButton" name="pushButton_tkaCutInit">
+          <property name="text">
+           <string>Initialize</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" rowspan="3">
+         <widget class="QPushButton" name="pushButton_tkaCut">
+          <property name="text">
+           <string>Cut</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QRadioButton" name="radioButton_postChamfer">
+          <property name="text">
+           <string>PosteriorChamfer</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">

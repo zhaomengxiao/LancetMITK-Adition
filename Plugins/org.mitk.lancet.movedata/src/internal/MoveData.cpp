@@ -235,6 +235,10 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_meshLib_insideA, &QPushButton::clicked, this, &MoveData::on_pushButton_meshLib_insideA_clicked);
   connect(m_Controls.pushButton_meshLib_outsideA, &QPushButton::clicked, this, &MoveData::on_pushButton_meshLib_outsideA_clicked);
 
+  connect(m_Controls.pushButton_tkaCutInit, &QPushButton::clicked, this, &MoveData::on_pushButton_tkaCutInit_clicked);
+  connect(m_Controls.pushButton_tkaCut, &QPushButton::clicked, this, &MoveData::on_pushButton_tkaCut_clicked);
+
+
 }
 
 bool MoveData::RetrieveBooleanSurfaceFromUI(vtkSmartPointer<vtkPolyData> polyDataA, vtkSmartPointer<vtkPolyData> polyDataB)
@@ -474,6 +478,59 @@ void MoveData::on_pushButton_meshLib_outsideA_clicked()
 	boolNode->SetData(booleanSurface);
 	boolNode->SetName("Outside");
 	GetDataStorage()->Add(boolNode);
+}
+
+void MoveData::on_pushButton_tkaCutInit_clicked()
+{
+	// Check all the necessary data nodes
+	if( GetDataStorage()->GetNamedNode("femur") == nullptr ||
+		GetDataStorage()->GetNamedNode("implant") == nullptr ||
+		GetDataStorage()->GetNamedNode("DistalCut") == nullptr ||
+		GetDataStorage()->GetNamedNode("PosteriorCut") == nullptr ||
+		GetDataStorage()->GetNamedNode("PosteriorChamferCut") == nullptr ||
+		GetDataStorage()->GetNamedNode("AnteriorCut") == nullptr ||
+		GetDataStorage()->GetNamedNode("AnteriorChamferCut") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("Necessary data is missing!");
+	}
+
+	auto cutPlanePset = mitk::PointSet::New();
+
+	if (m_Controls.radioButton_distal->isChecked())
+	{
+		cutPlanePset = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("DistalCut"));
+	}
+
+	if (m_Controls.radioButton_ant->isChecked())
+	{
+		cutPlanePset = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("AnteriorCut"));
+	}
+
+	if (m_Controls.radioButton_antChamfer->isChecked())
+	{
+		cutPlanePset = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("AnteriorChamferCut"));
+	}
+
+	if (m_Controls.radioButton_post->isChecked())
+	{
+		cutPlanePset = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("PosteriorCut"));
+	}
+
+	if (m_Controls.radioButton_postChamfer->isChecked())
+	{
+		cutPlanePset = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("PosteriorChamferCut"));
+	}
+
+	// Create a cylinder based on the cutting plane pointSet
+
+
+
+
+}
+
+void MoveData::on_pushButton_tkaCut_clicked()
+{
+	
 }
 
 
