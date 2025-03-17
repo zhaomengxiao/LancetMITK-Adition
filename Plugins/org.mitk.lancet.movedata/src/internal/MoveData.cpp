@@ -480,6 +480,53 @@ void MoveData::on_pushButton_meshLib_outsideA_clicked()
 	GetDataStorage()->Add(boolNode);
 }
 
+vtkSmartPointer<vtkPolyData> MoveData::CreateCylinderBox(mitk::Point3D topFaceCenter, mitk::Point3D topFaceNormal, double radius, double height)
+{
+	auto output = vtkPolyData::New();
+
+	// The initial cylinder's top face is at x-z plane
+	// the initial cylinder is y-axis aligned
+	auto cylinder = vtkSmartPointer<vtkCylinderSource>::New();
+	cylinder->SetResolution(30);
+	cylinder->SetHeight(height);
+	cylinder->SetRadius(radius);
+	cylinder->CappingOn();
+	cylinder->SetCenter(0.0, -height / 2, 0.0);
+	cylinder->Update();
+
+	// Apply the transformation
+	// Rotation
+	Eigen::Vector3d y{ 0,-1,0 };
+	Eigen::Vector3d targetNormal{ topFaceNormal[0], topFaceNormal[1], topFaceNormal[2] };
+	targetNormal.normalize();
+
+	double dotResult = y.dot(targetNormal);
+
+	double angle = acos(dotResult) * 180.0 / vtkMath::Pi();
+
+	Eigen::Vector3d crossResult = y.cross(targetNormal);
+
+	auto transform = vtkTransform::New();
+	transform->PostMultiply();
+	if(abs(crossResult.dot(y)) > 0.0001)
+	{
+		transform->RotateWXYZ(angle, 1.0, 0.0, 0.0);
+	}else
+	{
+		transform->RotateWXYZ(angle, crossResult[0], crossResult[1], crossResult[2]);
+	}
+	transform->Translate(topFaceCenter[0],topFaceCenter[1],topFaceCenter[2]);
+
+	auto transFilter = vtkTransformPolyDataFilter::New();
+	transFilter->SetInputData(cylinder->GetOutput());
+	transFilter->SetTransform(transform);
+	transFilter->Update();
+
+	return transFilter->GetOutput();
+
+}
+
+
 void MoveData::on_pushButton_tkaCutInit_clicked()
 {
 	// Check all the necessary data nodes
@@ -494,38 +541,80 @@ void MoveData::on_pushButton_tkaCutInit_clicked()
 		m_Controls.textBrowser_moveData->append("Necessary data is missing!");
 	}
 
-	auto cutPlanePset = mitk::PointSet::New();
+	auto cutPlanePsetNode = mitk::DataNode::New();
 
 	if (m_Controls.radioButton_distal->isChecked())
 	{
-		cutPlanePset = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("DistalCut"));
+		cutPlanePsetNode = (GetDataStorage()->GetNamedNode("DistalCut"));
 	}
 
 	if (m_Controls.radioButton_ant->isChecked())
 	{
-		cutPlanePset = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("AnteriorCut"));
+		cutPlanePsetNode = GetDataStorage()->GetNamedNode("AnteriorCut");
 	}
-
+	
 	if (m_Controls.radioButton_antChamfer->isChecked())
 	{
-		cutPlanePset = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("AnteriorChamferCut"));
+		cutPlanePsetNode = GetDataStorage()->GetNamedNode("AnteriorChamferCut");
 	}
-
+	
 	if (m_Controls.radioButton_post->isChecked())
 	{
-		cutPlanePset = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("PosteriorCut"));
+		cutPlanePsetNode = GetDataStorage()->GetNamedNode("PosteriorCut");
 	}
-
+	
 	if (m_Controls.radioButton_postChamfer->isChecked())
 	{
-		cutPlanePset = dynamic_cast<mitk::PointSet*>(GetDataStorage()->GetNamedNode("PosteriorChamferCut"));
+		cutPlanePsetNode = GetDataStorage()->GetNamedNode("PosteriorChamferCut");
 	}
 
 	// Create a cylinder based on the cutting plane pointSet
+	auto shallowCylinder = vtkPolyData::New();
+
+	auto cutPlanePset = dynamic_cast<mitk::PointSet*>(cutPlanePsetNode->GetData());
 
 
+	
+
+	if(GetDataStorage()->GetNamedNode("cup") != nullptr)
+	{
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("cup"));
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("cup+"));
+	}
+
+	auto planePt = cutPlanePset->GetPoint(0);
+	auto planeNormal = cutPlanePset->GetPoint(1);
+	mitk::Point3D planePt_;
+
+	planeNormal[0] -= cutPlanePset->GetGeometry()->GetVtkMatrix()->GetElement(0,3);
+	planeNormal[1] -= cutPlanePset->GetGeometry()->GetVtkMatrix()->GetElement(1, 3);
+	planeNormal[2] -= cutPlanePset->GetGeometry()->GetVtkMatrix()->GetElement(2, 3);
+
+	double depth{1.0};
+	planePt_[0] = planePt[0] + depth * planeNormal[0];
+	planePt_[1] = planePt[1] + depth * planeNormal[1];
+	planePt_[2] = planePt[2] + depth * planeNormal[2];
 
 
+	auto shallowCylinderNode = mitk::DataNode::New();
+	shallowCylinderNode->SetName("cup");
+	auto shallowCylinderSurface = mitk::Surface::New();
+	shallowCylinderSurface->SetVtkPolyData(
+		CreateCylinderBox(planePt,
+			planeNormal, 100, 70));
+	shallowCylinderNode->SetData(shallowCylinderSurface);
+	GetDataStorage()->Add(shallowCylinderNode);
+	// shallowCylinderNode->SetVisibility(false);
+
+	auto deepCylinderNode = mitk::DataNode::New();
+	deepCylinderNode->SetName("cup+");
+	auto deepCylinderSurface = mitk::Surface::New();
+	deepCylinderSurface->SetVtkPolyData(
+		CreateCylinderBox(planePt_,
+			planeNormal, 90, 80));
+	deepCylinderNode->SetData(deepCylinderSurface);
+	GetDataStorage()->Add(deepCylinderNode);
+	// deepCylinderNode->SetVisibility(false);
 }
 
 void MoveData::on_pushButton_tkaCut_clicked()

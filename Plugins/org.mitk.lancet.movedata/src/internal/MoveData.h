@@ -223,6 +223,7 @@ protected:
 
   // Use MeshLib to realize TKA cutting
   void on_pushButton_tkaCutInit_clicked(); // initialize Mesh based TKA cutting
+  vtkSmartPointer<vtkPolyData> CreateCylinderBox(mitk::Point3D topFaceCenter, mitk::Point3D topFaceNormal, double radius, double height);
   void on_pushButton_tkaCut_clicked(); // TKA cutting with MeshLib
 
 
