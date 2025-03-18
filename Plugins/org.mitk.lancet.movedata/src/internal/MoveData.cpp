@@ -530,7 +530,7 @@ vtkSmartPointer<vtkPolyData> MoveData::CreateCylinderBox(mitk::Point3D topFaceCe
 void MoveData::on_pushButton_tkaCutInit_clicked()
 {
 	// Check all the necessary data nodes
-	if( GetDataStorage()->GetNamedNode("femur") == nullptr ||
+	if( GetDataStorage()->GetNamedNode("bone") == nullptr ||
 		GetDataStorage()->GetNamedNode("implant") == nullptr ||
 		GetDataStorage()->GetNamedNode("DistalCut") == nullptr ||
 		GetDataStorage()->GetNamedNode("PosteriorCut") == nullptr ||
@@ -540,6 +540,18 @@ void MoveData::on_pushButton_tkaCutInit_clicked()
 	{
 		m_Controls.textBrowser_moveData->append("Necessary data is missing!");
 	}
+
+	//------- Clear away the tiny bone fragment pieces by checking connectivity -------------
+	// auto boneNode = GetDataStorage()->GetNamedNode("bone");
+	// auto connectivityFilter = vtkSmartPointer<vtkConnectivityFilter>::New();
+	// connectivityFilter->SetInputData(dynamic_cast<mitk::Surface*>(boneNode->GetData())->GetVtkPolyData());
+	// connectivityFilter->SetExtractionModeToLargestRegion(); // Extract the largest connected part
+	// connectivityFilter->Update();
+	//
+	// auto tmpSurface = mitk::Surface::New();
+	// tmpSurface->SetVtkPolyData(connectivityFilter->GetPolyDataOutput());
+	// boneNode->SetData(tmpSurface);
+
 
 	auto cutPlanePsetNode = mitk::DataNode::New();
 
@@ -573,9 +585,6 @@ void MoveData::on_pushButton_tkaCutInit_clicked()
 
 	auto cutPlanePset = dynamic_cast<mitk::PointSet*>(cutPlanePsetNode->GetData());
 
-
-	
-
 	if(GetDataStorage()->GetNamedNode("cup") != nullptr)
 	{
 		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("cup"));
@@ -591,9 +600,9 @@ void MoveData::on_pushButton_tkaCutInit_clicked()
 	planeNormal[2] -= cutPlanePset->GetGeometry()->GetVtkMatrix()->GetElement(2, 3);
 
 	double depth{1.0};
-	planePt_[0] = planePt[0] + depth * planeNormal[0];
-	planePt_[1] = planePt[1] + depth * planeNormal[1];
-	planePt_[2] = planePt[2] + depth * planeNormal[2];
+	planePt_[0] = planePt[0] - depth * planeNormal[0];
+	planePt_[1] = planePt[1] - depth * planeNormal[1];
+	planePt_[2] = planePt[2] - depth * planeNormal[2];
 
 
 	auto shallowCylinderNode = mitk::DataNode::New();
@@ -604,7 +613,7 @@ void MoveData::on_pushButton_tkaCutInit_clicked()
 			planeNormal, 100, 70));
 	shallowCylinderNode->SetData(shallowCylinderSurface);
 	GetDataStorage()->Add(shallowCylinderNode);
-	// shallowCylinderNode->SetVisibility(false);
+	shallowCylinderNode->SetVisibility(false);
 
 	auto deepCylinderNode = mitk::DataNode::New();
 	deepCylinderNode->SetName("cup+");
@@ -614,7 +623,20 @@ void MoveData::on_pushButton_tkaCutInit_clicked()
 			planeNormal, 90, 80));
 	deepCylinderNode->SetData(deepCylinderSurface);
 	GetDataStorage()->Add(deepCylinderNode);
-	// deepCylinderNode->SetVisibility(false);
+	deepCylinderNode->SetVisibility(false);
+
+	// Generate green, buffer, red, shell
+	if(GetDataStorage()->GetNamedNode("red") != nullptr)
+	{
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("red"));
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("green"));
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("buffer"));
+		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("shell"));
+	}
+
+	on_pushButton_cutInitV5_clicked();
+
+
 }
 
 void MoveData::on_pushButton_tkaCut_clicked()
