@@ -95,6 +95,7 @@ found in the LICENSE file.
 
 #include <iostream>
 #include <itkResampleImageFilter.h>
+#include <random>
 #include <vtkCellData.h>
 #include <vtkConeSource.h>
 #include <vtkCylinderSource.h>
@@ -947,10 +948,10 @@ void MoveData::on_pushButton_cutV5_clicked()
 
 	//------------ Avoid repetitive boolean operation at the same site which will cause calculation error---------------
 	double matrixDiff{ 0 };
-
+	
 	for(int i{0}; i < 4; i++)
 	{
-		for (int j{ 3 }; j < 4; j++)
+		for (int j{ 0 }; j < 4; j++)
 		{
 			if(abs(m_LastRoundMatrix->GetElement(i,j)-cutterMatrix->GetElement(i,j))>matrixDiff)
 			{
@@ -958,23 +959,39 @@ void MoveData::on_pushButton_cutV5_clicked()
 			}
 		}
 	}
-
+	
 	m_LastRoundMatrix->DeepCopy(cutterMatrix);
-
-	if(matrixDiff < 0.01)
+	
+	if(matrixDiff < 0.001)
 	{
 		clock_t end = clock();
-
-		m_Controls.textBrowser_moveData->append("Cutting time: " + QString::number(end - start));
+	
+		m_Controls.textBrowser_moveData->append("Repetitive cutting");
 
 		return;
 	}
 
-	MR::Vector3f x(cutterMatrix->GetElement(0,0), cutterMatrix->GetElement(1, 0), cutterMatrix->GetElement(2, 0));
-	MR::Vector3f y(cutterMatrix->GetElement(0, 1), cutterMatrix->GetElement(1, 1), cutterMatrix->GetElement(2, 1));
-	MR::Vector3f z(cutterMatrix->GetElement(0, 2), cutterMatrix->GetElement(1, 2), cutterMatrix->GetElement(2, 2));
-	MR::Vector3f t(cutterMatrix->GetElement(0, 3), cutterMatrix->GetElement(1, 3), cutterMatrix->GetElement(2, 3));
-	MR::Matrix3f r(x,y,z);
+	// Generate a random number which is much smaller than the system accuracy 
+	// and add to the initial Transform matrix to ensure efficient boolean
+	std::random_device rd;  
+	std::mt19937 gen(rd()); 
+	std::uniform_real_distribution<> dis(0.15, 0.2); 
+
+	double random_num = dis(gen);
+
+	auto additionalTrans = vtkTransform::New();
+	additionalTrans->SetMatrix(cutterMatrix);
+	additionalTrans->PostMultiply();
+	additionalTrans->RotateX(random_num);
+	additionalTrans->RotateY(random_num);
+	additionalTrans->Update();
+	auto cutterMatrix_ = additionalTrans->GetMatrix();
+
+	MR::Vector3f a(cutterMatrix_->GetElement(0,0), cutterMatrix_->GetElement(0, 1), cutterMatrix_->GetElement(0, 2));
+	MR::Vector3f b(cutterMatrix_->GetElement(1, 0), cutterMatrix_->GetElement(1, 1), cutterMatrix_->GetElement(1, 2));
+	MR::Vector3f c(cutterMatrix_->GetElement(2, 0), cutterMatrix_->GetElement(2, 1), cutterMatrix_->GetElement(2, 2));
+	MR::Vector3f t(cutterMatrix_->GetElement(0, 3), cutterMatrix_->GetElement(1, 3), cutterMatrix_->GetElement(2, 3));
+	MR::Matrix3f r(a,b,c);
 	MR::AffineXf3f T(r, t);
 
 	m_Cutter_mesh.transform(T);
@@ -1098,7 +1115,8 @@ void MoveData::on_pushButton_cutV5_clicked()
 
 	clock_t end = clock();
 
-	m_Controls.textBrowser_moveData->append("Cutting time: " + QString::number(end - start));
+	m_Controls.textBrowser_moveData->append("Cutting time A: " + QString::number(end - start));
+	
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
@@ -5653,18 +5671,20 @@ void MoveData::on_pushButton_combine_clicked()
 					}					
 				}
 
-				// white part
+				// white part and red part
 				if(/*n[0] != 2000 &&*/ n[0] != 1000 && w[0] > 2600)
 				{
 					m[0] = w[0];
 				}
 
+				// white part
 				if(n[0] == 0 && m[0] == 0)
 				{
 					m[0] = 2150;
 				}
 
-				if(n[0] == 2000 && m[0] >= 2995)
+				// Red part
+				if(m[0] >= 2995)
 				{
 					m[0] = 1964;
 				}
