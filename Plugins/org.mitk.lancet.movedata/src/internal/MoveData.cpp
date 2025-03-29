@@ -975,7 +975,7 @@ void MoveData::on_pushButton_cutV5_clicked()
 	// and add to the initial Transform matrix to ensure efficient boolean
 	std::random_device rd;  
 	std::mt19937 gen(rd()); 
-	std::uniform_real_distribution<> dis(0.15, 0.2); 
+	std::uniform_real_distribution<> dis(0.15, 0.3); 
 
 	double random_num = dis(gen);
 
