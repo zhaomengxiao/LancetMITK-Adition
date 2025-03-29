@@ -739,6 +739,7 @@ void MoveData::on_pushButton_cutInitV5_clicked()
 	MR::Mesh cupPlusMesh = MR::MeshLoad::fromAnySupportedFormat("D:/cup+.stl").value();
 
 	m_Cutter_mesh = MR::MeshLoad::fromAnySupportedFormat("D:/cutter.stl").value();
+	m_Bone_mesh = MR::MeshLoad::fromAnySupportedFormat("D:/bone.stl").value();
 
 	clock_t meshSrcReady = clock();
 
@@ -935,7 +936,8 @@ void MoveData::on_pushButton_cutV5_clicked()
 	if (GetDataStorage()->GetNamedNode("green") == nullptr || GetDataStorage()->GetNamedNode("buffer") == nullptr ||
 		GetDataStorage()->GetNamedNode("shell") == nullptr ||
 		GetDataStorage()->GetNamedNode("red") == nullptr ||
-		GetDataStorage()->GetNamedNode("cutter") == nullptr )
+		GetDataStorage()->GetNamedNode("cutter") == nullptr ||
+		GetDataStorage()->GetNamedNode("bone") == nullptr)
 	{
 		MITK_WARN<<"Cutting initialization is not ready";
 		return;
@@ -1002,6 +1004,37 @@ void MoveData::on_pushButton_cutV5_clicked()
 	// settings.maxError = 0.2f;
 
 	//------------Step 2: MeshLib Boolean -------------------
+
+	//------------ Bone backup -----------------
+	if (GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->GetVtkPolyData()->GetPoints()->GetNumberOfPoints() > 0)
+	{
+		auto intersectResult = (MR::boolean(m_Bone_mesh, m_Cutter_mesh, MR::BooleanOperation::Intersection));
+
+		MR::Mesh intersectMesh = *intersectResult;
+
+		if (intersectMesh.points.vec_.size() > 0)
+		{
+			auto diffResult = (MR::boolean(m_Bone_mesh, m_Cutter_mesh, MR::BooleanOperation::DifferenceAB));
+
+			MR::Mesh diffMesh = *diffResult;
+
+			// ------ To avoid some weird boolean results --------
+			if (diffMesh.points.vec_.size() <= 2 * m_Bone_mesh.points.vec_.size())
+			{
+				m_Bone_mesh = diffMesh;
+				m_Bone_mesh.invalidateCaches();
+				m_Cutter_mesh.invalidateCaches();
+				vtkNew<vtkPolyData> bonePolyData;
+				TurnMRMeshIntoPolyData(m_Bone_mesh, bonePolyData);
+				GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->ReleaseData();
+				GetDataStorage()->GetNamedObject<mitk::Surface>("bone")->SetVtkPolyData(bonePolyData);
+			}
+
+		}
+
+	}
+
+
 	//------------ Green -----------
 	if(GetDataStorage()->GetNamedObject<mitk::Surface>("green")->GetVtkPolyData()->GetPoints()->GetNumberOfPoints() > 0)
 	{

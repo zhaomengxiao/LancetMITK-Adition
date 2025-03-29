@@ -233,6 +233,7 @@ protected:
   MR::Mesh m_Shell_mesh;
   MR::Mesh m_Red_mesh;
   MR::Mesh m_Cutter_mesh;
+  MR::Mesh m_Bone_mesh;
 
 };
 
