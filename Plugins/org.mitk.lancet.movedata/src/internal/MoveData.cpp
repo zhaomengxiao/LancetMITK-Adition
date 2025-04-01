@@ -237,8 +237,7 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_meshLib_outsideA, &QPushButton::clicked, this, &MoveData::on_pushButton_meshLib_outsideA_clicked);
 
   connect(m_Controls.pushButton_tkaCutInit, &QPushButton::clicked, this, &MoveData::on_pushButton_tkaCutInit_clicked);
-  connect(m_Controls.pushButton_tkaCut, &QPushButton::clicked, this, &MoveData::on_pushButton_tkaCut_clicked);
-
+  
 
 }
 
@@ -542,7 +541,7 @@ void MoveData::on_pushButton_tkaCutInit_clicked()
 		m_Controls.textBrowser_moveData->append("Necessary data is missing!");
 	}
 
-	//------- Clear away the tiny bone fragment pieces by checking connectivity -------------
+	//------- Clear away the tiny bone fragment pieces by checking connectivity (Remove the tiny bubbles) -------------
 	// auto boneNode = GetDataStorage()->GetNamedNode("bone");
 	// auto connectivityFilter = vtkSmartPointer<vtkConnectivityFilter>::New();
 	// connectivityFilter->SetInputData(dynamic_cast<mitk::Surface*>(boneNode->GetData())->GetVtkPolyData());
@@ -600,7 +599,7 @@ void MoveData::on_pushButton_tkaCutInit_clicked()
 	planeNormal[1] -= cutPlanePset->GetGeometry()->GetVtkMatrix()->GetElement(1, 3);
 	planeNormal[2] -= cutPlanePset->GetGeometry()->GetVtkMatrix()->GetElement(2, 3);
 
-	double depth{1.0};
+	double depth{1.0}; // White buffer thickness
 	planePt_[0] = planePt[0] - depth * planeNormal[0];
 	planePt_[1] = planePt[1] - depth * planeNormal[1];
 	planePt_[2] = planePt[2] - depth * planeNormal[2];
@@ -627,6 +626,7 @@ void MoveData::on_pushButton_tkaCutInit_clicked()
 	deepCylinderNode->SetVisibility(false);
 
 	// Generate green, buffer, red, shell
+
 	if(GetDataStorage()->GetNamedNode("red") != nullptr)
 	{
 		GetDataStorage()->Remove(GetDataStorage()->GetNamedNode("red"));
@@ -638,11 +638,6 @@ void MoveData::on_pushButton_tkaCutInit_clicked()
 	on_pushButton_cutInitV5_clicked();
 
 
-}
-
-void MoveData::on_pushButton_tkaCut_clicked()
-{
-	
 }
 
 
@@ -946,6 +941,7 @@ void MoveData::on_pushButton_cutV5_clicked()
 	clock_t start = clock();
 
 	//------------Step 1: Move m_Cutter_mesh with geometry obtained from the cutter surface ----------------
+	//--------- cutter should have a dense-grid structure ------------ 
 	auto cutterMatrix = GetDataStorage()->GetNamedNode("cutter")->GetData()->GetGeometry()->GetVtkMatrix();
 
 	//------------ Avoid repetitive boolean operation at the same site which will cause calculation error---------------
@@ -973,7 +969,7 @@ void MoveData::on_pushButton_cutV5_clicked()
 		return;
 	}
 
-	// Generate a random number which is much smaller than the system accuracy 
+	// Generate a random number which is much smaller than the system error 
 	// and add to the initial Transform matrix to ensure efficient boolean
 	std::random_device rd;  
 	std::mt19937 gen(rd()); 
@@ -999,9 +995,6 @@ void MoveData::on_pushButton_cutV5_clicked()
 	m_Cutter_mesh.transform(T);
 
 
-
-	// MR::DecimateSettings settings;
-	// settings.maxError = 0.2f;
 
 	//------------Step 2: MeshLib Boolean -------------------
 
@@ -1148,7 +1141,7 @@ void MoveData::on_pushButton_cutV5_clicked()
 
 	clock_t end = clock();
 
-	m_Controls.textBrowser_moveData->append("Cutting time A: " + QString::number(end - start));
+	m_Controls.textBrowser_moveData->append("Cutting time: " + QString::number(end - start));
 	
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
