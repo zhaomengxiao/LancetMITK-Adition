@@ -172,6 +172,8 @@ protected:
 
   void on_pushButton_warp_clicked();
 
+  void on_pushButton_extractCupOutLayer_clicked();
+
   void on_pushButton_intersect_clicked();
 
   void on_pushButton_union_clicked();

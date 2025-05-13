@@ -1667,6 +1667,45 @@
         </item>
        </layout>
       </widget>
+      <widget class="QPushButton" name="pushButton_extractCupOutLayer">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>350</y>
+         <width>181</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Extract cup contact surface</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>380</y>
+         <width>195</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_26">
+        <item>
+         <widget class="QLabel" name="label_37">
+          <property name="text">
+           <string>Cutoff angle</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_featureAngle">
+          <property name="text">
+           <string>15</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
      <widget class="QWidget" name="tab_5">
       <attribute name="title">

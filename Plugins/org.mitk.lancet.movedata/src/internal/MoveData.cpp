@@ -213,6 +213,7 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_fixhole, &QPushButton::clicked, this, &MoveData::on_pushButton_fixhole_clicked);
   connect(m_Controls.pushButton_smooth, &QPushButton::clicked, this, &MoveData::on_pushButton_smooth_clicked);
   connect(m_Controls.pushButton_warp, &QPushButton::clicked, this, &MoveData::on_pushButton_warp_clicked);
+  connect(m_Controls.pushButton_extractCupOutLayer, &QPushButton::clicked, this, &MoveData::on_pushButton_extractCupOutLayer_clicked);
   connect(m_Controls.pushButton_intersect, &QPushButton::clicked, this, &MoveData::on_pushButton_intersect_clicked);
   connect(m_Controls.pushButton_union, &QPushButton::clicked, this, &MoveData::on_pushButton_union_clicked);
   connect(m_Controls.pushButton_diff, &QPushButton::clicked, this, &MoveData::on_pushButton_diff_clicked);
@@ -1918,6 +1919,39 @@ void MoveData::on_pushButton_smooth_clicked()
 
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
+
+void MoveData::on_pushButton_extractCupOutLayer_clicked()
+{
+	if(GetDataStorage()->GetNamedNode("cup")== nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("cup is missing");
+	}
+
+	auto cupSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup")->GetData());
+
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(cupSurface->GetVtkPolyData());
+	normals->SetFeatureAngle(m_Controls.lineEdit_featureAngle->text().toDouble());
+	normals->SplittingOn();
+	normals->Update();
+
+	vtkNew<vtkConnectivityFilter> vtkConnectivityFilter;
+	vtkConnectivityFilter->SetInputData(normals->GetOutput());
+	vtkConnectivityFilter->SetExtractionModeToLargestRegion();
+	vtkConnectivityFilter->Update();
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(vtkConnectivityFilter->GetPolyDataOutput());
+	newNode->SetName("Contact surface");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+
+}
+
 
 void MoveData::on_pushButton_warp_clicked()
 {
