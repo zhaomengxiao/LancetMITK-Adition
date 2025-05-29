@@ -174,6 +174,12 @@ protected:
 
   void on_pushButton_extractCupOutLayer_clicked();
 
+  void on_pushButton_splitFemurMesh_clicked();
+
+  void on_pushButton_cupBMD_clicked();
+
+  bool IsPolyDataFlat(vtkPolyData* polyData, double tolerance);
+
   void on_pushButton_intersect_clicked();
 
   void on_pushButton_union_clicked();

@@ -214,6 +214,7 @@ void MoveData::CreateQtPartControl(QWidget *parent)
   connect(m_Controls.pushButton_smooth, &QPushButton::clicked, this, &MoveData::on_pushButton_smooth_clicked);
   connect(m_Controls.pushButton_warp, &QPushButton::clicked, this, &MoveData::on_pushButton_warp_clicked);
   connect(m_Controls.pushButton_extractCupOutLayer, &QPushButton::clicked, this, &MoveData::on_pushButton_extractCupOutLayer_clicked);
+  connect(m_Controls.pushButton_splitFemurMesh, &QPushButton::clicked, this, &MoveData::on_pushButton_splitFemurMesh_clicked);
   connect(m_Controls.pushButton_intersect, &QPushButton::clicked, this, &MoveData::on_pushButton_intersect_clicked);
   connect(m_Controls.pushButton_union, &QPushButton::clicked, this, &MoveData::on_pushButton_union_clicked);
   connect(m_Controls.pushButton_diff, &QPushButton::clicked, this, &MoveData::on_pushButton_diff_clicked);
@@ -239,6 +240,7 @@ void MoveData::CreateQtPartControl(QWidget *parent)
 
   connect(m_Controls.pushButton_tkaCutInit, &QPushButton::clicked, this, &MoveData::on_pushButton_tkaCutInit_clicked);
   
+  connect(m_Controls.pushButton_cupBMD, &QPushButton::clicked, this, &MoveData::on_pushButton_cupBMD_clicked);
 
 }
 
@@ -1920,11 +1922,341 @@ void MoveData::on_pushButton_smooth_clicked()
 	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
 }
 
+bool MoveData::IsPolyDataFlat(vtkPolyData* polyData, double tolerance)
+{
+	if (!polyData || polyData->GetNumberOfPoints() < 3)
+		return false; // Need at least 3 points to define a plane
+
+	vtkPoints* points = polyData->GetPoints();
+	vtkCellArray* polys = polyData->GetPolys();
+
+	if (!points || !polys)
+		return false;
+
+	double baseNormal[3] = { 0.0, 0.0, 0.0 };
+	bool baseNormalSet = false;
+
+	polys->InitTraversal();
+	vtkIdType npts = 0;
+	vtkIdType const* ptIds = nullptr;
+
+	while (polys->GetNextCell(npts, ptIds))
+	{
+		if (npts < 3)
+			continue;
+
+		double p0[3], p1[3], p2[3];
+		points->GetPoint(ptIds[0], p0);
+		points->GetPoint(ptIds[1], p1);
+		points->GetPoint(ptIds[2], p2);
+
+		double v1[3], v2[3], normal[3];
+		vtkMath::Subtract(p1, p0, v1);
+		vtkMath::Subtract(p2, p0, v2);
+		vtkMath::Cross(v1, v2, normal);
+		vtkMath::Normalize(normal);
+
+		if (!baseNormalSet)
+		{
+			std::copy(normal, normal + 3, baseNormal);
+			baseNormalSet = true;
+		}
+		else
+		{
+			if (vtkMath::Dot(normal, baseNormal) < 1.0 - tolerance)
+			{
+				return false; // Inconsistent normal direction => not flat
+			}
+		}
+	}
+
+	return true;
+}
+
+void MoveData::on_pushButton_cupBMD_clicked()
+{
+	auto originalImageNode = GetDataStorage()->GetNamedNode("CBCT");
+	auto inputCtImage = dynamic_cast<mitk::Image*>(originalImageNode->GetData());
+	auto mitkRecontructedNode = GetDataStorage()->GetNamedNode("cup");
+	auto mitkRecontructedSurfaces = dynamic_cast<mitk::Surface*>(mitkRecontructedNode->GetData());
+	vtkSmartPointer<vtkPolyData> polyData = mitkRecontructedSurfaces->GetVtkPolyData();
+
+	//vtkSmartPointer<vtkLoopSubdivisionFilter> subdivisionFilter = vtkSmartPointer<vtkLoopSubdivisionFilter>::New();
+	//subdivisionFilter->SetInputData(polyData_init);
+	//subdivisionFilter->SetNumberOfSubdivisions(3); 
+	//subdivisionFilter->Update();
+	//vtkSmartPointer<vtkPolyData> polyData = subdivisionFilter->GetOutput();
+
+	vtkSmartPointer<vtkFloatArray> boneDensityArray = vtkSmartPointer<vtkFloatArray>::New();
+	boneDensityArray->SetName("BoneDensity");
+	boneDensityArray->SetNumberOfComponents(1);
+	boneDensityArray->SetNumberOfTuples(polyData->GetNumberOfPoints());
+
+	for (vtkIdType i = 0; i < polyData->GetNumberOfPoints(); ++i) {
+		double point[3];
+		polyData->GetPoint(i, point);
+		mitk::Point3D polyDataPoint{ point };
+
+		mitk::Point3D worldPoint;
+		auto surfaceGeo = mitkRecontructedSurfaces->GetGeometry();
+		surfaceGeo->IndexToWorld(polyDataPoint, worldPoint);
+
+		if (inputCtImage->GetGeometry()->IsInside(worldPoint)) {
+			
+			auto imageGeo = inputCtImage->GetGeometry();
+
+			mitk::Point3D imageIndex;
+
+			imageGeo->WorldToIndex(worldPoint, imageIndex);
+
+			auto boneDensity= inputCtImage->GetVtkImageData()->GetScalarComponentAsFloat(static_cast<int>(imageIndex[0]),
+				static_cast<int>(imageIndex[1]),
+				static_cast<int>(imageIndex[2]),0);
+
+			// auto boneDensity = inputCtImage->GetPixelValueByWorldCoordinate(mitkPoint);
+
+			boneDensityArray->SetValue(i, static_cast<float>(boneDensity));
+		}
+		else {
+
+			// default point scalar value
+			boneDensityArray->SetValue(i, 0.0f);
+		}
+	}
+
+	//vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+	//lut->SetNumberOfTableValues(5); // 设置特定区间颜色
+	//lut->SetTableValue(0, 0.0, 0.0, 0.0, 1.0); // 黑色
+	//lut->SetTableValue(1, 1.0, 1.0, 0.0, 1.0); // 黄色
+	//lut->SetTableValue(2, 0.0, 1.0, 0.0, 1.0); // 浅绿色
+	//lut->SetTableValue(3, 0.0, 1.0, 1.0, 1.0); // 浅蓝色
+	//lut->SetTableValue(4, 0.5, 0.5, 0.5, 1.0); // 灰色
+	//lut->SetRange(-1000, 3071);
+	//lut->Build();
+
+	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+	lut->SetNumberOfTableValues(256);
+	lut->SetRange(-1000, 5151); // 骨密度范围
+	lut->Build();
+
+	double minRange = -1000.0;
+	double maxRange = 5151.0;
+
+	// 计算每个阈值对应的查找表索引
+	int indexBlack = static_cast<int>((150 - minRange) / (maxRange - minRange) * 255);
+	int indexYellow = static_cast<int>((350 - minRange) / (maxRange - minRange) * 255);
+	int indexLightGreen = static_cast<int>((500 - minRange) / (maxRange - minRange) * 255);
+	int indexLightBlue = static_cast<int>((600 - minRange) / (maxRange - minRange) * 255);
+	int indexGray = 255;
+
+	for (int i = 0; i < 256; ++i) {
+		if (i < indexBlack) {
+			// 黑色
+			lut->SetTableValue(i, 0.0, 0.0, 0.0, 1.0);
+		}
+		else if (i < indexYellow) {
+			// 黄色
+			lut->SetTableValue(i, 1.0, 1.0, 0.0, 1.0);
+		}
+		else if (i < indexLightGreen) {
+			// 浅绿色
+			lut->SetTableValue(i, 0.0, 1.0, 0.0, 1.0);
+		}
+		else if (i < indexLightBlue) {
+			// 浅蓝色
+			lut->SetTableValue(i, 0.0, 1.0, 1.0, 1.0);
+		}
+		else {
+			// 灰色
+			lut->SetTableValue(i, 0.5, 0.5, 0.5, 1.0);
+		}
+	}
+
+	lut->Build();
+
+
+	// 将骨密度数组添加到 polyData 的点数据中
+	polyData->GetPointData()->AddArray(boneDensityArray);
+	polyData->GetPointData()->SetScalars(boneDensityArray);
+	polyData->GetPointData()->GetScalars()->SetLookupTable(lut);
+	polyData->Modified();
+
+	vtkSmartPointer<vtkPolyDataMapper> mapper =
+		vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputData(polyData);
+	mapper->SetLookupTable(lut);
+	mapper->SetScalarRange(-1000, 5151);
+
+	vtkSmartPointer<vtkActor> actor =
+		vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	//vtkSmartPointer<vtkScalarBarActor> scalarBar =
+	//	vtkSmartPointer<vtkScalarBarActor>::New();
+	//scalarBar->SetLookupTable(mapper->GetLookupTable());
+	//scalarBar->SetTitle(polyData->GetPointData()->GetScalars()->GetName());
+	//scalarBar->SetNumberOfLabels(5); //设置5个标签  
+
+	//vtkSmartPointer<vtkRenderer> render =
+	//	vtkSmartPointer<vtkRenderer>::New();
+	//render->AddActor(actor);
+	//render->AddActor2D(scalarBar);
+	//render->SetBackground(0, 0, 0);
+
+	//vtkSmartPointer<vtkRenderWindow> rw =
+	//	vtkSmartPointer<vtkRenderWindow>::New();
+	//rw->AddRenderer(render);
+	//rw->SetSize(640, 480);
+	//rw->SetWindowName("Calculating PolyData Curvature");
+
+	//vtkSmartPointer<vtkRenderWindowInteractor> rwi =
+	//	vtkSmartPointer<vtkRenderWindowInteractor>::New();
+	//vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+	//rwi->SetRenderWindow(rw);
+	//rwi->SetInteractorStyle(style);
+	//rwi->Initialize();
+	//rwi->Start();
+
+	// Display the Gizmo on top of the layer by. Zaiwang
+	auto iRenderWindowPart = GetRenderWindowPart();
+	QmitkRenderWindow* mitkRenderWindow_3d = iRenderWindowPart->GetQmitkRenderWindow("3d");
+	//QmitkRenderWindow* mitkRenderWindow_sagittal = iRenderWindowPart->GetQmitkRenderWindow("sagittal");
+	//QmitkRenderWindow* mitkRenderWindow_axial = iRenderWindowPart->GetQmitkRenderWindow("axial");
+	//QmitkRenderWindow* mitkRenderWindow_coronal = iRenderWindowPart->GetQmitkRenderWindow("coronal");
+
+	//auto dataNode_surface = GetDataStorage()->GetNamedNode("drillSurface");
+	//mitk::Mapper::Pointer mapper_surface = dataNode_surface->GetMapper(mitk::BaseRenderer::Standard3D);
+	//mitk::SurfaceVtkMapper3D::Pointer vtkMapper_surface = dynamic_cast<mitk::SurfaceVtkMapper3D*>(mapper_surface.GetPointer());
+	//if (!vtkMapper_surface)
+	//{
+	//	std::cerr << "No vtkMapper3D found for the DataNode!" << std::endl;
+	//	return;
+	//}
+
+	//vtkActor* actor_surface = dynamic_cast<vtkActor*>(vtkMapper_surface->GetVtkProp(mitkRenderWindow->GetRenderer()));
+
+	//if (!actor_surface)
+	//{
+	//	std::cerr << "No vtkActor found for the mitk::Surface!" << std::endl;
+	//	return;
+	//}
+
+	//auto polyDataMapper_surface = dynamic_cast<vtkPolyDataMapper*>(actor_surface->GetMapper());
+	//polyDataMapper_surface->SetInputData(polyData);
+	//polyDataMapper_surface->SetLookupTable(lut);
+	//polyDataMapper_surface->SetScalarRange(-1000, 5151);
+
+	auto renderWindow_3d = mitkRenderWindow_3d->GetVtkRenderWindow();
+	//auto renderWindow_axial = mitkRenderWindow_axial->GetVtkRenderWindow();
+	//auto renderWindow_sagittal = mitkRenderWindow_sagittal->GetVtkRenderWindow();
+	//auto renderWindow_coronal = mitkRenderWindow_coronal->GetVtkRenderWindow();
+
+
+
+	vtkSmartPointer<vtkRenderer> renderer_3d;
+	//vtkSmartPointer<vtkRenderer> renderer_axial;
+	//vtkSmartPointer<vtkRenderer> renderer_sagittal;
+	//vtkSmartPointer<vtkRenderer> renderer_coronal;
+
+
+	renderer_3d = renderWindow_3d->GetRenderers()->GetFirstRenderer();
+	//renderer_axial = renderWindow_axial->GetRenderers()->GetFirstRenderer();
+	//renderer_sagittal = renderWindow_sagittal->GetRenderers()->GetFirstRenderer();
+	//renderer_coronal = renderWindow_coronal->GetRenderers()->GetFirstRenderer();
+
+
+	//renderer->RemoveActor(renderer->GetActors()->GetLastActor());
+
+	renderer_3d->AddActor(actor);
+	//renderer_axial->AddActor(actor);
+	//renderer_sagittal->AddActor(actor);
+	//renderer_coronal->AddActor(actor);
+
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+
+}
+
+void MoveData::on_pushButton_splitFemurMesh_clicked()
+{
+	if (GetDataStorage()->GetNamedNode("femur") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("femur is missing");
+		return;
+	}
+
+	auto cupSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("femur")->GetData());
+
+	vtkNew<vtkPolyDataNormals> normals;
+	normals->SetInputData(cupSurface->GetVtkPolyData());
+	normals->SetFeatureAngle(m_Controls.lineEdit_featureAngle->text().toDouble());
+	normals->SplittingOn();
+	normals->Update();
+
+	vtkNew<vtkConnectivityFilter> vtkConnectivityFilter;
+	vtkConnectivityFilter->SetInputData(normals->GetOutput());
+
+	// Extract all planes
+	/// <summary>
+	vtkConnectivityFilter->SetExtractionModeToAllRegions();
+	vtkConnectivityFilter->Update();
+	int numberOfPotentialSteelBalls = vtkConnectivityFilter->GetNumberOfExtractedRegions();
+	
+	
+	vtkConnectivityFilter->SetExtractionModeToSpecifiedRegions();
+	for (int m = 0; m < numberOfPotentialSteelBalls; m++)
+	{
+		vtkConnectivityFilter->InitializeSpecifiedRegionList();
+		vtkConnectivityFilter->AddSpecifiedRegion(m);
+		vtkConnectivityFilter->Update();
+	
+		auto cleanFilter = vtkCleanPolyData::New();
+		cleanFilter->SetInputData(vtkConnectivityFilter->GetPolyDataOutput());
+		cleanFilter->Update();
+	
+		auto vtkPiece = vtkPolyData::New();
+		vtkPiece->DeepCopy(cleanFilter->GetOutput());
+	
+		if(vtkPiece->GetNumberOfCells() < 5)
+		{
+			continue;
+		}
+	
+		if(IsPolyDataFlat(vtkPiece,0.02) == false)
+		{
+			continue;
+		}
+	
+		auto newNode = mitk::DataNode::New();
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(vtkPiece);
+		newNode->SetName("split node");
+		newNode->SetData(newSurface);
+		GetDataStorage()->Add(newNode);
+	}
+	/// </summary>
+
+
+	// Extract Largest 
+	// vtkConnectivityFilter->SetExtractionModeToLargestRegion();
+	// vtkConnectivityFilter->Update();
+	//
+	// auto newNode = mitk::DataNode::New();
+	// auto newSurface = mitk::Surface::New();
+	// newSurface->SetVtkPolyData(vtkConnectivityFilter->GetPolyDataOutput());
+	// newNode->SetName("Contact surface");
+	// newNode->SetData(newSurface);
+	// GetDataStorage()->Add(newNode);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}
+
 void MoveData::on_pushButton_extractCupOutLayer_clicked()
 {
 	if(GetDataStorage()->GetNamedNode("cup")== nullptr)
 	{
 		m_Controls.textBrowser_moveData->append("cup is missing");
+		return;
 	}
 
 	auto cupSurface = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup")->GetData());

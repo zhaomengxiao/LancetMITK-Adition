@@ -1680,7 +1680,7 @@
         <string>Extract cup contact surface</string>
        </property>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>500</x>
@@ -1705,6 +1705,32 @@
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QPushButton" name="pushButton_splitFemurMesh">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>410</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Split femur mesh</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_cupBMD">
+       <property name="geometry">
+        <rect>
+         <x>624</x>
+         <y>410</y>
+         <width>91</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Cup BMD</string>
+       </property>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_5">
