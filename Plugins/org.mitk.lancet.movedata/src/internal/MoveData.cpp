@@ -1973,6 +1973,225 @@ bool MoveData::IsPolyDataFlat(vtkPolyData* polyData, double tolerance)
 	return true;
 }
 
+/*void MoveData::on_pushButton_gen2Stencils_clicked()
+{
+	// Step 0: Check data availability
+	if (GetDataStorage()->GetNamedNode("cup") == nullptr ||
+		GetDataStorage()->GetNamedNode("cup+") == nullptr ||
+		GetDataStorage()->GetNamedNode("bone") == nullptr)
+	{
+		m_Controls.textBrowser_moveData->append("bone, cup or cup+ is missing");
+		return;
+	}
+
+	auto surface_cup = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup")->GetData());
+	auto surface_cupPlus = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("cup+")->GetData());
+	auto surface_bone = dynamic_cast<mitk::Surface*>(GetDataStorage()->GetNamedNode("bone")->GetData());
+	GetDataStorage()->GetNamedNode("bone")->SetVisibility(false);
+
+	auto polyData_cup = surface_cup->GetVtkPolyData();
+	auto matrix_cup = surface_cup->GetGeometry()->GetVtkMatrix();
+	auto trans_cup = vtkTransform::New();
+	trans_cup->SetMatrix(matrix_cup);
+
+	auto transFilter_cup = vtkTransformPolyDataFilter::New();
+	transFilter_cup->SetTransform(trans_cup);
+	transFilter_cup->SetInputData(polyData_cup);
+	transFilter_cup->Update();
+
+	auto movedPolyData_cup = transFilter_cup->GetOutput();
+
+	auto polyData_cupPlus = surface_cupPlus->GetVtkPolyData();
+	auto matrix_cupPlus = surface_cupPlus->GetGeometry()->GetVtkMatrix();
+	auto trans_cupPlus = vtkTransform::New();
+	trans_cupPlus->SetMatrix(matrix_cupPlus);
+
+	auto transFilter_cupPlus = vtkTransformPolyDataFilter::New();
+	transFilter_cupPlus->SetTransform(trans_cupPlus);
+	transFilter_cupPlus->SetInputData(polyData_cupPlus);
+	transFilter_cupPlus->Update();
+
+	auto movedPolyData_cupPlus = transFilter_cupPlus->GetOutput();
+
+	auto polyData_bone = surface_bone->GetVtkPolyData();
+	auto matrix_bone = surface_bone->GetGeometry()->GetVtkMatrix();
+	auto trans_bone = vtkTransform::New();
+	trans_bone->SetMatrix(matrix_bone);
+
+	auto transFilter_bone = vtkTransformPolyDataFilter::New();
+	transFilter_bone->SetTransform(trans_bone);
+	transFilter_bone->SetInputData(polyData_bone);
+	transFilter_bone->Update();
+
+	auto movedPolyData_bone = transFilter_bone->GetOutput();
+
+	// Step 1: Generate the green stencil
+	auto bf_green = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	bf_green->SetInputData(0, movedPolyData_bone);
+	bf_green->SetInputData(1, movedPolyData_cup);
+	bf_green->SetOperModeToIntersection();
+	bf_green->Update();
+
+	vtkNew<vtkPolyDataNormals> normals_green;
+	normals_green->SetInputData(bf_green->GetOutput());
+	normals_green->ComputePointNormalsOn();
+	normals_green->ComputeCellNormalsOn();
+	normals_green->SetFeatureAngle(20);
+	normals_green->Update();
+
+	// Step 2: Generate the red stencil
+	auto bf_red = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	bf_red->SetInputData(0, movedPolyData_bone);
+	bf_red->SetInputData(1, movedPolyData_cupPlus);
+	bf_red->SetOperModeToDifference();
+	bf_red->Update();
+
+	vtkNew<vtkPolyDataNormals> normals_red;
+	normals_red->SetInputData(bf_red->GetOutput());
+	normals_red->ComputePointNormalsOn();
+	normals_red->ComputeCellNormalsOn();
+	normals_red->SetFeatureAngle(20);
+	normals_red->Update();
+
+
+
+	if (normals_green->GetOutput()->GetNumberOfCells() > 0 && normals_red->GetOutput()->GetNumberOfCells() > 0)
+	{
+		vtkNew<vtkWarpVector> warper_G;
+		warper_G->SetInputData(normals_green->GetOutput());
+		warper_G->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+			vtkDataSetAttributes::NORMALS);
+		warper_G->SetScaleFactor(0.07);
+		warper_G->Update();
+
+		auto newNode = mitk::DataNode::New();
+		auto newSurface = mitk::Surface::New();
+		newSurface->SetVtkPolyData(warper_G->GetPolyDataOutput());
+		newNode->SetName("Green_stencil");
+		newNode->SetData(newSurface);
+		GetDataStorage()->Add(newNode);
+		newNode->SetVisibility(false);
+
+		// vtkNew<vtkWarpVector> warper_R;
+		// warper_R->SetInputData(normals_red->GetOutput());
+		// warper_R->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+		// 	vtkDataSetAttributes::NORMALS);
+		// warper_R->SetScaleFactor(-0.1);
+		// warper_R->Update();
+
+		auto newNode_ = mitk::DataNode::New();
+		auto newSurface_ = mitk::Surface::New();
+		newSurface_->SetVtkPolyData(normals_red->GetOutput());
+		newNode_->SetName("Red_stencil");
+		newNode_->SetData(newSurface_);
+		GetDataStorage()->Add(newNode_);
+		newNode_->SetVisibility(false);
+
+	}
+	else
+	{
+		m_Controls.textBrowser_moveData->append("No intersection between the implant and the bone!");
+		return;
+	}
+
+	// Generate the bone to display
+	vtkNew<vtkWarpVector> warper_bone;
+	warper_bone->SetInputData(polyData_bone);
+	warper_bone->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS,
+		vtkDataSetAttributes::NORMALS);
+	warper_bone->SetScaleFactor(0.05);
+	warper_bone->Update();
+
+	vtkNew<vtkPolyDataNormals> normals_warped_bone;
+	normals_warped_bone->SetInputData(warper_bone->GetPolyDataOutput());
+	normals_warped_bone->ComputePointNormalsOn();
+	normals_warped_bone->ComputeCellNormalsOn();
+	normals_warped_bone->SetFeatureAngle(20);
+	normals_warped_bone->Update();
+
+	auto warped_bone = normals_warped_bone->GetOutput();
+
+	auto newNode = mitk::DataNode::New();
+	auto newSurface = mitk::Surface::New();
+	newSurface->SetVtkPolyData(warped_bone);
+	newNode->SetName("bone_display");
+	newNode->SetData(newSurface);
+	GetDataStorage()->Add(newNode);
+
+
+
+	// Step 4 (optional): Do the coloring
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_G = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_G->SetInputData(warped_bone);
+	selectEnclosedPoints_G->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Green_stencil")->GetVtkPolyData());
+	// selectEnclosedPoints_G->SetTolerance(1);
+	selectEnclosedPoints_G->Update();
+
+	vtkSmartPointer<vtkSelectEnclosedPoints> selectEnclosedPoints_R = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+	selectEnclosedPoints_R->SetInputData(warped_bone);
+	selectEnclosedPoints_R->SetSurfaceData(GetDataStorage()->GetNamedObject<mitk::Surface>("Red_stencil")->GetVtkPolyData());
+	selectEnclosedPoints_R->Update();
+
+	// vtkSmartPointer<vtkPoints> insidePoints = vtkSmartPointer<vtkPoints>::New();
+	// vtkSmartPointer<vtkCellArray> insideCells = vtkSmartPointer<vtkCellArray>::New();
+
+	vtkSmartPointer<vtkFloatArray> scalars = vtkSmartPointer<vtkFloatArray>::New();
+	scalars->SetNumberOfComponents(1);
+	scalars->SetName("Scalars");
+
+	for (vtkIdType i = 0; i < warped_bone->GetNumberOfPoints(); ++i)
+	{
+		if (selectEnclosedPoints_G->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(100);
+			continue;
+		}
+
+		if (selectEnclosedPoints_R->IsInside(i))
+		{
+			// insidePoints->InsertNextPoint(bone->GetPoint(i));
+			scalars->InsertNextValue(250);
+			continue;
+		}
+
+		scalars->InsertNextValue(0);
+
+	}
+
+	warped_bone->GetPointData()->SetScalars(scalars);
+
+	mitk::TransferFunctionProperty::Pointer transferProp0;
+	GetDataStorage()->GetNamedNode("bone_display")->GetProperty(transferProp0, "Surface.TransferFunction");
+
+	// Create a transfer function
+	mitk::TransferFunction::Pointer transferFunction = mitk::TransferFunction::New();
+
+	// Modify the transfer function (add control points, adjust properties, etc.)
+	// For example, you can add control points for opacity and color:
+	transferFunction->AddRGBPoint(0, 1.0, 1.0, 1.0);
+	transferFunction->AddRGBPoint(100, 0.0, 1.0, 0.0);
+	transferFunction->AddRGBPoint(255, 1.0, 0.0, 0.0);
+	transferFunction->AddScalarOpacityPoint(0, 0);
+
+
+	if (transferProp0 != nullptr)
+	{
+		transferProp0->SetValue(transferFunction);
+	}
+	else
+	{
+		transferProp0 = mitk::TransferFunctionProperty::New();
+		transferProp0->SetValue(transferFunction);
+	}
+
+	GetDataStorage()->GetNamedNode("bone_display")->SetProperty("Surface.TransferFunction", transferProp0);
+	GetDataStorage()->GetNamedNode("bone_display")->SetBoolProperty("scalar visibility", true);
+	GetDataStorage()->GetNamedNode("bone_display")->SetFloatProperty("material.specularCoefficient", 0);
+
+	mitk::RenderingManager::GetInstance()->RequestUpdateAll();
+}*/
+
 void MoveData::on_pushButton_cupBMD_clicked()
 {
 	auto originalImageNode = GetDataStorage()->GetNamedNode("CBCT");
