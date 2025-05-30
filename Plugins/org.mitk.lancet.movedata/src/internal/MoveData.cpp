@@ -2024,58 +2024,46 @@ void MoveData::on_pushButton_cupBMD_clicked()
 		}
 	}
 
-	//vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
-	//lut->SetNumberOfTableValues(5); // 设置特定区间颜色
-	//lut->SetTableValue(0, 0.0, 0.0, 0.0, 1.0); // 黑色
-	//lut->SetTableValue(1, 1.0, 1.0, 0.0, 1.0); // 黄色
-	//lut->SetTableValue(2, 0.0, 1.0, 0.0, 1.0); // 浅绿色
-	//lut->SetTableValue(3, 0.0, 1.0, 1.0, 1.0); // 浅蓝色
-	//lut->SetTableValue(4, 0.5, 0.5, 0.5, 1.0); // 灰色
-	//lut->SetRange(-1000, 3071);
-	//lut->Build();
-
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	lut->SetNumberOfTableValues(256);
-	lut->SetRange(-1000, 5151); // 骨密度范围
+	lut->SetRange(-1000, 5151);
 	lut->Build();
 
 	double minRange = -1000.0;
 	double maxRange = 5151.0;
 
-	// 计算每个阈值对应的查找表索引
 	int indexBlack = static_cast<int>((150 - minRange) / (maxRange - minRange) * 255);
 	int indexYellow = static_cast<int>((350 - minRange) / (maxRange - minRange) * 255);
 	int indexLightGreen = static_cast<int>((500 - minRange) / (maxRange - minRange) * 255);
 	int indexLightBlue = static_cast<int>((600 - minRange) / (maxRange - minRange) * 255);
-	int indexGray = 255;
 
 	for (int i = 0; i < 256; ++i) {
 		if (i < indexBlack) {
-			// 黑色
+			// Dunkel
 			lut->SetTableValue(i, 0.0, 0.0, 0.0, 1.0);
 		}
 		else if (i < indexYellow) {
-			// 黄色
+			// Gelb
 			lut->SetTableValue(i, 1.0, 1.0, 0.0, 1.0);
 		}
 		else if (i < indexLightGreen) {
-			// 浅绿色
+			// Grün
 			lut->SetTableValue(i, 0.0, 1.0, 0.0, 1.0);
+			
 		}
 		else if (i < indexLightBlue) {
-			// 浅蓝色
+			// Blau
 			lut->SetTableValue(i, 0.0, 1.0, 1.0, 1.0);
 		}
 		else {
-			// 灰色
+			// Grau
 			lut->SetTableValue(i, 0.5, 0.5, 0.5, 1.0);
+			
 		}
 	}
 
 	lut->Build();
 
-
-	// 将骨密度数组添加到 polyData 的点数据中
 	polyData->GetPointData()->AddArray(boneDensityArray);
 	polyData->GetPointData()->SetScalars(boneDensityArray);
 	polyData->GetPointData()->GetScalars()->SetLookupTable(lut);
@@ -2095,7 +2083,7 @@ void MoveData::on_pushButton_cupBMD_clicked()
 	//	vtkSmartPointer<vtkScalarBarActor>::New();
 	//scalarBar->SetLookupTable(mapper->GetLookupTable());
 	//scalarBar->SetTitle(polyData->GetPointData()->GetScalars()->GetName());
-	//scalarBar->SetNumberOfLabels(5); //设置5个标签  
+	//scalarBar->SetNumberOfLabels(5); 
 
 	//vtkSmartPointer<vtkRenderer> render =
 	//	vtkSmartPointer<vtkRenderer>::New();
